@@ -16,11 +16,12 @@
 
 set -e
 shopt -s extglob
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.1.0 # magma version number
-SCTPD_MIN_VERSION=1.0.2 # earliest version of sctpd with which this version is compatible
+VERSION=1.4.0 # magma version number
+SCTPD_MIN_VERSION=1.4.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -112,13 +113,15 @@ MAGMA_DEPS=(
     "libboost-chrono-dev" # required for folly
     "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
+    "python3-scapy >= 2.4.3-4"
+    "tshark" # required for call tracing
     )
 
 # OAI runtime dependencies
 OAI_DEPS=(
     "libasan3"
     "libconfig9"
-    "oai-asn1c >= 0~20160721+c3~r43c4a295"
+    "oai-asn1c"
     "oai-freediameter >= 1.2.0-1"
     "oai-gnutls >= 3.1.23"
     "oai-nettle >= 1.0.1"
@@ -126,11 +129,17 @@ OAI_DEPS=(
     "liblfds710"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
+    "oai-gtp >= 4.9-5"
     )
 
 # OVS runtime dependencies
 OVS_DEPS=(
-    "magma-libfluid >= 0.1.0.4"
+    "magma-libfluid >= 0.1.0.5"
+    "libopenvswitch >= 2.8.9"
+    "openvswitch-switch >= 2.8.9"
+    "openvswitch-common >= 2.8.9"
+    "python-openvswitch >= 2.8.9"
+    "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.9"
     )
 
 # generate string for FPM
@@ -227,11 +236,18 @@ FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
 # library will be dropped in $PY_TMP_BUILD/usr/lib/python3/dist-packages
 # scripts will be dropped in $PY_TMP_BUILD/usr/bin.
 # Use pydep to generate the lockfile and python deps
+# update magma.lockfile if needed (see Makefile)
+# adjust mtime of a setup.py to force update
+# (e.g. `touch ${PY_LTE}/setup.py`)
+pushd "${RELEASE_DIR}" || exit 1
+make -e magma.lockfile
+popd
+
 cd ${PY_ORC8R}
 make protos
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
-${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
+
 ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
 
 cd ${PY_LTE}
@@ -334,6 +350,16 @@ ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
-$(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/)"
+$(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
+$(glob_files "${ANSIBLE_FILES}/config_stateless_*.sh" /usr/local/bin/)"
 
 eval "$BUILDCMD"
+
+cd "${MAGMA_ROOT}"
+OVS_DIFF_LINES=$(git diff master -- third_party/gtp_ovs/ lte/gateway/release/build-ovs.sh | wc -l | tr -dc 0-9)
+
+# if env var FORCE_OVS_BUILD is non-empty or there is are changes to openvswitch-related files build openvswitch
+if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
+    cd "${PWD}"
+    "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
+fi

@@ -109,7 +109,7 @@ RUN make -C $MAGMA_ROOT/cwf/gateway build
 FROM ubuntu:bionic AS cwag_go
 
 # Install envdir.
-RUN apt-get -y update && apt-get -y install daemontools curl iptables
+RUN apt-get -y update && apt-get -y install daemontools curl arping
 
 # Copy the build artifacts.
 COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin

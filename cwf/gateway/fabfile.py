@@ -12,9 +12,9 @@ limitations under the License.
 """
 from enum import Enum
 
-import sys
+import sys, time, os
 from fabric.api import (cd, env, execute, lcd, local, put, run, settings,
-                        sudo, shell_env)
+                        sudo, shell_env, get, hide)
 from fabric.contrib import files
 sys.path.append('../../orc8r')
 
@@ -38,7 +38,7 @@ class SubTests(Enum):
     GX = "gx"
     GY = "gy"
     QOS = "qos"
-    MULTISESSIONPROXY = "multi_session_proxy"
+    HSSLESS = "hssless"
 
     @staticmethod
     def list():
@@ -49,7 +49,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
                gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
                transfer_images=False, destroy_vm=False, no_build=False,
                tests_to_run="all", skip_unit_tests=False, test_re=None,
-               run_tests=True):
+               test_result_xml=None, run_tests=True, count="1"):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -105,8 +105,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
             execute(_build_gateway)
 
     execute(_run_gateway)
-    # Stop not necessary services for this test case
-    execute(_stop_docker_services, ["pcrf2", "ocs2"])
 
     # Setup the trfserver: use the provided trfserver if given, else default to
     # the vagrant machine
@@ -129,7 +127,10 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # Get back to the gateway vm to setup static arp
     _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
     execute(_set_cwag_networking, cwag_test_br_mac)
-    execute(_check_docker_services)
+
+    # check if docker services are alive except for OCS2 and PCRF2
+    ignore_list = ["ocs2", "pcrf2"]
+    execute(_check_docker_services, ignore_list)
 
     _switch_to_vm_no_destroy(gateway_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
@@ -140,24 +141,15 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         print("run_test was set to false. Test will not be run\n"
               "You can now run the tests manually from cwag_test")
         sys.exit(0)
-
-    if tests_to_run.value not in SubTests.MULTISESSIONPROXY.value:
-        execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
-
-    # Setup environment for multi service proxy if required
-    if tests_to_run.value in (SubTests.ALL.value,
-                              SubTests.MULTISESSIONPROXY.value):
+    
+    # HSSLESS tests are to be executed from gateway_host VM
+    if tests_to_run.value == SubTests.HSSLESS.value:
         _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
-
-        # copy new config and restart the impacted services
-        execute(_set_cwag_configs, "gateway.mconfig.multi_session_proxy")
-        execute(_restart_docker_services, ["session_proxy", "pcrf", "ocs",
-                                           "pcrf2", "ocs2", "ingress"])
-        execute(_check_docker_services)
-
-        _switch_to_vm_no_destroy(gateway_host, "cwag_test", "cwag_test.yml")
+        execute(_run_integ_tests, gateway_host, trf_host,
+                tests_to_run, test_re, count, test_result_xml)
+    else:
         execute(_run_integ_tests, test_host, trf_host,
-                SubTests.MULTISESSIONPROXY, test_re)
+                tests_to_run, test_re, count, test_result_xml)
 
     # If we got here means everything work well!!
     if not test_host and not trf_host:
@@ -349,19 +341,32 @@ def _stop_docker_services(services):
         )
 
 
-def _check_docker_services():
-    with cd(CWAG_ROOT + "/docker"):
-        run(
-            " DCPS=$(docker ps --format \"{{.Names}}\t{{.Status}}\" | grep Restarting);"
-            " [[ -z \"$DCPS\" ]] ||"
-            " ( echo \"Container restarting detected.\" ; echo \"$DCPS\"; exit 1 )"
-        )
+def _check_docker_services(ignore_list):
+    with cd(CWAG_ROOT + "/docker"), settings(warn_only=True), hide("warnings"):
+
+        grep_ignore = "| grep --invert-match '" + \
+                     '\|'.join(ignore_list) + "'" if ignore_list else ""
+        count = 0
+        while (count < 5):
+            # force wait to make sure docker logs are up
+            time.sleep(1)
+            result = run(" docker ps --format \"{{.Names}}\t{{.Status}}\" | "
+                         "grep Restarting" + grep_ignore )
+
+            if result.return_code == 1:
+                # grep returns code 1 when empty string
+                return
+            print("Container restarting detected. Trying one more time")
+            count+=1
+    # if we got here, that means all attempts failed
+    print("ERROR: Test NOT started due to docker container restarting")
+    sys.exit(1)
 
 
 def _start_ue_simulator():
-    """ Starts the UE Sim Service """
+    """ Starts the UE Sim Service and logs into uesim.log"""
     with cd(CWAG_ROOT + '/services/uesim/uesim'):
-        run('tmux new -d \'go run main.go -logtostderr=true -v=2\'')
+        run('tmux new -d \'go run main.go -logtostderr=true -v=9 &> %s/uesim.log\'' % CWAG_ROOT)
 
 
 def _start_trfserver():
@@ -383,7 +388,7 @@ def _add_docker_host_remote_network_envvar():
 
 
 def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
-                     test_re=None):
+                     test_re=None, count="1", test_result_xml=None):
     """ Run the integration tests """
     # add docker host environment as well
     shell_env_vars = {
@@ -393,11 +398,14 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
     if test_re:
         shell_env_vars["TESTS"] = test_re
 
-    # QOS take a while to run. Increasing the timeout to 20m
-    go_test_cmd = "go test -v -test.short -timeout 20m"
-    go_test_cmd += " -tags " + tests_to_run.value
+    # QOS take a while to run. Increasing the timeout to 50m
+    go_test_cmd = "gotestsum --format=standard-verbose "
+    if test_result_xml: # generate test result XML in cwf/gateway directory
+        go_test_cmd += "--junitfile ../" + test_result_xml + " "
+    go_test_cmd += " -- -test.short -timeout 50m -count " + count # go test args
+    go_test_cmd += " -tags=" + tests_to_run.value
     if test_re:
-        go_test_cmd += " -run " + test_re
+        go_test_cmd += " -run=" + test_re
 
     with cd(CWAG_INTEG_ROOT), shell_env(**shell_env_vars):
         result = run(go_test_cmd, warn_only=True)
@@ -416,3 +424,6 @@ def _clean_up():
     with lcd(LTE_AGW_ROOT):
         vagrant_setup("magma_trfserver", False)
         run('pkill iperf3 > /dev/null &', pty=False, warn_only=True)
+
+class FabricException(Exception):
+    pass

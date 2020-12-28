@@ -34,16 +34,19 @@ type RATType int32
 const (
 	RATType_TGPP_LTE  RATType = 0
 	RATType_TGPP_WLAN RATType = 1
+	RATType_TGPP_NR   RATType = 2
 )
 
 var RATType_name = map[int32]string{
 	0: "TGPP_LTE",
 	1: "TGPP_WLAN",
+	2: "TGPP_NR",
 }
 
 var RATType_value = map[string]int32{
 	"TGPP_LTE":  0,
 	"TGPP_WLAN": 1,
+	"TGPP_NR":   2,
 }
 
 func (x RATType) String() string {
@@ -358,6 +361,384 @@ func (MonitoringLevel) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_85add0446af78174, []int{5}
 }
 
+//PduSessionType
+type PduSessionType int32
+
+const (
+	PduSessionType_IPV4         PduSessionType = 0
+	PduSessionType_IPV6         PduSessionType = 1
+	PduSessionType_IPV4IPV6     PduSessionType = 2
+	PduSessionType_UNSTRUCTURED PduSessionType = 3
+)
+
+var PduSessionType_name = map[int32]string{
+	0: "IPV4",
+	1: "IPV6",
+	2: "IPV4IPV6",
+	3: "UNSTRUCTURED",
+}
+
+var PduSessionType_value = map[string]int32{
+	"IPV4":         0,
+	"IPV6":         1,
+	"IPV4IPV6":     2,
+	"UNSTRUCTURED": 3,
+}
+
+func (x PduSessionType) String() string {
+	return proto.EnumName(PduSessionType_name, int32(x))
+}
+
+func (PduSessionType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{6}
+}
+
+//SscMode
+type SscMode int32
+
+const (
+	SscMode_SSC_MODE_1 SscMode = 0
+	SscMode_SSC_MODE_2 SscMode = 1
+	SscMode_SSC_MODE_3 SscMode = 2
+)
+
+var SscMode_name = map[int32]string{
+	0: "SSC_MODE_1",
+	1: "SSC_MODE_2",
+	2: "SSC_MODE_3",
+}
+
+var SscMode_value = map[string]int32{
+	"SSC_MODE_1": 0,
+	"SSC_MODE_2": 1,
+	"SSC_MODE_3": 2,
+}
+
+func (x SscMode) String() string {
+	return proto.EnumName(SscMode_name, int32(x))
+}
+
+func (SscMode) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{7}
+}
+
+//M5GSMCause
+type M5GSMCause int32
+
+const (
+	M5GSMCause_OPERATOR_DETERMINED_BARRING                                             M5GSMCause = 0
+	M5GSMCause_INSUFFICIENT_RESOURCES                                                  M5GSMCause = 1
+	M5GSMCause_MISSING_OR_UNKNOWN_DNN                                                  M5GSMCause = 2
+	M5GSMCause_UNKNOWN_PDU_SESSION_TYPE                                                M5GSMCause = 3
+	M5GSMCause_USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED                             M5GSMCause = 4
+	M5GSMCause_REQUEST_REJECTED_UNSPECIFIED                                            M5GSMCause = 5
+	M5GSMCause_SERVICE_OPTION_NOT_SUPPORTED                                            M5GSMCause = 6
+	M5GSMCause_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED                                 M5GSMCause = 7
+	M5GSMCause_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER                                 M5GSMCause = 8
+	M5GSMCause_REGULAR_DEACTIVATION                                                    M5GSMCause = 10
+	M5GSMCause_NETWORK_FAILURE                                                         M5GSMCause = 11
+	M5GSMCause_REACTIVATION_REQUESTED                                                  M5GSMCause = 12
+	M5GSMCause_INVALID_PDU_SESSION_IDENTITY                                            M5GSMCause = 13
+	M5GSMCause_SEMANTIC_ERRORS_IN_PACKET_FILTER                                        M5GSMCause = 14
+	M5GSMCause_SYNTACTICAL_ERROR_IN_PACKET_FILTER                                      M5GSMCause = 15
+	M5GSMCause_OUT_OF_LADN_SERVICE_AREA                                                M5GSMCause = 16
+	M5GSMCause_PTI_MISMATCH                                                            M5GSMCause = 17
+	M5GSMCause_PDU_SESSION_TYPE_IPV4_ONLY_ALLOWED                                      M5GSMCause = 18
+	M5GSMCause_PDU_SESSION_TYPE_IPV6_ONLY_ALLOWED                                      M5GSMCause = 19
+	M5GSMCause_PDU_SESSION_DOES_NOT_EXIST                                              M5GSMCause = 20
+	M5GSMCause_INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE_AND_DNN                       M5GSMCause = 21
+	M5GSMCause_NOT_SUPPORTED_SSC_MODE                                                  M5GSMCause = 22
+	M5GSMCause_INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE                               M5GSMCause = 23
+	M5GSMCause_MISSING_OR_UNKNOWN_DNN_IN_A_SLICE                                       M5GSMCause = 24
+	M5GSMCause_INVALID_PTI_VALUE                                                       M5GSMCause = 25
+	M5GSMCause_MAXIMUM_DATA_RATE_PER_UE_FOR_USER_PLANE_INTEGRITY_PROTECTION_IS_TOO_LOW M5GSMCause = 26
+	M5GSMCause_SEMANTIC_ERROR_IN_THE_QOS_OPERATION                                     M5GSMCause = 27
+	M5GSMCause_SYNTACTICAL_ERROR_IN_THE_QOS_OPERATION                                  M5GSMCause = 28
+	M5GSMCause_INVALID_MAPPED_EPS_BEARER_IDENTITY                                      M5GSMCause = 29
+	M5GSMCause_SEMANTICALLY_INCORRECT_MESSAGE                                          M5GSMCause = 30
+	M5GSMCause_INVALID_MANDATORY_INFORMATION                                           M5GSMCause = 31
+	M5GSMCause_MESSAGE_TYPE_NON_EXISTENT_OR_NOT_IMPLEMENTED                            M5GSMCause = 32
+	M5GSMCause_MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE                     M5GSMCause = 33
+	M5GSMCause_INFORMATION_ELEMENT_NON_EXISTENT_OR_NOT_IMPLEMENTED                     M5GSMCause = 34
+	M5GSMCause_CONDITIONAL_IE_ERROR                                                    M5GSMCause = 35
+	M5GSMCause_MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE                          M5GSMCause = 36
+	M5GSMCause_PROTOCOL_ERROR_UNSPECIFIED                                              M5GSMCause = 37
+	M5GSMCause_PTI_ALREADY_IN_USE                                                      M5GSMCause = 38
+	M5GSMCause_OPERATION_SUCCESS                                                       M5GSMCause = 40
+)
+
+var M5GSMCause_name = map[int32]string{
+	0:  "OPERATOR_DETERMINED_BARRING",
+	1:  "INSUFFICIENT_RESOURCES",
+	2:  "MISSING_OR_UNKNOWN_DNN",
+	3:  "UNKNOWN_PDU_SESSION_TYPE",
+	4:  "USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED",
+	5:  "REQUEST_REJECTED_UNSPECIFIED",
+	6:  "SERVICE_OPTION_NOT_SUPPORTED",
+	7:  "REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED",
+	8:  "SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER",
+	10: "REGULAR_DEACTIVATION",
+	11: "NETWORK_FAILURE",
+	12: "REACTIVATION_REQUESTED",
+	13: "INVALID_PDU_SESSION_IDENTITY",
+	14: "SEMANTIC_ERRORS_IN_PACKET_FILTER",
+	15: "SYNTACTICAL_ERROR_IN_PACKET_FILTER",
+	16: "OUT_OF_LADN_SERVICE_AREA",
+	17: "PTI_MISMATCH",
+	18: "PDU_SESSION_TYPE_IPV4_ONLY_ALLOWED",
+	19: "PDU_SESSION_TYPE_IPV6_ONLY_ALLOWED",
+	20: "PDU_SESSION_DOES_NOT_EXIST",
+	21: "INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE_AND_DNN",
+	22: "NOT_SUPPORTED_SSC_MODE",
+	23: "INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE",
+	24: "MISSING_OR_UNKNOWN_DNN_IN_A_SLICE",
+	25: "INVALID_PTI_VALUE",
+	26: "MAXIMUM_DATA_RATE_PER_UE_FOR_USER_PLANE_INTEGRITY_PROTECTION_IS_TOO_LOW",
+	27: "SEMANTIC_ERROR_IN_THE_QOS_OPERATION",
+	28: "SYNTACTICAL_ERROR_IN_THE_QOS_OPERATION",
+	29: "INVALID_MAPPED_EPS_BEARER_IDENTITY",
+	30: "SEMANTICALLY_INCORRECT_MESSAGE",
+	31: "INVALID_MANDATORY_INFORMATION",
+	32: "MESSAGE_TYPE_NON_EXISTENT_OR_NOT_IMPLEMENTED",
+	33: "MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE",
+	34: "INFORMATION_ELEMENT_NON_EXISTENT_OR_NOT_IMPLEMENTED",
+	35: "CONDITIONAL_IE_ERROR",
+	36: "MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE",
+	37: "PROTOCOL_ERROR_UNSPECIFIED",
+	38: "PTI_ALREADY_IN_USE",
+	40: "OPERATION_SUCCESS",
+}
+
+var M5GSMCause_value = map[string]int32{
+	"OPERATOR_DETERMINED_BARRING":                                             0,
+	"INSUFFICIENT_RESOURCES":                                                  1,
+	"MISSING_OR_UNKNOWN_DNN":                                                  2,
+	"UNKNOWN_PDU_SESSION_TYPE":                                                3,
+	"USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED":                             4,
+	"REQUEST_REJECTED_UNSPECIFIED":                                            5,
+	"SERVICE_OPTION_NOT_SUPPORTED":                                            6,
+	"REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED":                                 7,
+	"SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER":                                 8,
+	"REGULAR_DEACTIVATION":                                                    10,
+	"NETWORK_FAILURE":                                                         11,
+	"REACTIVATION_REQUESTED":                                                  12,
+	"INVALID_PDU_SESSION_IDENTITY":                                            13,
+	"SEMANTIC_ERRORS_IN_PACKET_FILTER":                                        14,
+	"SYNTACTICAL_ERROR_IN_PACKET_FILTER":                                      15,
+	"OUT_OF_LADN_SERVICE_AREA":                                                16,
+	"PTI_MISMATCH":                                                            17,
+	"PDU_SESSION_TYPE_IPV4_ONLY_ALLOWED":                                      18,
+	"PDU_SESSION_TYPE_IPV6_ONLY_ALLOWED":                                      19,
+	"PDU_SESSION_DOES_NOT_EXIST":                                              20,
+	"INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE_AND_DNN":                       21,
+	"NOT_SUPPORTED_SSC_MODE":                                                  22,
+	"INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE":                               23,
+	"MISSING_OR_UNKNOWN_DNN_IN_A_SLICE":                                       24,
+	"INVALID_PTI_VALUE":                                                       25,
+	"MAXIMUM_DATA_RATE_PER_UE_FOR_USER_PLANE_INTEGRITY_PROTECTION_IS_TOO_LOW": 26,
+	"SEMANTIC_ERROR_IN_THE_QOS_OPERATION":                                     27,
+	"SYNTACTICAL_ERROR_IN_THE_QOS_OPERATION":                                  28,
+	"INVALID_MAPPED_EPS_BEARER_IDENTITY":                                      29,
+	"SEMANTICALLY_INCORRECT_MESSAGE":                                          30,
+	"INVALID_MANDATORY_INFORMATION":                                           31,
+	"MESSAGE_TYPE_NON_EXISTENT_OR_NOT_IMPLEMENTED":                            32,
+	"MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE":                     33,
+	"INFORMATION_ELEMENT_NON_EXISTENT_OR_NOT_IMPLEMENTED":                     34,
+	"CONDITIONAL_IE_ERROR":                                                    35,
+	"MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE":                          36,
+	"PROTOCOL_ERROR_UNSPECIFIED":                                              37,
+	"PTI_ALREADY_IN_USE":                                                      38,
+	"OPERATION_SUCCESS":                                                       40,
+}
+
+func (x M5GSMCause) String() string {
+	return proto.EnumName(M5GSMCause_name, int32(x))
+}
+
+func (M5GSMCause) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{8}
+}
+
+//RequestType
+type RequestType int32
+
+const (
+	RequestType_INITIAL_REQUEST                RequestType = 0
+	RequestType_EXISTING_PDU_SESSION           RequestType = 1
+	RequestType_INITIAL_EMERGENCY_REQUEST      RequestType = 2
+	RequestType_EXISTING_EMERGENCY_PDU_SESSION RequestType = 3
+	RequestType_MODIFICATION_REQUEST           RequestType = 4
+)
+
+var RequestType_name = map[int32]string{
+	0: "INITIAL_REQUEST",
+	1: "EXISTING_PDU_SESSION",
+	2: "INITIAL_EMERGENCY_REQUEST",
+	3: "EXISTING_EMERGENCY_PDU_SESSION",
+	4: "MODIFICATION_REQUEST",
+}
+
+var RequestType_value = map[string]int32{
+	"INITIAL_REQUEST":                0,
+	"EXISTING_PDU_SESSION":           1,
+	"INITIAL_EMERGENCY_REQUEST":      2,
+	"EXISTING_EMERGENCY_PDU_SESSION": 3,
+	"MODIFICATION_REQUEST":           4,
+}
+
+func (x RequestType) String() string {
+	return proto.EnumName(RequestType_name, int32(x))
+}
+
+func (RequestType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{9}
+}
+
+//AccessType
+type AccessType int32
+
+const (
+	AccessType_M_3GPP_ACCESS_3GPP AccessType = 0
+	AccessType_NON_3GPP_ACCESS    AccessType = 1
+)
+
+var AccessType_name = map[int32]string{
+	0: "M_3GPP_ACCESS_3GPP",
+	1: "NON_3GPP_ACCESS",
+}
+
+var AccessType_value = map[string]int32{
+	"M_3GPP_ACCESS_3GPP": 0,
+	"NON_3GPP_ACCESS":    1,
+}
+
+func (x AccessType) String() string {
+	return proto.EnumName(AccessType_name, int32(x))
+}
+
+func (AccessType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{10}
+}
+
+//DnnSelectionMode
+type DnnSelectionMode int32
+
+const (
+	DnnSelectionMode_VERIFIED            DnnSelectionMode = 0
+	DnnSelectionMode_UE_DNN_NOT_VERIFIED DnnSelectionMode = 1
+	DnnSelectionMode_NW_DNN_NOT_VERIFIED DnnSelectionMode = 2
+)
+
+var DnnSelectionMode_name = map[int32]string{
+	0: "VERIFIED",
+	1: "UE_DNN_NOT_VERIFIED",
+	2: "NW_DNN_NOT_VERIFIED",
+}
+
+var DnnSelectionMode_value = map[string]int32{
+	"VERIFIED":            0,
+	"UE_DNN_NOT_VERIFIED": 1,
+	"NW_DNN_NOT_VERIFIED": 2,
+}
+
+func (x DnnSelectionMode) String() string {
+	return proto.EnumName(DnnSelectionMode_name, int32(x))
+}
+
+func (DnnSelectionMode) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{11}
+}
+
+type TypeOfList int32
+
+const (
+	TypeOfList_LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_NON_CONSECUTIVE_TAC_VALUES TypeOfList = 0
+	TypeOfList_LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_CONSECUTIVE_TAC_VALUES     TypeOfList = 1
+	TypeOfList_LIST_OF_TAIS_BELONGING_TO_DIFFERENT_PLMNS                          TypeOfList = 2
+)
+
+var TypeOfList_name = map[int32]string{
+	0: "LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_NON_CONSECUTIVE_TAC_VALUES",
+	1: "LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_CONSECUTIVE_TAC_VALUES",
+	2: "LIST_OF_TAIS_BELONGING_TO_DIFFERENT_PLMNS",
+}
+
+var TypeOfList_value = map[string]int32{
+	"LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_NON_CONSECUTIVE_TAC_VALUES": 0,
+	"LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_CONSECUTIVE_TAC_VALUES":     1,
+	"LIST_OF_TAIS_BELONGING_TO_DIFFERENT_PLMNS":                          2,
+}
+
+func (x TypeOfList) String() string {
+	return proto.EnumName(TypeOfList_name, int32(x))
+}
+
+func (TypeOfList) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{12}
+}
+
+type Priorityaccess int32
+
+const (
+	Priorityaccess_High   Priorityaccess = 0
+	Priorityaccess_Normal Priorityaccess = 1
+	Priorityaccess_Low    Priorityaccess = 2
+)
+
+var Priorityaccess_name = map[int32]string{
+	0: "High",
+	1: "Normal",
+	2: "Low",
+}
+
+var Priorityaccess_value = map[string]int32{
+	"High":   0,
+	"Normal": 1,
+	"Low":    2,
+}
+
+func (x Priorityaccess) String() string {
+	return proto.EnumName(Priorityaccess_name, int32(x))
+}
+
+func (Priorityaccess) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{13}
+}
+
+type SMSessionFSMState int32
+
+const (
+	SMSessionFSMState_CREATING_0 SMSessionFSMState = 0
+	SMSessionFSMState_CREATE_1   SMSessionFSMState = 1
+	SMSessionFSMState_ACTIVE_2   SMSessionFSMState = 2
+	SMSessionFSMState_INACTIVE_3 SMSessionFSMState = 3
+	SMSessionFSMState_RELEASED_4 SMSessionFSMState = 4
+)
+
+var SMSessionFSMState_name = map[int32]string{
+	0: "CREATING_0",
+	1: "CREATE_1",
+	2: "ACTIVE_2",
+	3: "INACTIVE_3",
+	4: "RELEASED_4",
+}
+
+var SMSessionFSMState_value = map[string]int32{
+	"CREATING_0": 0,
+	"CREATE_1":   1,
+	"ACTIVE_2":   2,
+	"INACTIVE_3": 3,
+	"RELEASED_4": 4,
+}
+
+func (x SMSessionFSMState) String() string {
+	return proto.EnumName(SMSessionFSMState_name, int32(x))
+}
+
+func (SMSessionFSMState) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{14}
+}
+
 type ChargingReAuthRequest_Type int32
 
 const (
@@ -380,7 +761,7 @@ func (x ChargingReAuthRequest_Type) String() string {
 }
 
 func (ChargingReAuthRequest_Type) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{10, 0}
+	return fileDescriptor_85add0446af78174, []int{16, 0}
 }
 
 type PolicyReAuthAnswer_FailureCode int32
@@ -482,7 +863,7 @@ func (x PolicyReAuthAnswer_FailureCode) String() string {
 }
 
 func (PolicyReAuthAnswer_FailureCode) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{14, 0}
+	return fileDescriptor_85add0446af78174, []int{20, 0}
 }
 
 type RedirectServer_RedirectAddressType int32
@@ -513,7 +894,7 @@ func (x RedirectServer_RedirectAddressType) String() string {
 }
 
 func (RedirectServer_RedirectAddressType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{17, 0}
+	return fileDescriptor_85add0446af78174, []int{27, 0}
 }
 
 type ChargingCredit_UnitType int32
@@ -538,7 +919,7 @@ func (x ChargingCredit_UnitType) String() string {
 }
 
 func (ChargingCredit_UnitType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{18, 0}
+	return fileDescriptor_85add0446af78174, []int{28, 0}
 }
 
 type ChargingCredit_FinalAction int32
@@ -566,7 +947,7 @@ func (x ChargingCredit_FinalAction) String() string {
 }
 
 func (ChargingCredit_FinalAction) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{18, 1}
+	return fileDescriptor_85add0446af78174, []int{28, 1}
 }
 
 type CreditUsage_UpdateType int32
@@ -612,7 +993,7 @@ func (x CreditUsage_UpdateType) String() string {
 }
 
 func (CreditUsage_UpdateType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{19, 0}
+	return fileDescriptor_85add0446af78174, []int{30, 0}
 }
 
 type UsageMonitoringCredit_Action int32
@@ -620,16 +1001,19 @@ type UsageMonitoringCredit_Action int32
 const (
 	UsageMonitoringCredit_CONTINUE UsageMonitoringCredit_Action = 0
 	UsageMonitoringCredit_DISABLE  UsageMonitoringCredit_Action = 1
+	UsageMonitoringCredit_FORCE    UsageMonitoringCredit_Action = 2
 )
 
 var UsageMonitoringCredit_Action_name = map[int32]string{
 	0: "CONTINUE",
 	1: "DISABLE",
+	2: "FORCE",
 }
 
 var UsageMonitoringCredit_Action_value = map[string]int32{
 	"CONTINUE": 0,
 	"DISABLE":  1,
+	"FORCE":    2,
 }
 
 func (x UsageMonitoringCredit_Action) String() string {
@@ -637,7 +1021,100 @@ func (x UsageMonitoringCredit_Action) String() string {
 }
 
 func (UsageMonitoringCredit_Action) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{23, 0}
+	return fileDescriptor_85add0446af78174, []int{34, 0}
+}
+
+type NodeID_NodeIDType int32
+
+const (
+	NodeID_IPv4 NodeID_NodeIDType = 0
+	NodeID_IPv6 NodeID_NodeIDType = 1
+	NodeID_FQDN NodeID_NodeIDType = 2
+)
+
+var NodeID_NodeIDType_name = map[int32]string{
+	0: "IPv4",
+	1: "IPv6",
+	2: "FQDN",
+}
+
+var NodeID_NodeIDType_value = map[string]int32{
+	"IPv4": 0,
+	"IPv6": 1,
+	"FQDN": 2,
+}
+
+func (x NodeID_NodeIDType) String() string {
+	return proto.EnumName(NodeID_NodeIDType_name, int32(x))
+}
+
+func (NodeID_NodeIDType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{47, 0}
+}
+
+type UserPlaneIPResourceSchema_InterfaceValue int32
+
+const (
+	UserPlaneIPResourceSchema_ACCESS      UserPlaneIPResourceSchema_InterfaceValue = 0
+	UserPlaneIPResourceSchema_CORE        UserPlaneIPResourceSchema_InterfaceValue = 1
+	UserPlaneIPResourceSchema_LAN         UserPlaneIPResourceSchema_InterfaceValue = 2
+	UserPlaneIPResourceSchema_CP_FUNCTION UserPlaneIPResourceSchema_InterfaceValue = 3
+)
+
+var UserPlaneIPResourceSchema_InterfaceValue_name = map[int32]string{
+	0: "ACCESS",
+	1: "CORE",
+	2: "LAN",
+	3: "CP_FUNCTION",
+}
+
+var UserPlaneIPResourceSchema_InterfaceValue_value = map[string]int32{
+	"ACCESS":      0,
+	"CORE":        1,
+	"LAN":         2,
+	"CP_FUNCTION": 3,
+}
+
+func (x UserPlaneIPResourceSchema_InterfaceValue) String() string {
+	return proto.EnumName(UserPlaneIPResourceSchema_InterfaceValue_name, int32(x))
+}
+
+func (UserPlaneIPResourceSchema_InterfaceValue) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{59, 0}
+}
+
+type UPFAssociationState_AssociationState int32
+
+const (
+	UPFAssociationState_STARTED     UPFAssociationState_AssociationState = 0
+	UPFAssociationState_INITIATED   UPFAssociationState_AssociationState = 1
+	UPFAssociationState_ESTABLISHED UPFAssociationState_AssociationState = 2
+	UPFAssociationState_MODIFIED    UPFAssociationState_AssociationState = 3
+	UPFAssociationState_RELEASE     UPFAssociationState_AssociationState = 4
+)
+
+var UPFAssociationState_AssociationState_name = map[int32]string{
+	0: "STARTED",
+	1: "INITIATED",
+	2: "ESTABLISHED",
+	3: "MODIFIED",
+	4: "RELEASE",
+}
+
+var UPFAssociationState_AssociationState_value = map[string]int32{
+	"STARTED":     0,
+	"INITIATED":   1,
+	"ESTABLISHED": 2,
+	"MODIFIED":    3,
+	"RELEASE":     4,
+}
+
+func (x UPFAssociationState_AssociationState) String() string {
+	return proto.EnumName(UPFAssociationState_AssociationState_name, int32(x))
+}
+
+func (UPFAssociationState_AssociationState) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{60, 0}
 }
 
 type RuleRecord struct {
@@ -645,6 +1122,10 @@ type RuleRecord struct {
 	RuleId               string   `protobuf:"bytes,2,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
 	BytesTx              uint64   `protobuf:"varint,3,opt,name=bytes_tx,json=bytesTx,proto3" json:"bytes_tx,omitempty"`
 	BytesRx              uint64   `protobuf:"varint,4,opt,name=bytes_rx,json=bytesRx,proto3" json:"bytes_rx,omitempty"`
+	UeIpv4               string   `protobuf:"bytes,5,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
+	UeIpv6               string   `protobuf:"bytes,6,opt,name=ue_ipv6,json=ueIpv6,proto3" json:"ue_ipv6,omitempty"`
+	DroppedTx            uint64   `protobuf:"varint,7,opt,name=dropped_tx,json=droppedTx,proto3" json:"dropped_tx,omitempty"`
+	DroppedRx            uint64   `protobuf:"varint,8,opt,name=dropped_rx,json=droppedRx,proto3" json:"dropped_rx,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -703,6 +1184,34 @@ func (m *RuleRecord) GetBytesRx() uint64 {
 	return 0
 }
 
+func (m *RuleRecord) GetUeIpv4() string {
+	if m != nil {
+		return m.UeIpv4
+	}
+	return ""
+}
+
+func (m *RuleRecord) GetUeIpv6() string {
+	if m != nil {
+		return m.UeIpv6
+	}
+	return ""
+}
+
+func (m *RuleRecord) GetDroppedTx() uint64 {
+	if m != nil {
+		return m.DroppedTx
+	}
+	return 0
+}
+
+func (m *RuleRecord) GetDroppedRx() uint64 {
+	if m != nil {
+		return m.DroppedRx
+	}
+	return 0
+}
+
 type RuleRecordTable struct {
 	Records              []*RuleRecord `protobuf:"bytes,1,rep,name=records,proto3" json:"records,omitempty"`
 	Epoch                uint64        `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
@@ -751,25 +1260,11 @@ func (m *RuleRecordTable) GetEpoch() uint64 {
 }
 
 type LocalCreateSessionRequest struct {
-	Sid                  *SubscriberID          `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	UeIpv4               string                 `protobuf:"bytes,2,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
-	SpgwIpv4             string                 `protobuf:"bytes,3,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
-	Apn                  string                 `protobuf:"bytes,4,opt,name=apn,proto3" json:"apn,omitempty"`
-	Imei                 string                 `protobuf:"bytes,6,opt,name=imei,proto3" json:"imei,omitempty"`
-	PlmnId               string                 `protobuf:"bytes,7,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
-	ImsiPlmnId           string                 `protobuf:"bytes,8,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
-	UserLocation         []byte                 `protobuf:"bytes,9,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
-	QosInfo              *QosInformationRequest `protobuf:"bytes,10,opt,name=qos_info,json=qosInfo,proto3" json:"qos_info,omitempty"`
-	Msisdn               []byte                 `protobuf:"bytes,11,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
-	RatType              RATType                `protobuf:"varint,12,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
-	HardwareAddr         []byte                 `protobuf:"bytes,13,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
-	RadiusSessionId      string                 `protobuf:"bytes,14,opt,name=radius_session_id,json=radiusSessionId,proto3" json:"radius_session_id,omitempty"`
-	BearerId             uint32                 `protobuf:"varint,15,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
-	CommonContext        *CommonSessionContext  `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
-	RatSpecificContext   *RatSpecificContext    `protobuf:"bytes,17,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
+	CommonContext        *CommonSessionContext `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
+	RatSpecificContext   *RatSpecificContext   `protobuf:"bytes,17,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *LocalCreateSessionRequest) Reset()         { *m = LocalCreateSessionRequest{} }
@@ -797,104 +1292,6 @@ func (m *LocalCreateSessionRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LocalCreateSessionRequest proto.InternalMessageInfo
 
-func (m *LocalCreateSessionRequest) GetSid() *SubscriberID {
-	if m != nil {
-		return m.Sid
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetUeIpv4() string {
-	if m != nil {
-		return m.UeIpv4
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetSpgwIpv4() string {
-	if m != nil {
-		return m.SpgwIpv4
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetApn() string {
-	if m != nil {
-		return m.Apn
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetImei() string {
-	if m != nil {
-		return m.Imei
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetPlmnId() string {
-	if m != nil {
-		return m.PlmnId
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetImsiPlmnId() string {
-	if m != nil {
-		return m.ImsiPlmnId
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetUserLocation() []byte {
-	if m != nil {
-		return m.UserLocation
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetQosInfo() *QosInformationRequest {
-	if m != nil {
-		return m.QosInfo
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetMsisdn() []byte {
-	if m != nil {
-		return m.Msisdn
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetRatType() RATType {
-	if m != nil {
-		return m.RatType
-	}
-	return RATType_TGPP_LTE
-}
-
-func (m *LocalCreateSessionRequest) GetHardwareAddr() []byte {
-	if m != nil {
-		return m.HardwareAddr
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetRadiusSessionId() string {
-	if m != nil {
-		return m.RadiusSessionId
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetBearerId() uint32 {
-	if m != nil {
-		return m.BearerId
-	}
-	return 0
-}
-
 func (m *LocalCreateSessionRequest) GetCommonContext() *CommonSessionContext {
 	if m != nil {
 		return m.CommonContext
@@ -910,14 +1307,18 @@ func (m *LocalCreateSessionRequest) GetRatSpecificContext() *RatSpecificContext 
 }
 
 type CommonSessionContext struct {
-	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	UeIpv4               string        `protobuf:"bytes,3,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
-	Apn                  string        `protobuf:"bytes,4,opt,name=apn,proto3" json:"apn,omitempty"`
-	Msisdn               []byte        `protobuf:"bytes,5,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
-	RatType              RATType       `protobuf:"varint,6,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Sid     *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	UeIpv4  string        `protobuf:"bytes,3,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
+	Apn     string        `protobuf:"bytes,4,opt,name=apn,proto3" json:"apn,omitempty"`
+	Msisdn  []byte        `protobuf:"bytes,5,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
+	RatType RATType       `protobuf:"varint,6,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
+	//PDU session state to mirror with AMF or MME
+	SmSessionState       SMSessionFSMState `protobuf:"varint,7,opt,name=sm_session_state,json=smSessionState,proto3,enum=magma.lte.SMSessionFSMState" json:"sm_session_state,omitempty"`
+	SmSessionVersion     uint32            `protobuf:"varint,9,opt,name=sm_session_version,json=smSessionVersion,proto3" json:"sm_session_version,omitempty"`
+	UeIpv6               string            `protobuf:"bytes,10,opt,name=ue_ipv6,json=ueIpv6,proto3" json:"ue_ipv6,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *CommonSessionContext) Reset()         { *m = CommonSessionContext{} }
@@ -980,10 +1381,32 @@ func (m *CommonSessionContext) GetRatType() RATType {
 	return RATType_TGPP_LTE
 }
 
+func (m *CommonSessionContext) GetSmSessionState() SMSessionFSMState {
+	if m != nil {
+		return m.SmSessionState
+	}
+	return SMSessionFSMState_CREATING_0
+}
+
+func (m *CommonSessionContext) GetSmSessionVersion() uint32 {
+	if m != nil {
+		return m.SmSessionVersion
+	}
+	return 0
+}
+
+func (m *CommonSessionContext) GetUeIpv6() string {
+	if m != nil {
+		return m.UeIpv6
+	}
+	return ""
+}
+
 type RatSpecificContext struct {
 	// Types that are valid to be assigned to Context:
 	//	*RatSpecificContext_LteContext
 	//	*RatSpecificContext_WlanContext
+	//	*RatSpecificContext_M5GsmSessionContext
 	Context              isRatSpecificContext_Context `protobuf_oneof:"context"`
 	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
 	XXX_unrecognized     []byte                       `json:"-"`
@@ -1027,9 +1450,15 @@ type RatSpecificContext_WlanContext struct {
 	WlanContext *WLANSessionContext `protobuf:"bytes,18,opt,name=wlan_context,json=wlanContext,proto3,oneof"`
 }
 
+type RatSpecificContext_M5GsmSessionContext struct {
+	M5GsmSessionContext *M5GSMSessionContext `protobuf:"bytes,19,opt,name=m5gsm_session_context,json=m5gsmSessionContext,proto3,oneof"`
+}
+
 func (*RatSpecificContext_LteContext) isRatSpecificContext_Context() {}
 
 func (*RatSpecificContext_WlanContext) isRatSpecificContext_Context() {}
+
+func (*RatSpecificContext_M5GsmSessionContext) isRatSpecificContext_Context() {}
 
 func (m *RatSpecificContext) GetContext() isRatSpecificContext_Context {
 	if m != nil {
@@ -1052,32 +1481,167 @@ func (m *RatSpecificContext) GetWlanContext() *WLANSessionContext {
 	return nil
 }
 
+func (m *RatSpecificContext) GetM5GsmSessionContext() *M5GSMSessionContext {
+	if x, ok := m.GetContext().(*RatSpecificContext_M5GsmSessionContext); ok {
+		return x.M5GsmSessionContext
+	}
+	return nil
+}
+
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*RatSpecificContext) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
 		(*RatSpecificContext_LteContext)(nil),
 		(*RatSpecificContext_WlanContext)(nil),
+		(*RatSpecificContext_M5GsmSessionContext)(nil),
 	}
 }
 
+type RatSpecificNotification struct {
+	PduSessionId         []byte           `protobuf:"bytes,1,opt,name=pdu_session_id,json=pduSessionId,proto3" json:"pdu_session_id,omitempty"`
+	RequestType          RequestType      `protobuf:"varint,2,opt,name=request_type,json=requestType,proto3,enum=magma.lte.RequestType" json:"request_type,omitempty"`
+	AccessType           AccessType       `protobuf:"varint,3,opt,name=access_type,json=accessType,proto3,enum=magma.lte.AccessType" json:"access_type,omitempty"`
+	PduSessionType       PduSessionType   `protobuf:"varint,4,opt,name=pdu_session_type,json=pduSessionType,proto3,enum=magma.lte.PduSessionType" json:"pdu_session_type,omitempty"`
+	M5GSmCapability      *M5GSMCapability `protobuf:"bytes,5,opt,name=m5g_sm_capability,json=m5gSmCapability,proto3" json:"m5g_sm_capability,omitempty"`
+	M5GsmCause           M5GSMCause       `protobuf:"varint,6,opt,name=m5gsm_cause,json=m5gsmCause,proto3,enum=magma.lte.M5GSMCause" json:"m5gsm_cause,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
+}
+
+func (m *RatSpecificNotification) Reset()         { *m = RatSpecificNotification{} }
+func (m *RatSpecificNotification) String() string { return proto.CompactTextString(m) }
+func (*RatSpecificNotification) ProtoMessage()    {}
+func (*RatSpecificNotification) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{5}
+}
+
+func (m *RatSpecificNotification) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RatSpecificNotification.Unmarshal(m, b)
+}
+func (m *RatSpecificNotification) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RatSpecificNotification.Marshal(b, m, deterministic)
+}
+func (m *RatSpecificNotification) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RatSpecificNotification.Merge(m, src)
+}
+func (m *RatSpecificNotification) XXX_Size() int {
+	return xxx_messageInfo_RatSpecificNotification.Size(m)
+}
+func (m *RatSpecificNotification) XXX_DiscardUnknown() {
+	xxx_messageInfo_RatSpecificNotification.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RatSpecificNotification proto.InternalMessageInfo
+
+func (m *RatSpecificNotification) GetPduSessionId() []byte {
+	if m != nil {
+		return m.PduSessionId
+	}
+	return nil
+}
+
+func (m *RatSpecificNotification) GetRequestType() RequestType {
+	if m != nil {
+		return m.RequestType
+	}
+	return RequestType_INITIAL_REQUEST
+}
+
+func (m *RatSpecificNotification) GetAccessType() AccessType {
+	if m != nil {
+		return m.AccessType
+	}
+	return AccessType_M_3GPP_ACCESS_3GPP
+}
+
+func (m *RatSpecificNotification) GetPduSessionType() PduSessionType {
+	if m != nil {
+		return m.PduSessionType
+	}
+	return PduSessionType_IPV4
+}
+
+func (m *RatSpecificNotification) GetM5GSmCapability() *M5GSMCapability {
+	if m != nil {
+		return m.M5GSmCapability
+	}
+	return nil
+}
+
+func (m *RatSpecificNotification) GetM5GsmCause() M5GSMCause {
+	if m != nil {
+		return m.M5GsmCause
+	}
+	return M5GSMCause_OPERATOR_DETERMINED_BARRING
+}
+
+type SetSmNotificationContext struct {
+	CommonContext           *CommonSessionContext    `protobuf:"bytes,1,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
+	RatSpecificNotification *RatSpecificNotification `protobuf:"bytes,2,opt,name=rat_specific_notification,json=ratSpecificNotification,proto3" json:"rat_specific_notification,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}                 `json:"-"`
+	XXX_unrecognized        []byte                   `json:"-"`
+	XXX_sizecache           int32                    `json:"-"`
+}
+
+func (m *SetSmNotificationContext) Reset()         { *m = SetSmNotificationContext{} }
+func (m *SetSmNotificationContext) String() string { return proto.CompactTextString(m) }
+func (*SetSmNotificationContext) ProtoMessage()    {}
+func (*SetSmNotificationContext) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{6}
+}
+
+func (m *SetSmNotificationContext) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetSmNotificationContext.Unmarshal(m, b)
+}
+func (m *SetSmNotificationContext) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetSmNotificationContext.Marshal(b, m, deterministic)
+}
+func (m *SetSmNotificationContext) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetSmNotificationContext.Merge(m, src)
+}
+func (m *SetSmNotificationContext) XXX_Size() int {
+	return xxx_messageInfo_SetSmNotificationContext.Size(m)
+}
+func (m *SetSmNotificationContext) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetSmNotificationContext.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetSmNotificationContext proto.InternalMessageInfo
+
+func (m *SetSmNotificationContext) GetCommonContext() *CommonSessionContext {
+	if m != nil {
+		return m.CommonContext
+	}
+	return nil
+}
+
+func (m *SetSmNotificationContext) GetRatSpecificNotification() *RatSpecificNotification {
+	if m != nil {
+		return m.RatSpecificNotification
+	}
+	return nil
+}
+
 type LTESessionContext struct {
-	SpgwIpv4             string                 `protobuf:"bytes,1,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
-	Imei                 string                 `protobuf:"bytes,2,opt,name=imei,proto3" json:"imei,omitempty"`
-	PlmnId               string                 `protobuf:"bytes,3,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
-	ImsiPlmnId           string                 `protobuf:"bytes,4,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
-	UserLocation         []byte                 `protobuf:"bytes,5,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
-	QosInfo              *QosInformationRequest `protobuf:"bytes,6,opt,name=qos_info,json=qosInfo,proto3" json:"qos_info,omitempty"`
-	BearerId             uint32                 `protobuf:"varint,7,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
+	SpgwIpv4                string                 `protobuf:"bytes,1,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
+	Imei                    string                 `protobuf:"bytes,2,opt,name=imei,proto3" json:"imei,omitempty"`
+	PlmnId                  string                 `protobuf:"bytes,3,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
+	ImsiPlmnId              string                 `protobuf:"bytes,4,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
+	UserLocation            []byte                 `protobuf:"bytes,5,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
+	QosInfo                 *QosInformationRequest `protobuf:"bytes,6,opt,name=qos_info,json=qosInfo,proto3" json:"qos_info,omitempty"`
+	BearerId                uint32                 `protobuf:"varint,7,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
+	ChargingCharacteristics string                 `protobuf:"bytes,8,opt,name=charging_characteristics,json=chargingCharacteristics,proto3" json:"charging_characteristics,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}               `json:"-"`
+	XXX_unrecognized        []byte                 `json:"-"`
+	XXX_sizecache           int32                  `json:"-"`
 }
 
 func (m *LTESessionContext) Reset()         { *m = LTESessionContext{} }
 func (m *LTESessionContext) String() string { return proto.CompactTextString(m) }
 func (*LTESessionContext) ProtoMessage()    {}
 func (*LTESessionContext) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{5}
+	return fileDescriptor_85add0446af78174, []int{7}
 }
 
 func (m *LTESessionContext) XXX_Unmarshal(b []byte) error {
@@ -1147,6 +1711,13 @@ func (m *LTESessionContext) GetBearerId() uint32 {
 	return 0
 }
 
+func (m *LTESessionContext) GetChargingCharacteristics() string {
+	if m != nil {
+		return m.ChargingCharacteristics
+	}
+	return ""
+}
+
 type WLANSessionContext struct {
 	MacAddrBinary        []byte   `protobuf:"bytes,1,opt,name=mac_addr_binary,json=macAddrBinary,proto3" json:"mac_addr_binary,omitempty"`
 	MacAddr              string   `protobuf:"bytes,2,opt,name=mac_addr,json=macAddr,proto3" json:"mac_addr,omitempty"`
@@ -1160,7 +1731,7 @@ func (m *WLANSessionContext) Reset()         { *m = WLANSessionContext{} }
 func (m *WLANSessionContext) String() string { return proto.CompactTextString(m) }
 func (*WLANSessionContext) ProtoMessage()    {}
 func (*WLANSessionContext) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{6}
+	return fileDescriptor_85add0446af78174, []int{8}
 }
 
 func (m *WLANSessionContext) XXX_Unmarshal(b []byte) error {
@@ -1213,7 +1784,7 @@ func (m *LocalCreateSessionResponse) Reset()         { *m = LocalCreateSessionRe
 func (m *LocalCreateSessionResponse) String() string { return proto.CompactTextString(m) }
 func (*LocalCreateSessionResponse) ProtoMessage()    {}
 func (*LocalCreateSessionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{7}
+	return fileDescriptor_85add0446af78174, []int{9}
 }
 
 func (m *LocalCreateSessionResponse) XXX_Unmarshal(b []byte) error {
@@ -1253,7 +1824,7 @@ func (m *LocalEndSessionRequest) Reset()         { *m = LocalEndSessionRequest{}
 func (m *LocalEndSessionRequest) String() string { return proto.CompactTextString(m) }
 func (*LocalEndSessionRequest) ProtoMessage()    {}
 func (*LocalEndSessionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{8}
+	return fileDescriptor_85add0446af78174, []int{10}
 }
 
 func (m *LocalEndSessionRequest) XXX_Unmarshal(b []byte) error {
@@ -1298,7 +1869,7 @@ func (m *LocalEndSessionResponse) Reset()         { *m = LocalEndSessionResponse
 func (m *LocalEndSessionResponse) String() string { return proto.CompactTextString(m) }
 func (*LocalEndSessionResponse) ProtoMessage()    {}
 func (*LocalEndSessionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{9}
+	return fileDescriptor_85add0446af78174, []int{11}
 }
 
 func (m *LocalEndSessionResponse) XXX_Unmarshal(b []byte) error {
@@ -1319,6 +1890,194 @@ func (m *LocalEndSessionResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LocalEndSessionResponse proto.InternalMessageInfo
 
+type UpdateTunnelIdsRequest struct {
+	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	BearerId             uint32        `protobuf:"varint,2,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
+	EnbTeid              uint32        `protobuf:"varint,3,opt,name=enb_teid,json=enbTeid,proto3" json:"enb_teid,omitempty"`
+	AgwTeid              uint32        `protobuf:"varint,4,opt,name=agw_teid,json=agwTeid,proto3" json:"agw_teid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *UpdateTunnelIdsRequest) Reset()         { *m = UpdateTunnelIdsRequest{} }
+func (m *UpdateTunnelIdsRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateTunnelIdsRequest) ProtoMessage()    {}
+func (*UpdateTunnelIdsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{12}
+}
+
+func (m *UpdateTunnelIdsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateTunnelIdsRequest.Unmarshal(m, b)
+}
+func (m *UpdateTunnelIdsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateTunnelIdsRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateTunnelIdsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateTunnelIdsRequest.Merge(m, src)
+}
+func (m *UpdateTunnelIdsRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateTunnelIdsRequest.Size(m)
+}
+func (m *UpdateTunnelIdsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateTunnelIdsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateTunnelIdsRequest proto.InternalMessageInfo
+
+func (m *UpdateTunnelIdsRequest) GetSid() *SubscriberID {
+	if m != nil {
+		return m.Sid
+	}
+	return nil
+}
+
+func (m *UpdateTunnelIdsRequest) GetBearerId() uint32 {
+	if m != nil {
+		return m.BearerId
+	}
+	return 0
+}
+
+func (m *UpdateTunnelIdsRequest) GetEnbTeid() uint32 {
+	if m != nil {
+		return m.EnbTeid
+	}
+	return 0
+}
+
+func (m *UpdateTunnelIdsRequest) GetAgwTeid() uint32 {
+	if m != nil {
+		return m.AgwTeid
+	}
+	return 0
+}
+
+type UpdateTunnelIdsResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateTunnelIdsResponse) Reset()         { *m = UpdateTunnelIdsResponse{} }
+func (m *UpdateTunnelIdsResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateTunnelIdsResponse) ProtoMessage()    {}
+func (*UpdateTunnelIdsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{13}
+}
+
+func (m *UpdateTunnelIdsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateTunnelIdsResponse.Unmarshal(m, b)
+}
+func (m *UpdateTunnelIdsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateTunnelIdsResponse.Marshal(b, m, deterministic)
+}
+func (m *UpdateTunnelIdsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateTunnelIdsResponse.Merge(m, src)
+}
+func (m *UpdateTunnelIdsResponse) XXX_Size() int {
+	return xxx_messageInfo_UpdateTunnelIdsResponse.Size(m)
+}
+func (m *UpdateTunnelIdsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateTunnelIdsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateTunnelIdsResponse proto.InternalMessageInfo
+
+type PolicyBearerBindingRequest struct {
+	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	LinkedBearerId       uint32        `protobuf:"varint,2,opt,name=linked_bearer_id,json=linkedBearerId,proto3" json:"linked_bearer_id,omitempty"`
+	PolicyRuleId         string        `protobuf:"bytes,3,opt,name=policy_rule_id,json=policyRuleId,proto3" json:"policy_rule_id,omitempty"`
+	BearerId             uint32        `protobuf:"varint,4,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *PolicyBearerBindingRequest) Reset()         { *m = PolicyBearerBindingRequest{} }
+func (m *PolicyBearerBindingRequest) String() string { return proto.CompactTextString(m) }
+func (*PolicyBearerBindingRequest) ProtoMessage()    {}
+func (*PolicyBearerBindingRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{14}
+}
+
+func (m *PolicyBearerBindingRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PolicyBearerBindingRequest.Unmarshal(m, b)
+}
+func (m *PolicyBearerBindingRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PolicyBearerBindingRequest.Marshal(b, m, deterministic)
+}
+func (m *PolicyBearerBindingRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PolicyBearerBindingRequest.Merge(m, src)
+}
+func (m *PolicyBearerBindingRequest) XXX_Size() int {
+	return xxx_messageInfo_PolicyBearerBindingRequest.Size(m)
+}
+func (m *PolicyBearerBindingRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PolicyBearerBindingRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PolicyBearerBindingRequest proto.InternalMessageInfo
+
+func (m *PolicyBearerBindingRequest) GetSid() *SubscriberID {
+	if m != nil {
+		return m.Sid
+	}
+	return nil
+}
+
+func (m *PolicyBearerBindingRequest) GetLinkedBearerId() uint32 {
+	if m != nil {
+		return m.LinkedBearerId
+	}
+	return 0
+}
+
+func (m *PolicyBearerBindingRequest) GetPolicyRuleId() string {
+	if m != nil {
+		return m.PolicyRuleId
+	}
+	return ""
+}
+
+func (m *PolicyBearerBindingRequest) GetBearerId() uint32 {
+	if m != nil {
+		return m.BearerId
+	}
+	return 0
+}
+
+type PolicyBearerBindingResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PolicyBearerBindingResponse) Reset()         { *m = PolicyBearerBindingResponse{} }
+func (m *PolicyBearerBindingResponse) String() string { return proto.CompactTextString(m) }
+func (*PolicyBearerBindingResponse) ProtoMessage()    {}
+func (*PolicyBearerBindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{15}
+}
+
+func (m *PolicyBearerBindingResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PolicyBearerBindingResponse.Unmarshal(m, b)
+}
+func (m *PolicyBearerBindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PolicyBearerBindingResponse.Marshal(b, m, deterministic)
+}
+func (m *PolicyBearerBindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PolicyBearerBindingResponse.Merge(m, src)
+}
+func (m *PolicyBearerBindingResponse) XXX_Size() int {
+	return xxx_messageInfo_PolicyBearerBindingResponse.Size(m)
+}
+func (m *PolicyBearerBindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PolicyBearerBindingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PolicyBearerBindingResponse proto.InternalMessageInfo
+
 type ChargingReAuthRequest struct {
 	SessionId            string                     `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	ChargingKey          uint32                     `protobuf:"varint,2,opt,name=charging_key,json=chargingKey,proto3" json:"charging_key,omitempty"`
@@ -1334,7 +2093,7 @@ func (m *ChargingReAuthRequest) Reset()         { *m = ChargingReAuthRequest{} }
 func (m *ChargingReAuthRequest) String() string { return proto.CompactTextString(m) }
 func (*ChargingReAuthRequest) ProtoMessage()    {}
 func (*ChargingReAuthRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{10}
+	return fileDescriptor_85add0446af78174, []int{16}
 }
 
 func (m *ChargingReAuthRequest) XXX_Unmarshal(b []byte) error {
@@ -1401,7 +2160,7 @@ func (m *ChargingReAuthAnswer) Reset()         { *m = ChargingReAuthAnswer{} }
 func (m *ChargingReAuthAnswer) String() string { return proto.CompactTextString(m) }
 func (*ChargingReAuthAnswer) ProtoMessage()    {}
 func (*ChargingReAuthAnswer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{11}
+	return fileDescriptor_85add0446af78174, []int{17}
 }
 
 func (m *ChargingReAuthAnswer) XXX_Unmarshal(b []byte) error {
@@ -1449,7 +2208,7 @@ func (m *PolicyReAuthRequest) Reset()         { *m = PolicyReAuthRequest{} }
 func (m *PolicyReAuthRequest) String() string { return proto.CompactTextString(m) }
 func (*PolicyReAuthRequest) ProtoMessage()    {}
 func (*PolicyReAuthRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{12}
+	return fileDescriptor_85add0446af78174, []int{18}
 }
 
 func (m *PolicyReAuthRequest) XXX_Unmarshal(b []byte) error {
@@ -1545,7 +2304,7 @@ func (m *QoSInformation) Reset()         { *m = QoSInformation{} }
 func (m *QoSInformation) String() string { return proto.CompactTextString(m) }
 func (*QoSInformation) ProtoMessage()    {}
 func (*QoSInformation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{13}
+	return fileDescriptor_85add0446af78174, []int{19}
 }
 
 func (m *QoSInformation) XXX_Unmarshal(b []byte) error {
@@ -1593,7 +2352,7 @@ func (m *PolicyReAuthAnswer) Reset()         { *m = PolicyReAuthAnswer{} }
 func (m *PolicyReAuthAnswer) String() string { return proto.CompactTextString(m) }
 func (*PolicyReAuthAnswer) ProtoMessage()    {}
 func (*PolicyReAuthAnswer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{14}
+	return fileDescriptor_85add0446af78174, []int{20}
 }
 
 func (m *PolicyReAuthAnswer) XXX_Unmarshal(b []byte) error {
@@ -1635,6 +2394,195 @@ func (m *PolicyReAuthAnswer) GetFailedRules() map[string]PolicyReAuthAnswer_Fail
 	return nil
 }
 
+type RuleSet struct {
+	ApplySubscriberWide  bool                  `protobuf:"varint,1,opt,name=apply_subscriber_wide,json=applySubscriberWide,proto3" json:"apply_subscriber_wide,omitempty"`
+	Apn                  string                `protobuf:"bytes,2,opt,name=apn,proto3" json:"apn,omitempty"`
+	StaticRules          []*StaticRuleInstall  `protobuf:"bytes,3,rep,name=static_rules,json=staticRules,proto3" json:"static_rules,omitempty"`
+	DynamicRules         []*DynamicRuleInstall `protobuf:"bytes,4,rep,name=dynamic_rules,json=dynamicRules,proto3" json:"dynamic_rules,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *RuleSet) Reset()         { *m = RuleSet{} }
+func (m *RuleSet) String() string { return proto.CompactTextString(m) }
+func (*RuleSet) ProtoMessage()    {}
+func (*RuleSet) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{21}
+}
+
+func (m *RuleSet) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RuleSet.Unmarshal(m, b)
+}
+func (m *RuleSet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RuleSet.Marshal(b, m, deterministic)
+}
+func (m *RuleSet) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RuleSet.Merge(m, src)
+}
+func (m *RuleSet) XXX_Size() int {
+	return xxx_messageInfo_RuleSet.Size(m)
+}
+func (m *RuleSet) XXX_DiscardUnknown() {
+	xxx_messageInfo_RuleSet.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RuleSet proto.InternalMessageInfo
+
+func (m *RuleSet) GetApplySubscriberWide() bool {
+	if m != nil {
+		return m.ApplySubscriberWide
+	}
+	return false
+}
+
+func (m *RuleSet) GetApn() string {
+	if m != nil {
+		return m.Apn
+	}
+	return ""
+}
+
+func (m *RuleSet) GetStaticRules() []*StaticRuleInstall {
+	if m != nil {
+		return m.StaticRules
+	}
+	return nil
+}
+
+func (m *RuleSet) GetDynamicRules() []*DynamicRuleInstall {
+	if m != nil {
+		return m.DynamicRules
+	}
+	return nil
+}
+
+type RulesPerSubscriber struct {
+	Imsi                 string     `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	RuleSet              []*RuleSet `protobuf:"bytes,3,rep,name=rule_set,json=ruleSet,proto3" json:"rule_set,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
+}
+
+func (m *RulesPerSubscriber) Reset()         { *m = RulesPerSubscriber{} }
+func (m *RulesPerSubscriber) String() string { return proto.CompactTextString(m) }
+func (*RulesPerSubscriber) ProtoMessage()    {}
+func (*RulesPerSubscriber) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{22}
+}
+
+func (m *RulesPerSubscriber) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RulesPerSubscriber.Unmarshal(m, b)
+}
+func (m *RulesPerSubscriber) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RulesPerSubscriber.Marshal(b, m, deterministic)
+}
+func (m *RulesPerSubscriber) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RulesPerSubscriber.Merge(m, src)
+}
+func (m *RulesPerSubscriber) XXX_Size() int {
+	return xxx_messageInfo_RulesPerSubscriber.Size(m)
+}
+func (m *RulesPerSubscriber) XXX_DiscardUnknown() {
+	xxx_messageInfo_RulesPerSubscriber.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RulesPerSubscriber proto.InternalMessageInfo
+
+func (m *RulesPerSubscriber) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
+func (m *RulesPerSubscriber) GetRuleSet() []*RuleSet {
+	if m != nil {
+		return m.RuleSet
+	}
+	return nil
+}
+
+type SessionRules struct {
+	RulesPerSubscriber   []*RulesPerSubscriber `protobuf:"bytes,1,rep,name=rules_per_subscriber,json=rulesPerSubscriber,proto3" json:"rules_per_subscriber,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *SessionRules) Reset()         { *m = SessionRules{} }
+func (m *SessionRules) String() string { return proto.CompactTextString(m) }
+func (*SessionRules) ProtoMessage()    {}
+func (*SessionRules) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{23}
+}
+
+func (m *SessionRules) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SessionRules.Unmarshal(m, b)
+}
+func (m *SessionRules) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SessionRules.Marshal(b, m, deterministic)
+}
+func (m *SessionRules) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SessionRules.Merge(m, src)
+}
+func (m *SessionRules) XXX_Size() int {
+	return xxx_messageInfo_SessionRules.Size(m)
+}
+func (m *SessionRules) XXX_DiscardUnknown() {
+	xxx_messageInfo_SessionRules.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SessionRules proto.InternalMessageInfo
+
+func (m *SessionRules) GetRulesPerSubscriber() []*RulesPerSubscriber {
+	if m != nil {
+		return m.RulesPerSubscriber
+	}
+	return nil
+}
+
+type Timezone struct {
+	// Describe a timezone by offset from UTC in minutes
+	OffsetMinutes        int32    `protobuf:"varint,1,opt,name=offset_minutes,json=offsetMinutes,proto3" json:"offset_minutes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Timezone) Reset()         { *m = Timezone{} }
+func (m *Timezone) String() string { return proto.CompactTextString(m) }
+func (*Timezone) ProtoMessage()    {}
+func (*Timezone) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{24}
+}
+
+func (m *Timezone) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Timezone.Unmarshal(m, b)
+}
+func (m *Timezone) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Timezone.Marshal(b, m, deterministic)
+}
+func (m *Timezone) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Timezone.Merge(m, src)
+}
+func (m *Timezone) XXX_Size() int {
+	return xxx_messageInfo_Timezone.Size(m)
+}
+func (m *Timezone) XXX_DiscardUnknown() {
+	xxx_messageInfo_Timezone.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Timezone proto.InternalMessageInfo
+
+func (m *Timezone) GetOffsetMinutes() int32 {
+	if m != nil {
+		return m.OffsetMinutes
+	}
+	return 0
+}
+
 type CreditUnit struct {
 	IsValid              bool     `protobuf:"varint,1,opt,name=is_valid,json=isValid,proto3" json:"is_valid,omitempty"`
 	Volume               uint64   `protobuf:"varint,2,opt,name=volume,proto3" json:"volume,omitempty"`
@@ -1647,7 +2595,7 @@ func (m *CreditUnit) Reset()         { *m = CreditUnit{} }
 func (m *CreditUnit) String() string { return proto.CompactTextString(m) }
 func (*CreditUnit) ProtoMessage()    {}
 func (*CreditUnit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{15}
+	return fileDescriptor_85add0446af78174, []int{25}
 }
 
 func (m *CreditUnit) XXX_Unmarshal(b []byte) error {
@@ -1695,7 +2643,7 @@ func (m *GrantedUnits) Reset()         { *m = GrantedUnits{} }
 func (m *GrantedUnits) String() string { return proto.CompactTextString(m) }
 func (*GrantedUnits) ProtoMessage()    {}
 func (*GrantedUnits) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{16}
+	return fileDescriptor_85add0446af78174, []int{26}
 }
 
 func (m *GrantedUnits) XXX_Unmarshal(b []byte) error {
@@ -1749,7 +2697,7 @@ func (m *RedirectServer) Reset()         { *m = RedirectServer{} }
 func (m *RedirectServer) String() string { return proto.CompactTextString(m) }
 func (*RedirectServer) ProtoMessage()    {}
 func (*RedirectServer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{17}
+	return fileDescriptor_85add0446af78174, []int{27}
 }
 
 func (m *RedirectServer) XXX_Unmarshal(b []byte) error {
@@ -1791,6 +2739,7 @@ type ChargingCredit struct {
 	FinalAction          ChargingCredit_FinalAction `protobuf:"varint,5,opt,name=final_action,json=finalAction,proto3,enum=magma.lte.ChargingCredit_FinalAction" json:"final_action,omitempty"`
 	GrantedUnits         *GrantedUnits              `protobuf:"bytes,6,opt,name=granted_units,json=grantedUnits,proto3" json:"granted_units,omitempty"`
 	RedirectServer       *RedirectServer            `protobuf:"bytes,7,opt,name=redirect_server,json=redirectServer,proto3" json:"redirect_server,omitempty"`
+	RestrictRules        []string                   `protobuf:"bytes,8,rep,name=restrict_rules,json=restrictRules,proto3" json:"restrict_rules,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
 	XXX_unrecognized     []byte                     `json:"-"`
 	XXX_sizecache        int32                      `json:"-"`
@@ -1800,7 +2749,7 @@ func (m *ChargingCredit) Reset()         { *m = ChargingCredit{} }
 func (m *ChargingCredit) String() string { return proto.CompactTextString(m) }
 func (*ChargingCredit) ProtoMessage()    {}
 func (*ChargingCredit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{18}
+	return fileDescriptor_85add0446af78174, []int{28}
 }
 
 func (m *ChargingCredit) XXX_Unmarshal(b []byte) error {
@@ -1863,6 +2812,68 @@ func (m *ChargingCredit) GetRedirectServer() *RedirectServer {
 	return nil
 }
 
+func (m *ChargingCredit) GetRestrictRules() []string {
+	if m != nil {
+		return m.RestrictRules
+	}
+	return nil
+}
+
+type RequestedUnits struct {
+	Total                uint64   `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	Tx                   uint64   `protobuf:"varint,2,opt,name=tx,proto3" json:"tx,omitempty"`
+	Rx                   uint64   `protobuf:"varint,3,opt,name=rx,proto3" json:"rx,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RequestedUnits) Reset()         { *m = RequestedUnits{} }
+func (m *RequestedUnits) String() string { return proto.CompactTextString(m) }
+func (*RequestedUnits) ProtoMessage()    {}
+func (*RequestedUnits) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{29}
+}
+
+func (m *RequestedUnits) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RequestedUnits.Unmarshal(m, b)
+}
+func (m *RequestedUnits) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RequestedUnits.Marshal(b, m, deterministic)
+}
+func (m *RequestedUnits) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RequestedUnits.Merge(m, src)
+}
+func (m *RequestedUnits) XXX_Size() int {
+	return xxx_messageInfo_RequestedUnits.Size(m)
+}
+func (m *RequestedUnits) XXX_DiscardUnknown() {
+	xxx_messageInfo_RequestedUnits.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RequestedUnits proto.InternalMessageInfo
+
+func (m *RequestedUnits) GetTotal() uint64 {
+	if m != nil {
+		return m.Total
+	}
+	return 0
+}
+
+func (m *RequestedUnits) GetTx() uint64 {
+	if m != nil {
+		return m.Tx
+	}
+	return 0
+}
+
+func (m *RequestedUnits) GetRx() uint64 {
+	if m != nil {
+		return m.Rx
+	}
+	return 0
+}
+
 type CreditUsage struct {
 	BytesTx              uint64                 `protobuf:"varint,1,opt,name=bytes_tx,json=bytesTx,proto3" json:"bytes_tx,omitempty"`
 	BytesRx              uint64                 `protobuf:"varint,2,opt,name=bytes_rx,json=bytesRx,proto3" json:"bytes_rx,omitempty"`
@@ -1870,6 +2881,7 @@ type CreditUsage struct {
 	Type                 CreditUsage_UpdateType `protobuf:"varint,5,opt,name=type,proto3,enum=magma.lte.CreditUsage_UpdateType" json:"type,omitempty"`
 	MonitoringKey        []byte                 `protobuf:"bytes,6,opt,name=monitoring_key,json=monitoringKey,proto3" json:"monitoring_key,omitempty"`
 	ServiceIdentifier    *ServiceIdentifier     `protobuf:"bytes,7,opt,name=service_identifier,json=serviceIdentifier,proto3" json:"service_identifier,omitempty"`
+	RequestedUnits       *RequestedUnits        `protobuf:"bytes,8,opt,name=requested_units,json=requestedUnits,proto3" json:"requested_units,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
 	XXX_unrecognized     []byte                 `json:"-"`
 	XXX_sizecache        int32                  `json:"-"`
@@ -1879,7 +2891,7 @@ func (m *CreditUsage) Reset()         { *m = CreditUsage{} }
 func (m *CreditUsage) String() string { return proto.CompactTextString(m) }
 func (*CreditUsage) ProtoMessage()    {}
 func (*CreditUsage) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{19}
+	return fileDescriptor_85add0446af78174, []int{30}
 }
 
 func (m *CreditUsage) XXX_Unmarshal(b []byte) error {
@@ -1942,34 +2954,42 @@ func (m *CreditUsage) GetServiceIdentifier() *ServiceIdentifier {
 	return nil
 }
 
+func (m *CreditUsage) GetRequestedUnits() *RequestedUnits {
+	if m != nil {
+		return m.RequestedUnits
+	}
+	return nil
+}
+
 type CreditUsageUpdate struct {
-	Usage                *CreditUsage          `protobuf:"bytes,1,opt,name=usage,proto3" json:"usage,omitempty"`
-	SessionId            string                `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	RequestNumber        uint32                `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
-	Sid                  string                `protobuf:"bytes,4,opt,name=sid,proto3" json:"sid,omitempty"`
-	Msisdn               []byte                `protobuf:"bytes,5,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
-	UeIpv4               string                `protobuf:"bytes,6,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
-	SpgwIpv4             string                `protobuf:"bytes,7,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
-	Apn                  string                `protobuf:"bytes,8,opt,name=apn,proto3" json:"apn,omitempty"`
-	Imei                 string                `protobuf:"bytes,9,opt,name=imei,proto3" json:"imei,omitempty"`
-	PlmnId               string                `protobuf:"bytes,10,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
-	ImsiPlmnId           string                `protobuf:"bytes,11,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
-	UserLocation         []byte                `protobuf:"bytes,12,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
-	RatType              RATType               `protobuf:"varint,13,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
-	HardwareAddr         []byte                `protobuf:"bytes,14,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
-	TgppCtx              *TgppContext          `protobuf:"bytes,15,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
-	CommonContext        *CommonSessionContext `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
-	RatSpecificContext   *RatSpecificContext   `protobuf:"bytes,17,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_unrecognized     []byte                `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	Usage                   *CreditUsage          `protobuf:"bytes,1,opt,name=usage,proto3" json:"usage,omitempty"`
+	SessionId               string                `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	RequestNumber           uint32                `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
+	Sid                     string                `protobuf:"bytes,4,opt,name=sid,proto3" json:"sid,omitempty"`
+	Msisdn                  []byte                `protobuf:"bytes,5,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
+	UeIpv4                  string                `protobuf:"bytes,6,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
+	SpgwIpv4                string                `protobuf:"bytes,7,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
+	Apn                     string                `protobuf:"bytes,8,opt,name=apn,proto3" json:"apn,omitempty"`
+	Imei                    string                `protobuf:"bytes,9,opt,name=imei,proto3" json:"imei,omitempty"`
+	PlmnId                  string                `protobuf:"bytes,10,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
+	ImsiPlmnId              string                `protobuf:"bytes,11,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
+	UserLocation            []byte                `protobuf:"bytes,12,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
+	RatType                 RATType               `protobuf:"varint,13,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
+	HardwareAddr            []byte                `protobuf:"bytes,14,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
+	TgppCtx                 *TgppContext          `protobuf:"bytes,15,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
+	CommonContext           *CommonSessionContext `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
+	RatSpecificContext      *RatSpecificContext   `protobuf:"bytes,17,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
+	ChargingCharacteristics string                `protobuf:"bytes,18,opt,name=charging_characteristics,json=chargingCharacteristics,proto3" json:"charging_characteristics,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}              `json:"-"`
+	XXX_unrecognized        []byte                `json:"-"`
+	XXX_sizecache           int32                 `json:"-"`
 }
 
 func (m *CreditUsageUpdate) Reset()         { *m = CreditUsageUpdate{} }
 func (m *CreditUsageUpdate) String() string { return proto.CompactTextString(m) }
 func (*CreditUsageUpdate) ProtoMessage()    {}
 func (*CreditUsageUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{20}
+	return fileDescriptor_85add0446af78174, []int{31}
 }
 
 func (m *CreditUsageUpdate) XXX_Unmarshal(b []byte) error {
@@ -2109,6 +3129,13 @@ func (m *CreditUsageUpdate) GetRatSpecificContext() *RatSpecificContext {
 	return nil
 }
 
+func (m *CreditUsageUpdate) GetChargingCharacteristics() string {
+	if m != nil {
+		return m.ChargingCharacteristics
+	}
+	return ""
+}
+
 type CreditUpdateResponse struct {
 	Success           bool               `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Sid               string             `protobuf:"bytes,2,opt,name=sid,proto3" json:"sid,omitempty"`
@@ -2119,6 +3146,7 @@ type CreditUpdateResponse struct {
 	// When this is set to an infinite limit, field 'credit' should be ignored
 	LimitType            CreditLimitType `protobuf:"varint,9,opt,name=limit_type,json=limitType,proto3,enum=magma.lte.CreditLimitType" json:"limit_type,omitempty"`
 	TgppCtx              *TgppContext    `protobuf:"bytes,10,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
+	SessionId            string          `protobuf:"bytes,11,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
 	XXX_unrecognized     []byte          `json:"-"`
 	XXX_sizecache        int32           `json:"-"`
@@ -2128,7 +3156,7 @@ func (m *CreditUpdateResponse) Reset()         { *m = CreditUpdateResponse{} }
 func (m *CreditUpdateResponse) String() string { return proto.CompactTextString(m) }
 func (*CreditUpdateResponse) ProtoMessage()    {}
 func (*CreditUpdateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{21}
+	return fileDescriptor_85add0446af78174, []int{32}
 }
 
 func (m *CreditUpdateResponse) XXX_Unmarshal(b []byte) error {
@@ -2205,6 +3233,13 @@ func (m *CreditUpdateResponse) GetTgppCtx() *TgppContext {
 	return nil
 }
 
+func (m *CreditUpdateResponse) GetSessionId() string {
+	if m != nil {
+		return m.SessionId
+	}
+	return ""
+}
+
 // Used amount for a usage monitor
 type UsageMonitorUpdate struct {
 	MonitoringKey        []byte          `protobuf:"bytes,1,opt,name=monitoring_key,json=monitoringKey,proto3" json:"monitoring_key,omitempty"`
@@ -2220,7 +3255,7 @@ func (m *UsageMonitorUpdate) Reset()         { *m = UsageMonitorUpdate{} }
 func (m *UsageMonitorUpdate) String() string { return proto.CompactTextString(m) }
 func (*UsageMonitorUpdate) ProtoMessage()    {}
 func (*UsageMonitorUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{22}
+	return fileDescriptor_85add0446af78174, []int{33}
 }
 
 func (m *UsageMonitorUpdate) XXX_Unmarshal(b []byte) error {
@@ -2284,7 +3319,7 @@ func (m *UsageMonitoringCredit) Reset()         { *m = UsageMonitoringCredit{} }
 func (m *UsageMonitoringCredit) String() string { return proto.CompactTextString(m) }
 func (*UsageMonitoringCredit) ProtoMessage()    {}
 func (*UsageMonitoringCredit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{23}
+	return fileDescriptor_85add0446af78174, []int{34}
 }
 
 func (m *UsageMonitoringCredit) XXX_Unmarshal(b []byte) error {
@@ -2337,25 +3372,26 @@ func (m *UsageMonitoringCredit) GetGrantedUnits() *GrantedUnits {
 // TODO this message name is misleading since we don't only use it for
 // usage reporting
 type UsageMonitoringUpdateRequest struct {
-	Update               *UsageMonitorUpdate `protobuf:"bytes,1,opt,name=update,proto3" json:"update,omitempty"`
-	SessionId            string              `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	RequestNumber        uint32              `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
-	Sid                  string              `protobuf:"bytes,4,opt,name=sid,proto3" json:"sid,omitempty"`
-	UeIpv4               string              `protobuf:"bytes,5,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
-	HardwareAddr         []byte              `protobuf:"bytes,6,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
-	RatType              RATType             `protobuf:"varint,7,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
-	TgppCtx              *TgppContext        `protobuf:"bytes,8,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
-	EventTrigger         EventTrigger        `protobuf:"varint,9,opt,name=event_trigger,json=eventTrigger,proto3,enum=magma.lte.EventTrigger" json:"event_trigger,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
-	XXX_unrecognized     []byte              `json:"-"`
-	XXX_sizecache        int32               `json:"-"`
+	Update                  *UsageMonitorUpdate `protobuf:"bytes,1,opt,name=update,proto3" json:"update,omitempty"`
+	SessionId               string              `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	RequestNumber           uint32              `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
+	Sid                     string              `protobuf:"bytes,4,opt,name=sid,proto3" json:"sid,omitempty"`
+	UeIpv4                  string              `protobuf:"bytes,5,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
+	HardwareAddr            []byte              `protobuf:"bytes,6,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
+	RatType                 RATType             `protobuf:"varint,7,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
+	TgppCtx                 *TgppContext        `protobuf:"bytes,8,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
+	EventTrigger            EventTrigger        `protobuf:"varint,9,opt,name=event_trigger,json=eventTrigger,proto3,enum=magma.lte.EventTrigger" json:"event_trigger,omitempty"`
+	ChargingCharacteristics string              `protobuf:"bytes,10,opt,name=charging_characteristics,json=chargingCharacteristics,proto3" json:"charging_characteristics,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}            `json:"-"`
+	XXX_unrecognized        []byte              `json:"-"`
+	XXX_sizecache           int32               `json:"-"`
 }
 
 func (m *UsageMonitoringUpdateRequest) Reset()         { *m = UsageMonitoringUpdateRequest{} }
 func (m *UsageMonitoringUpdateRequest) String() string { return proto.CompactTextString(m) }
 func (*UsageMonitoringUpdateRequest) ProtoMessage()    {}
 func (*UsageMonitoringUpdateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{24}
+	return fileDescriptor_85add0446af78174, []int{35}
 }
 
 func (m *UsageMonitoringUpdateRequest) XXX_Unmarshal(b []byte) error {
@@ -2439,6 +3475,13 @@ func (m *UsageMonitoringUpdateRequest) GetEventTrigger() EventTrigger {
 	return EventTrigger_SGSN_CHANGE
 }
 
+func (m *UsageMonitoringUpdateRequest) GetChargingCharacteristics() string {
+	if m != nil {
+		return m.ChargingCharacteristics
+	}
+	return ""
+}
+
 // Response to a usage monitor update with the credit received and session info
 type UsageMonitoringUpdateResponse struct {
 	Credit                *UsageMonitoringCredit `protobuf:"bytes,1,opt,name=credit,proto3" json:"credit,omitempty"`
@@ -2461,7 +3504,7 @@ func (m *UsageMonitoringUpdateResponse) Reset()         { *m = UsageMonitoringUp
 func (m *UsageMonitoringUpdateResponse) String() string { return proto.CompactTextString(m) }
 func (*UsageMonitoringUpdateResponse) ProtoMessage()    {}
 func (*UsageMonitoringUpdateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{25}
+	return fileDescriptor_85add0446af78174, []int{36}
 }
 
 func (m *UsageMonitoringUpdateResponse) XXX_Unmarshal(b []byte) error {
@@ -2576,7 +3619,7 @@ func (m *QosInformationRequest) Reset()         { *m = QosInformationRequest{} }
 func (m *QosInformationRequest) String() string { return proto.CompactTextString(m) }
 func (*QosInformationRequest) ProtoMessage()    {}
 func (*QosInformationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{26}
+	return fileDescriptor_85add0446af78174, []int{37}
 }
 
 func (m *QosInformationRequest) XXX_Unmarshal(b []byte) error {
@@ -2652,7 +3695,7 @@ func (m *TgppContext) Reset()         { *m = TgppContext{} }
 func (m *TgppContext) String() string { return proto.CompactTextString(m) }
 func (*TgppContext) ProtoMessage()    {}
 func (*TgppContext) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{27}
+	return fileDescriptor_85add0446af78174, []int{38}
 }
 
 func (m *TgppContext) XXX_Unmarshal(b []byte) error {
@@ -2688,32 +3731,21 @@ func (m *TgppContext) GetGyDestHost() string {
 }
 
 type CreateSessionRequest struct {
-	Subscriber           *SubscriberID          `protobuf:"bytes,1,opt,name=subscriber,proto3" json:"subscriber,omitempty"`
-	SessionId            string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	UeIpv4               string                 `protobuf:"bytes,3,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
-	SpgwIpv4             string                 `protobuf:"bytes,4,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
-	Apn                  string                 `protobuf:"bytes,5,opt,name=apn,proto3" json:"apn,omitempty"`
-	Imei                 string                 `protobuf:"bytes,7,opt,name=imei,proto3" json:"imei,omitempty"`
-	PlmnId               string                 `protobuf:"bytes,8,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
-	ImsiPlmnId           string                 `protobuf:"bytes,9,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
-	UserLocation         []byte                 `protobuf:"bytes,10,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
-	QosInfo              *QosInformationRequest `protobuf:"bytes,11,opt,name=qos_info,json=qosInfo,proto3" json:"qos_info,omitempty"`
-	Msisdn               []byte                 `protobuf:"bytes,12,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
-	GcId                 string                 `protobuf:"bytes,13,opt,name=gc_id,json=gcId,proto3" json:"gc_id,omitempty"`
-	RatType              RATType                `protobuf:"varint,14,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
-	HardwareAddr         []byte                 `protobuf:"bytes,15,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
-	CommonContext        *CommonSessionContext  `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
-	RatSpecificContext   *RatSpecificContext    `protobuf:"bytes,17,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
+	AccessTimezone       *Timezone             `protobuf:"bytes,1,opt,name=access_timezone,json=accessTimezone,proto3" json:"access_timezone,omitempty"`
+	SessionId            string                `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	RequestedUnits       *RequestedUnits       `protobuf:"bytes,3,opt,name=requested_units,json=requestedUnits,proto3" json:"requested_units,omitempty"`
+	CommonContext        *CommonSessionContext `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
+	RatSpecificContext   *RatSpecificContext   `protobuf:"bytes,17,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *CreateSessionRequest) Reset()         { *m = CreateSessionRequest{} }
 func (m *CreateSessionRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateSessionRequest) ProtoMessage()    {}
 func (*CreateSessionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{28}
+	return fileDescriptor_85add0446af78174, []int{39}
 }
 
 func (m *CreateSessionRequest) XXX_Unmarshal(b []byte) error {
@@ -2734,9 +3766,9 @@ func (m *CreateSessionRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateSessionRequest proto.InternalMessageInfo
 
-func (m *CreateSessionRequest) GetSubscriber() *SubscriberID {
+func (m *CreateSessionRequest) GetAccessTimezone() *Timezone {
 	if m != nil {
-		return m.Subscriber
+		return m.AccessTimezone
 	}
 	return nil
 }
@@ -2748,86 +3780,9 @@ func (m *CreateSessionRequest) GetSessionId() string {
 	return ""
 }
 
-func (m *CreateSessionRequest) GetUeIpv4() string {
+func (m *CreateSessionRequest) GetRequestedUnits() *RequestedUnits {
 	if m != nil {
-		return m.UeIpv4
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetSpgwIpv4() string {
-	if m != nil {
-		return m.SpgwIpv4
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetApn() string {
-	if m != nil {
-		return m.Apn
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetImei() string {
-	if m != nil {
-		return m.Imei
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetPlmnId() string {
-	if m != nil {
-		return m.PlmnId
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetImsiPlmnId() string {
-	if m != nil {
-		return m.ImsiPlmnId
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetUserLocation() []byte {
-	if m != nil {
-		return m.UserLocation
-	}
-	return nil
-}
-
-func (m *CreateSessionRequest) GetQosInfo() *QosInformationRequest {
-	if m != nil {
-		return m.QosInfo
-	}
-	return nil
-}
-
-func (m *CreateSessionRequest) GetMsisdn() []byte {
-	if m != nil {
-		return m.Msisdn
-	}
-	return nil
-}
-
-func (m *CreateSessionRequest) GetGcId() string {
-	if m != nil {
-		return m.GcId
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetRatType() RATType {
-	if m != nil {
-		return m.RatType
-	}
-	return RATType_TGPP_LTE
-}
-
-func (m *CreateSessionRequest) GetHardwareAddr() []byte {
-	if m != nil {
-		return m.HardwareAddr
+		return m.RequestedUnits
 	}
 	return nil
 }
@@ -2864,7 +3819,7 @@ func (m *CreateSessionResponse) Reset()         { *m = CreateSessionResponse{} }
 func (m *CreateSessionResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateSessionResponse) ProtoMessage()    {}
 func (*CreateSessionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{29}
+	return fileDescriptor_85add0446af78174, []int{40}
 }
 
 func (m *CreateSessionResponse) XXX_Unmarshal(b []byte) error {
@@ -2955,7 +3910,7 @@ func (m *StaticRuleInstall) Reset()         { *m = StaticRuleInstall{} }
 func (m *StaticRuleInstall) String() string { return proto.CompactTextString(m) }
 func (*StaticRuleInstall) ProtoMessage()    {}
 func (*StaticRuleInstall) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{30}
+	return fileDescriptor_85add0446af78174, []int{41}
 }
 
 func (m *StaticRuleInstall) XXX_Unmarshal(b []byte) error {
@@ -3011,7 +3966,7 @@ func (m *DynamicRuleInstall) Reset()         { *m = DynamicRuleInstall{} }
 func (m *DynamicRuleInstall) String() string { return proto.CompactTextString(m) }
 func (*DynamicRuleInstall) ProtoMessage()    {}
 func (*DynamicRuleInstall) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{31}
+	return fileDescriptor_85add0446af78174, []int{42}
 }
 
 func (m *DynamicRuleInstall) XXX_Unmarshal(b []byte) error {
@@ -3065,7 +4020,7 @@ func (m *UpdateSessionRequest) Reset()         { *m = UpdateSessionRequest{} }
 func (m *UpdateSessionRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateSessionRequest) ProtoMessage()    {}
 func (*UpdateSessionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{32}
+	return fileDescriptor_85add0446af78174, []int{43}
 }
 
 func (m *UpdateSessionRequest) XXX_Unmarshal(b []byte) error {
@@ -3112,7 +4067,7 @@ func (m *UpdateSessionResponse) Reset()         { *m = UpdateSessionResponse{} }
 func (m *UpdateSessionResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateSessionResponse) ProtoMessage()    {}
 func (*UpdateSessionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{33}
+	return fileDescriptor_85add0446af78174, []int{44}
 }
 
 func (m *UpdateSessionResponse) XXX_Unmarshal(b []byte) error {
@@ -3159,7 +4114,7 @@ func (m *SessionTerminateResponse) Reset()         { *m = SessionTerminateRespon
 func (m *SessionTerminateResponse) String() string { return proto.CompactTextString(m) }
 func (*SessionTerminateResponse) ProtoMessage()    {}
 func (*SessionTerminateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{34}
+	return fileDescriptor_85add0446af78174, []int{45}
 }
 
 func (m *SessionTerminateResponse) XXX_Unmarshal(b []byte) error {
@@ -3195,32 +4150,34 @@ func (m *SessionTerminateResponse) GetSessionId() string {
 }
 
 type SessionTerminateRequest struct {
-	Sid                  string                `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	SessionId            string                `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Apn                  string                `protobuf:"bytes,3,opt,name=apn,proto3" json:"apn,omitempty"`
-	RequestNumber        uint32                `protobuf:"varint,4,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
-	CreditUsages         []*CreditUsage        `protobuf:"bytes,5,rep,name=credit_usages,json=creditUsages,proto3" json:"credit_usages,omitempty"`
-	MonitorUsages        []*UsageMonitorUpdate `protobuf:"bytes,6,rep,name=monitor_usages,json=monitorUsages,proto3" json:"monitor_usages,omitempty"`
-	UeIpv4               string                `protobuf:"bytes,7,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
-	Msisdn               []byte                `protobuf:"bytes,8,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
-	SpgwIpv4             string                `protobuf:"bytes,9,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
-	Imei                 string                `protobuf:"bytes,10,opt,name=imei,proto3" json:"imei,omitempty"`
-	PlmnId               string                `protobuf:"bytes,11,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
-	ImsiPlmnId           string                `protobuf:"bytes,12,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
-	UserLocation         []byte                `protobuf:"bytes,13,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
-	RatType              RATType               `protobuf:"varint,14,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
-	HardwareAddr         []byte                `protobuf:"bytes,15,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
-	TgppCtx              *TgppContext          `protobuf:"bytes,16,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_unrecognized     []byte                `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	Sid                     string                `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	SessionId               string                `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Apn                     string                `protobuf:"bytes,3,opt,name=apn,proto3" json:"apn,omitempty"`
+	RequestNumber           uint32                `protobuf:"varint,4,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
+	CreditUsages            []*CreditUsage        `protobuf:"bytes,5,rep,name=credit_usages,json=creditUsages,proto3" json:"credit_usages,omitempty"`
+	MonitorUsages           []*UsageMonitorUpdate `protobuf:"bytes,6,rep,name=monitor_usages,json=monitorUsages,proto3" json:"monitor_usages,omitempty"`
+	UeIpv4                  string                `protobuf:"bytes,7,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
+	Msisdn                  []byte                `protobuf:"bytes,8,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
+	SpgwIpv4                string                `protobuf:"bytes,9,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
+	Imei                    string                `protobuf:"bytes,10,opt,name=imei,proto3" json:"imei,omitempty"`
+	PlmnId                  string                `protobuf:"bytes,11,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
+	ImsiPlmnId              string                `protobuf:"bytes,12,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
+	UserLocation            []byte                `protobuf:"bytes,13,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
+	RatType                 RATType               `protobuf:"varint,14,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
+	HardwareAddr            []byte                `protobuf:"bytes,15,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
+	TgppCtx                 *TgppContext          `protobuf:"bytes,16,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
+	CommonContext           *CommonSessionContext `protobuf:"bytes,17,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
+	ChargingCharacteristics string                `protobuf:"bytes,18,opt,name=charging_characteristics,json=chargingCharacteristics,proto3" json:"charging_characteristics,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}              `json:"-"`
+	XXX_unrecognized        []byte                `json:"-"`
+	XXX_sizecache           int32                 `json:"-"`
 }
 
 func (m *SessionTerminateRequest) Reset()         { *m = SessionTerminateRequest{} }
 func (m *SessionTerminateRequest) String() string { return proto.CompactTextString(m) }
 func (*SessionTerminateRequest) ProtoMessage()    {}
 func (*SessionTerminateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{35}
+	return fileDescriptor_85add0446af78174, []int{46}
 }
 
 func (m *SessionTerminateRequest) XXX_Unmarshal(b []byte) error {
@@ -3353,6 +4310,1545 @@ func (m *SessionTerminateRequest) GetTgppCtx() *TgppContext {
 	return nil
 }
 
+func (m *SessionTerminateRequest) GetCommonContext() *CommonSessionContext {
+	if m != nil {
+		return m.CommonContext
+	}
+	return nil
+}
+
+func (m *SessionTerminateRequest) GetChargingCharacteristics() string {
+	if m != nil {
+		return m.ChargingCharacteristics
+	}
+	return ""
+}
+
+type NodeID struct {
+	NodeIdType           NodeID_NodeIDType `protobuf:"varint,1,opt,name=node_id_type,json=nodeIdType,proto3,enum=magma.lte.NodeID_NodeIDType" json:"node_id_type,omitempty"`
+	NodeId               string            `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *NodeID) Reset()         { *m = NodeID{} }
+func (m *NodeID) String() string { return proto.CompactTextString(m) }
+func (*NodeID) ProtoMessage()    {}
+func (*NodeID) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{47}
+}
+
+func (m *NodeID) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeID.Unmarshal(m, b)
+}
+func (m *NodeID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeID.Marshal(b, m, deterministic)
+}
+func (m *NodeID) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeID.Merge(m, src)
+}
+func (m *NodeID) XXX_Size() int {
+	return xxx_messageInfo_NodeID.Size(m)
+}
+func (m *NodeID) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeID.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeID proto.InternalMessageInfo
+
+func (m *NodeID) GetNodeIdType() NodeID_NodeIDType {
+	if m != nil {
+		return m.NodeIdType
+	}
+	return NodeID_IPv4
+}
+
+func (m *NodeID) GetNodeId() string {
+	if m != nil {
+		return m.NodeId
+	}
+	return ""
+}
+
+//M5GSMCapability
+type M5GSMCapability struct {
+	ReflectiveQos            bool     `protobuf:"varint,1,opt,name=reflective_qos,json=reflectiveQos,proto3" json:"reflective_qos,omitempty"`
+	MultiHomedIpv6PduSession bool     `protobuf:"varint,2,opt,name=multi_homed_ipv6_pdu_session,json=multiHomedIpv6PduSession,proto3" json:"multi_homed_ipv6_pdu_session,omitempty"`
+	XXX_NoUnkeyedLiteral     struct{} `json:"-"`
+	XXX_unrecognized         []byte   `json:"-"`
+	XXX_sizecache            int32    `json:"-"`
+}
+
+func (m *M5GSMCapability) Reset()         { *m = M5GSMCapability{} }
+func (m *M5GSMCapability) String() string { return proto.CompactTextString(m) }
+func (*M5GSMCapability) ProtoMessage()    {}
+func (*M5GSMCapability) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{48}
+}
+
+func (m *M5GSMCapability) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_M5GSMCapability.Unmarshal(m, b)
+}
+func (m *M5GSMCapability) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_M5GSMCapability.Marshal(b, m, deterministic)
+}
+func (m *M5GSMCapability) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_M5GSMCapability.Merge(m, src)
+}
+func (m *M5GSMCapability) XXX_Size() int {
+	return xxx_messageInfo_M5GSMCapability.Size(m)
+}
+func (m *M5GSMCapability) XXX_DiscardUnknown() {
+	xxx_messageInfo_M5GSMCapability.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_M5GSMCapability proto.InternalMessageInfo
+
+func (m *M5GSMCapability) GetReflectiveQos() bool {
+	if m != nil {
+		return m.ReflectiveQos
+	}
+	return false
+}
+
+func (m *M5GSMCapability) GetMultiHomedIpv6PduSession() bool {
+	if m != nil {
+		return m.MultiHomedIpv6PduSession
+	}
+	return false
+}
+
+//RequestedQosRules and AuthorizedQosRules
+type QosRules struct {
+	QosRuleIdentifier      uint32   `protobuf:"varint,1,opt,name=qos_rule_identifier,json=qosRuleIdentifier,proto3" json:"qos_rule_identifier,omitempty"`
+	Dqr                    bool     `protobuf:"varint,2,opt,name=dqr,proto3" json:"dqr,omitempty"`
+	NumberOfPacketFilters  uint32   `protobuf:"varint,3,opt,name=number_of_packet_filters,json=numberOfPacketFilters,proto3" json:"number_of_packet_filters,omitempty"`
+	PacketFilterIdentifier []int32  `protobuf:"varint,4,rep,packed,name=packet_filter_identifier,json=packetFilterIdentifier,proto3" json:"packet_filter_identifier,omitempty"`
+	QosRulePrecedence      uint32   `protobuf:"varint,5,opt,name=qos_rule_precedence,json=qosRulePrecedence,proto3" json:"qos_rule_precedence,omitempty"`
+	Segregation            bool     `protobuf:"varint,6,opt,name=segregation,proto3" json:"segregation,omitempty"`
+	QosFlowIdentifier      uint32   `protobuf:"varint,7,opt,name=qos_flow_identifier,json=qosFlowIdentifier,proto3" json:"qos_flow_identifier,omitempty"`
+	XXX_NoUnkeyedLiteral   struct{} `json:"-"`
+	XXX_unrecognized       []byte   `json:"-"`
+	XXX_sizecache          int32    `json:"-"`
+}
+
+func (m *QosRules) Reset()         { *m = QosRules{} }
+func (m *QosRules) String() string { return proto.CompactTextString(m) }
+func (*QosRules) ProtoMessage()    {}
+func (*QosRules) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{49}
+}
+
+func (m *QosRules) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_QosRules.Unmarshal(m, b)
+}
+func (m *QosRules) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_QosRules.Marshal(b, m, deterministic)
+}
+func (m *QosRules) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QosRules.Merge(m, src)
+}
+func (m *QosRules) XXX_Size() int {
+	return xxx_messageInfo_QosRules.Size(m)
+}
+func (m *QosRules) XXX_DiscardUnknown() {
+	xxx_messageInfo_QosRules.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QosRules proto.InternalMessageInfo
+
+func (m *QosRules) GetQosRuleIdentifier() uint32 {
+	if m != nil {
+		return m.QosRuleIdentifier
+	}
+	return 0
+}
+
+func (m *QosRules) GetDqr() bool {
+	if m != nil {
+		return m.Dqr
+	}
+	return false
+}
+
+func (m *QosRules) GetNumberOfPacketFilters() uint32 {
+	if m != nil {
+		return m.NumberOfPacketFilters
+	}
+	return 0
+}
+
+func (m *QosRules) GetPacketFilterIdentifier() []int32 {
+	if m != nil {
+		return m.PacketFilterIdentifier
+	}
+	return nil
+}
+
+func (m *QosRules) GetQosRulePrecedence() uint32 {
+	if m != nil {
+		return m.QosRulePrecedence
+	}
+	return 0
+}
+
+func (m *QosRules) GetSegregation() bool {
+	if m != nil {
+		return m.Segregation
+	}
+	return false
+}
+
+func (m *QosRules) GetQosFlowIdentifier() uint32 {
+	if m != nil {
+		return m.QosFlowIdentifier
+	}
+	return 0
+}
+
+type LadnServiceArea struct {
+	DnnValue             string                      `protobuf:"bytes,1,opt,name=dnn_value,json=dnnValue,proto3" json:"dnn_value,omitempty"`
+	IdentityList         []*TrackingAreaIdentityList `protobuf:"bytes,2,rep,name=identity_list,json=identityList,proto3" json:"identity_list,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *LadnServiceArea) Reset()         { *m = LadnServiceArea{} }
+func (m *LadnServiceArea) String() string { return proto.CompactTextString(m) }
+func (*LadnServiceArea) ProtoMessage()    {}
+func (*LadnServiceArea) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{50}
+}
+
+func (m *LadnServiceArea) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LadnServiceArea.Unmarshal(m, b)
+}
+func (m *LadnServiceArea) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LadnServiceArea.Marshal(b, m, deterministic)
+}
+func (m *LadnServiceArea) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LadnServiceArea.Merge(m, src)
+}
+func (m *LadnServiceArea) XXX_Size() int {
+	return xxx_messageInfo_LadnServiceArea.Size(m)
+}
+func (m *LadnServiceArea) XXX_DiscardUnknown() {
+	xxx_messageInfo_LadnServiceArea.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LadnServiceArea proto.InternalMessageInfo
+
+func (m *LadnServiceArea) GetDnnValue() string {
+	if m != nil {
+		return m.DnnValue
+	}
+	return ""
+}
+
+func (m *LadnServiceArea) GetIdentityList() []*TrackingAreaIdentityList {
+	if m != nil {
+		return m.IdentityList
+	}
+	return nil
+}
+
+type TrackingAreaIdentityList struct {
+	TypeOfList           []TypeOfList `protobuf:"varint,1,rep,packed,name=type_of_list,json=typeOfList,proto3,enum=magma.lte.TypeOfList" json:"type_of_list,omitempty"`
+	NumberOfElements     []int32      `protobuf:"varint,2,rep,packed,name=number_of_elements,json=numberOfElements,proto3" json:"number_of_elements,omitempty"`
+	MCC                  string       `protobuf:"bytes,3,opt,name=MCC,proto3" json:"MCC,omitempty"`
+	MNC                  string       `protobuf:"bytes,4,opt,name=MNC,proto3" json:"MNC,omitempty"`
+	TAC                  string       `protobuf:"bytes,5,opt,name=TAC,proto3" json:"TAC,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
+}
+
+func (m *TrackingAreaIdentityList) Reset()         { *m = TrackingAreaIdentityList{} }
+func (m *TrackingAreaIdentityList) String() string { return proto.CompactTextString(m) }
+func (*TrackingAreaIdentityList) ProtoMessage()    {}
+func (*TrackingAreaIdentityList) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{51}
+}
+
+func (m *TrackingAreaIdentityList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TrackingAreaIdentityList.Unmarshal(m, b)
+}
+func (m *TrackingAreaIdentityList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TrackingAreaIdentityList.Marshal(b, m, deterministic)
+}
+func (m *TrackingAreaIdentityList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TrackingAreaIdentityList.Merge(m, src)
+}
+func (m *TrackingAreaIdentityList) XXX_Size() int {
+	return xxx_messageInfo_TrackingAreaIdentityList.Size(m)
+}
+func (m *TrackingAreaIdentityList) XXX_DiscardUnknown() {
+	xxx_messageInfo_TrackingAreaIdentityList.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TrackingAreaIdentityList proto.InternalMessageInfo
+
+func (m *TrackingAreaIdentityList) GetTypeOfList() []TypeOfList {
+	if m != nil {
+		return m.TypeOfList
+	}
+	return nil
+}
+
+func (m *TrackingAreaIdentityList) GetNumberOfElements() []int32 {
+	if m != nil {
+		return m.NumberOfElements
+	}
+	return nil
+}
+
+func (m *TrackingAreaIdentityList) GetMCC() string {
+	if m != nil {
+		return m.MCC
+	}
+	return ""
+}
+
+func (m *TrackingAreaIdentityList) GetMNC() string {
+	if m != nil {
+		return m.MNC
+	}
+	return ""
+}
+
+func (m *TrackingAreaIdentityList) GetTAC() string {
+	if m != nil {
+		return m.TAC
+	}
+	return ""
+}
+
+//PDU session Establishment from AMF to SMF
+//SET MESSSAGE
+type M5GSMSessionContext struct {
+	PduSessionId     []byte          `protobuf:"bytes,1,opt,name=pdu_session_id,json=pduSessionId,proto3" json:"pdu_session_id,omitempty"`
+	RquestType       RequestType     `protobuf:"varint,2,opt,name=rquest_type,json=rquestType,proto3,enum=magma.lte.RequestType" json:"rquest_type,omitempty"`
+	PduAddress       *RedirectServer `protobuf:"bytes,3,opt,name=pdu_address,json=pduAddress,proto3" json:"pdu_address,omitempty"`
+	PriorityAccess   Priorityaccess  `protobuf:"varint,4,opt,name=priority_access,json=priorityAccess,proto3,enum=magma.lte.Priorityaccess" json:"priority_access,omitempty"`
+	AccessType       AccessType      `protobuf:"varint,5,opt,name=access_type,json=accessType,proto3,enum=magma.lte.AccessType" json:"access_type,omitempty"`
+	Imei             string          `protobuf:"bytes,8,opt,name=imei,proto3" json:"imei,omitempty"`
+	Gpsi             string          `protobuf:"bytes,9,opt,name=gpsi,proto3" json:"gpsi,omitempty"`
+	UserLocationInfo string          `protobuf:"bytes,10,opt,name=user_location_info,json=userLocationInfo,proto3" json:"user_location_info,omitempty"`
+	PcfId            string          `protobuf:"bytes,11,opt,name=pcf_id,json=pcfId,proto3" json:"pcf_id,omitempty"`
+	//Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
+	LadnServiceArea                 []*LadnServiceArea `protobuf:"bytes,12,rep,name=ladn_service_area,json=ladnServiceArea,proto3" json:"ladn_service_area,omitempty"`
+	PduSessionStatusNotificationSub bool               `protobuf:"varint,13,opt,name=pdu_session_status_notification_sub,json=pduSessionStatusNotificationSub,proto3" json:"pdu_session_status_notification_sub,omitempty"`
+	DnnSelectionMode                DnnSelectionMode   `protobuf:"varint,14,opt,name=dnn_selection_mode,json=dnnSelectionMode,proto3,enum=magma.lte.DnnSelectionMode" json:"dnn_selection_mode,omitempty"`
+	TraceRequirment                 string             `protobuf:"bytes,15,opt,name=trace_requirment,json=traceRequirment,proto3" json:"trace_requirment,omitempty"`
+	IntegrityProtectionMaxDataRate  []byte             `protobuf:"bytes,16,opt,name=integrity_protection_max_data_rate,json=integrityProtectionMaxDataRate,proto3" json:"integrity_protection_max_data_rate,omitempty"`
+	PduSessionType                  PduSessionType     `protobuf:"varint,17,opt,name=pdu_session_type,json=pduSessionType,proto3,enum=magma.lte.PduSessionType" json:"pdu_session_type,omitempty"`
+	SscMode                         SscMode            `protobuf:"varint,18,opt,name=ssc_mode,json=sscMode,proto3,enum=magma.lte.SscMode" json:"ssc_mode,omitempty"`
+	M5GSmCapability                 *M5GSMCapability   `protobuf:"bytes,19,opt,name=m5g_sm_capability,json=m5gSmCapability,proto3" json:"m5g_sm_capability,omitempty"`
+	MaxPktFilterSupported           uint32             `protobuf:"varint,20,opt,name=max_pkt_filter_supported,json=maxPktFilterSupported,proto3" json:"max_pkt_filter_supported,omitempty"`
+	PduSessionReqAlwaysOn           bool               `protobuf:"varint,21,opt,name=pdu_session_req_always_on,json=pduSessionReqAlwaysOn,proto3" json:"pdu_session_req_always_on,omitempty"`
+	SmPduDnReq                      string             `protobuf:"bytes,22,opt,name=sm_pdu_dn_req,json=smPduDnReq,proto3" json:"sm_pdu_dn_req,omitempty"`
+	M5GsmCause                      M5GSMCause         `protobuf:"varint,23,opt,name=m5gsm_cause,json=m5gsmCause,proto3,enum=magma.lte.M5GSMCause" json:"m5gsm_cause,omitempty"`
+	RequestedQosRules               *QosRules          `protobuf:"bytes,24,opt,name=requested_qos_rules,json=requestedQosRules,proto3" json:"requested_qos_rules,omitempty"`
+	XXX_NoUnkeyedLiteral            struct{}           `json:"-"`
+	XXX_unrecognized                []byte             `json:"-"`
+	XXX_sizecache                   int32              `json:"-"`
+}
+
+func (m *M5GSMSessionContext) Reset()         { *m = M5GSMSessionContext{} }
+func (m *M5GSMSessionContext) String() string { return proto.CompactTextString(m) }
+func (*M5GSMSessionContext) ProtoMessage()    {}
+func (*M5GSMSessionContext) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{52}
+}
+
+func (m *M5GSMSessionContext) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_M5GSMSessionContext.Unmarshal(m, b)
+}
+func (m *M5GSMSessionContext) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_M5GSMSessionContext.Marshal(b, m, deterministic)
+}
+func (m *M5GSMSessionContext) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_M5GSMSessionContext.Merge(m, src)
+}
+func (m *M5GSMSessionContext) XXX_Size() int {
+	return xxx_messageInfo_M5GSMSessionContext.Size(m)
+}
+func (m *M5GSMSessionContext) XXX_DiscardUnknown() {
+	xxx_messageInfo_M5GSMSessionContext.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_M5GSMSessionContext proto.InternalMessageInfo
+
+func (m *M5GSMSessionContext) GetPduSessionId() []byte {
+	if m != nil {
+		return m.PduSessionId
+	}
+	return nil
+}
+
+func (m *M5GSMSessionContext) GetRquestType() RequestType {
+	if m != nil {
+		return m.RquestType
+	}
+	return RequestType_INITIAL_REQUEST
+}
+
+func (m *M5GSMSessionContext) GetPduAddress() *RedirectServer {
+	if m != nil {
+		return m.PduAddress
+	}
+	return nil
+}
+
+func (m *M5GSMSessionContext) GetPriorityAccess() Priorityaccess {
+	if m != nil {
+		return m.PriorityAccess
+	}
+	return Priorityaccess_High
+}
+
+func (m *M5GSMSessionContext) GetAccessType() AccessType {
+	if m != nil {
+		return m.AccessType
+	}
+	return AccessType_M_3GPP_ACCESS_3GPP
+}
+
+func (m *M5GSMSessionContext) GetImei() string {
+	if m != nil {
+		return m.Imei
+	}
+	return ""
+}
+
+func (m *M5GSMSessionContext) GetGpsi() string {
+	if m != nil {
+		return m.Gpsi
+	}
+	return ""
+}
+
+func (m *M5GSMSessionContext) GetUserLocationInfo() string {
+	if m != nil {
+		return m.UserLocationInfo
+	}
+	return ""
+}
+
+func (m *M5GSMSessionContext) GetPcfId() string {
+	if m != nil {
+		return m.PcfId
+	}
+	return ""
+}
+
+func (m *M5GSMSessionContext) GetLadnServiceArea() []*LadnServiceArea {
+	if m != nil {
+		return m.LadnServiceArea
+	}
+	return nil
+}
+
+func (m *M5GSMSessionContext) GetPduSessionStatusNotificationSub() bool {
+	if m != nil {
+		return m.PduSessionStatusNotificationSub
+	}
+	return false
+}
+
+func (m *M5GSMSessionContext) GetDnnSelectionMode() DnnSelectionMode {
+	if m != nil {
+		return m.DnnSelectionMode
+	}
+	return DnnSelectionMode_VERIFIED
+}
+
+func (m *M5GSMSessionContext) GetTraceRequirment() string {
+	if m != nil {
+		return m.TraceRequirment
+	}
+	return ""
+}
+
+func (m *M5GSMSessionContext) GetIntegrityProtectionMaxDataRate() []byte {
+	if m != nil {
+		return m.IntegrityProtectionMaxDataRate
+	}
+	return nil
+}
+
+func (m *M5GSMSessionContext) GetPduSessionType() PduSessionType {
+	if m != nil {
+		return m.PduSessionType
+	}
+	return PduSessionType_IPV4
+}
+
+func (m *M5GSMSessionContext) GetSscMode() SscMode {
+	if m != nil {
+		return m.SscMode
+	}
+	return SscMode_SSC_MODE_1
+}
+
+func (m *M5GSMSessionContext) GetM5GSmCapability() *M5GSMCapability {
+	if m != nil {
+		return m.M5GSmCapability
+	}
+	return nil
+}
+
+func (m *M5GSMSessionContext) GetMaxPktFilterSupported() uint32 {
+	if m != nil {
+		return m.MaxPktFilterSupported
+	}
+	return 0
+}
+
+func (m *M5GSMSessionContext) GetPduSessionReqAlwaysOn() bool {
+	if m != nil {
+		return m.PduSessionReqAlwaysOn
+	}
+	return false
+}
+
+func (m *M5GSMSessionContext) GetSmPduDnReq() string {
+	if m != nil {
+		return m.SmPduDnReq
+	}
+	return ""
+}
+
+func (m *M5GSMSessionContext) GetM5GsmCause() M5GSMCause {
+	if m != nil {
+		return m.M5GsmCause
+	}
+	return M5GSMCause_OPERATOR_DETERMINED_BARRING
+}
+
+func (m *M5GSMSessionContext) GetRequestedQosRules() *QosRules {
+	if m != nil {
+		return m.RequestedQosRules
+	}
+	return nil
+}
+
+type SetSMSessionContext struct {
+	CommonContext        *CommonSessionContext `protobuf:"bytes,1,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
+	RatSpecificContext   *RatSpecificContext   `protobuf:"bytes,2,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *SetSMSessionContext) Reset()         { *m = SetSMSessionContext{} }
+func (m *SetSMSessionContext) String() string { return proto.CompactTextString(m) }
+func (*SetSMSessionContext) ProtoMessage()    {}
+func (*SetSMSessionContext) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{53}
+}
+
+func (m *SetSMSessionContext) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetSMSessionContext.Unmarshal(m, b)
+}
+func (m *SetSMSessionContext) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetSMSessionContext.Marshal(b, m, deterministic)
+}
+func (m *SetSMSessionContext) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetSMSessionContext.Merge(m, src)
+}
+func (m *SetSMSessionContext) XXX_Size() int {
+	return xxx_messageInfo_SetSMSessionContext.Size(m)
+}
+func (m *SetSMSessionContext) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetSMSessionContext.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetSMSessionContext proto.InternalMessageInfo
+
+func (m *SetSMSessionContext) GetCommonContext() *CommonSessionContext {
+	if m != nil {
+		return m.CommonContext
+	}
+	return nil
+}
+
+func (m *SetSMSessionContext) GetRatSpecificContext() *RatSpecificContext {
+	if m != nil {
+		return m.RatSpecificContext
+	}
+	return nil
+}
+
+//TODO This supposed to be empty message and the element will be removed later
+type SmContextVoid struct {
+	Output               string   `protobuf:"bytes,1,opt,name=output,proto3" json:"output,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SmContextVoid) Reset()         { *m = SmContextVoid{} }
+func (m *SmContextVoid) String() string { return proto.CompactTextString(m) }
+func (*SmContextVoid) ProtoMessage()    {}
+func (*SmContextVoid) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{54}
+}
+
+func (m *SmContextVoid) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SmContextVoid.Unmarshal(m, b)
+}
+func (m *SmContextVoid) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SmContextVoid.Marshal(b, m, deterministic)
+}
+func (m *SmContextVoid) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SmContextVoid.Merge(m, src)
+}
+func (m *SmContextVoid) XXX_Size() int {
+	return xxx_messageInfo_SmContextVoid.Size(m)
+}
+func (m *SmContextVoid) XXX_DiscardUnknown() {
+	xxx_messageInfo_SmContextVoid.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SmContextVoid proto.InternalMessageInfo
+
+func (m *SmContextVoid) GetOutput() string {
+	if m != nil {
+		return m.Output
+	}
+	return ""
+}
+
+//4G response message has not been refactored yet. Hence only considering M5G.
+type RatSpecificContextAccess struct {
+	//oneof context {//TODO need to be implemented after 4G refactored
+	//LTESessionContextAccess lte_context = 1;
+	M5GSessionContextRsp *M5GSMSessionContextAccess `protobuf:"bytes,2,opt,name=m5g_session_context_rsp,json=m5gSessionContextRsp,proto3" json:"m5g_session_context_rsp,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
+}
+
+func (m *RatSpecificContextAccess) Reset()         { *m = RatSpecificContextAccess{} }
+func (m *RatSpecificContextAccess) String() string { return proto.CompactTextString(m) }
+func (*RatSpecificContextAccess) ProtoMessage()    {}
+func (*RatSpecificContextAccess) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{55}
+}
+
+func (m *RatSpecificContextAccess) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RatSpecificContextAccess.Unmarshal(m, b)
+}
+func (m *RatSpecificContextAccess) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RatSpecificContextAccess.Marshal(b, m, deterministic)
+}
+func (m *RatSpecificContextAccess) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RatSpecificContextAccess.Merge(m, src)
+}
+func (m *RatSpecificContextAccess) XXX_Size() int {
+	return xxx_messageInfo_RatSpecificContextAccess.Size(m)
+}
+func (m *RatSpecificContextAccess) XXX_DiscardUnknown() {
+	xxx_messageInfo_RatSpecificContextAccess.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RatSpecificContextAccess proto.InternalMessageInfo
+
+func (m *RatSpecificContextAccess) GetM5GSessionContextRsp() *M5GSMSessionContextAccess {
+	if m != nil {
+		return m.M5GSessionContextRsp
+	}
+	return nil
+}
+
+type M5GSMSessionContextAccess struct {
+	//One byte, received from UE. For 5G pdu_session_id.
+	PduSessionId []byte `protobuf:"bytes,1,opt,name=pdu_session_id,json=pduSessionId,proto3" json:"pdu_session_id,omitempty"`
+	//selected PDU session TS-24501 - 9.11.4.11
+	PduSessionType PduSessionType `protobuf:"varint,2,opt,name=pdu_session_type,json=pduSessionType,proto3,enum=magma.lte.PduSessionType" json:"pdu_session_type,omitempty"`
+	//selected session and service continuty mode TS-24501 - 9.11.4.16
+	SelectedSscMode SscMode `protobuf:"varint,3,opt,name=selected_ssc_mode,json=selectedSscMode,proto3,enum=magma.lte.SscMode" json:"selected_ssc_mode,omitempty"`
+	//TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
+	AuthorizedQosRules []*QosRules `protobuf:"bytes,4,rep,name=authorized_qos_rules,json=authorizedQosRules,proto3" json:"authorized_qos_rules,omitempty"`
+	//TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
+	SessionAmbr *AggregatedMaximumBitrate `protobuf:"bytes,5,opt,name=session_ambr,json=sessionAmbr,proto3" json:"session_ambr,omitempty"`
+	M5GsmCause  M5GSMCause                `protobuf:"varint,6,opt,name=M5gsm_cause,json=M5gsmCause,proto3,enum=magma.lte.M5GSMCause" json:"M5gsm_cause,omitempty"`
+	//PDU session is requested to be established as always-on PDU session.
+	AlwaysOnPduSessionIndication     bool    `protobuf:"varint,7,opt,name=always_on_pdu_session_indication,json=alwaysOnPduSessionIndication,proto3" json:"always_on_pdu_session_indication,omitempty"`
+	AllowedSscMode                   SscMode `protobuf:"varint,8,opt,name=allowed_ssc_mode,json=allowedSscMode,proto3,enum=magma.lte.SscMode" json:"allowed_ssc_mode,omitempty"`
+	M5GsmCongetionReAttemptIndicator bool    `protobuf:"varint,9,opt,name=M5gsm_congetion_re_attempt_indicator,json=M5gsmCongetionReAttemptIndicator,proto3" json:"M5gsm_congetion_re_attempt_indicator,omitempty"`
+	//IP address. Imported from session_manager.proto file.
+	PduAddress           *RedirectServer `protobuf:"bytes,12,opt,name=pdu_address,json=pduAddress,proto3" json:"pdu_address,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *M5GSMSessionContextAccess) Reset()         { *m = M5GSMSessionContextAccess{} }
+func (m *M5GSMSessionContextAccess) String() string { return proto.CompactTextString(m) }
+func (*M5GSMSessionContextAccess) ProtoMessage()    {}
+func (*M5GSMSessionContextAccess) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{56}
+}
+
+func (m *M5GSMSessionContextAccess) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_M5GSMSessionContextAccess.Unmarshal(m, b)
+}
+func (m *M5GSMSessionContextAccess) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_M5GSMSessionContextAccess.Marshal(b, m, deterministic)
+}
+func (m *M5GSMSessionContextAccess) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_M5GSMSessionContextAccess.Merge(m, src)
+}
+func (m *M5GSMSessionContextAccess) XXX_Size() int {
+	return xxx_messageInfo_M5GSMSessionContextAccess.Size(m)
+}
+func (m *M5GSMSessionContextAccess) XXX_DiscardUnknown() {
+	xxx_messageInfo_M5GSMSessionContextAccess.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_M5GSMSessionContextAccess proto.InternalMessageInfo
+
+func (m *M5GSMSessionContextAccess) GetPduSessionId() []byte {
+	if m != nil {
+		return m.PduSessionId
+	}
+	return nil
+}
+
+func (m *M5GSMSessionContextAccess) GetPduSessionType() PduSessionType {
+	if m != nil {
+		return m.PduSessionType
+	}
+	return PduSessionType_IPV4
+}
+
+func (m *M5GSMSessionContextAccess) GetSelectedSscMode() SscMode {
+	if m != nil {
+		return m.SelectedSscMode
+	}
+	return SscMode_SSC_MODE_1
+}
+
+func (m *M5GSMSessionContextAccess) GetAuthorizedQosRules() []*QosRules {
+	if m != nil {
+		return m.AuthorizedQosRules
+	}
+	return nil
+}
+
+func (m *M5GSMSessionContextAccess) GetSessionAmbr() *AggregatedMaximumBitrate {
+	if m != nil {
+		return m.SessionAmbr
+	}
+	return nil
+}
+
+func (m *M5GSMSessionContextAccess) GetM5GsmCause() M5GSMCause {
+	if m != nil {
+		return m.M5GsmCause
+	}
+	return M5GSMCause_OPERATOR_DETERMINED_BARRING
+}
+
+func (m *M5GSMSessionContextAccess) GetAlwaysOnPduSessionIndication() bool {
+	if m != nil {
+		return m.AlwaysOnPduSessionIndication
+	}
+	return false
+}
+
+func (m *M5GSMSessionContextAccess) GetAllowedSscMode() SscMode {
+	if m != nil {
+		return m.AllowedSscMode
+	}
+	return SscMode_SSC_MODE_1
+}
+
+func (m *M5GSMSessionContextAccess) GetM5GsmCongetionReAttemptIndicator() bool {
+	if m != nil {
+		return m.M5GsmCongetionReAttemptIndicator
+	}
+	return false
+}
+
+func (m *M5GSMSessionContextAccess) GetPduAddress() *RedirectServer {
+	if m != nil {
+		return m.PduAddress
+	}
+	return nil
+}
+
+type SetSMSessionContextAccess struct {
+	CommonContext        *CommonSessionContext     `protobuf:"bytes,1,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
+	RatSpecificContext   *RatSpecificContextAccess `protobuf:"bytes,2,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *SetSMSessionContextAccess) Reset()         { *m = SetSMSessionContextAccess{} }
+func (m *SetSMSessionContextAccess) String() string { return proto.CompactTextString(m) }
+func (*SetSMSessionContextAccess) ProtoMessage()    {}
+func (*SetSMSessionContextAccess) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{57}
+}
+
+func (m *SetSMSessionContextAccess) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetSMSessionContextAccess.Unmarshal(m, b)
+}
+func (m *SetSMSessionContextAccess) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetSMSessionContextAccess.Marshal(b, m, deterministic)
+}
+func (m *SetSMSessionContextAccess) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetSMSessionContextAccess.Merge(m, src)
+}
+func (m *SetSMSessionContextAccess) XXX_Size() int {
+	return xxx_messageInfo_SetSMSessionContextAccess.Size(m)
+}
+func (m *SetSMSessionContextAccess) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetSMSessionContextAccess.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetSMSessionContextAccess proto.InternalMessageInfo
+
+func (m *SetSMSessionContextAccess) GetCommonContext() *CommonSessionContext {
+	if m != nil {
+		return m.CommonContext
+	}
+	return nil
+}
+
+func (m *SetSMSessionContextAccess) GetRatSpecificContext() *RatSpecificContextAccess {
+	if m != nil {
+		return m.RatSpecificContext
+	}
+	return nil
+}
+
+// Node Level Messages from UPF. Purely Event Based.
+type UPFNodeState struct {
+	UpfId string `protobuf:"bytes,1,opt,name=upf_id,json=upfId,proto3" json:"upf_id,omitempty"`
+	// Types that are valid to be assigned to UpfNodeMessages:
+	//	*UPFNodeState_AssociatonState
+	//	*UPFNodeState_NodeReport
+	UpfNodeMessages      isUPFNodeState_UpfNodeMessages `protobuf_oneof:"upf_node_messages"`
+	XXX_NoUnkeyedLiteral struct{}                       `json:"-"`
+	XXX_unrecognized     []byte                         `json:"-"`
+	XXX_sizecache        int32                          `json:"-"`
+}
+
+func (m *UPFNodeState) Reset()         { *m = UPFNodeState{} }
+func (m *UPFNodeState) String() string { return proto.CompactTextString(m) }
+func (*UPFNodeState) ProtoMessage()    {}
+func (*UPFNodeState) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{58}
+}
+
+func (m *UPFNodeState) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UPFNodeState.Unmarshal(m, b)
+}
+func (m *UPFNodeState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UPFNodeState.Marshal(b, m, deterministic)
+}
+func (m *UPFNodeState) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UPFNodeState.Merge(m, src)
+}
+func (m *UPFNodeState) XXX_Size() int {
+	return xxx_messageInfo_UPFNodeState.Size(m)
+}
+func (m *UPFNodeState) XXX_DiscardUnknown() {
+	xxx_messageInfo_UPFNodeState.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UPFNodeState proto.InternalMessageInfo
+
+func (m *UPFNodeState) GetUpfId() string {
+	if m != nil {
+		return m.UpfId
+	}
+	return ""
+}
+
+type isUPFNodeState_UpfNodeMessages interface {
+	isUPFNodeState_UpfNodeMessages()
+}
+
+type UPFNodeState_AssociatonState struct {
+	AssociatonState *UPFAssociationState `protobuf:"bytes,2,opt,name=associaton_state,json=associatonState,proto3,oneof"`
+}
+
+type UPFNodeState_NodeReport struct {
+	NodeReport *UPFNodeReport `protobuf:"bytes,3,opt,name=node_report,json=nodeReport,proto3,oneof"`
+}
+
+func (*UPFNodeState_AssociatonState) isUPFNodeState_UpfNodeMessages() {}
+
+func (*UPFNodeState_NodeReport) isUPFNodeState_UpfNodeMessages() {}
+
+func (m *UPFNodeState) GetUpfNodeMessages() isUPFNodeState_UpfNodeMessages {
+	if m != nil {
+		return m.UpfNodeMessages
+	}
+	return nil
+}
+
+func (m *UPFNodeState) GetAssociatonState() *UPFAssociationState {
+	if x, ok := m.GetUpfNodeMessages().(*UPFNodeState_AssociatonState); ok {
+		return x.AssociatonState
+	}
+	return nil
+}
+
+func (m *UPFNodeState) GetNodeReport() *UPFNodeReport {
+	if x, ok := m.GetUpfNodeMessages().(*UPFNodeState_NodeReport); ok {
+		return x.NodeReport
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*UPFNodeState) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*UPFNodeState_AssociatonState)(nil),
+		(*UPFNodeState_NodeReport)(nil),
+	}
+}
+
+//15.8 (Sec 8.2.82 User Plane IP Resource Information)
+type UserPlaneIPResourceSchema struct {
+	Ipv4Address          string   `protobuf:"bytes,1,opt,name=ipv4_address,json=ipv4Address,proto3" json:"ipv4_address,omitempty"`
+	Ipv6Address          string   `protobuf:"bytes,2,opt,name=ipv6_address,json=ipv6Address,proto3" json:"ipv6_address,omitempty"`
+	TeidRangeIndication  uint32   `protobuf:"varint,3,opt,name=teid_range_indication,json=teidRangeIndication,proto3" json:"teid_range_indication,omitempty"`
+	TeidRange            uint32   `protobuf:"varint,4,opt,name=teid_range,json=teidRange,proto3" json:"teid_range,omitempty"`
+	AssocNetworkInstance string   `protobuf:"bytes,5,opt,name=assoc_network_instance,json=assocNetworkInstance,proto3" json:"assoc_network_instance,omitempty"`
+	AssocSourceInterface uint32   `protobuf:"varint,6,opt,name=assoc_source_interface,json=assocSourceInterface,proto3" json:"assoc_source_interface,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserPlaneIPResourceSchema) Reset()         { *m = UserPlaneIPResourceSchema{} }
+func (m *UserPlaneIPResourceSchema) String() string { return proto.CompactTextString(m) }
+func (*UserPlaneIPResourceSchema) ProtoMessage()    {}
+func (*UserPlaneIPResourceSchema) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{59}
+}
+
+func (m *UserPlaneIPResourceSchema) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserPlaneIPResourceSchema.Unmarshal(m, b)
+}
+func (m *UserPlaneIPResourceSchema) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserPlaneIPResourceSchema.Marshal(b, m, deterministic)
+}
+func (m *UserPlaneIPResourceSchema) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserPlaneIPResourceSchema.Merge(m, src)
+}
+func (m *UserPlaneIPResourceSchema) XXX_Size() int {
+	return xxx_messageInfo_UserPlaneIPResourceSchema.Size(m)
+}
+func (m *UserPlaneIPResourceSchema) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserPlaneIPResourceSchema.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserPlaneIPResourceSchema proto.InternalMessageInfo
+
+func (m *UserPlaneIPResourceSchema) GetIpv4Address() string {
+	if m != nil {
+		return m.Ipv4Address
+	}
+	return ""
+}
+
+func (m *UserPlaneIPResourceSchema) GetIpv6Address() string {
+	if m != nil {
+		return m.Ipv6Address
+	}
+	return ""
+}
+
+func (m *UserPlaneIPResourceSchema) GetTeidRangeIndication() uint32 {
+	if m != nil {
+		return m.TeidRangeIndication
+	}
+	return 0
+}
+
+func (m *UserPlaneIPResourceSchema) GetTeidRange() uint32 {
+	if m != nil {
+		return m.TeidRange
+	}
+	return 0
+}
+
+func (m *UserPlaneIPResourceSchema) GetAssocNetworkInstance() string {
+	if m != nil {
+		return m.AssocNetworkInstance
+	}
+	return ""
+}
+
+func (m *UserPlaneIPResourceSchema) GetAssocSourceInterface() uint32 {
+	if m != nil {
+		return m.AssocSourceInterface
+	}
+	return 0
+}
+
+// 15.8 (Sec 7.4.4.3) : PFCP Association Update Reqest.
+type UPFAssociationState struct {
+	// Version of the associated state
+	StateVersion uint32 `protobuf:"varint,2,opt,name=state_version,json=stateVersion,proto3" json:"state_version,omitempty"`
+	//Association state of the UPF
+	AssocState UPFAssociationState_AssociationState `protobuf:"varint,3,opt,name=assoc_state,json=assocState,proto3,enum=magma.lte.UPFAssociationState_AssociationState" json:"assoc_state,omitempty"`
+	// Time when UPF got started
+	RecoveryTimeStamp *timestamp.Timestamp `protobuf:"bytes,4,opt,name=recovery_time_stamp,json=recoveryTimeStamp,proto3" json:"recovery_time_stamp,omitempty"`
+	// Feature set supported by UPF
+	FeatureSet *UPFFeatureSet `protobuf:"bytes,5,opt,name=feature_set,json=featureSet,proto3" json:"feature_set,omitempty"`
+	// User plane IP Resource schema
+	IpResourceSchema      []*UserPlaneIPResourceSchema `protobuf:"bytes,6,rep,name=ip_resource_schema,json=ipResourceSchema,proto3" json:"ip_resource_schema,omitempty"`
+	GracefulReleasePeriod *timestamp.Timestamp         `protobuf:"bytes,7,opt,name=graceful_release_period,json=gracefulReleasePeriod,proto3" json:"graceful_release_period,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}                     `json:"-"`
+	XXX_unrecognized      []byte                       `json:"-"`
+	XXX_sizecache         int32                        `json:"-"`
+}
+
+func (m *UPFAssociationState) Reset()         { *m = UPFAssociationState{} }
+func (m *UPFAssociationState) String() string { return proto.CompactTextString(m) }
+func (*UPFAssociationState) ProtoMessage()    {}
+func (*UPFAssociationState) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{60}
+}
+
+func (m *UPFAssociationState) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UPFAssociationState.Unmarshal(m, b)
+}
+func (m *UPFAssociationState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UPFAssociationState.Marshal(b, m, deterministic)
+}
+func (m *UPFAssociationState) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UPFAssociationState.Merge(m, src)
+}
+func (m *UPFAssociationState) XXX_Size() int {
+	return xxx_messageInfo_UPFAssociationState.Size(m)
+}
+func (m *UPFAssociationState) XXX_DiscardUnknown() {
+	xxx_messageInfo_UPFAssociationState.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UPFAssociationState proto.InternalMessageInfo
+
+func (m *UPFAssociationState) GetStateVersion() uint32 {
+	if m != nil {
+		return m.StateVersion
+	}
+	return 0
+}
+
+func (m *UPFAssociationState) GetAssocState() UPFAssociationState_AssociationState {
+	if m != nil {
+		return m.AssocState
+	}
+	return UPFAssociationState_STARTED
+}
+
+func (m *UPFAssociationState) GetRecoveryTimeStamp() *timestamp.Timestamp {
+	if m != nil {
+		return m.RecoveryTimeStamp
+	}
+	return nil
+}
+
+func (m *UPFAssociationState) GetFeatureSet() *UPFFeatureSet {
+	if m != nil {
+		return m.FeatureSet
+	}
+	return nil
+}
+
+func (m *UPFAssociationState) GetIpResourceSchema() []*UserPlaneIPResourceSchema {
+	if m != nil {
+		return m.IpResourceSchema
+	}
+	return nil
+}
+
+func (m *UPFAssociationState) GetGracefulReleasePeriod() *timestamp.Timestamp {
+	if m != nil {
+		return m.GracefulReleasePeriod
+	}
+	return nil
+}
+
+type UPFFeatureSet struct {
+	// 15.8 (Sec 8.2.25) :  UP Function Features
+	DownlinkDataBufferingCp       bool `protobuf:"varint,1,opt,name=downlink_data_buffering_cp,json=downlinkDataBufferingCp,proto3" json:"downlink_data_buffering_cp,omitempty"`
+	DownlinkDataNotificationDelay bool `protobuf:"varint,2,opt,name=downlink_data_notification_delay,json=downlinkDataNotificationDelay,proto3" json:"downlink_data_notification_delay,omitempty"`
+	// Buffering parameter, Downlink DataNotification Delay supported by UPF
+	DlBufferingDuration           bool `protobuf:"varint,3,opt,name=dl_buffering_duration,json=dlBufferingDuration,proto3" json:"dl_buffering_duration,omitempty"`
+	TrafficSteering               bool `protobuf:"varint,4,opt,name=traffic_steering,json=trafficSteering,proto3" json:"traffic_steering,omitempty"`
+	FTeid                         bool `protobuf:"varint,5,opt,name=f_teid,json=fTeid,proto3" json:"f_teid,omitempty"`
+	PfdManagement                 bool `protobuf:"varint,6,opt,name=pfd_management,json=pfdManagement,proto3" json:"pfd_management,omitempty"`
+	HeaderEnrichmentUplink        bool `protobuf:"varint,7,opt,name=header_enrichment_uplink,json=headerEnrichmentUplink,proto3" json:"header_enrichment_uplink,omitempty"`
+	TrafficRedirectionEnforcement bool `protobuf:"varint,8,opt,name=traffic_redirection_enforcement,json=trafficRedirectionEnforcement,proto3" json:"traffic_redirection_enforcement,omitempty"`
+	// Traffic Redirection Enforcement in the UP function is supported in UPF
+	EndOfMarkerPacket         bool     `protobuf:"varint,9,opt,name=end_of_marker_packet,json=endOfMarkerPacket,proto3" json:"end_of_marker_packet,omitempty"`
+	PdiOptimizationSignalling bool     `protobuf:"varint,10,opt,name=pdi_optimization_signalling,json=pdiOptimizationSignalling,proto3" json:"pdi_optimization_signalling,omitempty"`
+	UlDlBufferingControl      bool     `protobuf:"varint,11,opt,name=ul_dl_buffering_control,json=ulDlBufferingControl,proto3" json:"ul_dl_buffering_control,omitempty"`
+	QuotaApplicationToApply   bool     `protobuf:"varint,12,opt,name=quota_application_to_apply,json=quotaApplicationToApply,proto3" json:"quota_application_to_apply,omitempty"`
+	Trace                     bool     `protobuf:"varint,13,opt,name=trace,proto3" json:"trace,omitempty"`
+	FrameRouting              bool     `protobuf:"varint,14,opt,name=frame_routing,json=frameRouting,proto3" json:"frame_routing,omitempty"`
+	PfdContents               bool     `protobuf:"varint,15,opt,name=pfd_contents,json=pfdContents,proto3" json:"pfd_contents,omitempty"`
+	XXX_NoUnkeyedLiteral      struct{} `json:"-"`
+	XXX_unrecognized          []byte   `json:"-"`
+	XXX_sizecache             int32    `json:"-"`
+}
+
+func (m *UPFFeatureSet) Reset()         { *m = UPFFeatureSet{} }
+func (m *UPFFeatureSet) String() string { return proto.CompactTextString(m) }
+func (*UPFFeatureSet) ProtoMessage()    {}
+func (*UPFFeatureSet) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{61}
+}
+
+func (m *UPFFeatureSet) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UPFFeatureSet.Unmarshal(m, b)
+}
+func (m *UPFFeatureSet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UPFFeatureSet.Marshal(b, m, deterministic)
+}
+func (m *UPFFeatureSet) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UPFFeatureSet.Merge(m, src)
+}
+func (m *UPFFeatureSet) XXX_Size() int {
+	return xxx_messageInfo_UPFFeatureSet.Size(m)
+}
+func (m *UPFFeatureSet) XXX_DiscardUnknown() {
+	xxx_messageInfo_UPFFeatureSet.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UPFFeatureSet proto.InternalMessageInfo
+
+func (m *UPFFeatureSet) GetDownlinkDataBufferingCp() bool {
+	if m != nil {
+		return m.DownlinkDataBufferingCp
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetDownlinkDataNotificationDelay() bool {
+	if m != nil {
+		return m.DownlinkDataNotificationDelay
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetDlBufferingDuration() bool {
+	if m != nil {
+		return m.DlBufferingDuration
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetTrafficSteering() bool {
+	if m != nil {
+		return m.TrafficSteering
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetFTeid() bool {
+	if m != nil {
+		return m.FTeid
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetPfdManagement() bool {
+	if m != nil {
+		return m.PfdManagement
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetHeaderEnrichmentUplink() bool {
+	if m != nil {
+		return m.HeaderEnrichmentUplink
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetTrafficRedirectionEnforcement() bool {
+	if m != nil {
+		return m.TrafficRedirectionEnforcement
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetEndOfMarkerPacket() bool {
+	if m != nil {
+		return m.EndOfMarkerPacket
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetPdiOptimizationSignalling() bool {
+	if m != nil {
+		return m.PdiOptimizationSignalling
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetUlDlBufferingControl() bool {
+	if m != nil {
+		return m.UlDlBufferingControl
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetQuotaApplicationToApply() bool {
+	if m != nil {
+		return m.QuotaApplicationToApply
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetTrace() bool {
+	if m != nil {
+		return m.Trace
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetFrameRouting() bool {
+	if m != nil {
+		return m.FrameRouting
+	}
+	return false
+}
+
+func (m *UPFFeatureSet) GetPfdContents() bool {
+	if m != nil {
+		return m.PfdContents
+	}
+	return false
+}
+
+//15.8 (Sec 7.4.5.1) : PFCP Node Report Request
+type UPFNodeReport struct {
+	StateVersion         uint32                      `protobuf:"varint,2,opt,name=state_version,json=stateVersion,proto3" json:"state_version,omitempty"`
+	LoadControlInfo      *LoadControlInformation     `protobuf:"bytes,3,opt,name=load_control_info,json=loadControlInfo,proto3" json:"load_control_info,omitempty"`
+	OverloadControlInfo  *OverloadControlInformation `protobuf:"bytes,4,opt,name=overload_control_info,json=overloadControlInfo,proto3" json:"overload_control_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *UPFNodeReport) Reset()         { *m = UPFNodeReport{} }
+func (m *UPFNodeReport) String() string { return proto.CompactTextString(m) }
+func (*UPFNodeReport) ProtoMessage()    {}
+func (*UPFNodeReport) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{62}
+}
+
+func (m *UPFNodeReport) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UPFNodeReport.Unmarshal(m, b)
+}
+func (m *UPFNodeReport) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UPFNodeReport.Marshal(b, m, deterministic)
+}
+func (m *UPFNodeReport) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UPFNodeReport.Merge(m, src)
+}
+func (m *UPFNodeReport) XXX_Size() int {
+	return xxx_messageInfo_UPFNodeReport.Size(m)
+}
+func (m *UPFNodeReport) XXX_DiscardUnknown() {
+	xxx_messageInfo_UPFNodeReport.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UPFNodeReport proto.InternalMessageInfo
+
+func (m *UPFNodeReport) GetStateVersion() uint32 {
+	if m != nil {
+		return m.StateVersion
+	}
+	return 0
+}
+
+func (m *UPFNodeReport) GetLoadControlInfo() *LoadControlInformation {
+	if m != nil {
+		return m.LoadControlInfo
+	}
+	return nil
+}
+
+func (m *UPFNodeReport) GetOverloadControlInfo() *OverloadControlInformation {
+	if m != nil {
+		return m.OverloadControlInfo
+	}
+	return nil
+}
+
+// 15.8 (Table 7.5.3.3-1) : Load Control Information
+type LoadControlInformation struct {
+	LoadControlSeqNumber uint32   `protobuf:"varint,1,opt,name=load_control_seq_number,json=loadControlSeqNumber,proto3" json:"load_control_seq_number,omitempty"`
+	LoadMetric           uint32   `protobuf:"varint,2,opt,name=load_metric,json=loadMetric,proto3" json:"load_metric,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *LoadControlInformation) Reset()         { *m = LoadControlInformation{} }
+func (m *LoadControlInformation) String() string { return proto.CompactTextString(m) }
+func (*LoadControlInformation) ProtoMessage()    {}
+func (*LoadControlInformation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{63}
+}
+
+func (m *LoadControlInformation) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LoadControlInformation.Unmarshal(m, b)
+}
+func (m *LoadControlInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LoadControlInformation.Marshal(b, m, deterministic)
+}
+func (m *LoadControlInformation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LoadControlInformation.Merge(m, src)
+}
+func (m *LoadControlInformation) XXX_Size() int {
+	return xxx_messageInfo_LoadControlInformation.Size(m)
+}
+func (m *LoadControlInformation) XXX_DiscardUnknown() {
+	xxx_messageInfo_LoadControlInformation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LoadControlInformation proto.InternalMessageInfo
+
+func (m *LoadControlInformation) GetLoadControlSeqNumber() uint32 {
+	if m != nil {
+		return m.LoadControlSeqNumber
+	}
+	return 0
+}
+
+func (m *LoadControlInformation) GetLoadMetric() uint32 {
+	if m != nil {
+		return m.LoadMetric
+	}
+	return 0
+}
+
+// 15.8 (Sec 8.2.35) : Timer
+type OverloadTimer struct {
+	TimerUnit            uint32   `protobuf:"varint,1,opt,name=timer_unit,json=timerUnit,proto3" json:"timer_unit,omitempty"`
+	TimerValue           uint32   `protobuf:"varint,2,opt,name=timer_value,json=timerValue,proto3" json:"timer_value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *OverloadTimer) Reset()         { *m = OverloadTimer{} }
+func (m *OverloadTimer) String() string { return proto.CompactTextString(m) }
+func (*OverloadTimer) ProtoMessage()    {}
+func (*OverloadTimer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{64}
+}
+
+func (m *OverloadTimer) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_OverloadTimer.Unmarshal(m, b)
+}
+func (m *OverloadTimer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_OverloadTimer.Marshal(b, m, deterministic)
+}
+func (m *OverloadTimer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OverloadTimer.Merge(m, src)
+}
+func (m *OverloadTimer) XXX_Size() int {
+	return xxx_messageInfo_OverloadTimer.Size(m)
+}
+func (m *OverloadTimer) XXX_DiscardUnknown() {
+	xxx_messageInfo_OverloadTimer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OverloadTimer proto.InternalMessageInfo
+
+func (m *OverloadTimer) GetTimerUnit() uint32 {
+	if m != nil {
+		return m.TimerUnit
+	}
+	return 0
+}
+
+func (m *OverloadTimer) GetTimerValue() uint32 {
+	if m != nil {
+		return m.TimerValue
+	}
+	return 0
+}
+
+// 15.8 (Sec 7.5.3.4) : Overload Control Information
+type OverloadControlInformation struct {
+	OverloadCtrlSeqno       uint32         `protobuf:"varint,1,opt,name=overload_ctrl_seqno,json=overloadCtrlSeqno,proto3" json:"overload_ctrl_seqno,omitempty"`
+	OverloadReductionMetric uint32         `protobuf:"varint,2,opt,name=overload_reduction_metric,json=overloadReductionMetric,proto3" json:"overload_reduction_metric,omitempty"`
+	PeriodOfValidity        *OverloadTimer `protobuf:"bytes,3,opt,name=period_of_validity,json=periodOfValidity,proto3" json:"period_of_validity,omitempty"`
+	Flags                   uint32         `protobuf:"varint,4,opt,name=flags,proto3" json:"flags,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}       `json:"-"`
+	XXX_unrecognized        []byte         `json:"-"`
+	XXX_sizecache           int32          `json:"-"`
+}
+
+func (m *OverloadControlInformation) Reset()         { *m = OverloadControlInformation{} }
+func (m *OverloadControlInformation) String() string { return proto.CompactTextString(m) }
+func (*OverloadControlInformation) ProtoMessage()    {}
+func (*OverloadControlInformation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{65}
+}
+
+func (m *OverloadControlInformation) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_OverloadControlInformation.Unmarshal(m, b)
+}
+func (m *OverloadControlInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_OverloadControlInformation.Marshal(b, m, deterministic)
+}
+func (m *OverloadControlInformation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OverloadControlInformation.Merge(m, src)
+}
+func (m *OverloadControlInformation) XXX_Size() int {
+	return xxx_messageInfo_OverloadControlInformation.Size(m)
+}
+func (m *OverloadControlInformation) XXX_DiscardUnknown() {
+	xxx_messageInfo_OverloadControlInformation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OverloadControlInformation proto.InternalMessageInfo
+
+func (m *OverloadControlInformation) GetOverloadCtrlSeqno() uint32 {
+	if m != nil {
+		return m.OverloadCtrlSeqno
+	}
+	return 0
+}
+
+func (m *OverloadControlInformation) GetOverloadReductionMetric() uint32 {
+	if m != nil {
+		return m.OverloadReductionMetric
+	}
+	return 0
+}
+
+func (m *OverloadControlInformation) GetPeriodOfValidity() *OverloadTimer {
+	if m != nil {
+		return m.PeriodOfValidity
+	}
+	return nil
+}
+
+func (m *OverloadControlInformation) GetFlags() uint32 {
+	if m != nil {
+		return m.Flags
+	}
+	return 0
+}
+
+// Current Session snapshot in UPF.
+type UPFSessionState struct {
+	SubscriberId         string   `protobuf:"bytes,1,opt,name=subscriber_id,json=subscriberId,proto3" json:"subscriber_id,omitempty"`
+	SessionVersion       uint32   `protobuf:"varint,2,opt,name=session_version,json=sessionVersion,proto3" json:"session_version,omitempty"`
+	LocalFTeid           uint32   `protobuf:"varint,3,opt,name=local_f_teid,json=localFTeid,proto3" json:"local_f_teid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UPFSessionState) Reset()         { *m = UPFSessionState{} }
+func (m *UPFSessionState) String() string { return proto.CompactTextString(m) }
+func (*UPFSessionState) ProtoMessage()    {}
+func (*UPFSessionState) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{66}
+}
+
+func (m *UPFSessionState) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UPFSessionState.Unmarshal(m, b)
+}
+func (m *UPFSessionState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UPFSessionState.Marshal(b, m, deterministic)
+}
+func (m *UPFSessionState) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UPFSessionState.Merge(m, src)
+}
+func (m *UPFSessionState) XXX_Size() int {
+	return xxx_messageInfo_UPFSessionState.Size(m)
+}
+func (m *UPFSessionState) XXX_DiscardUnknown() {
+	xxx_messageInfo_UPFSessionState.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UPFSessionState proto.InternalMessageInfo
+
+func (m *UPFSessionState) GetSubscriberId() string {
+	if m != nil {
+		return m.SubscriberId
+	}
+	return ""
+}
+
+func (m *UPFSessionState) GetSessionVersion() uint32 {
+	if m != nil {
+		return m.SessionVersion
+	}
+	return 0
+}
+
+func (m *UPFSessionState) GetLocalFTeid() uint32 {
+	if m != nil {
+		return m.LocalFTeid
+	}
+	return 0
+}
+
+// Perodic Session snapshot information from UPF to SMF
+type UPFSessionConfigState struct {
+	UpfSessionState      []*UPFSessionState `protobuf:"bytes,1,rep,name=upf_session_state,json=upfSessionState,proto3" json:"upf_session_state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
+}
+
+func (m *UPFSessionConfigState) Reset()         { *m = UPFSessionConfigState{} }
+func (m *UPFSessionConfigState) String() string { return proto.CompactTextString(m) }
+func (*UPFSessionConfigState) ProtoMessage()    {}
+func (*UPFSessionConfigState) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{67}
+}
+
+func (m *UPFSessionConfigState) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UPFSessionConfigState.Unmarshal(m, b)
+}
+func (m *UPFSessionConfigState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UPFSessionConfigState.Marshal(b, m, deterministic)
+}
+func (m *UPFSessionConfigState) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UPFSessionConfigState.Merge(m, src)
+}
+func (m *UPFSessionConfigState) XXX_Size() int {
+	return xxx_messageInfo_UPFSessionConfigState.Size(m)
+}
+func (m *UPFSessionConfigState) XXX_DiscardUnknown() {
+	xxx_messageInfo_UPFSessionConfigState.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UPFSessionConfigState proto.InternalMessageInfo
+
+func (m *UPFSessionConfigState) GetUpfSessionState() []*UPFSessionState {
+	if m != nil {
+		return m.UpfSessionState
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterEnum("magma.lte.RATType", RATType_name, RATType_value)
 	proto.RegisterEnum("magma.lte.EventTrigger", EventTrigger_name, EventTrigger_value)
@@ -3360,6 +5856,15 @@ func init() {
 	proto.RegisterEnum("magma.lte.ReAuthResult", ReAuthResult_name, ReAuthResult_value)
 	proto.RegisterEnum("magma.lte.CreditLimitType", CreditLimitType_name, CreditLimitType_value)
 	proto.RegisterEnum("magma.lte.MonitoringLevel", MonitoringLevel_name, MonitoringLevel_value)
+	proto.RegisterEnum("magma.lte.PduSessionType", PduSessionType_name, PduSessionType_value)
+	proto.RegisterEnum("magma.lte.SscMode", SscMode_name, SscMode_value)
+	proto.RegisterEnum("magma.lte.M5GSMCause", M5GSMCause_name, M5GSMCause_value)
+	proto.RegisterEnum("magma.lte.RequestType", RequestType_name, RequestType_value)
+	proto.RegisterEnum("magma.lte.AccessType", AccessType_name, AccessType_value)
+	proto.RegisterEnum("magma.lte.DnnSelectionMode", DnnSelectionMode_name, DnnSelectionMode_value)
+	proto.RegisterEnum("magma.lte.TypeOfList", TypeOfList_name, TypeOfList_value)
+	proto.RegisterEnum("magma.lte.Priorityaccess", Priorityaccess_name, Priorityaccess_value)
+	proto.RegisterEnum("magma.lte.SMSessionFSMState", SMSessionFSMState_name, SMSessionFSMState_value)
 	proto.RegisterEnum("magma.lte.ChargingReAuthRequest_Type", ChargingReAuthRequest_Type_name, ChargingReAuthRequest_Type_value)
 	proto.RegisterEnum("magma.lte.PolicyReAuthAnswer_FailureCode", PolicyReAuthAnswer_FailureCode_name, PolicyReAuthAnswer_FailureCode_value)
 	proto.RegisterEnum("magma.lte.RedirectServer_RedirectAddressType", RedirectServer_RedirectAddressType_name, RedirectServer_RedirectAddressType_value)
@@ -3367,26 +5872,40 @@ func init() {
 	proto.RegisterEnum("magma.lte.ChargingCredit_FinalAction", ChargingCredit_FinalAction_name, ChargingCredit_FinalAction_value)
 	proto.RegisterEnum("magma.lte.CreditUsage_UpdateType", CreditUsage_UpdateType_name, CreditUsage_UpdateType_value)
 	proto.RegisterEnum("magma.lte.UsageMonitoringCredit_Action", UsageMonitoringCredit_Action_name, UsageMonitoringCredit_Action_value)
+	proto.RegisterEnum("magma.lte.NodeID_NodeIDType", NodeID_NodeIDType_name, NodeID_NodeIDType_value)
+	proto.RegisterEnum("magma.lte.UserPlaneIPResourceSchema_InterfaceValue", UserPlaneIPResourceSchema_InterfaceValue_name, UserPlaneIPResourceSchema_InterfaceValue_value)
+	proto.RegisterEnum("magma.lte.UPFAssociationState_AssociationState", UPFAssociationState_AssociationState_name, UPFAssociationState_AssociationState_value)
 	proto.RegisterType((*RuleRecord)(nil), "magma.lte.RuleRecord")
 	proto.RegisterType((*RuleRecordTable)(nil), "magma.lte.RuleRecordTable")
 	proto.RegisterType((*LocalCreateSessionRequest)(nil), "magma.lte.LocalCreateSessionRequest")
 	proto.RegisterType((*CommonSessionContext)(nil), "magma.lte.CommonSessionContext")
 	proto.RegisterType((*RatSpecificContext)(nil), "magma.lte.RatSpecificContext")
+	proto.RegisterType((*RatSpecificNotification)(nil), "magma.lte.RatSpecificNotification")
+	proto.RegisterType((*SetSmNotificationContext)(nil), "magma.lte.SetSmNotificationContext")
 	proto.RegisterType((*LTESessionContext)(nil), "magma.lte.LTESessionContext")
 	proto.RegisterType((*WLANSessionContext)(nil), "magma.lte.WLANSessionContext")
 	proto.RegisterType((*LocalCreateSessionResponse)(nil), "magma.lte.LocalCreateSessionResponse")
 	proto.RegisterType((*LocalEndSessionRequest)(nil), "magma.lte.LocalEndSessionRequest")
 	proto.RegisterType((*LocalEndSessionResponse)(nil), "magma.lte.LocalEndSessionResponse")
+	proto.RegisterType((*UpdateTunnelIdsRequest)(nil), "magma.lte.UpdateTunnelIdsRequest")
+	proto.RegisterType((*UpdateTunnelIdsResponse)(nil), "magma.lte.UpdateTunnelIdsResponse")
+	proto.RegisterType((*PolicyBearerBindingRequest)(nil), "magma.lte.PolicyBearerBindingRequest")
+	proto.RegisterType((*PolicyBearerBindingResponse)(nil), "magma.lte.PolicyBearerBindingResponse")
 	proto.RegisterType((*ChargingReAuthRequest)(nil), "magma.lte.ChargingReAuthRequest")
 	proto.RegisterType((*ChargingReAuthAnswer)(nil), "magma.lte.ChargingReAuthAnswer")
 	proto.RegisterType((*PolicyReAuthRequest)(nil), "magma.lte.PolicyReAuthRequest")
 	proto.RegisterType((*QoSInformation)(nil), "magma.lte.QoSInformation")
 	proto.RegisterType((*PolicyReAuthAnswer)(nil), "magma.lte.PolicyReAuthAnswer")
 	proto.RegisterMapType((map[string]PolicyReAuthAnswer_FailureCode)(nil), "magma.lte.PolicyReAuthAnswer.FailedRulesEntry")
+	proto.RegisterType((*RuleSet)(nil), "magma.lte.RuleSet")
+	proto.RegisterType((*RulesPerSubscriber)(nil), "magma.lte.RulesPerSubscriber")
+	proto.RegisterType((*SessionRules)(nil), "magma.lte.SessionRules")
+	proto.RegisterType((*Timezone)(nil), "magma.lte.Timezone")
 	proto.RegisterType((*CreditUnit)(nil), "magma.lte.CreditUnit")
 	proto.RegisterType((*GrantedUnits)(nil), "magma.lte.GrantedUnits")
 	proto.RegisterType((*RedirectServer)(nil), "magma.lte.RedirectServer")
 	proto.RegisterType((*ChargingCredit)(nil), "magma.lte.ChargingCredit")
+	proto.RegisterType((*RequestedUnits)(nil), "magma.lte.RequestedUnits")
 	proto.RegisterType((*CreditUsage)(nil), "magma.lte.CreditUsage")
 	proto.RegisterType((*CreditUsageUpdate)(nil), "magma.lte.CreditUsageUpdate")
 	proto.RegisterType((*CreditUpdateResponse)(nil), "magma.lte.CreditUpdateResponse")
@@ -3404,288 +5923,556 @@ func init() {
 	proto.RegisterType((*UpdateSessionResponse)(nil), "magma.lte.UpdateSessionResponse")
 	proto.RegisterType((*SessionTerminateResponse)(nil), "magma.lte.SessionTerminateResponse")
 	proto.RegisterType((*SessionTerminateRequest)(nil), "magma.lte.SessionTerminateRequest")
+	proto.RegisterType((*NodeID)(nil), "magma.lte.NodeID")
+	proto.RegisterType((*M5GSMCapability)(nil), "magma.lte.M5GSMCapability")
+	proto.RegisterType((*QosRules)(nil), "magma.lte.QosRules")
+	proto.RegisterType((*LadnServiceArea)(nil), "magma.lte.LadnServiceArea")
+	proto.RegisterType((*TrackingAreaIdentityList)(nil), "magma.lte.TrackingAreaIdentityList")
+	proto.RegisterType((*M5GSMSessionContext)(nil), "magma.lte.M5GSMSessionContext")
+	proto.RegisterType((*SetSMSessionContext)(nil), "magma.lte.SetSMSessionContext")
+	proto.RegisterType((*SmContextVoid)(nil), "magma.lte.SmContextVoid")
+	proto.RegisterType((*RatSpecificContextAccess)(nil), "magma.lte.RatSpecificContextAccess")
+	proto.RegisterType((*M5GSMSessionContextAccess)(nil), "magma.lte.M5GSMSessionContextAccess")
+	proto.RegisterType((*SetSMSessionContextAccess)(nil), "magma.lte.SetSMSessionContextAccess")
+	proto.RegisterType((*UPFNodeState)(nil), "magma.lte.UPFNodeState")
+	proto.RegisterType((*UserPlaneIPResourceSchema)(nil), "magma.lte.UserPlaneIPResourceSchema")
+	proto.RegisterType((*UPFAssociationState)(nil), "magma.lte.UPFAssociationState")
+	proto.RegisterType((*UPFFeatureSet)(nil), "magma.lte.UPFFeatureSet")
+	proto.RegisterType((*UPFNodeReport)(nil), "magma.lte.UPFNodeReport")
+	proto.RegisterType((*LoadControlInformation)(nil), "magma.lte.LoadControlInformation")
+	proto.RegisterType((*OverloadTimer)(nil), "magma.lte.OverloadTimer")
+	proto.RegisterType((*OverloadControlInformation)(nil), "magma.lte.OverloadControlInformation")
+	proto.RegisterType((*UPFSessionState)(nil), "magma.lte.UPFSessionState")
+	proto.RegisterType((*UPFSessionConfigState)(nil), "magma.lte.UPFSessionConfigState")
 }
 
 func init() { proto.RegisterFile("lte/protos/session_manager.proto", fileDescriptor_85add0446af78174) }
 
 var fileDescriptor_85add0446af78174 = []byte{
-	// 4416 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x3b, 0x4d, 0x73, 0x1b, 0x47,
-	0x76, 0xc4, 0x37, 0xf0, 0xf0, 0xc1, 0x61, 0x8b, 0x14, 0x41, 0x5a, 0x1f, 0xd4, 0xc8, 0xb2, 0xb5,
-	0xf2, 0x9a, 0xb4, 0x65, 0x5b, 0xb6, 0xe2, 0x4d, 0x54, 0xc3, 0x41, 0x83, 0x9c, 0x08, 0x98, 0x01,
-	0x7b, 0x06, 0x94, 0xec, 0xaa, 0xa4, 0x03, 0x02, 0x23, 0x6a, 0x6a, 0xf1, 0xa5, 0x99, 0x01, 0x4d,
-	0x1e, 0x53, 0x7b, 0x4a, 0xa5, 0xb6, 0x6a, 0x0f, 0xc9, 0x35, 0x97, 0x4d, 0x4e, 0x39, 0xee, 0x25,
-	0x1f, 0x87, 0x54, 0x7e, 0x41, 0x4e, 0xc9, 0x21, 0xbf, 0x21, 0x87, 0x1c, 0x72, 0x4e, 0xa5, 0xba,
-	0xa7, 0x07, 0x98, 0x01, 0x40, 0x52, 0x92, 0x37, 0x55, 0x3e, 0xa1, 0xe7, 0xf5, 0xeb, 0xd7, 0xdd,
-	0xaf, 0xdf, 0x57, 0xbf, 0xd7, 0x80, 0x9d, 0xbe, 0x6f, 0xef, 0x8d, 0xdd, 0x91, 0x3f, 0xf2, 0xf6,
-	0x3c, 0xdb, 0xf3, 0x9c, 0xd1, 0x90, 0x0e, 0x3a, 0xc3, 0xce, 0xa9, 0xed, 0xee, 0x72, 0x30, 0x2a,
-	0x0c, 0x3a, 0xa7, 0x83, 0xce, 0x6e, 0xdf, 0xb7, 0xb7, 0xb7, 0x46, 0x6e, 0xf7, 0x1b, 0x37, 0x44,
-	0xef, 0x8e, 0x06, 0x83, 0xd1, 0x30, 0xc0, 0xda, 0xde, 0x8a, 0xd0, 0x19, 0x8f, 0xfa, 0x4e, 0xf7,
-	0xa2, 0x77, 0x22, 0xba, 0x6e, 0x47, 0xa7, 0x98, 0x9c, 0x78, 0x5d, 0xd7, 0x39, 0xb1, 0xdd, 0x69,
-	0xf7, 0xdd, 0xd3, 0xd1, 0xe8, 0xb4, 0x2f, 0x30, 0x4e, 0x26, 0xaf, 0xf6, 0x7c, 0x67, 0x60, 0x7b,
-	0x7e, 0x67, 0x30, 0x0e, 0x10, 0xe4, 0x01, 0x00, 0x99, 0xf4, 0x6d, 0x62, 0x77, 0x47, 0x6e, 0x0f,
-	0x49, 0x90, 0xf2, 0x9c, 0x5e, 0x35, 0xb1, 0x93, 0x78, 0x58, 0x20, 0xac, 0x89, 0x36, 0x21, 0xe7,
-	0x4e, 0xfa, 0x36, 0x75, 0x7a, 0xd5, 0x24, 0x87, 0x66, 0xd9, 0xa7, 0xd6, 0x43, 0x5b, 0x90, 0x3f,
-	0xb9, 0xf0, 0x6d, 0x8f, 0xfa, 0xe7, 0xd5, 0xd4, 0x4e, 0xe2, 0x61, 0x9a, 0xe4, 0xf8, 0xb7, 0x75,
-	0x3e, 0xeb, 0x72, 0xcf, 0xab, 0xe9, 0x48, 0x17, 0x39, 0x97, 0x5f, 0xc2, 0xea, 0x6c, 0x3a, 0xab,
-	0x73, 0xd2, 0xb7, 0xd1, 0x1e, 0xe4, 0x5c, 0xfe, 0xe9, 0x55, 0x13, 0x3b, 0xa9, 0x87, 0xc5, 0xc7,
-	0x1b, 0xbb, 0x53, 0xa6, 0xec, 0xce, 0x90, 0x49, 0x88, 0x85, 0xd6, 0x21, 0x63, 0x8f, 0x47, 0xdd,
-	0xd7, 0x7c, 0x41, 0x69, 0x12, 0x7c, 0xc8, 0xbf, 0xce, 0xc0, 0x56, 0x63, 0xd4, 0xed, 0xf4, 0x55,
-	0xd7, 0xee, 0xf8, 0xb6, 0x19, 0xb0, 0x9b, 0xd8, 0x6f, 0x26, 0xb6, 0xe7, 0xa3, 0x9f, 0xcd, 0x36,
-	0x56, 0x7c, 0xbc, 0x19, 0x99, 0xc0, 0x9c, 0xf2, 0x4c, 0xab, 0x4d, 0x77, 0x3c, 0xb1, 0xa9, 0x33,
-	0x3e, 0xfb, 0x32, 0xdc, 0xf1, 0xc4, 0xd6, 0xc6, 0x67, 0x5f, 0xa2, 0x0f, 0xa0, 0xe0, 0x8d, 0x4f,
-	0x7f, 0x08, 0xba, 0x52, 0xbc, 0x2b, 0xcf, 0x00, 0xbc, 0x53, 0x82, 0x54, 0x67, 0x3c, 0xe4, 0xdb,
-	0x2d, 0x10, 0xd6, 0x44, 0x08, 0xd2, 0xce, 0xc0, 0x76, 0xaa, 0x59, 0x0e, 0xe2, 0x6d, 0x46, 0x7b,
-	0xdc, 0x1f, 0x0c, 0x19, 0x37, 0x73, 0x01, 0x6d, 0xf6, 0xa9, 0xf5, 0xd0, 0x0e, 0x94, 0x9c, 0x81,
-	0xe7, 0xd0, 0xb0, 0x37, 0xcf, 0x7b, 0x81, 0xc1, 0x5a, 0x01, 0xc6, 0x7d, 0x28, 0x4f, 0x3c, 0xdb,
-	0xa5, 0xfd, 0x51, 0xb7, 0xe3, 0x3b, 0xa3, 0x61, 0xb5, 0xb0, 0x93, 0x78, 0x58, 0x22, 0x25, 0x06,
-	0x6c, 0x08, 0x18, 0xfa, 0x16, 0xf2, 0x6f, 0x46, 0x1e, 0x75, 0x86, 0xaf, 0x46, 0x55, 0xe0, 0x7b,
-	0xdd, 0x89, 0xec, 0xf5, 0x68, 0xe4, 0x69, 0xc3, 0x57, 0x23, 0x77, 0xc0, 0x91, 0x05, 0x6b, 0x48,
-	0xee, 0x4d, 0x00, 0x46, 0x37, 0x21, 0x3b, 0xf0, 0x1c, 0xaf, 0x37, 0xac, 0x16, 0x39, 0x69, 0xf1,
-	0x85, 0x3e, 0x85, 0xbc, 0xdb, 0xf1, 0xa9, 0x7f, 0x31, 0xb6, 0xab, 0xa5, 0x9d, 0xc4, 0xc3, 0xca,
-	0x63, 0x14, 0x3d, 0x21, 0xc5, 0xb2, 0x2e, 0xc6, 0x36, 0xc9, 0xb9, 0x1d, 0x9f, 0x35, 0xd8, 0x42,
-	0x5f, 0x77, 0xdc, 0xde, 0x0f, 0x1d, 0xd7, 0xa6, 0x9d, 0x5e, 0xcf, 0xad, 0x96, 0x83, 0x85, 0x86,
-	0x40, 0xa5, 0xd7, 0x73, 0xd1, 0x23, 0x58, 0x73, 0x3b, 0x3d, 0x67, 0xe2, 0xd1, 0x50, 0x2f, 0x9c,
-	0x5e, 0xb5, 0xc2, 0x37, 0xbd, 0x1a, 0x74, 0x88, 0x03, 0xd4, 0x7a, 0x8c, 0xef, 0x27, 0x76, 0xc7,
-	0xb5, 0x5d, 0x86, 0xb3, 0xba, 0x93, 0x78, 0x58, 0x26, 0xf9, 0x00, 0xa0, 0xf5, 0x50, 0x1d, 0x2a,
-	0x81, 0xaa, 0xd0, 0xee, 0x68, 0xe8, 0xdb, 0xe7, 0x7e, 0x55, 0xe2, 0xfb, 0xbe, 0x1b, 0x59, 0xa2,
-	0xca, 0x11, 0x04, 0x41, 0x35, 0x40, 0x23, 0xe5, 0x60, 0x98, 0xf8, 0x44, 0x06, 0xac, 0xb3, 0x4d,
-	0x7a, 0x63, 0xbb, 0xeb, 0xbc, 0x72, 0xba, 0x53, 0x6a, 0x6b, 0x9c, 0xda, 0xed, 0xe8, 0x86, 0x3b,
-	0xbe, 0x29, 0xb0, 0x42, 0x5a, 0xc8, 0x5d, 0x80, 0xc9, 0xbf, 0x4b, 0xc0, 0xfa, 0xb2, 0x89, 0xdf,
-	0x53, 0x14, 0x53, 0x31, 0x51, 0x5c, 0x94, 0xb6, 0xd9, 0xe1, 0x65, 0x2e, 0x3d, 0xbc, 0xec, 0xb5,
-	0x87, 0x27, 0xff, 0x6d, 0x02, 0xd0, 0xe2, 0x06, 0xd1, 0x33, 0x28, 0xf6, 0x7d, 0x7b, 0x8e, 0x29,
-	0xb7, 0x22, 0x84, 0x1a, 0x16, 0x8e, 0x6f, 0xf3, 0x70, 0x85, 0x40, 0xdf, 0xb7, 0x43, 0x02, 0xfb,
-	0x50, 0xfa, 0xa1, 0xdf, 0x99, 0x1d, 0x12, 0x5a, 0x60, 0xeb, 0x8b, 0x86, 0xa2, 0x2f, 0x90, 0x28,
-	0xb2, 0x41, 0xe2, 0x73, 0xbf, 0x00, 0x39, 0x31, 0x5c, 0xfe, 0xdf, 0x04, 0xac, 0x2d, 0x4c, 0x19,
-	0x57, 0xd0, 0xc4, 0x9c, 0x82, 0x86, 0xea, 0x98, 0x5c, 0xae, 0x8e, 0xa9, 0x2b, 0xd5, 0x31, 0x7d,
-	0xbd, 0x3a, 0x66, 0xae, 0x51, 0xc7, 0xec, 0xbb, 0xaa, 0x63, 0x4c, 0xec, 0x73, 0x71, 0xb1, 0x97,
-	0x7f, 0x95, 0x00, 0xb4, 0xc8, 0x31, 0xf4, 0x11, 0xac, 0x0e, 0x3a, 0x5d, 0xae, 0x76, 0xf4, 0xc4,
-	0x19, 0x76, 0xdc, 0x0b, 0xce, 0x87, 0x12, 0x29, 0x0f, 0x3a, 0x5d, 0xa6, 0x78, 0xfb, 0x1c, 0xc8,
-	0x2c, 0x74, 0x88, 0x27, 0x18, 0x92, 0x13, 0x08, 0xcb, 0x35, 0x33, 0xb5, 0x54, 0x33, 0xe5, 0x6f,
-	0x61, 0x7b, 0x99, 0xc9, 0xf5, 0xc6, 0xa3, 0xa1, 0x67, 0xa3, 0xdb, 0x00, 0x11, 0x12, 0xc1, 0x79,
-	0x14, 0xbc, 0xe9, 0xe0, 0x36, 0xdc, 0xe4, 0x83, 0xf1, 0xb0, 0xf7, 0xfe, 0xc6, 0x5a, 0x28, 0x42,
-	0x72, 0xaa, 0x08, 0xf2, 0x16, 0x6c, 0x2e, 0x90, 0x0d, 0x16, 0x24, 0xff, 0x36, 0x09, 0x1b, 0xea,
-	0xeb, 0x8e, 0x7b, 0xea, 0x0c, 0x4f, 0x89, 0xad, 0x4c, 0xfc, 0xd7, 0xe1, 0x8c, 0x57, 0x2f, 0x15,
-	0xdd, 0x83, 0x52, 0x57, 0x8c, 0xa3, 0xbf, 0xb4, 0x2f, 0xf8, 0x74, 0x65, 0x52, 0x0c, 0x61, 0xcf,
-	0xed, 0x8b, 0xd0, 0x73, 0xa6, 0x66, 0x9e, 0xf3, 0x29, 0xa4, 0xb9, 0xd6, 0xa5, 0xb9, 0xd6, 0x3d,
-	0x88, 0xda, 0xa3, 0x65, 0x6b, 0xd8, 0xe5, 0x8a, 0xc8, 0x87, 0xa0, 0xe7, 0x80, 0x3c, 0xdb, 0x3d,
-	0x73, 0xba, 0xcc, 0xef, 0xda, 0x43, 0xdf, 0x79, 0xe5, 0xd8, 0x2e, 0x97, 0xb0, 0xb8, 0xd6, 0x99,
-	0x01, 0x92, 0x36, 0xc5, 0x21, 0x6b, 0xde, 0x3c, 0x48, 0xde, 0x85, 0x34, 0xb7, 0xcb, 0x08, 0x2a,
-	0xa6, 0xa6, 0x1f, 0x34, 0x30, 0x35, 0x31, 0x39, 0xd6, 0x54, 0x2c, 0xad, 0x30, 0x18, 0xd6, 0x2d,
-	0x8d, 0x30, 0x98, 0x69, 0x6a, 0x86, 0x2e, 0x25, 0xe4, 0x03, 0x58, 0x8f, 0x2f, 0x50, 0x19, 0x7a,
-	0x3f, 0xd8, 0x2e, 0xda, 0x83, 0xac, 0x6b, 0x7b, 0x93, 0xbe, 0xcf, 0xf9, 0x53, 0x89, 0x1d, 0x4c,
-	0xb8, 0x13, 0xd6, 0x4d, 0x04, 0x9a, 0xfc, 0xf7, 0x69, 0xb8, 0xd1, 0xe2, 0xd1, 0xca, 0x3b, 0x31,
-	0x9b, 0x2b, 0xaa, 0x17, 0x51, 0x54, 0xcf, 0x61, 0x72, 0xcd, 0xc2, 0x0e, 0x8f, 0xfa, 0x23, 0xea,
-	0xda, 0x83, 0xd1, 0x99, 0x5d, 0x4d, 0xed, 0xa4, 0x1e, 0x16, 0x48, 0x99, 0x83, 0xad, 0x11, 0xe1,
-	0x40, 0x54, 0x07, 0x69, 0x8a, 0xe7, 0x0c, 0x3d, 0xbf, 0xd3, 0xef, 0x57, 0xb3, 0x3c, 0xa8, 0x88,
-	0xb1, 0xcd, 0xef, 0xf8, 0x4e, 0x97, 0x85, 0x16, 0x5a, 0x80, 0x43, 0x2a, 0x82, 0x8c, 0xf8, 0x46,
-	0xc7, 0x50, 0xed, 0x5d, 0x0c, 0x3b, 0x03, 0xa7, 0x4b, 0x17, 0xe8, 0xe5, 0x38, 0xbd, 0xa8, 0xe9,
-	0xaa, 0x05, 0xa8, 0x51, 0x82, 0x1b, 0xbd, 0x19, 0x2c, 0x42, 0xf7, 0x8f, 0xa0, 0x62, 0x9f, 0xd9,
-	0x43, 0x9f, 0xfa, 0xae, 0x73, 0x7a, 0x6a, 0xbb, 0x5e, 0x35, 0xbf, 0x93, 0x9a, 0xe3, 0x25, 0x66,
-	0x08, 0x56, 0xd0, 0x4f, 0xca, 0x76, 0xe4, 0xcb, 0x43, 0x07, 0xb0, 0xe6, 0xda, 0x67, 0x9d, 0xbe,
-	0xd3, 0xe3, 0x36, 0x83, 0xb2, 0x68, 0x8e, 0x07, 0x02, 0xc5, 0xc7, 0xdb, 0xbb, 0x41, 0xa8, 0xb7,
-	0x1b, 0x86, 0x7a, 0xbb, 0x56, 0x18, 0xea, 0x11, 0x29, 0x3a, 0x88, 0x81, 0xd1, 0xf7, 0x50, 0x9d,
-	0x78, 0x9d, 0x53, 0x9b, 0x0e, 0x46, 0x43, 0xc7, 0x1f, 0xb9, 0x4c, 0xb2, 0xbb, 0xae, 0xdd, 0x73,
-	0x7c, 0xaf, 0x0a, 0x7c, 0x83, 0x51, 0x4b, 0xd5, 0x66, 0xa8, 0xcd, 0x29, 0xa6, 0xca, 0x11, 0xc9,
-	0xcd, 0xc9, 0x32, 0xb0, 0x87, 0xbe, 0x8c, 0x58, 0xbd, 0x22, 0x5f, 0xdb, 0x56, 0xcc, 0xea, 0x99,
-	0x51, 0xab, 0x17, 0x9a, 0x3b, 0xd9, 0x80, 0x4a, 0xbc, 0x2b, 0x6e, 0x00, 0x85, 0x39, 0x9f, 0xfa,
-	0xfd, 0x1d, 0x48, 0xbd, 0xe9, 0x06, 0x42, 0x52, 0x79, 0x5c, 0x89, 0xd2, 0x57, 0x35, 0xc2, 0xba,
-	0xe4, 0xbf, 0xce, 0x03, 0x8a, 0x8a, 0x9f, 0x10, 0xe3, 0x6b, 0xa4, 0x6f, 0x26, 0xe5, 0xc9, 0xb7,
-	0x92, 0x72, 0x74, 0x04, 0xa5, 0x57, 0x1d, 0xa7, 0x6f, 0xf7, 0x02, 0x49, 0xe1, 0x72, 0x59, 0x7c,
-	0xbc, 0x1b, 0x19, 0xb6, 0xb8, 0x88, 0xdd, 0x3a, 0x1f, 0xc1, 0x85, 0x03, 0x0f, 0x7d, 0xf7, 0x82,
-	0x14, 0x5f, 0xcd, 0x20, 0xdb, 0x0e, 0x48, 0xf3, 0x08, 0xcc, 0xbe, 0x30, 0xcb, 0x23, 0x22, 0xf3,
-	0x5f, 0xda, 0x17, 0xe8, 0x19, 0x64, 0xce, 0x3a, 0xfd, 0x89, 0x2d, 0x16, 0xfa, 0xb3, 0xeb, 0x67,
-	0x9c, 0xb8, 0xb6, 0x3a, 0xea, 0xd9, 0x24, 0x18, 0xf7, 0x07, 0xc9, 0x6f, 0x12, 0xf2, 0x7f, 0x67,
-	0xa0, 0x18, 0xe9, 0x42, 0x00, 0xd9, 0xb6, 0xde, 0x36, 0x71, 0x4d, 0x5a, 0x41, 0x1b, 0xb0, 0xd6,
-	0xd6, 0x9f, 0xeb, 0xc6, 0x0b, 0x9d, 0x92, 0x76, 0x03, 0x53, 0x5d, 0x69, 0x62, 0x29, 0x81, 0x6e,
-	0x02, 0x22, 0x8a, 0xa5, 0xe9, 0x07, 0xf4, 0x80, 0x18, 0xed, 0x16, 0xc5, 0x84, 0x18, 0x44, 0x4a,
-	0xa2, 0x5b, 0x50, 0x15, 0x86, 0x85, 0x6a, 0x35, 0x66, 0x55, 0xea, 0x1a, 0x26, 0xa2, 0x37, 0x85,
-	0x36, 0xe1, 0xc6, 0xc1, 0x0b, 0xda, 0x52, 0x71, 0x9d, 0x36, 0x95, 0x46, 0xbd, 0xad, 0xab, 0x16,
-	0x33, 0x37, 0x69, 0x54, 0x85, 0x75, 0x82, 0x4d, 0xa3, 0x4d, 0x54, 0x6c, 0xd2, 0x86, 0xd6, 0xd4,
-	0x2c, 0x85, 0xf7, 0x64, 0xd0, 0x36, 0xdc, 0x6c, 0x2a, 0x2f, 0xa9, 0x4e, 0xe8, 0x3e, 0x56, 0x08,
-	0x26, 0x26, 0x25, 0x58, 0x51, 0x0f, 0x71, 0x4d, 0xca, 0x46, 0xd7, 0x16, 0x74, 0x52, 0xad, 0x26,
-	0xe5, 0x18, 0xb8, 0xa9, 0x99, 0xcc, 0xcc, 0x45, 0xc0, 0x79, 0xb6, 0xb4, 0x10, 0x5c, 0x6f, 0x18,
-	0x2f, 0xa8, 0xa6, 0xd7, 0x0d, 0xd2, 0x0c, 0xe6, 0x29, 0xa0, 0xbb, 0xf0, 0x41, 0xb8, 0x02, 0xaa,
-	0x34, 0x1a, 0x86, 0xca, 0x3b, 0x68, 0x5d, 0xd1, 0x1a, 0x6d, 0x82, 0x25, 0x60, 0x08, 0x6d, 0xdd,
-	0x6c, 0xab, 0x2a, 0x36, 0xcd, 0x7a, 0xbb, 0x41, 0x8f, 0x0c, 0x93, 0x1e, 0x2b, 0x0d, 0xad, 0x16,
-	0x50, 0x28, 0xa2, 0x3b, 0xb0, 0xad, 0xe9, 0xaa, 0x41, 0x08, 0x56, 0xad, 0xc5, 0x19, 0x4a, 0x6c,
-	0x59, 0x2d, 0x93, 0x5a, 0x06, 0x55, 0x4d, 0x7a, 0xa8, 0xe8, 0x35, 0xe3, 0x18, 0x13, 0xa9, 0x8c,
-	0x3e, 0x84, 0x1d, 0xab, 0x56, 0xa7, 0x4a, 0xab, 0xd5, 0xd0, 0xc4, 0xa4, 0x0b, 0x9c, 0xab, 0xa0,
-	0x1b, 0xb0, 0xaa, 0x1b, 0xe1, 0x76, 0xea, 0x46, 0x5b, 0xaf, 0x49, 0xab, 0x8c, 0x9d, 0x75, 0xad,
-	0x61, 0x61, 0x42, 0x09, 0x36, 0x2d, 0xa2, 0x71, 0x6e, 0x9a, 0x92, 0x84, 0x24, 0x28, 0x29, 0x3a,
-	0x3d, 0x78, 0xc1, 0x97, 0x8f, 0x6b, 0xd2, 0x1a, 0xba, 0x0f, 0x77, 0xc3, 0xcd, 0x13, 0x5c, 0xd3,
-	0xf8, 0x1a, 0xd9, 0x41, 0x61, 0x42, 0x95, 0x5a, 0x8d, 0x60, 0xd3, 0x94, 0x10, 0xdb, 0x81, 0xda,
-	0xa4, 0x58, 0xaf, 0xd1, 0xb6, 0x89, 0x49, 0xe8, 0x21, 0x68, 0x0d, 0xeb, 0x1a, 0xae, 0x49, 0x37,
-	0xd8, 0x52, 0xd5, 0x26, 0x55, 0x19, 0x01, 0x8b, 0xaa, 0x86, 0x6e, 0x11, 0xa3, 0x41, 0x75, 0xc3,
-	0x0a, 0x17, 0xbf, 0xdf, 0xc0, 0xd2, 0x3a, 0xba, 0x0d, 0x5b, 0x6a, 0x93, 0x2a, 0x6d, 0xeb, 0xd0,
-	0x20, 0xda, 0xf7, 0xc1, 0x8e, 0x08, 0xfe, 0x63, 0xac, 0x5a, 0xb8, 0x26, 0x6d, 0xb0, 0x9d, 0xa8,
-	0xcd, 0x60, 0x02, 0x71, 0x78, 0xd2, 0x4d, 0xb4, 0x0e, 0x92, 0xda, 0xa4, 0x42, 0xa2, 0xc4, 0xa2,
-	0x37, 0xd9, 0xd9, 0x13, 0xa3, 0xcd, 0x61, 0x5c, 0xf6, 0x02, 0x2a, 0x8c, 0x9b, 0x55, 0xf4, 0x11,
-	0xc8, 0x53, 0xb9, 0x14, 0x38, 0x0a, 0x3f, 0x9b, 0x18, 0xd7, 0xb7, 0x18, 0xd7, 0x75, 0x83, 0xea,
-	0xfb, 0x5a, 0xdd, 0x68, 0x52, 0xb3, 0xdd, 0x6a, 0x19, 0xc4, 0x92, 0xb6, 0xe5, 0x67, 0x00, 0x81,
-	0xa5, 0x6a, 0x0f, 0x1d, 0x9f, 0x45, 0x42, 0x8e, 0x47, 0xb9, 0x75, 0xe4, 0xca, 0x95, 0x27, 0x39,
-	0xc7, 0x3b, 0x66, 0x9f, 0x2c, 0xa4, 0x3e, 0x1b, 0xf5, 0x27, 0x03, 0x5b, 0x5c, 0x34, 0xc5, 0x97,
-	0xfc, 0x17, 0x09, 0x28, 0x1d, 0xb8, 0x9d, 0xa1, 0x6f, 0xf7, 0x18, 0x09, 0x0f, 0x7d, 0x02, 0x19,
-	0x7f, 0xe4, 0x77, 0xfa, 0x22, 0x62, 0x89, 0xde, 0x5f, 0x67, 0x33, 0x91, 0x00, 0x07, 0x3d, 0x80,
-	0xa4, 0x7f, 0xce, 0x29, 0x5e, 0x8a, 0x99, 0xf4, 0xcf, 0x19, 0x9a, 0x1b, 0x5c, 0xac, 0x2f, 0x47,
-	0x73, 0xcf, 0xe5, 0xff, 0x4a, 0x40, 0x85, 0xd8, 0x3d, 0xc7, 0xb5, 0xbb, 0x3e, 0x8b, 0x06, 0x6c,
-	0x17, 0x75, 0x60, 0xc3, 0x15, 0x10, 0x1e, 0xe0, 0xd9, 0x9e, 0x17, 0x84, 0xff, 0x81, 0xdb, 0xfe,
-	0x34, 0x66, 0xd0, 0xa2, 0x23, 0xa7, 0x9f, 0x4a, 0x30, 0x8a, 0x07, 0x24, 0x37, 0xdc, 0x45, 0x20,
-	0x7a, 0x02, 0x9b, 0xd3, 0x29, 0x3c, 0x3e, 0x36, 0x9c, 0x49, 0x78, 0xed, 0xe9, 0x0a, 0x02, 0xca,
-	0x62, 0xac, 0xfc, 0x0c, 0x6e, 0x2c, 0x99, 0x03, 0xe5, 0x21, 0xad, 0xb5, 0x8e, 0xbf, 0x94, 0x56,
-	0x44, 0xeb, 0x89, 0x94, 0x40, 0x39, 0x48, 0xb5, 0x49, 0x43, 0x4a, 0xa2, 0x22, 0xe4, 0x4c, 0xad,
-	0x45, 0xdb, 0x44, 0x93, 0x52, 0xf2, 0x3f, 0xa6, 0xa0, 0x12, 0x06, 0x27, 0x01, 0x27, 0xd0, 0x13,
-	0x11, 0x66, 0x05, 0x56, 0x50, 0x5e, 0x12, 0x66, 0x05, 0x88, 0xbb, 0x8c, 0x67, 0x91, 0x18, 0xeb,
-	0x3e, 0x94, 0xf9, 0xa9, 0x3b, 0xfe, 0x45, 0xe0, 0x46, 0x53, 0x3c, 0xa8, 0x2b, 0x85, 0x40, 0xee,
-	0x26, 0x03, 0xe9, 0x78, 0xe5, 0x0c, 0x3b, 0x7d, 0x1e, 0xc7, 0x71, 0xe9, 0xa8, 0xb3, 0x4f, 0x74,
-	0x08, 0x25, 0x0e, 0xa7, 0x9d, 0xee, 0x34, 0xfe, 0x5f, 0x1e, 0xe6, 0x89, 0xf9, 0xf9, 0x30, 0x85,
-	0x23, 0x93, 0xe2, 0xab, 0xd9, 0x07, 0xfa, 0x05, 0x94, 0x4f, 0x03, 0x71, 0xa2, 0x13, 0x26, 0x4f,
-	0xe2, 0xaa, 0x10, 0xf5, 0x3c, 0x51, 0x71, 0x23, 0xa5, 0xd3, 0xa8, 0xf0, 0xed, 0xc3, 0xea, 0xdc,
-	0x59, 0xf0, 0xcb, 0x42, 0xdc, 0xe9, 0xc6, 0x0f, 0x9a, 0x54, 0xe2, 0xc7, 0x23, 0xcb, 0x90, 0x0f,
-	0xb9, 0x83, 0x0a, 0x90, 0xd9, 0xff, 0xce, 0xc2, 0xa6, 0xb4, 0xc2, 0x59, 0x8f, 0x55, 0x43, 0xaf,
-	0x99, 0x52, 0x42, 0x7e, 0x06, 0xc5, 0xc8, 0x0e, 0x50, 0x19, 0x0a, 0x16, 0x26, 0x4d, 0x4d, 0x57,
-	0x2c, 0x16, 0x48, 0x96, 0x20, 0x1f, 0x1a, 0x17, 0x29, 0xc1, 0x14, 0x3d, 0x34, 0x4b, 0x42, 0x35,
-	0xa5, 0xa4, 0xfc, 0xef, 0x29, 0x28, 0x0a, 0xe9, 0x65, 0x71, 0x43, 0x2c, 0x81, 0x94, 0xb8, 0x3c,
-	0x81, 0x94, 0x8c, 0x25, 0x90, 0x16, 0x42, 0xf1, 0xf4, 0x62, 0x28, 0xfe, 0x95, 0x90, 0x88, 0xe0,
-	0x44, 0xee, 0x2d, 0x2a, 0x0f, 0x9b, 0x7e, 0xb7, 0x3d, 0xee, 0x75, 0x7c, 0x3b, 0x22, 0x10, 0x0f,
-	0xa0, 0x12, 0x09, 0x86, 0x18, 0xed, 0xac, 0xb8, 0x3a, 0x4d, 0xa1, 0x8c, 0xfa, 0xf2, 0xd8, 0x3c,
-	0xf7, 0x7e, 0xb1, 0xf9, 0xbf, 0x26, 0x00, 0x66, 0x0b, 0xe1, 0x4c, 0x3d, 0x24, 0xd8, 0x3c, 0x34,
-	0x1a, 0xcc, 0x01, 0xe7, 0x20, 0x75, 0x74, 0xc8, 0xf8, 0x59, 0x01, 0x98, 0x32, 0xbb, 0x26, 0x25,
-	0x19, 0x7f, 0x8f, 0xda, 0x86, 0xa5, 0x50, 0xfc, 0xf2, 0x50, 0x69, 0x9b, 0x0c, 0x98, 0x62, 0x26,
-	0x93, 0x3b, 0x25, 0xcd, 0xfa, 0x8e, 0x5a, 0x5a, 0x93, 0x79, 0x90, 0x97, 0x2d, 0x8d, 0xe0, 0x9a,
-	0x94, 0x66, 0x46, 0xd6, 0xb0, 0x0e, 0x31, 0xa1, 0xc1, 0x30, 0xeb, 0xbb, 0x16, 0x96, 0x32, 0xe8,
-	0x03, 0xd8, 0x14, 0x76, 0x97, 0x1d, 0xb2, 0xc6, 0xcd, 0xb5, 0x7a, 0xa8, 0xe8, 0x07, 0x58, 0xca,
-	0x06, 0x67, 0xc8, 0x4c, 0x39, 0x25, 0xf8, 0xa8, 0xcd, 0xe9, 0xe4, 0xd8, 0x7d, 0xa1, 0x65, 0x18,
-	0x8d, 0xc8, 0xbc, 0x79, 0xf9, 0xd7, 0x19, 0x58, 0x8b, 0x30, 0x36, 0xd8, 0x0e, 0xfa, 0x39, 0x64,
-	0x78, 0x78, 0x28, 0x6c, 0xe2, 0xcd, 0xe5, 0xa7, 0x40, 0x02, 0xa4, 0xb9, 0xa0, 0x2c, 0x39, 0x1f,
-	0x94, 0x3d, 0x80, 0x8a, 0x1b, 0x5c, 0x1e, 0xe8, 0x70, 0x32, 0x38, 0xb1, 0x5d, 0xa1, 0xac, 0x65,
-	0x01, 0xd5, 0x39, 0x30, 0xbc, 0x83, 0xa5, 0x67, 0x77, 0xb0, 0xcb, 0xb2, 0x22, 0x91, 0xc4, 0x4a,
-	0xf6, 0xf2, 0x1c, 0x5f, 0x6e, 0x79, 0x8e, 0x2f, 0xbf, 0x98, 0xe3, 0x2b, 0x2c, 0x4f, 0x2a, 0xc0,
-	0x95, 0x49, 0x85, 0xe2, 0xf5, 0x49, 0x85, 0xd2, 0x92, 0xa4, 0x42, 0x34, 0xa3, 0x53, 0x7e, 0x8f,
-	0x74, 0x5c, 0x65, 0x49, 0x3a, 0xee, 0x73, 0xc8, 0xfb, 0xa7, 0xe3, 0x31, 0xed, 0xfa, 0xe7, 0x3c,
-	0xc3, 0x16, 0x3f, 0x30, 0xeb, 0x74, 0x3c, 0x0e, 0x53, 0x5d, 0x39, 0x86, 0xa7, 0xfa, 0xe7, 0x3f,
-	0xdd, 0xc4, 0xdb, 0xff, 0x24, 0x61, 0x5d, 0x88, 0x18, 0x17, 0xc5, 0x69, 0x3e, 0xa2, 0x0a, 0x39,
-	0x6f, 0xd2, 0xed, 0x32, 0x2f, 0x25, 0x3c, 0xbd, 0xf8, 0x0c, 0x05, 0x27, 0x39, 0x13, 0x9c, 0x79,
-	0x33, 0x93, 0x5a, 0x34, 0x33, 0x9f, 0x43, 0x36, 0xb8, 0x31, 0x71, 0x81, 0x8b, 0xdb, 0xdb, 0xb8,
-	0xe9, 0x27, 0x02, 0x11, 0xdd, 0x85, 0x62, 0x70, 0x6b, 0xa0, 0xdd, 0x51, 0x2f, 0xc8, 0xc7, 0x95,
-	0x09, 0x04, 0x20, 0x1e, 0x7e, 0xff, 0x3e, 0x8d, 0x0b, 0x7a, 0x0a, 0xd0, 0x77, 0x06, 0x8e, 0x10,
-	0x95, 0x02, 0x17, 0x95, 0xed, 0x05, 0x3d, 0x6c, 0x30, 0x14, 0x2e, 0x32, 0x85, 0x7e, 0xd8, 0x8c,
-	0xc9, 0x03, 0xbc, 0x95, 0x3c, 0xc8, 0xbf, 0x4d, 0x00, 0x8a, 0xde, 0x13, 0x85, 0x1d, 0x58, 0xb4,
-	0xaa, 0x89, 0x65, 0x56, 0xf5, 0x33, 0xc8, 0xf4, 0xed, 0x33, 0xbb, 0x2f, 0xdc, 0x78, 0x74, 0x99,
-	0xb3, 0x0b, 0x66, 0x83, 0x61, 0x90, 0x00, 0xf1, 0x3d, 0xeb, 0x0f, 0x7f, 0x95, 0x84, 0x8d, 0xa5,
-	0xb7, 0x59, 0xf4, 0x0c, 0xb2, 0xc2, 0x93, 0x07, 0x71, 0xd2, 0xc7, 0xd7, 0xdd, 0x7f, 0x77, 0x85,
-	0x2f, 0x17, 0xc3, 0x96, 0xec, 0x34, 0x79, 0xe5, 0x4e, 0x53, 0x6f, 0xbb, 0xd3, 0x85, 0xf8, 0x20,
-	0xf3, 0x0e, 0xf1, 0x81, 0x7c, 0x1f, 0xb2, 0xc2, 0x65, 0x97, 0x20, 0xcf, 0x22, 0x77, 0x4d, 0x6f,
-	0xe3, 0xc0, 0xb9, 0xd7, 0x34, 0x93, 0x07, 0xee, 0x09, 0xf9, 0x2f, 0x53, 0x70, 0x6b, 0x6e, 0x93,
-	0xa1, 0xf2, 0x04, 0x39, 0x9b, 0xaf, 0x20, 0x3b, 0xe1, 0x00, 0x61, 0xcf, 0x6f, 0x5f, 0xc2, 0x1d,
-	0x31, 0x4a, 0x20, 0xff, 0xbf, 0xd9, 0xf5, 0x88, 0xfd, 0xce, 0xc4, 0xec, 0xf7, 0x82, 0xb5, 0xcb,
-	0x2e, 0xb1, 0x76, 0x51, 0x0b, 0x9a, 0xbb, 0xde, 0x82, 0x46, 0x95, 0x21, 0xff, 0x76, 0xc6, 0xf1,
-	0x17, 0x50, 0x8e, 0xe5, 0x79, 0x84, 0xf6, 0x5d, 0x9a, 0xe6, 0x29, 0x45, 0xd3, 0x3c, 0xf2, 0x7f,
-	0xa4, 0xe1, 0xf6, 0x25, 0xa7, 0x21, 0x4c, 0xd9, 0x37, 0x53, 0xdb, 0x93, 0x58, 0x48, 0x2b, 0x2f,
-	0x4f, 0xd6, 0x84, 0x26, 0xe8, 0x9a, 0x13, 0x59, 0x4c, 0x63, 0x46, 0xac, 0x66, 0x3a, 0x6e, 0x35,
-	0x17, 0x93, 0x59, 0x99, 0x1f, 0x9f, 0xcc, 0xca, 0xbe, 0x47, 0x32, 0x6b, 0xce, 0xac, 0xe6, 0x16,
-	0xcc, 0xea, 0x92, 0xf4, 0x61, 0x7e, 0x59, 0xfa, 0xd0, 0x84, 0x4d, 0x8f, 0xe7, 0x06, 0x17, 0xb3,
-	0x7e, 0x85, 0xb7, 0xc8, 0x22, 0xae, 0x7b, 0x53, 0xd0, 0x5b, 0xe6, 0x12, 0xe1, 0x47, 0xe4, 0x12,
-	0xa3, 0x62, 0x59, 0x7c, 0x3b, 0x1b, 0xfd, 0x9b, 0x24, 0x6c, 0x2c, 0xad, 0x3a, 0xa0, 0x3b, 0x50,
-	0xec, 0x8c, 0x87, 0xb4, 0x33, 0x38, 0x71, 0x69, 0x2f, 0xb8, 0xc8, 0x96, 0x49, 0xa1, 0x33, 0x1e,
-	0x2a, 0x83, 0x13, 0xb7, 0xd6, 0x8f, 0xf5, 0x4f, 0xfa, 0x22, 0x01, 0x1e, 0xf6, 0xb7, 0xd9, 0xad,
-	0xb6, 0x32, 0x76, 0x9d, 0x91, 0xcb, 0x6e, 0x53, 0x33, 0xf3, 0x56, 0x26, 0xe5, 0x10, 0xca, 0x2d,
-	0x1a, 0xfa, 0x02, 0x36, 0xc6, 0xae, 0x6d, 0x0f, 0xc6, 0xfc, 0xc0, 0xbb, 0x9d, 0x71, 0xe7, 0xc4,
-	0xe9, 0x3b, 0x7e, 0x18, 0xc6, 0xaf, 0xcf, 0x3a, 0xd5, 0x69, 0x1f, 0x7a, 0x0a, 0xd5, 0xc8, 0xa0,
-	0xb3, 0x49, 0x7f, 0x68, 0xbb, 0xe1, 0xb8, 0x0c, 0x1f, 0xb7, 0x39, 0xeb, 0x3f, 0x8e, 0x76, 0xb3,
-	0x90, 0xeb, 0xcd, 0xc8, 0xa3, 0xdd, 0x7e, 0xc7, 0xf3, 0x98, 0xbc, 0x0b, 0x8f, 0xfb, 0x66, 0xe4,
-	0xa9, 0x0c, 0xa4, 0xf5, 0xe4, 0x23, 0x28, 0x46, 0x58, 0xc5, 0x06, 0x9c, 0x9e, 0xd3, 0x1e, 0xb3,
-	0x48, 0xaf, 0x47, 0x9e, 0x2f, 0xf2, 0x6d, 0x70, 0x7a, 0x5e, 0xb3, 0x3d, 0xff, 0x70, 0xe4, 0x05,
-	0x18, 0x17, 0x11, 0x8c, 0xa4, 0xc0, 0xb8, 0x08, 0x31, 0xe4, 0x3f, 0xcf, 0xf0, 0x00, 0x64, 0xb1,
-	0x08, 0xfd, 0x35, 0xc0, 0xac, 0x44, 0x7f, 0x5d, 0x79, 0x23, 0x82, 0x7a, 0x9d, 0xd2, 0x5e, 0x5a,
-	0x26, 0x8c, 0x45, 0xb3, 0xe9, 0xe5, 0xd1, 0x6c, 0x66, 0x31, 0x9a, 0xcd, 0x2d, 0x8f, 0x66, 0xf3,
-	0x57, 0x46, 0xb3, 0x85, 0xeb, 0xa3, 0x59, 0xb8, 0xa6, 0x44, 0x56, 0x7c, 0xff, 0x8a, 0x75, 0x29,
-	0x16, 0xde, 0xdf, 0x80, 0xcc, 0x69, 0x97, 0x2d, 0xaa, 0x1c, 0xec, 0xe4, 0xb4, 0xab, 0xf5, 0x62,
-	0x56, 0xbf, 0xf2, 0x1e, 0x71, 0xf3, 0xea, 0x12, 0x4f, 0xf2, 0x93, 0x0d, 0x82, 0x7f, 0x95, 0x86,
-	0x8d, 0xe5, 0x55, 0xb9, 0xa7, 0x90, 0x0b, 0x13, 0xfd, 0xc1, 0x73, 0x8b, 0xbb, 0x8b, 0x57, 0xb3,
-	0x98, 0xb3, 0x21, 0x21, 0x3e, 0x32, 0xa0, 0x12, 0x2b, 0x1a, 0x78, 0xa2, 0xb6, 0xf2, 0xf0, 0x72,
-	0xef, 0x33, 0x47, 0xaa, 0x1c, 0x2d, 0x19, 0x78, 0xe8, 0x19, 0x94, 0xa2, 0xf6, 0x56, 0x94, 0x56,
-	0xae, 0x36, 0xb2, 0xc5, 0x88, 0x91, 0x45, 0xfb, 0x50, 0x8e, 0xd9, 0x56, 0x6e, 0xd6, 0xaf, 0x35,
-	0xa8, 0xa5, 0xa8, 0x41, 0x9d, 0x53, 0xae, 0xc2, 0xbc, 0x72, 0xbd, 0x7b, 0x28, 0xbc, 0xc4, 0x31,
-	0x16, 0x7f, 0xbc, 0x63, 0x2c, 0xbd, 0xbb, 0x63, 0x94, 0xff, 0x29, 0x01, 0x6b, 0x0b, 0x1c, 0x8c,
-	0x3e, 0xe9, 0x49, 0xc4, 0x9e, 0xf4, 0xa8, 0xb0, 0xca, 0x62, 0xd9, 0xb3, 0xc8, 0xac, 0xc9, 0x6b,
-	0x67, 0xad, 0xcc, 0x86, 0x70, 0x67, 0x7c, 0x00, 0x6b, 0x3d, 0x7b, 0x9e, 0x4c, 0xea, 0xfa, 0xc5,
-	0x47, 0x07, 0xf1, 0xc5, 0xff, 0x67, 0x02, 0xd0, 0xe2, 0xe1, 0xa1, 0x27, 0x50, 0x0c, 0x9e, 0x40,
-	0xf1, 0x13, 0x5f, 0x92, 0x72, 0x15, 0xc5, 0x8f, 0x49, 0xdf, 0x26, 0x30, 0x9e, 0xb6, 0x7f, 0x62,
-	0x9b, 0xfb, 0x9b, 0x04, 0xac, 0x07, 0xba, 0x31, 0xe7, 0x23, 0x9e, 0x40, 0x2e, 0x88, 0x9d, 0x43,
-	0xf5, 0xbc, 0xb5, 0x3c, 0x73, 0x22, 0x14, 0x2b, 0x44, 0x46, 0xfa, 0x82, 0x6e, 0x06, 0x85, 0xa8,
-	0x8f, 0xaf, 0xd7, 0xcd, 0xc0, 0xa8, 0xc6, 0x55, 0x53, 0xfe, 0x87, 0x04, 0x6c, 0xcc, 0x2d, 0x50,
-	0x18, 0x90, 0x3f, 0x84, 0x82, 0x2b, 0xda, 0x6f, 0x6d, 0x42, 0x66, 0x23, 0xd0, 0x9f, 0xc1, 0x66,
-	0x6c, 0xa1, 0x74, 0x46, 0x2c, 0xf5, 0x8e, 0xd6, 0x64, 0x23, 0xba, 0xe4, 0x10, 0xea, 0xc9, 0xcf,
-	0xa1, 0x2a, 0xd6, 0x6c, 0xd9, 0xee, 0xc0, 0x19, 0x46, 0x03, 0xe7, 0xc5, 0x07, 0x6e, 0x57, 0xfb,
-	0x56, 0xf9, 0xdf, 0xd2, 0xb0, 0xb9, 0x48, 0x2d, 0x38, 0xab, 0x77, 0x25, 0x16, 0xba, 0xdc, 0xd4,
-	0xcc, 0xe5, 0x2e, 0xde, 0x80, 0xd2, 0xcb, 0x6e, 0x40, 0xdf, 0x42, 0x39, 0x30, 0xc2, 0x94, 0x6f,
-	0x39, 0x88, 0xb4, 0x2f, 0xcf, 0xaa, 0x95, 0xba, 0xb3, 0x0f, 0x0f, 0xd5, 0xa6, 0x17, 0xd3, 0x70,
-	0x74, 0x76, 0xc1, 0x4a, 0x2e, 0xb9, 0xc3, 0x85, 0xf7, 0x56, 0x41, 0x25, 0x12, 0x64, 0xe4, 0x62,
-	0x41, 0xc6, 0xcc, 0x09, 0xe7, 0x63, 0x4e, 0x38, 0x16, 0x7c, 0x14, 0x2e, 0x79, 0x8d, 0x03, 0xcb,
-	0x43, 0x8d, 0xe2, 0x95, 0xa1, 0x46, 0xe9, 0xfa, 0x50, 0xa3, 0x7c, 0x4d, 0xe2, 0xec, 0xf7, 0x15,
-	0x00, 0x44, 0xbd, 0x83, 0xf4, 0x56, 0xde, 0xe1, 0xd1, 0x47, 0x90, 0x13, 0x73, 0xb1, 0x1b, 0xb9,
-	0x75, 0xd0, 0x6a, 0xd1, 0x06, 0xcf, 0xa1, 0x97, 0xa1, 0xc0, 0xbf, 0x5e, 0x34, 0x14, 0x5d, 0x4a,
-	0x3c, 0xfa, 0x5d, 0x01, 0x4a, 0x51, 0x2f, 0x81, 0x56, 0xa1, 0x68, 0x1e, 0x98, 0xd3, 0x14, 0xed,
-	0x0a, 0xaa, 0x00, 0x1c, 0x19, 0x66, 0xf8, 0xcd, 0xd3, 0xc4, 0x44, 0xb1, 0xc2, 0xef, 0x24, 0x4f,
-	0x1b, 0xd7, 0xa7, 0xdf, 0x29, 0x46, 0xa0, 0xd5, 0x68, 0x4e, 0x09, 0xa4, 0x11, 0x82, 0x4a, 0xc3,
-	0x30, 0x4d, 0x6a, 0xd4, 0x45, 0x7d, 0x51, 0xca, 0xf0, 0xf2, 0x2e, 0x56, 0x8d, 0x63, 0x4c, 0xbe,
-	0x8b, 0xc0, 0xb3, 0x68, 0x0d, 0xca, 0x5a, 0x8b, 0xaa, 0xca, 0x74, 0x78, 0x0e, 0x7d, 0x04, 0xf2,
-	0x6c, 0x7e, 0x8a, 0x5f, 0xaa, 0x18, 0xd7, 0x78, 0x35, 0x2e, 0x5a, 0x00, 0x94, 0x8a, 0xc1, 0xba,
-	0xb4, 0x70, 0x5c, 0x09, 0x55, 0x61, 0x9d, 0x17, 0x01, 0xa7, 0xa5, 0x56, 0xd1, 0x53, 0x16, 0x25,
-	0x3b, 0x7c, 0x8c, 0x75, 0x8b, 0x5a, 0x44, 0x3b, 0x38, 0xc0, 0xc4, 0x94, 0x2a, 0x6c, 0x6e, 0xa3,
-	0x6d, 0xb1, 0xe5, 0x04, 0x15, 0x48, 0x69, 0x95, 0x17, 0x08, 0x71, 0xa4, 0x5a, 0x3b, 0xeb, 0x93,
-	0x82, 0x92, 0xf2, 0xac, 0x40, 0xcb, 0xb3, 0xe1, 0x46, 0xdb, 0x92, 0xd6, 0xd8, 0xa8, 0x36, 0xa6,
-	0x5a, 0x2b, 0xac, 0x7c, 0x86, 0xf5, 0x5e, 0x2c, 0x21, 0xb4, 0x05, 0x1b, 0xf1, 0x3e, 0x82, 0x1b,
-	0x58, 0x31, 0xb1, 0x74, 0x03, 0xdd, 0x83, 0xdb, 0x35, 0x5c, 0x57, 0xda, 0x0d, 0x8b, 0xe2, 0x96,
-	0x19, 0xd6, 0x62, 0x23, 0xbc, 0x5f, 0x9f, 0xd5, 0x5d, 0x05, 0x64, 0x03, 0xc9, 0x70, 0x27, 0x52,
-	0x33, 0x5e, 0x52, 0x61, 0x96, 0x6e, 0x32, 0xc2, 0xd3, 0x8e, 0xa6, 0x51, 0xd3, 0xea, 0x61, 0x1d,
-	0x98, 0xe0, 0xa3, 0x36, 0x36, 0x2d, 0x69, 0x93, 0xd7, 0x8e, 0x0f, 0x5e, 0x50, 0x8b, 0x28, 0x2a,
-	0x0e, 0x2b, 0xaf, 0x52, 0x15, 0x6d, 0xc2, 0x8d, 0x36, 0xe6, 0x3b, 0xa3, 0xdf, 0x1b, 0x3a, 0x0e,
-	0xa7, 0xdd, 0xe2, 0x87, 0x3e, 0x63, 0xf6, 0x36, 0x3b, 0x74, 0xac, 0x1e, 0x4c, 0x01, 0x1f, 0xb0,
-	0x39, 0xd5, 0x43, 0x85, 0x1c, 0x04, 0x79, 0x7f, 0x42, 0x70, 0x23, 0x98, 0x12, 0xbf, 0x14, 0x28,
-	0xb7, 0x18, 0x8a, 0xd2, 0xd2, 0xa9, 0xd2, 0xdc, 0x27, 0xf1, 0x65, 0x85, 0x35, 0xf1, 0xdb, 0xbc,
-	0x26, 0xce, 0xce, 0x50, 0x35, 0x0f, 0xa2, 0x65, 0xd7, 0x70, 0x9a, 0x3b, 0x8c, 0x21, 0x6d, 0x53,
-	0x39, 0xc0, 0x94, 0x60, 0x5e, 0x78, 0xbd, 0x87, 0xf6, 0xe0, 0x93, 0x4b, 0xb8, 0xb8, 0x74, 0x0e,
-	0x19, 0x7d, 0x0e, 0x9f, 0x4e, 0xe7, 0x38, 0xfc, 0x6e, 0x9f, 0x68, 0x35, 0x6a, 0xb6, 0xf7, 0x4d,
-	0x95, 0x68, 0xfb, 0xb8, 0xb6, 0x6c, 0xd6, 0xfb, 0xe8, 0x0b, 0xd8, 0x9b, 0x1f, 0xd2, 0xd6, 0xaf,
-	0x1e, 0xf4, 0x21, 0xe3, 0x65, 0xac, 0xd8, 0x2c, 0x3a, 0x1e, 0x30, 0xde, 0x47, 0x8b, 0xf3, 0xa6,
-	0xa5, 0x10, 0x4b, 0xfa, 0x18, 0xad, 0x83, 0x14, 0x07, 0x1b, 0x2d, 0xe9, 0x21, 0x43, 0x56, 0x79,
-	0x91, 0xbf, 0x15, 0x29, 0xf2, 0x3f, 0x42, 0x77, 0x60, 0xbb, 0x8d, 0xb9, 0xa8, 0x37, 0xa2, 0xc2,
-	0x25, 0xe6, 0xf8, 0x04, 0xed, 0xc0, 0xad, 0x43, 0xac, 0xef, 0x5f, 0x8a, 0xf1, 0x73, 0x46, 0x41,
-	0xd4, 0xb7, 0x75, 0x6c, 0xbd, 0x30, 0xc8, 0x73, 0xbe, 0x8b, 0x90, 0xaf, 0x9f, 0xa2, 0x07, 0x70,
-	0x4f, 0x14, 0xe6, 0x9b, 0x8a, 0xae, 0x1c, 0xe0, 0x26, 0xd3, 0x1e, 0xf1, 0x9e, 0x6b, 0xca, 0xcd,
-	0x5d, 0xa6, 0xd8, 0x21, 0xfb, 0x23, 0x92, 0xbb, 0x87, 0xbe, 0x85, 0xaf, 0x85, 0x06, 0x1b, 0x75,
-	0xda, 0xc6, 0xb4, 0x45, 0xb0, 0x89, 0x75, 0x15, 0x53, 0x4d, 0x9f, 0xb5, 0x83, 0xc9, 0xb8, 0x72,
-	0x13, 0xac, 0x84, 0x73, 0x7f, 0xc6, 0xa4, 0x8b, 0xf1, 0x97, 0xd7, 0xd6, 0x71, 0x4d, 0xfa, 0xfc,
-	0xd1, 0x3f, 0x27, 0x20, 0x75, 0xa4, 0x6a, 0xa8, 0x00, 0x99, 0x23, 0x55, 0xa3, 0x9f, 0x49, 0x2b,
-	0x61, 0xf3, 0x73, 0x29, 0x11, 0x36, 0x1f, 0x4b, 0xc9, 0xb0, 0xf9, 0x85, 0x94, 0x0a, 0x9b, 0x5f,
-	0x4a, 0xe9, 0xb0, 0xf9, 0x95, 0x94, 0x09, 0x9b, 0x4f, 0xa4, 0x6c, 0xd8, 0xfc, 0x5a, 0xca, 0x85,
-	0xcd, 0x6f, 0xa4, 0x7c, 0xd8, 0x7c, 0x2a, 0x15, 0x10, 0x40, 0x96, 0xe3, 0x7e, 0x25, 0x29, 0xd3,
-	0xf6, 0x13, 0x69, 0x7f, 0xda, 0xfe, 0x5a, 0x52, 0xc3, 0xf6, 0xd7, 0x9f, 0x49, 0xf5, 0x69, 0xfb,
-	0x2b, 0xe9, 0xf9, 0xb4, 0xfd, 0x54, 0x32, 0x1e, 0xd9, 0x50, 0x8a, 0x3e, 0xf2, 0x61, 0x27, 0xdd,
-	0x6e, 0xd5, 0x14, 0x8b, 0x31, 0x43, 0xb3, 0x34, 0x5e, 0x7e, 0x0b, 0x1e, 0xc6, 0x04, 0x50, 0xdd,
-	0xb0, 0xa8, 0x8e, 0x71, 0x0d, 0xd7, 0xa4, 0x04, 0x03, 0x87, 0x5c, 0x67, 0xf0, 0xe0, 0xa9, 0x46,
-	0x92, 0x1b, 0x2f, 0x5e, 0x7b, 0x0b, 0x8f, 0x22, 0xf5, 0xe8, 0x39, 0xac, 0xce, 0x25, 0xdf, 0xd9,
-	0x2a, 0xea, 0x6c, 0x0e, 0x66, 0xd7, 0x6f, 0x02, 0xd2, 0xf4, 0xe0, 0x8b, 0xb6, 0xf5, 0x26, 0xb6,
-	0x30, 0xe1, 0x13, 0xac, 0x83, 0x34, 0x85, 0x87, 0xd0, 0xe4, 0xa3, 0x6f, 0x60, 0x75, 0x2e, 0x71,
-	0xcc, 0xa6, 0x0c, 0x57, 0xd2, 0xc0, 0xc7, 0xb8, 0x11, 0xbc, 0xf4, 0x6b, 0xa9, 0x6a, 0x20, 0xdf,
-	0x01, 0x2c, 0xf1, 0xf8, 0x37, 0x49, 0xb8, 0xc1, 0xdf, 0x4a, 0x8a, 0x00, 0xa7, 0x19, 0xfc, 0x35,
-	0x01, 0xed, 0xc3, 0x2a, 0xb1, 0xc7, 0x23, 0xd7, 0x67, 0x81, 0x33, 0xbb, 0x3f, 0x78, 0x68, 0x7b,
-	0xe9, 0x9b, 0x7c, 0xfe, 0x80, 0x7f, 0x7b, 0x4d, 0xf4, 0xf1, 0xff, 0x2f, 0xec, 0x1e, 0x8f, 0x9c,
-	0x9e, 0xbc, 0x82, 0xfe, 0x14, 0xca, 0xb1, 0xfb, 0x27, 0xfa, 0x30, 0xfa, 0x5a, 0xf8, 0xb2, 0x77,
-	0xfa, 0xdb, 0x0f, 0xae, 0xc1, 0x12, 0x2f, 0x39, 0x57, 0x50, 0x1b, 0x60, 0xf6, 0xc2, 0x13, 0xdd,
-	0x9b, 0x1f, 0xb6, 0xf0, 0xa8, 0x74, 0x5b, 0xbe, 0x0a, 0x25, 0x24, 0xfb, 0xf8, 0x5f, 0x12, 0xb0,
-	0x21, 0xa0, 0x2d, 0x77, 0x74, 0x7e, 0x11, 0x74, 0xf5, 0x6c, 0x17, 0xb5, 0x67, 0x2f, 0x0f, 0x02,
-	0x11, 0x41, 0x3b, 0xd7, 0x3d, 0xe9, 0xdc, 0xbe, 0x7b, 0x29, 0x46, 0xf0, 0x2a, 0x4b, 0x5e, 0x41,
-	0x06, 0x94, 0xa2, 0xaf, 0xb5, 0xd0, 0x9d, 0x4b, 0x9e, 0x71, 0x85, 0x24, 0x6f, 0x5f, 0xf9, 0xcc,
-	0x4b, 0x5e, 0x79, 0xfc, 0x77, 0x49, 0xa8, 0xaa, 0xf6, 0xd0, 0x77, 0xa7, 0xc7, 0xca, 0x22, 0x10,
-	0x77, 0xd4, 0xef, 0xdb, 0x2e, 0xb2, 0xe6, 0x4f, 0x65, 0x2e, 0x72, 0x5f, 0x3c, 0x90, 0x9d, 0xcb,
-	0x11, 0xa6, 0x67, 0x61, 0x41, 0x39, 0x76, 0x55, 0x88, 0x51, 0x5d, 0x76, 0xcb, 0x89, 0x51, 0x5d,
-	0x7a, 0xcb, 0x90, 0x57, 0xd0, 0x9f, 0x80, 0x34, 0x8d, 0xb8, 0x43, 0xc2, 0x72, 0xac, 0x06, 0xb6,
-	0x34, 0x2a, 0xdf, 0xbe, 0x7f, 0x25, 0x4e, 0x48, 0x7e, 0xff, 0x83, 0xef, 0xb7, 0x38, 0xde, 0x5e,
-	0xdf, 0xb7, 0xf7, 0xba, 0xfd, 0xd1, 0xa4, 0xb7, 0x77, 0x3a, 0x12, 0xff, 0xa4, 0x39, 0xc9, 0xf2,
-	0xdf, 0x2f, 0xfe, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x32, 0x03, 0xe3, 0xf2, 0xc1, 0x33, 0x00, 0x00,
+	// 8367 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x7c, 0x4b, 0x6c, 0x1b, 0xd9,
+	0x96, 0x98, 0x48, 0xfd, 0xa8, 0x43, 0x52, 0x2a, 0x5d, 0xfd, 0x28, 0x75, 0xdb, 0x56, 0xd3, 0xed,
+	0x6e, 0x3f, 0xbf, 0xd7, 0x72, 0xb7, 0xba, 0xed, 0x6e, 0xbf, 0x7e, 0xe9, 0x0e, 0x55, 0x2c, 0x4a,
+	0xf5, 0xcc, 0x9f, 0x6f, 0x15, 0xe5, 0x76, 0x07, 0x99, 0x9b, 0x32, 0xeb, 0x52, 0xae, 0x98, 0x64,
+	0xd1, 0x55, 0x45, 0x5b, 0x7a, 0xbb, 0x60, 0x56, 0x59, 0x04, 0x08, 0x30, 0x48, 0x82, 0xd9, 0x64,
+	0x16, 0x83, 0x6c, 0x12, 0x20, 0x9b, 0x0c, 0x90, 0x64, 0xb2, 0x98, 0xcc, 0x20, 0xc8, 0x64, 0x19,
+	0x04, 0x41, 0x16, 0x01, 0x12, 0x04, 0x59, 0x64, 0x95, 0x45, 0x76, 0x03, 0x64, 0x15, 0xdc, 0x4f,
+	0xfd, 0x48, 0x4a, 0x96, 0xdd, 0x2f, 0xc0, 0x03, 0x04, 0x88, 0xf7, 0xdc, 0x73, 0xbf, 0xe7, 0x7b,
+	0xcf, 0xbd, 0xa7, 0x60, 0xbf, 0x1f, 0xd0, 0xfb, 0x23, 0xcf, 0x0d, 0x5c, 0xff, 0xbe, 0x4f, 0x7d,
+	0xdf, 0x71, 0x87, 0x64, 0x60, 0x0d, 0xad, 0x33, 0xea, 0x1d, 0x70, 0x30, 0x5a, 0x19, 0x58, 0x67,
+	0x03, 0xeb, 0xa0, 0x1f, 0xd0, 0xbd, 0x5d, 0xd7, 0xeb, 0x7e, 0xe3, 0x85, 0xe8, 0x5d, 0x77, 0x30,
+	0x70, 0x87, 0x02, 0x6b, 0x6f, 0x37, 0xd1, 0xcf, 0xc8, 0xed, 0x3b, 0xdd, 0x0b, 0xfb, 0xb9, 0xac,
+	0xba, 0x91, 0x1c, 0x62, 0xfc, 0xdc, 0xef, 0x7a, 0xce, 0x73, 0xea, 0x45, 0xd5, 0xb7, 0xce, 0x5c,
+	0xf7, 0xac, 0x2f, 0x31, 0x9e, 0x8f, 0x7b, 0xf7, 0x03, 0x67, 0x40, 0xfd, 0xc0, 0x1a, 0x8c, 0x04,
+	0x42, 0xf9, 0xbf, 0x65, 0x00, 0xf0, 0xb8, 0x4f, 0x31, 0xed, 0xba, 0x9e, 0x8d, 0x14, 0x98, 0xf7,
+	0x1d, 0xbb, 0x94, 0xd9, 0xcf, 0xdc, 0x5d, 0xc1, 0xec, 0x27, 0xda, 0x81, 0x65, 0x6f, 0xdc, 0xa7,
+	0xc4, 0xb1, 0x4b, 0x59, 0x0e, 0x5d, 0x62, 0x45, 0xdd, 0x46, 0xbb, 0x90, 0x7b, 0x7e, 0x11, 0x50,
+	0x9f, 0x04, 0xe7, 0xa5, 0xf9, 0xfd, 0xcc, 0xdd, 0x05, 0xbc, 0xcc, 0xcb, 0xe6, 0x79, 0x5c, 0xe5,
+	0x9d, 0x97, 0x16, 0x12, 0x55, 0xf8, 0x9c, 0x75, 0x37, 0xa6, 0xc4, 0x19, 0xbd, 0xfe, 0xaa, 0xb4,
+	0x28, 0xba, 0x1b, 0x53, 0x7d, 0xf4, 0xfa, 0xab, 0xb8, 0xe2, 0x61, 0x69, 0x29, 0x51, 0xf1, 0x10,
+	0xdd, 0x00, 0xb0, 0x3d, 0x77, 0x34, 0xa2, 0x36, 0x1b, 0x69, 0x99, 0x77, 0xb7, 0x22, 0x21, 0xe6,
+	0x79, 0xb2, 0xda, 0x3b, 0x2f, 0xe5, 0x52, 0xd5, 0xf8, 0xbc, 0xfc, 0x03, 0xac, 0xc5, 0xcb, 0x33,
+	0xad, 0xe7, 0x7d, 0x8a, 0xee, 0xc3, 0xb2, 0xc7, 0x8b, 0x7e, 0x29, 0xb3, 0x3f, 0x7f, 0x37, 0x7f,
+	0xb8, 0x75, 0x10, 0x51, 0xe1, 0x20, 0x46, 0xc6, 0x21, 0x16, 0xda, 0x84, 0x45, 0x3a, 0x72, 0xbb,
+	0x2f, 0xf8, 0x06, 0x2c, 0x60, 0x51, 0x28, 0xff, 0x49, 0x06, 0x76, 0xeb, 0x6e, 0xd7, 0xea, 0xab,
+	0x1e, 0xb5, 0x02, 0x6a, 0x08, 0xfa, 0x62, 0xfa, 0x6a, 0x4c, 0xfd, 0x00, 0xd5, 0x60, 0x55, 0x90,
+	0x90, 0x74, 0xdd, 0x61, 0x40, 0xcf, 0x83, 0x92, 0xb2, 0x9f, 0xb9, 0x9b, 0x3f, 0xbc, 0x95, 0x18,
+	0x4b, 0xe5, 0x08, 0xb2, 0xa1, 0x2a, 0xd0, 0x70, 0x51, 0x34, 0x93, 0x45, 0xd4, 0x82, 0x4d, 0xcf,
+	0x0a, 0x88, 0x3f, 0xa2, 0x5d, 0xa7, 0xe7, 0x74, 0xa3, 0xde, 0xd6, 0x79, 0x6f, 0x37, 0x92, 0x33,
+	0xb7, 0x02, 0x43, 0x62, 0x85, 0x7d, 0x21, 0x6f, 0x0a, 0x56, 0xfe, 0x8b, 0x2c, 0x6c, 0xce, 0x1a,
+	0x18, 0xfd, 0x2c, 0x26, 0x7d, 0xfe, 0x70, 0x27, 0xd1, 0xb1, 0x11, 0xb1, 0x95, 0x5e, 0x8d, 0x78,
+	0x22, 0x24, 0xe2, 0x7c, 0x8a, 0x88, 0x0a, 0xcc, 0x5b, 0xa3, 0x21, 0xa7, 0xf9, 0x0a, 0x66, 0x3f,
+	0xd1, 0x36, 0x2c, 0x0d, 0x7c, 0xc7, 0xb7, 0x87, 0x9c, 0xdc, 0x05, 0x2c, 0x4b, 0xe8, 0x33, 0xc8,
+	0xb1, 0x75, 0x05, 0x17, 0x23, 0xca, 0xe9, 0xbd, 0x7a, 0x88, 0x92, 0x6b, 0xa9, 0x98, 0xe6, 0xc5,
+	0x88, 0xe2, 0x65, 0xcf, 0x0a, 0xd8, 0x0f, 0x54, 0x03, 0xc5, 0x1f, 0x90, 0x50, 0x86, 0xfc, 0xc0,
+	0x0a, 0x28, 0x67, 0x85, 0xd5, 0xc3, 0x0f, 0x93, 0x33, 0x6d, 0xc8, 0x35, 0xd5, 0x8c, 0x86, 0xc1,
+	0x70, 0xf0, 0xaa, 0x3f, 0x90, 0x20, 0x5e, 0x46, 0xbf, 0x00, 0x94, 0xe8, 0xe7, 0x35, 0xf5, 0xd8,
+	0xff, 0xd2, 0xca, 0x7e, 0xe6, 0x6e, 0x11, 0x2b, 0x11, 0xee, 0xa9, 0x80, 0x27, 0x79, 0x12, 0x92,
+	0x3c, 0x59, 0xfe, 0xbf, 0x19, 0x40, 0xd3, 0xfb, 0x8d, 0xbe, 0x87, 0x7c, 0x3f, 0xa0, 0x13, 0x34,
+	0x4a, 0x4e, 0xb0, 0x6e, 0x6a, 0xe9, 0x5d, 0x3f, 0x99, 0xc3, 0xd0, 0x0f, 0x68, 0xd8, 0xc1, 0x11,
+	0x14, 0xde, 0xf4, 0xad, 0x98, 0x67, 0xd0, 0x14, 0x95, 0x9f, 0xd6, 0x2b, 0xcd, 0xa9, 0x2e, 0xf2,
+	0xac, 0x51, 0xd8, 0x87, 0x09, 0x5b, 0x83, 0x07, 0x67, 0x89, 0x55, 0x86, 0x9d, 0x6d, 0xf0, 0xce,
+	0x6e, 0x26, 0x3a, 0x6b, 0x3c, 0x38, 0x8e, 0xb6, 0x2c, 0xee, 0x6d, 0x83, 0x37, 0x4f, 0x83, 0x8f,
+	0x56, 0x60, 0x59, 0xf6, 0x53, 0xfe, 0xab, 0x2c, 0xec, 0x24, 0x16, 0xdf, 0x74, 0x03, 0xf6, 0xcf,
+	0x0a, 0xd8, 0x8e, 0x7d, 0x0c, 0xab, 0x23, 0x7b, 0x1c, 0x0d, 0x2d, 0xf9, 0xa9, 0x80, 0x0b, 0x23,
+	0x7b, 0x2c, 0x7b, 0xd4, 0x6d, 0xf4, 0x08, 0x0a, 0x9e, 0x90, 0x13, 0xc1, 0x00, 0x59, 0x4e, 0xc9,
+	0xed, 0x24, 0x03, 0x88, 0x6a, 0xce, 0x04, 0x79, 0x2f, 0x2e, 0xa0, 0x87, 0x90, 0xb7, 0xba, 0x5d,
+	0xea, 0xfb, 0xa2, 0xe5, 0x3c, 0x6f, 0x99, 0x14, 0xe0, 0x0a, 0xaf, 0xe5, 0x0d, 0xc1, 0x8a, 0x7e,
+	0x23, 0x15, 0x94, 0xe4, 0xc4, 0x78, 0xe3, 0x05, 0xde, 0x78, 0x37, 0xd1, 0xb8, 0x1d, 0xcd, 0x92,
+	0x77, 0xb0, 0x3a, 0x4a, 0x95, 0x51, 0x0d, 0xd6, 0x07, 0x0f, 0xce, 0x88, 0x3f, 0x20, 0x5d, 0x6b,
+	0x64, 0x3d, 0x77, 0xfa, 0x4e, 0x70, 0xc1, 0xf9, 0x3a, 0x7f, 0xb8, 0x37, 0xb9, 0xad, 0x6a, 0x84,
+	0x81, 0xd7, 0x06, 0x0f, 0xce, 0x8c, 0x41, 0x0c, 0x60, 0x8b, 0x10, 0x24, 0xea, 0x5a, 0x63, 0x3f,
+	0xe4, 0xff, 0xad, 0xe9, 0x1e, 0xc6, 0x3e, 0xc5, 0xc0, 0x31, 0xf9, 0xef, 0xf2, 0x5f, 0x64, 0xa0,
+	0x64, 0xd0, 0xc0, 0x18, 0x24, 0xf7, 0x3c, 0xa4, 0xfb, 0xb4, 0xc6, 0xc9, 0xbc, 0x97, 0xc6, 0xf9,
+	0x3d, 0xd8, 0x4d, 0x69, 0x9c, 0x61, 0x62, 0x2c, 0x4e, 0xa9, 0xfc, 0x61, 0x79, 0xb6, 0xda, 0x49,
+	0xce, 0x0a, 0xef, 0x78, 0xb3, 0x2b, 0xca, 0xff, 0x3a, 0x0b, 0xeb, 0x53, 0x72, 0x80, 0x3e, 0x80,
+	0x15, 0x7f, 0x74, 0xf6, 0x46, 0x28, 0x15, 0x61, 0x7e, 0x72, 0x0c, 0xc0, 0xd5, 0x0a, 0x82, 0x05,
+	0x67, 0x40, 0x1d, 0x69, 0x80, 0xf8, 0x6f, 0x26, 0x9b, 0xa3, 0xfe, 0x80, 0xb3, 0x98, 0xd4, 0x41,
+	0xac, 0xa8, 0xdb, 0x68, 0x1f, 0x0a, 0xce, 0xc0, 0x77, 0x48, 0x58, 0x2b, 0x94, 0x11, 0x30, 0x58,
+	0x5b, 0x60, 0xdc, 0x86, 0xe2, 0xd8, 0xa7, 0x1e, 0xe9, 0xbb, 0x72, 0x55, 0x42, 0x35, 0x15, 0x18,
+	0xb0, 0x2e, 0x61, 0xe8, 0x5b, 0xc8, 0xbd, 0x72, 0x7d, 0xe2, 0x0c, 0x7b, 0x2e, 0x27, 0x50, 0xfe,
+	0x70, 0x3f, 0xb1, 0xea, 0x27, 0xae, 0xaf, 0x0f, 0x7b, 0xae, 0x37, 0x10, 0x8b, 0x15, 0x0c, 0x8a,
+	0x97, 0x5f, 0x09, 0x30, 0x5b, 0xcd, 0x73, 0x6a, 0x79, 0xd4, 0x63, 0x13, 0x58, 0xe6, 0xda, 0x25,
+	0x27, 0x00, 0x9c, 0xfb, 0x4b, 0xdd, 0x17, 0x96, 0x77, 0xe6, 0x0c, 0xcf, 0x08, 0xfb, 0x61, 0x75,
+	0x03, 0xea, 0x39, 0x7e, 0xe0, 0x74, 0x7d, 0x6e, 0xbf, 0x56, 0xf0, 0x4e, 0x58, 0xaf, 0xa6, 0xab,
+	0xcb, 0xbf, 0x9f, 0x01, 0x34, 0xad, 0x01, 0xd0, 0x27, 0xb0, 0x36, 0xb0, 0xba, 0xc4, 0xb2, 0x6d,
+	0x8f, 0x3c, 0x77, 0x86, 0x96, 0x77, 0x21, 0xc5, 0xae, 0x38, 0xb0, 0xba, 0x15, 0xdb, 0xf6, 0x8e,
+	0x38, 0x90, 0xd9, 0xe5, 0x10, 0x4f, 0xee, 0xe5, 0xb2, 0x44, 0x40, 0xf7, 0x60, 0xdd, 0xb3, 0x6c,
+	0x67, 0xec, 0x27, 0x65, 0x57, 0x6c, 0xec, 0x9a, 0xa8, 0x88, 0xc4, 0xb7, 0xfc, 0x2d, 0xec, 0xcd,
+	0x32, 0x7c, 0xfe, 0xc8, 0x1d, 0xfa, 0x94, 0x19, 0xe4, 0x09, 0xf1, 0x5f, 0xc1, 0x2b, 0x7e, 0xd4,
+	0xb8, 0x03, 0xdb, 0xbc, 0xb1, 0x36, 0xb4, 0x27, 0x4c, 0xe6, 0x3b, 0x18, 0x20, 0x69, 0x67, 0xb2,
+	0x91, 0x9d, 0x29, 0xef, 0xc2, 0xce, 0x54, 0xb7, 0x62, 0x42, 0xe5, 0x7f, 0x98, 0x81, 0xed, 0xce,
+	0xc8, 0xb6, 0x02, 0x6a, 0x8e, 0x87, 0x43, 0xda, 0xd7, 0x6d, 0xff, 0x3d, 0x86, 0x4c, 0x91, 0x34,
+	0x3b, 0x41, 0xd2, 0x5d, 0xc8, 0xd1, 0xe1, 0x73, 0x12, 0x50, 0xb9, 0x69, 0x45, 0xbc, 0x4c, 0x87,
+	0xcf, 0x4d, 0xea, 0xf0, 0x2a, 0xeb, 0xec, 0x8d, 0xa8, 0x5a, 0x10, 0x55, 0xd6, 0xd9, 0x1b, 0x56,
+	0xc5, 0xe6, 0x3c, 0x35, 0x2f, 0x39, 0xe7, 0x3f, 0xc9, 0xc0, 0x5e, 0x9b, 0x7b, 0x7a, 0x47, 0x7c,
+	0x8c, 0x23, 0x67, 0x68, 0x3b, 0xc3, 0xb3, 0xf7, 0x98, 0xf7, 0x5d, 0x50, 0xfa, 0xce, 0xf0, 0x25,
+	0xb5, 0xc9, 0xe4, 0xf4, 0x57, 0x05, 0xfc, 0x28, 0x5c, 0x04, 0xd3, 0xdd, 0x7c, 0x48, 0x12, 0x3a,
+	0x7c, 0x82, 0xfe, 0x05, 0x01, 0xc5, 0xc2, 0xed, 0x4b, 0xed, 0xc3, 0x42, 0x7a, 0x1f, 0xca, 0x37,
+	0xe0, 0x83, 0x99, 0xb3, 0x96, 0xab, 0xfa, 0xe3, 0x2c, 0x6c, 0xa9, 0x92, 0xb5, 0x31, 0xad, 0x8c,
+	0x83, 0x17, 0xe1, 0x82, 0xae, 0x66, 0x1a, 0xf4, 0x11, 0x14, 0x22, 0x91, 0x79, 0x49, 0x2f, 0xe4,
+	0x02, 0xf2, 0x21, 0xec, 0x31, 0xbd, 0x08, 0x3d, 0xd7, 0xf9, 0xd8, 0x73, 0x7d, 0x04, 0x0b, 0x09,
+	0x35, 0x7f, 0x27, 0xa9, 0x06, 0x67, 0xcd, 0xe1, 0x80, 0xab, 0x7c, 0xde, 0x04, 0x3d, 0x06, 0xe4,
+	0x53, 0xef, 0xb5, 0xd3, 0x65, 0xdb, 0x40, 0x87, 0x4c, 0x7b, 0x51, 0x4f, 0x6a, 0xfa, 0x94, 0xc3,
+	0x21, 0x90, 0xf4, 0x08, 0x07, 0xaf, 0xfb, 0x93, 0xa0, 0xf2, 0x01, 0x2c, 0x70, 0xeb, 0x81, 0x60,
+	0xd5, 0xd0, 0x9b, 0xc7, 0x75, 0x8d, 0x18, 0x1a, 0x3e, 0xd5, 0x55, 0x4d, 0x99, 0x63, 0x30, 0xad,
+	0x69, 0xea, 0x98, 0xc1, 0x0c, 0x43, 0x6f, 0x35, 0x95, 0x4c, 0xf9, 0x18, 0x36, 0xd3, 0x13, 0xac,
+	0x0c, 0xfd, 0x37, 0xd4, 0x43, 0xf7, 0x61, 0xc9, 0xa3, 0xfe, 0xb8, 0x2f, 0x14, 0xfb, 0x6a, 0x8a,
+	0xee, 0xe1, 0x4a, 0x58, 0x35, 0x96, 0x68, 0xe5, 0x7f, 0xb6, 0x00, 0x1b, 0x82, 0x1c, 0xef, 0xb4,
+	0xd9, 0x5c, 0xdb, 0xfa, 0x09, 0x6d, 0xeb, 0x3b, 0x4c, 0xc3, 0x30, 0xa6, 0xf0, 0x49, 0xe0, 0x12,
+	0x8f, 0x0e, 0xdc, 0xd7, 0xcc, 0xf4, 0xce, 0xdf, 0x5d, 0xc1, 0x45, 0x0e, 0x36, 0x5d, 0xcc, 0x81,
+	0xcc, 0x4f, 0x8b, 0xf0, 0x9c, 0xa1, 0x1f, 0x58, 0xfd, 0x7e, 0x69, 0x89, 0x3b, 0xd9, 0xa9, 0x6d,
+	0x0b, 0xac, 0xc0, 0xe9, 0x72, 0x86, 0x12, 0x38, 0x78, 0x55, 0x76, 0x23, 0xcb, 0xe8, 0x14, 0x4a,
+	0xf6, 0xc5, 0xd0, 0x1a, 0x38, 0x5d, 0x32, 0xd5, 0xdf, 0x32, 0xef, 0x2f, 0xe9, 0x14, 0x55, 0x05,
+	0x6a, 0xb2, 0xc3, 0x2d, 0x3b, 0x86, 0x25, 0xfa, 0xfd, 0x0e, 0x56, 0xe9, 0x6b, 0x3a, 0x0c, 0x48,
+	0xe0, 0x39, 0x67, 0x67, 0xd4, 0x63, 0x1a, 0x77, 0x7e, 0x62, 0x2f, 0x35, 0x86, 0x60, 0x8a, 0x7a,
+	0x5c, 0xa4, 0x89, 0x92, 0x8f, 0x8e, 0x61, 0xdd, 0xa3, 0xaf, 0xad, 0xbe, 0x63, 0x73, 0xc5, 0x4f,
+	0xd8, 0x71, 0x8a, 0xbb, 0x8f, 0xcc, 0x03, 0x10, 0x67, 0xad, 0x83, 0xf0, 0xac, 0x75, 0x60, 0x86,
+	0x67, 0x2d, 0xac, 0x24, 0x1b, 0x31, 0x30, 0xfa, 0x11, 0x4a, 0x63, 0xdf, 0x3a, 0xa3, 0x64, 0xe0,
+	0x0e, 0x9d, 0xc0, 0xf5, 0xb8, 0x31, 0xf0, 0xa8, 0xed, 0x04, 0x7e, 0x09, 0xf8, 0x02, 0x93, 0xe6,
+	0xa6, 0xc3, 0x50, 0x1b, 0x11, 0xa6, 0xca, 0x11, 0xf1, 0xf6, 0x78, 0x16, 0xd8, 0x47, 0x5f, 0x25,
+	0x4c, 0x57, 0x9e, 0xcf, 0x6d, 0x37, 0x65, 0xba, 0x8c, 0xa4, 0xe9, 0x0a, 0x6d, 0x56, 0xb9, 0x05,
+	0xab, 0xe9, 0xaa, 0xb4, 0xa8, 0x4b, 0x9b, 0x1c, 0xa9, 0xbc, 0x7d, 0x98, 0x7f, 0xd5, 0x75, 0xa4,
+	0xeb, 0xb6, 0x9a, 0xec, 0x5f, 0xd5, 0x31, 0xab, 0x2a, 0xff, 0x83, 0x1c, 0xa0, 0x24, 0xfb, 0x49,
+	0x36, 0x7e, 0x0b, 0xf7, 0xc5, 0x5c, 0x9e, 0xbd, 0x16, 0x97, 0xa3, 0x27, 0x50, 0xe8, 0x59, 0x4e,
+	0x9f, 0x9d, 0xff, 0x18, 0xad, 0x39, 0x5f, 0xe6, 0x0f, 0x0f, 0x92, 0x5e, 0xdd, 0xd4, 0x24, 0x0e,
+	0x6a, 0xbc, 0x05, 0x67, 0x0e, 0x6d, 0x18, 0x78, 0x17, 0x38, 0xdf, 0x8b, 0x21, 0x7b, 0x0e, 0x28,
+	0x93, 0x08, 0x4c, 0xbf, 0x30, 0xcd, 0x23, 0x4f, 0xc6, 0x2f, 0xe9, 0x05, 0xfa, 0x1e, 0x16, 0x5f,
+	0x5b, 0xfd, 0x71, 0xe8, 0xbe, 0xfe, 0xec, 0xed, 0x23, 0x8e, 0x3d, 0xaa, 0xba, 0x36, 0xc5, 0xa2,
+	0xdd, 0x2f, 0xb3, 0xdf, 0x64, 0xca, 0xff, 0x67, 0x11, 0xf2, 0x89, 0x2a, 0x04, 0xb0, 0xd4, 0x69,
+	0x76, 0x0c, 0xad, 0xaa, 0xcc, 0xa1, 0x2d, 0x58, 0xef, 0x34, 0x1f, 0x37, 0x5b, 0x4f, 0x9b, 0x04,
+	0x77, 0xea, 0x1a, 0x69, 0x56, 0x1a, 0x9a, 0x92, 0x41, 0xdb, 0x80, 0x70, 0xc5, 0xd4, 0x9b, 0xc7,
+	0xe4, 0x18, 0xb7, 0x3a, 0x6d, 0xa2, 0x61, 0xdc, 0xc2, 0x4a, 0x16, 0x7d, 0x08, 0x25, 0xa9, 0x58,
+	0x88, 0x5e, 0x65, 0x5a, 0xa5, 0xa6, 0x6b, 0x58, 0xd6, 0xce, 0xa3, 0x1d, 0xd8, 0x38, 0x7e, 0x4a,
+	0xda, 0xaa, 0x56, 0x23, 0x8d, 0x4a, 0xbd, 0xd6, 0x69, 0xaa, 0x26, 0x53, 0x37, 0x0b, 0xa8, 0x04,
+	0x9b, 0x58, 0x33, 0x5a, 0x1d, 0xac, 0x6a, 0x06, 0xa9, 0xeb, 0x0d, 0xdd, 0xac, 0xf0, 0x9a, 0x45,
+	0xb4, 0x07, 0xdb, 0x8d, 0xca, 0x0f, 0xa4, 0x89, 0xc9, 0x91, 0x56, 0xc1, 0x1a, 0x36, 0x08, 0xd6,
+	0x2a, 0xea, 0x89, 0x56, 0x55, 0x96, 0x92, 0x73, 0x13, 0x95, 0x44, 0xaf, 0x2a, 0xcb, 0x0c, 0xdc,
+	0xd0, 0x0d, 0xa6, 0xe6, 0x12, 0xe0, 0x1c, 0x9b, 0x5a, 0x08, 0xae, 0xd5, 0x5b, 0x4f, 0x89, 0xde,
+	0xac, 0xb5, 0x70, 0x43, 0x8c, 0xb3, 0x82, 0x6e, 0xc1, 0x07, 0xe1, 0x0c, 0x48, 0xa5, 0x5e, 0x6f,
+	0xa9, 0xbc, 0x82, 0xd4, 0x2a, 0x7a, 0xbd, 0x83, 0x35, 0x05, 0x18, 0x42, 0xa7, 0x69, 0x74, 0x54,
+	0x55, 0x33, 0x8c, 0x5a, 0xa7, 0x4e, 0x9e, 0xb4, 0x0c, 0x72, 0x5a, 0xa9, 0xeb, 0x55, 0xd1, 0x43,
+	0x1e, 0xdd, 0x84, 0x3d, 0xbd, 0xa9, 0xb6, 0x30, 0xd6, 0x54, 0x73, 0x7a, 0x84, 0x02, 0x9b, 0x56,
+	0xdb, 0x20, 0x66, 0x8b, 0xa8, 0x06, 0x39, 0xa9, 0x34, 0xab, 0xad, 0x53, 0x0d, 0x2b, 0x45, 0xf4,
+	0x31, 0xec, 0x9b, 0xd5, 0x1a, 0xa9, 0xb4, 0xdb, 0x75, 0x5d, 0x0e, 0x3a, 0xb5, 0x73, 0xab, 0x68,
+	0x03, 0xd6, 0x9a, 0xad, 0x70, 0x39, 0xb5, 0x56, 0xa7, 0x59, 0x55, 0xd6, 0xd8, 0x76, 0xd6, 0xf4,
+	0xba, 0xa9, 0x61, 0x82, 0x35, 0xc3, 0xc4, 0x3a, 0xdf, 0x4d, 0x43, 0x51, 0x90, 0x02, 0x85, 0x4a,
+	0x93, 0x1c, 0x3f, 0xe5, 0xd3, 0xd7, 0xaa, 0xca, 0x3a, 0xba, 0x0d, 0xb7, 0xc2, 0xc5, 0x63, 0xad,
+	0xaa, 0xf3, 0x39, 0x32, 0x42, 0x69, 0x98, 0x54, 0xaa, 0x55, 0xac, 0x19, 0x86, 0x82, 0xd8, 0x0a,
+	0xd4, 0x06, 0xd1, 0x9a, 0x55, 0xd2, 0x31, 0x34, 0x1c, 0x5a, 0x08, 0x52, 0xd5, 0x9a, 0xba, 0x56,
+	0x55, 0x36, 0xd8, 0x54, 0xd5, 0x06, 0x51, 0x59, 0x07, 0x26, 0x51, 0x5b, 0x4d, 0x13, 0xb7, 0xea,
+	0xa4, 0xd9, 0x32, 0xc3, 0xc9, 0x1f, 0xd5, 0x35, 0x65, 0x13, 0xdd, 0x80, 0x5d, 0xb5, 0x41, 0x2a,
+	0x1d, 0xf3, 0xa4, 0x85, 0xf5, 0x1f, 0xc5, 0x8a, 0xb0, 0xf6, 0x6b, 0x4d, 0x35, 0xb5, 0xaa, 0xb2,
+	0xc5, 0x56, 0xa2, 0x36, 0xc4, 0x00, 0x92, 0x78, 0xca, 0x36, 0xda, 0x04, 0x45, 0x6d, 0x10, 0xc9,
+	0x51, 0x72, 0xd2, 0x3b, 0x8c, 0xf6, 0xb8, 0xd5, 0xe1, 0x30, 0xce, 0x7b, 0xa2, 0x17, 0xb6, 0x9b,
+	0x25, 0xf4, 0x09, 0x94, 0x23, 0xbe, 0x94, 0x38, 0x15, 0x4e, 0x9b, 0xd4, 0xae, 0xef, 0xb2, 0x5d,
+	0x6f, 0xb6, 0x48, 0xf3, 0x48, 0xaf, 0xb5, 0x1a, 0xc4, 0xe8, 0xb4, 0xdb, 0x2d, 0x6c, 0x2a, 0x7b,
+	0xe5, 0xff, 0x9c, 0x81, 0x65, 0x26, 0x58, 0x06, 0x0d, 0xd0, 0x21, 0x6c, 0x59, 0xa3, 0x51, 0xff,
+	0x82, 0xc4, 0xb1, 0x2b, 0xf2, 0xc6, 0xb1, 0x29, 0x97, 0xb3, 0x1c, 0xde, 0xe0, 0x95, 0xb1, 0x53,
+	0xf3, 0xd4, 0xb1, 0xe9, 0xb4, 0xf3, 0x87, 0xbe, 0x87, 0x82, 0xcf, 0x4d, 0x4a, 0x4a, 0x05, 0x5c,
+	0x6d, 0x71, 0xf2, 0x7e, 0x04, 0xf2, 0xd1, 0x11, 0x14, 0x53, 0xe6, 0xa6, 0xb4, 0x70, 0x1d, 0x1b,
+	0x53, 0x48, 0xda, 0x98, 0xf2, 0x53, 0x40, 0xfc, 0x47, 0x9b, 0x7a, 0xf1, 0x84, 0x23, 0x63, 0x9a,
+	0x49, 0x18, 0xd3, 0xcf, 0x20, 0xc7, 0x3d, 0x2c, 0x9f, 0x06, 0x72, 0xaa, 0x68, 0x22, 0x02, 0x65,
+	0xd0, 0x00, 0xf3, 0xb0, 0x9b, 0x41, 0x83, 0x32, 0x81, 0x42, 0xe8, 0xd2, 0xf2, 0xc9, 0xb6, 0x60,
+	0x53, 0xd8, 0xc4, 0x11, 0xf5, 0x12, 0xfb, 0x26, 0x83, 0x59, 0x37, 0x26, 0xba, 0x4a, 0xcf, 0x07,
+	0x23, 0x6f, 0x0a, 0x56, 0xfe, 0x02, 0x72, 0xcc, 0x26, 0xfd, 0xc6, 0x1d, 0x52, 0x74, 0x07, 0x56,
+	0xdd, 0x5e, 0xcf, 0xa7, 0x01, 0x19, 0x38, 0xc3, 0x71, 0x40, 0x7d, 0x3e, 0xf3, 0x45, 0x5c, 0x14,
+	0xd0, 0x86, 0x00, 0x96, 0xbf, 0x07, 0x10, 0xd6, 0xa6, 0x33, 0x74, 0x02, 0xe6, 0xe3, 0x3a, 0x3e,
+	0xe1, 0x16, 0x4e, 0x12, 0x6e, 0xd9, 0xf1, 0x4f, 0x59, 0x11, 0x6d, 0xc3, 0xd2, 0x6b, 0xb7, 0x3f,
+	0x1e, 0x50, 0x19, 0x3c, 0x93, 0xa5, 0xf2, 0xdf, 0xcd, 0x40, 0xe1, 0xd8, 0xb3, 0x86, 0x01, 0xb5,
+	0x59, 0x17, 0x3e, 0xfa, 0x39, 0x2c, 0x06, 0x6e, 0x60, 0xf5, 0xa5, 0x53, 0x9b, 0x3c, 0x0d, 0xc7,
+	0x23, 0x61, 0x81, 0x83, 0xee, 0x40, 0x36, 0x38, 0x97, 0x87, 0xd1, 0x4b, 0x30, 0xb3, 0xc1, 0x39,
+	0x43, 0xf3, 0x44, 0x70, 0xf2, 0x72, 0x34, 0xef, 0xbc, 0xfc, 0xbf, 0x33, 0xb0, 0x8a, 0xa9, 0xed,
+	0x78, 0xb4, 0x1b, 0x30, 0x8f, 0x8e, 0x7a, 0xc8, 0x82, 0x2d, 0x4f, 0x42, 0xf8, 0x71, 0x29, 0x0a,
+	0x38, 0x08, 0xd7, 0xeb, 0xb3, 0x94, 0x51, 0x4a, 0xb6, 0x8c, 0x8a, 0x15, 0xd1, 0x8a, 0x3b, 0x95,
+	0x1b, 0xde, 0x34, 0x10, 0x3d, 0x84, 0x9d, 0x68, 0x08, 0x9f, 0xb7, 0x0d, 0x47, 0x92, 0xac, 0x1d,
+	0xcd, 0x40, 0xf4, 0x2c, 0xdb, 0x96, 0xbf, 0x87, 0x8d, 0x19, 0x63, 0xa0, 0x1c, 0x2c, 0xe8, 0xed,
+	0xd3, 0xaf, 0x94, 0x39, 0xf9, 0xeb, 0xa1, 0x92, 0x41, 0xcb, 0x30, 0xdf, 0xc1, 0x75, 0x25, 0x8b,
+	0xf2, 0xb0, 0x6c, 0xe8, 0x6d, 0xd2, 0xc1, 0xba, 0x32, 0x5f, 0xfe, 0x1f, 0xf3, 0xb0, 0x1a, 0x3a,
+	0x98, 0x62, 0x27, 0xd0, 0x43, 0xe9, 0x2a, 0x0b, 0x4b, 0x56, 0x9e, 0xe1, 0x2a, 0x0b, 0xc4, 0x03,
+	0xb6, 0x67, 0x09, 0x3f, 0xf9, 0x36, 0x14, 0x39, 0xd5, 0x9d, 0xe0, 0x42, 0xb8, 0x42, 0xe2, 0xf0,
+	0x53, 0x08, 0x81, 0xdc, 0xd5, 0x11, 0xdc, 0xd1, 0x73, 0x86, 0x56, 0x9f, 0xfb, 0xe2, 0x9c, 0x3b,
+	0x6a, 0xac, 0x88, 0x4e, 0xa0, 0xc0, 0xe1, 0xc4, 0xea, 0x46, 0x07, 0xf1, 0xd9, 0xae, 0xba, 0x1c,
+	0x9f, 0x37, 0xab, 0x70, 0x64, 0x9c, 0xef, 0xc5, 0x05, 0xf4, 0x2b, 0x28, 0x9e, 0x09, 0x76, 0x22,
+	0x63, 0xc6, 0x4f, 0xf2, 0xcc, 0x9e, 0xf4, 0x1e, 0x92, 0xec, 0x86, 0x0b, 0x67, 0x49, 0xe6, 0x3b,
+	0x82, 0xb5, 0x09, 0x5a, 0xf0, 0x53, 0x7b, 0xda, 0x71, 0x4a, 0x13, 0x1a, 0xaf, 0xa6, 0xc9, 0xc3,
+	0x24, 0xc7, 0xa3, 0x7e, 0xe0, 0x39, 0xdd, 0x40, 0x2a, 0x91, 0x9c, 0xf4, 0x90, 0x25, 0x54, 0xa8,
+	0x89, 0x32, 0xe4, 0xc2, 0x4d, 0x44, 0x2b, 0xb0, 0x78, 0xf4, 0xcc, 0xd4, 0x0c, 0x65, 0x8e, 0x53,
+	0x48, 0x53, 0x5b, 0xcd, 0xaa, 0xa1, 0x64, 0xca, 0xdf, 0x43, 0x3e, 0xb1, 0x50, 0x54, 0x84, 0x15,
+	0x53, 0xc3, 0x0d, 0xbd, 0x59, 0x31, 0xd9, 0x99, 0xa1, 0x00, 0xb9, 0xd0, 0x8e, 0x28, 0x19, 0xa6,
+	0xd3, 0x43, 0x0b, 0x24, 0xb5, 0xb0, 0x92, 0x2d, 0xd7, 0x18, 0x43, 0x73, 0x67, 0x3f, 0x5c, 0xe1,
+	0x66, 0x52, 0xbc, 0x16, 0x42, 0x39, 0x5a, 0x8d, 0xe4, 0x68, 0x81, 0x0b, 0xcc, 0x6a, 0x24, 0x30,
+	0x0b, 0x5c, 0x32, 0xfe, 0x70, 0x01, 0xf2, 0x52, 0x58, 0x98, 0xab, 0x99, 0x8a, 0xf9, 0x67, 0x2e,
+	0x8f, 0xf9, 0x67, 0xd3, 0x31, 0xff, 0xc9, 0xd3, 0xdb, 0xc2, 0xf4, 0xe9, 0xed, 0x81, 0x64, 0x40,
+	0xc1, 0x00, 0x1f, 0x4d, 0xcb, 0x2a, 0x1b, 0xfe, 0x40, 0x9e, 0x96, 0x63, 0xfe, 0xbb, 0x03, 0xab,
+	0x09, 0xff, 0x99, 0xf5, 0xbd, 0x24, 0xe3, 0x1e, 0x11, 0x94, 0xf5, 0x3e, 0xfb, 0x38, 0xb7, 0xfc,
+	0x5e, 0xc7, 0x39, 0xc1, 0x2b, 0x72, 0x6f, 0x25, 0xaf, 0xe5, 0x66, 0xf0, 0x4a, 0x72, 0xf7, 0x19,
+	0xaf, 0x24, 0xcb, 0xe5, 0x3f, 0xcf, 0x00, 0xc4, 0x8b, 0xe1, 0x04, 0x3e, 0xc1, 0x9a, 0x71, 0xd2,
+	0xaa, 0x33, 0xbf, 0x6f, 0x19, 0xe6, 0x9f, 0x9c, 0x30, 0xda, 0xae, 0x02, 0x44, 0x84, 0xaf, 0x2a,
+	0x59, 0x46, 0xeb, 0x27, 0x9d, 0x96, 0x59, 0x21, 0xda, 0x0f, 0x27, 0x95, 0x8e, 0xc1, 0x80, 0xf3,
+	0xcc, 0x52, 0x73, 0x5f, 0x48, 0x37, 0x9f, 0x11, 0x53, 0x6f, 0x30, 0xc7, 0xe5, 0x87, 0xb6, 0x8e,
+	0xb5, 0xaa, 0xb2, 0xc0, 0x6c, 0x7b, 0xcb, 0x3c, 0xd1, 0x30, 0x11, 0xcd, 0xcc, 0x67, 0x6d, 0x4d,
+	0x59, 0x44, 0x1f, 0xc0, 0x8e, 0x34, 0xf7, 0x8c, 0xe1, 0x74, 0xee, 0x25, 0xa8, 0x27, 0x95, 0xe6,
+	0xb1, 0xa6, 0x2c, 0x09, 0x7e, 0x62, 0x1e, 0x04, 0xc1, 0xda, 0x93, 0x0e, 0xef, 0x67, 0x99, 0x1d,
+	0x53, 0xdb, 0xad, 0x56, 0x3d, 0x31, 0x6e, 0xae, 0xfc, 0x1f, 0x16, 0x61, 0x3d, 0x41, 0x1c, 0xb1,
+	0x1c, 0xf4, 0x0b, 0x58, 0xe4, 0xa7, 0x12, 0xa9, 0xc6, 0xb7, 0x67, 0x53, 0x12, 0x0b, 0xa4, 0x89,
+	0xb3, 0x40, 0x76, 0xf2, 0x2c, 0xc0, 0x45, 0x4a, 0xc4, 0x89, 0x87, 0xe3, 0x01, 0xb3, 0x71, 0x42,
+	0xbf, 0x14, 0x25, 0xb4, 0xc9, 0x81, 0xe1, 0xd1, 0x7f, 0x21, 0x3e, 0xfa, 0x5f, 0x76, 0xeb, 0x90,
+	0xb8, 0xb8, 0x58, 0x4a, 0x5d, 0x5c, 0xa4, 0xc2, 0x8f, 0xcb, 0x13, 0xe1, 0x47, 0xe9, 0x70, 0xe4,
+	0x62, 0x87, 0x23, 0x0c, 0x48, 0xae, 0xcc, 0x0e, 0x48, 0xc2, 0x95, 0x01, 0xc9, 0xfc, 0xdb, 0x03,
+	0x92, 0x85, 0x19, 0x01, 0xc9, 0xe4, 0x8d, 0x49, 0xf1, 0xed, 0x37, 0x26, 0xb7, 0xa1, 0xf8, 0xc2,
+	0xf2, 0xec, 0x37, 0x96, 0x47, 0x45, 0xc0, 0x6f, 0x55, 0xf4, 0x19, 0x02, 0x79, 0xd4, 0xef, 0x0b,
+	0xc8, 0x05, 0x67, 0xa3, 0x11, 0xe9, 0x06, 0xe7, 0xa5, 0xb5, 0x29, 0x82, 0x99, 0x67, 0xa3, 0x51,
+	0x18, 0x24, 0x5e, 0x66, 0x78, 0x6a, 0x70, 0xfe, 0x3b, 0x7b, 0xb1, 0x75, 0x65, 0x58, 0x15, 0x5d,
+	0x1d, 0x56, 0xfd, 0x83, 0x79, 0xd8, 0x94, 0xdc, 0xc9, 0xb9, 0x38, 0x8a, 0x65, 0x96, 0x60, 0xd9,
+	0x1f, 0xf3, 0x4b, 0x84, 0xd0, 0xaf, 0x91, 0xc5, 0x90, 0xe7, 0xb2, 0x31, 0xcf, 0x4d, 0x6a, 0xb9,
+	0xf9, 0x69, 0x2d, 0xf7, 0x05, 0x2c, 0x89, 0x33, 0x3e, 0xe7, 0xd5, 0xb4, 0xc6, 0x48, 0x1b, 0x3a,
+	0x2c, 0x11, 0xd1, 0x2d, 0xc8, 0x8b, 0x73, 0x2e, 0xe9, 0xba, 0xb6, 0xb8, 0x2a, 0x28, 0x62, 0x10,
+	0x20, 0x7e, 0x60, 0xfc, 0xad, 0xea, 0xb6, 0x47, 0x00, 0x7d, 0x67, 0xe0, 0x48, 0x2e, 0x5b, 0xe1,
+	0x5c, 0xb6, 0x37, 0x25, 0xc2, 0x75, 0x86, 0xc2, 0xb9, 0x6d, 0xa5, 0x1f, 0xfe, 0x4c, 0xb1, 0x12,
+	0x5c, 0x8f, 0x95, 0xd2, 0xd2, 0x9f, 0x9f, 0x8c, 0x14, 0xff, 0x71, 0x06, 0x50, 0x32, 0xf0, 0x21,
+	0x35, 0xcc, 0xb4, 0xce, 0xcf, 0xcc, 0xd2, 0xf9, 0x9f, 0xc3, 0x62, 0x9f, 0xbe, 0xa6, 0x7d, 0xe9,
+	0xd3, 0xa4, 0xee, 0x67, 0x22, 0xc4, 0x3a, 0xc3, 0xc0, 0x02, 0xf1, 0xfd, 0x2e, 0xb4, 0xcb, 0x7f,
+	0x94, 0x85, 0xad, 0x99, 0xe1, 0x19, 0xf4, 0x3d, 0x2c, 0x49, 0xb7, 0x46, 0x38, 0x8d, 0x9f, 0xbe,
+	0x2d, 0xa0, 0x73, 0x20, 0x1d, 0x1b, 0xd9, 0x6c, 0xc6, 0x4a, 0xb3, 0x57, 0xae, 0x74, 0xfe, 0xba,
+	0x2b, 0x9d, 0x72, 0x96, 0x16, 0xdf, 0xc1, 0x59, 0x2a, 0x1f, 0xc0, 0x92, 0x74, 0x4c, 0x0a, 0x90,
+	0x63, 0x47, 0x51, 0xbd, 0xd9, 0xd1, 0x84, 0x0b, 0x53, 0xd5, 0x0d, 0x7e, 0x12, 0xcd, 0x30, 0xd7,
+	0xa6, 0xd6, 0xc2, 0xaa, 0xa6, 0x64, 0xcb, 0xff, 0x7e, 0x1e, 0x3e, 0x9c, 0x58, 0x6f, 0x28, 0x66,
+	0x22, 0x1e, 0xf9, 0x00, 0x96, 0xc6, 0x1c, 0x20, 0x8d, 0xc6, 0x8d, 0x4b, 0x36, 0x4a, 0xb6, 0x92,
+	0xc8, 0xff, 0xdf, 0x8c, 0xc7, 0xa5, 0x4f, 0x14, 0xa6, 0x54, 0xea, 0xd2, 0x0c, 0x95, 0x9a, 0x54,
+	0xd3, 0xcb, 0x6f, 0x57, 0xd3, 0x49, 0xb1, 0xc9, 0x5d, 0x4f, 0x6c, 0x7e, 0x05, 0xc5, 0x54, 0x0c,
+	0x53, 0xca, 0xe9, 0xa5, 0x21, 0xcc, 0x42, 0x32, 0x84, 0x79, 0xa5, 0x9a, 0x84, 0xab, 0xd5, 0xe4,
+	0x7f, 0x59, 0x80, 0x1b, 0x97, 0x10, 0x52, 0xea, 0xcb, 0x6f, 0x22, 0x05, 0x97, 0x99, 0xba, 0x32,
+	0x9b, 0x1d, 0xc3, 0x0c, 0xf5, 0xdc, 0x5b, 0x88, 0x39, 0x1d, 0xdd, 0x4f, 0xa8, 0xe6, 0x85, 0xb4,
+	0x6a, 0x9e, 0x8e, 0xf1, 0x2e, 0xfe, 0xf4, 0x18, 0xef, 0xd2, 0x7b, 0xc4, 0x78, 0x27, 0x74, 0xf7,
+	0xf2, 0x94, 0xee, 0x9e, 0x11, 0x55, 0xcf, 0xcd, 0x8a, 0xaa, 0x1b, 0xb0, 0x93, 0x8c, 0x6f, 0x24,
+	0x83, 0xe1, 0x2b, 0xd7, 0x08, 0x75, 0x6c, 0x26, 0x42, 0x1d, 0xd7, 0x0b, 0xb1, 0xc3, 0x4f, 0x08,
+	0xb1, 0x27, 0x39, 0x3a, 0x7f, 0x2d, 0x8e, 0x2e, 0xff, 0xfd, 0x2c, 0x6c, 0xcd, 0xbc, 0x51, 0x45,
+	0x37, 0x21, 0x6f, 0x8d, 0x86, 0xc4, 0x1a, 0x3c, 0xf7, 0x88, 0x2d, 0x0e, 0x2f, 0x45, 0xbc, 0x62,
+	0x8d, 0x86, 0x95, 0xc1, 0x73, 0xaf, 0xda, 0x4f, 0xd5, 0x8f, 0xfb, 0xf2, 0x5e, 0x28, 0xac, 0xef,
+	0xf4, 0x99, 0x12, 0x18, 0x79, 0x8e, 0xeb, 0xb1, 0x03, 0x6a, 0xac, 0x24, 0x8b, 0xb8, 0x18, 0x42,
+	0xb9, 0x5e, 0x44, 0x5f, 0xc2, 0xd6, 0xc8, 0xa3, 0x74, 0x30, 0xe2, 0x04, 0x4f, 0x5c, 0xee, 0x8b,
+	0xa3, 0xca, 0x66, 0x5c, 0x99, 0xb8, 0xc5, 0x7f, 0x04, 0xa5, 0x44, 0xa3, 0xd7, 0xe3, 0xfe, 0x90,
+	0x7a, 0xc9, 0x47, 0x01, 0x45, 0xbc, 0x13, 0xd7, 0x9f, 0x26, 0xab, 0x99, 0x4b, 0xf8, 0xca, 0xf5,
+	0x49, 0xb7, 0x6f, 0xf9, 0x3e, 0xe3, 0x77, 0x69, 0xd6, 0x5f, 0xb9, 0xbe, 0xca, 0x40, 0xba, 0x5d,
+	0x7e, 0x02, 0xf9, 0xc4, 0x56, 0xb1, 0x06, 0x67, 0xe7, 0xc4, 0x66, 0xca, 0xec, 0x85, 0xeb, 0x07,
+	0x32, 0x9c, 0x04, 0x67, 0xe7, 0x55, 0xea, 0x07, 0x27, 0xae, 0x2f, 0x30, 0x2e, 0x12, 0x18, 0x59,
+	0x89, 0x71, 0x11, 0x62, 0x94, 0xff, 0x63, 0x96, 0x7b, 0x39, 0xd3, 0x6f, 0x95, 0x7e, 0x05, 0x6b,
+	0xe1, 0x9b, 0x0a, 0x19, 0x06, 0x92, 0xe2, 0xbb, 0x91, 0x24, 0x9c, 0xac, 0xc2, 0xab, 0xf2, 0x55,
+	0x45, 0x18, 0x31, 0x7a, 0x8b, 0xe4, 0xce, 0x38, 0x2e, 0xcd, 0xbf, 0xe3, 0x71, 0xe9, 0x77, 0xf7,
+	0x31, 0xd5, 0xef, 0x2f, 0xc0, 0xd6, 0xec, 0x5b, 0xf0, 0x47, 0xb0, 0x1c, 0x5e, 0xe7, 0x88, 0xb8,
+	0xdc, 0xad, 0xe9, 0x93, 0x50, 0x4a, 0x77, 0xe2, 0x10, 0x1f, 0xb5, 0x60, 0x35, 0x75, 0x35, 0xe4,
+	0xcb, 0x1b, 0xb4, 0xbb, 0x97, 0x2b, 0xd3, 0x89, 0xae, 0x8a, 0xc9, 0x8b, 0x21, 0x7f, 0x2a, 0x3c,
+	0xba, 0xfc, 0x93, 0xc3, 0xa3, 0xb9, 0x77, 0x0e, 0x8f, 0x4e, 0xb0, 0xc9, 0xca, 0x24, 0x9b, 0xbc,
+	0x87, 0xfb, 0x38, 0xad, 0xe7, 0xf3, 0x3f, 0x5d, 0xcf, 0x17, 0xde, 0x5d, 0xcf, 0x97, 0xff, 0x34,
+	0x03, 0xeb, 0x53, 0x3b, 0x98, 0x7c, 0x38, 0x99, 0x49, 0x3d, 0x9c, 0x54, 0x99, 0xb8, 0x05, 0xce,
+	0xeb, 0xc4, 0xa8, 0xd9, 0xb7, 0x8e, 0xba, 0x1a, 0x37, 0xe1, 0xb6, 0xe5, 0x18, 0xd6, 0x6d, 0x3a,
+	0xd9, 0xcd, 0xfc, 0xdb, 0x27, 0x9f, 0x6c, 0xc4, 0x27, 0xff, 0x5f, 0x33, 0x80, 0xa6, 0x89, 0x87,
+	0x1e, 0x42, 0x3e, 0xf1, 0x18, 0x60, 0x46, 0x50, 0xb6, 0x1d, 0x3d, 0x0a, 0xc0, 0x10, 0x3f, 0x10,
+	0xf8, 0x1d, 0x5b, 0xdc, 0x3f, 0xce, 0xc0, 0xa6, 0x90, 0x8d, 0x09, 0x95, 0xf7, 0x10, 0x96, 0x85,
+	0x17, 0x19, 0x8a, 0xe7, 0x87, 0xb3, 0x03, 0x15, 0x52, 0xb0, 0x42, 0x64, 0xd4, 0x9c, 0x92, 0x4d,
+	0x11, 0xc0, 0xff, 0xf4, 0xed, 0xb2, 0x29, 0x9e, 0x08, 0xa5, 0x45, 0xb3, 0xfc, 0xaf, 0x32, 0xb0,
+	0x35, 0x31, 0x41, 0xa9, 0x40, 0xfe, 0x1a, 0xac, 0x78, 0xf2, 0xf7, 0xb5, 0x55, 0x48, 0xdc, 0x02,
+	0xfd, 0x2d, 0xd8, 0x49, 0x4d, 0x94, 0xc4, 0x9d, 0xcd, 0xbf, 0xa3, 0x36, 0xd9, 0x4a, 0x4e, 0x39,
+	0x84, 0xfa, 0xe5, 0xc7, 0x50, 0x0a, 0xdf, 0xc6, 0x51, 0x6f, 0xe0, 0x0c, 0x93, 0x7e, 0xe0, 0xf4,
+	0x33, 0xe2, 0xab, 0xad, 0x44, 0xf9, 0x3f, 0x2d, 0xc2, 0xce, 0x74, 0x6f, 0x82, 0x56, 0xef, 0xda,
+	0x59, 0x18, 0xaf, 0x99, 0x8f, 0xe3, 0x35, 0xd3, 0x67, 0x81, 0x85, 0x59, 0x67, 0x81, 0x6f, 0xa1,
+	0x28, 0x94, 0x30, 0xe1, 0x4b, 0x16, 0x8e, 0xe3, 0xe5, 0x41, 0xac, 0x42, 0x37, 0x2e, 0xf8, 0xa8,
+	0x1a, 0x9d, 0xd6, 0xc2, 0xd6, 0x4b, 0x53, 0x5a, 0x72, 0xc6, 0x69, 0x26, 0x3c, 0xcc, 0xc9, 0x5e,
+	0x12, 0x87, 0x8f, 0xe5, 0xd4, 0xe1, 0x23, 0x0e, 0x69, 0xe5, 0x52, 0x21, 0xad, 0x54, 0xe4, 0x6a,
+	0xe5, 0x92, 0x87, 0x73, 0x30, 0x3b, 0x4e, 0x95, 0xbf, 0x32, 0x4e, 0x55, 0x78, 0x7b, 0x9c, 0xaa,
+	0xf8, 0x96, 0x38, 0xd5, 0xea, 0x7b, 0xc4, 0xa9, 0xd6, 0xde, 0x12, 0xa7, 0x52, 0xde, 0x37, 0x4e,
+	0xb5, 0xfe, 0x5e, 0x3e, 0xc3, 0x4f, 0x08, 0x2b, 0xfd, 0xbd, 0x0c, 0x2c, 0x35, 0x5d, 0x9b, 0xea,
+	0x55, 0xf4, 0x1d, 0x14, 0x86, 0xae, 0xcd, 0x8c, 0x41, 0xf2, 0x1a, 0x29, 0xa9, 0x74, 0x04, 0xa2,
+	0xfc, 0x27, 0x9e, 0xaf, 0xb2, 0x16, 0xba, 0xcd, 0x77, 0x69, 0x07, 0x96, 0x65, 0xfb, 0xf0, 0x15,
+	0xbe, 0xa8, 0x2c, 0xdf, 0x03, 0x88, 0x9b, 0x88, 0xab, 0x9f, 0xd7, 0xd1, 0x25, 0xd0, 0xeb, 0x87,
+	0x4a, 0x86, 0xfd, 0xaa, 0x3d, 0xa9, 0x36, 0x95, 0x6c, 0xf9, 0x1c, 0xd6, 0x26, 0x9e, 0xa6, 0x0a,
+	0xc1, 0xe8, 0xf5, 0x29, 0x53, 0x9b, 0x94, 0xbc, 0x72, 0xc3, 0x38, 0x57, 0x31, 0x86, 0x3e, 0x71,
+	0xd9, 0x91, 0xea, 0xc3, 0xc1, 0xb8, 0x1f, 0x38, 0xe4, 0x85, 0x3b, 0xa0, 0x36, 0x7f, 0x11, 0x4d,
+	0x12, 0xcf, 0x69, 0xf9, 0x9c, 0x72, 0xb8, 0xc4, 0x71, 0x4e, 0x18, 0x8a, 0x3e, 0x7a, 0xfd, 0x30,
+	0x7e, 0x4c, 0x5b, 0xfe, 0xf3, 0x2c, 0xe4, 0x9e, 0xb8, 0xbe, 0xf0, 0x04, 0x0e, 0x60, 0x83, 0x39,
+	0xbf, 0xd2, 0x38, 0x46, 0x21, 0x2b, 0xe1, 0xdb, 0xaf, 0xbf, 0x12, 0x68, 0x89, 0xa0, 0x94, 0x02,
+	0xf3, 0xf6, 0x2b, 0x4f, 0x8e, 0xc1, 0x7e, 0xa2, 0xaf, 0xa1, 0x24, 0xc4, 0x98, 0xb8, 0x3d, 0x32,
+	0xb2, 0xba, 0x2f, 0x69, 0x40, 0x7a, 0x4e, 0x3f, 0xa0, 0x9e, 0x2f, 0xfd, 0xfb, 0x2d, 0x51, 0xdf,
+	0xea, 0xb5, 0x79, 0x6d, 0x4d, 0x54, 0xa2, 0x6f, 0xa0, 0x94, 0x42, 0x4f, 0x8e, 0xbf, 0xb0, 0x3f,
+	0x7f, 0x77, 0x11, 0x6f, 0x8f, 0x12, 0x0d, 0x12, 0x93, 0x48, 0x4e, 0x7a, 0xe4, 0xd1, 0x2e, 0xb5,
+	0xe9, 0xb0, 0x4b, 0xa5, 0x9f, 0x1f, 0x4e, 0xba, 0x1d, 0x55, 0xa0, 0x7d, 0xc8, 0xfb, 0xf4, 0xcc,
+	0xa3, 0x67, 0x42, 0x50, 0x96, 0xf8, 0xe4, 0x93, 0xa0, 0xb0, 0xc7, 0x5e, 0xdf, 0x7d, 0x33, 0x19,
+	0xb9, 0x13, 0x3d, 0xd6, 0xfa, 0xee, 0x9b, 0xc4, 0x33, 0xb2, 0x73, 0x58, 0xab, 0x5b, 0xf6, 0x50,
+	0xc6, 0xf1, 0x2a, 0x1e, 0xb5, 0x98, 0xec, 0xdb, 0xc3, 0x21, 0x11, 0xaf, 0x50, 0xe4, 0x03, 0x1d,
+	0x7b, 0x38, 0x3c, 0x65, 0x65, 0x74, 0x02, 0x45, 0xd1, 0x2d, 0x3b, 0xfa, 0x38, 0xfc, 0x44, 0xc0,
+	0xd4, 0xd1, 0xed, 0xa4, 0xe0, 0x78, 0x56, 0xf7, 0xa5, 0x33, 0x3c, 0x63, 0x9d, 0xe9, 0x12, 0xb7,
+	0xee, 0xf8, 0x01, 0x2e, 0x38, 0x89, 0x52, 0xf9, 0x5f, 0x66, 0xa0, 0x74, 0x19, 0x2a, 0xfa, 0x1a,
+	0x0a, 0x8c, 0xa3, 0x19, 0x25, 0xf8, 0x28, 0x19, 0xee, 0x83, 0x25, 0x3d, 0x05, 0xc6, 0x99, 0xad,
+	0x1e, 0xef, 0x17, 0x82, 0xe8, 0x37, 0xfa, 0x05, 0xa0, 0x98, 0x88, 0xb4, 0x4f, 0x07, 0x74, 0x18,
+	0xf8, 0x7c, 0x92, 0x8b, 0x58, 0x09, 0xc9, 0xa7, 0x49, 0x38, 0x63, 0x82, 0x86, 0xaa, 0x86, 0x3a,
+	0xbd, 0xa1, 0xaa, 0x1c, 0xd2, 0x54, 0xc3, 0xc0, 0x4d, 0xa3, 0xc9, 0x21, 0x66, 0x45, 0x95, 0x41,
+	0x1b, 0xf6, 0xb3, 0xfc, 0x6f, 0x57, 0x60, 0x63, 0xc6, 0x23, 0xf7, 0x6b, 0x3e, 0x53, 0xff, 0x1a,
+	0xf2, 0xde, 0xb5, 0x5f, 0xa9, 0x83, 0x17, 0x3f, 0x52, 0xff, 0x25, 0xe4, 0x59, 0xf7, 0xe1, 0x75,
+	0xee, 0xfc, 0xdb, 0xae, 0x12, 0x61, 0x64, 0x8f, 0xe5, 0x5d, 0x2e, 0x3b, 0x2f, 0x45, 0x27, 0x56,
+	0x2b, 0x8e, 0x6f, 0xa4, 0xdf, 0xa9, 0x87, 0x18, 0x02, 0x01, 0x47, 0x67, 0x5c, 0xf1, 0xf8, 0x7d,
+	0xf2, 0x91, 0xfc, 0xe2, 0x75, 0x1f, 0xc9, 0x87, 0xe6, 0x22, 0x97, 0x30, 0x17, 0x08, 0x16, 0xce,
+	0x46, 0x7e, 0x74, 0xd5, 0xc1, 0x7e, 0x33, 0xd2, 0xa5, 0xec, 0x80, 0x78, 0x6a, 0x26, 0x8c, 0x8c,
+	0x92, 0x34, 0x06, 0xfc, 0x31, 0xf4, 0x16, 0x2c, 0x8d, 0xba, 0xbd, 0xd8, 0xde, 0x2c, 0x8e, 0xba,
+	0x3d, 0xdd, 0x46, 0x35, 0x58, 0xef, 0x5b, 0xf6, 0x90, 0x84, 0xd1, 0x6b, 0xcb, 0xa3, 0x56, 0xa9,
+	0xc0, 0x79, 0x34, 0x19, 0xc2, 0x9c, 0xe0, 0x79, 0xbc, 0xd6, 0x9f, 0x10, 0x82, 0x3a, 0xdc, 0x4e,
+	0xd2, 0x92, 0x9d, 0x5b, 0xc6, 0x7e, 0xea, 0xd5, 0x3a, 0xf1, 0xc7, 0xcf, 0xb9, 0xa9, 0xca, 0xe1,
+	0x5b, 0x31, 0x81, 0x0d, 0x8e, 0x98, 0x7c, 0x9a, 0x6e, 0x8c, 0x9f, 0x23, 0x1d, 0x10, 0x13, 0x29,
+	0x9f, 0x72, 0xed, 0xe7, 0x0e, 0xc9, 0xc0, 0xb5, 0x43, 0x3b, 0xf6, 0x41, 0xf2, 0xbc, 0x33, 0x1c,
+	0x1a, 0x21, 0x4e, 0xc3, 0xb5, 0x29, 0x56, 0xec, 0x09, 0x08, 0xfa, 0x19, 0x28, 0x81, 0x67, 0x75,
+	0x29, 0x61, 0x4e, 0x86, 0xe3, 0x31, 0x3e, 0xe6, 0xc6, 0x6d, 0x05, 0xaf, 0x71, 0x38, 0x8e, 0xc0,
+	0xe8, 0xd7, 0x50, 0x76, 0x86, 0x01, 0x3d, 0xe3, 0x54, 0x67, 0x9e, 0x6d, 0x38, 0xb8, 0x75, 0x4e,
+	0x6c, 0x2b, 0xb0, 0x88, 0x67, 0x05, 0x94, 0x5b, 0xbe, 0x02, 0xbe, 0x19, 0x61, 0xb6, 0x23, 0xc4,
+	0x86, 0x75, 0x5e, 0xb5, 0x02, 0x0b, 0x5b, 0xc1, 0xec, 0x4c, 0x87, 0xf5, 0x77, 0xcd, 0x74, 0xf8,
+	0x0c, 0x72, 0xbe, 0xdf, 0x15, 0x8b, 0x47, 0x53, 0x46, 0xdc, 0xf0, 0xbb, 0x7c, 0xcd, 0xcb, 0xbe,
+	0xf8, 0x31, 0x3b, 0x31, 0x62, 0xe3, 0xdd, 0x13, 0x23, 0xbe, 0x86, 0x12, 0x5b, 0xf2, 0xe8, 0x65,
+	0xa4, 0xa0, 0xfd, 0xf1, 0x68, 0xe4, 0x7a, 0x01, 0xb5, 0x4b, 0x9b, 0x42, 0xb1, 0x0f, 0xac, 0xf3,
+	0xf6, 0x4b, 0xa9, 0x9f, 0x8d, 0xb0, 0x12, 0x7d, 0x03, 0xbb, 0xc9, 0x45, 0x7b, 0xf4, 0x15, 0xb1,
+	0xfa, 0x6f, 0xac, 0x0b, 0x9f, 0xb8, 0xc3, 0xd2, 0x16, 0x27, 0xfd, 0x56, 0xbc, 0x44, 0x4c, 0x5f,
+	0x55, 0x78, 0x6d, 0x6b, 0x88, 0x3e, 0x82, 0xa2, 0x3f, 0xe0, 0xc6, 0xcc, 0xe6, 0xed, 0x4a, 0xdb,
+	0xc2, 0xed, 0xf1, 0x07, 0x6d, 0x7b, 0x5c, 0x65, 0xa8, 0x93, 0xe9, 0x1a, 0x3b, 0xd7, 0x4c, 0xd7,
+	0x40, 0x2a, 0x6c, 0xc4, 0xa1, 0x8f, 0xd0, 0x7a, 0xf8, 0xa5, 0xd2, 0x54, 0x6c, 0x25, 0x34, 0x8d,
+	0x78, 0x3d, 0xc2, 0x0f, 0x41, 0xe5, 0x7f, 0x9e, 0x81, 0x0d, 0x83, 0x06, 0x53, 0x2a, 0xec, 0xb7,
+	0x95, 0xee, 0x71, 0x59, 0x4c, 0x24, 0xfb, 0xbe, 0x31, 0x91, 0x4f, 0xa1, 0x68, 0x0c, 0x64, 0xe1,
+	0xd4, 0x15, 0x97, 0xb1, 0xee, 0x38, 0x18, 0x8d, 0xc3, 0xa8, 0x95, 0x2c, 0x95, 0xdf, 0x40, 0x69,
+	0xba, 0x4b, 0xa9, 0xc1, 0xfe, 0x06, 0xec, 0x70, 0x86, 0x4a, 0xa7, 0x30, 0x11, 0xcf, 0x1f, 0xc9,
+	0x89, 0x7d, 0x7c, 0x75, 0x1a, 0x93, 0xe8, 0x06, 0x6f, 0x32, 0x06, 0x4b, 0x2f, 0xdf, 0x1f, 0x95,
+	0xff, 0x68, 0x11, 0x76, 0x2f, 0x6d, 0x73, 0x4d, 0xdb, 0x30, 0x4b, 0xca, 0xb2, 0xef, 0x2a, 0x65,
+	0xdf, 0xc1, 0xba, 0x50, 0x34, 0xd4, 0x26, 0x91, 0xb8, 0xcd, 0x5f, 0x2a, 0x6e, 0x6b, 0x21, 0xb2,
+	0x04, 0x20, 0x0d, 0x36, 0xad, 0x71, 0xf0, 0xc2, 0xf5, 0x9c, 0xdf, 0xa4, 0x38, 0x4c, 0xbc, 0x5e,
+	0x9b, 0xc9, 0x61, 0x28, 0x6e, 0x10, 0x39, 0x64, 0x35, 0x28, 0x84, 0xeb, 0xb0, 0x06, 0xcf, 0xc3,
+	0x77, 0xee, 0x49, 0x47, 0xa1, 0x72, 0x26, 0xfc, 0x16, 0x6a, 0x37, 0xac, 0x73, 0x67, 0x30, 0x1e,
+	0x1c, 0x39, 0x01, 0x53, 0x49, 0xcc, 0xa3, 0xe1, 0x0d, 0x2b, 0x83, 0xe7, 0x1e, 0x93, 0x93, 0xc6,
+	0xb5, 0xd3, 0x9a, 0x1a, 0xb1, 0x9c, 0xd4, 0x60, 0x3f, 0x12, 0x56, 0x92, 0xda, 0xfb, 0xa1, 0x1d,
+	0x26, 0x1e, 0x2d, 0x73, 0x19, 0xfe, 0xd0, 0x92, 0x62, 0x1b, 0x6f, 0xac, 0x1e, 0xe1, 0xa0, 0x5f,
+	0x81, 0x62, 0xf5, 0xfb, 0xee, 0x9b, 0xe4, 0x6e, 0xe6, 0x2e, 0xdd, 0xcd, 0x55, 0x89, 0x1b, 0x6e,
+	0x66, 0x13, 0x3e, 0x96, 0xb3, 0x77, 0x87, 0x67, 0x34, 0x10, 0x6a, 0x84, 0x58, 0x41, 0x40, 0x07,
+	0xa3, 0x20, 0x9c, 0x8a, 0x2b, 0x6e, 0x5b, 0x72, 0x78, 0x5f, 0xcc, 0x3f, 0x44, 0xc5, 0xb4, 0x22,
+	0x10, 0xf5, 0x10, 0x6f, 0xd2, 0x09, 0x28, 0xbc, 0x83, 0x13, 0x50, 0xfe, 0xd3, 0x0c, 0xec, 0xce,
+	0x10, 0x7a, 0xc9, 0xa1, 0xbf, 0x2d, 0xd1, 0xef, 0x5c, 0x29, 0xfa, 0xb7, 0xaf, 0x14, 0x7d, 0x29,
+	0x60, 0xb3, 0x14, 0xc0, 0xbf, 0xcb, 0x40, 0xa1, 0xd3, 0xae, 0xb1, 0x63, 0x89, 0x48, 0xba, 0xdc,
+	0x82, 0xa5, 0xf1, 0xa8, 0x17, 0x07, 0xc2, 0x16, 0xc7, 0x23, 0xe6, 0x00, 0x3c, 0x06, 0xc5, 0xf2,
+	0x7d, 0xb7, 0xeb, 0x58, 0x41, 0x94, 0xd3, 0x99, 0x9d, 0xca, 0x51, 0xec, 0xb4, 0x6b, 0x15, 0x89,
+	0x15, 0x66, 0x71, 0x9e, 0xcc, 0xe1, 0xb5, 0xb8, 0xa5, 0x18, 0xe3, 0x5b, 0xc8, 0xf3, 0x03, 0x92,
+	0x47, 0x99, 0x45, 0x90, 0x2e, 0x57, 0x29, 0xdd, 0x0f, 0x9b, 0x11, 0xe6, 0xf5, 0x27, 0x73, 0xe2,
+	0x74, 0x25, 0x4a, 0x47, 0x1b, 0xb0, 0xce, 0x26, 0xc8, 0x3b, 0x18, 0x50, 0x9f, 0x9f, 0xc4, 0xcb,
+	0xff, 0x33, 0x0b, 0xbb, 0x1d, 0x9f, 0x7a, 0xed, 0xbe, 0x35, 0xa4, 0x7a, 0x1b, 0x53, 0xdf, 0x1d,
+	0x7b, 0x5d, 0x6a, 0x74, 0x5f, 0xd0, 0x81, 0x85, 0x3e, 0x82, 0x02, 0x3b, 0x71, 0x47, 0xe4, 0x15,
+	0x2b, 0xcb, 0x33, 0x58, 0xe8, 0xc9, 0x09, 0x94, 0x87, 0x13, 0xaf, 0xfa, 0x18, 0xca, 0xc3, 0x10,
+	0xe5, 0x10, 0xb6, 0x02, 0xea, 0xd8, 0xc4, 0xb3, 0x86, 0x67, 0x34, 0xc9, 0xee, 0xe2, 0x14, 0xb3,
+	0xc1, 0x2a, 0x31, 0xab, 0x4b, 0x70, 0xf9, 0x0d, 0x80, 0xb8, 0x8d, 0x8c, 0x63, 0xac, 0x44, 0x88,
+	0xe8, 0x2b, 0xd8, 0xe6, 0x7b, 0x43, 0x86, 0x34, 0x78, 0xe3, 0x7a, 0x2f, 0xc5, 0x9d, 0x4e, 0x78,
+	0x56, 0x59, 0xc1, 0x9b, 0xbc, 0xb6, 0x29, 0x2a, 0x75, 0x59, 0x17, 0xb7, 0x12, 0x8b, 0x24, 0xcc,
+	0xc7, 0xf0, 0x7a, 0x56, 0x37, 0x7c, 0x71, 0x20, 0x5a, 0x19, 0xbc, 0x52, 0x0f, 0xeb, 0xca, 0x7f,
+	0x1d, 0x56, 0xa3, 0x82, 0x38, 0x74, 0x00, 0x2c, 0xc9, 0x47, 0x68, 0xfc, 0x08, 0xaa, 0xb6, 0xb0,
+	0x26, 0xde, 0x21, 0xd6, 0x2b, 0x4d, 0x25, 0x8b, 0xd6, 0x20, 0xaf, 0xb6, 0x49, 0xf4, 0xf8, 0x7c,
+	0xbe, 0xfc, 0x8f, 0x16, 0x60, 0x63, 0x06, 0x85, 0xd1, 0x6d, 0x28, 0x72, 0x86, 0x88, 0x52, 0x74,
+	0xc5, 0xcd, 0x0e, 0x8f, 0x63, 0xd3, 0x30, 0x3d, 0xb7, 0x0d, 0x79, 0x39, 0x69, 0xce, 0x3b, 0x42,
+	0x71, 0xde, 0xbf, 0x9a, 0x77, 0x0e, 0x26, 0x01, 0x18, 0xc4, 0xd2, 0xf8, 0xb0, 0xbf, 0x66, 0x16,
+	0xbb, 0xeb, 0xbe, 0xa6, 0x9e, 0x78, 0xcf, 0x48, 0x78, 0x60, 0x51, 0xbe, 0xd6, 0xb8, 0x2a, 0xf4,
+	0xb8, 0x1e, 0x36, 0x63, 0x20, 0x83, 0x81, 0xd0, 0x23, 0xc8, 0xf7, 0xa8, 0x15, 0x8c, 0x3d, 0xf1,
+	0xd0, 0x77, 0x71, 0x16, 0x47, 0xd6, 0x04, 0x82, 0x41, 0x03, 0x0c, 0xbd, 0xe8, 0x37, 0xc2, 0x80,
+	0x9c, 0x11, 0xf1, 0x24, 0xc7, 0x11, 0x9f, 0xb3, 0x9c, 0x0c, 0x27, 0x7d, 0x9c, 0x0a, 0x27, 0x5d,
+	0xc2, 0x9e, 0x58, 0x71, 0x46, 0x13, 0x0c, 0x8b, 0x61, 0xe7, 0x8c, 0x79, 0x9d, 0xbd, 0x71, 0x9f,
+	0x78, 0xb4, 0x4f, 0x2d, 0x9f, 0x92, 0x11, 0xf5, 0x1c, 0xd7, 0x96, 0x8f, 0x45, 0xae, 0x5a, 0xde,
+	0x56, 0xd8, 0x14, 0x8b, 0x96, 0x6d, 0xde, 0xb0, 0xfc, 0x23, 0x28, 0x53, 0x94, 0xcb, 0xc3, 0xb2,
+	0x61, 0x56, 0xb0, 0xc9, 0x33, 0x18, 0x8a, 0xb0, 0xa2, 0x37, 0x75, 0x53, 0xe7, 0xef, 0xd7, 0x32,
+	0x8c, 0xfc, 0x9a, 0x61, 0x56, 0x8e, 0xea, 0xba, 0x71, 0xc2, 0x1f, 0xb4, 0x15, 0x20, 0xd7, 0x68,
+	0x55, 0xf5, 0x9a, 0xce, 0x5f, 0xb2, 0xe5, 0x61, 0x19, 0x6b, 0x75, 0xad, 0x62, 0x68, 0xca, 0x42,
+	0xf9, 0xaf, 0x16, 0xa1, 0x98, 0xda, 0x21, 0xf4, 0x2d, 0xec, 0xd9, 0xee, 0x9b, 0x61, 0xdf, 0x19,
+	0xbe, 0x14, 0x4e, 0xf1, 0xf3, 0x71, 0xaf, 0x47, 0x45, 0xe6, 0xcc, 0x48, 0xc6, 0x2d, 0x76, 0x42,
+	0x0c, 0xe6, 0x0e, 0x1f, 0x85, 0xf5, 0xea, 0x08, 0x1d, 0xc3, 0x7e, 0xba, 0x71, 0xea, 0x80, 0x60,
+	0xd3, 0xbe, 0x75, 0x21, 0x23, 0x0c, 0x37, 0x92, 0x5d, 0x24, 0x8f, 0x07, 0x55, 0x86, 0xc4, 0x44,
+	0xd6, 0xee, 0x27, 0x86, 0xb6, 0xc7, 0x5e, 0x2c, 0xb2, 0x39, 0xbc, 0x61, 0xf7, 0xa3, 0x61, 0xab,
+	0xb2, 0x4a, 0x9e, 0x04, 0x7a, 0x4c, 0xc7, 0xfa, 0x01, 0xe5, 0x75, 0xf2, 0xd2, 0x7a, 0x4d, 0xc2,
+	0x0d, 0x09, 0x66, 0xba, 0xb2, 0x27, 0x92, 0x05, 0x17, 0x39, 0xc2, 0x62, 0x8f, 0x67, 0x11, 0xde,
+	0x81, 0xd5, 0x51, 0xcf, 0x96, 0x1f, 0x8f, 0xe0, 0x27, 0x09, 0x11, 0x51, 0x28, 0x8e, 0x7a, 0x76,
+	0x23, 0x02, 0xa2, 0x6f, 0xa0, 0xf4, 0x82, 0x5a, 0x36, 0xf5, 0x08, 0x1d, 0x7a, 0x4e, 0xf7, 0x05,
+	0x03, 0x92, 0xf1, 0x88, 0xad, 0x46, 0x5a, 0xd0, 0x6d, 0x51, 0xaf, 0x45, 0xd5, 0x1d, 0x5e, 0x8b,
+	0x6a, 0x70, 0x2b, 0x9c, 0x62, 0xf8, 0xae, 0x95, 0x6d, 0x0c, 0x1d, 0xf6, 0x5c, 0xaf, 0x2b, 0x46,
+	0xcc, 0x89, 0xed, 0x91, 0x68, 0x38, 0xc6, 0xd2, 0x62, 0x24, 0x74, 0x1f, 0x36, 0xe9, 0xd0, 0x66,
+	0x47, 0xfa, 0x81, 0xe5, 0xbd, 0xa4, 0x9e, 0x0c, 0xcf, 0x48, 0xab, 0xb9, 0x4e, 0x87, 0x76, 0xab,
+	0xd7, 0xe0, 0x35, 0x22, 0x32, 0x83, 0xbe, 0x83, 0x0f, 0x46, 0xb6, 0x43, 0xdc, 0x51, 0xe0, 0x0c,
+	0x9c, 0xdf, 0xc8, 0xf3, 0x9a, 0x73, 0x36, 0xb4, 0xfa, 0x7d, 0xb6, 0x4d, 0xc0, 0xdb, 0xed, 0x8e,
+	0x6c, 0xa7, 0x95, 0xc0, 0x30, 0x22, 0x04, 0xf4, 0x00, 0x76, 0xc6, 0x7d, 0x92, 0x22, 0x09, 0xb3,
+	0x63, 0x9e, 0xdb, 0xe7, 0xc7, 0xcd, 0x1c, 0xde, 0x1c, 0xf7, 0xab, 0x31, 0x4d, 0x54, 0x51, 0xc7,
+	0x98, 0xe9, 0xd5, 0xd8, 0x0d, 0x2c, 0x62, 0x8d, 0x46, 0xfd, 0x90, 0x0d, 0x02, 0x97, 0x17, 0x2f,
+	0xb8, 0xb1, 0xce, 0xe1, 0x1d, 0x8e, 0x51, 0x89, 0x11, 0x4c, 0x97, 0x15, 0x2e, 0xf8, 0x63, 0x5a,
+	0x26, 0x10, 0xf2, 0x50, 0x29, 0x0a, 0x4c, 0x67, 0xf5, 0x3c, 0x6b, 0x40, 0x89, 0xe7, 0x8e, 0x03,
+	0x36, 0xf7, 0x55, 0x5e, 0x5b, 0xe0, 0x40, 0x2c, 0x60, 0xcc, 0x28, 0x30, 0x42, 0x72, 0x53, 0x3b,
+	0x0c, 0x7c, 0x7e, 0x20, 0xcc, 0xe1, 0xfc, 0xa8, 0x67, 0xab, 0x12, 0x54, 0xfe, 0xef, 0x19, 0xce,
+	0xf9, 0xb1, 0xb5, 0xba, 0x9e, 0x36, 0x6c, 0xc0, 0x7a, 0xdf, 0xb5, 0xec, 0x70, 0xf5, 0xe2, 0x4c,
+	0x2e, 0xec, 0x60, 0xf2, 0x3d, 0x6d, 0xdd, 0xb5, 0x6c, 0xb9, 0x09, 0xc9, 0xfb, 0xf6, 0xb5, 0x7e,
+	0x1a, 0x8e, 0x9e, 0xc1, 0x16, 0x53, 0x68, 0xd3, 0x5d, 0x0a, 0x65, 0x98, 0x7c, 0xa3, 0xdd, 0x92,
+	0x78, 0x33, 0xba, 0xdd, 0x70, 0xa7, 0xeb, 0xca, 0x23, 0xd8, 0x9e, 0x3d, 0x0b, 0x46, 0xcc, 0xd4,
+	0x80, 0x3e, 0x7d, 0x15, 0x06, 0xec, 0x45, 0x78, 0x70, 0x33, 0xd1, 0x97, 0x41, 0x5f, 0xc9, 0xb8,
+	0xfd, 0x2d, 0xc8, 0xf3, 0x66, 0x03, 0x1a, 0x78, 0x4e, 0x57, 0xee, 0x0e, 0x30, 0x50, 0x83, 0x43,
+	0xca, 0x2d, 0x28, 0x86, 0x93, 0x64, 0x4a, 0x8d, 0x27, 0xa1, 0x31, 0xfd, 0xee, 0xf1, 0x1b, 0xe9,
+	0xf0, 0x59, 0x01, 0x87, 0xf0, 0x84, 0x86, 0x5b, 0x90, 0x17, 0xd5, 0x71, 0x82, 0x57, 0x11, 0x8b,
+	0x16, 0xdc, 0xce, 0x95, 0xff, 0x57, 0x06, 0xf6, 0x2e, 0x5f, 0x36, 0x3a, 0x80, 0x8d, 0x78, 0xf3,
+	0x02, 0x8f, 0x2f, 0x64, 0xe8, 0x86, 0x21, 0xce, 0x68, 0x4f, 0x02, 0x8f, 0x2d, 0x62, 0xe8, 0xa2,
+	0x5f, 0xc2, 0x6e, 0x84, 0xef, 0x51, 0x7b, 0x2c, 0x4f, 0xff, 0xc9, 0xe5, 0xec, 0x84, 0x08, 0x38,
+	0xac, 0x17, 0x6b, 0x43, 0x35, 0x40, 0x42, 0x8f, 0x33, 0xa1, 0x0b, 0x1f, 0xde, 0xcf, 0x70, 0x80,
+	0x52, 0x1b, 0x80, 0x15, 0xd1, 0xa6, 0xd5, 0x3b, 0x95, 0x2d, 0x18, 0x53, 0xf7, 0xfa, 0xd6, 0x99,
+	0x2f, 0x5d, 0x0a, 0x51, 0x28, 0xff, 0x9d, 0x0c, 0xac, 0x75, 0xda, 0xb5, 0xd4, 0x47, 0x34, 0x18,
+	0x3b, 0xc6, 0xe9, 0x3a, 0x91, 0x5b, 0x57, 0x88, 0x81, 0xba, 0x8d, 0x3e, 0x85, 0xb5, 0xc9, 0xcf,
+	0x6c, 0xc8, 0xb4, 0x63, 0x3f, 0xfd, 0x91, 0x8d, 0x7d, 0x28, 0xf4, 0xdd, 0xae, 0xd5, 0x27, 0xbd,
+	0x64, 0xfe, 0x34, 0x70, 0x58, 0x8d, 0xe7, 0x49, 0x13, 0xd8, 0x8a, 0xa7, 0xa0, 0xba, 0xc3, 0x9e,
+	0x73, 0x26, 0x26, 0x52, 0x13, 0x7e, 0x5b, 0xfa, 0xb3, 0x20, 0x99, 0xa9, 0x10, 0xd2, 0xc4, 0xfc,
+	0xf1, 0xda, 0x78, 0xd4, 0x4b, 0x02, 0xee, 0x7d, 0x09, 0xcb, 0xf2, 0x5e, 0x82, 0x59, 0x24, 0xf3,
+	0xb8, 0xdd, 0x26, 0x75, 0xfe, 0xd4, 0xbe, 0x08, 0x2b, 0xbc, 0xf4, 0x94, 0xb9, 0x2f, 0x19, 0x66,
+	0xa0, 0x78, 0xb1, 0x89, 0x95, 0xec, 0xbd, 0x7f, 0xb1, 0x02, 0x85, 0xe4, 0xf5, 0x32, 0xb3, 0x6e,
+	0xc6, 0xb1, 0x11, 0x3d, 0xa5, 0x9e, 0x43, 0xab, 0x00, 0x4f, 0x5a, 0x46, 0x58, 0xe6, 0xcf, 0xb9,
+	0x71, 0xc5, 0x0c, 0xcb, 0x59, 0xfe, 0xbc, 0xbb, 0x16, 0x95, 0xe7, 0x59, 0x07, 0xed, 0x7a, 0x23,
+	0xea, 0x60, 0x01, 0x21, 0x58, 0xad, 0xb7, 0x0c, 0x83, 0xb4, 0x6a, 0x32, 0xfd, 0x4c, 0x59, 0xe4,
+	0xd9, 0x7f, 0x9a, 0xda, 0x3a, 0xd5, 0xf0, 0xb3, 0x04, 0x7c, 0x09, 0xad, 0x43, 0x51, 0x6f, 0x13,
+	0xb5, 0x12, 0x35, 0x5f, 0x46, 0x9f, 0x40, 0x39, 0x1e, 0x9f, 0x68, 0x3f, 0xa8, 0x9a, 0x56, 0xe5,
+	0xc9, 0x5a, 0xc9, 0xfc, 0x30, 0x25, 0x2f, 0xe6, 0xa5, 0x87, 0xed, 0x0a, 0xa8, 0x04, 0x9b, 0x3c,
+	0x47, 0x2c, 0xca, 0xc4, 0x93, 0x35, 0x45, 0x99, 0xd1, 0xa5, 0x9d, 0x6a, 0x4d, 0x93, 0x98, 0x58,
+	0x3f, 0x3e, 0xd6, 0xb0, 0xa1, 0xac, 0xb2, 0xb1, 0x5b, 0x1d, 0x93, 0x4d, 0x47, 0x24, 0xa8, 0x29,
+	0x6b, 0x3c, 0x7f, 0x4c, 0x4b, 0x24, 0xf3, 0xc5, 0x75, 0x8a, 0xc8, 0x38, 0x8c, 0xf3, 0xf7, 0xf8,
+	0xab, 0xf5, 0x56, 0xc7, 0x54, 0xd6, 0x59, 0xab, 0x8e, 0x46, 0xf4, 0x76, 0x98, 0x18, 0x17, 0xa6,
+	0x03, 0x6a, 0x0a, 0x42, 0xbb, 0xb0, 0x95, 0xae, 0x0b, 0x7d, 0x85, 0x0d, 0xf4, 0x11, 0xdc, 0xa8,
+	0x6a, 0xb5, 0x4a, 0xa7, 0x6e, 0x12, 0xad, 0x6d, 0x84, 0xa9, 0x7a, 0x89, 0xbd, 0xdf, 0x8c, 0xd3,
+	0xf2, 0x24, 0x64, 0x0b, 0x95, 0xe1, 0x66, 0x22, 0xa5, 0x70, 0x46, 0x02, 0xa2, 0xb2, 0xcd, 0x3a,
+	0x8e, 0x2a, 0x84, 0xa3, 0xa2, 0x86, 0x49, 0x75, 0x4f, 0x3a, 0x9a, 0x61, 0x2a, 0x3b, 0x3c, 0xb5,
+	0xf0, 0xf8, 0x29, 0x31, 0x71, 0x45, 0xd5, 0xc2, 0xc4, 0x3c, 0xa5, 0x84, 0x76, 0x60, 0xa3, 0xa3,
+	0xf1, 0x95, 0x91, 0x1f, 0x5b, 0x4d, 0x2d, 0x1c, 0x76, 0x97, 0x13, 0x3d, 0xde, 0xec, 0x3d, 0xee,
+	0x13, 0xa9, 0xc7, 0x11, 0xe0, 0x03, 0x36, 0xa6, 0x7a, 0x52, 0xc1, 0xc7, 0xe2, 0x7d, 0x3e, 0xc6,
+	0x5a, 0x5d, 0x0c, 0xa9, 0xfd, 0x20, 0x51, 0x3e, 0x64, 0x28, 0x95, 0x76, 0x93, 0x54, 0x1a, 0x47,
+	0x38, 0x3d, 0xad, 0x30, 0x65, 0xf2, 0x06, 0x4f, 0x99, 0x64, 0x34, 0x54, 0x8d, 0xe3, 0x64, 0x56,
+	0x5e, 0x38, 0xcc, 0x4d, 0xb6, 0x21, 0x1d, 0xa3, 0x72, 0xac, 0x11, 0xac, 0xf1, 0xbc, 0xbc, 0x8f,
+	0xd0, 0x7d, 0xf8, 0xf9, 0x25, 0xbb, 0x38, 0x73, 0x8c, 0x32, 0xfa, 0x02, 0x3e, 0x8b, 0xc6, 0x38,
+	0x79, 0x76, 0x84, 0xf5, 0x2a, 0x31, 0x3a, 0x47, 0x86, 0x8a, 0xf5, 0x23, 0xad, 0x3a, 0x6b, 0xd4,
+	0xdb, 0xe8, 0x4b, 0xb8, 0x3f, 0xd9, 0xa4, 0xd3, 0xbc, 0xba, 0xd1, 0xc7, 0x6c, 0x2f, 0x53, 0xb9,
+	0x88, 0xb2, 0xe2, 0x0e, 0xdb, 0xfb, 0x64, 0xee, 0x26, 0xf7, 0x3b, 0x95, 0x4f, 0xd1, 0x26, 0x28,
+	0x69, 0x70, 0xab, 0xad, 0xdc, 0x65, 0xc8, 0x2a, 0xcf, 0x01, 0x6d, 0x27, 0x72, 0x40, 0xef, 0xa1,
+	0x9b, 0xb0, 0xd7, 0xd1, 0x38, 0xab, 0xd7, 0x93, 0xcc, 0x25, 0xc7, 0xf8, 0x39, 0xda, 0x87, 0x0f,
+	0x4f, 0xb4, 0xe6, 0xd1, 0xa5, 0x18, 0xbf, 0x60, 0x3d, 0xc8, 0xf4, 0xc7, 0xa6, 0x66, 0x3e, 0x6d,
+	0xe1, 0xc7, 0x7c, 0x15, 0xe1, 0xbe, 0x7e, 0x86, 0xee, 0xc0, 0x47, 0x32, 0x6f, 0xb3, 0x51, 0x69,
+	0x56, 0x8e, 0xb5, 0x06, 0x93, 0x1e, 0x99, 0xee, 0x1f, 0xed, 0xe6, 0x01, 0x13, 0xec, 0x70, 0xfb,
+	0x13, 0x9c, 0x7b, 0x1f, 0x7d, 0x0b, 0x5f, 0x4b, 0x09, 0x6e, 0xd5, 0x48, 0x47, 0x23, 0x6d, 0xac,
+	0x19, 0x5a, 0x53, 0xd5, 0x88, 0xde, 0x8c, 0x7f, 0x8b, 0xc1, 0xb8, 0x70, 0x63, 0xad, 0x12, 0x8e,
+	0xfd, 0x39, 0xe3, 0x2e, 0xb6, 0xbf, 0x3c, 0xf5, 0x52, 0xab, 0x2a, 0x5f, 0xdc, 0xfb, 0x37, 0x19,
+	0x98, 0x7f, 0xa2, 0xea, 0x68, 0x05, 0x16, 0x9f, 0xa8, 0x3a, 0xf9, 0x5c, 0x99, 0x0b, 0x7f, 0x7e,
+	0x21, 0x5e, 0xed, 0xb2, 0x9f, 0x87, 0x4a, 0x36, 0xfc, 0xf9, 0xa5, 0x32, 0x1f, 0xfe, 0xfc, 0x4a,
+	0x59, 0x08, 0x7f, 0x3e, 0x50, 0x16, 0xc3, 0x9f, 0x0f, 0x95, 0xa5, 0xf0, 0xe7, 0xd7, 0xca, 0x72,
+	0xf8, 0xf3, 0x1b, 0x25, 0x17, 0xfe, 0x7c, 0xa4, 0xac, 0xb0, 0x63, 0x21, 0xc7, 0x7d, 0xa0, 0x54,
+	0xa2, 0xdf, 0x0f, 0x95, 0xa3, 0xe8, 0xf7, 0xd7, 0x8a, 0x1a, 0xfe, 0xfe, 0xfa, 0x73, 0xa5, 0x16,
+	0xfd, 0x7e, 0xa0, 0x3c, 0x8e, 0x7e, 0x3f, 0x52, 0x5a, 0xf7, 0x28, 0x14, 0x92, 0x39, 0xe0, 0x8c,
+	0xd2, 0x9d, 0x76, 0xb5, 0x62, 0xb2, 0xcd, 0x08, 0x8f, 0x19, 0x22, 0x6f, 0x5a, 0x40, 0x9b, 0x2d,
+	0x93, 0x34, 0x35, 0xad, 0xca, 0x4f, 0x1f, 0x5b, 0xb0, 0x1e, 0xee, 0x3a, 0x83, 0x8b, 0x4c, 0xde,
+	0x2c, 0x57, 0x5e, 0x3c, 0x47, 0x26, 0x24, 0xc5, 0xfc, 0xbd, 0xc7, 0xb0, 0x36, 0xf1, 0xd2, 0x9d,
+	0xcd, 0xa2, 0xc6, 0xc6, 0x60, 0x7a, 0x7d, 0x1b, 0x90, 0xde, 0x14, 0x25, 0xd2, 0x69, 0x36, 0x34,
+	0x53, 0xc3, 0x7c, 0x80, 0x4d, 0x50, 0x22, 0x78, 0x08, 0xcd, 0xde, 0xfb, 0x06, 0xd6, 0x26, 0x9e,
+	0x61, 0xb3, 0x21, 0xc3, 0x99, 0xd4, 0xb5, 0x53, 0xad, 0x2e, 0x3e, 0x04, 0xd1, 0x56, 0x55, 0xc1,
+	0xdf, 0x02, 0x96, 0xb9, 0x57, 0x85, 0xd5, 0x74, 0x00, 0x71, 0x66, 0x92, 0x5f, 0x01, 0x72, 0x0c,
+	0xc6, 0x4b, 0x59, 0x2e, 0xd6, 0x4d, 0xc3, 0xc4, 0x1d, 0xd5, 0xec, 0xb0, 0xf1, 0xe7, 0xef, 0x3d,
+	0x82, 0xe5, 0x30, 0xc4, 0xb5, 0x0a, 0x60, 0x18, 0x2a, 0x13, 0x67, 0x8d, 0x7c, 0x21, 0x0c, 0x54,
+	0x54, 0x3e, 0x14, 0x06, 0x2a, 0x2a, 0x7f, 0xa9, 0x64, 0xef, 0xfd, 0x59, 0x1e, 0x20, 0x8e, 0xd9,
+	0x31, 0x9d, 0xd2, 0x6a, 0x6b, 0xb8, 0x62, 0xb6, 0x30, 0xa9, 0x6a, 0x22, 0x33, 0x49, 0xab, 0x92,
+	0xa3, 0x0a, 0xc6, 0x7a, 0xf3, 0x58, 0x99, 0x63, 0xea, 0x5b, 0x6f, 0x1a, 0x9d, 0x5a, 0x4d, 0x57,
+	0x75, 0xc6, 0xe4, 0x51, 0x5e, 0xb9, 0x92, 0xe1, 0xc9, 0xe4, 0x32, 0x0b, 0xba, 0x15, 0xa5, 0x1f,
+	0x93, 0x6a, 0xb3, 0x29, 0x32, 0xd7, 0x43, 0x40, 0xbb, 0xda, 0x89, 0x64, 0x83, 0xa7, 0x2b, 0xcd,
+	0x33, 0xbd, 0xc4, 0x75, 0x06, 0x33, 0x5b, 0x5a, 0xd3, 0x0c, 0xc5, 0xba, 0x85, 0x27, 0x12, 0x9d,
+	0x65, 0xee, 0xf2, 0x02, 0x13, 0x59, 0xa9, 0x9f, 0xa3, 0xe4, 0x67, 0xa6, 0x65, 0xda, 0x9a, 0x2a,
+	0x4e, 0x9a, 0x8b, 0x0c, 0x23, 0xcc, 0xb0, 0x6e, 0xb5, 0xcd, 0x90, 0x23, 0x62, 0x39, 0x59, 0x42,
+	0x3f, 0x87, 0x4f, 0x65, 0x1f, 0x5a, 0x95, 0xcc, 0xc4, 0x0d, 0x75, 0x96, 0xb2, 0xcc, 0x90, 0x27,
+	0x50, 0x4c, 0xad, 0xd1, 0x6e, 0xe1, 0x0a, 0xd6, 0xeb, 0xcf, 0x88, 0x34, 0x8d, 0x2d, 0x5c, 0xd5,
+	0xb0, 0x92, 0x13, 0xd6, 0xef, 0xb8, 0x53, 0xaf, 0xb0, 0x4d, 0xac, 0xa8, 0xa6, 0x7e, 0x2a, 0xac,
+	0x0d, 0xf0, 0x44, 0x73, 0xa9, 0x41, 0x42, 0x5e, 0xcc, 0x4b, 0x43, 0x1a, 0xa1, 0x91, 0x68, 0x56,
+	0x4a, 0x81, 0x2d, 0x43, 0x6f, 0x72, 0x43, 0x9a, 0xda, 0x37, 0x91, 0xc3, 0x6e, 0x3e, 0x13, 0x19,
+	0xee, 0x86, 0xd6, 0xa8, 0xb0, 0x5d, 0x13, 0xf9, 0xec, 0x06, 0x57, 0x1b, 0x15, 0xf5, 0xb1, 0x66,
+	0x12, 0x91, 0xc0, 0xae, 0xac, 0x32, 0x47, 0xc1, 0x78, 0xd6, 0x34, 0xd9, 0x28, 0x4c, 0xc9, 0x71,
+	0xc4, 0x69, 0xbc, 0x35, 0x46, 0x27, 0xb9, 0x98, 0x7a, 0xa5, 0xda, 0x8c, 0xb6, 0x85, 0xa9, 0x1c,
+	0x91, 0xf9, 0xde, 0x36, 0x75, 0xd2, 0xd0, 0x8d, 0x46, 0xc5, 0x54, 0x4f, 0x94, 0x75, 0xd6, 0xef,
+	0x24, 0x3d, 0x09, 0xe3, 0x55, 0xd2, 0x6a, 0xd6, 0x9f, 0x71, 0x4b, 0xfb, 0x54, 0xab, 0x2a, 0xe8,
+	0x32, 0xbc, 0x87, 0x69, 0xbc, 0x0d, 0xa6, 0x69, 0x93, 0x78, 0xd5, 0x96, 0x66, 0x70, 0x62, 0x68,
+	0x3f, 0xe8, 0x86, 0xa9, 0x6c, 0xa2, 0x07, 0xf0, 0xc5, 0x6c, 0xfe, 0x23, 0xb5, 0x16, 0x26, 0x92,
+	0x01, 0x54, 0x62, 0xd4, 0xf9, 0xac, 0x9b, 0x55, 0xce, 0x7e, 0x5b, 0x6c, 0x8b, 0x53, 0xe4, 0x27,
+	0xa1, 0x10, 0x28, 0xdb, 0xe8, 0x33, 0xf8, 0xd9, 0xb5, 0xbb, 0x54, 0x76, 0x98, 0xae, 0x9f, 0xcd,
+	0xe5, 0x6c, 0x3b, 0x2b, 0x12, 0xad, 0xc4, 0x54, 0x51, 0x44, 0x38, 0x53, 0x27, 0xa7, 0x95, 0x7a,
+	0x87, 0xf9, 0x06, 0x8f, 0xe1, 0xb8, 0x51, 0xf9, 0x41, 0x6f, 0x74, 0x1a, 0xa4, 0x5a, 0x31, 0x2b,
+	0x04, 0x33, 0x1d, 0xd6, 0xd6, 0x30, 0x53, 0xfb, 0x6c, 0x38, 0x2e, 0x06, 0xed, 0x7a, 0xa5, 0xc9,
+	0xf4, 0x9d, 0xa9, 0x1d, 0x63, 0xdd, 0x7c, 0x46, 0xda, 0xb8, 0x65, 0x8a, 0xd4, 0x7c, 0xa2, 0x33,
+	0xfb, 0xd6, 0x22, 0xf5, 0xd6, 0x53, 0x65, 0x0f, 0x7d, 0x0a, 0xb7, 0xd3, 0xa4, 0x67, 0x53, 0x30,
+	0x4f, 0x34, 0x6e, 0x5d, 0x84, 0x1c, 0x33, 0xb6, 0xfb, 0x00, 0xdd, 0x83, 0x4f, 0x66, 0x52, 0x7f,
+	0x1a, 0xf7, 0x43, 0x46, 0xa9, 0x70, 0xe2, 0x8d, 0x4a, 0xbb, 0xad, 0x55, 0x93, 0xae, 0x42, 0xc4,
+	0x77, 0x37, 0xb8, 0x73, 0x25, 0x07, 0xaf, 0xd4, 0xeb, 0xcf, 0x48, 0xfc, 0x75, 0x86, 0x86, 0x66,
+	0x30, 0xb7, 0x43, 0xb9, 0xc9, 0xbc, 0x98, 0xb8, 0xaf, 0x66, 0x95, 0xa9, 0x95, 0x67, 0xa9, 0x2f,
+	0x08, 0xdc, 0x42, 0x9f, 0xc3, 0x2f, 0x24, 0xbe, 0x60, 0x8a, 0x26, 0xf7, 0x83, 0x74, 0xc3, 0x64,
+	0xa4, 0x68, 0x61, 0x4e, 0x7c, 0xbd, 0xd1, 0xae, 0x73, 0x9b, 0xaa, 0x55, 0x95, 0x7d, 0xf4, 0x35,
+	0x7c, 0x39, 0xd1, 0xc2, 0x24, 0x6a, 0xab, 0xd1, 0xae, 0x98, 0xfa, 0x51, 0x5d, 0x23, 0x4f, 0x75,
+	0xf3, 0x84, 0x2f, 0x8c, 0xed, 0x5a, 0x4b, 0x6d, 0xd5, 0x99, 0xd3, 0x60, 0x6a, 0xca, 0x47, 0xac,
+	0x61, 0xd2, 0xf9, 0xd0, 0x44, 0x9f, 0x6f, 0x1d, 0xb1, 0xcc, 0xe4, 0x39, 0x4a, 0xa3, 0x64, 0x1e,
+	0x82, 0x26, 0x3f, 0x1c, 0x71, 0x1b, 0x1d, 0xc2, 0x41, 0x38, 0x97, 0x6b, 0x4e, 0xe3, 0x63, 0xce,
+	0xe2, 0x21, 0x4c, 0x50, 0x22, 0xa9, 0xb9, 0xee, 0x30, 0xdb, 0xc3, 0x38, 0xa6, 0x52, 0xc7, 0x5a,
+	0xa5, 0xca, 0xb6, 0x8b, 0x31, 0x85, 0xf2, 0x09, 0xe3, 0xa8, 0x88, 0x4e, 0x44, 0xfa, 0xb5, 0xca,
+	0xdd, 0x7b, 0x7f, 0x98, 0x81, 0x7c, 0xe2, 0x95, 0x02, 0x53, 0x31, 0xc2, 0x52, 0xd6, 0x23, 0x17,
+	0x76, 0x8e, 0xad, 0x80, 0x2f, 0x91, 0x71, 0x6d, 0x42, 0xbe, 0x94, 0x0c, 0xba, 0x01, 0xbb, 0x21,
+	0xba, 0xd6, 0xd0, 0xf0, 0xb1, 0xd6, 0x54, 0x9f, 0x45, 0x0d, 0xb3, 0x8c, 0xca, 0x51, 0xc3, 0xb8,
+	0x3e, 0xd9, 0xc5, 0x3c, 0xeb, 0x7c, 0xa6, 0xe7, 0xbc, 0x70, 0xef, 0x11, 0x40, 0xfc, 0x0e, 0x81,
+	0x2d, 0xac, 0x41, 0xbe, 0x64, 0xa7, 0x2b, 0xe9, 0x4c, 0xb1, 0xdf, 0xca, 0x9c, 0xf8, 0xfa, 0x46,
+	0x33, 0x59, 0xa3, 0x64, 0xee, 0x61, 0x50, 0x26, 0x2f, 0xe0, 0x99, 0x1d, 0x3c, 0xd5, 0xb0, 0xd8,
+	0xa7, 0x39, 0xe9, 0x7f, 0x33, 0xc1, 0x63, 0x5b, 0x1f, 0x55, 0x64, 0x58, 0x45, 0xf3, 0xe9, 0x74,
+	0x45, 0xf6, 0xde, 0x5f, 0x66, 0x00, 0xe2, 0xa7, 0x2a, 0xa8, 0x06, 0x47, 0x75, 0xdd, 0xe0, 0xca,
+	0xce, 0xac, 0xa8, 0x8c, 0xc7, 0xeb, 0xad, 0x26, 0x77, 0xca, 0xcd, 0x16, 0x61, 0x1e, 0x3d, 0x3f,
+	0xaa, 0x71, 0x42, 0xb2, 0xf9, 0xa9, 0xad, 0xa6, 0xa1, 0xa9, 0x1d, 0x53, 0x3f, 0xd5, 0x18, 0xbe,
+	0x10, 0x69, 0x43, 0x99, 0x43, 0x47, 0xf0, 0xdd, 0x75, 0xfb, 0xb9, 0xa4, 0x8f, 0x0c, 0x53, 0x42,
+	0x71, 0x1f, 0xfa, 0x44, 0x1f, 0x55, 0xbd, 0x56, 0xd3, 0x30, 0x63, 0x4f, 0xd6, 0x93, 0xa1, 0x64,
+	0xef, 0xdd, 0x8f, 0x93, 0x1e, 0xc4, 0xe3, 0x0e, 0xe6, 0x2d, 0x9c, 0x38, 0x67, 0x2f, 0x94, 0x39,
+	0xe6, 0xc7, 0x34, 0x5d, 0x6f, 0x60, 0xf5, 0x65, 0x58, 0xde, 0x7d, 0xa3, 0x64, 0xef, 0x11, 0x58,
+	0x9f, 0xfa, 0x74, 0x26, 0x73, 0x06, 0x54, 0xac, 0x89, 0x3c, 0xe1, 0xcf, 0x45, 0xda, 0x39, 0x2f,
+	0x6b, 0xdc, 0x53, 0x2c, 0x40, 0x8e, 0x1b, 0x25, 0x8d, 0x3b, 0x8b, 0xab, 0x00, 0x7a, 0x53, 0x96,
+	0x99, 0xc7, 0xc8, 0x4e, 0x94, 0xe2, 0x74, 0x56, 0x65, 0x6e, 0xe3, 0xe1, 0x1f, 0x2c, 0xc0, 0x06,
+	0xff, 0x3c, 0x9b, 0x1c, 0x44, 0x84, 0x2c, 0x79, 0x2e, 0xb5, 0x08, 0x71, 0xf1, 0x8f, 0x5e, 0x04,
+	0x56, 0xe0, 0xa3, 0xbd, 0x99, 0x1f, 0x63, 0xe5, 0x5f, 0x6e, 0xdd, 0x5b, 0x97, 0x75, 0xfc, 0x4b,
+	0xb9, 0x07, 0xa7, 0xae, 0x63, 0x97, 0xe7, 0xd0, 0xef, 0x41, 0x31, 0xf5, 0x04, 0x1f, 0x7d, 0x9c,
+	0x8a, 0x76, 0x5d, 0xf2, 0x81, 0xd6, 0xbd, 0x3b, 0x6f, 0xc1, 0x92, 0x9f, 0x2c, 0x9b, 0x43, 0x1d,
+	0x80, 0xf8, 0xa3, 0x72, 0xe8, 0xa3, 0xc9, 0x66, 0x53, 0xdf, 0xb1, 0xdb, 0x2b, 0x5f, 0x85, 0x12,
+	0x75, 0x6b, 0xc3, 0xfa, 0x91, 0x33, 0xb4, 0xc5, 0x33, 0xea, 0x43, 0xf1, 0xbd, 0x34, 0x74, 0x67,
+	0xea, 0x81, 0xf5, 0xac, 0xcf, 0xbf, 0xed, 0x7d, 0xf2, 0x36, 0xb4, 0x68, 0x94, 0xef, 0x61, 0xcd,
+	0xa0, 0x41, 0xea, 0xf3, 0x21, 0xa9, 0xcf, 0xc5, 0x25, 0x2a, 0x66, 0xef, 0xee, 0x8f, 0xb0, 0x36,
+	0xf1, 0x8d, 0xba, 0xd4, 0x16, 0xcc, 0xfe, 0xae, 0x5e, 0x6a, 0x0b, 0x2e, 0xfb, 0xc4, 0xdd, 0xdc,
+	0xe1, 0x9f, 0x65, 0x60, 0x4b, 0xce, 0xa0, 0xed, 0xb9, 0xe7, 0x17, 0xa2, 0xca, 0xa6, 0x1e, 0xea,
+	0xc4, 0x5f, 0xa8, 0x10, 0xfe, 0x3e, 0xda, 0x7f, 0xdb, 0xe7, 0xdb, 0xf6, 0x6e, 0x5d, 0x8a, 0x21,
+	0xbe, 0xc0, 0x54, 0x9e, 0x43, 0x2d, 0x28, 0x24, 0xbf, 0xcc, 0x84, 0x6e, 0x5e, 0xf2, 0xc9, 0xa6,
+	0xb0, 0xcb, 0x1b, 0x57, 0x7e, 0xd2, 0xa9, 0x3c, 0x77, 0xf8, 0x4f, 0xb2, 0x50, 0x52, 0xe9, 0x30,
+	0xf0, 0x22, 0xce, 0x96, 0xc1, 0xc0, 0x3e, 0xf5, 0x90, 0x39, 0xc9, 0x98, 0x13, 0xef, 0xb7, 0xa7,
+	0x79, 0x72, 0xff, 0x72, 0x84, 0x88, 0xa2, 0x26, 0x14, 0x53, 0x0f, 0xc6, 0x53, 0xbd, 0xce, 0x7a,
+	0xeb, 0x9e, 0xea, 0x75, 0xe6, 0x5b, 0xf3, 0xf2, 0x1c, 0xfa, 0x9b, 0xa0, 0x44, 0xef, 0xae, 0xc3,
+	0x8e, 0xcb, 0xd3, 0x8c, 0x32, 0xf9, 0x36, 0x7b, 0xef, 0xf6, 0x95, 0x38, 0x11, 0xa5, 0xff, 0x36,
+	0x6c, 0x57, 0x06, 0xbd, 0xf8, 0x30, 0x13, 0x3d, 0x10, 0x41, 0x6d, 0xd8, 0x34, 0x68, 0x50, 0x19,
+	0xf4, 0x26, 0x9e, 0xb7, 0xdc, 0x4c, 0x75, 0x3c, 0x75, 0x13, 0xbe, 0x97, 0x8c, 0x6c, 0xa6, 0x9e,
+	0x9b, 0x1c, 0xfe, 0x53, 0xf1, 0x91, 0xd4, 0xe8, 0x62, 0xb2, 0xe6, 0x7a, 0xd1, 0x3d, 0x99, 0x94,
+	0x87, 0xd4, 0xed, 0xf4, 0xce, 0xf4, 0x25, 0x31, 0xaf, 0x98, 0x2d, 0x0f, 0x0d, 0x3e, 0xdf, 0x38,
+	0xa2, 0xe8, 0x8b, 0x78, 0x64, 0x8a, 0x3f, 0x67, 0x06, 0x2b, 0x67, 0x76, 0x77, 0xf8, 0x97, 0x19,
+	0xd8, 0x36, 0x66, 0xef, 0x4c, 0x07, 0x90, 0xd8, 0x99, 0xd4, 0x07, 0x76, 0x6f, 0x4f, 0xec, 0xcb,
+	0xac, 0x4f, 0xc1, 0x5e, 0xbe, 0x39, 0xe5, 0x39, 0x74, 0xca, 0x17, 0x60, 0x4c, 0x6d, 0xf8, 0xc7,
+	0x57, 0x6f, 0xb8, 0xb0, 0xd4, 0x57, 0x6c, 0xfb, 0x4b, 0xd8, 0x64, 0x54, 0x64, 0x7f, 0xa9, 0x09,
+	0x1b, 0x7c, 0x19, 0xc6, 0x6f, 0x75, 0x19, 0x47, 0x1f, 0xfc, 0xb8, 0xcb, 0xab, 0xee, 0xf7, 0x03,
+	0x7a, 0xbf, 0xdb, 0x77, 0xc7, 0xf6, 0xfd, 0x33, 0x57, 0x7e, 0x06, 0xfd, 0xf9, 0x12, 0xff, 0xff,
+	0xe5, 0xff, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x9b, 0x72, 0x15, 0x84, 0x7e, 0x5d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -3703,6 +6490,10 @@ type LocalSessionManagerClient interface {
 	ReportRuleStats(ctx context.Context, in *RuleRecordTable, opts ...grpc.CallOption) (*protos.Void, error)
 	CreateSession(ctx context.Context, in *LocalCreateSessionRequest, opts ...grpc.CallOption) (*LocalCreateSessionResponse, error)
 	EndSession(ctx context.Context, in *LocalEndSessionRequest, opts ...grpc.CallOption) (*LocalEndSessionResponse, error)
+	BindPolicy2Bearer(ctx context.Context, in *PolicyBearerBindingRequest, opts ...grpc.CallOption) (*PolicyBearerBindingResponse, error)
+	// A set interface of subscribers -> currently active rules
+	SetSessionRules(ctx context.Context, in *SessionRules, opts ...grpc.CallOption) (*protos.Void, error)
+	UpdateTunnelIds(ctx context.Context, in *UpdateTunnelIdsRequest, opts ...grpc.CallOption) (*UpdateTunnelIdsResponse, error)
 }
 
 type localSessionManagerClient struct {
@@ -3740,11 +6531,42 @@ func (c *localSessionManagerClient) EndSession(ctx context.Context, in *LocalEnd
 	return out, nil
 }
 
+func (c *localSessionManagerClient) BindPolicy2Bearer(ctx context.Context, in *PolicyBearerBindingRequest, opts ...grpc.CallOption) (*PolicyBearerBindingResponse, error) {
+	out := new(PolicyBearerBindingResponse)
+	err := c.cc.Invoke(ctx, "/magma.lte.LocalSessionManager/BindPolicy2Bearer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *localSessionManagerClient) SetSessionRules(ctx context.Context, in *SessionRules, opts ...grpc.CallOption) (*protos.Void, error) {
+	out := new(protos.Void)
+	err := c.cc.Invoke(ctx, "/magma.lte.LocalSessionManager/SetSessionRules", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *localSessionManagerClient) UpdateTunnelIds(ctx context.Context, in *UpdateTunnelIdsRequest, opts ...grpc.CallOption) (*UpdateTunnelIdsResponse, error) {
+	out := new(UpdateTunnelIdsResponse)
+	err := c.cc.Invoke(ctx, "/magma.lte.LocalSessionManager/UpdateTunnelIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LocalSessionManagerServer is the server API for LocalSessionManager service.
 type LocalSessionManagerServer interface {
 	ReportRuleStats(context.Context, *RuleRecordTable) (*protos.Void, error)
 	CreateSession(context.Context, *LocalCreateSessionRequest) (*LocalCreateSessionResponse, error)
 	EndSession(context.Context, *LocalEndSessionRequest) (*LocalEndSessionResponse, error)
+	BindPolicy2Bearer(context.Context, *PolicyBearerBindingRequest) (*PolicyBearerBindingResponse, error)
+	// A set interface of subscribers -> currently active rules
+	SetSessionRules(context.Context, *SessionRules) (*protos.Void, error)
+	UpdateTunnelIds(context.Context, *UpdateTunnelIdsRequest) (*UpdateTunnelIdsResponse, error)
 }
 
 // UnimplementedLocalSessionManagerServer can be embedded to have forward compatible implementations.
@@ -3759,6 +6581,15 @@ func (*UnimplementedLocalSessionManagerServer) CreateSession(ctx context.Context
 }
 func (*UnimplementedLocalSessionManagerServer) EndSession(ctx context.Context, req *LocalEndSessionRequest) (*LocalEndSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EndSession not implemented")
+}
+func (*UnimplementedLocalSessionManagerServer) BindPolicy2Bearer(ctx context.Context, req *PolicyBearerBindingRequest) (*PolicyBearerBindingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BindPolicy2Bearer not implemented")
+}
+func (*UnimplementedLocalSessionManagerServer) SetSessionRules(ctx context.Context, req *SessionRules) (*protos.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSessionRules not implemented")
+}
+func (*UnimplementedLocalSessionManagerServer) UpdateTunnelIds(ctx context.Context, req *UpdateTunnelIdsRequest) (*UpdateTunnelIdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTunnelIds not implemented")
 }
 
 func RegisterLocalSessionManagerServer(s *grpc.Server, srv LocalSessionManagerServer) {
@@ -3819,6 +6650,60 @@ func _LocalSessionManager_EndSession_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LocalSessionManager_BindPolicy2Bearer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyBearerBindingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LocalSessionManagerServer).BindPolicy2Bearer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.LocalSessionManager/BindPolicy2Bearer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LocalSessionManagerServer).BindPolicy2Bearer(ctx, req.(*PolicyBearerBindingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LocalSessionManager_SetSessionRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionRules)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LocalSessionManagerServer).SetSessionRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.LocalSessionManager/SetSessionRules",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LocalSessionManagerServer).SetSessionRules(ctx, req.(*SessionRules))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LocalSessionManager_UpdateTunnelIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTunnelIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LocalSessionManagerServer).UpdateTunnelIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.LocalSessionManager/UpdateTunnelIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LocalSessionManagerServer).UpdateTunnelIds(ctx, req.(*UpdateTunnelIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _LocalSessionManager_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "magma.lte.LocalSessionManager",
 	HandlerType: (*LocalSessionManagerServer)(nil),
@@ -3834,6 +6719,18 @@ var _LocalSessionManager_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EndSession",
 			Handler:    _LocalSessionManager_EndSession_Handler,
+		},
+		{
+			MethodName: "BindPolicy2Bearer",
+			Handler:    _LocalSessionManager_BindPolicy2Bearer_Handler,
+		},
+		{
+			MethodName: "SetSessionRules",
+			Handler:    _LocalSessionManager_SetSessionRules_Handler,
+		},
+		{
+			MethodName: "UpdateTunnelIds",
+			Handler:    _LocalSessionManager_UpdateTunnelIds_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -4098,6 +6995,366 @@ var _CentralSessionController_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TerminateSession",
 			Handler:    _CentralSessionController_TerminateSession_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lte/protos/session_manager.proto",
+}
+
+// AmfPduSessionSmContextClient is the client API for AmfPduSessionSmContext service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type AmfPduSessionSmContextClient interface {
+	SetAmfSessionContext(ctx context.Context, in *SetSMSessionContext, opts ...grpc.CallOption) (*SmContextVoid, error)
+}
+
+type amfPduSessionSmContextClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAmfPduSessionSmContextClient(cc grpc.ClientConnInterface) AmfPduSessionSmContextClient {
+	return &amfPduSessionSmContextClient{cc}
+}
+
+func (c *amfPduSessionSmContextClient) SetAmfSessionContext(ctx context.Context, in *SetSMSessionContext, opts ...grpc.CallOption) (*SmContextVoid, error) {
+	out := new(SmContextVoid)
+	err := c.cc.Invoke(ctx, "/magma.lte.AmfPduSessionSmContext/SetAmfSessionContext", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AmfPduSessionSmContextServer is the server API for AmfPduSessionSmContext service.
+type AmfPduSessionSmContextServer interface {
+	SetAmfSessionContext(context.Context, *SetSMSessionContext) (*SmContextVoid, error)
+}
+
+// UnimplementedAmfPduSessionSmContextServer can be embedded to have forward compatible implementations.
+type UnimplementedAmfPduSessionSmContextServer struct {
+}
+
+func (*UnimplementedAmfPduSessionSmContextServer) SetAmfSessionContext(ctx context.Context, req *SetSMSessionContext) (*SmContextVoid, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetAmfSessionContext not implemented")
+}
+
+func RegisterAmfPduSessionSmContextServer(s *grpc.Server, srv AmfPduSessionSmContextServer) {
+	s.RegisterService(&_AmfPduSessionSmContext_serviceDesc, srv)
+}
+
+func _AmfPduSessionSmContext_SetAmfSessionContext_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSMSessionContext)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AmfPduSessionSmContextServer).SetAmfSessionContext(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.AmfPduSessionSmContext/SetAmfSessionContext",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AmfPduSessionSmContextServer).SetAmfSessionContext(ctx, req.(*SetSMSessionContext))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _AmfPduSessionSmContext_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.lte.AmfPduSessionSmContext",
+	HandlerType: (*AmfPduSessionSmContextServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SetAmfSessionContext",
+			Handler:    _AmfPduSessionSmContext_SetAmfSessionContext_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lte/protos/session_manager.proto",
+}
+
+// SetInterfaceForUserPlaneClient is the client API for SetInterfaceForUserPlane service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type SetInterfaceForUserPlaneClient interface {
+	SetUPFNodeState(ctx context.Context, in *UPFNodeState, opts ...grpc.CallOption) (*protos.Void, error)
+	SetUPFSessionsConfig(ctx context.Context, in *UPFSessionConfigState, opts ...grpc.CallOption) (*protos.Void, error)
+}
+
+type setInterfaceForUserPlaneClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSetInterfaceForUserPlaneClient(cc grpc.ClientConnInterface) SetInterfaceForUserPlaneClient {
+	return &setInterfaceForUserPlaneClient{cc}
+}
+
+func (c *setInterfaceForUserPlaneClient) SetUPFNodeState(ctx context.Context, in *UPFNodeState, opts ...grpc.CallOption) (*protos.Void, error) {
+	out := new(protos.Void)
+	err := c.cc.Invoke(ctx, "/magma.lte.SetInterfaceForUserPlane/SetUPFNodeState", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *setInterfaceForUserPlaneClient) SetUPFSessionsConfig(ctx context.Context, in *UPFSessionConfigState, opts ...grpc.CallOption) (*protos.Void, error) {
+	out := new(protos.Void)
+	err := c.cc.Invoke(ctx, "/magma.lte.SetInterfaceForUserPlane/SetUPFSessionsConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// SetInterfaceForUserPlaneServer is the server API for SetInterfaceForUserPlane service.
+type SetInterfaceForUserPlaneServer interface {
+	SetUPFNodeState(context.Context, *UPFNodeState) (*protos.Void, error)
+	SetUPFSessionsConfig(context.Context, *UPFSessionConfigState) (*protos.Void, error)
+}
+
+// UnimplementedSetInterfaceForUserPlaneServer can be embedded to have forward compatible implementations.
+type UnimplementedSetInterfaceForUserPlaneServer struct {
+}
+
+func (*UnimplementedSetInterfaceForUserPlaneServer) SetUPFNodeState(ctx context.Context, req *UPFNodeState) (*protos.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetUPFNodeState not implemented")
+}
+func (*UnimplementedSetInterfaceForUserPlaneServer) SetUPFSessionsConfig(ctx context.Context, req *UPFSessionConfigState) (*protos.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetUPFSessionsConfig not implemented")
+}
+
+func RegisterSetInterfaceForUserPlaneServer(s *grpc.Server, srv SetInterfaceForUserPlaneServer) {
+	s.RegisterService(&_SetInterfaceForUserPlane_serviceDesc, srv)
+}
+
+func _SetInterfaceForUserPlane_SetUPFNodeState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UPFNodeState)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SetInterfaceForUserPlaneServer).SetUPFNodeState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SetInterfaceForUserPlane/SetUPFNodeState",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SetInterfaceForUserPlaneServer).SetUPFNodeState(ctx, req.(*UPFNodeState))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SetInterfaceForUserPlane_SetUPFSessionsConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UPFSessionConfigState)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SetInterfaceForUserPlaneServer).SetUPFSessionsConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SetInterfaceForUserPlane/SetUPFSessionsConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SetInterfaceForUserPlaneServer).SetUPFSessionsConfig(ctx, req.(*UPFSessionConfigState))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _SetInterfaceForUserPlane_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.lte.SetInterfaceForUserPlane",
+	HandlerType: (*SetInterfaceForUserPlaneServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SetUPFNodeState",
+			Handler:    _SetInterfaceForUserPlane_SetUPFNodeState_Handler,
+		},
+		{
+			MethodName: "SetUPFSessionsConfig",
+			Handler:    _SetInterfaceForUserPlane_SetUPFSessionsConfig_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lte/protos/session_manager.proto",
+}
+
+// SmfPduSessionSmContextClient is the client API for SmfPduSessionSmContext service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type SmfPduSessionSmContextClient interface {
+	SetAmfNotification(ctx context.Context, in *SetSmNotificationContext, opts ...grpc.CallOption) (*SmContextVoid, error)
+	SetSmfSessionContext(ctx context.Context, in *SetSMSessionContextAccess, opts ...grpc.CallOption) (*SmContextVoid, error)
+}
+
+type smfPduSessionSmContextClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSmfPduSessionSmContextClient(cc grpc.ClientConnInterface) SmfPduSessionSmContextClient {
+	return &smfPduSessionSmContextClient{cc}
+}
+
+func (c *smfPduSessionSmContextClient) SetAmfNotification(ctx context.Context, in *SetSmNotificationContext, opts ...grpc.CallOption) (*SmContextVoid, error) {
+	out := new(SmContextVoid)
+	err := c.cc.Invoke(ctx, "/magma.lte.SmfPduSessionSmContext/SetAmfNotification", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *smfPduSessionSmContextClient) SetSmfSessionContext(ctx context.Context, in *SetSMSessionContextAccess, opts ...grpc.CallOption) (*SmContextVoid, error) {
+	out := new(SmContextVoid)
+	err := c.cc.Invoke(ctx, "/magma.lte.SmfPduSessionSmContext/SetSmfSessionContext", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// SmfPduSessionSmContextServer is the server API for SmfPduSessionSmContext service.
+type SmfPduSessionSmContextServer interface {
+	SetAmfNotification(context.Context, *SetSmNotificationContext) (*SmContextVoid, error)
+	SetSmfSessionContext(context.Context, *SetSMSessionContextAccess) (*SmContextVoid, error)
+}
+
+// UnimplementedSmfPduSessionSmContextServer can be embedded to have forward compatible implementations.
+type UnimplementedSmfPduSessionSmContextServer struct {
+}
+
+func (*UnimplementedSmfPduSessionSmContextServer) SetAmfNotification(ctx context.Context, req *SetSmNotificationContext) (*SmContextVoid, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetAmfNotification not implemented")
+}
+func (*UnimplementedSmfPduSessionSmContextServer) SetSmfSessionContext(ctx context.Context, req *SetSMSessionContextAccess) (*SmContextVoid, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSmfSessionContext not implemented")
+}
+
+func RegisterSmfPduSessionSmContextServer(s *grpc.Server, srv SmfPduSessionSmContextServer) {
+	s.RegisterService(&_SmfPduSessionSmContext_serviceDesc, srv)
+}
+
+func _SmfPduSessionSmContext_SetAmfNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSmNotificationContext)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmfPduSessionSmContextServer).SetAmfNotification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SmfPduSessionSmContext/SetAmfNotification",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmfPduSessionSmContextServer).SetAmfNotification(ctx, req.(*SetSmNotificationContext))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SmfPduSessionSmContext_SetSmfSessionContext_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSMSessionContextAccess)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmfPduSessionSmContextServer).SetSmfSessionContext(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SmfPduSessionSmContext/SetSmfSessionContext",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmfPduSessionSmContextServer).SetSmfSessionContext(ctx, req.(*SetSMSessionContextAccess))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _SmfPduSessionSmContext_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.lte.SmfPduSessionSmContext",
+	HandlerType: (*SmfPduSessionSmContextServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SetAmfNotification",
+			Handler:    _SmfPduSessionSmContext_SetAmfNotification_Handler,
+		},
+		{
+			MethodName: "SetSmfSessionContext",
+			Handler:    _SmfPduSessionSmContext_SetSmfSessionContext_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lte/protos/session_manager.proto",
+}
+
+// AmfSmfSmNotificationClient is the client API for AmfSmfSmNotification service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type AmfSmfSmNotificationClient interface {
+	SetSmfNotification(ctx context.Context, in *SetSmNotificationContext, opts ...grpc.CallOption) (*SmContextVoid, error)
+}
+
+type amfSmfSmNotificationClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAmfSmfSmNotificationClient(cc grpc.ClientConnInterface) AmfSmfSmNotificationClient {
+	return &amfSmfSmNotificationClient{cc}
+}
+
+func (c *amfSmfSmNotificationClient) SetSmfNotification(ctx context.Context, in *SetSmNotificationContext, opts ...grpc.CallOption) (*SmContextVoid, error) {
+	out := new(SmContextVoid)
+	err := c.cc.Invoke(ctx, "/magma.lte.AmfSmfSmNotification/SetSmfNotification", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AmfSmfSmNotificationServer is the server API for AmfSmfSmNotification service.
+type AmfSmfSmNotificationServer interface {
+	SetSmfNotification(context.Context, *SetSmNotificationContext) (*SmContextVoid, error)
+}
+
+// UnimplementedAmfSmfSmNotificationServer can be embedded to have forward compatible implementations.
+type UnimplementedAmfSmfSmNotificationServer struct {
+}
+
+func (*UnimplementedAmfSmfSmNotificationServer) SetSmfNotification(ctx context.Context, req *SetSmNotificationContext) (*SmContextVoid, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSmfNotification not implemented")
+}
+
+func RegisterAmfSmfSmNotificationServer(s *grpc.Server, srv AmfSmfSmNotificationServer) {
+	s.RegisterService(&_AmfSmfSmNotification_serviceDesc, srv)
+}
+
+func _AmfSmfSmNotification_SetSmfNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSmNotificationContext)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AmfSmfSmNotificationServer).SetSmfNotification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.AmfSmfSmNotification/SetSmfNotification",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AmfSmfSmNotificationServer).SetSmfNotification(ctx, req.(*SetSmNotificationContext))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _AmfSmfSmNotification_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.lte.AmfSmfSmNotification",
+	HandlerType: (*AmfSmfSmNotificationServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SetSmfNotification",
+			Handler:    _AmfSmfSmNotification_SetSmfNotification_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

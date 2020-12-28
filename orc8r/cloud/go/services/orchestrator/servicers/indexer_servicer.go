@@ -17,20 +17,22 @@ import (
 	"context"
 	"fmt"
 
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
+	"magma/orc8r/cloud/go/services/directoryd"
+	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
+	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/services/state/protos"
+	state_types "magma/orc8r/cloud/go/services/state/types"
+
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/directoryd"
-	"magma/orc8r/cloud/go/services/state/indexer"
-	"magma/orc8r/cloud/go/services/state/protos"
-	state_types "magma/orc8r/cloud/go/services/state/types"
 )
 
 const (
-	version indexer.Version = 1
+	indexerVersion indexer.Version = 1
 )
 
 var (
@@ -39,7 +41,9 @@ var (
 
 type indexerServicer struct{}
 
-// NewDirectoryIndexer returns the state indexer for directoryd.
+// NewIndexerServicer returns the state indexer for directoryd.
+//
+// TODO(7/30/20): move this indexer to the directoryd service once directoryd is moved to an lte (non-core) service
 //
 // The directoryd indexer performs the following indexing functions:
 //	- sidToIMSI: map session ID to IMSI
@@ -51,20 +55,20 @@ type indexerServicer struct{}
 // NOTE: the indexer provides a best-effort generation of the session ID -> IMSI mapping, meaning
 //	- a {session ID -> IMSI} mapping may be missing even though the IMSI has a session ID record
 //	- a {session ID -> IMSI} mapping may be stale
-func NewDirectoryIndexer() protos.IndexerServer {
+func NewIndexerServicer() protos.IndexerServer {
 	return &indexerServicer{}
 }
 
 func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetIndexerInfoRequest) (*protos.GetIndexerInfoResponse, error) {
 	res := &protos.GetIndexerInfoResponse{
-		Version:    uint32(version),
+		Version:    uint32(indexerVersion),
 		StateTypes: indexerTypes,
 	}
 	return res, nil
 }
 
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
-	states, err := state_types.MakeStatesByID(req.States)
+	states, err := state_types.MakeStatesByID(req.States, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +127,7 @@ func setSessionID(networkID string, states state_types.StatesByID) (state_types.
 func getSessionIDAndIMSI(id state_types.ID, st state_types.State) (string, string, error) {
 	imsi := id.DeviceID
 
-	record, ok := st.ReportedState.(*directoryd.DirectoryRecord)
+	record, ok := st.ReportedState.(*directoryd_types.DirectoryRecord)
 	if !ok {
 		return "", "", fmt.Errorf(
 			"convert reported state (id: <%+v>, state: <%+v>) to type %s",

@@ -54,7 +54,6 @@ s1aptests/test_attach_detach_security_algo_eea2_eia2.py \
 s1aptests/test_attach_detach_emm_status.py \
 s1aptests/test_attach_detach_enb_rlf_initial_ue_msg.py \
 s1aptests/test_attach_detach_ICS_Failure.py \
-s1aptests/test_attach_detach_ps_service_not_available.py \
 s1aptests/test_attach_missing_imsi.py \
 s1aptests/test_duplicate_attach.py \
 s1aptests/test_enb_partial_reset_con_dereg.py \
@@ -118,16 +117,26 @@ s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
+s1aptests/test_attach_asr.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
+s1aptests/test_attach_nw_initiated_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
+s1aptests/test_attach_detach_with_sctpd_restart.py \
+s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
+s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_restore_mme_config_after_sanity.py
+
+# Enable these tests once the CI job time-out has increased
+# s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
+# s1aptests/test_implicit_detach_timer_with_mme_restart.py \
+# s1aptests/test_ics_timer_expiry_with_mme_restart.py \
 
 # These test cases pass without memory leaks, but needs DL-route in TRF server
 # sudo /sbin/route add -net 192.168.128.0 gw 192.168.60.142
@@ -137,6 +146,7 @@ s1aptests/test_restore_mme_config_after_sanity.py
 # s1aptests/test_attach_detach_attach_dl_tcp_data.py
 
 # TODO flaky tests we should look at
+# s1aptests/test_attach_detach_ps_service_not_available.py \
 # s1aptests/test_attach_detach_multi_ue_looped.py \
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \

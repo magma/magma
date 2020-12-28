@@ -20,6 +20,7 @@ import boto3
 
 ORC8R_CERTS = [
     'rootCA.pem',
+    'rootCA.key',
     'controller.key',
     'controller.crt',
     'certifier.key',

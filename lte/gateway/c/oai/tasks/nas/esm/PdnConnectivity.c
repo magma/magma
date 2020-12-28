@@ -64,7 +64,8 @@ static pdn_cid_t _pdn_connectivity_create(
     emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier, const_bstring const apn,
     pdn_type_t pdn_type, const_bstring const pdn_addr,
-    protocol_configuration_options_t* const pco, const bool is_emergency);
+    protocol_configuration_options_t* const pco, const bool is_emergency,
+    esm_cause_t* esm_cause);
 
 proc_tid_t _pdn_connectivity_delete(
     emm_context_t* emm_context, pdn_cid_t pdn_cid);
@@ -119,7 +120,7 @@ int esm_proc_pdn_connectivity_request(
     emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier,
     const esm_proc_pdn_request_t request_type, const_bstring const apn,
-    esm_proc_pdn_type_t pdn_type, const_bstring const pdn_addr,
+    pdn_type_t pdn_type, const_bstring const pdn_addr,
     bearer_qos_t* default_qos, protocol_configuration_options_t* const pco,
     esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -147,7 +148,6 @@ int esm_proc_pdn_connectivity_request(
   /*
    * Check network IP capabilities
    */
-  *esm_cause = ESM_CAUSE_SUCCESS;
   OAILOG_DEBUG(
       LOG_NAS_ESM,
       "ESM-PROC  - _esm_data.conf.features %08x for (ue_id = %u)\n",
@@ -163,7 +163,7 @@ int esm_proc_pdn_connectivity_request(
    */
   rc = _pdn_connectivity_create(
       emm_context, pti, pdn_cid, context_identifier, apn, pdn_type, pdn_addr,
-      pco, is_emergency);
+      pco, is_emergency, esm_cause);
 
   if (rc < 0) {
     OAILOG_WARNING(
@@ -320,7 +320,8 @@ static int _pdn_connectivity_create(
     emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier, const_bstring const apn,
     pdn_type_t pdn_type, const_bstring const pdn_addr,
-    protocol_configuration_options_t* const pco, const bool is_emergency) {
+    protocol_configuration_options_t* const pco, const bool is_emergency,
+    esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   ue_mm_context_t* ue_mm_context =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
@@ -348,7 +349,7 @@ static int _pdn_connectivity_create(
       /*
        * Increment the number of PDN connections
        */
-      ue_mm_context->emm_context.esm_ctx.n_pdns += 1;
+      ue_mm_context->nb_active_pdn_contexts += 1;
       /*
        * Set the procedure transaction identity
        */
@@ -357,6 +358,9 @@ static int _pdn_connectivity_create(
        * Set the emergency bearer services indicator
        */
       pdn_context->esm_data.is_emergency = is_emergency;
+
+      // Set the esm cause
+      pdn_context->esm_data.esm_cause = *esm_cause;
 
       if (pco) {
         if (!pdn_context->pco) {
@@ -394,6 +398,7 @@ static int _pdn_connectivity_create(
                          &pdn_context->paa.ipv6_address),
                 "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
             break;
+          // TODO Handle static IPv4v6 addr allocation
           case IPv4_AND_v6:
             AssertFatal(0, "TODO\n");
             break;
@@ -522,7 +527,7 @@ proc_tid_t _pdn_connectivity_delete(
   }
   if (pti != ESM_PT_UNASSIGNED) {
     // Decrement the number of PDN connections
-    ue_mm_context->emm_context.esm_ctx.n_pdns -= 1;
+    ue_mm_context->nb_active_pdn_contexts -= 1;
 
     // Release allocated PDN connection data
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_in_use);

@@ -17,10 +17,18 @@ import type {DataRows} from '../../components/DataGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import DataGrid from '../../components/DataGrid';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+
 import isGatewayHealthy from '../../components/GatewayUtils';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
+  const {match} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
   let checkInTime = new Date(0);
   if (
     gwInfo.status &&
@@ -28,6 +36,20 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
     gwInfo.status.checkin_time !== null
   ) {
     checkInTime = new Date(gwInfo.status.checkin_time);
+  }
+
+  const startTime = Math.floor(Date.now() / 1000);
+  const {response: cpuPercent, isLoading: isCpuPercentLoading} = useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange,
+    {
+      networkId: networkId,
+      query: `cpu_percent{gatewayID="${gwInfo.id}", service="magmad"}`,
+      start: startTime.toString(),
+    },
+  );
+
+  if (isCpuPercentLoading) {
+    return <LoadingFiller />;
   }
 
   const logAggregation =
@@ -38,13 +60,17 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
     !!gwInfo.magmad.dynamic_services &&
     gwInfo.magmad.dynamic_services.includes('eventd');
 
+  const isHealthy = isGatewayHealthy(gwInfo);
   const data: DataRows[] = [
     [
       {
         category: 'Health',
-        value: isGatewayHealthy(gwInfo) ? 'Good' : 'Bad',
+        value: isHealthy ? 'Good' : 'Bad',
         statusCircle: true,
         status: isGatewayHealthy(gwInfo),
+        tooltip: isHealthy
+          ? 'Gateway checked in recently'
+          : "Gateway hasn't checked in within last 5 minutes",
       },
       {
         category: 'Last Check in',
@@ -67,9 +93,11 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
       },
       {
         category: 'CPU Usage',
-        value: '0',
-        unit: '%',
+        value: cpuPercent?.data?.result?.[0]?.values?.[0]?.[1] ?? 'Unknown',
+        unit:
+          cpuPercent?.data?.result?.[0]?.values?.[0]?.[1] ?? false ? '%' : '',
         statusCircle: false,
+        tooltip: 'Current Gateway CPU %',
       },
     ],
   ];

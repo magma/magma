@@ -40,7 +40,7 @@ func StartNewTestIndexer(t *testing.T, idx indexer.Indexer) {
 		orc8r.StateIndexerTypesAnnotation:   strings.Join(idx.GetTypes(), orc8r.AnnotationFieldSeparator),
 	}
 	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, idx.GetID(), labels, annotations)
-	servicer := &indexerServicer{idx}
+	servicer := &indexerServicer{idx: idx}
 	protos.RegisterIndexerServer(srv.GrpcServer, servicer)
 	go srv.RunTest(lis)
 }
@@ -51,7 +51,7 @@ func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetInd
 }
 
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
-	states, err := types.MakeStatesByID(req.States)
+	states, err := types.MakeSerializedStatesByID(req.States)
 	if err != nil {
 		return nil, err
 	}

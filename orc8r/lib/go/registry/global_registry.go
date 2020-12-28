@@ -15,9 +15,6 @@ limitations under the License.
 package registry
 
 import (
-	"os"
-	"strings"
-
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -80,13 +77,13 @@ func RemoveServicesWithLabel(label string) {
 }
 
 // ListAllServices lists all services' names from global registry
-func ListAllServices() []string {
+func ListAllServices() ([]string, error) {
 	return globalRegistry.ListAllServices()
 }
 
 // FindServices returns the names of all registered services that have
 // the passed label.
-func FindServices(label string) []string {
+func FindServices(label string) ([]string, error) {
 	return globalRegistry.FindServices(label)
 }
 
@@ -94,6 +91,12 @@ func FindServices(label string) []string {
 // The service needs to be added to the registry before this.
 func GetServiceAddress(service string) (string, error) {
 	return globalRegistry.GetServiceAddress(service)
+}
+
+// GetHttpServerAddress returns the HTTP address of the service from global registry
+// The service needs to be added to the registry before this.
+func GetHttpServerAddress(service string) (string, error) {
+	return globalRegistry.GetHttpServerAddress(service)
 }
 
 // GetServiceProxyAliases returns the proxy_aliases, if any, of the service from global registry
@@ -134,16 +137,4 @@ func GetConnection(service string) (*grpc.ClientConn, error) {
 
 func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	return globalRegistry.GetConnectionImpl(ctx, service, opts...)
-}
-
-// ListControllerServices list all services that should run on a controller instances
-// This is a comma separated list in an env var named CONTROLLER_SERVICES. This
-// will be used for metricsd on controller to determine
-// what services to pull metrics from.
-func ListControllerServices() []string {
-	controllerServices, ok := os.LookupEnv("CONTROLLER_SERVICES")
-	if !ok {
-		return make([]string, 0)
-	}
-	return strings.Split(controllerServices, ",")
 }

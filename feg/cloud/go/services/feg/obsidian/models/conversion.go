@@ -109,10 +109,10 @@ func (m *FegLteNetwork) ToConfiguratorNetwork() configurator.Network {
 		Name:        string(m.Name),
 		Description: string(m.Description),
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType:     m.Cellular,
-			feg.FederatedNetworkType:    m.Federation,
-			orc8r.DnsdNetworkType:       m.DNS,
-			orc8r.NetworkFeaturesConfig: m.Features,
+			lte.CellularNetworkConfigType: m.Cellular,
+			feg.FederatedNetworkType:      m.Federation,
+			orc8r.DnsdNetworkType:         m.DNS,
+			orc8r.NetworkFeaturesConfig:   m.Features,
 		},
 	}
 }
@@ -123,10 +123,10 @@ func (m *FegLteNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 		NewName:        swag.String(string(m.Name)),
 		NewDescription: swag.String(string(m.Description)),
 		ConfigsToAddOrUpdate: map[string]interface{}{
-			lte.CellularNetworkType:     m.Cellular,
-			feg.FederatedNetworkType:    m.Federation,
-			orc8r.DnsdNetworkType:       m.DNS,
-			orc8r.NetworkFeaturesConfig: m.Features,
+			lte.CellularNetworkConfigType: m.Cellular,
+			feg.FederatedNetworkType:      m.Federation,
+			orc8r.DnsdNetworkType:         m.DNS,
+			orc8r.NetworkFeaturesConfig:   m.Features,
 		},
 	}
 }
@@ -138,7 +138,7 @@ func (m *FegLteNetwork) FromConfiguratorNetwork(n configurator.Network) interfac
 	if cfg := n.Configs[feg.FederatedNetworkType]; cfg != nil {
 		m.Federation = cfg.(*FederatedNetworkConfigs)
 	}
-	if cfg := n.Configs[lte.CellularNetworkType]; cfg != nil {
+	if cfg := n.Configs[lte.CellularNetworkConfigType]; cfg != nil {
 		m.Cellular = cfg.(*lteModels.NetworkCellularConfigs)
 	}
 	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
@@ -207,16 +207,23 @@ func (m *MutableFederationGateway) GetAdditionalWritesOnCreate() []configurator.
 	}
 }
 
-func (m *MutableFederationGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: gatewayID}}
+func (m *MutableFederationGateway) GetGatewayType() string {
+	return feg.FegGatewayType
+}
+
+func (m *MutableFederationGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
+	return nil
+}
+
+func (m *MutableFederationGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
+	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: string(m.ID)}}
 }
 
 func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(
-	gatewayID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: feg.FegGatewayType, Key: gatewayID}]
+	var ret []configurator.EntityWriteOperation
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: feg.FegGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}
@@ -246,7 +253,7 @@ func (m *FederatedNetworkConfigs) ToUpdateCriteria(network configurator.Network)
 }
 
 func (m *GatewayFederationConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	federationConfig, err := configurator.LoadEntityConfig(networkID, feg.FegGatewayType, gatewayID)
+	federationConfig, err := configurator.LoadEntityConfig(networkID, feg.FegGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -295,4 +302,14 @@ func (m *SubscriptionProfile) ToMconfig() *mconfig.HSSConfig_SubscriptionProfile
 	res := &mconfig.HSSConfig_SubscriptionProfile{}
 	protos.FillIn(m, res)
 	return res
+}
+
+func ToVirtualApnRuleMconfig(rules []*VirtualApnRule) []*mconfig.VirtualApnRule {
+	virtualApnRuleConfigs := make([]*mconfig.VirtualApnRule, 0, len(rules)+1)
+	for _, ruleProto := range rules {
+		apnConf := &mconfig.VirtualApnRule{}
+		protos.FillIn(ruleProto, apnConf)
+		virtualApnRuleConfigs = append(virtualApnRuleConfigs, apnConf)
+	}
+	return virtualApnRuleConfigs
 }

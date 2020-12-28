@@ -7,6 +7,13 @@ x-logging: &logging_anchor
     max-size: "10mb"
     max-file: "10"
 
+# fluentbit logging for special services
+x-logging: &fluentd_anchor
+  driver: "fluentd"
+  options:
+    fluentd-address: "localhost:24224"
+    fluentd-async-connect: "true"
+
 # Standard volumes mounted
 x-standard-volumes: &volumes_anchor
   - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
@@ -82,15 +89,60 @@ services:
 
   radius:
     <<: *service
-    image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}goradius:${IMAGE_VERSION}
     container_name: radius
+    depends_on:
+      - "logrouter"
     environment:
       - ODS_ACCESS_TOKEN=${ODS_ACCESS_TOKEN}
       - SCUBA_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
       - AAA_ENDPOINT=https://graph.expresswifi.com/radius/authorization
       - AAA_ACCESS_TOKEN=${AAA_ACCESS_TOKEN}
-      - RADIUS_SECRET=123456
+      - RADIUS_SECRET=${RADIUS_SECRET:-123456}
       - TEMPLATE_ENV=radius.ofpanalytics.config.json.template
       - PARTNER_SHORTNAME=${PARTNER_SHORTNAME}
     command: >
       /bin/sh -c "./docker-entrypoint.sh"
+    logging: *fluentd_anchor
+
+  radiusd:
+    <<: *service
+    image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
+    container_name: radiusd
+    extra_hosts:
+      - radius:${HOST_DOCKER_INTERNAL}
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
+
+  logrouter:
+    <<: *service
+    image: ${DOCKER_REGISTRY}logrouter
+    container_name: logrouter
+    ports:
+      - "24224:24224"
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "localhost", "24224"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+    environment:
+      - SCRIBE_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
+      - SCUBA_TABLE=perfpipe_xwf_xwfm_logs
+      - PARTNER_SHORTNAME=${PARTNER_SHORTNAME}
+    volumes:
+      - /var/log/fluentbit-logs:/var/log/fluentbit-logs
+
+  cadvisor:
+    image: gcr.io/google-containers/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    command:
+      - --disable_metrics=tcp,udp,sched,percpu,diskIO
+      - --docker_only
+      - --skip_headers
+      - --store_container_labels=false

@@ -14,6 +14,8 @@
 package models
 
 import (
+	"fmt"
+
 	"magma/cwf/cloud/go/cwf"
 	"magma/feg/cloud/go/feg"
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
@@ -103,7 +105,6 @@ func (m *CwfGateway) FromBackendModels(
 	device *orc8rModels.GatewayDevice,
 	status *orc8rModels.GatewayStatus,
 ) handlers.GatewayModel {
-	// delegate most of the fillin to magmad gateway struct
 	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
 	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
@@ -146,16 +147,23 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnCreate() []configurator.EntityW
 	}
 }
 
-func (m *MutableCwfGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: cwf.CwfGatewayType, Key: gatewayID}}
+func (m *MutableCwfGateway) GetGatewayType() string {
+	return cwf.CwfGatewayType
+}
+
+func (m *MutableCwfGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
+	return nil
+}
+
+func (m *MutableCwfGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
+	return []storage.TypeAndKey{{Type: cwf.CwfGatewayType, Key: string(m.ID)}}
 }
 
 func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
-	gatewayID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: cwf.CwfGatewayType, Key: gatewayID}]
+	var ret []configurator.EntityWriteOperation
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: cwf.CwfGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}
@@ -177,7 +185,7 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
 }
 
 func (m *GatewayCwfConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	carrierWifi, err := configurator.LoadEntityConfig(networkID, cwf.CwfGatewayType, gatewayID)
+	carrierWifi, err := configurator.LoadEntityConfig(networkID, cwf.CwfGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -221,4 +229,102 @@ func (m *LiUes) GetFromNetwork(network configurator.Network) interface{} {
 
 func (m *LiUes) ValidateModel() error {
 	return m.Validate(strfmt.Default)
+}
+
+func (m *CwfHaPair) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:   cwf.CwfHAPairType,
+		Key:    m.HaPairID,
+		Config: m.Config,
+		Associations: []storage.TypeAndKey{
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID1,
+			},
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID2,
+			},
+		},
+	}
+}
+
+func (m *CwfHaPair) FromBackendModels(ent configurator.NetworkEntity) error {
+	gatewayIDs := []string{}
+	for _, assoc := range ent.Associations {
+		if assoc.Type == cwf.CwfGatewayType {
+			gatewayIDs = append(gatewayIDs, assoc.Key)
+		}
+	}
+	if len(gatewayIDs) != 2 {
+		return fmt.Errorf("could not convert entity to CwfHaPair; could not parse gateway pair IDs")
+	}
+	if ent.Config == nil {
+		return fmt.Errorf("could not convert entity to CwfHaPair; config was nil")
+	}
+	cfg, ok := ent.Config.(*CwfHaPairConfigs)
+	if !ok {
+		return fmt.Errorf("could not convert entity config type %T to CwfHaPair", ent.Config)
+	}
+	m.HaPairID = ent.Key
+	m.GatewayID1 = gatewayIDs[0]
+	m.GatewayID2 = gatewayIDs[1]
+	m.Config = cfg
+	return nil
+}
+
+func (m *CwfHaPair) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      cwf.CwfHAPairType,
+		Key:       m.HaPairID,
+		NewConfig: m.Config,
+		AssociationsToSet: []storage.TypeAndKey{
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID1,
+			},
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID2,
+			},
+		},
+	}
+	return ret
+}
+
+func (m *MutableCwfHaPair) ToEntityUpdateCriteria(haPairID string) configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      cwf.CwfHAPairType,
+		Key:       haPairID,
+		NewConfig: m.Config,
+		AssociationsToSet: []storage.TypeAndKey{
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID1,
+			},
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID2,
+			},
+		},
+	}
+	return ret
+}
+
+func (m *MutableCwfHaPair) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:   cwf.CwfHAPairType,
+		Key:    m.HaPairID,
+		Config: m.Config,
+		Associations: []storage.TypeAndKey{
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID1,
+			},
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID2,
+			},
+		},
+	}
 }

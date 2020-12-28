@@ -15,21 +15,22 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+
 	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/feg_relay/utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 )
 
 // FegToGwRelayServer is a server serving requests from FeG to Access Gateway
@@ -131,7 +132,7 @@ func getFegServedIds(networkId string) ([]string, error) {
 	if len(networkId) == 0 {
 		return []string{}, fmt.Errorf("Empty networkID provided.")
 	}
-	fegCfg, err := configurator.LoadNetworkConfig(networkId, feg.FegNetworkType)
+	fegCfg, err := configurator.LoadNetworkConfig(networkId, feg.FegNetworkType, serdes.Network)
 	if err != nil || fegCfg == nil {
 		return []string{}, fmt.Errorf("unable to retrieve config for federation network: %s", networkId)
 	}

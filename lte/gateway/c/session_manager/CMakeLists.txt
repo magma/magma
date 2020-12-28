@@ -28,10 +28,11 @@ if (NOT BUILD_TESTS)
       "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
   # Add LeakSanitizer (lsan) support to the release build of SessionD so that
   # we can find memory leaks in production.
-  set(CMAKE_C_FLAGS_RELWITHDEBINFO
-     "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
-  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
-     "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
+  # Disabling LSAN on Prod until we figure out how to get gcore to work
+  #set(CMAKE_C_FLAGS_RELWITHDEBINFO
+  #   "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
+  #set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
+  #   "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
 endif ()
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
@@ -154,8 +155,20 @@ add_library(SESSION_MANAGER
     MeteringReporter.h
     GrpcMagmaUtils.cpp
     GrpcMagmaUtils.h
+    SetMessageManagerHandler.h
+    SetMessageManagerHandler.cpp
+    SessionStateEnforcer.h
+    SessionStateEnforcer.cpp
+    AmfServiceClient.h
+    AmfServiceClient.cpp
+    Utilities.cpp
+    Utilities.h
+    OperationalStatesHandler.cpp
+    OperationalStatesHandler.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
+
+
 
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
@@ -175,8 +188,8 @@ if (CLANG_FORMAT)
 endif ()
 
 add_executable(sessiond ${PROJECT_SOURCE_DIR}/sessiond_main.cpp)
-
 target_link_libraries (sessiond SESSION_MANAGER)
+
 
 if (BUILD_TESTS)
   ENABLE_TESTING()

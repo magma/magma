@@ -124,7 +124,7 @@ NOTE: In all the below `kubectl` commands, use the `-n` flag or `kubens` to
 select the appropriate k8s namespace (by default this is `orc8r`).
 
 ```bash
-export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+export CNTLR_POD=$(kubectl -n orc8r get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
 kubectl exec -it ${CNTLR_POD} bash
 
 # The following commands are to be run inside the pod

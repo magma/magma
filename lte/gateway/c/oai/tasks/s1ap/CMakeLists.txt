@@ -1,56 +1,46 @@
-add_list1_option(S1AP_VERSION R10 "S1AP Asn.1 grammar version" R8 R9 R10)
-add_definitions(-DASN1_MINIMUM_VERSION=924)
-
-
-set(ASN1RELDIR r10.5)
+add_list1_option(S1AP_VERSION R15 "S1AP Asn.1 grammar version" R15)
+add_definitions(-DASN1_MINIMUM_VERSION=923)
+set(ASN1RELDIR r15)
 set(S1AP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(asn1_generated_dir ${CMAKE_CURRENT_BINARY_DIR})
-set(asn1c_call ${CMAKE_CURRENT_SOURCE_DIR}/generate_asn1)
-
 set(S1AP_ASN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/messages/asn1/${ASN1RELDIR})
-set(S1AP_ASN_FILES
-    ${S1AP_ASN_DIR}/S1AP-CommonDataTypes.asn
-    ${S1AP_ASN_DIR}/S1AP-Constants.asn
-    ${S1AP_ASN_DIR}/S1AP-IEs.asn
-    ${S1AP_ASN_DIR}/S1AP-PDU.asn
-    )
-set(S1AP_C_DIR ${asn1_generated_dir}/${ASN1RELDIR})
-
+set(S1AP_ASN_FILES "s1ap-15.6.0.asn1" )
+set(S1AP_C_DIR ${CMAKE_CURRENT_BINARY_DIR}/${ASN1RELDIR})
 include_directories(${S1AP_C_DIR})
 include_directories(${S1AP_DIR})
+set(GENERATED_FULL_DIR ${S1AP_C_DIR})
+set(ASN1_SOURCE_DIR ${S1AP_ASN_DIR}/${S1AP_ASN_FILES})
+set(ENV{ASN1C_PREFIX} "S1ap_" )
 
-execute_process(COMMAND ${asn1c_call} ${S1AP_C_DIR} ${S1AP_ASN_FILES})
+file(MAKE_DIRECTORY ${GENERATED_FULL_DIR})
+set(s1ap_generate_code_done_flag ${GENERATED_FULL_DIR}/S1AP_GENERATE_CODE_DONE)
+
+if( ${ASN1_SOURCE_DIR} IS_NEWER_THAN ${s1ap_generate_code_done_flag})
+   file(REMOVE ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.c ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.h)
+   execute_process(COMMAND  asn1c -pdu=all -fcompound-names -gen-PER -no-gen-example -fno-include-deps -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} RESULT_VARIABLE ret)
+   if (NOT ${ret} STREQUAL 0)
+      message(FATAL_ERROR "${ret}")
+   endif (NOT ${ret} STREQUAL 0)
+   execute_process(COMMAND bash "-c" "egrep -lRZ \"18446744073709551615\" ${GENERATED_FULL_DIR} | xargs -0 -l sed -i -e \"s/18446744073709551615/18446744073709551615u/g\"")
+endif()
+# TOUCH not in cmake 3.10
+file(WRITE ${s1ap_generate_code_done_flag})
+
 file(GLOB S1AP_source ${S1AP_C_DIR}/*.c)
 list(REMOVE_ITEM S1AP_source ${S1AP_C_DIR}/converter-sample.c)
 
-set(S1AP_OAI_generated
-    ${S1AP_C_DIR}/s1ap_decoder.c
-    ${S1AP_C_DIR}/s1ap_encoder.c
-    ${S1AP_C_DIR}/s1ap_xer_print.c
-    ${S1AP_C_DIR}/s1ap_ies_defs.h
-    )
-
-file(GLOB s1ap_h ${S1AP_C_DIR}/*.h)
+file(GLOB s1ap_h ${S1AP_C_DIR}/*.c)
 set(s1ap_h ${s1ap_h})
 
-add_custom_command(
-    OUTPUT ${S1AP_OAI_generated}
-    COMMAND ${asn1c_call} ${S1AP_C_DIR} ${S1AP_ASN_FILES}
-    COMMAND python ${S1AP_DIR}/messages/asn1/asn1tostruct.py -f${S1AP_ASN_DIR}/S1AP-PDU-Contents.asn -o${S1AP_C_DIR}
-    DEPENDS ${S1AP_ASN_FILES}
-)
-
 add_library(LIB_S1AP
-    ${S1AP_OAI_generated}
     ${S1AP_source}
-    s1ap_common.c
 )
 target_link_libraries(LIB_S1AP
     LIB_BSTR LIB_HASHTABLE
 )
 target_include_directories(LIB_S1AP PUBLIC
     ${S1AP_C_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/r10.5
+    ${CMAKE_CURRENT_SOURCE_DIR}/r15
 )
 
 set(PCEF_LTE_CPP_PROTOS s1ap_state common_types)
@@ -65,7 +55,6 @@ generate_cpp_protos("${PCEF_LTE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
 add_library(TASK_S1AP
     "${PROTO_SRCS}"
     "${PROTO_HDRS}"
-    ${S1AP_C_DIR}/s1ap_ies_defs.h
     ${S1AP_DIR}/s1ap_mme_encoder.c
     ${S1AP_DIR}/s1ap_mme_decoder.c
     ${S1AP_DIR}/s1ap_mme_handlers.c
@@ -89,7 +78,4 @@ target_include_directories(TASK_S1AP PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/messages
     ${CMAKE_CURRENT_SOURCE_DIR}/messages/asn1
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/asn1/r10.5
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/asn1/r8.10
-    ${CMAKE_CURRENT_SOURCE_DIR}/messages/asn1/r9.8
 )

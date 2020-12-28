@@ -1,0 +1,12 @@
+ priority=65535,in_port=3,dl_vlan=100 actions=strip_vlan,LOCAL
+ priority=65535,in_port=LOCAL actions=mod_vlan_vid:100,output:3
+ priority=65534,in_port=1 actions=output:3
+ priority=100,in_port=2 actions=mod_dl_src:02:bb:5e:36:06:4b,output:3
+ priority=65534,udp,in_port=3,tp_dst=68 actions=output:1,LOCAL
+ priority=100,ip,in_port=3,vlan_tci=0x0000/0x1000,dl_dst=02:bb:5e:36:06:4b actions=output:2
+ priority=100,ipv6,in_port=3,vlan_tci=0x0000/0x1000,dl_dst=02:bb:5e:36:06:4b actions=output:2
+ priority=100,ip,in_port=3,vlan_tci=0x1000/0x1000,dl_dst=02:bb:5e:36:06:4b actions=strip_vlan,output:70
+ priority=100,ipv6,in_port=3,vlan_tci=0x1000/0x1000,dl_dst=02:bb:5e:36:06:4b actions=strip_vlan,output:70
+ priority=100,ip,in_port=71,dl_dst=02:bb:5e:36:06:4b actions=output:2
+ priority=100,ipv6,in_port=71,dl_dst=02:bb:5e:36:06:4b actions=output:2
+ priority=0,arp,in_port=3 actions=output:1,output:2,LOCAL

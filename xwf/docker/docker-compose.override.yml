@@ -11,9 +11,6 @@ services:
   ofredirector:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/ofredirector
 
-  app:
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/app
-
   httpserver:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/httpserver
 
@@ -22,18 +19,23 @@ services:
 
   radiusserver:
     build:
-      context: ../../feg
+      context: ${MAGMA_BASE}../../feg
       dockerfile: radius/src/Dockerfile
 
   xwfm:
     build:
-      context: ../..
+      context: ${MAGMA_BASE}../..
       dockerfile: xwf/gateway/integ_tests/gw/Dockerfile
+    environment:
+      - CONNECTION_MODE=ssl
 
   pipelined:
     build:
-      context: ../../
+      context: ${MAGMA_BASE}../../
       dockerfile: cwf/gateway/docker/python/Dockerfile
+
+  tls-termination:
+    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/tls-termination
 
   tests:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/tests
@@ -41,8 +43,8 @@ services:
   xwf_client:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/xwf_client
 
-  dynamodb_init:
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/dynamodb_init
-
   nlb:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/nlb
+
+  logrouter:
+    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/logrouter

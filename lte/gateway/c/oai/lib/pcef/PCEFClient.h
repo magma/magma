@@ -58,11 +58,25 @@ class PCEFClient : public GRPCReceiver {
       std::function<void(Status, LocalCreateSessionResponse)> callback);
 
   /**
-   * Proxy a EndSession gRPC call to sessiond
+   * Proxy an EndSession gRPC call to sessiond
    */
   static void end_session(
       const LocalEndSessionRequest& request,
       std::function<void(Status, LocalEndSessionResponse)> callback);
+
+  /**
+   * Proxy a BindPolicy2Bearer gRPC call to sessiond
+   */
+  static void bind_policy2bearer(
+      const PolicyBearerBindingRequest& request,
+      std::function<void(Status, PolicyBearerBindingResponse)> callback);
+
+  /**
+   * Proxy a UpdateTunnelIdsRequest gRPC call to sessiond
+   */
+  static void update_teids(
+      const UpdateTunnelIdsRequest& request,
+      std::function<void(Status, UpdateTunnelIdsResponse)> callback);
 
  public:
   PCEFClient(PCEFClient const&) = delete;

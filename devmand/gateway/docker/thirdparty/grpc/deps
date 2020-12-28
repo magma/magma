@@ -1,9 +1,0 @@
-autoconf
-build-essential
-clang
-golang
-libc++-dev
-libgflags-dev
-libgtest-dev
-libtool
-pkg-config

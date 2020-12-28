@@ -15,7 +15,6 @@
 #include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
 
-// using google::protobuf::RepeatedPtrField;
 using grpc::Status;
 
 namespace {  // anonymous
@@ -78,24 +77,41 @@ bool AsyncSpgwServiceClient::delete_default_bearer(
 }
 
 bool AsyncSpgwServiceClient::delete_dedicated_bearer(
-    const std::string& imsi, const std::string& apn_ip_addr,
-    const uint32_t linked_bearer_id,
-    const std::vector<uint32_t>& eps_bearer_ids) {
-  MLOG(MINFO) << "Deleting dedicated bearer IMSI: " << imsi << " APN IP addr "
-              << apn_ip_addr << " Bearer ID " << linked_bearer_id;
-  return delete_bearer(imsi, apn_ip_addr, linked_bearer_id, eps_bearer_ids);
+    const magma::DeleteBearerRequest& request) {
+  std::string bearer_ids = "{ ";
+  for (const auto& bearer_id : request.eps_bearer_ids()) {
+    bearer_ids += std::to_string(bearer_id) + " ";
+  }
+  bearer_ids += "}";
+  MLOG(MINFO) << "Deleting dedicated bearers for " << request.sid().id() << ", "
+              << request.ip_addr()
+              << ", default bearer id=" << request.link_bearer_id()
+              << ", dedicated bearer ids=" << bearer_ids;
+  delete_bearer_rpc(request, [request](Status status, DeleteBearerResult resp) {
+    if (!status.ok()) {
+      // only log error for now
+      MLOG(MERROR) << "Could not delete bearer" << request.sid().id() << ", "
+                   << request.ip_addr() << ": " << status.error_message();
+    }
+  });
+  return true;
 }
 
 bool AsyncSpgwServiceClient::create_dedicated_bearer(
-    const std::string& imsi, const std::string& apn_ip_addr,
-    const uint32_t linked_bearer_id, const std::vector<PolicyRule>& flows) {
-  auto req = create_add_bearer_req(imsi, apn_ip_addr, linked_bearer_id, flows);
-  MLOG(MINFO) << "creating dedicated bearer " << imsi << apn_ip_addr;
+    const magma::CreateBearerRequest& request) {
+  std::string rule_ids = "{ ";
+  for (const auto& rule : request.policy_rules()) {
+    rule_ids += rule.id() + " ";
+  }
+  rule_ids += "}";
+  MLOG(MINFO) << "Creating dedicated bearers for " << request.sid().id() << ", "
+              << request.ip_addr() << ", rules=" << rule_ids;
   create_dedicated_bearer_rpc(
-      req, [imsi, apn_ip_addr](Status status, CreateBearerResult resp) {
+      request, [request](Status status, CreateBearerResult resp) {
         if (!status.ok()) {
-          MLOG(MERROR) << "Could not create dedicated bearer" << imsi
-                       << apn_ip_addr << ": " << status.error_message();
+          MLOG(MERROR) << "Could not create dedicated bearer"
+                       << request.sid().id() << ", " << request.ip_addr()
+                       << ": " << status.error_message();
         }
       });
   return true;

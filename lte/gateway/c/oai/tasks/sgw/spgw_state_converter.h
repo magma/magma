@@ -64,12 +64,10 @@ class SpgwStateConverter : StateConverter {
       const oai::SpgwState& proto, spgw_state_t* spgw_state);
 
   static void ue_to_proto(
-      const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
-      oai::S11BearerContext* ue_proto);
+      const spgw_ue_context_t* ue_state, oai::SpgwUeContext* ue_proto);
 
   static void proto_to_ue(
-      const oai::S11BearerContext& spgw_bearer_proto,
-      s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state);
+      const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p);
 
  private:
   SpgwStateConverter();
@@ -164,7 +162,7 @@ class SpgwStateConverter : StateConverter {
    */
   static void proto_to_sgw_pending_procedures(
       const oai::SgwEpsBearerContextInfo& proto,
-      sgw_eps_bearer_context_information_t::pending_procedures_s* procedures);
+      sgw_eps_bearer_context_information_t::pending_procedures_s** procedures);
 
   /**
    * Inserts new procedure struct to eps bearer pending procedures list

@@ -8,10 +8,10 @@ FROM ${baseImage} as base
 RUN apt-get update && \
     apt-get install -y curl make git gcc bzr unzip vim
 
-# Install Golang 1.12
+# Install Golang 1.13
 WORKDIR /usr/local
-RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.12.linux-amd64.tar.gz -O && \
-    tar xf go1.12.linux-amd64.tar.gz && \
+RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
+    tar xf go1.13.4.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 ENV GO111MODULE on
 
@@ -83,7 +83,7 @@ RUN /usr/local/bin/setup_swagger_ui
 # Create an empty envdir for overriding in production
 RUN mkdir -p /var/opt/magma/envdir
 # TODO: automatically read the services from the plugins
-ENV CONTROLLER_SERVICES STREAMER,SUBSCRIBERDB,POLICYDB,METRICSD,CERTIFIER,BOOTSTRAPPER,ACCESSD,OBSIDIAN,DISPATCHER,DIRECTORYD,FEG_RELAY,HEALTH,VPNSERVICE,STATE,DEVICE,ANALYTICS,TENANTS
+ENV CONTROLLER_SERVICES STREAMER,SUBSCRIBERDB,POLICYDB,METRICSD,CERTIFIER,BOOTSTRAPPER,ACCESSD,OBSIDIAN,DISPATCHER,DIRECTORYD,FEG_RELAY,HEALTH,VPNSERVICE,STATE,DEVICE,LTE_ANALYTICS,CWF_ANALYTICS,TENANTS
 # TODO: fix dispatcher to work on containers
 ENV SERVICE_HOST_NAME localhost
 # TODO: fix metricsd for fetching host level metrics

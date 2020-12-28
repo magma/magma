@@ -25,27 +25,30 @@ import (
 const (
 	ModuleName = "feg"
 
-	CONTROL_PROXY = "CONTROL_PROXY"
-	S6A_PROXY     = "S6A_PROXY"
-	SESSION_PROXY = "SESSION_PROXY"
-	SWX_PROXY     = "SWX_PROXY"
-	HLR_PROXY     = "HLR_PROXY"
-	HEALTH        = "HEALTH"
-	CSFB          = "CSFB"
-	FEG_HELLO     = "FEG_HELLO"
-	AAA_SERVER    = "AAA_SERVER"
-	EAP           = "EAP"
-	EAP_AKA       = "EAP_AKA"
-	RADIUSD       = "RADIUSD"
-	RADIUS        = "RADIUS"
-	REDIS         = "REDIS"
-	PIPELINED     = "PIPELINED"
-	MOCK_VLR      = "MOCK_VLR"
-	MOCK_OCS      = "MOCK_OCS"
-	MOCK_OCS2     = "MOCK_OCS2"
-	MOCK_PCRF     = "MOCK_PCRF"
-	MOCK_PCRF2    = "MOCK_PCRF2"
-	MOCK_HSS      = "HSS"
+	CONTROL_PROXY    = "CONTROL_PROXY"
+	S6A_PROXY        = "S6A_PROXY"
+	S8_PROXY         = "S8_PROXY"
+	SESSION_PROXY    = "SESSION_PROXY"
+	SWX_PROXY        = "SWX_PROXY"
+	HLR_PROXY        = "HLR_PROXY"
+	HEALTH           = "HEALTH"
+	CSFB             = "CSFB"
+	FEG_HELLO        = "FEG_HELLO"
+	AAA_SERVER       = "AAA_SERVER"
+	ENVOY_CONTROLLER = "ENVOY_CONTROLLER"
+	EAP              = "EAP"
+	EAP_SIM          = "EAP_SIM"
+	EAP_AKA          = "EAP_AKA"
+	RADIUSD          = "RADIUSD"
+	RADIUS           = "RADIUS"
+	REDIS            = "REDIS"
+	PIPELINED        = "PIPELINED"
+	MOCK_VLR         = "MOCK_VLR"
+	MOCK_OCS         = "MOCK_OCS"
+	MOCK_OCS2        = "MOCK_OCS2"
+	MOCK_PCRF        = "MOCK_PCRF"
+	MOCK_PCRF2       = "MOCK_PCRF2"
+	MOCK_HSS         = "HSS"
 
 	SESSION_MANAGER = "SESSIOND"
 )
@@ -87,11 +90,13 @@ func init() {
 	addLocalService(RADIUS, 9108)
 	addLocalService(EAP, 9109)
 	addLocalService(AAA_SERVER, 9109)
+	addLocalService(EAP_SIM, 9118)
 	addLocalService(EAP_AKA, 9123)
 	addLocalService(SWX_PROXY, 9110)
 	addLocalService(RADIUSD, 9115)
 	addLocalService(HLR_PROXY, 9116)
 	addLocalService(PIPELINED, 9117)
+	addLocalService(ENVOY_CONTROLLER, 9118)
 
 	addLocalService(MOCK_OCS, 9201)
 	addLocalService(MOCK_PCRF, 9202)

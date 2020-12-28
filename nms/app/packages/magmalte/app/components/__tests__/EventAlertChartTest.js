@@ -16,10 +16,14 @@
 import 'jest-dom/extend-expect';
 import EventAlertChart from '../EventAlertChart';
 import MagmaAPIBindings from '@fbcnms/magma-api';
+import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
+import defaultTheme from '../../theme/default';
 import moment from 'moment';
+
 import {MemoryRouter, Route} from 'react-router-dom';
+import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 import type {promql_return_object} from '@fbcnms/magma-api';
 
@@ -64,19 +68,19 @@ describe('<EventAlertChart/>', () => {
     {
       startDate: moment().subtract(2, 'hours'),
       endDate: moment(),
-      step: '30s',
+      step: '15m',
       valid: true,
     },
     {
       startDate: moment().subtract(10, 'day'),
       endDate: moment(),
-      step: '4h',
+      step: '24h',
       valid: true,
     },
     {
       startDate: moment(),
       endDate: moment().subtract(10, 'day'),
-      step: '4h',
+      step: '24h',
       valid: false,
     },
   ];
@@ -87,15 +91,19 @@ describe('<EventAlertChart/>', () => {
       // const startDate = moment().subtract(3, 'hours');
       const Wrapper = () => (
         <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-          <Route
-            path="/nms/:networkId"
-            render={props => (
-              <EventAlertChart
-                {...props}
-                startEnd={[tc.startDate, tc.endDate]}
+          <MuiThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <Route
+                path="/nms/:networkId"
+                render={props => (
+                  <EventAlertChart
+                    {...props}
+                    startEnd={[tc.startDate, tc.endDate]}
+                  />
+                )}
               />
-            )}
-          />
+            </MuiStylesThemeProvider>
+          </MuiThemeProvider>
         </MemoryRouter>
       );
       render(<Wrapper />);
@@ -118,7 +126,7 @@ describe('<EventAlertChart/>', () => {
         ).toEqual(tc.step);
       } else {
         // negative test for invalid start end use default timerange
-        const defaultStep = '30s';
+        const defaultStep = '5m';
         expect(
           MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
             .calls[0][0].step,

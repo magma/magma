@@ -1,6 +1,46 @@
 version: "3.7"
 
 services:
+
+  # Legacy controller service
+
+  controller:
+    volumes:
+      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
+    environment:
+      TEST_MODE: "1"  # Run dev scripts on startup
+      SERVICE_HOSTNAME: localhost  # All services are reachable through localhost
+      SQL_DRIVER: postgres
+      DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
+      SQL_DIALECT: psql
+      SERVICE_REGISTRY_MODE: yaml
+    links:
+      - fluentd
+    depends_on:
+      - postgres
+      - fluentd
+    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 && /usr/bin/supervisord"]
+    restart: always
+  # If you want to use log aggregation on a Mac or Windows host, uncomment
+  # the below block as-is
+  # KP: host.docker.internal does not resolve to anything in Docker for linux
+  # See https://github.com/docker/for-linux/issues/264 and
+  # https://github.com/docker/libnetwork/pull/2348
+  # If you're on a Linux host and want to use log aggregation, uncomment the
+  # below block and update fluentd-address to ":24225". You will have to
+  # restart the container before it sends logs to fluentd.
+  # See https://github.com/moby/moby/issues/1143 for some ideas about
+  # connecting the logging driver to your host localhost.
+#    logging:
+#      driver: fluentd
+#      options:
+#        fluentd-address: "host.docker.internal:24225"
+#        tag: orc8r.controller
+#        fluentd-retry-wait: "1s"
+#        fluentd-max-retries: "120"
+
+  # Non-core essential services
+
   postgres:
     image: postgres
     ports:
@@ -26,50 +66,9 @@ services:
     command: mysqld --sql_mode="ANSI_QUOTES"
     restart: always
 
-  controller:
-    volumes:
-      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
-    environment:
-      TEST_MODE: "1"  # Used to run dev scripts on startup
-      SQL_DRIVER: postgres
-      DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
-      SQL_DIALECT: psql
-
-      # To use MariaDB, use these connection parameters instead:
-      # SQL_DRIVER: mysql
-      # DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
-      # SQL_DIALECT: maria
-    links:
-      - fluentd
-    depends_on:
-      - postgres
-      - fluentd
-      # - maria
-    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 && /usr/bin/supervisord"]
-    # command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 maria:[port] && /usr/bin/supervisord"]
-    restart: always
-
-    # If you want to use log aggregation on a Mac or Windows host, uncomment
-    # the below block as-is
-    # KP: host.docker.internal does not resolve to anything in Docker for linux
-    # See https://github.com/docker/for-linux/issues/264 and
-    # https://github.com/docker/libnetwork/pull/2348
-    # If you're on a Linux host and want to use log aggregation, uncomment the
-    # below block and update fluentd-address to ':24225'. You will have to
-    # restart the container before it sends logs to fluentd.
-    # See https://github.com/moby/moby/issues/1143 for some ideas about
-    # connecting the logging driver to your host localhost.
-#    logging:
-#      driver: fluentd
-#      options:
-#        fluentd-address: 'host.docker.internal:24225'
-#        tag: orc8r.controller
-#        fluentd-retry-wait: '1s'
-#        fluentd-max-retries: '120'
-
   nginx:
     ports:
-      - 7443:8443/tcp   # controller GRPC port
+      - 7443:8443/tcp   # controller gRPC port
       - 7444:8444/tcp   # bootstrapper port
       - 9443:9443/tcp   # API port
     volumes:
@@ -78,15 +77,16 @@ services:
       CONTROLLER_HOSTNAME: controller.magma.test
       PROXY_BACKENDS: controller
       TEST_MODE: "1"
-      RESOLVER: "127.0.0.11"
+      RESOLVER: 127.0.0.11
+      SERVICE_REGISTRY_MODE: yaml
     restart: always
 #    logging:
 #      driver: fluentd
 #      options:
-#        fluentd-address: 'host.docker.internal:24225'
+#        fluentd-address: "host.docker.internal:24225"
 #        tag: orc8r.nginx
-#        fluentd-retry-wait: '1s'
-#        fluentd-max-retries: '120'
+#        fluentd-retry-wait: "1s"
+#        fluentd-max-retries: "120"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1
@@ -124,5 +124,5 @@ services:
 
 volumes:
   pgdata:
-  elasticsearch:
   mysql:
+  elasticsearch:

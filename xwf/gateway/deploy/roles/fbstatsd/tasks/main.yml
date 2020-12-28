@@ -1,0 +1,136 @@
+---
+
+- name: get the  server id
+  shell: cat /etc/hostname | cut -d. -f4
+  register: foo
+
+- name: set the fact
+  set_fact: server_id={{ foo.stdout | default('1') }}
+
+- name: update the hosts file
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    mode: '0644'
+
+- name: install the fb yum repo file
+  template:
+    src: xwf-s3.repo.j2
+    dest: /etc/yum.repos.d/xwf-s3.repo
+    mode: '0440'
+
+- name: install the fbstatsd package
+  yum:
+   name: "{{ item }}"
+   state: installed
+  with_items:
+    - fbstatsd
+    - fbmetrics
+    - gperftools-libs
+    - hyperic-sigar
+    - boost-system
+    - boost-regex
+    - rsyslog
+    - logrotate
+    - pigz
+    - ruby
+    - ntp
+
+- name: add the fbstatsd config file
+  template:
+    src: fbstatsd.conf.j2
+    dest: /etc/fbstatsd.conf
+    mode: '0440'
+
+- name: add the fbmetrics config file
+  template:
+    src: fbmetrics.conf.j2
+    dest: /etc/fbmetrics.conf
+    mode: '0440'
+  
+- name: install the files for fbstatsd startup
+  copy:
+    src: fbstatsd.service
+    dest: "{{ item }}"
+  with_items:
+    - /etc/systemd/system/default.target.wants
+    - /etc/systemd/system/fbstatsd.service
+
+- name: install the files for cmd2odsstartup
+  copy:
+    src: cmd2ods.service
+    dest: "{{ item }}"
+  with_items:
+    - /etc/systemd/system/cmd2ods.service
+    - /etc/systemd/system/default.target.wants
+
+- name: install the files for logroates startup
+  copy:
+    src: logrotate.service
+    dest: "{{ item }}"
+  with_items:
+    - /etc/systemd/system/logrotate.service
+
+- name: install the files for fbmetrics startup
+  copy:
+    src: fbmetricsd.service
+    dest: "{{ item }}"
+  with_items:
+    - /etc/systemd/system/default.target.wants
+    - /etc/systemd/system/fbmetricsd.service
+
+- name: copy the cron file for fbstatsd
+  copy:
+    src: fbstats_crontab
+    dest: /etc/cron.d/
+
+- name: add logrotate file
+  copy:
+    src: fb_logrotate.conf
+    dest: /etc/logrotate.d/
+
+- name: Creates directory for fbstatsd logs
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /var/log/fbstatsd
+    - /var/log/fbmetrics
+    - /var/log/cmd2ods
+    - /opt/xwf/cmd2ods
+
+- name: add cmd2ods files
+  copy:
+    src: "{{ item }}"
+    dest: /opt/xwf/cmd2ods/
+    mode: '0755'
+  with_items:
+    - cmd2ods.rb
+    - config.yml
+
+- name: enable the fbstatsd service
+  systemd: 
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+   - fbmetricsd
+   - fbstatsd
+   - crond
+   - logrotate
+   - cmd2ods
+
+- name: add rsyslog config file
+  copy:
+    src: rsyslog.conf
+    dest: /etc/rsyslog.conf
+
+- name: restart the rsyslog service
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+    enabled: true
+  with_items:
+    - rsyslog
+    - ntpd
+
+   

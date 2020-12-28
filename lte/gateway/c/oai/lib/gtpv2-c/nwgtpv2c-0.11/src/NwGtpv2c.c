@@ -1667,7 +1667,6 @@ nw_rc_t nwGtpv2cInitialize(
   } else {
     rc = NW_FAILURE;
   }
-
   *hGtpcStackHandle = (nw_gtpv2c_stack_handle_t) thiz;
   return rc;
 }
@@ -2210,7 +2209,7 @@ nw_rc_t nwGtpv2cProcessTimeout(void* arg) {
     rc = nwGtpv2cTmrMinHeapRemove(
         (NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap,
         timeoutInfo->timerMinHeapIndex);
-    OAI_GCC_DIAG_ON(int-to-pointer-cast);
+    OAI_GCC_DIAG_ON(int - to - pointer - cast);
     timeoutInfo->next       = gpGtpv2cTimeoutInfoPool;
     gpGtpv2cTimeoutInfoPool = timeoutInfo;
     rc = ((timeoutInfo)->timeoutCallbackFunc)(timeoutInfo->timeoutArg);

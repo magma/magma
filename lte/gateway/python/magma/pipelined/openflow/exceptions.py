@@ -15,3 +15,9 @@ class MagmaOFError(Exception):
     Base class for OpenFlow-related exceptions.
     """
     pass
+
+class MagmaDPDisconnectedError(Exception):
+    """
+    Exception class for ryu Datapath disconnect.
+    """
+    pass

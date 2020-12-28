@@ -42,7 +42,6 @@
 #include "mme_app_statistics.h"
 #include "s1ap_mme_decoder.h"
 #include "s1ap_mme_handlers.h"
-#include "s1ap_ies_defs.h"
 #include "s1ap_mme_nas_procedures.h"
 #include "s1ap_mme_itti_messaging.h"
 #include "service303.h"
@@ -50,7 +49,7 @@
 #include "mme_config.h"
 #include "timer.h"
 #include "itti_free_defined_msg.h"
-#include "S1ap-TimeToWait.h"
+#include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
 #include "common_defs.h"
 #include "intertask_interface.h"
@@ -108,7 +107,6 @@ static int s1ap_send_init_sctp(void) {
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   s1ap_state_t* state;
-  MessagesIds message_id = MESSAGES_ID_MAX;
 
   zframe_t* msg_frame = zframe_recv(reader);
   assert(msg_frame);
@@ -132,25 +130,21 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        * New message received from SCTP layer.
        * * * * Decode and handle it.
        */
-      s1ap_message message = {0};
+      S1ap_S1AP_PDU_t pdu = {0};
 
       // Invoke S1AP message decoder
-      if (s1ap_mme_decode_pdu(
-              &message, SCTP_DATA_IND(received_message_p).payload,
-              &message_id) < 0) {
+      if (s1ap_mme_decode_pdu(&pdu, SCTP_DATA_IND(received_message_p).payload) <
+          0) {
         // TODO: Notify eNB of failure with right cause
         OAILOG_ERROR(LOG_S1AP, "Failed to decode new buffer\n");
       } else {
         s1ap_mme_handle_message(
             state, SCTP_DATA_IND(received_message_p).assoc_id,
-            SCTP_DATA_IND(received_message_p).stream, &message);
-      }
-
-      if (message_id != MESSAGES_ID_MAX) {
-        s1ap_free_mme_decode_pdu(&message, message_id);
+            SCTP_DATA_IND(received_message_p).stream, &pdu);
       }
 
       // Free received PDU array
+      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
       bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
     } break;
 
@@ -260,7 +254,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
           if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
             OAILOG_WARNING_UE(
-                imsi64, LOG_S1AP,
+                LOG_S1AP, imsi64,
                 "Timer expired but no assoicated UE context for UE id %d\n",
                 mme_ue_s1ap_id);
             timer_handle_expired(
@@ -288,13 +282,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       timer_handle_expired(
           received_message_p->ittiMsg.timer_has_expired.timer_id);
 
-      /* TODO - Commenting out below function as it is not used as of now.
-       * Need to handle it when we support other timers in S1AP
-       */
-
-      /* s1ap_handle_timer_expiry
-       * (&received_message_p->ittiMsg.timer_has_expired);
-       */
     } break;
 
     case TERMINATE_MESSAGE: {
@@ -340,13 +327,12 @@ int s1ap_mme_init(const mme_config_t* mme_config_p) {
 
   if (get_asn1c_environment_version() < ASN1_MINIMUM_VERSION) {
     OAILOG_ERROR(
-        LOG_S1AP, "ASN1C version %d fount, expecting at least %d\n",
+        LOG_S1AP, "ASN1C version %d found, expecting at least %d\n",
         get_asn1c_environment_version(), ASN1_MINIMUM_VERSION);
     return RETURNerror;
   }
 
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
-  OAILOG_DEBUG(LOG_S1AP, "S1AP Release v10.5\n");
 
   if (s1ap_state_init(
           mme_config_p->max_ues, mme_config_p->max_enbs,
@@ -499,7 +485,8 @@ ue_description_t* s1ap_new_ue(
   DevAssert(ue_ref != NULL);
   ue_ref->sctp_assoc_id  = sctp_assoc_id;
   ue_ref->enb_ue_s1ap_id = enb_ue_s1ap_id;
-  ue_ref->comp_s1ap_id   = s1ap_get_comp_s1ap_id(sctp_assoc_id, enb_ue_s1ap_id);
+  ue_ref->comp_s1ap_id =
+      S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_rc_t hashrc        = hashtable_ts_insert(

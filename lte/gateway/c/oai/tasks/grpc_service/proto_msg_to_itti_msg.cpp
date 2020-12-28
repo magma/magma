@@ -27,10 +27,38 @@
 #include "3gpp_24.008.h"
 #include "common_ies.h"
 #include "feg/protos/csfb.pb.h"
+#include "lte/protos/sms_orc8r.pb.h"
 
 extern "C" {
 #include "bytes_to_ie.h"
 }
+
+namespace magma {
+using namespace lte;
+
+// SMS Orc8r Downlink
+void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
+    const SMODownlinkUnitdata* msg, itti_sgsap_downlink_unitdata_t* itti_msg) {
+  std::string imsi = msg->imsi();
+  // If north bound is Orc8r itself, IMSI prefix is used;
+  // in AGW local tests, IMSI prefix is not used
+  // Strip off any IMSI prefix
+  if (imsi.compare(0, 4, "IMSI") == 0) {
+    imsi = imsi.substr(4, std::string::npos);
+  }
+  itti_msg->imsi_length = imsi.size();
+  strcpy(itti_msg->imsi, imsi.c_str());
+
+  auto nas_msg = msg->nas_message_container();
+  if (nas_msg.length() > 0) {
+    itti_msg->nas_msg_container =
+        bfromcstr_with_str_len(nas_msg.c_str(), nas_msg.length());
+  }
+
+  return;
+}
+
+}  // namespace magma
 
 namespace magma {
 using namespace feg;
@@ -198,8 +226,10 @@ void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
   strcpy(itti_msg->imsi, imsi.c_str());
 
   auto nas_msg = msg->nas_message_container();
-  itti_msg->nas_msg_container =
-      bfromcstr_for_nas_msg_container(nas_msg.c_str(), nas_msg.length());
+  if (nas_msg.length() > 0) {
+    itti_msg->nas_msg_container =
+        bfromcstr_with_str_len(nas_msg.c_str(), nas_msg.length());
+  }
 
   return;
 }

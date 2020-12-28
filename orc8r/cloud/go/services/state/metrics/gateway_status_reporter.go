@@ -17,8 +17,9 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/lib/go/errors"
 
 	"github.com/go-openapi/swag"
@@ -47,6 +48,7 @@ func reportGatewayStatus() error {
 			nil,
 			nil,
 			configurator.EntityLoadCriteria{},
+			serdes.Entity,
 		)
 		if err != nil {
 			glog.Errorf("error getting gateways for network %v: %v\n", networkID, err)
@@ -55,7 +57,7 @@ func reportGatewayStatus() error {
 		numUpGateways := 0
 		for _, gatewayEntity := range gateways {
 			gatewayID := gatewayEntity.Key
-			status, err := state.GetGatewayStatus(networkID, gatewayEntity.PhysicalID)
+			status, err := wrappers.GetGatewayStatus(networkID, gatewayEntity.PhysicalID)
 			if err != nil {
 				if err != errors.ErrNotFound {
 					glog.Errorf("Error getting gateway state for network:%v, gateway:%v, %v", networkID, gatewayID, err)

@@ -65,7 +65,8 @@ ue_description_t* s1ap_state_get_ue_enbid(
   ue_description_t* ue = nullptr;
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  uint64_t comp_s1ap_id = (uint64_t) enb_ue_s1ap_id << 32 | sctp_assoc_id;
+  uint64_t comp_s1ap_id =
+      S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
   hashtable_ts_get(state_ue_ht, (const hash_key_t) comp_s1ap_id, (void**) &ue);
 
   return ue;
@@ -93,13 +94,8 @@ ue_description_t* s1ap_state_get_ue_imsi(imsi64_t imsi64) {
   return ue;
 }
 
-uint64_t s1ap_get_comp_s1ap_id(
-    sctp_assoc_id_t sctp_assoc_id, enb_ue_s1ap_id_t enb_ue_s1ap_id) {
-  return (uint64_t) enb_ue_s1ap_id << 32 | sctp_assoc_id;
-}
-
 void put_s1ap_imsi_map() {
-  S1apStateManager::getInstance().put_s1ap_imsi_map();
+  S1apStateManager::getInstance().write_s1ap_imsi_map_to_db();
 }
 
 s1ap_imsi_map_t* get_s1ap_imsi_map() {

@@ -39,11 +39,13 @@ message DiamServerConfig {
 
 message S6aConfig {
     DiamClientConfig server = 1;
+    repeated string PlmnIds = 2;
 }
 
 message GxConfig {
     DiamClientConfig server = 1;
     repeated DiamClientConfig servers = 2;
+    bool DisableGx = 3;
 }
 
 enum GyInitMethod {
@@ -56,6 +58,7 @@ message GyConfig {
     DiamClientConfig server = 1;
     GyInitMethod init_method = 2;
     repeated DiamClientConfig servers = 3;
+    bool DisableGy = 4;
 }
 
 message SwxConfig {
@@ -123,6 +126,21 @@ message EapAkaConfig {
     repeated string PlmnIds = 2;
 }
 
+// EapProviderTimeouts is a generic EAP provider timeout config for all new providers
+// TODO: It should eventually replace EapAkaConfig as well, but due to the braking nature
+//       of the switch farther planning is required
+message EapProviderTimeouts {
+    uint32 ChallengeMs = 1;
+    uint32 ErrorNotificationMs = 2;
+    uint32 SessionMs = 3;
+    uint32 SessionAuthenticatedMs = 4;
+}
+
+message EapSimConfig {
+    EapProviderTimeouts timeout = 1;
+    repeated string PlmnIds = 2;
+}
+
 message AAAConfig {
     uint32 IdleSessionTimeoutMs = 1; // Idle session TTL
     bool AccountingEnabled = 2; // enable accounting & maintain long term user sessions
@@ -140,4 +158,6 @@ message Config {
     HealthConfig health = 10;
     EapAkaConfig eap_aka = 11;
     AAAConfig aaa_server = 12;
+    EapSimConfig eap_sim = 13;
+
 }

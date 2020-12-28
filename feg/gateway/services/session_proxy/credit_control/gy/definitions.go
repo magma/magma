@@ -54,25 +54,27 @@ type UsedCredits struct {
 	OutputOctets      uint64
 	TotalOctets       uint64
 	Type              UsedCreditsType
+	RequestedUnits    *protos.RequestedUnits
 }
 
 type CreditControlRequest struct {
-	SessionID     string
-	Type          credit_control.CreditRequestType
-	IMSI          string
-	RequestNumber uint32
-	UeIPV4        string
-	SpgwIPV4      string
-	Apn           string
-	Imei          string
-	PlmnID        string
-	GcID          string
-	UserLocation  []byte
-	Msisdn        []byte
-	Qos           *QosRequestInfo
-	Credits       []*UsedCredits
-	RatType       string
-	TgppCtx       *protos.TgppContext
+	SessionID               string
+	Type                    credit_control.CreditRequestType
+	IMSI                    string
+	RequestNumber           uint32
+	UeIPV4                  string
+	SpgwIPV4                string
+	Apn                     string
+	Imei                    string
+	PlmnID                  string
+	GcID                    string
+	UserLocation            []byte
+	Msisdn                  []byte
+	Qos                     *QosRequestInfo
+	Credits                 []*UsedCredits
+	RatType                 string
+	TgppCtx                 *protos.TgppContext
+	ChargingCharacteristics string
 }
 
 type QosRequestInfo struct {
@@ -81,14 +83,12 @@ type QosRequestInfo struct {
 }
 
 type ReceivedCredits struct {
-	ResultCode        uint32
-	RatingGroup       uint32
-	ServiceIdentifier *uint32
-	GrantedUnits      *credit_control.GrantedServiceUnit
-	ValidityTime      uint32
-	IsFinal           bool
-	FinalAction       FinalUnitAction // unused if IsFinal is false
-	RedirectServer    RedirectServer
+	ResultCode          uint32
+	RatingGroup         uint32
+	ServiceIdentifier   *uint32
+	GrantedUnits        *credit_control.GrantedServiceUnit
+	ValidityTime        uint32
+	FinalUnitIndication *FinalUnitIndication
 }
 
 type CreditControlAnswer struct {
@@ -100,8 +100,9 @@ type CreditControlAnswer struct {
 }
 
 type FinalUnitIndication struct {
-	Action         FinalUnitAction `avp:"Final-Unit-Action"`
+	FinalAction    FinalUnitAction `avp:"Final-Unit-Action"`
 	RedirectServer RedirectServer  `avp:"Redirect-Server"`
+	RestrictRules  []string        `avp:"Filter-Id"`
 }
 
 type RedirectServer struct {

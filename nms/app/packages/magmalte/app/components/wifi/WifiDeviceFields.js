@@ -154,6 +154,8 @@ export default function WifiDeviceFields(props: Props) {
         />
       </FormGroup>
       <KeyValueFields
+        key_label="key"
+        value_label="value"
         keyValuePairs={props.additionalProps || [['', '']]}
         onChange={props.additionalPropsChangeHandler}
       />

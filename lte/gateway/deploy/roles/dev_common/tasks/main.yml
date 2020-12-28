@@ -17,6 +17,9 @@
     msg: "Ansible upgrade needed. Current version is {{ ansible_version.full }}"
   when: preburn
 
+- name: Install ansible community collection
+  shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
+
 - name: Set build environment variables
   lineinfile:
     dest: /etc/environment
@@ -26,6 +29,7 @@
     -  MAGMA_ROOT={{ magma_root }}
     -  OAI_BUILD={{ oai_build }}
     -  C_BUILD={{ c_build }}
+    -  GO_BUILD={{ go_build }}
     -  CCACHE_DIR="{{magma_root}}/.cache/gateway/ccache"
     -  MAGMA_DEV_MODE=1
     -  XDG_CACHE_HOME="{{magma_root}}/.cache"
@@ -183,6 +187,9 @@
       - iperf3
       - libsystemd-dev
       - pkg-config
+      - libpcap-dev
+      - libtins-dev
+      - libmnl-dev
   retries: 5
   when: preburn
 

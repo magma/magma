@@ -14,9 +14,8 @@
 package models
 
 import (
-	"net"
-
 	"github.com/go-openapi/strfmt"
+	"github.com/pkg/errors"
 )
 
 func (m BaseNames) ValidateModel() error {
@@ -27,42 +26,37 @@ func (m RuleNames) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-// validateIPBlocks parses and validates IP networks containing subnet masks.
-// Returns an error in case any IP network in list is invalid.
-func validateIPBlocks(ipBlocks []string) error {
-	for _, ipBlock := range ipBlocks {
-		_, _, err := net.ParseCIDR(ipBlock)
-		if err != nil {
-			return err
+func (m *PolicyRule) ValidateModel() error {
+	for _, flow := range m.FlowList {
+		if flow.Match != nil {
+			errMatch := flow.Match.ValidateModel()
+			if errMatch != nil {
+				return errMatch
+			}
 		}
 	}
-	return nil
+	return m.Validate(strfmt.Default)
 }
 
-// ValidateModel does standard swagger validation and any custom validation
-func (m *PolicyRule) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
+func (m *FlowMatch) ValidateModel() error {
+	if (m.IPV4Dst != "" || m.IPV4Src != "") && (m.IPSrc != nil || m.IPDst != nil) {
+		return errors.New("Invalid Argument: Can't mix old ipv4_src/ipv4_dst type with the new ip_src/ip_dst")
 	}
-	return nil
+	return m.Validate(strfmt.Default)
 }
 
-// ValidateModel does standard swagger validation and any custom validation
 func (m *RatingGroup) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	return nil
+	return m.Validate(strfmt.Default)
 }
 
-// ValidateModel does standard swagger validation and any custom validation
 func (m *MutableRatingGroup) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	return nil
+	return m.Validate(strfmt.Default)
 }
 
 func (m *NetworkSubscriberConfig) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *PolicyQosProfile) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }

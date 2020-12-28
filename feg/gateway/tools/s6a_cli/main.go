@@ -15,6 +15,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -27,14 +28,13 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s6a_proxy"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/s6a_proxy/servicers/test"
 	"magma/orc8r/cloud/go/tools/commands"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"golang.org/x/net/context"
 )
 
 const (
@@ -58,6 +58,9 @@ var (
 	destRealm      string = "pre.mnc007.mcc722.3gppnetwork.org"
 	testServer     bool
 	testServerAddr string
+	eutranVectors  int = 3
+	utranVectors   int = 0
+	useMconfig     bool
 )
 
 type s6aCli interface {
@@ -96,7 +99,8 @@ func init() {
 		f.PrintDefaults()
 	}
 	f.StringVar(&proxyAddr, "proxy", proxyAddr, "s6a proxy address")
-	f.StringVar(&s6aAddr, "hss_addr", s6aAddr, "s6a server (HSS) address - overwrites proxy address")
+	f.StringVar(&s6aAddr, "hss_addr", s6aAddr,
+		"s6a server (HSS) address - overwrites proxy address and starts local s6a proxy")
 	f.StringVar(&network, "network", network, "s6a server (HSS) network: tcp/sctp")
 	f.StringVar(&localAddr, "local_addr", localAddr, "s6a client local address to buind to")
 	f.StringVar(&diamHost, "host", diamHost, "s6a diam host")
@@ -109,6 +113,10 @@ func init() {
 		"Start local test s6a server bound to a specified by 'test_addr' or 'hss_addr' address")
 	f.StringVar(&testServerAddr, "test_addr", testServerAddr,
 		"s6a test server address (defaults to '-hss_addr' if not specified)")
+	f.IntVar(&eutranVectors, "eutran_num", eutranVectors, "Number of E-UTRAN vectors to request")
+	f.IntVar(&utranVectors, "utran_num", utranVectors, "Number of UTRAN vectors to request")
+	f.BoolVar(&useMconfig, "use_mconfig", false,
+		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
 }
 
 // AIR Handler
@@ -154,6 +162,12 @@ func air(cmd *commands.Command, args []string) int {
 		DestRealm: destRealm,
 	}
 
+	conf := &servicers.S6aProxyConfig{
+		ClientCfg: clientCfg,
+		ServerCfg: serverCfg,
+		PlmnIds:   plmn_filter.PlmnIdVals{},
+	}
+
 	if testServer {
 		if len(testServerAddr) == 0 {
 			testServerAddr = s6aAddr
@@ -165,18 +179,20 @@ func air(cmd *commands.Command, args []string) int {
 
 	var cli s6aCli
 	var peerAddr string
-	if len(s6aAddr) > 0 { // use direct HSS connection if address is provided
-		fmt.Printf(
-			"Direct connection:\n\tClient Config: %+v\n\tServer Config: %+v\n", *clientCfg, *serverCfg)
+	if len(s6aAddr) > 0 || useMconfig { // use direct HSS connection if address is provided
+		if useMconfig {
+			conf = servicers.GetS6aProxyConfigs()
+		}
+		fmt.Printf("Direct connection:\n\tClient Config: %+v\n\tServer Config: %+v\n", *clientCfg, *serverCfg)
 
-		localProxy, err := servicers.NewS6aProxy(clientCfg, serverCfg)
+		localProxy, err := servicers.NewS6aProxy(conf)
 		if err != nil {
 			f.Usage()
 			log.Printf("BuiltIn Proxy initialization error: %v", err)
 			return 5
 		}
 		cli = s6aBuiltIn{impl: localProxy}
-		peerAddr = serverCfg.Addr
+		peerAddr = conf.ServerCfg.Addr
 	} else {
 		cli = s6aProxyCli{}
 		currAddr, _ := registry.GetServiceAddress(registry.S6A_PROXY)
@@ -206,12 +222,12 @@ func air(cmd *commands.Command, args []string) int {
 		}
 		peerAddr = proxyAddr
 	}
-
 	req := &protos.AuthenticationInformationRequest{
-		UserName:                   imsi,
-		VisitedPlmn:                plmnId[:],
-		NumRequestedEutranVectors:  3,
-		ImmediateResponsePreferred: true,
+		UserName:                      imsi,
+		VisitedPlmn:                   plmnId[:],
+		NumRequestedEutranVectors:     uint32(eutranVectors),
+		ImmediateResponsePreferred:    true,
+		NumRequestedUtranGeranVectors: uint32(utranVectors),
 	}
 	// AIR
 	json, err := orcprotos.MarshalIntern(req)
@@ -262,7 +278,7 @@ func parseAddr(addr string) (string, int, error) {
 
 func startTestServer(protocol, address string) error {
 	fmt.Printf("Starting Test S6a server on %s: %s\n", protocol, address)
-	err := test.StartTestS6aServer(protocol, address)
+	err := test.StartTestS6aServer(protocol, address, false)
 	if err != nil {
 		log.Printf("Test S6a server stert error: %v", err)
 		return err

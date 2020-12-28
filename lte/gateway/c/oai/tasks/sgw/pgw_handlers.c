@@ -59,6 +59,7 @@
 #include "sgw_ie_defs.h"
 #include "pgw_procedures.h"
 #include "spgw_types.h"
+#include "conversions.h"
 
 extern spgw_config_t spgw_config;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
@@ -99,6 +100,7 @@ void handle_s5_create_session_request(
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   s5_create_session_response_t s5_response                      = {0};
   struct in_addr inaddr;
+  struct in6_addr in6addr;
   char* imsi = NULL;
   char* apn  = NULL;
 
@@ -182,25 +184,21 @@ void handle_s5_create_session_request(
       // implement different logic between the PDN types.
       if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
         pgw_handle_allocate_ipv4_address(
-            imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4", context_teid,
-            eps_bearer_id, spgw_state, new_bearer_ctxt_info_p, s5_response);
+            imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4", spgw_state,
+            new_bearer_ctxt_info_p, s5_response);
       }
       break;
 
     case IPv6:
-      increment_counter(
-          "ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result", "failure");
-      OAILOG_ERROR_UE(
-          LOG_SPGW_APP,
-          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
-          "IPV6 PDN type NOT Supported\n");
-      sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;
+      pgw_handle_allocate_ipv6_address(
+          imsi, apn, &in6addr, sgi_create_endpoint_resp, "ipv6", spgw_state,
+          new_bearer_ctxt_info_p, s5_response);
       break;
 
     case IPv4_AND_v6:
-      pgw_handle_allocate_ipv4_address(
-          imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4v6", context_teid,
-          eps_bearer_id, spgw_state, new_bearer_ctxt_info_p, s5_response);
+      pgw_handle_allocate_ipv4v6_address(
+          imsi, apn, &inaddr, &in6addr, sgi_create_endpoint_resp, "ipv4v6",
+          spgw_state, new_bearer_ctxt_info_p, s5_response);
       break;
 
     default:
@@ -497,19 +495,30 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
 
 //------------------------------------------------------------------------------
 int spgw_send_nw_init_activate_bearer_rsp(
-    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id) {
+    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
+    uint8_t default_bearer_id, char* policy_rule_name) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint32_t rc = RETURNok;
 
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
-      "To be implemented: Sending Create Bearer Rsp to PCRF with EBI %d with "
-      "cause :%d \n",
-      eps_bearer_id, cause);
-  // Send Create Bearer Rsp to PCRF
-  // TODO-Uncomment once implemented at PCRF
-  /* rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi,
-       act_ded_bearer_rsp->cause);*/
+      "Sending Create Bearer Rsp to PCRF with EBI %d with "
+      "cause: %d linked bearer id: %d policy rule name: %s\n",
+      eps_bearer_id, cause, default_bearer_id, policy_rule_name);
+  // Send Dedicated Bearer ID and Policy Rule ID binding to PCRF
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+  if (cause == REQUEST_ACCEPTED) {
+    pcef_send_policy2bearer_binding(
+        imsi_str, default_bearer_id, policy_rule_name, eps_bearer_id);
+  } else {
+    // Send 0 as dedicated bearer id if the create bearer request
+    // was not accepted. Session manager should delete the policy rule
+    // for this bearer.
+    pcef_send_policy2bearer_binding(
+        imsi_str, default_bearer_id, policy_rule_name, 0);
+  }
+
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
@@ -632,6 +641,8 @@ static int _create_temporary_dedicated_bearer_context(
   memcpy(
       &eps_bearer_ctxt_p->eps_bearer_qos, &bearer_req_p->eps_bearer_qos,
       sizeof(bearer_qos_t));
+  // Save Policy Rule Name
+  strcpy(eps_bearer_ctxt_p->policy_rule_name, bearer_req_p->policy_rule_name);
 
   OAILOG_INFO_UE(
       LOG_SPGW_APP, spgw_ctxt_p->sgw_eps_bearer_context_information.imsi64,

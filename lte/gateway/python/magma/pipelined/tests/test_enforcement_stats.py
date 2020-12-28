@@ -19,14 +19,10 @@ import warnings
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     RedirectInformation
-from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.imsi import encode_imsi
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.policy_converters import flow_match_to_magma_match
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto, \
+    convert_ipv6_bytes_to_ip_proto
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
     TCPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
@@ -35,18 +31,18 @@ from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import FlowVerifier, \
-    create_service_manager, get_enforcement_stats, start_ryu_app_thread, \
-    stop_ryu_app_thread, wait_after_send, wait_for_enforcement_stats, \
-    FlowTest, SnapshotVerifier, fake_controller_setup
+from magma.pipelined.tests.pipelined_test_util import create_service_manager, \
+    get_enforcement_stats, start_ryu_app_thread,  stop_ryu_app_thread, \
+    wait_after_send, wait_for_enforcement_stats, FlowTest, SnapshotVerifier, \
+    fake_controller_setup
 from scapy.all import IP
 
 
-@unittest.skip("Skip test, currenlty flaky, looking into it")
 class EnforcementStatsTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
+    DEFAULT_DROP_FLOW_NAME = '(ノಠ益ಠ)ノ彡┻━┻'
 
     def setUp(self):
         """
@@ -101,11 +97,15 @@ class EnforcementStatsTest(unittest.TestCase):
             config={
                 'bridge_name': self.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
-                'enforcement': {'poll_interval': 2},
+                'enforcement': {
+                    'poll_interval': 2,
+                    'default_drop_flow_name': self.DEFAULT_DROP_FLOW_NAME
+                },
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
                 'clean_restart': True,
+                'redis_enabled': False,
             },
             mconfig=PipelineD(),
             loop=loop_mock,
@@ -134,14 +134,6 @@ class EnforcementStatsTest(unittest.TestCase):
         stop_ryu_app_thread(self.thread)
         BridgeTools.destroy_bridge(self.BRIDGE)
 
-    def _wait_func(self, stat_names):
-        def func():
-            wait_after_send(self.testing_controller)
-            wait_for_enforcement_stats(self.enforcement_stats_controller,
-                                       stat_names)
-
-        return func
-
     def test_subscriber_policy(self):
         """
         Adds 2 policies to subscriber, verifies that EnforcementStatsController
@@ -162,23 +154,26 @@ class EnforcementStatsTest(unittest.TestCase):
         """ Create 2 policy rules for the subscriber """
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         flow_list2 = [FlowDescription(
             match=FlowMatch(
-                ipv4_src='45.10.0.0/24', direction=FlowMatch.DOWNLINK),
+                ip_src=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+                direction=FlowMatch.DOWNLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
             PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
             PolicyRule(id='rx_match', priority=5, flow_list=flow_list2)
         ]
-        enf_stat_name = [imsi + '|tx_match', imsi + '|rx_match']
+        enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
+                         imsi + '|rx_match' + '|' + sub_ip]
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'tx_match')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'tx_match')
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'rx_match')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policies[0].id] = policies[0]
@@ -205,13 +200,15 @@ class EnforcementStatsTest(unittest.TestCase):
             .build()
 
         # =========================== Verification ===========================
-        flow_verifier = FlowVerifier([], self._wait_func(enf_stat_name))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
         """ Send packets, wait until pkts are received by ovs and enf stats """
-        with isolator, sub_context, flow_verifier, snapshot_verifier:
+        with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet1)
             pkt_sender.send(packet2)
+
+        wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                   enf_stat_name)
 
         stats = get_enforcement_stats(
             self.enforcement_stats_controller._report_usage.call_args_list)
@@ -231,7 +228,7 @@ class EnforcementStatsTest(unittest.TestCase):
         total_bytes_pkt2 = num_pkts_rx_match * len(packet2[IP])
         self.assertEqual(stats[enf_stat_name[1]].bytes_rx, total_bytes_pkt2)
 
-        self.assertEqual(len(stats), 2)
+        self.assertEqual(len(stats), 3)
 
     def test_redirect_policy(self):
         """
@@ -258,9 +255,9 @@ class EnforcementStatsTest(unittest.TestCase):
                 server_address="http://about.sha.ddih.org/"
             )
         )
-        stat_name = imsi + '|redir_test'
+        stat_name = imsi + '|redir_test' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'redir_test')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'redir_test')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policy.id] = policy
@@ -282,13 +279,17 @@ class EnforcementStatsTest(unittest.TestCase):
             .build()
 
         # =========================== Verification ===========================
-        flow_verifier = FlowVerifier([], self._wait_func([stat_name]))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
         """ Send packet, wait until pkts are received by ovs and enf stats """
-        with isolator, sub_context, flow_verifier, snapshot_verifier:
+        with isolator, sub_context, snapshot_verifier:
+            self.enforcement_stats_controller._report_usage.reset_mock()
             pkt_sender.send(packet)
 
+        wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                   [stat_name])
+
+        """ Send packets, wait until pkts are received by ovs and enf stats """
         stats = get_enforcement_stats(
             self.enforcement_stats_controller._report_usage.call_args_list)
 
@@ -313,15 +314,13 @@ class EnforcementStatsTest(unittest.TestCase):
 
         flow_list = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'rule1')
-        version = \
-            self.service_manager.session_rule_version_mapper.get_version(
-                imsi, 'rule1')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policy.id] = policy
@@ -331,33 +330,120 @@ class EnforcementStatsTest(unittest.TestCase):
         ).add_static_rule(policy.id)
 
         # =========================== Verification ===========================
-        rule_num = self.enforcement_stats_controller._rule_mapper \
-            .get_or_create_rule_num(policy.id)
-        enf_query = FlowQuery(self._main_tbl_num, self.testing_controller,
-                              match=flow_match_to_magma_match(
-                                  FlowMatch(ipv4_dst='45.10.0.0/25',
-                                            direction=FlowMatch.UPLINK)),
-                              cookie=rule_num)
-        es_query = FlowQuery(self._scratch_tbl_num,
-                             self.testing_controller,
-                             match=MagmaMatch(imsi=encode_imsi(imsi),
-                                              reg2=rule_num,
-                                              rule_version=version),
-                             cookie=rule_num)
 
         # Verifies that 1 flow is installed in enforcement and 2 flows are
         # installed in enforcement stats, one for uplink and one for downlink.
-        flow_verifier = FlowVerifier([
-            FlowTest(enf_query, 0, flow_count=1),
-            FlowTest(es_query, 0, flow_count=2),
-        ], lambda: None)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 
-        with sub_context, flow_verifier, snapshot_verifier:
+        with sub_context, snapshot_verifier:
             pass
 
-        flow_verifier.verify()
+    def test_deny_rule_install(self):
+        """
+        Adds a policy to a subscriber. Verifies that flows are properly
+        installed in enforcement and enforcement stats.
+        Assert:
+            Policy classification flows installed in enforcement
+            Policy match flows installed in enforcement_stats
+        """
+        fake_controller_setup(self.enforcement_controller,
+                              self.enforcement_stats_controller)
+        imsi = 'IMSI001010000000014'
+        sub_ip = '192.16.15.7'
+        num_pkt_unmatched = 4096
+
+        flow_list = [FlowDescription(
+            match=FlowMatch(
+                ip_dst=convert_ipv4_str_to_ip_proto('1.1.0.0/24'),
+                direction=FlowMatch.UPLINK),
+            action=FlowDescription.DENY)
+        ]
+        policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
+        self.service_manager.session_rule_version_mapper.update_version(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
+
+        """ Setup subscriber, setup table_isolation to fwd pkts """
+        self._static_rule_dict[policy.id] = policy
+        sub_context = RyuDirectSubscriberContext(
+            imsi, sub_ip, self.enforcement_controller,
+            self._main_tbl_num, self.enforcement_stats_controller
+        ).add_static_rule(policy.id)
+
+        isolator = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
+                .build_requests(),
+            self.testing_controller
+        )
+
+        pkt_sender = ScapyPacketInjector(self.IFACE)
+        packet = IPPacketBuilder() \
+            .set_ip_layer('45.10.0.0/20', sub_ip) \
+            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00") \
+            .build()
+
+        # =========================== Verification ===========================
+
+        # Verifies that 1 flow is installed in enforcement and 2 flows are
+        # installed in enforcement stats, one for uplink and one for downlink.
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+
+        with isolator, sub_context, snapshot_verifier:
+            pkt_sender.send(packet)
+
+        enf_stat_name = imsi + '|' + self.DEFAULT_DROP_FLOW_NAME + '|' + sub_ip
+        wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                   [enf_stat_name])
+        stats = get_enforcement_stats(
+            self.enforcement_stats_controller._report_usage.call_args_list)
+
+        self.assertEqual(stats[enf_stat_name].sid, imsi)
+        self.assertEqual(stats[enf_stat_name].rule_id,
+                         self.DEFAULT_DROP_FLOW_NAME)
+        self.assertEqual(stats[enf_stat_name].dropped_rx, 0)
+        self.assertEqual(stats[enf_stat_name].dropped_tx,
+                         num_pkt_unmatched * len(packet))
+
+    def test_ipv6_rule_install(self):
+        """
+        Adds a ipv6 policy to a subscriber. Verifies that flows are properly
+        installed in enforcement and enforcement stats.
+
+        Assert:
+            Policy classification flows installed in enforcement
+            Policy match flows installed in enforcement_stats
+        """
+        fake_controller_setup(self.enforcement_controller,
+                              self.enforcement_stats_controller)
+
+        imsi = 'IMSI001010000000013'
+        sub_ip = 'de34:431d:1bc::'
+
+        flow_list = [FlowDescription(
+            match=FlowMatch(
+                ip_dst=convert_ipv6_bytes_to_ip_proto(
+                    'f333:432::dbca'.encode('utf-8')),
+                direction=FlowMatch.UPLINK),
+            action=FlowDescription.PERMIT)
+        ]
+        policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
+        self.service_manager.session_rule_version_mapper.update_version(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
+
+        """ Setup subscriber, setup table_isolation to fwd pkts """
+        self._static_rule_dict[policy.id] = policy
+        sub_context = RyuDirectSubscriberContext(
+            imsi, sub_ip, self.enforcement_controller,
+            self._main_tbl_num, self.enforcement_stats_controller
+        ).add_static_rule(policy.id)
+
+        # =========================== Verification ===========================
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+
+        with sub_context, snapshot_verifier:
+            pass
 
     def test_rule_deactivation(self):
         """
@@ -378,16 +464,14 @@ class EnforcementStatsTest(unittest.TestCase):
 
         flow_list = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
-        enf_stat_name = imsi + '|rule1'
+        enf_stat_name = imsi + '|rule1' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'rule1')
-        version = \
-            self.service_manager.session_rule_version_mapper.get_version(
-                imsi, 'rule1')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policy.id] = policy
@@ -409,26 +493,7 @@ class EnforcementStatsTest(unittest.TestCase):
             .build()
 
         # =========================== Verification ===========================
-        rule_num = self.enforcement_stats_controller._rule_mapper \
-            .get_or_create_rule_num(policy.id)
-        enf_query = FlowQuery(self._main_tbl_num, self.testing_controller,
-                              match=flow_match_to_magma_match(
-                                  FlowMatch(ipv4_dst='45.10.0.0/25',
-                                            direction=FlowMatch.UPLINK)),
-                              cookie=rule_num)
-        es_query = FlowQuery(self._scratch_tbl_num,
-                             self.testing_controller,
-                             match=MagmaMatch(imsi=encode_imsi(imsi),
-                                              reg2=rule_num,
-                                              rule_version=version),
-                             cookie=rule_num)
         """ Verify that flows are properly deleted """
-        verify_enforcement_stats = FlowVerifier([
-            FlowTest(es_query, 0, flow_count=0),
-        ], self._wait_func([enf_stat_name]))
-        verify_enforcement = FlowVerifier([
-            FlowTest(enf_query, 0, flow_count=0),
-        ], lambda: None)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 
@@ -437,17 +502,17 @@ class EnforcementStatsTest(unittest.TestCase):
         then deactivate the rule in enforcement controller. This emulates the
         case where there is unreported traffic after rule deactivation.
         """
-        with isolator, sub_context, verify_enforcement, snapshot_verifier:
-            with verify_enforcement_stats:
-                self.enforcement_stats_controller._report_usage.reset_mock()
-                pkt_sender.send(packet)
-                self.service_manager.session_rule_version_mapper. \
-                    update_version(imsi, 'rule1')
-                self.enforcement_controller.deactivate_rules(imsi, [policy.id])
+        with isolator, sub_context, snapshot_verifier:
+            self.enforcement_stats_controller._report_usage.reset_mock()
+            pkt_sender.send(packet)
+            self.service_manager.session_rule_version_mapper. \
+                update_version(imsi, convert_ipv4_str_to_ip_proto(sub_ip),
+                               'rule1')
+            self.enforcement_controller.deactivate_rules(
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.id])
 
-        verify_enforcement.verify()
-        verify_enforcement_stats.verify()
-
+        wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                   [enf_stat_name])
         stats = get_enforcement_stats(
             self.enforcement_stats_controller._report_usage.call_args_list)
 
@@ -457,7 +522,15 @@ class EnforcementStatsTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name].bytes_tx,
                          num_pkts_tx_match * len(packet))
 
-        self.assertEqual(len(stats), 1)
+        self.assertEqual(len(stats), 2)
+
+        self.enforcement_stats_controller.deactivate_default_flow(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip))
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager,
+                                             'nuke_ue')
+        with snapshot_verifier:
+            pass
 
     def test_rule_reactivation(self):
         """
@@ -479,16 +552,14 @@ class EnforcementStatsTest(unittest.TestCase):
 
         flow_list = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
-        enf_stat_name = imsi + '|rule1'
+        enf_stat_name = imsi + '|rule1' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'rule1')
-        version = \
-            self.service_manager.session_rule_version_mapper.get_version(
-                imsi, 'rule1')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policy.id] = policy
@@ -510,34 +581,8 @@ class EnforcementStatsTest(unittest.TestCase):
             .build()
 
         # =========================== Verification ===========================
-        rule_num = self.enforcement_stats_controller._rule_mapper \
-            .get_or_create_rule_num(policy.id)
-        enf_query = FlowQuery(self._main_tbl_num, self.testing_controller,
-                              match=flow_match_to_magma_match(
-                                  FlowMatch(ipv4_dst='45.10.0.0/25',
-                                            direction=FlowMatch.UPLINK)),
-                              cookie=rule_num)
-        es_old_version_query = FlowQuery(self._scratch_tbl_num,
-                                         self.testing_controller,
-                                         match=MagmaMatch(
-                                             imsi=encode_imsi(imsi),
-                                             reg2=rule_num,
-                                             rule_version=version),
-                                         cookie=rule_num)
-        es_new_version_query = FlowQuery(self._scratch_tbl_num,
-                                         self.testing_controller,
-                                         match=MagmaMatch(
-                                             imsi=encode_imsi(imsi),
-                                             reg2=rule_num,
-                                             rule_version=version + 1),
-                                         cookie=rule_num)
-        packet_wait = FlowVerifier([], self._wait_func([enf_stat_name]))
+
         """ Verify that flows are properly deleted """
-        verifier = FlowVerifier([
-            FlowTest(es_old_version_query, 0, flow_count=0),
-            FlowTest(es_new_version_query, num_pkts_tx_match, flow_count=2),
-            FlowTest(enf_query, num_pkts_tx_match, flow_count=1),
-        ], self._wait_func([enf_stat_name]))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 
@@ -545,23 +590,26 @@ class EnforcementStatsTest(unittest.TestCase):
         Send a packet, then deactivate and reactivate the same rule and send a
         packet. Wait until it is received by ovs and enf stats.
         """
-        with isolator, sub_context, verifier, snapshot_verifier:
-            with packet_wait:
-                self.enforcement_stats_controller._report_usage.reset_mock()
-                pkt_sender.send(packet)
+        with isolator, sub_context, snapshot_verifier:
+            self.enforcement_stats_controller._report_usage.reset_mock()
+            pkt_sender.send(packet)
 
             self.enforcement_stats_controller._report_usage.reset_mock()
             self.service_manager.session_rule_version_mapper. \
-                update_version(imsi, 'rule1')
-            self.enforcement_controller.deactivate_rules(imsi, [policy.id])
-            self.enforcement_controller.activate_rules(imsi, sub_ip,
-                                                       [policy.id], [])
-            self.enforcement_stats_controller.activate_rules(imsi, sub_ip,
-                                                             [policy.id], [])
+                update_version(imsi, convert_ipv4_str_to_ip_proto(sub_ip),
+                               'rule1')
+            self.enforcement_controller.deactivate_rules(
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.id])
+            self.enforcement_controller.activate_rules(
+                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
+                [])
+            self.enforcement_stats_controller.activate_rules(
+                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
+                [])
             pkt_sender.send(packet)
 
-        verifier.verify()
-
+        wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                   [enf_stat_name])
         stats = get_enforcement_stats(
             self.enforcement_stats_controller._report_usage.call_args_list)
 
@@ -574,7 +622,7 @@ class EnforcementStatsTest(unittest.TestCase):
         # TODO Figure out why this one fails.
         #self.assertEqual(stats[enf_stat_name].bytes_tx,
         #                 num_pkts_tx_match * len(packet))
-        self.assertEqual(len(stats), 1)
+        self.assertEqual(len(stats), 2)
 
 
 if __name__ == "__main__":

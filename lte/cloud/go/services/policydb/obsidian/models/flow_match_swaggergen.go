@@ -24,10 +24,16 @@ type FlowMatch struct {
 	// Enum: [UPLINK DOWNLINK]
 	Direction *string `json:"direction"`
 
+	// ip dst
+	IPDst *IPAddress `json:"ip_dst,omitempty" magma_alt_name:"IpDst"`
+
 	// ip proto
 	// Required: true
 	// Enum: [IPPROTO_IP IPPROTO_TCP IPPROTO_UDP IPPROTO_ICMP]
 	IPProto *string `json:"ip_proto"`
+
+	// ip src
+	IPSrc *IPAddress `json:"ip_src,omitempty" magma_alt_name:"IpSrc"`
 
 	// ipv4 dst
 	IPV4Dst string `json:"ipv4_dst,omitempty" magma_alt_name:"Ipv4Dst"`
@@ -56,7 +62,15 @@ func (m *FlowMatch) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateIPDst(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateIPProto(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIPSrc(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -109,6 +123,24 @@ func (m *FlowMatch) validateDirection(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *FlowMatch) validateIPDst(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPDst) { // not required
+		return nil
+	}
+
+	if m.IPDst != nil {
+		if err := m.IPDst.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ip_dst")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
 var flowMatchTypeIPProtoPropEnum []interface{}
 
 func init() {
@@ -153,6 +185,24 @@ func (m *FlowMatch) validateIPProto(formats strfmt.Registry) error {
 	// value enum
 	if err := m.validateIPProtoEnum("ip_proto", "body", *m.IPProto); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *FlowMatch) validateIPSrc(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPSrc) { // not required
+		return nil
+	}
+
+	if m.IPSrc != nil {
+		if err := m.IPSrc.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ip_src")
+			}
+			return err
+		}
 	}
 
 	return nil

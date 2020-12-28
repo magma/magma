@@ -41,40 +41,40 @@ class AsyncDirectorydClient : public GRPCReceiver {
    * @return true if the operation was successful
    */
   bool get_directoryd_ip_field(
-    const std::string& imsi,
-    std::function<void(Status status, DirectoryField)> callback);
+      const std::string& imsi,
+      std::function<void(Status status, DirectoryField)> callback);
   /**
    * Update the directoryd record
    * @param update_request - request used to update the record
    * @return status of update
    */
   void update_directoryd_record(
-    const UpdateRecordRequest& request,
-    std::function<void(Status status, Void)> callback);
-   /**
+      const UpdateRecordRequest& request,
+      std::function<void(Status status, Void)> callback);
+  /**
    * Delete the directoryd record for the specified ID
    * @param delelete_request - request used to delete the record
    * @return status of delete
    */
   bool delete_directoryd_record(
-    const DeleteRecordRequest& request,
-    std::function<void(Status status, Void)> callback);
+      const DeleteRecordRequest& request,
+      std::function<void(Status status, Void)> callback);
 
   /**
    * Get all directory records
    * @return true if the operation was successful
    */
   void get_all_directoryd_records(
-    std::function<void(Status status, AllDirectoryRecords)> callback);
+      std::function<void(Status status, AllDirectoryRecords)> callback);
 
  private:
-  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
   std::unique_ptr<GatewayDirectoryService::Stub> stub_;
 
  private:
   void get_directoryd_ip_field_rpc(
-    const GetDirectoryFieldRequest &request,
-    std::function<void(Status, DirectoryField)> callback);
+      const GetDirectoryFieldRequest& request,
+      std::function<void(Status, DirectoryField)> callback);
 };
 
-} // namespace magma
+}  // namespace magma

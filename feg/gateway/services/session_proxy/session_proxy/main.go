@@ -125,43 +125,62 @@ func generateClientsConfsAndDiameterConnection() (
 			PCRFConfig:       PCRFConfs[i],
 			RequestTimeout:   3 * time.Second,
 			UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
+			DisableGx:        gxGlobalConf.DisableGx,
+			DisableGy:        gyGlobalConf.DisableGy,
 		}
 		// Fill in gx and gy config for controller i
 		if OCSConfsCopy[i].DiameterServerConnConfig == PCRFConfsCopy[i].DiameterServerConnConfig &&
 			OCSConfsCopy[i] != PCRFConfsCopy[i] {
-			glog.Infof("Using single Gy/Gx connection for server: %+v",
-				OCSConfsCopy[i].DiameterServerConnConfig)
 			var clientCfg = *gxCliConfs[i]
 			clientCfg.AuthAppID = gyCLiConfs[i].AppID
 			diamClient := diameter.NewClient(&clientCfg)
 			diamClient.BeginConnection(OCSConfsCopy[i])
-			controlParam.CreditClient = gy.NewConnectedGyClient(
-				diamClient,
-				OCSConfsCopy[i],
-				gy.GetGyReAuthHandler(cloudReg),
-				cloudReg,
-				gyGlobalConf)
-			controlParam.PolicyClient = gx.NewConnectedGxClient(
-				diamClient,
-				OCSConfsCopy[i],
-				gx.GetGxReAuthHandler(cloudReg, policyDBClient),
-				cloudReg,
-				gxGlobalConf)
+			if gyGlobalConf.DisableGy {
+				glog.Info("Gy Disabled by configuration, not connecting to OCS")
+			} else {
+				glog.Infof("Using single Gy/Gx connection for server: %+v",
+					OCSConfsCopy[i].DiameterServerConnConfig)
+				controlParam.CreditClient = gy.NewConnectedGyClient(
+					diamClient,
+					OCSConfsCopy[i],
+					gy.GetGyReAuthHandler(cloudReg),
+					cloudReg,
+					gyGlobalConf)
+			}
+			if gxGlobalConf.DisableGx {
+				glog.Info("Gx Disabled by configuration, not connecting to PCRF")
+			} else {
+				controlParam.PolicyClient = gx.NewConnectedGxClient(
+					diamClient,
+					OCSConfsCopy[i],
+					gx.GetGxReAuthHandler(cloudReg, policyDBClient),
+					cloudReg,
+					gxGlobalConf)
+			}
 		} else {
+
 			glog.Infof("Using distinct Gy: %+v & Gx: %+v connection",
 				OCSConfsCopy[i].DiameterServerConnConfig, PCRFConfsCopy[i].DiameterServerConnConfig)
-			controlParam.CreditClient = gy.NewGyClient(
-				gy.GetGyClientConfiguration()[i],
-				OCSConfsCopy[i],
-				gy.GetGyReAuthHandler(cloudReg),
-				cloudReg,
-				gyGlobalConf)
-			controlParam.PolicyClient = gx.NewGxClient(
-				gx.GetGxClientConfiguration()[i],
-				PCRFConfsCopy[i],
-				gx.GetGxReAuthHandler(cloudReg, policyDBClient),
-				cloudReg,
-				gxGlobalConf)
+			if gyGlobalConf.DisableGy {
+				glog.Info("Gy Disabled by configuration, not connecting to OCS")
+			} else {
+				controlParam.CreditClient = gy.NewGyClient(
+					gy.GetGyClientConfiguration()[i],
+					OCSConfsCopy[i],
+					gy.GetGyReAuthHandler(cloudReg),
+					cloudReg,
+					gyGlobalConf)
+			}
+			if gxGlobalConf.DisableGx {
+				glog.Info("Gx Disabled by configuration, not connecting to PCRF")
+			} else {
+				controlParam.PolicyClient = gx.NewGxClient(
+					gx.GetGxClientConfiguration()[i],
+					PCRFConfsCopy[i],
+					gx.GetGxReAuthHandler(cloudReg, policyDBClient),
+					cloudReg,
+					gxGlobalConf)
+			}
 		}
 		controllerParms = append(controllerParms, controlParam)
 	}

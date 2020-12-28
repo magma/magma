@@ -1,0 +1,65 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+import "lte/protos/mobilityd.proto";
+import "lte/protos/subscriberdb.proto";
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+message Header {
+    string name = 1;
+    string value = 2;
+}
+
+message AddUEHeaderEnrichmentRequest {
+    lte.IPAddress ue_ip = 1;
+    repeated string websites = 2;
+    repeated Header headers = 3;
+    string rule_id = 4;
+}
+
+message AddUEHeaderEnrichmentResult {
+  enum Result {
+    SUCCESS = 0;
+    WEBSITE_CONFLICT = 1;
+    RULE_ID_CONFLICT = 2;
+    FAILURE = 3;
+  }
+  Result result = 1;
+}
+
+message DeactivateUEHeaderEnrichmentRequest {
+    lte.IPAddress ue_ip = 1;
+    string rule_id = 2;
+}
+message DeactivateUEHeaderEnrichmentResult {
+  enum Result {
+    SUCCESS = 0;
+    UE_NOT_FOUND = 1;
+    RULE_NOT_FOUND = 2;
+    FAILURE = 3;
+  }
+  Result result = 1;
+}
+
+// --------------------------------------------------------------------------
+// EnvoyController service definition.
+// --------------------------------------------------------------------------
+service EnvoyController {
+  // Add UE to the header enrichment configuration
+  rpc AddUEHeaderEnrichment (AddUEHeaderEnrichmentRequest) returns (AddUEHeaderEnrichmentResult) {}
+
+  // Remove UE from the header enrichment configuration
+  rpc DeactivateUEHeaderEnrichment (DeactivateUEHeaderEnrichmentRequest) returns (DeactivateUEHeaderEnrichmentResult) {}
+}

@@ -31,6 +31,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     create_service_manager,
     SnapshotVerifier,
 )
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 
 
 class DPITest(unittest.TestCase):
@@ -112,25 +113,30 @@ class DPITest(unittest.TestCase):
                 viber audio
         """
         flow_match1 = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.8',
-            ipv4_src='1.2.3.4', tcp_dst=80, tcp_src=51115,
-            direction=FlowMatch.UPLINK
+            ip_proto=FlowMatch.IPPROTO_TCP,
+            ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.8'),
+            ip_src=convert_ipv4_str_to_ip_proto('1.2.3.4'),
+            tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK
         )
         flow_match2 = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='1.10.0.1',
-            ipv4_src='6.2.3.1', tcp_dst=111, tcp_src=222,
-            direction=FlowMatch.UPLINK
+            ip_proto=FlowMatch.IPPROTO_TCP,
+            ip_dst=convert_ipv4_str_to_ip_proto('1.10.0.1'),
+            ip_src=convert_ipv4_str_to_ip_proto('6.2.3.1'),
+            tcp_dst=111, tcp_src=222, direction=FlowMatch.UPLINK
         )
         flow_match3 = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_UDP, ipv4_dst='22.2.2.24',
-            ipv4_src='15.22.32.2', udp_src=111, udp_dst=222,
-            direction=FlowMatch.UPLINK
+            ip_proto=FlowMatch.IPPROTO_UDP,
+            ip_dst=convert_ipv4_str_to_ip_proto('22.2.2.24'),
+            ip_src=convert_ipv4_str_to_ip_proto('15.22.32.2'),
+            udp_src=111, udp_dst=222, direction=FlowMatch.UPLINK
         )
         flow_match_for_no_proto = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_UDP, ipv4_dst='1.1.1.1'
+            ip_proto=FlowMatch.IPPROTO_UDP,
+            ip_dst=convert_ipv4_str_to_ip_proto('1.1.1.1')
         )
         flow_match_not_added = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_UDP, ipv4_src='22.22.22.22'
+            ip_proto=FlowMatch.IPPROTO_UDP,
+            ip_src=convert_ipv4_str_to_ip_proto('22.22.22.22')
         )
         self.dpi_controller.add_classify_flow(
             flow_match_not_added, FlowRequest.FLOW_CREATED,
@@ -161,9 +167,10 @@ class DPITest(unittest.TestCase):
             Remove the facebook match flow
         """
         flow_match1 = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.8',
-            ipv4_src='1.2.3.4', tcp_dst=80, tcp_src=51115,
-            direction=FlowMatch.UPLINK
+            ip_proto=FlowMatch.IPPROTO_TCP,
+            ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.8'),
+            ip_src=convert_ipv4_str_to_ip_proto('1.2.3.4'),
+            tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK
         )
         self.dpi_controller.remove_classify_flow(flow_match1)
 

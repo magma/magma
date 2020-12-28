@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/eap/test"
 	"magma/feg/gateway/services/session_proxy/credit_control"
@@ -40,14 +41,17 @@ func TestOCSExpectations(t *testing.T) {
 	}
 
 	initRequest := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_INITIAL)
+	finalIndication := &fegprotos.FinalUnitIndication{
+		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
+	}
 	quotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
 			TotalOctets: 100,
 		},
-		IsFinalCredit:   true,
-		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
-		ResultCode:      2001,
+		IsFinalCredit:       true,
+		FinalUnitIndication: finalIndication,
+		ResultCode:          2001,
 	}
 	initAnswer := fegprotos.NewGyCCAnswer(diameter.SuccessCode).SetQuotaGrant(quotaGrant)
 	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
@@ -73,7 +77,7 @@ func TestOCSExpectations(t *testing.T) {
 
 	clientConfig := getClientConfig()
 	ocs := startServerWithExpectations(clientConfig, &serverConfig, gy.PerSessionInit, expectations, failureBehavior, defaultCCA)
-	gyGlobalConfig := getGyGlobalConfig("")
+	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		&serverConfig,
@@ -99,7 +103,12 @@ func TestOCSExpectations(t *testing.T) {
 		Type:          credit_control.CRTUpdate,
 		IMSI:          test.IMSI1,
 		RequestNumber: 1,
-		Credits:       []*gy.UsedCredits{{TotalOctets: 100, RatingGroup: 1, Type: gy.QUOTA_EXHAUSTED}},
+		Credits: []*gy.UsedCredits{{
+			TotalOctets:    100,
+			RatingGroup:    1,
+			Type:           gy.QUOTA_EXHAUSTED,
+			RequestedUnits: &lteprotos.RequestedUnits{Total: 1000, Tx: 1000, Rx: 1000},
+		}},
 	}
 	done = make(chan interface{}, 1000)
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrUpdate))
@@ -127,10 +136,14 @@ func assertCCAIsEqualToExpectedAnswer(t *testing.T, actual *gy.CreditControlAnsw
 		assert.True(t, found, fmt.Sprintf("Expected %v in answer but it doesn't exist", credit))
 		assert.Equal(t, int(credit.GetResultCode()), int(actualCredit.ResultCode))
 		assert.Equal(t, credit.GetValidityTime(), actualCredit.ValidityTime)
-		assert.Equal(t, credit.GetIsFinalCredit(), actualCredit.IsFinal)
 		if credit.IsFinalCredit {
-			assert.Equal(t, int(credit.GetFinalUnitAction()), int(actualCredit.FinalAction))
-			assert.Equal(t, credit.GetRedirectServer().GetRedirectServerAddress(), actualCredit.RedirectServer.RedirectServerAddress)
+			assert.True(t, credit.GetIsFinalCredit())
+
+			expectedFinalUnit := credit.GetFinalUnitIndication()
+			assert.Equal(t, int(expectedFinalUnit.GetFinalUnitAction()), int(actualCredit.FinalUnitIndication.FinalAction))
+			assert.Equal(t, expectedFinalUnit.GetRedirectServer().GetRedirectServerAddress(),
+				actualCredit.FinalUnitIndication.RedirectServer.RedirectServerAddress)
+			assert.Equal(t, expectedFinalUnit.GetRestrictRules(), actualCredit.FinalUnitIndication.RestrictRules)
 		}
 		expectedOctet := credit.GetGrantedServiceUnit()
 		actualOctet := actualCredit.GrantedUnits
@@ -198,9 +211,14 @@ func getExpectedCreditByKey(credits []*fegprotos.QuotaGrant) map[uint32]*fegprot
 	return creditsByKey
 }
 
-func getGyGlobalConfig(ocsOverwriteApn string) *gy.GyGlobalConfig {
+func getGyGlobalConfig(matchApn, overwriteApn string) *gy.GyGlobalConfig {
+	rule := &credit_control.VirtualApnRule{}
+	err := rule.FromMconfig(&mconfig.VirtualApnRule{ApnFilter: matchApn, ApnOverwrite: overwriteApn})
+	if err != nil {
+		return &gy.GyGlobalConfig{}
+	}
 	return &gy.GyGlobalConfig{
-		OCSOverwriteApn: ocsOverwriteApn,
+		VirtualApnRules: []*credit_control.VirtualApnRule{rule},
 	}
 }
 

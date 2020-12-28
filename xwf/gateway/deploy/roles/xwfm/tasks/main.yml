@@ -1,0 +1,195 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: disable the firewall
+  systemd: 
+     name: firewalld
+     state: stopped
+     enabled: false
+  ignore_errors: true
+
+- name: create directories for magma configs and files
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "/var/opt/magma"
+    - "/var/opt/magma/configs"
+    - "/var/opt/magma/certs"
+    - "/etc/magma"
+    - "/etc/magma/templates/"
+    - "/var/opt/magma/docker"
+
+- name: install python modules
+  shell: pip3 install jsonpickle requests yq
+
+- name: touch snowflake
+  shell: touch /etc/snowflake
+
+- name: retrieve hwid
+  shell: cat /etc/snowflake
+  register: gateway_hwid
+
+- name: copy the admin certificate key
+  copy: content={{ rest_admin_key }} dest=/var/opt/magma/certs/rest_admin.key mode='400'
+
+- name: copy the admin certificate
+  copy: content={{ rest_admin_crt }} dest=/var/opt/magma/certs/rest_admin.crt mode='400'
+
+- name: set the hostname for the machine
+  become: true
+  script: xwfm_hostname.py --partner {{ partner }}  --env {{ env }} --hwid {{ gateway_hwid.stdout | default("") | quote }} --url {{ portal_url }}
+  register: output
+  ignore_errors: true
+
+- name: remove certificates
+  shell: rm -f /var/opt/magma/certs/rest_admin.key && \
+        rm -f /var/opt/magma/certs/rest_admin.crt
+
+- name: display script output
+  debug:
+    msg: "{{ output }}"
+
+- name: delete ovs bridges incase they exist
+  become: true
+  shell: ovs-vsctl del-br {{ item }}
+  with_items:
+     - uplink_br0
+     - cwag_br0
+  ignore_errors: true
+
+- name: Create OVS bridge cwag_br0 and GRE tunnel gre0
+  become: true
+  script: create_gre_tunnel.sh
+
+- name: Configure Red Hat interfaces
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  become: true
+  block:
+    - name: Install interface files
+      template: src={{ item }} dest=/etc/sysconfig/network-scripts/
+      with_items:
+        - ifcfg-cwag_br0
+        - ifcfg-gre0
+        - ifcfg-cwag_patch
+        - ifcfg-uplink_patch
+
+    - name: Activate interfaces
+      shell: ifup {{ item }}
+      with_items:
+        - cwag_br0
+        - gre0
+        - cwag_patch
+
+    - name: install the uplink bridge
+      become: true
+      template: src={{ item }} dest=/etc/sysconfig/network-scripts/
+      with_items:
+        - ifcfg-uplink_br0
+   
+    - name: bring up uplink bridge
+      become: true
+      shell: ifup uplink_br0 
+
+    - name: Install gw0  file
+      become: true
+      template: src=ifcfg-gw0 dest=/etc/sysconfig/network-scripts/ifcfg-gw0
+      when: gateway_mode == 'gateway'
+
+    - name: bring up gw0 interface
+      become: true
+      shell: ifup gw0
+      when: gateway_mode == 'gateway'
+
+    - name: Install network config  file for passthrough
+      become: true
+      template: src=ifcfg-gw0 dest=/etc/sysconfig/network-scripts/ifcfg-{{ uplink_if }}
+      when: uplink_if is not none
+
+    - name: bring up uplink interface
+      become: true
+      shell: ifup {{ item }}
+      with_items:
+        - "{{ uplink_if }}"
+      when: uplink_if is not none
+
+    - name: bring up uplink patch 
+      become: true
+      shell: ifup uplink_patch
+      when: downlink_if is none
+
+    - name: Install downlink file
+      become: true
+      template: src=ifcfg-downlink dest=/etc/sysconfig/network-scripts/ifcfg-{{ downlink_if }}
+      when: downlink_if is not none
+
+    - name: bring up downlink interface
+      become: true
+      shell: ifup {{ item }}
+      with_items:
+        - "{{ downlink_if }}"
+      when: downlink_if is not none
+
+- name: Enable IP forwarding
+  become: true
+  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+
+- name: Add kernel paramters for arp
+  become: true
+  sysctl: name={{ item }} value=32768 sysctl_set=yes state=present reload=yes
+  with_items:
+     - "net.ipv4.neigh.default.gc_thresh1"
+     - "net.ipv4.neigh.default.gc_thresh2"
+     - "net.ipv4.neigh.default.gc_thresh3"
+  tags:
+    - no_ci
+
+- name: Load TLS PKI for XWF bridge
+  block:
+    - name: Create PKI location
+      become: true
+      file:
+        path: /etc/openvswitch
+        state: directory
+
+    - name: Copy PKI
+      become: true
+      copy: content={{ item.src }} dest=/etc/openvswitch/{{ item.dest }}
+      with_items:
+        - { src: "{{ ovs_rootca }}", dest: cacert.pem }
+        - { src: "{{ ovs_key }}", dest: sc-privkey.pem }
+        - { src: "{{ ovs_crt }}", dest: sc-cert.pem }
+
+    - name: Correct key
+      become: true
+      lineinfile: dest=/etc/openvswitch/sc-privkey.pem
+        state=absent
+        regexp='^\|'
+
+    - name: Normalize spaces
+      become: true
+      replace:
+        path: /etc/openvswitch/sc-privkey.pem
+        regexp: '^(  )'
+        replace: ''
+
+    - name: Set OVS in secure mode
+      become: true
+      shell: ovs-vsctl set-ssl /etc/openvswitch/sc-privkey.pem /etc/openvswitch/sc-cert.pem /etc/openvswitch/cacert.pem
+
+  when: connection_mode == "ssl"
+
+- name: Set OVS controller for XWF bridge
+  become: true
+  shell: ovs-vsctl set-controller uplink_br0 {{ connection_mode }}:{{ xwf_ctrl_ip }}:6653

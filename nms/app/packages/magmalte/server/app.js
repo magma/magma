@@ -55,8 +55,6 @@ const {
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
-const devMode = process.env.NODE_ENV !== 'production';
-
 // Create Sequelize Store
 const SessionStore = connectSession(session.Store);
 const sequelizeSessionStore = new SessionStore({db: sequelize});
@@ -68,7 +66,7 @@ app.use(organizationMiddleware());
 app.use(appMiddleware());
 app.use(
   sessionMiddleware({
-    devMode,
+    devMode: DEV_MODE,
     sessionStore: sequelizeSessionStore,
     sessionToken:
       process.env.SESSION_TOKEN || 'fhcfvugnlkkgntihvlekctunhbbdbjiu',
@@ -91,6 +89,7 @@ app.set('views', path.join(__dirname, '..', 'views'));
 app.set('view engine', 'pug');
 
 // Routes
+// TO DO - fix this in webpack-dev-middleware code in fbc-js-core
 app.use(
   webpackSmartMiddleware({
     devMode: DEV_MODE,
@@ -105,11 +104,18 @@ app.use(configureAccess({loginUrl: '/user/login'}));
 // Grafana uses its own CSRF, so we don't need to handle it on our side.
 // Grafana can access all metrics of an org, so it must be restricted
 // to superusers
-app.use(
-  '/grafana',
-  access(SUPERUSER),
-  require('@fbcnms/platform-server/grafana/routes').default,
+app.use('/grafana', access(SUPERUSER), require('../grafana/routes.js').default);
+
+// add lte metrics json file handler
+const fs = require('fs');
+const lteMetricsJsonData = fs.readFileSync(
+  path.join(__dirname, '..', 'data/LteMetrics.json'),
+  'utf-8',
 );
+app.get('/data/LteMetrics', (req, res) => res.send(lteMetricsJsonData));
+
+// Trigger syncing of automatically generated alerts
+app.use('/sync_alerts', access(USER), require('../alerts/routes.js').default);
 
 app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
 

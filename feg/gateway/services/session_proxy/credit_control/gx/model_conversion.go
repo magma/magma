@@ -41,6 +41,7 @@ func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMoni
 	ccr.RATType = GetRATType(update.RatType)
 	ccr.IPCANType = GetIPCANType(update.RatType)
 	ccr.EventTrigger = EventTrigger(update.EventTrigger)
+	ccr.ChargingCharacteristics = update.ChargingCharacteristics
 	return ccr
 }
 
@@ -180,14 +181,6 @@ func ConvertToProtoTimestamp(unixTime *time.Time) *timestamp.Timestamp {
 	return protoTimestamp
 }
 
-func RuleIDsToProtosRuleInstalls(ruleIDs []string) []*protos.StaticRuleInstall {
-	ruleInstalls := make([]*protos.StaticRuleInstall, len(ruleIDs))
-	for idx, ruleID := range ruleIDs {
-		ruleInstalls[idx] = &protos.StaticRuleInstall{RuleId: ruleID}
-	}
-	return ruleInstalls
-}
-
 func ParseRuleInstallAVPs(
 	policyDBClient policydb.PolicyDBClient,
 	ruleInstalls []*RuleInstallAVP,
@@ -303,20 +296,27 @@ func (report *UsageReport) FromUsageMonitorUpdate(update *protos.UsageMonitorUpd
 }
 
 func (monitor *UsageMonitoringInfo) ToUsageMonitoringCredit() *protos.UsageMonitoringCredit {
-	if monitor.GrantedServiceUnit == nil || monitor.GrantedServiceUnit.IsEmpty() {
-		return &protos.UsageMonitoringCredit{
-			Action:        protos.UsageMonitoringCredit_DISABLE,
-			MonitoringKey: monitor.MonitoringKey,
-			Level:         protos.MonitoringLevel(monitor.Level),
-		}
-	} else {
-		return &protos.UsageMonitoringCredit{
-			Action:        protos.UsageMonitoringCredit_CONTINUE,
-			MonitoringKey: monitor.MonitoringKey,
-			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
-			Level:         protos.MonitoringLevel(monitor.Level),
-		}
+	return &protos.UsageMonitoringCredit{
+		Action:        monitor.ToUsageMonitoringAction(),
+		MonitoringKey: monitor.MonitoringKey,
+		GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
+		Level:         protos.MonitoringLevel(monitor.Level),
 	}
+}
+
+// 3GPP TS 29.212
+func (monitor *UsageMonitoringInfo) ToUsageMonitoringAction() protos.UsageMonitoringCredit_Action {
+	if monitor.Report != nil && *monitor.Report == 0x0 {
+		// 4.5.17.5 PCRF Requested Usage Report
+		// `AVP: Usage-Monitoring-Report`
+		return protos.UsageMonitoringCredit_FORCE
+	}
+	if monitor.Support != nil && *monitor.Support == 0x0 {
+		// 4.5.17.3 Usage Monitoring Disabled
+		// `AVP: Usage-Monitoring-Support`
+		return protos.UsageMonitoringCredit_DISABLE
+	}
+	return protos.UsageMonitoringCredit_CONTINUE
 }
 
 func GetRATType(pRATType protos.RATType) credit_control.RATType {

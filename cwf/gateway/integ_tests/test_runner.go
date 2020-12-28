@@ -25,6 +25,7 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 
@@ -83,6 +84,7 @@ type TestRunner struct {
 	imsis       map[string]bool
 	activePCRFs []string
 	activeOCSs  []string
+	startTime   time.Time
 }
 
 // imsi -> ruleID -> record
@@ -91,7 +93,8 @@ type RecordByIMSI map[string]map[string]*lteprotos.RuleRecord
 // NewTestRunner initializes a new TestRunner by making a UESim client and
 // and setting the next IMSI.
 func NewTestRunner(t *testing.T) *TestRunner {
-	fmt.Println("************************* TestRunner setup")
+	startTime := time.Now()
+	fmt.Println("************* TestRunner setup")
 
 	fmt.Printf("Adding Mock HSS service at %s:%d\n", CwagIP, HSSPort)
 	registry.AddService(MockHSSRemote, CwagIP, HSSPort)
@@ -109,6 +112,7 @@ func NewTestRunner(t *testing.T) *TestRunner {
 	testRunner := &TestRunner{t: t,
 		activePCRFs: []string{MockPCRFRemote},
 		activeOCSs:  []string{MockOCSRemote},
+		startTime:   startTime,
 	}
 	testRunner.imsis = make(map[string]bool)
 	return testRunner
@@ -151,7 +155,7 @@ func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
 
 // ConfigUEsPerInstance same as ConfigUEs but per specific PCRF and OCS instance
 func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInstance string) ([]*cwfprotos.UEConfig, error) {
-	fmt.Printf("************************* Configuring %d UE(s)\n", len(IMSIs))
+	fmt.Printf("************* Configuring %d UE(s), PCRF instance: %s\n", len(IMSIs), pcrfInstance)
 	ues := make([]*cwfprotos.UEConfig, 0)
 	for _, imsi := range IMSIs {
 		// If IMSIs were generated properly they should never give an error here
@@ -196,7 +200,7 @@ func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInst
 // Authenticate simulates an authentication between the UE and the HSS with the specified
 // IMSI and CalledStationID, and returns the resulting Radius packet.
 func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet, error) {
-	fmt.Printf("************************* Authenticating UE with IMSI: %s\n", imsi)
+	fmt.Printf("************* Authenticating UE with IMSI: %s\n", imsi)
 	res, err := uesim.Authenticate(&cwfprotos.AuthenticateRequest{Imsi: imsi, CalledStationID: calledStationID})
 	if err != nil {
 		fmt.Println(err)
@@ -216,7 +220,7 @@ func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet
 // Authenticate simulates an authentication between the UE and the HSS with the specified
 // IMSI and CalledStationID, and returns the resulting Radius packet.
 func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, error) {
-	fmt.Printf("************************* Sending a disconnect request UE with IMSI: %s\n", imsi)
+	fmt.Printf("************* Sending a disconnect request UE with IMSI: %s\n", imsi)
 	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi, CalledStationID: calledStationID})
 	if err != nil {
 		return &radius.Packet{}, err
@@ -228,7 +232,7 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	fmt.Println("Finished Discconnecting UE")
+	fmt.Println("Finished Disconnecting UE")
 	return radiusP, nil
 }
 
@@ -236,8 +240,10 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 // by running an iperf3 client on the UE simulator and an iperf3 server on the
 // Magma traffic server.
 func (tr *TestRunner) GenULTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
-	fmt.Printf("************************* Generating Traffic for UE with Req: %v\n", req)
-	return uesim.GenTraffic(req)
+	fmt.Printf("************* Generating Traffic for UE with Req: %v\n", req)
+	res, err := uesim.GenTraffic(req)
+	fmt.Printf("============> Total Sent: %d bytes\n", res.GetEndOutput().GetSumSent().GetBytes())
+	return res, err
 }
 
 // Remove subscribers, rules, flows, and monitors to clean up the state for
@@ -295,9 +301,101 @@ func (tr *TestRunner) WaitForPoliciesToSync() {
 	time.Sleep(4 * ruleUpdatePeriod)
 }
 
-func (tr *TestRunner) WaitForReAuthToProcess() {
+func (tr *TestRunner) WaitForEnforcementStatsForRule(imsi string, ruleIDs ...string) func() bool {
+	// Wait until the ruleIDs show up for the IMSI
+	return func() bool {
+		fmt.Printf("Waiting until %s, %v shows up in enforcement stats...\n", imsi, ruleIDs)
+		records, err := tr.GetPolicyUsage()
+		if err != nil {
+			return false
+		}
+		if records[prependIMSIPrefix(imsi)] == nil {
+			return false
+		}
+		for _, ruleID := range ruleIDs {
+			if records[prependIMSIPrefix(imsi)][ruleID] == nil {
+				return false
+			}
+		}
+		fmt.Printf("%s, %v are now in enforcement stats!\n", imsi, ruleIDs)
+		return true
+	}
+}
+
+func (tr *TestRunner) WaitForNoEnforcementStatsForRule(imsi string, ruleIDs ...string) func() bool {
+	// Wait until the ruleIDs disappear for the IMSI
+	return func() bool {
+		fmt.Printf("Waiting until %s, %v disappear from enforcement stats...\n", imsi, ruleIDs)
+		records, err := tr.GetPolicyUsage()
+		if err != nil {
+			return false
+		}
+		if records[prependIMSIPrefix(imsi)] == nil {
+			fmt.Printf("%s are no longer in enforcement stats!\n", imsi)
+			return true
+		}
+		for _, ruleID := range ruleIDs {
+			if records[prependIMSIPrefix(imsi)][ruleID] != nil {
+				return false
+			}
+		}
+		fmt.Printf("%s, %v are no longer in enforcement stats!\n", imsi, ruleIDs)
+		return true
+	}
+}
+
+func (tr *TestRunner) WaitForEnforcementStatsForRuleGreaterThan(imsi, ruleID string, min uint64) func() bool {
 	// Todo figure out the best way to figure out when RAR is processed
-	time.Sleep(4 * time.Second)
+	return func() bool {
+		fmt.Printf("Waiting until %s, %s has more than %d bytes in enforcement stats...\n", imsi, ruleID, min)
+		records, err := tr.GetPolicyUsage()
+		imsi = prependIMSIPrefix(imsi)
+		if err != nil {
+			return false
+		}
+		if records[imsi] == nil {
+			return false
+		}
+		record := records[imsi][ruleID]
+		if record == nil {
+			return false
+		}
+		txBytes := record.BytesTx
+		if record.BytesTx <= min {
+			return false
+		}
+		fmt.Printf("%s, %s now passed %d > %d in enforcement stats!\n", imsi, ruleID, txBytes, min)
+		return true
+	}
+}
+
+//WaitForPolicyReAuthToProcess returns a method which checks for reauth answer and
+// if it has sessionID which contains the IMSI
+func (tr *TestRunner) WaitForPolicyReAuthToProcess(raa *fegprotos.PolicyReAuthAnswer, imsi string) func() bool {
+	// Todo figure out the best way to figure out when RAR is processed
+	return func() bool {
+		if raa != nil && strings.Contains(raa.SessionId, "IMSI"+imsi) {
+			return true
+		}
+		return false
+	}
+}
+
+//WaitForChargingReAuthToProcess returns a method which checks for reauth answer and
+// if it has sessionID which contains the IMSI
+func (tr *TestRunner) WaitForChargingReAuthToProcess(raa *fegprotos.ChargingReAuthAnswer, imsi string) func() bool {
+	// Todo figure out the best way to figure out when RAR is processed
+	return func() bool {
+		if raa != nil && strings.Contains(raa.SessionId, "IMSI"+imsi) {
+			return true
+		}
+		return false
+	}
+}
+
+func (tr *TestRunner) PrintElapsedTime() {
+	now := time.Now()
+	fmt.Printf("Elapsed Time: %s\n", now.Sub(tr.startTime))
 }
 
 // generateRandomIMSIS creates a slice of unique Random IMSIs taking into consideration a previous list with IMSIS

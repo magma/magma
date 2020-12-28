@@ -25,15 +25,15 @@ Magma has three major components:
 ![Magma architecture diagram](docs/readmes/assets/magma_overview.png?raw=true "Magma Architecture")
 
 ## Usage Docs
-The documentation for developing and using Magma is available at: [https://magma.github.io/magma](https://magma.github.io/magma)
+The documentation for developing and using Magma is available at: [https://docs.magmacore.org/docs/basics/introduction.html](https://docs.magmacore.org)
 
 ## Join the Magma Community
 
 - Mailing lists:
   - Join [magma-dev](https://groups.google.com/forum/#!forum/magma-dev) for technical discussions
   - Join [magma-announce](https://groups.google.com/forum/#!forum/magma-announce) for announcements
-- Discord:
-  - [magma\_dev](https://discord.gg/WDBpebF) channel
+- Slack:
+  - [magma\_dev](https://join.slack.com/t/magmacore/shared_invite/zt-g76zkofr-g6~jYiS3KRzC9qhAISUC2A) channel
 
 See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out.
 

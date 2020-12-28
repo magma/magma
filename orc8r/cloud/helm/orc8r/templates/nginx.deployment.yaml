@@ -19,6 +19,7 @@ metadata:
   labels:
     app.kubernetes.io/component: nginx-proxy
 {{ include "labels" . | indent 4 }}
+{{ include "orc8r-labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.nginx.replicas }}
   selector:
@@ -74,11 +75,13 @@ spec:
               containerPort: {{ .Values.nginx.service.port.health.targetPort }}
           env:
             - name: PROXY_BACKENDS
-              value: {{ print .Release.Name "-controller." .Release.Namespace ".svc.cluster.local" | quote }}
+              value: {{ print .Release.Namespace ".svc.cluster.local" | quote }}
             - name: CONTROLLER_HOSTNAME
               value: {{ required "nginx.spec.hostname must be provided" .Values.nginx.spec.hostname | quote }}
             - name: RESOLVER
               value: {{ .Values.nginx.spec.resolver | quote }}
+            - name: SERVICE_REGISTRY_MODE
+              value: {{ .Values.controller.spec.service_registry.mode }}
           livenessProbe:
             tcpSocket:
               port: health

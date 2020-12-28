@@ -68,7 +68,8 @@ RUN apt-get -y update && apt-get -y install \
   python-cffi \
   python3-pip \
   python3.5-dev \
-  redis-server
+  redis-server \
+  network-manager
 
 RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
     sh /tmp/get_docker.sh && \

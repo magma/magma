@@ -33,6 +33,7 @@ export type DateTimeMetricChartProps = {
   title: string,
   queries: Array<string>,
   legendLabels: Array<string>,
+  unit?: string,
 };
 
 const useStyles = makeStyles(_ => ({
@@ -40,6 +41,8 @@ const useStyles = makeStyles(_ => ({
     color: colors.primary.comet,
   },
 }));
+
+const CHART_COLORS = [colors.secondary.dodgerBlue, colors.data.flamePea];
 
 export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
   const classes = useStyles();
@@ -89,9 +92,10 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
       <CardTitleRow icon={DataUsageIcon} label={props.title} filter={Filter} />
       <Card elevation={0}>
         <CardHeader
-          title={<Text variant="body2">Frequency of {props.title}</Text>}
+          title={<Text variant="body2">{props.title}</Text>}
           subheader={
             <AsyncMetric
+              height={300}
               style={{
                 data: {
                   lineTension: 0.2,
@@ -121,11 +125,12 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
                 },
               }}
               label={`Frequency of ${props.title}`}
-              unit=""
+              unit={props.unit ?? ''}
               queries={props.queries}
               timeRange={'3_hours'}
               startEnd={[startDate, endDate]}
               legendLabels={props.legendLabels}
+              chartColors={CHART_COLORS}
             />
           }
         />

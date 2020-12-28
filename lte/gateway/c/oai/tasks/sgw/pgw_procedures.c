@@ -113,7 +113,17 @@ void pgw_delete_procedure_create_bearer(
 }
 //------------------------------------------------------------------------------
 void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc) {
-  // DO here specific releases (memory,etc)
-  // nothing to do actually
+  if (*ni_cbr_proc && (*ni_cbr_proc)->pending_eps_bearers) {
+    sgw_eps_bearer_entry_wrapper_t* eps_bearer_entry_wrapper = NULL;
+    LIST_FOREACH(
+        eps_bearer_entry_wrapper, (*ni_cbr_proc)->pending_eps_bearers,
+        entries) {
+      if (eps_bearer_entry_wrapper) {
+        LIST_REMOVE(eps_bearer_entry_wrapper, entries);
+        free_wrapper((void**) &eps_bearer_entry_wrapper->sgw_eps_bearer_entry);
+        free_wrapper((void**) &eps_bearer_entry_wrapper);
+      }
+    }
+  }
   free_wrapper((void**) ni_cbr_proc);
 }

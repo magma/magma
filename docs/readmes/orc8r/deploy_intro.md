@@ -3,22 +3,68 @@ id: deploy_intro
 title: Introduction
 hide_title: true
 ---
-# Deploying Orchestrator: Introduction
+# Introduction
+
+This section walks through building, installing, and upgrading a production
+Orchestrator deployment.
+
+This includes building required artifacts (container images, Helm charts),
+deploying to Amazon Elastic Kubernetes Service (EKS), and upgrading between
+Orchestrator release versions.
+
+## Prerequisites
 
 Before deployment, it may be useful to read through the
-[prerequisites](../basics/prerequisites.md) and
-[quick start guide](../basics/quick_start_guide.md) sections.
+[Magma prerequisites](../basics/prerequisites.md) and
+[Magma quick start guide](../basics/quick_start_guide.md) sections.
 
-These pages will walk through the full process of spinning up a full
-Orchestrator deployment, from building the various containers that you'll need
-to deploying them onto Amazon Elastic Kubernetes Service (EKS). This
-installation guide targets *production* environments - if you aren't ready for
-this, the developer documentation will be up shortly.
+Familiarity with the following is assumed
 
-Familiarity with the AWS console and the Kubernetes command line are expected.
-The instructions in this section have been tested on MacOS and Linux. If you
-are deploying from a Windows host, some shell commands may require adjustments.
+- AWS
+- Kubernetes
+- Terraform
 
-If you want to get a head start on the development setup, you can build the
-Orchestrator containers following this guide and use docker-compose at
-`magma/orc8r/cloud/docker` to spin up the local version of Orchestrator.
+The instructions in this section have been tested on macOS and Linux. If you
+are deploying from a Windows host, some shell commands will likely require
+adjustments.
+
+## Deploying specific release
+
+To target a specific release, checkout the Magma repository's relevant release
+branch when building artifacts. This is also a great place to find relevant
+Terraform values.
+
+Values for recent Orchestrator releases are summarized below
+
+### v1.3.0
+Verified with Terraform version `0.13.1`. The latest Terraform version will
+likely work as well.
+
+- `v1.3` [patch branch](https://github.com/magma/magma/tree/v1.3)
+- `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.3`
+Terraform module source
+- `1.4.36` Helm chart version
+- Additional notes
+    - `9.6` PostgreSQL target release, newer versions will likely work as well
+
+### v1.2.0
+Verified with Terraform version `0.13.1`. The latest Terraform version will
+likely work as well.
+
+- `v1.2` [patch branch](https://github.com/magma/magma/tree/v1.2)
+- `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.2`
+Terraform module source
+- `1.4.35` Helm chart version
+- Additional notes
+    - `9.6` PostgreSQL target release, newer versions will likely work as well
+
+### v1.1.0
+Verified with Terraform version `0.12.29`. The latest Terraform version will
+likely work as well.
+
+- `v1.1` [patch branch](https://github.com/magma/magma/tree/v1.1)
+- `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.1`
+Terraform module source
+- `1.4.21` Helm chart version
+- Additional notes
+    - `9.6` PostgreSQL target release, newer versions will likely work as well

@@ -14,7 +14,7 @@ limitations under the License.
 import unittest
 
 from magma.common import metrics_export
-from magma.monitord.metrics import SUBSCRIBER_ICMP_LATENCY_MS
+from magma.monitord.cpe_monitoring import subscriber_icmp_latency_ms
 
 
 class MetricTests(unittest.TestCase):
@@ -23,7 +23,7 @@ class MetricTests(unittest.TestCase):
     """
     def test_metrics_defined(self):
         """ Test that all metrics are defined in proto enum """
-        SUBSCRIBER_ICMP_LATENCY_MS.labels('IMSI00000001').observe(10.33)
+        subscriber_icmp_latency_ms.labels('IMSI00000001').observe(10.33)
 
         metrics_protos = list(metrics_export.get_metrics())
         for metrics_proto in metrics_protos:

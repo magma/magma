@@ -25,39 +25,39 @@ var (
 			Help: "EAP Auth responses processed, partitioned by authenticator's EapMsgCode code, " +
 				"supplicant's EAP method & APN (Called Station ID). Attach failures will have code: Failure",
 		},
-		[]string{"code", "method", "apn"},
+		[]string{"code", "method", "apn", "imsi"},
 	)
 
 	// Sessions
 	Sessions = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "active_sessions",
-			Help: "Number of active user sessions partitioned by APN",
+			Help: "Number of active user sessions partitioned by APN, IMSI, SessionID, MSISDN",
 		},
-		[]string{"apn", "imsi", "id"},
+		[]string{"apn", "imsi", "id", "msisdn"},
 	)
 
 	SessionTimeouts = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "session_timeouts",
-			Help: "Session timeouts, partitioned by APN, IMSI",
+			Help: "Session timeouts, partitioned by APN, IMSI, MSISDN",
 		},
-		[]string{"apn", "imsi"},
+		[]string{"apn", "imsi", "msisdn"},
 	)
 
 	SessionStart = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "session_start",
-			Help: "Session start partitioned by APN, IMSI, SessionID",
+			Help: "Session start partitioned by APN, IMSI, SessionID, MSISDN",
 		},
-		[]string{"apn", "imsi", "id"},
+		[]string{"apn", "imsi", "id", "msisdn"},
 	)
 	SessionStop = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "session_stop",
-			Help: "Session stop partitioned by APN, IMSI, SessionID",
+			Help: "Session stop partitioned by APN, IMSI, SessionID, MSISDN",
 		},
-		[]string{"apn", "imsi", "id"},
+		[]string{"apn", "imsi", "id", "msisdn"},
 	)
 
 	// Latencies
@@ -71,40 +71,40 @@ var (
 	OctetsIn = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "octets_in",
-			Help: "Inboud data usage, partitioned by APN, IMSI",
+			Help: "Inboud data usage, partitioned by APN, IMSI, MSISDN",
 		},
-		[]string{"apn", "imsi"},
+		[]string{"apn", "imsi", "msisdn"},
 	)
 	OctetsOut = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "octets_out",
-			Help: "Outbound data usage, partitioned by APN, IMSI",
+			Help: "Outbound data usage, partitioned by APN, IMSI, MSISDN",
 		},
-		[]string{"apn", "imsi"},
+		[]string{"apn", "imsi", "msisdn"},
 	)
 
 	// Acct
 	AcctStop = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "accounting_stop",
-			Help: "Accounting Stop Calls, partitioned by APN, IMSI",
+			Help: "Accounting Stop Calls, partitioned by APN, IMSI, MSISDN",
 		},
-		[]string{"apn", "imsi"},
+		[]string{"apn", "imsi", "msisdn"},
 	)
 
 	SessionTerminate = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "session_manager_terminate",
-			Help: "Terminate Session Calls by Local Session Manager, partitioned by APN, IMSI",
+			Help: "Terminate Session Calls by Local Session Manager, partitioned by APN, IMSI, MSISDN",
 		},
-		[]string{"apn", "imsi"},
+		[]string{"apn", "imsi", "msisdn"},
 	)
 	EndSession = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "end_session",
-			Help: "EndSession Calls to Local Session Manager, partitioned by APN, IMSI",
+			Help: "EndSession Calls to Local Session Manager, partitioned by APN, IMSI, MSISDN",
 		},
-		[]string{"apn", "imsi"},
+		[]string{"apn", "imsi", "msisdn"},
 	)
 )
 

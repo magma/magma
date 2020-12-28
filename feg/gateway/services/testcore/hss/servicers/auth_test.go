@@ -14,14 +14,14 @@ limitations under the License.
 package servicers_test
 
 import (
-	"magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"testing"
 
-	"magma/lte/cloud/go/crypto"
-	"magma/lte/cloud/go/protos"
-
+	"github.com/emakeev/milenage"
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/gateway/services/testcore/hss/servicers"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
+	"magma/lte/cloud/go/protos"
 )
 
 var (
@@ -57,22 +57,22 @@ func TestGetOrGenerateOpc(t *testing.T) {
 	lte = &protos.LTESubscription{AuthKey: []byte("\x46\x5b\x5c\xe8\xb1\x99\xb4\x9f\xaa\x5f\x0a\x2e\xe2\x38\xa6\xbc")}
 	opc, err = servicers.GetOrGenerateOpc(lte, defaultLteAuthOp)
 	assert.NoError(t, err)
-	expectedOpc, err := crypto.GenerateOpc(lte.AuthKey, defaultLteAuthOp)
+	expectedOpc, err := milenage.GenerateOpc(lte.AuthKey, defaultLteAuthOp)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOpc[:], opc)
 }
 
 func TestGenerateLteAuthVector_MissingLTE(t *testing.T) {
-	milenage, err := crypto.NewMilenageCipher(defaultLteAuthAmf)
+	mcipher, err := milenage.NewCipher(defaultLteAuthAmf)
 	assert.NoError(t, err)
 
 	subscriber := &protos.SubscriberData{State: &protos.SubscriberState{}}
-	_, _, err = servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
+	_, _, err = servicers.GenerateLteAuthVector(mcipher, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
 	assert.Exactly(t, servicers.NewAuthRejectedError("Subscriber data missing LTE subscription"), err)
 }
 
 func TestGenerateLteAuthVector_MissingSubscriberState(t *testing.T) {
-	milenage, err := crypto.NewMilenageCipher(defaultLteAuthAmf)
+	mcipher, err := milenage.NewCipher(defaultLteAuthAmf)
 	assert.NoError(t, err)
 
 	subscriber := &protos.SubscriberData{
@@ -81,12 +81,12 @@ func TestGenerateLteAuthVector_MissingSubscriberState(t *testing.T) {
 			AuthAlgo: protos.LTESubscription_MILENAGE,
 		},
 	}
-	_, _, err = servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
+	_, _, err = servicers.GenerateLteAuthVector(mcipher, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
 	assert.Exactly(t, servicers.NewAuthRejectedError("Subscriber data missing subscriber state"), err)
 }
 
 func TestGenerateLteAuthVector_InactiveLTESubscription(t *testing.T) {
-	milenage, err := crypto.NewMilenageCipher(defaultLteAuthAmf)
+	mcipher, err := milenage.NewCipher(defaultLteAuthAmf)
 	assert.NoError(t, err)
 
 	subscriber := &protos.SubscriberData{
@@ -96,12 +96,12 @@ func TestGenerateLteAuthVector_InactiveLTESubscription(t *testing.T) {
 		},
 		State: &protos.SubscriberState{},
 	}
-	_, _, err = servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
+	_, _, err = servicers.GenerateLteAuthVector(mcipher, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
 	assert.Exactly(t, servicers.NewAuthRejectedError("LTE Service not active"), err)
 }
 
 func TestGenerateLteAuthVector_UnknownLTEAuthAlgo(t *testing.T) {
-	milenage, err := crypto.NewMilenageCipher(defaultLteAuthAmf)
+	mcipher, err := milenage.NewCipher(defaultLteAuthAmf)
 	assert.NoError(t, err)
 
 	subscriber := &protos.SubscriberData{
@@ -111,13 +111,13 @@ func TestGenerateLteAuthVector_UnknownLTEAuthAlgo(t *testing.T) {
 		},
 		State: &protos.SubscriberState{},
 	}
-	_, _, err = servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
-	assert.Exactly(t, servicers.NewAuthRejectedError("Unsupported crypto algorithm: 10"), err)
+	_, _, err = servicers.GenerateLteAuthVector(mcipher, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
+	assert.Exactly(t, servicers.NewAuthRejectedError("Unsupported milenage algorithm: 10"), err)
 }
 
 func TestGenerateLteAuthVector_Success(t *testing.T) {
 	rand := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f")
-	milenage, err := crypto.NewMockMilenageCipher([]byte("\x80\x00"), rand)
+	mcipher, err := milenage.NewMockCipher([]byte("\x80\x00"), rand)
 	assert.NoError(t, err)
 
 	subscriber := &protos.SubscriberData{
@@ -130,7 +130,7 @@ func TestGenerateLteAuthVector_Success(t *testing.T) {
 		},
 		State: &protos.SubscriberState{LteAuthNextSeq: 229},
 	}
-	vector, lteAuthNextSeq, err := servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, 23)
+	vector, lteAuthNextSeq, err := servicers.GenerateLteAuthVector(mcipher, subscriber, defaultPlmn, defaultLteAuthOp, 23)
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(230), lteAuthNextSeq)
 
@@ -196,7 +196,7 @@ func TestValidateLteSubscription(t *testing.T) {
 		AuthAlgo: 50,
 	}
 	err = servicers.ValidateLteSubscription(lte)
-	assert.EqualError(t, err, "Unsupported crypto algorithm: 50")
+	assert.EqualError(t, err, "Unsupported milenage algorithm: 50")
 
 	lte = &protos.LTESubscription{
 		State:    protos.LTESubscription_ACTIVE,

@@ -11,10 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// h2c server serving requests from FeG to AG.
+// gw_to_feg_relay is h2c & GRPC server serving requests from AGWs to FeG
 package gw_to_feg_relay
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -22,7 +23,12 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+
 	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/http2"
@@ -31,11 +37,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -72,9 +73,7 @@ func (server *GatewayToFeGServer) Serve(listener net.Listener) {
 	server.H2CServer.Serve(listener, server.useDispatcherHandler)
 }
 
-func (server *GatewayToFeGServer) useDispatcherHandler(
-	responseWriter http.ResponseWriter, req *http.Request,
-) {
+func (server *GatewayToFeGServer) useDispatcherHandler(responseWriter http.ResponseWriter, req *http.Request) {
 	// check calling gateway's identity through certifier
 	gw, err := getGatewayIdentity(req.Header)
 	if err != nil || gw == nil {
@@ -154,7 +153,7 @@ func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *htt
 }
 
 func getFeGHwIdForNetwork(agNwID string) (string, error) {
-	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType)
+	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType, serdes.Network)
 	if err != nil {
 		return "", fmt.Errorf("could not load federated network configs for access network %s: %s", agNwID, err)
 	}
@@ -165,7 +164,7 @@ func getFeGHwIdForNetwork(agNwID string) (string, error) {
 	if federatedConfig.FegNetworkID == nil || *federatedConfig.FegNetworkID == "" {
 		return "", fmt.Errorf("FegNetworkID is empty in network config of network: %s", agNwID)
 	}
-	fegCfg, err := configurator.LoadNetworkConfig(*federatedConfig.FegNetworkID, feg.FegNetworkType)
+	fegCfg, err := configurator.LoadNetworkConfig(*federatedConfig.FegNetworkID, feg.FegNetworkType, serdes.Network)
 	if err != nil || fegCfg == nil {
 		return "", fmt.Errorf("unable to retrieve config for federation network: %s", *federatedConfig.FegNetworkID)
 	}

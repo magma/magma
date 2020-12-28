@@ -75,6 +75,14 @@ Status SpgwServiceImpl::CreateBearer(
   traffic_flow_template_t* ul_tft = &itti_msg.ul_tft;
   traffic_flow_template_t* dl_tft = &itti_msg.dl_tft;
   for (const auto& policy_rule : request->policy_rules()) {
+    // Copy the policy rule name
+    std::string policy_rule_name = policy_rule.id();
+    // Truncate to maximum allowed in ITTI message
+    uint8_t truncated_len = std::min(
+        policy_rule_name.size(), (std::size_t) POLICY_RULE_NAME_MAXLEN);
+    strncpy(itti_msg.policy_rule_name, policy_rule_name.c_str(), truncated_len);
+    itti_msg.policy_rule_name[truncated_len] = '\0';
+    itti_msg.policy_rule_name_length         = truncated_len;
     // Copy the QoS vector specified in the policy rule
     qos->pci       = policy_rule.qos().arp().pre_capability();
     qos->pl        = policy_rule.qos().arp().priority_level();
@@ -166,9 +174,9 @@ Status SpgwServiceImpl::CreateBearer(
           " Destination IP address: %s"
           " Destination TCP port: %d"
           " Destination UDP port: %d \n",
-          flow.match().ip_proto(), flow.match().ipv4_src().c_str(),
+          flow.match().ip_proto(), flow.match().ip_src().address().c_str(),
           flow.match().tcp_src(), flow.match().udp_src(),
-          flow.match().ipv4_dst().c_str(), flow.match().tcp_dst(),
+          flow.match().ip_dst().address().c_str(), flow.match().tcp_dst(),
           flow.match().udp_dst());
     }
 
@@ -185,15 +193,22 @@ Status SpgwServiceImpl::DeleteBearer(
     DeleteBearerResult* response) {
   OAILOG_INFO(LOG_UTIL, "Received DeleteBearer GRPC request\n");
   itti_gx_nw_init_deactv_bearer_request_t itti_msg;
-  itti_msg.imsi_length = request->sid().id().size();
-  strcpy(itti_msg.imsi, request->sid().id().c_str());
+  std::string imsi = request->sid().id();
+  // If north bound is sessiond itself, IMSI prefix is used;
+  // in S1AP tests, IMSI prefix is not used
+  // Strip off any IMSI prefix
+  if (imsi.compare(0, 4, "IMSI") == 0) {
+    imsi = imsi.substr(4, std::string::npos);
+  }
+  itti_msg.imsi_length = imsi.size();
+  strcpy(itti_msg.imsi, imsi.c_str());
   itti_msg.lbi           = request->link_bearer_id();
-  itti_msg.no_of_bearers = request->eps_bearer_ids_size();
+  itti_msg.no_of_bearers = 1;
   for (int i = 0; i < request->eps_bearer_ids_size() && i < BEARERS_PER_UE;
        i++) {
-    itti_msg.ebi[i] = request->eps_bearer_ids(i);
+    itti_msg.ebi[0] = request->eps_bearer_ids(i);
+    send_deactivate_bearer_request_itti(&itti_msg);
   }
-  send_deactivate_bearer_request_itti(&itti_msg);
   return Status::OK;
 }
 
@@ -208,10 +223,20 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
   // Else, remote server is TCP source
   // GRPC interface does not support a third option (e.g., bidirectional)
   if (flow_match_rule->direction() == FlowMatch::UPLINK) {
-    if (!flow_match_rule->ipv4_dst().empty()) {
-      flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      if (!fillIpv4(pf_content, flow_match_rule->ipv4_dst())) {
-        return false;
+    if (!flow_match_rule->ip_dst().address().empty()) {
+      if (flow_match_rule->ip_dst().version() ==
+          flow_match_rule->ip_dst().IPV4) {
+        flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
+        if (!fillIpv4(pf_content, flow_match_rule->ip_dst().address())) {
+          return false;
+        }
+      }
+      if (flow_match_rule->ip_dst().version() ==
+          flow_match_rule->ip_dst().IPV6) {
+        flags |= TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
+        if (!fillIpv6(pf_content, flow_match_rule->ip_dst().address())) {
+          return false;
+        }
       }
     }
     if (flow_match_rule->tcp_src() != 0) {
@@ -229,10 +254,20 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
       pf_content->singleremoteport = flow_match_rule->udp_dst();
     }
   } else if (flow_match_rule->direction() == FlowMatch::DOWNLINK) {
-    if (!flow_match_rule->ipv4_src().empty()) {
-      flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      if (!fillIpv4(pf_content, flow_match_rule->ipv4_src())) {
-        return false;
+    if (!flow_match_rule->ip_src().address().empty()) {
+      if (flow_match_rule->ip_src().version() ==
+          flow_match_rule->ip_src().IPV4) {
+        flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
+        if (!fillIpv4(pf_content, flow_match_rule->ip_src().address())) {
+          return false;
+        }
+      }
+      if (flow_match_rule->ip_src().version() ==
+          flow_match_rule->ip_src().IPV6) {
+        flags |= TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
+        if (!fillIpv6(pf_content, flow_match_rule->ip_src().address())) {
+          return false;
+        }
       }
     }
     if (flow_match_rule->tcp_dst() != 0) {
@@ -292,6 +327,31 @@ bool SpgwServiceImpl::fillIpv4(
       pf_content->ipv4remoteaddr[2].addr, pf_content->ipv4remoteaddr[3].addr,
       pf_content->ipv4remoteaddr[0].mask, pf_content->ipv4remoteaddr[1].mask,
       pf_content->ipv4remoteaddr[2].mask, pf_content->ipv4remoteaddr[3].mask);
+  return true;
+}
+
+bool SpgwServiceImpl::fillIpv6(
+    packet_filter_contents_t* pf_content, const std::string ipv6addr) {
+  struct in6_addr in6addr;
+  if (inet_pton(AF_INET6, ipv6addr.c_str(), &in6addr) != 1) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv6addr.c_str());
+    return false;
+  }
+  for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; i++) {
+    pf_content->ipv6remoteaddr[i].addr = in6addr.s6_addr[i];
+  }
+
+  OAILOG_DEBUG(
+      LOG_UTIL,
+      "Network Address: %x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x\n",
+      pf_content->ipv6remoteaddr[0].addr, pf_content->ipv6remoteaddr[1].addr,
+      pf_content->ipv6remoteaddr[2].addr, pf_content->ipv6remoteaddr[3].addr,
+      pf_content->ipv6remoteaddr[4].addr, pf_content->ipv6remoteaddr[5].addr,
+      pf_content->ipv6remoteaddr[6].addr, pf_content->ipv6remoteaddr[7].addr,
+      pf_content->ipv6remoteaddr[8].addr, pf_content->ipv6remoteaddr[9].addr,
+      pf_content->ipv6remoteaddr[10].addr, pf_content->ipv6remoteaddr[11].addr,
+      pf_content->ipv6remoteaddr[12].addr, pf_content->ipv6remoteaddr[13].addr,
+      pf_content->ipv6remoteaddr[14].addr, pf_content->ipv6remoteaddr[15].addr);
   return true;
 }
 

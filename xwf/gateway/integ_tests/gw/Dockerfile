@@ -1,47 +1,33 @@
-FROM ubuntu:bionic
+FROM centos:7
 
-RUN apt-get update
-RUN apt-get update \
-  &&apt-get install -y \
+RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+RUN yum update -y
+RUN yum install -y \
   git \
-  software-properties-common \
-  sudo netplan \
-  apt-utils \
+  sudo \
   iptables \
-  apt-transport-https \
-  ca-certificates \
-  curl \
-  gnupg-agent \
   ansible \
+  yum-plugin-versionlock \
   net-tools \
-  docker.io \
-  docker-compose \
-  isc-dhcp-server \
+  initscripts \
   graphviz \
-  autoconf \
-  automake \
   bzip2 \
-  debhelper \
-  dh-autoreconf \
-  libssl-dev \
-  libtool \
   openssl \
   procps \
-  python-all \
-  python-twisted-conch \
-  python-zope.interface \
   python-six \
-  build-essential \
-  fakeroot \
   dnsmasq \
-  dialog
+  dialog \
+  wget \
+  jq \
+  dhcp
 
 WORKDIR /code
-COPY cwf ./cwf
-COPY lte ./lte
-COPY orc8r ./orc8r
+COPY xwf/gateway/deploy ./xwf/gateway/deploy
+RUN ANSANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook xwf/gateway/deploy/xwf.yml -i "localhost," -c local --tags "install" -v
+
 COPY xwf ./xwf
-RUN ANSIBLE_CONFIG=cwf/gateway/ansible.cfg  ansible-playbook cwf/gateway/deploy/cwag.yml -i "localhost," -c local --tags "install" -v
+COPY orc8r ./orc8r
+COPY cwf ./cwf
 
 # Create snowflake to be mounted into containers
 RUN touch /etc/snowflake
@@ -52,9 +38,6 @@ RUN mkdir -p /var/opt/magma/configs
 RUN mkdir -p /var/opt/magma/certs
 RUN mkdir -p /etc/magma
 RUN mkdir -p /var/opt/magma/docker
-
-COPY orc8r/tools/docker/recreate_services.sh /var/opt/magma/docker/
-COPY orc8r/tools/docker/recreate_services_cron /etc/cron.d/
 
 COPY xwf/gateway/integ_tests/gw/entrypoint.sh .
 CMD ./entrypoint.sh

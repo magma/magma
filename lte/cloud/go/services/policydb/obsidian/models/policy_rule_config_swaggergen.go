@@ -32,15 +32,15 @@ type PolicyRuleConfig struct {
 	// Required: true
 	FlowList []*FlowDescription `json:"flow_list"`
 
+	// List of URL targets for header enrichment
+	HeaderEnrichmentTargets []string `json:"header_enrichment_targets"`
+
 	// monitoring key
 	MonitoringKey string `json:"monitoring_key,omitempty"`
 
 	// priority
 	// Required: true
 	Priority *uint32 `json:"priority"`
-
-	// qos
-	Qos *FlowQos `json:"qos,omitempty"`
 
 	// rating group
 	RatingGroup uint32 `json:"rating_group,omitempty"`
@@ -70,10 +70,6 @@ func (m *PolicyRuleConfig) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validatePriority(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateQos(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -275,24 +271,6 @@ func (m *PolicyRuleConfig) validatePriority(formats strfmt.Registry) error {
 
 	if err := validate.Required("priority", "body", m.Priority); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (m *PolicyRuleConfig) validateQos(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Qos) { // not required
-		return nil
-	}
-
-	if m.Qos != nil {
-		if err := m.Qos.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("qos")
-			}
-			return err
-		}
 	}
 
 	return nil

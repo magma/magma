@@ -73,12 +73,15 @@ typedef uint64_t enb_s1ap_id_key_t;
 
 #define MME_UE_S1AP_ID_FMT "0x%08" PRIX32
 
+#define COMP_S1AP_ID_FMT "0x%016" PRIX64
+
 /* INVALID_MME_UE_S1AP_ID
  * Any value between 0..2^32-1, is allowed/valid as per 3GPP spec 36.413.
  * Here we are conisdering 0 as invalid. Don't allocate 0 and consider this as
  * invalid
  */
 #define INVALID_MME_UE_S1AP_ID 0x0
+#define INVALID_ENB_UE_S1AP_ID 0x0
 
 //------------------------------------------------------------------------------
 // TEIDs
@@ -116,12 +119,18 @@ typedef uint64_t imsi64_t;
 #define MSISDN_LENGTH (15)
 #define IMEI_DIGITS_MAX (15)
 #define IMEISV_DIGITS_MAX (16)
+#define CHARGING_CHARACTERISTICS_LENGTH (4)  // 3GPP TS 29.061
 #define APN_MAX_LENGTH (100)
 #define PRIORITY_LEVEL_MAX (15)
 #define PRIORITY_LEVEL_MIN (1)
 #define BEARERS_PER_UE (11)
 #define MAX_APN_PER_UE (10)
 
+//------------------------------------------------------------------------------
+// IPv6 Interface Identifier length in bytes
+#define IPV6_INTERFACE_ID_LEN 8
+// IPv6 Prefix length in bits
+#define IPV6_PREFIX_LEN 64
 //------------------------------------------------------------------------------
 typedef uint8_t ksi_t;
 #define KSI_NO_KEY_AVAILABLE 0x07
@@ -209,6 +218,7 @@ typedef struct paa_s {
   struct in6_addr ipv6_address;
   /* Note in rel.8 the ipv6 prefix length has a fixed value of /64 */
   uint8_t ipv6_prefix_length;
+  int vlan;
 } paa_t;
 
 void copy_paa(paa_t* paa_dst, paa_t* paa_src);
@@ -281,6 +291,11 @@ typedef struct eps_subscribed_qos_profile_s {
   allocation_retention_priority_t allocation_retention_priority;
 } eps_subscribed_qos_profile_t;
 
+typedef struct {
+  char value[CHARGING_CHARACTERISTICS_LENGTH + 1];
+  size_t length;
+} charging_characteristics_t;
+
 typedef struct apn_configuration_s {
   context_identifier_t context_identifier;
 
@@ -304,6 +319,7 @@ typedef struct apn_configuration_s {
   int service_selection_length;
   eps_subscribed_qos_profile_t subscribed_qos;
   ambr_t ambr;
+  charging_characteristics_t charging_characteristics;
 } apn_configuration_t;
 
 typedef enum {
@@ -330,6 +346,7 @@ typedef struct {
   ambr_t subscribed_ambr;
   apn_config_profile_t apn_config_profile;
   rau_tau_timer_t rau_tau_timer;
+  charging_characteristics_t default_charging_characteristics;
 } subscription_data_t;
 
 typedef struct authentication_info_s {

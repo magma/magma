@@ -15,6 +15,10 @@ magma-gen-meta:
       filename: base_names_swaggergen.go
     - go-struct-name: RuleID
       filename: rule_id_swaggergen.go
+    - go-struct-name: PolicyIdsByApn
+      filename: policy_ids_by_apn_swaggergen.go
+    - go-struct-name: PolicyIds
+      filename: policy_ids_swaggergen.go
     - go-struct-name: PolicyID
       filename: policy_id_swaggergen.go
     - go-struct-name: SubscriberID
@@ -31,6 +35,8 @@ magma-gen-meta:
       filename: flow_qos_swaggergen.go
     - go-struct-name: RedirectInformation
       filename: redirect_information_swaggergen.go
+    - go-struct-name: PolicyQosProfile
+      filename: policy_qos_profile_swaggergen.go
     - go-struct-name: PolicyRule
       filename: policy_rule_swaggergen.go
     - go-struct-name: PolicyRuleConfig
@@ -41,6 +47,8 @@ magma-gen-meta:
       filename: base_name_record_swaggergen.go
     - go-struct-name: NetworkSubscriberConfig
       filename: network_subscriber_config_swaggergen.go
+    - go-struct-name: IPAddress
+      filename: ip_address_swaggergen.go
 
 info:
   title: LTE Policy Management
@@ -336,6 +344,86 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/policy_qos_profiles:
+    get:
+      summary: Get policy QoS profiles in LTE network
+      tags:
+        - Policies
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Policy QoS profiles in the network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/policy_qos_profile'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create policy QoS profile in LTE network
+      tags:
+        - Policies
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: policy
+          in: body
+          description: Policy QoS profile
+          required: true
+          schema:
+            $ref: '#/definitions/policy_qos_profile'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/policy_qos_profiles/{profile_id}:
+    get:
+      summary: Get policy QoS profile in LTE network
+      tags:
+        - Policies
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/policy_qos_profile_id'
+      responses:
+        '200':
+          description: Policy QoS profie
+          schema:
+            $ref: '#/definitions/policy_qos_profile'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update policy QoS profile in LTE network
+      tags:
+        - Policies
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/policy_qos_profile_id'
+        - name: profile
+          in: body
+          description: Policy QoS profile
+          required: true
+          schema:
+            $ref: '#/definitions/policy_qos_profile'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete policy QoS profile in LTE network
+      tags:
+        - Policies
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/policy_qos_profile_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   rule_id:
     in: path
@@ -363,6 +451,13 @@ parameters:
     in: path
     name: base_name
     description: Charging Rule Base Name
+    required: true
+    type: string
+
+  policy_qos_profile_id:
+    in: path
+    name: profile_id
+    description: Policy QoS profile
     required: true
     type: string
 
@@ -402,6 +497,8 @@ definitions:
       match:
         $ref: '#/definitions/flow_match'
 
+  # TODO(8/21/20) remove once NMS doesn't require its generated code
+  # Deprecated
   flow_qos:
     type: object
     required:
@@ -436,6 +533,22 @@ definitions:
           - SIP_URI
       server_address:
         type: string
+
+  policy_ids_by_apn:
+    type: object
+    description: 'APN-specific policies for this subscriber'
+    additionalProperties:
+      $ref: '#/definitions/policy_ids'
+
+  policy_ids:
+    type: array
+    items:
+      $ref: '#/definitions/policy_id'
+    x-omitempty: true
+    description: 'Policies which are globally active for this subscriber'
+    example:
+      - 'rule1'
+      - 'rule2'
 
   policy_id:
     type: string
@@ -507,8 +620,6 @@ definitions:
           - CHAT
           - AUDIO
           - VIDEO
-      qos:
-        $ref: '#/definitions/flow_qos'
       redirect:
         $ref: '#/definitions/redirect_information'
       assigned_subscribers:
@@ -520,9 +631,21 @@ definitions:
         example:
           - IMSI1234567890
           - IMSI0987654321
+      qos_profile:
+        type: string
+        description: ID of the QoS profile associated with this policy
+        example: profile0
+      header_enrichment_targets:
+        type: array
+        description: List of URL targets for header enrichment
+        items:
+          type: string
+          x-nullable: false
+          example: http://example.com/
 
-  # This should be kept in sync with the policy rule above, we use this as the
-  # config type which is stored on the backend for policy rules.
+  # This should be kept in sync with the policy rule above (for the
+  # config-related fields), we use this as the config type which is stored on
+  # the backend for policy rules.
   # But for API backwards-compatibility, we can't nest this struct in the
   # top-level policy rule
   policy_rule_config:
@@ -584,10 +707,15 @@ definitions:
           - CHAT
           - AUDIO
           - VIDEO
-      qos:
-        $ref: '#/definitions/flow_qos'
       redirect:
         $ref: '#/definitions/redirect_information'
+      header_enrichment_targets:
+        type: array
+        description: List of URL targets for header enrichment
+        items:
+          type: string
+          x-nullable: false
+          example: http://example.com/
 
   rating_group:
     type: object
@@ -675,6 +803,12 @@ definitions:
         format: ip-address
         example: "0.0.0.0/0"
         x-go-custom-tag: 'magma_alt_name:"Ipv4Dst"'
+      ip_src:
+        $ref: '#/definitions/ip_address'
+        x-go-custom-tag: 'magma_alt_name:"IpSrc"'
+      ip_dst:
+        $ref: '#/definitions/ip_address'
+        x-go-custom-tag: 'magma_alt_name:"IpDst"'
       tcp_src:
         type: integer
         format: uint32
@@ -702,9 +836,9 @@ definitions:
     type: object
     properties:
       network_wide_base_names:
-        $ref: './lte-policydb-swagger.yml#/definitions/base_names'
+        $ref: '#/definitions/base_names'
       network_wide_rule_names:
-        $ref: './lte-policydb-swagger.yml#/definitions/rule_names'
+        $ref: '#/definitions/rule_names'
 
   subscriber_id:
     type: string
@@ -712,3 +846,101 @@ definitions:
     example: IMSI208950000000010
     x-nullable: false
 
+  policy_qos_profile:
+    type: object
+    required:
+      - id
+      - class_id
+      - max_req_bw_ul
+      - max_req_bw_dl
+    properties:
+      id:
+        type: string
+        minLength: 1
+        example: 'All ICMP'
+        x-nullable: false
+      max_req_bw_ul:
+        type: integer
+        format: uint32
+      max_req_bw_dl:
+        type: integer
+        format: uint32
+      class_id:
+        $ref: '#/definitions/qos_class_id'
+      gbr:
+        $ref: '#/definitions/gbr'
+      arp:
+        $ref: '#/definitions/arp'
+
+  qos_class_id:
+    type: integer
+    format: int32
+    example: 9
+    default: 9
+    # Enum values must align 1-1 with policydb.FlowQos proto's Qci enum
+    enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 65
+      - 66
+      - 67
+      - 70
+      - 75
+      - 79
+    x-go-custom-tag: 'magma_alt_name:"QCI"'
+
+  gbr:
+    description: Guaranteed bit rate
+    type: object
+    required:
+      - uplink
+      - downlink
+    properties:
+      uplink:
+        type: integer
+        format: uint32
+      downlink:
+        type: integer
+        format: uint32
+
+  arp:
+    description: Allocation and retention priority
+    type: object
+    properties:
+      priority_level:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 15
+        example: 15
+        default: 15
+      preemption_capability:
+        type: boolean
+        example: true
+        default: true
+      preemption_vulnerability:
+        type: boolean
+        example: false
+        default: false
+
+  ip_address:
+    description: IP address
+    type: object
+    properties:
+      version:
+        type: string
+        enum:
+          - IPv4
+          - IPv6
+      address:
+        type: string
+        format: ip-address
+        example: "192.168.0.1/24"

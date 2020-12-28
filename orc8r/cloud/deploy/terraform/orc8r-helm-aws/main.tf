@@ -80,6 +80,17 @@ resource "helm_release" "orc8r" {
     alertmanager_hostname     = format("%s-alertmanager", var.helm_deployment_name)
     alertmanager_url          = format("%s-alertmanager:9093", var.helm_deployment_name)
     prometheus_url            = format("%s-prometheus:9090", var.helm_deployment_name)
+
+    thanos_enabled         = var.thanos_enabled
+    thanos_bucket          = var.thanos_enabled ? aws_s3_bucket.thanos_object_store_bucket[0].bucket : ""
+    thanos_aws_access_key  = var.thanos_enabled ? aws_iam_access_key.thanos_s3_access_key[0].id : ""
+    thanos_aws_secret_key  = var.thanos_enabled ? aws_iam_access_key.thanos_s3_access_key[0].secret : ""
+
+    thanos_compact_selector = var.thanos_compact_node_selector != "" ? format("compute-type: %s", var.thanos_compact_node_selector) : "{}"
+    thanos_query_selector   = var.thanos_query_node_selector != "" ? format("compute-type: %s", var.thanos_query_node_selector) : "{}"
+    thanos_store_selector   = var.thanos_store_node_selector != "" ? format("compute-type: %s", var.thanos_store_node_selector) : "{}"
+
+    region = var.region
   })]
 
   set_sensitive {
