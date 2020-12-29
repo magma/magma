@@ -157,9 +157,12 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             resubmit_table=self._enforcement_stats_tbl,
             cookie=self.DEFAULT_FLOW_COOKIE)
 
+        current_flows = []
+        if self.tbl_num in existing_flows:
+            current_flows = existing_flows[self.tbl_num]
         msgs, remaining_flows = self._msg_hub \
             .filter_msgs_if_not_in_flow_list(self._datapath, [msg],
-                                             existing_flows[self.tbl_num])
+                                             current_flows)
         if msgs:
             chan = self._msg_hub.send(msgs, datapath)
             self._wait_for_responses(chan, len(msgs))
