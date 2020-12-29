@@ -269,7 +269,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         if (status.ok()) {
           MLOG(MINFO) << "Processing a CreateSessionResponse for "
                       << session_id;
-          enforcer_->init_session_credit(
+          enforcer_->init_session(
               *session_map_ptr, imsi, session_id, cfg, response);
           bool write_success = session_store_.create_sessions(
               imsi, std::move((*session_map_ptr)[imsi]));
@@ -559,10 +559,7 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, imsi,
                                                     response_callback]() {
     auto session_map = session_store_.read_sessions({imsi});
-    SessionUpdate update =
-        SessionStore::get_default_session_update(session_map);
-    auto success =
-        enforcer_->update_tunnel_ids(session_map, request_cpy, update);
+    auto success     = enforcer_->update_tunnel_ids(session_map, request_cpy);
     if (!success) {
       MLOG(MDEBUG) << "Failed to UpdateTunnelIds for imsi " << imsi
                    << " and bearer " << request_cpy.bearer_id();

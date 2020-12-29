@@ -83,6 +83,8 @@ magma::ActivateFlowsRequest create_activate_req(
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
   req.set_ipv6_addr(ipv6_addr);
+  req.set_downlink_tunnel(teids.enb_teid());
+  req.set_uplink_tunnel(teids.agw_teid());
   req.set_msisdn(msisdn);
   req.mutable_request_origin()->set_type(origin_type);
   if (ambr) {
@@ -100,18 +102,6 @@ magma::ActivateFlowsRequest create_activate_req(
   for (const auto& dyn_rule : dynamic_rules) {
     mut_dyn_rules->Add()->CopyFrom(dyn_rule);
   }
-  return req;
-}
-
-magma::ActivateFlowsRequest create_activate_req_for_update_tunnel_ids(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids teids) {
-  magma::ActivateFlowsRequest req;
-  req.mutable_sid()->set_id(imsi);
-  req.set_ip_addr(ip_addr);
-  req.set_ipv6_addr(ipv6_addr);
-  req.set_uplink_tunnel(teids.agw_teid());
-  req.set_downlink_tunnel(teids.enb_teid());
   return req;
 }
 
@@ -346,27 +336,6 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
       imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, std::vector<std::string>(),
       dynamic_rules, RequestOriginType::GX);
   activate_flows_rpc(dynamic_req, callback);
-  return true;
-}
-
-bool AsyncPipelinedClient::update_tunnel_ids(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids) {
-  MLOG(MDEBUG) << "Sending a pipelined update for enb_teid="
-               << teids.DebugString() << " for subscirber " << imsi
-               << "(ipv4:" << ip_addr << " ipv6:" << ipv6_addr << ")";
-
-  auto update_req = create_activate_req_for_update_tunnel_ids(
-      imsi, ip_addr, ipv6_addr, teids);
-  activate_flows_rpc(
-      update_req, [imsi, ip_addr, ipv6_addr, teids](
-                      Status status, ActivateFlowsResult resp) {
-        if (!status.ok()) {
-          MLOG(MERROR) << "Could send pipelined update for tunnels for " << imsi
-                       << "(ipv4:" << ip_addr << " ipv6:" << ipv6_addr << ")"
-                       << ": " << status.error_message();
-        }
-      });
   return true;
 }
 
