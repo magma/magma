@@ -175,8 +175,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Authenticate a UE through a first AP then switch to use a second AP
@@ -228,6 +227,5 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 
 	_, err = tr.Disconnect(imsi, CalledStationIDs[1])
 	assert.NoError(t, err)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
