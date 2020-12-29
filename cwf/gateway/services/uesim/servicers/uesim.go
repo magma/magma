@@ -91,6 +91,9 @@ func (output *IperfResponse) FromBytes(b []byte) (*IperfResponse, error) {
 }
 
 func (response *IperfResponse) ToProto() *cwfprotos.GenTrafficResponse {
+	if response == nil {
+		return &cwfprotos.GenTrafficResponse{}
+	}
 	return &cwfprotos.GenTrafficResponse{
 		EndOutput: response.End.ToProto(),
 		Output:    response.RawOutput,
@@ -98,6 +101,9 @@ func (response *IperfResponse) ToProto() *cwfprotos.GenTrafficResponse {
 }
 
 func (output *TrafficOutput) ToProto() *cwfprotos.TrafficOutput {
+	if output == nil {
+		return &cwfprotos.TrafficOutput{}
+	}
 	return &cwfprotos.TrafficOutput{
 		SumSent:     output.SumSent.ToProto(),
 		SumReceived: output.SumReceived.ToProto(),
@@ -105,6 +111,9 @@ func (output *TrafficOutput) ToProto() *cwfprotos.TrafficOutput {
 }
 
 func (summary *TrafficSummary) ToProto() *cwfprotos.TrafficSummary {
+	if summary == nil {
+		return &cwfprotos.TrafficSummary{}
+	}
 	return &cwfprotos.TrafficSummary{
 		Start:         summary.Start,
 		End:           summary.End,
