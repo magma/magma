@@ -99,7 +99,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         self._log_grpc_payload(request)
         # Setup inout here as well
-        self._inout_app.handle_restart()
+        self._inout_app.handle_restart(request.requests)
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
