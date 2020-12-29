@@ -17,6 +17,7 @@ import time
 
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
+import ipaddress
 
 
 class TestAttachDetachMultipleDedicated(unittest.TestCase):
@@ -39,24 +40,31 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
             req.ue_id,
         )
         # Now actually complete the attach
-        self._s1ap_wrapper._s1_util.attach(
+        attach = self._s1ap_wrapper._s1_util.attach(
             req.ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
 
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
+
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
+        flow_lists = []
         time.sleep(2)
         for i in range(num_dedicated_bearers):
             print(
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
+            flow_list = self._spgw_util.create_default_flows()
+            flow_lists.append(flow_list)
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5
+                "IMSI" + "".join([str(i) for i in req.imsi]), 5,
+                flow_list
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -74,6 +82,17 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
                 "********************** Added dedicated bearer with",
                 "with bearer id",
                 act_ded_ber_ctxt_req.bearerId,
+            )
+
+        for i in range(num_dedicated_bearers):
+            dl_flow_rules = {
+                default_ip: [flow_lists[i]],
+            }
+            # 1 UL flow default bearer + 2 for dedicated bearer
+            num_ul_flows = 3
+            # Verify if flow rules are created
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
             )
 
         time.sleep(2)
