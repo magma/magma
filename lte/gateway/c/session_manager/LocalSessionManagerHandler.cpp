@@ -570,7 +570,8 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
       response_callback(err_status, UpdateTunnelIdsResponse());
       return;
     }
-    auto update_success = session_store_.update_sessions(update);
+    bool update_success =
+        session_store_.raw_write_sessions(std::move(session_map));
     if (!update_success) {
       MLOG(MERROR)
           << "Failed in updating SessionStore after processing UpdateTunnelIds";

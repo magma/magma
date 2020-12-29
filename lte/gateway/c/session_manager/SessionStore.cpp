@@ -31,6 +31,11 @@ SessionStore::SessionStore(
       store_client_(store_client),
       metering_reporter_(std::make_shared<MeteringReporter>()) {}
 
+bool SessionStore::raw_write_sessions(SessionMap session_map) {
+  // return true;
+  return store_client_->write_sessions(std::move(session_map));
+}
+
 SessionMap SessionStore::read_sessions(const SessionRead& req) {
   return store_client_->read_sessions(req);
 }
@@ -227,7 +232,6 @@ optional<SessionVector::iterator> SessionStore::find_session(
         }
         break;
       case IMSI_AND_BEARER:
-
         if ((*it)->get_config().common_context.rat_type() ==
             RATType::TGPP_LTE) {
           // lte case
