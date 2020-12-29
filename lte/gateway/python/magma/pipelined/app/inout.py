@@ -41,6 +41,8 @@ from magma.pipelined.openflow.registers import load_direction, Direction, \
 
 from ryu.lib import hub
 from ryu.lib.packet import ether_types
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 
 # ingress and egress service names -- used by other controllers
 
@@ -154,33 +156,45 @@ class InOutController(RestartMixin, MagmaController):
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
         self._setup_non_nat_monitoring(datapath)
+        if self.config.setup_type == 'XWF':
+            self.delete_all_flows(datapath)
+            self._install_default_flows_if_not_installed(datapath, {})
 
     def _install_default_flows_if_not_installed(self, datapath,
             existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
         ret = {}
         
         ingress_msgs = self._get_default_ingress_flow_msgs(datapath)
+        current_flows = []
+        if self._ingress_tbl_num in existing_flows:
+            current_flows = existing_flows[self._ingress_tbl_num]
         msgs, remaining_flows = self._msg_hub \
             .filter_msgs_if_not_in_flow_list(self._datapath, ingress_msgs,
-                existing_flows[self._ingress_tbl_num])
+                                             current_flows)
         ret[self._ingress_tbl_num] = remaining_flows
         if msgs:
             chan = self._msg_hub.send(msgs, datapath)
             self._wait_for_responses(chan, len(msgs))
 
         egress_msgs = self._get_default_egress_flow_msgs(datapath)
+        current_flows = []
+        if self._egress_tbl_num in existing_flows:
+            current_flows = existing_flows[self._egress_tbl_num]
         msgs, remaining_flows = self._msg_hub \
             .filter_msgs_if_not_in_flow_list(self._datapath, egress_msgs,
-                                             existing_flows[self._egress_tbl_num])
+                                             current_flows)
         ret[self._egress_tbl_num] = remaining_flows
         if msgs:
             chan = self._msg_hub.send(msgs, datapath)
             self._wait_for_responses(chan, len(msgs))
 
         middle_msgs = self._get_default_middle_flow_msgs(datapath)
+        current_flows = []
+        if self._midle_tbl_num in existing_flows:
+            current_flows = existing_flows[self._midle_tbl_num]
         msgs, remaining_flows = self._msg_hub \
             .filter_msgs_if_not_in_flow_list(self._datapath, middle_msgs,
-                                             existing_flows[self._midle_tbl_num])
+                                             current_flows)
         ret[self._midle_tbl_num] = remaining_flows
         if msgs:
             chan = self._msg_hub.send(msgs, datapath)
@@ -527,6 +541,14 @@ class InOutController(RestartMixin, MagmaController):
 
     def cleanup_state(self):
         pass
+
+    @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
+    def _handle_barrier(self, ev):
+        self._msg_hub.handle_barrier(ev)
+
+    @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
+    def _handle_error(self, ev):
+        self._msg_hub.handle_error(ev)
 
 
 def _get_vlan_egress_flow_msgs(dp, table_no, ip, out_port=None,
