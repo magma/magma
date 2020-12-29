@@ -52,7 +52,7 @@ PHYSICAL_TO_LOGICAL = "middle"
 PROXY_PORT_MAC = 'e6:8f:a2:80:80:80'
 
 
-class InOutController(RestartMixin, MagmaController):
+class InOutController(MagmaController):
     """
     A controller that sets up an openflow pipeline for Magma.
 
@@ -156,14 +156,14 @@ class InOutController(RestartMixin, MagmaController):
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
         self._setup_non_nat_monitoring()
-        if self.config.setup_type == 'XWF':
-            self.delete_all_flows(datapath)
-            self._install_default_flows_if_not_installed(datapath, {})
+        # TODO remove temp fix
+        # if self.config.setup_type == 'XWF':
+        self.delete_all_flows(datapath)
+        self._install_default_flows_if_not_installed(datapath, {})
 
     def _install_default_flows_if_not_installed(self, datapath,
             existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
         ret = {}
-        
         ingress_msgs = self._get_default_ingress_flow_msgs(datapath)
         current_flows = []
         if self._ingress_tbl_num in existing_flows:
@@ -513,7 +513,6 @@ class InOutController(RestartMixin, MagmaController):
         return [flows.get_add_output_flow_msg(dp, self._egress_tbl_num, match,
             priority=flows.UE_FLOW_PRIORITY, actions=actions,
             output_port=self.config.he_proxy_port)]
-
 
     def _wait_for_responses(self, chan, response_count):
         def fail(err):

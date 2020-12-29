@@ -54,6 +54,7 @@ class RestartMixin(metaclass=ABCMeta):
         if not self._datapath:
             self.logger.error('Controller restart not ready, datapath is None')
             return SetupFlowsResult.FAILURE
+
         if requests is None:
             requests = []
         if self._clean_restart:
@@ -160,6 +161,7 @@ class RestartMixin(metaclass=ABCMeta):
                     self.logger.error("Failed to verify rule_id: %s", rule.id)
 
         ret = {}
+        msgs_to_send = []
         for tbl in current_flows:
             msgs_to_send, remaining_flows = \
                 self._msg_hub.filter_msgs_if_not_in_flow_list(
