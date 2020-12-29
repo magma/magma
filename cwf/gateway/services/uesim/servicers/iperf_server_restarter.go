@@ -61,6 +61,7 @@ func restartIperfServer(address, port string) error {
 	// DO NOT WAIT OR SSH WILL HANG UP
 	//session.Wait()
 	time.Sleep(500 * time.Millisecond)
+	glog.V(5).Info("Restarted iperf server")
 	return nil
 }
 
