@@ -204,9 +204,8 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	// This could error out if the session terminates during traffic generation
 	tr.GenULTraffic(req)
 
-	// Wait for flow deletion due to quota exhaustion
-	assert.Eventually(t,
-		tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
+	// Wait for flow deletion due to quota exhaustion -> termination
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()
@@ -269,6 +268,7 @@ func TestGyCreditValidityTime(t *testing.T) {
 	time.Sleep(time.Second * 5)
 	tr.AssertAllGyExpectationsMetNoError()
 	tr.DisconnectAndAssertSuccess(imsi)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
@@ -333,9 +333,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	}
 	// This could error out if the session terminates during traffic generation
 	tr.GenULTraffic(req)
-	// Wait until all rules are removed
-	assert.Eventually(t,
-		tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs1", "static-pass-all-ocs2"), time.Minute, 2*time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()
@@ -491,9 +489,9 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), 2*time.Minute, 2*time.Second)
 	tr.AssertAllGyExpectationsMetNoError()
 }
 
@@ -545,13 +543,10 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Wait for a termination to propagate
-	time.Sleep(5 * time.Second)
-	tr.WaitForEnforcementStatsToSync()
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that a CCR-I/U/T was sent to OCS
 	tr.AssertAllGyExpectationsMetNoError()
-
-	tr.AssertPolicyEnforcementRecordIsNil(imsi)
 }
 
 // This test verifies the abort session request
@@ -638,7 +633,7 @@ func TestGyAbortSessionRequest(t *testing.T) {
 	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
 
 	// check if all session related info is cleaned up
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), 2*time.Minute, 2*time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
@@ -760,6 +755,7 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Send a CCA-I with valid credit for a RG but with 4012 error code (transient)
@@ -880,6 +876,7 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
@@ -951,7 +948,7 @@ func TestGyWithTransientErrorCode(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
@@ -1023,7 +1020,7 @@ func TestGyWithPermanentErrorCode(t *testing.T) {
 	tr.GenULTraffic(req)
 
 	// Check that enforcement stats flow is removed
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), 10*time.Second, 2*time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()

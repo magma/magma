@@ -123,8 +123,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
@@ -202,7 +201,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), 2*time.Minute, 2*time.Second)
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, ruleKey), 2*time.Minute, 2*time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 //TestGxQosDowngradeWithCCAUpdate
@@ -320,8 +319,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(6 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()
@@ -418,6 +416,5 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

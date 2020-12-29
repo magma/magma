@@ -79,8 +79,10 @@ func TestIdleTimer(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	// Wait for Session Idle Timer to kick off + Wait for Termination to go through
-	// Idle Timer = 3 + Session forced termination timeout = 3 + some buffer
-	time.Sleep(8 * time.Second)
+	// Idle Timer = 3 seconds
+	fmt.Println("Waiting 3 seconds for the idle timer to kick in...")
+	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	tr.AssertAllGxExpectationsMetNoError()
 }

@@ -114,8 +114,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	// Check that enforcement stats flow is removed
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "usage-enforcement-static-pass-all"), time.Minute, 2*time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()
 }
@@ -171,7 +170,8 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(imsi)
 	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-1", "static-pass-all-3"), time.Minute, 2*time.Second)
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
+	// Pass a small amount, but not enough to trigger a CCR-U
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "100K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
@@ -213,7 +213,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), 10*time.Second, 2*time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -311,8 +311,7 @@ func TestGxRuleInstallTime(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 //TestGxAbortSessionRequest
@@ -367,14 +366,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	// processing disconnect
 	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
-	// check if all rules have been cleaned up
-	checkSessionAborted := func() bool {
-		recordsBySubID, err = tr.GetPolicyUsage()
-		assert.NoError(t, err)
-		return recordsBySubID["IMSI"+imsi][ruleKey] == nil
-	}
-	assert.Eventually(t, checkSessionAborted, 10*time.Second, 5*time.Second,
-		"request not terminated as expected")
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
@@ -448,8 +440,7 @@ func TestGxRevalidationTime(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	// Wait for termination to go through
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "revalidation-time-static-pass-all"), 10*time.Second, 2*time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()
