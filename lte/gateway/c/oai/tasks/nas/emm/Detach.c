@@ -131,7 +131,7 @@ void detach_t3422_handler(void* args, imsi64_t* imsi64) {
     }
     if (detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
-      emm_detach_request_params.switch_off = 0;
+      emm_detach_request_params.switch_off = 1;
       emm_detach_request_params.type       = 0;
       emm_proc_detach_request(ue_id, &emm_detach_request_params);
     }
