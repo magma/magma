@@ -155,7 +155,7 @@ class InOutController(RestartMixin, MagmaController):
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
-        self._setup_non_nat_monitoring(datapath)
+        self._setup_non_nat_monitoring()
         if self.config.setup_type == 'XWF':
             self.delete_all_flows(datapath)
             self._install_default_flows_if_not_installed(datapath, {})
@@ -469,13 +469,11 @@ class InOutController(RestartMixin, MagmaController):
 
             hub.sleep(self.config.non_nat_gw_probe_frequency)
 
-    def _setup_non_nat_monitoring(self, datapath):
+    def _setup_non_nat_monitoring(self):
         """
         Setup egress flow to forward traffic to internet GW.
         Start a thread to figure out MAC address of uplink NAT gw.
 
-        Args:
-            datapath: datapath to install flows.
         """
         if self._gw_mac_monitor is not None:
             # No need to multiple probes here.
@@ -491,7 +489,6 @@ class InOutController(RestartMixin, MagmaController):
                              self.config.non_nat_arp_egress_port,
                              self.config.uplink_port)
 
-        self._datapath = datapath
         self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
 
         threading.Event().wait(1)
