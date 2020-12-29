@@ -306,7 +306,8 @@ int pgw_handle_allocate_ipv4v6_address(
               LOG_UTIL,
               "Allocated IPv4 Address <%s>, IPv6 Address <%s>, PDN Type <%s>,"
               " for IMSI <%s> and APN <%s>\n",
-              ipv4_addr_str, ipv6_addr_str, pdn_type, subscriber_id, apn);
+              ipv4_addr_str.c_str(), ipv6_addr_str.c_str(), pdn_type,
+              subscriber_id, apn);
         } else {
           OAILOG_ERROR(
               LOG_UTIL,

@@ -18,33 +18,129 @@ import (
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
+	"magma/orc8r/lib/go/metrics"
 
 	"github.com/golang/glog"
 )
 
-//CollectorService implements the operations of collecting the metrics from CWF service
-type CollectorService struct {
-	calculations  []calculations.Calculation
-	promAPIClient query_api.PrometheusAPI
+// collectorServicer implements the operations of collecting the metrics from CWF service
+type collectorServicer struct {
+	calculations     []calculations.Calculation
+	promAPIClient    query_api.PrometheusAPI
+	userStateManager calculations.UserStateManager
+	analyticsConfig  *calculations.AnalyticsConfig
 }
 
-//NewCollectorService constructs new collector service
-func NewCollectorService(promAPIClient query_api.PrometheusAPI, calculations []calculations.Calculation) *CollectorService {
-	return &CollectorService{promAPIClient: promAPIClient, calculations: calculations}
+// NewCollectorServicer constructs new collector service
+func NewCollectorServicer(
+	analyticsConfig *calculations.AnalyticsConfig,
+	promAPIClient query_api.PrometheusAPI,
+	calculations []calculations.Calculation,
+	userStateManager calculations.UserStateManager,
+) protos.AnalyticsCollectorServer {
+	return &collectorServicer{
+		promAPIClient:    promAPIClient,
+		calculations:     calculations,
+		analyticsConfig:  analyticsConfig,
+		userStateManager: userStateManager,
+	}
 }
 
-//Collect does the operation of running through calculations and returning results
-func (svc *CollectorService) Collect(context.Context, *protos.CollectRequest) (*protos.CollectResponse, error) {
+// Collect does the operation of running through calculations and returning results
+func (c *collectorServicer) Collect(context.Context, *protos.CollectRequest) (*protos.CollectResponse, error) {
+	if c.userStateManager != nil {
+		c.userStateManager.Update()
+	}
+
 	response := &protos.CollectResponse{}
-	for _, calc := range svc.calculations {
-		results, err := calc.Calculate(svc.promAPIClient)
+	for _, calc := range c.calculations {
+		results, err := calc.Calculate(c.promAPIClient)
 		if err != nil {
-			glog.Errorf("Error calculating metric: %s", err)
+			glog.Errorf("Error %v calculating metric for %v", err, calc.GetCalculationParams())
 			continue
 		}
-		glog.V(10).Infof("results are %v", results)
-		response.Results = append(response.Results, results...)
+
+		c.registerResults(calc.GetCalculationParams(), results)
+		filteredResults := c.filterResults(results)
+		response.Results = append(response.Results, filteredResults...)
 	}
-	glog.V(10).Infof("response is %v", response)
 	return response, nil
+}
+
+// FilterResults filters the results to ensure that the user aggregate metrics
+// get filtered out in case the number of users in that context falls below
+// minimum threshold
+func (c *collectorServicer) filterResults(results []*protos.CalculationResult) []*protos.CalculationResult {
+	userStateManager := c.userStateManager
+	// Nothing to filter
+	if userStateManager == nil {
+		return results
+	}
+
+	filteredResults := []*protos.CalculationResult{}
+	for _, result := range results {
+		if c.filterResult(result) {
+			filteredResults = append(filteredResults, result)
+		}
+	}
+	return filteredResults
+}
+
+func (c *collectorServicer) filterResult(result *protos.CalculationResult) bool {
+	analyticsConfig := c.analyticsConfig
+	metricConfig, ok := analyticsConfig.Metrics[result.GetMetricName()]
+	if !ok {
+		glog.Errorf("Metric Configuration not found for %s", result.GetMetricName())
+		return false
+	}
+	if !metricConfig.Export {
+		glog.V(1).Infof("Metric %s export configuration disabled", result.GetMetricName())
+		return false
+	}
+	if !metricConfig.EnforceMinUserThreshold {
+		return true
+	}
+
+	networkID, networkLabelPresent := result.Labels[metrics.NetworkLabelName]
+	gatewayID, gatewayLabelPresent := result.Labels[metrics.GatewayLabelName]
+
+	numUsers := 0
+	if networkLabelPresent && gatewayLabelPresent {
+		numUsers = c.userStateManager.GetTotalUsersInGateway(networkID, gatewayID)
+	} else if networkLabelPresent {
+		numUsers = c.userStateManager.GetTotalUsersInNetwork(networkID)
+	} else {
+		numUsers = c.userStateManager.GetTotalUsers()
+	}
+
+	if numUsers > analyticsConfig.MinUserThreshold {
+		return true
+	}
+	glog.V(1).Infof(
+		"Metric(%s) network label(%s) gateway label(%s) dropped,active users(%d) below user threshold (%d)",
+		result.GetMetricName(),
+		networkID,
+		gatewayID,
+		numUsers,
+		analyticsConfig.MinUserThreshold)
+	return false
+}
+
+// RegisterResults registers the computed metric with Prometheus based on the metric configuration
+func (c *collectorServicer) registerResults(calcParams calculations.CalculationParams, results []*protos.CalculationResult) {
+	filteredResults := []*protos.CalculationResult{}
+	analyticsConfig := c.analyticsConfig
+	for _, result := range results {
+		if metricConfig, ok := analyticsConfig.Metrics[result.GetMetricName()]; ok {
+			if metricConfig.Register {
+				filteredResults = append(filteredResults, result)
+			}
+		} else {
+			glog.Errorf("Metric configuration not found for '%s'", result.GetMetricName())
+		}
+	}
+	if len(filteredResults) > 0 {
+		glog.V(1).Info("Registering ", filteredResults)
+		calculations.RegisterResults(calcParams, filteredResults)
+	}
 }

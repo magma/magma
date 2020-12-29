@@ -110,7 +110,7 @@ class BaseStore(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def on_ready(self):
+    async def on_ready(self):
         """
         Awaitable interface to block until datastore is
         ready.

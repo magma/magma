@@ -29,6 +29,7 @@ from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
     PROCESS_STATS, DROP_FLOW_STATS
+from magma.pipelined.app.restart_mixin import RestartMixin
 from magma.pipelined.policy_converters import get_ue_ip_match_args, \
     get_eth_type
 from magma.pipelined.openflow import messages, flows
@@ -46,7 +47,7 @@ from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 ETH_FRAME_SIZE_BYTES = 14
 
 
-class EnforcementStatsController(PolicyMixin, MagmaController):
+class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     """
     This openflow controller installs flows for aggregating policy usage
     statistics, which are sent to sessiond for tracking.
@@ -142,13 +143,14 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             priority=flows.MINIMUM_PRIORITY,
             cookie=self.DEFAULT_FLOW_COOKIE)
 
-        msg, remaining_flows = \
-            self._msg_hub.filter_msgs_if_not_in_flow_list([msg], existing_flows)
+        msg, remaining_flows = self._msg_hub \
+            .filter_msgs_if_not_in_flow_list(self._datapath, [msg],
+                                             existing_flows[self.tbl_num])
         if msg:
             chan = self._msg_hub.send(msg, datapath)
             self._wait_for_responses(chan, 1)
 
-        return remaining_flows
+        return {self.tbl_num: remaining_flows}
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -286,7 +288,6 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                                         priority=Utils.DROP_PRIORITY),
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
                                         priority=Utils.DROP_PRIORITY)]
-
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         pass

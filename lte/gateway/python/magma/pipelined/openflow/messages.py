@@ -22,6 +22,7 @@ from ryu.ofproto.ofproto_parser import MsgBase
 from magma.pipelined.openflow.exceptions import MagmaOFError,\
     MagmaDPDisconnectedError
 from magma.pipelined.metrics import DP_SEND_MSG_ERROR
+from magma.pipelined.policy_converters import MATCH_ATTRIBUTES
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +177,7 @@ class MessageHub(object):
         return channel
 
     def filter_msgs_if_not_in_flow_list(self,
+                                        dp: Datapath,
                                         msg_list: List[MsgBase],
                                         flow_list):
         """
@@ -185,7 +187,7 @@ class MessageHub(object):
         msgs_to_send = []
         remaining_flows = flow_list.copy()
         for msg in msg_list:
-            index = self._get_msg_index_in_flow_list(msg, remaining_flows)
+            index = self._get_msg_index_in_flow_list(dp, msg, remaining_flows)
             if index >= 0:
                 remaining_flows.pop(index)
             else:
@@ -237,22 +239,40 @@ class MessageHub(object):
         # for now, result is unused. Just return if there's an exception
         switch.results_by_msg[msg.xid] = MagmaOFError(ev.msg)
 
-    def _flow_matches_flowmsg(self, flow, msg):
+    def _flow_matches_flowmsg(self, dp, flow, msg):
         """
-        Compare the flow and flow message based on
-         - cookie(Policy number)
-         - metadata(Subscriber IMSI)
-         - reg4(Policy version number)
+        Compare the flow and flow message based on match/instructions
         """
-        return flow.cookie == msg.cookie and\
-               flow.match.get('metadata', None) == msg.match.get('metadata', None) and\
-               flow.match.get('reg1', None) == msg.match.get('reg1', None) and\
-               flow.match.get('reg2', None) == msg.match.get('reg2', None) and\
-               flow.match.get('reg4', None) == msg.match.get('reg4', None)
+        reg_loads_match = True
+        resubmits_match = True
+        outputs_match = True
+        if len(flow.instructions) > 0:
+            reg_loads_flow = {i.dst: i.value for i in flow.instructions[0].actions
+                              if type(i) == dp.ofproto_parser.NXActionRegLoad2}
+            reg_loads_msg = {i.dst: i.value for i in msg.instructions[0].actions
+                             if type(i) == dp.ofproto_parser.NXActionRegLoad2}
+            reg_loads_match = reg_loads_msg == reg_loads_flow
 
-    def _get_msg_index_in_flow_list(self, msg, flow_list):
+            resubmits_flow = [i.table_id for i in flow.instructions[0].actions
+                              if type(i) == dp.ofproto_parser.NXActionResubmitTable]
+            resubmits_msg = [i.table_id for i in msg.instructions[0].actions
+                             if type(i) == dp.ofproto_parser.NXActionResubmitTable]
+            resubmits_match = sorted(resubmits_flow) == sorted(resubmits_msg)
+
+            outputs_flow = [i.table_id for i in flow.instructions[0].actions
+                              if type(i) == dp.ofproto_parser.OFPActionOutput]
+            outputs_msg = [i.table_id for i in msg.instructions[0].actions
+                             if type(i) == dp.ofproto_parser.OFPActionOutput]
+            outputs_match = sorted(outputs_flow) == sorted(outputs_msg)
+
+        flow_match = all([flow.match.get(i, None) == msg.match.get(i, None)
+                          for i in MATCH_ATTRIBUTES])
+        return flow_match and reg_loads_match and resubmits_match and \
+               outputs_match
+
+    def _get_msg_index_in_flow_list(self, dp, msg, flow_list):
         for i in range(len(flow_list)):
-            if self._flow_matches_flowmsg(msg, flow_list[i]):
+            if self._flow_matches_flowmsg(dp, msg, flow_list[i]):
                 return i
         return -1
 
