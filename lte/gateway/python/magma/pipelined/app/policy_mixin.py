@@ -15,7 +15,8 @@ from abc import ABCMeta, abstractmethod
 
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
-from lte.protos.pipelined_pb2 import RuleModResult, ActivateFlowsResult
+from lte.protos.pipelined_pb2 import RuleModResult, ActivateFlowsResult, \
+    ActivateFlowsRequest
 from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
 from magma.pipelined.openflow.registers import SCRATCH_REGS, RULE_VERSION_REG, \
@@ -26,7 +27,8 @@ from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.policy_converters import get_direction_for_match, \
-    flow_match_to_magma_match, get_flow_ip_dst, ipv4_address_to_str
+    flow_match_to_magma_match, get_flow_ip_dst, ipv4_address_to_str, \
+    FlowMatchError, convert_ipv4_str_to_ip_proto
 from lte.protos.mobilityd_pb2 import IPAddress
 
 from magma.pipelined.qos.types import QosInfo
@@ -279,6 +281,78 @@ class PolicyMixin(metaclass=ABCMeta):
              ])
         return actions, instructions
 
+    def _get_ue_specific_flow_msgs(self, requests: List[ActivateFlowsRequest]):
+        msg_list = []
+        for add_flow_req in requests:
+            imsi = add_flow_req.sid.id
+            ip_addr = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
+            apn_ambr = add_flow_req.apn_ambr
+            static_rule_ids = add_flow_req.rule_ids
+            dynamic_rules = add_flow_req.dynamic_rules
+            msisdn = add_flow_req.msisdn
+            uplink_tunnel = add_flow_req.uplink_tunnel
+
+            msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
+            if msgs:
+                msg_list.extend(msgs)
+
+            for rule_id in static_rule_ids:
+                rule = self._policy_dict[rule_id]
+                if rule is None:
+                    self.logger.error("Could not find rule for rule_id: %s",
+                                      rule_id)
+                    continue
+                try:
+                    if rule.redirect.support == rule.redirect.ENABLED:
+                        continue
+                    flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+                    msg_list.extend(flow_adds)
+                except FlowMatchError:
+                    self.logger.error("Failed to verify rule_id: %s", rule_id)
+
+            for rule in dynamic_rules:
+                try:
+                    if rule.redirect.support == rule.redirect.ENABLED:
+                        continue
+                    flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+                    msg_list.extend(flow_adds)
+                except FlowMatchError:
+                    self.logger.error("Failed to verify rule_id: %s", rule.id)
+
+        return {self.tbl_num: msg_list}
+
+    def _process_redirection_rules(self, requests):
+        for add_flow_req in requests:
+            imsi = add_flow_req.sid.id
+            ip_addr = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
+            static_rule_ids = add_flow_req.rule_ids
+            dynamic_rules = add_flow_req.dynamic_rules
+            for rule_id in static_rule_ids:
+                rule = self._policy_dict[rule_id]
+                if rule is None:
+                    self.logger.error("Could not find rule for rule_id: %s",
+                                      rule_id)
+                    continue
+                if rule.redirect.support == rule.redirect.ENABLED:
+                    self._install_redirect_flow(imsi, ip_addr, rule)
+
+            for rule in dynamic_rules:
+                if rule.redirect.support == rule.redirect.ENABLED:
+                    self._install_redirect_flow(imsi, ip_addr, rule)
+
+    def finish_init(self, requests):
+        # For now just reinsert redirection rules, this is a bit of a hack but
+        # redirection relies on async dns request to be setup and we can't
+        # currently do this from out synchronous setup request. So just reinsert
+        self._process_redirection_rules(requests)
+
+        if self.proxy_controller_fut and self.proxy_controller_fut.done():
+            if not self.proxy_controller:
+                self.proxy_controller = self.proxy_controller_fut.result()
+        self.logger.info("Initialized proxy_controller %s",
+                         self.proxy_controller)
+
+
     @abstractmethod
     def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
         """
@@ -312,17 +386,5 @@ class PolicyMixin(metaclass=ABCMeta):
             imsi (string): subscriber id
             ip_addr (string): subscriber ip
             rule (PolicyRule): policyrule to install
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def _install_default_flows_if_not_installed(self, datapath,
-            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
-        """
-        Install default flows(if not already installed), if no other flows are
-        matched.
-
-        Returns:
-            The list of flows that remain after inserting default flows
         """
         raise NotImplementedError

@@ -34,6 +34,7 @@ from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.utils import Utils
 
+
 class GYController(PolicyMixin, RestartMixin, MagmaController):
     """
     GYController
@@ -94,9 +95,6 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         self._datapath = datapath
         self._qos_mgr = QosManager(datapath, self.loop, self._config)
         self._qos_mgr.setup()
-
-        self._delete_all_flows(datapath)
-        self._install_default_flows(datapath)
 
     def deactivate_rules(self, imsi, ip_addr, rule_ids):
         """
@@ -256,37 +254,22 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             )
             return RuleModResult.FAILURE
 
-    def _install_default_flows_if_not_installed(self, datapath,
-            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
+    def _get_default_flow_msgs(self, datapath):
         """
-        For each direction set the default flows to just forward to next app.
-        The enforcement flows for each subscriber would be added when the
-        IP session is created, by reaching out to the controller/PCRF.
-        If default flows are already installed, do nothing.
+        Gets the default flow msg that forwards to next service
 
         Args:
             datapath: ryu datapath struct
         Returns:
-            The list of flows that remain after inserting default flows
+            The list of default msgs to add
         """
         match = MagmaMatch()
-
         msg = flows.get_add_resubmit_next_service_flow_msg(
             datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
 
-        current_flows = []
-        if self.tbl_num in existing_flows:
-            current_flows = existing_flows[self.tbl_num]
-        msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list(self._datapath, [msg],
-                                             current_flows)
-        if msgs:
-            chan = self._msg_hub.send(msgs, datapath)
-            self._wait_for_responses(chan, len(msgs))
-
-        return {self.tbl_num: remaining_flows}
+        return {self.tbl_num: [msg]}
 
     def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
         """

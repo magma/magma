@@ -136,38 +136,24 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         if qos_impl and isinstance(qos_impl, MeterManager):
             qos_impl.handle_meter_feature_stats(ev.msg.body)
 
-    def _install_default_flows_if_not_installed(self, datapath,
-            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
+    def _get_default_flow_msgs(self, datapath):
         """
-        For each direction set the default flows to just forward to next app.
-        The enforcement flows for each subscriber would be added when the
-        IP session is created, by reaching out to the controller/PCRF.
-        If default flows are already installed, do nothing.
+        Gets the default flow msg that forward to stats table(traffic will be
+        dropped because stats table doesn't forward anything)
 
         Args:
             datapath: ryu datapath struct
         Returns:
-            The list of flows that remain after inserting default flows
+            The list of default msgs to add
         """
         match = MagmaMatch()
-
         msg = flows.get_add_resubmit_next_service_flow_msg(
             datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self._enforcement_stats_tbl,
             cookie=self.DEFAULT_FLOW_COOKIE)
 
-        current_flows = []
-        if self.tbl_num in existing_flows:
-            current_flows = existing_flows[self.tbl_num]
-        msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list(self._datapath, [msg],
-                                             current_flows)
-        if msgs:
-            chan = self._msg_hub.send(msgs, datapath)
-            self._wait_for_responses(chan, len(msgs))
-
-        return {self.tbl_num: remaining_flows}
+        return {self.tbl_num: [msg]}
 
     def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
         """

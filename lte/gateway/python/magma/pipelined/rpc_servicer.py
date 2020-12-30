@@ -90,6 +90,20 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         pipelined_pb2_grpc.add_PipelinedServicer_to_server(self, server)
 
     # --------------------------
+    # General setup rpc
+    # --------------------------
+
+    def SetupDefaultControllers(self, request, _) -> SetupFlowsResult:
+        """
+        Setup default controllers, used on pipelined restarts
+        """
+        ret = self._inout_app.check_setup_request_epoch(request.epoch)
+        if ret:
+            return SetupFlowsResult(result=ret)
+
+        self._inout_app.handle_restart(None)
+
+    # --------------------------
     # Enforcement App
     # --------------------------
 

@@ -128,14 +128,14 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         """
         self._datapath = datapath
 
-    def _install_default_flows_if_not_installed(self, datapath,
-            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
+    def _get_default_flow_msgs(self, datapath):
         """
-        Install default flows(if not already installed) to forward the traffic,
-        If no other flows are matched.
+        Gets the default flow msg that drops traffic
 
+        Args:
+            datapath: ryu datapath struct
         Returns:
-            The list of flows that remain after inserting default flows
+            The list of default msgs to add
         """
         match = MagmaMatch()
         msg = flows.get_add_drop_flow_msg(
@@ -143,17 +143,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             priority=flows.MINIMUM_PRIORITY,
             cookie=self.DEFAULT_FLOW_COOKIE)
 
-        current_flows = []
-        if self.tbl_num in existing_flows:
-            current_flows = existing_flows[self.tbl_num]
-        msg, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list(self._datapath, [msg],
-                                             current_flows)
-        if msg:
-            chan = self._msg_hub.send(msg, datapath)
-            self._wait_for_responses(chan, 1)
-
-        return {self.tbl_num: remaining_flows}
+        return {self.tbl_num: [msg]}
 
     def cleanup_on_disconnect(self, datapath):
         """
