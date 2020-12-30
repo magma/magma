@@ -154,7 +154,7 @@ class InOutController(RestartMixin, MagmaController):
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
         self._setup_non_nat_monitoring()
-
+        # TODO possibly investigate stateless XWF(no sessiond)
         if self.config.setup_type == 'XWF':
             self.delete_all_flows(datapath)
             self._install_default_flows(datapath)
@@ -438,9 +438,12 @@ class InOutController(RestartMixin, MagmaController):
                     if latest_mac_addr == "":
                         latest_mac_addr = gw_info.mac
 
-                    self._install_default_egress_flows(self._datapath,
-                                                       latest_mac_addr,
-                                                       gw_info.vlan)
+                    msgs = self._get_default_egress_flow_msgs(self._datapath,
+                                                              latest_mac_addr,
+                                                              gw_info.vlan)
+                    chan = self._msg_hub.send(msgs, self._datapath)
+                    self._wait_for_responses(chan, len(msgs))
+
                     if latest_mac_addr != "":
                         set_mobilityd_gw_info(gw_info.ip,
                                               latest_mac_addr,
@@ -503,7 +506,7 @@ class InOutController(RestartMixin, MagmaController):
             try:
                 result = chan.get()
             except MsgChannel.Timeout:
-                return fail("No response from OVS policy mixin")
+                return fail("No response from OVS msg channel")
             if not result.ok():
                 return fail(result.exception())
 
