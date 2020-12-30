@@ -137,6 +137,13 @@ magma::UEMacFlowRequest create_delete_ue_mac_flow_req(
   return req;
 }
 
+magma::SetupDefaultRequest create_setup_default_req(
+    const std::uint64_t& epoch) {
+  magma::SetupDefaultRequest req;
+  req.set_epoch(epoch);
+  return req;
+}
+
 magma::SetupPolicyRequest create_setup_policy_req(
     const std::vector<magma::SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch) {
@@ -224,6 +231,8 @@ bool AsyncPipelinedClient::setup_cwf(
     const std::vector<std::uint64_t> pdp_start_times,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {
+  SetupDefaultRequest setup_default_req = create_setup_default_req(epoch);
+  setup_default_controllers_rpc(setup_default_req, callback);
   SetupPolicyRequest setup_policy_req = create_setup_policy_req(infos, epoch);
   setup_policy_rpc(setup_policy_req, callback);
 
@@ -240,6 +249,8 @@ bool AsyncPipelinedClient::setup_lte(
     const std::vector<SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {
+  SetupDefaultRequest setup_default_req = create_setup_default_req(epoch);
+  setup_default_controllers_rpc(setup_default_req, callback);
   SetupPolicyRequest setup_policy_req = create_setup_policy_req(infos, epoch);
   setup_policy_rpc(setup_policy_req, callback);
   return true;
@@ -446,6 +457,16 @@ void AsyncPipelinedClient::set_upf_session_rpc(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(
       stub_->AsyncSetSMFSessions(local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::setup_default_controllers_rpc(
+    const SetupDefaultRequest& request,
+    std::function<void(Status, SetupFlowsResult)> callback) {
+  auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  local_resp->set_response_reader(std::move(stub_->AsyncSetupDefaultControllers(
+      local_resp->get_context(), request, &queue_)));
 }
 
 void AsyncPipelinedClient::setup_policy_rpc(

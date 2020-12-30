@@ -313,6 +313,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   uint32_t teid;
 
  private:
+  void setup_default_controllers_rpc(
+      const SetupDefaultRequest& request,
+      std::function<void(Status, SetupFlowsResult)> callback);
+
   void setup_policy_rpc(
       const SetupPolicyRequest& request,
       std::function<void(Status, SetupFlowsResult)> callback);

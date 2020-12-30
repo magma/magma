@@ -246,23 +246,30 @@ class MessageHub(object):
         reg_loads_match = True
         resubmits_match = True
         outputs_match = True
-        if len(flow.instructions) > 0:
-            reg_loads_flow = {i.dst: i.value for i in flow.instructions[0].actions
+        if len(flow.instructions) != len(msg.instructions):
+            return False
+        for j in range(0, len(flow.instructions)):
+            # TODO add support for OFPInstructionMeter and others
+            if type(flow.instructions[j]) != dp.ofproto_parser.OFPInstructionActions:
+                continue
+            if type(msg.instructions[j]) != dp.ofproto_parser.OFPInstructionActions:
+                continue
+            reg_loads_flow = {i.dst: i.value for i in flow.instructions[j].actions
                               if type(i) == dp.ofproto_parser.NXActionRegLoad2}
-            reg_loads_msg = {i.dst: i.value for i in msg.instructions[0].actions
+            reg_loads_msg = {i.dst: i.value for i in msg.instructions[j].actions
                              if type(i) == dp.ofproto_parser.NXActionRegLoad2}
             reg_loads_match = reg_loads_msg == reg_loads_flow
 
-            resubmits_flow = [i.table_id for i in flow.instructions[0].actions
+            resubmits_flow = [i.table_id for i in flow.instructions[j].actions
                               if type(i) == dp.ofproto_parser.NXActionResubmitTable]
-            resubmits_msg = [i.table_id for i in msg.instructions[0].actions
+            resubmits_msg = [i.table_id for i in msg.instructions[j].actions
                              if type(i) == dp.ofproto_parser.NXActionResubmitTable]
             resubmits_match = sorted(resubmits_flow) == sorted(resubmits_msg)
 
-            outputs_flow = [i.table_id for i in flow.instructions[0].actions
-                              if type(i) == dp.ofproto_parser.OFPActionOutput]
-            outputs_msg = [i.table_id for i in msg.instructions[0].actions
-                             if type(i) == dp.ofproto_parser.OFPActionOutput]
+            outputs_flow = [i.port for i in flow.instructions[j].actions
+                            if type(i) == dp.ofproto_parser.OFPActionOutput]
+            outputs_msg = [i.port for i in msg.instructions[j].actions
+                           if type(i) == dp.ofproto_parser.OFPActionOutput]
             outputs_match = sorted(outputs_flow) == sorted(outputs_msg)
 
         flow_match = all([flow.match.get(i, None) == msg.match.get(i, None)
