@@ -31,7 +31,6 @@ from magma.pipelined.mobilityd_client import get_mobilityd_gw_info, \
 from lte.protos.mobilityd_pb2 import IPAddress
 
 from magma.pipelined.app.li_mirror import LIMirrorController
-from magma.pipelined.app.restart_mixin import RestartMixin
 from magma.pipelined.openflow import flows
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.openflow.magma_match import MagmaMatch
