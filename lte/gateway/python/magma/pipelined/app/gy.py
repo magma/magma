@@ -10,14 +10,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List
-
 from lte.protos.pipelined_pb2 import RuleModResult
 
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.policy_mixin import PolicyMixin
-from magma.pipelined.app.restart_mixin import RestartMixin
+from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
 
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
@@ -31,7 +29,6 @@ from magma.pipelined.qos.qos_meter_impl import MeterManager
 
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.utils import Utils
 
 
@@ -254,7 +251,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             )
             return RuleModResult.FAILURE
 
-    def _get_default_flow_msgs(self, datapath):
+    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
         Gets the default flow msg that forwards to next service
 

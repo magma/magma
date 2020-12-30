@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
-from typing import List
 from collections import defaultdict
 
 from lte.protos.pipelined_pb2 import RuleModResult
@@ -23,13 +22,12 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
     PROCESS_STATS, DROP_FLOW_STATS
-from magma.pipelined.app.restart_mixin import RestartMixin
+from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
 from magma.pipelined.policy_converters import get_ue_ip_match_args, \
     get_eth_type
 from magma.pipelined.openflow import messages, flows
@@ -128,7 +126,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         """
         self._datapath = datapath
 
-    def _get_default_flow_msgs(self, datapath):
+    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
         Gets the default flow msg that drops traffic
 

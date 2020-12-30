@@ -10,27 +10,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List
+from typing import List, Dict
 from abc import ABCMeta, abstractmethod
+
+from lte.protos.pipelined_pb2 import SetupFlowsResult
+from magma.pipelined.app.base import ControllerNotReadyException
+from magma.pipelined.openflow import flows
+from magma.pipelined.policy_converters import ovs_flow_match_to_magma_match
 
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
-from lte.protos.pipelined_pb2 import SetupFlowsResult, ActivateFlowsRequest
-from magma.pipelined.app.base import ControllerNotReadyException
-from magma.pipelined.openflow import flows
-
-from magma.pipelined.policy_converters import ovs_flow_match_to_magma_match
+DefaultMsgsMap = Dict[int, List[OFPFlowStats]]
 
 
 class RestartMixin(metaclass=ABCMeta):
     """
     RestartMixin
 
-    Mixin class for policy enforcement apps that includes common methods
-    used for rule activation/deactivation.
+    Mixin class for controller restart handling
     """
-    def __init__(self, *args, **kwargs):
-        super(RestartMixin, self).__init__(*args, **kwargs)
 
     def handle_restart(self, requests) -> SetupFlowsResult:
         """
@@ -41,14 +39,14 @@ class RestartMixin(metaclass=ABCMeta):
         """
         if not self._datapath:
             self.logger.error('Controller restart not ready, datapath is None')
-            return SetupFlowsResult.FAILURE
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
         dp = self._datapath
 
         if requests is None:
             requests = []
 
         if self._clean_restart:
-            self.delete_all_flows(self._datapath)
+            self.delete_all_flows(dp)
             self.cleanup_state()
             self.logger.info('Controller is in clean restart mode, remaining '
                              'flows were removed, continuing with setup.')
@@ -58,7 +56,7 @@ class RestartMixin(metaclass=ABCMeta):
                 self._startup_flow_controller = self._startup_flows_fut.result()
             else:
                 self.logger.error('Flow Startup controller is not ready')
-                return SetupFlowsResult.FAILURE
+                return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
         # Workaround for controllers with multiple tables
         if not hasattr(self, '_tbls'):
             self._tbls = [self.tbl_num]
@@ -76,9 +74,9 @@ class RestartMixin(metaclass=ABCMeta):
 
         self.logger.debug('Setting up %s default rules', self.APP_NAME)
         default_msgs = self._get_default_flow_msgs(dp)
-        for table, flows in default_msgs.items():
+        for table, msgs_to_install in default_msgs.items():
             msgs, remaining_flows = self._msg_hub \
-                .filter_msgs_if_not_in_flow_list(dp, flows,
+                .filter_msgs_if_not_in_flow_list(dp, msgs_to_install,
                                                  startup_flows_map[table])
             if msgs:
                 chan = self._msg_hub.send(msgs, dp)
@@ -86,9 +84,9 @@ class RestartMixin(metaclass=ABCMeta):
             startup_flows_map[table] = remaining_flows
 
         ue_msgs = self._get_ue_specific_flow_msgs(requests)
-        for table, flows in ue_msgs.items():
+        for table, msgs_to_install in ue_msgs.items():
             msgs, remaining_flows = self._msg_hub \
-                .filter_msgs_if_not_in_flow_list(dp, flows,
+                .filter_msgs_if_not_in_flow_list(dp, msgs_to_install,
                                                  startup_flows_map[table])
             if msgs:
                 chan = self._msg_hub.send(msgs, dp)
@@ -118,3 +116,23 @@ class RestartMixin(metaclass=ABCMeta):
         if msg_list:
             chan = self._msg_hub.send(msg_list, self._datapath)
             self._wait_for_responses(chan, len(msg_list))
+
+    @abstractmethod
+    def _get_ue_specific_flow_msgs(self, requests):
+        """
+        Gets ue flow messages for controller
+
+        Args:
+            requests: Controller specific setup information
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
+        """
+        Gets default flow messages for controller
+
+        Args:
+            datapath (Datapath): RYU datapath
+        """
+        raise NotImplementedError

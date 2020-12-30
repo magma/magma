@@ -13,8 +13,6 @@ limitations under the License.
 from typing import List
 from abc import ABCMeta, abstractmethod
 
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-
 from lte.protos.pipelined_pb2 import RuleModResult, ActivateFlowsResult, \
     ActivateFlowsRequest
 from magma.pipelined.openflow import flows

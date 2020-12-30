@@ -10,14 +10,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List
 import ipaddress
 import threading
 
 from collections import namedtuple
 
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from scapy.arch import get_if_hwaddr, get_if_addr
 from scapy.data import ETHER_BROADCAST, ETH_P_ALL
@@ -37,7 +35,7 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
 from magma.pipelined.openflow.registers import load_direction, Direction, \
     PASSTHROUGH_REG_VAL, TUN_PORT_REG, PROXY_TAG_TO_PROXY
-from magma.pipelined.app.restart_mixin import RestartMixin
+from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
 
 from ryu.lib import hub
 from ryu.lib.packet import ether_types
@@ -161,7 +159,7 @@ class InOutController(RestartMixin, MagmaController):
             self.delete_all_flows(datapath)
             self._install_default_flows(datapath)
 
-    def _get_default_flow_msgs(self, dp):
+    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
         Gets the default flow msgs for pkt routing
 
@@ -170,11 +168,10 @@ class InOutController(RestartMixin, MagmaController):
         Returns:
             The list of default msgs to add
         """
-
         return {
-            self._ingress_tbl_num: self._get_default_ingress_flow_msgs(dp),
-            self._midle_tbl_num: self._get_default_middle_flow_msgs(dp),
-            self._egress_tbl_num: self._get_default_egress_flow_msgs(dp),
+            self._ingress_tbl_num: self._get_default_ingress_flow_msgs(datapath),
+            self._midle_tbl_num: self._get_default_middle_flow_msgs(datapath),
+            self._egress_tbl_num: self._get_default_egress_flow_msgs(datapath),
         }
 
     def _install_default_flows(self, datapath):
@@ -185,13 +182,6 @@ class InOutController(RestartMixin, MagmaController):
             default_msgs.extend(msgs)
         chan = self._msg_hub.send(default_msgs, datapath)
         self._wait_for_responses(chan, len(default_msgs))
-
-    def _get_default_flow_msgs(self, dp):
-        return {
-            self._ingress_tbl_num: self._get_default_ingress_flow_msgs(dp),
-            self._midle_tbl_num: self._get_default_middle_flow_msgs(dp),
-            self._egress_tbl_num: self._get_default_egress_flow_msgs(dp),
-        }
 
     def cleanup_on_disconnect(self, datapath):
         if self._clean_restart:
