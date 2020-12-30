@@ -403,23 +403,17 @@ class S1ApUtil(object):
             )
 
             # Now verify the rules for every flow
-            x = 1
             for item in value:
                 for flow in item:
                     if (
                             flow["direction"] == FlowMatch.DOWNLINK
                             and key_to_be_matched in flow
                     ):
-                        print("iteration", x)
-                        x = x+1
-                        ip_src_addr = flow[key_to_be_matched] if key_to_be_matched is not "" else ""
-                        print("ip_src_addr", ip_src_addr)
+                        ip_src_addr = flow[key_to_be_matched]
                         ip_src = "ipv4_src" if key.version == 4 else "ipv6_src"
                         ip_dst = "ipv4_dst" if key.version == 4 else "ipv6_dst"
-                        tcp_src_port = flow["tcp_src_port"]
-                        print("tcp_src_port", tcp_src_port)
-                        ip_proto = flow["ip_proto"]
-                        print("ip_proto", ip_proto)
+                        tcp_src_port = flow.get("tcp_src_port", None)
+                        ip_proto = flow.get("ip_proto", None)
                         for i in range(self.MAX_NUM_RETRIES):
                             print("Get downlink flows: attempt ", i)
                             downlink_flows = get_flows(
@@ -430,8 +424,12 @@ class S1ApUtil(object):
                                         ip_dst: ue_ip_addr,
                                         "eth_type": eth_typ,
                                         "in_port": self.LOCAL_PORT,
-                                        ip_src: ip_src_addr,
-                                        "tcp_src": tcp_src_port,
+                                        ip_src
+                                        if ip_src_addr
+                                        else None: ip_src_addr,
+                                        "tcp_src"
+                                        if tcp_src_port
+                                        else None: tcp_src_port,
                                         "ip_proto": ip_proto,
                                     },
                                 },
@@ -876,7 +874,7 @@ class SpgwUtil(object):
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
     def create_default_flows(self) :
-        """ Creates default flow rules """
+        """ Creates default flow rules. 4 for UL and 4 for DL """
         # UL Flow description #1
         ulFlow1 = {
             "ipv4_dst": "0.0.0.0/0",  # IPv4 destination address

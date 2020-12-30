@@ -64,11 +64,13 @@ class TestAttachDetachDedicated(unittest.TestCase):
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
+
+            # Create default flow list
             flow_list = self._spgw_util.create_default_flows()
-            print("flow_list", flow_list)
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5,
-                flow_list
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                flow_list,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -82,8 +84,8 @@ class TestAttachDetachDedicated(unittest.TestCase):
                 req.ue_id, act_ded_ber_ctxt_req.bearerId
             )
 
-            print("Sleeping for 10 seconds")
-            time.sleep(10)
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
 
             dl_flow_rules = {
                 default_ip: [flow_list],
@@ -100,7 +102,9 @@ class TestAttachDetachDedicated(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5, 6
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                act_ded_ber_ctxt_req.bearerId,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
