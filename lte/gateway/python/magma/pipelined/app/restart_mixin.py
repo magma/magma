@@ -69,10 +69,10 @@ class RestartMixin(metaclass=ABCMeta):
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
         for tbl in startup_flows_map:
-            self.logger.debug('Startup flows before filtering-> %s',
+            self.logger.debug('Startup flows before filtering: tbl %d-> %s',
+                              tbl,
                               [flow.match for flow in startup_flows_map[tbl]])
 
-        self.logger.debug('Setting up %s default rules', self.APP_NAME)
         default_msgs = self._get_default_flow_msgs(dp)
         for table, msgs_to_install in default_msgs.items():
             msgs, remaining_flows = self._msg_hub \
@@ -94,7 +94,8 @@ class RestartMixin(metaclass=ABCMeta):
             startup_flows_map[table] = remaining_flows
 
         for tbl in startup_flows_map:
-            self.logger.debug('Startup extra flows that will be deleted -> %s',
+            self.logger.debug('Startup flows to be deleted: tbl %d -> %s',
+                              tbl,
                               [flow.match for flow in startup_flows_map[tbl]])
         self._remove_extra_flows(startup_flows_map)
 

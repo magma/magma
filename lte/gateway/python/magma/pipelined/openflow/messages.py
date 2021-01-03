@@ -254,10 +254,12 @@ class MessageHub(object):
                 continue
             if type(msg.instructions[j]) != dp.ofproto_parser.OFPInstructionActions:
                 continue
-            reg_loads_flow = {i.dst: i.value for i in flow.instructions[j].actions
+            # Strip _nxm to handle nicira as eth_dst_nxm is same as eth_dst
+            reg_loads_flow = {i.dst.replace('_nxm', ''): i.value for i in flow.instructions[j].actions
                               if type(i) == dp.ofproto_parser.NXActionRegLoad2}
-            reg_loads_msg = {i.dst: i.value for i in msg.instructions[j].actions
+            reg_loads_msg = {i.dst.replace('_nxm', ''): i.value for i in msg.instructions[j].actions
                              if type(i) == dp.ofproto_parser.NXActionRegLoad2}
+
             reg_loads_match = reg_loads_msg == reg_loads_flow
 
             resubmits_flow = [i.table_id for i in flow.instructions[j].actions
@@ -272,8 +274,22 @@ class MessageHub(object):
                            if type(i) == dp.ofproto_parser.OFPActionOutput]
             outputs_match = sorted(outputs_flow) == sorted(outputs_msg)
 
-        flow_match = all([flow.match.get(i, None) == msg.match.get(i, None)
-                          for i in MATCH_ATTRIBUTES])
+        match_flow = {key: flow.match.get(key) for key in MATCH_ATTRIBUTES
+                      if key in flow.match}
+        match_msg = {key: msg.match.get(key, None) for key in MATCH_ATTRIBUTES
+                     if key in msg.match}
+
+        def strip_common(match_dict):
+            """
+            Filter out args that break equality
+                - ('0.0.0.0', '0.0.0.0') is the same as unset
+            """
+            for key in list(match_dict.keys()):
+                if match_dict[key] == ('0.0.0.0', '0.0.0.0'):
+                    del match_dict[key]
+            return match_dict
+        flow_match = strip_common(match_flow) == strip_common(match_msg)
+
         return flow_match and reg_loads_match and resubmits_match and \
                outputs_match
 
