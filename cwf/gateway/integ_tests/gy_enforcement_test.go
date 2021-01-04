@@ -439,11 +439,16 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	assert.Eventually(t,
 		tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
 
+
 	// we need to generate over 100% of the quota to trigger a session redirection
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: "10M"},
+		//Bitrate: &wrappers.StringValue{Value: "100M"},
+		Timeout: 60,
 	}
+
+	 //time.Sleep(500 * time.Microsecond)
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
@@ -493,7 +498,9 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()
+
 }
+
 
 func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditUpdateFail...")
