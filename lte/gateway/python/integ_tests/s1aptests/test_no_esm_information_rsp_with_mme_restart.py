@@ -86,11 +86,11 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
         print("Sent Security Mode Complete for ue-id", ue_id)
 
         # Esm Information Request indication
-        print("Received Esm Information Request ue-id", ue_id)
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value
         )
+        print("Received Esm Information Request ue-id", ue_id)
 
         print("************************* Restarting MME service on", "gateway")
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
@@ -109,14 +109,11 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
                 ue_id,
             )
             # Wait for UE_CTX_REL_IND
+            global response
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
-            )
-        else:
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
-            )
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
 
         # Perform end-end attach
         self._s1ap_wrapper.s1_util.attach(
