@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -244,11 +245,18 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	mdc.BootstrapConfig.ChallengeKey = dir + "/gw_challenge.key"
 	config.OverwriteMagmadConfigs(mdc)
 
+	// Create tmp file for holding snowflake info.
+	// File name needs to be "snowflake".
+	tmpDir, err := ioutil.TempDir("", "magma_tmp_test_dir")
+	assert.NoError(t, err)
+	defer os.Remove(tmpDir)
+	snowflakePath := filepath.Join(tmpDir, "snowflake")
+
 	b := bootstrap_client.NewLocalBootstrapper(completeChan)
-	err = b.Initialize()
+	err = b.Initialize(snowflakePath)
 	assert.NoError(t, err)
 
-	uuid, err := snowflake.Get()
+	uuid, err := snowflake.Get(snowflakePath)
 	assert.NoError(t, err)
 	gwHwId := uuid.String()
 
