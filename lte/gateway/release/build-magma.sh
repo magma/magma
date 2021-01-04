@@ -115,6 +115,7 @@ MAGMA_DEPS=(
     "ntpdate" # required for eventd time synchronization
     "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
+    "getenvoy-envoy" # for envoy dep
     )
 
 # OAI runtime dependencies
