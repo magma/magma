@@ -95,4 +95,3 @@ func TestGetSetOfValuesFromLabel(t *testing.T) {
 	sort.Strings(vals)
 	assert.Equal(t, []string{"test", "test2"}, vals)
 }
-

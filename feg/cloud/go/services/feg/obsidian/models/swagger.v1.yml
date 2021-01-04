@@ -1379,6 +1379,11 @@ definitions:
         type: string
         example: ".*\\.magma.*"
         x-nullable: false
+      charging_characteristics_filter:
+        description: Regex to match ChargingCharacteristics values
+        type: string
+        example: "12"
+        x-nullable: false
       apn_overwrite:
         description: New APN to overwrite when filter matches
         type: string

@@ -58,17 +58,20 @@ class SessionStoreTest : public ::testing::Test {
   std::unique_ptr<SessionState> get_session(
       const std::string& imsi, std::string session_id,
       std::shared_ptr<StaticRuleStore> rule_store) {
-    return get_session(imsi, session_id, IP2, IPv6_2, "APN", rule_store);
+    Teids teid2;
+    teid2.set_enb_teid(TEID_2_DL);
+    teid2.set_agw_teid(TEID_2_UL);
+    return get_session(imsi, session_id, IP2, IPv6_2, teid2, "APN", rule_store);
   }
 
   std::unique_ptr<SessionState> get_session(
       const std::string& imsi, std::string session_id, std::string ip_addr,
-      std::string ipv6_addr, const std::string& apn,
+      std::string ipv6_addr, Teids teids, const std::string& apn,
       std::shared_ptr<StaticRuleStore> rule_store) {
     std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
     SessionConfig cfg;
-    cfg.common_context =
-        build_common_context(imsi, ip_addr, ipv6_addr, apn, MSISDN, TGPP_WLAN);
+    cfg.common_context = build_common_context(
+        imsi, ip_addr, ipv6_addr, teids, apn, MSISDN, TGPP_WLAN);
     const auto& wlan_context = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan_context);
     auto tgpp_context   = TgppContext{};
@@ -80,16 +83,20 @@ class SessionStoreTest : public ::testing::Test {
   std::unique_ptr<SessionState> get_lte_session(
       const std::string& imsi, std::string session_id,
       std::shared_ptr<StaticRuleStore> rule_store) {
-    return get_lte_session(imsi, session_id, IP2, IPv6_1, "APN", rule_store);
+    Teids teid;
+    teid.set_enb_teid(TEID_1_DL);
+    teid.set_agw_teid(TEID_1_UL);
+    return get_lte_session(
+        imsi, session_id, IP2, IPv6_1, teid, "APN", rule_store);
   }
 
   std::unique_ptr<SessionState> get_lte_session(
       const std::string& imsi, std::string session_id, std::string ip_addr,
-      std::string ipv6_addr, const std::string& apn,
+      std::string ipv6_addr, Teids teids, const std::string& apn,
       std::shared_ptr<StaticRuleStore> rule_store) {
     SessionConfig cfg;
-    cfg.common_context =
-        build_common_context(imsi, ip_addr, ipv6_addr, apn, MSISDN, TGPP_LTE);
+    cfg.common_context = build_common_context(
+        imsi, ip_addr, ipv6_addr, teids, apn, MSISDN, TGPP_LTE);
     QosInformationRequest qos_info;
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
@@ -527,14 +534,27 @@ TEST_F(SessionStoreTest, test_get_session) {
   auto rule_store = std::make_shared<StaticRuleStore>();
   SessionStore session_store(rule_store);
   SessionMap session_map = {};
+  Teids teid1;
+  teid1.set_enb_teid(TEID_1_DL);
+  teid1.set_agw_teid(TEID_1_UL);
+  Teids teid2;
+  teid2.set_enb_teid(TEID_2_DL);
+  teid2.set_agw_teid(TEID_2_UL);
+  Teids teid3;
+  teid3.set_enb_teid(TEID_3_UL);
+  teid3.set_agw_teid(TEID_3_UL);
+  Teids teid4;
+  teid4.set_enb_teid(TEID_4_UL);
+  teid4.set_agw_teid(TEID_4_UL);
+
   auto session1 =
-      get_session(IMSI1, SESSION_ID_1, IP1, IPv6_1, "APN1", rule_store);
+      get_session(IMSI1, SESSION_ID_1, IP1, IPv6_1, teid1, "APN1", rule_store);
   auto session2 =
-      get_session(IMSI1, SESSION_ID_2, IP2, IPv6_2, "APN2", rule_store);
-  auto session3 =
-      get_lte_session(IMSI3, SESSION_ID_3, IP3, IPv6_3, "APN2", rule_store);
-  auto session4 =
-      get_lte_session(IMSI3, SESSION_ID_4, IP4, IPv6_4, "APN2", rule_store);
+      get_session(IMSI1, SESSION_ID_2, IP2, IPv6_2, teid2, "APN2", rule_store);
+  auto session3 = get_lte_session(
+      IMSI3, SESSION_ID_3, IP3, IPv6_3, teid3, "APN2", rule_store);
+  auto session4 = get_lte_session(
+      IMSI3, SESSION_ID_4, IP4, IPv6_4, teid4, "APN2", rule_store);
 
   session_map[IMSI1] = SessionVector{};
   session_map[IMSI1].push_back(std::move(session1));

@@ -202,7 +202,7 @@
       "root": true,
       "source": "pypi",
       "sysdep": "python3-pystemd",
-      "version": "0.5.0"
+      "version": "0.8.0"
     },
     "python-dateutil": {
       "root": true,

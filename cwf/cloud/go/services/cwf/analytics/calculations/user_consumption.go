@@ -24,14 +24,14 @@ import (
 	"github.com/golang/glog"
 )
 
-//UserConsumptionCalculation input params, direction can be user consumption volume
-//during upload or download
+// UserConsumptionCalculation input params, direction can be user consumption volume
+// during upload or download
 type UserConsumptionCalculation struct {
-	calculations.CalculationParams
+	calculations.BaseCalculation
 	Direction calculations.ConsumptionDirection
 }
 
-//Calculate computes the total volume of data consumed by subscribers over a required timeperiod
+// Calculate computes the total volume of data consumed by subscribers over a required timeperiod
 func (x *UserConsumptionCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
 	glog.Infof("Calculating User Consumption. Days: %d, Hours: %d, Direction: %s", x.Days, x.Hours, x.Direction)
 
@@ -50,6 +50,5 @@ func (x *UserConsumptionCalculation) Calculate(prometheusClient query_api.Promet
 
 	baseLabels := calculations.CombineLabels(x.Labels, map[string]string{calculations.DirectionLabel: string(x.Direction)})
 	results := calculations.MakeVectorResults(vec, baseLabels, x.Name)
-	calculations.RegisterResults(x.CalculationParams, results)
 	return results, nil
 }

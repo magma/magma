@@ -563,7 +563,8 @@ static char* log_get_readable_cur_time(time_t* cur_time) {
   // get the current local time
   *cur_time = time(NULL);
   // get the current local time in readable string format
-  return (strtok(ctime(cur_time), "\n"));
+  char buf[26];
+  return (strtok(ctime_r((const time_t*) cur_time, buf), "\n"));
 }
 
 //------------------------------------------------------------------------------

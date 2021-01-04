@@ -46,24 +46,24 @@ export function EnodebStatus() {
   const enbInfo = ctx.state.enbInfo[enodebSerial];
 
   const isEnbHealthy = isEnodebHealthy(enbInfo);
+  const isEnbManaged = enbInfo.enb?.enodeb_config?.config_type === 'MANAGED';
 
   const kpiData: DataRows[] = [
     [
       {
         category: 'eNodeB Externally Managed',
-        value:
-          enbInfo.enb?.enodeb_config?.config_type === 'MANAGED'
-            ? 'False'
-            : 'True',
+        value: isEnbManaged ? 'False' : 'True',
       },
       {
         category: 'Health',
-        value: isEnbHealthy ? 'Good' : 'Bad',
-        statusCircle: true,
+        value: isEnbManaged ? (isEnbHealthy ? 'Good' : 'Bad') : 'Unavailable',
+        statusCircle: isEnbManaged,
         status: isEnbHealthy,
-        tooltip: isEnbHealthy
-          ? 'eNodeB transmit config and status match'
-          : 'mismatch in eNodeB transmit config and status',
+        tooltip: isEnbManaged
+          ? isEnbHealthy
+            ? 'eNodeB transmit config and status match'
+            : 'mismatch in eNodeB transmit config and status'
+          : 'Health information unavailable on externally managed eNodeBs',
       },
       {
         category: 'Transmit Enabled',

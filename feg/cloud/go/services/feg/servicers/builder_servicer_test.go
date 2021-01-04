@@ -139,8 +139,9 @@ func TestBuilder_Build(t *testing.T) {
 				OverwriteApn: "apnGx.magma-fedgw.magma.com",
 				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
 					&feg_mconfig.VirtualApnRule{
-						ApnFilter:    ".*",
-						ApnOverwrite: "vApnGx.magma-fedgw.magma.com",
+						ApnFilter:                     ".*",
+						ChargingCharacteristicsFilter: "1*",
+						ApnOverwrite:                  "vApnGx.magma-fedgw.magma.com",
 					},
 				},
 			},
@@ -183,8 +184,9 @@ func TestBuilder_Build(t *testing.T) {
 				OverwriteApn: "apnGy.magma-fedgw.magma.com",
 				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
 					&feg_mconfig.VirtualApnRule{
-						ApnFilter:    ".*",
-						ApnOverwrite: "vApnGy.magma-fedgw.magma.com",
+						ApnFilter:                     ".*",
+						ChargingCharacteristicsFilter: "1*",
+						ApnOverwrite:                  "vApnGy.magma-fedgw.magma.com",
 					},
 				},
 			},
@@ -338,8 +340,9 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		OverwriteApn: "apnGx.magma-fedgw.magma.com",
 		VirtualApnRules: []*models.VirtualApnRule{
 			&models.VirtualApnRule{
-				ApnFilter:    ".*",
-				ApnOverwrite: "vApnGx.magma-fedgw.magma.com",
+				ApnFilter:                     ".*",
+				ChargingCharacteristicsFilter: "1*",
+				ApnOverwrite:                  "vApnGx.magma-fedgw.magma.com",
 			},
 		},
 	},
@@ -369,8 +372,9 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		OverwriteApn: "apnGy.magma-fedgw.magma.com",
 		VirtualApnRules: []*models.VirtualApnRule{
 			&models.VirtualApnRule{
-				ApnFilter:    ".*",
-				ApnOverwrite: "vApnGy.magma-fedgw.magma.com",
+				ApnFilter:                     ".*",
+				ChargingCharacteristicsFilter: "1*",
+				ApnOverwrite:                  "vApnGy.magma-fedgw.magma.com",
 			},
 		},
 	},

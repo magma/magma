@@ -47,12 +47,13 @@ int sctp_itti_send_lower_layer_conf(
 //------------------------------------------------------------------------------
 int sctp_itti_send_new_association(
     sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
-    sctp_stream_id_t outstreams) {
+    sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr) {
   MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_NEW_ASSOCIATION);
 
-  SCTP_NEW_ASSOCIATION(msg).assoc_id   = assoc_id;
-  SCTP_NEW_ASSOCIATION(msg).instreams  = instreams;
-  SCTP_NEW_ASSOCIATION(msg).outstreams = outstreams;
+  SCTP_NEW_ASSOCIATION(msg).assoc_id      = assoc_id;
+  SCTP_NEW_ASSOCIATION(msg).instreams     = instreams;
+  SCTP_NEW_ASSOCIATION(msg).outstreams    = outstreams;
+  SCTP_NEW_ASSOCIATION(msg).ran_cp_ipaddr = *ran_cp_ipaddr;
 
   return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
 }
