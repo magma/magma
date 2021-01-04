@@ -185,8 +185,8 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        # Delay to ensure S1APTester sends attach complete before sending UE
-        # context release
+        # Delay to ensure S1APTester sends attach complete before sending
+        # dedicated bearer activation request
         print("Sleeping for 5 seconds")
         time.sleep(5)
 
