@@ -129,6 +129,20 @@ export type base_name_record = {
 };
 export type base_names = Array < base_name >
 ;
+export type call_trace = {
+    config: call_trace_config,
+    state ? : call_trace_state,
+};
+export type call_trace_config = {
+    gateway_id ? : string,
+    timeout ? : number,
+    trace_id: string,
+    trace_type: "GATEWAY",
+};
+export type call_trace_state = {
+    call_trace_available ? : boolean,
+    call_trace_ending ? : boolean,
+};
 export type carrier_wifi_gateway_health_status = {
     description: string,
     status: "HEALTHY" | "UNHEALTHY",
@@ -360,6 +374,7 @@ export type enodeb_state = {
     rf_tx_desired: boolean,
     rf_tx_on: boolean,
     time_reported ? : number,
+    ues_connected ? : number,
 };
 export type enodebd_e2e_test = {
     config: enodebd_test_config,
@@ -507,9 +522,10 @@ export type gateway_he_config = {
     enable_encryption: boolean,
     enable_header_enrichment: boolean,
     encryption_key ? : string,
-    he_encoding_type: "BASE64",
-    he_encryption_algorithm: "RC4",
-    he_hash_function: "MD5",
+    he_encoding_type: "BASE64" | "HEX2BIN",
+    he_encryption_algorithm: "RC4" | "AES256_CBC_HMAC_MD5" | "AES256_ECB_HMAC_MD5" | "GZIPPED_AES256_ECB_SHA1",
+    he_hash_function: "MD5" | "HEX" | "SHA256",
+    hmac_key ? : string,
 };
 export type gateway_health_configs = {
     cpu_util_threshold_pct ? : number,
@@ -780,6 +796,9 @@ export type msisdn = string;
 export type msisdn_assignment = {
     id: subscriber_id,
     msisdn: msisdn,
+};
+export type mutable_call_trace = {
+    requested_end: boolean,
 };
 export type mutable_cellular_gateway_pool = {
     config: cellular_gateway_pool_configs,
@@ -1366,6 +1385,7 @@ export type untyped_subscriber_state = {};
 export type virtual_apn_rule = {
     apn_filter ? : string,
     apn_overwrite ? : string,
+    charging_characteristics_filter ? : string,
 };
 export type webhook_receiver = {
     http_config ? : http_config,
@@ -9136,6 +9156,153 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getNetworksByNetworkIdTracing(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < Array < {} >
+        >
+        {
+            let path = '/networks/{network_id}/tracing';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postNetworksByNetworkIdTracing(
+            parameters: {
+                'networkId': string,
+                'callTraceConfiguration': call_trace_config,
+            }
+        ): Promise < string >
+        {
+            let path = '/networks/{network_id}/tracing';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['callTraceConfiguration'] === undefined) {
+                throw new Error('Missing required  parameter: callTraceConfiguration');
+            }
+
+            if (parameters['callTraceConfiguration'] !== undefined) {
+                body = parameters['callTraceConfiguration'];
+            }
+
+            return await this.request(path, 'POST', query, body);
+        }
+    static async deleteNetworksByNetworkIdTracingByTraceId(
+        parameters: {
+            'networkId': string,
+            'traceId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/networks/{network_id}/tracing/{trace_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['traceId'] === undefined) {
+            throw new Error('Missing required  parameter: traceId');
+        }
+
+        path = path.replace('{trace_id}', `${parameters['traceId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getNetworksByNetworkIdTracingByTraceId(
+            parameters: {
+                'networkId': string,
+                'traceId': string,
+            }
+        ): Promise < call_trace >
+        {
+            let path = '/networks/{network_id}/tracing/{trace_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['traceId'] === undefined) {
+                throw new Error('Missing required  parameter: traceId');
+            }
+
+            path = path.replace('{trace_id}', `${parameters['traceId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putNetworksByNetworkIdTracingByTraceId(
+        parameters: {
+            'networkId': string,
+            'traceId': string,
+            'callTraceConfiguration': mutable_call_trace,
+        }
+    ): Promise < "Success" > {
+        let path = '/networks/{network_id}/tracing/{trace_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['traceId'] === undefined) {
+            throw new Error('Missing required  parameter: traceId');
+        }
+
+        path = path.replace('{trace_id}', `${parameters['traceId']}`);
+
+        if (parameters['callTraceConfiguration'] === undefined) {
+            throw new Error('Missing required  parameter: callTraceConfiguration');
+        }
+
+        if (parameters['callTraceConfiguration'] !== undefined) {
+            body = parameters['callTraceConfiguration'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getNetworksByNetworkIdTracingByTraceIdDownload(
+            parameters: {
+                'networkId': string,
+                'traceId': string,
+            }
+        ): Promise < {} >
+        {
+            let path = '/networks/{network_id}/tracing/{trace_id}/download';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['traceId'] === undefined) {
+                throw new Error('Missing required  parameter: traceId');
+            }
+
+            path = path.replace('{trace_id}', `${parameters['traceId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getNetworksByNetworkIdType(
             parameters: {
                 'networkId': string,
