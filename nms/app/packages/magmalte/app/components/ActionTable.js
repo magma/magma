@@ -111,8 +111,13 @@ type ActionOrderType = {
   tableData: {},
 };
 
+export type ActionFilter = {
+  column: ActionTableColumn,
+  value: string,
+};
+
 export type ActionQuery = {
-  filters: Array<string>,
+  filters: Array<ActionFilter>,
   orderBy: ActionOrderType,
   orderDirection: string,
   page: number,
