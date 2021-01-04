@@ -25,6 +25,7 @@ import (
 	"golang.org/x/net/context"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
@@ -489,13 +490,13 @@ func getClientConfig() *diameter.DiameterClientConfig {
 }
 
 func getGyGlobalConfig(apnFilter, apnOverwrite string) *gy.GyGlobalConfig {
-	rules := []*credit_control.VirtualApnRule{}
-	rule, err := credit_control.GetVirtualApnRule(apnFilter, apnOverwrite)
-	if err == nil {
-		rules = append(rules, rule)
+	rule := &credit_control.VirtualApnRule{}
+	err := rule.FromMconfig(&mconfig.VirtualApnRule{ApnFilter: apnFilter, ApnOverwrite: apnOverwrite})
+	if err != nil {
+		return &gy.GyGlobalConfig{}
 	}
 	return &gy.GyGlobalConfig{
-		VirtualApnRules: rules,
+		VirtualApnRules: []*credit_control.VirtualApnRule{rule},
 	}
 }
 

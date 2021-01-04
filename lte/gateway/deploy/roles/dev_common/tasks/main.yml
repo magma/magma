@@ -17,6 +17,10 @@
     msg: "Ansible upgrade needed. Current version is {{ ansible_version.full }}"
   when: preburn
 
+- name: Install ansible community collection
+  shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
+  ignore_errors: yes
+
 - name: Set build environment variables
   lineinfile:
     dest: /etc/environment

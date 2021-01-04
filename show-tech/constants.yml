@@ -2,8 +2,6 @@
 ansible_apt_repo: "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main"
 ubuntu_apt_keyserver: "keyserver.ubuntu.com"
 ubuntu_apt_id: "93C4A3FD7BB9C367"
-ansible_community_commands:
-  - "ansible-galaxy collection install community.general"
 apt_prereq_packages:
   - git
   - ansible

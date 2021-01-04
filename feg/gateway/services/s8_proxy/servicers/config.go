@@ -19,6 +19,6 @@ const (
 
 func GetS8ProxyConfig() *S8ProxyConfig {
 	return &S8ProxyConfig{
-		serverAddr: "127.0.0.68",
+		ServerAddr: "127.0.0.68",
 	}
 }

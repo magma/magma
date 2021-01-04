@@ -11,9 +11,10 @@
  * limitations under the License.
  */
 
-package calculations
+package analytics
 
 import (
+	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"reflect"
 	"sort"
 	"testing"
@@ -22,23 +23,26 @@ import (
 )
 
 func TestRawMetricsCalculation(t *testing.T) {
-	metrics := map[string]MetricConfig{
-		"test_metric_1": {
-			Expr: "test_metric_expr",
-		},
-		"test_metric_2": {
-			Register: false,
-		},
-		"test_metric_3": {
-			Expr: "test_metric_3_expr",
+	analytics := &calculations.AnalyticsConfig{
+		Metrics: map[string]calculations.MetricConfig{
+			"test_metric_1": {
+				Expr: "test_metric_expr",
+			},
+			"test_metric_2": {
+				Register: false,
+			},
+			"test_metric_3": {
+				Expr: "test_metric_3_expr",
+			},
 		},
 	}
-	calcs := GetRawMetricsCalculations(metrics)
+
+	calcs := GetRawMetricsCalculations(analytics)
 	assert.Equal(t, len(calcs), 2)
 	rawMetricNames := []string{"test_metric_1", "test_metric_3"}
 	calcMetricNames := []string{}
 	for _, calc := range calcs {
-		rawMetricCalc := calc.(*RawMetricsCalculation)
+		rawMetricCalc := calc.(*calculations.RawMetricsCalculation)
 		calcMetricNames = append(calcMetricNames, rawMetricCalc.CalculationParams.Name)
 	}
 	sort.Strings(calcMetricNames)

@@ -72,6 +72,7 @@ message NewAssocReq {
     uint32 assoc_id = 1; // association ID of eNB
     uint32 instreams = 2; // number of instreams for eNB
     uint32 outstreams = 3; // number of outstreams for eNB
+    bytes ran_cp_ipaddr = 4; // sctp ran end point IP address
 }
 
 // NewAssocRes - response for NewAssocReq, present for forwards compat

@@ -8,15 +8,17 @@ ARG FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/build/c
+ENV TZ=Europe/Paris
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN mkdir -p $C_BUILD
 
 RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
     apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y gnupg wget software-properties-common autoconf automake \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg wget software-properties-common autoconf automake \
     libtool curl make g++ unzip git build-essential autoconf libtool pkg-config \
-    gcc-6 g++-6 apt-transport-https ca-certificates apt-utils vim redis-server \
+    gcc-6 g++-6 apt-transport-https ca-certificates apt-utils vim redis-server tzdata \
     libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev clang-format-7 && \
     echo \"Configure C/C++ compiler v6.5 as primary\" && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 10 && \
@@ -300,6 +302,7 @@ ENV C_BUILD=/build/c
 
 # Install a few tools (may not be necessary later on)
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
@@ -308,6 +311,7 @@ RUN apt-get update && \
       openssl \
       net-tools \
       tshark \
+      tzdata \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files

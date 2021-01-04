@@ -96,6 +96,26 @@ def tail_logs(client, args):
         print(log_line.line, end='')
 
 
+@grpc_wrapper
+def check_stateless(client, args):
+    response = client.CheckStateless(common_pb2.Void())
+    print(
+        "AGW Mode:",
+        magmad_pb2.CheckStatelessResponse.AGWMode.Name(response.agw_mode)
+    )
+
+
+@grpc_wrapper
+def config_stateless(client, args):
+    if args.switch == "enable":
+        print("Enable switch")
+        config_arg = magmad_pb2.ConfigureStatelessRequest.ENABLE
+    elif args.switch == "disable":
+        print("Disable switch")
+        config_arg = magmad_pb2.ConfigureStatelessRequest.DISABLE
+    client.ConfigureStateless(
+        magmad_pb2.ConfigureStatelessRequest(config_cmd=config_arg))
+
 def create_parser():
     """
     Creates the argparse parser with all the arguments.
@@ -126,6 +146,12 @@ def create_parser():
                                                    help='Execute generic command')
     parser_tail_logs = subparsers.add_parser('tail_logs',
                                              help='Tail logs')
+    parser_stateless_check = subparsers.add_parser('check_stateless',
+                                             help=\
+                                            'Check AGW stateless mode')
+    parser_stateless_config = subparsers.add_parser('config_stateless',
+                                             help=\
+                                            'Change AGW stateless mode')
 
     parser_ping.add_argument('hosts', nargs='+', type=str,
                              help='Hosts (URLs or IPs) to ping')
@@ -146,6 +172,9 @@ def create_parser():
                                         help='Params (string)')
     parser_tail_logs.add_argument('service', type=str, nargs='?',
                                   help='Service')
+    parser_stateless_config.add_argument('switch', type=str,
+            help='Enable/Disable')
+
     # Add function callbacks
     parser_start.set_defaults(func=start_services)
     parser_stop.set_defaults(func=stop_services)
@@ -156,6 +185,8 @@ def create_parser():
     parser_get_id.set_defaults(func=get_gateway_id)
     parser_generic_command.set_defaults(func=generic_command)
     parser_tail_logs.set_defaults(func=tail_logs)
+    parser_stateless_check.set_defaults(func=check_stateless)
+    parser_stateless_config.set_defaults(func=config_stateless)
     return parser
 
 

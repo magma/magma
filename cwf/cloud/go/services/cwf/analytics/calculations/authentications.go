@@ -14,7 +14,7 @@ import (
 // AuthenticationsCalculation holds the parameters needed to run an authentication
 // query and the registered prometheus gauge that the resulting value should be stored in
 type AuthenticationsCalculation struct {
-	calculations.CalculationParams
+	calculations.BaseCalculation
 }
 
 // Calculate returns the number of authentications over the past X days segmented
@@ -30,6 +30,5 @@ func (x *AuthenticationsCalculation) Calculate(prometheusClient query_api.Promet
 	}
 
 	results := calculations.MakeVectorResults(vec, x.Labels, x.Name)
-	calculations.RegisterResults(x.CalculationParams, results)
 	return results, nil
 }

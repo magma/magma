@@ -82,7 +82,8 @@
       "proposals/p003_qos_enforcement",
       "proposals/p004_fua-restrict-feature",
       "proposals/p005_call_tracing",
-      "proposals/p007_header_enrichment"
+      "proposals/p007_header_enrichment",
+      "proposals/p008_apn_correction"
     ]
   }
 }

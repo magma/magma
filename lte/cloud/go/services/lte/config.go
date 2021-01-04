@@ -17,7 +17,7 @@ import (
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 )
 
-//Config represents the configuration provided to lte service
+// Config represents the configuration provided to lte service
 type Config struct {
 	Analytics calculations.AnalyticsConfig `yaml:"analytics"`
 }

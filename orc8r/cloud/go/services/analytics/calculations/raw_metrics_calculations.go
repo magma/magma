@@ -14,27 +14,42 @@
 package calculations
 
 import (
+	"bytes"
 	"fmt"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
+	"text/template"
 
 	"github.com/golang/glog"
 )
 
-//RawMetricsCalculation params for querying existing metrics
+// RawMetricsCalculation params for querying existing prometheus metrics.
 type RawMetricsCalculation struct {
-	CalculationParams
+	BaseCalculation
 	MetricExpr string
 }
 
-//Calculate queries for preexisting metric or provided promql expression and returns result
+// Calculate queries for input promql expression and returns the result unchanged.
 func (x *RawMetricsCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
-	glog.V(10).Infof("Calculating Raw Metrics for %s", x.Name)
-	vec, err := query_api.QueryPrometheusVector(prometheusClient, x.MetricExpr)
+	expr := x.getPromExpr()
+	glog.V(1).Infof("Calculating Raw Metrics for %s expr %s", x.Name, expr)
+	vec, err := query_api.QueryPrometheusVector(prometheusClient, expr)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %s", err)
 	}
 	results := MakeVectorResults(vec, x.Labels, x.Name)
-	glog.V(10).Infof("Results %v", results)
 	return results, nil
+}
+
+// getPromExpr gets the template substituted string for the prom expression
+func (x *RawMetricsCalculation) getPromExpr() string {
+	t, _ := template.New("").Parse(x.MetricExpr)
+	data := struct {
+		Duration string
+	}{
+		Duration: fmt.Sprintf("%dh", x.Hours),
+	}
+	var tpl bytes.Buffer
+	t.Execute(&tpl, data)
+	return tpl.String()
 }

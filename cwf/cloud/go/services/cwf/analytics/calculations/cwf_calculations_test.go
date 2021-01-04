@@ -94,11 +94,13 @@ func (tc calculationTestCase) RunTest(t *testing.T) {
 }
 
 var exampleXAPCalculation = XAPCalculation{
-	CalculationParams: calculations.CalculationParams{
-		Days:            7,
-		RegisteredGauge: testXAPGauge,
-		Labels:          basicLabels,
-		Name:            testMetricName,
+	BaseCalculation: calculations.BaseCalculation{
+		CalculationParams: calculations.CalculationParams{
+			Days:            7,
+			RegisteredGauge: testXAPGauge,
+			Labels:          basicLabels,
+			Name:            testMetricName,
+		},
 	},
 	ThresholdBytes: 100,
 }
@@ -157,11 +159,13 @@ func TestXAPCalculation(t *testing.T) {
 }
 
 var exampleAPThroughputCalculation = APNThroughputCalculation{
-	CalculationParams: calculations.CalculationParams{
-		Days:            7,
-		RegisteredGauge: testAPThroughputGauge,
-		Labels:          basicLabels,
-		Name:            testMetricName,
+	BaseCalculation: calculations.BaseCalculation{
+		CalculationParams: calculations.CalculationParams{
+			Days:            7,
+			RegisteredGauge: testAPThroughputGauge,
+			Labels:          basicLabels,
+			Name:            testMetricName,
+		},
 	},
 	QueryStepSize: time.Second,
 	Direction:     calculations.ConsumptionIn,
@@ -230,11 +234,13 @@ func TestAPThroughputCalculation(t *testing.T) {
 }
 
 var exampleUserThroughputCalculation = UserThroughputCalculation{
-	CalculationParams: calculations.CalculationParams{
-		Days:            7,
-		RegisteredGauge: testUserThroughputGauge,
-		Labels:          basicLabels,
-		Name:            testMetricName,
+	BaseCalculation: calculations.BaseCalculation{
+		CalculationParams: calculations.CalculationParams{
+			Days:            7,
+			RegisteredGauge: testUserThroughputGauge,
+			Labels:          basicLabels,
+			Name:            testMetricName,
+		},
 	},
 	QueryStepSize: time.Second,
 	Direction:     calculations.ConsumptionIn,
@@ -302,11 +308,13 @@ func TestUserThroughputCalculation(t *testing.T) {
 }
 
 var exampleUserConsumptionCalculation = UserConsumptionCalculation{
-	CalculationParams: calculations.CalculationParams{
-		Days:            7,
-		RegisteredGauge: testUserConsumptionGauge,
-		Labels:          basicLabels,
-		Name:            testMetricName,
+	BaseCalculation: calculations.BaseCalculation{
+		CalculationParams: calculations.CalculationParams{
+			Days:            7,
+			RegisteredGauge: testUserConsumptionGauge,
+			Labels:          basicLabels,
+			Name:            testMetricName,
+		},
 	},
 	Direction: calculations.ConsumptionIn,
 }

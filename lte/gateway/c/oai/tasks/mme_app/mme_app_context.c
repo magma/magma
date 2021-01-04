@@ -122,6 +122,10 @@ static void _directoryd_remove_location(uint64_t imsi, uint8_t imsi_len) {
 }
 
 static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p);
+
+static void mme_app_handle_timer_for_unregistered_ue(
+    ue_mm_context_t* ue_context_p);
+
 //------------------------------------------------------------------------------
 // warning: lock the UE context
 ue_mm_context_t* mme_create_new_ue_context(void) {
@@ -584,7 +588,7 @@ void mme_ue_context_update_coll_keys(
   h_rc = hashtable_uint64_ts_remove(
       mme_ue_context_p->tun11_ue_context_htbl,
       (const hash_key_t) ue_context_p->mme_teid_s11);
-  if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
+  if ((INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) && (mme_teid_s11)) {
     h_rc = hashtable_uint64_ts_insert(
         mme_ue_context_p->tun11_ue_context_htbl,
         (const hash_key_t) mme_teid_s11, (uint64_t) mme_ue_s1ap_id);
@@ -2028,7 +2032,6 @@ void mme_ue_context_update_ue_emm_state(
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "UE STATE - UNREGISTERED.\n");
-    ue_context_p->nb_active_pdn_contexts = 0;
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -2299,30 +2302,31 @@ static bool mme_app_recover_timers_for_ue(
   struct ue_mm_context_s* const ue_mm_context_pP =
       (struct ue_mm_context_s*) ue_context_pP;
 
-  if (ue_mm_context_pP &&
-      ue_mm_context_pP->time_mobile_reachability_timer_started) {
+  if (!ue_mm_context_pP) {
+    OAILOG_ERROR(LOG_MME_APP, "UE context is NULL\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
+  }
+
+  if (ue_mm_context_pP->time_mobile_reachability_timer_started) {
     mme_app_resume_timers(
         ue_mm_context_pP,
         ue_mm_context_pP->time_mobile_reachability_timer_started,
         ue_mm_context_pP->mobile_reachability_timer,
         mme_app_handle_mobile_reachability_timer_expiry, "Mobile Reachability");
   }
-  if (ue_mm_context_pP &&
-      ue_mm_context_pP->time_implicit_detach_timer_started) {
+  if (ue_mm_context_pP->time_implicit_detach_timer_started) {
     mme_app_resume_timers(
         ue_mm_context_pP, ue_mm_context_pP->time_implicit_detach_timer_started,
         ue_mm_context_pP->implicit_detach_timer,
         mme_app_handle_implicit_detach_timer_expiry, "Implicit Detach");
   }
-  if (ue_mm_context_pP &&
-      ue_mm_context_pP->time_paging_response_timer_started) {
+  if (ue_mm_context_pP->time_paging_response_timer_started) {
     mme_app_resume_timers(
         ue_mm_context_pP, ue_mm_context_pP->time_paging_response_timer_started,
         ue_mm_context_pP->paging_response_timer,
         mme_app_handle_paging_timer_expiry, "Paging Response");
   }
-  if (ue_mm_context_pP &&
-      ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED &&
+  if (ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED &&
       ue_mm_context_pP->time_ics_rsp_timer_started) {
     mme_app_resume_timers(
         ue_mm_context_pP, ue_mm_context_pP->time_ics_rsp_timer_started,
@@ -2330,16 +2334,19 @@ static bool mme_app_recover_timers_for_ue(
         mme_app_handle_initial_context_setup_rsp_timer_expiry,
         "Initial Context Setup Response");
   }
-  if (ue_mm_context_pP &&
-      ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED) {
+  if (ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED) {
     mme_app_resume_esm_ebr_timer(ue_mm_context_pP);
   }
 
   // timer for network initiated detach procedure
-  if (ue_mm_context_pP && ue_mm_context_pP->emm_context.t3422_arg) {
+  if (ue_mm_context_pP->emm_context.t3422_arg) {
     detach_t3422_handler(
         (void*) ue_mm_context_pP->emm_context.t3422_arg,
         &ue_mm_context_pP->emm_context._imsi64);
+  }
+
+  if (ue_mm_context_pP->emm_context._emm_fsm_state != EMM_REGISTERED) {
+    mme_app_handle_timer_for_unregistered_ue(ue_mm_context_pP);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
 }
@@ -2409,6 +2416,7 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
         if ((bearer_context_p->esm_ebr_context.args) &&
             (bearer_context_p->esm_ebr_context.status ==
              ESM_EBR_ACTIVE_PENDING)) {
+          bearer_context_p->esm_ebr_context.timer.sec = T3485_DEFAULT_VALUE;
           default_eps_bearer_activate_t3485_handler(
               bearer_context_p->esm_ebr_context.args,
               &ue_context_p->emm_context._imsi64);
@@ -2427,6 +2435,7 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
         if ((bearer_context_p->esm_ebr_context.args) &&
             (bearer_context_p->esm_ebr_context.status ==
              ESM_EBR_ACTIVE_PENDING)) {
+          bearer_context_p->esm_ebr_context.timer.sec = T3485_DEFAULT_VALUE;
           dedicated_eps_bearer_activate_t3485_handler(
               bearer_context_p->esm_ebr_context.args,
               &ue_context_p->emm_context._imsi64);
@@ -2441,6 +2450,66 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
           }
         }
       }
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+static void mme_app_handle_timer_for_unregistered_ue(
+    ue_mm_context_t* ue_context_p) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  nas_emm_attach_proc_t* attach_proc =
+      get_nas_specific_procedure_attach(&ue_context_p->emm_context);
+  if ((attach_proc) && (is_nas_attach_accept_sent(attach_proc))) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Send nw initiated detach req for ue_id with re-attach "
+        "required" MME_UE_S1AP_ID_FMT "\n",
+        ue_context_p->mme_ue_s1ap_id);
+    emm_proc_nw_initiated_detach_request(
+        ue_context_p->mme_ue_s1ap_id, NW_DETACH_TYPE_RE_ATTACH_REQUIRED);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Initiate implicit detach for ue_id" MME_UE_S1AP_ID_FMT "\n",
+        ue_context_p->mme_ue_s1ap_id);
+    nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void mme_app_remove_stale_ue_context(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_remove_stale_ue_context_t* s1ap_remove_stale_ue_context) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
+  MME_APP_ENB_S1AP_ID_KEY(
+      enb_s1ap_id_key, s1ap_remove_stale_ue_context->enb_id,
+      s1ap_remove_stale_ue_context->enb_ue_s1ap_id);
+  if (enb_s1ap_id_key == INVALID_ENB_UE_S1AP_ID_KEY) {
+    OAILOG_ERROR(
+        LOG_MME_APP, "Received invalid enb_s1ap_id_key :%lx\n",
+        enb_s1ap_id_key);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  uint64_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
+  if (hashtable_uint64_ts_get(
+          mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+          (const hash_key_t) enb_s1ap_id_key,
+          &mme_ue_s1ap_id) == HASH_TABLE_OK) {
+    ue_mm_context_t* ue_context_p =
+        mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
+    if (!ue_context_p) {
+      hashtable_uint64_ts_remove(
+          mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+          (const hash_key_t) enb_s1ap_id_key);
+      OAILOG_INFO(
+          LOG_MME_APP,
+          "Removed stale UE context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+          "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " enb_id: %d \n ",
+          (mme_ue_s1ap_id_t) mme_ue_s1ap_id,
+          s1ap_remove_stale_ue_context->enb_ue_s1ap_id,
+          s1ap_remove_stale_ue_context->enb_id);
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
