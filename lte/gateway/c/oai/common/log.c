@@ -561,10 +561,14 @@ static void log_get_elapsed_time_since_start(struct timeval * const elapsed_time
 //------------------------------------------------------------------------------
 static char* log_get_readable_cur_time(time_t* cur_time) {
   // get the current local time
-  *cur_time = time(NULL);
+  time(cur_time);
+  struct tm* cur_local_time;
+  cur_local_time = localtime(cur_time);
+  char* time_str = calloc(32, sizeof(char));
   // get the current local time in readable string format
-  char buf[26];
-  return (strtok(ctime_r((const time_t*) cur_time, buf), "\n"));
+  strftime(
+      time_str, 32, "%a %b %d %H:%M:%S %Y", (const struct tm*) cur_local_time);
+  return time_str;
 }
 
 //------------------------------------------------------------------------------
@@ -1477,17 +1481,18 @@ int append_log_ctx_info(
     const log_thread_ctxt_t* thread_ctxt, time_t* cur_time,
     const char* short_source_fileP) {
   int rv;
-  rv = bformata(
+  char* time_str = log_get_readable_cur_time(cur_time);
+  rv             = bformata(
       bstr, LOG_CTXT_INFO_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
+      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
       &g_oai_log.log_proto2str[(*protoP)][0], LOG_DISPLAYED_FILENAME_MAX_LENGTH,
       LOG_DISPLAYED_FILENAME_MAX_LENGTH, &short_source_fileP[filename_length],
       line_numP, thread_ctxt->indent, " ");
+  free_wrapper((void**) &time_str);
   return rv;
 }
 
@@ -1497,17 +1502,18 @@ int append_log_ctx_info_prefix_id(
     size_t filename_length, const log_thread_ctxt_t* thread_ctxt,
     time_t* cur_time, const char* short_source_fileP) {
   int rv;
-  rv = bformata(
+  char* time_str = log_get_readable_cur_time(cur_time);
+  rv             = bformata(
       bstr, LOG_CTXT_INFO_ID_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
+      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
       &g_oai_log.log_proto2str[(*protoP)][0], LOG_DISPLAYED_FILENAME_MAX_LENGTH,
       LOG_DISPLAYED_FILENAME_MAX_LENGTH, &short_source_fileP[filename_length],
       line_numP, prefix_id, thread_ctxt->indent, " ");
+  free_wrapper((void**) &time_str);
   return rv;
 }
 
