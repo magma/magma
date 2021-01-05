@@ -34,7 +34,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {AllNetworkTypes, XWFM} from '@fbcnms/types/network';
 import {CWF, FEG, FEG_LTE} from '@fbcnms/types/network';
 import {makeStyles} from '@material-ui/styles';
-import {triggerAlertSync} from './Alerts';
+import {triggerAlertSync} from '../../state/SyncAlerts';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useState} from 'react';
 

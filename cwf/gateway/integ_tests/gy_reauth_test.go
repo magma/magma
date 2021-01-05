@@ -114,5 +114,5 @@ func TestGyReAuth(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), 2*time.Minute, 2*time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
