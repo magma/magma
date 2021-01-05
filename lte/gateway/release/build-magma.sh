@@ -130,6 +130,7 @@ OAI_DEPS=(
     "liblfds710"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
+    "libczmq-dbg >= 4.0.2-7"
     "oai-gtp >= 4.9-5"
     )
 
