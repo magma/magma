@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/eap/test"
 	"magma/feg/gateway/services/session_proxy/credit_control"
@@ -211,13 +212,13 @@ func getExpectedCreditByKey(credits []*fegprotos.QuotaGrant) map[uint32]*fegprot
 }
 
 func getGyGlobalConfig(matchApn, overwriteApn string) *gy.GyGlobalConfig {
-	rules := []*credit_control.VirtualApnRule{}
-	rule, err := credit_control.GetVirtualApnRule(matchApn, overwriteApn)
-	if err == nil {
-		rules = append(rules, rule)
+	rule := &credit_control.VirtualApnRule{}
+	err := rule.FromMconfig(&mconfig.VirtualApnRule{ApnFilter: matchApn, ApnOverwrite: overwriteApn})
+	if err != nil {
+		return &gy.GyGlobalConfig{}
 	}
 	return &gy.GyGlobalConfig{
-		VirtualApnRules: rules,
+		VirtualApnRules: []*credit_control.VirtualApnRule{rule},
 	}
 }
 

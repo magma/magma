@@ -46,7 +46,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     config.vm.provider :libvirt do |domain, override|
-      override.vm.synced_folder "../..", "/home/vagrant/magma", type: 'nfs', linux__nfs_options: ['rw','no_subtree_check','no_root_squash',"nolock"]
+      override.vm.synced_folder "../..", "/home/vagrant/magma", type: 'nfs', linux__nfs_options: ['rw','no_subtree_check','no_root_squash'], mount_options: ['nolock']
       domain.uri = "qemu+unix:///system"
       domain.memory = 4096
       domain.cpus = 4
@@ -55,7 +55,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.connect_via_ssh = false
       domain.username = $user
       domain.storage_pool_name = "default"
-      domain.nic_model_type = "virtio"
+      domain.nic_model_type = "e1000"
       domain.management_network_name = "magma-mgmt-net"
       domain.management_network_address = "172.17.2.0/24"
       domain.nested = true
@@ -130,6 +130,27 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
+
+    cwag_test.vm.provider :libvirt do |domain, override|
+      override.vm.synced_folder "../..", "/home/vagrant/magma", type: 'nfs', linux__nfs_options: ['rw','no_subtree_check','no_root_squash'], mount_options: ['nolock']
+      domain.uri = "qemu+unix:///system"
+      domain.memory = 4096
+      domain.cpus = 4
+      domain.driver = "kvm"
+      domain.host = "localhost"
+      domain.connect_via_ssh = false
+      domain.username = $user
+      domain.storage_pool_name = "default"
+      domain.nic_model_type = "e1000"
+      domain.management_network_name = "magma-mgmt-net"
+      domain.management_network_address = "172.17.2.0/24"
+      domain.nested = true
+      domain.cpu_mode = "host-passthrough"
+      domain.volume_cache = "unsafe"
+      domain.disk_bus = "virtio"
+      domain.graphics_ip = "0.0.0.0"
+    end
+
     cwag_test.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false
       ansible.playbook = "deploy/cwag_test.yml"

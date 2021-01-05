@@ -1,0 +1,30 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: install gdb package
+  apt:
+    name: "gdb"
+    state: present
+    update_cache: yes
+  when: ansible_facts['distribution'] == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
+
+
+- name: handle core files
+  script: handle_cores.py --cores-map '{{cores_paths | to_json }}' --component {{item.key}} --max-age {{core_file_age_in_days}} --dest-dir {{report_dir_output.stdout}}
+  register: output
+  loop: "{{cores_paths | dict2items}}"
+
+
+- name: display script output
+  debug:
+    msg: "{{ output }}"

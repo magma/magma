@@ -48,8 +48,16 @@ func (request *CreditControlRequest) FromCreditUsageUpdate(update *protos.Credit
 	request.Imei = update.Imei
 	request.PlmnID = update.PlmnId
 	request.UserLocation = update.UserLocation
+	request.ChargingCharacteristics = update.ChargingCharacteristics
 	request.Type = credit_control.CRTUpdate
-	request.Credits = []*UsedCredits{(&UsedCredits{}).FromCreditUsage(update.Usage)}
+	request.Credits = []*UsedCredits{&UsedCredits{
+		RatingGroup:    update.Usage.ChargingKey,
+		InputOctets:    update.Usage.BytesTx, // transmit == input
+		OutputOctets:   update.Usage.BytesRx, // receive == output
+		TotalOctets:    update.Usage.BytesTx + update.Usage.BytesRx,
+		Type:           UsedCreditsType(update.Usage.Type),
+		RequestedUnits: update.Usage.GetRequestedUnits(),
+	}}
 	request.RatType = GetRATType(update.GetRatType())
 	request.TgppCtx = update.GetTgppCtx()
 	return request

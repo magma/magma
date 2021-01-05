@@ -16,20 +16,18 @@
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
 import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
-import type {
-  ActiveApnSessions,
-  Metrics,
-} from '../../components/context/SubscriberContext';
+import type {Metrics} from '../../components/context/SubscriberContext';
 import type {
   mutable_subscriber,
   network_id,
   subscriber,
+  subscriber_state,
 } from '@fbcnms/magma-api';
 
 type InitSubscriberStateProps = {
   networkId: network_id,
   setSubscriberMap: ({[string]: subscriber}) => void,
-  setSessionState: ({[string]: ActiveApnSessions}) => void,
+  setSessionState: ({[string]: subscriber_state}) => void,
   setSubscriberMetrics?: ({[string]: Metrics}) => void,
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
@@ -63,12 +61,7 @@ export default async function InitSubscriberState(
       networkId,
     });
     if (state) {
-      const sessionState = {};
-      Object.keys(state).map(
-        subscriber =>
-          (sessionState[subscriber] = state[subscriber].subscriber_state || {}),
-      );
-      setSessionState(sessionState);
+      setSessionState(state);
     }
   } catch (e) {
     enqueueSnackbar?.('failed fetching subscriber state', {
@@ -80,8 +73,8 @@ export default async function InitSubscriberState(
   if (setSubscriberMetrics) {
     const subscriberMetrics = {};
     const queries = {
-      dailyAvg: 'avg (avg_over_time(ue_traffic[24h])) by (IMSI)',
-      currentUsage: 'sum (ue_traffic) by (IMSI)',
+      dailyAvg: 'avg (avg_over_time(ue_reported_usage[24h])) by (IMSI)',
+      currentUsage: 'sum (ue_reported_usage) by (IMSI)',
     };
 
     const requests = Object.keys(queries).map(async (queryType: string) => {

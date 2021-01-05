@@ -17,7 +17,7 @@ import type {SectionsConfigs} from '../layout/Section';
 
 import * as React from 'react';
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
+import AlarmsDashboard from '../../views/alarms/Alarms';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import Enodebs from './Enodebs';
@@ -89,7 +89,7 @@ export function getLteSections(
         path: 'alerts',
         label: 'Alerts',
         icon: <AlarmIcon />,
-        component: Alarms,
+        component: AlarmsDashboard,
       },
     ],
   ];
@@ -99,14 +99,6 @@ export function getLteSections(
       label: 'Logs',
       icon: <ListIcon />,
       component: Logs,
-    });
-  }
-  if (alertsEnabled) {
-    sections[1].splice(2, 0, {
-      path: 'alerts',
-      label: 'Alerts',
-      icon: <AlarmIcon />,
-      component: Alarms,
     });
   }
   return sections;
@@ -159,7 +151,7 @@ export function getLteSectionsV2(alertsEnabled: boolean): SectionsConfigs {
       path: 'alerts',
       label: 'Alerts',
       icon: <AlarmIcon />,
-      component: Alarms,
+      component: AlarmsDashboard,
     });
   }
   return sections;

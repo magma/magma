@@ -33,10 +33,10 @@ import (
 
 const (
 	ServiceRegistryServiceName = "service_registry"
-	ServiceRegistryModeEnvVar = "SERVICE_REGISTRY_MODE"
-	DockerRegistryMode        = "docker"
-	K8sRegistryMode           = "k8s"
-	YamlRegistryMode          = "yaml"
+	ServiceRegistryModeEnvVar  = "SERVICE_REGISTRY_MODE"
+	DockerRegistryMode         = "docker"
+	K8sRegistryMode            = "k8s"
+	YamlRegistryMode           = "yaml"
 
 	HttpServerPort  = 8080
 	GrpcServicePort = 9180
@@ -431,7 +431,7 @@ func (r *ServiceRegistry) getGRPCDialOptions() []grpc.DialOption {
 		opts = append(opts, grpc.WithKeepaliveParams(localKeepaliveParams))
 	}
 	if r.serviceRegistryMode == K8sRegistryMode || r.serviceRegistryMode == DockerRegistryMode {
-		opts = append(opts, grpc.WithUnaryInterceptor(unary.UnaryCloudClientInterceptor))
+		opts = append(opts, grpc.WithUnaryInterceptor(unary.CloudClientInterceptor))
 	}
 	return opts
 }

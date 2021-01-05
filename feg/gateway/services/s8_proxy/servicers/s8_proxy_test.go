@@ -30,11 +30,8 @@ const (
 )
 
 func TestS8Proxy(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	// Create and run PGW
-	mockPgw, err := mock_pgw.NewStarted(ctx, s8proxyAddrs, pgwAddrs)
+	mockPgw, err := mock_pgw.NewStarted(nil, s8proxyAddrs, pgwAddrs)
 	if err != nil {
 		t.Fatalf("Error creating mock PGW: +%s", err)
 		return
@@ -83,6 +80,6 @@ func TestS8Proxy(t *testing.T) {
 
 func getDefaultConfig(pgwActualAddrs string) *S8ProxyConfig {
 	return &S8ProxyConfig{
-		serverAddr: pgwActualAddrs,
+		ServerAddr: pgwActualAddrs,
 	}
 }

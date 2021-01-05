@@ -186,11 +186,11 @@
       "sysdep": "python3-pbr",
       "version": "5.4.5"
     },
-    "pycrypto": {
+    "pycryptodome": {
       "root": true,
       "source": "pypi",
-      "sysdep": "python3-pycrypto",
-      "version": "2.6.1"
+      "sysdep": "python3-pycryptodome",
+      "version": "3.9.9"
     },
     "pymemoize": {
       "root": true,
@@ -202,7 +202,7 @@
       "root": true,
       "source": "pypi",
       "sysdep": "python3-pystemd",
-      "version": "0.5.0"
+      "version": "0.8.0"
     },
     "python-dateutil": {
       "root": true,
@@ -362,8 +362,8 @@
     "lxml": {
       "version": "4.2.1"
     },
-    "pycrypto": {
-      "version": "2.6.1"
+    "pycryptodome": {
+      "version": "3.9.9"
     },
     "pymemoize": {
       "version": "1.0.2"

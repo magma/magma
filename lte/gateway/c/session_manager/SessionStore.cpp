@@ -31,6 +31,11 @@ SessionStore::SessionStore(
       store_client_(store_client),
       metering_reporter_(std::make_shared<MeteringReporter>()) {}
 
+bool SessionStore::raw_write_sessions(SessionMap session_map) {
+  // return true;
+  return store_client_->write_sessions(std::move(session_map));
+}
+
 SessionMap SessionStore::read_sessions(const SessionRead& req) {
   return store_client_->read_sessions(req);
 }
@@ -47,7 +52,7 @@ void SessionStore::set_and_save_reporting_flag(
 
   for (const CreditUsageUpdate& credit_update :
        update_session_request.updates()) {
-    const std::string imsi       = credit_update.sid();
+    const std::string imsi       = credit_update.common_context().sid().id();
     const std::string session_id = credit_update.session_id();
     const CreditKey& ckey        = credit_update.usage().charging_key();
     const std::string mkey       = credit_update.usage().monitoring_key();
@@ -227,7 +232,6 @@ optional<SessionVector::iterator> SessionStore::find_session(
         }
         break;
       case IMSI_AND_BEARER:
-
         if ((*it)->get_config().common_context.rat_type() ==
             RATType::TGPP_LTE) {
           // lte case

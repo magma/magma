@@ -30,7 +30,7 @@ const (
 
 type connKey struct {
 	service gateway_registry.GwServiceType
-	addr 	string
+	addr    string
 }
 
 // Router is a service maintaining mapping and connections from Access Gateways to FeGs

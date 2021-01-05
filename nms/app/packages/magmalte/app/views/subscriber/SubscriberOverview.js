@@ -14,25 +14,32 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {mutable_subscriber} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import AddSubscriberButton from './SubscriberAddDialog';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import NetworkContext from '../../components/context/NetworkContext';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
+import ReactJson from 'react-json-view';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
+import {FEG_LTE} from '@fbcnms/types/network';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -139,28 +146,74 @@ function SubscriberDashboardInternal() {
   );
 }
 
+type Props = {
+  open: boolean,
+  onClose?: () => void,
+  imsi: string,
+};
+
+function JsonDialog(props: Props) {
+  const ctx = useContext(SubscriberContext);
+  const sessionState = ctx.sessionState[props.imsi] || {};
+  const configuredSubscriberState = ctx.state[props.imsi];
+  const subscriber: mutable_subscriber = {
+    ...configuredSubscriberState,
+    state: sessionState,
+  };
+  return (
+    <Dialog open={props.open} onClose={props.onClose} fullWidth={true}>
+      <DialogTitle>{props.imsi}</DialogTitle>
+      <DialogContent>
+        <ReactJson
+          src={subscriber}
+          enableClipboard={false}
+          displayDataTypes={false}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function SubscriberTableRaw(props: WithAlert) {
   const classes = useStyles();
   const {history, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
   const ctx = useContext(SubscriberContext);
+  const networkCtx = useContext(NetworkContext);
   const subscriberMap = ctx.state;
   const sessionState = ctx.sessionState;
   const subscriberMetrics = ctx.metrics;
   const enqueueSnackbar = useEnqueueSnackbar();
+  const [jsonDialog, setJsonDialog] = useState(false);
   const tableColumns = [
     {title: 'Name', field: 'name'},
     {
       title: 'IMSI',
       field: 'imsi',
-      render: currRow => (
-        <Link
-          variant="body2"
-          component="button"
-          onClick={() => history.push(relativeUrl('/' + currRow.imsi))}>
-          {currRow.imsi}
-        </Link>
-      ),
+      render: currRow => {
+        const subscriberConfig = subscriberMap[currRow.imsi];
+        return (
+          <Link
+            variant="body2"
+            component="button"
+            onClick={() =>
+              // Link to event tab if FEG_LTE network
+              history.push(
+                relativeUrl(
+                  '/' +
+                    currRow.imsi +
+                    `${
+                      networkCtx.networkType === FEG_LTE && !subscriberConfig
+                        ? '/event'
+                        : ''
+                    }`,
+                ),
+              )
+            }>
+            {currRow.imsi}
+          </Link>
+        );
+      },
     },
     {title: 'Service', field: 'service', width: 100},
     {title: 'Current Usage', field: 'currentUsage', width: 175},
@@ -172,14 +225,19 @@ function SubscriberTableRaw(props: WithAlert) {
       width: 200,
     },
   ];
-  const tableData: Array<SubscriberRowType> = Object.keys(subscriberMap).map(
+
+  const subscribersIds = Array.from(
+    new Set([...Object.keys(subscriberMap), ...Object.keys(sessionState)]),
+  );
+
+  const tableData: Array<SubscriberRowType> = subscribersIds.map(
     (imsi: string) => {
-      const subscriberInfo = subscriberMap[imsi];
+      const subscriberInfo = subscriberMap[imsi] || {};
       const metrics = subscriberMetrics?.[`${imsi}`];
       return {
         name: subscriberInfo.name ?? imsi,
         imsi: imsi,
-        service: subscriberInfo.lte.state,
+        service: subscriberInfo.lte?.state || '',
         currentUsage: metrics?.currentUsage ?? '0',
         dailyAvg: metrics?.dailyAvg ?? '0',
         lastReportedTime: new Date(
@@ -189,8 +247,11 @@ function SubscriberTableRaw(props: WithAlert) {
     },
   );
 
+  const onClose = () => setJsonDialog(false);
+
   return (
     <div className={classes.dashboardRoot}>
+      <JsonDialog open={jsonDialog} onClose={onClose} imsi={currRow.imsi} />
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <CardTitleRow
@@ -199,14 +260,15 @@ function SubscriberTableRaw(props: WithAlert) {
             filter={AddSubscriberButton}
           />
 
-          {subscriberMap ? (
+          {subscriberMap || sessionState ? (
             <div>
               <ActionTable
                 data={
                   !Object.keys(sessionState).length
                     ? tableData
                     : tableData.map(row => {
-                        const subscriber = sessionState[row.imsi];
+                        const subscriber =
+                          sessionState[row.imsi]?.subscriber_state || {};
                         const sessions = Object.keys(subscriber || {}).map(
                           apn =>
                             subscriber[apn].filter(
@@ -216,8 +278,9 @@ function SubscriberTableRaw(props: WithAlert) {
                         );
                         return {
                           ...row,
-                          activeApns: Object.keys(sessionState[row.imsi] || {})
-                            .length,
+                          activeApns: Object.keys(
+                            sessionState[row.imsi]?.subscriber_state || {},
+                          ).length,
                           activeSessions: sessions.length
                             ? sessions.reduce((a, b) => a + b)
                             : 0,
@@ -234,47 +297,68 @@ function SubscriberTableRaw(props: WithAlert) {
                       ]
                 }
                 handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
-                menuItems={[
-                  {
-                    name: 'View',
-                    handleFunc: () => {
-                      history.push(relativeUrl('/' + currRow.imsi));
-                    },
-                  },
-                  {
-                    name: 'Edit',
-                    handleFunc: () => {
-                      history.push(relativeUrl('/' + currRow.imsi + '/config'));
-                    },
-                  },
-                  {
-                    name: 'Remove',
-                    handleFunc: () => {
-                      props
-                        .confirm(
-                          `Are you sure you want to delete ${currRow.imsi}?`,
-                        )
-                        .then(async confirmed => {
-                          if (!confirmed) {
-                            return;
-                          }
-
-                          try {
-                            await ctx.setState?.(currRow.imsi);
-                          } catch (e) {
-                            enqueueSnackbar(
-                              'failed deleting subscriber ' + currRow.imsi,
-                              {
-                                variant: 'error',
-                              },
+                menuItems={
+                  networkCtx.networkType === FEG_LTE
+                    ? [
+                        {
+                          name: 'View JSON',
+                          handleFunc: () => {
+                            setJsonDialog(true);
+                          },
+                        },
+                      ]
+                    : [
+                        {
+                          name: 'View JSON',
+                          handleFunc: () => {
+                            setJsonDialog(true);
+                          },
+                        },
+                        {
+                          name: 'View',
+                          handleFunc: () => {
+                            history.push(relativeUrl('/' + currRow.imsi));
+                          },
+                        },
+                        {
+                          name: 'Edit',
+                          handleFunc: () => {
+                            history.push(
+                              relativeUrl('/' + currRow.imsi + '/config'),
                             );
-                          }
-                        });
-                    },
-                  },
-                ]}
+                          },
+                        },
+                        {
+                          name: 'Remove',
+                          handleFunc: () => {
+                            props
+                              .confirm(
+                                `Are you sure you want to delete ${currRow.imsi}?`,
+                              )
+                              .then(async confirmed => {
+                                if (!confirmed) {
+                                  return;
+                                }
+
+                                try {
+                                  await ctx.setState?.(currRow.imsi);
+                                } catch (e) {
+                                  enqueueSnackbar(
+                                    'failed deleting subscriber ' +
+                                      currRow.imsi,
+                                    {
+                                      variant: 'error',
+                                    },
+                                  );
+                                }
+                              });
+                          },
+                        },
+                      ]
+                }
                 options={{
                   actionsColumnIndex: -1,
+                  pageSize: 10,
                   pageSizeOptions: [10, 20],
                 }}
                 detailPanel={
@@ -287,7 +371,9 @@ function SubscriberTableRaw(props: WithAlert) {
                           },
                           openIcon: ExpandLess,
                           render: rowData => {
-                            const subscriber = sessionState[rowData.imsi] || {};
+                            const subscriber =
+                              sessionState[rowData.imsi]?.subscriber_state ||
+                              {};
                             const subscriberSessionRows: Array<SubscriberSessionRowType> = [];
                             Object.keys(subscriber).map((apn: string) => {
                               subscriber[apn].map(infos => {

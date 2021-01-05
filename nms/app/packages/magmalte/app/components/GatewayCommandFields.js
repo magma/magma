@@ -247,7 +247,7 @@ function RebootEnodebControls(props: ChildProps) {
   );
 }
 
-function PingCommandControls(props: ChildProps) {
+export function PingCommandControls(props: ChildProps) {
   const classes = useStyles();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -317,7 +317,7 @@ function PingCommandControls(props: ChildProps) {
   );
 }
 
-function GenericCommandControls(props: ChildProps) {
+export function GenericCommandControls(props: ChildProps) {
   const classes = useStyles();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();

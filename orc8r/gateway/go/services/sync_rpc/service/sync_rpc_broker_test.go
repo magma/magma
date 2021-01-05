@@ -61,6 +61,7 @@ type magmadTestConfig struct {
 }
 
 type magmadTestServer struct {
+	protos.UnimplementedMagmadServer
 	tc magmadTestConfig
 }
 

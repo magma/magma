@@ -20,8 +20,10 @@ import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import FEGConfigure from './FEGConfigure';
 import FEGGateways from './FEGGateways';
+import FEGMetrics from './FEGMetrics';
 import React from 'react';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
   const sections = [
@@ -42,6 +44,12 @@ export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
       label: 'Alerts',
       icon: <AlarmIcon />,
       component: Alarms,
+    },
+    {
+      path: 'metrics',
+      label: 'Metrics',
+      icon: <ShowChartIcon />,
+      component: FEGMetrics,
     },
   ];
 

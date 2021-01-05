@@ -55,7 +55,11 @@ from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
-
+from lte.protos.ha_service_pb2_grpc import HaServiceStub
+from lte.protos.ha_service_pb2 import (
+    StartAgwOffloadRequest,
+    EnbOffloadType,
+)
 DEFAULT_GRPC_TIMEOUT = 10
 
 
@@ -178,7 +182,7 @@ class S1ApUtil(object):
         return self._msg.get(True)
 
     def populate_pco(
-        self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
+            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
     ):
         """
         Populates the PCO values.
@@ -235,17 +239,17 @@ class S1ApUtil(object):
             ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
-        self,
-        ue_id,
-        attach_type,
-        resp_type,
-        resp_msg_type,
-        sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
-        id_type=s1ap_types.TFW_MID_TYPE_IMSI,
-        eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
-        pdn_type=1,
-        pcscf_addr_type=None,
-        dns_ipv6_addr=False,
+            self,
+            ue_id,
+            attach_type,
+            resp_type,
+            resp_msg_type,
+            sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
+            id_type=s1ap_types.TFW_MID_TYPE_IMSI,
+            eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
+            pdn_type=1,
+            pcscf_addr_type=None,
+            dns_ipv6_addr=False,
     ):
         """
         Given a UE issue the attach request of specified type
@@ -291,8 +295,8 @@ class S1ApUtil(object):
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
             assert (
-                context_setup.msg_type
-                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                    context_setup.msg_type
+                    == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             )
 
         logging.debug(
@@ -335,14 +339,14 @@ class S1ApUtil(object):
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
         assert (
-            self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
-            == 0
+                self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+                == 0
         )
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
             assert (
-                s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
-                == response.msg_type
+                    s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
+                    == response.msg_type
             )
 
         # Now wait for the context release response
@@ -378,8 +382,8 @@ class S1ApUtil(object):
             for item in value:
                 for flow in item:
                     if (
-                        flow["direction"] == FlowMatch.DOWNLINK
-                        and key_to_be_matched in flow
+                            flow["direction"] == FlowMatch.DOWNLINK
+                            and key_to_be_matched in flow
                     ):
                         total_num_dl_flows_to_be_verified += 1
             total_dl_ovs_flows_created = get_flows(
@@ -394,16 +398,16 @@ class S1ApUtil(object):
                 },
             )
             assert (
-                len(total_dl_ovs_flows_created)
-                == total_num_dl_flows_to_be_verified
+                    len(total_dl_ovs_flows_created)
+                    == total_num_dl_flows_to_be_verified
             )
 
             # Now verify the rules for every flow
             for item in value:
                 for flow in item:
                     if (
-                        flow["direction"] == FlowMatch.DOWNLINK
-                        and key_to_be_matched in flow
+                            flow["direction"] == FlowMatch.DOWNLINK
+                            and key_to_be_matched in flow
                     ):
                         ip_src_addr = flow[key_to_be_matched]
                         ip_src = "ipv4_src" if key.version == 4 else "ipv6_src"
@@ -432,7 +436,7 @@ class S1ApUtil(object):
                                 5
                             )  # sleep for 5 seconds before retrying
                         assert (
-                            len(downlink_flows) >= num_dl_flows
+                                len(downlink_flows) >= num_dl_flows
                         ), "Downlink flow missing for UE"
                         assert downlink_flows[0]["match"][ip_dst] == ue_ip_addr
                         actions = downlink_flows[0]["instructions"][0][
@@ -459,10 +463,10 @@ class S1ApUtil(object):
             uplink_flows = get_flows(
                 self.datapath,
                 {
-                   "table_id": self.SPGW_TABLE,
-                   "match": {
-                       "in_port": GTP_PORT,
-                   }
+                    "table_id": self.SPGW_TABLE,
+                    "match": {
+                        "in_port": GTP_PORT,
+                    }
                 },
             )
             if len(uplink_flows) == num_ul_flows:
@@ -499,7 +503,7 @@ class S1ApUtil(object):
                     break
                 time.sleep(5)  # sleep for 5 seconds before retrying
             assert (
-                len(paging_flows) == num_paging_flows_to_be_verified
+                    len(paging_flows) == num_paging_flows_to_be_verified
             ), "Paging flow missing for UE"
 
             # TODO - Verify that the action is to send to controller
@@ -621,7 +625,7 @@ class MagmadUtil(object):
 
     def exec_command(self, command):
         """
-        Run a command remotly on magma_dev VM.
+        Run a command remotely on magma_dev VM.
 
         Args:
             command: command (str) to be executed on remote host
@@ -640,7 +644,7 @@ class MagmadUtil(object):
 
     def exec_command_output(self, command):
         """
-        Run a command remotly on magma_dev VM.
+        Run a command remotely on magma_dev VM.
 
         Args:
             command: command (str) to be executed on remote host
@@ -674,7 +678,7 @@ class MagmadUtil(object):
         ret_code = self.exec_command(
             magtivate_cmd + " && " + venvsudo_cmd + " python3 " +
             config_stateless_script + " " + cmd.name.lower()
-            )
+        )
 
         if ret_code == 0:
             print("AGW is stateless")
@@ -684,6 +688,19 @@ class MagmadUtil(object):
             print("AGW is in a mixed config, check gateway")
         else:
             print("Unknown command")
+
+    def corrupt_agw_state(self, key: str):
+        """
+        Corrupts data on redis of stateless AGW
+        Args:
+            key:
+
+        """
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        state_corrupt_cmd = "state_cli.py corrupt %s" % key.lower()
+
+        self.exec_command(magtivate_cmd + " && " + state_corrupt_cmd)
+        print("Corrupted %s on redis" % key)
 
     def restart_all_services(self):
         """
@@ -726,29 +743,29 @@ class MagmadUtil(object):
             print("MME configuration is updated successfully")
         elif ret_code == 1:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: Invalid command"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: Invalid command"
             )
         elif ret_code == 2:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: MME configuration file is "
-                + "missing"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: MME configuration file is "
+                    + "missing"
             )
         elif ret_code == 3:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: MME configuration's backup file "
-                + "is missing"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: MME configuration's backup file "
+                    + "is missing"
             )
         else:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: Unknown error"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: Unknown error"
             )
 
     def config_apn_correction(self, cmd):
@@ -764,9 +781,9 @@ class MagmadUtil(object):
         """
         apn_correction_cmd = ""
         if cmd.name == MagmadUtil.apn_correction_cmds.ENABLE.name:
-            apn_correction_cmd = "sed -i \'s/correction: false/correction: true/g\' /etc/magma/mme.yml"
+            apn_correction_cmd = "sed -i \'s/enable_apn_correction: false/enable_apn_correction: true/g\' /etc/magma/mme.yml"
         else:
-            apn_correction_cmd = "sed -i \'s/correction: true/correction: false/g\' /etc/magma/mme.yml"
+            apn_correction_cmd = "sed -i \'s/enable_apn_correction: true/enable_apn_correction: false/g\' /etc/magma/mme.yml"
 
         ret_code = self.exec_command(
             "sudo " + apn_correction_cmd)
@@ -781,6 +798,7 @@ class MagmadUtil(object):
         self.restart_services(["mme"])
         print("Waiting for mme to restart. 20 sec")
         time.sleep(20)
+
 
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """
@@ -994,7 +1012,7 @@ class SpgwUtil(object):
         self._stub.CreateBearer(req)
 
     def create_bearer_ipv4v6(
-        self, imsi, lbi, qci_val=1, ipv4=False, ipv6=False
+            self, imsi, lbi, qci_val=1, ipv4=False, ipv6=False
     ):
         """
         Sends a CreateBearer Request with ipv4/ipv6/ipv4v6 packet """
@@ -1273,15 +1291,34 @@ class SessionManagerUtil(object):
 class GTPBridgeUtils:
     def __init__(self):
         self.magma_utils = MagmadUtil(None)
-        ret = self.magma_utils.exec_command_output("sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
+        ret = self.magma_utils.exec_command_output(
+            "sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
         if "false" in ret:
             self.gtp_port_name = "gtp0"
         else:
             self.gtp_port_name = "g_8d3ca8c0"
 
     def get_gtp_port_no(self) -> Optional[int]:
-        output = self.magma_utils.exec_command_output("sudo ovsdb-client dump Interface name ofport")
+        output = self.magma_utils.exec_command_output(
+            "sudo ovsdb-client dump Interface name ofport")
         for line in output.split('\n'):
             if self.gtp_port_name in line:
                 port_info = line.split()
                 return port_info[1]
+
+class HaUtil:
+    def __init__(self):
+        self._ha_stub = HaServiceStub(
+            get_rpc_channel("spgw_service")
+        )
+
+    def offload_agw(self, imsi, enbID, offloadtype=0):
+        req = StartAgwOffloadRequest(
+            enb_id = enbID,
+            enb_offload_type = offloadtype,
+            imsi = imsi,
+            )
+        try:
+            self._ha_stub.StartAgwOffload(req)
+        except grpc.RpcError as e:
+            print("gRPC failed with %s: %s" % (e.code(), e.details()))
