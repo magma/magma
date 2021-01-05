@@ -25,22 +25,22 @@ DEFAULT_GRPC_TIMEOUT = 20
 
 def get_all_enb_state() -> Optional[Dict[int, int]]:
     """
-    Make RPC call to 'GetEnbstate' method of s1ap service
+    Make RPC call to 'GetENBState' method of s1ap service
     """
     try:
         chan = ServiceRegistry.get_rpc_channel(S1AP_SERVICE_NAME,
                                                ServiceRegistry.LOCAL)
     except ValueError:
         logger.error('Cant get RPC channel to %s', S1AP_SERVICE_NAME)
-        return
+        return {}
     client = S1apServiceStub(chan)
     try:
-        res = client.GetEnbState(Void(), DEFAULT_GRPC_TIMEOUT)
+        res = client.GetENBState(Void(), DEFAULT_GRPC_TIMEOUT)
         return res.enb_state_map
     except grpc.RpcError as err:
         logger.warning(
             "GetEnbState error: [%s] %s",
             err.code(),
             err.details())
-    return []
+    return {}
 

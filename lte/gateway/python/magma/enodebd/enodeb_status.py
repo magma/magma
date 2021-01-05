@@ -332,9 +332,8 @@ def get_single_enb_status(
     return enb_status
 
 
-def get_operational_states(
-        enb_acs_manager: StateMachineManager, mconfig: mconfigs_pb2.EnodebD
-) -> List[State]:
+def get_operational_states(enb_acs_manager: StateMachineManager,
+                           mconfig: mconfigs_pb2.EnodebD) -> List[State]:
     """
     Returns: A list of State with EnodebStatus encoded as JSON
     """
@@ -343,7 +342,7 @@ def get_operational_states(
     enb_status_by_serial = get_all_enb_status(enb_acs_manager)
 
     # Get S1 connected eNBs
-    enb_s1_state_map = get_all_enb_state()
+    enb_statuses = get_all_enb_state()
 
     for serial_id in enb_status_by_serial:
         enb_status_dict = enb_status_by_serial[serial_id]._asdict()
@@ -352,8 +351,8 @@ def get_operational_states(
         enb_status_dict['ip_address'] = enb_acs_manager.get_ip_of_serial(
             serial_id)
 
-        # Add num of UEs connected, use cellID from enb_status handler
-        num_ue_connected = enb_s1_state_map.get(enb_status_dict['cell_id'], 0)
+        # Add num of UEs connected
+        num_ue_connected = enb_statuses.get(enb_status_dict['cell_id'], 0)
         enb_status_dict['ues_connected'] = num_ue_connected
 
         serialized = json.dumps(enb_status_dict)
@@ -366,7 +365,7 @@ def get_operational_states(
         states.append(state)
 
     # Get state for externally configured enodebs
-    s1_states = get_enb_s1_connected_states(enb_s1_state_map,
+    s1_states = get_enb_s1_connected_states(enb_statuses,
                                             configured_serial_ids,
                                             mconfig)
     states.extend(s1_states)

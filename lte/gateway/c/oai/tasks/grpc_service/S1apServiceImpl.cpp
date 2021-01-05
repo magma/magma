@@ -36,9 +36,9 @@ using namespace orc8r;
 
 S1apServiceImpl::S1apServiceImpl() {}
 
-Status S1apServiceImpl::GetEnbState(
+Status S1apServiceImpl::GetENBState(
     ServerContext* context, const Void* request, EnbStateResult* response) {
-  OAILOG_DEBUG(LOG_UTIL, "Received EnbConnected GRPC request\n");
+  OAILOG_DEBUG(LOG_UTIL, "Received GetENBState GRPC request\n");
 
   // Get state from S1APStateManager
   // TODO: Get state through ITTI message from S1AP task, as it's read only

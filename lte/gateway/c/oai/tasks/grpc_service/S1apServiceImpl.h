@@ -35,14 +35,14 @@ class S1apServiceImpl final : public magma::S1apService::Service {
   S1apServiceImpl();
 
   /**
-   * Returns map of S1 connected eNB id as key, with num of UEs attached
+   * Returns map of S1 connected eNB id as key, with num of UEs connected
    * to each eNB as value
    * @param context grpc ServerContext
    * @param request proto request params
    * @param response proto response EnbStateResult
    * @return status response cod
    */
-  grpc::Status GetEnbState(
+  grpc::Status GetENBState(
       grpc::ServerContext* context, const magma::orc8r::Void* request,
       magma::lte::EnbStateResult* response) override;
 };
