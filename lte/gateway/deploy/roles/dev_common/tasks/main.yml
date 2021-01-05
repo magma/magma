@@ -21,7 +21,7 @@
   shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
   ignore_errors: yes
 
-  - name: Set build environment variables
+- name: Set build environment variables
   lineinfile:
     dest: /etc/environment
     state: present
