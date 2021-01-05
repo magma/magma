@@ -25,12 +25,12 @@ SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
-SWAGGER_V1_TEMPLATE := $(SWAGGER_ROOT)/v1/swagger-template.yml
+SWAGGER_V1_CONFIG := $(SWAGGER_ROOT)/v1/goswagger-config.yml
 SWAGGER_V1_TMP_GEN := $(SWAGGER_ROOT)/v1/tmp
 export SWAGGER_ROOT
 export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
-export SWAGGER_V1_TEMPLATE
+export SWAGGER_V1_CONFIG
 export SWAGGER_V1_TMP_GEN
 
 #############
@@ -91,9 +91,11 @@ fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
 
-gen: tools tidy swagger $(GEN_LIST)
+gen: tools swagger $(GEN_LIST)
 $(GEN_LIST): %_gen:
 	make -C $*/cloud/go gen
+
+fullgen: clean_gen gen tidy
 
 lint: $(LINT_LIST)
 $(LINT_LIST): %_lint:

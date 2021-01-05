@@ -19,8 +19,8 @@ clean::
 	go clean ./...
 
 clean_gen:
-	find . -name "*.pb.go" | xargs --no-run-if-empty rm
-	find . -name "*_swaggergen.go" | xargs --no-run-if-empty rm
+	for f in $$(find . -name '*.pb.go' ! -path '*/migrations/*') ; do rm $$f ; done
+	for f in $$(find . -name '*_swaggergen.go' ! -path '*/migrations/*') ; do rm $$f ; done
 
 download:
 	go mod download

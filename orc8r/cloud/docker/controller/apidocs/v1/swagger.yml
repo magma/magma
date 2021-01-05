@@ -8876,6 +8876,20 @@ definitions:
     - name
     - value
     type: object
+  latest_script_execution:
+    properties:
+      timestamp:
+        description: Timestamp of latest script execution
+        type: integer
+        x-nullable: false
+      version:
+        description: Magma version of latest script execution
+        type: string
+        x-nullable: false
+    required:
+    - timestamp
+    - version
+    type: object
   li_ues:
     properties:
       imsis:
