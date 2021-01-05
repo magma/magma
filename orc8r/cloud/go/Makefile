@@ -1,3 +1,4 @@
+MODULE_NAME=orc8r
 PLUGIN_NAME=orc8r
 TOOL_DEPS:= \
 	magma/orc8r/cloud/go/tools/combine_swagger \
