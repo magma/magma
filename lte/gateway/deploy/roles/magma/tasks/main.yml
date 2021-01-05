@@ -32,7 +32,6 @@
     - redis
     - pipelined
     - redirectd
-    - envoy
     - envoy_controller
     # Manhattan services
     - lighttpd
@@ -43,6 +42,12 @@
   copy:
     src: systemd/sctpd.service
     dest: /etc/systemd/system/sctpd.service
+  when: full_provision
+
+- name: Copy envoy service file
+  copy:
+    src: systemd/magma_dp_envoy.service
+    dest: /etc/systemd/system/magma_dp@envoy.service
   when: full_provision
 
 - name: Copy logrotate config file

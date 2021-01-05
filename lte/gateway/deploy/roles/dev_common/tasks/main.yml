@@ -38,6 +38,14 @@
     -  CODEGEN_ROOT={{ codegen_root }}
   when: full_provision
 
+- name: "Go export"
+  lineinfile:
+    dest: "/home/{{ ansible_user }}/.profile"
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - export PATH=$PATH:"/usr/local/go/bin"
+
 - name: Create the ccache directory
   file:
     path: "{{magma_root}}/.cache/gateway/ccache"
