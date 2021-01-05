@@ -32,6 +32,7 @@ from magma.pipelined.app.enforcement_stats import _get_sid, _get_ipv4, _get_tunn
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
 from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.exceptions import MagmaOFError
+from lte.protos.pipelined_pb2 import PdrState
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
@@ -488,3 +489,23 @@ class Classifier(MagmaController):
     def _remove_paging_flow(self, ue_ip_addr:str):
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=ue_ip_addr)
         flows.delete_flow(self._datapath, self.tbl_num, match)
+
+    def _gtp_handler(self, pdr_state, precedence:int, local_f_teid:int,
+                     o_teid:int, ue_ip_addr:str, gnb_ip_addr:str, sid:int = None):
+
+        if pdr_state == PdrState.Value('INSTALL'):
+            self.remove_paging_flow(ue_ip_addr)
+            self.add_tunnel_flows(precedence, local_f_teid,
+                                  o_teid, ue_ip_addr,
+                                  gnb_ip_addr, sid)
+
+        elif pdr_state == PdrState.Value('IDLE'):
+            self.delete_tunnel_flows(local_f_teid, ue_ip_addr)
+            self.install_paging_flow(ue_ip_addr)
+
+        elif pdr_state == PdrState.Value('REMOVE'):
+            self.delete_tunnel_flows(local_f_teid, ue_ip_addr)
+            self.remove_paging_flow(ue_ip_addr)
+
+        return True
+
