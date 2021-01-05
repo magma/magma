@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="go test fbinternal" type="GoTestRunConfiguration" factoryName="Go Test">
+    <module name="magma" />
+    <working_directory value="$PROJECT_DIR$/fbinternal/cloud/go" />
+    <envs>
+      <env name="TEST_DATABASE_PORT_MARIA" value="3307" />
+      <env name="TEST_DATABASE_PORT_POSTGRES" value="5433" />
+      <env name="TEST_DATABASE_HOST" value="localhost" />
+    </envs>
+    <framework value="gotest" />
+    <kind value="DIRECTORY" />
+    <directory value="$PROJECT_DIR$/fbinternal/cloud/go" />
+    <filePath value="$PROJECT_DIR$/" />
+    <method v="2" />
+  </configuration>
+</component>
