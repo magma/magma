@@ -17,7 +17,6 @@ import (
 	"magma/fbinternal/cloud/go/services/testcontroller"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/serdes"
 )
 
 const (
@@ -25,9 +24,6 @@ const (
 )
 
 var (
-	// Network contains the full set of configurator network config serdes
-	// used in the fbinternal module
-	Network        = serdes.Network.MustMerge(models.NetworkSerdes)
 	TestController = serde.NewRegistry(
 		serde.NewBinarySerde(testcontrollerSerdeDomain, testcontroller.EnodedTestCaseType, &models.EnodebdTestConfig{}),
 		serde.NewBinarySerde(testcontrollerSerdeDomain, testcontroller.EnodedTestExcludeTraffic, &models.EnodebdTestConfig{}),

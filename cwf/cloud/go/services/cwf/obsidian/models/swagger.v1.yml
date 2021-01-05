@@ -12,8 +12,6 @@ magma-gen-meta:
   temp-gen-filename: cwf-swagger.yml
   output-dir: cwf/cloud/go/services/cwf/obsidian
   types:
-    - go-struct-name: FegNetworkID
-      filename: feg_network_id_swaggergen.go
     - go-struct-name: CwfNetwork
       filename: cwf_network_swaggergen.go
     - go-struct-name: CwfGateway
