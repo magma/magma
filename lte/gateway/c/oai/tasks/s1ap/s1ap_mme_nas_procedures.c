@@ -1049,7 +1049,6 @@ void s1ap_handle_conn_est_cnf(
         (const char*) conn_est_cnf_pP->ue_radio_capability,
         conn_est_cnf_pP->ue_radio_cap_length);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-    free_wrapper((void**) &(conn_est_cnf_pP->ue_radio_capability));
   }
 
   if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {

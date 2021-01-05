@@ -81,7 +81,7 @@ RUN apt-get -y update && apt-get -y install \
     netcat \
     iputils-ping
 
-RUN python3.5 -m pip install \
+RUN python3.5 -m pip install --no-cache-dir \
     Cython \
     fire \
     envoy \
@@ -137,11 +137,11 @@ RUN make install
 
 # Install orc8r python (magma.common required for lte python)
 COPY orc8r/gateway/python /tmp/orc8r
-RUN python3.5 -m pip install /tmp/orc8r
+RUN python3.5 -m pip install --no-cache-dir /tmp/orc8r
 
 # Install lte python
 COPY lte/gateway/python /tmp/lte
-RUN python3.5 -m pip install /tmp/lte
+RUN python3.5 -m pip install --no-cache-dir /tmp/lte
 
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma

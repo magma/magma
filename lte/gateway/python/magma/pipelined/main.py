@@ -41,6 +41,7 @@ from magma.pipelined.bridge_util import BridgeTools
 from lte.protos.mconfig import mconfigs_pb2
 
 
+
 def main():
     """
     Loads the Ryu apps we want to run from the config file.

@@ -24,6 +24,7 @@ import time
 
 from enum import Enum
 
+from magma.common.redis.client import get_default_client
 from magma.configuration.service_configs import (
     load_override_config,
     load_service_config,
@@ -83,6 +84,7 @@ def clear_redis_state():
     # stop MME, which in turn stops mobilityd, pipelined and sessiond
     subprocess.call("service magma@mme stop".split())
     # delete all keys from Redis which capture service state
+    redis_client = get_default_client()
     for key_regex in [
         "*_state",
         "IMSI*",
@@ -92,16 +94,8 @@ def clear_redis_state():
         "QosManager",
         "s1ap_imsi_map",
     ]:
-        redis_cmd = (
-            "redis-cli -p 6380 KEYS '"
-            + key_regex
-            + "' | xargs redis-cli -p 6380 DEL"
-        )
-        subprocess.call(
-            shlex.split(redis_cmd),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        for key in redis_client.scan_iter(key_regex):
+            redis_client.delete(key)
 
 
 def flushall_redis():

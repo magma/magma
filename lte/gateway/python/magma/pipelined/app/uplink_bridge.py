@@ -65,6 +65,9 @@ class UplinkBridgeController(MagmaController):
 
         uplink_eth_port_name = config_dict.get('uplink_eth_port_name',
                                                self.DEFAULT_UPLINK_PORT_NANE)
+        if uplink_eth_port_name not in netifaces.interfaces():
+            uplink_eth_port_name = None
+
         virtual_mac = config_dict.get('virtual_mac',
                                       self.DEFAULT_UPLINK_MAC)
         sgi_management_iface_vlan = config_dict.get('sgi_management_iface_vlan', "")
@@ -233,6 +236,8 @@ class UplinkBridgeController(MagmaController):
 
     def _del_eth_port(self):
         self._cleanup_if(self.config.uplink_bridge, True)
+        if self.config.uplink_eth_port_name is None:
+            return
 
         ovs_rem_port = "ovs-vsctl --if-exists del-port %s %s" \
                        % (self.config.uplink_bridge, self.config.uplink_eth_port_name)

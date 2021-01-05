@@ -275,6 +275,12 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
    */
 }
 
+void SessionState::set_teids(
+    Teids teids, SessionStateUpdateCriteria session_uc) {
+  config_.common_context.mutable_teids()->CopyFrom(teids);
+  // session_uc.teids.CopyFrom(teids);
+}
+
 static UsageMonitorUpdate make_usage_monitor_update(
     const SessionCredit::Usage& usage_in, const std::string& monitoring_key,
     MonitoringLevel level) {
@@ -833,6 +839,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi      = imsi_;
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
+  info.teids     = config_.common_context.teids();
   info.msisdn    = config_.common_context.msisdn();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
@@ -1597,6 +1604,7 @@ void SessionState::fill_service_action(
   action->set_imsi(imsi_);
   action->set_ip_addr(config_.common_context.ue_ipv4());
   action->set_ipv6_addr(config_.common_context.ue_ipv6());
+  action->set_teids(config_.common_context.teids());
   action->set_msisdn(config_.common_context.msisdn());
   action->set_session_id(session_id_);
   static_rules_.get_rule_ids_for_charging_key(

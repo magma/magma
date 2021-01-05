@@ -38,6 +38,8 @@ using ::testing::Test;
 
 namespace magma {
 
+Teids teids0;
+
 class LocalEnforcerTest : public ::testing::Test {
  protected:
   void SetUpWithMConfig(magma::mconfig::SessionD mconfig) {
@@ -56,8 +58,10 @@ class LocalEnforcerTest : public ::testing::Test {
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map = SessionMap{};
+    teids0.set_agw_teid(0);
+    teids0.set_enb_teid(0);
     cwf_session_config.common_context =
-        build_common_context(IMSI1, "", "", "", "", TGPP_WLAN);
+        build_common_context(IMSI1, "", "", teids0, "", "", TGPP_WLAN);
   }
 
   virtual void SetUp() {}

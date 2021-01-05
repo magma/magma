@@ -119,7 +119,7 @@ describe('NMS', () => {
       await page.type(networkDescriptionSelector, 'test_network');
 
       // TODO need to figure out why we need to add this delay
-      await page.waitFor(500);
+      await page.waitForTimeout(500);
 
       const saveButtonSelector = '[data-testid="saveButton"]';
       await page.waitForSelector(saveButtonSelector);
@@ -201,7 +201,7 @@ describe('NMS', () => {
       await page.type(fegPlaceholder, 'test_feg_network2');
 
       // @karthiksubraveti - TODO need to figure out why we need to add this delay
-      await page.waitFor(500);
+      await page.waitForTimeout(500);
       const [saveButton] = await page.$x(`//span[text()='Save']`);
       await saveButton.click();
 
