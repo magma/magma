@@ -409,10 +409,15 @@ class S1ApUtil(object):
                             flow["direction"] == FlowMatch.DOWNLINK
                             and key_to_be_matched in flow
                     ):
+                        ip_src = None
                         ip_src_addr = flow[key_to_be_matched]
-                        ip_src = "ipv4_src" if key.version == 4 else "ipv6_src"
+                        if ip_src_addr:
+                            ip_src = (
+                                "ipv4_src" if key.version == 4 else "ipv6_src"
+                            )
                         ip_dst = "ipv4_dst" if key.version == 4 else "ipv6_dst"
                         tcp_src_port = flow.get("tcp_src_port", None)
+                        tcp_sport = "tcp_src" if tcp_src_port else None
                         ip_proto = flow.get("ip_proto", None)
                         for i in range(self.MAX_NUM_RETRIES):
                             print("Get downlink flows: attempt ", i)
@@ -424,12 +429,8 @@ class S1ApUtil(object):
                                         ip_dst: ue_ip_addr,
                                         "eth_type": eth_typ,
                                         "in_port": self.LOCAL_PORT,
-                                        ip_src
-                                        if ip_src_addr
-                                        else None: ip_src_addr,
-                                        "tcp_src"
-                                        if tcp_src_port
-                                        else None: tcp_src_port,
+                                        ip_src: ip_src_addr,
+                                        tcp_sport: tcp_src_port,
                                         "ip_proto": ip_proto,
                                     },
                                 },
@@ -873,7 +874,7 @@ class SpgwUtil(object):
         """
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
-    def create_default_flows(self) :
+    def create_default_flows(self):
         """ Creates default flow rules. 4 for UL and 4 for DL """
         # UL Flow description #1
         ulFlow1 = {
