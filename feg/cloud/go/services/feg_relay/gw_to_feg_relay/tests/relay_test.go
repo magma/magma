@@ -46,7 +46,10 @@ import (
 	"magma/orc8r/lib/go/registry"
 )
 
-const s6aProxyService = "s6a_proxy"
+const (
+	s6aProxyService  = "s6a_proxy"
+	testHelloService = "feg_hello"
+)
 
 type testS6aProxy struct {
 	feg_protos.UnimplementedS6AProxyServer
@@ -79,8 +82,15 @@ func (tp *testS6aProxy) AuthenticationInformation(
 	return &feg_protos.AuthenticationInformationAnswer{}, nil
 }
 
+type testHelloServer struct {
+}
+
+func (tp *testHelloServer) SayHello(c context.Context, req *feg_protos.HelloRequest) (*feg_protos.HelloReply, error) {
+	return &feg_protos.HelloReply{Greeting: "testHelloService reply to: " + req.GetGreeting()}, nil
+}
+
 func TestNHRouting(t *testing.T) {
-	testHealthServicer := setupNeutralHostNetworks(t)
+	testHealthServiser := setupNeutralHostNetworks(t)
 
 	// test # 1: Verify, relay finds the right serving FeG for IMSI's PLMN ID
 	foundFegHwId, err := gw_to_feg_relay.FindServingFeGHwId(federatedLteNetworkID, nhImsi)
@@ -97,6 +107,10 @@ func TestNHRouting(t *testing.T) {
 	t.Logf("Serving FeG S6a Proxy Address: %s", s6aAddr)
 
 	feg_protos.RegisterS6AProxyServer(srv.GrpcServer, s6aProxy)
+
+	// Register FeG's test Hello Server
+	feg_protos.RegisterHelloServer(srv.GrpcServer, &testHelloServer{})
+
 	go srv.RunTest(lis)
 
 	// Add Serving FeG Host to directoryd
@@ -109,7 +123,9 @@ func TestNHRouting(t *testing.T) {
 
 	t.Logf("Relay S6a Proxy Address: %s", relayLis.Addr())
 
-	feg_protos.RegisterS6AProxyServer(relaySrv.GrpcServer, servicers.NewRelayRouter())
+	relayRouter := servicers.NewRelayRouter()
+	feg_protos.RegisterS6AProxyServer(relaySrv.GrpcServer, relayRouter)
+	feg_protos.RegisterHelloServer(relaySrv.GrpcServer, relayRouter)
 	go relaySrv.RunTest(relayLis)
 
 	ctx := service_test_utils.GetContextWithCertificate(t, agwHwId)
@@ -131,6 +147,35 @@ func TestNHRouting(t *testing.T) {
 	case <-time.After(3 * time.Second):
 		t.Fatal("Neutral Host Routed S6a Proxy Call timed out")
 	}
+
+	// Test SayHello routing & NH argumentation regex
+	helloClient := feg_protos.NewHelloClient(conn)
+	toutctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+
+	// regex style: @nh-Feg-for Imsi 123456
+	helloReq := &feg_protos.HelloRequest{Greeting: "Hello FeG @nh-Feg-for Imsi " + nhImsi}
+	helloResp, err := helloClient.SayHello(toutctx, helloReq)
+	assert.NoError(t, err)
+	assert.Equal(t, "testHelloService reply to: Hello FeG", helloResp.GetGreeting())
+
+	// regex style: @NH-FEG-FOR: IMSI123456
+	helloReq = &feg_protos.HelloRequest{Greeting: "Hello FeG test 2 @NH-FEG-FOR: IMSI" + nhImsi}
+	helloResp, err = helloClient.SayHello(toutctx, helloReq)
+	assert.NoError(t, err)
+	assert.Equal(t, "testHelloService reply to: Hello FeG test 2", helloResp.GetGreeting())
+
+	// regex style: @NH-FeG-FOR IMSI123456
+	helloReq = &feg_protos.HelloRequest{Greeting: "Hello FeG t3 @NH-FEG-FOR IMSI" + nhImsi}
+	helloResp, err = helloClient.SayHello(toutctx, helloReq)
+	assert.NoError(t, err)
+	assert.Equal(t, "testHelloService reply to: Hello FeG t3", helloResp.GetGreeting())
+
+	// expect failure on absent default local FeG
+	helloReq = &feg_protos.HelloRequest{Greeting: "Hi" + nhImsi}
+	helloResp, err = helloClient.SayHello(toutctx, helloReq)
+	assert.Error(t, err)
+
+	cancel()
 
 	// test #3: Verify failure of routing of unknown PLMN IDs
 	aiReq.UserName = nonNhImsi
@@ -179,7 +224,7 @@ func TestNHRouting(t *testing.T) {
 	// Update Serving FeG Health status
 	healthctx := protos.NewGatewayIdentity(nhFegHwId, nhNetworkID, nhFegId).NewContextWithIdentity(context.Background())
 	req := healthTestUtils.GetHealthyRequest()
-	_, err = testHealthServicer.UpdateHealth(healthctx, req)
+	_, err = testHealthServiser.UpdateHealth(healthctx, req)
 	assert.NoError(t, err)
 
 	// Verify that NH FeG will be used as "catch all" for all but nhPlmnId

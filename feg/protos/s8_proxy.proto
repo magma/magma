@@ -14,12 +14,9 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
-import "lte/protos/policydb.proto";
 import "lte/protos/subscriberdb.proto";
 import "lte/protos/oai/mme_nas_state.proto";
 import "lte/protos/oai/std_3gpp_types.proto";
-
-import "google/protobuf/timestamp.proto";
 
 
 package magma.feg;

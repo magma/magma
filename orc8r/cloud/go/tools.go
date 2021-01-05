@@ -18,8 +18,10 @@ package main
 // Put all binary tool dependencies in here so they can be tracked by the go
 // module.
 
-import _ "magma/orc8r/cloud/go/tools/combine_swagger"
-import _ "golang.org/x/lint/golint"
-import _ "github.com/golang/protobuf/protoc-gen-go"
-import _ "github.com/go-swagger/go-swagger/cmd/swagger"
-import _ "github.com/vektra/mockery/cmd/mockery"
+import (
+	_ "github.com/facebookincubator/ent/cmd/entc"
+	_ "github.com/go-swagger/go-swagger/cmd/swagger"
+	_ "github.com/golang/protobuf/protoc-gen-go"
+	_ "github.com/vektra/mockery/cmd/mockery"
+	_ "golang.org/x/lint/golint"
+)

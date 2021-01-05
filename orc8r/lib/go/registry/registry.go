@@ -23,7 +23,6 @@ import (
 
 	"magma/orc8r/lib/go/protos"
 	registry_client "magma/orc8r/lib/go/registry/client"
-	"magma/orc8r/lib/go/service/middleware/unary"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -430,9 +429,11 @@ func (r *ServiceRegistry) getGRPCDialOptions() []grpc.DialOption {
 	if *grpcKeepAlive {
 		opts = append(opts, grpc.WithKeepaliveParams(localKeepaliveParams))
 	}
+	var timeoutInterceptor = TimeoutInterceptor
 	if r.serviceRegistryMode == K8sRegistryMode || r.serviceRegistryMode == DockerRegistryMode {
-		opts = append(opts, grpc.WithUnaryInterceptor(unary.CloudClientInterceptor))
+		timeoutInterceptor = CloudClientTimeoutInterceptor
 	}
+	opts = append(opts, grpc.WithUnaryInterceptor(timeoutInterceptor))
 	return opts
 }
 

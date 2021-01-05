@@ -863,13 +863,46 @@ int s1ap_mme_handle_initial_context_setup_response(
         .e_rab_setup_list.item[item]
         .gtp_teid = htonl(*((uint32_t*) eRABSetupItemCtxtSURes_p->value.choice
                                 .E_RABSetupItemCtxtSURes.gTP_TEID.buf));
-    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-        .e_rab_setup_list.item[item]
-        .transport_layer_address = blk2bstr(
-        eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
-            .transportLayerAddress.buf,
-        eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
-            .transportLayerAddress.size);
+
+    // When Magma AGW runs in a cloud and RAN at the edge (hence eNB is
+    // behind NAT), eNB signals its private IP address in ICS Response. By
+    // setting "enable_gtpu_private_ip_correction" true in mme.yml file,
+    // we can correct that private IP address with the public IP address of
+    // the eNB as its public IP address is observed during SCTP link is set up.
+    // We store this "control plane IP address" as part of the eNB context
+    // information. This feature can be safely used only when NAT uses the same
+    // public IP address for both the CP and UP communication to/from the eNB,
+    // which typically is the situation.
+    enb_description_t* enb_association = s1ap_state_get_enb(state, assoc_id);
+    if (mme_config.enable_gtpu_private_ip_correction) {
+      OAILOG_INFO(
+          LOG_S1AP,
+          "Overwriting eNB GTP-U IP ADDRESS with SCTP eNB IP address");
+      MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+          .e_rab_setup_list.item[item]
+          .transport_layer_address = blk2bstr(
+          enb_association->ran_cp_ipaddr, enb_association->ran_cp_ipaddr_sz);
+    } else {
+      // Print a warning message if CP and UP plane eNB IPs are different
+      if (memcmp(
+              enb_association->ran_cp_ipaddr,
+              eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
+                  .transportLayerAddress.buf,
+              enb_association->ran_cp_ipaddr_sz)) {
+        OAILOG_WARNING(
+            LOG_S1AP,
+            "GTP-U eNB IP addr is different than SCTP eNB IP addr. "
+            "This can be due to eNB behind a NAT. Consider setting "
+            "enable_gtpu_private_ip_correction as true in mme.yml file.");
+      }
+      MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+          .e_rab_setup_list.item[item]
+          .transport_layer_address = blk2bstr(
+          eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
+              .transportLayerAddress.buf,
+          eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
+              .transportLayerAddress.size);
+    }
   }
 
   // Failed bearers
@@ -2259,6 +2292,15 @@ int s1ap_handle_new_association(
   enb_association->instreams  = (sctp_stream_id_t) sctp_new_peer_p->instreams;
   enb_association->outstreams = (sctp_stream_id_t) sctp_new_peer_p->outstreams;
   /*
+   * Fill in control plane IP address of RAN end point for this association
+   */
+  if (sctp_new_peer_p->ran_cp_ipaddr) {
+    memcpy(
+        enb_association->ran_cp_ipaddr, sctp_new_peer_p->ran_cp_ipaddr->data,
+        sctp_new_peer_p->ran_cp_ipaddr->slen);
+    enb_association->ran_cp_ipaddr_sz = sctp_new_peer_p->ran_cp_ipaddr->slen;
+  }
+  /*
    * initialize the next sctp stream to 1 as 0 is reserved for non
    * * * * ue associated signalling.
    */
@@ -3441,4 +3483,26 @@ int s1ap_mme_handle_erab_rel_response(
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+}
+
+int s1ap_mme_remove_stale_ue_context(
+    enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  MessageDef* message_p = NULL;
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_REMOVE_STALE_UE_CONTEXT);
+  if (!message_p) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "Failed to allocate memory for S1AP_REMOVE_STALE_UE_CONTEXT \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  S1AP_REMOVE_STALE_UE_CONTEXT(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
+  S1AP_REMOVE_STALE_UE_CONTEXT(message_p).enb_id         = enb_id;
+  OAILOG_INFO(
+      LOG_S1AP,
+      "sent S1AP_REMOVE_STALE_UE_CONTEXT for enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+      "\n",
+      enb_ue_s1ap_id);
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }

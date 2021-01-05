@@ -94,7 +94,7 @@ MAGMA_DEPS=(
     "lighttpd >= 1.4.45"
     "libxslt1.1"
     "nghttp2-proxy >= 1.18.1"
-    "python3-protobuf >= 3.0.0"
+    "python3-protobuf >= 3.14.0"
     "redis-server >= 3.2.0"
     "sudo"
     "dnsmasq >= 2.72"
@@ -117,6 +117,7 @@ MAGMA_DEPS=(
     "tshark" # required for call tracing
     "libtins-dev" # required for Connection tracker
     "libml-dev" # required for Connection tracker
+    "getenvoy-envoy" # for envoy dep
     )
 
 # OAI runtime dependencies
@@ -223,6 +224,10 @@ make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
 make build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
 
+# Build Magma Envoy Controller service
+cd "${MAGMA_ROOT}/feg/gateway"
+make install_envoy_controller
+
 # Next, gather up the python files and put them into a build path.
 #
 # Note: Debian-based distributions install packages by default into a
@@ -323,6 +328,7 @@ ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
 ${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
+${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
 $(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
 $(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
@@ -330,9 +336,10 @@ $(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@mag
 $(glob_files "${SERVICE_DIR}/magma@mme.service" /etc/systemd/system/magma@mme.service) \
 $(glob_files "${SERVICE_DIR}/magma@sessiond.service" /etc/systemd/system/magma@sessiond.service) \
 $(glob_files "${SERVICE_DIR}/magma@connectiond.service" /etc/systemd/system/magma@connectiond.service) \
-$(glob_files "${SERVICE_DIR}/magma@connectiond.service" /etc/systemd/system/magma@connectiond.service) \
 $(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
 $(glob_files "${SERVICE_DIR}/magma@pipelined.service" /etc/systemd/system/magma@pipelined.service) \
+$(glob_files "${SERVICE_DIR}/magma_dp@envoy.service" /etc/systemd/system/magma_dp@envoy.service) \
+$(glob_files "${SERVICE_DIR}/magma@envoy_controller.service" /etc/systemd/system/magma@envoy_controller.service) \
 $(glob_files "${SERVICE_DIR}/magma@redirectd.service" /etc/systemd/system/magma@redirectd.service) \
 $(glob_files "${SERVICE_DIR}/magma@dnsd.service" /etc/systemd/system/magma@dnsd.service) \
 $(glob_files "${SERVICE_DIR}/magma@lighttpd.service" /etc/systemd/system/magma@lighttpd.service) \

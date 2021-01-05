@@ -11,7 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package analytics provides the analytics service mesh service.
+// Package analytics provides the analytics service.
+// Analytics service primarily aggregates all the metrics reported by various
+// reporting services (lte/cwf/orchestrator) based on a user configurable
+// periodic interval and exports it to the user-configured exporter.
 package analytics
 
 const (

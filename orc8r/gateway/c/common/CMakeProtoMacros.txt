@@ -35,7 +35,7 @@ macro(generate_prometheus_proto PROTO_SRCS PROTO_HDRS OUT_DIR)
     OUTPUT "${OUT_DIR}/metrics.pb.h"
            "${OUT_DIR}/metrics.pb.cc"
     COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-    ARGS --proto_path=${PROMETHEUS_PATH}
+    ARGS -I ${PROMETHEUS_PATH}
     --cpp_out=${OUT_DIR} ${PROMETHEUS_PATH}/metrics.proto
     DEPENDS ${PROMETHEUS_PATH}/metrics.proto ${PROTOBUF_PROTOC_EXECUTABLE}
     COMMENT "Running C++ protobuf compiler on ${PROMETHEUS_PATH}/metrics.proto"
@@ -68,7 +68,7 @@ macro(generate_cpp_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_DIR)
       OUTPUT "${OUT_DIR}/${PROTO_NAME}.pb.h"
              "${OUT_DIR}/${PROTO_NAME}.pb.cc"
       COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-      ARGS -I ${PROMETHEUS_PATH} -I ${MAGMA_ROOT} --proto_path=${MAGMA_ROOT}
+      ARGS -I ${PROMETHEUS_PATH} -I ${MAGMA_ROOT} -I ${MAGMA_ROOT}
       --cpp_out=${CMAKE_CURRENT_BINARY_DIR} ${IN_DIR}/${PROTO_NAME}.proto
       DEPENDS ${IN_DIR}/${PROTO_NAME}.proto ${PROTOBUF_PROTOC_EXECUTABLE}
       COMMENT "Running C++ protobuf compiler on ${IN_DIR}/${PROTO_NAME}.proto"
@@ -85,7 +85,7 @@ macro(generate_cwf_grpc_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_
       OUTPUT "${OUT_DIR}/${PROTO_NAME}.grpc.pb.cc"
            "${OUT_DIR}/${PROTO_NAME}.grpc.pb.h"
       COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-      ARGS -I ${CWF_PROTO_DIR} --proto_path=${IN_DIR}
+      ARGS -I ${CWF_PROTO_DIR} -I ${IN_DIR}
           --grpc_out=${OUT_DIR}
           --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN_PATH}/grpc_cpp_plugin
           ${IN_DIR}/${PROTO_NAME}.proto
@@ -104,7 +104,7 @@ macro(generate_grpc_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_DIR)
       OUTPUT "${OUT_DIR}/${PROTO_NAME}.grpc.pb.cc"
            "${OUT_DIR}/${PROTO_NAME}.grpc.pb.h"
       COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-      ARGS -I ${PROMETHEUS_PATH} -I ${MAGMA_ROOT} --proto_path=${IN_DIR}
+      ARGS -I ${PROMETHEUS_PATH} -I ${MAGMA_ROOT} -I ${IN_DIR}
           --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
           --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN_PATH}/grpc_cpp_plugin
           ${IN_DIR}/${PROTO_NAME}.proto

@@ -41,6 +41,7 @@ func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMoni
 	ccr.RATType = GetRATType(update.RatType)
 	ccr.IPCANType = GetIPCANType(update.RatType)
 	ccr.EventTrigger = EventTrigger(update.EventTrigger)
+	ccr.ChargingCharacteristics = update.ChargingCharacteristics
 	return ccr
 }
 

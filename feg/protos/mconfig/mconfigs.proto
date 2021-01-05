@@ -56,8 +56,13 @@ message S6aConfig {
 }
 
 message VirtualApnRule {
+    // apn_filter is a Regex to match APN values
     string apn_filter = 1;
+    // apn_overwrite is the new APN to overwrite with when filters match
     string apn_overwrite = 2;
+    // charging_characteristics_filter is a Regex to match
+    // ChargingCharacteristics values
+    string charging_characteristics_filter = 3;
 }
 
 message GxConfig {

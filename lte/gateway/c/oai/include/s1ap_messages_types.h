@@ -78,6 +78,8 @@
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_ack
 #define S1AP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                               \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_failure
+#define S1AP_REMOVE_STALE_UE_CONTEXT(mSGpTR)                                   \
+  (mSGpTR)->ittiMsg.s1ap_remove_stale_ue_context
 
 // NOT a ITTI message
 typedef struct s1ap_initial_ue_message_s {
@@ -217,6 +219,11 @@ typedef struct itti_s1ap_ue_context_release_complete_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
 } itti_s1ap_ue_context_release_complete_t;
+
+typedef struct itti_s1ap_remove_stale_ue_context_s {
+  uint32_t enb_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id;
+} itti_s1ap_remove_stale_ue_context_t;
 
 typedef enum s1ap_csfb_indicator_e {
   CSFB_REQUIRED,

@@ -315,6 +315,10 @@ void mme_app_handle_modify_bearer_rsp(
 void mme_app_get_user_location_information(
     Uli_t* uli_t_p, const ue_mm_context_t* ue_context_p);
 
+void mme_app_remove_stale_ue_context(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_remove_stale_ue_context_t* s1ap_remove_stale_ue_context);
+
 #define ATTACH_REQ (1 << 0)
 #define TAU_REQUEST (1 << 1)
 #define INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00

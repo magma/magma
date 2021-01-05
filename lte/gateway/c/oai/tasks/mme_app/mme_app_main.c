@@ -422,6 +422,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &SGSAP_MM_INFORMATION_REQ(received_message_p));
     } break;
 
+    case S1AP_REMOVE_STALE_UE_CONTEXT: {
+      mme_app_remove_stale_ue_context(
+          mme_app_desc_p, &S1AP_REMOVE_STALE_UE_CONTEXT(received_message_p));
+    } break;
+
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
       zframe_destroy(&msg_frame);

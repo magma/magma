@@ -49,8 +49,8 @@ type MagmaSwaggerConfig struct {
 	Definitions map[string]interface{}
 }
 
-func (msc MagmaSwaggerConfig) ToSwaggerConfig() SwaggerConfig {
-	ret := SwaggerConfig{}
+func (msc MagmaSwaggerConfig) ToSwaggerConfig() SwaggerSpec {
+	ret := SwaggerSpec{}
 	ret.Swagger = msc.Swagger
 	ret.Info = msc.Info
 	ret.BasePath = msc.BasePath
@@ -65,8 +65,8 @@ func (msc MagmaSwaggerConfig) ToSwaggerConfig() SwaggerConfig {
 	return ret
 }
 
-// SwaggerConfig is the Go struct version of a OAI/Swagger 2.0 YAML spec file.
-type SwaggerConfig struct {
+// SwaggerSpec is the Go struct version of a OAI/Swagger 2.0 YAML spec file.
+type SwaggerSpec struct {
 	Swagger string
 	Info    struct {
 		Title       string

@@ -27,6 +27,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     stop_ryu_app_thread,
     create_service_manager,
     assert_bridge_snapshot_match,
+    fake_inout_setup,
 )
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
@@ -107,6 +108,7 @@ class LIMirrorTest(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
     def testFlowSnapshotMatch(self):
+        fake_inout_setup(self.inout_controller)
         hub.sleep(3)
         assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
 
