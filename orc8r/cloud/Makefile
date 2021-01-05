@@ -1,18 +1,28 @@
 SHELL := /bin/bash
 
-ifndef MAGMA_MODULES
-$(error MAGMA_MODULES is undefined)
-endif
-
-##########################################
-## Some Useful Directory/File Variables ##
-##########################################
-# Allow MAGMA_ROOT and PLUGIN_DIR to be set from environment to support travis
+################
+## Essentials ##
+################
 ifndef MAGMA_ROOT
 MAGMA_ROOT := /home/$(USER)/magma
+$(warning MAGMA_ROOT is undefined, using default: $(MAGMA_ROOT))
 endif
 export MAGMA_ROOT
 
+ifndef MAGMA_MODULES
+MAGMA_MODULES := \
+	$(MAGMA_ROOT)/orc8r \
+	$(MAGMA_ROOT)/lte \
+	$(MAGMA_ROOT)/feg \
+	$(MAGMA_ROOT)/cwf \
+	$(MAGMA_ROOT)/wifi \
+	$(MAGMA_ROOT)/fbinternal
+$(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
+endif
+
+################################
+## Generally useful variables ##
+################################
 SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
@@ -88,7 +98,7 @@ fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
 
-gen: tools $(GEN_LIST)
+gen: tools tidy $(GEN_LIST)
 $(GEN_LIST): %_gen:
 	make -C $*/cloud/go gen
 

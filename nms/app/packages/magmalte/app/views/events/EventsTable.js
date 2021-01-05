@@ -29,32 +29,16 @@ import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
 
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useRef, useState} from 'react';
+import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
-  header: {
-    margin: '10px',
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
-  buttons: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    flexDirection: 'row',
-  },
-  paper: {
-    margin: theme.spacing(3),
-  },
-  importButton: {
-    marginRight: '8px',
-  },
   eventDetailTable: {
     // maxWidth: <value>, //TODO: This should be set to the parent table size
     width: '100%',
@@ -91,7 +75,6 @@ function getEventDescription(event) {
   }
 }
 
-const streamNameMagmad = 'magmad';
 const streamNameSessiond = 'sessiond';
 
 export type magmaEventStream = 'NETWORK' | 'GATEWAY' | 'SUBSCRIBER';
@@ -100,7 +83,7 @@ type EventRowType = {
   eventType: string,
   eventDescription: string,
   value: {},
-  hardwareID: string,
+  hardwareId: string,
   tag: string,
 };
 
@@ -111,7 +94,7 @@ type EventDescriptionProps = {
 function ExpandEvent(props: EventDescriptionProps) {
   const classes = useStyles();
   const eventDetails = {
-    hardware_id: props.rowData.hardwareID,
+    hardware_id: props.rowData.hardwareId,
     tag: props.rowData.tag,
   };
 
@@ -137,51 +120,60 @@ function ExpandEvent(props: EventDescriptionProps) {
   );
 }
 
-function handleEventQuery(networkId, streams, tags, q, from, start, end) {
+function buildEventQueryFromFilters(q: ActionQuery) {
+  const queryFilters = {};
+  if (q.filters !== undefined) {
+    q.filters.forEach((filter, _) => {
+      switch (filter.column.field) {
+        case 'streamName':
+          queryFilters['streams'] = filter.value;
+          break;
+        case 'eventType':
+          queryFilters['events'] = filter.value;
+          break;
+        case 'tag':
+          queryFilters['tags'] = filter.value;
+          break;
+      }
+    });
+  }
+  return queryFilters;
+}
+
+function handleEventQuery(
+  networkId,
+  hardwareId,
+  streams,
+  tags,
+  q,
+  from,
+  start,
+  end,
+) {
+  const filters = buildEventQueryFromFilters(q);
   return new Promise(async (resolve, reject) => {
     try {
-      let eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
+      const eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
         networkId: networkId,
         streams: streams,
+        hwIds: hardwareId,
         tags: tags,
-        events: q.search !== '' ? q.search : undefined,
         from,
         start: start.toISOString(),
         end: end.toISOString(),
+        ...filters,
       });
-      let eventResp = [];
-      if (eventCount === 0 && q.search !== '' && tags === undefined) {
-        eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
-          networkId: networkId,
-          streams: streams,
-          tags: q.search,
-          from: (q.page * q.pageSize).toString(),
-          size: q.pageSize.toString(),
-          start: start.toISOString(),
-          end: end.toISOString(),
-        });
-
-        eventResp = await MagmaV1API.getEventsByNetworkId({
-          networkId: networkId,
-          streams: streams,
-          tags: q.search,
-          from: (q.page * q.pageSize).toString(),
-          size: q.pageSize.toString(),
-          start: start.toISOString(),
-          end: end.toISOString(),
-        });
-      } else {
-        eventResp = await MagmaV1API.getEventsByNetworkId({
-          networkId: networkId,
-          streams: streams,
-          tags: tags,
-          events: q.search !== '' ? q.search : undefined,
-          from: (q.page * q.pageSize).toString(),
-          size: q.pageSize.toString(),
-          start: start.toISOString(),
-          end: end.toISOString(),
-        });
-      }
+      const eventResp = await MagmaV1API.getEventsByNetworkId({
+        networkId: networkId,
+        hwIds: hardwareId,
+        streams: streams,
+        tags: tags,
+        from: (q.page * q.pageSize).toString(),
+        size: q.pageSize.toString(),
+        start: start.toISOString(),
+        end: end.toISOString(),
+        ...filters,
+      });
       const page =
         eventCount < q.page * q.pageSize ? eventCount / q.pageSize : q.page;
 
@@ -190,10 +182,11 @@ function handleEventQuery(networkId, streams, tags, q, from, start, end) {
       const data = unfiltered.map(event => {
         return {
           ts: event.timestamp,
+          streamName: event.stream_name,
           eventType: event.event_type,
           eventDescription: getEventDescription(event),
           value: event.value,
-          hardwareID: event.hardware_id,
+          hardwareId: event.hardware_id,
           tag: event.tag,
         };
       });
@@ -211,28 +204,28 @@ function handleEventQuery(networkId, streams, tags, q, from, start, end) {
 type EventTableProps = {
   eventStream: magmaEventStream,
   tags?: string,
+  hardwareId?: string,
   sz: 'sm' | 'md' | 'lg',
   inStartDate?: moment,
   inEndDate?: moment,
+  isAutoRefreshing?: boolean,
 };
 
 export default function EventsTable(props: EventTableProps) {
-  const {eventStream, tags, sz} = props;
+  const {hardwareId, eventStream, tags, sz} = props;
   const classes = useStyles();
-
   const [eventCount, setEventCount] = useState(0);
   const tableRef = useRef(null);
   const {match} = useRouter();
   const networkId = nullthrows(match.params.networkId);
-  const streams =
-    eventStream === 'SUBSCRIBER'
-      ? streamNameSessiond
-      : streamNameMagmad + ',' + streamNameSessiond;
+  const streams = eventStream === 'SUBSCRIBER' ? streamNameSessiond : '';
 
-  const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(
+    props.isAutoRefreshing ?? false,
+  );
   const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
     isAutoRefreshing,
-    10000,
+    30000,
     () => {
       tableRef.current && tableRef.current.onQueryChange();
     },
@@ -257,204 +250,148 @@ export default function EventsTable(props: EventTableProps) {
     }
   }, [props.inStartDate, props.inEndDate]);
 
-  function DateFilter() {
-    return (
-      <>
-        <Grid container justify="flex-end" alignItems="center" spacing={1}>
-          <Grid item>
-            <Text variant="body3" className={classes.dateTimeText}>
-              Filter By Date
-            </Text>
-          </Grid>
-          <Grid item>
-            <DateTimePicker
-              autoOk
-              variant="inline"
-              inputVariant="outlined"
-              maxDate={endDate}
-              disableFuture
-              value={startDate}
-              onChange={val => {
-                setStartDate(val);
-                setIsAutoRefreshing(false);
-              }}
-            />
-          </Grid>
-          <Grid item>
-            <Text variant="body3" className={classes.dateTimeText}>
-              To
-            </Text>
-          </Grid>
-          <Grid item>
-            <DateTimePicker
-              autoOk
-              variant="inline"
-              inputVariant="outlined"
-              disableFuture
-              value={endDate}
-              onChange={val => {
-                setEndDate(val);
-                setIsAutoRefreshing(false);
-              }}
-            />
-          </Grid>
-        </Grid>
-        <Grid container justify="flex-end" alignItems="center" spacing={1}>
-          <Grid item>
-            <AutorefreshCheckbox
-              autorefreshEnabled={isAutoRefreshing}
-              onToggle={() => setIsAutoRefreshing(current => !current)}
-            />
-          </Grid>
-        </Grid>
-      </>
-    );
+  let actionTableOptions = {
+    actionsColumnIndex: -1,
+    pageSize: 5,
+    pageSizeOptions: [10, 20],
+    toolbar: false,
+  };
+
+  let actionColumns = [
+    {
+      title: 'Timestamp',
+      field: 'ts',
+      type: 'datetime',
+      width: 200,
+      filtering: false,
+    },
+    {title: 'Stream Name', field: 'streamName', width: 200},
+    {title: 'Event Type', field: 'eventType', width: 200},
+  ];
+
+  if (sz !== 'sm') {
+    actionColumns = [
+      ...actionColumns,
+      {title: 'Tag', field: 'tag'},
+      {title: 'Event Description', field: 'eventDescription', filtering: false},
+    ];
+    actionTableOptions = {
+      ...actionTableOptions,
+      pageSize: 10,
+      filtering: true,
+    };
   }
 
+  const actionTable = (
+    <ActionTable
+      tableRef={tableRef}
+      data={(query: ActionQuery) => {
+        return handleEventQuery(
+          networkId,
+          hardwareId,
+          streams,
+          tags,
+          query,
+          0,
+          startDate,
+          endDate,
+        );
+      }}
+      columns={actionColumns}
+      options={actionTableOptions}
+      detailPanel={[
+        {
+          icon: ExpandMore,
+          openIcon: ExpandLess,
+          render: rowData => {
+            return <ExpandEvent rowData={rowData} />;
+          },
+        },
+      ]}
+    />
+  );
+
+  if (sz === 'sm' || sz === 'md') {
+    return actionTable;
+  }
   return (
-    <>
-      {sz === 'sm' && (
-        <ActionTable
-          tableRef={tableRef}
-          data={(query: ActionQuery) => {
-            return handleEventQuery(
-              networkId,
-              streams,
-              tags,
-              query,
-              0,
-              startDate,
-              endDate,
-            );
-          }}
-          columns={[
-            {title: 'Timestamp', field: 'ts', type: 'datetime', width: 200},
-            {title: 'EventType', field: 'eventType'},
-          ]}
-          options={{
-            actionsColumnIndex: -1,
-            pageSizeOptions: [10],
-            toolbar: false,
-          }}
-          detailPanel={[
-            {
-              icon: ExpandMore,
-              openIcon: ExpandLess,
-              render: rowData => {
-                return <ExpandEvent rowData={rowData} />;
-              },
-            },
-          ]}
-        />
-      )}
-      {sz === 'md' && (
-        <ActionTable
-          tableRef={tableRef}
-          localization={{
-            toolbar: {
-              searchPlaceholder:
-                tags !== undefined ? 'Event Types' : 'Event Types or Tags',
-            },
-          }}
-          data={(query: ActionQuery) => {
-            return handleEventQuery(
-              networkId,
-              streams,
-              tags,
-              query,
-              0,
-              props.inStartDate ?? startDate,
-              props.inEndDate ?? endDate,
-            );
-          }}
-          columns={[
-            {title: 'Timestamp', field: 'ts', type: 'datetime', width: 200},
-            {title: 'Event Type', field: 'eventType', width: 200},
-            {title: 'Event Description', field: 'eventDescription'},
-          ]}
-          options={{
-            actionsColumnIndex: -1,
-            pageSize: 10,
-            pageSizeOptions: [10, 20],
-          }}
-          detailPanel={[
-            {
-              icon: ExpandMore,
-              openIcon: ExpandLess,
-              render: rowData => {
-                return <ExpandEvent rowData={rowData} />;
-              },
-            },
-          ]}
-        />
-      )}
-      {sz === 'lg' && (
-        <div className={classes.dashboardRoot}>
-          <Grid container spacing={4}>
-            <Grid item xs={12}>
-              <CardTitleRow
-                icon={MyLocationIcon}
-                label={`Events (${eventCount})`}
-                filter={DateFilter}
-              />
-              <EventChart
-                {...startEnd}
-                setEventCount={setEventCount}
-                streams={streams}
-                tags={tags ?? ''}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <ActionTable
-                tableRef={tableRef}
-                localization={{
-                  toolbar: {
-                    searchPlaceholder:
-                      tags !== undefined
-                        ? 'Event Types'
-                        : 'Event Types or Tags',
-                  },
-                }}
-                data={(query: ActionQuery) => {
-                  return handleEventQuery(
-                    networkId,
-                    streams,
-                    tags,
-                    query,
-                    0,
-                    startDate,
-                    endDate,
-                  );
-                }}
-                columns={[
-                  {
-                    title: 'Timestamp',
-                    field: 'ts',
-                    type: 'datetime',
-                    width: 200,
-                  },
-                  {title: 'Event Type', field: 'eventType', width: 200},
-                  {title: 'Event Description', field: 'eventDescription'},
-                ]}
-                options={{
-                  actionsColumnIndex: -1,
-                  pageSize: 10,
-                  pageSizeOptions: [10, 20],
-                }}
-                detailPanel={[
-                  {
-                    icon: ExpandMore,
-                    openIcon: ExpandLess,
-                    render: rowData => {
-                      return <ExpandEvent rowData={rowData} />;
-                    },
-                  },
-                ]}
-              />
-            </Grid>
-          </Grid>
-        </div>
-      )}
-    </>
+    <div className={classes.dashboardRoot}>
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <CardTitleRow
+            icon={MyLocationIcon}
+            label={`Events (${eventCount})`}
+            filter={() => (
+              <>
+                <Grid
+                  container
+                  justify="flex-end"
+                  alignItems="center"
+                  spacing={1}>
+                  <Grid item>
+                    <Text variant="body3" className={classes.dateTimeText}>
+                      Filter By Date
+                    </Text>
+                  </Grid>
+                  <Grid item>
+                    <DateTimePicker
+                      autoOk
+                      variant="inline"
+                      inputVariant="outlined"
+                      maxDate={endDate}
+                      disableFuture
+                      value={startDate}
+                      onChange={val => {
+                        setStartDate(val);
+                        setIsAutoRefreshing(false);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Text variant="body3" className={classes.dateTimeText}>
+                      To
+                    </Text>
+                  </Grid>
+                  <Grid item>
+                    <DateTimePicker
+                      autoOk
+                      variant="inline"
+                      inputVariant="outlined"
+                      disableFuture
+                      value={endDate}
+                      onChange={val => {
+                        setEndDate(val);
+                        setIsAutoRefreshing(false);
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+                <Grid
+                  container
+                  justify="flex-end"
+                  alignItems="center"
+                  spacing={1}>
+                  <Grid item>
+                    <AutorefreshCheckbox
+                      autorefreshEnabled={isAutoRefreshing}
+                      onToggle={() => setIsAutoRefreshing(current => !current)}
+                    />
+                  </Grid>
+                </Grid>
+              </>
+            )}
+          />
+          <EventChart
+            {...startEnd}
+            setEventCount={setEventCount}
+            streams={streams}
+            tags={tags ?? ''}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          {actionTable}
+        </Grid>
+      </Grid>
+    </div>
   );
 }

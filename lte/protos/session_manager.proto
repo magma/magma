@@ -51,6 +51,11 @@ message LocalCreateSessionRequest {
   RatSpecificContext rat_specific_context = 17;
 }
 
+message Teids{
+  uint32 enb_teid = 3;
+  uint32 agw_teid = 4;
+}
+
 message CommonSessionContext {
   SubscriberID sid = 1;
   string ue_ipv4 = 3;
@@ -61,6 +66,7 @@ message CommonSessionContext {
   SMSessionFSMState sm_session_state = 7;
   uint32 sm_session_version = 9;
   string ue_ipv6 = 10;
+  Teids teids = 11;
 }
 
 message RatSpecificContext {

@@ -2,7 +2,7 @@ FROM nginx:1.17
 
 RUN apt-get update && \
   apt-get install -y python3-pip daemontools
-RUN pip3 install PyYAML jinja2
+RUN pip3 install --no-cache-dir PyYAML jinja2
 
 RUN mkdir -p /var/opt/magma/envdir
 COPY configs /etc/magma/configs

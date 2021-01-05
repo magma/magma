@@ -90,6 +90,27 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         pipelined_pb2_grpc.add_PipelinedServicer_to_server(self, server)
 
     # --------------------------
+    # General setup rpc
+    # --------------------------
+
+    def SetupDefaultControllers(self, request, _) -> SetupFlowsResult:
+        """
+        Setup default controllers, used on pipelined restarts
+        """
+        self._log_grpc_payload(request)
+        ret = self._inout_app.check_setup_request_epoch(request.epoch)
+        if ret:
+            return SetupFlowsResult(result=ret)
+
+        fut = Future()
+        self._loop.call_soon_threadsafe(self._setup_default_controllers, fut)
+        return fut.result()
+
+    def _setup_default_controllers(self, fut: 'Future(SetupFlowsResult)'):
+        res = self._inout_app.handle_restart(None)
+        fut.set_result(res)
+
+    # --------------------------
     # Enforcement App
     # --------------------------
 
@@ -98,8 +119,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         Setup flows for all subscribers, used on pipelined restarts
         """
         self._log_grpc_payload(request)
-        # Setup inout here as well
-        self._inout_app.handle_restart()
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
