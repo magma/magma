@@ -102,8 +102,10 @@ type EnodebRowType = {
   name: string,
   id: string,
   sessionName: string,
+  mmeConnected: string,
   health: string,
   reportedTime: Date,
+  numSubscribers: number,
 };
 
 function EnodebTableRaw(props: WithAlert) {
@@ -115,12 +117,17 @@ function EnodebTableRaw(props: WithAlert) {
   const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
     (serialNum: string) => {
       const enbInf = enbInfo[serialNum];
+      const isEnbManaged = enbInf.enb?.enodeb_config?.config_type === 'MANAGED';
       return {
         name: enbInf.enb.name,
         id: serialNum,
-        sessionName: enbInf.enb_state?.fsm_state ?? 'not available',
-        ipAddress: enbInf.enb_state?.ip_address ?? 'not available',
-        health: isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
+        numSubscribers: enbInf.enb_state?.ues_connected ?? 0,
+        sessionName: enbInf.enb_state?.fsm_state ?? '-',
+        ipAddress: enbInf.enb_state?.ip_address ?? '-',
+        mmeConnected: enbInf.enb_state?.mme_connected
+          ? 'Connected'
+          : 'Disconnected',
+        health: isEnbManaged ? (isEnodebHealthy(enbInf) ? 'Good' : 'Bad') : '-',
         reportedTime: new Date(enbInf.enb_state.time_reported ?? 0),
       };
     },
@@ -147,6 +154,8 @@ function EnodebTableRaw(props: WithAlert) {
         },
         {title: 'Session State Name', field: 'sessionName'},
         {title: 'IP Address', field: 'ipAddress'},
+        {title: 'Subscribers', field: 'numSubscribers', width: 100},
+        {title: 'MME', field: 'mmeConnected', width: 100},
         {title: 'Health', field: 'health', width: 100},
         {title: 'Reported Time', field: 'reportedTime', type: 'datetime'},
       ]}

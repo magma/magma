@@ -190,8 +190,8 @@ function Overview() {
             title={CHART_TITLE}
             unit={'Throughput(mb/s)'}
             queries={[
-              `rate(gtp_port_user_plane_dl_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000`,
-              `rate(gtp_port_user_plane_ul_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000`,
+              `sum(rate(gtp_port_user_plane_dl_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000)`,
+              `sum(rate(gtp_port_user_plane_ul_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000)`,
             ]}
             legendLabels={['Download', 'Upload']}
           />
