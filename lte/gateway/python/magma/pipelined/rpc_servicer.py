@@ -382,6 +382,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
         shard_id: int,
+        ng_session_id: int=0,
     ) -> ActivateFlowsResult:
         if not self._service_manager.is_app_enabled(
                 EnforcementStatsController.APP_NAME,
@@ -389,7 +390,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies, shard_id,
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies, shard_id, ng_session_id,
         )
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
@@ -402,12 +403,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
         shard_id: int,
+        ng_session_id: int=0,
     ) -> ActivateFlowsResult:
         # TODO: this will crash pipelined if called with both static rules
         # and dynamic rules at the same time
         enforcement_res = self._enforcer_app.activate_rules(
             imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
-            shard_id,
+            shard_id, ng_session_id,
         )
         # TODO ?? Should the enforcement failure be reported per imsi session
         _report_enforcement_failures(enforcement_res, imsi)

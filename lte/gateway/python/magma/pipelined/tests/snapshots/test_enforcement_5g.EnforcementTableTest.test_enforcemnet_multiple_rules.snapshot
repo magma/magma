@@ -1,0 +1,3 @@
+ cookie=0x1, table=enforcement(main_table), n_packets=0, n_bytes=0, priority=3,ip,reg1=0x1,metadata=0x7594587a06d,nw_src=192.168.128.30 actions=note:b'rule1',set_field:0x1->reg2,set_field:0->reg4,set_field:0x64->reg11,resubmit(,enforcement_stats(main_table)),resubmit(,egress(main_table))
+ cookie=0x1, table=enforcement(main_table), n_packets=0, n_bytes=0, priority=3,ip,reg1=0x10,metadata=0x7594587a06d,nw_dst=192.168.128.30 actions=note:b'rule1',set_field:0x1->reg2,set_field:0->reg4,set_field:0x64->reg11,resubmit(,enforcement_stats(main_table)),resubmit(,egress(main_table))
+ cookie=0xfffffffffffffffe, table=enforcement(main_table), n_packets=0, n_bytes=0, priority=0 actions=resubmit(,enforcement_stats(main_table)),set_field:0->reg0,set_field:0->reg3

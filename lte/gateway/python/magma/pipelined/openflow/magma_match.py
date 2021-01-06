@@ -21,10 +21,10 @@ from magma.pipelined.openflow.registers import (
     RULE_NUM_REG,
     RULE_VERSION_REG,
     VLAN_TAG_REG,
+    NG_FLOW_ENABLE_REG,
     Direction,
     is_valid_direction,
 )
-
 
 class MagmaMatch(object):
     """
@@ -36,7 +36,8 @@ class MagmaMatch(object):
     def __init__(self, imsi: int = None, direction: Optional[Direction] = None,
                  rule_num: int = None, rule_version: int = None,
                  passthrough: int = None, vlan_tag: int = None,
-                 app_id: int = None, proxy_tag: int = None, **kwargs):
+                 app_id: int = None, proxy_tag: int = None,
+                 ng_session_id: int = None, **kwargs):
         self.imsi = imsi
         self.direction = direction
         self.rule_num = rule_num
@@ -45,6 +46,7 @@ class MagmaMatch(object):
         self.vlan_tag = vlan_tag
         self.app_id = app_id
         self.proxy_tag = proxy_tag
+        self.ng_session_id = ng_session_id
         self._match_kwargs = kwargs
         self._check_args()
 
@@ -74,6 +76,8 @@ class MagmaMatch(object):
             ryu_match[DPI_REG] = self.app_id
         if self.proxy_tag is not None:
             ryu_match[PROXY_TAG_REG] = self.proxy_tag
+        if self.ng_session_id is not None:
+            ryu_match[NG_FLOW_ENABLE_REG] = self.ng_session_id
         return ryu_match
 
     def _check_args(self):
