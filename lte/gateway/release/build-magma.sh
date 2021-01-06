@@ -115,6 +115,8 @@ MAGMA_DEPS=(
     "ntpdate" # required for eventd time synchronization
     "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
+    "libtins-dev" # required for Connection tracker
+    "libml-dev" # required for Connection tracker
     "getenvoy-envoy" # for envoy dep
     )
 
@@ -214,11 +216,13 @@ fi
 cd "${MAGMA_ROOT}/lte/gateway"
 OAI_BUILD="${C_BUILD}/oai"
 SESSIOND_BUILD="${C_BUILD}/session_manager"
+CONNECTIOND_BUILD="${C_BUILD}/connection_tracker"
 SCTPD_BUILD="${C_BUILD}/sctpd"
 
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
+make build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
 
 # Build Magma Envoy Controller service
 cd "${MAGMA_ROOT}/feg/gateway"
@@ -323,6 +327,7 @@ ${LTE_PY_DEPS} \
 ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
+${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
 ${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
 $(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
@@ -330,6 +335,7 @@ $(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/ma
 $(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
 $(glob_files "${SERVICE_DIR}/magma@mme.service" /etc/systemd/system/magma@mme.service) \
 $(glob_files "${SERVICE_DIR}/magma@sessiond.service" /etc/systemd/system/magma@sessiond.service) \
+$(glob_files "${SERVICE_DIR}/magma@connectiond.service" /etc/systemd/system/magma@connectiond.service) \
 $(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
 $(glob_files "${SERVICE_DIR}/magma@pipelined.service" /etc/systemd/system/magma@pipelined.service) \
 $(glob_files "${SERVICE_DIR}/magma_dp@envoy.service" /etc/systemd/system/magma_dp@envoy.service) \
@@ -340,7 +346,7 @@ $(glob_files "${SERVICE_DIR}/magma@lighttpd.service" /etc/systemd/system/magma@l
 $(glob_files "${SERVICE_DIR}/magma@redis.service" /etc/systemd/system/magma@redis.service) \
 $(glob_files "${SERVICE_DIR}/magma@td-agent-bit.service" /etc/systemd/system/magma@td-agent-bit.service) \
 ${CERT_FILE}=/var/opt/magma/certs/rootCA.pem \
-$(glob_files "${MAGMA_ROOT}/lte/gateway/configs/!(control_proxy.yml|pipelined.yml|sessiond.yml)" /etc/magma/) \
+$(glob_files "${MAGMA_ROOT}/lte/gateway/configs/!(control_proxy.yml|pipelined.yml|sessiond.yml|connectiond.yml)" /etc/magma/) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/pipelined.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/sessiond.yml_prod" /etc/magma/sessiond.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/templates/*" /etc/magma/templates/) \
