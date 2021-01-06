@@ -63,13 +63,13 @@ int sctp_itti_send_lower_layer_conf(
 //------------------------------------------------------------------------------
 int sctp_itti_send_new_association(
     sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
-    sctp_stream_id_t outstreams ,STOLEN_REF bstring* ran_cp_ipaddr) {
+    sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr) {
   MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_NEW_ASSOCIATION);
 
   if (ppid == S1AP) {
-    SCTP_NEW_ASSOCIATION(msg).assoc_id   = assoc_id;
-    SCTP_NEW_ASSOCIATION(msg).instreams  = instreams;
-    SCTP_NEW_ASSOCIATION(msg).outstreams = outstreams;
+    SCTP_NEW_ASSOCIATION(msg).assoc_id      = assoc_id;
+    SCTP_NEW_ASSOCIATION(msg).instreams     = instreams;
+    SCTP_NEW_ASSOCIATION(msg).outstreams    = outstreams;
     SCTP_NEW_ASSOCIATION(msg).ran_cp_ipaddr = *ran_cp_ipaddr;
     OAILOG_DEBUG(
         LOG_SCTP, "ppid match S1AP in sctp_itti_send_new_message_ind ");

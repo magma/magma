@@ -71,7 +71,7 @@ message SendUlRes {
 
 // NewAssocReq - request to notify MME of new eNB association
 message NewAssocReq {
-    uint32  ppid = 4;
+    uint32  ppid = 5;
     uint32 assoc_id = 1; // association ID of eNB
     uint32 instreams = 2; // number of instreams for eNB
     uint32 outstreams = 3; // number of outstreams for eNB
