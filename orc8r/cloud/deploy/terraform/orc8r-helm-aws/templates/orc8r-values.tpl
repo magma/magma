@@ -59,8 +59,8 @@ controller:
       host: ${orc8r_db_host}
       port: ${orc8r_db_port}
       user: ${orc8r_db_user}
-  service:
-    portEnd: 9121
+    service_registry:
+      mode: "k8s"
 
 metrics:
   imagePullSecrets:
