@@ -25,6 +25,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default.js';
 
+import {DynamicServices} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {
@@ -167,7 +168,7 @@ describe('<AddEditGatewayButton />', () => {
 
     // check if only first tab (config) is active
     expect(queryByTestId('configEdit')).not.toBeNull();
-    expect(queryByTestId('aggregationEdit')).toBeNull();
+    expect(queryByTestId('dynamicServicesEdit')).toBeNull();
     expect(queryByTestId('ranEdit')).toBeNull();
     expect(queryByTestId('epcEdit')).toBeNull();
 
@@ -249,7 +250,10 @@ describe('<AddEditGatewayButton />', () => {
           autoupgrade_poll_interval: 60,
           checkin_interval: 60,
           checkin_timeout: 30,
-          dynamic_services: ['eventd', 'td-agent-bit'],
+          dynamic_services: [
+            DynamicServices.EVENTD,
+            DynamicServices.TD_AGENT_BIT,
+          ],
         },
         status: {
           platform_info: {
@@ -276,7 +280,7 @@ describe('<AddEditGatewayButton />', () => {
 
     expect(queryByTestId('infoEdit')).toBeNull();
     expect(queryByTestId('epcEdit')).toBeNull();
-    expect(queryByTestId('aggregationEdit')).toBeNull();
+    expect(queryByTestId('dynamicServicesEdit')).toBeNull();
     expect(queryByTestId('ranEdit')).not.toBeNull();
 
     let pci = getByTestId('pci').firstChild;

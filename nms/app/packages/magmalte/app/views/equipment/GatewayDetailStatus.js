@@ -20,10 +20,10 @@ import DataGrid from '../../components/DataGrid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
+import isGatewayHealthy, {DynamicServices} from '../../components/GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import isGatewayHealthy from '../../components/GatewayUtils';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
@@ -54,11 +54,15 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
 
   const logAggregation =
     !!gwInfo.magmad.dynamic_services &&
-    gwInfo.magmad.dynamic_services.includes('td-agent-bit');
+    gwInfo.magmad.dynamic_services.includes(DynamicServices.TD_AGENT_BIT);
 
   const eventAggregation =
     !!gwInfo.magmad.dynamic_services &&
-    gwInfo.magmad.dynamic_services.includes('eventd');
+    gwInfo.magmad.dynamic_services.includes(DynamicServices.EVENTD);
+
+  const cpeMonitoring =
+    !!gwInfo.magmad.dynamic_services &&
+    gwInfo.magmad.dynamic_services.includes(DynamicServices.MONITORD);
 
   const isHealthy = isGatewayHealthy(gwInfo);
   const data: DataRows[] = [
@@ -77,6 +81,14 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
         value: checkInTime.toLocaleString(),
         statusCircle: false,
       },
+      {
+        category: 'CPU Usage',
+        value: cpuPercent?.data?.result?.[0]?.values?.[0]?.[1] ?? 'Unknown',
+        unit:
+          cpuPercent?.data?.result?.[0]?.values?.[0]?.[1] ?? false ? '%' : '',
+        statusCircle: false,
+        tooltip: 'Current Gateway CPU %',
+      },
     ],
     [
       {
@@ -92,12 +104,10 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
         status: logAggregation,
       },
       {
-        category: 'CPU Usage',
-        value: cpuPercent?.data?.result?.[0]?.values?.[0]?.[1] ?? 'Unknown',
-        unit:
-          cpuPercent?.data?.result?.[0]?.values?.[0]?.[1] ?? false ? '%' : '',
-        statusCircle: false,
-        tooltip: 'Current Gateway CPU %',
+        category: 'CPE Monitoring',
+        value: cpeMonitoring ? 'Enabled' : 'Disabled',
+        statusCircle: true,
+        status: cpeMonitoring,
       },
     ],
   ];

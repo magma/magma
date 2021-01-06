@@ -30,6 +30,7 @@ import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {DynamicServices} from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
@@ -118,7 +119,7 @@ export default function GatewayConfig() {
     );
   }
 
-  function editAggregations() {
+  function editDynamicServices() {
     return (
       <AddEditGatewayButton
         title={'Edit'}
@@ -174,10 +175,10 @@ export default function GatewayConfig() {
                 </Grid>
                 <Grid item xs={12}>
                   <CardTitleRow
-                    label="Aggregations"
-                    filter={editAggregations}
+                    label="Dynamic Services"
+                    filter={editDynamicServices}
                   />
-                  <GatewayAggregation gwInfo={gwInfo} />
+                  <GatewayDynamicServices gwInfo={gwInfo} />
                 </Grid>
               </Grid>
             </Grid>
@@ -271,29 +272,40 @@ function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
   return <DataGrid data={data} />;
 }
 
-function GatewayAggregation({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayDynamicServices({gwInfo}: {gwInfo: lte_gateway}) {
   const logAggregation = !!gwInfo.magmad.dynamic_services?.includes(
-    'td-agent-bit',
+    DynamicServices.TD_AGENT_BIT,
   );
   const eventAggregation = !!gwInfo.magmad?.dynamic_services?.includes(
-    'eventd',
+    DynamicServices.EVENTD,
   );
-  const aggregations: DataRows[] = [
+  const cpeMonitoring = !!gwInfo.magmad?.dynamic_services?.includes(
+    DynamicServices.MONITORD,
+  );
+  const dynamicServices: DataRows[] = [
     [
       {
-        category: 'Aggregation',
+        category: 'Log Aggregation',
         value: logAggregation ? 'Enabled' : 'Disabled',
-        statusCircle: false,
+        statusCircle: true,
+        status: logAggregation,
       },
       {
-        category: 'Aggregation',
+        category: 'Event Aggregation',
         value: eventAggregation ? 'Enabled' : 'Disabled',
-        statusCircle: false,
+        statusCircle: true,
+        status: eventAggregation,
+      },
+      {
+        category: 'CPE Monitoring',
+        value: cpeMonitoring ? 'Enabled' : 'Disabled',
+        statusCircle: true,
+        status: cpeMonitoring,
       },
     ],
   ];
 
-  return <DataGrid data={aggregations} />;
+  return <DataGrid data={dynamicServices} />;
 }
 
 function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
