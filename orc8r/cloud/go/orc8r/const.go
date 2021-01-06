@@ -28,6 +28,8 @@ const (
 	UpgradeTierEntityType           = "upgrade_tier"
 	UpgradeReleaseChannelEntityType = "upgrade_release_channel"
 
+	CallTraceEntityType = "call_trace"
+
 	// ServiceHostnameEnvVar is the name of an environment variable which is
 	// required to hold the public IP of the service.
 	// In dev, this will generally be localhost.
