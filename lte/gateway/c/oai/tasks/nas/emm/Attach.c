@@ -425,14 +425,21 @@ int emm_proc_attach_request(
           increment_counter(
               "duplicate_attach_request", 1, 1, "action",
               "ignored_duplicate_req_retx_attach_accept");
-          // Clean up new UE context that was created to handle new attach
-          // request
-          OAILOG_DEBUG(
-              LOG_NAS_EMM,
-              "EMM-PROC - Sending Detach Request message to MME APP"
-              "module for ue_id =" MME_UE_S1AP_ID_FMT "\n",
-              ue_id);
-          mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
+          if (imsi_ue_mm_ctx->mme_ue_s1ap_id != ue_mm_context->mme_ue_s1ap_id) {
+            /* Re-transmitted attach request will be sent in UL nas message
+             * and it will have same mme_ue_s1ap_id, so there will not be new
+             * contexts created,
+             * If Attach Request comes in initial ue message, new
+             * mme_ue_s1ap_id and UE contexts will be created,
+             * which needs to be deleted
+             */
+            OAILOG_DEBUG(
+                LOG_NAS_EMM,
+                "EMM-PROC - Sending Detach Request message to MME APP"
+                "module for ue_id =" MME_UE_S1AP_ID_FMT "\n",
+                ue_id);
+            mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
+          }
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       } else if (
@@ -483,7 +490,13 @@ int emm_proc_attach_request(
               "EMM-PROC - Sending Detach Request message to MME APP"
               "module for ue_id =" MME_UE_S1AP_ID_FMT "\n",
               ue_id);
-          mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
+          /* Release s1 connection only if attach req is received in the
+           * initial ue message
+           */
+          if (ies->is_initial) {
+            mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
+          }
+
           OAILOG_WARNING(
               LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
           increment_counter(
@@ -903,7 +916,6 @@ static void _emm_attach_t3450_handler(void* args, imsi64_t* imsi64) {
         get_nas_specific_procedure_attach(emm_context);
 
     attach_proc->T3450.id = NAS_TIMER_INACTIVE_ID;
-    attach_proc->attach_accept_sent++;
 
     OAILOG_WARNING(
         LOG_NAS_EMM,
@@ -917,6 +929,7 @@ static void _emm_attach_t3450_handler(void* args, imsi64_t* imsi64) {
        * ATTACH ACCEPT message and shall reset and restart timer T3450.
        */
       _emm_attach_accept_retx(emm_context);
+      attach_proc->attach_accept_sent++;
     } else {
       REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_c__2);
       /*
@@ -1798,6 +1811,7 @@ static int _emm_send_attach_accept(emm_context_t* emm_context) {
           attach_proc->ue_id, &attach_proc->T3450,
           attach_proc->emm_spec_proc.emm_proc.base_proc.time_out,
           (void*) emm_context);
+      attach_proc->attach_accept_sent++;
     }
   } else {
     OAILOG_WARNING(LOG_NAS_EMM, "ue_mm_context NULL\n");

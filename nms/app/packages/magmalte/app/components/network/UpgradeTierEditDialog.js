@@ -57,7 +57,9 @@ export default function UpgradeTierEditDialog(props: Props) {
         tier,
       })
         .then(() => props.onSave(tier))
-        .catch(e => enqueueSnackbar(e.response.data.message));
+        .catch(e =>
+          enqueueSnackbar(e.response.data.message, {variant: 'error'}),
+        );
     } else {
       MagmaV1API.putNetworksByNetworkIdTiersByTierId({
         networkId: nullthrows(match.params.networkId),
@@ -65,7 +67,9 @@ export default function UpgradeTierEditDialog(props: Props) {
         tier,
       })
         .then(_resp => props.onSave(tier))
-        .catch(e => enqueueSnackbar(e.response.data.message));
+        .catch(e =>
+          enqueueSnackbar(e.response.data.message, {variant: 'error'}),
+        );
     }
   };
 

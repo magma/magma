@@ -434,7 +434,8 @@ func TestListSubscribers(t *testing.T) {
 				ActiveApns: subscriberModels.ApnList{apn2, apn1},
 				Monitoring: &subscriberModels.SubscriberStatus{
 					Icmp: &subscriberModels.IcmpStatus{
-						LastReportedTime: frozenClock,
+						// LastReportedTime is calculated in milliseconds
+						LastReportedTime: frozenClock * 1000,
 						LatencyMs:        f32Ptr(12.34),
 					},
 				},
@@ -639,7 +640,8 @@ func TestGetSubscriber(t *testing.T) {
 			ActiveApns: subscriberModels.ApnList{apn2, apn1},
 			Monitoring: &subscriberModels.SubscriberStatus{
 				Icmp: &subscriberModels.IcmpStatus{
-					LastReportedTime: frozenClock,
+					// LastReportedTime is calculated in milliseconds
+					LastReportedTime: frozenClock * 1000,
 					LatencyMs:        f32Ptr(12.34),
 				},
 			},

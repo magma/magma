@@ -871,6 +871,7 @@ export type network_carrier_wifi_configs = {
     default_rule_id: string,
     eap_aka: eap_aka,
     eap_sim ? : eap_sim,
+    is_xwfm_variant ? : boolean,
     li_ues ? : li_ues,
     network_services: Array < "dpi" | "policy_enforcement" >
         ,
@@ -6446,7 +6447,7 @@ export default class MagmaAPIBindings {
             [string]: subscriber_state,
         } >
         {
-            let path = '/lte/{network_id}/subscriber_state/';
+            let path = '/lte/{network_id}/subscriber_state';
             let body;
             let query = {};
             if (parameters['networkId'] === undefined) {

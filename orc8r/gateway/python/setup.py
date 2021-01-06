@@ -42,6 +42,7 @@ setup(
     ],
     scripts=[
         'scripts/checkin_cli.py',
+        'scripts/ctraced_cli.py',
         'scripts/directoryd_cli.py',
         'scripts/generate_lighttpd_config.py',
         'scripts/generate_nghttpx_config.py',
@@ -59,7 +60,7 @@ setup(
     install_requires=[
         'setuptools==49.6.0',
         'Cython>=0.29.1',
-        'pystemd==0.5.0',
+        'pystemd>=0.5.0',
         'docker>=4.0.2',
         'fire>=0.2.0',
         'glob2>=0.7',
@@ -67,8 +68,8 @@ setup(
         'redis>=2.10.5',  # redis-py (Python bindings to redis)
         'redis-collections>=0.4.2',
         'aiohttp>=0.17.2',
-        'grpcio==1.16.1',
-        'protobuf==3.6.1',
+        'grpcio>=1.16.1',
+        'protobuf>=3.6.1',
         'Jinja2>=2.8',
         'netifaces>=0.10.4',
         'pylint>=1.7.1',

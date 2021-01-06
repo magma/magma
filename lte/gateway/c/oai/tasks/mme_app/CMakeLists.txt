@@ -1,4 +1,4 @@
-set(S1AP_C_DIR ${PROJECT_BINARY_DIR}/s1ap/r10.5)
+set(S1AP_C_DIR ${PROJECT_BINARY_DIR}/s1ap/r15)
 
 # compile the needed protos
 set(MMEAPP_STATE_CPP_PROTOS mme_nas_state nas_state spgw_state common_types
@@ -62,6 +62,7 @@ add_library(TASK_MME_APP
     mme_app_state_manager.cpp
     mme_app_state.cpp
     mme_events.cpp
+    mme_app_ha.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     ${S11_RELATED_SRCS}

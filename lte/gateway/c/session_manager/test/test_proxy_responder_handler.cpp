@@ -73,8 +73,11 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   std::unique_ptr<SessionState> get_session(
       std::shared_ptr<StaticRuleStore> rule_store) {
     SessionConfig cfg;
+    Teids teids;
+    teids.set_agw_teid(TEID_1_UL);
+    teids.set_enb_teid(TEID_1_DL);
     cfg.common_context =
-        build_common_context(IMSI1, IP1, "", APN1, MSISDN, TGPP_WLAN);
+        build_common_context(IMSI1, IP1, "", teids, APN1, MSISDN, TGPP_WLAN);
     const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
     auto tgpp_context   = TgppContext{};
@@ -154,10 +157,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   // 2) Create bare-bones session for IMSI1
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
-  RuleLifetime lifetime{
-      .activation_time   = std::time_t(0),
-      .deactivation_time = std::time_t(0),
-  };
+  RuleLifetime lifetime;
   session->activate_static_rule(rule_id, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
@@ -199,7 +199,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   grpc::ServerContext create_context;
   EXPECT_CALL(
       *pipelined_client,
-      activate_flows_for_rules(IMSI1, _, _, _, _, CheckCount(1), _, _))
+      activate_flows_for_rules(IMSI1, _, _, _, _, _, CheckCount(1), _, _))
       .Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, request,
@@ -228,10 +228,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   // 2) Create bare-bones session for IMSI1
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
-  RuleLifetime lifetime{
-      .activation_time   = std::time_t(0),
-      .deactivation_time = std::time_t(0),
-  };
+  RuleLifetime lifetime;
   session->activate_static_rule(rule_id, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
@@ -263,7 +260,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules_for_termination(
-          IMSI1, _, _, CheckCount(1), CheckCount(0), RequestOriginType::GX))
+          IMSI1, _, _, _, CheckCount(1), CheckCount(0), RequestOriginType::GX))
       .Times(1)
       .WillOnce(testing::Return(true));
   proxy_responder->AbortSession(

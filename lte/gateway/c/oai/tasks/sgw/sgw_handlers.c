@@ -65,6 +65,7 @@
 #include "pgw_handlers.h"
 #include "conversions.h"
 #include "mme_config.h"
+#include "spgw_state.h"
 
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
@@ -161,13 +162,21 @@ int sgw_handle_s11_create_session_request(
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, imsi64,
-      "Rx CREATE-SESSION-REQUEST MME S11 teid %u S-GW"
-      "S11 teid %u APN %s EPS bearer Id %d\n",
+      "Rx CREATE-SESSION-REQUEST MME S11 teid " TEID_FMT
+      "S-GW S11 teid " TEID_FMT " APN %s EPS bearer Id %d\n",
       new_endpoint_p->remote_teid, new_endpoint_p->local_teid,
       session_req_pP->apn,
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
           .eps_bearer_id);
 
+  if (spgw_update_teid_in_ue_context(
+          state, imsi64, new_endpoint_p->local_teid) == RETURNerror) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
+        "Failed to update sgw_s11_teid" TEID_FMT " in UE context \n",
+        new_endpoint_p->local_teid);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
   s_plus_p_gw_eps_bearer_ctxt_info_p =
       sgw_cm_create_bearer_context_information_in_collection(
           state, new_endpoint_p->local_teid, imsi64);
@@ -270,6 +279,10 @@ int sgw_handle_s11_create_session_request(
         &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
              .saved_message,
         session_req_pP, sizeof(itti_s11_create_session_request_t));
+    copy_protocol_configuration_options(
+        &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+             .saved_message.pco,
+        &session_req_pP->pco);
 
     /*
      * Send a create bearer request to PGW and handle respond
@@ -562,7 +575,7 @@ static void sgw_add_gtp_tunnel(
       for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
            ++itrn) {
         // Prepare DL flow rule
-        struct ip_flow_dl dlflow;
+        struct ip_flow_dl dlflow = {0};
         _generate_dl_flow(
             &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                   .packetfiltercontents),
@@ -900,6 +913,8 @@ static int send_mbr_failure(
     modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[idx]
         .cause.cause_value = CONTEXT_NOT_FOUND;
   }
+  // Fill mme s11 teid received in modify bearer request
+  modify_response_p->teid = modify_bearer_pP->local_teid;
   modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context += 1;
   modify_response_p->cause.cause_value = CONTEXT_NOT_FOUND;
   modify_response_p->trxn              = modify_bearer_pP->trxn;
@@ -1562,13 +1577,13 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
   ebi_t default_bearer_id;
 
+  bearer_context =
+      s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index];
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
       "Received nw_initiated_bearer_actv_rsp from MME with EBI %u\n",
       bearer_context.eps_bearer_id);
 
-  bearer_context =
-      s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index];
   s_plus_p_gw_eps_bearer_context_information_t* spgw_context =
       sgw_cm_get_spgw_context(s11_actv_bearer_rsp->sgw_s11_teid);
   if (!spgw_context) {
@@ -1801,7 +1816,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
         for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
              ++itrn) {
           // Prepare DL flow rule from stored packet filters
-          struct ip_flow_dl dlflow;
+          struct ip_flow_dl dlflow = {0};
           struct in6_addr* ue_ipv6 = NULL;
           if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
               (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {

@@ -236,12 +236,20 @@ int MmeNasStateManager::read_ue_state_from_db() {
       }
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
 
-      hashtable_ts_insert(
+      hashtable_rc_t h_rc = hashtable_ts_insert(
           state_ue_ht, ue_context->mme_ue_s1ap_id, (void*) ue_context);
-      OAILOG_DEBUG(
-          log_task,
-          "Inserted UE state with key mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
-          ue_context->mme_ue_s1ap_id);
+      if (HASH_TABLE_OK != h_rc) {
+        OAILOG_ERROR(
+            log_task,
+            "Failed to insert UE state with key mme_ue_s1ap_id "
+            " " MME_UE_S1AP_ID_FMT " (Error Code: %s)\n",
+            ue_context->mme_ue_s1ap_id, hashtable_rc_code2string(h_rc));
+      } else {
+        OAILOG_DEBUG(
+            log_task,
+            "Inserted UE state with key mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+            ue_context->mme_ue_s1ap_id);
+      }
     }
   }
   return RETURNok;

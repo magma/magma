@@ -275,6 +275,12 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
    */
 }
 
+void SessionState::set_teids(
+    Teids teids, SessionStateUpdateCriteria session_uc) {
+  config_.common_context.mutable_teids()->CopyFrom(teids);
+  // session_uc.teids.CopyFrom(teids);
+}
+
 static UsageMonitorUpdate make_usage_monitor_update(
     const SessionCredit::Usage& usage_in, const std::string& monitoring_key,
     MonitoringLevel level) {
@@ -335,16 +341,14 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
       deactivate_static_rule(rule_id, _);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because static rule already uninstalled: " << rule_id
-                   << std::endl;
+                   << " because static rule already uninstalled: " << rule_id;
       return false;
     }
   }
   for (const auto& rule_id : uc.static_rules_to_install) {
     if (is_static_rule_installed(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because static rule already installed: " << rule_id
-                   << std::endl;
+                   << " because static rule already installed: " << rule_id;
       return false;
     }
     if (uc.new_rule_lifetimes.find(rule_id) != uc.new_rule_lifetimes.end()) {
@@ -354,16 +358,14 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
       install_scheduled_static_rule(rule_id, _);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because rule lifetime is unspecified: " << rule_id
-                   << std::endl;
+                   << " because rule lifetime is unspecified: " << rule_id;
       return false;
     }
   }
   for (const auto& rule_id : uc.new_scheduled_static_rules) {
     if (is_static_rule_scheduled(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because static rule already scheduled: " << rule_id
-                   << std::endl;
+                   << " because static rule already scheduled: " << rule_id;
       return false;
     }
     auto lifetime = uc.new_rule_lifetimes[rule_id];
@@ -379,16 +381,14 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
       dynamic_rules_.remove_rule(rule_id, NULL);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because dynamic rule already uninstalled: " << rule_id
-                   << std::endl;
+                   << " because dynamic rule already uninstalled: " << rule_id;
       return false;
     }
   }
   for (const auto& rule : uc.dynamic_rules_to_install) {
     if (is_dynamic_rule_installed(rule.id())) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because dynamic rule already installed: " << rule.id()
-                   << std::endl;
+                   << " because dynamic rule already installed: " << rule.id();
       return false;
     }
     if (uc.new_rule_lifetimes.find(rule.id()) != uc.new_rule_lifetimes.end()) {
@@ -398,16 +398,14 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
       install_scheduled_dynamic_rule(rule.id(), _);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because rule lifetime is unspecified: " << rule.id()
-                   << std::endl;
+                   << " because rule lifetime is unspecified: " << rule.id();
       return false;
     }
   }
   for (const auto& rule : uc.new_scheduled_dynamic_rules) {
     if (is_dynamic_rule_scheduled(rule.id())) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because dynamic rule already scheduled: " << rule.id()
-                   << std::endl;
+                   << " because dynamic rule already scheduled: " << rule.id();
       return false;
     }
     auto lifetime = uc.new_rule_lifetimes[rule.id()];
@@ -419,18 +417,17 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
     if (is_gy_dynamic_rule_installed(rule.id())) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
                    << " because gy dynamic rule already installed: "
-                   << rule.id() << std::endl;
+                   << rule.id();
       return false;
     }
     if (uc.new_rule_lifetimes.find(rule.id()) != uc.new_rule_lifetimes.end()) {
       auto lifetime = uc.new_rule_lifetimes[rule.id()];
       insert_gy_dynamic_rule(rule, lifetime, _);
       MLOG(MERROR) << "Merge: " << session_id_ << " gy dynamic rule "
-                   << rule.id() << std::endl;
+                   << rule.id();
     } else {
       MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because gy dynamic rule lifetime is not found"
-                   << std::endl;
+                   << " because gy dynamic rule lifetime is not found";
       return false;
     }
   }
@@ -440,7 +437,7 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
     } else {
       MLOG(MERROR) << "Failed to merge: " << session_id_
                    << " because gy dynamic rule already uninstalled: "
-                   << rule_id << std::endl;
+                   << rule_id;
       return false;
     }
   }
@@ -533,10 +530,7 @@ void SessionState::apply_session_static_rule_set(
     RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
     SessionStateUpdateCriteria& uc) {
   // No activation time / deactivation support yet for rule set interface
-  RuleLifetime lifetime{
-      .activation_time   = 0,
-      .deactivation_time = 0,
-  };
+  RuleLifetime lifetime;
   // Go through the rule set and install any rules not yet installed
   for (const auto& static_rule_id : static_rules) {
     if (!is_static_rule_installed(static_rule_id)) {
@@ -568,10 +562,7 @@ void SessionState::apply_session_dynamic_rule_set(
     RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
     SessionStateUpdateCriteria& uc) {
   // No activation time / deactivation support yet for rule set interface
-  RuleLifetime lifetime{
-      .activation_time   = 0,
-      .deactivation_time = 0,
-  };
+  RuleLifetime lifetime;
   for (const auto& dynamic_rule_pair : dynamic_rules) {
     if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
       MLOG(MINFO) << "Installing dynamic rule " << dynamic_rule_pair.first
@@ -670,6 +661,9 @@ void SessionState::add_common_fields_to_usage_monitor_update(
   if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req->set_hardware_addr(wlan_context.mac_addr_binary());
+  } else {
+    const auto& lte_context = config_.rat_specific_context.lte_context();
+    req->set_charging_characteristics(lte_context.charging_characteristics());
   }
 }
 
@@ -728,6 +722,7 @@ SessionTerminateRequest SessionState::make_termination_request(
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
+    req.set_charging_characteristics(lte_context.charging_characteristics());
   } else if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req.set_hardware_addr(wlan_context.mac_addr_binary());
@@ -844,6 +839,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi      = imsi_;
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
+  info.teids     = config_.common_context.teids();
   info.msisdn    = config_.common_context.msisdn();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
@@ -1165,7 +1161,7 @@ void SessionState::suspend_service_if_needed_for_credit(
   auto it = credit_map_.find(ckey);
   if (it == credit_map_.end()) {
     MLOG(MDEBUG) << "Could not find RG " << ckey
-                 << " Not suspending serivce for " << session_id_;
+                 << " Not suspending service for " << session_id_;
   }
   for (const auto& credit : credit_map_) {
     if (credit.second->suspended) {
@@ -1180,16 +1176,12 @@ void SessionState::suspend_service_if_needed_for_credit(
 
 bool SessionState::should_rule_be_active(
     const std::string& rule_id, std::time_t time) {
-  auto lifetime = rule_lifetimes_[rule_id];
-  bool deactivated =
-      (lifetime.deactivation_time > 0) && (lifetime.deactivation_time < time);
-  return lifetime.activation_time < time && !deactivated;
+  return rule_lifetimes_[rule_id].is_within_lifetime(time);
 }
 
 bool SessionState::should_rule_be_deactivated(
     const std::string& rule_id, std::time_t time) {
-  auto lifetime = rule_lifetimes_[rule_id];
-  return lifetime.deactivation_time > 0 && lifetime.deactivation_time < time;
+  return rule_lifetimes_[rule_id].exceeded_lifetime(time);
 }
 
 StaticRuleInstall SessionState::get_static_rule_install(
@@ -1496,6 +1488,7 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
+    req.set_charging_characteristics(lte_context.charging_characteristics());
   } else if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req.set_hardware_addr(wlan_context.mac_addr_binary());
@@ -1611,6 +1604,7 @@ void SessionState::fill_service_action(
   action->set_imsi(imsi_);
   action->set_ip_addr(config_.common_context.ue_ipv4());
   action->set_ipv6_addr(config_.common_context.ue_ipv6());
+  action->set_teids(config_.common_context.teids());
   action->set_msisdn(config_.common_context.msisdn());
   action->set_session_id(session_id_);
   static_rules_.get_rule_ids_for_charging_key(

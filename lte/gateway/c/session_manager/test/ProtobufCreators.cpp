@@ -17,12 +17,13 @@ namespace magma {
 
 CommonSessionContext build_common_context(
     const std::string& imsi,  // assumes IMSI prefix
-    const std::string& ue_ipv4, const std::string& ue_ipv6,
+    const std::string& ue_ipv4, const std::string& ue_ipv6, const Teids teids,
     const std::string& apn, const std::string& msisdn, const RATType rat_type) {
   CommonSessionContext common_context;
   common_context.mutable_sid()->set_id(imsi);
   common_context.set_ue_ipv4(ue_ipv4);
   common_context.set_ue_ipv6(ue_ipv6);
+  common_context.mutable_teids()->CopyFrom(teids);
   common_context.set_apn(apn);
   common_context.set_msisdn(msisdn);
   common_context.set_rat_type(rat_type);
@@ -244,7 +245,7 @@ void create_usage_update(
     uint64_t bytes_tx, CreditUsage::UpdateType type,
     CreditUsageUpdate* update) {
   auto usage = update->mutable_usage();
-  update->set_sid(imsi);
+  update->mutable_common_context()->mutable_sid()->set_id(imsi);
   usage->set_charging_key(charging_key);
   usage->set_bytes_rx(bytes_rx);
   usage->set_bytes_tx(bytes_tx);

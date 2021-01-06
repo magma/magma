@@ -59,7 +59,7 @@ void MmeNasStateConverter::hashtable_ts_to_proto(
       (*proto_map)[(uint32_t) keys->keys[i]] = ue_ctxt_proto;
     } else {
       OAILOG_ERROR(
-          LOG_MME_APP, "Key %u not in mme_ue_s1ap_id_ue_context_htbl",
+          LOG_MME_APP, "Key %lu not in mme_ue_s1ap_id_ue_context_htbl",
           keys->keys[i]);
     }
   }
@@ -134,10 +134,12 @@ void MmeNasStateConverter::guti_table_to_proto(
     if (ht_rc == HASH_TABLE_OK) {
       (*proto_map)[guti_str] = mme_ue_id;
     } else {
-      OAILOG_ERROR(LOG_MME_APP, "Key %s not in guti_ue_context_htbl", guti_str);
+      OAILOG_ERROR(
+          LOG_MME_APP, "Key %s not in guti_ue_context_htbl", guti_str.c_str());
     }
     OAILOG_DEBUG(
-        LOG_MME_APP, "guti_str:%s mme_ue_id:%d\n", guti_str.c_str(), mme_ue_id);
+        LOG_MME_APP, "guti_str:%s mme_ue_id:%lu\n", guti_str.c_str(),
+        mme_ue_id);
   }
   FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
 }
@@ -356,6 +358,10 @@ void MmeNasStateConverter::proto_to_bearer_context_list(
       proto_to_bearer_context(
           ue_context_proto.bearer_contexts(i), eps_bearer_ctxt);
       state_ue_context->bearer_contexts[i] = eps_bearer_ctxt;
+      if (state_ue_context->bearer_contexts[i]->esm_ebr_context.args) {
+        state_ue_context->bearer_contexts[i]->esm_ebr_context.args->ctx =
+            &state_ue_context->emm_context;
+      }
     } else {
       state_ue_context->bearer_contexts[i] = nullptr;
     }

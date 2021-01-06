@@ -16,7 +16,6 @@
 import type {DataRows} from '../../components/DataGrid';
 import type {subscriber} from '@fbcnms/magma-api';
 
-import AppBar from '@material-ui/core/AppBar';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DataGrid from '../../components/DataGrid';
@@ -24,19 +23,15 @@ import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberChart from './SubscriberChart';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetailConfig from './SubscriberDetailConfig';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import Text from '../../theme/design-system/Text';
+import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
@@ -98,7 +93,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function SubscriberDetail() {
-  const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const subscriberId: string = nullthrows(match.params.subscriberId);
   const ctx = useContext(SubscriberContext);
@@ -107,46 +101,37 @@ export default function SubscriberDetail() {
 
   return (
     <>
-      <div className={classes.topBar}>
-        <Text variant="body2">
-          Subscriber/{subscriberInfo.name ?? subscriberId}
-        </Text>
-      </div>
+      <TopBar
+        header={`Equipment/${subscriberInfo.name ?? subscriberId}`}
+        tabs={
+          !Object.keys(subscriberInfo).length
+            ? [
+                {
+                  label: 'Event',
+                  to: '/event',
+                  icon: MyLocationIcon,
+                },
+              ]
+            : [
+                {
+                  label: 'Overview',
+                  to: '/overview',
+                  icon: DashboardIcon,
+                },
+                {
+                  label: 'Event',
+                  to: '/event',
+                  icon: MyLocationIcon,
+                },
+                {
+                  label: 'Config',
+                  to: '/config',
+                  icon: SettingsIcon,
+                },
+              ]
+        }
+      />
 
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container direction="row" justify="flex-end" alignItems="center">
-          <Grid item xs={12}>
-            <Tabs
-              value={GetCurrentTabPos(match.url, DetailTabItems)}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Overview"
-                component={NestedRouteLink}
-                label={<OverviewTabLabel />}
-                to="/overview"
-                className={classes.tab}
-              />
-              <Tab
-                key="Event"
-                component={NestedRouteLink}
-                label={<EventTabLabel />}
-                to="/event"
-                className={classes.tab}
-              />
-              <Tab
-                key="Config"
-                component={NestedRouteLink}
-                label={<ConfigTabLabel />}
-                to="/config"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-        </Grid>
-      </AppBar>
       <Switch>
         <Route
           path={relativePath('/config/json')}
@@ -160,7 +145,12 @@ export default function SubscriberDetail() {
         <Route
           path={relativePath('/event')}
           render={() => (
-            <EventsTable sz="lg" eventStream="SUBSCRIBER" tags={subscriberId} />
+            <EventsTable
+              sz="lg"
+              eventStream="SUBSCRIBER"
+              isAutoRefreshing={true}
+              tags={subscriberId}
+            />
           )}
         />
         <Redirect to={relativeUrl('/overview')} />
@@ -273,33 +263,4 @@ function Status({subscriberInfo}: {subscriberInfo: subscriber}) {
   ];
 
   return <DataGrid data={kpiData} />;
-}
-
-function OverviewTabLabel() {
-  const classes = useStyles();
-  return (
-    <div className={classes.tabLabel}>
-      <DashboardIcon className={classes.tabIconLabel} /> Overview
-    </div>
-  );
-}
-
-function ConfigTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <SettingsIcon className={classes.tabIconLabel} /> Config
-    </div>
-  );
-}
-
-function EventTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <MyLocationIcon className={classes.tabIconLabel} /> Event
-    </div>
-  );
 }

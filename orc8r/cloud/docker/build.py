@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 
 """
 Copyright 2020 The Magma Authors.
@@ -23,7 +23,7 @@ import os
 import shutil
 import subprocess
 from collections import namedtuple
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 HOST_BUILD_CTX = '/tmp/magma_orc8r_build'
 HOST_MAGMA_ROOT = '../../../.'
@@ -135,27 +135,20 @@ def _get_mnt_vols(modules: Iterable[MagmaModule]) -> List[str]:
 
 
 def _get_default_file_args(args: argparse.Namespace) -> List[str]:
-    def make_file_args(fs: List[str]) -> List[str]:
+    def make_file_args(fs: Optional[List[str]] = None) -> List[str]:
+        if fs is None:
+            return []
         fs = ['docker-compose.yml'] + fs + ['docker-compose.override.yml']
         ret = []
         for f in fs:
             ret.extend(['-f', f])
         return ret
 
-    def get_files_for_modules(ms: Iterable[str]) -> List[str]:
-        return ['docker-compose.%s.yml' % m for m in ms if m != 'orc8r']
-
-    mods = DEPLOYMENT_TO_MODULES[args.deployment]
-
     if args.all:
-        all_files = get_files_for_modules(mods) + EXTRA_COMPOSE_FILES
-        return make_file_args(all_files)
-
-    if args.extras:
         return make_file_args(EXTRA_COMPOSE_FILES)
 
-    # Default to docker-compose.yml + all modules + docker-compose.override.yml
-    return make_file_args(get_files_for_modules(mods))
+    # Default implicitly to docker-compose.yml + docker-compose.override.yml
+    return make_file_args()
 
 
 def _get_default_build_args(args: argparse.Namespace) -> List[str]:
@@ -232,13 +225,9 @@ def _parse_args() -> argparse.Namespace:
     # (1) How many images to build
     #
     # all: all images
-    # extras: inverse of default
     # default: images required for minimum functionality
     #   - excluding metrics images
     #   - including postgres, proxy, etc
-    # core: only orc8r-specific images, across all modules
-    #   - excluding postgres, proxy, etc
-    #   - including orc8r, lte, cwf, etc
     #
     # (2) Of the core orc8r images, which modules to build
     #
@@ -268,7 +257,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--all', '-a',
         action='store_true',
-        help='Build all containers: core and extras',
+        help='Build all containers',
     )
     parser.add_argument(
         '--extras', '-e',

@@ -32,7 +32,8 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
     create_service_manager,
-    SnapshotVerifier
+    SnapshotVerifier,
+    fake_inout_setup
 )
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
@@ -181,6 +182,7 @@ class InOutNonNatTest(unittest.TestCase):
         hub.sleep(1)
 
     def testFlowSnapshotMatch(self):
+        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         self.setUpNetworkAndController(non_nat_arp_egress_port=cls.UPLINK_BR,
                                        gw_mac_addr="33:44:55:ff:ff:ff")
@@ -205,6 +207,7 @@ class InOutNonNatTest(unittest.TestCase):
         self.assertEqual(gw_info_map[vlan].mac, 'b2:a0:cc:85:80:7a')
 
     def testFlowVlanSnapshotMatch(self):
+        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         vlan = "11"
         self.setUpNetworkAndController(vlan)
@@ -230,6 +233,7 @@ class InOutNonNatTest(unittest.TestCase):
         self.assertEqual(gw_info_map[vlan].mac, 'b2:a0:cc:85:80:11')
 
     def testFlowVlanSnapshotMatch2(self):
+        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         vlan1 = "21"
         self.setUpNetworkAndController(vlan1)
@@ -263,6 +267,7 @@ class InOutNonNatTest(unittest.TestCase):
         self.assertEqual(gw_info_map[vlan2].mac, 'b2:a0:cc:85:80:22')
 
     def testFlowVlanSnapshotMatch_static1(self):
+        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         # setup network on unused vlan.
         vlan1 = "21"
@@ -297,6 +302,7 @@ class InOutNonNatTest(unittest.TestCase):
         self.assertEqual(gw_info_map[vlan2].mac, '22:33:44:55:66:77')
 
     def testFlowVlanSnapshotMatch_static2(self):
+        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         # setup network on unused vlan.
         self.setUpNetworkAndController("34")
@@ -396,6 +402,7 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
     def testFlowSnapshotMatch(self):
+        fake_inout_setup(self.inout_controller)
         snapshot_verifier = SnapshotVerifier(self,
                                              self.BRIDGE,
                                              self.service_manager,

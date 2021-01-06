@@ -17,6 +17,7 @@ package integration
 
 import (
 	"fmt"
+	"math"
 	"sync"
 	"testing"
 	"time"
@@ -26,7 +27,6 @@ import (
 	"magma/feg/gateway/multiplex"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
@@ -82,9 +82,7 @@ func generateMultipleScenarioAndAddSubscribers(t *testing.T, tr *TestRunner, num
 		assert.NoError(t, setNewOCSConfigPerInstance(
 			ocsName,
 			&protos.OCSConfig{
-				MaxUsageOctets: &protos.Octets{TotalOctets: ReAuthMaxUsageBytes},
-				MaxUsageTime:   ReAuthMaxUsageTimeSec,
-				ValidityTime:   ReAuthValidityTime,
+				MaxUsageOctets: &protos.Octets{TotalOctets: 10 * MegaBytes},
 			},
 		),
 		)
@@ -101,7 +99,7 @@ func generateMultipleScenarioAndAddSubscribers(t *testing.T, tr *TestRunner, num
 				&protos.CreditInfo{
 					Imsi:        imsi,
 					ChargingKey: 1,
-					Volume:      &protos.Octets{TotalOctets: 1 * 1000 * KiloBytes},
+					Volume:      &protos.Octets{TotalOctets: 10 * MegaBytes},
 					UnitType:    protos.CreditInfo_Bytes},
 			),
 			)
@@ -204,7 +202,12 @@ func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 				tr.AuthenticateAndAssertSuccess(imsi)
 				// this wait can be remove
 				tr.WaitForEnforcementStatsToSync()
-				req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
+				req := &cwfprotos.GenTrafficRequest{
+					Imsi:    imsi,
+					Volume:  &wrappers.StringValue{Value: "2M"},
+					Bitrate: &wrappers.StringValue{Value: "60M"},
+					Timeout: 30,
+				}
 				_, err := tr.GenULTraffic(req)
 				assert.NoError(t, err)
 			}()
@@ -227,7 +230,7 @@ func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 				// We should not be seeing > 1024k data here
 				assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
 				assert.NoError(t, err)
-				assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+				assert.True(t, record.BytesTx <= uint64(math.Round(2.5*MegaBytes)+Buffer), fmt.Sprintf("policy usage: %v", record))
 				// TODO: make sure OCS records its proper usage and it matches with what we monitored
 				//infos, err := getCreditOnOCSPerInstance(element.ocsName, imsi)
 				//fmt.Printf("\t ---> policy usage: %v\n", record)
@@ -235,9 +238,10 @@ func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 			}
 			// Detach this UE
 			tr.DisconnectAndAssertSuccess(imsi)
-			// Wait for CCR-T to propagate up
-			time.Sleep(3 * time.Second)
+
 			// TODO: check CCR-T is sent to the right instance
 		}
 	}
+	// Wait for CCR-T to propagate up
+	time.Sleep(2 * time.Second)
 }

@@ -18,6 +18,8 @@ import (
 	"sync"
 
 	"google.golang.org/grpc"
+
+	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 )
 
 const (
@@ -26,13 +28,18 @@ const (
 	MaxPlmnIdLen = 6
 )
 
+type connKey struct {
+	service gateway_registry.GwServiceType
+	addr    string
+}
+
 // Router is a service maintaining mapping and connections from Access Gateways to FeGs
 type Router struct {
 	sync.RWMutex
-	connCache map[string]*grpc.ClientConn
+	connCache map[connKey]*grpc.ClientConn
 }
 
 // NewRouter returns a new instance of Gw to FeG router
 func NewRouter() *Router {
-	return &Router{connCache: map[string]*grpc.ClientConn{}}
+	return &Router{connCache: map[connKey]*grpc.ClientConn{}}
 }

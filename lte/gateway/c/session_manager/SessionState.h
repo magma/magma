@@ -104,6 +104,7 @@ class SessionState {
     std::string imsi;
     std::string ip_addr;
     std::string ipv6_addr;
+    Teids teids;
 
     uint32_t local_f_teid;
     std::string msisdn;
@@ -430,6 +431,8 @@ class SessionState {
   void get_rules_per_credit_key(
       CreditKey charging_key, RulesToProcess& rulesToProcess);
 
+  void set_teids(Teids teids, SessionStateUpdateCriteria session_uc);
+
   // Event Triggers
   void add_new_event_trigger(
       magma::lte::EventTrigger trigger,
@@ -531,6 +534,12 @@ class SessionState {
    */
   void suspend_service_if_needed_for_credit(
       CreditKey ckey, SessionStateUpdateCriteria& update_criteria);
+
+  /**
+   * Returns true if the specified rule should be active at that time
+   */
+  bool should_rule_be_active(const std::string& rule_id, std::time_t time);
+  bool is_dynamic_rule_scheduled(const std::string& rule_id);
 
  private:
   std::string imsi_;
@@ -654,11 +663,6 @@ class SessionState {
       UsageMonitoringUpdateRequest* req);
 
   /**
-   * Returns true if the specified rule should be active at that time
-   */
-  bool should_rule_be_active(const std::string& rule_id, std::time_t time);
-
-  /**
    * Returns true if the specified rule should be deactivated by that time
    */
   bool should_rule_be_deactivated(const std::string& rule_id, std::time_t time);
@@ -687,8 +691,6 @@ class SessionState {
       SessionStateUpdateCriteria& update_criteria);
 
   bool is_static_rule_scheduled(const std::string& rule_id);
-
-  bool is_dynamic_rule_scheduled(const std::string& rule_id);
 
   /** apply static_rules which is the desired state for the session's rules **/
   void apply_session_static_rule_set(

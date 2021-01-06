@@ -101,6 +101,8 @@ type ActionTableOptions = {
   actionsColumnIndex: number,
   pageSize?: number,
   pageSizeOptions: Array<number>,
+  rowStyle?: {},
+  headerStyle?: {},
 };
 
 type ActionOrderType = {
@@ -109,8 +111,13 @@ type ActionOrderType = {
   tableData: {},
 };
 
+export type ActionFilter = {
+  column: ActionTableColumn,
+  value: string,
+};
+
 export type ActionQuery = {
-  filters: Array<string>,
+  filters: Array<ActionFilter>,
   orderBy: ActionOrderType,
   orderDirection: string,
   page: number,
@@ -260,7 +267,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
         icons={tableIcons}
         data={props.data}
         actions={
-          props.menuItems
+          props.menuItems?.length
             ? [
                 ...(props.actions ? props.actions : []),
                 {

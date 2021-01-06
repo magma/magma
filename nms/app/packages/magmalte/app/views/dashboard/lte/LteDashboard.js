@@ -132,6 +132,7 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
             sz="md"
             inStartDate={startEnd[0]}
             inEndDate={startEnd[1]}
+            isAutoRefreshing={true}
           />
         </Grid>
       </Grid>

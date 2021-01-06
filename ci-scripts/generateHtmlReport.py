@@ -49,10 +49,8 @@ class HtmlReport():
 
     # no-S11 part
     self.buildSummaryHeader('agw1-no-s11')
-    self.vmWakeUpRow()
     self.makeRunRow('agw1-no-s11')
     self.statusCheckRow('agw1-no-s11')
-    self.vmStopCheckRow()
     self.buildSummaryFooter()
 
     self.testSummaryHeader('agw1-no-s11')
@@ -406,56 +404,6 @@ class HtmlReport():
   def buildSummaryFooter(self):
     self.file.write('  </table>\n')
     self.file.write('  <br>\n')
-
-  def vmWakeUpRow(self):
-    self.file.write('    <tr>\n')
-    self.file.write('      <td bgcolor="lightcyan" >Waking-Up Vagrant VMs</td>\n')
-    self.analyze_vagrant_up_log('magma')
-    self.analyze_vagrant_up_log('magma_test')
-    self.analyze_vagrant_up_log('magma_trfserver')
-    self.file.write('    </tr>\n')
-
-  def vmStopCheckRow(self):
-    self.file.write('    <tr>\n')
-    self.file.write('      <td bgcolor="lightcyan" >Stopping gracefully Vagrant VMs</td>\n')
-    cwd = os.getcwd()
-    logFileName = 'magma_vagrant_global_status.log'
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      magma_dev_status = ''
-      magma_test_status = ''
-      magma_trf_status = ''
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-          result = re.search('magma_test', line)
-          if result is not None:
-            result = re.search('poweroff', line)
-            if result is not None:
-              magma_test_status = 'powered-off'
-            else:
-              magma_test_status = 'unknown'
-          else:
-            result = re.search('magma_trfserver', line)
-            if result is not None:
-              result = re.search('poweroff', line)
-              if result is not None:
-                magma_trf_status = 'powered-off'
-              else:
-                magma_trf_status = 'unknown'
-            else:
-              result = re.search('magma', line)
-              if result is not None:
-                result = re.search('poweroff', line)
-                if result is not None:
-                  magma_dev_status = 'powered-off'
-                else:
-                  magma_dev_status = 'unknown'
-        logfile.close()
-      self.file.write('      <td bgcolor="LightGray"><b>' + magma_dev_status + '</b></td>\n')
-      self.file.write('      <td bgcolor="LightGray"><b>' + magma_test_status + '</b></td>\n')
-      self.file.write('      <td bgcolor="LightGray"><b>' + magma_trf_status + '</b></td>\n')
-    else:
-      self.file.write('      <td bgcolor="Red" colspan = 3 align = "center"><b><font color="white">Could not read logfile ' + logFileName + '</font></b></td>\n')
-    self.file.write('    </tr>\n')
 
   def analyze_vagrant_up_log(self, vmType):
     logFileName = vmType.lower().replace('magma','magma_vagrant') + '_up.log'

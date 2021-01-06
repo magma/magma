@@ -281,3 +281,22 @@ variable "thanos_object_store_bucket_name" {
   type        = string
   default     = ""
 }
+
+variable "thanos_query_node_selector" {
+  description = "NodeSelector value to specify which node to run thanos query pod on. Default is 'thanos' to be deployed on the default thanos worker group."
+  type = string
+  default = "thanos"
+}
+
+
+variable "thanos_compact_node_selector" {
+  description = "NodeSelector value to specify which node to run thanos compact pod on. Label is 'compute-type:<value>'"
+  type = string
+  default = ""
+}
+
+variable "thanos_store_node_selector" {
+  description = "NodeSelector value to specify which node to run thanos store pod on. Label is 'compute-type:<value>'"
+  type = string
+  default = ""
+}

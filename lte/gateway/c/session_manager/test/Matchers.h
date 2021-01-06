@@ -51,6 +51,17 @@ MATCHER_P(CheckStaticRulesNames, list_static_rules, "") {
   return true;
 }
 
+MATCHER_P(CheckTeids, comming_teids, "") {
+  Teids configured_teids = static_cast<Teids>(arg);
+
+  if ((configured_teids.agw_teid() == comming_teids.agw_teid()) &&
+      (configured_teids.enb_teid() == comming_teids.enb_teid())) {
+    return true;
+  }
+
+  return false;
+}
+
 MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
   auto req = static_cast<const UpdateSessionRequest>(arg);
   return req.updates().size() == chargingCount &&
@@ -80,7 +91,8 @@ MATCHER_P(CheckCoreRequest, expected_request, "") {
 
 MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
   auto req = static_cast<const SessionTerminateRequest>(arg);
-  return req.sid() == imsi && req.credit_usages().size() == chargingCount &&
+  return req.common_context().sid().id() == imsi &&
+         req.credit_usages().size() == chargingCount &&
          req.monitor_usages().size() == monitorCount;
 }
 
@@ -184,14 +196,15 @@ MATCHER_P(CheckSingleUpdate, expected_update, "") {
       update.usage().type() == expected_update.usage().type() &&
       update.usage().bytes_tx() == expected_update.usage().bytes_tx() &&
       update.usage().bytes_rx() == expected_update.usage().bytes_rx() &&
-      update.sid() == expected_update.sid() &&
+      update.common_context().sid().id() ==
+          expected_update.common_context().sid().id() &&
       update.usage().charging_key() == expected_update.usage().charging_key();
   return val;
 }
 
 MATCHER_P(CheckTerminate, imsi, "") {
   auto request = static_cast<const SessionTerminateRequest*>(arg);
-  return request->sid() == imsi;
+  return request->common_context().sid().id() == imsi;
 }
 
 MATCHER_P4(CheckActivateFlows, imsi, rule_count, ipv4, ipv6, "") {

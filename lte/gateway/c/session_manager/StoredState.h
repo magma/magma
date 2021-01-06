@@ -162,6 +162,14 @@ struct StoredChargingGrant {
 struct RuleLifetime {
   std::time_t activation_time;    // Unix timestamp
   std::time_t deactivation_time;  // Unix timestamp
+  RuleLifetime() : activation_time(0), deactivation_time(0){};
+  RuleLifetime(const time_t activation, const time_t deactivation)
+      : activation_time(activation), deactivation_time(deactivation){};
+  RuleLifetime(const StaticRuleInstall& rule_install);
+  RuleLifetime(const DynamicRuleInstall& rule_install);
+  bool is_within_lifetime(std::time_t time);
+  bool exceeded_lifetime(std::time_t time);
+  bool before_lifetime(std::time_t time);
 };
 
 // QoS Management
@@ -298,6 +306,7 @@ struct SessionStateUpdateCriteria {
   bool is_bearer_mapping_updated;
   // Only valid if is_bearer_mapping_updated is true
   BearerIDByPolicyID bearer_id_by_policy;
+  Teids teids;
 };
 
 SessionStateUpdateCriteria get_default_update_criteria();
