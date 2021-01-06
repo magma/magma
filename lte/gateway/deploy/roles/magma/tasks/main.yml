@@ -30,6 +30,7 @@
     # Manhattan services
     - lighttpd
     - sessiond
+    - connectiond
   when: full_provision
 
 - name: Copy sctpd service file
@@ -93,6 +94,10 @@
 
 - name: Create symlink for dpid binary
   file: src='{{ c_build }}/dpi/dpid' path=/usr/local/bin/dpid state=link force=yes follow=no
+  when: full_provision
+
+- name: Create symlink for connectiond binary
+  file: src='{{ c_build }}/connection_tracker/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for corefile collection script
