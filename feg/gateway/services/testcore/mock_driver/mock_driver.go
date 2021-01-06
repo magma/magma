@@ -95,7 +95,7 @@ func (e *MockDriver) AggregateResults() ([]*protos.ExpectationResult, []*protos.
 func (e *MockDriver) getAnswerForUnexpectedMessage() interface{} {
 	switch e.unexpectedRequestBehavior {
 	case protos.UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER:
-	    glog.Infof("MockDriver: Returning default answer for an unexpected request")
+		glog.Infof("MockDriver: Returning default answer for an unexpected request")
 		return e.defaultAnswer
 	default:
 		return nil

@@ -14,14 +14,14 @@
 package models
 
 import (
-	"magma/fbinternal/cloud/go/fbinternal"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 )
 
 var (
-	// NetworkSerdes contains the package's configurator network config serdes
-	NetworkSerdes = serde.NewRegistry(
-		configurator.NewNetworkConfigSerde(fbinternal.TestControllerNetworkType, &TestConfig{}),
+	// EntitySerdes contains the package's configurator network entity serdes
+	EntitySerdes = serde.NewRegistry(
+		configurator.NewNetworkEntityConfigSerde(orc8r.CallTraceEntityType, &CallTrace{}),
 	)
 )

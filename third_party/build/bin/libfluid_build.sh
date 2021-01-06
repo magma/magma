@@ -64,6 +64,7 @@ git -C libfluid_base checkout $LIBFLUID_BASE_COMMIT
 
 pushd libfluid_base
 git apply "${PATCH_DIR}"/libfluid_base_patches/ExternalEventPatch.patch
+git apply "${PATCH_DIR}"/libfluid_base_patches/EVLOOP_NO_EXIT_ON_EMPTY_compat.patch
 popd
 
 git clone https://github.com/OpenNetworkingFoundation/libfluid_msg.git

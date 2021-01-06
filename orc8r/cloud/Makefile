@@ -1,8 +1,9 @@
 SHELL := /bin/bash
 
-################
-## Essentials ##
-################
+#########################
+## Essential variables ##
+#########################
+
 ifndef MAGMA_ROOT
 MAGMA_ROOT := /home/$(USER)/magma
 $(warning MAGMA_ROOT is undefined, using default: $(MAGMA_ROOT))
@@ -20,29 +21,22 @@ MAGMA_MODULES := \
 $(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
 endif
 
-################################
-## Generally useful variables ##
-################################
 SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
-SWAGGER_V1_TEMPLATE := $(SWAGGER_ROOT)/v1/swagger-template.yml
-SWAGGER_V1_TEMP_GEN := $(SWAGGER_ROOT)/v1/temp
+SWAGGER_V1_CONFIG := $(SWAGGER_ROOT)/v1/goswagger-config.yml
+SWAGGER_V1_TMP_GEN := $(SWAGGER_ROOT)/v1/tmp
 export SWAGGER_ROOT
 export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
-export SWAGGER_V1_TEMPLATE
-export SWAGGER_V1_TEMP_GEN
+export SWAGGER_V1_CONFIG
+export SWAGGER_V1_TMP_GEN
 
-ifndef PLUGIN_DIR
-PLUGIN_DIR := /home/$(USER)/go/plugins
-endif
-export PLUGIN_DIR
+#############
+## Modules ##
+#############
 
-############################
-## Declare Module Targets ##
-############################
 define add_module
 	$(eval MODULE := $1)
 
@@ -65,9 +59,8 @@ define add_module
 endef
 _ := $(foreach module, $(MAGMA_MODULES), $(eval $(call add_module,$(module))))
 
-
 ###################
-## General Rules ##
+## General rules ##
 ###################
 
 precommit: fmt test vet swagger_validate
@@ -98,9 +91,11 @@ fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
 
-gen: tools tidy $(GEN_LIST)
+gen: tools swagger $(GEN_LIST)
 $(GEN_LIST): %_gen:
 	make -C $*/cloud/go gen
+
+fullgen: clean_gen gen tidy
 
 lint: $(LINT_LIST)
 $(LINT_LIST): %_lint:
@@ -126,18 +121,19 @@ vet: $(VET_LIST)
 $(VET_LIST): %_vet:
 	make -C $*/cloud/go vet
 
-##############################
-## Swagger/API docs Targets ##
-##############################
+######################
+## Swagger/API docs ##
+######################
 
-swagger: swagger_directories tools $(SWAGGER_LIST)
+swagger: tools swagger_directories $(SWAGGER_LIST)
 	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
-	combine_swagger --inp=$(SWAGGER_V1_TEMP_GEN) --common=$(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
-	rm -rf $(SWAGGER_V1_TEMP_GEN)
+	combine_swagger --in=$(SWAGGER_V1_TMP_GEN) --common=$(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
+	rm -rf $(SWAGGER_V1_TMP_GEN)
+	rm $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
 
 swagger_directories:
-	rm -rf $(SWAGGER_V1_TEMP_GEN)
-	mkdir $(SWAGGER_V1_TEMP_GEN)
+	rm -rf $(SWAGGER_V1_TMP_GEN)
+	mkdir $(SWAGGER_V1_TMP_GEN)
 
 $(SWAGGER_LIST): %_swagger:
 	make -C $*/cloud/go copy_swagger_files
@@ -145,9 +141,9 @@ $(SWAGGER_LIST): %_swagger:
 swagger_validate: swagger
 	swagger validate $(SWAGGER_V1_YML)
 
-##################
-## Misc Targets ##
-##################
+##########
+## Misc ##
+##########
 
 list:  # List all commands
 	@echo -e "\nAvailable commands:\n"

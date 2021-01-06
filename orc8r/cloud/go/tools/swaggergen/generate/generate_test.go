@@ -57,7 +57,10 @@ func TestGenerateModels(t *testing.T) {
 func runTestGenerateCase(t *testing.T, ymlFile string, outputDir string) {
 	defer cleanupActualFiles(outputDir)
 
-	err := generate.GenerateModels(ymlFile, "../testdata/template.yml", os.Getenv("MAGMA_ROOT"))
+	rootDir := os.Getenv("MAGMA_ROOT")
+	specs, err := generate.ParseSwaggerDependencyTree(ymlFile, rootDir)
+	assert.NoError(t, err)
+	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", rootDir, specs)
 	assert.NoError(t, err)
 
 	// Verify that generated files are the same as the expected golden files
@@ -85,15 +88,15 @@ func runTestGenerateCase(t *testing.T, ymlFile string, outputDir string) {
 	}
 }
 
-func parseExpectedFiles(t *testing.T, files []string) map[string]generate.MagmaSwaggerConfig {
-	expected := map[string]generate.MagmaSwaggerConfig{}
+func parseExpectedFiles(t *testing.T, files []string) map[string]generate.MagmaSwaggerSpec {
+	expected := map[string]generate.MagmaSwaggerSpec{}
 	for _, expectedPath := range files {
 		expectedAbs, err := filepath.Abs(expectedPath)
 		assert.NoError(t, err)
 		contents, err := ioutil.ReadFile(expectedAbs)
 		assert.NoError(t, err)
 
-		expectedStruct := generate.MagmaSwaggerConfig{}
+		expectedStruct := generate.MagmaSwaggerSpec{}
 		err = yaml.Unmarshal(contents, &expectedStruct)
 		assert.NoError(t, err)
 		expected[expectedAbs] = expectedStruct

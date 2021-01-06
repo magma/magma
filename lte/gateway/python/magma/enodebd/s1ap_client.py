@@ -10,7 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Optional
+from typing import Dict, Optional
 
 import grpc
 
@@ -23,24 +23,24 @@ S1AP_SERVICE_NAME = "s1ap_service"
 DEFAULT_GRPC_TIMEOUT = 20
 
 
-def get_all_enb_connected() -> Optional[List[int]]:
+def get_all_enb_state() -> Optional[Dict[int, int]]:
     """
-    Make RPC call to 'GetEnbConnected' method of s1ap service
+    Make RPC call to 'GetENBState' method of s1ap service
     """
     try:
         chan = ServiceRegistry.get_rpc_channel(S1AP_SERVICE_NAME,
                                                ServiceRegistry.LOCAL)
     except ValueError:
         logger.error('Cant get RPC channel to %s', S1AP_SERVICE_NAME)
-        return
+        return {}
     client = S1apServiceStub(chan)
     try:
-        res = client.GetEnbConnected(Void(), DEFAULT_GRPC_TIMEOUT)
-        return res.enb_ids
+        res = client.GetENBState(Void(), DEFAULT_GRPC_TIMEOUT)
+        return res.enb_state_map
     except grpc.RpcError as err:
         logger.warning(
-            "GetEnbConnected error: [%s] %s",
+            "GetEnbState error: [%s] %s",
             err.code(),
             err.details())
-    return []
+    return {}
 

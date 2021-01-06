@@ -523,3 +523,18 @@ definitions:
         type: string
         minLength: 1
         example: 'abcdefg'
+
+  latest_script_execution:
+    type: object
+    required:
+      - timestamp
+      - version
+    properties:
+      timestamp:
+        description: Timestamp of latest script execution
+        type: integer
+        x-nullable: false
+      version:
+        description: Magma version of latest script execution
+        type: string
+        x-nullable: false

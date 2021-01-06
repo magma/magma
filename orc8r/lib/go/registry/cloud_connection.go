@@ -176,6 +176,7 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 			MinConnectTimeout: grpcMaxTimeoutSec * time.Second,
 		}),
 		grpc.WithBlock(),
+		grpc.WithUnaryInterceptor(TimeoutInterceptor),
 	}
 	if useProxy {
 		opts = append(opts, grpc.WithInsecure(), grpc.WithAuthority(authority))

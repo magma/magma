@@ -29,11 +29,20 @@ BOOST_VERSION=1.62.0
 LIBEVENT_VERSION=2.0-5
 SSL_VERSION=1.1
 LIBICU=libicu57
+DOUBLE_CONVERSION_VERSION=1
+JEMALLOC_VERSION=1
 
 if [ "${OS_RELEASE}" = 'ubuntu18.04' ]; then
     LIBGFLAGS=libgflags2.2
     LIBEVENT_VERSION=2.1-6
     LIBICU=libicu60
+elif [ "${OS_RELEASE}" = 'ubuntu20.04' ]; then
+    BOOST_VERSION=1.71.0
+    LIBGFLAGS=libgflags2.2
+    LIBEVENT_VERSION=2.1-7
+    LIBICU=libicu66
+    DOUBLE_CONVERSION_VERSION=3
+    JEMALLOC_VERSION=2
 fi
 
 function buildrequires() {
@@ -57,9 +66,6 @@ function buildrequires() {
 if_subcommand_exec
 
 WORK_DIR=/tmp/build-${PKGNAME}
-
-BOOST_VERSION=1.62.0
-SSL_VERSION=1.1
 
 # The resulting package is placed in $OUTPUT_DIR
 # or in the cwd.
@@ -155,12 +161,12 @@ fpm \
     --depends libboost-regex"$BOOST_VERSION" \
     --depends libboost-system"$BOOST_VERSION" \
     --depends libboost-thread"$BOOST_VERSION" \
-    --depends libdouble-conversion1 \
+    --depends libdouble-conversion"${DOUBLE_CONVERSION_VERSION}" \
     --depends libevent-"$LIBEVENT_VERSION" \
     --depends "${LIBGFLAGS}" \
     --depends libgoogle-glog0v5 \
     --depends "${LIBICU}" \
-    --depends libjemalloc1 \
+    --depends libjemalloc"${JEMALLOC_VERSION}" \
     --depends liblz4-1 \
     --depends liblzma5 \
     --depends libsnappy1v5 \
