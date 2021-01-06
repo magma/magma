@@ -111,6 +111,23 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/tracing/{trace_id}/download:
+    get:
+      summary: Get the call trace in PCAP format
+      tags:
+        - Call Tracing
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/trace_id'
+      responses:
+        '200':
+          description: Show tracing status
+          schema:
+            type: file
+            format: binary
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   trace_id:
     description: Unique ID of call trace
