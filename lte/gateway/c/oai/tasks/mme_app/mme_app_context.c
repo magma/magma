@@ -585,13 +585,14 @@ void mme_ue_context_update_coll_keys(
         ue_context_p->mme_ue_s1ap_id, imsi, hashtable_rc_code2string(h_rc));
   }
 
-  h_rc = hashtable_uint64_ts_remove(
-      mme_ue_context_p->tun11_ue_context_htbl,
-      (const hash_key_t) ue_context_p->mme_teid_s11);
   if ((INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) && (mme_teid_s11)) {
+    h_rc = hashtable_uint64_ts_remove(
+        mme_ue_context_p->tun11_ue_context_htbl,
+        (const hash_key_t) ue_context_p->mme_teid_s11);
     h_rc = hashtable_uint64_ts_insert(
         mme_ue_context_p->tun11_ue_context_htbl,
         (const hash_key_t) mme_teid_s11, (uint64_t) mme_ue_s1ap_id);
+    ue_context_p->mme_teid_s11 = mme_teid_s11;
   } else {
     h_rc = HASH_TABLE_KEY_NOT_EXISTS;
   }
@@ -607,7 +608,6 @@ void mme_ue_context_update_coll_keys(
         ue_context_p->mme_ue_s1ap_id, mme_teid_s11,
         hashtable_rc_code2string(h_rc));
   }
-  ue_context_p->mme_teid_s11 = mme_teid_s11;
 
   if (guti_p) {
     if ((guti_p->gummei.mme_code !=
