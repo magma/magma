@@ -1899,14 +1899,10 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     nas_emm_attach_proc_t* attach_proc =
         get_nas_specific_procedure_attach(&ue_context_p->emm_context);
+    // Stop T3450 timer if its still runinng
     if (attach_proc) {
       nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450, NULL);
     }
-    /*
-    // Move the UE to Idle state
-    mme_ue_context_update_ue_sig_connection_state(
-        &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
-*/
     // Initiate Implicit Detach for the UE
     nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
     increment_counter(
