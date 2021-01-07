@@ -15,17 +15,17 @@ Install the following tools:
 1. [Docker](https://www.docker.com) and Docker Compose
 2. [Homebrew](https://brew.sh/) *only* for MacOS users
 3. [VirtualBox](https://www.virtualbox.org/)
-3. [Vagrant](https://vagrantup.com)
+4. [Vagrant](https://vagrantup.com)
 
-Replace `brew` with your OS-appropriate package manager as necessary, or see
-the [pyenv installation instructions](https://github.com/pyenv/pyenv#installation).
+Replace `brew` with your OS-appropriate package manager as necessary.
 
 ```bash
-brew install pyenv
+brew install go@1.13 pyenv
 
 # Replace .zshrc with your appropriate shell RC file
 # IMPORTANT: Use .bash_profile, not .bashrc for bash
-echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.zshrc
+echo 'export PATH="/usr/local/opt/go@1.13/bin:$PATH"' >> ~/.zshrc
+echo 'if command -v pyenv 1>/dev/null 2>&1; then eval "$(pyenv init -)"; fi' >> ~/.zshrc
 exec $SHELL
 pyenv install 3.7.3
 pyenv global 3.7.3
@@ -35,7 +35,9 @@ vagrant plugin install vagrant-vbguest
 ```
 
 If you are on MacOS, you should start Docker for Mac and increase the memory
-allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
+allocation for the Docker engine to at least 4GB (Preferences -> Advanced). 
+If you are running into build/test failures with Go that report "signal killed", you
+likely need to increase Docker's allocated resources.
 
 ![Increasing docker engine resources](assets/docker-config.png)
 
