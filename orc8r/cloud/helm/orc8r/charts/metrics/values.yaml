@@ -111,8 +111,8 @@ prometheusConfigurer:
   prometheusURL: "orc8r-prometheus:9090"
 
   image:
-    repository:
-    tag:
+    repository: docker.io/facebookincubator/prometheus-configurer
+    tag: 1.0.3
     pullPolicy: IfNotPresent
 
   resources: {}
@@ -150,8 +150,8 @@ alertmanagerConfigurer:
   alertmanagerURL: "orc8r-alertmanager:9093"
 
   image:
-    repository:
-    tag:
+    repository: docker.io/facebookincubator/alertmanager-configurer
+    tag: 1.0.3
     pullPolicy: IfNotPresent
 
   resources: {}
@@ -183,8 +183,8 @@ prometheusCache:
         targetPort: 9091
 
   image:
-    repository:
-    tag:
+    repository: docker.io/facebookincubator/prometheus-edge-hub
+    tag: 1.0.0
     pullPolicy: IfNotPresent
 
   # Maximum number of datapoints in the cache at one time. Unlimited if <= 0.
