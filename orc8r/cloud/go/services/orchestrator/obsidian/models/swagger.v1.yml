@@ -1561,6 +1561,7 @@ definitions:
           type: string
         example: ["4.9.0-6-amd64", "4.9.0-7-amd64"]
         description: deprecated
+
   ping_request:
     type: object
     required:
@@ -1649,6 +1650,7 @@ definitions:
         type: string
         minLength: 1
         example: magmad
+
   disk_partition:
     type: object
     properties:
@@ -1675,6 +1677,7 @@ definitions:
         example: 15482871808
         type: integer
         format: uint64
+
   system_status:
     type: object
     properties:
@@ -1733,6 +1736,7 @@ definitions:
       version:
         type: string
         example: 0.0.0
+
   config_info:
     type: object
     properties:
@@ -1740,6 +1744,7 @@ definitions:
         type: integer
         format: uint64
         example: 1552968732
+
   platform_info:
     type: object
     properties:
@@ -1763,6 +1768,7 @@ definitions:
         example: ["4.9.0-6-amd64", "4.9.0-7-amd64"]
       config_info:
         $ref: '#/definitions/config_info'
+
   network_interface:
     type: object
     properties:
@@ -1794,6 +1800,7 @@ definitions:
           type: string
         example: ['fe80::a00:27ff:fe1e:8332', 'fe80::a00:27ff:fe1e:8432']
         x-go-custom-tag: 'magma_alt_name:"Ipv6Addresses"'
+
   route:
     type: object
     properties:
@@ -1812,6 +1819,7 @@ definitions:
         type: string
         example: gtp_br0
         x-go-custom-tag: 'magma_alt_name:"NetworkInterfaceId"'
+
   machine_info:
     type: object
     properties:
@@ -1845,6 +1853,7 @@ definitions:
             x-omitempty: true
             items:
               $ref: '#/definitions/route'
+
   channel_id:
     type: string
     minLength: 1
@@ -1866,6 +1875,7 @@ definitions:
         type: array
         items:
           type: string
+
   tier:
     type: object
     required:
@@ -1884,6 +1894,7 @@ definitions:
         $ref: '#/definitions/tier_images'
       gateways:
         $ref: '#/definitions/tier_gateways'
+
   tier_image:
     type: object
     required:
@@ -1894,17 +1905,21 @@ definitions:
         type: string
       order:
         type: integer
+
   tier_name:
     type: string
     example: "Default Tier"
+
   tier_version:
     type: string
     minLength: 1
     example: "0.3.14-123456789-deadbeef"
+
   tier_images:
     type: array
     items:
       $ref: '#/definitions/tier_image'
+
   tier_gateways:
     type: array
     uniqueItems: true

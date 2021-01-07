@@ -14,9 +14,11 @@ limitations under the License.
 package main
 
 import (
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/ctraced"
+	"magma/orc8r/cloud/go/services/ctraced/obsidian/handlers"
 
 	"github.com/golang/glog"
 )
@@ -27,6 +29,8 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating ctraced service: %s", err)
 	}
+
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 
 	// Run service
 	err = srv.Run()

@@ -18,7 +18,7 @@
 
 - name: Add fluent bit repo to /etc/apt/sources.list
   apt_repository:
-    repo: deb https://packages.fluentbit.io/debian/stretch stretch main
+    repo: deb https://packages.fluentbit.io/{{ ansible_distribution|lower}}/{{ ansible_distribution_release }} {{ ansible_distribution_release }} main
     state: present
   when: preburn
 

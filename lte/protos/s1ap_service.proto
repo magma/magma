@@ -19,10 +19,12 @@ package magma.lte;
 
 option go_package = "magma/lte/cloud/go/protos";
 
-message EnbConnectedResult {
-    repeated uint32 enb_ids = 1;
+service S1apService {
+    // Returns state of the S1 connected eNBs
+    rpc GetENBState (magma.orc8r.Void) returns (EnbStateResult) {}
 }
 
-service S1apService {
-    rpc GetEnbConnected (magma.orc8r.Void) returns (EnbConnectedResult) {}
+// enb_state_map { eNB IDs -> # UEs connected }
+message EnbStateResult {
+    map<uint32, uint32> enb_state_map = 1;
 }
