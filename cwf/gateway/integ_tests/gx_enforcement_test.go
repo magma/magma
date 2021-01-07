@@ -154,7 +154,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	err = ruleManager.AddBaseNameMappingToDB("base-1", []string{"static-pass-all-3"})
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
+	usageMonitorInfo := getUsageInformation("mkey1", 2*MegaBytes)
 
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
@@ -171,7 +171,12 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-1", "static-pass-all-3"), time.Minute, 2*time.Second)
 
 	// Pass a small amount, but not enough to trigger a CCR-U
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "100K"}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi: imsi,
+		Volume: &wrappers.StringValue{Value: "1M"},
+		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Timeout: 30,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
@@ -185,7 +190,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
-		SetUsageReportDelta(250 * KiloBytes * 0.5).
+		SetUsageReportDelta(1 * MegaBytes).
 		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo).
 		SetStaticRuleInstalls([]string{"static-pass-all-2"}, []string{}).
@@ -197,6 +202,12 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	fmt.Println("Generating traffic again to trigger a CCR/A-U so that 'static-pass-all-1' gets removed")
 	// Generate traffic to trigger the CCR-U so that the rule removal/install happens
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi: imsi,
+		Volume: &wrappers.StringValue{Value: "1M"},
+		Bitrate: &wrappers.StringValue{Value: "20M"},
+		Timeout: 60,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
@@ -204,6 +215,12 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-2"), 1*time.Minute, 2*time.Second)
 
 	fmt.Println("Generating traffic again to put data through static-pass-all-2")
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi: imsi,
+		Volume: &wrappers.StringValue{Value: "1M"},
+		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Timeout: 30,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	assert.Eventually(t,

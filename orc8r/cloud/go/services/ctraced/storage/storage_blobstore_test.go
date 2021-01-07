@@ -154,3 +154,38 @@ func TestCtracedBlobstoreStorage_StoreCallTrace(t *testing.T) {
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
 }
+
+func TestCtracedBlobstoreStorage_DeleteCallTrace(t *testing.T) {
+	var blobFactMock *mocks.BlobStorageFactory
+	var blobStoreMock *mocks.TransactionalBlobStorage
+	someErr := errors.New("generic error")
+
+	ctid := "some_call_trace"
+	tk := storage.TypeAndKey{Type: cstorage.CtracedBlobType, Key: ctid}
+	tkSet := []storage.TypeAndKey{tk}
+
+	// Fail to start transaction
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := cstorage.NewCtracedBlobstore(blobFactMock)
+
+	err := store.DeleteCallTrace(placeholderNetworkID, ctid)
+	assert.Error(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// Success
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Delete", placeholderNetworkID, tkSet).Return(nil).Once()
+	blobStoreMock.On("Commit").Return(nil).Once()
+	store = cstorage.NewCtracedBlobstore(blobFactMock)
+
+	err = store.DeleteCallTrace(placeholderNetworkID, ctid)
+	assert.NoError(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+}

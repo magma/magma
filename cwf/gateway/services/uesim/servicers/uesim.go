@@ -339,6 +339,7 @@ func checkIperfServerReachability() (bool, error) {
 	argList := []string{"1s", "iperf3", "--json", "-c", trafficSrvIP, "-R", "-n", "10", "-l", "2"}
 
 	// run timeout command but ignore error since timeout always produce an error
+	glog.V(5).Info("Check iperf reachability: timeout ", argList)
 	cmd := exec.Command("timeout", argList...)
 	cmd.Dir = "/usr/bin"
 	output, _ := cmd.Output()
@@ -347,6 +348,8 @@ func checkIperfServerReachability() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("Could not parse response from server reach-ability: %s", err)
 	}
+	glog.V(7).Infof(PrettyPrintIperfResponse(output))
+
 	if totalBytes == 0 {
 		return false, nil
 	}

@@ -32,17 +32,23 @@
     - redis
     - pipelined
     - redirectd
-    - envoy
     - envoy_controller
     # Manhattan services
     - lighttpd
     - sessiond
+    - connectiond
   when: full_provision
 
 - name: Copy sctpd service file
   copy:
     src: systemd/sctpd.service
     dest: /etc/systemd/system/sctpd.service
+  when: full_provision
+
+- name: Copy envoy service file
+  copy:
+    src: systemd/magma_dp_envoy.service
+    dest: /etc/systemd/system/magma_dp@envoy.service
   when: full_provision
 
 - name: Copy logrotate config file
@@ -114,6 +120,10 @@
   file: src='{{ c_build }}/dpi/dpid' path=/usr/local/bin/dpid state=link force=yes follow=no
   when: full_provision
 
+- name: Create symlink for connectiond binary
+  file: src='{{ c_build }}/connection_tracker/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
+  when: full_provision
+
 - name: Create symlink for corefile collection script
   file: src='{{ magma_root }}/lte/gateway/deploy/roles/magma/files/coredump' path=/usr/local/bin/coredump state=link force=yes follow=no
   when: full_provision
@@ -145,12 +155,13 @@
   when: full_provision
 
 - name: Install OpenAirInterface (OAI) dependencies
+  retries: 5
+  when: preburn
   apt:
     state: present
     update_cache: yes
     pkg:
       - check
-      - libconfig8-dev
       - libgtest-dev
       - liblfds710
       - google-mock
@@ -163,15 +174,42 @@
       - oai-freediameter
       - prometheus-cpp-dev
       - libczmq-dev
+
+- name: Fix vport-gtp kernel module for Ubuntu Focal
+  when: ansible_distribution == "Ubuntu"
+  become: yes
+  block:
+    - shell: rmmod openvswitch
+      ignore_errors: yes
+    - shell: modprobe vport-gtp
+      ignore_errors: yes
+
+- name: Install Debian Magma gateway dev dependencies
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libconfig8-dev
+
+- name: Install Ubuntu Magma gateway dev dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libconfig-dev
 
 - name: Overwrite linux 4.9 GTP module with patched module
   apt: pkg=oai-gtp=4.9-5 state=present update_cache=yes dpkg_options=force-overwrite
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
 
-- name: Install Magma dependencies
+- name: Install common Magma dependencies
+  retries: 5
+  when: preburn
   apt:
     state: present
     update_cache: yes
@@ -179,10 +217,8 @@
       # install prometheus
       - prometheus-cpp-dev
       # install openvswitch
-      - openvswitch-datapath-module-4.9.0-9-amd64
       - openvswitch-switch
       - openvswitch-test
-      - python-openvswitch
       - magma-libfluid
       # install lxml
       - python3-lxml
@@ -194,7 +230,6 @@
       - libfolly-dev
       - libdouble-conversion-dev
       - libboost-chrono-dev
-      - nlohmann-json-dev
       - redis-server
       - python-redis
       - magma-cpp-redis
@@ -202,16 +237,36 @@
       - ntpdate
       # For call tracing
       - tshark
+
+- name: Install debian Magma dependencies
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - openvswitch-datapath-module-4.9.0-9-amd64
+      - python-openvswitch
+      - nlohmann-json-dev
+
+- name: Install ubuntu Magma dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - python3-openvswitch
+      - nlohmann-json3-dev
 
 - name: Copy the gtp interface initialization definition
   copy:
     src: magma_ifaces_gtp
     dest: /etc/network/interfaces.d/gtp
-  when: full_provision
+  when: full_provision and ansible_distribution == "Debian"
 
 - name: Preload the GTP module
+  ignore_errors: yes
   modprobe:
     name: gtp
     state: present
@@ -239,6 +294,7 @@
 
 - name: Install gmock and gtest for C++ testing
   become: yes
+  ignore_errors: yes
   shell: cmake CMakeLists.txt && make && cp *.a /usr/lib
   args:
     chdir: /usr/src/{{ item }}
@@ -280,12 +336,14 @@
   when: preburn
 
 - name: Restart networking to bring up linux bridge
+  ignore_errors: yes
   service:
     name: networking
     state: restarted
   when: full_provision
 
 - name: Bring up ovs bridge
+  ignore_errors: yes
   shell: ifup --allow=ovs {{ item }}
   with_items:
     - gtp_br0
@@ -293,6 +351,7 @@
   when: full_provision
 
 - name: Bring up interfaces
+  ignore_errors: yes
   shell: ifup {{ item }}
   with_items:
     - eth0

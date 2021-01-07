@@ -27,7 +27,7 @@ extern "C" {
 
 using grpc::ServerContext;
 using grpc::Status;
-using magma::EnbConnectedResult;
+using magma::EnbStateResult;
 using magma::S1apService;
 
 namespace magma {
@@ -36,9 +36,9 @@ using namespace orc8r;
 
 S1apServiceImpl::S1apServiceImpl() {}
 
-Status S1apServiceImpl::GetEnbConnected(
-    ServerContext* context, const Void* request, EnbConnectedResult* response) {
-  OAILOG_DEBUG(LOG_UTIL, "Received EnbConnected GRPC request\n");
+Status S1apServiceImpl::GetENBState(
+    ServerContext* context, const Void* request, EnbStateResult* response) {
+  OAILOG_DEBUG(LOG_UTIL, "Received GetENBState GRPC request\n");
 
   // Get state from S1APStateManager
   // TODO: Get state through ITTI message from S1AP task, as it's read only
@@ -56,7 +56,8 @@ Status S1apServiceImpl::GetEnbConnected(
       ht_rc = hashtable_ts_get(
           &s1ap_state->enbs, (hash_key_t) ht_keys->keys[i], (void**) &enb_ref);
       if (ht_rc == HASH_TABLE_OK) {
-        response->add_enb_ids(enb_ref->enb_id);
+        (*response->mutable_enb_state_map())[enb_ref->enb_id] =
+            enb_ref->nb_ue_associated;
       }
     }
     FREE_HASHTABLE_KEY_ARRAY(ht_keys);

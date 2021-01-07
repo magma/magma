@@ -49,10 +49,7 @@ orc8r/cloud/test_certs/*.srl
 orc8r/cloud/test_certs/*.pfx
 
 # Ignore generated swagger file
-orc8r/cloud/docker/controller/apidocs/swagger.yml
-orc8r/cloud/docker/controller/apidocs/temp
-orc8r/cloud/docker/controller/apidocs/v1/swagger.yml
-orc8r/cloud/docker/controller/apidocs/v1/temp
+orc8r/cloud/docker/controller/apidocs/v1/tmp
 
 # Ignore apt/build cache
 .cache/*
