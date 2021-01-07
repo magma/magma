@@ -25,7 +25,7 @@ brew install go@1.13 pyenv
 # Replace .zshrc with your appropriate shell RC file
 # IMPORTANT: Use .bash_profile, not .bashrc for bash
 echo 'export PATH="/usr/local/opt/go@1.13/bin:$PATH"' >> ~/.zshrc
-echo -e 'if command -v pyenv 1>/dev/null 2>&1; then eval "$(pyenv init -)"; fi' >> ~/.zshrc
+echo 'if command -v pyenv 1>/dev/null 2>&1; then eval "$(pyenv init -)"; fi' >> ~/.zshrc
 exec $SHELL
 pyenv install 3.7.3
 pyenv global 3.7.3
