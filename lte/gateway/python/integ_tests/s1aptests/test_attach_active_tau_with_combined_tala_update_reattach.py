@@ -106,8 +106,9 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
         )
 
         print(
-            "************************* Waiting for UE context release "
-            "indication"
+            "************************* TAU request was received by UE in idle "
+            "mode. So, UE state should again be set to idle after handling TAU"
+            " message. Waiting for UE context release indication"
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
