@@ -116,7 +116,7 @@ MAGMA_DEPS=(
     "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
     "libtins-dev" # required for Connection tracker
-    "libml-dev" # required for Connection tracker
+    "libmnl-dev" # required for Connection tracker
     "getenvoy-envoy" # for envoy dep
     )
 
