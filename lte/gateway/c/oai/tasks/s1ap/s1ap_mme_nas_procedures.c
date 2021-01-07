@@ -1046,8 +1046,8 @@ void s1ap_handle_conn_est_cnf(
         S1ap_InitialContextSetupRequestIEs__value_PR_UERadioCapability;
     OCTET_STRING_fromBuf(
         &ie->value.choice.UERadioCapability,
-        (const char*) conn_est_cnf_pP->ue_radio_capability,
-        conn_est_cnf_pP->ue_radio_cap_length);
+        (const char*) conn_est_cnf_pP->ue_radio_capability->data,
+        conn_est_cnf_pP->ue_radio_capability->slen);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
   }
 
