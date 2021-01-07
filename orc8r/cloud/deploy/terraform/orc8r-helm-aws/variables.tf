@@ -300,3 +300,43 @@ variable "thanos_store_node_selector" {
   type = string
   default = ""
 }
+
+##############################################################################
+# Analytics Service
+##############################################################################
+variable "analytics_export_enabled" {
+  description = "Deploy thanos components and object storage"
+  type        = bool
+  default     = false
+}
+
+variable "analytics_metrics_prefix" {
+  description = "Bucket name for s3 object storage. Must be globally unique"
+  type        = string
+  default     = ""
+}
+
+variable "analytics_app_secret" {
+  description = "App secret for which the metrics is to be exported to"
+  type = string
+  default = ""
+}
+
+
+variable "analytics_app_id" {
+  description = "App ID for which the metrics is to be exported to"
+  type = string
+  default = ""
+}
+
+variable "analytics_metric_export_url" {
+  description = "Metric Export URL"
+  type = string
+  default = ""
+}
+
+variable "analytics_category_name" {
+  description = "Category under which the exported metrics will be placed under"
+  type = string
+  default = "magma"
+}
