@@ -32,7 +32,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include <functional>
 
 #include <google/protobuf/map.h>
 
