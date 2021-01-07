@@ -114,6 +114,7 @@ s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
 s1aptests/test_attach_asr.py \
@@ -129,7 +130,6 @@ s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 # Enable these tests once the CI job time-out has increased

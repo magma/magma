@@ -27,11 +27,16 @@ class TestRestoreMMEConfigAfterSanity(unittest.TestCase):
         magmad_client = MagmadServiceGrpc()
         self._magmad_util = MagmadUtil(magmad_client)
 
+        # Disabling stateless mode of AGW
+        print("Disabling stateless mode")
+        self._magmad_util.config_stateless(MagmadUtil.stateless_cmds.DISABLE)
+
         # Replace mme.conf.template with backup of this config file. Backup of
         # this config file with default values is created when running the
         # test script s1aptests/test_modify_mme_config_for_sanity.py
         print(
-            "Restoring MME configuration to default values using backup configuration file"
+            "Restoring MME configuration to default values using backup "
+            "configuration file"
         )
         self._magmad_util.update_mme_config_for_sanity(
             MagmadUtil.config_update_cmds.RESTORE
