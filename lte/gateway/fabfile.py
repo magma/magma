@@ -96,7 +96,7 @@ def package(vcs='hg', all_deps="False",
 
         print("Building magma package, picking up commit %s..." % hash)
         run('make clean')
-        build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
+        build_type = "RelWithDebInfo"
         run('./release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s' %
             (hash, build_type, cert_file, proxy_config))
 
