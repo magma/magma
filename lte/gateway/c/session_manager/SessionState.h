@@ -27,6 +27,7 @@
 #include "Monitor.h"
 #include "ChargingGrant.h"
 #include "Types.h"
+#define SESSION_THROTTLE_CNT 3
 
 namespace magma {
 using std::experimental::optional;
@@ -92,7 +93,7 @@ class SessionState {
 
     typedef struct tNodeId {
       upfNodeType node_id_type;
-      char node_id[40];
+      std::string node_id;
     } NodeId;
 
     typedef struct Fseid {
@@ -148,21 +149,33 @@ class SessionState {
 
   /* methods of new messages of 5G and handle other message*/
   uint32_t get_current_version();
-
+  /* method to set update the session current version */
   void set_current_version(
-      int new_session_version, SessionStateUpdateCriteria& uc);
+      uint32_t new_session_version, SessionStateUpdateCriteria& uc);
 
-  void insert_pdr(SetGroupPDR* rule);
+  /* method to add new PDR rules to session */
+  void insert_pdr(
+      SetGroupPDR* rule, SessionStateUpdateCriteria& session_uc, bool crit_add);
 
-  void set_remove_all_pdrs();
+  /* method to change the PDR state */
+  void set_all_pdrs(enum PdrState);
 
-  void insert_far(SetGroupFAR* rule);
+  int32_t pdr_index(uint32_t pdr_index);
 
-  void remove_all_rules();
+  /* method to search specific pdr id existence */
+  bool search_pdr(unsigned int id);
 
+  /* method to reset retransmit  count */
+  void reset_rtx_counter();
+
+  /* method to increment retransmit count every time we resend*/
+  bool inc_rtx_counter();
+
+  /* method to remove all pdrs */
+  void remove_all_rules(SessionStateUpdateCriteria& session_uc);
+
+  /* method to get all associated PDR vector */
   std::vector<SetGroupPDR>& get_all_pdr_rules();
-
-  std::vector<SetGroupFAR>& get_all_far_rules();
 
   /**
    * Updates rules to be scheduled, active, or removed, depending on the
@@ -250,12 +263,18 @@ class SessionState {
   ChargingCreditSummaries get_charging_credit_summaries();
 
   std::string get_session_id() const;
-  uint32_t get_local_teid() const;
-  void set_local_teid(uint32_t teid, SessionStateUpdateCriteria& uc);
+  std::string get_subscriber_id() const;
+  uint32_t get_pdu_id() const;
+
+  uint32_t get_upf_local_teid() const;
+  void set_upf_teid_endpoint(
+      const std::string ip_addr, uint32_t teid, SessionStateUpdateCriteria& uc);
 
   SubscriberQuotaUpdate_Type get_subscriber_quota_state() const;
 
   bool is_radius_cwf_session() const;
+
+  bool is_5g_session() const;
 
   void get_session_info(SessionState::SessionInfo& info);
 
@@ -557,7 +576,6 @@ class SessionState {
  private:
   std::string imsi_;
   std::string session_id_;
-  uint32_t local_teid_;
   uint32_t request_number_;
   SessionFsmState curr_state_;
   SessionConfig config_;
@@ -565,6 +583,8 @@ class SessionState {
   uint64_t pdp_end_time_;
   /*5G related message to handle session state context */
   uint32_t current_version_;  // To compare with incoming session version
+  // SMF-UPF version missmatch, max re-sending throttle count
+  uint32_t rtx_counter_;
   // All 5G specific rules
   // use as shared_ptr to check
   std::vector<SetGroupPDR> PdrList_;

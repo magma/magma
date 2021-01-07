@@ -10,7 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "SessionState.h"
+#include "StoredState.h"
+#include "CreditKey.h"
+#include "EnumToString.h"
+#include "RuleStore.h"
+#include "MetricsHelpers.h"
+#include "magma_logging.h"
+#include "Utilities.h"
+#include "DiameterCodes.h"
 #include <functional>
 #include <string>
 #include <unordered_set>
@@ -18,16 +26,12 @@
 #include <vector>
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
-
-#include "CreditKey.h"
-#include "EnumToString.h"
-#include "RuleStore.h"
-#include "SessionState.h"
-#include "StoredState.h"
-#include "MetricsHelpers.h"
-#include "magma_logging.h"
-#include "Utilities.h"
-#include "DiameterCodes.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdint>
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
@@ -42,6 +46,8 @@ const char* DIRECTION_DOWN          = "down";
 const char* LABEL_SESSION_ID        = "session_id";
 }  // namespace
 
+// Part of main routine read from config file
+uint32_t session_max_rtx_count;
 using magma::service303::increment_counter;
 using magma::service303::remove_counter;
 
@@ -64,7 +70,6 @@ StoredSessionState SessionState::marshal() {
   marshaled.config     = config_;
   marshaled.imsi       = imsi_;
   marshaled.session_id = session_id_;
-  marshaled.local_teid = local_teid_;
   // 5G session version handling
   marshaled.current_version         = current_version_;
   marshaled.subscriber_quota_state  = subscriber_quota_state_;
@@ -98,7 +103,7 @@ StoredSessionState SessionState::marshal() {
     marshaled.static_rule_ids.push_back(rule_id);
   }
   for (auto& rule : PdrList_) {
-    marshaled.PdrList.push_back(rule);
+    marshaled.pdr_list.push_back(rule);
   }
 
   std::vector<PolicyRule> dynamic_rules;
@@ -127,7 +132,6 @@ SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
     : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
-      local_teid_(marshaled.local_teid),
       request_number_(marshaled.request_number),
       curr_state_(marshaled.fsm_state),
       config_(marshaled.config),
@@ -135,6 +139,8 @@ SessionState::SessionState(
       pdp_end_time_(marshaled.pdp_end_time),
       // 5G session version handlimg
       current_version_(marshaled.current_version),
+      // SMF-UPF version missmatch, max re-sending throttle count
+      rtx_counter_(0),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
       create_session_response_(marshaled.create_session_response),
@@ -164,7 +170,7 @@ SessionState::SessionState(
   for (auto& rule : marshaled.dynamic_rules) {
     dynamic_rules_.insert_rule(rule);
   }
-  for (auto& rule : marshaled.PdrList) {
+  for (auto& rule : marshaled.pdr_list) {
     PdrList_.push_back(rule);
   }
   for (const std::string& rule_id : marshaled.scheduled_static_rules) {
@@ -188,13 +194,13 @@ SessionState::SessionState(
     const CreateSessionResponse& csr)
     : imsi_(imsi),
       session_id_(session_id),
-      local_teid_(0),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
       config_(cfg),
       pdp_start_time_(pdp_start_time),
       pdp_end_time_(0),
+      rtx_counter_(0),
       tgpp_context_(tgpp_context),
       create_session_response_(csr),
       static_rules_(rule_store),
@@ -211,13 +217,13 @@ SessionState::SessionState(
     const SessionConfig& cfg, StaticRuleStore& rule_store)
     : imsi_(imsi),
       session_id_(session_ctx_id),
-      local_teid_(0),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       /*current state would be CREATING and version would be 0 */
       curr_state_(CREATING),
       config_(cfg),
       current_version_(0),
+      rtx_counter_(0),
       static_rules_(rule_store) {}
 
 /* get-set methods of new messages  for 5G*/
@@ -225,25 +231,60 @@ uint32_t SessionState::get_current_version() {
   return current_version_;
 }
 
+/* method to set update the session current version */
 void SessionState::set_current_version(
-    int new_session_version, SessionStateUpdateCriteria& session_uc) {
+    uint32_t new_session_version, SessionStateUpdateCriteria& session_uc) {
   current_version_                      = new_session_version;
   session_uc.is_current_version_updated = true;
   session_uc.updated_current_version    = new_session_version;
-  MLOG(MINFO) << " Current version is " << get_current_version();
-}
-/* Add PDR rule to this rules session list */
-void SessionState::insert_pdr(SetGroupPDR* rule) {
-  PdrList_.push_back(*rule);
+  MLOG(MDEBUG) << " Current version is " << get_current_version();
 }
 
-void SessionState::set_remove_all_pdrs() {
+/* Add PDR rule to this rules session list */
+void SessionState::insert_pdr(
+    SetGroupPDR* rule, SessionStateUpdateCriteria& session_uc, bool crit_add) {
+  // Check if it already exists
+  int32_t Pdr_index;
+  Pdr_index = pdr_index(rule->pdr_id());
+  if (Pdr_index != -1) {
+    // Update the existing value
+    PdrList_.at(Pdr_index) = *rule;
+  } else {
+    // Insert the rule
+    PdrList_.push_back(*rule);
+  }
+  // update criteria to be updated
+  if (crit_add) session_uc.pdrs_to_install.push_back(*rule);
+}
+
+/* method to change the PDR state */
+void SessionState::set_all_pdrs(enum PdrState pdr_state) {
   for (auto& rule : PdrList_) {
-    rule.set_pdr_state(PdrState::REMOVE);
+    rule.set_pdr_state(pdr_state);
   }
 }
-/* Remove all Pdr, FAR rules */
-void SessionState::remove_all_rules() {
+
+int32_t SessionState::pdr_index(uint32_t id) {
+  int count = 0;
+  for (auto& rule : PdrList_) {
+    if (rule.pdr_id() == id) return count;
+    count++;
+  }
+  return -1;
+}
+
+/* method to search specific pdr id existence */
+bool SessionState::search_pdr(unsigned int id) {
+  for (auto& rule : PdrList_) {
+    if (rule.pdr_id() == id) return true;
+  }
+  return false;
+}
+
+/* Remove all PDR, FAR rules */
+void SessionState::remove_all_rules(SessionStateUpdateCriteria& session_uc) {
+  session_uc.clear_pdr_list = true;
+  // No update criteria need for now
   PdrList_.clear();
 }
 
@@ -252,6 +293,7 @@ std::vector<SetGroupPDR>& SessionState::get_all_pdr_rules() {
   return PdrList_;
 }
 
+/* method to get current session state */
 SessionFsmState SessionState::get_state() {
   return curr_state_;
 }
@@ -281,18 +323,19 @@ magma::lte::Fsm_state_FsmState SessionState::get_proto_fsm_state() {
 
 /*temporary copy to be removed after upf node code completes */
 void SessionState::sess_infocopy(struct SessionInfo* info) {
-  // Static SessionInfo vlaue till UPF node value implementation
   // gets stablized.
-  std::string imsi_num;
-  // TODO we cud eventually  migrate to SMF-UPF proto enum directly.
+  // we eventually  migrate to SMF-UPF proto enum directly.
   info->state = get_proto_fsm_state();
   info->subscriber_id.assign(imsi_);
   info->ver_no              = get_current_version();
+  info->local_f_teid        = get_upf_local_teid();
   info->nodeId.node_id_type = SessionInfo::IPv4;
-  strcpy(info->nodeId.node_id, "192.168.2.1");
-  /* TODO below to be changed after UPF node association message
-   * completes . Revisit
-   */
+  info->Pdr_rules_          = get_all_pdr_rules();
+  if (!info->Pdr_rules_.empty()) {
+    // Get the UE ip address from first rule
+    auto& rule    = info->Pdr_rules_.front();
+    info->ip_addr = rule.pdi().ue_ip_adr();
+  }
 }
 
 void SessionState::set_teids(uint32_t enb_teid, uint32_t agw_teid) {
@@ -332,10 +375,6 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
 
   if (uc.is_current_version_updated) {
     current_version_ = uc.updated_current_version;
-  }
-
-  if (uc.is_local_teid_updated) {
-    local_teid_ = uc.local_teid_updated;
   }
 
   if (uc.is_pending_event_triggers_updated) {
@@ -423,7 +462,19 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   for (const auto& rule_id : uc.gy_dynamic_rules_to_uninstall) {
     gy_dynamic_rules_.remove_rule(rule_id, nullptr);
   }
-
+  // Converged 5G rules to install
+  for (const auto& rule : uc.pdrs_to_install) {
+    int32_t Pdr_index;
+    Pdr_index = pdr_index(rule.pdr_id());
+    if (Pdr_index != -1) {
+      // Update the existing value
+      PdrList_.at(Pdr_index) = rule;
+    } else {
+      // Insert the rule
+      PdrList_.push_back(rule);
+    }
+  }
+  if (uc.clear_pdr_list) PdrList_.clear();
   // Charging credit
   for (const auto& it : uc.charging_credit_map) {
     auto key           = it.first;
@@ -800,19 +851,80 @@ std::string SessionState::get_session_id() const {
   return session_id_;
 }
 
+std::string SessionState::get_subscriber_id() const {
+  return config_.common_context.sid().id();
+}
+
+uint32_t SessionState::get_pdu_id() const {
+  return config_.rat_specific_context.m5gsm_session_context().pdu_session_id();
+}
+
 SessionConfig SessionState::get_config() const {
   return config_;
 }
 
-uint32_t SessionState::get_local_teid() const {
-  return local_teid_;
+uint32_t SessionState::get_upf_local_teid() const {
+#if 0
+  char teidar[10];
+  union mix_t {
+    std::uint32_t theDWord;
+    std::uint8_t theBytes[4];
+  };
+  mix_t aVal;
+
+  // Retrieve value
+  std::string teids = config_.rat_specific_context.m5gsm_session_context()
+                          .upf_endpoint()
+                          .teid();
+  uint32_t len = teids.length();
+  memset(teidar, '\0', 10);
+  memcpy(&teidar[0], &teids[0], len);
+  bool byte_zero_skip = true;
+  for (int i = 0; i < 4; ++i) {
+    if (byte_zero_skip && (!teidar[i])) continue;
+    // Rest continue;
+    byte_zero_skip   = false;
+    aVal.theBytes[i] = uint32_t(teidar[i]);
+  }
+  return ntohl(aVal.theDWord);
+#endif
+  return config_.rat_specific_context.m5gsm_session_context()
+      .upf_endpoint()
+      .teid_value();
 }
 
-void SessionState::set_local_teid(
-    uint32_t teid, SessionStateUpdateCriteria& uc) {
-  local_teid_              = teid;
-  uc.is_local_teid_updated = true;
-  uc.local_teid_updated    = teid;
+void SessionState::set_upf_teid_endpoint(
+    const std::string ip_addr, uint32_t teid, SessionStateUpdateCriteria& uc) {
+  char teidar[5];
+  in_addr upfip;
+  // lets do this tei_value as well here
+  config_.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_upf_endpoint()
+      ->set_teid_value(teid);
+  teid = htonl(teid);
+  memset(teidar, '\0', 5);
+  for (int i = 3; i >= 0; i--) {
+    teidar[i] = (teid & 0x000000FF);
+    teid >>= 8;
+  }
+  // Let set UPF TEID
+  config_.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_upf_endpoint()
+      ->set_teid(teidar);
+  // Lets set the UPF endpoint ip address
+  memset(teidar, '\0', 5);
+  inet_aton(ip_addr.c_str(), &upfip);
+  upfip.s_addr = htonl(upfip.s_addr);
+  for (int i = 3; i >= 0; i--) {
+    teidar[i] = (upfip.s_addr & 0x000000FF);
+    upfip.s_addr >>= 8;
+  }
+  // Let set UPF ip first
+  config_.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_upf_endpoint()
+      ->set_end_ipv4_addr(teidar);
+  uc.updated_config    = config_;
+  uc.is_config_updated = true;
   return;
 }
 
@@ -822,6 +934,10 @@ void SessionState::set_config(const SessionConfig& config) {
 
 bool SessionState::is_radius_cwf_session() const {
   return (config_.common_context.rat_type() == RATType::TGPP_WLAN);
+}
+
+bool SessionState::is_5g_session() const {
+  return (config_.common_context.rat_type() == RATType::TGPP_NR);
 }
 
 void SessionState::get_session_info(SessionState::SessionInfo& info) {
@@ -1160,11 +1276,16 @@ bool SessionState::is_active() {
 void SessionState::set_fsm_state(
     SessionFsmState new_state, SessionStateUpdateCriteria& uc) {
   // Only log and reflect change into update criteria if the state is new
+  uint32_t local_teid_ = get_upf_local_teid();
   if (curr_state_ != new_state) {
-    MLOG(MDEBUG) << "Session " << session_id_ << " Teid " << local_teid_
+    MLOG(MDEBUG) << "Session id: " << session_id_ << " Teid: " << local_teid_
                  << " FSM state change from "
                  << session_fsm_state_to_str(curr_state_) << " to "
-                 << session_fsm_state_to_str(new_state);
+                 << session_fsm_state_to_str(new_state)
+                 << " of imsi: " << get_subscriber_id();
+    if (is_5g_session()) {
+      MLOG(MDEBUG) << " 5G specific-PDU Id: " << get_pdu_id();
+    }
     curr_state_          = new_state;
     uc.is_fsm_updated    = true;
     uc.updated_fsm_state = new_state;
@@ -2281,6 +2402,19 @@ void SessionState::clear_session_metrics() {
   remove_counter(
       UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi.c_str(),
       LABEL_SESSION_ID, session_id_.c_str(), LABEL_DIRECTION, DIRECTION_DOWN);
+}
+/*
+ * If UPF received session version doesn't match with SMF local
+ * session version no, then we continue to resend till SESSION_THROTTLE_CNT
+ * reaches
+ */
+bool SessionState::inc_rtx_counter() {
+  return rtx_counter_++ < session_max_rtx_count;
+}
+
+/* Reset sesison throttle count */
+void SessionState::reset_rtx_counter() {
+  rtx_counter_ = 0;
 }
 
 CreateSessionResponse SessionState::get_create_session_response() {

@@ -168,7 +168,7 @@ message FlowQos {
     QCI_6 = 6;
     QCI_7 = 7;
     QCI_8 = 8;
-    QCI_9 = 9;
+    QCI_9 = 9; 
     QCI_65 = 65;
     QCI_66 = 66;
     QCI_67 = 67;
