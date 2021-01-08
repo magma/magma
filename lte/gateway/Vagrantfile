@@ -149,7 +149,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     config.vm.provider :libvirt do |domain, override|
-      override.vm.synced_folder "../..", "/home/vagrant/magma", type: 'nfs', linux__nfs_options: ['rw','no_subtree_check','no_root_squash']
+      override.vm.synced_folder "../..", "/home/vagrant/magma", type: 'nfs', linux__nfs_options: ['rw','no_subtree_check', 'no_root_squash']
       domain.uri = "qemu+unix:///system"
       domain.memory = 1024
       domain.cpus = 1

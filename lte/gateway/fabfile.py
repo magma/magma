@@ -237,10 +237,15 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         env.hosts = [gateway_host]
     execute(_oai_coverage)
 
+
 def run_integ_tests():
+    """
+    Function is required to run tests only in pre-configured Jenkins env.
+    """
     test_host = vagrant_setup("magma_test", destroy_vm=False)
     gateway_ip = '192.168.60.142'
     execute(_run_integ_tests, gateway_ip)
+
 
 def get_test_logs(gateway_host=None,
                   test_host=None,
