@@ -36,6 +36,7 @@ setup(
         'magma.monitord',
         'magma.pipelined',
         'magma.pipelined.app',
+        'magma.pipelined.ng_manager',
         'magma.pipelined.openflow',
         'magma.pipelined.qos',
         'magma.pkt_tester',
