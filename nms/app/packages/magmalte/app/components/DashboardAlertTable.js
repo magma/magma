@@ -13,11 +13,15 @@
  * @flow strict-local
  * @format
  */
-import type {prom_firing_alert} from '@fbcnms/magma-api';
+import type {prom_alert_labels, prom_firing_alert} from '@fbcnms/magma-api';
 
 import ActionTable from './ActionTable';
 import CardTitleRow from './layout/CardTitleRow';
+import Chip from '@material-ui/core/Chip';
+import ErrorIcon from '@material-ui/icons/Error';
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import Grid from '@material-ui/core/Grid';
+import InfoIcon from '@material-ui/icons/Info';
 import Link from '@material-ui/core/Link';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
@@ -26,6 +30,7 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
+import WarningIcon from '@material-ui/icons/Warning';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
@@ -49,6 +54,11 @@ const useStyles = makeStyles(theme => ({
       marginLeft: '4px',
     },
   },
+  tabLabel: {
+    padding: '4px 0 4px 0',
+    display: 'flex',
+    alignItems: 'center',
+  },
   emptyTable: {
     backgroundColor: colors.primary.white,
     padding: theme.spacing(4),
@@ -65,6 +75,14 @@ const useStyles = makeStyles(theme => ({
   },
   rowText: {
     color: colors.primary.comet,
+  },
+  tabIconLabel: {
+    marginRight: '8px',
+  },
+  labelChip: {
+    backgroundColor: colors.state.errorFill,
+    color: colors.state.error,
+    margin: '5px',
   },
 }));
 
@@ -91,17 +109,20 @@ type Severity = 'Critical' | 'Major' | 'Minor' | 'Other';
 const severityMap: {[string]: Severity} = {
   critical: 'Critical',
   page: 'Critical',
-  warn: 'Major',
+  warning: 'Major',
   major: 'Major',
   minor: 'Minor',
+  info: 'Other',
+  notice: 'Other',
 };
 
 type AlertRowType = {
-  label: string,
-  labelInfo: string,
-  annotations: string,
+  alertName: string,
+  labels: prom_alert_labels,
   status: string,
-  timingInfo: Date,
+  service: string,
+  gatewayId: string,
+  date: Date,
 };
 
 type AlertTable = {[Severity]: Array<AlertRowType>};
@@ -153,15 +174,15 @@ export default function DashboardAlertTable(props: DashboardAlertTableProps) {
 
   alerts = alerts.filter(alert => checkFilter(alert, props.labelFilters));
   alerts.forEach(alert => {
-    const sev: Severity = severityMap[alert.labels['severity']] || 'Other';
+    const severity = alert.labels?.['severity']?.toLowerCase();
+    const sev: Severity = severityMap?.[severity] ?? 'Other';
     data[sev].push({
-      label: alert.labels.alertname,
-      labelInfo: `${alert.labels.job ?? '-'} - ${alert.labels.instance ?? '-'}`,
-      annotations: `${alert.annotations.description ?? '-'} - ${
-        alert.annotations.summary ?? '-'
-      }`,
+      alertName: alert.labels?.['alertname'] ?? '-',
+      labels: alert.labels,
+      gatewayId: alert.labels?.['gatewayID'] ?? '-',
+      service: alert.labels?.['service'] ?? '-',
       status: alert.status.state,
-      timingInfo: new Date(alert.startsAt),
+      date: new Date(alert.startsAt),
     });
   });
 
@@ -210,21 +231,50 @@ function TabPanel(props: TabPanelProps) {
     );
   }
 
+  const ignoreLabelList = [
+    'networkID',
+    'gatewayID',
+    'monitor',
+    'severity',
+    'alertname',
+    'service',
+  ];
   return (
     <ActionTable
       data={props.alerts}
       columns={[
-        {title: 'Label', field: 'label'},
-        {title: 'Label Info', field: 'labelInfo'},
-        {title: 'Annotations', field: 'annotations'},
-        {title: 'Status', field: 'status'},
-        {title: 'Date', field: 'timingInfo', type: 'datetime'},
+        {title: 'Date', field: 'date', type: 'datetime'},
+        {title: 'Status', field: 'status', width: 200},
+        {title: 'Alert Name', field: 'alertName', width: 200},
+        {title: 'Service', field: 'service', width: 200},
+        {title: 'Gateway', field: 'gatewayId', width: 200},
+        {
+          title: 'Labels',
+          field: 'labels',
+          render: (currRow: AlertRowType) => (
+            <div>
+              {Object.keys(currRow.labels)
+                .filter(k => !ignoreLabelList.includes(k))
+                .map(k => (
+                  <Chip
+                    key={k}
+                    className={classes.labelChip}
+                    label={
+                      <span>
+                        <em>{k}</em>={currRow.labels[k]}
+                      </span>
+                    }
+                    size="small"
+                  />
+                ))}
+            </div>
+          ),
+        },
       ]}
       options={{
         actionsColumnIndex: -1,
         pageSizeOptions: [5, 10],
         toolbar: false,
-        header: false,
       }}
       localization={{
         header: {actions: ''},
@@ -248,15 +298,58 @@ function AlertsTabbedTable(props: Props) {
         value={currTabIndex}
         onChange={(_, newIndex: number) => setCurrTabIndex(newIndex)}
         variant="fullWidth">
-        {Object.keys(props.alerts).map((k: Severity, idx: number) => {
-          return (
-            <MagmaTab
-              key={idx}
-              label={`${props.alerts[k].length} ${k}`}
-              className={classes.tab}
-            />
-          );
-        })}
+        <MagmaTab
+          key={'severe'}
+          label={
+            <div className={classes.tabLabel}>
+              <ErrorIcon
+                style={{color: colors.alerts.severe}}
+                className={classes.tabIconLabel}
+              />
+              {`Critical(${props.alerts['Major'].length})`}
+            </div>
+          }
+          className={classes.tab}
+        />
+        <MagmaTab
+          key={'major'}
+          label={
+            <div className={classes.tabLabel}>
+              <WarningIcon
+                style={{color: colors.alerts.major}}
+                className={classes.tabIconLabel}
+              />
+              {`Major(${props.alerts['Major'].length})`}
+            </div>
+          }
+          className={classes.tab}
+        />
+        <MagmaTab
+          key={'minor'}
+          label={
+            <div className={classes.tabLabel}>
+              <ErrorOutlineIcon
+                style={{color: colors.alerts.minor}}
+                className={classes.tabIconLabel}
+              />
+              {`Minor(${props.alerts['Minor'].length})`}
+            </div>
+          }
+          className={classes.tab}
+        />
+        <MagmaTab
+          key={'other'}
+          label={
+            <div className={classes.tabLabel}>
+              <InfoIcon
+                style={{color: colors.alerts.other}}
+                className={classes.tabIconLabel}
+              />
+              {`Other(${props.alerts['Other'].length})`}
+            </div>
+          }
+          className={classes.tab}
+        />
       </MagmaTabs>
       <TabPanel
         label={severityTabs[currTabIndex]}
