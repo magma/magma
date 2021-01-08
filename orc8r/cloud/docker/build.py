@@ -77,7 +77,7 @@ def main() -> None:
         _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'bash'])
         _down(args)
     elif args.generate:
-        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make gen'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make fullgen'])
         _down(args)
     elif args.tests:
         _run(['up', '-d', 'postgres_test'])
