@@ -91,12 +91,6 @@ variable "orc8r_proxy_replicas" {
   default     = 2
 }
 
-variable "use_nginx_proxy" {
-  description = "Feature flag for Nginx proxy."
-  type        = bool
-  default     = true
-}
-
 variable "orc8r_db_name" {
   description = "DB name for Orchestrator database connection."
   type        = string
@@ -161,9 +155,53 @@ variable "helm_deployment_name" {
   default     = "orc8r"
 }
 
-variable "orc8r_chart_version" {
-  description = "Version of the Orchestrator Helm chart to install."
+variable "orc8r_deployment_type" {
+  description = "Type of orc8r deployment (fixed wireless access, federated fixed wireless access, or all modules)"
   type        = string
+  validation {
+    condition = (
+      var.orc8r_deployment_type == "fwa" ||
+      var.orc8r_deployment_type == "federated_fwa" ||
+      var.orc8r_deployment_type == "all"
+    )
+    error_message = "The orc8r_deployment_type value must be one of ['fwa', 'federated_fwa', 'all']"
+  }
+}
+
+variable "orc8r_chart_version" {
+  description = "Version of the core orchestrator Helm chart to install."
+  type        = string
+  default     = "1.5.7"
+}
+
+variable "cwf_orc8r_chart_version" {
+  description = "Version of the orchestrator cwf module Helm chart to install."
+  type        = string
+  default     = "0.2.0"
+}
+
+variable "fbinternal_orc8r_chart_version" {
+  description = "Version of the orchestrator fbinternal module Helm chart to install."
+  type        = string
+  default     = "0.2.0"
+}
+
+variable "feg_orc8r_chart_version" {
+  description = "Version of the orchestrator feg module Helm chart to install."
+  type        = string
+  default     = "0.2.1"
+}
+
+variable "lte_orc8r_chart_version" {
+  description = "Version of the orchestrator lte module Helm chart to install."
+  type        = string
+  default     = "0.2.1"
+}
+
+variable "wifi_orc8r_chart_version" {
+  description = "Version of the orchestrator wifi module Helm chart to install."
+  type        = string
+  default     = "0.2.0"
 }
 
 variable "orc8r_tag" {
@@ -284,21 +322,21 @@ variable "thanos_object_store_bucket_name" {
 
 variable "thanos_query_node_selector" {
   description = "NodeSelector value to specify which node to run thanos query pod on. Default is 'thanos' to be deployed on the default thanos worker group."
-  type = string
-  default = "thanos"
+  type        = string
+  default     = "thanos"
 }
 
 
 variable "thanos_compact_node_selector" {
   description = "NodeSelector value to specify which node to run thanos compact pod on. Label is 'compute-type:<value>'"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "thanos_store_node_selector" {
   description = "NodeSelector value to specify which node to run thanos store pod on. Label is 'compute-type:<value>'"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 ##############################################################################
