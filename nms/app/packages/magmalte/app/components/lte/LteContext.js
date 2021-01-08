@@ -16,10 +16,13 @@
 import type {EnodebInfo} from '../lte/EnodebUtils';
 import type {
   apn,
+  call_trace,
+  call_trace_config,
   feg_lte_network,
   feg_network,
   lte_gateway,
   lte_network,
+  mutable_call_trace,
   mutable_subscriber,
   network_id,
   network_ran_configs,
@@ -43,6 +46,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkContext from '../../components/context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
+import TraceContext from '../context/TraceContext';
 
 import {FEG_LTE, LTE} from '@fbcnms/types/network';
 import {
@@ -53,6 +57,7 @@ import {
   SetTierState,
   UpdateGateway,
 } from '../../state/lte/EquipmentState';
+import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
 import {
   SetPolicyState,
@@ -167,6 +172,52 @@ export function EnodebContextProvider(props: Props) {
       }}>
       {props.children}
     </EnodebContext.Provider>
+  );
+}
+
+export function TraceContextProvider(props: Props) {
+  const {networkId} = props;
+  const [traceMap, setTraceMap] = useState<{[string]: call_trace}>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  useEffect(() => {
+    const fetchLteState = async () => {
+      if (networkId == null) {
+        return;
+      }
+      await InitTraceState({
+        networkId,
+        setTraceMap,
+        enqueueSnackbar,
+      }),
+        setIsLoading(false);
+    };
+    fetchLteState();
+  }, [networkId, enqueueSnackbar]);
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
+  return (
+    <TraceContext.Provider
+      value={{
+        state: traceMap,
+        setState: (
+          key: string,
+          value?: mutable_call_trace | call_trace_config,
+        ) =>
+          SetCallTraceState({
+            networkId,
+            callTraces: traceMap,
+            setCallTraces: setTraceMap,
+            key,
+            value,
+          }),
+      }}>
+      {props.children}
+    </TraceContext.Provider>
   );
 }
 
@@ -613,22 +664,16 @@ export function LteContextProvider(props: Props) {
   }
 
   return (
-    <LteNetworkContextProvider networkId={networkId} networkType={networkType}>
-      <PolicyProvider networkId={networkId} networkType={networkType}>
-        <ApnProvider networkId={networkId} networkType={networkType}>
-          <SubscriberContextProvider
-            networkId={networkId}
-            networkType={networkType}>
-            <GatewayTierContextProvider
-              networkId={networkId}
-              networkType={networkType}>
-              <EnodebContextProvider
-                networkId={networkId}
-                networkType={networkType}>
-                <GatewayContextProvider
-                  networkId={networkId}
-                  networkType={networkType}>
-                  {props.children}
+    <LteNetworkContextProvider {...{networkId, networkType}}>
+      <PolicyProvider {...{networkId, networkType}}>
+        <ApnProvider {...{networkId, networkType}}>
+          <SubscriberContextProvider {...{networkId, networkType}}>
+            <GatewayTierContextProvider {...{networkId, networkType}}>
+              <EnodebContextProvider {...{networkId, networkType}}>
+                <GatewayContextProvider {...{networkId, networkType}}>
+                  <TraceContextProvider {...{networkId, networkType}}>
+                    {props.children}
+                  </TraceContextProvider>
                 </GatewayContextProvider>
               </EnodebContextProvider>
             </GatewayTierContextProvider>
