@@ -30,12 +30,21 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_ics_failure_with_mme_restart(self):
-        """ Stateless Initial Context Setup Failure Test Case"""
+        """Stateless Initial Context Setup Failure Test Case:
+        1. Step-by-step UE attach procedure
+        2. Set flag in S1APTester to send ICS failure to MME
+        3. Restart MME after sending ICS failure to MME
+        4. Reset flag to not send ICS failure for next ICS request
+        5. Handle UE context release after ICS failure
+        6. Re-attach UE to verify if UE context was cleared properly
+        after handling the ICS failure message
+        """
+
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
 
-        # Trigger Attach Request
+        # Send Attach Request
         attach_req = s1ap_types.ueAttachRequest_t()
         sec_ctxt = s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT
         id_type = s1ap_types.TFW_MID_TYPE_IMSI
@@ -49,7 +58,7 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         attach_req.pdnType_pr = pdn_type
 
-        print("***Triggering Attach Request***")
+        print("******************** Sending Attach Request")
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
         )
@@ -57,16 +66,16 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         )
-        print("*** Received Authentiction Request Indication***")
+        print("******************** Received Authentiction Request Indication")
 
-        # Trigger Authentication Response
+        # Send Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
         sqnRecvd = s1ap_types.ueSqnRcvd_t()
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
 
-        print("*** Sending Authentiction Response ***")
+        print("******************** Sending Authentiction Response")
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
         )
@@ -74,22 +83,23 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         )
-        print("*** Received Security Mode Command Indication ***")
+        print("******************** Received Security Mode Command Indication")
 
         init_ctxt_setup_fail = s1ap_types.ueInitCtxtSetupFail()
         init_ctxt_setup_fail.ue_Id = req.ue_id
         init_ctxt_setup_fail.flag = 1
-        init_ctxt_setup_fail.causeType = 1
         init_ctxt_setup_fail.causeType = 0
-        print("*** Setting Initial Context Setup Failure flag ***")
+        print(
+            "******************** Setting Initial Context Setup Failure flag"
+        )
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail
         )
 
-        # Trigger Security Mode Complete
+        # Send Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
-        print("*** Sending Security Mode Complete ***")
+        print("******************** Sending Security Mode Complete")
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
         )
@@ -98,17 +108,18 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
         )
-        print("*** Received Initial Context Setup Indication ***")
+        print("******************** Received Initial Context Setup Indication")
 
-        print("************************* Restarting MME service on gateway")
+        print("******************** Restarting MME service on gateway")
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
 
         init_ctxt_setup_fail = s1ap_types.ueInitCtxtSetupFail()
         init_ctxt_setup_fail.ue_Id = req.ue_id
         init_ctxt_setup_fail.flag = 0
-        init_ctxt_setup_fail.causeType = 1
         init_ctxt_setup_fail.causeType = 0
-        print("*** Resetting Initial Context Setup Failure flag ***")
+        print(
+            "******************** Resetting Initial Context Setup Failure flag"
+        )
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail
         )
@@ -117,15 +128,17 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
             print("Waiting for", j, "seconds")
             time.sleep(1)
 
-        print("*** Waiting for UE Context Release indication ***")
+        print("******************** Waiting for UE Context Release indication")
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
-        print("*** Received UE Context Release indication ***")
+        print("******************** Received UE Context Release indication")
 
         print(
-            "************************* Running End to End attach for UE id ",
+            "******************** Running End to End attach to verify if "
+            "UE context was released properly after handling ICS failure for "
+            "UE id ",
             req.ue_id,
         )
         # Now actually complete the attach
@@ -140,14 +153,13 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         print(
-            "************************* Running UE detach (switch-off) for ",
-            "UE id ",
+            "******************** Running UE detach for UE id",
             req.ue_id,
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id,
-            s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             True,
         )
 
