@@ -68,6 +68,7 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	getTrace := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing/:trace_id", obsidian.GET).HandlerFunc
 	updateTrace := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing/:trace_id", obsidian.PUT).HandlerFunc
 	deleteTrace := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing/:trace_id", obsidian.DELETE).HandlerFunc
+	downloadTrace := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing/:trace_id/download", obsidian.GET).HandlerFunc
 
 	// Test empty response
 	tc := tests.Test{
@@ -169,6 +170,19 @@ func TestCtracedHandlersBasic(t *testing.T) {
 		Handler:        getTrace,
 		ExpectedStatus: 200,
 		ExpectedResult: testTrace,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Verify download of call trace
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/networks/n1/tracing/CallTrace1/download",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "trace_id"},
+		ParamValues:    []string{"n1", "CallTrace1"},
+		Handler:        downloadTrace,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.ByteIdentityMarshaler([]byte("abcdefghijklmnopqrstuvwxyz")),
 	}
 	tests.RunUnitTest(t, e, tc)
 

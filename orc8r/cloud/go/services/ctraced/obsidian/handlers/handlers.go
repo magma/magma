@@ -36,6 +36,8 @@ const (
 	tracingRootPath = obsidian.V1Root + obsidian.MagmaNetworksUrlPart + obsidian.UrlSep + ":" + pathParamNetworkID + obsidian.UrlSep + tracing
 	// v1/networks/:network_id/tracing/:trace_id
 	tracingPath = tracingRootPath + obsidian.UrlSep + ":" + pathParamTraceID
+	// v1/networks/:network_id/tracing/:trace_id/download
+	tracingDownloadPath = tracingPath + obsidian.UrlSep + "download"
 
 	pathParamTraceID   = "trace_id"
 	pathParamNetworkID = "network_id"
@@ -48,6 +50,7 @@ func GetObsidianHandlers(client GwCtracedClient, storage storage.CtracedStorage)
 		{Path: tracingPath, Methods: obsidian.GET, HandlerFunc: getCallTrace},
 		{Path: tracingPath, Methods: obsidian.PUT, HandlerFunc: getUpdateCallTraceHandlerFunc(client, storage)},
 		{Path: tracingPath, Methods: obsidian.DELETE, HandlerFunc: getDeleteCallTraceHandlerFunc(client, storage)},
+		{Path: tracingDownloadPath, Methods: obsidian.GET, HandlerFunc: getDownloadCallTraceHandlerFunc(storage)},
 	}
 
 	return ret
@@ -194,6 +197,22 @@ func getDeleteCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 		return c.NoContent(http.StatusNoContent)
+	}
+}
+
+func getDownloadCallTraceHandlerFunc(storage storage.CtracedStorage) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		networkID, callTraceID, nerr := getNetworkIDAndCallTraceID(c)
+		if nerr != nil {
+			return nerr
+		}
+
+		callTrace, err := storage.GetCallTrace(networkID, callTraceID)
+		if err != nil {
+			return obsidian.HttpError(errors.Wrap(err, "failed to retrieve call trace data"), http.StatusInternalServerError)
+		}
+
+		return c.Blob(http.StatusOK, "application/pcapng", callTrace)
 	}
 }
 

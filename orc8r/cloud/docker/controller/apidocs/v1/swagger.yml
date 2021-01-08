@@ -5379,6 +5379,22 @@ paths:
       summary: Update a call trace
       tags:
       - Call Tracing
+  /networks/{network_id}/tracing/{trace_id}/download:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/trace_id'
+      responses:
+        "200":
+          description: Show tracing status
+          schema:
+            format: binary
+            type: file
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get the call trace in PCAP format
+      tags:
+      - Call Tracing
   /networks/{network_id}/type:
     get:
       parameters:
