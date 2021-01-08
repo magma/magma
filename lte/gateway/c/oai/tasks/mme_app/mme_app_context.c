@@ -308,7 +308,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
 
   // Stop ULR Response timer if running
   if (ue_context_p->ulr_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
+    timer_argP = NULL;
     if (timer_remove(
             ue_context_p->ulr_response_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
