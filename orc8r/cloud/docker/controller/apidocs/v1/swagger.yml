@@ -8242,6 +8242,11 @@ definitions:
         example: 172.27.23.150
         format: ipv4
         type: string
+      ipv4_sgw_s1u_addr:
+        description: IP address for IPv4 S1U endpoint on the AGW
+        maxLength: 49
+        minLength: 5
+        type: string
       ipv6_block:
         example: fdee:5:6c::/48
         type: string
