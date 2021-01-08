@@ -88,7 +88,6 @@
   "%06" PRIu64 " %s %08lX %-*.*s %-*.*s %-*.*s:%04u   [%lu]%*s"
 
 #define LOG_MAGMA_REPO_ROOT "/oai/"
-#define MAX_TIME_STR_LEN 32
 //-------------------------------
 
 typedef unsigned long log_message_number_t;
@@ -474,8 +473,21 @@ void log_configure(const log_config_t* const config) {
       (MIN_LOG_LEVEL <= config->s1ap_log_level))
     g_oai_log.log_level[LOG_S1AP] = config->s1ap_log_level;
   if ((MAX_LOG_LEVEL > config->mme_app_log_level) &&
-      (MIN_LOG_LEVEL <= config->mme_app_log_level))
+      (MIN_LOG_LEVEL <= config->mme_app_log_level)) {
     g_oai_log.log_level[LOG_MME_APP] = config->mme_app_log_level;
+    // if ((MAX_LOG_LEVEL > config->amf_app_log_level) &&
+    //    (MIN_LOG_LEVEL <= config->amf_app_log_level))
+    // g_oai_log.log_level[LOG_AMF_APP] = config->amf_app_log_level;
+    g_oai_log.log_level[LOG_AMF_APP] = config->mme_app_log_level;
+    // if ((MAX_LOG_LEVEL > config->ngap_log_level) &&
+    //    (MIN_LOG_LEVEL <= config->ngap_log_level))
+    // g_oai_log.log_level[LOG_NGAP] = config->ngap_log_level;
+    g_oai_log.log_level[LOG_NGAP] = config->mme_app_log_level;
+    // if ((MAX_LOG_LEVEL > config->nas_amf_log_level) &&
+    //    (MIN_LOG_LEVEL <= config->nas_amf_log_level))
+    g_oai_log.log_level[LOG_NAS_AMF] = config->mme_app_log_level;
+    // g_oai_log.log_level[LOG_NAS_AMF] = config->nas_amf_log_level;
+  }
   if ((MAX_LOG_LEVEL > config->nas_log_level) &&
       (MIN_LOG_LEVEL <= config->nas_log_level)) {
     g_oai_log.log_level[LOG_NAS]     = config->nas_log_level;
@@ -560,15 +572,11 @@ static void log_get_elapsed_time_since_start(struct timeval * const elapsed_time
 }
 #endif
 //------------------------------------------------------------------------------
-static void log_get_readable_cur_time(time_t* cur_time, char* time_str) {
+static char* log_get_readable_cur_time(time_t* cur_time) {
   // get the current local time
-  time(cur_time);
-  struct tm* cur_local_time;
-  cur_local_time = localtime(cur_time);
+  *cur_time = time(NULL);
   // get the current local time in readable string format
-  strftime(
-      time_str, MAX_TIME_STR_LEN, "%a %b %d %H:%M:%S %Y",
-      (const struct tm*) cur_local_time);
+  return (strtok(ctime(cur_time), "\n"));
 }
 
 //------------------------------------------------------------------------------
@@ -640,6 +648,14 @@ int log_init(
   snprintf(
       &g_oai_log.log_proto2str[LOG_MME_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
       "MME-APP");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_AMF_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "AMF-APP");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_NGAP][0], LOG_MAX_PROTO_NAME_LENGTH, "NGAP");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_NAS_AMF][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "NAS-AMF");
   snprintf(
       &g_oai_log.log_proto2str[LOG_NAS][0], LOG_MAX_PROTO_NAME_LENGTH, "NAS");
   snprintf(
@@ -1481,12 +1497,11 @@ int append_log_ctx_info(
     const log_thread_ctxt_t* thread_ctxt, time_t* cur_time,
     const char* short_source_fileP) {
   int rv;
-  char time_str[MAX_TIME_STR_LEN];
-  log_get_readable_cur_time(cur_time, time_str);
   rv = bformata(
       bstr, LOG_CTXT_INFO_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
-      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
+      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
+      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
@@ -1502,12 +1517,11 @@ int append_log_ctx_info_prefix_id(
     size_t filename_length, const log_thread_ctxt_t* thread_ctxt,
     time_t* cur_time, const char* short_source_fileP) {
   int rv;
-  char time_str[MAX_TIME_STR_LEN];
-  log_get_readable_cur_time(cur_time, time_str);
   rv = bformata(
       bstr, LOG_CTXT_INFO_ID_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
-      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
+      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
+      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,

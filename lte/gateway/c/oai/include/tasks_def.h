@@ -63,10 +63,8 @@ TASK_DEF(TASK_SERVICE303_SERVER)
 TASK_DEF(TASK_SGS)
 /// SMS_ORC8R task
 TASK_DEF(TASK_SMS_ORC8R)
-/// GRPC service task for SGs, S6a, SPGW, HA
+/// GRPC service task for SGs, S6a, SPGW
 TASK_DEF(TASK_GRPC_SERVICE)
-/// HA task
-TASK_DEF(TASK_HA)
 /// NGAP task
 TASK_DEF(TASK_NGAP)
 /// AMF Application task

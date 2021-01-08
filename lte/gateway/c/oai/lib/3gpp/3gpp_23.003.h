@@ -113,13 +113,11 @@ typedef struct imsi_s {
   } u;
   uint8_t length;
 } imsi_t;
-
 #define IMSI_BCD_DIGITS_MAX 15
 typedef struct {
   uint8_t digit[IMSI_BCD_DIGITS_MAX + 1];  // +1 for '\0` macro sprintf changed
                                            // in snprintf
   uint8_t length;
-
 } Imsi_t;
 //------------------------------------------------------------------------------
 // 2.4 Structure of TMSI
@@ -154,10 +152,9 @@ typedef uint32_t
 
 #define INVALID_M_TMSI                                                         \
   UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32    \
-                bits equal to 1 (this is because the TMSI must be stored in    \
-                the SIM, and the SIM uses 4 octets with all bits               \
-                                                                        equal  \
-                to 1 to indicate that no valid TMSI is available).  */
+   bits equal to 1 (this is because the TMSI must be stored in the SIM, and    \
+   the SIM uses 4 octets with all bits equal to 1 to indicate that no valid    \
+   TMSI is available).  */
 
 typedef uint16_t
     mme_gid_t; /*!< \brief  MME Group ID shall be of 16 bits length. */

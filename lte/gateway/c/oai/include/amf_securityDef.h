@@ -1,42 +1,42 @@
-/*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this source tree.
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
  */
-
 /*****************************************************************************
-Source      securityDef.h
 
-Version     0.1
+  Source      amf_securityDef.h
 
-Date        2013/05/02
+  Version     0.1
 
-Product     NAS stack
+  Date        2020/07/28
 
-Subsystem   include
+  Product     NAS stack
 
-Author      Frederic Maurel, Lionel GAUTHIER
+  Subsystem   Access and Mobility Management Function
 
-Description Contains global security definitions
+  Author      Sandeep Kumar Mall
+
+  Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef FILE_SECURITYDEF_SEEN
-#define FILE_SECURITYDEF_SEEN
+//#ifndef FILE_AMF_SECURITYDEF_SEEN
+//#define FILE_AMF_SECURITYDEF_SEEN
 
-/****************************************************************************/
-/*********************  G L O B A L    C O N S T A N T S  *******************/
-/****************************************************************************/
+#include <sstream>
+#include <thread>
+#include "bstrlib.h"
+using namespace std;
+#pragma once
+
+namespace magma5g {
 
 /*
  * Index of the first byte of each fields of the AUTN parameter
@@ -65,35 +65,34 @@ Description Contains global security definitions
 #define AUTH_KASME_SIZE 32    /* KASME security key:        256 bits    */
 #define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
 #define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */
-#define AUTH_KENB_SIZE AUTH_KASME_SIZE     /* eNodeB security key   */
+#define AUTH_KGNB_SIZE AUTH_KASME_SIZE     /* gNodeB security key   */
 #define AUTH_NEXT_HOP_SIZE AUTH_KASME_SIZE /* Next Hop security parameter*/
-
-#define AUTH_KGNB_SIZE AUTH_KASME_SIZE /* gNodeB security key   */
 
 /* "Separation bit" of AMF field */
 #define AUTH_AMF_SEPARATION_BIT(a) ((a) &0x80)
 /*
  * --------------------------------------------------------------------------
- * EPS NAS security context handled by EPS Mobility Management sublayer in
+ * 5G CN NAS security context handled by 5G CN Mobility Management sublayer in
  * the UE and in the MME
  * --------------------------------------------------------------------------
  */
 /* Type of security context */
-typedef enum {
+typedef enum amf_sc_type_s {
   SECURITY_CTX_TYPE_NOT_AVAILABLE = 0,
   SECURITY_CTX_TYPE_PARTIAL_NATIVE,
   SECURITY_CTX_TYPE_FULL_NATIVE,
   SECURITY_CTX_TYPE_MAPPED  // UNUSED
-} emm_sc_type_t;
+} amf_sc_type_t;
 
 /****************************************************************************/
 /************************  G L O B A L    T Y P E S  ************************/
 /****************************************************************************/
 
 /*
- * EPS authentication vector
+ * 5G CN authentication vector
  */
-typedef struct {
+class m5g_auth_vector_t {
+ public:
   /* ASME security key                */
   uint8_t kasme[AUTH_KASME_SIZE];
   /* Random challenge parameter           */
@@ -104,7 +103,7 @@ typedef struct {
 #define AUTH_XRES_SIZE AUTH_RES_SIZE
   uint8_t xres_size;
   uint8_t xres[AUTH_XRES_SIZE];
-} auth_vector_t;
+};
 
 /****************************************************************************/
 /********************  G L O B A L    V A R I A B L E S  ********************/
@@ -114,4 +113,5 @@ typedef struct {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-#endif /* FILE_SECURITYDEF_SEEN*/
+}  // namespace magma5g
+//#endif /* FILE_SECURITYDEF_SEEN*/

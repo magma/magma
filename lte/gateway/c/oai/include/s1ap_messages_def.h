@@ -115,6 +115,3 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     S1AP_PATH_SWITCH_REQUEST_FAILURE, itti_s1ap_path_switch_request_failure_t,
     s1ap_path_switch_request_failure)
-MESSAGE_DEF(
-    S1AP_REMOVE_STALE_UE_CONTEXT, itti_s1ap_remove_stale_ue_context_t,
-    s1ap_remove_stale_ue_context)

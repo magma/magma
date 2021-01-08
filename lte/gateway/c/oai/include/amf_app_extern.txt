@@ -1,0 +1,28 @@
+//#ifndef FILE_AMF_APP_EXTERN_SEEN
+//#define FILE_AMF_APP_EXTERN_SEEN
+#if 0
+#ifdef __cplusplus
+ #define EXTERNC extern "C"
+ #else
+ #define EXTERNC
+ #endif
+ 
+  //extern "C" int amf_app_init(const amf_config_t* amf_config);
+  //EXTERNC int amf_app_init(const amf_config_t* amf_config);
+ #undef EXTERNC 
+// #endif /* FILE_AMF_APP_EXTERN_SEEN */
+
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+//  int magma5g_amf_app_init(const amf_config_t* amf_config);
+
+  int amf_app_init(const amf_config_t* amf_config);
+
+#ifdef __cplusplus
+}
+#endif
+

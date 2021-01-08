@@ -97,6 +97,8 @@ typedef struct sctp_init_s {
   struct in6_addr ipv6_address[10];
   uint16_t port;
   uint32_t ppid;
+  // uint32_t ngap_port;
+  // uint32_t ngap_ppid;
 } sctp_init_t;
 
 typedef struct sctp_close_association_s {
@@ -109,7 +111,6 @@ typedef struct sctp_new_peer_s {
   uint32_t instreams;
   uint32_t outstreams;
   sctp_assoc_id_t assoc_id;
-  bstring ran_cp_ipaddr;
 } sctp_new_peer_t;
 
 typedef struct sctp_mme_server_initialized_s {

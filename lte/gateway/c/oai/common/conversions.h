@@ -157,6 +157,12 @@
     (aSN)->bits_unused = 6;                                                    \
   } while (0)
 
+#define AMF_POINTER_TO_BIT_STRING(x, aSN)                                      \
+  do {                                                                         \
+    INT8_TO_OCTET_STRING(x << 2, aSN);                                         \
+    (aSN)->bits_unused = 2;                                                    \
+  } while (0)
+
 #define INT16_TO_OCTET_STRING(x, aSN)                                          \
   do {                                                                         \
     (aSN)->buf  = calloc(2, sizeof(uint8_t));                                  \
@@ -393,6 +399,9 @@
 #define OCTET_STRING_TO_MME_GID OCTET_STRING_TO_INT16
 #define OCTET_STRING_TO_CSG_ID OCTET_STRING_TO_INT27
 
+#define OCTET_STRING_TO_AMF_CODE OCTET_STRING_TO_INT8
+#define OCTET_STRING_TO_AMF_GID OCTET_STRING_TO_INT16
+
 /* Convert the IMSI contained by a char string NULL terminated to uint64_t */
 #define IMSI_STRING_TO_IMSI64(sTRING, iMSI64_pTr)                              \
   sscanf(sTRING, IMSI_64_FMT, iMSI64_pTr)
@@ -554,25 +563,6 @@ imsi64_t imsi_to_imsi64(const imsi_t* const imsi);
           (iMeIsV_t_PtR)->u.num.snr5, (iMeIsV_t_PtR)->u.num.snr6,              \
           (iMeIsV_t_PtR)->u.num.svn1, (iMeIsV_t_PtR)->u.num.svn2);             \
     }                                                                          \
-  }
-
-#define IMEISV_MOBID_TO_STRING(iMeIsV_t_PtR, iMeIsV_sTr, MaXlEn)                 \
-  {                                                                              \
-    int l_offset = 0;                                                            \
-    int l_ret    = 0;                                                            \
-    l_ret        = snprintf(                                                     \
-        iMeIsV_sTr + l_offset, MaXlEn - l_offset, "%u%u%u%u%u%u%u%u",     \
-        (iMeIsV_t_PtR)->tac1, (iMeIsV_t_PtR)->tac2, (iMeIsV_t_PtR)->tac3, \
-        (iMeIsV_t_PtR)->tac4, (iMeIsV_t_PtR)->tac5, (iMeIsV_t_PtR)->tac6, \
-        (iMeIsV_t_PtR)->tac7, (iMeIsV_t_PtR)->tac8);                      \
-    if (l_ret > 0) {                                                             \
-      l_offset += l_ret;                                                         \
-      l_ret = snprintf(                                                          \
-          iMeIsV_sTr + l_offset, MaXlEn - l_offset, "%u%u%u%u%u%u%u%u",          \
-          (iMeIsV_t_PtR)->snr1, (iMeIsV_t_PtR)->snr2, (iMeIsV_t_PtR)->snr3,      \
-          (iMeIsV_t_PtR)->snr4, (iMeIsV_t_PtR)->snr5, (iMeIsV_t_PtR)->snr6,      \
-          (iMeIsV_t_PtR)->svn1, (iMeIsV_t_PtR)->svn2);                           \
-    }                                                                            \
   }
 
 /*Used to convert char* IMSI/TMSI Mobile Identity to MobileIdentity(digit)

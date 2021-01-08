@@ -1052,6 +1052,10 @@ calloc( blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.e
     tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.transportLayerAddress.size = blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.endpoint_ip_address);
 
      tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.transportLayerAddress.bits_unused = 0;
+OAILOG_ERROR(LOG_NGAP, " ##### NGAP_PDUSESSION_RESOURCE_SETUP_REQ\n");
+OAILOG_ERROR(LOG_NGAP, " ##### blength :%d\n", blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.endpoint_ip_address));
+
+OAILOG_ERROR(LOG_NGAP, " ##### size:%lu\n",  sizeof(struct in_addr));
 
 /*gTP_TEID*/
 //    tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.gTP_TEID = /*OCTET_STRING_t*/
@@ -1092,7 +1096,7 @@ calloc( blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.e
     tx_ie->criticality   = Ngap_Criticality_reject;
     tx_ie->value.present = Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_QosFlowSetupRequestList;
 
-    Ngap_QosFlowSetupRequestList_t * Qos_list = &tx_ie->value.choice.QosFlowSetupRequestList; //here add sequence of items
+    //Ngap_QosFlowSetupRequestList_t * Qos_list = &tx_ie->value.choice.QosFlowSetupRequestList; //here add sequence of items
 
 for (int i = 0; i < /*no_of_qos_items*/1; i++)
         {
@@ -1118,7 +1122,10 @@ amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item.qos
                 qos_item->qosFlowLevelQosParameters.allocationAndRetentionPriority.pre_emptionVulnerability=/*typedef long*/
 amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul;
 
-    ASN_SEQUENCE_ADD(Qos_list, qos_item);
+    asn_set_empty(&tx_ie->value.choice.QosFlowSetupRequestList.list);	
+    //ASN_SEQUENCE_ADD(Qos_list->list, qos_item);
+    //ASN_SEQUENCE_ADD(Qos_list, qos_item);
+    ASN_SEQUENCE_ADD(&tx_ie->value.choice.QosFlowSetupRequestList.list, qos_item);
 
         }
 
@@ -1135,7 +1142,7 @@ bstring transfer =blk2bstr(pduSessionResourceSetupRequestTransferIEs, sizeof(Nga
 ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer.buf = (uint8_t*) bdata(transfer); 
 ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer.size=  blength(transfer); 
 
-    ASN_SEQUENCE_ADD(&ie->value.choice.PDUSessionResourceSetupListSUReq, ngap_pdusession_setup_item_ies);
+    ASN_SEQUENCE_ADD(&ie->value.choice.PDUSessionResourceSetupListSUReq.list, ngap_pdusession_setup_item_ies);
 
 }/*for loop*/
 
