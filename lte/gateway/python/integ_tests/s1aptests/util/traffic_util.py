@@ -387,6 +387,13 @@ class TrafficTest(object):
             sc_in = sc.makefile('rb')
             sc_out = sc.makefile('wb')
 
+            # Flush all the addresses left by previous failed tests
+            for i in range(len(instances)):
+                net_iface_index = TrafficTest._iproute.link_lookup(
+                    ifname=TrafficTest._net_iface)[0]
+                TrafficTest._iproute.flush_addr(index=net_iface_index,
+                                                address=instances[i].ip.exploded)
+
             # Set up network ifaces and get UL port assignments for DL
             aliases = ()
             for instance in instances:
