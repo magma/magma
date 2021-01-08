@@ -32,9 +32,9 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
     def test_attach_ics_drop_with_mme_restart(self):
         """Stateless Initial Context Setup Drop Test Case:
         1. Step-by-step UE attach procedure
-        2. Set flag in S1APTester to drop ICS request
+        2. Set flag in S1APTester to drop ICS request message
         3. Restart MME after getting ICS request dropped indication
-        4. Reset flag to not drop ICS request for next ICS request
+        4. Reset flag to not drop next ICS request messages
         5. Handle UE context release after no ICS response to MME
         6. Re-attach UE to verify if UE context was cleared properly
         after handling the NW Initiated detach once MME comes up
@@ -198,7 +198,6 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         print("******************** Received UE Context Release indication")
 
         print(
-            "******************** Running End to End attach for UE id ",
             "******************** Running End to End attach to verify if "
             "UE context was released properly after handling ICS drop for "
             "UE id ",
