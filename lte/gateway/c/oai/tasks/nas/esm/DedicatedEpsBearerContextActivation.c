@@ -291,7 +291,8 @@ int esm_proc_dedicated_eps_bearer_context_accept(
         OAILOG_DEBUG(
             LOG_NAS_ESM,
             "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
-            "ue_id=" MME_UE_S1AP_ID_FMT "ebi (%u)",
+            "ue_id=" MME_UE_S1AP_ID_FMT
+            "ebi (%u)",
             ue_context_p->mme_ue_s1ap_id, ebi);
       }
     }
