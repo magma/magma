@@ -928,7 +928,6 @@ void mme_app_handle_delete_session_rsp(
     if (ue_context_p->ue_context_rel_cause == S1AP_INVALID_CAUSE) {
       ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
     }
-#if EMBEDDED_SGW
     /* If UE has rejected activate default eps bearer request message
      * delete the pdn context
      */

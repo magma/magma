@@ -106,7 +106,7 @@ using magma::sctpd::SendDlReq;
 using magma::sctpd::SendDlRes;
 
 // Max sleep backoff delay in microseconds
-constexpr useconds_t max_backoff_usecs = 1000000;  // 1 sec
+constexpr useconds_t max_backoff_usecs = 1000000; // 1 sec
 
 std::unique_ptr<SctpdDownlinkClient> _client = nullptr;
 
@@ -174,7 +174,7 @@ int sctpd_init(sctp_init_t* init) {
       OAILOG_DEBUG(LOG_SCTP, "Sleeping for %d usecs", sleep_time);
       usleep(sleep_time);
       if (current_delay < max_backoff_usecs) {
-        current_delay += 10000;  // Add 10 ms to backoff
+        current_delay += 10000; // Add 10 ms to backoff
       }
     }
   }
