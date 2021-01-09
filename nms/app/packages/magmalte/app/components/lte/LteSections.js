@@ -24,6 +24,7 @@ import Enodebs from './Enodebs';
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import Gateways from '../Gateways';
 import Insights from '@fbcnms/ui/insights/Insights';
+import LineStyleIcon from '@material-ui/icons/LineStyle';
 import ListIcon from '@material-ui/icons/List';
 import Logs from '@fbcnms/ui/insights/Logs/Logs';
 import LteConfigure from '../LteConfigure';
@@ -39,6 +40,7 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import SubscriberDashboard from '../../views/subscriber/SubscriberOverview';
 import Subscribers from '../Subscribers';
+import TracingDashboard from '../../views/tracing/TracingDashboard';
 import TrafficDashboard from '../../views/traffic/TrafficOverview';
 import WifiTetheringIcon from '@material-ui/icons/WifiTethering';
 
@@ -137,6 +139,12 @@ export function getLteSectionsV2(alertsEnabled: boolean): SectionsConfigs {
         label: 'Traffic',
         icon: <WifiTetheringIcon />,
         component: TrafficDashboard,
+      },
+      {
+        path: 'tracing',
+        label: 'Call Tracing',
+        icon: <LineStyleIcon />,
+        component: TracingDashboard,
       },
       {
         path: 'metrics',

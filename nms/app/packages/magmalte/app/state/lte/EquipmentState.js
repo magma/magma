@@ -130,7 +130,6 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
     return;
   }
 
-  let err = false;
   const requests = Object.keys(enb).map(async k => {
     try {
       const {serial} = enb[k];
@@ -143,7 +142,6 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
       );
       return [enb[k], enbSt ?? {}];
     } catch (e) {
-      err = true;
       return [enb[k], {}];
     }
   });
@@ -161,11 +159,6 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
       }
     }
   });
-  if (err) {
-    enqueueSnackbar?.('failed fetching enodeb state information', {
-      variant: 'error',
-    });
-  }
   setEnbInfo(enbInfo);
 }
 

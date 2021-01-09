@@ -101,6 +101,12 @@ s1aptests/test_attach_detach_nw_triggered_delete_last_pdn.py \
 s1aptests/test_different_enb_s1ap_id_same_ue.py \
 s1aptests/test_attach_detach_with_pcscf_address.py \
 s1aptests/test_attach_detach_secondary_pdn_with_pcscf_address.py \
+s1aptests/test_secondary_pdn_reject_multiple_sessions_not_allowed_per_apn.py \
+s1aptests/test_secondary_pdn_reject_unknown_pdn_type.py \
+s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej.py \
+s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \
+s1aptests/test_ics_timer_expiry_ue_registered.py \
+s1aptests/test_ics_timer_expiry_ue_unregistered.py \
 s1aptests/test_multi_enb_multi_ue.py \
 s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_multi_ue_diff_plmn.py \

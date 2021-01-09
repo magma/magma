@@ -17,7 +17,7 @@ services:
     build:
       context: /tmp/magma_orc8r_build
       dockerfile: $PWD/controller/Dockerfile
-      target: base
+      target: src
     depends_on:
       - postgres_test
     entrypoint: /bin/bash -lc
