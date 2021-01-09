@@ -1450,15 +1450,6 @@ int sgw_handle_suspend_notification(
     } else {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Bearer context not found \n");
     }
-    // Clear eNB TEID information from bearer context.
-    for (int ebx = 0; ebx < BEARERS_PER_UE; ebx++) {
-      sgw_eps_bearer_ctxt_t* eps_bearer_ctxt =
-          ctx_p->sgw_eps_bearer_context_information.pdn_connection
-              .sgw_eps_bearers_array[ebx];
-      if (eps_bearer_ctxt) {
-        sgw_release_all_enb_related_information(eps_bearer_ctxt);
-      }
-    }
   } else {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
