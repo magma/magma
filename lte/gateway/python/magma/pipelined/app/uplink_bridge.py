@@ -14,6 +14,9 @@ import subprocess
 import threading
 from collections import namedtuple
 
+import netaddr
+import netifaces
+
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow import flows
@@ -62,6 +65,9 @@ class UplinkBridgeController(MagmaController):
 
         uplink_eth_port_name = config_dict.get('uplink_eth_port_name',
                                                self.DEFAULT_UPLINK_PORT_NANE)
+        if uplink_eth_port_name not in netifaces.interfaces():
+            uplink_eth_port_name = None
+
         virtual_mac = config_dict.get('virtual_mac',
                                       self.DEFAULT_UPLINK_MAC)
         sgi_management_iface_vlan = config_dict.get('sgi_management_iface_vlan', "")
@@ -230,6 +236,8 @@ class UplinkBridgeController(MagmaController):
 
     def _del_eth_port(self):
         self._cleanup_if(self.config.uplink_bridge, True)
+        if self.config.uplink_eth_port_name is None:
+            return
 
         ovs_rem_port = "ovs-vsctl --if-exists del-port %s %s" \
                        % (self.config.uplink_bridge, self.config.uplink_eth_port_name)
@@ -271,7 +279,13 @@ class UplinkBridgeController(MagmaController):
                 self._restart_dhclient(if_name)
             else:
                 # for system port, use networking config
-                if_up_cmd = ["ifup", if_name]
+                try:
+                    self._flush_ip(if_name)
+                except subprocess.CalledProcessError as ex:
+                    self.logger.info("could not flush ip addr: %s, %s",
+                                     if_name, ex)
+
+                if_up_cmd = ["ifup", if_name, "--force"]
                 try:
                     subprocess.check_call(if_up_cmd)
                 except subprocess.CalledProcessError as ex:
@@ -282,9 +296,14 @@ class UplinkBridgeController(MagmaController):
         try:
             self._kill_dhclient(if_name)
 
-            flush_ip = ["ip", "addr", "flush",
-                        "dev", if_name]
-            subprocess.check_call(flush_ip)
+            if self._is_iface_ip_set(if_name,
+                                     self.config.sgi_management_iface_ip_addr):
+                self.logger.info("ip addr %s already set for iface %s",
+                                 self.config.sgi_management_iface_ip_addr,
+                                 if_name)
+                return
+
+            self._flush_ip(if_name)
 
             set_ip_cmd = ["ip",
                           "addr", "add",
@@ -295,6 +314,20 @@ class UplinkBridgeController(MagmaController):
             self.logger.debug("SGi ip address config: [%s]", set_ip_cmd)
         except subprocess.SubprocessError as e:
             self.logger.warning("Error while setting SGi IP: %s", e)
+
+    def _is_iface_ip_set(self, if_name, ip_addr):
+        ip_addr = netaddr.IPNetwork(ip_addr)
+        if_addrs = netifaces.ifaddresses(if_name).get(netifaces.AF_INET, [])
+
+        for addr in if_addrs:
+            addr = netaddr.IPNetwork("/".join((addr['addr'], addr['netmask'])))
+            if ip_addr == addr:
+                return True
+        return False
+
+    def _flush_ip(self, if_name):
+        flush_ip = ["ip", "addr", "flush", "dev", if_name]
+        subprocess.check_call(flush_ip)
 
     def _kill_dhclient(self, if_name):
         # Kill dhclient if running.
@@ -331,12 +364,10 @@ class UplinkBridgeController(MagmaController):
 
         if not flush:
             return
-        flush_eth_ip = ["ip", "addr", "flush", "dev", if_name]
         try:
-            subprocess.check_call(flush_eth_ip)
+            self._flush_ip(if_name)
         except subprocess.CalledProcessError as ex:
-            self.logger.info("could not flush ip addr: %s, %s",
-                             flush_eth_ip, ex)
+            self.logger.info("could not flush ip addr: %s, %s", if_name, ex)
 
         self.logger.info("SGi DHCP: port [%s] ip removed", if_name)
 

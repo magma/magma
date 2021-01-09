@@ -165,12 +165,12 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
         try:
             if hash is None or hash.lower() == "latest":
                 # install latest on the repository
-                sudo("apt install -f -y --allow-downgrades magma")
+                sudo("apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma")
             else:
                 sudo(
                     "version=$("
                     "apt-cache madison magma | grep {hash} | awk 'NR==1{{print $3}}');"
-                    "apt install -f -y --allow-downgrades magma=$version".format(
+                    "apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma=$version".format(
                         hash=hash
                     )
                 )

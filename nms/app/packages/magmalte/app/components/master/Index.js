@@ -17,7 +17,7 @@
 import AppContent from '../layout/AppContent';
 import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
-import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
+import ApplicationMain from '../../components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import CloudMetrics from '@fbcnms/ui/master/CloudMetrics';
 import Features from '@fbcnms/ui/master/Features';

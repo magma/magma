@@ -15,6 +15,7 @@ package models
 
 import "github.com/go-openapi/swag"
 
+// Move default config function to test_models package
 func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 	return &NetworkCellularConfigs{
 		Ran: &NetworkRanConfigs{
@@ -41,6 +42,7 @@ func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 	}
 }
 
+// Move default config function to test_models package
 func NewDefaultFDDNetworkConfig() *NetworkCellularConfigs {
 	return &NetworkCellularConfigs{
 		Ran: &NetworkRanConfigs{
@@ -65,6 +67,7 @@ func NewDefaultFDDNetworkConfig() *NetworkCellularConfigs {
 	}
 }
 
+// Move default config function to test_models package
 func NewDefaultEnodebStatus() *EnodebState {
 	return &EnodebState{
 		EnodebConfigured: swag.Bool(true),
@@ -79,5 +82,6 @@ func NewDefaultEnodebStatus() *EnodebState {
 		MmeConnected:     swag.Bool(true),
 		FsmState:         swag.String("TEST"),
 		IPAddress:        "192.168.0.1",
+		UesConnected:     5,
 	}
 }

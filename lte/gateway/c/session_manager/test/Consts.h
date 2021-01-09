@@ -32,3 +32,11 @@
 #define IPv6_2 "2001:0db8:0a0b:12f0:0000:0000:0000:0002"
 #define IPv6_3 "2001:0db8:0a0b:12f0:0000:0000:0000:0003"
 #define IPv6_4 "2001:0db8:0a0b:12f0:0000:0000:0000:0004"
+#define TEID_1_UL 11
+#define TEID_1_DL 12
+#define TEID_2_UL 21
+#define TEID_2_DL 22
+#define TEID_3_UL 31
+#define TEID_3_DL 32
+#define TEID_4_UL 41
+#define TEID_4_DL 42

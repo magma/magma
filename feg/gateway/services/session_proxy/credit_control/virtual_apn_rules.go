@@ -15,43 +15,56 @@ package credit_control
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 
 	"magma/feg/cloud/go/protos/mconfig"
+
+	"github.com/golang/glog"
 )
 
-func GetVirtualApnRule(apnFilter, apnOverwrite string) (*VirtualApnRule, error) {
-	reg, err := regexp.Compile(apnFilter)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to compile apn filter: %s", err)
-	}
-	return &VirtualApnRule{
-		ApnFilter:    reg,
-		ApnOverwrite: apnOverwrite,
-	}, nil
+type VirtualApnRule struct {
+	ApnFilter                     *regexp.Regexp
+	ChargingCharacteristicsFilter *regexp.Regexp
+	ApnOverwrite                  string
 }
 
-func GenerateVirtualApnRules(config []*mconfig.VirtualApnRule) []*VirtualApnRule {
+func (v *VirtualApnRule) FromMconfig(pVirtualApnConfig *mconfig.VirtualApnRule) error {
+	apnRegex, err := regexp.Compile(pVirtualApnConfig.GetApnFilter())
+	if err != nil {
+		return fmt.Errorf("Failed to compile apn filter: %s", err)
+	}
+	ccRegex, err := regexp.Compile(pVirtualApnConfig.GetChargingCharacteristicsFilter())
+	if err != nil {
+		return fmt.Errorf("Failed to compile charging characteristics filter: %s", err)
+	}
+	v.ApnFilter = apnRegex
+	v.ChargingCharacteristicsFilter = ccRegex
+	v.ApnOverwrite = pVirtualApnConfig.GetApnOverwrite()
+	return nil
+}
+
+func GenerateVirtualApnRules(pConfigs []*mconfig.VirtualApnRule) []*VirtualApnRule {
 	virtualApnConfigs := []*VirtualApnRule{}
-	for _, virtualApnlCfg := range config {
-		apnRule, err := GetVirtualApnRule(
-			virtualApnlCfg.GetApnFilter(),
-			virtualApnlCfg.GetApnOverwrite(),
-		)
+	for _, pVirtualApnCfg := range pConfigs {
+		apnRule := &VirtualApnRule{}
+		err := apnRule.FromMconfig(pVirtualApnCfg)
 		if err != nil {
-			log.Printf("%s Managed Gx Virtual APN Rule Config Load Error: %v", virtualApnlCfg.GetApnFilter(), err)
+			glog.Errorf("%s Managed Virtual APN Rule Config Load Error: %v", pVirtualApnCfg.GetApnFilter(), err)
 			continue
 		}
 		virtualApnConfigs = append(virtualApnConfigs, apnRule)
-		log.Printf("Virtual APN Rule Activated filter: %s, Overwrite: %s", virtualApnlCfg.GetApnFilter(), virtualApnlCfg.GetApnOverwrite())
+		glog.Infof("Virtual APN Rule Activated APN filter: %s, Charging Characteristics filter: %s, Overwrite: %s",
+			pVirtualApnCfg.GetApnFilter(), pVirtualApnCfg.GetChargingCharacteristicsFilter(), pVirtualApnCfg.GetApnOverwrite())
 	}
 	return virtualApnConfigs
 }
 
-func MatchAndGetOverwriteApn(apn string, rules []*VirtualApnRule) string {
+func MatchAndGetOverwriteApn(apn, chargingCharacteristics string, rules []*VirtualApnRule) string {
 	for _, rule := range rules {
-		if len(rule.ApnOverwrite) > 0 && rule.ApnFilter.MatchString(apn) {
+		if len(rule.ApnOverwrite) > 0 &&
+			rule.ApnFilter.MatchString(apn) &&
+			rule.ChargingCharacteristicsFilter.MatchString(chargingCharacteristics) {
+			glog.Infof("VirtualAPN match found! Mapping apn %s->%s", apn, rule.ApnOverwrite)
 			return rule.ApnOverwrite
 		}
 	}

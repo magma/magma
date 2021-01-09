@@ -14,33 +14,41 @@
 package analytics
 
 import (
-	lte_service "magma/lte/cloud/go/services/lte"
 	lte_calculations "magma/lte/cloud/go/services/lte/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 )
 
-//GetAnalyticsCalculations gets all the calculations provided by lte analytics
-func GetAnalyticsCalculations(config *lte_service.Config) []calculations.Calculation {
+// GetAnalyticsCalculations gets all the calculations provided by lte analytics
+func GetAnalyticsCalculations(config *calculations.AnalyticsConfig) []calculations.Calculation {
 	if config == nil {
 		return nil
 	}
 
-	allCalculations := make([]calculations.Calculation, 0)
-	allCalculations = append(allCalculations, &lte_calculations.GeneralMetricsCalculation{
-		CalculationParams: calculations.CalculationParams{
-			MetricConfig: config.Analytics.Metrics,
+	calcs := make([]calculations.Calculation, 0)
+	calcs = append(calcs, &lte_calculations.NetworkMetricsCalculation{
+		BaseCalculation: calculations.BaseCalculation{
+			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
 		},
 	})
-	allCalculations = append(allCalculations, &lte_calculations.UserMetricsCalculation{
-		CalculationParams: calculations.CalculationParams{
-			MetricConfig: config.Analytics.Metrics,
+	calcs = append(calcs, &lte_calculations.UserMetricsCalculation{
+		BaseCalculation: calculations.BaseCalculation{
+			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
 		},
 	})
-	allCalculations = append(allCalculations, &lte_calculations.SiteMetricsCalculation{
-		CalculationParams: calculations.CalculationParams{
-			MetricConfig: config.Analytics.Metrics,
+	calcs = append(calcs, &lte_calculations.SiteMetricsCalculation{
+		BaseCalculation: calculations.BaseCalculation{
+			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
 		},
 	})
-	allCalculations = append(allCalculations, calculations.GetRawMetricsCalculations(config.Analytics.Metrics)...)
-	return allCalculations
+	for _, d := range []calculations.ConsumptionDirection{calculations.ConsumptionDown, calculations.ConsumptionDown} {
+		calcs = append(calcs, &lte_calculations.UserThroughputCalculation{
+			BaseCalculation: calculations.BaseCalculation{
+				CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
+			},
+			Direction: d,
+		})
+	}
+	calcs = append(calcs, analytics.GetRawMetricsCalculations(config)...)
+	return calcs
 }

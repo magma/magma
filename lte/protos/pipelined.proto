@@ -30,6 +30,11 @@ message SetupFlowsRequest {
   UpdateSubscriberQuotaStateRequest quota_updates = 3;
 }
 
+message SetupDefaultRequest {
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 1;
+}
+
 message SetupUEMacRequest {
   // List of UEs to activate
   repeated UEMacFlowRequest requests = 1;
@@ -394,6 +399,13 @@ message OffendingIE {
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
 service Pipelined {
+
+  // -----------------
+  // General setup rpc
+  // -----------------
+
+  // Setup pipelined basic controllers
+  rpc SetupDefaultControllers (SetupDefaultRequest) returns (SetupFlowsResult) {}
 
   // ------------
   // Smf to Upf rpc

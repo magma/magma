@@ -19,8 +19,8 @@ clean::
 	go clean ./...
 
 clean_gen:
-	find . -name "*.pb.go" | xargs --no-run-if-empty rm
-	find . -name "*_swaggergen.go" | xargs --no-run-if-empty rm
+	for f in $$(find . -name '*.pb.go' ! -path '*/migrations/*') ; do rm $$f ; done
+	for f in $$(find . -name '*_swaggergen.go' ! -path '*/migrations/*') ; do rm $$f ; done
 
 download:
 	go mod download
@@ -32,13 +32,20 @@ gen::
 	go generate ./...
 
 
-# The sed expression replaces '/' with '_' and gets rid of any './ in the path
-# For v1, we prepend the module name to the filename as well
+# swagger.v1.yml files are expected to be arranged one-per-service, at the
+# following location
 #
-# So for e.g., a swagger file under orc8r/cloud/go/pluginimpl/swagger/swagger.v1.yml
-# will end up as orc8r_pluginimpl_swagger_swagger.v1.yml
+#	MODULE/cloud/go/services/SERVICE/obsidian/models/swagger.v1.yml
+#
+# copy_swagger_files copies Swagger files to the tmp directory under the name
+#
+#	MODULE.SERVICE.swagger.v1.yml
+#
+# For example
+#	- Before: lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml
+#	- After: TMP_GEN/lte.policydb.swagger.v1.yml
 copy_swagger_files:
-	find . -name "swagger.v1.yml" | xargs -I% --no-run-if-empty bash -c 'cp % $${SWAGGER_V1_TEMP_GEN}/$$(echo % | sed "s#/#_#g; s/\._//g" | xargs -I @ echo "$$(basename $$(realpath $$(pwd)/../..))_@")'
+	for f in $$(find . -name swagger.v1.yml) ; do cp $$f $${SWAGGER_V1_TMP_GEN}/$(MODULE_NAME).$$(echo $$f | sed -r 's/.*\/services\/([^\/]*)\/obsidian\/models\/(swagger\.v1\.yml)/\1.\2/g') ; done
 
 lint:
 	golint ./...

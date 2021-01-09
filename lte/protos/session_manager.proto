@@ -51,6 +51,11 @@ message LocalCreateSessionRequest {
   RatSpecificContext rat_specific_context = 17;
 }
 
+message Teids{
+  uint32 enb_teid = 3;
+  uint32 agw_teid = 4;
+}
+
 message CommonSessionContext {
   SubscriberID sid = 1;
   string ue_ipv4 = 3;
@@ -61,6 +66,7 @@ message CommonSessionContext {
   SMSessionFSMState sm_session_state = 7;
   uint32 sm_session_version = 9;
   string ue_ipv6 = 10;
+  Teids teids = 11;
 }
 
 message RatSpecificContext {
@@ -420,6 +426,7 @@ message CreditUsageUpdate {
   TgppContext tgpp_ctx = 15;
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
+  string charging_characteristics = 18;
 }
 
 enum CreditLimitType {
@@ -482,6 +489,7 @@ message UsageMonitoringUpdateRequest {
   RATType rat_type = 7;
   TgppContext tgpp_ctx = 8;
   EventTrigger event_trigger = 9;
+  string charging_characteristics = 10;
 }
 
 // Response to a usage monitor update with the credit received and session info
@@ -584,6 +592,7 @@ message SessionTerminateRequest {
   bytes hardware_addr = 15; // MAC Address for WLAN
   TgppContext tgpp_ctx = 16;
   CommonSessionContext common_context = 17;
+  string charging_characteristics = 18;
 }
 
 service CentralSessionController {

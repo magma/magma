@@ -164,4 +164,6 @@ int s1ap_mme_generate_ue_context_release_command(
     imsi64_t imsi64, sctp_assoc_id_t assoc_id, sctp_stream_id_t stream,
     mme_ue_s1ap_id_t mme_ue_s1ap_id, enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
+int s1ap_mme_remove_stale_ue_context(
+    enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id);
 #endif /* FILE_S1AP_MME_HANDLERS_SEEN */

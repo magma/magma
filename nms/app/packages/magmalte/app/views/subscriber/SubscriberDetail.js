@@ -145,7 +145,12 @@ export default function SubscriberDetail() {
         <Route
           path={relativePath('/event')}
           render={() => (
-            <EventsTable sz="lg" eventStream="SUBSCRIBER" tags={subscriberId} />
+            <EventsTable
+              sz="lg"
+              eventStream="SUBSCRIBER"
+              isAutoRefreshing={true}
+              tags={subscriberId}
+            />
           )}
         />
         <Redirect to={relativeUrl('/overview')} />

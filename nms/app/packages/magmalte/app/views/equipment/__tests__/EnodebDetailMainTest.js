@@ -225,7 +225,7 @@ describe('<Enodeb />', () => {
       'testEnodebSerial1',
     );
     expect(getByTestId('eNodeB Externally Managed')).toHaveTextContent('True');
-    expect(getByTestId('Health')).toHaveTextContent('Bad');
+    expect(getByTestId('Health')).toHaveTextContent('Unavailable');
     expect(getByTestId('Transmit Enabled')).toHaveTextContent('Disabled');
     expect(getByTestId('Gateway ID')).toHaveTextContent('testGw2');
     expect(getByTestId('Mme Connected')).toHaveTextContent('Disconnected');

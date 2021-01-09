@@ -112,6 +112,15 @@ resource "kubernetes_secret" "orc8r_configs" {
       "elasticHost" : var.elasticsearch_endpoint == null ? "elastic" : var.elasticsearch_endpoint
       "elasticPort" : 80,
     })
+
+    "analytics.yml" = yamlencode({
+      "exportMetrics": var.analytics_export_enabled == null ? false : var.analytics_export_enabled,
+      "metricsPrefix": var.analytics_metrics_prefix == null ? "" : var.analytics_metrics_prefix,
+      "appSecret": var.analytics_app_secret == null ? "" : var.analytics_app_secret,
+      "appID": var.analytics_app_id == null ? "" : var.analytics_app_id,
+      "metricExportURL": var.analytics_metric_export_url == null ? "" : var.analytics_metric_export_url,
+      "categoryName": var.analytics_category_name == null ? "" : var.analytics_category_name,
+    })
   }
 }
 

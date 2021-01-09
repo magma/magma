@@ -27,8 +27,6 @@ from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import global_epoch
 from magma.pipelined.policy_converters import flow_match_to_magma_match, \
     convert_ipv4_str_to_ip_proto
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
     TCPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
@@ -37,10 +35,10 @@ from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext, default_ambr_config
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
+from magma.pipelined.tests.pipelined_test_util import fake_controller_setup, \
     create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
     wait_after_send, SnapshotVerifier, get_enforcement_stats, \
-    wait_for_enforcement_stats, fake_controller_setup
+    wait_for_enforcement_stats
 from scapy.all import IP
 
 
@@ -235,25 +233,11 @@ class RestartResilienceTest(unittest.TestCase):
             .set_ip_layer('10.10.1.8/20', sub2_ip)\
             .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
             .build()
-        pkts_sent = 4096
-        pkts_matched = 256
-        flow_query = FlowQuery(
-            self._enforcement_tbl_num, self.testing_controller,
-            match=flow_match_to_magma_match(flow_list2[0].match)
-        )
-        flow_verifier = FlowVerifier([
-            FlowTest(FlowQuery(self._enforcement_tbl_num,
-                               self.testing_controller),
-                     pkts_sent),
-            FlowTest(flow_query, pkts_matched)
-        ], self._wait_func(enf_stat_name))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'before_restart')
-        with isolator, flow_verifier, snapshot_verifier:
+        with isolator, snapshot_verifier:
             pkt_sender.send(packets)
-
-        flow_verifier.verify()
 
         flow_list1 = [FlowDescription(
             match=FlowMatch(
@@ -283,13 +267,10 @@ class RestartResilienceTest(unittest.TestCase):
             enf_stats_controller=self.enforcement_stats_controller,
             startup_flow_controller=self.startup_flows_contoller,
             setup_flows_request=setup_flows_request)
-        flow_verifier = FlowVerifier([
-            FlowTest(flow_query, pkts_matched)
-        ], self._wait_func(enf_stat_name))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'after_restart')
-        with flow_verifier, snapshot_verifier:
+        with snapshot_verifier:
             pass
 
         fake_controller_setup(
@@ -381,12 +362,11 @@ class RestartResilienceTest(unittest.TestCase):
             .build()
 
         # =========================== Verification ===========================
-        flow_verifier = FlowVerifier([], self._wait_func(enf_stat_name))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'initial_flows')
         """ Send packets, wait until pkts are received by ovs and enf stats """
-        with isolator, sub_context, flow_verifier, snapshot_verifier:
+        with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet1)
             pkt_sender.send(packet2)
 
@@ -432,11 +412,11 @@ class RestartResilienceTest(unittest.TestCase):
                                              self.service_manager,
                                              'after_restart')
 
-        with flow_verifier, snapshot_verifier:
+        with snapshot_verifier:
             pass
 
         self.assertEqual(stats[enf_stat_name[0]].bytes_tx,
-        num_pkts_tx_match * len(packet1))
+                         num_pkts_tx_match * len(packet1))
 
     def test_url_redirect(self):
         """
@@ -503,48 +483,11 @@ class RestartResilienceTest(unittest.TestCase):
             .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
             .build()
 
-        # Check if these flows were added (queries should return flows)
-        permit_outbound, permit_inbound = [], []
-        for ip in redirect_ips:
-            permit_outbound.append(FlowQuery(
-                self._tbl_num, self.testing_controller,
-                match=flow_match_to_magma_match(
-                    FlowMatch(ip_dst=convert_ipv4_str_to_ip_proto(ip),
-                              direction=FlowMatch.UPLINK))
-            ))
-            permit_inbound.append(FlowQuery(
-                self._tbl_num, self.testing_controller,
-                match=flow_match_to_magma_match(
-                    FlowMatch(ip_src=convert_ipv4_str_to_ip_proto(ip),
-                              direction=FlowMatch.DOWNLINK))
-            ))
-
-        learn_action_flow = flow_match_to_magma_match(
-            FlowMatch(ip_proto=6, direction=FlowMatch.DOWNLINK,
-                ip_src=convert_ipv4_str_to_ip_proto(self.BRIDGE_IP_ADDRESS),
-                ip_dst=convert_ipv4_str_to_ip_proto(sub_ip))
-        )
-        learn_action_query = FlowQuery(self._tbl_num, self.testing_controller,
-                                       learn_action_flow)
-
-        # =========================== Verification ===========================
-        # 1 packet sent, permit rules installed, learn action installed. Since
-        # the enforcement table is entered via the DPI table and the scratch
-        # enforcement table, the number of packets handled by the table is 2.
-        flow_verifier = FlowVerifier(
-            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2),
-             FlowTest(learn_action_query, 0, flow_count=1)]
-            + [FlowTest(query, 0, flow_count=1) for query in permit_outbound]
-            + [FlowTest(query, 0, flow_count=1) for query in permit_inbound],
-            lambda: wait_after_send(self.testing_controller))
-
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 
-        with isolator, sub_context, flow_verifier, snapshot_verifier:
+        with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
-
-        flow_verifier.verify()
 
     def test_clean_restart(self):
         """

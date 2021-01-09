@@ -104,6 +104,7 @@ class SessionState {
     std::string imsi;
     std::string ip_addr;
     std::string ipv6_addr;
+    Teids teids;
 
     uint32_t local_f_teid;
     std::string msisdn;
@@ -429,6 +430,8 @@ class SessionState {
 
   void get_rules_per_credit_key(
       CreditKey charging_key, RulesToProcess& rulesToProcess);
+
+  void set_teids(Teids teids, SessionStateUpdateCriteria session_uc);
 
   // Event Triggers
   void add_new_event_trigger(

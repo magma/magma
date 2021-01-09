@@ -13,12 +13,11 @@
 
 package orchestrator
 
-//Config represents the configuration provided to lte service
 import (
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 )
 
-//Config represents the configuration provided to lte service
+// Config represents the configuration provided to lte service
 type Config struct {
 	UseGRPCExporter           bool                         `yaml:"useGRPCExporter"`
 	PrometheusGRPCPushAddress string                       `yaml:"prometheusGRPCPushAddress"`

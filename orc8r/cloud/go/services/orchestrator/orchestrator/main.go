@@ -22,7 +22,7 @@ import (
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/orchestrator"
-	orc8r_analytics "magma/orc8r/cloud/go/services/orchestrator/analytics"
+	analytics_service "magma/orc8r/cloud/go/services/orchestrator/analytics"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/orchestrator/servicers"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
@@ -60,8 +60,14 @@ func main() {
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
-	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer,
-		analytics.NewCollectorService(analytics.GetPrometheusClient(), orc8r_analytics.GetAnalyticsCalculations(&serviceConfig)))
+
+	collectorServicer := analytics.NewCollectorServicer(
+		&serviceConfig.Analytics,
+		analytics.GetPrometheusClient(),
+		analytics_service.GetAnalyticsCalculations(&serviceConfig.Analytics),
+		nil,
+	)
+	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {

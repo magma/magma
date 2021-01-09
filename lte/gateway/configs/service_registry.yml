@@ -100,4 +100,7 @@ services:
     port: 50081
   connectiond:
     ip_address: 127.0.0.1
+    port: 50082
+  li_agentd:
+    ip_address: 127.0.0.1
     port: 50083

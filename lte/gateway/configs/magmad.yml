@@ -154,3 +154,9 @@ generic_command_config:
     - name: get_subscriber_table
       command: "mobility_cli.py get_subscriber_table"
       allow_params: False
+    - name: check_stateless
+      command: "magmad_cli.py check_stateless"
+      allow_params: False
+    - name: configure_stateless
+      command: "magmad_cli.py config_stateless {}"
+      allow_params: True

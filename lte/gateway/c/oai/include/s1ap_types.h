@@ -155,5 +155,8 @@ typedef struct enb_description_s {
   sctp_stream_id_t next_sctp_stream;  ///< Next SCTP stream
   sctp_stream_id_t instreams;   ///< Number of streams avalaible on eNB -> MME
   sctp_stream_id_t outstreams;  ///< Number of streams avalaible on MME -> eNB
+  char ran_cp_ipaddr[16];    ///< Network byte order IP address of eNB SCTP end
+                             ///< point
+  uint8_t ran_cp_ipaddr_sz;  ///< IP addr size for ran_cp_ipaddr
   /*@}*/
 } enb_description_t;

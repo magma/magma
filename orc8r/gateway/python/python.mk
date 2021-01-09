@@ -17,6 +17,14 @@
 
 # virtualenv bin and build dirs
 PYTHON_VERSION=3.5
+OS_DISTRO := $(shell lsb_release -si)
+OS_VERSION := $(shell lsb_release -rs)
+ifeq ($(OS_DISTRO),Ubuntu)
+	ifeq ($(OS_VERSION),20.04)
+    	PYTHON_VERSION=3.8
+	endif
+endif
+
 BIN := $(PYTHON_BUILD)/bin
 SRC := $(MAGMA_ROOT)
 SITE_PACKAGES_DIR := $(PYTHON_BUILD)/lib/python$(PYTHON_VERSION)/site-packages
@@ -43,6 +51,11 @@ $(PYTHON_BUILD):
 
 $(SITE_PACKAGES_DIR)/setuptools: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) "setuptools==49.6.0"  # newer than 41.0.1
+
+py_patches:
+	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <patches/aioeventlet.py38.patch 2>/dev/null \
+	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <patches/aioeventlet.py38.patch && echo "aioeventlet was patched" ) \
+	|| ( true && echo "skipping aioeventlet patch since it was already applied")
 
 swagger:: swagger_prereqs $(SWAGGER_LIST)
 swagger_prereqs:
@@ -88,7 +101,7 @@ prometheus_proto:
 
 # If you update the version here, you probably also want to update it in setup.py
 $(BIN)/grpcio-tools: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) "grpcio-tools==1.16.1"
+	$(VIRT_ENV_PIP_INSTALL) "grpcio-tools>=1.16.1"
 
 .test: .tests .sudo_tests
 

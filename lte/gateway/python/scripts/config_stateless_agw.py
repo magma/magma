@@ -12,17 +12,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Script to config AGW in stateful and stateless mode
+Script to trigger pre and post start commands for the Sctpd systemd unit
 """
 
 import argparse
 import os
 import subprocess
 import sys
+import shlex
 import time
 
 from enum import Enum
 
+from magma.common.redis.client import get_default_client
 from magma.configuration.service_configs import (
     load_override_config,
     load_service_config,
@@ -41,7 +43,7 @@ STATELESS_SERVICE_CONFIGS = [
 ]
 
 
-def _check_stateless_service_config(service, config_name, config_value):
+def check_stateless_service_config(service, config_name, config_value):
     service_config = load_service_config(service)
     if service_config.get(config_name) == config_value:
         print("STATELESS\t%s -> %s" % (service, config_name))
@@ -51,11 +53,11 @@ def _check_stateless_service_config(service, config_name, config_value):
     return return_codes.STATEFUL
 
 
-def _check_stateless_services():
+def check_stateless_services():
     num_stateful = 0
     for service, config, value in STATELESS_SERVICE_CONFIGS:
         if (
-            _check_stateless_service_config(service, config, value)
+            check_stateless_service_config(service, config, value)
             == return_codes.STATEFUL
         ):
             num_stateful += 1
@@ -72,16 +74,17 @@ def _check_stateless_services():
 
 
 def check_stateless_agw():
-    sys.exit(_check_stateless_services().value)
+    sys.exit(check_stateless_services().value)
 
 
-def _clear_redis_state():
+def clear_redis_state():
     if os.getuid() != 0:
         print("Need to run as root to clear Redis state.")
         sys.exit(return_codes.INVALID)
-    subprocess.call("service magma@* stop".split())
-    subprocess.call("service magma@redis start".split())
+    # stop MME, which in turn stops mobilityd, pipelined and sessiond
+    subprocess.call("service magma@mme stop".split())
     # delete all keys from Redis which capture service state
+    redis_client = get_default_client()
     for key_regex in [
         "*_state",
         "IMSI*",
@@ -91,21 +94,11 @@ def _clear_redis_state():
         "QosManager",
         "s1ap_imsi_map",
     ]:
-        redis_cmd = (
-            "redis-cli -p 6380 KEYS '"
-            + key_regex
-            + "' | xargs redis-cli -p 6380 DEL"
-        )
-        subprocess.call(
-            redis_cmd,
-            shell=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-    subprocess.call("service magma@redis stop".split())
+        for key in redis_client.scan_iter(key_regex):
+            redis_client.delete(key)
 
 
-def _flushall_redis():
+def flushall_redis():
     if os.getuid() != 0:
         print("Need to run as root to clear Redis state.")
         sys.exit(return_codes.INVALID)
@@ -116,14 +109,14 @@ def _flushall_redis():
     subprocess.call("service magma@redis stop".split())
 
 
-def _start_magmad():
+def start_magmad():
     if os.getuid() != 0:
         print("Need to run as root to start magmad.")
         sys.exit(return_codes.INVALID)
     subprocess.call("service magma@magmad start".split())
 
 
-def _restart_sctpd():
+def restart_sctpd():
     if os.getuid() != 0:
         print("Need to run as root to restart sctpd.")
         sys.exit(return_codes.INVALID)
@@ -134,7 +127,7 @@ def _restart_sctpd():
 
 
 def enable_stateless_agw():
-    if _check_stateless_services() == return_codes.STATELESS:
+    if check_stateless_services() == return_codes.STATELESS:
         print("Nothing to enable, AGW is stateless")
         sys.exit(return_codes.STATELESS.value)
     for service, config, value in STATELESS_SERVICE_CONFIGS:
@@ -143,53 +136,59 @@ def enable_stateless_agw():
         save_override_config(service, cfg)
 
     # restart Sctpd so that eNB connections are reset and local state cleared
-    _restart_sctpd()
-    sys.exit(_check_stateless_services().value)
+    restart_sctpd()
+    sys.exit(check_stateless_services().value)
 
 
 def disable_stateless_agw():
-    if _check_stateless_services() == return_codes.STATEFUL:
+    if check_stateless_services() == return_codes.STATEFUL:
         print("Nothing to disable, AGW is stateful")
         sys.exit(return_codes.STATEFUL.value)
     for service, config, value in STATELESS_SERVICE_CONFIGS:
         cfg = load_override_config(service) or {}
-
-        # remove the stateless override
-        cfg.pop(config, None)
-
+        cfg[config] = not value
         save_override_config(service, cfg)
 
     # restart Sctpd so that eNB connections are reset and local state cleared
-    _restart_sctpd()
-    sys.exit(_check_stateless_services().value)
+    restart_sctpd()
+    sys.exit(check_stateless_services().value)
 
 
 def sctpd_pre_start():
-    if _check_stateless_services() == return_codes.STATEFUL:
+    if check_stateless_services() == return_codes.STATEFUL:
         # switching from stateless to stateful
         print("AGW is stateful, nothing to be done")
     else:
-        _clear_redis_state()
+        clear_redis_state()
     sys.exit(0)
 
 
 def sctpd_post_start():
-    _start_magmad()
+    subprocess.Popen("/bin/systemctl start magma@mme".split())
+    subprocess.Popen("/bin/systemctl start magma@pipelined".split())
+    subprocess.Popen("/bin/systemctl start magma@sessiond".split())
+    subprocess.Popen("/bin/systemctl start magma@mobilityd".split())
     sys.exit(0)
 
 
 def clear_redis_and_restart():
-    _clear_redis_state()
-    _start_magmad()
+    clear_redis_state()
+    sctpd_post_start()
     sys.exit(0)
 
 
 def flushall_redis_and_restart():
-    _flushall_redis()
-    _start_magmad()
-    _restart_sctpd()
+    flushall_redis()
+    start_magmad()
+    restart_sctpd()
     sys.exit(0)
 
+
+def reset_sctpd_for_stateful():
+    if check_stateless_services() == return_codes.STATELESS:
+        print("AGW is stateless, no need to restart Sctpd")
+        sys.exit(0)
+    restart_sctpd()
 
 STATELESS_FUNC_DICT = {
     "check": check_stateless_agw,
@@ -199,6 +198,7 @@ STATELESS_FUNC_DICT = {
     "sctpd_post": sctpd_post_start,
     "clear_redis": clear_redis_and_restart,
     "flushall_redis": flushall_redis_and_restart,
+    "reset_sctpd_for_stateful": reset_sctpd_for_stateful
 }
 
 

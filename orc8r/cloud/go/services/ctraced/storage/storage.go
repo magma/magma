@@ -15,11 +15,16 @@ package storage
 
 // CtracedStorage is the persistence service interface for call traces.
 // All call trace accesses from ctraced service must go through this interface.
+// Call traces should be stored as .pcap files
 type CtracedStorage interface {
 
-	// StoreCallTrace
+	// StoreCallTrace stores the call trace file
 	StoreCallTrace(networkID string, callTraceID string, data []byte) error
 
-	// GetCallTrace
+	// GetCallTrace returns the call trace file
 	GetCallTrace(networkID string, callTraceID string) ([]byte, error)
+
+	// DeleteCallTrace deletes the call trace file
+	// Returns an error if the call trace does not exist
+	DeleteCallTrace(networkID string, callTraceID string) error
 }

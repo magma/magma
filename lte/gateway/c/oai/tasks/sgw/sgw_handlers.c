@@ -575,7 +575,7 @@ static void sgw_add_gtp_tunnel(
       for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
            ++itrn) {
         // Prepare DL flow rule
-        struct ip_flow_dl dlflow;
+        struct ip_flow_dl dlflow = {0};
         _generate_dl_flow(
             &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                   .packetfiltercontents),
@@ -1044,6 +1044,7 @@ int sgw_handle_modify_bearer_request(
 
 //------------------------------------------------------------------------------
 int sgw_handle_delete_session_request(
+    spgw_state_t* spgw_state,
     const itti_s11_delete_session_request_t* const delete_session_req_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1169,7 +1170,7 @@ int sgw_handle_delete_session_request(
           delete_session_req_pP->lbi);
 
       sgw_cm_remove_bearer_context_information(
-          delete_session_req_pP->teid, imsi64);
+          spgw_state, delete_session_req_pP->teid, imsi64);
       increment_counter("spgw_delete_session", 1, 1, "result", "success");
     }
 
@@ -1464,7 +1465,7 @@ void handle_s5_create_session_response(
            .pdn_connection,
       sgi_create_endpoint_resp.eps_bearer_id);
   sgw_cm_remove_bearer_context_information(
-      session_resp.context_teid,
+      state, session_resp.context_teid,
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64);
 
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
@@ -1710,6 +1711,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
  */
 
 int sgw_handle_nw_initiated_deactv_bearer_rsp(
+    spgw_state_t* spgw_state,
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_pcrf_ded_bearer_deactv_rsp,
     imsi64_t imsi64) {
@@ -1807,7 +1809,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
         &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
     sgw_cm_remove_bearer_context_information(
-        s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4, imsi64);
+        spgw_state, s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4, imsi64);
   } else {
     // Remove the dedicated bearer/s context
     for (i = 0; i < no_of_bearers; i++) {
@@ -1825,7 +1827,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
         for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
              ++itrn) {
           // Prepare DL flow rule from stored packet filters
-          struct ip_flow_dl dlflow;
+          struct ip_flow_dl dlflow = {0};
           struct in6_addr* ue_ipv6 = NULL;
           if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
               (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {

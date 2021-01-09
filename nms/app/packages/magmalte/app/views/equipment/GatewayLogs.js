@@ -188,7 +188,7 @@ export default function GatewayLogs() {
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
   const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
     isAutoRefreshing,
-    10000,
+    30000,
     () => {
       tableRef.current && tableRef.current.onQueryChange();
     },

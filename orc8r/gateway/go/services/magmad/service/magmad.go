@@ -39,6 +39,7 @@ import (
 )
 
 type magmadService struct {
+	protos.UnimplementedMagmadServer
 }
 
 func (m *magmadService) StartServices(context.Context, *protos.Void) (*protos.Void, error) {

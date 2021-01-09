@@ -13,12 +13,11 @@
 
 package cwf
 
-//Config represents the configuration provided to cwf service
 import (
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 )
 
-//Config represents the configuration provided to cwf service
+// Config represents the configuration provided to cwf service
 type Config struct {
 	Analytics calculations.AnalyticsConfig `yaml:"analytics"`
 }

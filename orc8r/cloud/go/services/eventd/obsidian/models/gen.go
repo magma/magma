@@ -10,5 +10,5 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-//go:generate bash -c "swaggergen --target=swagger.v1.yml --root=$MAGMA_ROOT --template=$SWAGGER_V1_TEMPLATE"
+//go:generate swaggergen --target=swagger.v1.yml --root=$MAGMA_ROOT --config=$SWAGGER_V1_CONFIG
 package models

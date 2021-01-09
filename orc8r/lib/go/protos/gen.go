@@ -11,5 +11,5 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//go:generate bash -c "protoc -I /usr/include -I $MAGMA_ROOT/orc8r/protos/prometheus --proto_path=$MAGMA_ROOT --go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$MAGMA_ROOT/.. $MAGMA_ROOT/orc8r/protos/*.proto"
+//go:generate bash -c "protoc -I /usr/include -I $MAGMA_ROOT/orc8r/protos/prometheus -I $MAGMA_ROOT --go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$MAGMA_ROOT/.. $MAGMA_ROOT/orc8r/protos/*.proto"
 package protos

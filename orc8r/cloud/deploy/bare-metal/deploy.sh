@@ -43,7 +43,7 @@ sudo cat /root/.kube/config > ~/.kube/config
 kubectl apply -f pv
 
 #Install NFS server provisioner
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm repo add stable https://charts.helm.sh/stable/
 helm repo update
 
 mkdir -p /mnt/persistentvols/nfs

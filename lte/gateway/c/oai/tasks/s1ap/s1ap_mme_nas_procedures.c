@@ -317,6 +317,10 @@ int s1ap_mme_handle_uplink_nas_transport(
       s1ap_mme_generate_ue_context_release_command(
           state, ue_ref, S1AP_INVALID_MME_UE_S1AP_ID, imsi64, assoc_id, stream,
           mme_ue_s1ap_id, enb_ue_s1ap_id);
+      /* If UE context doesn't exist for received mme_ue_s1ap_id
+       * remove the corresponding enb_ue_s1ap_id_key entry in mme_app
+       */
+      s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id, enb_ref->enb_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
@@ -1042,10 +1046,9 @@ void s1ap_handle_conn_est_cnf(
         S1ap_InitialContextSetupRequestIEs__value_PR_UERadioCapability;
     OCTET_STRING_fromBuf(
         &ie->value.choice.UERadioCapability,
-        (const char*) conn_est_cnf_pP->ue_radio_capability,
-        conn_est_cnf_pP->ue_radio_cap_length);
+        (const char*) conn_est_cnf_pP->ue_radio_capability->data,
+        conn_est_cnf_pP->ue_radio_capability->slen);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-    free_wrapper((void**) &(conn_est_cnf_pP->ue_radio_capability));
   }
 
   if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {

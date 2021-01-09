@@ -23,6 +23,8 @@ aliases:
     paths: "nms"
   - &orc8r_build_verify
     paths: "orc8r"
+  - &cwf_build_verify
+    paths: "cwf"
 
 executors:
   node:
@@ -499,7 +501,7 @@ jobs:
             python3 build.py -a --nocache --parallel
       - tag-push-docker:
           project: orc8r
-          images: "nginx|controller|base"
+          images: "nginx|controller"
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -630,7 +632,7 @@ jobs:
     steps:
       - checkout
       - build/determinator:
-          <<: *all_gateways_build_verify
+          <<: *cwf_build_verify
       - docker/install-dc
       - run:
           name: Build CWAG containers
@@ -933,7 +935,7 @@ jobs:
             docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
             cd ${MAGMA_ROOT}/xwf/docker/
             docker-compose pull || true
-            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
+            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py
       - when:
           condition: <<parameters.notify_magma_ci>>
           steps: magma_slack_notify
@@ -1030,6 +1032,24 @@ workflows:
           requires:
             - xwfm-test
             - cwag-deploy
+      - cwag-deploy:
+          <<: *only_master
+          name: cwag-deploy-latest
+          requires:
+            - xwfm-test
+            - cwag-precommit
+            - cwf-integ-test
+          images: 'gateway_python|gateway_pipelined'
+          tag: 'latest'
+      - xwfm-deploy:
+          <<: *only_master
+          name: xwfm-deploy-latest
+          requires:
+            - xwfm-test
+            - cwag-precommit
+            - cwf-integ-test
+          tag: 'latest'
+
 
   cwf_operator:
     jobs:
@@ -1046,15 +1066,6 @@ workflows:
     jobs:
       - xwfm-test:
           notify_magma_ci: false
-      - xwfm-deploy:
-          requires:
-            - xwfm-test
-          tag: 'hourly'
-      - cwag-deploy:
-          requires:
-            - xwfm-test
-          images: 'gateway_python|gateway_pipelined'
-          tag: 'hourly'
 
   nms:
     jobs:

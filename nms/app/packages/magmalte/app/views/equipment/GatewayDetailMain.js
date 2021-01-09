@@ -267,8 +267,9 @@ export function GatewayDetail() {
           render={() => (
             <EventsTable
               eventStream="GATEWAY"
-              tags={gwCtx.state[gatewayId].device.hardware_id}
+              hardwareId={gwCtx.state[gatewayId].device.hardware_id}
               sz="lg"
+              isAutoRefreshing={true}
             />
           )}
         />
@@ -306,7 +307,7 @@ function GatewayOverview() {
               <CardTitleRow icon={MyLocationIcon} label="Events" />
               <EventsTable
                 eventStream="GATEWAY"
-                tags={gwInfo.device.hardware_id}
+                hardwareId={gwInfo.device.hardware_id}
                 sz="sm"
               />
             </Grid>
