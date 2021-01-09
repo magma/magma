@@ -181,3 +181,9 @@ export default function isGatewayHealthy({status}: lte_gateway) {
   }
   return false;
 }
+
+export const DynamicServices = Object.freeze({
+  MONITORD: 'monitord',
+  EVENTD: 'eventd',
+  TD_AGENT_BIT: 'td-agent-bit',
+});
