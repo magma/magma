@@ -962,8 +962,9 @@ void mme_app_handle_delete_session_rsp(
     if (hash_rc == HASH_TABLE_OK) {
       ue_context_p->mme_teid_s11 = 0;
     }
-    ue_context_p->nb_active_pdn_contexts -= 1;
-
+    if (ue_context_p->nb_active_pdn_contexts > 0) {
+      ue_context_p->nb_active_pdn_contexts -= 1;
+    }
     /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
        Detach Ack from MSC/VLR */
