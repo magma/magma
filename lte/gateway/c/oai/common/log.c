@@ -566,13 +566,9 @@ static void log_get_readable_cur_time(time_t* cur_time, char* time_str) {
   struct tm* cur_local_time;
   cur_local_time = localtime(cur_time);
   // get the current local time in readable string format
-<<<<<<< HEAD
-  return (strtok(ctime(cur_time), "\n"));
-=======
   strftime(
       time_str, MAX_TIME_STR_LEN, "%a %b %d %H:%M:%S %Y",
       (const struct tm*) cur_local_time);
->>>>>>> 5d03e26c4... [agw][mme] Replace ctime_r with strftime (#4240)
 }
 
 //------------------------------------------------------------------------------
