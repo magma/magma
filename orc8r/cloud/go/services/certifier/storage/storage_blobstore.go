@@ -140,7 +140,7 @@ func (c *certifierBlobstore) PutCertInfo(serialNumber string, certInfo *protos.C
 	}
 
 	blob := blobstore.Blob{Type: CertInfoType, Key: serialNumber, Value: marshaledCertInfo}
-	err = store.CreateOrUpdate(placeholderNetworkID, []blobstore.Blob{blob})
+	err = store.CreateOrUpdate(placeholderNetworkID, blobstore.Blobs{blob})
 	if err != nil {
 		return errors.Wrap(err, "failed to put certificate info")
 	}

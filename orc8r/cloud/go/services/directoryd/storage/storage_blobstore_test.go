@@ -116,7 +116,7 @@ func TestDirectorydBlobstoreStorage_MapHWIDToHostname(t *testing.T) {
 		{Type: dstorage.DirectorydTypeHWIDToHostname, Key: hwids[1]},
 	}
 
-	blobs := []blobstore.Blob{
+	blobs := blobstore.Blobs{
 		{
 			Type:  tks[0].Type,
 			Key:   tks[0].Key,
@@ -259,7 +259,7 @@ func TestDirectorydBlobstore_MapSessionIDToIMSI(t *testing.T) {
 		{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sids[1]},
 	}
 
-	blobs := []blobstore.Blob{
+	blobs := blobstore.Blobs{
 		{
 			Type:  tks[0].Type,
 			Key:   tks[0].Key,
