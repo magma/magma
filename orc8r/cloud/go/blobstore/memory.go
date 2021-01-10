@@ -153,7 +153,7 @@ func (store *memoryBlobStorage) Get(networkID string, id storage.TypeAndKey) (Bl
 
 // GetMany grabs blobs corresponding to the ids from the shared map, then
 // updates the blobs with changes from the ongoing transaction
-func (store *memoryBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error) {
+func (store *memoryBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) (Blobs, error) {
 	store.RLock()
 	defer store.RUnlock()
 
@@ -168,7 +168,7 @@ func (store *memoryBlobStorage) GetMany(networkID string, ids []storage.TypeAndK
 	return store.updateBlobsWithLocalChangesUnsafe(networkID, ids, sharedBlobs), nil
 }
 
-func (store *memoryBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error) {
+func (store *memoryBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string]Blobs, error) {
 	store.RLock()
 	defer store.RUnlock()
 
@@ -186,7 +186,7 @@ func (store *memoryBlobStorage) Search(filter SearchFilter, criteria LoadCriteri
 	return withParedFields, nil
 }
 
-func (store *memoryBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) error {
+func (store *memoryBlobStorage) CreateOrUpdate(networkID string, blobs Blobs) error {
 	store.Lock()
 	defer store.Unlock()
 
@@ -479,7 +479,7 @@ func searchInNetwork(networkBlobs blobsByID, filter SearchFilter) blobsByID {
 // match the given ids and applies the changes onto the blobs. This function
 // returns a list of blobs from the modified map.
 // Must be called with read lock on change map.
-func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID string, idsToQuery []storage.TypeAndKey, blobsByID blobsByID) []Blob {
+func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID string, idsToQuery []storage.TypeAndKey, blobsByID blobsByID) Blobs {
 	networkMap, existsInLocal := store.changes[networkID]
 	if !existsInLocal {
 		return blobsByID.toBlobList()
@@ -495,7 +495,7 @@ func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID stri
 	return blobsByID.toBlobList()
 }
 
-func (store *memoryBlobStorage) searchForLocalChangesUnsafe(filter SearchFilter, blobsByNetwork map[string]blobsByID) map[string][]Blob {
+func (store *memoryBlobStorage) searchForLocalChangesUnsafe(filter SearchFilter, blobsByNetwork map[string]blobsByID) map[string]Blobs {
 	// Lazy approach to keep the code simple: always iterate through the whole
 	// table for the local transaction
 	for networkID, txChanges := range store.changes {
@@ -509,7 +509,7 @@ func (store *memoryBlobStorage) searchForLocalChangesUnsafe(filter SearchFilter,
 		}
 	}
 
-	ret := map[string][]Blob{}
+	ret := map[string]Blobs{}
 	for nid, blobs := range blobsByNetwork {
 		if !funk.IsEmpty(blobs) {
 			ret[nid] = blobs.toBlobList()
@@ -547,7 +547,7 @@ func (blob *Blob) toID() storage.TypeAndKey {
 	return storage.TypeAndKey{Type: blob.Type, Key: blob.Key}
 }
 
-func blobsToIDs(blobs []Blob) []storage.TypeAndKey {
+func blobsToIDs(blobs Blobs) []storage.TypeAndKey {
 	var ids []storage.TypeAndKey
 	for _, blob := range blobs {
 		ids = append(ids, blob.toID())
@@ -555,8 +555,8 @@ func blobsToIDs(blobs []Blob) []storage.TypeAndKey {
 	return ids
 }
 
-func (blobSet blobsByID) toBlobList() []Blob {
-	var blobs []Blob
+func (blobSet blobsByID) toBlobList() Blobs {
+	var blobs Blobs
 	for _, blob := range blobSet {
 		blobs = append(blobs, blob)
 	}
@@ -573,11 +573,11 @@ func fromKeySet(keySet map[string]struct{}) []string {
 }
 
 // Map blobs -> blobs, zeroing fields according to load criteria.
-func handleLoadCriteria(blobsByNetwork map[string][]Blob, criteria LoadCriteria) map[string][]Blob {
-	ret := map[string][]Blob{}
+func handleLoadCriteria(blobsByNetwork map[string]Blobs, criteria LoadCriteria) map[string]Blobs {
+	ret := map[string]Blobs{}
 
 	for network, blobs := range blobsByNetwork {
-		ret[network] = make([]Blob, 0, len(blobs))
+		ret[network] = make(Blobs, 0, len(blobs))
 		for _, blob := range blobs {
 			if !criteria.LoadValue {
 				blob.Value = nil

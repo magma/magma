@@ -41,14 +41,14 @@ func TestStateServicer_GetStates(t *testing.T) {
 		blobstore.CreateSearchFilter(strPtr("network1"), []string{"t1", "t2"}, []string{"k1", "k2"}, nil),
 		blobstore.GetDefaultLoadCriteria(),
 	).
-		Return(map[string][]blobstore.Blob{
+		Return(map[string]blobstore.Blobs{
 			"network1": {
 				{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 42},
 				{Type: "t2", Key: "k2", Value: []byte("v2"), Version: 43},
 			},
 		}, nil)
 	mockStore.On("GetMany", "network1", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}}).
-		Return([]blobstore.Blob{
+		Return(blobstore.Blobs{
 			{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 42},
 			{Type: "t2", Key: "k2", Value: []byte("v2"), Version: 43},
 		}, nil)

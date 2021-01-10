@@ -44,7 +44,7 @@ func addUeToStore(srvstore blobstore.BlobStorageFactory, ue *cwfprotos.UEConfig)
 		}
 	}()
 
-	err = store.CreateOrUpdate(networkIDPlaceholder, []blobstore.Blob{blob})
+	err = store.CreateOrUpdate(networkIDPlaceholder, blobstore.Blobs{blob})
 
 }
 
