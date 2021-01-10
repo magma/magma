@@ -598,7 +598,7 @@ void mme_ue_context_update_coll_keys(
   h_rc = hashtable_uint64_ts_remove(
       mme_ue_context_p->tun11_ue_context_htbl,
       (const hash_key_t) ue_context_p->mme_teid_s11);
-  if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
+  if ((INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) && (mme_teid_s11)) {
     h_rc = hashtable_uint64_ts_insert(
         mme_ue_context_p->tun11_ue_context_htbl,
         (const hash_key_t) mme_teid_s11, (uint64_t) mme_ue_s1ap_id);

@@ -846,6 +846,8 @@ static int send_mbr_failure(
     modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[idx]
         .cause.cause_value = CONTEXT_NOT_FOUND;
   }
+  // Fill mme s11 teid received in modify bearer request
+  modify_response_p->teid = modify_bearer_pP->local_teid;
   modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context += 1;
   modify_response_p->cause.cause_value = CONTEXT_NOT_FOUND;
   modify_response_p->trxn              = modify_bearer_pP->trxn;
