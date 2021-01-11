@@ -101,7 +101,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       if (sctpd_send_dl(ppid, assoc_id, stream, payload) < 0) {
         if (ppid == S1AP) {
           OAILOG_DEBUG(
-              LOG_SCTP, "ppid match S1AP in sctp_itti_send_lower_layer_conf ");
+              LOG_SCTP, "Ppid S1AP in sctp_data_req ");
           sctp_itti_send_lower_layer_conf(
               received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id,
               stream, SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id, false);
