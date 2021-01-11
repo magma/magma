@@ -14,7 +14,7 @@
   Source      amf_default_values.h
   Date        2020/07/28
   Subsystem   Access and Mobility Management Function
-  Description Defines and Access default values
+  Description Defines Access Management default values
 
 *****************************************************************************/
 
