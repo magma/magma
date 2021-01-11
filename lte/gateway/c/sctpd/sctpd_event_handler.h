@@ -24,7 +24,7 @@ namespace sctpd {
 class SctpdEventHandler : public SctpEventHandler {
  public:
   // Construct SctpdEventHandler that communicates to MME/AMF over client
-  explicit SctpdEventHandler(SctpdUplinkClient &client);
+  explicit SctpdEventHandler(SctpdUplinkClient& client);
 
   // Relay new assocation to MME/AMF over GRPC
   void HandleNewAssoc(
