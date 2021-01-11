@@ -125,7 +125,7 @@ int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* amf_config);
 int amf_config_parse_file(amf_config_t*);
 void amf_config_display(amf_config_t*);
 
-void mme_config_exit(void);
+void amf_config_exit(void);
 #define amf_config_read_lock(aMFcONFIG)                                        \
   pthread_rwlock_rdlock(&(aMFcONFIG)->rw_lock)
 #define amf_config_write_lock(aMFcONFIG)                                       \
