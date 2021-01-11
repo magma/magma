@@ -86,7 +86,7 @@ message NewAssocRes {
 message CloseAssocReq {
     uint32 assoc_id = 1; // association ID of eNB
     bool is_reset = 2; // whether the request represents a reset or shutdown
-    uint32  ppid = 4;
+    uint32  ppid = 3;
 }
 
 // CloseAssocRes - response for CloseAssocReq, present for forwards compat
