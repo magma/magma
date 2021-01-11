@@ -84,7 +84,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       } else {
         OAILOG_ERROR(
             LOG_SCTP,
-            "received_message_p->ittiMsg.sctpInit.ppid =%d not found ",
+            "Invalid Ppid: %d",
             received_message_p->ittiMsg.sctpInit.ppid);
       }
     } break;
