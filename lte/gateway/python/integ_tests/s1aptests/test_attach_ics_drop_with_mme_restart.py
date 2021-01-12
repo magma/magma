@@ -40,7 +40,6 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         after handling the NW Initiated detach once MME comes up
         """
 
-        # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
 
@@ -85,8 +84,8 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         print("******************** Received Security Mode Command Indication")
 
         print(
-            "******************** Setting Initial Context Setup Request Drop "
-            "flag"
+            "******************** Setting flag to drop Initial Context Setup "
+            "Request"
         )
         drop_init_ctxt_setup_req = s1ap_types.UeDropInitCtxtSetup()
         drop_init_ctxt_setup_req.ue_Id = req.ue_id
@@ -97,20 +96,16 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req
         )
 
+        print("******************** Sending Security Mode Complete")
         # Send Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
-        print("******************** Sending Security Mode Complete")
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
         )
 
         # enbApp sends UE_ICS_DROPD_IND message to tfwApp after dropping
         # ICS request
-        print(
-            "******************** Waiting for Initial Context Setup Dropped "
-            "Indication"
-        )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value
@@ -124,14 +119,14 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
 
         print(
-            "******************** Resetting Initial Context Setup Request "
-            "Drop flag"
+            "******************** Resetting flag to not drop next Initial "
+            "Context Setup Request messages"
         )
         drop_init_ctxt_setup_req = s1ap_types.UeDropInitCtxtSetup()
         drop_init_ctxt_setup_req.ue_Id = req.ue_id
         drop_init_ctxt_setup_req.flag = 0
         # Timer to release UE context at s1ap tester
-        drop_init_ctxt_setup_req.tmrVal = 2000
+        # drop_init_ctxt_setup_req.tmrVal = 2000
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req
         )
@@ -186,8 +181,9 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
                     )
                 else:
                     print(
-                        "******************** Ignoring re-transmitted NW "
-                        "initiated detach request message"
+                        "******************** Ignoring re-transmitted (",
+                        resp_count,
+                        ") NW initiated detach request message"
                     )
             else:
                 break
@@ -211,7 +207,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
             s1ap_types.ueAttachAccept_t,
         )
 
-        # Wait on EMM Information from MME
+        # Wait for EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         print(

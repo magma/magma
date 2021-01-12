@@ -40,7 +40,6 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         after handling the ICS failure message
         """
 
-        # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
 
@@ -85,21 +84,22 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         )
         print("******************** Received Security Mode Command Indication")
 
+        print(
+            "******************** Setting flag to send Initial Context Setup "
+            "Failure"
+        )
         init_ctxt_setup_fail = s1ap_types.ueInitCtxtSetupFail()
         init_ctxt_setup_fail.ue_Id = req.ue_id
         init_ctxt_setup_fail.flag = 1
         init_ctxt_setup_fail.causeType = 0
-        print(
-            "******************** Setting Initial Context Setup Failure flag"
-        )
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail
         )
 
+        print("******************** Sending Security Mode Complete")
         # Send Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
-        print("******************** Sending Security Mode Complete")
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
         )
@@ -118,7 +118,8 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         init_ctxt_setup_fail.flag = 0
         init_ctxt_setup_fail.causeType = 0
         print(
-            "******************** Resetting Initial Context Setup Failure flag"
+            "******************** Resetting flag to not send Initial Context "
+            "Setup Failure"
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail
@@ -128,7 +129,7 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
             print("Waiting for", j, "seconds")
             time.sleep(1)
 
-        print("******************** Waiting for UE Context Release indication")
+        # Waiting for UE Context Release indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
@@ -149,7 +150,7 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
             s1ap_types.ueAttachAccept_t,
         )
 
-        # Wait on EMM Information from MME
+        # Wait for EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         print(
