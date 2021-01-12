@@ -57,7 +57,7 @@ func (a *accessdBlobstore) ListAllIdentity() ([]*protos.Identity, error) {
 		return nil, status.Errorf(codes.Internal, "failed to list keys: %s", err)
 	}
 
-	tks := blobstore.GetTKsFromKeys(AccessdDefaultType, idHashes)
+	tks := storage.MakeTKs(AccessdDefaultType, idHashes)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get many acls: %s", err)
@@ -108,7 +108,7 @@ func (a *accessdBlobstore) GetManyACL(ids []*protos.Identity) ([]*accessprotos.A
 		}
 		idHashes = append(idHashes, id.HashString())
 	}
-	tks := blobstore.GetTKsFromKeys(AccessdDefaultType, idHashes)
+	tks := storage.MakeTKs(AccessdDefaultType, idHashes)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get many acls: %s", err)

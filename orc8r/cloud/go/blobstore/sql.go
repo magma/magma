@@ -429,7 +429,7 @@ func partitionBlobsToCreateAndChange(blobsToUpdate Blobs, existingBlobs Blobs) b
 		blobsToCreate: Blobs{},
 		blobsToChange: map[storage.TypeAndKey]blobChange{},
 	}
-	existingBlobsByID := GetBlobsByTypeAndKey(existingBlobs)
+	existingBlobsByID := existingBlobs.ByTK()
 
 	for _, blob := range blobsToUpdate {
 		blobID := storage.TypeAndKey{Type: blob.Type, Key: blob.Key}

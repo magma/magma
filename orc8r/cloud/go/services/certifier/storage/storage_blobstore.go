@@ -77,7 +77,7 @@ func (c *certifierBlobstore) GetManyCertInfo(serialNumbers []string) (map[string
 	}
 	defer store.Rollback()
 
-	tks := blobstore.GetTKsFromKeys(CertInfoType, serialNumbers)
+	tks := storage.MakeTKs(CertInfoType, serialNumbers)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get many certificate info")
@@ -108,7 +108,7 @@ func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInf
 		return nil, errors.Wrap(err, "failed to list keys")
 	}
 
-	tks := blobstore.GetTKsFromKeys(CertInfoType, serialNumbers)
+	tks := storage.MakeTKs(CertInfoType, serialNumbers)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get many certificate info")

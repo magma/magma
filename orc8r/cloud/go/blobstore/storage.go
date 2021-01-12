@@ -146,7 +146,7 @@ func ListKeysByNetwork(store TransactionalBlobStorage) (map[string][]storage.Typ
 
 	tks := map[string][]storage.TypeAndKey{}
 	for network, blobs := range blobsByNetwork {
-		tks[network] = GetTKsFromBlobs(blobs)
+		tks[network] = blobs.TKs()
 	}
 
 	return tks, nil
@@ -216,30 +216,20 @@ type LoadCriteria struct {
 	LoadValue bool
 }
 
-// GetTKsFromBlobs converts blobs to their associated type and key.
-func GetTKsFromBlobs(blobs Blobs) []storage.TypeAndKey {
-	tks := make([]storage.TypeAndKey, 0, len(blobs))
-	for _, blob := range blobs {
+// TKs converts blobs to their associated type and key.
+func (bs Blobs) TKs() []storage.TypeAndKey {
+	tks := make([]storage.TypeAndKey, 0, len(bs))
+	for _, blob := range bs {
 		tks = append(tks, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
 	}
 	return tks
 }
 
-// GetTKsFromKeys returns the passed keys mapped as TypeAndKey, with the passed
-// type applied to each.
-func GetTKsFromKeys(typ string, keys []string) []storage.TypeAndKey {
-	tks := make([]storage.TypeAndKey, 0, len(keys))
-	for _, k := range keys {
-		tks = append(tks, storage.TypeAndKey{Type: typ, Key: k})
-	}
-	return tks
-}
-
-// GetBlobsByTypeAndKey returns a computed view of a list of blobs as a map of
+// ByTK returns a computed view of a list of blobs as a map of
 // blobs keyed by blob TypeAndKey.
-func GetBlobsByTypeAndKey(blobs Blobs) map[storage.TypeAndKey]Blob {
-	ret := make(map[storage.TypeAndKey]Blob, len(blobs))
-	for _, blob := range blobs {
+func (bs Blobs) ByTK() map[storage.TypeAndKey]Blob {
+	ret := make(map[storage.TypeAndKey]Blob, len(bs))
+	for _, blob := range bs {
 		ret[storage.TypeAndKey{Type: blob.Type, Key: blob.Key}] = blob
 	}
 	return ret
