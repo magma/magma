@@ -38,6 +38,8 @@ from magma.mobilityd.ipv6_allocator_pool import \
     IPv6AllocatorPool
 from magma.mobilityd.ip_allocator_static import \
     IPAllocatorStaticWrapper
+from magma.mobilityd.subscriberdb_client import SubscriberDBMultiAPNValueError, \
+    SubscriberDBStaticIPValueError
 
 
 class MockedSubscriberDBStub:
@@ -390,12 +392,5 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=None,
                                           vlan=vlan)
 
-        ip0, _ = self._allocator.alloc_ip_address(sid)
-        ip0_returned = self._allocator.get_ip_for_sid(sid)
-
-        # check if retrieved ip is the same as the one allocated
-        self.assertEqual(ip0, ip0_returned)
-        self.assertNotEqual(ip0, ipaddress.ip_address(wild_assigned_ip))
-        self.check_type(sid, IPType.IP_POOL)
-        self.check_vlan(sid, 0)
-        self.check_gw_info(vlan, None, None)
+        with self.assertRaises(SubscriberDBStaticIPValueError):
+            ip0, _ = self._allocator.alloc_ip_address(sid)
