@@ -264,7 +264,6 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("ListKeys", mock.Anything, cstorage.CertInfoType).Return([]string{}, nil).Once()
-	blobStoreMock.On("GetMany", mock.Anything, []storage.TypeAndKey{}).Return(blobstore.Blobs{}, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
 

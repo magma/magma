@@ -57,6 +57,10 @@ func (a *accessdBlobstore) ListAllIdentity() ([]*protos.Identity, error) {
 		return nil, status.Errorf(codes.Internal, "failed to list keys: %s", err)
 	}
 
+	if len(idHashes) == 0 {
+		return make([]*protos.Identity, 0), store.Commit()
+	}
+
 	tks := storage.MakeTKs(AccessdDefaultType, idHashes)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
