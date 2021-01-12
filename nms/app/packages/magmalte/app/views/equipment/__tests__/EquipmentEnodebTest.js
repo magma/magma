@@ -25,11 +25,11 @@ import React from 'react';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
 
+import * as hooks from '../../../components/context/RefreshContext';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
-
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
@@ -51,8 +51,7 @@ const mockThroughput: promql_return_object = {
 const currTime = Date.now();
 
 describe('<Enodeb />', () => {
-  beforeEach(() => {
-    // eslint-disable-next-line max-len
+  beforeAll(() => {
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockThroughput,
     );
@@ -124,16 +123,19 @@ describe('<Enodeb />', () => {
     testEnodebSerial1: enbInfo1,
   };
 
+  const enbCtx = {
+    state: {enbInfo: enbInfo},
+    setState: async _ => {},
+  };
+
+  jest.spyOn(hooks, 'useRefreshingContext').mockImplementation(() => enbCtx);
+
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/enodeb']} initialIndex={0}>
       <MuiPickersUtilsProvider utils={MomentUtils}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
-            <EnodebContext.Provider
-              value={{
-                state: {enbInfo: enbInfo},
-                setState: async _ => {},
-              }}>
+            <EnodebContext.Provider value={enbCtx}>
               <Route path="/nms/:networkId/enodeb/" render={_ => <Enodeb />} />
             </EnodebContext.Provider>
           </MuiStylesThemeProvider>

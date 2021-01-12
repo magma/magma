@@ -32,11 +32,16 @@ import SubscriberDetailConfig from './SubscriberDetailConfig';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -158,6 +163,36 @@ export default function SubscriberDetail() {
     </>
   );
 }
+function StatusInfo() {
+  const {match} = useRouter();
+  const subscriberId: string = nullthrows(match.params.subscriberId);
+  const networkId: string = nullthrows(match.params.networkId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const ctx = useRefreshingContext({
+    context: SubscriberContext,
+    networkId: networkId,
+    type: 'subscriber',
+    interval: REFRESH_INTERVAL,
+    enqueueSnackbar: enqueueSnackbar,
+    refresh: true,
+    id: subscriberId,
+  });
+  const subscriberInfo = ctx.state?.[subscriberId];
+
+  return (
+    <Grid container spacing={4}>
+      <Grid item xs={12} md={6}>
+        <CardTitleRow icon={PersonIcon} label="Subscriber" />
+        <Info subscriberInfo={subscriberInfo} />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <CardTitleRow icon={GraphicEqIcon} label="Status" />
+        <Status subscriberInfo={subscriberInfo} />
+      </Grid>
+    </Grid>
+  );
+}
 
 function Overview() {
   const classes = useStyles();
@@ -173,16 +208,7 @@ function Overview() {
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
-              <CardTitleRow icon={PersonIcon} label="Subscriber" />
-              <Info subscriberInfo={subscriberInfo} />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <Status subscriberInfo={subscriberInfo} />
-            </Grid>
-          </Grid>
+          <StatusInfo />
         </Grid>
         <Grid item xs={12}>
           <SubscriberChart />

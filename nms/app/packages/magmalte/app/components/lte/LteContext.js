@@ -134,7 +134,6 @@ export function EnodebContextProvider(props: Props) {
   const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
-
   useEffect(() => {
     const fetchState = async () => {
       try {
@@ -166,8 +165,15 @@ export function EnodebContextProvider(props: Props) {
       value={{
         state: {enbInfo},
         lteRanConfigs: lteRanConfigs,
-        setState: (key, value?) =>
-          SetEnodebState({enbInfo, setEnbInfo, networkId, key, value}),
+        setState: (key: string, value?) => {
+          return SetEnodebState({
+            enbInfo,
+            setEnbInfo,
+            networkId,
+            key,
+            value,
+          });
+        },
         setLteRanConfigs: lteRanConfigs => setLteRanConfigs(lteRanConfigs),
       }}>
       {props.children}
@@ -228,7 +234,6 @@ export function SubscriberContextProvider(props: Props) {
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
-
   useEffect(() => {
     const fetchLteState = async () => {
       if (networkId == null) {
@@ -262,6 +267,7 @@ export function SubscriberContextProvider(props: Props) {
             networkId,
             subscriberMap,
             setSubscriberMap,
+            setSessionState,
             key,
             value,
           }),

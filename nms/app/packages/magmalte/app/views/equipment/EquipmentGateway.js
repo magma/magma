@@ -32,8 +32,13 @@ import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import isGatewayHealthy from '../../components/GatewayUtils';
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -130,8 +135,44 @@ const ViewTypes = {
   UPGRADE: 'Upgrade',
 };
 
-function GatewayTableRaw(props: WithAlert) {
+function GatewayTable() {
   const classes = useStyles();
+  const [currentView, setCurrentView] = useState<$Keys<typeof ViewTypes>>(
+    'STATUS',
+  );
+  return (
+    <>
+      <CardTitleRow
+        key="title"
+        icon={CellWifiIcon}
+        label={'Gateways'}
+        filter={() => (
+          <Grid container justify="flex-end" alignItems="center" spacing={1}>
+            <Grid item>
+              <Text variant="body3" className={classes.viewLabelText}>
+                View
+              </Text>
+            </Grid>
+            <Grid item>
+              <TypedSelect
+                input={<OutlinedInput />}
+                value={currentView}
+                items={{
+                  STATUS: 'Status',
+                  UPGRADE: 'Upgrade',
+                }}
+                onChange={setCurrentView}
+              />
+            </Grid>
+          </Grid>
+        )}
+      />
+      {currentView === 'UPGRADE' ? <UpgradeTable /> : <StatusTable />}
+    </>
+  );
+}
+
+function UpgradeTable() {
   const ctx = useContext(GatewayTierContext);
   const gwCtx = useContext(GatewayContext);
   const subscriberCtx = useContext(SubscriberContext);
@@ -139,10 +180,6 @@ function GatewayTableRaw(props: WithAlert) {
 
   const lteGateways = gwCtx.state;
   const {history, relativeUrl} = useRouter();
-  const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
-  const [currentView, setCurrentView] = useState<$Keys<typeof ViewTypes>>(
-    'STATUS',
-  );
   const lteGatewayRows: Array<EquipmentGatewayRowType> = [];
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -187,173 +224,206 @@ function GatewayTableRaw(props: WithAlert) {
   const [lteGatewayUpgradeRows, setLteGatewayUpgradeRows] = useState(
     lteGatewayRowSt,
   );
+  return (
+    <ActionTable
+      data={lteGatewayUpgradeRows}
+      columns={[
+        {title: 'Name', field: 'name', editable: 'never'},
+        {
+          title: 'ID',
+          field: 'id',
+          editable: 'never',
+          render: currRow => (
+            <Link
+              variant="body2"
+              component="button"
+              onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+              {currRow.id}
+            </Link>
+          ),
+        },
+        {
+          title: 'Hardware ID',
+          field: 'hardwareId',
+          editable: 'never',
+        },
+        {
+          title: 'Current Version',
+          field: 'currentVersion',
+          editable: 'never',
+          width: 250,
+        },
+        {
+          title: 'Tier',
+          field: 'tier',
+          width: 100,
+          editComponent: props => (
+            <SelectEditComponent
+              {...props}
+              defaultValue={props.value}
+              value={props.value}
+              content={Object.keys(ctx.state.tiers)}
+              onChange={value => props.onChange(value)}
+            />
+          ),
+        },
+      ]}
+      options={{
+        actionsColumnIndex: -1,
+        pageSizeOptions: [5, 10],
+      }}
+      editable={{
+        onRowUpdate: async (newData, oldData) =>
+          new Promise(async (resolve, reject) => {
+            try {
+              await gwCtx.updateGateway({
+                gatewayId: newData.id,
+                tierId: newData.tier,
+              });
+              const dataUpdate = [...lteGatewayUpgradeRows];
+              const index = oldData.tableData.id;
+              dataUpdate[index] = newData;
+              setLteGatewayUpgradeRows([...dataUpdate]);
+              resolve();
+            } catch (e) {
+              enqueueSnackbar('failed saving gateway tier information', {
+                variant: 'error',
+              });
+              reject();
+            }
+          }),
+      }}
+    />
+  );
+}
+function GatewayStatusTable(props: WithAlert) {
+  const {history, relativeUrl, match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const networkId: string = nullthrows(match.params.networkId);
 
+  // Auto refresh gateways every 30 seconds
+  const gwCtx = useRefreshingContext({
+    context: GatewayContext,
+    networkId: networkId,
+    type: 'gateway',
+    interval: REFRESH_INTERVAL,
+    enqueueSnackbar: enqueueSnackbar,
+    refresh: true,
+  });
+
+  const subscriberCtx = useContext(SubscriberContext);
+  const gwSubscriberMap = subscriberCtx.gwSubscriberMap;
+
+  const lteGateways = gwCtx.state;
+  const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
+  const lteGatewayRows: Array<EquipmentGatewayRowType> = [];
+
+  const lteGatewayRowSt: Array<EquipmentGatewayUpgradeType> = [];
+  Object.keys(lteGateways)
+    .map((gwId: string) => lteGateways[gwId])
+    .filter((g: lte_gateway) => g.cellular && g.id)
+    .map((gateway: lte_gateway) => {
+      let numEnodeBs = 0;
+      if (gateway.connected_enodeb_serials) {
+        numEnodeBs = gateway.connected_enodeb_serials.length;
+      }
+
+      let checkInTime = new Date(0);
+      if (
+        gateway.status &&
+        (gateway.status.checkin_time !== undefined ||
+          gateway.status.checkin_time === null)
+      ) {
+        checkInTime = new Date(gateway.status.checkin_time);
+      }
+      const packages = gateway.status?.platform_info?.packages || [];
+      lteGatewayRows.push({
+        name: gateway.name,
+        id: gateway.id,
+        num_enodeb: numEnodeBs,
+        num_subscribers:
+          gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
+        health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
+        checkInTime: checkInTime,
+      });
+
+      lteGatewayRowSt.push({
+        name: gateway.name,
+        id: gateway.id,
+        hardwareId: gateway.device.hardware_id,
+        tier: gateway.tier,
+        currentVersion:
+          packages.find(p => p.name === 'magma')?.version || 'Not Reported',
+      });
+    });
   return (
     <>
-      <CardTitleRow
-        key="title"
-        icon={CellWifiIcon}
-        label={`Gateways (${lteGatewayRows.length})`}
-        filter={() => (
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
-            <Grid item>
-              <Text variant="body3" className={classes.viewLabelText}>
-                View
-              </Text>
-            </Grid>
-            <Grid item>
-              <TypedSelect
-                input={<OutlinedInput />}
-                value={currentView}
-                items={{
-                  STATUS: 'Status',
-                  UPGRADE: 'Upgrade',
-                }}
-                onChange={setCurrentView}
-              />
-            </Grid>
-          </Grid>
-        )}
-      />
-      {currentView === 'UPGRADE' ? (
-        <ActionTable
-          data={lteGatewayUpgradeRows}
-          columns={[
-            {title: 'Name', field: 'name', editable: 'never'},
-            {
-              title: 'ID',
-              field: 'id',
-              editable: 'never',
-              render: currRow => (
-                <Link
-                  variant="body2"
-                  component="button"
-                  onClick={() => history.push(relativeUrl('/' + currRow.id))}>
-                  {currRow.id}
-                </Link>
-              ),
+      <ActionTable
+        data={lteGatewayRows}
+        columns={[
+          {title: 'Name', field: 'name'},
+          {
+            title: 'ID',
+            field: 'id',
+            render: currRow => (
+              <Link
+                variant="body2"
+                component="button"
+                onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+                {currRow.id}
+              </Link>
+            ),
+          },
+          {
+            title: 'enodeBs',
+            field: 'num_enodeb',
+            width: 100,
+          },
+          {title: 'Subscribers', field: 'num_subscribers', width: 100},
+          {title: 'Health', field: 'health', width: 100},
+          {title: 'Check In Time', field: 'checkInTime', type: 'datetime'},
+        ]}
+        handleCurrRow={(row: EquipmentGatewayRowType) => setCurrRow(row)}
+        menuItems={[
+          {
+            name: 'View',
+            handleFunc: () => {
+              history.push(relativeUrl('/' + currRow.id));
             },
-            {
-              title: 'Hardware ID',
-              field: 'hardwareId',
-              editable: 'never',
+          },
+          {
+            name: 'Edit',
+            handleFunc: () => {
+              history.push(relativeUrl('/' + currRow.id + '/config'));
             },
-            {
-              title: 'Current Version',
-              field: 'currentVersion',
-              editable: 'never',
-              width: 250,
-            },
-            {
-              title: 'Tier',
-              field: 'tier',
-              width: 100,
-              editComponent: props => (
-                <SelectEditComponent
-                  {...props}
-                  defaultValue={props.value}
-                  value={props.value}
-                  content={Object.keys(ctx.state.tiers)}
-                  onChange={value => props.onChange(value)}
-                />
-              ),
-            },
-          ]}
-          options={{
-            actionsColumnIndex: -1,
-            pageSizeOptions: [5, 10],
-          }}
-          editable={{
-            onRowUpdate: async (newData, oldData) =>
-              new Promise(async (resolve, reject) => {
-                try {
-                  await gwCtx.updateGateway({
-                    gatewayId: newData.id,
-                    tierId: newData.tier,
-                  });
-                  const dataUpdate = [...lteGatewayUpgradeRows];
-                  const index = oldData.tableData.id;
-                  dataUpdate[index] = newData;
-                  setLteGatewayUpgradeRows([...dataUpdate]);
-                  resolve();
-                } catch (e) {
-                  enqueueSnackbar('failed saving gateway tier information', {
-                    variant: 'error',
-                  });
-                  reject();
-                }
-              }),
-          }}
-        />
-      ) : (
-        <ActionTable
-          data={lteGatewayRows}
-          columns={[
-            {title: 'Name', field: 'name'},
-            {
-              title: 'ID',
-              field: 'id',
-              render: currRow => (
-                <Link
-                  variant="body2"
-                  component="button"
-                  onClick={() => history.push(relativeUrl('/' + currRow.id))}>
-                  {currRow.id}
-                </Link>
-              ),
-            },
-            {
-              title: 'enodeBs',
-              field: 'num_enodeb',
-              width: 100,
-            },
-            {title: 'Subscribers', field: 'num_subscribers', width: 100},
-            {title: 'Health', field: 'health', width: 100},
-            {title: 'Check In Time', field: 'checkInTime', type: 'datetime'},
-          ]}
-          handleCurrRow={(row: EquipmentGatewayRowType) => setCurrRow(row)}
-          menuItems={[
-            {
-              name: 'View',
-              handleFunc: () => {
-                history.push(relativeUrl('/' + currRow.id));
-              },
-            },
-            {
-              name: 'Edit',
-              handleFunc: () => {
-                history.push(relativeUrl('/' + currRow.id + '/config'));
-              },
-            },
-            {
-              name: 'Remove',
-              handleFunc: () => {
-                props
-                  .confirm(`Are you sure you want to delete ${currRow.id}?`)
-                  .then(async confirmed => {
-                    if (!confirmed) {
-                      return;
-                    }
+          },
+          {
+            name: 'Remove',
+            handleFunc: () => {
+              props
+                .confirm(`Are you sure you want to delete ${currRow.id}?`)
+                .then(async confirmed => {
+                  if (!confirmed) {
+                    return;
+                  }
 
-                    try {
-                      await gwCtx.setState(currRow.id);
-                    } catch (e) {
-                      enqueueSnackbar('failed deleting gateway ' + currRow.id, {
-                        variant: 'error',
-                      });
-                    }
-                  });
-              },
+                  try {
+                    await gwCtx.setState(currRow.id);
+                  } catch (e) {
+                    enqueueSnackbar('failed deleting gateway ' + currRow.id, {
+                      variant: 'error',
+                    });
+                  }
+                });
             },
-          ]}
-          options={{
-            actionsColumnIndex: -1,
-            pageSizeOptions: [5, 10],
-          }}
-        />
-      )}
+          },
+        ]}
+        options={{
+          actionsColumnIndex: -1,
+          pageSizeOptions: [5, 10],
+        }}
+      />
     </>
   );
 }
-
-const GatewayTable = withAlert(GatewayTableRaw);
+const StatusTable = withAlert(GatewayStatusTable);

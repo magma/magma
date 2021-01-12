@@ -108,6 +108,74 @@ export async function SetTierState(props: TierStateProps) {
 }
 
 /**************************** Enode State ************************************/
+type FetchProps = {
+  networkId: string,
+  id?: string,
+  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+};
+
+export async function FetchEnodebs(props: FetchProps) {
+  const {networkId, id} = props;
+  let enb = {};
+  if (id !== undefined && id !== null) {
+    try {
+      enb = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerial({
+        networkId: networkId,
+        enodebSerial: id,
+      });
+      if (enb) {
+        const newEnbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
+          {
+            networkId: networkId,
+            enodebSerial: id,
+          },
+        );
+        const newEnb = {[id]: {enb_state: newEnbSt || {}, enb: enb}};
+        return newEnb;
+      }
+    } catch (e) {
+      return {[id]: {enb_state: {} || {}, enb: enb}};
+    }
+  } else {
+    enb = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
+
+    if (!enb) {
+      return;
+    }
+
+    const requests = Object.keys(enb).map(async k => {
+      try {
+        const {serial} = enb[k];
+        // eslint-disable-next-line max-len
+        const enbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
+          {
+            networkId: networkId,
+            enodebSerial: serial,
+          },
+        );
+        return [enb[k], enbSt ?? {}];
+      } catch (e) {
+        return [enb[k], {}];
+      }
+    });
+
+    const enbResp = await Promise.all(requests);
+    const enbInfo = {};
+    enbResp.filter(Boolean).forEach(r => {
+      if (r.length > 0) {
+        const [enb, enbSt] = r;
+        if (enb != null && enbSt != null) {
+          enbInfo[enb.serial] = {
+            enb: enb,
+            enb_state: enbSt,
+          };
+        }
+      }
+    });
+    return enbInfo;
+  }
+}
+
 type InitEnodeStateProps = {
   networkId: network_id,
   setEnbInfo: ({[string]: EnodebInfo}) => void,
@@ -115,51 +183,13 @@ type InitEnodeStateProps = {
 };
 
 export async function InitEnodeState(props: InitEnodeStateProps) {
-  const {networkId, setEnbInfo, enqueueSnackbar} = props;
-  let enb = {};
-  try {
-    enb = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
-  } catch (e) {
-    enqueueSnackbar?.('failed fetching enodeb information', {
-      variant: 'error',
-    });
-    return;
-  }
-
-  if (!enb) {
-    return;
-  }
-
-  const requests = Object.keys(enb).map(async k => {
-    try {
-      const {serial} = enb[k];
-      // eslint-disable-next-line max-len
-      const enbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
-        {
-          networkId: networkId,
-          enodebSerial: serial,
-        },
-      );
-      return [enb[k], enbSt ?? {}];
-    } catch (e) {
-      return [enb[k], {}];
-    }
+  const enodebInfo = await FetchEnodebs({
+    networkId: props.networkId,
+    enqueueSnackbar: props.enqueueSnackbar,
   });
-
-  const enbResp = await Promise.all(requests);
-  const enbInfo = {};
-  enbResp.filter(Boolean).forEach(r => {
-    if (r.length > 0) {
-      const [enb, enbSt] = r;
-      if (enb != null && enbSt != null) {
-        enbInfo[enb.serial] = {
-          enb: enb,
-          enb_state: enbSt,
-        };
-      }
-    }
-  });
-  setEnbInfo(enbInfo);
+  if (enodebInfo) {
+    props.setEnbInfo(enodebInfo);
+  }
 }
 
 type EnodebStateProps = {
@@ -192,19 +222,6 @@ export async function SetEnodebState(props: EnodebStateProps) {
       const prevEnbSt = enbInfo[key].enb_state;
       setEnbInfo({...enbInfo, [key]: {enb_state: prevEnbSt, enb: value.enb}});
     }
-    const newEnb = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerial({
-      networkId: networkId,
-      enodebSerial: key,
-    });
-    if (newEnb) {
-      const newEnbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
-        {
-          networkId: networkId,
-          enodebSerial: key,
-        },
-      );
-      setEnbInfo({...enbInfo, [key]: {enb_state: newEnbSt, enb: newEnb}});
-    }
   } else {
     await MagmaV1API.deleteLteByNetworkIdEnodebsByEnodebSerial({
       networkId: networkId,
@@ -213,10 +230,44 @@ export async function SetEnodebState(props: EnodebStateProps) {
     const newEnbInfo = {...enbInfo};
     delete newEnbInfo[key];
     setEnbInfo(newEnbInfo);
+    return;
   }
 }
 
 /**************************** Gateway State **********************************/
+
+export async function FetchGateways(props: FetchProps) {
+  const {networkId, id, enqueueSnackbar} = props;
+  if (id !== undefined && id !== null) {
+    try {
+      const gateway = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
+        networkId: networkId,
+        gatewayId: id,
+      });
+      if (gateway) {
+        return gateway;
+      }
+    } catch (e) {
+      enqueueSnackbar?.('failed fetching gateway informations', {
+        variant: 'error',
+      });
+    }
+  } else {
+    try {
+      const gateways = await MagmaV1API.getLteByNetworkIdGateways({
+        networkId: networkId,
+      });
+      if (gateways) {
+        return gateways;
+      }
+    } catch (e) {
+      enqueueSnackbar?.('failed fetching gateway informations', {
+        variant: 'error',
+      });
+    }
+  }
+}
+
 type GatewayStateProps = {
   networkId: network_id,
   lteGateways: {[string]: lte_gateway},
@@ -241,14 +292,6 @@ export async function SetGatewayState(props: GatewayStateProps) {
         gateway: value,
       });
       setLteGateways({...lteGateways, [key]: value});
-    }
-    const gateway = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
-      networkId: networkId,
-      gatewayId: key,
-    });
-    if (gateway) {
-      const newLteGateways = {...lteGateways, [key]: gateway};
-      setLteGateways(newLteGateways);
     }
   } else {
     await MagmaV1API.deleteLteByNetworkIdGatewaysByGatewayId({
@@ -336,7 +379,6 @@ export async function UpdateGateway(props: UpdateGatewayProps) {
   });
   setLteGateways(gateways);
 }
-
 export type GatewayCommandProps = {
   networkId: network_id,
   gatewayId: gateway_id,

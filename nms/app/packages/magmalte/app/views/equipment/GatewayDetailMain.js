@@ -56,6 +56,10 @@ import {
   PingCommandControls,
   TroubleshootingControl,
 } from '../../components/GatewayCommandFields';
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
@@ -337,8 +341,20 @@ function GatewayOverview() {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const ctx = useContext(GatewayContext);
-  const gwInfo = ctx.state[gatewayId];
+  const networkId: string = nullthrows(match.params.networkId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  // Auto refresh gateways every 30 seconds
+  const gwCtx = useRefreshingContext({
+    context: GatewayContext,
+    networkId: networkId,
+    type: 'gateway',
+    interval: REFRESH_INTERVAL,
+    id: gatewayId,
+    enqueueSnackbar: enqueueSnackbar,
+    refresh: true,
+  });
+  const gwInfo = gwCtx.state[gatewayId];
 
   return (
     <div className={classes.dashboardRoot}>

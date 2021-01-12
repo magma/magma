@@ -22,14 +22,19 @@ import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 const CHART_TITLE = 'Total Throughput';
 
@@ -109,11 +114,22 @@ type EnodebRowType = {
 };
 
 function EnodebTableRaw(props: WithAlert) {
-  const {history, relativeUrl} = useRouter();
-  const ctx = useContext(EnodebContext);
+  const {history, relativeUrl, match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const networkId: string = nullthrows(match.params.networkId);
+
+  // Auto refresh gateways every 30 seconds
+  const ctx = useRefreshingContext({
+    context: EnodebContext,
+    networkId: networkId,
+    type: 'enodeb',
+    interval: REFRESH_INTERVAL,
+    enqueueSnackbar: enqueueSnackbar,
+    refresh: true,
+  });
+
   const [currRow, setCurrRow] = useState<EnodebRowType>({});
   const enbInfo = ctx.state.enbInfo;
-  const enqueueSnackbar = useEnqueueSnackbar();
   const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
     (serialNum: string) => {
       const enbInf = enbInfo[serialNum];

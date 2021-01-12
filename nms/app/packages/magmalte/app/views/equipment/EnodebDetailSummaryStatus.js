@@ -15,19 +15,28 @@
  */
 import type {DataRows} from '../../components/DataGrid';
 
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../components/context/EnodebContext';
+import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import React from 'react';
+import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useContext} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 export function EnodebSummary() {
+  const ctx = useContext(EnodebContext);
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
-
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
   const kpiData: DataRows[] = [
     [
       {
@@ -36,15 +45,31 @@ export function EnodebSummary() {
       },
     ],
   ];
-  return <DataGrid data={kpiData} />;
+  return (
+    <>
+      <CardTitleRow icon={SettingsInputAntennaIcon} label={enbInfo.enb.name} />
+      <DataGrid data={kpiData} />
+    </>
+  );
 }
 
 export function EnodebStatus() {
-  const ctx = useContext(EnodebContext);
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
-  const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const networkId: string = nullthrows(match.params.networkId);
+  const enqueueSnackbar = useEnqueueSnackbar();
 
+  // Auto refresh enodeb every 30 seconds
+  const ctx = useRefreshingContext({
+    context: EnodebContext,
+    networkId: networkId,
+    type: 'enodeb',
+    interval: REFRESH_INTERVAL,
+    id: enodebSerial,
+    enqueueSnackbar: enqueueSnackbar,
+    refresh: true,
+  });
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
   const isEnbHealthy = isEnodebHealthy(enbInfo);
   const isEnbManaged = enbInfo.enb?.enodeb_config?.config_type === 'MANAGED';
 
@@ -97,5 +122,10 @@ export function EnodebStatus() {
       },
     ],
   ];
-  return <DataGrid data={kpiData} />;
+  return (
+    <>
+      <CardTitleRow icon={GraphicEqIcon} label="Status" />
+      <DataGrid data={kpiData} />
+    </>
+  );
 }
