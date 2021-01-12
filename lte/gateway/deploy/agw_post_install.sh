@@ -3,6 +3,10 @@
 ERROR=""
 INFO=""
 SUCCESS_MESSAGE="ok"
+RED='\033[0;31m'
+WHITE='\033[1;37m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
 
 addError() {
     ERROR="$ERROR\n$1  to fix it: $2"
@@ -79,3 +83,35 @@ if [ -n "$INFO" ]; then
     echo "INFO:"
     printf "%s" "$INFO"
 fi
+
+echo -e "${WHITE}Checking for Root Certificate"
+CA=/var/opt/magma/tmp/certs/rootCA.pem
+if [ -d "/var/opt/magma/tmp/certs/" ]; then
+    if [ -f "$CA" ]; then
+        echo -e "${GREEN}$CA exists"
+    else
+    echo -e "${RED}Check Root CA in /var/opt/magma/tmp/certs/"
+    echo -e "${RED}Access Gateway configurations failed"
+    fi
+fi
+
+echo -e "${WHITE}Checking for Control Proxy"
+CP=/var/opt/magma/configs/control_proxy.yml
+if [ -d "/var/opt/magma/configs/" ]; then
+    if [ -f "$CP" ]; then
+        echo -e "${GREEN}$CP exists"
+    else
+    echo -e "${RED}Check Control Proxy Configs in /var/opt/magma/configs/"
+    echo -e "${RED}Access Gateway configurations failed"
+    fi
+fi
+
+echo -e "${WHITE}Checking for Cloud Checking"
+CLOUD=$(journalctl -n20 -u magma@magmad | grep -e 'Checkin Successful' -e 'Got heartBeat from cloud')
+if [ "$CLOUD" ]; then
+    echo -e "${GREEN}Cloud Checkin successful"
+else
+    echo -e "${RED}Check Control Proxy Content"
+fi
+
+echo -e "$NC"
