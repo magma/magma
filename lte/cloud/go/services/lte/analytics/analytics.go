@@ -41,7 +41,7 @@ func GetAnalyticsCalculations(config *calculations.AnalyticsConfig) []calculatio
 			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
 		},
 	})
-	for _, d := range []calculations.ConsumptionDirection{calculations.ConsumptionDown, calculations.ConsumptionDown} {
+	for _, d := range []calculations.ConsumptionDirection{calculations.ConsumptionDown, calculations.ConsumptionUp} {
 		calcs = append(calcs, &lte_calculations.UserThroughputCalculation{
 			BaseCalculation: calculations.BaseCalculation{
 				CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},

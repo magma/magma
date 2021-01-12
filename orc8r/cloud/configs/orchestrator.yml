@@ -68,14 +68,14 @@ analytics:
         class: reliability
 
     network_unavailable:
-      expr: sum(increase(unexpected_service_restarts{service_name=~"magmad|sessiond|pipelined"}[{{.Duration}}])) by (networkID)
+      expr: sum(increase(unexpected_service_restarts{service_name=~"magmad|sessiond|pipelined|mme|sctpd"}[{{.Duration}}])) by (networkID)
       export: true
       register: false
       labels:
         class: reliability
 
     gateway_unavailable:
-      expr: sum(increase(unexpected_service_restarts{service_name=~"magmad|sessiond|pipelined"}[{{.Duration}}])) by (networkID, gatewayID)
+      expr: sum(increase(unexpected_service_restarts{service_name=~"magmad|sessiond|pipelined|mme|sctpd"}[{{.Duration}}])) by (networkID, gatewayID)
       export: true
       register: false
       labels:
