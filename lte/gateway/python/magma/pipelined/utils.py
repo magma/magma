@@ -1,0 +1,45 @@
+"""
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+import logging
+from magma.pipelined.openflow import flows
+
+class Utils:
+    DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
+    # For allowing unlcassified flows for app/service type rules.
+    UNCLASSIFIED_ALLOW_PRIORITY = DROP_PRIORITY + 1
+    # Should not overlap with the drop flow as drop matches all packets.
+    MIN_PROGRAMMED_PRIORITY = UNCLASSIFIED_ALLOW_PRIORITY + 1
+    MAX_PROGRAMMED_PRIORITY = flows.MAXIMUM_PRIORITY
+    # Effectively range is 3 -> 65535
+    APP_PRIORITY_RANGE = MAX_PROGRAMMED_PRIORITY - MIN_PROGRAMMED_PRIORITY
+
+    @classmethod
+    def get_of_priority(cls, precedence:int):
+        """
+        Lower the precedence higher the importance of the flow in 3GPP.
+        Higher the priority higher the importance of the flow in openflow.
+        Convert precedence to priority:
+        1 - Flows with precedence > 65534 will have min priority which is the
+        min priority for a programmed flow = (default drop + 1)
+        2 - Flows in the precedence range 0-65534 will have priority 65535 -
+        Precedence
+        :param precedence:
+        :return:
+        """
+        if precedence >= cls.APP_PRIORITY_RANGE:
+            logging.warning(
+                "Flow precedence is higher than OF range using min priority %d",
+                cls.MIN_PROGRAMMED_PRIORITY)
+            return cls.MIN_PROGRAMMED_PRIORITY
+        return cls.MAX_PROGRAMMED_PRIORITY - precedence
+

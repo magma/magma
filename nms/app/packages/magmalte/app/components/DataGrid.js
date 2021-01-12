@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {ComponentType} from 'react';
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -122,7 +122,7 @@ function StatusIndicator(disabled: boolean, up: boolean, val: string) {
 }
 
 // Data Icon adds an icon to the left of the value
-function DataIcon(icon: ComponentType<SvgIconExports>, val: string) {
+function DataIcon(icon: SvgIcon, val: string) {
   const props = {hasIcon: true};
   const classes = useStyles(props);
   const Icon = icon;
@@ -163,46 +163,56 @@ function DataObscure(value: number | string, category: ?string) {
   );
 }
 
-function DataCollapse(
-  category: ?string,
-  value: string | number,
-  //$FlowFixMe TODO: Needs a ComponentType argument
-  collapse: ComponentType,
-) {
+function DataCollapse(data: Data) {
   const props = {collapsed: true};
   const classes = useStyles(props);
   const [open, setOpen] = React.useState(true);
+  const dataEntryValue = data.value + (data.unit ?? '');
   return (
-    <List key={`${category ?? value}Collapse`} className={classes.list}>
+    <List
+      key={`${data.category ?? data.value}Collapse`}
+      className={classes.list}>
       <ListItem button onClick={() => setOpen(!open)}>
         <CardHeader
-          data-testid={category}
-          title={category}
+          data-testid={data.category}
+          title={data.category}
           className={classes.dataBox}
-          subheader={value}
+          subheader={
+            data.statusCircle === true
+              ? StatusIndicator(
+                  data.statusInactive || false,
+                  data.status || false,
+                  dataEntryValue,
+                )
+              : data.icon
+              ? DataIcon(data.icon, dataEntryValue)
+              : data.obscure === true
+              ? DataObscure(data.value, data.category)
+              : dataEntryValue
+          }
           titleTypographyProps={{
             variant: 'body3',
             className: classes.dataLabel,
-            title: category,
+            title: data.category,
           }}
           subheaderTypographyProps={{
             variant: 'body1',
             className: classes.dataValue,
-            title: value,
+            title: data.tooltip ?? dataEntryValue,
           }}
         />
         {open ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
       <Divider />
-      <Collapse key={value} in={open} timeout="auto" unmountOnExit>
-        {collapse}
+      <Collapse key={data.value} in={open} timeout="auto" unmountOnExit>
+        {data.collapse ?? <></>}
       </Collapse>
     </List>
   );
 }
 
 type Data = {
-  icon?: ComponentType<SvgIconExports>,
+  icon?: SvgIcon,
   category?: string,
   value: number | string,
   obscure?: boolean,
@@ -212,6 +222,7 @@ type Data = {
   statusCircle?: boolean,
   statusInactive?: boolean,
   status?: boolean,
+  tooltip?: string,
 };
 
 export type DataRows = Data[];
@@ -222,60 +233,63 @@ export default function DataGrid(props: Props) {
   const classes = useStyles();
   const dataGrid = props.data.map((row, i) => (
     <Grid key={i} container direction="row">
-      {row.map((data, j) => (
-        <>
-          <Grid
-            item
-            container
-            alignItems="center"
-            xs={12}
-            md
-            key={`data-${i}-${j}`}
-            zeroMinWidth
-            className={classes.dataBlock}>
-            <Grid item xs={12}>
-              {data.collapse !== undefined && data.collapse !== false ? (
-                DataCollapse(data.category, data.value, data.collapse)
-              ) : (
-                <CardHeader
-                  data-testid={data.category}
-                  className={classes.dataBox}
-                  title={data.category}
-                  titleTypographyProps={{
-                    variant: 'body3',
-                    className: classes.dataLabel,
-                    title: data.category,
-                  }}
-                  subheaderTypographyProps={{
-                    variant: 'body1',
-                    className:
-                      data.obscure === true
-                        ? classes.dataObscuredValue
-                        : classes.dataValue,
-                    title: data.value + (data.unit ?? ''),
-                  }}
-                  subheader={
-                    data.statusCircle === true
-                      ? StatusIndicator(
-                          data.statusInactive || false,
-                          data.status || false,
-                          data.value + (data.unit ?? ''),
-                        )
-                      : data.icon
-                      ? DataIcon(data.icon, data.value + (data.unit ?? ''))
-                      : data.obscure === true
-                      ? DataObscure(data.value, data.category)
-                      : data.value + (data.unit ?? '')
-                  }
-                />
-              )}
+      {row.map((data, j) => {
+        const dataEntryValue = data.value + (data.unit ?? '');
+
+        return (
+          <React.Fragment key={`data-${i}-${j}`}>
+            <Grid
+              item
+              container
+              alignItems="center"
+              xs={12}
+              md
+              key={`data-${i}-${j}`}
+              zeroMinWidth
+              className={classes.dataBlock}>
+              <Grid item xs={12}>
+                {data.collapse !== undefined && data.collapse !== false ? (
+                  DataCollapse(data)
+                ) : (
+                  <CardHeader
+                    data-testid={data.category}
+                    className={classes.dataBox}
+                    title={data.category}
+                    titleTypographyProps={{
+                      variant: 'caption',
+                      className: classes.dataLabel,
+                      title: data.category,
+                    }}
+                    subheaderTypographyProps={{
+                      variant: 'body1',
+                      className:
+                        data.obscure === true
+                          ? classes.dataObscuredValue
+                          : classes.dataValue,
+                      title: data.tooltip ?? dataEntryValue,
+                    }}
+                    subheader={
+                      data.statusCircle === true
+                        ? StatusIndicator(
+                            data.statusInactive || false,
+                            data.status || false,
+                            dataEntryValue,
+                          )
+                        : data.icon
+                        ? DataIcon(data.icon, dataEntryValue)
+                        : data.obscure === true
+                        ? DataObscure(data.value, data.category)
+                        : dataEntryValue
+                    }
+                  />
+                )}
+              </Grid>
             </Grid>
-          </Grid>
-        </>
-      ))}
+          </React.Fragment>
+        );
+      })}
     </Grid>
   ));
-  console.log(props.testID);
   return (
     <Card elevation={0}>
       <Grid

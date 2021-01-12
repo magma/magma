@@ -17,8 +17,10 @@ import (
 	"magma/feg/cloud/go/feg"
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/handlers"
+	"magma/feg/cloud/go/services/feg/servicers"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 
 	"github.com/golang/glog"
 )
@@ -28,7 +30,11 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating feg service %s", err)
 	}
+
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
+
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error while running service and echo server: %s", err)

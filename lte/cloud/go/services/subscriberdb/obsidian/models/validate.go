@@ -17,6 +17,8 @@ import (
 	"magma/orc8r/cloud/go/obsidian/models"
 
 	"github.com/go-openapi/strfmt"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 const (
@@ -50,6 +52,15 @@ func (m *MutableSubscriber) ValidateModel() error {
 	if err := m.Lte.ValidateModel(); err != nil {
 		return err
 	}
+
+	// You can't assign a static IP allocation if the subscriber doesn't have
+	// the APN active
+	apnSet := funk.Map(m.ActiveApns, func(apn string) (string, bool) { return apn, true }).(map[string]bool)
+	for apn := range m.StaticIps {
+		if _, exists := apnSet[apn]; !exists {
+			return errors.Errorf("static IP assigned to APN %s which is not active for the subscriber", apn)
+		}
+	}
 	return nil
 }
 
@@ -58,4 +69,8 @@ func (m *IcmpStatus) ValidateModel() error {
 		return err
 	}
 	return nil
+}
+
+func (m *MsisdnAssignment) ValidateModel() error {
+	return m.Validate(strfmt.Default)
 }

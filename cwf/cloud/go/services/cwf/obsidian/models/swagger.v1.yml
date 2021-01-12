@@ -12,8 +12,6 @@ magma-gen-meta:
   temp-gen-filename: cwf-swagger.yml
   output-dir: cwf/cloud/go/services/cwf/obsidian
   types:
-    - go-struct-name: FegNetworkID
-      filename: feg_network_id_swaggergen.go
     - go-struct-name: CwfNetwork
       filename: cwf_network_swaggergen.go
     - go-struct-name: CwfGateway
@@ -29,15 +27,22 @@ magma-gen-meta:
     - go-struct-name: allowedGrePeers
       filename: allowed_gre_peers_swaggergen.go
     - go-struct-name: ipdrExportDst
-      filename: ip_d_r_export_dst_swaggergen.go
+      filename: ipdr_export_dst_swaggergen.go
+    - go-struct-name: liUes
+      filename: li_ues_swaggergen.go
     - go-struct-name: CwfSubscriberDirectoryRecord
       filename: cwf_subscriber_directory_record_swaggergen.go
     - go-struct-name: GatewayHealthConfigs
       filename: gateway_health_configs_swaggergen.go
-    - go-struct-name: CarrierWifiClusterStatus
-      filename: carrier_wifi_network_cluster_status_swaggergen.go
-    - go-struct-anem: CarrierWifiGatewayHealthStatus
+    - go-struct-name: CarrierWifiHAPairStatus
+      filename: carrier_wifi_ha_pair_status_swaggergen.go
+    - go-struct-name: CarrierWifiGatewayHealthStatus
       filename: carrier_wifi_gateway_health_status_swaggergen.go
+    - go-struct-name: CwfHaPair
+      filename: cwf_ha_pair_swaggergen.go
+    - go-struct-name: MutableCwfHaPair
+      filename: mutable_cwf_ha_pair_swaggergen.go
+
 
 info:
   title: Carrier Wifi Network Management
@@ -237,6 +242,133 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /cwf/{network_id}/ha_pairs:
+    get:
+      summary: List all high availability gateway pairs in Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: All high availability gateway pairs in Carrier Wifi network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/cwf_ha_pair'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create new high availability gateway pair in Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: HA pair
+          description: Carrier Wifi HA gateway pair
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_cwf_ha_pair'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/ha_pairs/{ha_pair_id}:
+    get:
+      summary: Retrieve high availability gateway pair for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/ha_pair_id'
+      responses:
+        '200':
+          description: Retrieve high availability gateway pair for Carrier Wifi network
+          schema:
+            $ref: '#/definitions/cwf_ha_pair'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify high availability gateway pair for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/ha_pair_id'
+        - in: body
+          name: ha pair
+          description: Carrier Wifi HA gateway pair
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_cwf_ha_pair'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete high availability gateway pair for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/ha_pair_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/ha_pairs/{ha_pair_id}/status:
+    get:
+      summary: Retrieve status of a Carrier Wifi HA pair
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/ha_pair_id'
+      responses:
+        '200':
+          description: Status of a HA pair
+          schema:
+            $ref: '#/definitions/carrier_wifi_ha_pair_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/li_ues:
+    get:
+      summary: Get monitored LI UEs for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Monitored LI UEs
+          schema:
+            $ref: '#/definitions/li_ues'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update monitored LI UEs for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: description
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/li_ues'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /cwf/{network_id}/subscriber_config:
     get:
       summary: Get a network-wide subscriber config
@@ -401,21 +533,6 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /cwf/{network_id}/cluster_status:
-    get:
-      summary: Retrieve HA cluster status of a Carrier Wifi Network
-      tags:
-        - Carrier Wifi Networks
-      parameters:
-        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      responses:
-        '200':
-          description: Cluster status of Carrier Wifi Network
-          schema:
-            $ref: '#/definitions/carrier_wifi_network_cluster_status'
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-
   /cwf/{network_id}/gateways:
     get:
       summary: List all gateways for a carrier wifi network
@@ -556,39 +673,6 @@ paths:
         required: true
         schema:
           $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
-      responses:
-        '204':
-          description: Success
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-
-  /cwf/{network_id}/gateways/{gateway_id}/li_imsis:
-    get:
-      summary: Get monitored LI IMSIs for Carrier Wifi network
-      tags:
-      - Carrier Wifi Gateways
-      parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
-      responses:
-        '200':
-          description: List of LI IMSIs
-          schema:
-            $ref: '#/definitions/li_imsis'
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-    put:
-      summary: Update monitored LI IMSIs for Carrier Wifi network
-      tags:
-      - Carrier Wifi Gateways
-      parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
-      - name: description
-        in: body
-        required: true
-        schema:
-          $ref: '#/definitions/li_imsis'
       responses:
         '204':
           description: Success
@@ -770,6 +854,13 @@ parameters:
     required: true
     type: string
 
+  ha_pair_id:
+    description: HA Gateway Pair ID
+    in: path
+    name: ha_pair_id
+    required: true
+    type: string
+
 definitions:
   cwf_network:
     type: object
@@ -883,8 +974,16 @@ definitions:
           - 'policy_enforcement'
       eap_aka:
         $ref: './feg-swagger.yml#/definitions/eap_aka'
+      eap_sim:
+        $ref: './feg-swagger.yml#/definitions/eap_sim'
       aaa_server:
         $ref: './feg-swagger.yml#/definitions/aaa_server'
+      li_ues:
+        $ref: '#/definitions/li_ues'
+      is_xwfm_variant:
+        type: boolean
+        example: false
+
   allowed_gre_peer:
     type: object
     required:
@@ -905,10 +1004,30 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/allowed_gre_peer'
-  li_imsis:
-    type: array
-    items:
-      type: string
+  li_ues:
+    type: object
+    required:
+      - imsis
+      - msisdns
+      - macs
+      - ips
+    properties:
+      imsis:
+        type: array
+        items:
+          type: string
+      msisdns:
+        type: array
+        items:
+          type: string
+      macs:
+        type: array
+        items:
+          type: string
+      ips:
+        type: array
+        items:
+          type: string
   ipdr_export_dst:
     type: object
     required:
@@ -933,8 +1052,6 @@ definitions:
     properties:
       allowed_gre_peers:
         $ref: '#/definitions/allowed_gre_peers'
-      li_imsis:
-        $ref: '#/definitions/li_imsis'
       ipdr_export_dst:
         $ref: '#/definitions/ipdr_export_dst'
       gateway_health_configs:
@@ -981,8 +1098,19 @@ definitions:
         format: uint32
         example: 3
 
-  carrier_wifi_network_cluster_status:
-    description: Status of a Carrier Wifi HA cluster
+  carrier_wifi_ha_pair_state:
+    type: object
+    description: Full state object of an ha pair
+    properties:
+        ha_pair_status:
+          $ref: '#/definitions/carrier_wifi_ha_pair_status'
+        gateway1_health:
+          $ref: '#/definitions/carrier_wifi_gateway_health_status'
+        gateway2_health:
+          $ref: '#/definitions/carrier_wifi_gateway_health_status'
+
+  carrier_wifi_ha_pair_status:
+    description: Status of a Carrier Wifi HA pair status
     type: object
     required:
       - active_gateway
@@ -1008,3 +1136,66 @@ definitions:
       description:
         type: string
         x-nullable: false
+
+  cwf_ha_pair:
+    description: HA Gateway pair in a Carrier Wifi Network
+    type: object
+    required:
+      - ha_pair_id
+      - gateway_id_1
+      - gateway_id_2
+      - config
+    properties:
+      ha_pair_id:
+        type: string
+        x-nullable: false
+        example: "pair1"
+      gateway_id_1:
+        type: string
+        x-nullable: false
+        example: "gateway1"
+      gateway_id_2:
+        type: string
+        x-nullable: false
+        example: "gateway2"
+      config:
+        $ref: "#/definitions/cwf_ha_pair_configs"
+      state:
+        $ref: "#/definitions/carrier_wifi_ha_pair_state"
+
+  mutable_cwf_ha_pair:
+   description: HA Gateway pair with read-only fields omitted
+   type: object
+   required:
+     - ha_pair_id
+     - gateway_id_1
+     - gateway_id_2
+     - config
+   properties:
+     ha_pair_id:
+       type: string
+       x-nullable: false
+       example: "pair1"
+     gateway_id_1:
+       type: string
+       x-nullable: false
+       example: "gateway1"
+     gateway_id_2:
+       type: string
+       x-nullable: false
+       example: "gateway2"
+     config:
+       $ref: "#/definitions/cwf_ha_pair_configs"
+
+  cwf_ha_pair_configs:
+    description: Configuration for HA Gateway pair in a Carrier Wifi Network
+    type: object
+    required:
+      - transport_virtual_ip
+    properties:
+      transport_virtual_ip:
+        type: string
+        minLength: 5
+        maxLength: 49
+        x-nullable: false
+        example: '192.168.128.0/32'

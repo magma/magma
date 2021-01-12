@@ -3,8 +3,8 @@
 package mocks
 
 import config "magma/orc8r/lib/go/service/config"
-import configurator "magma/orc8r/cloud/go/services/configurator"
 import indexer "magma/orc8r/cloud/go/services/state/indexer"
+import mconfig "magma/orc8r/cloud/go/services/configurator/mconfig"
 import metricsd "magma/orc8r/cloud/go/services/metricsd"
 import mock "github.com/stretchr/testify/mock"
 import obsidian "magma/orc8r/cloud/go/obsidian"
@@ -19,15 +19,15 @@ type OrchestratorPlugin struct {
 }
 
 // GetMconfigBuilders provides a mock function with given fields:
-func (_m *OrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
+func (_m *OrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
 	ret := _m.Called()
 
-	var r0 []configurator.MconfigBuilder
-	if rf, ok := ret.Get(0).(func() []configurator.MconfigBuilder); ok {
+	var r0 []mconfig.Builder
+	if rf, ok := ret.Get(0).(func() []mconfig.Builder); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]configurator.MconfigBuilder)
+			r0 = ret.Get(0).([]mconfig.Builder)
 		}
 	}
 

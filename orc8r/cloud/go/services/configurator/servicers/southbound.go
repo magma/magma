@@ -18,11 +18,11 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/protos"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
+	cfg_protos "magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
-	orc8rStorage "magma/orc8r/cloud/go/storage"
-	commonProtos "magma/orc8r/lib/go/protos"
+	orc8r_storage "magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/thoas/go-funk"
@@ -34,15 +34,15 @@ type sbConfiguratorServicer struct {
 	factory storage.ConfiguratorStorageFactory
 }
 
-func NewSouthboundConfiguratorServicer(factory storage.ConfiguratorStorageFactory) (protos.SouthboundConfiguratorServer, error) {
+func NewSouthboundConfiguratorServicer(factory storage.ConfiguratorStorageFactory) (cfg_protos.SouthboundConfiguratorServer, error) {
 	if factory == nil {
-		return nil, fmt.Errorf("Storage factory is nil")
+		return nil, fmt.Errorf("storage factory is nil")
 	}
 	return &sbConfiguratorServicer{factory}, nil
 }
 
-func (srv *sbConfiguratorServicer) GetMconfig(ctx context.Context, void *commonProtos.Void) (*commonProtos.GatewayConfigs, error) {
-	gw := commonProtos.GetClientGateway(ctx)
+func (srv *sbConfiguratorServicer) GetMconfig(ctx context.Context, void *protos.Void) (*protos.GatewayConfigs, error) {
+	gw := protos.GetClientGateway(ctx)
 	if gw == nil {
 		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
 	}
@@ -52,14 +52,14 @@ func (srv *sbConfiguratorServicer) GetMconfig(ctx context.Context, void *commonP
 	return srv.getMconfigImpl(gw.NetworkId, gw.LogicalId)
 }
 
-func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *protos.GetMconfigRequest) (*protos.GetMconfigResponse, error) {
-	store, err := srv.factory.StartTransaction(context.Background(), &orc8rStorage.TxOptions{ReadOnly: true})
+func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *cfg_protos.GetMconfigRequest) (*cfg_protos.GetMconfigResponse, error) {
+	store, err := srv.factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		storage.RollbackLogOnError(store)
 		return nil, status.Errorf(codes.Aborted, "failed to start transaction: %s", err)
 	}
 
-	// network ID isn't used in a physical ID query
+	// Network ID isn't used in a physical ID query
 	loadResult, err := store.LoadEntities("", storage.EntityLoadFilter{PhysicalID: &wrappers.StringValue{Value: req.HardwareID}}, storage.EntityLoadCriteria{})
 	if err != nil {
 		storage.RollbackLogOnError(store)
@@ -77,11 +77,11 @@ func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *
 	if err != nil {
 		return nil, err
 	}
-	return &protos.GetMconfigResponse{Configs: cfg, LogicalID: ent.Key}, nil
+	return &cfg_protos.GetMconfigResponse{Configs: cfg, LogicalID: ent.Key}, nil
 }
 
-func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID string) (*commonProtos.GatewayConfigs, error) {
-	store, err := srv.factory.StartTransaction(context.Background(), &orc8rStorage.TxOptions{ReadOnly: true})
+func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID string) (*protos.GatewayConfigs, error) {
+	store, err := srv.factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		storage.RollbackLogOnError(store)
 		return nil, status.Errorf(codes.Aborted, "failed to start transaction: %s", err)
@@ -107,10 +107,10 @@ func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID st
 		return nil, status.Errorf(codes.Internal, "network %s not found: %s", networkID, err)
 	}
 
-	// error on commit is fine for a readonly tx
+	// Error on commit is fine for a readonly tx
 	storage.CommitLogOnError(store)
 
-	ret, err := configurator.CreateMconfig(networkID, gatewayID, &graph, nwLoad.Networks[0])
+	ret, err := mconfig.CreateMconfigJSON(nwLoad.Networks[0], &graph, gatewayID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to build mconfig: %s", err)
 	}

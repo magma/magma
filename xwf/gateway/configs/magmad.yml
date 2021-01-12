@@ -16,10 +16,13 @@ log_level: INFO
 magma_services:
   - control_proxy
   - pipelined
+  - radiusd
+  - radius
 
 # List of services that don't provide service303 interface
 non_service303_services:
   - control_proxy
+  - radius
 
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())
@@ -52,6 +55,7 @@ mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
   - lte.protos.mconfig.mconfigs_pb2
   - feg.protos.mconfig.mconfigs_pb2
+  - cwf.protos.mconfig.mconfigs_pb2
 
 metricsd:
   log_level: INFO
@@ -59,6 +63,7 @@ metricsd:
   sync_interval: 60 # How frequently to sync to cloud in seconds
   grpc_timeout: 30 # Timeout in seconds
   queue_length: 1000 # Number of failed samples to enqueue for resend
+  max_grpc_msg_size_mb: 4 # Max message size for gRPC channel in MBs
 
   # An optional function  to mutate metrics before they are sent to the cloud
   # A string in the form path.to.module.fn_name
@@ -68,3 +73,12 @@ metricsd:
   services:
     - magmad
     - pipelined
+    - radiusd
+
+  metric_scrape_targets:
+    - url: http://localhost:8080/metrics
+      name: cAdvisor
+      interval: 60
+    - url: http://localhost:8081/metrics
+      name: node_exporter
+      interval: 60

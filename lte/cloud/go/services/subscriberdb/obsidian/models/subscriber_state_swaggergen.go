@@ -18,6 +18,9 @@ import (
 // swagger:model subscriber_state
 type SubscriberState struct {
 
+	// directory
+	Directory *SubscriberDirectoryRecord `json:"directory,omitempty"`
+
 	// mme
 	Mme UntypedMmeState `json:"mme,omitempty"`
 
@@ -29,11 +32,18 @@ type SubscriberState struct {
 
 	// spgw
 	Spgw UntypedMmeState `json:"spgw,omitempty"`
+
+	// subscriber state
+	SubscriberState UntypedSubscriberState `json:"subscriber_state,omitempty"`
 }
 
 // Validate validates this subscriber state
 func (m *SubscriberState) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateDirectory(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateMobility(formats); err != nil {
 		res = append(res, err)
@@ -42,6 +52,24 @@ func (m *SubscriberState) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *SubscriberState) validateDirectory(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Directory) { // not required
+		return nil
+	}
+
+	if m.Directory != nil {
+		if err := m.Directory.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("directory")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 

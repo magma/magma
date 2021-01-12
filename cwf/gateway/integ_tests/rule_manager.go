@@ -64,8 +64,10 @@ func NewRuleManagerPerInstance(pcrfInstance string) (*RuleManager, error) {
 
 // AddStaticPassAllToDBAndPCRF adds a static rule that passes all traffic to policyDB
 // storage and to the PCRF instance
-func (manager *RuleManager) AddStaticPassAllToDBAndPCRFforIMSIs(IMSIs []string, ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) error {
-	fmt.Printf("************************* Adding a Pass-All static rule to DB and PCRF: %s\n", ruleID)
+func (manager *RuleManager) AddStaticPassAllToDBAndPCRFforIMSIs(
+	IMSIs []string, ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32,
+) error {
+	fmt.Printf("************* Adding a Pass-All static rule to DB and PCRF: %s\n", ruleID)
 	staticPassAll := getStaticPassAll(ruleID, monitoringKey, ratingGroup, trackingType, priority, nil)
 
 	err := manager.insertStaticRuleIntoRedis(staticPassAll)
@@ -84,34 +86,36 @@ func (manager *RuleManager) AddStaticPassAllToDBAndPCRFforIMSIs(IMSIs []string, 
 // AddStaticPassAllToDB adds a static rule that passes all traffic to policyDB
 // storage
 func (manager *RuleManager) AddStaticPassAllToDB(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) error {
-	fmt.Printf("************************* Adding a Pass-All static rule: %s\n", ruleID)
+	fmt.Printf("************* Adding a Pass-All static rule: %s, priority: %d, mkey: %s, rg: %d, trackingType: %s\n",
+		ruleID, priority, monitoringKey, ratingGroup, trackingType)
 	staticPassAll := getStaticPassAll(ruleID, monitoringKey, ratingGroup, trackingType, priority, nil)
 	return manager.insertStaticRuleIntoRedis(staticPassAll)
 }
 
 // AddStaticRuleToDB adds the static rule to policyDB storage
 func (manager *RuleManager) AddStaticRuleToDB(rule *lteProtos.PolicyRule) error {
-	fmt.Printf("************************* Adding a static rule: %s\n", rule.Id)
+	fmt.Printf("************* Adding a static rule: %s, priority: %d, mkey: %s, rg: %d, trackingType: %s\n",
+		rule.Id, rule.Priority, rule.MonitoringKey, rule.RatingGroup, rule.TrackingType)
 	return manager.insertStaticRuleIntoRedis(rule)
 }
 
 // AddDynamicPassAllToPCRF adds a dynamic rule that passes all traffic into PCRF
 func (manager *RuleManager) AddDynamicPassAllToPCRF(imsi, ruleID, monitoringKey string) error {
-	fmt.Printf("************************* Adding Pass-All Dynamic Rule for UE with IMSI: %s, ruleID: %s\n", imsi, ruleID)
+	fmt.Printf("************* Adding Pass-All Dynamic Rule for UE with IMSI: %s, ruleID: %s\n", imsi, ruleID)
 	dynamicPassAll := getAccountRulesWithDynamicPassAll(imsi, ruleID, monitoringKey)
 	return manager.addAccountRules(dynamicPassAll)
 }
 
 // AddRulesToPCRF adds the dynamic rule into PCRF
 func (manager *RuleManager) AddRulesToPCRF(imsi string, ruleNames, baseNames []string) error {
-	fmt.Printf("************************* Adding PCRF Rule for UE with IMSI: %s"+
+	fmt.Printf("************* Adding PCRF Rule for UE with IMSI: %s"+
 		" with ruleNames=%v, baseNames=%v\n", imsi, ruleNames, baseNames)
 	rules := makeAccountRules(imsi, ruleNames, baseNames)
 	return manager.addAccountRules(rules)
 }
 
 func (manager *RuleManager) AddBaseNameMappingToDB(basename string, ruleNames []string) error {
-	fmt.Printf("************************* Adding a base name mapping of %s -> %v\n", basename, ruleNames)
+	fmt.Printf("************* Adding a base name mapping of %s -> %v\n", basename, ruleNames)
 	record := &lteProtos.ChargingRuleBaseNameRecord{
 		Name:         basename,
 		RuleNamesSet: &lteProtos.ChargingRuleNameSet{RuleNames: ruleNames},
@@ -121,14 +125,14 @@ func (manager *RuleManager) AddBaseNameMappingToDB(basename string, ruleNames []
 
 // AddOmniPresentRulesToDB adds the network wide static rule to policyDB storage
 func (manager *RuleManager) AddOmniPresentRulesToDB(keyId string, ruleNames, baseNames []string) error {
-	fmt.Printf("************************* Adding a network wide rule\n")
+	fmt.Printf("************* Adding a network wide rule\n")
 	rule := makeAssignedRules(ruleNames, baseNames)
 	return manager.insertOmniPresentRuleIntoRedis(keyId, rule)
 }
 
 // RemoveOmniPresentRulesFromDB adds the network wide static rule to policyDB storage
 func (manager *RuleManager) RemoveOmniPresentRulesFromDB(keyId string) error {
-	fmt.Printf("************************* Removing a network wide rule\n")
+	fmt.Printf("************* Removing a network wide rule\n")
 	return manager.removeOmniPresentRuleIntoRedis(keyId)
 }
 
@@ -169,7 +173,7 @@ func (manager *RuleManager) RemoveInstalledRules() error {
 // AddUsageMonitor constructs a usage monitor according to the parameters and
 // inserts it into PCRF
 func (manager *RuleManager) AddUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) error {
-	fmt.Printf("************************* Adding PCRF Usage Monitor for UE with IMSI: %s\n", imsi)
+	fmt.Printf("************* Adding PCRF Usage Monitor for UE with IMSI: %s\n", imsi)
 	usageMonitor := makeUsageMonitor(imsi, monitoringKey, volume, bytesPerGrant)
 	err := addPCRFUsageMonitorsPerInstance(manager.pcrfInstance, usageMonitor)
 	if err != nil {

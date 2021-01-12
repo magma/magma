@@ -13,6 +13,7 @@ limitations under the License.
 package handlers
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
@@ -149,6 +150,7 @@ func TestChallengeEAPTemplate(t *testing.T) {
 }
 
 func TestAkaChallenge(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service testSwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)

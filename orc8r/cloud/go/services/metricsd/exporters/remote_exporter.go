@@ -2,6 +2,7 @@ package exporters
 
 import (
 	"context"
+	"strings"
 
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	merrors "magma/orc8r/lib/go/errors"
@@ -13,12 +14,12 @@ import (
 // remoteExporter identifies a remote metrics exporter.
 type remoteExporter struct {
 	// service name of the exporter
-	// should always be uppercase to match service registry convention
+	// should always be lowercase to match service registry convention
 	service string
 }
 
 func NewRemoteExporter(serviceName string) Exporter {
-	return &remoteExporter{service: serviceName}
+	return &remoteExporter{service: strings.ToLower(serviceName)}
 }
 
 func (r *remoteExporter) Submit(metrics []MetricAndContext) error {

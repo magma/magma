@@ -76,7 +76,7 @@ int decode_attach_request(
   /*
    * Decoding optional fields
    */
-  while (len - decoded > 0) {
+  while (len > decoded) {
     uint8_t ieiDecoded = *(buffer + decoded);
 
     /*
@@ -308,6 +308,16 @@ int decode_attach_request(
          */
         attach_request->presencemask |=
             ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT;
+        break;
+
+      case ATTACH_REQUEST_DEVICE_PROPERTIES_IEI:
+      case ATTACH_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI:
+        // Skip these IEs. We do not support congestion handling.
+        OAILOG_INFO(
+            LOG_NAS_EMM,
+            "EMM-MSG - Device Properties IE in Attach Request is not "
+            "supported. Skipping this IE.");
+        decoded += 1;  // Device Properties is 1 byte
         break;
 
       default:

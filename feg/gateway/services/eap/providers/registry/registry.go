@@ -15,7 +15,6 @@ limitations under the License.
 package registry
 
 import (
-	"sort"
 	"sync"
 
 	"github.com/golang/glog"
@@ -47,7 +46,6 @@ func Register(p providers.Method) (oldProvider providers.Method) {
 			typ, oldProvider, p)
 	} else {
 		supportedTypes = append(supportedTypes, typ)
-		sort.Sort(typesSlice(supportedTypes))
 	}
 	return
 }

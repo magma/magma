@@ -1,9 +1,7 @@
 /*
 Copyright 2020 The Magma Authors.
-
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +30,7 @@ func TestSwxCacheGC(t *testing.T) {
 	err := test_init.InitTestMconfig(t, "127.0.0.1:0", true)
 	assert.NoError(t, err)
 	interval := time.Millisecond * 10
-	ttl := time.Millisecond * 100
+	ttl := time.Millisecond * 200
 	cache, done := cache.NewExt(interval, ttl)
 	srv, err := test_init.StartTestServiceWithCache(t, cache)
 	if err != nil {
@@ -41,7 +39,7 @@ func TestSwxCacheGC(t *testing.T) {
 
 	authReq := &protos.AuthenticationRequest{
 		UserName:             test.BASE_IMSI,
-		SipNumAuthVectors:    uint32(3),
+		SipNumAuthVectors:    1,
 		AuthenticationScheme: protos.AuthenticationScheme_EAP_AKA,
 	}
 
@@ -58,7 +56,7 @@ func TestSwxCacheGC(t *testing.T) {
 	assert.Equal(t, []byte(test.DefaultCK), v.GetConfidentialityKey())
 	assert.Equal(t, []byte(test.DefaultIK), v.GetIntegrityKey())
 
-	authRes = cache.Get(test.BASE_IMSI)
+	authRes = cache.Get(test.BASE_IMSI, 1)
 	assert.Equal(t, 1, len(authRes.GetSipAuthVectors()))
 	v = authRes.SipAuthVectors[0]
 	assert.Equal(t, protos.AuthenticationScheme_EAP_AKA, v.GetAuthenticationScheme())
@@ -67,10 +65,40 @@ func TestSwxCacheGC(t *testing.T) {
 	assert.Equal(t, []byte(test.DefaultCK), v.GetConfidentialityKey())
 	assert.Equal(t, []byte(test.DefaultIK), v.GetIntegrityKey())
 
+	// 5 vectors requested, 2 consumed, 3 left
+	authRes = cache.Get(test.BASE_IMSI, 2)
+	assert.Equal(t, 2, len(authRes.GetSipAuthVectors()))
+
 	time.Sleep(ttl + interval*2)
 
-	authRes = cache.Get(test.BASE_IMSI)
+	authRes = cache.Get(test.BASE_IMSI, 1)
 	assert.Equal(t, (*protos.AuthenticationAnswer)(nil), authRes)
+
+	authReq = &protos.AuthenticationRequest{
+		UserName:             test.BASE_IMSI,
+		SipNumAuthVectors:    3,
+		AuthenticationScheme: protos.AuthenticationScheme_EAP_AKA,
+	}
+	authRes, err = swx_proxy.Authenticate(authReq)
+	if err != nil {
+		t.Fatalf("GRPC MAR Error: %v", err)
+		return
+	}
+	assert.Equal(t, 3, len(authRes.GetSipAuthVectors()))
+	authReq = &protos.AuthenticationRequest{
+		UserName:             test.BASE_IMSI,
+		SipNumAuthVectors:    3,
+		AuthenticationScheme: protos.AuthenticationScheme_EAP_AKA,
+	}
+	authRes, err = swx_proxy.Authenticate(authReq)
+	if err != nil {
+		t.Fatalf("GRPC MAR Error: %v", err)
+		return
+	}
+	assert.Equal(t, 3, len(authRes.GetSipAuthVectors()))
+	// 10 vectors requested, 6 consumed, 4 left
+	authRes = cache.Get(test.BASE_IMSI, 4)
+	assert.Equal(t, 4, len(authRes.GetSipAuthVectors()))
 
 	done <- struct{}{}
 

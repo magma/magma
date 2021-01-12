@@ -17,7 +17,7 @@ QosInfo = namedtuple('QosInfo', 'gbr mbr')
 
 # key_type - identifies the type of QosKey. This ideally should be in base type
 # Will modify this when dataclasses are available
-SubscriberKey = namedtuple('SubscriberKey', 'key_type imsi rule_num direction')
+SubscriberKey = namedtuple('SubscriberKey', 'key_type imsi ip_addr rule_num direction')
 
 
 def get_subscriber_key(*args):

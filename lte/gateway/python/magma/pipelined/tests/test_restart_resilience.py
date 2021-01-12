@@ -25,21 +25,20 @@ from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import global_epoch
-from magma.pipelined.policy_converters import flow_match_to_magma_match
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
+from magma.pipelined.policy_converters import flow_match_to_magma_match, \
+    convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
     TCPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
     TestSetup
-from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
+from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext, default_ambr_config
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
+from magma.pipelined.tests.pipelined_test_util import fake_controller_setup, \
     create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
     wait_after_send, SnapshotVerifier, get_enforcement_stats, \
-    wait_for_enforcement_stats, fake_controller_setup
+    wait_for_enforcement_stats
 from scapy.all import IP
 
 
@@ -48,6 +47,7 @@ class RestartResilienceTest(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP_ADDRESS = '192.168.128.1'
+    DEFAULT_DROP_FLOW_NAME = '(┛ಠ_ಠ)┛彡┻━┻'
 
     def _wait_func(self, stat_names):
         def func():
@@ -103,7 +103,10 @@ class RestartResilienceTest(unittest.TestCase):
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP_ADDRESS,
-                'enforcement': {'poll_interval': 5},
+                'enforcement': {
+                    'poll_interval': 2,
+                    'default_drop_flow_name': cls.DEFAULT_DROP_FLOW_NAME
+                },
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
@@ -166,16 +169,19 @@ class RestartResilienceTest(unittest.TestCase):
         flow_list1 = [
             FlowDescription(
                 match=FlowMatch(
-                    ipv4_dst='45.10.0.0/24', direction=FlowMatch.UPLINK),
+                    ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+                    direction=FlowMatch.UPLINK),
                 action=FlowDescription.PERMIT),
             FlowDescription(
                 match=FlowMatch(
-                    ipv4_dst='45.11.0.0/24', direction=FlowMatch.UPLINK),
+                    ip_dst=convert_ipv4_str_to_ip_proto('45.11.0.0/24'),
+                    direction=FlowMatch.UPLINK),
                 action=FlowDescription.PERMIT)
         ]
         flow_list2 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='10.10.1.0/24', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('10.10.1.0/24'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policies1 = [
@@ -184,21 +190,24 @@ class RestartResilienceTest(unittest.TestCase):
         policies2 = [
             PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2)
         ]
-        enf_stat_name = [imsi1 + '|sub1_rule_temp', imsi2 + '|sub2_rule_keep']
+        enf_stat_name = [imsi1 + '|sub1_rule_temp' + '|' + sub2_ip,
+                         imsi2 + '|sub2_rule_keep' + '|' + sub2_ip]
 
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi1, 'sub1_rule_temp')
+            imsi1, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub1_rule_temp')
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi2, 'sub2_rule_keep')
+            imsi2, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub2_rule_keep')
 
         setup_flows_request = SetupFlowsRequest(
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi1),
+                    ip_addr=sub2_ip,
                     dynamic_rules=policies1
                 ),
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi2),
+                    ip_addr=sub2_ip,
                     dynamic_rules=policies2
                 ),
             ],
@@ -224,29 +233,16 @@ class RestartResilienceTest(unittest.TestCase):
             .set_ip_layer('10.10.1.8/20', sub2_ip)\
             .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
             .build()
-        pkts_sent = 4096
-        pkts_matched = 256
-        flow_query = FlowQuery(
-            self._enforcement_tbl_num, self.testing_controller,
-            match=flow_match_to_magma_match(flow_list2[0].match)
-        )
-        flow_verifier = FlowVerifier([
-            FlowTest(FlowQuery(self._enforcement_tbl_num,
-                               self.testing_controller),
-                     pkts_sent),
-            FlowTest(flow_query, pkts_matched)
-        ], self._wait_func(enf_stat_name))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'before_restart')
-        with isolator, flow_verifier, snapshot_verifier:
+        with isolator, snapshot_verifier:
             pkt_sender.send(packets)
-
-        flow_verifier.verify()
 
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='24.10.0.0/24', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('24.10.0.0/24'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
@@ -254,11 +250,13 @@ class RestartResilienceTest(unittest.TestCase):
             PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2)
         ]
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi2, 'sub2_new_rule')
-        enf_stat_name = [imsi2 + '|sub2_new_rule', imsi2 + '|sub2_rule_keep']
+            imsi2, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub2_new_rule')
+        enf_stat_name = [imsi2 + '|sub2_new_rule' + '|' + sub2_ip,
+                         imsi2 + '|sub2_rule_keep' + '|' + sub2_ip]
         setup_flows_request = SetupFlowsRequest(
             requests=[ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(imsi2),
+                ip_addr=sub2_ip,
                 dynamic_rules=policies
             )],
             epoch=global_epoch
@@ -269,13 +267,10 @@ class RestartResilienceTest(unittest.TestCase):
             enf_stats_controller=self.enforcement_stats_controller,
             startup_flow_controller=self.startup_flows_contoller,
             setup_flows_request=setup_flows_request)
-        flow_verifier = FlowVerifier([
-            FlowTest(flow_query, pkts_matched)
-        ], self._wait_func(enf_stat_name))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'after_restart')
-        with flow_verifier, snapshot_verifier:
+        with snapshot_verifier:
             pass
 
         fake_controller_setup(
@@ -284,7 +279,7 @@ class RestartResilienceTest(unittest.TestCase):
             startup_flow_controller=self.startup_flows_contoller)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
-                                             'default_flows')
+                                             'default_flows_w_packets')
 
         with snapshot_verifier:
             pass
@@ -320,23 +315,26 @@ class RestartResilienceTest(unittest.TestCase):
         """ Create 2 policy rules for the subscriber """
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+        direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         flow_list2 = [FlowDescription(
             match=FlowMatch(
-                ipv4_src='45.10.0.0/24', direction=FlowMatch.DOWNLINK),
+                ip_src=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+        direction=FlowMatch.DOWNLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
             PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
             PolicyRule(id='rx_match', priority=5, flow_list=flow_list2)
         ]
-        enf_stat_name = [imsi + '|tx_match', imsi + '|rx_match']
+        enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
+                         imsi + '|rx_match' + '|' + sub_ip]
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'tx_match')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'tx_match')
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'rx_match')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policies[0].id] = policies[0]
@@ -364,12 +362,11 @@ class RestartResilienceTest(unittest.TestCase):
             .build()
 
         # =========================== Verification ===========================
-        flow_verifier = FlowVerifier([], self._wait_func(enf_stat_name))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'initial_flows')
         """ Send packets, wait until pkts are received by ovs and enf stats """
-        with isolator, sub_context, flow_verifier, snapshot_verifier:
+        with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet1)
             pkt_sender.send(packet2)
 
@@ -381,7 +378,6 @@ class RestartResilienceTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name[0]].bytes_rx, 0)
         self.assertEqual(stats[enf_stat_name[0]].bytes_tx,
                          num_pkts_tx_match * len(packet1))
-
         self.assertEqual(stats[enf_stat_name[1]].sid, imsi)
         self.assertEqual(stats[enf_stat_name[1]].rule_id, "rx_match")
         self.assertEqual(stats[enf_stat_name[1]].bytes_tx, 0)
@@ -391,14 +387,15 @@ class RestartResilienceTest(unittest.TestCase):
         total_bytes_pkt2 = num_pkts_rx_match * len(packet2[IP])
         self.assertEqual(stats[enf_stat_name[1]].bytes_rx, total_bytes_pkt2)
 
-        # NOTE this value is 5 because the EnforcementStatsController rule
+        # NOTE this value is 8 because the EnforcementStatsController rule
         # reporting doesn't reset on clearing flows(lingers from old tests)
-        self.assertEqual(len(stats), 5)
+        self.assertEqual(len(stats), 8)
 
         setup_flows_request = SetupFlowsRequest(
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi),
+                    ip_addr=sub_ip,
                     rule_ids=[policies[0].id, policies[1].id]
                 ),
             ],
@@ -415,11 +412,11 @@ class RestartResilienceTest(unittest.TestCase):
                                              self.service_manager,
                                              'after_restart')
 
-        with flow_verifier, snapshot_verifier:
+        with snapshot_verifier:
             pass
 
         self.assertEqual(stats[enf_stat_name[0]].bytes_tx,
-        num_pkts_tx_match * len(packet1))
+                         num_pkts_tx_match * len(packet1))
 
     def test_url_redirect(self):
         """
@@ -486,45 +483,11 @@ class RestartResilienceTest(unittest.TestCase):
             .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
             .build()
 
-        # Check if these flows were added (queries should return flows)
-        permit_outbound, permit_inbound = [], []
-        for ip in redirect_ips:
-            permit_outbound.append(FlowQuery(
-                self._tbl_num, self.testing_controller,
-                match=flow_match_to_magma_match(
-                    FlowMatch(ipv4_dst=ip, direction=FlowMatch.UPLINK))
-            ))
-            permit_inbound.append(FlowQuery(
-                self._tbl_num, self.testing_controller,
-                match=flow_match_to_magma_match(
-                    FlowMatch(ipv4_src=ip, direction=FlowMatch.DOWNLINK))
-            ))
-
-        learn_action_flow = flow_match_to_magma_match(
-            FlowMatch(ip_proto=6, direction=FlowMatch.DOWNLINK,
-                      ipv4_src=self.BRIDGE_IP_ADDRESS, ipv4_dst=sub_ip)
-        )
-        learn_action_query = FlowQuery(self._tbl_num, self.testing_controller,
-                                       learn_action_flow)
-
-        # =========================== Verification ===========================
-        # 1 packet sent, permit rules installed, learn action installed. Since
-        # the enforcement table is entered via the DPI table and the scratch
-        # enforcement table, the number of packets handled by the table is 2.
-        flow_verifier = FlowVerifier(
-            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2),
-             FlowTest(learn_action_query, 0, flow_count=1)]
-            + [FlowTest(query, 0, flow_count=1) for query in permit_outbound]
-            + [FlowTest(query, 0, flow_count=1) for query in permit_inbound],
-            lambda: wait_after_send(self.testing_controller))
-
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 
-        with isolator, sub_context, flow_verifier, snapshot_verifier:
+        with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
-
-        flow_verifier.verify()
 
     def test_clean_restart(self):
         """

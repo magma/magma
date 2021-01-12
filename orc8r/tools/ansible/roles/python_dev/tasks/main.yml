@@ -69,7 +69,9 @@
 # Install dependency packages
 ##############################
 
-- name: Setup build requirements for python packages
+- name: Common setup build requirements for python packages
+  retries: 5
+  when: preburn
   apt:
     state: present
     pkg:
@@ -87,7 +89,6 @@
       - autoconf
       - libtool
       - python3-apt
-      - python3-aioeventlet
       - python3-setuptools
       - python3-requests
       - python3-pip
@@ -95,12 +96,18 @@
       - protobuf-compiler
       - python-protobuf
       - libsystemd-dev
+
+- name: Install python build requirements for Debian systems
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    pkg:
+      - python3-aioeventlet
 
 - name: install the package, force reinstall to the latest version
   pip:
-    name: setuptools
+    name: setuptools==49.6.0
     state: forcereinstall
     executable: pip3
 

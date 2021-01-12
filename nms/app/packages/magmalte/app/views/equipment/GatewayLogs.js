@@ -16,7 +16,9 @@
 import type {ActionQuery} from '../../components/ActionTable';
 
 import ActionTable from '../../components/ActionTable';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
@@ -24,17 +26,15 @@ import LogChart from './GatewayLogChart';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
-
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
-import {getStep} from '../../components/CustomHistogram';
+import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
+import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 // elastic search pagination through 'from' mechanism has a 10000 row limit
@@ -44,10 +44,17 @@ import {useRouter} from '@fbcnms/ui/hooks';
 const MAX_PAGE_ROW_COUNT = 10000;
 const EXPORT_DELIMITER = ',';
 const LOG_COLUMNS = [
-  {title: 'Date', field: 'date', type: 'datetime'},
-  {title: 'Service', field: 'service'},
-  {title: 'Type', field: 'logType'},
-  {title: 'Output', field: 'output'},
+  {
+    title: 'Date',
+    field: 'date',
+    type: 'datetime',
+    width: 200,
+    filtering: false,
+  },
+  {title: 'Service', field: 'service', width: 200},
+  {title: 'Tag', field: 'tag', width: 200},
+  {title: 'Type', field: 'logType', width: 200, filtering: false},
+  {title: 'Output', field: 'output', filtering: false},
 ];
 
 const useStyles = makeStyles(theme => ({
@@ -77,49 +84,58 @@ const getLogType = (msg: string): string => {
   return 'debug';
 };
 
-async function searchLogs(
-  networkId,
-  gatewayId,
-  from,
-  size,
-  start,
-  end,
-  q,
-  enqueueSnackbar,
-) {
-  const logs = await MagmaV1API.getNetworksByNetworkIdLogsSearch({
-    networkId: networkId,
-    filters: `gateway_id:${gatewayId}`,
-    from: from.toString(),
-    size: size.toString(),
+function buildQueryFilters(q: ActionQuery, gatewayId: string) {
+  const logQuery = {
     simpleQuery: q.search ?? '',
-    start: start.toISOString(),
-    end: end.toISOString(),
-  })
-    .then(searchResp => {
-      const logs = searchResp.filter(Boolean).map(elastic_hit => {
-        const src = elastic_hit._source;
-        const date = new Date(src['@timestamp'] ?? 0);
-        const msg = src['message'];
-        return {
-          date: date,
-          service: src['ident'],
-          logType: getLogType(msg ?? ''),
-          output: msg,
-        };
-      });
-      return logs;
-    })
-    .catch(err => {
-      enqueueSnackbar('Error exporting logs ' + err, {
-        variant: 'error',
-      });
-      return [];
+    fields: undefined,
+    filters: undefined,
+  };
+  const filters = [`gateway_id:${gatewayId}`];
+  if (q.search === '' && q.filters.length === 1) {
+    // for this case we can do a regex search
+    logQuery.simpleQuery = q.filters[0].value;
+    logQuery.fields = q.filters[0].column.field === 'service' ? 'ident' : 'tag';
+  } else if (q.filters.length > 0) {
+    q.filters.forEach((filter, _) => {
+      switch (filter.column.field) {
+        case 'service':
+          filters.push(`ident:${filter.value}`);
+          break;
+        case 'tag':
+          filters.push(`tag:${filter.value}`);
+          break;
+      }
     });
-  return logs;
+  }
+  logQuery.filters = filters.join(',');
+  return logQuery;
 }
 
-function exportLogs(
+async function searchLogs(networkId, gatewayId, from, size, start, end, q) {
+  const logs = await MagmaV1API.getNetworksByNetworkIdLogsSearch({
+    networkId: networkId,
+    from: from.toString(),
+    size: size.toString(),
+    start: start.toISOString(),
+    end: end.toISOString(),
+    ...buildQueryFilters(q, gatewayId),
+  });
+
+  return logs.filter(Boolean).map(elastic_hit => {
+    const src = elastic_hit._source;
+    const date = new Date(src['@timestamp'] ?? 0);
+    const msg = src['message'];
+    return {
+      date: date,
+      service: src['ident'] ?? '-',
+      tag: src['tag'] ?? '-',
+      logType: getLogType(msg ?? ''),
+      output: msg,
+    };
+  });
+}
+
+async function exportLogs(
   networkId,
   gatewayId,
   from,
@@ -129,76 +145,67 @@ function exportLogs(
   q,
   enqueueSnackbar,
 ) {
-  searchLogs(
-    networkId,
-    gatewayId,
-    0,
-    MAX_PAGE_ROW_COUNT,
-    start,
-    end,
-    q,
-    enqueueSnackbar,
-  ).then(logRows => {
+  try {
+    const logRows = await searchLogs(
+      networkId,
+      gatewayId,
+      0,
+      MAX_PAGE_ROW_COUNT,
+      start,
+      end,
+      q,
+    );
     const data = logRows.map(rowData =>
       LOG_COLUMNS.map(columnDef => rowData[columnDef.field]),
     );
-
     const currTs = Date.now();
     new CsvBuilder(`logs_${currTs}.csv`)
       .setDelimeter(EXPORT_DELIMITER)
       .setColumns(LOG_COLUMNS.map(columnDef => columnDef.title))
       .addRows(data)
       .exportFile();
-  });
+  } catch (e) {
+    enqueueSnackbar(e?.message ?? 'error retrieving logs', {variant: 'error'});
+  }
 }
 
-function handleLogQuery(
-  networkId,
-  gatewayId,
-  from,
-  size,
-  start,
-  end,
-  q,
-  enqueueSnackbar,
-) {
-  return new Promise((resolve, reject) => {
-    const countReq = MagmaV1API.getNetworksByNetworkIdLogsCount({
-      networkId: networkId,
-      start: start.toISOString(),
-      end: end.toISOString(),
-      filters: `gateway_id:${gatewayId}`,
-      simpleQuery: q.search,
-    });
+function handleLogQuery(networkId, gatewayId, from, size, start, end, q) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const countReq = MagmaV1API.getNetworksByNetworkIdLogsCount({
+        networkId: networkId,
+        start: start.toISOString(),
+        end: end.toISOString(),
+        ...buildQueryFilters(q, gatewayId),
+      });
 
-    const searchReq = searchLogs(
-      networkId,
-      gatewayId,
-      (q.page * q.pageSize).toString(),
-      q.pageSize.toString(),
-      start,
-      end,
-      q,
-      enqueueSnackbar,
-    );
+      const searchReq = searchLogs(
+        networkId,
+        gatewayId,
+        (q.page * q.pageSize).toString(),
+        q.pageSize.toString(),
+        start,
+        end,
+        q,
+      );
 
-    Promise.all([countReq, searchReq])
-      .then(([countResp, searchResp]) => {
-        let gatewayLogCount = countResp;
-        if (gatewayLogCount > MAX_PAGE_ROW_COUNT) {
-          gatewayLogCount = MAX_PAGE_ROW_COUNT;
-        }
-        const page =
-          gatewayLogCount < q.page * q.pageSize
-            ? gatewayLogCount / q.pageSize
-            : q.page;
-        resolve({
-          data: searchResp,
-          page: page,
-          totalCount: gatewayLogCount,
-        });
-      })
-      .catch(err => reject(err));
+      const [countResp, searchResp] = await Promise.all([countReq, searchReq]);
+      let gatewayLogCount = countResp;
+      if (gatewayLogCount > MAX_PAGE_ROW_COUNT) {
+        gatewayLogCount = MAX_PAGE_ROW_COUNT;
+      }
+      const page =
+        gatewayLogCount < q.page * q.pageSize
+          ? gatewayLogCount / q.pageSize
+          : q.page;
+      resolve({
+        data: searchResp,
+        page: page,
+        totalCount: gatewayLogCount,
+      });
+    } catch (e) {
+      reject(e?.message ?? 'error retrieving logs');
+    }
   });
 }
 
@@ -207,12 +214,18 @@ export default function GatewayLogs() {
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [logCount, setLogCount] = useState(0);
-  const [endDate, setEndDate] = useState(moment());
   const [actionQuery, setActionQuery] = useState<ActionQuery>({});
   const enqueueSnackbar = useEnqueueSnackbar();
   const tableRef = useRef(null);
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
+  const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
+    isAutoRefreshing,
+    30000,
+    () => {
+      tableRef.current && tableRef.current.onQueryChange();
+    },
+  );
 
   const startEnd = useMemo(() => {
     const [delta, unit, format] = getStep(startDate, endDate);
@@ -227,65 +240,75 @@ export default function GatewayLogs() {
 
   function LogsFilter() {
     return (
-      <Grid container justify="flex-end" alignItems="center" spacing={1}>
-        <Grid item>
-          <Text variant="body3" className={classes.dateTimeText}>
-            Filter By Date
-          </Text>
+      <>
+        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid item>
+            <Text variant="body3" className={classes.dateTimeText}>
+              Filter By Date
+            </Text>
+          </Grid>
+          <Grid item>
+            <DateTimePicker
+              autoOk
+              variant="inline"
+              inputVariant="outlined"
+              maxDate={endDate}
+              disableFuture
+              value={startDate}
+              onChange={val => {
+                setStartDate(val);
+                setIsAutoRefreshing(false);
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <Text variant="body3" className={classes.dateTimeText}>
+              To
+            </Text>
+          </Grid>
+          <Grid item>
+            <DateTimePicker
+              autoOk
+              variant="inline"
+              inputVariant="outlined"
+              disableFuture
+              value={endDate}
+              onChange={val => {
+                setEndDate(val);
+                setIsAutoRefreshing(false);
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<LaunchIcon />}
+              onClick={() =>
+                exportLogs(
+                  networkId,
+                  gatewayId,
+                  0,
+                  MAX_PAGE_ROW_COUNT,
+                  startDate,
+                  endDate,
+                  actionQuery,
+                  enqueueSnackbar,
+                )
+              }>
+              Export
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item>
-          <DateTimePicker
-            autoOk
-            variant="inline"
-            inputVariant="outlined"
-            maxDate={endDate}
-            disableFuture
-            value={startDate}
-            onChange={val => {
-              setStartDate(val);
-              tableRef.current && tableRef.current.onQueryChange();
-            }}
-          />
+        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid item>
+            <AutorefreshCheckbox
+              autorefreshEnabled={isAutoRefreshing}
+              onToggle={() => setIsAutoRefreshing(current => !current)}
+            />
+          </Grid>
         </Grid>
-        <Grid item>
-          <Text variant="body3" className={classes.dateTimeText}>
-            To
-          </Text>
-        </Grid>
-        <Grid item>
-          <DateTimePicker
-            autoOk
-            variant="inline"
-            inputVariant="outlined"
-            disableFuture
-            value={endDate}
-            onChange={val => {
-              setEndDate(val);
-              tableRef.current && tableRef.current.onQueryChange();
-            }}
-          />
-        </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<LaunchIcon />}
-            onClick={() =>
-              exportLogs(
-                networkId,
-                gatewayId,
-                0,
-                MAX_PAGE_ROW_COUNT,
-                startDate,
-                endDate,
-                actionQuery,
-                enqueueSnackbar,
-              )
-            }>
-            Export
-          </Button>
-        </Grid>
-      </Grid>
+      </>
     );
   }
 
@@ -293,7 +316,7 @@ export default function GatewayLogs() {
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <CardTitleFilterRow
+          <CardTitleRow
             icon={ListAltIcon}
             label={`Logs (${logCount})`}
             filter={LogsFilter}
@@ -314,13 +337,14 @@ export default function GatewayLogs() {
                 startDate,
                 endDate,
                 query,
-                enqueueSnackbar,
               );
             }}
             columns={LOG_COLUMNS}
             options={{
+              filtering: true,
               actionsColumnIndex: -1,
-              pageSizeOptions: [5, 10],
+              pageSize: 10,
+              pageSizeOptions: [10, 20],
             }}
           />
         </Grid>

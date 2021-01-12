@@ -13,6 +13,7 @@ limitations under the License.
 import binascii
 from collections import defaultdict
 import re
+import logging
 import subprocess
 from typing import Optional, Dict, List, TYPE_CHECKING
 
@@ -86,6 +87,44 @@ class BridgeTools:
             subprocess.Popen(["ifconfig", iface_name, ip]).wait()
 
     @staticmethod
+    def add_ovs_port(bridge_name: str, iface_name: str, ofp_port: str):
+        """
+            Add interface to ovs bridge
+        """
+        try:
+            add_port_cmd = ["ovs-vsctl", "--may-exist",
+                            "add-port",
+                            bridge_name,
+                            iface_name,
+                            "--", "set", "interface",
+                            iface_name,
+                            "ofport_request=" + ofp_port]
+            subprocess.check_call(add_port_cmd)
+            logging.debug("add_port_cmd %s", add_port_cmd)
+        except subprocess.CalledProcessError as e:
+            logging.warning("Error while adding ports: %s", e)
+
+        try:
+            if_up_cmd = ["ip", "link", "set", "dev",
+                         iface_name, "up"]
+            subprocess.check_call(if_up_cmd)
+            logging.debug("if_up_cmd %s", if_up_cmd)
+        except subprocess.CalledProcessError as e:
+            logging.warning("Error while if up interface: %s", e)
+
+    @staticmethod
+    def create_veth_pair(port1: str, port2: str):
+        try:
+            create_veth = ["ip", "link", "add",
+                           port1,
+                           "type", "veth",
+                           "peer", "name", port2]
+            subprocess.check_call(create_veth)
+            logging.debug("if_up_cmd %s", create_veth)
+        except subprocess.CalledProcessError as e:
+            logging.debug("Error while creating veth pair: %s", e)
+
+    @staticmethod
     def create_bridge(bridge_name, iface_name):
         """
         Creates a simple bridge, sets up an interface.
@@ -100,6 +139,13 @@ class BridgeTools:
         subprocess.Popen(["ovs-vsctl", "set-controller", bridge_name,
                           "tcp:127.0.0.1:6633", "tcp:127.0.0.1:6654"]).wait()
         subprocess.Popen(["ifconfig", iface_name, "192.168.1.1/24"]).wait()
+
+    @staticmethod
+    def flush_conntrack():
+        """
+        Cleanup the conntrack state
+        """
+        subprocess.Popen(["ovs-dpctl", "flush-conntrack"]).wait()
 
     @staticmethod
     def destroy_bridge(bridge_name):

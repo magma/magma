@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// package middleware/unary implements cloud service middleware layer which
-// facilitates injection of cloudwide request & context decorators or filters
+// Package unary implements cloud service middleware layer which
+// facilitates injection of cloud-wide request & context decorators or filters
 // (interceptors) for unary RPC methods
 package unary
 
@@ -77,7 +77,7 @@ type Interceptor struct {
 	Description string
 }
 
-// unary.MiddlewareHandler iterates through and calls all registered unary
+// MiddlewareHandler iterates through and calls all registered unary
 // middleware interceptors and 'decorates' RPC parameters before invoking
 // the original server RPC method
 func MiddlewareHandler(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
@@ -102,25 +102,18 @@ func MiddlewareHandler(ctx context.Context, req interface{}, info *grpc.UnarySer
 	return
 }
 
-// callHandler simply wraps the handler call with some error recovery, logging,
-// and metrics
-func callHandler(
-	ctx context.Context,
-	req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler,
-) (resp interface{}, err error) {
+// callHandler wraps the handler with error recovery, logging, and metrics.
+func callHandler(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = status.Errorf(
-				codes.Unknown, "Handler Panic: %s; Stack Trace: %s", r, debug.Stack())
+			err = status.Errorf(codes.Unknown, "handler panic: %s; stack trace: %s", r, debug.Stack())
 			uncaughtCounterVec.WithLabelValues(info.FullMethod).Inc()
 		}
 	}()
 
 	resp, err = handler(ctx, req)
 	if err != nil {
-		glog.Errorf("[ERROR %s]: %s", info.FullMethod, err)
+		glog.Errorf("[ERROR %s]: %+v", info.FullMethod, err)
 	}
 
 	return

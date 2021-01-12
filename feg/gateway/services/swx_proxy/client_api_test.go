@@ -54,7 +54,7 @@ func TestSwxProxyClient_VerifyAuthorizationOff(t *testing.T) {
 
 func standardSwxProxyTest(t *testing.T) {
 	expectedUsername := test.BASE_IMSI
-	numVectors := 5
+	numVectors := 1
 	expectedAuthScheme := protos.AuthenticationScheme_EAP_AKA
 	authReq := &protos.AuthenticationRequest{
 		UserName:             expectedUsername,

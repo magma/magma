@@ -2,10 +2,7 @@ version: "3.7"
 
 # Standard logging for each service
 x-logging: &logging_anchor
-  driver: "json-file"
-  options:
-    max-size: "10mb"
-    max-file: "10"
+  driver: ${LOG_DRIVER}
 
 # Standard volumes mounted
 x-standard-volumes: &volumes_anchor

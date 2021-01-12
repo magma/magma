@@ -30,4 +30,9 @@ type Method interface {
 	EAPType() uint8
 	// Handle - handles EAP Resp message (protos.EapRequest)
 	Handle(*protos.Eap) (*protos.Eap, error)
+	// WillHandleIdentity returns true if the provider 1) recognizes the given Identity and 2) can handle authentication
+	// for this type of identity.
+	// Note: a negative (false) result doesn't necessary mean that the provider cannot handle the auth for the client,
+	//       it may also mean that the client did not pass enough information for the provider to recognize it
+	WillHandleIdentity(identityData []byte) bool
 }

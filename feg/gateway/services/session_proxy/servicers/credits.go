@@ -53,84 +53,80 @@ func (srv *CentralSessionController) sendSingleCreditRequest(request *gy.CreditC
 	}
 }
 
-// getCCRInitRequest creates a CreditControlRequest for an INIT message,
-// defaulting the request number to 0 and not including credit usage
-func getCCRInitRequest(
-	imsi string,
-	pReq *protos.CreateSessionRequest,
-) *gy.CreditControlRequest {
-
-	var qos *gy.QosRequestInfo
-
-	if pReq.GetQosInfo() != nil {
-		qos = &gy.QosRequestInfo{
-			ApnAggMaxBitRateDL: pReq.GetQosInfo().GetApnAmbrDl(),
-			ApnAggMaxBitRateUL: pReq.GetQosInfo().GetApnAmbrUl(),
-		}
-	}
-
-	return &gy.CreditControlRequest{
-		SessionID:     pReq.SessionId,
-		RequestNumber: 0,
-		IMSI:          imsi,
-		UeIPV4:        pReq.UeIpv4,
-		SpgwIPV4:      pReq.SpgwIpv4,
-		Apn:           pReq.Apn,
-		Msisdn:        pReq.Msisdn,
-		Imei:          pReq.Imei,
-		PlmnID:        pReq.PlmnId,
-		UserLocation:  pReq.UserLocation,
-		GcID:          pReq.GcId,
-		Qos:           qos,
-		Type:          credit_control.CRTInit,
-		RatType:       gy.GetRATType(pReq.GetRatType()),
-	}
-}
-
-// getCCRInitialUpdateRequest creates the first update request to send to the
+// makeCCRInit creates the first update request to send to the
 // OCS when a session is established.
-func getCCRInitialCreditRequest(
+func makeCCRInit(
 	imsi string,
 	pReq *protos.CreateSessionRequest,
 	keys []policydb.ChargingKey,
 ) *gy.CreditControlRequest {
-	var msgType credit_control.CreditRequestType
-	var qos *gy.QosRequestInfo
-
-	if pReq.GetQosInfo() != nil {
-		qos = &gy.QosRequestInfo{
-			ApnAggMaxBitRateDL: pReq.GetQosInfo().GetApnAmbrDl(),
-			ApnAggMaxBitRateUL: pReq.GetQosInfo().GetApnAmbrUl(),
-		}
+	common := pReq.GetCommonContext()
+	request := &gy.CreditControlRequest{
+		SessionID:     pReq.GetSessionId(),
+		Type:          credit_control.CRTInit,
+		IMSI:          imsi,
+		RequestNumber: 0,
+		UeIPV4:        common.GetUeIpv4(),
+		Apn:           common.GetApn(),
+		Msisdn:        common.GetMsisdn(),
+		RatType:       gy.GetRATType(common.GetRatType()),
 	}
 
-	msgType = credit_control.CRTInit
+	if pReq.RatSpecificContext != nil {
+		ratSpecific := pReq.GetRatSpecificContext().GetContext()
+		switch context := ratSpecific.(type) {
+		case *protos.RatSpecificContext_LteContext:
+			lteContext := context.LteContext
+			request.SpgwIPV4 = lteContext.GetSpgwIpv4()
+			request.Imei = lteContext.GetImei()
+			request.PlmnID = lteContext.GetPlmnId()
+			request.UserLocation = lteContext.GetUserLocation()
+			request.ChargingCharacteristics = lteContext.GetChargingCharacteristics()
+			if lteContext.GetQosInfo() != nil {
+				request.Qos = &gy.QosRequestInfo{
+					ApnAggMaxBitRateDL: lteContext.GetQosInfo().GetApnAmbrDl(),
+					ApnAggMaxBitRateUL: lteContext.GetQosInfo().GetApnAmbrUl(),
+				}
+			}
+			break
+		}
+	} else {
+		glog.Warning("No RatSpecificContext is specified")
+	}
+	request.Credits = makeUsedCreditsForCCRInit(pReq.RequestedUnits, keys)
+	return request
+}
+
+func makeUsedCreditsForCCRInit(
+	requestedUnits *protos.RequestedUnits,
+	keys []policydb.ChargingKey) []*gy.UsedCredits {
 	usedCredits := make([]*gy.UsedCredits, 0, len(keys))
 	for _, key := range keys {
-		uc := &gy.UsedCredits{RatingGroup: key.RatingGroup}
+		uc := &gy.UsedCredits{
+			RatingGroup:    key.RatingGroup,
+			RequestedUnits: getRequestedUnitsOrDefault(requestedUnits),
+		}
 		if key.ServiceIdTracking {
 			sid := key.ServiceIdentifier
 			uc.ServiceIdentifier = &sid
 		}
 		usedCredits = append(usedCredits, uc)
 	}
-	return &gy.CreditControlRequest{
-		SessionID:     pReq.SessionId,
-		RequestNumber: 0,
-		IMSI:          imsi,
-		UeIPV4:        pReq.UeIpv4,
-		SpgwIPV4:      pReq.SpgwIpv4,
-		Apn:           pReq.Apn,
-		Msisdn:        pReq.Msisdn,
-		Imei:          pReq.Imei,
-		PlmnID:        pReq.PlmnId,
-		UserLocation:  pReq.UserLocation,
-		GcID:          pReq.GcId,
-		Qos:           qos,
-		Credits:       usedCredits,
-		Type:          msgType,
-		RatType:       gy.GetRATType(pReq.GetRatType()),
+	return usedCredits
+}
+
+// TODO: function for backwards compatibility. Delete once older AGW are updated
+func getRequestedUnitsOrDefault(requestedUnits *protos.RequestedUnits) *protos.RequestedUnits {
+	if requestedUnits == nil {
+		return &protos.RequestedUnits{Total: 100000, Tx: 100000, Rx: 100000}
 	}
+	return requestedUnits
+}
+
+// makeCCRInitWithoutChargingKeys creates a CreditControlRequest for an INIT
+// message, defaulting the request number to 0 and not including credit usage
+func makeCCRInitWithoutChargingKeys(imsi string, pReq *protos.CreateSessionRequest) *gy.CreditControlRequest {
+	return makeCCRInit(imsi, pReq, nil)
 }
 
 // sendMultipleRequestsWithTimeout sends a batch of update requests to the OCS
@@ -265,10 +261,13 @@ func getSingleCreditResponseFromCCA(
 ) *protos.CreditUpdateResponse {
 	success := answer.ResultCode == diameter.SuccessCode
 	imsi := credit_control.AddIMSIPrefix(request.IMSI)
+
 	if len(answer.Credits) == 0 {
 		return &protos.CreditUpdateResponse{
-			Success: false,
-			Sid:     imsi,
+			Success:    false,
+			Sid:        imsi,
+			SessionId:  request.SessionID,
+			ResultCode: answer.ResultCode,
 		}
 	}
 	receivedCredit := answer.Credits[0]
@@ -282,11 +281,12 @@ func getSingleCreditResponseFromCCA(
 	}
 	res := &protos.CreditUpdateResponse{
 		Success:     success && msccSuccess,
+		SessionId:   request.SessionID,
 		Sid:         imsi,
 		ChargingKey: receivedCredit.RatingGroup,
 		Credit:      getSingleChargingCreditFromCCA(receivedCredit),
 		TgppCtx:     tgppCtx,
-		ResultCode:  answer.ResultCode,
+		ResultCode:  receivedCredit.ResultCode, //answer.ResultCode is returned in case of general failure
 	}
 
 	if receivedCredit.ServiceIdentifier != nil {
@@ -327,42 +327,25 @@ func getInitialCreditResponsesFromCCA(request *gy.CreditControlRequest, answer *
 func getSingleChargingCreditFromCCA(
 	credits *gy.ReceivedCredits,
 ) *protos.ChargingCredit {
-	return &protos.ChargingCredit{
-		GrantedUnits:   credits.GrantedUnits.ToProto(),
-		Type:           protos.ChargingCredit_BYTES,
-		ValidityTime:   credits.ValidityTime,
-		IsFinal:        credits.IsFinal,
-		FinalAction:    protos.ChargingCredit_FinalAction(credits.FinalAction),
-		RedirectServer: credits.RedirectServer.ToProto(),
+	chargingCredit := &protos.ChargingCredit{
+		GrantedUnits: credits.GrantedUnits.ToProto(),
+		Type:         protos.ChargingCredit_BYTES,
+		ValidityTime: credits.ValidityTime,
 	}
+	if credits.FinalUnitIndication != nil {
+		chargingCredit.IsFinal = true
+		chargingCredit.FinalAction = protos.ChargingCredit_FinalAction(credits.FinalUnitIndication.FinalAction)
+		chargingCredit.RedirectServer = credits.FinalUnitIndication.RedirectServer.ToProto()
+		chargingCredit.RestrictRules = credits.FinalUnitIndication.RestrictRules
+	}
+	return chargingCredit
 }
 
 // getUpdateRequestsFromUsage returns a slice of CCRs from usage update protos
 func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.CreditControlRequest {
 	requests := []*gy.CreditControlRequest{}
 	for _, update := range updates {
-		requests = append(requests, &gy.CreditControlRequest{
-			SessionID:     update.SessionId,
-			RequestNumber: update.RequestNumber,
-			IMSI:          credit_control.RemoveIMSIPrefix(update.Sid),
-			Msisdn:        update.Msisdn,
-			UeIPV4:        update.UeIpv4,
-			SpgwIPV4:      update.SpgwIpv4,
-			Apn:           update.Apn,
-			Imei:          update.Imei,
-			PlmnID:        update.PlmnId,
-			UserLocation:  update.UserLocation,
-			Type:          credit_control.CRTUpdate,
-			Credits: []*gy.UsedCredits{&gy.UsedCredits{
-				RatingGroup:  update.Usage.ChargingKey,
-				InputOctets:  update.Usage.BytesTx, // transmit == input
-				OutputOctets: update.Usage.BytesRx, // receive == output
-				TotalOctets:  update.Usage.BytesTx + update.Usage.BytesRx,
-				Type:         gy.UsedCreditsType(update.Usage.Type),
-			}},
-			RatType: gy.GetRATType(update.GetRatType()),
-			TgppCtx: update.GetTgppCtx(),
-		})
+		requests = append(requests, (&gy.CreditControlRequest{}).FromCreditUsageUpdate(update))
 	}
 	return requests
 }
@@ -374,20 +357,21 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 		usedCredits = append(usedCredits, (&gy.UsedCredits{}).FromCreditUsage(usage))
 	}
 	return &gy.CreditControlRequest{
-		SessionID:     termination.SessionId,
-		IMSI:          credit_control.RemoveIMSIPrefix(termination.Sid),
-		Apn:           termination.Apn,
-		RequestNumber: termination.RequestNumber,
-		Credits:       usedCredits,
-		UeIPV4:        termination.UeIpv4,
-		Msisdn:        termination.Msisdn,
-		SpgwIPV4:      termination.SpgwIpv4,
-		Imei:          termination.Imei,
-		PlmnID:        termination.PlmnId,
-		UserLocation:  termination.UserLocation,
-		Type:          credit_control.CRTTerminate,
-		RatType:       gy.GetRATType(termination.GetRatType()),
-		TgppCtx:       termination.GetTgppCtx(),
+		SessionID:               termination.SessionId,
+		IMSI:                    credit_control.RemoveIMSIPrefix(termination.Sid),
+		Apn:                     termination.Apn,
+		RequestNumber:           termination.RequestNumber,
+		Credits:                 usedCredits,
+		UeIPV4:                  termination.UeIpv4,
+		Msisdn:                  termination.Msisdn,
+		SpgwIPV4:                termination.SpgwIpv4,
+		Imei:                    termination.Imei,
+		PlmnID:                  termination.PlmnId,
+		UserLocation:            termination.UserLocation,
+		Type:                    credit_control.CRTTerminate,
+		RatType:                 gy.GetRATType(termination.GetRatType()),
+		TgppCtx:                 termination.GetTgppCtx(),
+		ChargingCharacteristics: termination.ChargingCharacteristics,
 	}
 }
 

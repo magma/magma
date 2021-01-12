@@ -24,26 +24,23 @@ namespace sctpd {
 class SctpdEventHandler : public SctpEventHandler {
  public:
   // Construct SctpdEventHandler that communicates to MME over client
-  explicit SctpdEventHandler(SctpdUplinkClient &client);
+  explicit SctpdEventHandler(SctpdUplinkClient& client);
 
   // Relay new assocation to MME over GRPC
   void HandleNewAssoc(
-    uint32_t assoc_id,
-    uint32_t instreams,
-    uint32_t outstreams) override;
+      uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
+      std::string& ran_cp_ipaddr) override;
 
   // Relay close assocation to MME over GRPC
   void HandleCloseAssoc(uint32_t assoc_id, bool reset) override;
 
   // Relay new message to MME over GRPC
   void HandleRecv(
-    uint32_t assoc_id,
-    uint32_t stream,
-    const std::string &payload) override;
+      uint32_t assoc_id, uint32_t stream, const std::string& payload) override;
 
  private:
-  SctpdUplinkClient &_client;
+  SctpdUplinkClient& _client;
 };
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

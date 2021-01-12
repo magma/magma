@@ -29,10 +29,11 @@ import (
 )
 
 type Test struct {
-	Method  string
-	URL     string
-	Payload encoding.BinaryMarshaler
-	Handler echo.HandlerFunc
+	Method           string
+	URL              string
+	Payload          encoding.BinaryMarshaler
+	MalformedPayload bool
+	Handler          echo.HandlerFunc
 
 	ParamNames  []string
 	ParamValues []string
@@ -40,11 +41,12 @@ type Test struct {
 	ExpectedStatus int
 	ExpectedResult encoding.BinaryMarshaler
 
-	ExpectedError string
+	ExpectedError          string
+	ExpectedErrorSubstring string
 }
 
-// RunUnitTest runs a test case using the given Echo instance. This function
-// does not start an obsidian server..
+// RunUnitTest runs a test case using the given Echo instance.
+// Does not start an obsidian server.
 func RunUnitTest(t *testing.T, e *echo.Echo, test Test) {
 	var req *http.Request
 	if test.Payload != nil {
@@ -52,35 +54,44 @@ func RunUnitTest(t *testing.T, e *echo.Echo, test Test) {
 		if !assert.NoError(t, err) {
 			return
 		}
+		if test.MalformedPayload {
+			payloadBytes = append([]byte{'x'}, payloadBytes...)
+		}
 		req = httptest.NewRequest(test.Method, test.URL, bytes.NewReader(payloadBytes))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	} else {
 		req = httptest.NewRequest(test.Method, test.URL, bytes.NewReader([]byte{}))
 	}
 
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
+	recorder := httptest.NewRecorder()
+	c := e.NewContext(req, recorder)
 	c.SetParamNames(test.ParamNames...)
 	c.SetParamValues(test.ParamValues...)
-	err := test.Handler(c)
-	if err != nil {
-		// in prod CollectStats middleware does this
-		c.Error(err)
+	handlerErr := test.Handler(c)
+	if handlerErr != nil {
+		// In prod, this is handled by CollectStats middleware
+		c.Error(handlerErr)
 	}
-	assert.Equal(t, test.ExpectedStatus, rec.Code)
+	assert.Equal(t, test.ExpectedStatus, recorder.Code)
 
 	if test.ExpectedError != "" {
-		if httpErr, ok := err.(*echo.HTTPError); ok {
+		if httpErr, ok := handlerErr.(*echo.HTTPError); ok {
 			assert.Equal(t, test.ExpectedError, httpErr.Message)
 		} else {
-			assert.EqualError(t, err, test.ExpectedError)
+			assert.EqualError(t, handlerErr, test.ExpectedError)
 		}
-	} else if assert.NoError(t, err) {
-		if test.ExpectedResult != nil {
+	} else if test.ExpectedErrorSubstring != "" {
+		if handlerErr == nil {
+			assert.Fail(t, "unexpected nil error", "error was nil but was expecting %s", test.ExpectedErrorSubstring)
+		} else {
+			assert.Contains(t, handlerErr.Error(), test.ExpectedErrorSubstring)
+		}
+	} else {
+		if assert.NoError(t, handlerErr) && test.ExpectedResult != nil {
 			expectedBytes, err := test.ExpectedResult.MarshalBinary()
 			if assert.NoError(t, err) {
-				// convert to string for more readable assert failure messages
-				assert.Equal(t, string(expectedBytes), string(rec.Body.Bytes()))
+				// Convert to string for more readable assert failure messages
+				assert.Equal(t, string(expectedBytes)+"\n", string(recorder.Body.Bytes()))
 			}
 		}
 	}
@@ -95,7 +106,7 @@ func GetHandlerByPathAndMethod(t *testing.T, handlers []obsidian.Handler, path s
 			return handler
 		}
 	}
-	assert.Fail(t, fmt.Sprintf("No handler registered for path %s", path))
+	assert.Fail(t, fmt.Sprintf("no handler registered for path %s", path))
 	return obsidian.Handler{}
 }
 
@@ -109,4 +120,16 @@ type jsonMarshaler struct {
 
 func (j *jsonMarshaler) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(j.v)
+}
+
+func ByteIdentityMarshaler(v []byte) encoding.BinaryMarshaler {
+	return &byteIdentityMarshaler{v: v}
+}
+
+type byteIdentityMarshaler struct {
+	v []byte
+}
+
+func (j *byteIdentityMarshaler) MarshalBinary() (data []byte, err error) {
+	return j.v, nil
 }

@@ -21,17 +21,22 @@ from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     RedirectInformation
 from magma.pipelined.app.gy import GYController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.app.packet_builder import TCPPacketBuilder
+from magma.pipelined.policy_converters import flow_match_to_magma_match, \
+        convert_ipv4_str_to_ip_proto
+from magma.pipelined.tests.app.packet_builder import TCPPacketBuilder, \
+        IPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
     TestSetup
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
+    as FlowQuery
 from magma.pipelined.tests.pipelined_test_util import SnapshotVerifier, \
     create_service_manager, start_ryu_app_thread, fake_controller_setup, \
-    stop_ryu_app_thread
-
+    stop_ryu_app_thread, wait_after_send, FlowTest, SnapshotVerifier, \
+    SubTest, FlowVerifier, PktsToSend
 
 class GYTableTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -86,6 +91,8 @@ class GYTableTest(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'enable_queue_pgm': False,
                 'local_ue_eth_addr': False,
+                'qos': {'enable': False},
+                'dpi': {'enable': False},
                 'clean_restart': True,
             },
             mconfig=PipelineD(
@@ -111,9 +118,9 @@ class GYTableTest(unittest.TestCase):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    def test_subscriber_policy(self):
+    def test_subscriber_redirect_policy(self):
         """
-        Add policy to subscriber, send 4096 packets
+        Add redirect policy to subscriber, send 4096 packets
 
         Assert:
             Packets are properly matched with the 'simple_match' policy
@@ -160,6 +167,63 @@ class GYTableTest(unittest.TestCase):
         with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
 
+    def test_subscriber_restrict_policy(self):
+        """
+        Add restrict policy to subscriber, send 4096 packets
+
+        Assert:
+            Packets are properly matched with the 'restrict_match' policy
+            Send /20 (4096) packets, match /16 (256) packets
+        """
+        fake_controller_setup(self.gy_controller)
+        imsi = 'IMSI010000000088888'
+        sub_ip = '192.168.128.74'
+        flow_list1 = [FlowDescription(
+            match=FlowMatch(
+                ip_dst=convert_ipv4_str_to_ip_proto('8.8.8.0/24'),
+                direction=FlowMatch.UPLINK),
+            action=FlowDescription.PERMIT)
+        ]
+        policies = [
+            PolicyRule(id='restrict_match', priority=2, flow_list=flow_list1)
+        ]
+        pkts_matched = 256
+        pkts_sent = 4096
+
+        self._static_rule_dict[policies[0].id] = policies[0]
+
+        # ============================ Subscriber ============================
+        sub_context = RyuDirectSubscriberContext(
+            imsi, sub_ip, self.gy_controller, self._tbl_num
+        ).add_static_rule(policies[0].id)
+        isolator = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
+                                     .build_requests(),
+            self.testing_controller
+        )
+        pkt_sender = ScapyPacketInjector(self.IFACE)
+        packet = IPPacketBuilder()\
+            .set_ip_layer('8.8.8.8', sub_ip)\
+            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
+            .build()
+        flow_query = FlowQuery(
+            self._tbl_num, self.testing_controller,
+            match=flow_match_to_magma_match(flow_list1[0].match)
+        )
+
+        # =========================== Verification ===========================
+        # Verify aggregate table stats, subscriber 1 'simple_match' pkt count
+        flow_verifier = FlowVerifier([
+            FlowTest(FlowQuery(self._tbl_num, self.testing_controller),
+                     pkts_sent),
+            FlowTest(flow_query, pkts_matched)
+        ], lambda: wait_after_send(self.testing_controller))
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager,
+                                             include_stats=False)
+
+        with isolator, sub_context, flow_verifier, snapshot_verifier:
+            pkt_sender.send(packet)
 
 if __name__ == "__main__":
     unittest.main()

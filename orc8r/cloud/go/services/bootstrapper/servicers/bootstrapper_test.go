@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -30,14 +31,13 @@ import (
 	"magma/gateway/config"
 	bootstrap_client "magma/gateway/services/bootstrapper/service"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/test_utils"
@@ -245,11 +245,18 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	mdc.BootstrapConfig.ChallengeKey = dir + "/gw_challenge.key"
 	config.OverwriteMagmadConfigs(mdc)
 
+	// Create tmp file for holding snowflake info.
+	// File name needs to be "snowflake".
+	tmpDir, err := ioutil.TempDir("", "magma_tmp_test_dir")
+	assert.NoError(t, err)
+	defer os.Remove(tmpDir)
+	snowflakePath := filepath.Join(tmpDir, "snowflake")
+
 	b := bootstrap_client.NewLocalBootstrapper(completeChan)
-	err = b.Initialize()
+	err = b.Initialize(snowflakePath)
 	assert.NoError(t, err)
 
-	uuid, err := snowflake.Get()
+	uuid, err := snowflake.Get(snowflakePath)
 	assert.NoError(t, err)
 	gwHwId := uuid.String()
 
@@ -387,13 +394,9 @@ func testNegative(
 func TestBootstrapperServer(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	testNetworkID := "bootstrapper_test_network"
-	err := configurator.CreateNetwork(configurator.Network{
-		ID:   testNetworkID,
-		Name: "Test Network Name",
-	})
+	err := configurator.CreateNetwork(configurator.Network{ID: testNetworkID, Name: "Test Network Name"}, serdes.Network)
 	assert.NoError(t, err)
 	exists, err := configurator.DoesNetworkExist(testNetworkID)
 	assert.True(t, exists)

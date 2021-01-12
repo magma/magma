@@ -14,8 +14,11 @@
  * @format
  */
 import type {
+  apn_resources,
+  challenge_key,
   enodeb_serials,
   gateway_device,
+  gateway_dns_configs,
   gateway_epc_configs,
   gateway_logging_configs,
   gateway_ran_configs,
@@ -24,26 +27,44 @@ import type {
   package_type,
 } from '@fbcnms/magma-api';
 
+import Accordion from '@material-ui/core/Accordion';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import AddIcon from '@material-ui/icons/Add';
+import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import DeleteIcon from '@material-ui/icons/Delete';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
+import EnodebContext from '../../components/context/EnodebContext';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import GatewayContext from '../../components/context/GatewayContext';
-import Link from '@material-ui/core/Link';
+import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
+import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
+import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {AltFormField} from '../../components/FormField';
+import {DynamicServices} from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -51,13 +72,18 @@ const GATEWAY_TITLE = 'Gateway';
 const RAN_TITLE = 'Ran';
 const AGGREGATION_TITLE = 'Aggregation';
 const EPC_TITLE = 'Epc';
+const APN_RESOURCES_TITLE = 'APN Resources';
 const DEFAULT_GATEWAY_CONFIG = {
+  apn_resources: {},
   cellular: {
     epc: {
       ip_block: '192.168.128.0/24',
       nat_enabled: true,
       dns_primary: '',
       dns_secondary: '',
+      sgi_management_iface_gw: '',
+      sgi_management_iface_static_ip: '',
+      sgi_management_iface_vlan: '',
     },
     ran: {
       pci: 260,
@@ -69,7 +95,8 @@ const DEFAULT_GATEWAY_CONFIG = {
   device: {
     hardware_id: '',
     key: {
-      key_type: 'ECHO',
+      key: '',
+      key_type: 'SOFTWARE_ECDSA_SHA256',
     },
   },
   id: '',
@@ -78,7 +105,7 @@ const DEFAULT_GATEWAY_CONFIG = {
     autoupgrade_poll_interval: 60,
     checkin_interval: 60,
     checkin_timeout: 30,
-    dynamic_services: [],
+    dynamic_services: [DynamicServices.EVENTD, DynamicServices.TD_AGENT_BIT],
   },
   name: '',
   status: {
@@ -111,6 +138,21 @@ const useStyles = makeStyles(_ => ({
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
   },
+  selectMenu: {
+    maxHeight: '200px',
+  },
+  placeholder: {
+    opacity: 0.5,
+  },
+  input: {
+    display: 'inline-flex',
+    margin: '5px 0',
+    width: '50%',
+    fullWidth: true,
+  },
+  accordionList: {
+    width: '100%',
+  },
 }));
 
 const EditTableType = {
@@ -118,6 +160,7 @@ const EditTableType = {
   aggregation: 1,
   epc: 2,
   ran: 3,
+  apnResources: 4,
 };
 
 type EditProps = {
@@ -156,13 +199,13 @@ export default function AddEditGatewayButton(props: ButtonProps) {
         editProps={props.editProps}
       />
       {props.isLink ? (
-        <Link
+        <Button
           data-testid={(props.editProps?.editTable ?? '') + 'EditButton'}
           component="button"
           variant="text"
           onClick={handleClickOpen}>
           {props.title}
-        </Link>
+        </Button>
       ) : (
         <Button
           variant="text"
@@ -192,7 +235,7 @@ function GatewayEditDialog(props: DialogProps) {
   };
 
   return (
-    <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">
+    <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="md">
       <DialogTitle
         label={editProps ? 'Edit Gateway' : 'Add New Gateway'}
         onClose={onClose}
@@ -221,11 +264,17 @@ function GatewayEditDialog(props: DialogProps) {
           disabled={editProps ? false : true}
           label={RAN_TITLE}
         />
+        <Tab
+          key="apnResources"
+          data-testid="apnResourcesTab"
+          disabled={editProps ? false : true}
+          label={APN_RESOURCES_TITLE}
+        />
         ;
       </Tabs>
       {tabPos === 0 && (
         <ConfigEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
+          isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
@@ -241,8 +290,8 @@ function GatewayEditDialog(props: DialogProps) {
         />
       )}
       {tabPos === 1 && (
-        <AggregationEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Add Gateway'}
+        <DynamicServicesEdit
+          isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
@@ -259,7 +308,7 @@ function GatewayEditDialog(props: DialogProps) {
       )}
       {tabPos === 2 && (
         <EPCEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
+          isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
@@ -276,7 +325,24 @@ function GatewayEditDialog(props: DialogProps) {
       )}
       {tabPos === 3 && (
         <RanEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Close'}
+          isAdd={!editProps}
+          gateway={
+            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
+          }
+          onClose={onClose}
+          onSave={(gateway: lte_gateway) => {
+            setGateway(gateway);
+            if (editProps) {
+              onClose();
+            } else {
+              setTabPos(tabPos + 1);
+            }
+          }}
+        />
+      )}
+      {tabPos === 4 && (
+        <ApnResourcesEdit
+          isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
@@ -295,7 +361,7 @@ function GatewayEditDialog(props: DialogProps) {
 }
 
 type Props = {
-  saveButtonTitle: string,
+  isAdd: boolean,
   gateway?: lte_gateway,
   onClose: () => void,
   onSave: lte_gateway => void,
@@ -319,6 +385,10 @@ export function ConfigEdit(props: Props) {
     props.gateway?.device || DEFAULT_GATEWAY_CONFIG.device,
   );
 
+  const [challengeKey, setChallengeKey] = useState<challenge_key>(
+    props.gateway?.device.key || DEFAULT_GATEWAY_CONFIG.device.key,
+  );
+
   const [gatewayVersion, setGatewayVersion] = useState<VersionType>(
     props.gateway?.status?.platform_info?.packages?.[0].version ||
       DEFAULT_GATEWAY_CONFIG.status?.platform_info?.packages[0]?.version,
@@ -336,8 +406,16 @@ export function ConfigEdit(props: Props) {
             packages: [{version: gatewayVersion}],
           },
         },
-        device: gatewayDevice,
+        device: {...gatewayDevice, key: challengeKey},
       };
+      if (props.isAdd) {
+        // check if it is not a modify during add i.e we aren't switching tabs back
+        // during add and modifying the information other than the serial number
+        if (gateway.id in ctx.state && gateway.id !== props.gateway?.id) {
+          setError(`Gateway ${gateway.id} already exists`);
+          return;
+        }
+      }
       await ctx.setState(gateway.id, gatewayInfos);
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
@@ -353,12 +431,15 @@ export function ConfigEdit(props: Props) {
         <List>
           {error !== '' && (
             <AltFormField label={''}>
-              <FormLabel error>{error}</FormLabel>
+              <FormLabel data-testid="configEditError" error>
+                {error}
+              </FormLabel>
             </AltFormField>
           )}
           <AltFormField label={'Gateway Name'}>
             <OutlinedInput
               data-testid="name"
+              placeholder="Enter Name"
               fullWidth={true}
               value={gateway.name}
               onChange={({target}) => {
@@ -369,6 +450,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Gateway ID'}>
             <OutlinedInput
               data-testid="id"
+              placeholder="Enter ID"
               fullWidth={true}
               value={gateway.id}
               readOnly={props.gateway ? true : false}
@@ -380,6 +462,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Hardware UUID'}>
             <OutlinedInput
               data-testid="hardwareId"
+              placeholder="Eg. 4dfe212f-df33-4cd2-910c-41892a042fee"
               fullWidth={true}
               value={gatewayDevice.hardware_id}
               onChange={({target}) =>
@@ -393,6 +476,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Version'}>
             <OutlinedInput
               data-testid="version"
+              placeholder="Enter Version"
               fullWidth={true}
               value={gatewayVersion}
               readOnly={false}
@@ -402,10 +486,22 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Gateway Description'}>
             <OutlinedInput
               data-testid="description"
+              placeholder="Enter Description"
               fullWidth={true}
               value={gateway.description}
               onChange={({target}) =>
                 setGateway({...gateway, description: target.value})
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'Challenge Key'}>
+            <OutlinedInput
+              data-testid="challengeKey"
+              placeholder="A base64 bytestring of the key in DER format"
+              fullWidth={true}
+              value={challengeKey.key}
+              onChange={({target}) =>
+                setChallengeKey({...challengeKey, key: target.value})
               }
             />
           </AltFormField>
@@ -416,14 +512,14 @@ export function ConfigEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>
   );
 }
 
-export function AggregationEdit(props: Props) {
+export function DynamicServicesEdit(props: Props) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
@@ -431,27 +527,24 @@ export function AggregationEdit(props: Props) {
 
   const gatewayId: string =
     props.gateway?.id || nullthrows(match.params.gatewayId);
-  const [
-    aggregationConfig,
-    setAggregationConfig,
-  ] = useState<magmad_gateway_configs>(
+  const [config, setConfig] = useState<magmad_gateway_configs>(
     props.gateway?.magmad || DEFAULT_GATEWAY_CONFIG.magmad,
   );
 
-  const handleAggregationChange = (val: boolean, key: string) => {
-    const dynamicServices = [...(aggregationConfig.dynamic_services || [])];
+  const handleChange = (val: boolean, key: string) => {
+    const dynamicServices = [...(config.dynamic_services || [])];
     if (val) {
       dynamicServices.push(key);
-      setAggregationConfig({
-        ...aggregationConfig,
+      setConfig({
+        ...config,
         ['dynamic_services']: dynamicServices,
       });
     } else {
       const index = dynamicServices.indexOf(key);
       if (index !== -1) {
         dynamicServices.splice(index, 1);
-        setAggregationConfig({
-          ...aggregationConfig,
+        setConfig({
+          ...config,
           ['dynamic_services']: dynamicServices,
         });
       }
@@ -460,7 +553,7 @@ export function AggregationEdit(props: Props) {
 
   const onSave = async () => {
     try {
-      if (aggregationConfig.dynamic_services?.includes('td-agent-bit')) {
+      if (config.dynamic_services?.includes(DynamicServices.TD_AGENT_BIT)) {
         const logging: gateway_logging_configs = {
           aggregation: {
             target_files_by_tag: {
@@ -469,18 +562,18 @@ export function AggregationEdit(props: Props) {
           },
           log_level: 'DEBUG',
         };
-        aggregationConfig.logging = logging;
+        config.logging = logging;
       } else {
-        if (aggregationConfig.logging) {
-          delete aggregationConfig.logging;
+        if (config.logging) {
+          delete config.logging;
         }
       }
 
       const gateway = {
         ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
-        magmad: aggregationConfig,
+        magmad: config,
       };
-      await ctx.updateGateway({gatewayId, magmadConfigs: aggregationConfig});
+      await ctx.updateGateway({gatewayId, magmadConfigs: config});
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
       });
@@ -492,7 +585,7 @@ export function AggregationEdit(props: Props) {
 
   return (
     <>
-      <DialogContent data-testid="aggregation">
+      <DialogContent data-testid="dynamicServicesEdit">
         <List>
           {error !== '' && (
             <AltFormField label={''}>
@@ -502,18 +595,30 @@ export function AggregationEdit(props: Props) {
           <AltFormField label={'Event Aggregation'}>
             <Switch
               onChange={({target}) =>
-                handleAggregationChange(target.checked, 'eventd')
+                handleChange(target.checked, DynamicServices.EVENTD)
               }
-              checked={aggregationConfig.dynamic_services?.includes('eventd')}
+              checked={config.dynamic_services?.includes(
+                DynamicServices.EVENTD,
+              )}
             />
           </AltFormField>
           <AltFormField label={'Log Aggregation'}>
             <Switch
               onChange={({target}) =>
-                handleAggregationChange(target.checked, 'td-agent-bit')
+                handleChange(target.checked, DynamicServices.TD_AGENT_BIT)
               }
-              checked={aggregationConfig.dynamic_services?.includes(
-                'td-agent-bit',
+              checked={config.dynamic_services?.includes(
+                DynamicServices.TD_AGENT_BIT,
+              )}
+            />
+          </AltFormField>
+          <AltFormField label={'CPE Monitoring'}>
+            <Switch
+              onChange={({target}) =>
+                handleChange(target.checked, DynamicServices.MONITORD)
+              }
+              checked={config.dynamic_services?.includes(
+                DynamicServices.MONITORD,
               )}
             />
           </AltFormField>
@@ -524,7 +629,7 @@ export function AggregationEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>
@@ -543,6 +648,13 @@ export function EPCEdit(props: Props) {
   const [EPCConfig, setEPCConfig] = useState<gateway_epc_configs>(
     props.gateway?.cellular.epc || DEFAULT_GATEWAY_CONFIG.cellular.epc,
   );
+
+  useEffect(() => {
+    setEPCConfig(
+      props.gateway?.cellular.epc || DEFAULT_GATEWAY_CONFIG.cellular.epc,
+    );
+    setError('');
+  }, [props.gateway?.cellular.epc]);
 
   const onSave = async () => {
     try {
@@ -563,7 +675,6 @@ export function EPCEdit(props: Props) {
       setError(e.response?.data?.message ?? e.message);
     }
   };
-
   return (
     <>
       <DialogContent data-testid="epcEdit">
@@ -584,6 +695,7 @@ export function EPCEdit(props: Props) {
           <AltFormField label={'IP Block'}>
             <OutlinedInput
               data-testid="ipBlock"
+              placeholder="192.168.128.0/24"
               type="string"
               fullWidth={true}
               value={EPCConfig.ip_block}
@@ -593,9 +705,10 @@ export function EPCEdit(props: Props) {
           <AltFormField label={'DNS Primary'}>
             <OutlinedInput
               data-testid="dnsPrimary"
+              placeholder="8.8.8.8"
               type="string"
               fullWidth={true}
-              value={EPCConfig.dns_primary}
+              value={EPCConfig.dns_primary ?? ''}
               onChange={({target}) =>
                 handleEPCChange('dns_primary', target.value)
               }
@@ -604,14 +717,56 @@ export function EPCEdit(props: Props) {
           <AltFormField label={'DNS Secondary'}>
             <OutlinedInput
               data-testid="dnsSecondary"
+              placeholder="8.8.4.4"
               type="string"
               fullWidth={true}
-              value={EPCConfig.dns_secondary}
+              value={EPCConfig.dns_secondary ?? ''}
               onChange={({target}) =>
                 handleEPCChange('dns_secondary', target.value)
               }
             />
           </AltFormField>
+          <AltFormField label={'SGi network Gateway IP address'}>
+            <OutlinedInput
+              data-testid="gwSgiIP"
+              placeholder="1.1.1.1"
+              required={
+                EPCConfig.sgi_management_iface_static_ip ?? false ? true : false
+              }
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.sgi_management_iface_gw ?? ''}
+              onChange={({target}) =>
+                handleEPCChange('sgi_management_iface_gw', target.value)
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'SGi management interface IP address'}>
+            <OutlinedInput
+              data-testid="sgiStaticIP"
+              placeholder="1.1.1.1/24"
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.sgi_management_iface_static_ip ?? ''}
+              onChange={({target}) =>
+                handleEPCChange('sgi_management_iface_static_ip', target.value)
+              }
+            />
+          </AltFormField>
+          {!EPCConfig.nat_enabled && (
+            <AltFormField label={'SGi management network VLAN id'}>
+              <OutlinedInput
+                data-testid="sgiVlanID"
+                placeholder="100"
+                type="string"
+                fullWidth={true}
+                value={EPCConfig.sgi_management_iface_vlan ?? ''}
+                onChange={({target}) =>
+                  handleEPCChange('sgi_management_iface_vlan', target.value)
+                }
+              />
+            </AltFormField>
+          )}
         </List>
       </DialogContent>
       <DialogActions>
@@ -619,30 +774,41 @@ export function EPCEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>
   );
 }
 
+const DEFAULT_DNS_CONFIG = {
+  enable_caching: false,
+  local_ttl: 0,
+  records: [],
+};
+
 export function RanEdit(props: Props) {
+  const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayContext);
-
-  const handleRanChange = (key: string, val) => {
-    setRanConfig({...ranConfig, [key]: val});
-  };
-
+  const enbsCtx = useContext(EnodebContext);
   const [ranConfig, setRanConfig] = useState<gateway_ran_configs>(
     props.gateway?.cellular.ran || DEFAULT_GATEWAY_CONFIG.cellular.ran,
   );
-
+  const [dnsConfig, setDnsConfig] = useState<gateway_dns_configs>(
+    props.gateway?.cellular.dns ?? {},
+  );
   const [connectedEnodebs, setConnectedEnodebs] = useState<enodeb_serials>(
     props.gateway?.connected_enodeb_serials ||
       DEFAULT_GATEWAY_CONFIG.connected_enodeb_serials,
   );
+  const handleRanChange = (key: string, val) => {
+    setRanConfig({...ranConfig, [key]: val});
+  };
+  const handleDnsChange = (key: string, val) => {
+    setDnsConfig({...dnsConfig, [key]: val});
+  };
 
   const onSave = async () => {
     try {
@@ -658,6 +824,9 @@ export function RanEdit(props: Props) {
         gatewayId: gateway.id,
         enbs: connectedEnodebs,
         ranConfigs: ranConfig,
+        dnsConfig: Object.keys(dnsConfig).length
+          ? {...DEFAULT_DNS_CONFIG, ...dnsConfig}
+          : undefined,
       });
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
@@ -679,7 +848,9 @@ export function RanEdit(props: Props) {
           )}
           <AltFormField label={'PCI'}>
             <OutlinedInput
+              disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
               data-testid="pci"
+              placeholder="Enter PCI"
               type="number"
               fullWidth={true}
               value={ranConfig.pci}
@@ -688,27 +859,61 @@ export function RanEdit(props: Props) {
               }
             />
           </AltFormField>
-          <AltFormField label={'Connected eNodeBs'}>
-            <OutlinedInput
-              data-testid="enbs"
-              type="string"
+          <AltFormField label={'Registered eNodeBs'}>
+            <Select
+              multiple
+              variant={'outlined'}
               fullWidth={true}
-              value={connectedEnodebs.toString()}
+              displayEmpty={true}
+              value={connectedEnodebs}
               onChange={({target}) => {
-                setConnectedEnodebs(
-                  target.value !== ''
-                    ? target.value.replace(' ', '').split(',')
-                    : [],
-                );
+                setConnectedEnodebs(Array.from(target.value));
               }}
-            />
+              data-testid="networkType"
+              MenuProps={{classes: {paper: classes.selectMenu}}}
+              renderValue={selected => {
+                if (!selected.length) {
+                  return 'Select eNodeBs';
+                }
+                return selected.join(', ');
+              }}
+              input={
+                <OutlinedInput
+                  disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
+                  className={connectedEnodebs.length ? '' : classes.placeholder}
+                />
+              }>
+              {enbsCtx?.state &&
+                Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
+                  <MenuItem key={enbSerial} value={enbSerial}>
+                    <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
+                    <ListItemText
+                      primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
+                      secondary={enbSerial}
+                    />
+                  </MenuItem>
+                ))}
+            </Select>
           </AltFormField>
           <AltFormField label={'Transmit Enabled'}>
             <Switch
+              disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
               onChange={() =>
                 handleRanChange('transmit_enabled', !ranConfig.transmit_enabled)
               }
               checked={ranConfig.transmit_enabled}
+            />
+          </AltFormField>
+          <AltFormField label={'eNodeB DHCP Service'}>
+            <Switch
+              data-testid="enbDhcpService"
+              onChange={() =>
+                handleDnsChange(
+                  'dhcp_server_enabled',
+                  !(dnsConfig?.dhcp_server_enabled ?? true),
+                )
+              }
+              checked={dnsConfig?.dhcp_server_enabled ?? true}
             />
           </AltFormField>
         </List>
@@ -718,7 +923,171 @@ export function RanEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Close' : 'Save'}
+        </Button>
+      </DialogActions>
+    </>
+  );
+}
+
+export function ApnResourcesEdit(props: Props) {
+  const classes = useStyles();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [error, setError] = useState('');
+  const ctx = useContext(GatewayContext);
+  const apnCtx = useContext(ApnContext);
+  const lteCtx = useContext(LteNetworkContext);
+  const apnResources: apn_resources =
+    props.gateway?.apn_resources || DEFAULT_GATEWAY_CONFIG.apn_resources;
+  const [apnResourcesRows, setApnResourcesRows] = useState(
+    Object.keys(apnResources).map(apn => apnResources[apn]),
+  );
+
+  const handleApnResourcesChange = (key: string, val, index: number) => {
+    const rows = apnResourcesRows;
+    rows[index][key] = val;
+    setApnResourcesRows([...rows]);
+  };
+  const deleteApn = deletedApn =>
+    setApnResourcesRows([
+      ...apnResourcesRows.filter(apn => apn !== deletedApn),
+    ]);
+
+  const addApnResource = () => {
+    setApnResourcesRows([
+      ...apnResourcesRows,
+      {apn_name: '', id: '', vlan_id: null},
+    ]);
+  };
+
+  const onSave = async () => {
+    try {
+      const gatewayApnResources = {};
+      apnResourcesRows.forEach(
+        apn => (gatewayApnResources[apn.apn_name] = apn),
+      );
+      const gateway = {
+        ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
+        apn_resources: gatewayApnResources,
+      };
+      await ctx.setState(gateway.id, gateway);
+      enqueueSnackbar('Gateway saved successfully', {
+        variant: 'success',
+      });
+      props.onSave(gateway);
+    } catch (e) {
+      setError(e.response?.data?.message ?? e.message);
+    }
+  };
+
+  return (
+    <>
+      <DialogContent data-testid="ranEdit">
+        <List>
+          {error !== '' && (
+            <AltFormField label={''}>
+              <FormLabel error>{error}</FormLabel>
+            </AltFormField>
+          )}
+          <Button
+            onClick={addApnResource}
+            disabled={
+              !lteCtx.state.cellular.epc.mobility
+                ?.enable_multi_apn_ip_allocation ?? false
+            }>
+            Add New APN Resource
+            <AddIcon />
+          </Button>
+          {apnResourcesRows.map((apn, index) => (
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <List className={classes.accordionList}>
+                  <ListItem>
+                    <ListItemText
+                      primary={
+                        apn.apn_name || (
+                          <Text
+                            className={
+                              apn.apn_name.length ? '' : classes.placeholder
+                            }>
+                            {'APN'}
+                          </Text>
+                        )
+                      }
+                    />
+                    <ListItemSecondaryAction>
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={event => {
+                          event.stopPropagation();
+                          deleteApn(apn);
+                        }}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                </List>
+              </AccordionSummary>
+              <AccordionDetails>
+                <AltFormField label={'APN name'}>
+                  <FormControl className={classes.input}>
+                    <Select
+                      value={apn.apn_name}
+                      onChange={({target}) => {
+                        const apns = apnResourcesRows;
+                        apns[index].apn_name = target.value;
+                        setApnResourcesRows([...apns]);
+                      }}
+                      input={<OutlinedInput />}>
+                      {(Object.keys(apnCtx.state) || []).map(apn => (
+                        <MenuItem value={apn}>
+                          <ListItemText primary={apn} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </AltFormField>
+                <AltFormField label={'APN Resource ID'}>
+                  <OutlinedInput
+                    className={classes.input}
+                    placeholder="Enter ID"
+                    fullWidth={true}
+                    value={apn.id}
+                    onChange={({target}) => {
+                      const apns = apnResourcesRows;
+                      apns[index].id = target.value;
+                      setApnResourcesRows([...apns]);
+                    }}
+                  />
+                </AltFormField>
+                <AltFormField label={'VLAN ID'}>
+                  <OutlinedInput
+                    className={classes.input}
+                    type="number"
+                    placeholder="Enter number"
+                    fullWidth={true}
+                    value={apn.vlan_id}
+                    onChange={({target}) => {
+                      handleApnResourcesChange(
+                        'vlan_id',
+                        parseInt(target.value),
+                        index,
+                      );
+                    }}
+                  />
+                </AltFormField>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose} skin="regular">
+          Cancel
+        </Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          {props.isAdd ? 'Save And Close' : 'Save'}
         </Button>
       </DialogActions>
     </>

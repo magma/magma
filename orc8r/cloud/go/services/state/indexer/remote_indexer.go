@@ -17,7 +17,7 @@ import (
 	"context"
 	"strings"
 
-	"magma/orc8r/cloud/go/services/state/protos"
+	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
@@ -60,7 +60,7 @@ func (r *remoteIndexer) PrepareReindex(from, to Version, isFirstReindex bool) er
 	if err != nil {
 		return err
 	}
-	_, err = c.PrepareReindex(context.Background(), &protos.PrepareReindexRequest{
+	_, err = c.PrepareReindex(context.Background(), &state_protos.PrepareReindexRequest{
 		IndexerId:   r.service,
 		FromVersion: uint32(from),
 		ToVersion:   uint32(to),
@@ -74,7 +74,7 @@ func (r *remoteIndexer) CompleteReindex(from, to Version) error {
 	if err != nil {
 		return err
 	}
-	_, err = c.CompleteReindex(context.Background(), &protos.CompleteReindexRequest{
+	_, err = c.CompleteReindex(context.Background(), &state_protos.CompleteReindexRequest{
 		IndexerId:   r.service,
 		FromVersion: uint32(from),
 		ToVersion:   uint32(to),
@@ -82,7 +82,7 @@ func (r *remoteIndexer) CompleteReindex(from, to Version) error {
 	return err
 }
 
-func (r *remoteIndexer) Index(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+func (r *remoteIndexer) Index(networkID string, states state_types.SerializedStatesByID) (state_types.StateErrors, error) {
 	if len(states) == 0 {
 		return nil, nil
 	}
@@ -101,7 +101,7 @@ func (r *remoteIndexer) Index(networkID string, states state_types.StatesByID) (
 	if err != nil {
 		return nil, err
 	}
-	res, err := c.Index(context.Background(), &protos.IndexRequest{
+	res, err := c.Index(context.Background(), &state_protos.IndexRequest{
 		States:       pStates,
 		NetworkId:    networkID,
 		ReporterHwid: reporterHWID,
@@ -113,12 +113,12 @@ func (r *remoteIndexer) Index(networkID string, states state_types.StatesByID) (
 	return state_types.MakeStateErrors(res.StateErrors), nil
 }
 
-func (r *remoteIndexer) getIndexerClient() (protos.IndexerClient, error) {
+func (r *remoteIndexer) getIndexerClient() (state_protos.IndexerClient, error) {
 	conn, err := registry.GetConnection(r.service)
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)
 		glog.Error(initErr)
 		return nil, initErr
 	}
-	return protos.NewIndexerClient(conn), nil
+	return state_protos.NewIndexerClient(conn), nil
 }

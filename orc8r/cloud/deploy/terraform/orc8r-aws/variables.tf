@@ -82,13 +82,37 @@ variable "eks_worker_groups" {
   default = [
     {
       name                 = "wg-1"
-      instance_type        = "t3.large"
+      instance_type        = "t3.xlarge"
       asg_desired_capacity = 3
       asg_min_size         = 1
       asg_max_size         = 3
       autoscaling_enabled  = false
+      kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
     },
   ]
+}
+
+variable "thanos_worker_groups" {
+  # Check the docs at https://github.com/terraform-aws-modules/terraform-aws-eks
+  # for the complete set of valid properties for these objects. This worker group
+  # exists because some thanos components (compact) require significant instance
+  # storage to operate.
+  # Use label key 'compute-type' to specify the node used by nodeSelector
+  # in the helm release
+  description = "Worker group configuration for Thanos. Default consists of 1 group consisting of 1 m5d.xlarge for thanos."
+  type        = any
+  default = [
+    {
+      name                 = "thanos-1"
+      instance_type        = "m5d.xlarge"
+      asg_desired_capacity = 1
+      asg_min_size         = 1
+      asg_max_size         = 1
+      autoscaling_enabled  = false
+      kubelet_extra_args = "--node-labels=compute-type=thanos"
+    },
+  ]
+
 }
 
 variable "eks_map_roles" {
@@ -341,4 +365,10 @@ variable "elasticsearch_ebs_iops" {
 variable "elasticsearch_domain_tags" {
   description = "Extra tags for the ES domain."
   default     = {}
+}
+
+variable "thanos_enabled" {
+  description = "Enable thanos infrastructure"
+  type = bool
+  default = false
 }

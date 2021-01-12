@@ -32,6 +32,7 @@ class ServiceInfo(object):
     SERVICE_RESTART_BUFFER_TIME = 30
 
     def __init__(self, service_name):
+        self.continuous_timeouts = 0
         self._service_name = service_name
         self._expected_start_time = time.time()
         self._status = None
@@ -56,6 +57,7 @@ class ServiceInfo(object):
 
     def update(self, start_time, status):
         self._status = status
+        self.continuous_timeouts = 0
         if start_time <= self._expected_start_time:
             # Probably a race in service starts, or magmad restarted
             return
@@ -109,6 +111,15 @@ class ServicePoller(Job):
         for service in stopped_services:
             self._service_info.pop(service)
 
+    def get_service_timeouts(self):
+        ret = {}
+        for service_name, service in self._service_info.items():
+            ret[service_name] = service.continuous_timeouts
+        return ret
+
+    def reset_timeout_counter(self, service):
+        self._service_info[service].continuous_timeouts = 0
+
     @property
     def service_info(self):
         return self._service_info
@@ -130,7 +141,6 @@ class ServicePoller(Job):
             # Check whether service provides service303 interface
             if service in self._config['non_service303_services']:
                 continue
-
             try:
                 chan = ServiceRegistry.get_rpc_channel(
                     service, ServiceRegistry.LOCAL)
@@ -147,6 +157,7 @@ class ServicePoller(Job):
                 info = await grpc_async_wrapper(future, self._loop)
                 self._service_info[service].update(info.start_time_secs,
                                                    info.status)
+                self._service_info[service].continuous_timeouts = 0
             except grpc.RpcError as err:
                 logging.error(
                     "GetServiceInfo Error for %s! [%s] %s",
@@ -154,3 +165,5 @@ class ServicePoller(Job):
                     err.code(),
                     err.details(),
                 )
+                if err.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
+                    self._service_info[service].continuous_timeouts += 1

@@ -15,7 +15,6 @@ package servicers
 
 import (
 	"fmt"
-
 	prometheus_models "github.com/prometheus/client_model/go"
 )
 
@@ -36,17 +35,16 @@ func convertFamilyToGauges(baseFamily *prometheus_models.MetricFamily) []*promet
 	gaugeFamilies := make([]*prometheus_models.MetricFamily, 0)
 	switch *baseFamily.Type {
 	case prometheus_models.MetricType_GAUGE:
-		gaugeFamilies = append(gaugeFamilies, baseFamily)
+		return append(gaugeFamilies, baseFamily)
 	case prometheus_models.MetricType_COUNTER:
-		gaugeFamilies = append(gaugeFamilies, counterToGauge(baseFamily))
+		return append(gaugeFamilies, counterToGauge(baseFamily))
 	case prometheus_models.MetricType_HISTOGRAM:
-		gaugeFamilies = append(gaugeFamilies, histogramToGauges(baseFamily)...)
+		return append(gaugeFamilies, histogramToGauges(baseFamily)...)
 	case prometheus_models.MetricType_SUMMARY:
-		gaugeFamilies = append(gaugeFamilies, summaryToGauges(baseFamily)...)
-	case prometheus_models.MetricType_UNTYPED:
-		gaugeFamilies = append(gaugeFamilies, untypedToGauge(baseFamily))
+		return append(gaugeFamilies, summaryToGauges(baseFamily)...)
+	default: // Untyped
+		return append(gaugeFamilies, untypedToGauge(baseFamily))
 	}
-	return gaugeFamilies
 }
 
 // counterToGauge takes a counter and converts it to a gauge with the
@@ -111,10 +109,16 @@ func histogramToGauges(family *prometheus_models.MetricFamily) []*prometheus_mod
 		}
 		countFamily.Metric = append(countFamily.Metric, &countMetric)
 
+		baseLabels := make([]*prometheus_models.LabelPair, len(metric.GetLabel()))
+		for idx, l := range metric.GetLabel() {
+			copyL := *l
+			baseLabels[idx] = &copyL
+		}
+
 		for _, bucket := range metric.Histogram.Bucket {
 			bucketValue := float64(*bucket.CumulativeCount)
 			bucketMetric := prometheus_models.Metric{
-				Label: append(metric.Label, &prometheus_models.LabelPair{
+				Label: append(baseLabels, &prometheus_models.LabelPair{
 					Name:  makeStringPointer(histogramBucketLabelName),
 					Value: makeStringPointer(fmt.Sprintf("%g", bucket.GetUpperBound())),
 				}),
@@ -132,15 +136,15 @@ func histogramToGauges(family *prometheus_models.MetricFamily) []*prometheus_mod
 // sum, and count each
 func summaryToGauges(family *prometheus_models.MetricFamily) []*prometheus_models.MetricFamily {
 	baseName := family.GetName()
-	quantFamily := prometheus_models.MetricFamily{
+	quantFamily := &prometheus_models.MetricFamily{
 		Name: makeStringPointer(baseName),
 		Type: &gaugeType,
 	}
-	sumFamily := prometheus_models.MetricFamily{
+	sumFamily := &prometheus_models.MetricFamily{
 		Name: makeStringPointer(baseName + sumPostfix),
 		Type: &gaugeType,
 	}
-	countFamily := prometheus_models.MetricFamily{
+	countFamily := &prometheus_models.MetricFamily{
 		Name: makeStringPointer(baseName + countPostfix),
 		Type: &gaugeType,
 	}
@@ -167,21 +171,27 @@ func summaryToGauges(family *prometheus_models.MetricFamily) []*prometheus_model
 		}
 		countFamily.Metric = append(countFamily.Metric, &countMetric)
 
-		for _, quant := range metric.Summary.Quantile {
-			quantValue := *quant.Value
-			quantMetric := prometheus_models.Metric{
-				Label: append(metric.Label, &prometheus_models.LabelPair{
+		baseLabels := make([]*prometheus_models.LabelPair, len(metric.GetLabel()))
+		for idx, l := range metric.GetLabel() {
+			copyL := *l
+			baseLabels[idx] = &copyL
+		}
+
+		for _, quant := range metric.Summary.GetQuantile() {
+			quantValue := quant.GetValue()
+			quantMetric := &prometheus_models.Metric{
+				Label: append(baseLabels, &prometheus_models.LabelPair{
 					Name:  makeStringPointer(summaryQuantileLabelName),
-					Value: makeStringPointer(fmt.Sprintf("%g", *quant.Quantile)),
+					Value: makeStringPointer(fmt.Sprintf("%g", quant.GetQuantile())),
 				}),
 				Gauge: &prometheus_models.Gauge{
 					Value: &quantValue,
 				},
 			}
-			quantFamily.Metric = append(quantFamily.Metric, &quantMetric)
+			quantFamily.Metric = append(quantFamily.Metric, quantMetric)
 		}
 	}
-	return []*prometheus_models.MetricFamily{&quantFamily, &sumFamily, &countFamily}
+	return []*prometheus_models.MetricFamily{quantFamily, sumFamily, countFamily}
 }
 
 // untypedToGauge takes an untyped metric and converts it to a gauge with the

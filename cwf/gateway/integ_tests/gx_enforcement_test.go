@@ -29,14 +29,13 @@ import (
 	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (usage-enforcement-static-pass-all), 250KB of
+//   respond with a rule install (usage-enforcement-static-pass-all), 1MB of
 //   quota.
 //   Generate traffic and assert the CCR-I is received.
 // - Set an expectation for a CCR-U with >80% of data usage to be sent up to
@@ -86,26 +85,23 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "usage-enforcement-static-pass-all"), time.Minute, 2*time.Second)
+	fmt.Println("CCR-I exchanged installed usage-enforcement-static-pass-all")
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("900K")}}
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "900K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
-	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("200K")}}
+	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "200K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["usage-enforcement-static-pass-all"]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
-	if record != nil {
-		// We should not be seeing > 1024k data here
-		assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(math.Round(1.2*MegaBytes+Buffer)), fmt.Sprintf("policy usage: %v", record))
-	}
+	tr.AssertPolicyUsage(imsi, "usage-enforcement-static-pass-all", 1, uint64(math.Round(1.2*MegaBytes+Buffer)))
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
@@ -118,11 +114,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	tr.WaitForEnforcementStatsToSync()
-
-	// Wait for CCR-T to propagate up
-	time.Sleep(3 * time.Second)
-
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()
 }
@@ -162,7 +154,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	err = ruleManager.AddBaseNameMappingToDB("base-1", []string{"static-pass-all-3"})
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
+	usageMonitorInfo := getUsageInformation("mkey1", 2*MegaBytes)
 
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
@@ -176,31 +168,29 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-1", "static-pass-all-3"), time.Minute, 2*time.Second)
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
+	// Pass a small amount, but not enough to trigger a CCR-U
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi: imsi,
+		Volume: &wrappers.StringValue{Value: "1M"},
+		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Timeout: 30,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
 	// At this point both static-pass-all-1 & static-pass-all-3 are installed.
 	// Since static-pass-all-1 has higher precedence, it will get hit.
-	tr.WaitForEnforcementStatsToSync()
-
-	// Assert that enforcement_stats rules are properly installed and the right
-	// amount of data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record1 := recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"]
-	if record1 != nil {
-		assert.True(t, record1.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record1.RuleId))
-	}
-	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-1", imsi))
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-1", 1), time.Minute, 2*time.Second)
 
 	// Assert that a CCR-I was sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
 
 	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
-		SetUsageReportDelta(250 * KiloBytes * 0.5).
+		SetUsageReportDelta(1 * MegaBytes).
 		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo).
 		SetStaticRuleInstalls([]string{"static-pass-all-2"}, []string{}).
@@ -212,25 +202,35 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	fmt.Println("Generating traffic again to trigger a CCR/A-U so that 'static-pass-all-1' gets removed")
 	// Generate traffic to trigger the CCR-U so that the rule removal/install happens
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi: imsi,
+		Volume: &wrappers.StringValue{Value: "1M"},
+		Bitrate: &wrappers.StringValue{Value: "20M"},
+		Timeout: 60,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
+
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-1", "static-pass-all-3"), 1*time.Minute, 2*time.Second)
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-2"), 1*time.Minute, 2*time.Second)
 
 	fmt.Println("Generating traffic again to put data through static-pass-all-2")
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi: imsi,
+		Volume: &wrappers.StringValue{Value: "1M"},
+		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Timeout: 30,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-2", 1), time.Minute, 2*time.Second)
 
 	// Assert that we sent back a CCA-Update with RuleRemovals
 	tr.AssertAllGxExpectationsMetNoError()
 
-	recordsBySubID, err = tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"], fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-2", imsi))
-
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -245,7 +245,8 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 // - Sleep for Y seconds and check policy usage again. Assert that
 //   static-pass-all-2 is uninstalled.
 // Note: things might get weird if there are clock skews
-func testGxRuleInstallTime(t *testing.T) {
+func TestGxRuleInstallTime(t *testing.T) {
+	t.Skip()
 	fmt.Println("\nRunning TestGxRuleInstallTime...")
 
 	tr := NewTestRunner(t)
@@ -327,8 +328,7 @@ func testGxRuleInstallTime(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 //TestGxAbortSessionRequest
@@ -363,9 +363,11 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	tr.WaitForPoliciesToSync()
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.WaitForEnforcementStatsToSync()
+
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)][ruleKey])
+	assert.NotEmpty(t, recordsBySubID[prependIMSIPrefix(imsi)][ruleKey])
 
 	asa, err := sendPolicyAbortSession(
 		&fegProtos.AbortSessionRequest{
@@ -381,14 +383,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	// processing disconnect
 	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
-	// check if all rules have been cleaned up
-	checkSessionAborted := func() bool {
-		recordsBySubID, err = tr.GetPolicyUsage()
-		assert.NoError(t, err)
-		return recordsBySubID["IMSI"+imsi][ruleKey] == nil
-	}
-	assert.Eventually(t, checkSessionAborted, 2*time.Minute, 5*time.Second,
-		"request not terminated as expected")
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
@@ -443,20 +438,13 @@ func TestGxRevalidationTime(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
-	tr.WaitForEnforcementStatsToSync()
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "revalidation-time-static-pass-all"),
+		10*time.Second, 2*time.Second)
 
 	fmt.Printf("Waiting %v for revalidation timer expiration\n", timeUntilRevalidation)
 	time.Sleep(timeUntilRevalidation)
-
-	// Assert that enforcement_stats rules are properly installed and no data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["revalidation-time-static-pass-all"]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
-	if record != nil {
-		// We should not be seeing any data here
-		assert.True(t, record.BytesTx == uint64(0), fmt.Sprintf("%s did pass some data", record.RuleId))
-	}
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
@@ -469,9 +457,7 @@ func TestGxRevalidationTime(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	// Wait for termination to go through
-	time.Sleep(3 * time.Second)
-	tr.WaitForEnforcementStatsToSync()
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()

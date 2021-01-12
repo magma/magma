@@ -36,11 +36,11 @@ using grpc::Status;
 namespace magma {
 using namespace feg;
 
-static bool read_mme_relay_enabled(void);
+static bool read_hss_relay_enabled(void);
 
 static bool read_mme_cloud_subscriberdb_enabled(void);
 
-static const bool relay_enabled = read_mme_relay_enabled();
+static const bool hss_relay_enabled = read_hss_relay_enabled();
 
 static const bool cloud_subscriberdb_enabled =
     read_mme_cloud_subscriberdb_enabled();
@@ -53,14 +53,14 @@ static const bool cloud_subscriberdb_enabled =
 // (not changed)
 
 bool get_s6a_relay_enabled(void) {
-  return relay_enabled;
+  return hss_relay_enabled;
 }
 
 bool get_cloud_subscriberdb_enabled(void) {
   return cloud_subscriberdb_enabled;
 }
 
-static bool read_mme_relay_enabled(void) {
+static bool read_hss_relay_enabled(void) {
   magma::mconfig::MME mconfig;
   magma::MConfigLoader loader;
 
@@ -69,7 +69,10 @@ static bool read_mme_relay_enabled(void) {
               << std::endl;
     return false;  // default is - relay disabled
   }
-  return mconfig.relay_enabled();
+  if (mconfig.relay_enabled()) {
+    return true;
+  }
+  return mconfig.hss_relay_enabled();
 }
 
 static bool read_mme_cloud_subscriberdb_enabled(void) {

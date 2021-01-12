@@ -19,6 +19,7 @@ import ActionTable from '../../components/ActionTable';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -81,9 +82,10 @@ export default function Enodeb() {
       <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
           <DateTimeMetricChart
+            unit={'Throughput(mb/s)'}
             title={CHART_TITLE}
             queries={[
-              `sum(pdcp_user_plane_bytes_dl{service="enodebd"} + pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
+              `sum(rate(gtp_port_user_plane_dl_bytes{service="pipelined"}[5m]) + rate(gtp_port_user_plane_ul_bytes{service="pipelined"}[5m]))/1000`,
             ]}
             legendLabels={['mbps']}
           />
@@ -100,8 +102,10 @@ type EnodebRowType = {
   name: string,
   id: string,
   sessionName: string,
+  mmeConnected: string,
   health: string,
   reportedTime: Date,
+  numSubscribers: number,
 };
 
 function EnodebTableRaw(props: WithAlert) {
@@ -113,11 +117,17 @@ function EnodebTableRaw(props: WithAlert) {
   const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
     (serialNum: string) => {
       const enbInf = enbInfo[serialNum];
+      const isEnbManaged = enbInf.enb?.enodeb_config?.config_type === 'MANAGED';
       return {
         name: enbInf.enb.name,
         id: serialNum,
-        sessionName: enbInf.enb_state?.fsm_state ?? 'not available',
-        health: isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
+        numSubscribers: enbInf.enb_state?.ues_connected ?? 0,
+        sessionName: enbInf.enb_state?.fsm_state ?? '-',
+        ipAddress: enbInf.enb_state?.ip_address ?? '-',
+        mmeConnected: enbInf.enb_state?.mme_connected
+          ? 'Connected'
+          : 'Disconnected',
+        health: isEnbManaged ? (isEnodebHealthy(enbInf) ? 'Good' : 'Bad') : '-',
         reportedTime: new Date(enbInf.enb_state.time_reported ?? 0),
       };
     },
@@ -130,9 +140,23 @@ function EnodebTableRaw(props: WithAlert) {
       data={enbRows}
       columns={[
         {title: 'Name', field: 'name'},
-        {title: 'Serial Number', field: 'id'},
+        {
+          title: 'Serial Number',
+          field: 'id',
+          render: currRow => (
+            <Link
+              variant="body2"
+              component="button"
+              onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+              {currRow.id}
+            </Link>
+          ),
+        },
         {title: 'Session State Name', field: 'sessionName'},
-        {title: 'Health', field: 'health'},
+        {title: 'IP Address', field: 'ipAddress'},
+        {title: 'Subscribers', field: 'numSubscribers', width: 100},
+        {title: 'MME', field: 'mmeConnected', width: 100},
+        {title: 'Health', field: 'health', width: 100},
         {title: 'Reported Time', field: 'reportedTime', type: 'datetime'},
       ]}
       handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}
@@ -169,8 +193,6 @@ function EnodebTableRaw(props: WithAlert) {
               });
           },
         },
-        {name: 'Deactivate'},
-        {name: 'Reboot'},
       ]}
       options={{
         actionsColumnIndex: -1,

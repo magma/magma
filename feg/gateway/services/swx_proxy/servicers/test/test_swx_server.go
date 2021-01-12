@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	BASE_IMSI   = "0010100000000"
+	BASE_IMSI   = "0010100000"
 	VENDOR_3GPP = diameter.Vendor3GPP
 
 	DefaultSIPAuthenticate  = "\x94\xbf/T\xc3v\xf3\x0e\x87\x83\x06k'\x18Z"

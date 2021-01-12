@@ -43,7 +43,7 @@ class TestAttachDetachMultipleIpBlocksMobilitydRestart(unittest.TestCase):
 
         print("************************* Restarting mobilityd")
         self._s1ap_wrapper.magmad_util.restart_services(["mobilityd"])
-        for j in range(10):
+        for j in range(30):
             print("Waiting for", j, "seconds")
             sleep(1)
 

@@ -51,6 +51,7 @@ class UEMacAddressController(MagmaController):
             self._service_manager.get_table_num(INGRESS)
         self.arpd_controller_fut = kwargs['app_futures']['arpd']
         self.arp_contoller = None
+        self._loop = kwargs['loop']
         self._datapath = None
         tbls = self._service_manager.allocate_scratch_tables(self.APP_NAME, 2)
         self._passthrough_set_tbl = tbls[0]
@@ -88,13 +89,16 @@ class UEMacAddressController(MagmaController):
         for ue_req in ue_requests:
             self.add_ue_mac_flow(ue_req.sid.id, ue_req.mac_addr)
 
+        self._loop.call_soon_threadsafe(self._setup_arp, ue_requests)
+
+        self.init_finished = True
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
+
+    def _setup_arp(self, ue_requests: List[UEMacFlowRequest]):
         if self.arp_contoller or self.arpd_controller_fut.done():
             if not self.arp_contoller:
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.handle_restart(ue_requests)
-
-        self.init_finished = True
-        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)

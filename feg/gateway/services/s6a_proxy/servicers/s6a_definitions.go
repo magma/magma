@@ -60,10 +60,27 @@ const (
 //
 
 type EUtranVector struct {
-	RAND  datatype.OctetString `avp:"RAND"`
-	XRES  datatype.OctetString `avp:"XRES"`
-	AUTN  datatype.OctetString `avp:"AUTN"`
-	KASME datatype.OctetString `avp:"KASME"`
+	ItemNumber datatype.Unsigned32  `avp:"Item-Number"`
+	RAND       datatype.OctetString `avp:"RAND"`
+	XRES       datatype.OctetString `avp:"XRES"`
+	AUTN       datatype.OctetString `avp:"AUTN"`
+	KASME      datatype.OctetString `avp:"KASME"`
+}
+
+type UtranVector struct {
+	ItemNumber datatype.Unsigned32  `avp:"Item-Number"`
+	RAND       datatype.OctetString `avp:"RAND"`
+	XRES       datatype.OctetString `avp:"XRES"`
+	AUTN       datatype.OctetString `avp:"AUTN"`
+	CK         datatype.OctetString `avp:"Confidentiality-Key"`
+	IK         datatype.OctetString `avp:"Integrity-Key"`
+}
+
+type GeranVector struct {
+	ItemNumber datatype.Unsigned32  `avp:"Item-Number"`
+	RAND       datatype.OctetString `avp:"RAND"`
+	SRES       datatype.OctetString `avp:"SRES"`
+	Kc         datatype.OctetString `avp:"Kc"`
 }
 
 type ExperimentalResult struct {
@@ -73,6 +90,8 @@ type ExperimentalResult struct {
 
 type AuthenticationInfo struct {
 	EUtranVectors []EUtranVector `avp:"E-UTRAN-Vector"`
+	UtranVectors  []UtranVector  `avp:"UTRAN-Vector"`
+	GeranVectors  []GeranVector  `avp:"GERAN-Vector"`
 }
 
 type AIA struct {
@@ -82,7 +101,7 @@ type AIA struct {
 	OriginRealm        datatype.DiameterIdentity `avp:"Origin-Realm"`
 	AuthSessionState   int32                     `avp:"Auth-Session-State"`
 	ExperimentalResult ExperimentalResult        `avp:"Experimental-Result"`
-	AIs                []AuthenticationInfo      `avp:"Authentication-Info"`
+	AI                 AuthenticationInfo        `avp:"Authentication-Info"`
 }
 
 // Definitions for ULA, see sample below:
@@ -114,7 +133,8 @@ type AIA struct {
 //						Pre-emption-Capability {Code:1047,Flags:0x80,Length:16,VendorId:10415,Value:Enumerated{1}},
 //						Pre-emption-Vulnerability {Code:1048,Flags:0x80,Length:16,VendorId:10415,Value:Enumerated{0}},
 //					}}
-//				}}
+//				}},
+//              TGPP-Charging-Characteristics {Code: 13,Flags:0x80,VendorId:10415,Value:UTF8String{12}},
 //				AMBR {Code:1435,Flags:0xc0,Length:44,VendorId:10415,Value:Grouped{
 //					Max-Requested-Bandwidth-UL {Code:516,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{50000000}},
 //					Max-Requested-Bandwidth-DL {Code:515,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{100000000}},
@@ -145,11 +165,12 @@ type EPSSubscribedQoSProfile struct {
 }
 
 type APNConfiguration struct {
-	ContextIdentifier       uint32                  `avp:"Context-Identifier"`
-	PDNType                 uint32                  `avp:"PDN-Type"`
-	ServiceSelection        string                  `avp:"Service-Selection"`
-	EPSSubscribedQoSProfile EPSSubscribedQoSProfile `avp:"EPS-Subscribed-QoS-Profile"`
-	AMBR                    AMBR                    `avp:"AMBR"`
+	ContextIdentifier           uint32                  `avp:"Context-Identifier"`
+	PDNType                     uint32                  `avp:"PDN-Type"`
+	ServiceSelection            string                  `avp:"Service-Selection"`
+	EPSSubscribedQoSProfile     EPSSubscribedQoSProfile `avp:"EPS-Subscribed-QoS-Profile"`
+	AMBR                        AMBR                    `avp:"AMBR"`
+	TgppChargingCharacteristics string                  `avp:"TGPP-Charging-Characteristics"`
 }
 
 type APNConfigurationProfile struct {
@@ -166,6 +187,7 @@ type SubscriptionData struct {
 	AMBR                          AMBR                    `avp:"AMBR"`
 	APNConfigurationProfile       APNConfigurationProfile `avp:"APN-Configuration-Profile"`
 	SubscribedPeriodicRauTauTimer uint32                  `avp:"Subscribed-Periodic-RAU-TAU-Timer"`
+	TgppChargingCharacteristics   string                  `avp:"TGPP-Charging-Characteristics"`
 }
 
 type ULA struct {
@@ -325,16 +347,25 @@ type RequestedEUTRANAuthInfo struct {
 	ResyncInfo        datatype.OctetString `avp:"Re-synchronization-Info"`
 }
 
+// RequestedUtranGeranAuthInfo contains the information needed for authentication requests
+// for UTRAN/GERAN.
+type RequestedUtranGeranAuthInfo struct {
+	NumVectors        datatype.Unsigned32  `avp:"Number-Of-Requested-Vectors"`
+	ImmediateResponse datatype.Unsigned32  `avp:"Immediate-Response-Preferred"`
+	ResyncInfo        datatype.OctetString `avp:"Re-synchronization-Info"`
+}
+
 // AIR encapsulates all of the information contained in an authentication information request.
 // This information is sent to fetch data in order to authenticate a subscriber.
 type AIR struct {
-	SessionID               datatype.UTF8String       `avp:"Session-Id"`
-	OriginHost              datatype.DiameterIdentity `avp:"Origin-Host"`
-	OriginRealm             datatype.DiameterIdentity `avp:"Origin-Realm"`
-	AuthSessionState        datatype.UTF8String       `avp:"Auth-Session-State"`
-	UserName                string                    `avp:"User-Name"`
-	VisitedPLMNID           datatype.Unsigned32       `avp:"Visited-PLMN-Id"`
-	RequestedEUTRANAuthInfo RequestedEUTRANAuthInfo   `avp:"Requested-EUTRAN-Authentication-Info"`
+	SessionID                   datatype.UTF8String       `avp:"Session-Id"`
+	OriginHost                  datatype.DiameterIdentity `avp:"Origin-Host"`
+	OriginRealm                 datatype.DiameterIdentity `avp:"Origin-Realm"`
+	AuthSessionState            datatype.UTF8String       `avp:"Auth-Session-State"`
+	UserName                    string                    `avp:"User-Name"`
+	VisitedPLMNID               datatype.Unsigned32       `avp:"Visited-PLMN-Id"`
+	RequestedEUTRANAuthInfo     RequestedEUTRANAuthInfo   `avp:"Requested-EUTRAN-Authentication-Info"`
+	RequestedUtranGeranAuthInfo RequestedEUTRANAuthInfo   `avp:"Requested-UTRAN-GERAN-Authentication-Info"`
 }
 
 // ULR is an update location request. It is used to update location information in the HSS.

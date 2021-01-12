@@ -1,4 +1,4 @@
-// +build multi_session_proxy
+// +build all
 
 /*
  * Copyright 2020 The Magma Authors.
@@ -17,6 +17,7 @@ package integration
 
 import (
 	"fmt"
+	"math"
 	"sync"
 	"testing"
 	"time"
@@ -26,7 +27,6 @@ import (
 	"magma/feg/gateway/multiplex"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
@@ -42,8 +42,7 @@ type multipleScenarioElement struct {
 	IMSIs       []string
 }
 
-func generateMultipleScenarioAndAddSubscribers(t *testing.T, numUEs int) (*TestRunner, []*multipleScenarioElement) {
-	tr := NewTestRunnerWithTwoPCRFandOCS(t)
+func generateMultipleScenarioAndAddSubscribers(t *testing.T, tr *TestRunner, numUEs int) []*multipleScenarioElement {
 	// get the instance per IMSI based on the algorithm to distribuite IMSIs on FEG
 	IMSIs := generateRandomIMSIS(numUEs, nil)
 	IMSIsPerInstance := make([][]string, numInstances, numInstances)
@@ -83,9 +82,7 @@ func generateMultipleScenarioAndAddSubscribers(t *testing.T, numUEs int) (*TestR
 		assert.NoError(t, setNewOCSConfigPerInstance(
 			ocsName,
 			&protos.OCSConfig{
-				MaxUsageOctets: &protos.Octets{TotalOctets: ReAuthMaxUsageBytes},
-				MaxUsageTime:   ReAuthMaxUsageTimeSec,
-				ValidityTime:   ReAuthValidityTime,
+				MaxUsageOctets: &protos.Octets{TotalOctets: 10 * MegaBytes},
 			},
 		),
 		)
@@ -102,7 +99,7 @@ func generateMultipleScenarioAndAddSubscribers(t *testing.T, numUEs int) (*TestR
 				&protos.CreditInfo{
 					Imsi:        imsi,
 					ChargingKey: 1,
-					Volume:      &protos.Octets{TotalOctets: 1 * 1000 * KiloBytes},
+					Volume:      &protos.Octets{TotalOctets: 10 * MegaBytes},
 					UnitType:    protos.CreditInfo_Bytes},
 			),
 			)
@@ -118,7 +115,7 @@ func generateMultipleScenarioAndAddSubscribers(t *testing.T, numUEs int) (*TestR
 				IMSIs,
 			})
 	}
-	return tr, scenario
+	return scenario
 }
 
 func checkIMSIsListsAreEqual(UEs []*cwfprotos.UEConfig, IMSIs []string) bool {
@@ -147,26 +144,49 @@ func getPCRFandOCSnamePerInstance(instanceId int) (pcrfName string, ocsName stri
 	return
 }
 
-// TODO:
-//  * Support for multiple UEs (depends on UEsim service)
-//  * Check OCS credit has been reported (right now sessiond sends CCR after accounts
-//    are deleted from OCS and PCRF)
 // TestMultiSessionProxyMonitorAndUsageReportEnforcement is an experimental
 // test to try multiple OCS and PCRF servers. Currenty it only supports 1 UE
 // - Create one UE and add monitoring key and credit
 // - Attach UE, tranfer data, detach
 // - Check that the Monitored data by the PCRF instance is good
+// TODO:
+//  * Support for multiple UEs (depends on UEsim service)
+//  * Check OCS credit has been reported (right now sessiond sends CCR after accounts
+//    are deleted from OCS and PCRF)
 func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestMultiSessionProxyUsageReportEnforcement...")
+	fmt.Println("\nRunning TestMultiSessionProxyMonitorAndUsageReportEnforcement...")
+	tr := NewTestRunnerWithTwoPCRFandOCS(t)
+
+	// Overwrite the mconfig to enable multiproxy with OCS2 and PCRF2
+	err := tr.OverwriteMConfig("./gateway.mconfig.multi_session_proxy", "session_proxy")
+	assert.NoError(t, err)
+	assert.NoError(t, tr.RestartService("ocs"))
+	assert.NoError(t, tr.RestartService("pcrf"))
+	assert.NoError(t, tr.RestartService("ocs2"))
+	assert.NoError(t, tr.RestartService("pcrf2"))
+	assert.NoError(t, tr.RestartService("ingress"))
+	time.Sleep(3 * time.Second)
+	assert.NoError(t, tr.RestartService("session_proxy"))
 
 	// TODO: this only works with 1 user because UEsim can only use one single MAC address
-	tr, scenario := generateMultipleScenarioAndAddSubscribers(t, 1)
+	scenario := generateMultipleScenarioAndAddSubscribers(t, tr, 1)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		for _, scenarioElmnt := range scenario {
 			assert.NoError(t, scenarioElmnt.ruleManager.RemoveInstalledRules())
 		}
 		assert.NoError(t, tr.CleanUp())
+
+		err = tr.OverwriteMConfig("gateway.mconfig", "session_proxy")
+		assert.NoError(t, err)
+		assert.NoError(t, tr.RestartService("ocs"))
+		assert.NoError(t, tr.RestartService("pcrf"))
+		assert.NoError(t, tr.RestartService("ingress"))
+		time.Sleep(3 * time.Second)
+		assert.NoError(t, tr.RestartService("session_proxy"))
+		// ignore ocs2 and pcrf2 errors
+		tr.RestartService("ocs2")
+		tr.RestartService("pcrf2")
 	}()
 
 	tr.WaitForPoliciesToSync()
@@ -182,7 +202,12 @@ func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 				tr.AuthenticateAndAssertSuccess(imsi)
 				// this wait can be remove
 				tr.WaitForEnforcementStatsToSync()
-				req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
+				req := &cwfprotos.GenTrafficRequest{
+					Imsi:    imsi,
+					Volume:  &wrappers.StringValue{Value: "2M"},
+					Bitrate: &wrappers.StringValue{Value: "60M"},
+					Timeout: 30,
+				}
 				_, err := tr.GenULTraffic(req)
 				assert.NoError(t, err)
 			}()
@@ -205,7 +230,7 @@ func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 				// We should not be seeing > 1024k data here
 				assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
 				assert.NoError(t, err)
-				assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+				assert.True(t, record.BytesTx <= uint64(math.Round(2.5*MegaBytes)+Buffer), fmt.Sprintf("policy usage: %v", record))
 				// TODO: make sure OCS records its proper usage and it matches with what we monitored
 				//infos, err := getCreditOnOCSPerInstance(element.ocsName, imsi)
 				//fmt.Printf("\t ---> policy usage: %v\n", record)
@@ -213,9 +238,10 @@ func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 			}
 			// Detach this UE
 			tr.DisconnectAndAssertSuccess(imsi)
-			// Wait for CCR-T to propagate up
-			time.Sleep(3 * time.Second)
+
 			// TODO: check CCR-T is sent to the right instance
 		}
 	}
+	// Wait for CCR-T to propagate up
+	time.Sleep(2 * time.Second)
 }

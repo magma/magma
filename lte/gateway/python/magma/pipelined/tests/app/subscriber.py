@@ -14,7 +14,6 @@ limitations under the License.
 import logging
 import time
 from collections import namedtuple
-from concurrent.futures import Future
 
 import abc
 import grpc
@@ -23,9 +22,11 @@ from lte.protos.pipelined_pb2 import ActivateFlowsRequest, \
 from ryu.lib import hub
 
 from magma.subscriberdb.sid import SIDUtils
+from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 
-SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'table_id'])
-
+SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'ambr',
+                                                'table_id'])
+default_ambr_config = None
 
 def try_grpc_call_with_retries(grpc_call, retry_count=5, retry_interval=1):
     """ Attempt a grpc call and retry if unavailable """
@@ -113,7 +114,7 @@ class RyuRPCSubscriberContext(SubscriberContext):
     """
 
     def __init__(self, imsi, ip, pipelined_stub, table_id=5):
-        self.cfg = SubContextConfig(imsi, ip, table_id)
+        self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
         self._dynamic_rules = []
         self._static_rule_names = []
         self._pipelined_stub = pipelined_stub
@@ -149,7 +150,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
 
     def __init__(self, imsi, ip, enforcement_controller, table_id=5,
                  enforcement_stats_controller=None, nuke_flows_on_exit=True):
-        self.cfg = SubContextConfig(imsi, ip, table_id)
+        self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
         self._dynamic_rules = []
         self._static_rule_names = []
         self._ec = enforcement_controller
@@ -166,20 +167,32 @@ class RyuDirectSubscriberContext(SubscriberContext):
 
     def _activate_subscriber_rules(self):
         def activate_flows():
-            self._ec.activate_rules(imsi=self.cfg.imsi,
-                                    ip_addr=self.cfg.ip,
-                                    static_rule_ids=self._static_rule_names,
-                                    dynamic_rules=self._dynamic_rules)
+            ip_addr = convert_ip_str_to_ip_proto(self.cfg.ip)
+            self._ec.activate_rules(
+                imsi=self.cfg.imsi,
+                msisdn=None,
+                uplink_tunnel=None,
+                ip_addr=ip_addr,
+                apn_ambr=default_ambr_config,
+                static_rule_ids=self._static_rule_names,
+                dynamic_rules=self._dynamic_rules)
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
-                    ip_addr=self.cfg.ip,
+                    msisdn=None,
+                    uplink_tunnel=None,
+                    ip_addr=ip_addr,
+                    apn_ambr=default_ambr_config,
                     static_rule_ids=self._static_rule_names,
                     dynamic_rules=self._dynamic_rules)
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):
+        ip_addr = convert_ip_str_to_ip_proto(self.cfg.ip)
         if self._nuke_flows_on_exit:
             def deactivate_flows():
-                self._ec.deactivate_rules(imsi=self.cfg.imsi, rule_ids=None)
+                self._ec.deactivate_rules(
+                    imsi=self.cfg.imsi,
+                    ip_addr=ip_addr,
+                    rule_ids=None)
             hub.joinall([hub.spawn(deactivate_flows)])

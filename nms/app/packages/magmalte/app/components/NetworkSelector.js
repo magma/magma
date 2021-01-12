@@ -13,6 +13,7 @@
  * @flow
  * @format
  */
+import type {NetworkType} from '@fbcnms/types/network';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Divider from '@material-ui/core/Divider';
@@ -21,16 +22,18 @@ import ListItem from '@material-ui/core/ListItem';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkContext from './context/NetworkContext';
 import Popout from '@fbcnms/ui/components/Popout';
-import React, {useCallback, useContext, useState} from 'react';
+import React from 'react';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {LTE, coalesceNetworkType} from '@fbcnms/types/network';
 import {NetworkEditDialog} from '../views/network/NetworkEdit';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useContext, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(_ => ({
   button: {
@@ -95,8 +98,11 @@ const NetworkSelector = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const appContext = useContext(AppContext);
   const [networkIds, setNetworkIds] = useState([]);
+  const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
   const [isNetworkAddOpen, setNetworkAddOpen] = useState(false);
+  const {networkId} = useContext(NetworkContext);
+
   useMagmaAPI(
     MagmaV1API.getNetworks,
     {},
@@ -104,7 +110,19 @@ const NetworkSelector = () => {
     lastRefreshTime,
   );
 
-  const {networkId} = useContext(NetworkContext);
+  useEffect(() => {
+    const fetchNetworkType = async () => {
+      if (networkId) {
+        const networkType = await MagmaV1API.getNetworksByNetworkIdType({
+          networkId,
+        });
+        setNetworkType(coalesceNetworkType(networkId, networkType));
+      }
+    };
+
+    fetchNetworkType();
+  }, [networkId]);
+
   if (!networkId) {
     return null;
   }
@@ -137,7 +155,7 @@ const NetworkSelector = () => {
                 <Text className={classes.networkItemText}>{id}</Text>
               </ListItem>
             ))}
-            {appContext.user.isSuperUser && (
+            {appContext.user.isSuperUser && networkType === LTE && (
               <>
                 <Divider />
                 <ListItem

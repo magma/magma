@@ -1,6 +1,9 @@
 #!/bin/bash -x
 prefix=$1
 
+ip link del "$prefix"uplink_p0
+sleep 0.1
+
 ip link add "$prefix"uplink_p0 type veth peer name  "$prefix"uplink_p1
 ifconfig "$prefix"uplink_p0 up
 

@@ -1,0 +1,7 @@
+[settings]
+access_token={{ ODS_ACCESS_TOKEN|replace('\n', '')|trim }}
+url=https://graph.facebook.com/ods_metrics
+entity={{ 'xwf.' + partner + '.' + env + '.' + 'xwfm' + '.' + server_id | default('1') }}
+port=1055
+queue_timer=5
+send_timer=30

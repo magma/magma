@@ -21,16 +21,27 @@ const (
 	AccessGatewayRecordType = "access_gateway_record"
 	GatewayStateType        = "gw_state"
 	DirectoryRecordType     = "directory_record"
+	StringMapSerdeType      = "string_map"
+
+	DnsdNetworkType = "dnsd_network"
 
 	UpgradeTierEntityType           = "upgrade_tier"
 	UpgradeReleaseChannelEntityType = "upgrade_release_channel"
 
-	DnsdNetworkType = "dnsd_network"
+	CallTraceEntityType = "call_trace"
 
-	MetricsExporterLabel  = "orc8r.io/metrics_exporter"
-	ObsidianHandlersLabel = "orc8r.io/obsidian_handlers"
-	StateIndexerLabel     = "orc8r.io/state_indexer"
-	StreamProviderLabel   = "orc8r.io/stream_provider"
+	// ServiceHostnameEnvVar is the name of an environment variable which is
+	// required to hold the public IP of the service.
+	// In dev, this will generally be localhost.
+	// In prod, this will be the relevant pod's IP.
+	ServiceHostnameEnvVar = "SERVICE_HOSTNAME"
+
+	AnalyticsCollectorLabel = "orc8r.io/analytics_collector"
+	MconfigBuilderLabel     = "orc8r.io/mconfig_builder"
+	MetricsExporterLabel    = "orc8r.io/metrics_exporter"
+	ObsidianHandlersLabel   = "orc8r.io/obsidian_handlers"
+	StateIndexerLabel       = "orc8r.io/state_indexer"
+	StreamProviderLabel     = "orc8r.io/stream_provider"
 
 	ObsidianHandlersPathPrefixesAnnotation = "orc8r.io/obsidian_handlers_path_prefixes"
 	StateIndexerVersionAnnotation          = "orc8r.io/state_indexer_version"

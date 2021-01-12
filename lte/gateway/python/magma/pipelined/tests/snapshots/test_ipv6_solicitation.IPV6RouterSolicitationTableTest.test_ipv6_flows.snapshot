@@ -1,0 +1,5 @@
+ cookie=0x0, table=mme(main_table), n_packets=2, n_bytes=156, priority=65535,dl_src=5e:cc:cc:b1:49:4b,dl_dst=0a:00:27:00:00:02 actions=load:0x1->NXM_NX_REG1[],resubmit(,ipv6_solicitation(main_table))
+ cookie=0x0, table=ipv6_solicitation(main_table), n_packets=1, n_bytes=70, priority=10,icmp6,reg1=0x1,ipv6_src=fe80::/10,icmp_type=133 actions=CONTROLLER:65535
+ cookie=0x0, table=ipv6_solicitation(main_table), n_packets=1, n_bytes=86, priority=10,icmp6,reg1=0x1,ipv6_src=fe80::/10,icmp_type=135 actions=CONTROLLER:65535
+ cookie=0x0, table=ipv6_solicitation(main_table), n_packets=0, n_bytes=0, priority=10,icmp6,reg1=0x10,ipv6_dst=ff02::1:ff00:0/104,icmp_type=135 actions=CONTROLLER:65535
+ cookie=0x0, table=ipv6_solicitation(main_table), n_packets=0, n_bytes=0, priority=0 actions=resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3

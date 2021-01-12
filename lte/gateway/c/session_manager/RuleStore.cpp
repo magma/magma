@@ -245,4 +245,68 @@ bool PolicyRuleBiMap::get_rules(std::vector<PolicyRule>& rules_out) {
   return true;
 }
 
+void ConvergedRuleStore::insert_rule(uint32_t id, const SetGroupPDR& rule) {
+  auto rule_p = std::make_shared<SetGroupPDR>(rule);
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  rules_by_pdr_key_[id] = rule_p;
+}
+
+void ConvergedRuleStore::insert_rule(uint32_t id, const SetGroupFAR& rule) {
+  auto rule_p = std::make_shared<SetGroupFAR>(rule);
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  rules_by_far_key_[id] = rule_p;
+}
+
+bool ConvergedRuleStore::remove_rule(uint32_t rule_id, SetGroupPDR* rule_out) {
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  auto it = rules_by_pdr_key_.find(rule_id);
+  if (it != rules_by_pdr_key_.end()) {
+    auto rule_ptr = it->second;
+    if (rule_out != NULL) {
+      rule_out->CopyFrom(*rule_ptr);
+    }
+    rules_by_pdr_key_.erase(rule_id);
+    return true;
+  }
+  return false;
+}
+
+bool ConvergedRuleStore::remove_rule(uint32_t rule_id, SetGroupFAR* rule_out) {
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  auto it = rules_by_far_key_.find(rule_id);
+  if (it != rules_by_far_key_.end()) {
+    auto rule_ptr = it->second;
+    if (rule_out != NULL) {
+      rule_out->CopyFrom(*rule_ptr);
+    }
+    rules_by_far_key_.erase(rule_id);
+    return true;
+  }
+  return false;
+}
+
+bool ConvergedRuleStore::get_rule(uint32_t rule_id, SetGroupPDR* rule_out) {
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  auto it = rules_by_pdr_key_.find(rule_id);
+  if (it == rules_by_pdr_key_.end()) {
+    return false;
+  }
+  if (rule_out != NULL) {
+    rule_out->CopyFrom(*it->second);
+  }
+  return true;
+}
+
+bool ConvergedRuleStore::get_rule(uint32_t rule_id, SetGroupFAR* rule_out) {
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  auto it = rules_by_far_key_.find(rule_id);
+  if (it == rules_by_far_key_.end()) {
+    return false;
+  }
+  if (rule_out != NULL) {
+    rule_out->CopyFrom(*it->second);
+  }
+  return true;
+}
+
 }  // namespace magma

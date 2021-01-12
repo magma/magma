@@ -1,6 +1,7 @@
 package servicers
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -101,12 +102,11 @@ func s3Handler(
 func Run() {
 	config := InitServiceConfig()
 
-	addr, err := registry.GetServiceAddress(download.ServiceName)
+	port, err := registry.GetServicePort(download.ServiceName)
 	if err != nil {
 		glog.Fatalf("Unable to determine port to run download service: %s", err)
 	}
-	port := strings.Split(addr, ":")[1]
-	glog.V(2).Infof("Listening on port %s...", port)
+	glog.V(2).Infof("Listening on port %d...", port)
 
 	// Note, the following works well, but it only supports http2, non-SSL.
 	// All attempts to run a go-based server that supported both http/1.x and http2,
@@ -114,7 +114,7 @@ func Run() {
 	server := http2.Server{}
 	// Listen doesnt't bind to both ipv4 and ipv6 right now
 	// See https://github.com/golang/go/issues/9334
-	tcpListener, err := net.Listen("tcp", ":"+port)
+	tcpListener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		glog.Fatalf("net.Listen err: %v", err)
 	}

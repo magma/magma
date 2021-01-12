@@ -1,0 +1,44 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+package magma.orc8r.configurator.mconfig;
+
+import "magma/orc8r/cloud/go/services/configurator/storage/storage.proto";
+
+option go_package = "protos";
+
+// MconfigBuilder creates a partial mconfig for a gateway within a network.
+service MconfigBuilder {
+  // Build returns a partial mconfig containing the gateway configs for which
+  // this builder is responsible.
+  rpc Build(BuildRequest) returns (BuildResponse) {}
+}
+
+message BuildRequest {
+  // network containing the gateway
+  storage.Network network = 1;
+  // graph of entities associated with the gateway
+  storage.EntityGraph graph = 2;
+  // gateway_id of the gateway
+  string gateway_id = 3;
+}
+
+message BuildResponse {
+  // configs_by_key contains the partial mconfig from this mconfig builder
+  // Each config value contains a proto which is
+  //  - first serialized to an any.Any proto
+  //  - then serialized to JSON
+  // TODO(#2310): remove the need to serialize to JSON by sending proto descriptors
+  map<string, bytes> configs_by_key = 1;
+}

@@ -14,74 +14,152 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {subscriber} from '@fbcnms/magma-api';
+import type {mutable_subscriber} from '@fbcnms/magma-api';
 
+import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
-import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
+import JsonEditor from '../../components/JsonEditor';
+import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import SubscriberContext from '../../components/context/SubscriberContext';
+import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {EditSubscriberButton} from './SubscriberAddDialog';
+import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
+import {useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
     flexGrow: 1,
   },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
 }));
 
-export default function SubscriberDetailConfig({
-  subscriberInfo,
-}: {
-  subscriberInfo: subscriber,
-}) {
-  const classes = useStyles();
+export function SubscriberJsonConfig() {
+  const {match} = useRouter();
+  const [error, setError] = useState('');
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
+  const {
+    config,
+    monitoring: _unused_monitoring,
+    state: _unused_state,
+    ...subscriberInfoPartial
+  } = subscriberInfo;
+  const mutableSubscriber: mutable_subscriber = {
+    ...subscriberInfoPartial,
+  };
 
-  function TrafficFilter() {
-    return <Button variant="text">Edit</Button>;
+  if (config?.static_ips) {
+    mutableSubscriber.static_ips = config.static_ips;
+  }
+
+  return (
+    <JsonEditor
+      content={mutableSubscriber}
+      error={error}
+      onSave={async (subscriber: mutable_subscriber) => {
+        try {
+          await ctx.setState?.(subscriber.id, subscriber);
+          enqueueSnackbar('Subscriber saved successfully', {
+            variant: 'success',
+          });
+          setError('');
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
+  );
+}
+
+export default function SubscriberDetailConfig() {
+  const classes = useStyles();
+  const {history, relativeUrl} = useRouter();
+
+  function ConfigFilter() {
+    return (
+      <Button
+        className={classes.appBarBtn}
+        onClick={() => {
+          history.push(relativeUrl('/json'));
+        }}>
+        Edit JSON
+      </Button>
+    );
   }
 
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
-          <CardTitleFilterRow
-            icon={SettingsIcon}
-            label="Config"
-            filter={EditSubscriberButton}
-          />
-          <SubscriberInfoConfig
-            readOnly={true}
-            subscriberInfo={subscriberInfo}
-          />
-        </Grid>
+        <Grid item xs={12}>
+          <Grid item xs={12}>
+            <CardTitleRow
+              icon={SettingsIcon}
+              label="Config"
+              filter={ConfigFilter}
+            />
+          </Grid>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <CardTitleRow
+                label="Subscriber"
+                filter={() => EditSubscriberButton({editTable: 'subscriber'})}
+              />
+              <SubscriberInfoConfig />
+            </Grid>
 
-        <Grid item xs={12} md={6}>
-          <CardTitleFilterRow
-            icon={GraphicEqIcon}
-            label="Traffic Policy"
-            filter={TrafficFilter}
-          />
-          <SubscriberConfigTrafficPolicy
-            readOnly={true}
-            subscriberInfo={subscriberInfo}
-          />
+            <Grid item xs={12} md={6}>
+              <CardTitleRow
+                label="Traffic Policy"
+                filter={() =>
+                  EditSubscriberButton({editTable: 'trafficPolicy'})
+                }
+              />
+              <SubscriberConfigTrafficPolicy />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <CardTitleRow
+                label="APN Static IPs"
+                filter={() => EditSubscriberButton({editTable: 'staticIps'})}
+              />
+              <SubscriberApnStaticIpsTable />
+            </Grid>
+          </Grid>
         </Grid>
       </Grid>
     </div>
   );
 }
 
-function SubscriberConfigTrafficPolicy({
-  subscriberInfo,
-}: {
-  subscriberInfo: subscriber,
-}) {
+function SubscriberConfigTrafficPolicy() {
+  const {match} = useRouter();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
+
   function CollapseItems(props) {
     const data: DataRows[] = [
       [
@@ -130,7 +208,12 @@ function SubscriberConfigTrafficPolicy({
   return <DataGrid data={trafficPolicyData} />;
 }
 
-function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: subscriber}) {
+function SubscriberInfoConfig() {
+  const {match} = useRouter();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
+
   const [authKey, _setAuthKey] = useState(subscriberInfo.lte.auth_key);
   const [authOPC, _setAuthOPC] = useState(subscriberInfo.lte.auth_opc ?? false);
   const [dataPlan, _setDataPlan] = useState(subscriberInfo.lte.sub_profile);
@@ -167,4 +250,60 @@ function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: subscriber}) {
   }
 
   return <DataGrid data={kpiData} />;
+}
+
+function SubscriberApnStaticIpsTable() {
+  const {history, match} = useRouter();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
+  const staticIps = subscriberInfo.config.static_ips || {};
+  type SubscriberApnStaticIpsRowType = {
+    apnName: string,
+    apnStaticIp: string,
+  };
+  const apnRows: Array<SubscriberApnStaticIpsRowType> = Object.keys(
+    staticIps,
+  ).map((apnName: string) => {
+    return {
+      apnName: apnName,
+      apnStaticIp: staticIps[apnName],
+    };
+  });
+  const [_currRow, setCurrRow] = useState<SubscriberApnStaticIpsRowType>({});
+  return (
+    <ActionTable
+      title=""
+      data={apnRows}
+      columns={[
+        {
+          title: 'APN Name',
+          field: 'apnName',
+          render: currRow => (
+            <Link
+              variant="body2"
+              component="button"
+              onClick={() => {
+                history.push(
+                  match.url.replace(
+                    `subscribers/overview/${subscriberId}/config`,
+                    `traffic/apn`,
+                  ),
+                );
+              }}>
+              {currRow.apnName}
+            </Link>
+          ),
+        },
+        {title: 'Static IP', field: 'apnStaticIp'},
+      ]}
+      handleCurrRow={(row: SubscriberApnStaticIpsRowType) => setCurrRow(row)}
+      options={{
+        actionsColumnIndex: -1,
+        pageSizeOptions: [],
+        toolbar: false,
+        paging: false,
+      }}
+    />
+  );
 }

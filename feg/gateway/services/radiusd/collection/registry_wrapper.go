@@ -15,6 +15,7 @@ package collection
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
@@ -41,10 +42,12 @@ func NewMetricAggregateRegistry() MetricAggregateRegistry {
 func (r *MetricAggregateRegistry) Update(metricFamilies map[string]*dto.MetricFamily) {
 	for metricName, metricFamily := range metricFamilies {
 		// We want to mark the metric as coming from the radius server
-		// Some basic metrics would otherwise be duplicated
-		modifiedMetricName := fmt.Sprintf("%s%s", RadiusMetricPrefix, metricName)
-		r.register(modifiedMetricName, metricFamily)
-		r.update(modifiedMetricName, metricFamily)
+		// Some metrics already have this prefix, but others need it added
+		if !strings.HasPrefix(metricName, RadiusMetricPrefix) {
+			metricName = fmt.Sprintf("%s%s", RadiusMetricPrefix, metricName)
+		}
+		r.register(metricName, metricFamily)
+		r.update(metricName, metricFamily)
 	}
 }
 

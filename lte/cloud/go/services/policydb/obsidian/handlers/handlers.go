@@ -14,18 +14,24 @@
 package handlers
 
 import (
+	"magma/lte/cloud/go/serdes"
+	lte_handlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
+	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	orc8rhandlers "magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 )
 
 const (
-	policiesRootPath         = orc8rhandlers.ManageNetworkPath + obsidian.UrlSep + "policies"
+	qosProfileRootPath   = lte_handlers.ManageNetworkPath + obsidian.UrlSep + "policy_qos_profiles"
+	qosProfileManagePath = qosProfileRootPath + obsidian.UrlSep + ":profile_id"
+
+	policiesRootPath         = handlers.ManageNetworkPath + obsidian.UrlSep + "policies"
 	policyRuleRootPath       = policiesRootPath + obsidian.UrlSep + "rules"
 	policyRuleManagePath     = policyRuleRootPath + obsidian.UrlSep + ":rule_id"
 	policyBaseNameRootPath   = policiesRootPath + obsidian.UrlSep + "base_names"
 	policyBaseNameManagePath = policyBaseNameRootPath + obsidian.UrlSep + ":base_name"
 
-	ratingGroupsRootPath   = orc8rhandlers.ManageNetworkPath + obsidian.UrlSep + "rating_groups"
+	ratingGroupsRootPath   = handlers.ManageNetworkPath + obsidian.UrlSep + "rating_groups"
 	ratingGroupsManagePath = ratingGroupsRootPath + obsidian.UrlSep + ":rating_group_id"
 )
 
@@ -36,6 +42,10 @@ func GetHandlers() []obsidian.Handler {
 		{Path: policyBaseNameManagePath, Methods: obsidian.GET, HandlerFunc: GetBaseName},
 		{Path: policyBaseNameManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateBaseName},
 		{Path: policyBaseNameManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteBaseName},
+
+		{Path: qosProfileRootPath, Methods: obsidian.GET, HandlerFunc: getQoSProfiles},
+		{Path: qosProfileRootPath, Methods: obsidian.POST, HandlerFunc: createQoSProfile},
+		{Path: qosProfileManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteQoSProfile},
 
 		{Path: policyRuleRootPath, Methods: obsidian.GET, HandlerFunc: ListRules},
 		{Path: policyRuleRootPath, Methods: obsidian.POST, HandlerFunc: CreateRule},
@@ -49,5 +59,8 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ratingGroupsManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateRatingGroup},
 		{Path: ratingGroupsManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteRatingGroup},
 	}
+
+	ret = append(ret, handlers.GetPartialEntityHandlers(qosProfileManagePath, "profile_id", &policydb_models.PolicyQosProfile{}, serdes.Entity)...)
+
 	return ret
 }

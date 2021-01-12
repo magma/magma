@@ -50,7 +50,6 @@ const (
 	deviceIDLabelName = "deviceID"
 	serviceLabelName  = "service"
 	tagsLabelName     = "tags"
-	categoryName      = "magma"
 )
 
 var (
@@ -70,6 +69,7 @@ type HTTPClient interface {
 
 type ExporterServicer struct {
 	odsURL         string
+	categoryID     string
 	queue          []exporters.Sample
 	queueMu        sync.Mutex
 	maxQueueLength int
@@ -82,12 +82,14 @@ func NewExporterServicer(
 	baseUrl string,
 	appId string,
 	appSecret string,
+	categoryID string,
 	metricsPrefix string,
 	maxQueueLength int,
 	exportInterval time.Duration,
 ) protos.MetricsExporterServer {
 	srv := &ExporterServicer{
 		odsURL:         fmt.Sprintf("%s?access_token=%s|%s", baseUrl, appId, appSecret),
+		categoryID:     categoryID,
 		maxQueueLength: maxQueueLength,
 		exportInterval: exportInterval,
 		metricsPrefix:  metricsPrefix,
@@ -171,7 +173,7 @@ func (s *ExporterServicer) write(client HTTPClient, samples []exporters.Sample) 
 	if err != nil {
 		return err
 	}
-	resp, err := client.PostForm(s.odsURL, url.Values{"datapoints": {string(datapointsJson)}, "category": {categoryName}})
+	resp, err := client.PostForm(s.odsURL, url.Values{"datapoints": {string(datapointsJson)}, "category": {s.categoryID}})
 	if err != nil {
 		return err
 	}

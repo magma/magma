@@ -73,7 +73,7 @@ func TestEAPClientApi(t *testing.T) {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
 	}
-	eap_registry.Register(aka_provider.NewServiced(servicer)) // register aka provider for linked local service
+	eap_registry.Register(aka_provider.NewService(servicer)) // register aka provider for linked local service
 
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)

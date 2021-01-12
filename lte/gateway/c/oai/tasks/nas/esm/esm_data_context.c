@@ -98,6 +98,7 @@ void nas_stop_T3489(esm_context_t* const esm_ctx) {
       if (nas_timer_callback_args) {
         esm_ebr_timer_data_t* data =
             (esm_ebr_timer_data_t*) nas_timer_callback_args;
+        data->ctx = NULL;
         bdestroy_wrapper(&data->msg);
         free_wrapper((void**) &data);
       }
@@ -119,6 +120,9 @@ void free_esm_context_content(esm_context_t* esm_ctx) {
   if (esm_ctx->esm_proc_data) {
     OAILOG_DEBUG(LOG_NAS_ESM, "Free up esm_proc_data");
     bdestroy_wrapper(&esm_ctx->esm_proc_data->apn);
+    if (esm_ctx->esm_proc_data->pco.num_protocol_or_container_id) {
+      clear_protocol_configuration_options(&esm_ctx->esm_proc_data->pco);
+    }
     free_wrapper((void**) &esm_ctx->esm_proc_data);
   }
 }

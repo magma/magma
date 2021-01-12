@@ -13,24 +13,32 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
-import AppBar from '@material-ui/core/AppBar';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import DashboardAlertTable from '../../components/DashboardAlertTable';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '../../theme/design-system/DialogTitle';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig from './GatewayDetailConfig';
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
+import GatewayDetailSubscribers from './GatewayDetailSubscribers';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -38,44 +46,28 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
+import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
-import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {GatewayJsonConfig} from './GatewayDetailConfig';
-import {GetCurrentTabPos} from '../../components/TabUtils.js';
+import {
+  GenericCommandControls,
+  PingCommandControls,
+  TroubleshootingControl,
+} from '../../components/GatewayCommandFields';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
+import {useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
-  },
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
-  },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '16px 0 16px 0',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tabIconLabel: {
-    marginRight: '8px',
   },
   appBarBtn: {
     color: colors.primary.white,
@@ -90,100 +82,225 @@ const useStyles = makeStyles(theme => ({
       background: colors.primary.mirage,
     },
   },
-  appBarBtnSecondary: {
-    color: colors.primary.white,
-  },
   paper: {
     textAlign: 'center',
     padding: theme.spacing(10),
   },
+  tabBar: {
+    backgroundColor: colors.primary.brightGray,
+    color: colors.primary.white,
+  },
 }));
 
-export function GatewayDetail() {
+const StyledMenu = withStyles({
+  paper: {
+    border: '1px solid #d3d4d5',
+  },
+})(props => (
+  <Menu
+    data-testid="policy_menu"
+    elevation={0}
+    getContentAnchorEl={null}
+    anchorOrigin={{
+      vertical: 'bottom',
+      horizontal: 'center',
+    }}
+    transformOrigin={{
+      vertical: 'top',
+      horizontal: 'center',
+    }}
+    {...props}
+  />
+));
+
+type CommandProps = {
+  gatewayID: string,
+  open: boolean,
+  onClose: () => void,
+};
+
+function GatewayCommandDialog(props: CommandProps) {
+  return (
+    <Dialog open={props.open} onClose={props.onClose} scroll="body">
+      <DialogTitle onClose={props.onClose} label={'Run Gateway Commands'} />
+      <DialogContent>
+        <PingCommandControls gatewayID={props.gatewayID} />
+        <GenericCommandControls gatewayID={props.gatewayID} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const AGGREGATION_TITLE = 'Aggregation';
+
+function TroubleshootingDialog(props: CommandProps) {
+  const [tabPos, setTabPos] = useState(false);
   const classes = useStyles();
+
+  return (
+    <Dialog
+      fullWidth={true}
+      maxWidth="md"
+      open={props.open}
+      onClose={props.onClose}
+      scroll="body">
+      <DialogTitle onClose={props.onClose} label={'Troubleshoot Gateway'} />
+      <Tabs
+        value={tabPos}
+        onChange={(_, v) => setTabPos(v)}
+        indicatorColor="primary"
+        className={classes.tabBar}>
+        <Tab key={AGGREGATION_TITLE} label={AGGREGATION_TITLE} />
+      </Tabs>
+      <DialogContent>
+        <TroubleshootingControl gatewayID={props.gatewayID} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function GatewayMenuInternal(props: WithAlert) {
+  const classes = useStyles();
+  const {match} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
+  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [gatewayCommandOpen, setGatewayCommandOpen] = useState(false);
+  const [troubleshootingDialogOpen, setTroubleshootingDialogOpen] = useState(
+    false,
+  );
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleGatewayMenuClick = (
+    command: 'reboot' | 'ping' | 'restartServices' | 'generic',
+    warnMsg: string,
+  ) => {
+    props.confirm(warnMsg).then(async confirmed => {
+      if (!confirmed) {
+        return;
+      }
+      try {
+        await RunGatewayCommands({
+          networkId,
+          gatewayId,
+          command: command,
+        });
+        enqueueSnackbar('command triggered successfully', {
+          variant: 'success',
+        });
+      } catch (e) {
+        enqueueSnackbar(e.response?.data?.message ?? e.message, {
+          variant: 'error',
+        });
+      }
+    });
+  };
+
+  return (
+    <div>
+      <GatewayCommandDialog
+        gatewayID={gatewayId}
+        open={gatewayCommandOpen}
+        onClose={() => setGatewayCommandOpen(false)}
+      />
+      <TroubleshootingDialog
+        gatewayID={gatewayId}
+        open={troubleshootingDialogOpen}
+        onClose={() => setTroubleshootingDialogOpen(false)}
+      />
+      <Button
+        onClick={handleClick}
+        className={classes.appBarBtn}
+        endIcon={<ArrowDropDownIcon />}>
+        Actions
+      </Button>
+      <StyledMenu
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleClose}>
+        <MenuItem
+          data-testid="gatewayReboot"
+          onClick={() =>
+            handleGatewayMenuClick(
+              'reboot',
+              `Are you sure you want to reboot ${gatewayId}?`,
+            )
+          }>
+          <Text variant="subtitle2">Reboot</Text>
+        </MenuItem>
+        <MenuItem
+          data-testid="gatewayRestartServices"
+          onClick={() =>
+            handleGatewayMenuClick(
+              'restartServices',
+              `Are you sure you want to restart all services on ${gatewayId}?`,
+            )
+          }>
+          <Text variant="subtitle2">Restart Services</Text>
+        </MenuItem>
+        <MenuItem onClick={() => setGatewayCommandOpen(true)}>
+          <Text variant="subtitle2">Command</Text>
+        </MenuItem>
+        <MenuItem onClick={() => setTroubleshootingDialogOpen(true)}>
+          <Text variant="subtitle2">Troubleshoot</Text>
+        </MenuItem>
+      </StyledMenu>
+    </div>
+  );
+}
+const GatewayMenu = withAlert(GatewayMenuInternal);
+
+export function GatewayDetail() {
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const gwCtx = useContext(GatewayContext);
 
   return (
     <>
-      <div className={classes.topBar}>
-        <Text variant="body2">Equipment/{gatewayId}</Text>
-      </div>
-
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container direction="row" justify="flex-end" alignItems="center">
-          <Grid item xs={8}>
-            <Tabs
-              value={GetCurrentTabPos(match.url, [
-                'overview',
-                'event',
-                'log',
-                'alert',
-                'config',
-              ])}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Overview"
-                component={NestedRouteLink}
-                label={<OverviewTabLabel />}
-                to="/overview"
-                className={classes.tab}
-              />
-              <Tab
-                key="Event"
-                component={NestedRouteLink}
-                label={<EventTabLabel />}
-                to="/event"
-                className={classes.tab}
-              />
-              <Tab
-                key="Log"
-                component={NestedRouteLink}
-                label={<LogTabLabel />}
-                to="/logs"
-                className={classes.tab}
-              />
-              <Tab
-                key="Alert"
-                component={NestedRouteLink}
-                label={<AlertTabLabel />}
-                to="/alert"
-                className={classes.tab}
-              />
-              <Tab
-                key="Config"
-                component={NestedRouteLink}
-                label={<ConfigTabLabel />}
-                to="/config"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-          <Grid
-            item
-            xs={4}
-            direction="row"
-            justify="flex-end"
-            alignItems="center">
-            <Grid container justify="flex-end" alignItems="center" spacing={2}>
-              <Grid item>
-                <Button variant="text" className={classes.appBarBtnSecondary}>
-                  Secondary Action
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button variant="contained" className={classes.appBarBtn}>
-                  Reboot
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </AppBar>
+      <TopBar
+        header={`Equipment/${gatewayId}`}
+        tabs={[
+          {
+            label: 'Overview',
+            to: '/overview',
+            icon: DashboardIcon,
+            filters: <GatewayMenu />,
+          },
+          {
+            label: 'Event',
+            to: '/event',
+            icon: MyLocationIcon,
+            filters: <GatewayMenu />,
+          },
+          {
+            label: 'Logs',
+            to: '/logs',
+            icon: ListAltIcon,
+            filters: <GatewayMenu />,
+          },
+          {
+            label: 'Alerts',
+            to: '/alert',
+            icon: AccessAlarmIcon,
+            filters: <GatewayMenu />,
+          },
+          {
+            label: 'Config',
+            to: '/config',
+            icon: SettingsIcon,
+            filters: <GatewayMenu />,
+          },
+        ]}
+      />
 
       <Switch>
         <Route
@@ -196,9 +313,16 @@ export function GatewayDetail() {
           render={() => (
             <EventsTable
               eventStream="GATEWAY"
-              tags={gwCtx.state[gatewayId].device.hardware_id}
+              hardwareId={gwCtx.state[gatewayId].device.hardware_id}
               sz="lg"
+              isAutoRefreshing={true}
             />
+          )}
+        />
+        <Route
+          path={relativePath('/alert')}
+          render={() => (
+            <DashboardAlertTable labelFilters={{gatewayID: gatewayId}} />
           )}
         />
         <Route path={relativePath('/overview')} component={GatewayOverview} />
@@ -229,7 +353,7 @@ function GatewayOverview() {
               <CardTitleRow icon={MyLocationIcon} label="Events" />
               <EventsTable
                 eventStream="GATEWAY"
-                tags={gwInfo.device.hardware_id}
+                hardwareId={gwInfo.device.hardware_id}
                 sz="sm"
               />
             </Grid>
@@ -250,63 +374,11 @@ function GatewayOverview() {
             </Grid>
             <Grid item>
               <CardTitleRow icon={PeopleIcon} label="Subscribers" />
-              <Paper className={classes.paper} elevation={0}>
-                <Text variant="body2">Subscribers data</Text>
-              </Paper>
+              <GatewayDetailSubscribers gwInfo={gwInfo} />
             </Grid>
           </Grid>
         </Grid>
       </Grid>
-    </div>
-  );
-}
-
-function OverviewTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <DashboardIcon className={classes.tabIconLabel} /> Overview
-    </div>
-  );
-}
-
-function ConfigTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <SettingsIcon className={classes.tabIconLabel} /> Config
-    </div>
-  );
-}
-
-function EventTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <MyLocationIcon className={classes.tabIconLabel} /> Event
-    </div>
-  );
-}
-
-function LogTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <ListAltIcon className={classes.tabIconLabel} /> Logs
-    </div>
-  );
-}
-
-function AlertTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <AccessAlarmIcon className={classes.tabIconLabel} /> Alerts
     </div>
   );
 }

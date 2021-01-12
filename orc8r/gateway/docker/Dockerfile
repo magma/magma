@@ -68,7 +68,8 @@ RUN apt-get -y update && apt-get -y install \
   python-cffi \
   python3-pip \
   python3.5-dev \
-  redis-server
+  redis-server \
+  network-manager
 
 RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
     sh /tmp/get_docker.sh && \
@@ -76,7 +77,7 @@ RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
 
 # Install python code.
 COPY orc8r/gateway/python /tmp/orc8r
-RUN python3.5 -m pip install /tmp/orc8r
+RUN python3.5 -m pip install --no-cache-dir /tmp/orc8r
 
 # Copy the build artifacts.
 COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/

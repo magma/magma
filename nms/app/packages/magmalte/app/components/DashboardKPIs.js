@@ -14,12 +14,12 @@
  * @format
  */
 
+import CardTitleRow from './layout/CardTitleRow';
 import EnodebKPIs from './EnodebKPIs';
 import GatewayKPIs from './GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 
-import {CardTitleRow} from './layout/CardTitleRow';
 import {GpsFixed} from '@material-ui/icons';
 
 export default function () {

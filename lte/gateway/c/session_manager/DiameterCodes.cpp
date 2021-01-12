@@ -13,13 +13,28 @@
 
 #include "DiameterCodes.h"
 
+uint32_t terminator_codes[] = {
+    magma::DIAMETER_END_USER_SERVICE_DENIED,
+    magma::DIAMETER_CREDIT_LIMIT_REACHED,
+};
+
 namespace magma {
+
+bool DiameterCodeHandler::is_permanent_failure(const uint32_t code) {
+  return 5000 <= code && code < 6000;
+}
+
+bool DiameterCodeHandler::is_terminator_failure(const uint32_t code) {
+  for (const uint32_t c : terminator_codes) {
+    if (c == code) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool DiameterCodeHandler::is_transient_failure(const uint32_t code) {
   return 4000 <= code && code < 5000;
 }
 
-// Diameter code of form 5xxx marks a permanent failure
-bool DiameterCodeHandler::is_permanent_failure(const uint32_t code) {
-  return 5000 <= code && code < 6000;
-}
 }  // namespace magma

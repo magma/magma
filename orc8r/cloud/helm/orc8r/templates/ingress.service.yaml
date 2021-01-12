@@ -21,6 +21,7 @@ metadata:
   labels:
     app.kubernetes.io/component: nginx-proxy
 {{ include "labels" . | indent 4 }}
+{{ include "orc8r-labels" . | indent 4 }}
     {{- with .Values.nginx.service.labels }}
 {{ toYaml . | indent 4 }}
     {{- end }}
@@ -66,6 +67,7 @@ metadata:
   labels:
     app.kubernetes.io/component: nginx-proxy
 {{ include "labels" . | indent 4 }}
+{{ include "orc8r-labels" . | indent 4 }}
     {{- with .Values.nginx.service.labels }}
 {{ toYaml . | indent 4 }}
     {{- end }}
@@ -114,6 +116,7 @@ metadata:
   labels:
     app.kubernetes.io/component: nginx-proxy
 {{ include "labels" . | indent 4 }}
+{{ include "orc8r-labels" . | indent 4 }}
     {{- with .Values.nginx.service.labels }}
 {{ toYaml . | indent 4 }}
   {{- end }}

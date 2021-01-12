@@ -87,7 +87,6 @@
     force: yes
     remote_src: yes
   with_items:
-    - generate_dnsd_config.py
     - generate_service_config.py
     - generate_nghttpx_config.py
     - generate_lighttpd_config.py

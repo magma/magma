@@ -33,6 +33,14 @@ func GetTestSubscribers() []*protos.SubscriberData {
 	sub := generateDefaultSub("sub1")
 	subs = append(subs, sub)
 
+	// Default subscriber with real imsi
+	sub = generateDefaultSub("001010000000009")
+	subs = append(subs, sub)
+
+	// Default subscriber with real imsi_2
+	sub = generateDefaultSub("001020000000008")
+	subs = append(subs, sub)
+
 	// Default Subs with a blank AAA server
 	sub = generateDefaultSub("sub1_noAAAsrv")
 	sub.State.TgppAaaServerName = ""

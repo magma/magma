@@ -55,8 +55,9 @@
    "@type": "type.googleapis.com/magma.mconfig.SessionD",
    "logLevel": "INFO",
    "relayEnabled": true,
+   "gxGyRelayEnabled": true,
    "walletExhaustDetection": {
-    "terminateOnExhaust": true
+    "terminateOnExhaust": false
    }
   },
   "aaa_server": {
@@ -121,7 +122,8 @@
    },
    "allowedGrePeers": [
     {"ip": "192.168.70.102"}
-   ]
+   ],
+   "liUes": {}
   },
   "state": {
    "@type": "type.googleapis.com/magma.mconfig.State",
@@ -131,6 +133,7 @@
    "@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
    "logLevel": "INFO",
    "gx": {
+    "disableGx": false,
     "servers": [
       {
        "protocol": "tcp",
@@ -149,6 +152,7 @@
     ]
    },
    "gy": {
+    "disableGy": false,
     "servers": [
       {
        "protocol": "tcp",

@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+10 10 * * * root find /var/log/fluentbit-logs/ -type f -mtime +7 -exec rm {} \;

@@ -48,7 +48,7 @@ func (s *Server) GetConfig() *mconfig.RadiusConfig {
 // New returns new radius server
 func New(cfg *mconfig.RadiusConfig, authRPC protos.AuthenticatorServer, acctRpc protos.AccountingServer) *Server {
 	return &Server{
-		config:     validateConfigs(cfg),
+		config:     ValidateConfigs(cfg),
 		AuthServer: AuthServer{authenticator: authRPC},
 		AcctServer: AcctServer{accounting: acctRpc},
 	}

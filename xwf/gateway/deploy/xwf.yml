@@ -1,3 +1,5 @@
+---
+#
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -7,12 +9,50 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
-#
----
-- name: Set up Express WiFi - Magma support version Access Gateway
+# limitations under the License
+
+- name: Set up Express Wi-FI Magma  Gateway for production
   hosts: localhost
   become: yes
   roles:
-    - role: dhcpd
+    - role: xwfmvars
+      tags:
+         - run_pipelined
+         - fbstatsd
+    - role: pkgrepo
+      tags:
+         - install
+      vars:
+        distribution: "centos"
+        repo: "cwf-prod-redhat"
     - role: ovs
+      tags:
+         - install
+    - role: xwfm
+    - role: dhcpd
+      when: uplink_if is none
+    - role: docker
+      tags:
+         - install_docker
+         - no_ci
+    - role: containers
+      tags:
+         - no_ci
+    - role: exporter
+      tags:
+         - no_ci
+    - role: provision
+      tags:
+         - no_ci
+    - role: fbstatsd
+      tags:
+         - no_ci
+         - fbstatsd
+    - role: system_updates
+      tags:
+         - no_ci
+    - role: deprovision
+      when: xwfm_deprovision | default(False)
+    - role: cleanup
+      tags:
+         - no_ci

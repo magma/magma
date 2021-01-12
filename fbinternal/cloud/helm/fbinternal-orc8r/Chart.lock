@@ -1,0 +1,6 @@
+dependencies:
+- name: orc8rlib
+  repository: file://../../../../orc8r/cloud/helm/orc8rlib
+  version: 0.1.2
+digest: sha256:15874a71d53078b0452e4d032425df0da19281f9244d25a384db721081d81516
+generated: "2020-12-15T02:00:29.330247-05:00"

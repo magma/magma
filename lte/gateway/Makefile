@@ -17,9 +17,9 @@ BUILD_TYPE ?= Debug
 FEATURES ?= agw_of
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
-EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
+EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of mme_oai
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
-AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of
+AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of mme_oai
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
 ifneq ($(words $(strip $(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
@@ -43,8 +43,10 @@ endif
 
 ifeq ($(MAIN_FEATURE),mme)
 # Here force S6A to use freeDiameter
-# Set DS6A_OVER_GRPC=False if using OAI-HSS
 OAI_FLAGS = -DS6A_OVER_GRPC=True
+else ifeq ($(MAIN_FEATURE),mme_oai)
+# Set DS6A_OVER_GRPC=False if using OAI-HSS
+OAI_FLAGS = -DS6A_OVER_GRPC=False
 else ifeq ($(MAIN_FEATURE),agw_gtpnl)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=False
 else ifeq ($(MAIN_FEATURE),agw_of)
@@ -63,15 +65,20 @@ TEST_FLAG = -DBUILD_TESTS=1
 
 all: build
 
-build: build_python build_common build_oai build_sctpd build_session_manager ## Build all
+build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller ## Build all
+
+smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
 test: test_python test_oai test_session_manager ## Run all tests
 
-clean: clean_python  ## Clean all builds
+clean: clean_python clean_envoy_controller ## Clean all builds
 	rm -rf $(C_BUILD)
 
 clean_python: ## Clean Python-only builds
 	make -C $(MAGMA_ROOT)/lte/gateway/python clean
+
+clean_envoy_controller: ## Clean envoy controller build
+	rm -rf  $(GO_BUILD)/envoy_controller
 
 start: ## Start all services
 	sudo service magma@magmad start
@@ -126,7 +133,7 @@ build_python: stop ## Build Python environment
 build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
-build_oai: build_common ## Build OAI
+build_oai: format_oai build_common ## Build OAI
 	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
 build_sctpd: build_common ## Build SCTPD
@@ -134,6 +141,12 @@ build_sctpd: build_common ## Build SCTPD
 
 build_session_manager: build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
+
+build_connection_tracker: build_common ## Build connection tracker
+	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
+
+build_envoy_controller: ## Build envoy controller
+	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
 
 # Catch all for c services that don't have custom flags
 # This works with build_dpi
@@ -147,6 +160,10 @@ format_oai: ## Format OAI
 	find $(GATEWAY_C_DIR)/oai \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 
+format_session_manager: ## Format SessionD
+	find $(GATEWAY_C_DIR)/session_manager \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
@@ -157,6 +174,12 @@ test_oai: build_common ## Run all OAI-specific tests
 # This works with test_dpi and test_session_manager
 test_%: stop build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+
+# format and test c/session_manager
+precommit_sm: format_session_manager test_session_manager
+
+# format and test c/oai
+precommit_oai: format_oai test_oai
 
 # TODO: include coverage of dpim when it is included in make build
 COV_OUTPUT_OAI = $(OAI_BUILD)/coverage.info

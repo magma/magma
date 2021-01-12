@@ -16,12 +16,12 @@ package main
 import (
 	"flag"
 	"log"
-	"magma/orc8r/lib/go/definitions"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/server"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/definitions"
 )
 
 func main() {

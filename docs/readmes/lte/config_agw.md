@@ -14,6 +14,10 @@ working Orchestrator setup. Please follow the instructions in
 https://magma.github.io/magma/docs/orc8r/deploying)" for a
 successful Orchestrator installation.
 
+You will need to set up a super-user in a valid NMS Organization in order to
+use the NMS. See "[NMS Multitenancy](https://magma.github.io/magma/docs/nms/nms_organizations)"
+to complete this step.
+
 You also should have completed all the steps in "[Access Gateway Setup (On Bare Metal)](https://magma.github.io/magma/docs/lte/setup_deb)".
 For this part, we strongly recommend that you SSH into the AGW box from a host
 machine instead of using the AGW directly.
@@ -60,21 +64,18 @@ AGW$ sudo service magma@magmad restart
 
 ## Creating and Configuring Your Network
 
-Navigate to your NMS instance, https://nms.yourdomain.com, and log in with the
-administrator credentials you provisioned when installing Orchestrator. If this
+Navigate to your NMS instance, https://your-org.nms.yourdomain.com, and log in
+with the superuser credentials you provisioned for this organization. If this
 is a fresh Orchestrator install, you will be prompted to create your first
 network. Otherwise, select "Create Network" from the network selection icon
-at the bottom of the left sidebar. Select `lte` as the network type and fill
-the other fields as you see fit.
+at the bottom of the left sidebar.
 
-![Creating a network](assets/nms/createnetwork.png)
+![Creating a network](assets/nms/createnetwork_12.png)
 
-Go back to the network management app using the app selector in the bottom left
-of the screen, then go to "Configure" in the left sidebar, followed by the
-"Network Configuration" tab at the top of the screen. Configure your RAN and
-EPC parameters which are appropriate for your hardware setup.
-
-![Configuring a network](assets/nms/configurenetwork.png)
+Fill out the network creation modal with the parameters that you want. There
+are 3 steps in the modal window, but the network will be created after you hit
+"Save and Continue" on the first screen, so you can exit the modal and
+reconfigure the network later after that.
 
 ## Registering and Configuring Your Access Gateway
 
@@ -91,16 +92,12 @@ Challenge Key:
 MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAECMB9zEbAlLDQLq1K8tgCLO8Kie5IloU4QuAXEjtR19jt0KTkRzTYcBK1XwA+C6ALVKFWtlxQfrPpwOwLE7GFkZv1i7Lzc6dpqLnufSlvE/Xlq4n5K877tIuNac3U/8un
 ```
 
-Navigate to "Gateways" on the NMS via the left navigation bar, hit
-"Add Gateway", and fill out the form using the hardware secrets from above:
+Navigate to "Equipment" on the NMS via the left navigation bar, hit
+"Add Gateway" on the upper right, and fill out the multi-step modal form.
+Use the secrets from above for the "Hardware UUID" and "Challenge Key" fields.
 
-![Creating a gateway](assets/nms/create_agw.png)
-
-After you create your gateway, hit the Edit icon in its table row, select the
-"LTE" tab, and configure your EPC/RAN parameters. Make sure you enable enodeB
-transmit.
-
-![Configuring a gateway](assets/nms/configure_agw.png)
+For now, you won't have any eNodeB's to select in the eNodeB dropdown under the
+"Ran" tab. This is OK, we'll get back to this in a later step.
 
 At this point, you can validate the connection between your AGW and
 Orchestrator:
@@ -113,4 +110,4 @@ AGW$ journalctl -u magma@magmad -f
 # INFO:root:Processing config update gateway_id
 ```
 
-If everything looks OK, you can move on to configuring your enodeB.
+If everything looks OK, you can move on to configuring your eNodeB.

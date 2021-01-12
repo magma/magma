@@ -30,6 +30,9 @@ kind: HACluster
 metadata:
   name: example-hacluster
 spec:
-  gatewayResourceNames:
-    - "example-cwag01"
-    - "example-cwag02"
+  gatewayResources:
+    - gatewayID: "mpk_cwf01"
+      helmReleaseName: "cwf01"
+    - gatewayID: "mpk_cwf02"
+      helmReleaseName: "cwf02"
+  haPairID: "pair1"

@@ -1,0 +1,62 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.orc8r;
+
+option go_package = "magma/orc8r/lib/go/protos";
+
+service CallTraceService {
+  rpc StartCallTrace (StartTraceRequest) returns (StartTraceResponse) {}
+
+  rpc EndCallTrace (EndTraceRequest) returns (EndTraceResponse) {}
+}
+
+message StartTraceRequest {
+  enum TraceType {
+    ALL = 0;
+    SUBSCRIBER = 1;
+    PROTOCOL = 2;
+    INTERFACE = 3;
+  }
+
+  TraceType trace_type = 1;
+  // IMSI specified only if trace_type is SUBSCRIBER
+  string imsi = 2; // Include prefix 'IMSI'
+
+  enum ProtocolName {
+    SCTP = 0;
+    DIAMETER = 1;
+  }
+  // Protocol name specified only if trace_type is PROTOCOL
+  ProtocolName protocol = 3;
+  enum InterfaceName {
+    S1AP = 0;
+    GX = 1;
+    GT = 2;
+  }
+  // Interface name specified only if trace_type is INTERFACE
+  InterfaceName interface = 4;
+}
+
+message StartTraceResponse {
+  bool success = 1; // May fail due to an existing tracing session
+}
+
+message EndTraceRequest {}
+
+message EndTraceResponse {
+  bool success = 1; // May fail due to no existing tracing session
+  bytes trace_content = 2; // Max size of 4MB
+}

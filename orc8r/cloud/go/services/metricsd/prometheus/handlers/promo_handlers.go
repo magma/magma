@@ -23,6 +23,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers/cache"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/tenants"
@@ -30,7 +31,7 @@ import (
 	"magma/orc8r/lib/go/metrics"
 
 	"github.com/labstack/echo"
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 )
 
@@ -64,6 +65,8 @@ const (
 	TargetsMetadata = tenantH.TenantRootPath + obsidian.UrlSep + targetsMetadata
 
 	defaultStepWidth = "15s"
+
+	oneGB = 1024 * 1024 * 1024
 )
 
 func networkQueryRestrictorProvider(networkID string) restrictor.QueryRestrictor {
@@ -226,6 +229,12 @@ type PromQLDataStruct struct {
 	Result     model.Value `json:"result"`
 }
 
+// prometheusSeriesData is the struct the prometheus series api returns
+type prometheusSeriesData struct {
+	Status string           `json:"status"`
+	Data   []model.LabelSet `json:"data"`
+}
+
 var (
 	minTime = time.Unix(math.MinInt64/1000+62135596801, 0).UTC()
 	maxTime = time.Unix(math.MaxInt64/1000-62135596801, 999999999).UTC()
@@ -263,15 +272,38 @@ func TenantSeriesHandlerProvider(api v1.API) func(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
 		}
+
 		series, err := prometheusSeries(c, seriesMatches, api)
 		if err != nil {
 			return err
 		}
-		return c.JSON(http.StatusOK, series)
+		return c.JSON(http.StatusOK, struct {
+			Status string           `json:"status"`
+			Data   []model.LabelSet `json:"data"`
+		}{Status: "success", Data: series})
 	}
 }
 
-func GetTenantPromSeriesHandler(api v1.API) func(c echo.Context) error {
+// GetTenantPromSeriesHandler provides a handler for the /series endpoint
+// spoofed to the same path as in prometheus proper. Used by Grafana only.
+func GetTenantPromSeriesHandler(api v1.API, useCache bool) func(c echo.Context) error {
+	var seriesCache *cache.SeriesCache
+	if useCache {
+		seriesCache = cache.NewSeriesCache(cache.Params{
+			Specs: cache.Specs{
+				OldestAcceptable: 5 * time.Minute,
+				TTL:              30 * time.Minute,
+				LimitBytes:       oneGB,
+			},
+			Backfill: cache.BackfillSpecs{
+				Lookback: 30 * 24 * time.Hour,
+				Width:    3 * time.Hour,
+				Steps:    30,
+			},
+			UpdateFreq: 4 * time.Minute,
+		}, cache.GetCacheUpdateProvider(api))
+	}
+
 	return func(c echo.Context) error {
 		oID, oerr := obsidian.GetTenantID(c)
 		if oerr != nil {
@@ -285,14 +317,28 @@ func GetTenantPromSeriesHandler(api v1.API) func(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
 		}
-		series, err := prometheusSeries(c, seriesMatches, api)
-		if err != nil {
-			return err
+
+		// Check the cache for stored responses
+		if seriesCache != nil {
+			if resp, ok := seriesCache.Get(seriesMatches); ok {
+				return c.JSON(http.StatusOK, prometheusSeriesData{Status: "success", Data: resp})
+			}
 		}
-		return c.JSON(http.StatusOK, struct {
-			Status string           `json:"status"`
-			Data   []model.LabelSet `json:"data"`
-		}{Status: "success", Data: series})
+
+		// If cache miss, query the api and set response in the cache
+		defaultStartTime := time.Now().Add(-3 * time.Hour)
+		defaultEndTime := time.Now()
+		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &defaultStartTime)
+		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &defaultEndTime)
+
+		res, _, err := api.Series(context.Background(), seriesMatches, startTime, endTime)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		if seriesCache != nil {
+			seriesCache.Set(seriesMatches, res)
+		}
+		return c.JSON(http.StatusOK, prometheusSeriesData{Status: "success", Data: res})
 	}
 }
 
@@ -339,15 +385,7 @@ func getSeriesMatches(c echo.Context, matchParam string, queryRestrictor restric
 	return seriesMatchers, nil
 }
 
-/* GetTenantPromV1ValuesHandler returns the values of a given label for a tenant.
- * We can't just proxy the request to Prometheus since this endpoint has no way
- * of restricting the query, so we have to simulate it by doing a series request
- * and then manipulating the result
- *
- * We have found that on large deployments the query time for `api/v1/series`
- * can take a very long time and fail after a while. To fix this, we set the
- * default start time to 3 hours ago, rather than having no limit.
- */
+// GetTenantPromV1ValuesHandler returns the values of a given label for a tenant.
 func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		oID, oerr := obsidian.GetTenantID(c)
@@ -362,7 +400,13 @@ func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		seriesMatchers := []string{}
+
+		restrictedQuery, err := queryRestrictor.RestrictQuery(fmt.Sprintf("{%s=~\".+\"}", labelName))
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+
+		seriesMatchers := []string{restrictedQuery}
 		for _, matcher := range queryRestrictor.Matchers() {
 			seriesMatchers = append(seriesMatchers, fmt.Sprintf("{%s}", matcher.String()))
 		}
@@ -371,16 +415,16 @@ func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &defaultStartTime)
 		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
 
-		// TODO: catch the warnings replacing _
 		res, _, err := api.Series(context.Background(), seriesMatchers, startTime, endTime)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		ret := prometheusValuesData{
-			Status: "success",
-			Data:   getSetOfValuesFromLabel(res, model.LabelName(labelName)),
-		}
-		return c.JSON(http.StatusOK, ret)
+		data := getSetOfValuesFromLabel(res, model.LabelName(labelName))
+
+		return c.JSON(http.StatusOK, prometheusValuesData{
+			Status: "Success",
+			Data:   data,
+		})
 	}
 }
 
@@ -397,7 +441,9 @@ func getSetOfValuesFromLabel(seriesList []model.LabelSet, labelName model.LabelN
 	}
 	ret := make([]string, 0)
 	for val := range values {
-		ret = append(ret, string(val))
+		if val != "" {
+			ret = append(ret, string(val))
+		}
 	}
 	return ret
 }

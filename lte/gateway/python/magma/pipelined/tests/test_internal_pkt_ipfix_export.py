@@ -21,6 +21,7 @@ from lte.protos.policydb_pb2 import FlowMatch
 from lte.protos.pipelined_pb2 import FlowRequest
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
     TestSetup
 from magma.pipelined.tests.pipelined_test_util import create_service_manager, \
@@ -125,9 +126,10 @@ class InternalPktIpfixExportTest(unittest.TestCase):
         self.ue_mac_controller.add_ue_mac_flow(imsi, ue_mac)
 
         flow_match = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.1',
-            ipv4_src='1.2.3.0', tcp_dst=80, tcp_src=51115,
-            direction=FlowMatch.UPLINK
+            ip_proto=FlowMatch.IPPROTO_TCP,
+            ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.1'),
+            ip_src=convert_ipv4_str_to_ip_proto('1.2.3.0'),
+            tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK
         )
         self.dpi_controller.add_classify_flow(
             flow_match, FlowRequest.FLOW_FINAL_CLASSIFICATION,

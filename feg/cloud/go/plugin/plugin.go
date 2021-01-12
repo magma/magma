@@ -18,10 +18,10 @@ package plugin
 
 import (
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/services/feg/obsidian/models"
+	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -46,17 +46,12 @@ func (*FegOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 }
 
 func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
-	return []serde.Serde{
-		// configurator serdes
-		configurator.NewNetworkConfigSerde(feg.FegNetworkType, &models.NetworkFederationConfigs{}),
-		configurator.NewNetworkConfigSerde(feg.FederatedNetworkType, &models.FederatedNetworkConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(feg.FegGatewayType, &models.GatewayFederationConfigs{}),
-	}
+	return []serde.Serde{}
 }
 
-func (*FegOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{
-		&Builder{},
+func (*FegOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
+	return []mconfig.Builder{
+		mconfig.NewRemoteBuilder(feg_service.ServiceName),
 	}
 }
 

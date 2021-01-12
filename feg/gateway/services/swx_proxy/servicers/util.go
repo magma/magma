@@ -14,6 +14,8 @@ limitations under the License.
 package servicers
 
 import (
+	"magma/feg/gateway/plmn_filter"
+
 	"github.com/fiorix/go-diameter/v4/diam"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -31,9 +33,11 @@ func (s *swxProxy) sendDiameterMsg(msg *diam.Message, retryCount uint) error {
 	return err
 }
 
+// IsHlrClient returns true if imsi belongs to any PlmnIds (if configured)
+// it returns false in case there is no PlmnIds configured
 func (s *swxProxy) IsHlrClient(imsi string) bool {
-	if s != nil {
-		return s.config.IsHlrClient(imsi)
+	if s != nil && s.config != nil && len(s.config.HlrPlmnIds) > 0 {
+		return plmn_filter.CheckImsiOnPlmnIdListIfAny(imsi, s.config.HlrPlmnIds)
 	}
 	return false
 }

@@ -65,6 +65,15 @@ typedef struct s_plus_p_gw_eps_bearer_context_information_s {
   pgw_eps_bearer_context_information_t pgw_eps_bearer_context_information;
 } s_plus_p_gw_eps_bearer_context_information_t;
 
+typedef struct sgw_s11_teid_s {
+  teid_t sgw_s11_teid;
+  LIST_ENTRY(sgw_s11_teid_s) entries;
+} sgw_s11_teid_t;
+
+typedef struct spgw_ue_context_s {
+  LIST_HEAD(teid_list_head_s, sgw_s11_teid_s) sgw_s11_teid_list;
+} spgw_ue_context_t;
+
 // Data entry for s11teid2mme
 typedef struct mme_sgw_tunnel_s {
   uint32_t local_teid;   ///< Local tunnel endpoint Identifier
@@ -80,7 +89,7 @@ typedef struct spgw_state_s {
   teid_t tunnel_id;
   uint32_t gtpv1u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
-  hash_table_uint64_ts_t* imsi_teid_htbl;
+  hash_table_ts_t* imsi_ue_context_htbl;
 } spgw_state_t;
 
 void handle_s5_create_session_response(

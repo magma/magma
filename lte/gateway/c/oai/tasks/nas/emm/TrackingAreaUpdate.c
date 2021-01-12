@@ -77,7 +77,8 @@ static int _emm_tracking_area_update_reject(
 static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc);
 static int _emm_tracking_area_update_abort(
     struct emm_context_s* emm_context, struct nas_base_proc_s* base_proc);
-static void _emm_tracking_area_update_t3450_handler(void* args);
+static void _emm_tracking_area_update_t3450_handler(
+    void* args, imsi64_t* imsi64);
 
 static nas_emm_tau_proc_t* _emm_proc_create_procedure_tau(
     ue_mm_context_t* const ue_mm_context, emm_tau_request_ies_t* const ies);
@@ -425,7 +426,8 @@ described for case a above.
 @param [in]args TAU accept data
 */
 //------------------------------------------------------------------------------
-static void _emm_tracking_area_update_t3450_handler(void* args) {
+static void _emm_tracking_area_update_t3450_handler(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_context = (emm_context_t*) (args);
 
@@ -436,6 +438,7 @@ static void _emm_tracking_area_update_t3450_handler(void* args) {
   nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_context);
 
   if (tau_proc) {
+    *imsi64 = emm_context->_imsi64;
     // Requirement MME24.301R10_5.5.3.2.7_c Abnormal cases on the network side -
     // T3450 time-out
     /*
@@ -802,7 +805,7 @@ static int _emm_tracking_area_update_accept(
 
         OAILOG_INFO(
             LOG_NAS_EMM,
-            "EMM-PROC  - Timer T3450 (%ld) expires in %ld"
+            "EMM-PROC  - Timer T3450 %ld expires in %u"
             " seconds (TAU)",
             tau_proc->T3450.id, tau_proc->T3450.sec);
       } else {

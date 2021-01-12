@@ -17,6 +17,7 @@ import (
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -37,23 +38,21 @@ func ListRatingGroups(c echo.Context) error {
 		return nerr
 	}
 
-	ratingGroups, err := configurator.LoadAllEntitiesInNetwork(
+	ents, err := configurator.LoadAllEntitiesOfType(
 		networkID, lte.RatingGroupEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
 	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := map[uint32]*models.RatingGroup{}
-	for _, ratingGroupEnt := range ratingGroups {
-		ratingGroup, err := (&models.RatingGroup{}).FromEntity(ratingGroupEnt)
-		if err != nil {
-			return err
-		}
-		ret[uint32(ratingGroup.ID)] = ratingGroup
+	groupsByID := map[models.RatingGroupID]*models.RatingGroup{}
+	for _, ent := range ents {
+		r := (&models.RatingGroup{}).FromEntity(ent)
+		groupsByID[r.ID] = r
 	}
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, groupsByID)
 }
 
 func CreateRatingGroup(c echo.Context) error {
@@ -70,7 +69,7 @@ func CreateRatingGroup(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.CreateEntity(networkID, group.ToEntity())
+	_, err := configurator.CreateEntity(networkID, group.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -84,10 +83,9 @@ func GetRatingGroup(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
-		networkID,
-		lte.RatingGroupEntityType,
-		ratingGroupID,
+		networkID, lte.RatingGroupEntityType, ratingGroupID,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
 	)
 	switch {
 	case err == merrors.ErrNotFound:
@@ -96,11 +94,7 @@ func GetRatingGroup(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ratingGroup, err := (&models.RatingGroup{}).FromEntity(ent)
-	if err != nil {
-		return echo.ErrNotFound
-	}
-	return c.JSON(http.StatusOK, ratingGroup)
+	return c.JSON(http.StatusOK, (&models.RatingGroup{}).FromEntity(ent))
 }
 
 func UpdateRatingGroup(c echo.Context) error {
@@ -130,7 +124,7 @@ func UpdateRatingGroup(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 
-	_, err = configurator.UpdateEntity(networkID, ratingGroup.ToEntityUpdateCriteria(groupID))
+	_, err = configurator.UpdateEntity(networkID, ratingGroup.ToEntityUpdateCriteria(groupID), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

@@ -1,0 +1,737 @@
+[
+    {
+      "MetricName": "s1_connection",
+      "PromQL": "s1_connection",
+      "Description": "eNodeB S1 connection status",
+      "Category": "eNodeB",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "enodeb_ue_connected",
+      "PromQL": "enodeb_ue_connected",
+      "Description": "eNodeB number of UEs connected",
+      "Category": "eNodeB",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "enodeb_mgmt_connected",
+      "PromQL": "enodeb_mgmt_connected",
+      "Description": "eNodeB management plane connected",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "enodeb_mgmt_configured",
+      "PromQL": "enodeb_mgmt_configured",
+      "Description": "eNodeB is in configured state",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "enodeb_rf_tx_enabled",
+      "PromQL": "enodeb_rf_tx_enabled",
+      "Description": "eNodeB RF transmitter enabled",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "enodeb_rf_tx_desired",
+      "PromQL": "enodeb_rf_tx_desired",
+      "Description": "eNodeB RF transmitter desired state",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "enodeb_gps_connected",
+      "PromQL": "enodeb_gps_connected",
+      "Description": "eNodeB GPS synchronized",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "enodeb_ptp_connected",
+      "PromQL": "enodeb_ptp_connected",
+      "Description": "eNodeB PTP/1588 synchronized",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "enodeb_opstate_enabled",
+      "PromQL": "enodeb_opstate_enabled",
+      "Description": "eNodeB operationally enabled",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "enodeb_reboot_timer_active",
+      "PromQL": "enodeb_reboot_timer_active",
+      "Description": "Is timer for eNodeB reboot active",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "enodeb_reboots",
+      "PromQL": "enodeb_reboots",
+      "Description": "eNodeb reboots counter",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "rcc_estab_attempts",
+      "PromQL": "rcc_estab_attempts",
+      "Description": "RRC establishment attempts",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "rrc_estab_successes",
+      "PromQL": "rrc_estab_successes",
+      "Description": "RRC establishment successes",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "rrc_reestab_attempts",
+      "PromQL": "rrc_reestab_attempts",
+      "Description": "RRC  re-establishment attempts",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "rrc_reestab_attempts_reconf_fail",
+      "PromQL": "rrc_reestab_attempts_reconf_fail",
+      "Description": "RRC  re-establishment attempts due to reconfiguration failure",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "rrc_reestab_attempts_ho_fail",
+      "PromQL": "rrc_reestab_attempts_ho_fail",
+      "Description": "RRC re-establishment attempts due to handover failure",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "rrc_reestab_attempts_other",
+      "PromQL": "rrc_reestab_attempts_other",
+      "Description": "RRC re-establishment attempts due to other cause",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "rrc_reestab_successes",
+      "PromQL": "rrc_reestab_successes",
+      "Description": "RRC re-establishment successes",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_estab_attempts",
+      "PromQL": "erab_estab_attempts",
+      "Description": "ERAB establishment attempts",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_estab_failures",
+      "PromQL": "erab_estab_failures",
+      "Description": "ERAB establishment failures",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_estab_successes",
+      "PromQL": "erab_estab_successes",
+      "Description": "ERAB establishment successes",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_release_requests",
+      "PromQL": "erab_release_requests",
+      "Description": "ERAB release requests",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_release_requests_user_inactivity",
+      "PromQL": "erab_release_requests_user_inactivity",
+      "Description": "ERAB release requests due to user inactivity",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_release_requests_normal",
+      "PromQL": "erab_release_requests_normal",
+      "Description": "ERAB release requests due to normal cause",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_release_requests_radio_resources_not_available",
+      "PromQL": "erab_release_requests_radio_resources_not_available",
+      "Description": "ERAB release requests due to radio resources not available",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_release_requests_reduce_load",
+      "PromQL": "erab_release_requests_reduce_load",
+      "Description": "ERAB release requests due to reducing load in serving cell",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_release_requests_fail_in_radio_proc",
+      "PromQL": "erab_release_requests_fail_in_radio_proc",
+      "Description": "ERAB release requests due to failure in the radio interface procedure",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_release_requests_eutran_reas",
+      "PromQL": "erab_release_requests_eutran_reas",
+      "Description": "ERAB release requests due to EUTRAN generated reasons",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_release_requests_radio_conn_lost",
+      "PromQL": "erab_release_requests_radio_conn_lost",
+      "Description": "ERAB release requests due to radio connection with UE lost",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "erab_release_requests_oam_intervention",
+      "PromQL": "erab_release_requests_oam_intervention",
+      "Description": "ERAB release requests due to OAM intervetion",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "pdcp_user_plane_bytes_ul",
+      "PromQL": "pdcp_user_plane_bytes_ul",
+      "Description": "User plane uplink bytes at PDCP",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "pdcp_user_plane_bytes_dl",
+      "PromQL": "pdcp_user_plane_bytes_dl",
+      "Description": "User plane downlink bytes at PDCP",
+      "Category": "eNodeB",
+      "Service": "enodebd"
+    },
+    {
+      "MetricName": "ip_address_allocated",
+      "PromQL": "ip_address_allocated",
+      "Description": "Total IP addresses allocated",
+      "Category": "AGW",
+      "Service": "mobilityd"
+    },
+    {
+      "MetricName": "ip_address_released",
+      "PromQL": "ip_address_released",
+      "Description": "Total IP addresses released",
+      "Category": "AGW",
+      "Service": "mobilityd"
+    },
+    {
+      "MetricName": "s6a_auth_success",
+      "PromQL": "s6a_auth_success",
+      "Description": "Total successful S6a auth requests",
+      "Category": "AGW",
+      "Service": "subscriberdb"
+    },
+    {
+      "MetricName": "s6a_auth_failure",
+      "PromQL": "s6a_auth_failure",
+      "Description": "Total failed S6a auth requests",
+      "Category": "AGW",
+      "Service": "subscriberdb"
+    },
+    {
+      "MetricName": "s6a_location_update",
+      "PromQL": "s6a_location_update",
+      "Description": "Total S6a lcoation update requests",
+      "Category": "AGW",
+      "Service": "subscriberdb"
+    },
+    {
+      "MetricName": "diameter_capabilities_exchange",
+      "PromQL": "diameter_capabilities_exchange",
+      "Description": "Total Diameter capabilities exchange requests",
+      "Category": "AGW",
+      "Service": "subscriberdb"
+    },
+    {
+      "MetricName": "diameter_watchdog",
+      "PromQL": "diameter_watchdog",
+      "Description": "Total Diameter watchdog requests",
+      "Category": "AGW",
+      "Service": "subscriberdb"
+    },
+    {
+      "MetricName": "diameter_disconnect",
+      "PromQL": "diameter_disconnect",
+      "Description": "Total Diameter disconnect requests",
+      "Category": "AGW",
+      "Service": "subscriberdb"
+    },
+    {
+      "MetricName": "dp_send_msg_error",
+      "PromQL": "dp_send_msg_error",
+      "Description": "Total datapath message send errors",
+      "Category": "AGW",
+      "Service": "pipelined"
+    },
+    {
+      "MetricName": "arp_default_gw_mac_error",
+      "PromQL": "arp_default_gw_mac_error",
+      "Description": "Total errors with default gateway MAC resolution",
+      "Category": "AGW",
+      "Service": "pipelined"
+    },
+    {
+      "MetricName": "openflow_error_msg",
+      "PromQL": "openflow_error_msg",
+      "Description": "Total openflow error messages received by code and type",
+      "Category": "AGW",
+      "Service": "pipelined"
+    },
+    {
+      "MetricName": "unknown_pkt_direction",
+      "PromQL": "unknown_pkt_direction",
+      "Description": "Counts number of times a packet is missing its flow direction",
+      "Category": "AGW",
+      "Service": "pipelined"
+    },
+    {
+      "MetricName": "enforcement_rule_install_fail",
+      "PromQL": "enforcement_rule_install_fail",
+      "Description": "Counts number of times rule install failed in enforcement app",
+      "Category": "AGW",
+      "Service": "pipelined"
+    },
+    {
+      "MetricName": "enforcement_stats_rule_install_fail",
+      "PromQL": "enforcement_stats_rule_install_fail",
+      "Description": "Counts number of times rule install failed in enforcement stats app",
+      "Category": "AGW",
+      "Service": "pipelined"
+    },
+    {
+      "MetricName": "network_iface_status",
+      "PromQL": "network_iface_status",
+      "Description": "Status of a network interface required for data pipeline",
+      "Category": "AGW",
+      "Service": "pipelined"
+    },
+    {
+      "MetricName": "subscriber_icmp_latency_ms",
+      "PromQL": "subscriber_icmp_latency_ms",
+      "Description": "Reported latency for subscriber in milliseconds",
+      "Category": "AGW",
+      "Service": "monitord"
+    },
+    {
+      "MetricName": "magmad_ping_rtt_ms",
+      "PromQL": "magmad_ping_rtt_ms",
+      "Description": "Gateway ping metrics in milliseconds",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "cpu_percent",
+      "PromQL": "cpu_percent",
+      "Description": "System-wide CPU utilization as percentage over 1 second",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "swap_memory_percent",
+      "PromQL": "swap_memory_percent",
+      "Description": "Percent of memory that can be assigned to processes",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "virtual_memory_percent",
+      "PromQL": "virtual_memory_percent",
+      "Description": "Percent of memoery that can be assigned to processes without the system going to swap",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "mem_total",
+      "PromQL": "mem_total",
+      "Description": "Total memory",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "mem_available",
+      "PromQL": "mem_available",
+      "Description": "Available memory",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "mem_used",
+      "PromQL": "mem_used",
+      "Description": "Used memory",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "mem_free",
+      "PromQL": "mem_free",
+      "Description": "Free memory",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "disk_percent",
+      "PromQL": "disk_percent",
+      "Description": "Percent of disk space used for the volume mounted at root",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "bytes_sent",
+      "PromQL": "bytes_sent",
+      "Description": "System-wide network I/O bytes sent",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "bytes_received",
+      "PromQL": "bytes_received",
+      "Description": "System-wide network I/O bytes received",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "temperature",
+      "PromQL": "temperature",
+      "Description": "Temperature readings from system sensors",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "checkin_status",
+      "PromQL": "checkin_status",
+      "Description": "1 for checkin success, and 0 for failure",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "bootstrap_exception",
+      "PromQL": "bootstrap_exception",
+      "Description": "Count for exceptions raised by bootstrapper",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "unexpected_service_restarts",
+      "PromQL": "unexpected_service_restarts",
+      "Description": "Count of unexpected service restarts",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "unattended_upgrade_status",
+      "PromQL": "unattended_upgrade_status",
+      "Description": "Unattended Upgrade status",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "service_restart_status",
+      "PromQL": "service_restart_status",
+      "Description": "Count of service restarts",
+      "Category": "AGW",
+      "Service": "magmad"
+    },
+    {
+      "MetricName": "enb_connected",
+      "PromQL": "enb_connected",
+      "Description": "Number of eNodeb connected to MME",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "ue_registered",
+      "PromQL": "ue_registered",
+      "Description": "Number of UE registered succesfully",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "ue_connected",
+      "PromQL": "ue_connected",
+      "Description": "Number of UE connected",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "ue_attach",
+      "PromQL": "ue_attach",
+      "Description": "Number of UE attach success",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "ue_detach",
+      "PromQL": "ue_detach",
+      "Description": "Number of UE detach",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "s1_setup",
+      "PromQL": "s1_setup",
+      "Description": "Counter for S1 setup success",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "mme_sgs_eps_detach_indication_sent",
+      "PromQL": "mme_sgs_eps_detach_indication_sent",
+      "Description": "SGS EPS detach indication sent",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "sgs_eps_detach_timer_expired",
+      "PromQL": "sgs_eps_detach_timer_expired",
+      "Description": "SGS EPS Detach Timer expired",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "sgs_eps_implicit_detach_timer_expired",
+      "PromQL": "sgs_eps_implicit_detach_timer_expired",
+      "Description": "SGS EPS Implicit detach Timer expired",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "mme_sgs_imsi_detach_indication_sent",
+      "PromQL": "mme_sgs_imsi_detach_indication_sent",
+      "Description": "SGS IMSI detach indication sent",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "sgs_imsi_detach_timer_expired",
+      "PromQL": "sgs_imsi_detach_timer_expired",
+      "Description": "SGS IMSI detach timer expired",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "sgs_imsi_implicit_detach_timer_expired",
+      "PromQL": "sgs_imsi_implicit_detach_timer_expired",
+      "Description": "SGS IMSI implicit detach timer expired",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "mme_spgw_delete_session_rsp",
+      "PromQL": "mme_spgw_delete_session_rsp",
+      "Description": "SPGW delete session response",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "initial_context_setup_failure_received",
+      "PromQL": "initial_context_setup_failure_received",
+      "Description": "Initial context setup failure received",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "nas_service_reject",
+      "PromQL": "nas_service_reject",
+      "Description": "NAS Service Reject",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "mme_s6a_update_location_ans",
+      "PromQL": "mme_s6a_update_location_ans",
+      "Description": "S6a Update location",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "sgsap_paging_reject",
+      "PromQL": "sgsap_paging_reject",
+      "Description": "SGS Paging Reject",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "duplicate_attach_request",
+      "PromQL": "duplicate_attach_request",
+      "Description": "Duplicate attach request",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "authentication_failure",
+      "PromQL": "authentication_failure",
+      "Description": "Auth failure",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "nas_auth_rsp_timer_expired",
+      "PromQL": "nas_auth_rsp_timer_expired",
+      "Description": "NAS Auth response timer expired",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "emm_status_rcvd",
+      "PromQL": "emm_status_rcvd",
+      "Description": "EMM status received",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "emm_status_sent",
+      "PromQL": "emm_status_sent",
+      "Description": "EMM status sent",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "nas_security_mode_command_timer_expired",
+      "PromQL": "nas_security_mode_command_timer_expired",
+      "Description": "NAS security mode command timer expired",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "extended_service_request",
+      "PromQL": "extended_service_request",
+      "Description": "Extended service request",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "tracking_area_update_req",
+      "PromQL": "tracking_area_update_req",
+      "Description": "Tracking area update request",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "tracking_area_update",
+      "PromQL": "tracking_area_update",
+      "Description": "Tracking area update success",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "service_request",
+      "PromQL": "service_request",
+      "Description": "Service request",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "security_mode_reject_received",
+      "PromQL": "security_mode_reject_received",
+      "Description": "Security mode reject received",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "mme_new_association",
+      "PromQL": "mme_new_association",
+      "Description": "New SCTP association",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "ue_context_release_command_timer_expired",
+      "PromQL": "ue_context_release_command_timer_expired",
+      "Description": "UE context release command timer expired",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "enb_sctp_shutdown_ue_clean_up_timer_expired",
+      "PromQL": "enb_sctp_shutdown_ue_clean_up_timer_expired",
+      "Description": "SCTP shutdown UE clean up timer expired",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "ue_context_release_req",
+      "PromQL": "ue_context_release_req",
+      "Description": "UE context release request",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "s1ap_error_ind_rcvd",
+      "PromQL": "s1ap_error_ind_rcvd",
+      "Description": "S1AP error indication received",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "s1_reset_from_enb",
+      "PromQL": "s1_reset_from_enb",
+      "Description": "S1 reset from eNB",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "nas_non_delivery_indication_received",
+      "PromQL": "nas_non_delivery_indication_received",
+      "Description": "NAS non delivery indication received",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "spgw_create_session",
+      "PromQL": "spgw_create_session",
+      "Description": "SPGW create session success",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "ue_pdn_connection",
+      "PromQL": "ue_pdn_connection",
+      "Description": "UE PDN connection",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "ue_pdn_connectivity_req",
+      "PromQL": "ue_pdn_connectivity_req",
+      "Description": "UE PDN connectivity request",
+      "Category": "AGW",
+      "Service": "MME"
+    },
+    {
+      "MetricName": "ue_reported_usage",
+      "PromQL": "ue_reported_usage",
+      "Description": "Reported TX/RX traffic for subscriber / session in bytes",
+      "Category": "AGW",
+      "Service": "sessiond"
+    },
+    {
+      "MetricName": "ue_dropped_usage",
+      "PromQL": "ue_dropped_usage",
+      "Description": "Reported dropped TX/RX traffic for subscriber / session in bytes",
+      "Category": "AGW",
+      "Service": "sessiond"
+    }
+  ]

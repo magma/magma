@@ -1,26 +1,40 @@
-.circleci/ @xjtian @tmdzk
-circleci/ @xjtian @tmdzk
+.circleci/ @tmdzk
+circleci/ @tmdzk @mattymo @119Vik
 
-ci-scripts/ @rdefosse @tmdzk
+ci-scripts/ @rdefosse @tmdzk @mattymo @119Vik
 
-*/cloud/ @xjtian @mpgermano @hcgatewood
+*/cloud/ @mpgermano @hcgatewood
 
-orc8r/ @xjtian @mpgermano @hcgatewood @emakeev
+orc8r/ @mpgermano @hcgatewood @emakeev
+orc8r/tools/packer/ @tmdzk @mattymo @119Vik
+orc8r/cloud/deploy/bare-metal/ @tmdzk @mattymo @119Vik
 
 feg/ @themarwhal @mpgermano @uri200 @emakeev
+cwf/ @themarwhal @mpgermano @uri200 @emakeev
+cwf/gateway/Vagrantfile @mattymo @119Vik @tmdzk
+
 
 openwrt/ @emakeev @uri200
 
 # More specific mappings for lte/gateway will override this top-level one
-lte/gateway @xjtian @ardzoht
+lte/gateway @ardzoht @pshelar
 lte/gateway/c/session_manager @themarwhal @uri200
 lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo
 lte/gateway/c/sctpd @ssanadhya @ulaskozat
+lte/gateway/c/connection_tracker @koolzz
 lte/gateway/docker @rdefosse @tmdzk
 lte/gateway/release @kkahrs
 lte/gateway/python/magma/pipelined @koolzz @pshelar
 lte/gateway/python/integ_tests @ssanadhya @ulaskozat
+lte/gateway/Vagrantfile @mattymo @119Vik @tmdzk
 
-nms/ @karthiksubraveti @andreilee @xjtian
+**/*.pb.go @magma/entire-org
+**/*_swaggergen.go @magma/entire-org
 
-CODEOWNERS @xjtian @amarpad
+# xwf Magma integrations
+xwf/ @AyliD @aharonnovo @r-i-g
+feg/radius @AyliD @aharonnovo @r-i-g @themarwhal @mpgermano @uri200 @emakeev
+
+nms/ @karthiksubraveti @andreilee @Scott8440
+
+CODEOWNERS @amarpad

@@ -13,22 +13,39 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+
 import ActionTable from '../../components/ActionTable';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import ApnContext from '../../components/context/ApnContext';
+import ApnEditDialog from './ApnEdit';
+import CardTitleRow from '../../components/layout/CardTitleRow';
+import JsonEditor from '../../components/JsonEditor';
+import Link from '@material-ui/core/Link';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const APN_TITLE = 'APNs';
+const DEFAULT_APN_CONFIG = {
+  apn_configuration: {
+    ambr: {
+      max_bandwidth_dl: 1000000,
+      max_bandwidth_ul: 1000000,
+    },
+    qos_profile: {
+      class_id: 9,
+      preemption_capability: false,
+      preemption_vulnerability: false,
+      priority_level: 15,
+    },
+  },
+  apn_name: '',
+};
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -91,69 +108,161 @@ const useStyles = makeStyles(theme => ({
 
 type ApnRowType = {
   apnID: string,
-  description: string,
-  qosProfile: number,
-  added: Date,
+  classID: number,
+  arpPriorityLevel: number,
+  maxReqdULBw: number,
+  maxReqDLBw: number,
+  arpPreEmptionCapability: boolean,
+  arpPreEmptionVulnerability: boolean,
 };
 
-export default function ApnOverview() {
+const APN_TITLE = 'APNs';
+function ApnOverview(props: WithAlert) {
   const classes = useStyles();
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const {response, isLoading} = useMagmaAPI(MagmaV1API.getLteByNetworkIdApns, {
-    networkId: networkId,
-  });
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-  const apnRows: Array<ApnRowType> = response
-    ? Object.keys(response).map((apn: string) => {
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const {history, relativeUrl} = useRouter();
+  const [currRow, setCurrRow] = useState<ApnRowType>({});
+  const [open, setOpen] = React.useState(false);
+  const ctx = useContext(ApnContext);
+  const apns = ctx.state;
+  const apnRows: Array<ApnRowType> = apns
+    ? Object.keys(apns).map((apn: string) => {
+        const cfg = apns[apn].apn_configuration;
         return {
           apnID: apn,
-          description: 'Test APN description',
-          qosProfile: 1,
-          added: new Date(0),
+          classID: cfg?.qos_profile.class_id ?? 0,
+          arpPriorityLevel: cfg?.qos_profile.priority_level ?? 0,
+          maxReqdULBw: cfg?.ambr.max_bandwidth_ul ?? 0,
+          maxReqDLBw: cfg?.ambr.max_bandwidth_dl ?? 0,
+          arpPreEmptionCapability:
+            cfg?.qos_profile.preemption_capability ?? false,
+          arpPreEmptionVulnerability:
+            cfg?.qos_profile.preemption_vulnerability ?? false,
         };
       })
     : [];
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3}>
-        <Grid container>
-          <Grid item xs={6}>
-            <Text key="title">
-              <RssFeedIcon /> {APN_TITLE}
-            </Text>
-          </Grid>
-          <Grid
-            container
-            item
-            xs={6}
-            justify="flex-end"
-            alignItems="center"
-            spacing={2}>
-            <Button className={classes.appBarBtn}>Add New APN</Button>
-          </Grid>
-        </Grid>
+      <>
+        <CardTitleRow key="title" icon={RssFeedIcon} label={APN_TITLE} />
+        <ApnEditDialog
+          open={open}
+          onClose={() => setOpen(false)}
+          apn={Object.keys(currRow).length ? apns[currRow.apnID] : undefined}
+        />
+        <ActionTable
+          data={apnRows}
+          columns={[
+            {
+              title: 'Apn ID',
+              field: 'apnID',
+              render: currRow => (
+                <Link
+                  variant="body2"
+                  component="button"
+                  onClick={() => {
+                    setCurrRow(currRow);
+                    setOpen(true);
+                  }}>
+                  {currRow.apnID}
+                </Link>
+              ),
+            },
+            {title: 'Class ID', field: 'classID', type: 'numeric'},
+            {
+              title: 'Priority Level',
+              field: 'arpPriorityLevel',
+              type: 'numeric',
+            },
+            {title: 'Max Reqd UL Bw', field: 'maxReqdULBw', type: 'numeric'},
+            {title: 'Max Reqd DL Bw', field: 'maxReqDLBw', type: 'numeric'},
+            {
+              title: 'Pre-emption Capability',
+              field: 'arpPreEmptionCapability',
+              type: 'numeric',
+            },
+            {
+              title: 'Pre-emption Vulnerability',
+              field: 'arpPreEmptionVulnerability',
+              type: 'numeric',
+            },
+          ]}
+          handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
+          menuItems={[
+            {
+              name: 'Edit',
+              handleFunc: () => {
+                setOpen(true);
+              },
+            },
+            {
+              name: 'Edit JSON',
+              handleFunc: () => {
+                history.push(relativeUrl('/' + currRow.apnID + '/json'));
+              },
+            },
+            {name: 'Deactivate'},
+            {
+              name: 'Remove',
+              handleFunc: () => {
+                props
+                  .confirm(`Are you sure you want to delete ${currRow.apnID}?`)
+                  .then(async confirmed => {
+                    if (!confirmed) {
+                      return;
+                    }
 
-        <Grid item xs={12}>
-          <ActionTable
-            data={apnRows}
-            columns={[
-              {title: 'Apn ID', field: 'apnID'},
-              {title: 'Description', field: 'description'},
-              {title: 'Qos Profile', field: 'qosProfile', type: 'numeric'},
-              {title: 'Added', field: 'added', type: 'datetime'},
-            ]}
-            menuItems={[{name: 'Edit'}, {name: 'Deactivate'}, {name: 'Remove'}]}
-            options={{
-              actionsColumnIndex: -1,
-              pageSizeOptions: [5, 10],
-            }}
-          />
-        </Grid>
-      </Grid>
+                    try {
+                      // trigger deletion
+                      ctx.setState(currRow.apnID);
+                    } catch (e) {
+                      enqueueSnackbar('failed deleting APN ' + currRow.apnID, {
+                        variant: 'error',
+                      });
+                    }
+                  });
+              },
+            },
+          ]}
+          options={{
+            actionsColumnIndex: -1,
+            pageSizeOptions: [5, 10],
+          }}
+        />
+      </>
     </div>
   );
 }
+
+export function ApnJsonConfig() {
+  const {match, history} = useRouter();
+  const [error, setError] = useState('');
+  const apnName: string = match.params.apnId;
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(ApnContext);
+  const apns = ctx.state;
+  const apn: apn = apns[apnName] || DEFAULT_APN_CONFIG;
+  return (
+    <JsonEditor
+      content={apn}
+      error={error}
+      onSave={async apn => {
+        try {
+          if (apn.apn_name === '') {
+            throw Error('Invalid Name');
+          }
+          ctx.setState(apn.apn_name, apn);
+          enqueueSnackbar('APN saved successfully', {
+            variant: 'success',
+          });
+          setError('');
+          history.goBack();
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
+  );
+}
+
+export default withAlert(ApnOverview);

@@ -13,6 +13,9 @@
 
 #include "MagmaService.h"
 #include "MeteringReporter.h"
+#include "MetricsHelpers.h"
+
+using magma::service303::increment_counter;
 
 namespace magma {
 namespace lte {
@@ -69,14 +72,6 @@ void MeteringReporter::report_traffic(
       COUNTER_NAME, unreported_usage_bytes, size_t(3), LABEL_IMSI, imsi.c_str(),
       LABEL_SESSION_ID, session_id.c_str(), LABEL_DIRECTION,
       traffic_direction.c_str());
-}
-
-void MeteringReporter::increment_counter(
-    const char* name, double increment, size_t n_labels, ...) {
-  va_list ap;
-  va_start(ap, n_labels);
-  MetricsSingleton::Instance().IncrementCounter(name, increment, n_labels, ap);
-  va_end(ap);
 }
 
 }  // namespace lte

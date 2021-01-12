@@ -44,9 +44,9 @@ void tmsi_status_to_bytes(const bool* tmsi_status, char* byte_arr) {
 
 // 9.9.3.32 in 3GPP TS 24.301
 void tai_to_bytes(const tai_t* tai, char* byte_arr) {
-  byte_arr[0] = (tai->mcc_digit2 << 4) | (tai->mcc_digit1 & 0x0F);
-  byte_arr[1] = (tai->mnc_digit3 << 4) | (tai->mcc_digit3 & 0x0F);
-  byte_arr[2] = (tai->mnc_digit2 << 4) | (tai->mnc_digit1 & 0x0F);
+  byte_arr[0] = (tai->plmn.mcc_digit2 << 4) | (tai->plmn.mcc_digit1 & 0x0F);
+  byte_arr[1] = (tai->plmn.mnc_digit3 << 4) | (tai->plmn.mcc_digit3 & 0x0F);
+  byte_arr[2] = (tai->plmn.mnc_digit2 << 4) | (tai->plmn.mnc_digit1 & 0x0F);
   byte_arr[3] = tai->tac >> 8;
   byte_arr[4] = tai->tac;
   return;

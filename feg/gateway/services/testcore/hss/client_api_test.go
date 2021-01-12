@@ -15,16 +15,17 @@ package hss_test
 
 import (
 	"context"
+	orcprotos "magma/orc8r/lib/go/protos"
 	"testing"
 
 	"magma/feg/gateway/services/testcore/hss"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/feg/gateway/services/testcore/hss/test_init"
 	lteprotos "magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/status"
 )
 
 func TestHSSClient(t *testing.T) {
@@ -69,8 +70,13 @@ func TestHSSClient(t *testing.T) {
 	// Verify that subscriber was deleted
 	subRes, err = hss.GetSubscriberData(expectedID)
 	assert.Nil(t, subRes)
-	expectedErr := storage.NewUnknownSubscriberError(expectedID)
-	assert.Exactly(t, storage.ConvertStorageErrorToGrpcStatus(expectedErr), err)
+	// check the error matches with a GRPC NewUnknownSubscriberError
+	expectedGrpcErr := storage.ConvertStorageErrorToGrpcStatus(storage.NewUnknownSubscriberError(expectedID))
+	expectedErr, ok := status.FromError(expectedGrpcErr)
+	assert.True(t, ok)
+	actualErr, ok := status.FromError(err)
+	assert.Equal(t, expectedErr.Code(), actualErr.Code())
+	assert.Equal(t, expectedErr.Message(), actualErr.Message())
 
 	_, err = srv.StopService(context.Background(), &orcprotos.Void{})
 	assert.NoError(t, err)

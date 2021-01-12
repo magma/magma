@@ -27,6 +27,9 @@ http {
       '"nginx.client_cn": "$ssl_client_s_dn_cn"'
     '}';
 
+  ## Fix - [emerg]: could not build the map_hash, you should increase
+  map_hash_bucket_size 64;
+
   # See https://kubernetes.github.io/ingress-nginx/examples/grpc/#notes-on-using-responserequest-streams
   grpc_send_timeout 1200s;
   grpc_read_timeout 1200s;
@@ -82,12 +85,33 @@ http {
       {%- if resolver %}
       resolver {{ resolver }};
       {%- endif %}
+
+      {%- if service_registry_mode == 'k8s' %}
+      # certifier is internal only service
+      if ($srv = "certifier") {
+        return 403;
+      }
+      # Helm services don't allow for underscores. Magma convention is
+      # to use underscores in service names, so convert any hyphens in the
+      # k8s service name.
+      set $k8s_svc $srv;
+      if ($k8s_svc ~* "(\w+)[_](\w+)") {
+        set $k8s_svc "$1-$2";
+      }
+      grpc_pass grpc://orc8r-$k8s_svc.{{ backend }}:9180;
+      grpc_set_header Host $srv-orc8r-$k8s_svc.{{ backend }}:9180;
+
+      {%- else %}
       grpc_pass grpc://{{ backend }}:$srvport;
+      grpc_set_header Host $srv-{{ backend }}:$srvport;
+      {%- endif %}
 
       grpc_set_header x-magma-client-cert-cn $ssl_client_s_dn_cn;
       grpc_set_header x-magma-client-cert-serial $ssl_client_serial;
-      grpc_set_header Host $srv-{{ backend }}:$srvport;
     }
+
+    # Setting max allowed size for client requests body to 50MB
+    client_max_body_size 50M;
   }
 
   # Server block for bootstrapper and any other non-clientcert services
@@ -107,7 +131,15 @@ http {
       resolver {{ resolver }};
       {%- endif %}
 
+      {%- if service_registry_mode == 'k8s' %}
+      # Convert underscore to hypen in service name
+      if ($srv ~* "(\w+)[_](\w+)") {
+        set $srv "$1-$2";
+      }
+      grpc_pass grpc://orc8r-$srv.{{ backend }}:9180;
+      {%- else %}
       grpc_pass grpc://{{ backend }}:$open_srvport;
+      {%- endif %}
     }
   }
 
@@ -128,7 +160,12 @@ http {
       {%- if resolver %}
       resolver {{ resolver }};
       {%- endif %}
+
+      {%- if service_registry_mode == 'k8s' %}
+      proxy_pass http://orc8r-obsidian.{{ backend }}:8080;
+      {%- else %}
       proxy_pass http://{{ backend }}:9081;
+      {%- endif %}
 
       proxy_set_header x-magma-client-cert-cn $ssl_client_s_dn_cn;
       proxy_set_header x-magma-client-cert-serial $ssl_client_serial;

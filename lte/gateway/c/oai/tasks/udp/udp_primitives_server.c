@@ -114,7 +114,7 @@ static struct udp_socket_desc_s* udp_server_get_socket_desc_by_sd(int sdP) {
   return udp_sock_p;
 }
 
- static void udp_server_receive_and_process(
+static void udp_server_receive_and_process(
     struct udp_socket_desc_s* udp_sock_pP) {
   OAILOG_DEBUG(
       LOG_UDP, "Inserting new descriptor for task %d, sd %d\n",
@@ -176,8 +176,7 @@ static struct udp_socket_desc_s* udp_server_get_socket_desc_by_sd(int sdP) {
   }
 }
 
-static int
-udp_socket_handler(zloop_t* loop, zmq_pollitem_t* item, void* arg) {
+static int udp_socket_handler(zloop_t* loop, zmq_pollitem_t* item, void* arg) {
   struct udp_socket_desc_s* udp_sock_p = NULL;
 
   pthread_mutex_lock(&udp_socket_list_mutex);
@@ -187,8 +186,7 @@ udp_socket_handler(zloop_t* loop, zmq_pollitem_t* item, void* arg) {
     udp_server_receive_and_process(udp_sock_p);
   } else {
     OAILOG_ERROR(
-        LOG_UDP, "Failed to retrieve the udp socket descriptor %d",
-        item->fd);
+        LOG_UDP, "Failed to retrieve the udp socket descriptor %d", item->fd);
   }
 
   pthread_mutex_unlock(&udp_socket_list_mutex);
@@ -274,8 +272,8 @@ static int udp_server_create_socket_v4(
   STAILQ_INSERT_TAIL(&udp_socket_list, socket_desc_p, entries);
   pthread_mutex_unlock(&udp_socket_list_mutex);
 
-  zmq_pollitem_t item = { 0, sd, ZMQ_POLLIN, 0 };
-  zloop_poller (udp_task_zmq_ctx.event_loop, &item, udp_socket_handler, NULL);
+  zmq_pollitem_t item = {0, sd, ZMQ_POLLIN, 0};
+  zloop_poller(udp_task_zmq_ctx.event_loop, &item, udp_socket_handler, NULL);
 
   return sd;
 }
@@ -356,8 +354,8 @@ static int udp_server_create_socket_v6(
   STAILQ_INSERT_TAIL(&udp_socket_list, socket_desc_p, entries);
   pthread_mutex_unlock(&udp_socket_list_mutex);
 
-  zmq_pollitem_t item = { 0, sd, ZMQ_POLLIN, 0 };
-  zloop_poller (udp_task_zmq_ctx.event_loop, &item, udp_socket_handler, NULL);
+  zmq_pollitem_t item = {0, sd, ZMQ_POLLIN, 0};
+  zloop_poller(udp_task_zmq_ctx.event_loop, &item, udp_socket_handler, NULL);
 
   return sd;
 }

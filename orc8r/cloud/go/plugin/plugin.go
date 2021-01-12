@@ -22,9 +22,8 @@ import (
 	"strings"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -59,7 +58,7 @@ type OrchestratorPlugin interface {
 	// GetMconfigBuilders returns a list of MconfigBuilders to register with
 	// the configurator service. These builder are responsible for constructing
 	// mconfigs to pass down to gateways.
-	GetMconfigBuilders() []configurator.MconfigBuilder
+	GetMconfigBuilders() []mconfig.Builder
 
 	// GetMetricsProfiles returns the metricsd profiles that this module
 	// supplies. This will make specific configurations available for metricsd
@@ -75,8 +74,9 @@ type OrchestratorPlugin interface {
 	// receive data from the orchestrator (e.g. configuration).
 	GetStreamerProviders() []providers.StreamProvider
 
-	// GetStateIndexers returns a list of Indexers to register with the state service.
-	// These indexers are responsible for generating secondary indices mapped to derived state.
+	// GetStateIndexers returns a list of secondary state indexers.
+	// These indexers are responsible for generating secondary indices mapped
+	// to derived state.
 	GetStateIndexers() []indexer.Indexer
 }
 
@@ -101,13 +101,8 @@ func LoadAllPlugins(loader OrchestratorPluginLoader) error {
 	if err != nil {
 		return err
 	}
-
-	metricsConfig, err := config.GetServiceConfig(orc8r.ModuleName, metricsd.ServiceName)
-	if err != nil {
-		return err
-	}
 	for _, p := range plugins {
-		if err := registerPlugin(p, metricsConfig); err != nil {
+		if err := registerPlugin(p); err != nil {
 			return err
 		}
 	}
@@ -176,15 +171,10 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 	return ret, nil
 }
 
-func registerPlugin(plug OrchestratorPlugin, metricsConfig *config.ConfigMap) error {
-	if err := serde.RegisterSerdes(plug.GetSerdes()...); err != nil {
-		return err
-	}
-	if err := obsidian.RegisterAll(plug.GetObsidianHandlers(metricsConfig)); err != nil {
-		return err
-	}
+func registerPlugin(p OrchestratorPlugin) error {
 
-	configurator.RegisterMconfigBuilders(plug.GetMconfigBuilders()...)
+	// Registering a plugin currently has no effect
+	// Plugin code will soon be removed
 
 	return nil
 }

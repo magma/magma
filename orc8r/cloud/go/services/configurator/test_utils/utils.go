@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -25,11 +26,7 @@ import (
 )
 
 func RegisterNetwork(t *testing.T, networkID string, networkName string) {
-	err := configurator.CreateNetwork(
-		configurator.Network{
-			ID:   networkID,
-			Name: networkName,
-		})
+	err := configurator.CreateNetwork(configurator.Network{ID: networkID, Name: networkName}, nil)
 	assert.NoError(t, err)
 }
 
@@ -40,11 +37,11 @@ func RegisterGateway(t *testing.T, networkID string, gatewayID string, record *m
 func RegisterGatewayWithName(t *testing.T, networkID string, gatewayID string, name string, record *models.GatewayDevice) {
 	var gwEntity configurator.NetworkEntity
 	if record != nil {
-		if device.DoesDeviceExist(networkID, orc8r.AccessGatewayRecordType, record.HardwareID) {
+		if exists, _ := device.DoesDeviceExist(networkID, orc8r.AccessGatewayRecordType, record.HardwareID); exists {
 			t.Fatalf("Hwid is already registered %s", record.HardwareID)
 		}
 		// write into device
-		err := device.RegisterDevice(networkID, orc8r.AccessGatewayRecordType, record.HardwareID, record)
+		err := device.RegisterDevice(networkID, orc8r.AccessGatewayRecordType, record.HardwareID, record, serdes.Device)
 		assert.NoError(t, err)
 
 		gwEntity = configurator.NetworkEntity{
@@ -60,9 +57,8 @@ func RegisterGatewayWithName(t *testing.T, networkID string, gatewayID string, n
 			Name: name,
 		}
 	}
-	_, err := configurator.CreateEntity(networkID, gwEntity)
+	_, err := configurator.CreateEntity(networkID, gwEntity, serdes.Entity)
 	assert.NoError(t, err)
-
 }
 
 // RemoveGateway assumes there is a device entity corresponding to the

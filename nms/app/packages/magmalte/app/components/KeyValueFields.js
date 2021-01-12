@@ -25,7 +25,7 @@ import {makeStyles} from '@material-ui/styles';
 const useStyles = makeStyles(() => ({
   container: {
     display: 'block',
-    margin: '5px 0',
+    margin: '10px 0 10px 0',
     whiteSpace: 'nowrap',
     width: '100%',
   },
@@ -37,13 +37,15 @@ const useStyles = makeStyles(() => ({
     width: '240px',
   },
   icon: {
-    width: '30px',
-    height: '30px',
+    width: '40px',
+    height: '40px',
     verticalAlign: 'bottom',
   },
 }));
 
 type Props = {
+  key_label: string,
+  value_label: string,
   keyValuePairs: Array<[string, string]>,
   onChange: (Array<[string, string]>) => void,
 };
@@ -72,14 +74,14 @@ export default function KeyValueFields(props: Props) {
       {props.keyValuePairs.map((pair, index) => (
         <div className={classes.container} key={index}>
           <TextField
-            label="Key"
+            label={props.key_label}
             margin="none"
             value={pair[0]}
             onChange={({target}) => onChange(index, 0, target.value)}
             className={classes.inputKey}
           />
           <TextField
-            label="Value"
+            label={props.value_label}
             margin="none"
             value={pair[1]}
             onChange={({target}) => onChange(index, 1, target.value)}

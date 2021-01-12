@@ -159,6 +159,7 @@ const std::shared_ptr<Channel> ServiceRegistrySingleton::CreateGrpcChannel(
   grpc::ChannelArguments arg;
 
   arg.SetString("grpc.default_authority", authority);
+  arg.SetInt("grpc.keepalive_time_ms", 30*1000);
   std::ostringstream ss;
   ss << ip << ":" << port;
 

@@ -1,5 +1,0 @@
-#!/bin/bash
-set -e
-
-docker push facebookconnectivity-southpoll-dev-docker.jfrog.io/dcsg-dhcpd
-docker push facebookconnectivity-southpoll-dev-docker.jfrog.io/dcsg-httpd

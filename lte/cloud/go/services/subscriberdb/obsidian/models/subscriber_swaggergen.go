@@ -26,8 +26,15 @@ type Subscriber struct {
 	// Base names which are active for this subscriber
 	ActiveBaseNames []models1.BaseName `json:"active_base_names,omitempty"`
 
-	// Policies which are active for this subscriber
-	ActivePolicies []models1.PolicyID `json:"active_policies,omitempty"`
+	// active policies
+	ActivePolicies models1.PolicyIds `json:"active_policies,omitempty"`
+
+	// active policies by apn
+	ActivePoliciesByApn models1.PolicyIdsByApn `json:"active_policies_by_apn,omitempty"`
+
+	// config
+	// Required: true
+	Config *SubscriberConfig `json:"config"`
 
 	// id
 	// Required: true
@@ -39,6 +46,9 @@ type Subscriber struct {
 
 	// monitoring
 	Monitoring *SubscriberStatus `json:"monitoring,omitempty"`
+
+	// msisdn
+	Msisdn Msisdn `json:"msisdn,omitempty"`
 
 	// Optional name associated with the subscriber
 	Name string `json:"name,omitempty"`
@@ -63,6 +73,14 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateActivePoliciesByApn(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateConfig(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
@@ -72,6 +90,10 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateMonitoring(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMsisdn(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -127,15 +149,45 @@ func (m *Subscriber) validateActivePolicies(formats strfmt.Registry) error {
 		return nil
 	}
 
-	for i := 0; i < len(m.ActivePolicies); i++ {
+	if err := m.ActivePolicies.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies")
+		}
+		return err
+	}
 
-		if err := m.ActivePolicies[i].Validate(formats); err != nil {
+	return nil
+}
+
+func (m *Subscriber) validateActivePoliciesByApn(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ActivePoliciesByApn) { // not required
+		return nil
+	}
+
+	if err := m.ActivePoliciesByApn.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies_by_apn")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateConfig(formats strfmt.Registry) error {
+
+	if err := validate.Required("config", "body", m.Config); err != nil {
+		return err
+	}
+
+	if m.Config != nil {
+		if err := m.Config.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("active_policies" + "." + strconv.Itoa(i))
+				return ve.ValidateName("config")
 			}
 			return err
 		}
-
 	}
 
 	return nil
@@ -184,6 +236,22 @@ func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateMsisdn(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Msisdn) { // not required
+		return nil
+	}
+
+	if err := m.Msisdn.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("msisdn")
+		}
+		return err
 	}
 
 	return nil

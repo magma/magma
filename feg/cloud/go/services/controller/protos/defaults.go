@@ -28,8 +28,10 @@ var defaultConfig = Config{
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
 		},
+		PlmnIds: []string{},
 	},
 	Gx: &GxConfig{
+		DisableGx: false,
 		Servers: []*DiamClientConfig{
 			{
 				Protocol:         "tcp",
@@ -43,6 +45,7 @@ var defaultConfig = Config{
 		},
 	},
 	Gy: &GyConfig{
+		DisableGy: false,
 		Servers: []*DiamClientConfig{
 			{
 				Protocol:         "tcp",

@@ -27,23 +27,13 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func getDeviceClient() (protos.DeviceClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
-	if err != nil {
-		initErr := merrors.NewInitError(err, ServiceName)
-		glog.Error(initErr)
-		return nil, initErr
-	}
-	return protos.NewDeviceClient(conn), err
-}
-
-func RegisterDevice(networkID, deviceType, deviceKey string, info interface{}) error {
+func RegisterDevice(networkID, deviceType, deviceKey string, info interface{}, serdes serde.Registry) error {
 	client, err := getDeviceClient()
 	if err != nil {
 		return err
 	}
 
-	serializedInfo, err := serde.Serialize(SerdeDomain, deviceType, info)
+	serializedInfo, err := serde.Serialize(info, deviceType, serdes)
 	if err != nil {
 		return err
 	}
@@ -60,13 +50,13 @@ func RegisterDevice(networkID, deviceType, deviceKey string, info interface{}) e
 	return err
 }
 
-func UpdateDevice(networkID, deviceType, deviceKey string, info interface{}) error {
+func UpdateDevice(networkID, deviceType, deviceKey string, info interface{}, serdes serde.Registry) error {
 	client, err := getDeviceClient()
 	if err != nil {
 		return err
 	}
 
-	serializedInfo, err := serde.Serialize(SerdeDomain, deviceType, info)
+	serializedInfo, err := serde.Serialize(info, deviceType, serdes)
 	if err != nil {
 		return err
 	}
@@ -105,25 +95,15 @@ func DeleteDevice(networkID, deviceType, deviceKey string) error {
 	return DeleteDevices(networkID, []storage.TypeAndKey{{Type: deviceType, Key: deviceKey}})
 }
 
-func GetDevice(networkID, deviceType, deviceKey string) (interface{}, error) {
-	client, err := getDeviceClient()
+func GetDevice(networkID, deviceType, deviceKey string, serdes serde.Registry) (interface{}, error) {
+	device, err := getDevice(networkID, deviceType, deviceKey)
 	if err != nil {
 		return nil, err
 	}
-	deviceID := &protos.DeviceID{Type: deviceType, DeviceID: deviceKey}
-	req := &protos.GetDeviceInfoRequest{NetworkID: networkID, DeviceIDs: []*protos.DeviceID{deviceID}}
-	res, err := client.GetDeviceInfo(context.Background(), req)
-	if err != nil {
-		return nil, err
-	}
-	device, ok := res.DeviceMap[deviceKey]
-	if !ok {
-		return nil, merrors.ErrNotFound
-	}
-	return serde.Deserialize(SerdeDomain, deviceType, device.Info)
+	return serde.Deserialize(device.Info, deviceType, serdes)
 }
 
-func GetDevices(networkID string, deviceType string, deviceIDs []string) (map[string]interface{}, error) {
+func GetDevices(networkID string, deviceType string, deviceIDs []string, serdes serde.Registry) (map[string]interface{}, error) {
 	if len(deviceIDs) == 0 {
 		return map[string]interface{}{}, nil
 	}
@@ -144,7 +124,7 @@ func GetDevices(networkID string, deviceType string, deviceIDs []string) (map[st
 
 	ret := make(map[string]interface{}, len(res.DeviceMap))
 	for k, val := range res.DeviceMap {
-		iVal, err := serde.Deserialize(SerdeDomain, deviceType, val.Info)
+		iVal, err := serde.Deserialize(val.Info, deviceType, serdes)
 		if err != nil {
 			return map[string]interface{}{}, errors.Wrapf(err, "failed to deserialize device %s", k)
 		}
@@ -153,10 +133,41 @@ func GetDevices(networkID string, deviceType string, deviceIDs []string) (map[st
 	return ret, nil
 }
 
-func DoesDeviceExist(networkID, deviceType, deviceID string) bool {
-	_, err := GetDevice(networkID, deviceType, deviceID)
-	if err != nil {
-		return false
+func DoesDeviceExist(networkID, deviceType, deviceID string) (bool, error) {
+	_, err := getDevice(networkID, deviceType, deviceID)
+	if err == merrors.ErrNotFound {
+		return false, nil
 	}
-	return true
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func getDevice(networkID, deviceType, deviceKey string) (*protos.PhysicalEntity, error) {
+	client, err := getDeviceClient()
+	if err != nil {
+		return nil, err
+	}
+	deviceID := &protos.DeviceID{Type: deviceType, DeviceID: deviceKey}
+	req := &protos.GetDeviceInfoRequest{NetworkID: networkID, DeviceIDs: []*protos.DeviceID{deviceID}}
+	res, err := client.GetDeviceInfo(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	device, ok := res.DeviceMap[deviceKey]
+	if !ok {
+		return nil, merrors.ErrNotFound
+	}
+	return device, nil
+}
+
+func getDeviceClient() (protos.DeviceClient, error) {
+	conn, err := registry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := merrors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, initErr
+	}
+	return protos.NewDeviceClient(conn), err
 }

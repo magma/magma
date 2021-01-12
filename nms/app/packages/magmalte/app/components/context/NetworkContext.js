@@ -14,11 +14,11 @@
  * @format
  */
 'use strict';
-
 import React from 'react';
 
 export type NetworkContextType = {
   networkId: ?string,
+  networkType?: string,
 };
 
 export default React.createContext<NetworkContextType>({

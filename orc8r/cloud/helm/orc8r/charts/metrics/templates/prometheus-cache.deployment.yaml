@@ -53,8 +53,12 @@ spec:
           image: {{ required "prometheusCache.image.repository must be provided" .Values.prometheusCache.image.repository }}:{{ .Values.prometheusCache.image.tag }}
           imagePullPolicy: {{ .Values.prometheusCache.image.pullPolicy }}
           ports:
-            - containerPort: 9091
-          args: ["-limit={{ .Values.prometheusCache.limit }}"]
+            - containerPort: 9091 # HTTP
+            - containerPort: 9092 # GRPC
+          args: [
+              "-limit={{ .Values.prometheusCache.limit }}",
+              "-grpc-port=9092",
+          ]
           livenessProbe:
             httpGet:
               path: /

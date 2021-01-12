@@ -45,7 +45,12 @@ func main() {
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 	registry.MustPopulateServices()
 
-	services = registry.ListAllServices()
+	var err error
+	services, err = registry.ListAllServices()
+	if err != nil {
+		fmt.Printf("An error occurred while retrieving services: %s\n", err)
+		os.Exit(2)
+	}
 	gwServices = gateway_registry.ListAllGwServices()
 
 	rootCmd.PersistentFlags().BoolVar(&isGatewayServiceQuery, "gateway-service", false, "query a gateway service")

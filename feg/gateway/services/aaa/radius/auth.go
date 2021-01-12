@@ -116,14 +116,22 @@ func (s *AuthServer) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 		err    error
 	)
 	if eapp.Code() == eap.ResponseCode && eapp.Type() == eap.MethodIdentity {
-		for _, method := range s.authMethods {
-			eapRes, err = s.authenticator.HandleIdentity(r.Context(), &protos.EapIdentity{
-				Payload: eapp,
-				Ctx:     sessionCtx,
-				Method:  uint32(method),
-			})
-			if err == nil {
-				break
+		// First, try to let authenticator choose matching provider
+		eapRes, err = s.authenticator.HandleIdentity(r.Context(), &protos.EapIdentity{
+			Payload: eapp,
+			Ctx:     sessionCtx,
+		})
+		if err != nil {
+			// couldn't find matching provider, iterate over all available providers
+			for _, method := range s.authMethods {
+				eapRes, err = s.authenticator.HandleIdentity(r.Context(), &protos.EapIdentity{
+					Payload: eapp,
+					Ctx:     sessionCtx,
+					Method:  uint32(method),
+				})
+				if err == nil {
+					break
+				}
 			}
 		}
 	} else {
@@ -152,6 +160,10 @@ func (s *AuthServer) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 			userNameAttr = radius.Attribute([]byte(postHandlerCtx.GetIdentity()))
 		}
 		resp.Add(rfc2865.UserName_Type, userNameAttr)
+		// Add optional Acct-Interim-Interval AVP to indicate that we want periodic Interim Updates from the client
+		// If the client does not implement Acct-Interim-Interval AVP, has an alternative configuration or
+		// its accounting is disabled - it'll ignore the AVP (see: https://tools.ietf.org/rfc/rfc2869.html#section-2.1)
+		rfc2869.AcctInterimInterval_Add(resp, defaultAcctInterimUpdateInterval)
 		// Add MPPE keys
 		if rcv, snd, err := GetKeyingAttributes(postHandlerCtx.GetMsk(), r.Secret, r.Authenticator[:]); err != nil {
 			glog.Errorf("keying material generate error for client at %s: %v", r.RemoteAddr, err)

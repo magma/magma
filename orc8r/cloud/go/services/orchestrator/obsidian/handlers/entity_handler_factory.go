@@ -42,10 +42,10 @@ type PartialEntityModel interface {
 // - paramName: the parameter name in the url at which the entity key is stored
 // - model: 	the input and output of the handler and it also provides FromBackendModels
 //   and ToUpdateCriteria to go between the configurator model.
-func GetPartialEntityHandlers(path string, paramName string, model PartialEntityModel) []obsidian.Handler {
+func GetPartialEntityHandlers(path string, paramName string, model PartialEntityModel, serdes serde.Registry) []obsidian.Handler {
 	return []obsidian.Handler{
-		GetPartialUpdateEntityHandler(path, paramName, model),
-		GetPartialReadEntityHandler(path, paramName, model),
+		GetPartialUpdateEntityHandler(path, paramName, model, serdes),
+		GetPartialReadEntityHandler(path, paramName, model, serdes),
 	}
 }
 
@@ -62,7 +62,7 @@ func GetPartialEntityHandlers(path string, paramName string, model PartialEntity
 //		}
 // 		getTierNameHandler := handlers.GetPartialReadEntityHandler(URL, "tier_id", new(models.TierName))
 //      would return a GET handler that can read the tier name of a tier with the specified ID.
-func GetPartialReadEntityHandler(path string, paramName string, model PartialEntityModel) obsidian.Handler {
+func GetPartialReadEntityHandler(path string, paramName string, model PartialEntityModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
 		Methods: obsidian.GET,
@@ -97,7 +97,7 @@ func GetPartialReadEntityHandler(path string, paramName string, model PartialEnt
 // 		}
 // 		updateTierNameHandler := handlers.GetPartialUpdateEntityHandler(URL, "tier_id", new(models.TierName))
 //      would return a PUT handler that updates the tier name of a tier with the specified ID.
-func GetPartialUpdateEntityHandler(path string, paramName string, model PartialEntityModel) obsidian.Handler {
+func GetPartialUpdateEntityHandler(path string, paramName string, model PartialEntityModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
 		Methods: obsidian.PUT,
@@ -116,7 +116,7 @@ func GetPartialUpdateEntityHandler(path string, paramName string, model PartialE
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
-			_, err = configurator.UpdateEntities(networkID, updates)
+			_, err = configurator.UpdateEntities(networkID, updates, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}

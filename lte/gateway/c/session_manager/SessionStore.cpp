@@ -31,12 +31,76 @@ SessionStore::SessionStore(
       store_client_(store_client),
       metering_reporter_(std::make_shared<MeteringReporter>()) {}
 
+bool SessionStore::raw_write_sessions(SessionMap session_map) {
+  // return true;
+  return store_client_->write_sessions(std::move(session_map));
+}
+
 SessionMap SessionStore::read_sessions(const SessionRead& req) {
   return store_client_->read_sessions(req);
 }
 
 SessionMap SessionStore::read_all_sessions() {
   return store_client_->read_all_sessions();
+}
+
+void SessionStore::set_and_save_reporting_flag(
+    bool value, const UpdateSessionRequest& update_session_request,
+    SessionUpdate& session_uc) {
+  MLOG(MDEBUG) << "saving flag is_reporting = " << value << " on session store";
+  auto session_map = store_client_->read_all_sessions();
+
+  for (const CreditUsageUpdate& credit_update :
+       update_session_request.updates()) {
+    const std::string imsi       = credit_update.common_context().sid().id();
+    const std::string session_id = credit_update.session_id();
+    const CreditKey& ckey        = credit_update.usage().charging_key();
+    const std::string mkey       = credit_update.usage().monitoring_key();
+
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << session_id
+                   << " not found when setting set_and_save_reporting_flag";
+      continue;
+    }
+
+    auto& session   = **session_it;
+    auto& credit_uc = session_uc[imsi][session_id];
+
+    if (!session->set_credit_reporting(ckey, value, &credit_uc)) {
+      MLOG(MDEBUG)
+          << session_id
+          << " set_and_save_reporting_flag couldn't set reporting for ckey "
+          << ckey;
+    }
+  }
+
+  for (const UsageMonitoringUpdateRequest& monitor_update :
+       update_session_request.usage_monitors()) {
+    const std::string imsi       = monitor_update.sid();
+    const std::string session_id = monitor_update.session_id();
+    const auto mkey              = monitor_update.update().monitoring_key();
+
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << session_id
+                   << " not found when setting set_and_save_reporting_flag";
+      continue;
+    }
+    auto& session   = **session_it;
+    auto& credit_uc = session_uc[imsi][session_id];
+
+    if (!session->set_monitor_reporting(mkey, value, &credit_uc)) {
+      MLOG(MDEBUG)
+          << session_id
+          << " set_and_save_reporting_flag couldn't set monitors for mkey:"
+          << mkey;
+    }
+  }
+
+  store_client_->write_sessions(std::move(session_map));
 }
 
 void SessionStore::sync_request_numbers(const SessionUpdate& update_criteria) {
@@ -80,8 +144,7 @@ SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
 }
 
 bool SessionStore::create_sessions(
-    const std::string& subscriber_id,
-    std::vector<std::unique_ptr<SessionState>> sessions) {
+    const std::string& subscriber_id, SessionVector sessions) {
   auto session_map           = SessionMap{};
   session_map[subscriber_id] = std::move(sessions);
   store_client_->write_sessions(std::move(session_map));
@@ -95,7 +158,6 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
     subscriber_ids.insert(it.first);
   }
   auto session_map = store_client_->read_sessions(subscriber_ids);
-  MLOG(MDEBUG) << "Merging updates into existing sessions";
   // Now attempt to modify the state
   for (auto& it : session_map) {
     auto imsi = it.first;
@@ -105,7 +167,7 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
       auto session_id = (*it2)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
         auto update = updates[session_id];
-        if (!merge_into_session(*it2, update)) {
+        if (!(*it2)->apply_update_criteria(update)) {
           return false;
         }
         metering_reporter_->report_usage(imsi, session_id, update);
@@ -120,181 +182,77 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
       ++it2;
     }
   }
-  MLOG(MDEBUG) << "Writing into session store";
   return store_client_->write_sessions(std::move(session_map));
 }
 
-bool SessionStore::merge_into_session(
-    std::unique_ptr<SessionState>& session,
-    SessionStateUpdateCriteria& update_criteria) {
-  auto _ = get_default_update_criteria();
-  // FSM State
-  if (update_criteria.is_fsm_updated) {
-    session->set_fsm_state(update_criteria.updated_fsm_state, _);
+optional<SessionVector::iterator> SessionStore::find_session(
+    SessionMap& session_map, SessionSearchCriteria criteria) {
+  auto sm_it = session_map.find(criteria.imsi);
+  if (sm_it == session_map.end()) {
+    return {};
   }
-
-  if (update_criteria.is_pending_event_triggers_updated) {
-    for (auto it : update_criteria.pending_event_triggers) {
-      session->set_event_trigger(it.first, it.second, _);
-      if (it.first == REVALIDATION_TIMEOUT) {
-        session->set_revalidation_time(update_criteria.revalidation_time, _);
-      }
+  auto& sessions = sm_it->second;
+  for (auto it = sessions.begin(); it != sessions.end(); ++it) {
+    switch (criteria.search_type) {
+      case IMSI_AND_SESSION_ID:
+        if ((*it)->get_session_id() == criteria.secondary_key) {
+          return it;
+        }
+        break;
+      case IMSI_AND_TEID:
+        if ((*it)->get_local_teid() == criteria.secondary_key_unit32) {
+          return it;
+        }
+        break;
+      case IMSI_AND_APN:
+        if ((*it)->get_config().common_context.apn() ==
+            criteria.secondary_key) {
+          return it;
+        }
+        break;
+      case IMSI_AND_UE_IPV4:
+        if ((*it)->get_config().common_context.ue_ipv4() ==
+            criteria.secondary_key) {
+          return it;
+        }
+        break;
+      case IMSI_AND_UE_IPV4_OR_IPV6:
+        // cwag case (cwag doesn't store ip)
+        if ((*it)->get_config().common_context.rat_type() ==
+            RATType::TGPP_WLAN) {
+          return it;
+        }
+        // other case(lte,5g)
+        // lte case
+        if ((*it)->get_config().common_context.ue_ipv4() ==
+                criteria.secondary_key ||
+            (*it)->get_config().common_context.ue_ipv6() ==
+                criteria.secondary_key) {
+          return it;
+        }
+        break;
+      case IMSI_AND_BEARER:
+        if ((*it)->get_config().common_context.rat_type() ==
+            RATType::TGPP_LTE) {
+          // lte case
+          if ((*it)
+                  ->get_config()
+                  .rat_specific_context.lte_context()
+                  .bearer_id() == criteria.secondary_key_unit32) {
+            return it;
+          }
+        } else {
+          // 5g and cwag
+          MLOG(MERROR) << "find_session by bearer is not implemented "
+                          "for cwg or 5g. Couldnt find session for "
+                       << criteria.imsi;
+          return it;
+        }
+        break;
     }
+    continue;
   }
-  // Config
-  if (update_criteria.is_config_updated) {
-    session->set_config(update_criteria.updated_config);
-  }
-
-  // Static rules
-  for (const auto& rule_id : update_criteria.static_rules_to_install) {
-    if (session->is_static_rule_installed(rule_id)) {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because static rule already installed: " << rule_id
-                   << std::endl;
-      return false;
-    }
-    if (update_criteria.new_rule_lifetimes.find(rule_id) !=
-        update_criteria.new_rule_lifetimes.end()) {
-      auto lifetime = update_criteria.new_rule_lifetimes[rule_id];
-      session->activate_static_rule(rule_id, lifetime, _);
-    } else if (session->is_static_rule_scheduled(rule_id)) {
-      session->install_scheduled_static_rule(rule_id, _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because rule lifetime is unspecified: " << rule_id
-                   << std::endl;
-      return false;
-    }
-  }
-  for (const auto& rule_id : update_criteria.static_rules_to_uninstall) {
-    if (session->is_static_rule_installed(rule_id)) {
-      session->deactivate_static_rule(rule_id, _);
-    } else if (session->is_static_rule_scheduled(rule_id)) {
-      session->install_scheduled_static_rule(rule_id, _);
-      session->deactivate_static_rule(rule_id, _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because static rule already uninstalled: " << rule_id
-                   << std::endl;
-      return false;
-    }
-  }
-  for (const auto& rule_id : update_criteria.new_scheduled_static_rules) {
-    if (session->is_static_rule_scheduled(rule_id)) {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because static rule already scheduled: " << rule_id
-                   << std::endl;
-      return false;
-    }
-    auto lifetime = update_criteria.new_rule_lifetimes[rule_id];
-    session->schedule_static_rule(rule_id, lifetime, _);
-  }
-
-  // Dynamic rules
-  for (const auto& rule : update_criteria.dynamic_rules_to_install) {
-    if (session->is_dynamic_rule_installed(rule.id())) {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because dynamic rule already installed: " << rule.id()
-                   << std::endl;
-      return false;
-    }
-    if (update_criteria.new_rule_lifetimes.find(rule.id()) !=
-        update_criteria.new_rule_lifetimes.end()) {
-      auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
-      session->insert_dynamic_rule(rule, lifetime, _);
-    } else if (session->is_dynamic_rule_scheduled(rule.id())) {
-      session->install_scheduled_dynamic_rule(rule.id(), _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because rule lifetime is unspecified: " << rule.id()
-                   << std::endl;
-      return false;
-    }
-  }
-  for (const auto& rule_id : update_criteria.dynamic_rules_to_uninstall) {
-    if (session->is_dynamic_rule_installed(rule_id)) {
-      session->remove_dynamic_rule(rule_id, NULL, _);
-    } else if (session->is_dynamic_rule_scheduled(rule_id)) {
-      session->install_scheduled_static_rule(rule_id, _);
-      session->remove_dynamic_rule(rule_id, NULL, _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because dynamic rule already uninstalled: " << rule_id
-                   << std::endl;
-      return false;
-    }
-  }
-  for (const auto& rule : update_criteria.new_scheduled_dynamic_rules) {
-    if (session->is_dynamic_rule_scheduled(rule.id())) {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because dynamic rule already scheduled: " << rule.id()
-                   << std::endl;
-      return false;
-    }
-    auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
-    session->schedule_dynamic_rule(rule, lifetime, _);
-  }
-
-  // Gy Dynamic rules
-  for (const auto& rule : update_criteria.gy_dynamic_rules_to_install) {
-    if (session->is_gy_dynamic_rule_installed(rule.id())) {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because gy dynamic rule already installed: "
-                   << rule.id() << std::endl;
-      return false;
-    }
-    if (update_criteria.new_rule_lifetimes.find(rule.id()) !=
-        update_criteria.new_rule_lifetimes.end()) {
-      auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
-      session->insert_gy_dynamic_rule(rule, lifetime, _);
-      MLOG(MERROR) << "Merge: " << session->get_session_id()
-                   << " gy dynamic rule " << rule.id() << std::endl;
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because gy dynamic rule lifetime is not found"
-                   << std::endl;
-      return false;
-    }
-  }
-  for (const auto& rule_id : update_criteria.gy_dynamic_rules_to_uninstall) {
-    if (session->is_gy_dynamic_rule_installed(rule_id)) {
-      session->remove_gy_dynamic_rule(rule_id, NULL, _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because gy dynamic rule already uninstalled: "
-                   << rule_id << std::endl;
-      return false;
-    }
-  }
-
-  // Charging credit
-  for (const auto& it : update_criteria.charging_credit_map) {
-    auto key           = it.first;
-    auto credit_update = it.second;
-    session->merge_charging_credit_update(key, credit_update);
-  }
-  for (const auto& it : update_criteria.charging_credit_to_install) {
-    auto key           = it.first;
-    auto stored_credit = it.second;
-    session->set_charging_credit(key, ChargingGrant(stored_credit), _);
-  }
-
-  // Monitoring credit
-  if (update_criteria.is_session_level_key_updated) {
-    session->set_session_level_key(update_criteria.updated_session_level_key);
-  }
-  for (const auto& it : update_criteria.monitor_credit_map) {
-    auto key           = it.first;
-    auto credit_update = it.second;
-    session->merge_monitor_updates(key, credit_update);
-  }
-  for (const auto& it : update_criteria.monitor_credit_to_install) {
-    auto key            = it.first;
-    auto stored_monitor = it.second;
-    session->set_monitor(key, Monitor(stored_monitor), _);
-  }
-  return true;
+  return {};
 }
 
 SessionUpdate SessionStore::get_default_session_update(

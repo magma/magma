@@ -17,13 +17,13 @@
 import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
+import CardTitleRow from './layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Text from '../theme/design-system/Text';
 import moment from 'moment';
 
-import {CardTitleFilterRow} from './layout/CardTitleRow';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -33,6 +33,7 @@ export type DateTimeMetricChartProps = {
   title: string,
   queries: Array<string>,
   legendLabels: Array<string>,
+  unit?: string,
 };
 
 const useStyles = makeStyles(_ => ({
@@ -40,6 +41,8 @@ const useStyles = makeStyles(_ => ({
     color: colors.primary.comet,
   },
 }));
+
+const CHART_COLORS = [colors.secondary.dodgerBlue, colors.data.flamePea];
 
 export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
   const classes = useStyles();
@@ -86,16 +89,13 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
 
   return (
     <>
-      <CardTitleFilterRow
-        icon={DataUsageIcon}
-        label={props.title}
-        filter={Filter}
-      />
+      <CardTitleRow icon={DataUsageIcon} label={props.title} filter={Filter} />
       <Card elevation={0}>
         <CardHeader
-          title={<Text variant="body2">Frequency of {props.title}</Text>}
+          title={<Text variant="body2">{props.title}</Text>}
           subheader={
             <AsyncMetric
+              height={300}
               style={{
                 data: {
                   lineTension: 0.2,
@@ -125,11 +125,12 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
                 },
               }}
               label={`Frequency of ${props.title}`}
-              unit=""
+              unit={props.unit ?? ''}
               queries={props.queries}
               timeRange={'3_hours'}
               startEnd={[startDate, endDate]}
               legendLabels={props.legendLabels}
+              chartColors={CHART_COLORS}
             />
           }
         />

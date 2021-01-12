@@ -53,8 +53,8 @@ TEST(test_track_credit, test_session_credit) {
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
   uint64_t total_grant = 300;
-  uint64_t tx_grant = 100;
-  uint64_t rx_grant = 200;
+  uint64_t tx_grant    = 100;
+  uint64_t rx_grant    = 200;
   create_granted_units(&total_grant, &tx_grant, &rx_grant, &gsu);
 
   credit.receive_credit(gsu, &uc);
@@ -96,6 +96,8 @@ TEST(test_add_received_credit, test_session_credit) {
   EXPECT_EQ(credit.get_credit(USED_RX), 60);
   EXPECT_EQ(uc.bucket_deltas[USED_TX], 40);
   EXPECT_EQ(uc.bucket_deltas[USED_RX], 60);
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 100);
 }
 
 TEST(test_collect_updates, test_session_credit) {
@@ -108,6 +110,9 @@ TEST(test_collect_updates, test_session_credit) {
   credit.receive_credit(gsu, &uc);
   credit.add_used_credit(500, 524, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 1024);
+
   auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 500);
   EXPECT_EQ(update.bytes_rx, 524);
@@ -134,6 +139,9 @@ TEST(test_collect_updates_when_nearly_exhausted, test_session_credit) {
   credit.receive_credit(gsu, &uc);
   credit.add_used_credit(300, 500, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 800);
+
   auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 300);
   EXPECT_EQ(update.bytes_rx, 500);
@@ -158,6 +166,8 @@ TEST(test_collect_updates_none_available, test_session_credit) {
   credit.receive_credit(gsu, &uc);
   credit.add_used_credit(400, 399, uc);
   EXPECT_FALSE(credit.is_quota_exhausted(0.8));
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 799);
 }
 
 // The maximum of reported usage is NOT capped by what is granted even when an
@@ -172,6 +182,8 @@ TEST(test_collect_updates_when_overusing, test_session_credit) {
   credit.receive_credit(gsu, &uc);
   credit.add_used_credit(510, 500, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 1000);
   auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 510);
   EXPECT_EQ(update.bytes_rx, 500);
@@ -202,12 +214,21 @@ TEST(test_add_rx_tx_credit, test_session_credit) {
   auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 1000);
   EXPECT_EQ(update.bytes_rx, 0);
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.tx(), 1000);
+  EXPECT_EQ(ru.rx(), 0);
+  EXPECT_EQ(ru.total(), 0);
 
   // receive another tx = 1000, rx = 1000, cumulative: tx = 2000, rx = 2000
   credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TX_AND_RX);
   credit.add_used_credit(50, 2000, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+  ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.tx(), 50);
+  EXPECT_EQ(ru.rx(), 1000);
+  EXPECT_EQ(ru.total(), 0);
+
   auto update2 = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update2.bytes_tx, 50);
   EXPECT_EQ(update2.bytes_rx, 2000);
@@ -223,7 +244,7 @@ TEST(test_counting_algorithm, test_session_credit) {
   SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
-  uint64_t total_grant = 300;
+  uint64_t total_grant = 1000;
   uint64_t tx_grant    = 100;
   uint64_t rx_grant    = 200;
   create_granted_units(&total_grant, &tx_grant, &rx_grant, &gsu);
@@ -231,6 +252,15 @@ TEST(test_counting_algorithm, test_session_credit) {
   // receive total = 300 tx = 100, rx = 200
   credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, ALL_TOTAL_TX_RX);
+  EXPECT_EQ(0, credit.get_credit(ALLOWED_FLOOR_TOTAL));
+  EXPECT_EQ(0, credit.get_credit(ALLOWED_FLOOR_TX));
+  EXPECT_EQ(0, credit.get_credit(ALLOWED_FLOOR_RX));
+  EXPECT_EQ(1000, credit.get_credit(ALLOWED_TOTAL));
+  EXPECT_EQ(
+      100,
+      credit.get_credit(ALLOWED_TX));  // 250 because we overused so 150 + 100
+  EXPECT_EQ(200, credit.get_credit(ALLOWED_RX));
+
   // use tx and rx = 99 + 150 = 249
   credit.add_used_credit(99, 150, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
@@ -243,11 +273,13 @@ TEST(test_counting_algorithm, test_session_credit) {
   // cumulative: total = 600 tx = 200, rx = 400
   credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, ALL_TOTAL_TX_RX);
-  EXPECT_EQ(600, credit.get_credit(ALLOWED_TOTAL));
+  EXPECT_EQ(2000, credit.get_credit(ALLOWED_TOTAL));
   EXPECT_EQ(200, credit.get_credit(ALLOWED_TX));
   EXPECT_EQ(400, credit.get_credit(ALLOWED_RX));
-  EXPECT_EQ(300, credit.get_credit(ALLOWED_FLOOR_TOTAL));
-  EXPECT_EQ(100, credit.get_credit(ALLOWED_FLOOR_TX));
+  EXPECT_EQ(1000, credit.get_credit(ALLOWED_FLOOR_TOTAL));
+  EXPECT_EQ(
+      100,
+      credit.get_credit(ALLOWED_FLOOR_TX));  // 150 because we overused so 150
   EXPECT_EQ(200, credit.get_credit(ALLOWED_FLOOR_RX));
   EXPECT_EQ(99, credit.get_credit(USED_TX));
   EXPECT_EQ(150, credit.get_credit(USED_RX));
@@ -281,10 +313,10 @@ TEST(test_counting_algorithm, test_session_credit) {
   create_granted_units(&total_grant, &tx_grant, &rx_grant, &gsu);
   credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, ALL_TOTAL_TX_RX);
-  EXPECT_EQ(600, credit.get_credit(ALLOWED_TOTAL));
+  EXPECT_EQ(2000, credit.get_credit(ALLOWED_TOTAL));
   EXPECT_EQ(200, credit.get_credit(ALLOWED_TX));
   EXPECT_EQ(400, credit.get_credit(ALLOWED_RX));
-  EXPECT_EQ(300, credit.get_credit(ALLOWED_FLOOR_TOTAL));
+  EXPECT_EQ(1000, credit.get_credit(ALLOWED_FLOOR_TOTAL));
   EXPECT_EQ(100, credit.get_credit(ALLOWED_FLOOR_TX));
   EXPECT_EQ(200, credit.get_credit(ALLOWED_FLOOR_RX));
   EXPECT_EQ(200, credit.get_credit(USED_TX));
@@ -349,7 +381,6 @@ TEST(test_is_quota_exhausted_tx_only, test_session_credit) {
 // Assert that receiving an invalid GSU does not change the way we track
 // credits. If we request an additional quota and receive an empty GSU, the
 // quota should still be exhausted.
-
 TEST(test_is_quota_exhausted_after_empty_grant, test_session_credit) {
   SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
@@ -371,6 +402,35 @@ TEST(test_is_quota_exhausted_after_empty_grant, test_session_credit) {
   // assert uc grant_tracking type has not changed
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+}
+
+TEST(test_get_credit_summary, test_session_credit) {
+  SessionCredit credit;
+  SessionCreditUpdateCriteria uc{};
+  auto summary = credit.get_credit_summary();
+  EXPECT_EQ(summary.usage.bytes_tx, 0);
+  EXPECT_EQ(summary.usage.bytes_rx, 0);
+  EXPECT_EQ(summary.time_of_first_usage, 0);
+  EXPECT_EQ(summary.time_of_last_usage, 0);
+
+  // Expect first_usage > 0 && first_usage == last_usage
+  credit.add_used_credit(64, 32, uc);
+  summary = credit.get_credit_summary();
+  EXPECT_EQ(summary.usage.bytes_tx, 64);
+  EXPECT_EQ(summary.usage.bytes_rx, 32);
+  EXPECT_NE(summary.time_of_first_usage, 0);
+  auto time_of_first_usage = summary.time_of_first_usage;
+  EXPECT_EQ(summary.time_of_last_usage, time_of_first_usage);
+
+  sleep(1);
+  // Expect first_usage > 0 && first_usage < last_usage
+  credit.add_used_credit(64, 32, uc);
+  summary = credit.get_credit_summary();
+  EXPECT_EQ(summary.usage.bytes_tx, 128);
+  EXPECT_EQ(summary.usage.bytes_rx, 64);
+  EXPECT_EQ(summary.time_of_first_usage, time_of_first_usage);
+  EXPECT_NE(summary.time_of_last_usage, time_of_first_usage);
+  EXPECT_GT(summary.time_of_last_usage, summary.time_of_first_usage);
 }
 
 int main(int argc, char** argv) {

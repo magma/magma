@@ -59,6 +59,7 @@ func globalPre(cmd *cobra.Command, args []string) {
 		defer log.SetOutput(os.Stderr)
 	}
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
+	registry.MustPopulateServices()
 }
 
 func getClient() indexer_protos.IndexerManagerClient {

@@ -58,16 +58,39 @@ spec:
         spec:
           description: HAClusterSpec defines the desired state of HACluster
           properties:
-            gatewayResourceNames:
-              description: GatewayResourceNames denotes the list of all gateway resource
-                names in the HACluster
+            gatewayResources:
+              description: GatewayResources denotes the list of all gateway resources
+                in the HACluster
               items:
-                type: string
+                description: GatewayResource defines a gateway in the HACluster
+                properties:
+                  gatewayID:
+                    type: string
+                  helmReleaseName:
+                    type: string
+                required:
+                - gatewayID
+                - helmReleaseName
+                type: object
               maxItems: 2
               minItems: 1
               type: array
+            haPairID:
+              description: HAPairID specifies the associate pair ID in the orchestrator
+                with this HACluster
+              minLength: 1
+              type: string
+            maxConsecutiveActiveErrors:
+              description: MaxConsecutiveActiveErrors denotes the maximum number of
+                errors the HACluster's active can have fetching health status before
+                a failover occurs
+              maximum: 5
+              minimum: 1
+              type: integer
           required:
-          - gatewayResourceNames
+          - gatewayResources
+          - haPairID
+          - maxConsecutiveActiveErrors
           type: object
         status:
           description: HAClusterStatus defines the observed state of HACluster
@@ -80,6 +103,16 @@ spec:
               description: ActiveInitState denotes the initialization state of the
                 active in the HACluster
               type: string
+            consecutiveActiveErrors:
+              description: ConsecutiveActiveErrors denotes the number of consecutive
+                errors that have occurred when the active has been called for health
+                status
+              type: integer
+            consecutiveStandbyErrors:
+              description: ConsecutiveStandbyErrors denotes the number of consecutive
+                errors that have occurred when the standby has been called for health
+                status
+              type: integer
             standbyInitState:
               description: StandbyInitState denotes the initialization state of the
                 standby in the HACluster
@@ -87,6 +120,8 @@ spec:
           required:
           - active
           - activeInitState
+          - consecutiveActiveErrors
+          - consecutiveStandbyErrors
           - standbyInitState
           type: object
       type: object

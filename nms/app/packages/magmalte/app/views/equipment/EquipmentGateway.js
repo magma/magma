@@ -17,21 +17,23 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayTierContext from '../../components/context/GatewayTierContext';
 import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
+import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import isGatewayHealthy from '../../components/GatewayUtils';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -132,6 +134,9 @@ function GatewayTableRaw(props: WithAlert) {
   const classes = useStyles();
   const ctx = useContext(GatewayTierContext);
   const gwCtx = useContext(GatewayContext);
+  const subscriberCtx = useContext(SubscriberContext);
+  const gwSubscriberMap = subscriberCtx.gwSubscriberMap;
+
   const lteGateways = gwCtx.state;
   const {history, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
@@ -164,7 +169,8 @@ function GatewayTableRaw(props: WithAlert) {
         name: gateway.name,
         id: gateway.id,
         num_enodeb: numEnodeBs,
-        num_subscribers: 0,
+        num_subscribers:
+          gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
         health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
         checkInTime: checkInTime,
       });
@@ -184,10 +190,10 @@ function GatewayTableRaw(props: WithAlert) {
 
   return (
     <>
-      <CardTitleFilterRow
+      <CardTitleRow
         key="title"
         icon={CellWifiIcon}
-        label={'Gateways(' + lteGatewayRows.length + ')'}
+        label={`Gateways (${lteGatewayRows.length})`}
         filter={() => (
           <Grid container justify="flex-end" alignItems="center" spacing={1}>
             <Grid item>
@@ -214,16 +220,34 @@ function GatewayTableRaw(props: WithAlert) {
           data={lteGatewayUpgradeRows}
           columns={[
             {title: 'Name', field: 'name', editable: 'never'},
-            {title: 'ID', field: 'id', editable: 'never'},
-            {title: 'Hardware ID', field: 'hardwareId', editable: 'never'},
+            {
+              title: 'ID',
+              field: 'id',
+              editable: 'never',
+              render: currRow => (
+                <Link
+                  variant="body2"
+                  component="button"
+                  onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+                  {currRow.id}
+                </Link>
+              ),
+            },
+            {
+              title: 'Hardware ID',
+              field: 'hardwareId',
+              editable: 'never',
+            },
             {
               title: 'Current Version',
               field: 'currentVersion',
               editable: 'never',
+              width: 250,
             },
             {
               title: 'Tier',
               field: 'tier',
+              width: 100,
               editComponent: props => (
                 <SelectEditComponent
                   {...props}
@@ -266,10 +290,25 @@ function GatewayTableRaw(props: WithAlert) {
           data={lteGatewayRows}
           columns={[
             {title: 'Name', field: 'name'},
-            {title: 'ID', field: 'id'},
-            {title: 'enodeBs', field: 'num_enodeb', type: 'numeric'},
-            {title: 'Subscribers', field: 'num_subscribers', type: 'numeric'},
-            {title: 'Health', field: 'health'},
+            {
+              title: 'ID',
+              field: 'id',
+              render: currRow => (
+                <Link
+                  variant="body2"
+                  component="button"
+                  onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+                  {currRow.id}
+                </Link>
+              ),
+            },
+            {
+              title: 'enodeBs',
+              field: 'num_enodeb',
+              width: 100,
+            },
+            {title: 'Subscribers', field: 'num_subscribers', width: 100},
+            {title: 'Health', field: 'health', width: 100},
             {title: 'Check In Time', field: 'checkInTime', type: 'datetime'},
           ]}
           handleCurrRow={(row: EquipmentGatewayRowType) => setCurrRow(row)}
@@ -306,9 +345,6 @@ function GatewayTableRaw(props: WithAlert) {
                   });
               },
             },
-
-            {name: 'Deactivate'},
-            {name: 'Reboot'},
           ]}
           options={{
             actionsColumnIndex: -1,

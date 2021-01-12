@@ -605,6 +605,9 @@ static int _esm_sap_recv(
             emm_context, pti, ebi, &esm_msg.pdn_connectivity_request, &ebi,
             is_standalone);
 
+        clear_protocol_configuration_options(
+            &esm_msg.pdn_connectivity_request.protocolconfigurationoptions);
+
         if (esm_cause != ESM_CAUSE_SUCCESS) {
           /*
            * Return reject message

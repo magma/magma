@@ -44,6 +44,12 @@
     Mode     tcp
 
 [INPUT]
+    Name     forward
+    Tag      docker.log
+    Listen   0.0.0.0
+    port     24224
+
+[INPUT]
     Name        tcp
     Listen      0.0.0.0
     Port        5170

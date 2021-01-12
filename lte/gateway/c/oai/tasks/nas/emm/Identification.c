@@ -54,7 +54,7 @@ static const char* _emm_identity_type_str[] = {"NOT AVAILABLE", "IMSI", "IMEI",
                                                "IMEISV", "TMSI"};
 
 // callbacks for identification procedure
-static void _identification_t3470_handler(void* args);
+static void _identification_t3470_handler(void* args, imsi64_t* imsi64);
 static int _identification_ll_failure(
     struct emm_context_s* emm_context, struct nas_emm_proc_s* emm_proc);
 static int _identification_non_delivered_ho(
@@ -294,7 +294,7 @@ int emm_proc_identification_complete(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _identification_t3470_handler(void* args) {
+static void _identification_t3470_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_ctx = (emm_context_t*) (args);
 
@@ -311,6 +311,7 @@ static void _identification_t3470_handler(void* args) {
         "T3470 timer (%lx) expired ue id " MME_UE_S1AP_ID_FMT " \n",
         ident_proc->T3470.id, ident_proc->ue_id);
     ident_proc->T3470.id = NAS_TIMER_INACTIVE_ID;
+    *imsi64              = emm_ctx->_imsi64;
     /*
      * Increment the retransmission counter
      */

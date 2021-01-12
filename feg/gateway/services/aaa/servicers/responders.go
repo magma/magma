@@ -16,6 +16,7 @@ package servicers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
@@ -23,7 +24,6 @@ import (
 	"google.golang.org/grpc/codes"
 
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/events"
 	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
@@ -36,6 +36,7 @@ import (
 const (
 	MinIMSILen = 10
 	MaxIMSILen = 16
+	ImsiPrefix = "IMSI"
 )
 
 // AbortSession is a method of AbortSessionResponder service.
@@ -103,7 +104,7 @@ func (srv *accountingService) AbortSession(
 			Apn: sctx.GetApn(),
 		}
 		session_manager.EndSession(req)
-		metrics.EndSession.WithLabelValues(sctx.GetApn(), metrics.DecorateIMSI(sctx.GetImsi())).Inc()
+		metrics.EndSession.WithLabelValues(sctx.GetApn(), metrics.DecorateIMSI(sctx.GetImsi()), sctx.GetMsisdn()).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
 			Id: imsi,
@@ -111,16 +112,8 @@ func (srv *accountingService) AbortSession(
 		directoryd.DeleteRecord(deleteRequest)
 	}
 	srv.sessions.RemoveSession(sid)
-	conn, err := registry.GetConnection(registry.RADIUS)
-	if err != nil {
-		errMsg := fmt.Sprintf("Error getting Radius RPC Connection: %v", err)
-		if srv.config.GetEventLoggingEnabled() {
-			events.LogSessionTerminationFailedEvent(sctx, events.AbortSession, errMsg)
-		}
-		return res, Errorf(codes.Unavailable, errMsg)
-	}
-	radcli := protos.NewAuthorizationClient(conn)
-	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
+
+	err := srv.dae.Disconnect(sctx)
 	if err != nil {
 		res.Code = lteprotos.AbortSessionResult_RADIUS_SERVER_ERROR
 		res.ErrorMessage = fmt.Sprintf(
@@ -200,20 +193,12 @@ func (srv *accountingService) TerminateRegistration(
 			Apn: sctx.GetApn(),
 		}
 		session_manager.EndSession(req)
-		metrics.EndSession.WithLabelValues(sctx.GetApn(), sid.Id).Inc()
+		metrics.EndSession.WithLabelValues(sctx.GetApn(), sid.Id, sctx.GetMsisdn()).Inc()
 	}
 
 	srv.sessions.RemoveSession(sid)
-	conn, err := registry.GetConnection(registry.RADIUS)
-	if err != nil {
-		errMsg := fmt.Sprintf("Error getting Radius RPC Connection: %v", err)
-		if srv.config.GetEventLoggingEnabled() {
-			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, errMsg)
-		}
-		return res, Errorf(codes.Unavailable, errMsg)
-	}
-	radcli := protos.NewAuthorizationClient(conn)
-	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
+
+	err := srv.dae.Disconnect(sctx)
 	if err != nil {
 		if srv.config.GetEventLoggingEnabled() {
 			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, err.Error())
@@ -223,4 +208,96 @@ func (srv *accountingService) TerminateRegistration(
 		events.LogSessionTerminationSucceededEvent(sctx, events.RegistrationTermination)
 	}
 	return res, err
+}
+
+// CancelLocation fulfils S6a's CLR and disconnect UE from AAA if successful
+func (srv *accountingService) CancelLocation(
+	_ context.Context, req *fegprotos.CancelLocationRequest) (*fegprotos.CancelLocationAnswer, error) {
+
+	res := &fegprotos.CancelLocationAnswer{}
+	if req == nil {
+		return res, Errorf(codes.InvalidArgument, "Nil CLR Request")
+	}
+	imsi := req.GetUserName()
+	if len(imsi) < MinIMSILen {
+		return res, Errorf(codes.InvalidArgument, "Invalid CLR IMSI: %s", imsi)
+	}
+	res.ErrorCode = srv.s6aDisconnectUser(imsi)
+	return res, nil
+}
+
+// Reset fulfils S6a's RSR and disconnect UE from AAA if successful
+func (srv *accountingService) Reset(_ context.Context, req *fegprotos.ResetRequest) (*fegprotos.ResetAnswer, error) {
+	res := &fegprotos.ResetAnswer{}
+	if req == nil {
+		return res, Errorf(codes.InvalidArgument, "Nil RSR Request")
+	}
+	imsis := req.GetUserId()
+	if len(imsis) == 0 { // we do not support reset all request
+		glog.Warning("S6a Reset ALL is not supported")
+		res.ErrorCode = fegprotos.ErrorCode_COMMAND_UNSUPORTED
+		return res, nil
+	}
+	for _, imsi := range imsis {
+		if len(imsi) < MinIMSILen {
+			glog.Errorf("Invalid RSR IMSI: %s", imsi)
+			continue
+		}
+		diamCode := srv.s6aDisconnectUser(imsi)
+		switch diamCode {
+		case fegprotos.ErrorCode_SUCCESS:
+			if res.ErrorCode == fegprotos.ErrorCode_UNDEFINED {
+				res.ErrorCode = diamCode
+			} else if res.ErrorCode != fegprotos.ErrorCode_SUCCESS {
+				res.ErrorCode = fegprotos.ErrorCode_LIMITED_SUCCESS
+			}
+		default:
+			if res.ErrorCode != fegprotos.ErrorCode_LIMITED_SUCCESS {
+				if res.ErrorCode == fegprotos.ErrorCode_SUCCESS {
+					res.ErrorCode = fegprotos.ErrorCode_LIMITED_SUCCESS
+				} else {
+					res.ErrorCode = diamCode
+				}
+			}
+		}
+	}
+	return res, nil
+}
+
+func (srv *accountingService) s6aDisconnectUser(imsi string) fegprotos.ErrorCode {
+	if strings.HasPrefix(imsi, ImsiPrefix) {
+		imsi = imsi[len(ImsiPrefix):]
+	}
+	sid := srv.sessions.FindSession(imsi)
+	if len(sid) == 0 {
+		glog.Errorf("radius session for S6a IMSI: %s is not found", imsi)
+		return fegprotos.ErrorCode_USER_UNKNOWN
+	}
+	s := srv.sessions.GetSession(sid)
+	if s == nil {
+		glog.Errorf("Session for radius SID: %s and S6a IMSI: %s is not found", sid, imsi)
+		return fegprotos.ErrorCode_UNKNOWN_SESSION_ID
+	}
+	s.Lock()
+	sctx := proto.Clone(s.GetCtx()).(*protos.Context)
+	s.Unlock()
+
+	deleteRequest := &orcprotos.DeleteRecordRequest{Id: imsi}
+	directoryd.DeleteRecord(deleteRequest) // remove it from directoryd
+
+	if srv.config.GetAccountingEnabled() {
+		sid := makeSID(imsi)
+		_, err := session_manager.EndSession(&lteprotos.LocalEndSessionRequest{Sid: sid, Apn: sctx.GetApn()})
+		metrics.EndSession.WithLabelValues(sctx.GetApn(), sid.Id, sctx.GetMsisdn()).Inc()
+		if err != nil {
+			glog.Errorf("EndSession failure: %v for S6a IMSI: %s", err, imsi)
+		}
+	}
+	srv.sessions.RemoveSession(sid)
+	err := srv.dae.Disconnect(sctx)
+	if err != nil {
+		glog.Errorf("DAE failure: %v for S6a IMSI: %s", err, imsi)
+		return fegprotos.ErrorCode_LIMITED_SUCCESS
+	}
+	return fegprotos.ErrorCode_SUCCESS
 }

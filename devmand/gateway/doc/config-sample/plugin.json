@@ -1,5 +1,0 @@
-{
-  "grpcPlugins":[
-    {"id":"nodejsapp", "endpoint":"localhost:50051"}
-  ]
-}

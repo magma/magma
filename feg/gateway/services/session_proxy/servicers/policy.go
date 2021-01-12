@@ -27,32 +27,72 @@ import (
 	"github.com/golang/glog"
 )
 
+// sendInitialGxRequestOrGenerateEmptyResponse generates an empty response in case Gx is disabled.
+// otherwise it sends the inital request to PCRF
+func (srv *CentralSessionController) sendInitialGxRequestOrGenerateEmptyResponse(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
+	if srv.cfg.DisableGx {
+		return generateGxLessCCAInit()
+	}
+	return srv.sendInitialGxRequest(imsi, pReq)
+}
+
+// sendInitialGxRequest sends the inital request to PCRF. Returns a response
 func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
-	var qos *gx.QosRequestInfo
-	if pReq.GetQosInfo() != nil {
-		qos = (&gx.QosRequestInfo{}).FromProtos(pReq.GetQosInfo())
+	common := pReq.GetCommonContext()
+	ratType := common.GetRatType()
+	request := &gx.CreditControlRequest{
+		SessionID:      pReq.GetSessionId(),
+		Type:           credit_control.CRTInit,
+		IMSI:           imsi,
+		RequestNumber:  0,
+		IPAddr:         common.GetUeIpv4(),
+		IPv6Addr:       common.GetUeIpv6(),
+		Apn:            common.GetApn(),
+		Msisdn:         common.GetMsisdn(),
+		RATType:        gx.GetRATType(ratType),
+		IPCANType:      gx.GetIPCANType(ratType),
+		AccessTimezone: pReq.GetAccessTimezone(),
 	}
 
-	request := &gx.CreditControlRequest{
-		SessionID:     pReq.SessionId,
-		Type:          credit_control.CRTInit,
-		IMSI:          imsi,
-		RequestNumber: 0,
-		IPAddr:        pReq.UeIpv4,
-		SpgwIPV4:      pReq.SpgwIpv4,
-		Apn:           pReq.Apn,
-		Msisdn:        pReq.Msisdn,
-		Imei:          pReq.Imei,
-		PlmnID:        pReq.PlmnId,
-		UserLocation:  pReq.UserLocation,
-		GcID:          pReq.GcId,
-		Qos:           qos,
-		HardwareAddr:  pReq.HardwareAddr,
-		RATType:       gx.GetRATType(pReq.RatType),
-		IPCANType:     gx.GetIPCANType(pReq.RatType),
+	if pReq.RatSpecificContext != nil {
+		ratSpecific := pReq.GetRatSpecificContext().GetContext()
+		switch context := ratSpecific.(type) {
+		case *protos.RatSpecificContext_LteContext:
+			lteContext := context.LteContext
+			request.SpgwIPV4 = lteContext.GetSpgwIpv4()
+			request.Imei = lteContext.GetImei()
+			request.PlmnID = lteContext.GetPlmnId()
+			request.UserLocation = lteContext.GetUserLocation()
+			request.ChargingCharacteristics = lteContext.GetChargingCharacteristics()
+			if lteContext.GetQosInfo() != nil {
+				request.Qos = (&gx.QosRequestInfo{}).FromProtos(lteContext.GetQosInfo())
+			}
+			break
+		case *protos.RatSpecificContext_WlanContext:
+			request.HardwareAddr = context.WlanContext.GetMacAddrBinary()
+			break
+		}
+	} else {
+		glog.Warning("No RatSpecificContext is specified")
 	}
 
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
+}
+
+// generateGxLessCCAInit generates a creditControlAnswer for the case Gx is disabled.
+func generateGxLessCCAInit() (*gx.CreditControlAnswer, error) {
+	return &gx.CreditControlAnswer{
+		ResultCode:             uint32(diameter.SuccessCode),
+		ExperimentalResultCode: 0,
+		SessionID:              "",
+		OriginHost:             "gx-less.magma.com",
+		RequestNumber:          0,
+		RuleInstallAVP:         []*gx.RuleInstallAVP{},
+		RuleRemoveAVP:          []*gx.RuleRemoveAVP{},
+		UsageMonitors:          []*gx.UsageMonitoringInfo{},
+		EventTriggers:          []gx.EventTrigger{},
+		RevalidationTime:       nil,
+	}, nil
 }
 
 func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.SessionTerminateRequest) (*gx.CreditControlAnswer, error) {
@@ -61,15 +101,16 @@ func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.S
 		reports = append(reports, (&gx.UsageReport{}).FromUsageMonitorUpdate(update))
 	}
 	request := &gx.CreditControlRequest{
-		SessionID:     pRequest.SessionId,
-		Type:          credit_control.CRTTerminate,
-		IMSI:          credit_control.RemoveIMSIPrefix(pRequest.Sid),
-		RequestNumber: pRequest.RequestNumber,
-		IPAddr:        pRequest.UeIpv4,
-		UsageReports:  reports,
-		RATType:       gx.GetRATType(pRequest.RatType),
-		IPCANType:     gx.GetIPCANType(pRequest.RatType),
-		TgppCtx:       pRequest.GetTgppCtx(),
+		SessionID:               pRequest.SessionId,
+		Type:                    credit_control.CRTTerminate,
+		IMSI:                    credit_control.RemoveIMSIPrefix(pRequest.Sid),
+		RequestNumber:           pRequest.RequestNumber,
+		IPAddr:                  pRequest.UeIpv4,
+		UsageReports:            reports,
+		RATType:                 gx.GetRATType(pRequest.RatType),
+		IPCANType:               gx.GetIPCANType(pRequest.RatType),
+		TgppCtx:                 pRequest.GetTgppCtx(),
+		ChargingCharacteristics: pRequest.ChargingCharacteristics,
 	}
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }
@@ -292,6 +333,7 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(
 			Action:        protos.UsageMonitoringCredit_DISABLE,
 			MonitoringKey: request.UsageReports[0].MonitoringKey,
 			Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
+
 	}
 
 	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(

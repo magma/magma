@@ -67,14 +67,6 @@
   apt:
     update_cache: yes
 
-- name: Installing magma.
-  become: yes
-  apt:
-    name: "{{ packages }}"
-  vars:
-    packages:
-      - magma
-
 - name: Configuring magma apt preferences.
   shell: "{{ item }}"
   become: yes
@@ -83,35 +75,71 @@
     - 'echo "Pin: origin packages.magma.etagecom.io" >> /etc/apt/preferences.d/magma-preferences'
     - 'echo "Pin-Priority: 900" >> /etc/apt/preferences.d/magma-preferences'
 
+- name: Preconfigure wireshark (tshark) SUID property
+  become: yes
+  ignore_errors: yes
+  shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
+
+- name: Installing magma.
+  become: yes
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - magma
+
 - name: Start service openvswitch-switch.
   become: yes
   service:
     name: openvswitch-switch
     state: started
+  tags:
+    - skipfirstinstall
 
 # Ansible's service module doesn't support wildcards so we have to use shell
 - name: Stop all magma services.
   become: yes
   shell: service magma@* stop
+  tags:
+    - skipfirstinstall
 
 - name: Bring up gtp_br0
   shell: ifup gtp_br0
   become: yes
+  tags:
+    - skipfirstinstall
 
 - name: Bring up mtr0
   shell: ifup mtr0
   become: yes
+  tags:
+    - skipfirstinstall
 
 - name: Bring up uplink_br0
   shell: ifup uplink_br0
   become: yes
+  tags:
+    - skipfirstinstall
+
+- name: Bring up ipfix0
+  shell: ifup ipfix0
+  become: yes
+  tags:
+    - skipfirstinstall
 
 - name: Bring up dhcp0
   shell: ifup dhcp0
   become: yes
+  tags:
+    - skipfirstinstall
 
 - name: Start service magma@magmad.
   become: yes
   service:
     name: magma@magmad
     state: started
+  tags:
+    - skipfirstinstall
+
+- name: Install ansible community collection
+  shell: ansible-galaxy collection install community.general

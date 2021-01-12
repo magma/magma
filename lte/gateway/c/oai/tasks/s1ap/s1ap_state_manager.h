@@ -80,7 +80,7 @@ class S1apStateManager
   /**
    * Serializes s1ap_imsi_map to proto and saves it into data store
    */
-  void put_s1ap_imsi_map();
+  void write_s1ap_imsi_map_to_db();
 
   /**
    * Returns a pointer to s1ap_imsi_map

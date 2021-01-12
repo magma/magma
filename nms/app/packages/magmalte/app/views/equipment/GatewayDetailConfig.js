@@ -20,6 +20,7 @@ import type {lte_gateway} from '@fbcnms/magma-api';
 import ActionTable from '../../components/ActionTable';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../components/context/EnodebContext';
 import GatewayContext from '../../components/context/GatewayContext';
@@ -29,7 +30,7 @@ import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
+import {DynamicServices} from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
@@ -57,16 +58,19 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function GatewayJsonConfig() {
-  const {match} = useRouter();
+  const {match, history} = useRouter();
   const [error, setError] = useState('');
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
-
+  const {['status']: _status, ...gwInfoJson} = gwInfo;
   return (
     <JsonEditor
-      content={gwInfo}
+      content={{
+        ...gwInfoJson,
+        connected_enodeb_serials: gwInfoJson.connected_enodeb_serials ?? [],
+      }}
       error={error}
       onSave={async gateway => {
         try {
@@ -75,6 +79,7 @@ export function GatewayJsonConfig() {
             variant: 'success',
           });
           setError('');
+          history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -114,7 +119,7 @@ export default function GatewayConfig() {
     );
   }
 
-  function editAggregations() {
+  function editDynamicServices() {
     return (
       <AddEditGatewayButton
         title={'Edit'}
@@ -155,7 +160,7 @@ export default function GatewayConfig() {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Grid item xs={12}>
-            <CardTitleFilterRow
+            <CardTitleRow
               icon={SettingsIcon}
               label="Config"
               filter={ConfigFilter}
@@ -165,26 +170,26 @@ export default function GatewayConfig() {
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Gateway" filter={editGateway} />
+                  <CardTitleRow label="Gateway" filter={editGateway} />
                   <GatewayInfoConfig gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow
-                    label="Aggregations"
-                    filter={editAggregations}
+                  <CardTitleRow
+                    label="Dynamic Services"
+                    filter={editDynamicServices}
                   />
-                  <GatewayAggregation gwInfo={gwInfo} />
+                  <GatewayDynamicServices gwInfo={gwInfo} />
                 </Grid>
               </Grid>
             </Grid>
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="EPC" filter={editEPC} />
+                  <CardTitleRow label="EPC" filter={editEPC} />
                   <GatewayEPC gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Ran" filter={editRan} />
+                  <CardTitleRow label="Ran" filter={editRan} />
                   <GatewayRAN gwInfo={gwInfo} />
                 </Grid>
               </Grid>
@@ -267,29 +272,40 @@ function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
   return <DataGrid data={data} />;
 }
 
-function GatewayAggregation({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayDynamicServices({gwInfo}: {gwInfo: lte_gateway}) {
   const logAggregation = !!gwInfo.magmad.dynamic_services?.includes(
-    'td-agent-bit',
+    DynamicServices.TD_AGENT_BIT,
   );
   const eventAggregation = !!gwInfo.magmad?.dynamic_services?.includes(
-    'eventd',
+    DynamicServices.EVENTD,
   );
-  const aggregations: DataRows[] = [
+  const cpeMonitoring = !!gwInfo.magmad?.dynamic_services?.includes(
+    DynamicServices.MONITORD,
+  );
+  const dynamicServices: DataRows[] = [
     [
       {
-        category: 'Aggregation',
+        category: 'Log Aggregation',
         value: logAggregation ? 'Enabled' : 'Disabled',
-        statusCircle: false,
+        statusCircle: true,
+        status: logAggregation,
       },
       {
-        category: 'Aggregation',
+        category: 'Event Aggregation',
         value: eventAggregation ? 'Enabled' : 'Disabled',
-        statusCircle: false,
+        statusCircle: true,
+        status: eventAggregation,
+      },
+      {
+        category: 'CPE Monitoring',
+        value: cpeMonitoring ? 'Enabled' : 'Disabled',
+        statusCircle: true,
+        status: cpeMonitoring,
       },
     ],
   ];
 
-  return <DataGrid data={aggregations} />;
+  return <DataGrid data={dynamicServices} />;
 }
 
 function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
@@ -335,14 +351,23 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
   const enbInfo =
     gwInfo.connected_enodeb_serials?.reduce(
       (enbs: {[string]: EnodebInfo}, serial: string) => {
-        if (enbCtx.state.enbInfo[serial] != null) {
+        if (enbCtx?.state?.enbInfo?.[serial] != null) {
           enbs[serial] = enbCtx.state.enbInfo[serial];
         }
         return enbs;
       },
       {},
     ) || {};
+  const dhcpServiceStatus = gwInfo.cellular.dns?.dhcp_server_enabled ?? true;
   const ran: DataRows[] = [
+    [
+      {
+        category: 'eNodeB DHCP Service',
+        value: dhcpServiceStatus ? 'Enabled' : 'Disabled',
+        statusCircle: true,
+        status: dhcpServiceStatus,
+      },
+    ],
     [
       {
         category: 'PCI',

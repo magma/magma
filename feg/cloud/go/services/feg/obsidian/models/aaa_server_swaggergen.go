@@ -8,6 +8,7 @@ package models
 import (
 	strfmt "github.com/go-openapi/strfmt"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
 )
 
@@ -25,11 +26,41 @@ type AaaServer struct {
 	EventLoggingEnabled bool `json:"event_logging_enabled,omitempty"`
 
 	// idle session timeout ms
-	IDLESessionTimeoutMs uint32 `json:"idle_session_timeout_ms,omitempty" magma_alt_name:"IdleSessionTimeoutMs"`
+	IdleSessionTimeoutMs uint32 `json:"idle_session_timeout_ms,omitempty" magma_alt_name:"IdleSessionTimeoutMs"`
+
+	// radius config
+	RadiusConfig *RadiusConfig `json:"radius_config,omitempty"`
 }
 
 // Validate validates this aaa server
 func (m *AaaServer) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateRadiusConfig(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *AaaServer) validateRadiusConfig(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.RadiusConfig) { // not required
+		return nil
+	}
+
+	if m.RadiusConfig != nil {
+		if err := m.RadiusConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("radius_config")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 

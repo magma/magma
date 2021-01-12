@@ -86,7 +86,7 @@ void mme_app_send_delete_session_request(
       AF_INET;
   OAI_GCC_DIAG_OFF("-Wpointer-to-int-cast");
   S11_DELETE_SESSION_REQUEST(message_p).sender_fteid_for_cp.teid =
-      (teid_t) ue_context_p;
+      (teid_t) ue_context_p->mme_teid_s11;
   OAI_GCC_DIAG_ON("-Wpointer-to-int-cast");
   S11_DELETE_SESSION_REQUEST(message_p).sender_fteid_for_cp.interface_type =
       S11_MME_GTP_C;

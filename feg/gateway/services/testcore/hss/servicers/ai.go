@@ -17,16 +17,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/emakeev/milenage"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
 )
 
 // NewAIA outputs a authentication information answer (AIA) to reply to an
@@ -52,10 +52,22 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 	subscriber.Lock()
 	defer subscriber.Unlock()
 
-	lteAuthNextSeq, err := ResyncLteAuthSeq(subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize(), srv.Config.LteAuthOp)
-	if err == nil {
-		err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
+	lteAuthNextSeq, err := ResyncLteAuthSeq(
+		subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize(), srv.Config.LteAuthOp)
+	if err != nil {
+		return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
 	}
+	if len(air.RequestedUtranGeranAuthInfo.ResyncInfo) > 0 {
+		lteAuthNextUtranSeq, err := ResyncLteAuthSeq(
+			subscriber, air.RequestedUtranGeranAuthInfo.ResyncInfo.Serialize(), srv.Config.LteAuthOp)
+		if err != nil {
+			return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
+		}
+		if len(air.RequestedEUTRANAuthInfo.ResyncInfo) == 0 || lteAuthNextUtranSeq > lteAuthNextSeq {
+			lteAuthNextSeq = lteAuthNextUtranSeq
+		}
+	}
+	err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
 	if err != nil {
 		return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
 	}
@@ -63,7 +75,9 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 	const plmnOffsetBytes = 1
 	plmn := air.VisitedPLMNID.Serialize()[plmnOffsetBytes:]
 
-	vectors, lteAuthNextSeq, err := GenerateLteAuthVectors(uint32(air.RequestedEUTRANAuthInfo.NumVectors),
+	vectors, utranVectors, lteAuthNextSeq, err := GenerateLteAuthVectors(
+		uint32(air.RequestedEUTRANAuthInfo.NumVectors),
+		uint32(air.RequestedUtranGeranAuthInfo.NumVectors),
 		srv.Milenage, subscriber, plmn, srv.Config.LteAuthOp, srv.AuthSqnInd)
 	if err == nil {
 		err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
@@ -72,7 +86,7 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
 	}
 
-	return srv.NewSuccessfulAIA(msg, air.SessionID, vectors), nil
+	return srv.NewSuccessfulAIA(msg, air.SessionID, vectors, utranVectors), nil
 }
 
 func (srv *HomeSubscriberServer) setLteAuthNextSeq(subscriber *lteprotos.SubscriberData, lteAuthNextSeq uint64) error {
@@ -86,23 +100,46 @@ func (srv *HomeSubscriberServer) setLteAuthNextSeq(subscriber *lteprotos.Subscri
 // NewSuccessfulAIA outputs a successful authentication information answer (AIA) to reply to an
 // authentication information request (AIR) message. It populates AIA with all of the mandatory fields
 // and adds the authentication vectors.
-func (srv *HomeSubscriberServer) NewSuccessfulAIA(msg *diam.Message, sessionID datatype.UTF8String, vectors []*crypto.EutranVector) *diam.Message {
+func (srv *HomeSubscriberServer) NewSuccessfulAIA(
+	msg *diam.Message,
+	sessionID datatype.UTF8String,
+	vectors []*milenage.EutranVector,
+	utranVectors []*milenage.UtranVector) *diam.Message {
+
 	answer := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server, diam.TGPP_S6A_APP_ID)
+	evs := []*diam.AVP{}
 	for itemNumber, vector := range vectors {
-		answer.NewAVP(avp.AuthenticationInfo, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		evs = append(evs, diam.NewAVP(avp.EUTRANVector, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
-				diam.NewAVP(avp.EUTRANVector, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
-					AVP: []*diam.AVP{
-						diam.NewAVP(avp.ItemNumber, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(itemNumber)),
-						diam.NewAVP(avp.RAND, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Rand[:])),
-						diam.NewAVP(avp.XRES, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Xres[:])),
-						diam.NewAVP(avp.AUTN, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Autn[:])),
-						diam.NewAVP(avp.KASME, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Kasme[:])),
-					},
-				}),
+				diam.NewAVP(avp.ItemNumber, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(itemNumber)),
+				diam.NewAVP(avp.RAND, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Rand[:])),
+				diam.NewAVP(avp.XRES, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Xres[:])),
+				diam.NewAVP(avp.AUTN, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Autn[:])),
+				diam.NewAVP(avp.KASME, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Kasme[:])),
 			},
-		})
+		}))
 	}
+	for itemNumber, vector := range utranVectors {
+		evs = append(evs, diam.NewAVP(avp.UTRANVector, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+			AVP: []*diam.AVP{
+				diam.NewAVP(avp.ItemNumber, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(itemNumber)),
+				diam.NewAVP(avp.RAND, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Rand[:])),
+				diam.NewAVP(avp.XRES, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Xres[:])),
+				diam.NewAVP(avp.AUTN, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Autn[:])),
+				diam.NewAVP(
+					avp.ConfidentialityKey,
+					avp.Mbit|avp.Vbit,
+					diameter.Vendor3GPP,
+					datatype.OctetString(vector.ConfidentialityKey[:])),
+				diam.NewAVP(
+					avp.IntegrityKey,
+					avp.Mbit|avp.Vbit,
+					diameter.Vendor3GPP,
+					datatype.OctetString(vector.IntegrityKey[:])),
+			},
+		}))
+	}
+	answer.NewAVP(avp.AuthenticationInfo, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{AVP: evs})
 	return answer
 }
 
@@ -119,7 +156,10 @@ func ValidateAIR(msg *diam.Message) error {
 	}
 	_, err = msg.FindAVP(avp.RequestedEUTRANAuthenticationInfo, diameter.Vendor3GPP)
 	if err != nil {
-		return errors.New("Missing requested E-UTRAN authentication info in message")
+		_, err = msg.FindAVP(avp.RequestedUTRANGERANAuthenticationInfo, diameter.Vendor3GPP)
+		if err != nil {
+			return errors.New("Missing requested E-UTRAN and UTRAN/GERAN authentication info in message")
+		}
 	}
 	_, err = msg.FindAVP(avp.SessionID, 0)
 	if err != nil {

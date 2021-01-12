@@ -1,1 +1,0 @@
-../../templates/Dockerfile.make

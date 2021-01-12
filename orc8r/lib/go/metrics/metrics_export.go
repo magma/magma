@@ -22,9 +22,41 @@ import (
 )
 
 const (
-	NetworkLabelName   = "networkID"
-	GatewayLabelName   = "gatewayID"
-	CloudHostLabelName = "cloudHost"
+	// NetworkTypeMetric racks different network types in a deployment.
+	NetworkTypeMetric = "network_type"
+
+	// EnodebConnectedMetric tracks the number of subscribers connected to
+	// eNodeB.
+	EnodebConnectedMetric = "enodeb_connected"
+
+	// GatewayMagmaVersionMetric tracks installed magma versions on the
+	// gateway.
+	GatewayMagmaVersionMetric = "gateway_version"
+
+	// ConfiguredSubscribersMetric tracks the number of subscribers explicitly
+	// configured on the network
+	ConfiguredSubscribersMetric = "configured_subscribers"
+
+	// ActualSubscribersMetric tracks the actual number of subscribers which
+	// have an active session on the network
+	ActualSubscribersMetric = "actual_subscriber"
+
+	// ActiveSessionAPNMetric tracks the number of active user sessions per
+	// apn
+	ActiveSessionAPNMetric = "active_sessions_apn"
+
+	SubscriberThroughputMetric = "subscriber_throughput"
+
+	/* Labels */
+	NetworkLabelName         = "networkID"
+	GatewayLabelName         = "gatewayID"
+	EnodebLabelName          = "enodebID"
+	CloudHostLabelName       = "cloudHost"
+	NetworkTypeLabel         = "networkType"
+	EnodeConfigTypeLabel     = "configType"
+	APNLabel                 = "apnType"
+	GatewayMagmaVersionLabel = "version"
+	QuantileLabel            = "quantile"
 )
 
 // GetMetrics gathers metrics from Prometheus' default registry,

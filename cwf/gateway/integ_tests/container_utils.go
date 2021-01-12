@@ -39,6 +39,43 @@ func (tr *TestRunner) RestartService(serviceName string) error {
 	return err
 }
 
+//StartService
+func (tr *TestRunner) StartService(serviceName string) error {
+	fmt.Printf("Starting docker container: %v\n", serviceName)
+	ctx := context.Background()
+	cli, err := dockerClient.NewEnvClient()
+	if err != nil {
+		fmt.Printf("error %v getting a new client \n", err)
+		return err
+	}
+	_, err = tr.findContainer(cli, serviceName)
+	if err == nil {
+		err = fmt.Errorf("container %s already started \n", serviceName)
+		fmt.Print(err)
+		return err
+	}
+	return cli.ContainerStart(ctx, serviceName, dockerTypes.ContainerStartOptions{})
+}
+
+//StopService
+func (tr *TestRunner) StopService(serviceName string) error {
+	fmt.Printf("Stop a docker container: %v\n", serviceName)
+	ctx := context.Background()
+	cli, err := dockerClient.NewEnvClient()
+	if err != nil {
+		fmt.Printf("error %v getting a new client \n", err)
+		return err
+	}
+	containerId, err := tr.findContainer(cli, serviceName)
+	if err != nil {
+		err = fmt.Errorf("container %s already stopped \n", serviceName)
+		fmt.Print(err)
+		return err
+	}
+	timeout := 30 * time.Second
+	return cli.ContainerStop(ctx, containerId, &timeout)
+}
+
 //StopService adds ability to stop a particular service managed by docker
 func (tr *TestRunner) PauseService(serviceName string) error {
 	fmt.Printf("Pausing docker container: %v\n", serviceName)

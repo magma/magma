@@ -17,8 +17,6 @@ import (
 	"fmt"
 
 	state_types "magma/orc8r/cloud/go/services/state/types"
-
-	"github.com/thoas/go-funk"
 )
 
 // Indexer creates a set of secondary indices for consumption by a service.
@@ -57,33 +55,11 @@ type Indexer interface {
 	CompleteReindex(from, to Version) error
 
 	// Index updates secondary indices based on the added/updated states.
-	Index(networkID string, states state_types.StatesByID) (state_types.StateErrors, error)
+	Index(networkID string, states state_types.SerializedStatesByID) (state_types.StateErrors, error)
 
 	// TODO(4/10/20): consider adding support for removing states from an indexer
 	// IndexRemove updates secondary indices based on the removed states.
-	//IndexRemove(states state.StatesByID) (StateErrors, error)
-}
-
-// FilterIDs to the subset that match one of the state types.
-func FilterIDs(types []string, ids []state_types.ID) []state_types.ID {
-	var ret []state_types.ID
-	for _, id := range ids {
-		if funk.Contains(types, id.Type) {
-			ret = append(ret, id)
-		}
-	}
-	return ret
-}
-
-// FilterStates to the subset that match one of the state types.
-func FilterStates(types []string, states state_types.StatesByID) state_types.StatesByID {
-	ret := state_types.StatesByID{}
-	for id, st := range states {
-		if funk.Contains(types, id.Type) {
-			ret[id] = st
-		}
-	}
-	return ret
+	//IndexRemove(states state_types.SerializedStatesByID) (state_types.StateErrors, error)
 }
 
 // Version of the indexer. Capped to uint32 to fit into Postgres/Maria integer (int32).

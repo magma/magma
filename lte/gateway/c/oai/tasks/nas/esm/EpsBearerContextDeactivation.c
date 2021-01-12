@@ -59,8 +59,6 @@
 /*
    Timer handlers
 */
-static void _eps_bearer_deactivate_t3495_handler(void*);
-
 /* Maximum value of the deactivate EPS bearer context request
    retransmission counter */
 #define EPS_BEARER_DEACTIVATE_COUNTER_MAX 5
@@ -372,7 +370,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
 */
 /****************************************************************************
  **                                                                        **
- ** Name:    _eps_bearer_deactivate_t3495_handler()                    **
+ ** Name:    eps_bearer_deactivate_t3495_handler()                    **
  **                                                                        **
  ** Description: T3495 timeout handler                                     **
  **                                                                        **
@@ -392,7 +390,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _eps_bearer_deactivate_t3495_handler(void* args) {
+void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
   bool delete_default_bearer = false;
@@ -418,6 +416,7 @@ static void _eps_bearer_deactivate_t3495_handler(void* args) {
         esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
         esm_ebr_timer_data->count);
 
+    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
     if (esm_ebr_timer_data->count < EPS_BEARER_DEACTIVATE_COUNTER_MAX) {
       /*
        * Re-send deactivate EPS bearer context request message to the UE
@@ -551,7 +550,7 @@ static int _eps_bearer_deactivate(
      */
     rc = esm_ebr_start_timer(
         emm_context_p, ebi, msg_dup, mme_config.nas_config.t3495_sec,
-        _eps_bearer_deactivate_t3495_handler);
+        eps_bearer_deactivate_t3495_handler);
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);

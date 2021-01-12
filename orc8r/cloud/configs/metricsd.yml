@@ -10,11 +10,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-prometheusPushAddresses:
-  - "http://prometheus-cache:9091/metrics"
-
 prometheusQueryAddress: "http://prometheus:9090"
+# If using Thanos: comment out the above value and use the follwing:
+# prometheusQueryAddress: "http://thanosQuery:19192"
 
 alertmanagerApiURL: "http://alertmanager:9093/api/v2"
 prometheusConfigServiceURL: "http://prometheus-configurer:9100/v1"
 alertmanagerConfigServiceURL: "http://alertmanager-configurer:9101/v1"
+
+useSeriesCache: true

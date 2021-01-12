@@ -69,6 +69,22 @@ var (
 		Name: "failed_resync_requests_total",
 		Help: "Total number of failed calls to AKA Resync Handler",
 	})
+	S6aRequests = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "s6a_requests_total",
+		Help: "Total number of s6a Proxy RPC Requiests sent",
+	})
+	S6aFailures = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "s6a_failures_total",
+		Help: "Total number of s6a Proxy RPC Failures",
+	})
+	S6aULRequests = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "s6a_ul_requests_total",
+		Help: "Total number of s6a Proxy RPC Requiests sent",
+	})
+	S6aULFailures = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "s6a_ul_failures_total",
+		Help: "Total number of s6a Proxy RPC Failures",
+	})
 
 	// Peer initiated failures
 	PeerAuthReject = prometheus.NewCounter(prometheus.CounterOpts{
@@ -97,6 +113,16 @@ var (
 	AuthLatency = prometheus.NewSummary(prometheus.SummaryOpts{
 		Name:       "auth_lat",
 		Help:       "Latency of EAP-AKA Authentication round (seconds). Only calculated for completed authentications.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	S6aLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "s6a_ai_lat",
+		Help:       "Latency of s6a Proxy requests (seconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	S6aULLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "s6a_ul_lat",
+		Help:       "Latency of s6a Proxy Update-Location requests (seconds).",
 		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
 	})
 )

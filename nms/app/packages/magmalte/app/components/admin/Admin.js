@@ -18,7 +18,7 @@ import * as React from 'react';
 import AdminContextProvider from './AdminContextProvider';
 import AdminMain from './AdminMain';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
+import ApplicationMain from '../ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import AuditLog from './AuditLog';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
@@ -29,7 +29,6 @@ import SecuritySettings from '../SecuritySettings';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
 import UsersSettings from '../UsersSettings';
 import {Redirect, Route, Switch} from 'react-router-dom';
-
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 

@@ -58,6 +58,7 @@ metricsd:
   sync_interval: 60 # How frequently to sync to cloud in seconds
   grpc_timeout: 30 # Timeout in seconds
   queue_length: 1000 # Number of failed samples to enqueue for resend
+  max_grpc_msg_size_mb: 4 # Max message size for gRPC channel in MBs
 
   # An optional function  to mutate metrics before they are sent to the cloud
   # A string in the form path.to.module.fn_name
@@ -66,6 +67,17 @@ metricsd:
   # List of services for metricsd to poll
   services:
     - magmad
+
+  # List of prometheus scrape targets (not magma services) to poll
+  #  url: url of the metrics source
+  #  name: name to tag metrics with {scrape_target=<name>}
+  #  interval: time (in seconds) between scrapes
+  #
+  # Example:
+  # metric_scrape_targets:
+  #   - url: http://localhost:9091/metrics
+  #     name: node_exporter
+  #     interval: 5
 
 generic_command_config:
   module: magma.magmad.generic_command.shell_command_executor

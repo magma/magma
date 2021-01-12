@@ -21,6 +21,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
@@ -51,7 +52,7 @@ func createChannelHandler(c echo.Context) error {
 		Name:   string(channel.Name),
 		Config: channel,
 	}
-	_, err := configurator.CreateInternalEntity(entity)
+	_, err := configurator.CreateInternalEntity(entity, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -63,7 +64,11 @@ func readChannelHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	entity, err := configurator.LoadInternalEntity(orc8r.UpgradeReleaseChannelEntityType, channelID, configurator.EntityLoadCriteria{LoadConfig: true})
+	entity, err := configurator.LoadInternalEntity(
+		orc8r.UpgradeReleaseChannelEntityType, channelID,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	}
@@ -91,7 +96,7 @@ func updateChannelHandler(c echo.Context) error {
 		NewName:   swag.String(string(channel.Name)),
 		NewConfig: channel,
 	}
-	_, err := configurator.UpdateInternalEntity(update)
+	_, err := configurator.UpdateInternalEntity(update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -134,7 +139,7 @@ func createTierHandler(c echo.Context) error {
 	}
 	tier := payload.(*models.Tier)
 	entity := tier.ToNetworkEntity()
-	_, err := configurator.CreateEntity(networkID, entity)
+	_, err := configurator.CreateEntity(networkID, entity, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -156,7 +161,7 @@ func updateTierHandler(c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("TierID in URL and payload do not match."), http.StatusBadRequest)
 	}
 	update := tier.ToUpdateCriteria()
-	_, err := configurator.UpdateEntity(networkID, update)
+	_, err := configurator.UpdateEntity(networkID, update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -171,6 +176,7 @@ func readTierHandler(c echo.Context) error {
 	entity, err := configurator.LoadEntity(
 		networkID, orc8r.UpgradeTierEntityType, tierID,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadMetadata: true},
+		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
@@ -211,7 +217,7 @@ func createTierImage(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	_, err = configurator.UpdateEntities(networkID, updates)
+	_, err = configurator.UpdateEntities(networkID, updates, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -234,7 +240,7 @@ func deleteImage(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	_, err = configurator.UpdateEntity(networkID, update)
+	_, err = configurator.UpdateEntity(networkID, update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -252,7 +258,7 @@ func createTierGateway(c echo.Context) error {
 	}
 
 	update := (&models.TierGateways{}).ToAddGatewayUpdateCriteria(tierID, gatewayID)
-	_, err := configurator.UpdateEntity(networkID, update)
+	_, err := configurator.UpdateEntity(networkID, update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -269,7 +275,7 @@ func deleteTierGateway(c echo.Context) error {
 		return nerr
 	}
 	update := (&models.TierGateways{}).ToDeleteGatewayUpdateCriteria(tierID, gatewayID)
-	_, err := configurator.UpdateEntity(networkID, update)
+	_, err := configurator.UpdateEntity(networkID, update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

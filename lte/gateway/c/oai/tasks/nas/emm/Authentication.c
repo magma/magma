@@ -75,7 +75,7 @@
    --------------------------------------------------------------------------
 */
 // callbacks for authentication procedure
-static void _authentication_t3460_handler(void* args);
+static void _authentication_t3460_handler(void* args, imsi64_t* imsi64);
 static int _authentication_ll_failure(
     struct emm_context_s* emm_context, struct nas_emm_proc_s* emm_proc);
 static int _authentication_non_delivered_ho(
@@ -103,7 +103,8 @@ static void _nas_itti_auth_info_req(
     const bool is_initial_reqP, plmn_t* const visited_plmnP,
     const uint8_t num_vectorsP, const_bstring const auts_pP);
 
-static void _s6a_auth_info_rsp_timer_expiry_handler(void* args);
+static void _s6a_auth_info_rsp_timer_expiry_handler(
+    void* args, imsi64_t* imsi64);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -356,13 +357,8 @@ static int _start_authentication_information_procedure(
   auth_info_proc->ue_id  = ue_id;
   auth_info_proc->resync = auth_info_proc->request_sent;
 
-  plmn_t visited_plmn     = {0};
-  visited_plmn.mcc_digit1 = emm_context->originating_tai.mcc_digit1;
-  visited_plmn.mcc_digit2 = emm_context->originating_tai.mcc_digit2;
-  visited_plmn.mcc_digit3 = emm_context->originating_tai.mcc_digit3;
-  visited_plmn.mnc_digit1 = emm_context->originating_tai.mnc_digit1;
-  visited_plmn.mnc_digit2 = emm_context->originating_tai.mnc_digit2;
-  visited_plmn.mnc_digit3 = emm_context->originating_tai.mnc_digit3;
+  plmn_t visited_plmn = {0};
+  COPY_PLMN(visited_plmn, emm_context->originating_tai.plmn);
 
   bool is_initial_req          = !(auth_info_proc->request_sent);
   auth_info_proc->request_sent = true;
@@ -1033,7 +1029,7 @@ void set_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _authentication_t3460_handler(void* args) {
+static void _authentication_t3460_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_ctx = (emm_context_t*) (args);
 
@@ -1046,6 +1042,7 @@ static void _authentication_t3460_handler(void* args) {
   mme_ue_s1ap_id_t ue_id;
 
   if (auth_proc) {
+    *imsi64 = emm_ctx->_imsi64;
     /*
      * Increment the retransmission counter
      */
@@ -1519,7 +1516,8 @@ static void _nas_itti_auth_info_req(
  ** Inputs:  args:      handler parameters                             **
  **                                                                    **
  ************************************************************************/
-static void _s6a_auth_info_rsp_timer_expiry_handler(void* args) {
+static void _s6a_auth_info_rsp_timer_expiry_handler(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_ctx = (emm_context_t*) (args);
 
@@ -1529,7 +1527,7 @@ static void _s6a_auth_info_rsp_timer_expiry_handler(void* args) {
     if (!auth_info_proc) {
       OAILOG_FUNC_OUT(LOG_NAS_EMM);
     }
-
+    *imsi64                   = emm_ctx->_imsi64;
     void* timer_callback_args = NULL;
     nas_stop_Ts6a_auth_info(
         auth_info_proc->ue_id, &auth_info_proc->timer_s6a, timer_callback_args);

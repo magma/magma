@@ -111,6 +111,7 @@ func (st *memSessionTable) AddSession(
 	}
 
 	imsi := pc.GetImsi()
+	msisdn := pc.GetMsisdn()
 	s := &memSession{Context: pc, imsi: imsi}
 	st.rwl.Lock()
 
@@ -131,7 +132,7 @@ func (st *memSessionTable) AddSession(
 					if oldSid, ok := st.sids[oldImsi]; ok && oldSid == sid {
 						delete(st.sids, oldImsi)
 					}
-					updateSessionMetricsForRemovedSession(oldSession.GetApn(), oldImsi, sid)
+					updateSessionMetricsForRemovedSession(oldSession.GetApn(), oldImsi, sid, msisdn)
 				}
 			}
 		} else {
@@ -146,7 +147,7 @@ func (st *memSessionTable) AddSession(
 				oldImsiSession.StopTimeout()
 			}
 			delete(st.sids, oldSessionId)
-			updateSessionMetricsForRemovedSession(oldImsiSession.GetApn(), imsi, oldSessionId)
+			updateSessionMetricsForRemovedSession(oldImsiSession.GetApn(), imsi, oldSessionId, msisdn)
 			glog.Infof("old session with SID: %s found for IMSI: %s, will remove", oldSessionId, imsi)
 		}
 	}
@@ -155,9 +156,10 @@ func (st *memSessionTable) AddSession(
 	apn := s.GetApn()
 	st.rwl.Unlock()
 
+	glog.V(1).Infof("setting timeout of %f seconds for session: %s", tout.Seconds(), sid)
 	setTimeoutUnsafe(st, sid, tout, s, notifier)
 	if !isExistingSession {
-		updateSessionMetricsForNewSession(apn, imsi, sid)
+		updateSessionMetricsForNewSession(apn, imsi, sid, msisdn)
 	}
 	return s, nil
 }
@@ -203,10 +205,10 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 			found bool
 			s     *memSession
 		)
-		var apn, imsi string
+		var apn, imsi, msisdn string
 		st.rwl.Lock()
 		if s, found = st.sm[sid]; found {
-			apn, imsi = s.GetApn(), s.GetImsi()
+			apn, imsi, msisdn = s.GetApn(), s.GetImsi(), s.GetMsisdn()
 			delete(st.sm, sid)
 			if oldSid, ok := st.sids[s.imsi]; ok && oldSid == sid {
 				delete(st.sids, s.imsi)
@@ -215,7 +217,7 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 		st.rwl.Unlock()
 		if found {
 			s.StopTimeout()
-			updateSessionMetricsForRemovedSession(apn, imsi, sid)
+			updateSessionMetricsForRemovedSession(apn, imsi, sid, msisdn)
 			return s
 		}
 	}
@@ -279,25 +281,26 @@ func cleanupTimer(ctx *cleanupTimerCtx) {
 				"Timed out session '%s' for SessionId: %s; IMSI: %s; Identity: %s; MAC: %s; IP: %s; notify result: %v",
 				ctx.sidKey, s.GetSessionId(), s.GetImsi(), s.GetIdentity(), s.GetMacAddr(), s.GetIpAddr(), notifyResult)
 
-			updateSessionMetricsForTimedOutSession(s.GetApn(), s.GetImsi(), s.GetSessionId())
+			updateSessionMetricsForTimedOutSession(s.GetApn(), s.GetImsi(), s.GetSessionId(), s.GetMsisdn())
 		}
 	}
 }
 
-func updateSessionMetricsForNewSession(apn string, imsi string, sid string) {
+func updateSessionMetricsForNewSession(apn string, imsi string, sid string, msisdn string) {
 	imsi = metrics.DecorateIMSI(imsi)
-	metrics.Sessions.WithLabelValues(apn, imsi, sid).Inc()
-	metrics.SessionStart.WithLabelValues(apn, imsi, sid).Inc()
+	metrics.Sessions.WithLabelValues(apn, imsi, sid, msisdn).Inc()
+	metrics.SessionStart.WithLabelValues(apn, imsi, sid, msisdn).Inc()
 }
 
-func updateSessionMetricsForRemovedSession(apn string, imsi string, sid string) {
+func updateSessionMetricsForRemovedSession(apn string, imsi string, sid string, msisdn string) {
 	imsi = metrics.DecorateIMSI(imsi)
-	metrics.Sessions.WithLabelValues(apn, imsi, sid).Dec()
-	metrics.SessionStop.WithLabelValues(apn, imsi, sid).Inc()
+	metrics.Sessions.WithLabelValues(apn, imsi, sid, msisdn).Dec()
+	metrics.SessionStop.WithLabelValues(apn, imsi, sid, msisdn).Inc()
 }
 
-func updateSessionMetricsForTimedOutSession(apn string, imsi string, sid string) {
+func updateSessionMetricsForTimedOutSession(apn string, imsi string, sid string, msisdn string) {
 	imsi = metrics.DecorateIMSI(imsi)
-	metrics.Sessions.WithLabelValues(apn, imsi, sid).Dec()
-	metrics.SessionTimeouts.WithLabelValues(apn, imsi).Inc()
+	metrics.Sessions.WithLabelValues(apn, imsi, sid, msisdn).Dec()
+	metrics.SessionStop.WithLabelValues(apn, imsi, sid, msisdn).Inc()
+	metrics.SessionTimeouts.WithLabelValues(apn, imsi, msisdn).Inc()
 }

@@ -97,7 +97,7 @@ Signature ok
 subject=/C=US/ST=CA/L=Menlo Park/O=Facebook/OU=Magma/CN=*.yourdomain.com/emailAddress=admin@yourdomain.com
 Getting CA Private Key
 
-$ rm controller.csr rootCA.key rootCA.srl
+$ rm controller.csr rootCA.srl
 ```
 
 At this point, regardless of whether you self-signed your certs or acquired
@@ -106,8 +106,17 @@ this:
 
 ```bash
 $ ls
-controller.crt  controller.key  rootCA.pem
+controller.crt  controller.key  rootCA.pem    rootCA.key
 ```
+
+We *strongly* recommend moving `rootCA.key` to a more secure location at this
+point. By default, the Helm chart for secrets below will upload it to EKS
+as a Kubernetes secret and mount it to controller pods. If the private key
+portion of the root CA is compromised, all TLS traffic to and from your cluster
+will be compromised.
+
+Keep rootCA.key in a place where you can access it again - you will need it to
+renew the SSL certificate for the Orchestrator controller when it expires.
 
 ### Application Certificates and Keys
 
@@ -132,7 +141,7 @@ $ openssl genrsa -out bootstrapper.key 2048
 Generating RSA private key, 2048 bit long modulus
 
 $ ls
-bootstrapper.key  certifier.key     certifier.pem     controller.crt    controller.key    rootCA.pem
+bootstrapper.key  certifier.key     certifier.pem     controller.crt    controller.key    rootCA.pem    rootCA.key
 ```
 
 The last command created a private key for the `bootstrapper` service, which
@@ -216,7 +225,7 @@ secrets:
 proxy:
   image:
     repository: YOUR-DOCKER-REGISTRY/proxy
-    tag: v1.0.1
+    tag: YOUR-CONTAINER-TAG
 
   replicas: 2
 
@@ -233,7 +242,7 @@ proxy:
 controller:
   image:
     repository: YOUR-DOCKER-REGISTRY/controller
-    tag: v1.0.1
+    tag: YOUR-CONTAINER-TAG
 
   replicas: 2
 
@@ -270,7 +279,7 @@ metrics:
     create: true
     image:
       repository: YOUR-DOCKER-REGISTRY/config-manager
-      tag: v1.0.1
+      tag: YOUR-CONTAINER-TAG
     nodeSelector:
       worker-type: metrics
 
@@ -283,7 +292,7 @@ metrics:
     create: true
     image:
       repository: YOUR-DOCKER-REGISTRY/prometheus-cache
-      tag: v1.0.1
+      tag: YOUR-CONTAINER-TAG
     limit: 500000
     nodeSelector:
       worker-type: metrics
@@ -292,7 +301,7 @@ metrics:
     create: true
     image:
       repository: YOUR-DOCKER-REGISTRY/grafana
-      tag: v1.0.1
+      tag: YOUR-CONTAINER-TAG
     nodeSelector:
       worker-type: metrics
 
@@ -309,7 +318,7 @@ nms:
 
     image:
       repository: YOUR-DOCKER-REGISTRY/magmalte
-      tag: v1.0.1
+      tag: YOUR-CONTAINER-TAG
 
     env:
       api_host: controller.YOURDOMAIN.COM
@@ -415,7 +424,7 @@ nms:
 
     image:
       repository: YOUR-DOCKER-REGISTRY/magmalte
-      tag: v1.0.1
+      tag: YOUR-CONTAINER-TAG
 
     env:
       api_host: controller.YOURDOMAIN.COM

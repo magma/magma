@@ -18,6 +18,7 @@ import type {lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import EnodebContext from '../../components/context/EnodebContext';
+import Link from '@material-ui/core/Link';
 import React from 'react';
 
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
@@ -28,6 +29,7 @@ type EnodebRowType = {
   name: string,
   id: string,
   health: string,
+  mmeConnected: string,
 };
 
 export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
@@ -48,8 +50,13 @@ export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
   const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
     (serialNum: string) => {
       const enbInf = enbInfo[serialNum];
+      const isEnbManaged = enbInf.enb?.enodeb_config?.config_type === 'MANAGED';
       return {
-        health: isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
+        health: isEnbManaged ? (isEnodebHealthy(enbInf) ? 'Good' : 'Bad') : '-',
+        mmeConnected: enbInf.enb_state?.mme_connected
+          ? 'Connected'
+          : 'Disconnected',
+        ipAddress: enbInf.enb_state.ip_address ?? '-',
         name: enbInf.enb.name,
         id: serialNum,
       };
@@ -62,8 +69,28 @@ export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
       data={enbRows}
       columns={[
         {title: 'Name', field: 'name'},
-        {title: 'Serial Number', field: 'id'},
+        {
+          title: 'Serial Number',
+          field: 'id',
+          render: currRow => (
+            <Link
+              variant="body2"
+              component="button"
+              onClick={() => {
+                history.push(
+                  match.url.replace(
+                    `gateway/${gwInfo.id}`,
+                    `enodeb/${currRow.id}`,
+                  ),
+                );
+              }}>
+              {currRow.id}
+            </Link>
+          ),
+        },
         {title: 'Health', field: 'health'},
+        {title: 'MME', field: 'mmeConnected'},
+        {title: 'IP Address', field: 'ipAddress'},
       ]}
       handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}
       menuItems={[

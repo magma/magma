@@ -923,6 +923,7 @@ void emm_init_context(
   if (init_esm_ctxt) {
     esm_init_context(&emm_ctx->esm_ctx);
   }
+  emm_ctx->emm_procedures = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -1162,19 +1163,11 @@ void emm_context_dump(
   for (k = 0; k < emm_context->_tai_list.numberoflists; k++) {
     switch (emm_context->_tai_list.partial_tai_list[k].typeoflist) {
       case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS: {
-        tai_t tai      = {0};
-        tai.mcc_digit1 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1;
-        tai.mcc_digit2 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2;
-        tai.mcc_digit3 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3;
-        tai.mnc_digit1 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1;
-        tai.mnc_digit2 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2;
-        tai.mnc_digit3 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3;
+        tai_t tai = {0};
+        COPY_PLMN(
+            tai.plmn, emm_context->_tai_list.partial_tai_list[k]
+                          .u.tai_one_plmn_non_consecutive_tacs.plmn);
+
         for (int p = 0;
              p <
              (emm_context->_tai_list.partial_tai_list[k].numberofelements + 1);

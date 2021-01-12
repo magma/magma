@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"net"
 
-	"magma/lte/cloud/go/services/cellular/utils"
+	"magma/lte/cloud/go/lte"
 	"magma/orc8r/cloud/go/services/configurator"
 
-	errors2 "github.com/go-openapi/errors"
+	oerrors "github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
@@ -49,7 +49,7 @@ func (m *LteNetwork) ValidateModel() error {
 	}
 
 	if len(res) > 0 {
-		return errors2.CompositeValidationError(res...)
+		return oerrors.CompositeValidationError(res...)
 	}
 	return nil
 }
@@ -120,16 +120,16 @@ func (m *NetworkRanConfigs) ValidateModel() error {
 	}
 
 	earfcnDl := m.getEarfcnDl()
-	band, err := utils.GetBand(earfcnDl)
+	band, err := lte.GetBand(earfcnDl)
 	if err != nil {
 		return err
 	}
 
-	if tddConfigSet && band.Mode != utils.TDDMode {
+	if tddConfigSet && band.Mode != lte.TDDMode {
 		return errors.Errorf("band %d not a TDD band", band.ID)
 	}
 	if fddConfigSet {
-		if band.Mode != utils.FDDMode {
+		if band.Mode != lte.FDDMode {
 			return errors.Errorf("band %d not a FDD band", band.ID)
 		}
 		if !band.EarfcnULInRange(m.FddConfig.Earfcnul) {
@@ -184,6 +184,53 @@ func (m *NetworkEpcConfigsMobility) validateMobility() error {
 	return nil
 }
 
+// validateIPBlocks parses and validates IP networks containing subnet masks.
+// Returns an error in case any IP network in list is invalid.
+func validateIPBlocks(ipBlocks []string) error {
+	for _, ipBlock := range ipBlocks {
+		_, _, err := net.ParseCIDR(ipBlock)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *LteGateway) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *MutableLteGateway) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	// Custom validation only for cellular and device
+	var res []error
+	if err := m.Cellular.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.Device.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+
+	resourceIDs := map[string]struct{}{}
+	for apnName, resource := range m.ApnResources {
+		if apnName != string(resource.ApnName) {
+			return fmt.Errorf("APN resources key (%s) and APN name (%s) must match", apnName, resource.ApnName)
+		}
+		if _, ok := resourceIDs[resource.ID]; ok {
+			return fmt.Errorf("duplicate APN resource ID in request: %s", resource.ID)
+		}
+		resourceIDs[resource.ID] = struct{}{}
+	}
+
+	if len(res) > 0 {
+		return oerrors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
 func (m *GatewayCellularConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
@@ -226,6 +273,13 @@ func (m *GatewayEpcConfigs) ValidateModel() error {
 			return errors.New("Only IPv4 is supported currently for DNS")
 		}
 	}
+
+	if m.IPV6DNSAddr != "" {
+		ip := net.ParseIP(string(m.IPV6DNSAddr))
+		if ip == nil {
+			return errors.New("Invalid IPV6 DNS address")
+		}
+	}
 	return nil
 }
 
@@ -260,9 +314,17 @@ func (m *GatewayNonEpsConfigs) ValidateModel() error {
 	}
 
 	if len(res) > 0 {
-		return errors2.CompositeValidationError(res...)
+		return oerrors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+func (m *GatewayDNSConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayDNSRecords) ValidateModel() error {
+	return m.Validate(strfmt.Default)
 }
 
 func (m *EnodebSerials) ValidateModel() error {
@@ -270,38 +332,103 @@ func (m *EnodebSerials) ValidateModel() error {
 }
 
 func (m *Enodeb) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	if m.EnodebConfig != nil {
+		if err := m.EnodebConfig.validateEnodebConfig(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (m *EnodebConfiguration) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-const (
-	lteAuthKeyLength = 16
-	lteAuthOpcLength = 16
-)
+func (m *UnmanagedEnodebConfiguration) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *EnodebConfig) validateEnodebConfig() error {
+	managedConfigSet := m.ManagedConfig != nil
+	unmanagedConfigSet := m.UnmanagedConfig != nil
+
+	if managedConfigSet && unmanagedConfigSet {
+		return errors.New("only one of the eNodeb config types can be set")
+	}
+
+	if managedConfigSet {
+		if m.ConfigType != ManagedConfigType {
+			return errors.New("invalid type set for managed config")
+		}
+
+	}
+	if unmanagedConfigSet {
+		if m.ConfigType != UnmanagedConfigType {
+			return errors.New("invalid type set for unmanaged config")
+		}
+	}
+
+	return nil
+}
 
 func (m *EnodebState) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-// validateIPBlocks parses and validates IP networks containing subnet masks.
-// Returns an error in case any IP network in list is invalid.
-func validateIPBlocks(ipBlocks []string) error {
-	for _, ipBlock := range ipBlocks {
-		_, _, err := net.ParseCIDR(ipBlock)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+func (m *Apn) ValidateModel() error {
+	return m.Validate(strfmt.Default)
 }
 
-// ValidateModel does standard swagger validation and any custom validation
-func (m *Apn) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
+func (m *CellularGatewayPool) ValidateModel() error {
+	err := m.Validate(strfmt.Default)
+	if err != nil {
 		return err
+	}
+	return m.Config.ValidateModel()
+}
+
+func (m *CellularGatewayPoolConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *MutableCellularGatewayPool) ValidateModel() error {
+	err := m.Validate(strfmt.Default)
+	if err != nil {
+		return err
+	}
+	return m.Config.ValidateModel()
+}
+
+func (m *CellularGatewayPoolRecords) ValidateModel() error {
+	err := m.Validate(strfmt.Default)
+	if err != nil {
+		return err
+	}
+	uniquePool := make(map[GatewayPoolID]bool, len(*m))
+	for _, record := range *m {
+		if !uniquePool[record.GatewayPoolID] {
+			uniquePool[record.GatewayPoolID] = true
+		} else {
+			return fmt.Errorf("All pool records must have unique pool IDs")
+		}
+	}
+	if len(*m) == 0 {
+		return nil
+	}
+	relCapacity := (*m)[0].MmeRelativeCapacity
+	mmeCode := (*m)[0].MmeCode
+	for _, record := range *m {
+		if record.MmeRelativeCapacity != relCapacity {
+			return fmt.Errorf("Setting different MME relative capacities for the same gateway is currently unsupported")
+		}
+		if record.MmeCode != mmeCode {
+			return fmt.Errorf("Setting different MME codes for the same gateway is currently unsupported")
+		}
 	}
 	return nil
 }

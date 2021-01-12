@@ -66,9 +66,12 @@ export default function NetworkDialog(props: Props) {
     })
       .then(props.onSave)
       .catch(error =>
-        enqueueSnackbar(error.response?.data?.error || error, {
-          variant: 'error',
-        }),
+        enqueueSnackbar(
+          error?.response?.data?.message || "error: couldn't edit network",
+          {
+            variant: 'error',
+          },
+        ),
       );
   };
 

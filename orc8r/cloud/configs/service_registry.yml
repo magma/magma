@@ -17,26 +17,33 @@
 # port. Example in magma/feg/cloud/configs/service_registry.yml
 
 services:
+  analytics:
+    host: "localhost"
+    port: 9200
+    proxy_type: "clientcert"
+
   orchestrator:
     host: "localhost"
     port: 9112
     echo_port: 10112
     proxy_type: "clientcert"
     labels:
+      orc8r.io/mconfig_builder: "true"
       orc8r.io/metrics_exporter: "true"
       orc8r.io/obsidian_handlers: "true"
       orc8r.io/state_indexer: "true"
       orc8r.io/stream_provider: "true"
+      orc8r.io/analytics_collector: "true"
     annotations:
       orc8r.io/state_indexer_types: "directory_record"
       orc8r.io/state_indexer_version: "1"
       orc8r.io/stream_provider_streams: "configs"
       orc8r.io/obsidian_handlers_path_prefixes: >
         /,
+        /magma/v1/channels,
+        /magma/v1/events,
         /magma/v1/networks,
         /magma/v1/networks/:network_id,
-        /magma/v1/channels,
-        /magma/v1/events
 
   streamer:
     host: "localhost"
@@ -56,7 +63,7 @@ services:
         /magma/v1/networks/:network_id/metrics,
         /magma/v1/networks/:network_id/prometheus,
         /magma/v1/tenants/:tenant_id/metrics,
-        /magma/v1/tenants/targets_metadata
+        /magma/v1/tenants/targets_metadata,
 
   certifier:
     host: "localhost"
@@ -103,6 +110,17 @@ services:
     port: 9108
     proxy_type: "clientcert"
 
+  ctraced:
+    host: "localhost"
+    port: 9118
+    echo_port: 10118
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/tracing,
+
   tenants:
     host: "localhost"
     port: 9110
@@ -111,4 +129,11 @@ services:
     labels:
       orc8r.io/obsidian_handlers: "true"
     annotations:
-      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/tenants,/magma/v1/tenants/:tenants_id"
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/tenants,
+        /magma/v1/tenants/:tenants_id,
+
+  service_registry:
+    host: "localhost"
+    port: 9180
+    proxy_type: "clientcert"

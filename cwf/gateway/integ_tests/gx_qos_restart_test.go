@@ -18,14 +18,14 @@ package integration
 import (
 	"fmt"
 	"io/ioutil"
+	cwfprotos "magma/cwf/cloud/go/protos"
+	"magma/feg/cloud/go/protos"
+	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"math/rand"
 	"os"
 	"testing"
 	"time"
-
-	cwfprotos "magma/cwf/cloud/go/protos"
-	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
@@ -99,8 +99,10 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	ruleKey := fmt.Sprintf("static-ULQos-%d", ki)
 
 	uplinkBwMax := uint32(100000)
-	qos := &models.FlowQos{MaxReqBwUl: &uplinkBwMax}
-	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
+	rule := getStaticPassAll(
+		ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
+		&lteprotos.FlowQos{MaxReqBwUl: uplinkBwMax},
+	)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)
@@ -122,6 +124,12 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("500k")},
 	}
+	// wait for rule to be installed
+	waitForRuleToBeInstalled := func() bool {
+		return checkIfRuleInstalled(tr, ruleKey)
+	}
+	assert.Eventually(t, waitForRuleToBeInstalled, time.Minute, 2*time.Second)
+
 	verifyEgressRate(t, tr, req, float64(uplinkBwMax))
 
 	// Assert that enforcement_stats rules are properly installed and the right
@@ -139,8 +147,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	verifyEgressRate(t, tr, req, float64(uplinkBwMax))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 func restartPipelined(t *testing.T, tr *TestRunner) {

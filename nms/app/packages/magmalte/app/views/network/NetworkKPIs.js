@@ -14,59 +14,55 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {
-  apn,
-  enodeb,
-  lte_gateway,
-  rule_id,
-  subscriber,
-} from '@fbcnms/magma-api';
 
+import ApnContext from '../../components/context/ApnContext';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from '../../components/DataGrid';
+import EnodebContext from '../../components/context/EnodebContext';
+import GatewayContext from '../../components/context/GatewayContext';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import PeopleIcon from '@material-ui/icons/People';
+import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import SubscriberContext from '../../components/context/SubscriberContext';
 
-type Props = {
-  lteGatwayResp: ?{[string]: lte_gateway},
-  enb: ?{[string]: enodeb},
-  subscriber: ?{[string]: subscriber},
-  policyRules: ?Array<rule_id>,
-  apns: ?{[string]: apn},
-};
+import {useContext} from 'react';
 
-export default function NetworkKPI(props: Props) {
+export default function NetworkKPI() {
+  const gwCtx = useContext(GatewayContext);
+  const enbCtx = useContext(EnodebContext);
+  const subscriberCtx = useContext(SubscriberContext);
+  const apnCtx = useContext(ApnContext);
+  const policyCtx = useContext(PolicyContext);
+
   const kpiData: DataRows[] = [
     [
       {
         icon: CellWifiIcon,
         category: 'Gateways',
-        value: props.lteGatwayResp
-          ? Object.keys(props.lteGatwayResp).length
-          : 0,
+        value: Object.keys(gwCtx.state).length,
       },
       {
         icon: SettingsInputAntennaIcon,
         category: 'eNodeBs',
-        value: props.enb ? Object.keys(props.enb).length : 0,
+        value: Object.keys(enbCtx.state.enbInfo).length,
       },
       {
         icon: PeopleIcon,
         category: 'Subscribers',
-        value: props.subscriber ? Object.keys(props.subscriber).length : 0,
+        value: Object.keys(subscriberCtx.state).length,
       },
       {
         icon: LibraryBooksIcon,
         category: 'Policies',
-        value: props.policyRules ? props.policyRules.length : 0,
+        value: Object.keys(policyCtx.state).length,
       },
       {
         icon: RssFeedIcon,
         category: 'APNs',
-        value: props.apns ? Object.keys(props.apns).length : 0,
+        value: Object.keys(apnCtx.state).length,
       },
     ],
   ];

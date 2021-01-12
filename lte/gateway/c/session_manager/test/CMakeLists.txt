@@ -5,6 +5,8 @@ set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")
 
 add_library(SESSIOND_TEST_LIB
+    Consts.h
+    Matchers.h
     ProtobufCreators.cpp
     ProtobufCreators.h
     SessiondMocks.h

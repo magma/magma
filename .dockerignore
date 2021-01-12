@@ -18,6 +18,7 @@
 
 !lte/cloud/
 !lte/gateway/configs/
+!lte/gateway/docker/
 !lte/gateway/deploy/roles/magma/files/
 !lte/gateway/python/
 !lte/gateway/Makefile

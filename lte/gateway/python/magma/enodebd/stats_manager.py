@@ -126,15 +126,19 @@ class StatsManager:
     def _get_enb_label_from_request(self, request) -> str:
         label = 'default'
         ip = request.headers.get('X-Forwarded-For')
+
         if ip is None:
-            ip = request.remote_addr
+            peername = request.transport.get_extra_info('peername')
+            if peername is not None:
+                ip, _ = peername
 
         if ip is None:
             return label
 
-        try:
-            label = self.enb_manager.get_serial(ip)
-        except KeyError:
+        label = self.enb_manager.get_serial_of_ip(ip)
+        if label:
+            logger.debug('Found serial %s for ip %s', label, ip)
+        else:
             logger.error("Couldn't find serial for ip", ip)
         return label
 
@@ -358,5 +362,7 @@ class StatsManager:
         """
         logger.info('Clearing performance counter statistics')
         # Set all metrics to 0 if eNodeB not connected
-        for metric in self.PM_FILE_TO_METRIC_MAP.values():
-            metric.set(0)
+        for pm_name, metric in self.PM_FILE_TO_METRIC_MAP:
+            # eNB data usage metrics will not be cleared
+            if pm_name not in ('PDCP.UpOctUl', 'PDCP.UpOctDl'):
+                metric.set(0)

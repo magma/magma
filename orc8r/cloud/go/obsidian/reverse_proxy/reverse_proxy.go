@@ -116,7 +116,10 @@ func (r *ReverseProxyHandler) updateInactiveBackends(activePrefixes map[string]b
 
 func GetEchoServerAddressToPathPrefixes() (map[*url.URL][]string, error) {
 	pathPrefixesByAddr := map[*url.URL][]string{}
-	services := registry.FindServices(orc8r.ObsidianHandlersLabel)
+	services, err := registry.FindServices(orc8r.ObsidianHandlersLabel)
+	if err != nil {
+		return pathPrefixesByAddr, err
+	}
 	for _, srv := range services {
 		pathPrefixes, err := registry.GetAnnotationList(srv, orc8r.ObsidianHandlersPathPrefixesAnnotation)
 		if err != nil {
@@ -132,15 +135,10 @@ func GetEchoServerAddressToPathPrefixes() (map[*url.URL][]string, error) {
 }
 
 func getEchoServerAddressForService(service string) (*url.URL, error) {
-	echoPort, err := registry.GetEchoServerPort(service)
+	httpServerAddr, err := registry.GetHttpServerAddress(service)
 	if err != nil {
 		return nil, err
 	}
-	serviceAddr, err := registry.GetServiceAddress(service)
-	if err != nil || len(serviceAddr) == 0 {
-		return nil, err
-	}
-	splitServiceAddr := strings.Split(serviceAddr, ":")
-	rawUrl := fmt.Sprintf("http://%s:%d", splitServiceAddr[0], echoPort)
+	rawUrl := fmt.Sprintf("http://%s", httpServerAddr)
 	return url.Parse(rawUrl)
 }

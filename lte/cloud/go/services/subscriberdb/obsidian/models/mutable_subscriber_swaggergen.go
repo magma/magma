@@ -26,8 +26,11 @@ type MutableSubscriber struct {
 	// Base names which are active for this subscriber
 	ActiveBaseNames []models1.BaseName `json:"active_base_names,omitempty"`
 
-	// Policies which are active for this subscriber
-	ActivePolicies []models1.PolicyID `json:"active_policies,omitempty"`
+	// active policies
+	ActivePolicies models1.PolicyIds `json:"active_policies,omitempty"`
+
+	// active policies by apn
+	ActivePoliciesByApn models1.PolicyIdsByApn `json:"active_policies_by_apn,omitempty"`
 
 	// id
 	// Required: true
@@ -39,6 +42,9 @@ type MutableSubscriber struct {
 
 	// Name for the subscriber
 	Name string `json:"name,omitempty"`
+
+	// static ips
+	StaticIps SubscriberStaticIps `json:"static_ips,omitempty"`
 }
 
 // Validate validates this mutable subscriber
@@ -57,11 +63,19 @@ func (m *MutableSubscriber) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateActivePoliciesByApn(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if err := m.validateLte(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStaticIps(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -113,15 +127,27 @@ func (m *MutableSubscriber) validateActivePolicies(formats strfmt.Registry) erro
 		return nil
 	}
 
-	for i := 0; i < len(m.ActivePolicies); i++ {
-
-		if err := m.ActivePolicies[i].Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("active_policies" + "." + strconv.Itoa(i))
-			}
-			return err
+	if err := m.ActivePolicies.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies")
 		}
+		return err
+	}
 
+	return nil
+}
+
+func (m *MutableSubscriber) validateActivePoliciesByApn(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ActivePoliciesByApn) { // not required
+		return nil
+	}
+
+	if err := m.ActivePoliciesByApn.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies_by_apn")
+		}
+		return err
 	}
 
 	return nil
@@ -152,6 +178,22 @@ func (m *MutableSubscriber) validateLte(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *MutableSubscriber) validateStaticIps(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.StaticIps) { // not required
+		return nil
+	}
+
+	if err := m.StaticIps.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("static_ips")
+		}
+		return err
 	}
 
 	return nil

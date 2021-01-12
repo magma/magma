@@ -43,13 +43,13 @@ target_link_libraries(mme
         COMMON
         LIB_3GPP LIB_S1AP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
         LIB_HASHTABLE LIB_S6A_PROXY
-        TASK_S1AP TASK_SCTP_SERVER TASK_SGS
-        TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE TASK_NAS
+        TASK_S1AP TASK_SCTP_SERVER TASK_SGS TASK_SMS_ORC8R
+        TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE TASK_NAS TASK_HA
         ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls ${SERVICE303_LIB}
-    prometheus-cpp grpc grpc++
+    prometheus-cpp grpc grpc++ yaml-cpp
 )
 
 if ( NOT EMBEDDED_SGW )

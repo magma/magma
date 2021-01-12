@@ -18,6 +18,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -25,6 +26,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/pkg/errors"
 )
 
 // SubscribersProvider provides the implementation for subscriber streaming.
@@ -35,34 +37,65 @@ func (p *SubscribersProvider) GetStreamName() string {
 }
 
 func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	ent, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	magmadGateway, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
+	if err != nil {
+		return nil, errors.Wrapf(err, "load magmad gateway for physical ID %s", gatewayId)
+	}
+	gateway, err := configurator.LoadEntity(
+		magmadGateway.NetworkID, lte.CellularGatewayEntityType, magmadGateway.Key,
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
+	if err != nil {
+		return nil, errors.Wrapf(err, "load cellular gateway from magmad gateway %s", magmadGateway.Key)
+	}
+	subEnts, err := configurator.LoadAllEntitiesOfType(
+		gateway.NetworkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true,
+			LoadAssocsToThis: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
+	if err != nil {
+		return nil, errors.Wrapf(err, "load all subscribers in network of gateway %s", gateway.Key)
+	}
+	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
 	if err != nil {
 		return nil, err
-	}
-	// Collect all subscribers in one RPC call
-	subEnts, err := configurator.LoadAllEntitiesInNetwork(ent.NetworkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true, LoadAssocsFromThis: true})
-	if err != nil {
-		return nil, err
-	}
-	// Collect all APNs in one RPC call
-	apnEnts, err := configurator.LoadAllEntitiesInNetwork(ent.NetworkID, lte.ApnEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
-	// Create a map to avoid for loops in function calls to populate subscriber data from subscriber associations
-	apnConfigMap := make(map[string]*lte_models.ApnConfiguration, len(apnEnts))
-	for _, apnEnt := range apnEnts {
-		apnConfigMap[apnEnt.Key] = apnEnt.Config.(*lte_models.ApnConfiguration)
 	}
 
 	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
 	for _, sub := range subEnts {
 		subProto := &lte_protos.SubscriberData{}
-		subProto, err = subscriberToMconfig(sub, apnConfigMap)
+		subProto, err = subscriberToMconfig(sub, apnsByName, apnResourcesByAPN)
 		if err != nil {
 			return nil, err
 		}
-		subProto.NetworkId = &protos.NetworkID{Id: ent.NetworkID}
+		subProto.NetworkId = &protos.NetworkID{Id: gateway.NetworkID}
 		subProtos = append(subProtos, subProto)
 	}
+
 	return subscribersToUpdates(subProtos)
+}
+
+func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
+	apns, err := configurator.LoadAllEntitiesOfType(
+		gateway.NetworkID, lte.APNEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+	apnsByName := map[string]*lte_models.ApnConfiguration{}
+	for _, ent := range apns {
+		apnsByName[ent.Key] = ent.Config.(*lte_models.ApnConfiguration)
+	}
+
+	apnResources, err := lte_models.LoadAPNResources(gateway.NetworkID, gateway.Associations.Filter(lte.APNResourceEntityType).Keys())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return apnsByName, apnResources, nil
 }
 
 func subscribersToUpdates(subs []*lte_protos.SubscriberData) ([]*protos.DataUpdate, error) {
@@ -79,7 +112,7 @@ func subscribersToUpdates(subs []*lte_protos.SubscriberData) ([]*protos.DataUpda
 	return ret, nil
 }
 
-func subscriberToMconfig(ent configurator.NetworkEntity, apnConfigs map[string]*lte_models.ApnConfiguration) (*lte_protos.SubscriberData, error) {
+func subscriberToMconfig(ent configurator.NetworkEntity, apnConfigs map[string]*lte_models.ApnConfiguration, apnResources lte_models.ApnResources) (*lte_protos.SubscriberData, error) {
 	sub := &lte_protos.SubscriberData{}
 	t, err := lte_protos.SidProto(ent.Key)
 	if err != nil {
@@ -91,16 +124,16 @@ func subscriberToMconfig(ent configurator.NetworkEntity, apnConfigs map[string]*
 		return sub, nil
 	}
 
-	cfg := ent.Config.(*models.LteSubscription)
+	cfg := ent.Config.(*models.SubscriberConfig)
 	sub.Lte = &lte_protos.LTESubscription{
-		State:    lte_protos.LTESubscription_LTESubscriptionState(lte_protos.LTESubscription_LTESubscriptionState_value[cfg.State]),
-		AuthAlgo: lte_protos.LTESubscription_LTEAuthAlgo(lte_protos.LTESubscription_LTEAuthAlgo_value[cfg.AuthAlgo]),
-		AuthKey:  cfg.AuthKey,
-		AuthOpc:  cfg.AuthOpc,
+		State:    lte_protos.LTESubscription_LTESubscriptionState(lte_protos.LTESubscription_LTESubscriptionState_value[cfg.Lte.State]),
+		AuthAlgo: lte_protos.LTESubscription_LTEAuthAlgo(lte_protos.LTESubscription_LTEAuthAlgo_value[cfg.Lte.AuthAlgo]),
+		AuthKey:  cfg.Lte.AuthKey,
+		AuthOpc:  cfg.Lte.AuthOpc,
 	}
 
-	if cfg.SubProfile != "" {
-		sub.SubProfile = string(cfg.SubProfile)
+	if cfg.Lte.SubProfile != "" {
+		sub.SubProfile = string(cfg.Lte.SubProfile)
 	} else {
 		sub.SubProfile = "default"
 	}
@@ -113,26 +146,43 @@ func subscriberToMconfig(ent configurator.NetworkEntity, apnConfigs map[string]*
 		}
 	}
 
-	var protoApnConfig []*lte_protos.APNConfiguration
+	// Construct the non-3gpp profile
+	non3gpp := &lte_protos.Non3GPPUserProfile{
+		ApnConfig: make([]*lte_protos.APNConfiguration, 0, len(ent.Associations)),
+	}
 	for _, assoc := range ent.Associations {
-		apnConfig := apnConfigs[assoc.Key]
-		if apnConfig != nil {
-			ambr := &lte_protos.AggregatedMaximumBitrate{
+		apnConfig, apnFound := apnConfigs[assoc.Key]
+		if !apnFound {
+			continue
+		}
+		var apnResource *lte_protos.APNConfiguration_APNResource
+		if apnResourceModel, ok := apnResources[assoc.Key]; ok {
+			apnResource = apnResourceModel.ToProto()
+		}
+
+		apnProto := &lte_protos.APNConfiguration{
+			ServiceSelection: assoc.Key,
+			Ambr: &lte_protos.AggregatedMaximumBitrate{
 				MaxBandwidthUl: *(apnConfig.Ambr.MaxBandwidthUl),
 				MaxBandwidthDl: *(apnConfig.Ambr.MaxBandwidthDl),
-			}
-			qos := &lte_protos.APNConfiguration_QoSProfile{
-				ClassId:       *(apnConfig.QosProfile.ClassID),
-				PriorityLevel: *(apnConfig.QosProfile.PriorityLevel),
-			}
-			protoApnConfig = append(protoApnConfig, &lte_protos.APNConfiguration{ServiceSelection: assoc.Key, Ambr: ambr, QosProfile: qos})
+			},
+			QosProfile: &lte_protos.APNConfiguration_QoSProfile{
+				ClassId:                 *(apnConfig.QosProfile.ClassID),
+				PriorityLevel:           *(apnConfig.QosProfile.PriorityLevel),
+				PreemptionCapability:    *(apnConfig.QosProfile.PreemptionCapability),
+				PreemptionVulnerability: *(apnConfig.QosProfile.PreemptionVulnerability),
+			},
+			Resource: apnResource,
 		}
+		if staticIP, found := cfg.StaticIps[assoc.Key]; found {
+			apnProto.AssignedStaticIp = string(staticIP)
+		}
+		non3gpp.ApnConfig = append(non3gpp.ApnConfig, apnProto)
 	}
+	sort.Slice(non3gpp.ApnConfig, func(i, j int) bool {
+		return non3gpp.ApnConfig[i].ServiceSelection < non3gpp.ApnConfig[j].ServiceSelection
+	})
+	sub.Non_3Gpp = non3gpp
 
-	if protoApnConfig != nil {
-		sub.Non_3Gpp = &lte_protos.Non3GPPUserProfile{
-			ApnConfig: protoApnConfig,
-		}
-	}
 	return sub, nil
 }

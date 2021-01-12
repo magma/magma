@@ -101,12 +101,22 @@ TEST_F(SessionReporterTest, test_single_call) {
       .WillOnce(testing::DoAll(
           testing::SetArgPointee<2>(response),
           testing::Return(grpc::Status::OK)));
+
+  std::promise<void> promise1;
   CreateSessionRequest request;
   reporter->report_create_session(
-      request, [this](Status status, CreateSessionResponse response_out) {
+      request,
+      [this, &promise1](Status status, CreateSessionResponse response_out) {
         mock_callback.create_callback(status, response_out);
-        evb.terminateLoopSoon();
+        promise1.set_value();
       });
+
+  // wait for one response
+  std::thread([&]() {
+    promise1.get_future().wait();
+    evb.terminateLoopSoon();
+  })
+      .detach();
 
   set_timeout(1000);
 

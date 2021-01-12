@@ -52,6 +52,13 @@ type subscriptionID struct {
 	IDData string                            `avp:"Subscription-Id-Data"`
 }
 
+type ccrCredit struct {
+	RatingGroup          uint32                `avp:"Rating-Group"`
+	UsedServiceUnit      *usedServiceUnit      `avp:"Used-Service-Unit"`
+	ReportingReason      uint32                `avp:"Reporting-Reason"`
+	RequestedServiceUnit *RequestedServiceUnit `avp:"Requested-Service-Unit"`
+}
+
 type usedServiceUnit struct {
 	InputOctets     uint64 `avp:"CC-Input-Octets"`
 	OutputOctets    uint64 `avp:"CC-Output-Octets"`
@@ -59,10 +66,10 @@ type usedServiceUnit struct {
 	ReportingReason uint32 `avp:"Reporting-Reason"`
 }
 
-type ccrCredit struct {
-	RatingGroup     uint32           `avp:"Rating-Group"`
-	UsedServiceUnit *usedServiceUnit `avp:"Used-Service-Unit"`
-	ReportingReason uint32           `avp:"Reporting-Reason"`
+type RequestedServiceUnit struct {
+	InputOctets  uint64 `avp:"CC-Input-Octets"`
+	OutputOctets uint64 `avp:"CC-Output-Octets"`
+	TotalOctets  uint64 `avp:"CC-Total-Octets"`
 }
 
 // getCCRHandler returns a handler to be called when the server receives a CCR
@@ -81,6 +88,7 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
 			return
 		}
+		requestType := credit_control.CreditRequestType(ccr.RequestType)
 		account, found := srv.accounts[imsi]
 		if !found {
 			glog.Errorf("Account not found!")
@@ -107,47 +115,60 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 			return
 		}
 
-		if credit_control.CreditRequestType(ccr.RequestType) == credit_control.CRTTerminate {
+		if requestType == credit_control.CRTTerminate {
 			sendAnswer(ccr, c, m, diam.Success)
 			return
 		}
 
 		creditAnswers := make([]*diam.AVP, 0, len(ccr.MSCC))
-		for _, mscc := range ccr.MSCC {
-			if mscc.UsedServiceUnit != nil {
-				glog.V(2).Infof("Received credit usage from %s:%d, balance will be decremented by Total:%d Tx:%d Rx:%d",
-					imsi, mscc.RatingGroup,
-					mscc.UsedServiceUnit.TotalOctets,
-					mscc.UsedServiceUnit.OutputOctets,
-					mscc.UsedServiceUnit.InputOctets,
-				)
-				decrementUsedCredit(
-					account.ChargingCredit[mscc.RatingGroup],
-					mscc.UsedServiceUnit,
-				)
-				glog.V(2).Infof("Current balance for %s:%d is Total:%d Tx:%d Rx:%d",
-					imsi, mscc.RatingGroup,
-					account.ChargingCredit[mscc.RatingGroup].Volume.TotalOctets,
-					account.ChargingCredit[mscc.RatingGroup].Volume.OutputOctets,
-					account.ChargingCredit[mscc.RatingGroup].Volume.InputOctets)
-			}
 
-			returnOctets, final := getQuotaGrant(srv, account.ChargingCredit[mscc.RatingGroup])
-			if returnOctets.GetTotalOctets() <= 0 {
-				sendAnswer(ccr, c, m, DiameterCreditLimitReached)
-				return
+		for _, mscc := range ccr.MSCC {
+			// Only check usage for CCR-U and CCR-T,
+			if requestType != credit_control.CRTInit {
+				if mscc.UsedServiceUnit != nil {
+					glog.V(2).Infof("Received credit usage from %s:%d, balance will be decremented by Total:%d Tx:%d Rx:%d",
+						imsi, mscc.RatingGroup,
+						mscc.UsedServiceUnit.TotalOctets,
+						mscc.UsedServiceUnit.OutputOctets,
+						mscc.UsedServiceUnit.InputOctets,
+					)
+					decrementUsedCredit(
+						account.ChargingCredit[mscc.RatingGroup],
+						mscc.UsedServiceUnit,
+					)
+					glog.V(2).Infof("Current balance for %s:%d is Total:%d Tx:%d Rx:%d",
+						imsi, mscc.RatingGroup,
+						account.ChargingCredit[mscc.RatingGroup].Volume.TotalOctets,
+						account.ChargingCredit[mscc.RatingGroup].Volume.OutputOctets,
+						account.ChargingCredit[mscc.RatingGroup].Volume.InputOctets)
+				}
 			}
-			creditAnswers = append(
-				creditAnswers,
-				toGrantedUnitsAVP(
-					diam.Success,
-					srv.ocsConfig.ValidityTime,
-					returnOctets,
-					final,
-					mscc.RatingGroup,
-					srv.ocsConfig.FinalUnitAction,
-					srv.ocsConfig.RedirectAddress,
-				))
+			// Only return credit for CCR-I and CCR-U,
+			if requestType != credit_control.CRTTerminate {
+				// Requested-Service-Unit AVP must always exist
+				if mscc.RequestedServiceUnit == nil {
+					sendAnswer(ccr, c, m, diam.UnableToComply)
+					return
+				}
+
+				returnOctets, final := getQuotaGrant(srv, account.ChargingCredit[mscc.RatingGroup])
+				if returnOctets.GetTotalOctets() <= 0 {
+					sendAnswer(ccr, c, m, DiameterCreditLimitReached)
+					return
+				}
+				creditAnswers = append(
+					creditAnswers,
+					toGrantedUnitsAVP(
+						diam.Success,
+						srv.ocsConfig.ValidityTime,
+						returnOctets,
+						final,
+						mscc.RatingGroup,
+						srv.ocsConfig.FinalUnitIndication.FinalUnitAction,
+						srv.ocsConfig.FinalUnitIndication.RedirectAddress,
+						srv.ocsConfig.FinalUnitIndication.RestrictRules,
+					))
+			}
 		}
 		sendAnswer(ccr, c, m, diam.Success, creditAnswers...)
 	}
@@ -283,10 +304,23 @@ func getMin(first, second uint64) uint64 {
 	return first
 }
 
-func toFinalUnitActionAVP(finalUnitAction protos.FinalUnitAction, redirectAddress string) []*diam.AVP {
+func toFinalUnitActionAVP(finalUnitAction protos.FinalUnitAction, redirectAddress string, restrict_rules []string) []*diam.AVP {
 	fuaAVPs := []*diam.AVP{
 		diam.NewAVP(avp.FinalUnitAction, avp.Mbit, 0, datatype.Enumerated(finalUnitAction)),
 	}
+
+	if finalUnitAction == protos.FinalUnitAction_Restrict {
+		if restrict_rules == nil || len(restrict_rules) == 0 {
+			glog.Errorf("RestrictRules must be provided when final unit action is set to restrict\n")
+			return fuaAVPs
+		}
+		for _, rule := range restrict_rules {
+			fuaAVPs = append(fuaAVPs,
+				diam.NewAVP(avp.FilterID, avp.Mbit, 0, datatype.UTF8String(rule)),
+			)
+		}
+	}
+
 	if finalUnitAction == protos.FinalUnitAction_Redirect {
 		fuaAVPs = append(
 			fuaAVPs,
@@ -301,7 +335,7 @@ func toFinalUnitActionAVP(finalUnitAction protos.FinalUnitAction, redirectAddres
 	return fuaAVPs
 }
 
-func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *protos.Octets, isFinalUnit bool, ratingGroup uint32, fuAction protos.FinalUnitAction, redirectAddr string) *diam.AVP {
+func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *protos.Octets, isFinalUnit bool, ratingGroup uint32, fuAction protos.FinalUnitAction, redirectAddr string, restrict_rules []string) *diam.AVP {
 	creditGroup := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.GrantedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{
@@ -314,7 +348,7 @@ func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *proto
 	}
 	if isFinalUnit {
 		creditGroup.AddAVP(
-			diam.NewAVP(avp.FinalUnitIndication, avp.Mbit, 0, &diam.GroupedAVP{AVP: toFinalUnitActionAVP(fuAction, redirectAddr)}),
+			diam.NewAVP(avp.FinalUnitIndication, avp.Mbit, 0, &diam.GroupedAVP{AVP: toFinalUnitActionAVP(fuAction, redirectAddr, restrict_rules)}),
 		)
 	}
 	return diam.NewAVP(avp.MultipleServicesCreditControl, avp.Mbit, 0, creditGroup)

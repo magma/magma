@@ -269,10 +269,12 @@ SctpStatus SctpConnection::HandleComUp(int sd, struct sctp_assoc_change *change)
 
   _sctp_desc.addAssoc(assoc);
 
+  std::string ran_cp_ipaddr;
+  pull_peer_ipaddr(sd, change->sac_assoc_id, ran_cp_ipaddr);
+
   _handler.HandleNewAssoc(
-    change->sac_assoc_id,
-    change->sac_inbound_streams,
-    change->sac_outbound_streams);
+      change->sac_assoc_id, change->sac_inbound_streams,
+      change->sac_outbound_streams, ran_cp_ipaddr);
 
   return SctpStatus::OK;
 }

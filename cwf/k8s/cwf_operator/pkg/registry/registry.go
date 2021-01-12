@@ -53,7 +53,11 @@ func NewK8sConnectionRegistry() *k8sConnectionRegistry {
 // reuse a gRPC connection if it already exists.
 func (r *k8sConnectionRegistry) GetConnection(service string, port int) (*grpc.ClientConn, error) {
 	serviceAddr := fmt.Sprintf("%s:%d", service, port)
-	exists := doesServiceExist(r.ListAllServices(), serviceAddr)
+	allServices, err := r.ListAllServices()
+	if err != nil {
+		return nil, err
+	}
+	exists := doesServiceExist(allServices, serviceAddr)
 	if !exists {
 		// Kubernetes services can be reached at svc:port
 		// Here we map svc:port -> addr (svc:port) in the registry to ensure

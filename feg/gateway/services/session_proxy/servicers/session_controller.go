@@ -26,6 +26,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/metrics"
 	"magma/lte/cloud/go/protos"
+	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -56,6 +57,8 @@ type SessionControllerConfig struct {
 	// 2. Ensures all Multi Service Credit Control entities have 2001 result
 	// code for CreateSession to succeed.
 	UseGyForAuthOnly bool
+	DisableGx        bool
+	DisableGy        bool
 }
 
 // NewCentralSessionController constructs a CentralSessionController
@@ -78,54 +81,52 @@ func NewCentralSessionController(
 // CreateSession begins a UE session by requesting rules from PCEF
 // and credit from OCS (if RatingGroup is present) and returning them.
 func (srv *CentralSessionController) CreateSession(
-	ctx context.Context,
+	_ context.Context,
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")
 	if err := checkCreateSessionRequest(request); err != nil {
 		return nil, err
 	}
-	imsi := credit_control.RemoveIMSIPrefix(request.Subscriber.Id)
-	gxCCAInit, err := srv.sendInitialGxRequest(imsi, request)
-	metrics.UpdateGxRecentRequestMetrics(err)
+	imsi := credit_control.RemoveIMSIPrefix(request.GetCommonContext().GetSid().Id)
+
+	// GX
+	// In case srv.cfg.DisableGx this function will return a default response
+	gxCCAInit, err := srv.sendInitialGxRequestOrGenerateEmptyResponse(imsi, request)
+	metrics.ReportCreateGxSession(err)
 	if err != nil {
-		metrics.PcrfCcrInitSendFailures.Inc()
 		glog.Errorf("Failed to send initial Gx request: %s", err)
 		return nil, err
 	}
-	metrics.PcrfCcrInitRequests.Inc()
+	err = injectOmnipresentRules(srv, gxCCAInit)
+	if err != nil {
+		glog.Errorf("Could not inject omnipresent Rules, skipping. Error: %+v", err)
+	}
 
 	staticRuleInstalls, dynamicRuleInstalls := gx.ParseRuleInstallAVPs(srv.dbClient, gxCCAInit.RuleInstallAVP)
 	chargingKeys := srv.getChargingKeysFromRuleInstalls(staticRuleInstalls, dynamicRuleInstalls)
 	eventTriggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
+	gxOriginHost, gyOriginHost := gxCCAInit.OriginHost, ""
 
-	// These rules should not be tracked by OCS or PCRF, they come directly from the orc8r
-	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
-	omnipresentRuleIDs = append(omnipresentRuleIDs, srv.dbClient.GetRuleIDsForBaseNames(omnipresentBaseNames)...)
-	staticRuleInstalls = append(staticRuleInstalls, gx.RuleIDsToProtosRuleInstalls(omnipresentRuleIDs)...)
-
-	var gxOriginHost, gyOriginHost string = gxCCAInit.OriginHost, ""
-	if srv.cfg.UseGyForAuthOnly {
-		return srv.handleUseGyForAuthOnly(
-			imsi, request, staticRuleInstalls, dynamicRuleInstalls, gxCCAInit)
-	}
 	credits := []*protos.CreditUpdateResponse{}
-
-	if len(chargingKeys) > 0 {
-		gyCCRInit := getCCRInitialCreditRequest(imsi, request, chargingKeys)
-		gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
-		metrics.UpdateGyRecentRequestMetrics(err)
-		if err != nil {
-			metrics.OcsCcrInitSendFailures.Inc()
-			glog.Errorf("Failed to send initial credit request: %s", err)
-			return nil, err
+	// Gy
+	if srv.cfg.DisableGy == false {
+		if srv.cfg.UseGyForAuthOnly {
+			return srv.handleUseGyForAuthOnly(
+				imsi, request, staticRuleInstalls, dynamicRuleInstalls, gxCCAInit)
 		}
-		gyOriginHost = gyCCAInit.OriginHost
-		credits = getInitialCreditResponsesFromCCA(gyCCRInit, gyCCAInit)
-
-		metrics.OcsCcrInitRequests.Inc()
+		if len(chargingKeys) > 0 {
+			gyCCRInit := makeCCRInit(imsi, request, chargingKeys)
+			gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
+			metrics.ReportCreateGySession(err)
+			if err != nil {
+				glog.Errorf("Failed to send initial credit request: %s", err)
+				return nil, err
+			}
+			gyOriginHost = gyCCAInit.OriginHost
+			credits = getInitialCreditResponsesFromCCA(gyCCRInit, gyCCAInit)
+		}
 	}
-
 	usageMonitors := getUsageMonitorsFromCCA_I(imsi, request.SessionId, gyOriginHost, gxCCAInit)
 
 	return &protos.CreateSessionResponse{
@@ -147,15 +148,13 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 	dynamicRuleInstalls []*protos.DynamicRuleInstall,
 	gxCCAInit *gx.CreditControlAnswer) (*protos.CreateSessionResponse, error) {
 
-	gyCCRInit := getCCRInitRequest(imsi, pReq)
+	gyCCRInit := makeCCRInitWithoutChargingKeys(imsi, pReq)
 	gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
-	metrics.UpdateGyRecentRequestMetrics(err)
+	metrics.ReportCreateGySession(err)
 	if err != nil {
-		metrics.OcsCcrInitSendFailures.Inc()
 		glog.Errorf("Failed to send second single credit request: %s", err)
 		return nil, err
 	}
-	metrics.OcsCcrInitRequests.Inc()
 
 	err = validateGyCCAIMSCC(gyCCAInit)
 	if err != nil {
@@ -180,7 +179,6 @@ func (srv *CentralSessionController) getChargingKeysFromRuleInstalls(
 	dynamicRuleDef := funk.Map(dynamicRuleInstalls, func(d *protos.DynamicRuleInstall) *protos.PolicyRule { return d.PolicyRule }).([]*protos.PolicyRule)
 	keys := srv.dbClient.GetChargingKeysForRules(staticRuleIDs, dynamicRuleDef)
 	return removeDuplicateChargingKeys(keys)
-
 }
 
 func removeDuplicateChargingKeys(keysIn []policydb.ChargingKey) []policydb.ChargingKey {
@@ -216,6 +214,9 @@ func (srv *CentralSessionController) UpdateSession(
 	)
 	go func() {
 		defer wg.Done()
+		if srv.cfg.DisableGx {
+			return
+		}
 		requests := getGxUpdateRequestsFromUsage(request.UsageMonitors)
 		gxUpdateResponses = srv.sendMultipleGxRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
 		for _, mur := range gxUpdateResponses {
@@ -231,6 +232,9 @@ func (srv *CentralSessionController) UpdateSession(
 	}()
 	go func() {
 		defer wg.Done()
+		if srv.cfg.DisableGy {
+			return
+		}
 		requests := getGyUpdateRequestsFromUsage(request.Updates)
 		gyUpdateResponses = srv.sendMultipleGyRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
 		for _, cur := range gyUpdateResponses {
@@ -273,24 +277,27 @@ func (srv *CentralSessionController) TerminateSession(
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		_, err := srv.sendTerminationGxRequest(request)
-		metrics.UpdateGxRecentRequestMetrics(err)
-		if err != nil {
-			metrics.PcrfCcrTerminateSendFailures.Inc()
-			glog.Errorf("Error sending gx termination: %s", err)
-		} else {
-			metrics.PcrfCcrTerminateRequests.Inc()
+		if srv.cfg.DisableGx {
+			return
 		}
+		_, err := srv.sendTerminationGxRequest(request)
+		metrics.ReportTerminateGxSession(err)
+		if err != nil {
+			glog.Errorf("Error sending gx termination: %s", err)
+			return
+		}
+
 	}()
 	go func() {
 		defer wg.Done()
+		if srv.cfg.DisableGy {
+			return
+		}
 		_, err := srv.sendSingleCreditRequest(getTerminateRequestFromUsage(request))
-		metrics.UpdateGyRecentRequestMetrics(err)
+		metrics.ReportTerminateGySession(err)
 		if err != nil {
-			metrics.OcsCcrTerminateSendFailures.Inc()
 			glog.Errorf("Error sending gy termination: %s", err)
-		} else {
-			metrics.OcsCcrTerminateRequests.Inc()
+			return
 		}
 	}()
 	wg.Wait()
@@ -311,8 +318,12 @@ func (srv *CentralSessionController) Disable(
 	if req == nil {
 		return nil, fmt.Errorf("Nil Disable Request")
 	}
-	srv.policyClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
-	srv.creditClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
+	if srv.cfg.DisableGx == false {
+		srv.policyClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
+	}
+	if srv.cfg.DisableGy == false {
+		srv.creditClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
+	}
 	return &orcprotos.Void{}, nil
 }
 
@@ -323,13 +334,20 @@ func (srv *CentralSessionController) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	pcErr := srv.policyClient.EnableConnections()
-	ccErr := srv.creditClient.EnableConnections()
-	if pcErr != nil || ccErr != nil {
-		return &orcprotos.Void{}, fmt.Errorf("An error occurred while enabling connections; policyClient err: %s, creditClient err: %s",
-			pcErr, ccErr)
+	multiError := errors.NewMulti()
+	if srv.cfg.DisableGx == false {
+		err := srv.policyClient.EnableConnections()
+		if err != nil {
+			multiError.Add(fmt.Errorf("An error occurred while enabling connections; policyClient err: %s", err))
+		}
 	}
-	return &orcprotos.Void{}, nil
+	if srv.cfg.DisableGy == false {
+		err := srv.creditClient.EnableConnections()
+		if err != nil {
+			multiError.Add(fmt.Errorf("An error occurred while enabling connections; creditClient err: %s", err))
+		}
+	}
+	return &orcprotos.Void{}, multiError.AsError()
 }
 
 // GetHealthStatus retrieves a health status object which contains the current
@@ -380,17 +398,19 @@ func (srv *CentralSessionController) GetHealthStatus(
 }
 
 func (srv *CentralSessionController) getHealthStatusForGxRequests(failures, total int64) *fegprotos.HealthStatus {
-	gxExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
-		float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
-	if gxExceedsThreshold {
-		unhealthyMsg := fmt.Sprintf("Metric Gx Request Failure Ratio >= threshold %f; %d / %d",
-			srv.healthTracker.RequestFailureThreshold,
-			failures,
-			total,
-		)
-		return &fegprotos.HealthStatus{
-			Health:        fegprotos.HealthStatus_UNHEALTHY,
-			HealthMessage: unhealthyMsg,
+	if srv.cfg.DisableGx == false {
+		gxExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
+			float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
+		if gxExceedsThreshold {
+			unhealthyMsg := fmt.Sprintf("Metric Gx Request Failure Ratio >= threshold %f; %d / %d",
+				srv.healthTracker.RequestFailureThreshold,
+				failures,
+				total,
+			)
+			return &fegprotos.HealthStatus{
+				Health:        fegprotos.HealthStatus_UNHEALTHY,
+				HealthMessage: unhealthyMsg,
+			}
 		}
 	}
 	return &fegprotos.HealthStatus{
@@ -400,17 +420,19 @@ func (srv *CentralSessionController) getHealthStatusForGxRequests(failures, tota
 }
 
 func (srv *CentralSessionController) getHealthStatusForGyRequests(failures, total int64) *fegprotos.HealthStatus {
-	gyExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
-		float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
-	if gyExceedsThreshold {
-		unhealthyMsg := fmt.Sprintf("Metric Gy Request Failure Ratio >= threshold %f; %d / %d",
-			srv.healthTracker.RequestFailureThreshold,
-			failures,
-			total,
-		)
-		return &fegprotos.HealthStatus{
-			Health:        fegprotos.HealthStatus_UNHEALTHY,
-			HealthMessage: unhealthyMsg,
+	if srv.cfg.DisableGy == false {
+		gyExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
+			float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
+		if gyExceedsThreshold {
+			unhealthyMsg := fmt.Sprintf("Metric Gy Request Failure Ratio >= threshold %f; %d / %d",
+				srv.healthTracker.RequestFailureThreshold,
+				failures,
+				total,
+			)
+			return &fegprotos.HealthStatus{
+				Health:        fegprotos.HealthStatus_UNHEALTHY,
+				HealthMessage: unhealthyMsg,
+			}
 		}
 	}
 	return &fegprotos.HealthStatus{
@@ -420,11 +442,32 @@ func (srv *CentralSessionController) getHealthStatusForGyRequests(failures, tota
 }
 
 func checkCreateSessionRequest(req *protos.CreateSessionRequest) error {
-	if req.Subscriber == nil || req.Subscriber.Id == "" {
+	subscriber := req.GetCommonContext().GetSid()
+	if subscriber == nil || subscriber.GetId() == "" {
 		return fmt.Errorf("Missing Subscriber information on CreateSessionRequest %+v", req)
 	}
 	if req.SessionId == "" {
 		return fmt.Errorf("Missing magma SessionId information on CreateSessionRequest %+v", req)
+	}
+	return nil
+}
+
+// injectOmnipresentRules adds Omnipresent rules and basenames to the gxCCAInit in form of RuleInstallAVP
+func injectOmnipresentRules(srv *CentralSessionController, gxCCAInit *gx.CreditControlAnswer) error {
+	if gxCCAInit == nil {
+		return fmt.Errorf("gxCCAInit is nul")
+	}
+	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
+	if len(omnipresentRuleIDs) > 0 || len(omnipresentBaseNames) > 0 {
+		glog.V(2).Infof("Adding omnipresent rules %v and omnipresent rule base %v", omnipresentRuleIDs, omnipresentBaseNames)
+		omniRuleInstallAVPRuleInstallAVP := &gx.RuleInstallAVP{
+			RuleNames:            omnipresentRuleIDs,
+			RuleBaseNames:        omnipresentBaseNames,
+			RuleDefinitions:      []*gx.RuleDefinition{},
+			RuleActivationTime:   nil,
+			RuleDeactivationTime: nil,
+		}
+		gxCCAInit.RuleInstallAVP = append(gxCCAInit.RuleInstallAVP, omniRuleInstallAVPRuleInstallAVP)
 	}
 	return nil
 }

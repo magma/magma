@@ -362,9 +362,9 @@ func (s *sqlJobQueue) getNewJobs(tx *sql.Tx) ([]*reindexJob, error) {
 }
 
 // Venn diagram of indexer IDs in old and new jobs
-//	- old_only:	indexer ID only present in old jobs -- existing job uncomplete, but no new job needed
+//	- old_only:	indexer ID only present in old jobs -- existing job incomplete, but no new job needed
 //	- new_only:	indexer ID only present in new jobs -- existing job not found, and new job needed
-//	- both:		indexer ID present in both old and new jobs -- existing job uncomplete, and new job also needed
+//	- both:		indexer ID present in both old and new jobs -- existing job incomplete, and new job also needed
 // {    old_only    [    both    }    new_only    ]
 func (s *sqlJobQueue) getComposedJobs(tx *sql.Tx, newJobs []*reindexJob) ([]*reindexJob, error) {
 	oldJobs, err := s.getExistingIncompleteJobs(tx)

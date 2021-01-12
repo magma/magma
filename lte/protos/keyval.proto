@@ -52,6 +52,7 @@ message IPDesc {
   IPState state = 3;
   SubscriberID sid = 4;
   IPType type = 5;
+  uint32 vlan_id = 6;
 }
 
 // --------------------------------------------------------------------------

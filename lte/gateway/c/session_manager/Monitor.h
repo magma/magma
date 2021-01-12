@@ -31,17 +31,37 @@ struct Monitor {
 
   Monitor() {}
 
-  Monitor(const StoredMonitor &marshaled) {
+  Monitor(const StoredMonitor& marshaled) {
     credit = SessionCredit(marshaled.credit);
-    level = marshaled.level;
+    level  = marshaled.level;
   }
 
   // Marshal into StoredMonitor structure used in SessionStore
   StoredMonitor marshal() {
     StoredMonitor marshaled{};
     marshaled.credit = credit.marshal();
-    marshaled.level = level;
+    marshaled.level  = level;
     return marshaled;
+  }
+
+  // Monitor will be deleted when the credit is exhausted and no more grants are
+  // received or when we receive the explicit action
+  bool should_delete_monitor() {
+    return credit.current_grant_contains_zero() && credit.is_quota_exhausted(1);
+  }
+
+  bool should_send_update() {
+    // update trigger by being the final report
+    if (credit.is_report_last_credit()) {
+      return true;
+    }
+    // updated trigger due to usage threshold (80%)
+    if (!credit.current_grant_contains_zero() &&
+        credit.is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
+      // if grant contains zeros that means we are in final. Do no report
+      return true;
+    }
+    return false;
   }
 };
 

@@ -41,6 +41,8 @@
 /* FreeDiameter headers for support of S6A interface */
 #include "s6a_defs.h"
 #include "sgs_defs.h"
+#include "sms_orc8r_defs.h"
+#include "ha_defs.h"
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
@@ -65,6 +67,9 @@ task_zmq_ctx_t main_zmq_ctx;
 static int main_init(void) {
   // Initialize main thread ZMQ context
   // We dont use the PULL socket nor the ZMQ loop
+  // Don't include optional services such as CSFB, SMS, HA
+  // into target task list (i.e., they will not receive any
+  // broadcast messages or timer messages)
   init_task_context(
       TASK_MAIN,
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
@@ -80,6 +85,7 @@ static void main_exit(void) {
 }
 
 int main(int argc, char* argv[]) {
+  srand(time(NULL));
   char* pid_file_name;
 
   CHECK_INIT_RETURN(OAILOG_INIT(
@@ -133,8 +139,14 @@ int main(int argc, char* argv[]) {
       !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
     CHECK_INIT_RETURN(sgs_init(&mme_config));
     OAILOG_DEBUG(LOG_MME_APP, "SGS Task initialized\n");
+  } else if (!(strcmp(non_eps_service_control, "SMS_ORC8R"))) {
+    CHECK_INIT_RETURN(sms_orc8r_init(&mme_config));
+    OAILOG_DEBUG(LOG_MME_APP, "SMS_ORC8R Task initialized\n");
   }
   CHECK_INIT_RETURN(grpc_service_init());
+  if (mme_config.use_ha) {
+    CHECK_INIT_RETURN(ha_init(&mme_config));
+  }
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW

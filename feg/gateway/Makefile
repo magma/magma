@@ -15,9 +15,12 @@ download:
 install:
 	go install ./... magma/gateway/services/magmad
 
+install_envoy_controller:
+	go install ./... magma/feg/gateway/services/envoy_controller
+
 test:
 	go test ./...
-	go test -tags link_local_service magma/feg/gateway/services/eap/... magma/feg/gateway/services/aaa/...
+	go test -tags link_local_service,with_builtin_radius magma/feg/gateway/services/eap/... magma/feg/gateway/services/aaa/...
 
 buildenv: stop
 	PROTO_LIST="orc8r_protos feg_protos lte_protos" $(MAKE) -C $(MAGMA_ROOT)/orc8r/gateway/python $@

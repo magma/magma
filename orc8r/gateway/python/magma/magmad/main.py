@@ -31,12 +31,13 @@ from .bootstrap_manager import BootstrapManager
 from .config_manager import CONFIG_STREAM_NAME, ConfigManager
 from .gateway_status import GatewayStatusFactory, KernelVersionsPoller
 from .metrics import metrics_collection_loop, monitor_unattended_upgrade_status
-from .metrics_collector import MetricsCollector
+from .metrics_collector import MetricsCollector, ScrapeTarget
 from .rpc_servicer import MagmadRpcServicer
 from .service_manager import ServiceManager
 from .service_poller import ServicePoller
 from .state_reporter import StateReporter
 from .sync_rpc_client import SyncRPCClient
+from .service_health_watchdog import ServiceHealthWatchdog
 
 
 def main():
@@ -71,14 +72,26 @@ def main():
     collect_interval = metrics_config['collect_interval']
     sync_interval = metrics_config['sync_interval']
     grpc_timeout = metrics_config['grpc_timeout']
+    grpc_msg_size = metrics_config.get('max_grpc_msg_size_mb', 4)
     queue_length = metrics_config['queue_length']
     metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
+    metric_scrape_targets = map(lambda x: ScrapeTarget(x['url'], x['name'],
+                                                       x['interval']),
+                                metrics_config.get('metric_scrape_targets', []))
+
     # Create local metrics collector
     metrics_collector = MetricsCollector(
-        metrics_services, collect_interval, sync_interval,
-        grpc_timeout, queue_length, service.loop,
+        services=metrics_services,
+        collect_interval=collect_interval,
+        sync_interval=sync_interval,
+        grpc_timeout=grpc_timeout,
+        grpc_max_msg_size_mb=grpc_msg_size,
+        queue_length=queue_length,
+        loop=service.loop,
+        post_processing_fn=
         get_metrics_postprocessor_fn(metrics_post_processor_fn),
+        scrape_targets=metric_scrape_targets
     )
 
     # Poll and sync the metrics collector loops
@@ -166,6 +179,14 @@ def main():
         grpc_client_manager=grpc_client_manager,
     )
 
+    # Initialize ServiceHealthWatchdog
+    service_health_watchdog = ServiceHealthWatchdog(
+        config=service.config,
+        loop=service.loop,
+        service_poller=service_poller,
+        service_manager=service_manager
+    )
+
     # Start _bootstrap_manager
     bootstrap_manager.start_bootstrap_manager()
 
@@ -174,6 +195,9 @@ def main():
 
     # Start state reporting loop
     state_reporter.start()
+
+    # Start service timeout health check loop
+    service_health_watchdog.start()
 
     # Start upgrade manager loop
     if service.config.get('enable_upgrade_manager', False):

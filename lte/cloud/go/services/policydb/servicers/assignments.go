@@ -20,6 +20,7 @@ package servicers
 import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	orcprotos "magma/orc8r/lib/go/protos"
@@ -47,7 +48,7 @@ func (srv *PolicyAssignmentServer) EnableStaticRules(ctx context.Context, req *p
 	for _, baseName := range req.BaseNames {
 		updates = append(updates, getBaseNameUpdateForEnable(baseName, req.Imsi))
 	}
-	_, err = configurator.UpdateEntities(networkID, updates)
+	_, err = configurator.UpdateEntities(networkID, updates, serdes.Entity)
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Failed to enable")
 	}
@@ -66,7 +67,7 @@ func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *
 	for _, baseName := range req.BaseNames {
 		updates = append(updates, getBaseNameUpdateForDisable(baseName, req.Imsi))
 	}
-	_, err = configurator.UpdateEntities(networkID, updates)
+	_, err = configurator.UpdateEntities(networkID, updates, serdes.Entity)
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Failed to disable")
 	}
@@ -90,37 +91,37 @@ func doesSubscriberAndRulesExist(networkID string, subscriberID string, ruleIDs 
 
 func getRuleUpdateForEnable(ruleID string, subscriberID string) configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
-		Type: lte.PolicyRuleEntityType,
-		Key:  ruleID,
+		Type:              lte.SubscriberEntityType,
+		Key:               subscriberID,
+		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
 	}
-	ret.AssociationsToAdd = append(ret.AssociationsToAdd, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: subscriberID})
 	return ret
 }
 
 func getRuleUpdateForDisableRule(ruleID string, subscriberID string) configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
-		Type: lte.PolicyRuleEntityType,
-		Key:  ruleID,
+		Type:                 lte.SubscriberEntityType,
+		Key:                  subscriberID,
+		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
 	}
-	ret.AssociationsToDelete = append(ret.AssociationsToDelete, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: subscriberID})
 	return ret
 }
 
 func getBaseNameUpdateForEnable(baseName string, subscriberID string) configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
-		Type: lte.BaseNameEntityType,
-		Key:  baseName,
+		Type:              lte.SubscriberEntityType,
+		Key:               subscriberID,
+		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
 	}
-	ret.AssociationsToAdd = append(ret.AssociationsToAdd, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: subscriberID})
 	return ret
 }
 
 func getBaseNameUpdateForDisable(baseName string, subscriberID string) configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
-		Type: lte.BaseNameEntityType,
-		Key:  baseName,
+		Type:                 lte.SubscriberEntityType,
+		Key:                  subscriberID,
+		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
 	}
-	ret.AssociationsToDelete = append(ret.AssociationsToDelete, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: subscriberID})
 	return ret
 }
 

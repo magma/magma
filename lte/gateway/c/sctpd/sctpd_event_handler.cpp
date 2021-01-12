@@ -23,16 +23,15 @@ SctpdEventHandler::SctpdEventHandler(SctpdUplinkClient &client): _client(client)
 }
 
 void SctpdEventHandler::HandleNewAssoc(
-  uint32_t assoc_id,
-  uint32_t instreams,
-  uint32_t outstreams)
-{
+    uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
+    std::string& ran_cp_ipaddr) {
   NewAssocReq req;
   NewAssocRes res;
 
   req.set_assoc_id(assoc_id);
   req.set_instreams(instreams);
   req.set_outstreams(outstreams);
+  req.set_ran_cp_ipaddr(ran_cp_ipaddr);
 
   _client.newAssoc(req, &res);
 }

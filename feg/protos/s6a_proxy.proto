@@ -90,16 +90,15 @@ message AuthenticationInformationRequest {
     bool immediate_response_preferred = 4;
     // Concatenation of RAND and AUTS in the case of a resync attach case
     bytes resync_info = 5;
+    // Number of UTRAN/GERAN vectors to request in response (optional)
+    uint32 num_requested_utran_geran_vectors = 6;
+    // UTRAN/GERAN Resync Info (optional)
+    bytes utran_geran_resync_info = 7;
 }
-
 
 // Authentication Information Answer (Section 7.2.6)
 message AuthenticationInformationAnswer {
-    // EPC error code on failure
-    ErrorCode error_code = 1;
-    // Authentication vectors matching the requested number
-    repeated EUTRANVector eutran_vectors = 2;
-
+    // 3GPP TS 29.272, 7.3.18 E-UTRAN-Vector
     // For details about fields read 3GPP 33.401
     message EUTRANVector {
         bytes rand = 1;
@@ -107,6 +106,26 @@ message AuthenticationInformationAnswer {
         bytes autn = 3;
         bytes kasme = 4;
     }
+    // 3GPP TS 29.272, Section 7.3.19 UTRAN-Vector
+    message UTRANVector {
+        bytes rand = 1;
+        bytes xres = 2;
+        bytes autn = 3;
+        bytes confidentiality_key   = 4;
+        bytes integrity_key   = 5;
+    }
+    // 3GPP TS 29.272, 7.3.20 GERAN-Vector
+    message GERANVector {
+        bytes rand = 1;
+        bytes sres = 2;
+        bytes Kc   = 3;
+    }
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+    // Authentication vectors matching the requested number
+    repeated EUTRANVector eutran_vectors = 2;
+    repeated UTRANVector  utran_vectors = 3;
+    repeated GERANVector  geran_vectors = 4;
 }
 
 // Update Location Request (Section 7.2.3)
@@ -135,6 +154,8 @@ message UpdateLocationAnswer {
     bool all_apns_included = 4;
     // APN configurations
     repeated APNConfiguration apn = 5;
+    // Charging characteristics for subscriber that can be overridden by per-APN values
+    string default_charging_characteristics = 6;
 
     bytes msisdn = 7;
 
@@ -165,6 +186,8 @@ message UpdateLocationAnswer {
         }
 
         PDNType pdn = 5;
+
+        string charging_characteristics = 6;
 
         // For details about values see 29.212
         message QoSProfile {

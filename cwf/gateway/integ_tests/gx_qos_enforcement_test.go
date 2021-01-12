@@ -16,13 +16,13 @@
 package integration
 
 import (
-	"encoding/json"
 	"fmt"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	fegProtos "magma/feg/cloud/go/protos"
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
+	"strings"
 
 	"math"
 	"math/rand"
@@ -46,21 +46,14 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 	}
 	// Wait for the traffic to go through
 	time.Sleep(6 * time.Second)
-	if resp != nil {
-		var perfResp map[string]interface{}
-		json.Unmarshal([]byte(resp.Output), &perfResp)
-		respEndRecd := perfResp["end"].(map[string]interface{})
-		respEndRcvMap := respEndRecd["sum_received"].(map[string]interface{})
-		b := respEndRcvMap["bits_per_second"].(float64)
-
-		errRate := math.Abs((b-expRate)/expRate) * 100
-		fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", b, errRate)
-		if (b > expRate) && (errRate > ErrMargin) {
-			fmt.Printf("recd bps %f exp bps %f\n", b, expRate)
-			// dump pipelined service state
-			dumpPipelinedState(tr)
-			assert.Fail(t, "error greater than acceptable margin")
-		}
+	bitsPerSecond := resp.GetEndOutput().GetSumReceived().GetBitsPerSecond()
+	errRate := math.Abs((bitsPerSecond-expRate)/expRate) * 100
+	fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", bitsPerSecond, errRate)
+	if (bitsPerSecond > expRate) && (errRate > ErrMargin) {
+		fmt.Printf("recd bps %f exp bps %f\n", bitsPerSecond, expRate)
+		// dump pipelined service state
+		dumpPipelinedState(tr)
+		assert.Fail(t, "error greater than acceptable margin")
 	}
 }
 
@@ -96,8 +89,10 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	ruleKey := fmt.Sprintf("static-ULQos-%d", ki)
 
 	uplinkBwMax := uint32(1000000)
-	qos := &models.FlowQos{MaxReqBwUl: &uplinkBwMax}
-	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
+	rule := getStaticPassAll(
+		ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
+		&lteProtos.FlowQos{MaxReqBwUl: uplinkBwMax},
+	)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)
@@ -128,8 +123,20 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
+}
+
+func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
+	cmdList := [][]string{
+		{"pipelined_cli.py", "debug", "display_flows"},
+	}
+	cmdOutputList, err := tr.RunCommandInContainer("pipelined", cmdList)
+	if err != nil || len(cmdList) != 1 {
+		fmt.Printf("error dumping pipelined state %v", err)
+		return false
+	}
+
+	return strings.Contains(cmdOutputList[0].output, ruleName)
 }
 
 //TestGxDownlinkTrafficQosEnforcement
@@ -161,8 +168,8 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	ruleKey := fmt.Sprintf("static-DLQos-%d", ki)
 
 	downlinkBwMax := uint32(1000000)
-	qos := &models.FlowQos{MaxReqBwDl: &downlinkBwMax}
-	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
+	qos := lteProtos.FlowQos{MaxReqBwDl: downlinkBwMax}
+	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, &qos)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)
@@ -180,6 +187,8 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 		protos.NewGxCCAnswer(diam.Success)))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), time.Minute, 2*time.Second)
+
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:        imsi,
 		ReverseMode: true,
@@ -189,14 +198,10 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 
 	// Assert that enforcement_stats rules are properly installed and the right
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi][ruleKey]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), 2*time.Minute, 2*time.Second)
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 //TestGxQosDowngradeWithCCAUpdate
@@ -243,10 +248,10 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	uplinkBwFinal := uint32(500000)
 
 	rule1 := getStaticPassAll(rule1Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 3, &models.FlowQos{MaxReqBwUl: &uplinkBwInitial})
+		models.PolicyRuleTrackingTypeONLYPCRF, 3, &lteProtos.FlowQos{MaxReqBwUl: uplinkBwInitial})
 
 	rule2 := getStaticPassAll(rule2Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 2, &models.FlowQos{MaxReqBwUl: &uplinkBwFinal})
+		models.PolicyRuleTrackingTypeONLYPCRF, 2, &lteProtos.FlowQos{MaxReqBwUl: uplinkBwFinal})
 
 	for _, r := range []*lteProtos.PolicyRule{rule1, rule2} {
 		err = ruleManager.AddStaticRuleToDB(r)
@@ -314,8 +319,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(6 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()
@@ -356,10 +360,14 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	rule2Key := fmt.Sprintf("static-RAR-%d", ki)
 	uplinkBwInitial := uint32(2000000)
 	uplinkBwFinal := uint32(500000)
-	rule1 := getStaticPassAll(rule1Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
-		&models.FlowQos{MaxReqBwUl: &uplinkBwInitial})
-	rule2 := getStaticPassAll(rule2Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 1, &models.FlowQos{MaxReqBwUl: &uplinkBwFinal})
+	rule1 := getStaticPassAll(
+		rule1Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
+		&lteProtos.FlowQos{MaxReqBwUl: uplinkBwInitial},
+	)
+	rule2 := getStaticPassAll(
+		rule2Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 1,
+		&lteProtos.FlowQos{MaxReqBwUl: uplinkBwFinal},
+	)
 
 	for _, r := range []*lteProtos.PolicyRule{rule1, rule2} {
 		err = ruleManager.AddStaticRuleToDB(r)
@@ -388,10 +396,8 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	tr.WaitForReAuthToProcess()
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	_, err = tr.GenULTraffic(req)
@@ -410,6 +416,5 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

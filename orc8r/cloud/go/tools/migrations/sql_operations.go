@@ -106,6 +106,13 @@ func ExecInTx(
 		return
 	}
 	defer func() {
+		if r := recover(); r != nil {
+			// Rollback the tx immediately so the DB engine doesn't have to
+			// wait for the conn to close
+			_ = tx.Rollback()
+			glog.Fatalf("recovered from panic: %v", r)
+		}
+
 		switch err {
 		case nil:
 			err = tx.Commit()

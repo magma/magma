@@ -10,6 +10,7 @@ COPY packages/magmalte/package.json packages/magmalte/
 COPY packages/fbcnms-magma-api/package.json packages/fbcnms-magma-api/
 
 # Install node dependencies
+ENV PUPPETEER_SKIP_DOWNLOAD "true"
 RUN yarn install --mutex network --frozen-lockfile && yarn cache clean
 
 # Build our static files

@@ -20,6 +20,7 @@
 #include <gmp.h>
 
 #include "feg/protos/csfb.grpc.pb.h"
+#include "lte/protos/sms_orc8r.grpc.pb.h"
 #include "sgs_messages_types.h"
 
 extern "C" {
@@ -39,8 +40,19 @@ class ReleaseRequest;
 class ResetIndication;
 class Status;
 }  // namespace feg
+namespace lte {
+class SMODownlinkUnitdata;
+}  // namespace lte
 }  // namespace magma
 }
+
+namespace magma {
+using namespace lte;
+
+void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
+    const SMODownlinkUnitdata* msg, itti_sgsap_downlink_unitdata_t* itti_msg);
+
+}  // namespace magma
 
 namespace magma {
 using namespace feg;

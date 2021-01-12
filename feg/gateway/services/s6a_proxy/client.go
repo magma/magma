@@ -17,14 +17,17 @@ limitations under the License.
 package s6a_proxy
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
+	"magma/orc8r/lib/go/util"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
 
 type s6aProxyClient struct {
@@ -35,7 +38,15 @@ type s6aProxyClient struct {
 // getS6aProxyClient is a utility function to get a RPC connection to the
 // S6a Proxy service
 func getS6aProxyClient() (*s6aProxyClient, error) {
-	conn, err := registry.GetConnection(registry.S6A_PROXY)
+	var (
+		conn *grpc.ClientConn
+		err  error
+	)
+	if util.GetEnvBool("USE_REMOTE_S6A_PROXY") {
+		conn, err = registry.Get().GetSharedCloudConnection(strings.ToLower(registry.S6A_PROXY))
+	} else {
+		conn, err = registry.GetConnection(registry.S6A_PROXY)
+	}
 	if err != nil {
 		errMsg := fmt.Sprintf("S6a Proxy client initialization error: %s", err)
 		glog.Error(errMsg)

@@ -34,6 +34,7 @@ resource "null_resource" orc8r_seed_secrets {
 
 locals {
   orc8r_cert_names = [
+    "rootCA.key",
     "rootCA.pem",
     "controller.key",
     "controller.crt",
@@ -92,19 +93,33 @@ resource "kubernetes_secret" "orc8r_configs" {
   data = {
     "metricsd.yml" = yamlencode({
       "profile" : "prometheus",
-      "prometheusQueryAddress" : format("http://%s-prometheus:9090", var.helm_deployment_name),
-      "prometheusPushAddresses" : [
-        format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
-      ],
+      "prometheusQueryAddress" : var.thanos_enabled ? format("http://%s-thanos-query-http:10902", var.helm_deployment_name) : format("http://%s-prometheus:9090", var.helm_deployment_name),
 
       "alertmanagerApiURL" : format("http://%s-alertmanager:9093/api/v2", var.helm_deployment_name),
       "prometheusConfigServiceURL" : format("http://%s-prometheus-configurer:9100", var.helm_deployment_name),
       "alertmanagerConfigServiceURL" : format("http://%s-alertmanager-configurer:9101", var.helm_deployment_name),
     })
 
+    "orchestrator.yml" = yamlencode({
+      "useGRPCExporter": true,
+      "prometheusGRPCPushAddress" : format("%s-prometheus-cache:9092", var.helm_deployment_name),
+      "prometheusPushAddresses" : [
+        format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
+      ],
+    })
+
     "elastic.yml" = yamlencode({
       "elasticHost" : var.elasticsearch_endpoint == null ? "elastic" : var.elasticsearch_endpoint
       "elasticPort" : 80,
+    })
+
+    "analytics.yml" = yamlencode({
+      "exportMetrics": var.analytics_export_enabled == null ? false : var.analytics_export_enabled,
+      "metricsPrefix": var.analytics_metrics_prefix == null ? "" : var.analytics_metrics_prefix,
+      "appSecret": var.analytics_app_secret == null ? "" : var.analytics_app_secret,
+      "appID": var.analytics_app_id == null ? "" : var.analytics_app_id,
+      "metricExportURL": var.analytics_metric_export_url == null ? "" : var.analytics_metric_export_url,
+      "categoryName": var.analytics_category_name == null ? "" : var.analytics_category_name,
     })
   }
 }
@@ -113,10 +128,6 @@ resource "kubernetes_secret" "orc8r_envdir" {
   metadata {
     name      = "orc8r-envdir"
     namespace = kubernetes_namespace.orc8r.metadata[0].name
-  }
-
-  data = {
-    "CONTROLLER_SERVICES" = "CONFIGURATOR,STATE,STREAMER,POLICYDB,METRICSD,CERTIFIER,BOOTSTRAPPER,ACCESSD,OBSIDIAN,DISPATCHER,DIRECTORYD"
   }
 }
 

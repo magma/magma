@@ -20,12 +20,12 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -76,10 +76,6 @@ func (srv *testStateServer) SyncStates(ctx context.Context, req *protos.SyncStat
 func TestIdentityInjector(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	_ = serde.RegisterSerdes(
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
-		state.NewStateSerde(orc8r.GatewayStateType, &models.GatewayStatus{}),
-	)
 
 	networkID := "identity_decorator_test_network"
 	configuratorTestUtils.RegisterNetwork(t, networkID, "Identity Decorator Test")
@@ -113,7 +109,7 @@ func TestIdentityInjector(t *testing.T) {
 			"foo": "bar",
 		},
 	}
-	serializedGWStatus, err := serde.Serialize(state.SerdeDomain, orc8r.GatewayStateType, gwState)
+	serializedGWStatus, err := serde.Serialize(gwState, orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{

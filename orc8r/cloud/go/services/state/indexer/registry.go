@@ -20,11 +20,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
-
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/registry"
+
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 // GetIndexer returns the remote indexer for a desired service.
@@ -39,17 +39,19 @@ func GetIndexer(serviceName string) (Indexer, error) {
 
 // GetIndexers returns all registered indexers.
 func GetIndexers() ([]Indexer, error) {
-	indexingServices := registry.FindServices(orc8r.StateIndexerLabel)
-
-	var ret []Indexer
-	for _, serviceName := range indexingServices {
-		x, err := getIndexer(serviceName)
+	services, err := registry.FindServices(orc8r.StateIndexerLabel)
+	if err != nil {
+		return []Indexer{}, err
+	}
+	var indexers []Indexer
+	for _, service := range services {
+		x, err := getIndexer(service)
 		if err != nil {
 			return nil, err
 		}
-		ret = append(ret, x)
+		indexers = append(indexers, x)
 	}
-	return ret, nil
+	return indexers, nil
 }
 
 // GetIndexersForState returns all registered indexers which handle the passed

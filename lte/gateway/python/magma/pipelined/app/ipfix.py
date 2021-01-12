@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import time
 import shlex
 import subprocess
 from typing import NamedTuple, Dict
@@ -19,10 +18,7 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from ryu.controller.controller import Datapath
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction
 from magma.pipelined.imsi import encode_imsi
-from ryu.lib.packet import ether_types
-
 
 class IPFIXController(MagmaController):
     """
@@ -170,21 +166,15 @@ class IPFIXController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                   direction=Direction.IN)
-        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    direction=Direction.OUT)
+        match = MagmaMatch()
         flows.add_resubmit_next_service_flow(
-            datapath, self.tbl_num, inbound_match, [],
-            priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_main_table)
-        flows.add_resubmit_next_service_flow(
-            datapath, self.tbl_num, outbound_match, [],
+            datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
 
     def add_ue_sample_flow(self, imsi: str, msisdn: str,
-                           apn_mac_addr: str, apn_name: str) -> None:
+                           apn_mac_addr: str, apn_name: str,
+                           pdp_start_time: int) -> None:
         """
         Install a flow to sample packets for IPFIX for specific imsi
 
@@ -209,7 +199,6 @@ class IPFIXController(MagmaController):
             apn_mac_bytes = [0, 0, 0, 0, 0, 0]
         else:
             apn_mac_bytes = [int(a, 16) for a in apn_mac_addr.split('-')]
-        pdp_start_epoch = int(time.time())
 
         actions = [parser.NXActionSample2(
             probability=self.ipfix_config.probability,
@@ -219,11 +208,11 @@ class IPFIXController(MagmaController):
             apn_mac_addr=apn_mac_bytes,
             msisdn=msisdn,
             apn_name=apn_name,
-            pdp_start_epoch=pdp_start_epoch,
+            pdp_start_epoch=pdp_start_time,
             sampling_port=self.ipfix_config.sampling_port)]
 
+        match = MagmaMatch(imsi=encode_imsi(imsi))
         if self._dpi_enabled:
-            match = MagmaMatch(imsi=encode_imsi(imsi))
             flows.add_drop_flow(
                 self._datapath, self._ipfix_sample_tbl_num, match, actions,
                 priority=flows.UE_FLOW_PRIORITY)

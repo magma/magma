@@ -96,11 +96,30 @@ def update_subscriber(client, args):
         pre_vul = "preemption_vulnerability"
         ul = "mbr_uplink"
         dl = "mbr_downlink"
-        apn_keys = (apn_name, qci, priority, pre_cap, pre_vul, ul, dl)
+        pdn_type = "pdn_type"
+        static_ip = "static_ip"
+        vlan_id = "vlan"
+        gw_ip = "gw_ip"
+        gw_mac = "gw_mac"
+
+        apn_keys = (
+            apn_name,
+            qci,
+            priority,
+            pre_cap,
+            pre_vul,
+            ul,
+            dl,
+            pdn_type,
+            static_ip,
+            vlan_id,
+            gw_ip,
+            gw_mac,
+        )
         apn_data = args.apn_config
         for apn_d in apn_data:
             apn_val = apn_d.split(",")
-            if len(apn_val) != 7:
+            if len(apn_val) != 12:
                 print(
                     "Incorrect APN parameters."
                     "Please check: subscriber_cli.py update -h"
@@ -119,7 +138,18 @@ def update_subscriber(client, args):
             )
             apn_config.ambr.max_bandwidth_ul = int(apn_dict[ul])
             apn_config.ambr.max_bandwidth_dl = int(apn_dict[dl])
-        fields.append('non_3gpp')
+            apn_config.pdn = int(apn_dict[pdn_type])
+            apn_config.assigned_static_ip = apn_dict[static_ip]
+
+            if apn_dict[vlan_id]:
+                apn_config.resource.vlan_id = int(apn_dict[vlan_id])
+            if apn_dict[gw_ip]:
+                apn_config.resource.gateway_ip = apn_dict[gw_ip]
+                # allow mac address if gw-ip is specified
+                if apn_dict[gw_mac]:
+                    apn_config.resource.gateway_mac = apn_dict[gw_mac]
+
+        fields.append("non_3gpp")
 
     client.UpdateSubscriber(update)
 
@@ -199,9 +229,13 @@ def create_parser():
             action="append",
             help="APN parameters to add/update in the order :"
             " [apn-name, qci, priority, preemption-capability,"
-            " preemption-vulnerability, mbr-ul, mbr-dl]"
-            " [e.g --apn-config ims,5,15,1,1,1000,2000 "
-            " --apn-config internet,9,1,0,0,3000,4000]",
+            " preemption-vulnerability, mbr-ul, mbr-dl, pdn-type,"
+            " [0-IPv4, 1-IPv6, 2-IPv4v6]"
+            " static-ip, vlan_id, internet_gw_ip, internet_gw_mac]"
+            " [e.g --apn-config ims,5,15,1,1,1000,2000,1,,,,"
+            " --apn-config internet,9,1,0,0,3000,4000,0,1.2.3.4,,,"
+            " --apn-config internet,9,1,0,0,3000,4000,2,"
+            "1.2.3.4,1,2.2.2.2,11:22:33:44:55:66]",
         )
 
 # Add function callbacks

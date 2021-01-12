@@ -20,7 +20,7 @@ ClientCert = NamedTuple(
 
 
 class NetworkDNSConfig:
-    def __init__(self, enable_caching: bool, local_ttl: int):
+    def __init__(self, enable_caching: bool = False, local_ttl: int = 60):
         self.enable_caching = enable_caching
         self.local_ttl = local_ttl
 

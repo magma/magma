@@ -65,6 +65,22 @@ This section lists some of the commonly asked questions related to Magma operati
     - From the popup window, select tab **COMMANDS**. Then, check section **Reboot**.
     - Click on **Reboot** to reboot the AGW node.
 
+### Does AGW supports IPv6?
+  - IPv6 and dual stack IPv4V6 session support are currently under active development and we are working towards making this feature ready as part of release 1.4.
+
+### How to change hardware UUID of AGW?
+  - Hardware UUID is in `/etc/snowflake`.
+  - Delete file `/etc/snowflake` and restart magma@magmad systemd service, which will create new one.
+  - **NOTE** If you reinstall magma, the UUID hardware ID will change.
+
+### How to switch between info/debug mode in mme logs?
+  - Modify `/var/opt/magma/configs/mme.yml` and add the line `"log_level: DEBUG"`,
+  - Restart the mme service with `sudo service magma@mme restart`.
+  - **NOTE** Expect impact of service while doing above procedure.
+
+### Where can I get more information about services running in Magma?
+  - https://github.com/magma/magma/tree/master/docs/readmes/lte
+
 ## Orchestrator
 ### How can I check production pods in Orchestrator running on Kubernetes?
   - **For all pods:** `kubectl -n magma get pods`.
@@ -83,6 +99,15 @@ This section lists some of the commonly asked questions related to Magma operati
   - Then click on API trigger action button e.g. **GET**, **PUT**, **DELETE** etc.
   - Click on **Try it out** button on right hand side.
   - Put in the required inputs and click **Execute**.
+  
+### How can I check the services running in Orchestrator?
+  - List the running pods with `kubectl -norc8r get pods`
+  - Grab the name of orc8r-controller pods, they are in the format `orc8r-controller-xxxxxxxxxx-yyyyy`
+  - Collect the state of services on each pod: `kubectl -norc8r exec orc8r-controller-xxxxxxxxxx-yyyyy  bash -- supervisorctl status`
+
+### How to verify which services are running in Orc8r-controller?
+  - **Get the controller pods:** `kubectl -n magma get pods`.
+  - **Execute the command in the pod:** `kubectl exec -n magma <CONTROLLER PODNAME> supervisorctl status`.
 
 ## NMS
 ### What is an NMS (Network Management System)?
@@ -105,3 +130,19 @@ This section lists some of the commonly asked questions related to Magma operati
   - From the popup window, select tab **COMMANDS**. Then, check section **Reboot eNodeB**.
   - Enter eNodeB serial ID of eNodeB and click on **Reboot** to reboot that particular eNodeB.
   - **Note:**Only those eNodeBs can be rebooted in this manner which are configured with TR069 protocol.
+
+ ### How to enable events and log aggregation?
+  - Network Management → Equipment → Gateways → Select the Gateway → Config → Aggregations → Edit → Enable Log and Even Aggregations.
+  - Make sure `fluentd_address` and `fluentd_port` is added in `control_proxy.yml` on AGW.
+
+### How to enable pre-defined alerts on NMS?
+  - Administrative Tools → Alerts → Select Network → **Sync Alert**.
+
+## Miscellaneous
+### How to disable dhcp in AGW for eNB?
+  - Network Management → Equipment → Gateways → Select the Gateway → Config → RAN → Edit → Disable eNodeB DHCP service.
+
+### What is a core dump?
+  - When AGW services crash with a segmentation fault, a core dump is generated.
+  - Core dumps are generated in format `core-<timestamp>-<process_name>[-<PID>]` under `/tmp` folder.
+  - Use **GDB** tool to analyse them as  `cd /tmp/<core-directory>/` `gunzip <core gzip file>` `gdb /usr/local/bin/<process name> <unzipped core file>`.

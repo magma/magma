@@ -12,7 +12,7 @@ limitations under the License.
 """
 
 import sys
-from typing import List
+from typing import Any, List
 
 import urllib3
 
@@ -21,40 +21,83 @@ import tools.fab.dev_utils as dev_utils
 import tools.fab.types as types
 
 
-def register_vm():
-    # Disable warnings about SSL verification since its a local VM
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+LTE_NETWORK_TYPE = 'lte'
+FEG_LTE_NETWORK_TYPE = 'feg_lte'
+NIDS_BY_TYPE = {
+    LTE_NETWORK_TYPE: 'test',
+    FEG_LTE_NETWORK_TYPE: 'feg_lte_test',
+}
 
-    # Create the network if it doesn't yet exist
-    # TODO: add cellular network configs if the network exists but the cellular
-    #  configs don't
-    if not dev_utils.does_network_exist('test'):
-        network_payload = LTENetwork(
-            id='test', name='Test Network', description='Test Network',
-            cellular=NetworkCellularConfig(
-                epc=NetworkEPCConfig(
-                    lte_auth_amf='gAA=',
-                    lte_auth_op='EREREREREREREREREREREQ==',
-                    mcc='001', mnc='01', tac=1,
-                    relay_enabled=False,
-                ),
-                ran=NetworkRANConfig(
-                    bandwidth_mhz=20,
-                    tdd_config=NetworkTDDConfig(
-                        earfcndl=44590,
-                        subframe_assignment=2, special_subframe_pattern=7,
-                    ),
+# Disable warnings about SSL verification since its a local VM
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+def register_vm():
+    network_payload = LTENetwork(
+        id=NIDS_BY_TYPE[LTE_NETWORK_TYPE],
+        name='Test Network', description='Test Network',
+        cellular=NetworkCellularConfig(
+            epc=NetworkEPCConfig(
+                lte_auth_amf='gAA=',
+                lte_auth_op='EREREREREREREREREREREQ==',
+                mcc='001', mnc='01', tac=1,
+                relay_enabled=False,
+            ),
+            ran=NetworkRANConfig(
+                bandwidth_mhz=20,
+                tdd_config=NetworkTDDConfig(
+                    earfcndl=44590,
+                    subframe_assignment=2, special_subframe_pattern=7,
                 ),
             ),
-            dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
-        )
-        dev_utils.cloud_post('lte', network_payload)
+        ),
+        dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
+    )
+    _register_network(LTE_NETWORK_TYPE, network_payload)
+    _register_agw(LTE_NETWORK_TYPE)
 
-    dev_utils.create_tier_if_not_exists('test', 'default')
 
+def register_federated_vm():
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    network_payload = FederatedLTENetwork(
+        id=NIDS_BY_TYPE[FEG_LTE_NETWORK_TYPE],
+        name='Test Network', description='Test Network',
+        cellular=NetworkCellularConfig(
+            epc=NetworkEPCConfig(
+                lte_auth_amf='gAA=',
+                lte_auth_op='EREREREREREREREREREREQ==',
+                mcc='001', mnc='01', tac=1,
+                relay_enabled=False,
+            ),
+            ran=NetworkRANConfig(
+                bandwidth_mhz=20,
+                tdd_config=NetworkTDDConfig(
+                    earfcndl=44590,
+                    subframe_assignment=2, special_subframe_pattern=7,
+                ),
+            ),
+        ),
+        dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
+        federation=FederationNetworkConfig(feg_network_id='feg_test')
+    )
+    _register_network(FEG_LTE_NETWORK_TYPE, network_payload)
+    _register_agw(FEG_LTE_NETWORK_TYPE)
+
+
+def _register_network(network_type: str, payload: Any):
+    network_id = NIDS_BY_TYPE[network_type]
+    if not dev_utils.does_network_exist(network_id):
+        dev_utils.cloud_post(network_type, payload)
+
+    dev_utils.create_tier_if_not_exists(network_id, 'default')
+
+
+def _register_agw(network_type: str):
+    network_id = NIDS_BY_TYPE[network_type]
     hw_id = dev_utils.get_hardware_id_from_vagrant(vm_name='magma')
-    already_registered, registered_as = dev_utils.is_hw_id_registered('test',
-                                                                      hw_id)
+    already_registered, registered_as = dev_utils.is_hw_id_registered(
+        network_id, hw_id,
+    )
     if already_registered:
         print()
         print(f'===========================================')
@@ -62,7 +105,7 @@ def register_vm():
         print(f'===========================================')
         return
 
-    gw_id = dev_utils.get_next_available_gateway_id('test')
+    gw_id = dev_utils.get_next_available_gateway_id(network_id)
     md_gw = dev_utils.construct_magmad_gateway_payload(gw_id, hw_id)
     gw_payload = LTEGateway(
         device=md_gw.device,
@@ -75,8 +118,7 @@ def register_vm():
         ),
         connected_enodeb_serials=[],
     )
-
-    dev_utils.cloud_post('lte/test/gateways', gw_payload)
+    dev_utils.cloud_post(f'{network_type}/{network_id}/gateways', gw_payload)
     print()
     print(f'=========================================')
     print(f'Gateway {gw_id} successfully provisioned!')
@@ -106,7 +148,8 @@ class NetworkEPCConfig:
         self.mcc = mcc
         self.mnc = mnc
         self.tac = tac
-        self.relay_enabled = relay_enabled
+        self.gx_gy_relay_enabled = relay_enabled
+        self.hss_relay_enabled = relay_enabled
 
 
 class NetworkCellularConfig:
@@ -124,6 +167,24 @@ class LTENetwork:
         self.description = description
         self.cellular = cellular
         self.dns = dns
+
+
+class FederationNetworkConfig:
+    def __init__(self, feg_network_id: str):
+        self.feg_network_id = feg_network_id
+
+
+class FederatedLTENetwork:
+    def __init__(self, id: str, name: str, description: str,
+                 cellular: NetworkCellularConfig,
+                 dns: types.NetworkDNSConfig,
+                 federation: FederationNetworkConfig):
+        self.id = id
+        self.name = name
+        self.description = description
+        self.cellular = cellular
+        self.dns = dns
+        self.federation = federation
 
 
 class GatewayRANConfig:

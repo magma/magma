@@ -7,6 +7,7 @@ package models
 
 import (
 	"encoding/json"
+	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	"strconv"
 
 	strfmt "github.com/go-openapi/strfmt"
@@ -22,7 +23,7 @@ type NetworkCarrierWifiConfigs struct {
 
 	// aaa server
 	// Required: true
-	AaaServer *AaaServer `json:"aaa_server"`
+	AaaServer *models2.AaaServer `json:"aaa_server"`
 
 	// default rule id
 	// Required: true
@@ -30,7 +31,16 @@ type NetworkCarrierWifiConfigs struct {
 
 	// eap aka
 	// Required: true
-	EapAka *EapAka `json:"eap_aka"`
+	EapAka *models2.EapAka `json:"eap_aka"`
+
+	// eap sim
+	EapSim *models2.EapSim `json:"eap_sim,omitempty"`
+
+	// is xwfm variant
+	IsXwfmVariant bool `json:"is_xwfm_variant,omitempty"`
+
+	// li ues
+	LiUes *LiUes `json:"li_ues,omitempty"`
 
 	// Configuration for network services. Services will be instantiated in the listed order.
 	// Required: true
@@ -50,6 +60,14 @@ func (m *NetworkCarrierWifiConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateEapAka(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateEapSim(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateLiUes(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -100,6 +118,42 @@ func (m *NetworkCarrierWifiConfigs) validateEapAka(formats strfmt.Registry) erro
 		if err := m.EapAka.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("eap_aka")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCarrierWifiConfigs) validateEapSim(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.EapSim) { // not required
+		return nil
+	}
+
+	if m.EapSim != nil {
+		if err := m.EapSim.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("eap_sim")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCarrierWifiConfigs) validateLiUes(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.LiUes) { // not required
+		return nil
+	}
+
+	if m.LiUes != nil {
+		if err := m.LiUes.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("li_ues")
 			}
 			return err
 		}

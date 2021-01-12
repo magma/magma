@@ -19,15 +19,12 @@
 #define FILE_S1AP_MME_HANDLERS_SEEN
 #include <stdbool.h>
 
-#include "s1ap_ies_defs.h"
 #include "s1ap_mme.h"
 #include "intertask_interface.h"
-#include "S1ap-Cause.h"
+#include "S1ap_Cause.h"
 #include "common_types.h"
 #include "s1ap_messages_types.h"
 #include "sctp_messages_types.h"
-
-struct s1ap_message_s;
 
 #define MAX_NUM_PARTIAL_S1_CONN_RESET 256
 
@@ -42,11 +39,11 @@ const char* s1ap_direction2str(uint8_t dir);
  **/
 int s1ap_mme_handle_message(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_mme_handle_ue_cap_indication(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
 /** \brief Handle an S1 Setup request message.
  * Typically add the eNB in the list of served eNB if not present, simply reset
@@ -59,15 +56,15 @@ int s1ap_mme_handle_ue_cap_indication(
  **/
 int s1ap_mme_handle_s1_setup_request(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_mme_handle_path_switch_request(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_mme_handle_ue_context_release_request(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_handle_ue_context_release_command(
     s1ap_state_t* state,
@@ -77,7 +74,7 @@ int s1ap_handle_ue_context_release_command(
 
 int s1ap_mme_handle_ue_context_release_complete(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_handle_ue_context_mod_req(
     s1ap_state_t* state,
@@ -86,11 +83,11 @@ int s1ap_handle_ue_context_mod_req(
 
 int s1ap_mme_handle_initial_context_setup_failure(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_mme_handle_initial_context_setup_response(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_handle_sctp_disconnection(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id, bool reset);
@@ -108,11 +105,11 @@ int s1ap_mme_generate_s1_setup_failure(
 
 int s1ap_mme_handle_erab_setup_response(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
 int s1ap_mme_handle_erab_setup_failure(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
 void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
     s1ap_state_t* state, ue_description_t* ue_ref_p);
@@ -122,11 +119,11 @@ void s1ap_mme_release_ue_context(
 
 int s1ap_mme_handle_error_ind_message(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
 int s1ap_mme_handle_enb_reset(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
 int s1ap_handle_enb_initiated_reset_ack(
     const itti_s1ap_enb_initiated_reset_ack_t* const enb_reset_ack_p,
@@ -138,19 +135,19 @@ int s1ap_handle_paging_request(
 
 int s1ap_mme_handle_ue_context_modification_response(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_mme_handle_ue_context_modification_failure(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_mme_handle_erab_rel_response(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
 int s1ap_mme_handle_enb_configuration_transfer(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
 int s1ap_handle_path_switch_req_ack(
     s1ap_state_t* state,
@@ -162,4 +159,11 @@ int s1ap_handle_path_switch_req_failure(
     const itti_s1ap_path_switch_request_failure_t* path_switch_req_failure_p,
     imsi64_t imsi64);
 
+int s1ap_mme_generate_ue_context_release_command(
+    s1ap_state_t* state, ue_description_t* ue_ref_p, enum s1cause,
+    imsi64_t imsi64, sctp_assoc_id_t assoc_id, sctp_stream_id_t stream,
+    mme_ue_s1ap_id_t mme_ue_s1ap_id, enb_ue_s1ap_id_t enb_ue_s1ap_id);
+
+int s1ap_mme_remove_stale_ue_context(
+    enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id);
 #endif /* FILE_S1AP_MME_HANDLERS_SEEN */

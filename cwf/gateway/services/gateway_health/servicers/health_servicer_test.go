@@ -65,7 +65,12 @@ func TestGetHealthStatus(t *testing.T) {
 	mockSystem.On("Enable").Return(nil)
 	mockService.On("Restart", "radius").Return(nil)
 	mockService.On("Restart", "sessiond").Return(nil)
-	mockGREProbe.On("Start").Return(nil)
+	_, err = servicer.Enable(context.Background(), req)
+	assert.NoError(t, err)
+	assertMocks(t, mockGREProbe, mockSystem, mockService)
+
+	// Subsequent Enable should be a no-op
+	mockSystem.On("Enable").Return(nil)
 	_, err = servicer.Enable(context.Background(), req)
 	assert.NoError(t, err)
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
@@ -84,9 +89,13 @@ func TestGetHealthStatus(t *testing.T) {
 	// Simulate successful disable
 	disableReq := &protos.DisableMessage{}
 	mockSystem.On("Disable").Return(nil)
-	mockService.On("Stop", "radius").Return(nil)
 	mockService.On("Restart", "aaa_server").Return(nil)
-	mockGREProbe.On("Stop").Return()
+	_, err = servicer.Disable(context.Background(), disableReq)
+	assert.NoError(t, err)
+	assertMocks(t, mockGREProbe, mockSystem, mockService)
+
+	// Subsequent disable should be a no-op
+	mockSystem.On("Disable").Return(nil)
 	_, err = servicer.Disable(context.Background(), disableReq)
 	assert.NoError(t, err)
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
@@ -108,17 +117,6 @@ func TestGetHealthStatus(t *testing.T) {
 	mockService.On("GetUnhealthyServices").Return([]string{"sessiond"}, nil).Once()
 	expectedStatus.Health = protos.HealthStatus_UNHEALTHY
 	expectedStatus.HealthMessage = "GRE status: All GRE peers are detected as unreachable; unreachable: [127.0.0.1]; Service status: The following services were unhealthy: [sessiond]"
-	health, err = servicer.GetHealthStatus(context.Background(), req)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedStatus, health)
-	assertMocks(t, mockGREProbe, mockSystem, mockService)
-
-	// Simulate disabled, healthy
-	mockGREProbe.On("GetStatus").Return(healthyGRE).Once()
-	mockSystem.On("GetSystemStats").Return(&system_health.SystemStats{CpuUtilPct: 0.1, MemUtilPct: 0.1}, nil).Once()
-	mockService.On("GetUnhealthyServices").Return([]string{"radius"}, nil).Once()
-	expectedStatus.Health = protos.HealthStatus_HEALTHY
-	expectedStatus.HealthMessage = "gateway status appears healthy"
 	health, err = servicer.GetHealthStatus(context.Background(), req)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedStatus, health)

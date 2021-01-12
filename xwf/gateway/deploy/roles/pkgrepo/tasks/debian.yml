@@ -1,0 +1,30 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: Add GPG key for magma repository
+  apt_key:
+    url: http://packages.magma.etagecom.io/pubkey.gpg
+    state: present
+    id: 2E97854368E14ED8FB6F80903E838E02450E78EA
+
+- name: Add apt-transport-https
+  apt: pkg=apt-transport-https state=present update_cache=yes
+
+- name: Add JFrog key
+  shell: wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/gpg/key/public | apt-key add -
+
+- name: Add JFrog repo
+  apt_repository:
+    repo: 'deb https://facebookconnectivity.jfrog.io/artifactory/list/{{ repo }}/ {{ distribution }} main'
+    update_cache: yes
+    mode: 0644

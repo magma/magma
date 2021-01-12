@@ -39,7 +39,7 @@ func Start() {
 	e.HideBanner = true
 
 	obsidian.AttachAll(e)
-	// metrics middleware is used before all other middlewares
+	// Metrics middleware is used before all other middlewares
 	e.Use(CollectStats)
 	e.Use(middleware.Recover())
 
