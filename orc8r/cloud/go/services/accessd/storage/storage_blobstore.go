@@ -46,6 +46,8 @@ func NewAccessdBlobstore(factory blobstore.BlobStorageFactory) AccessdStorage {
 }
 
 func (a *accessdBlobstore) ListAllIdentity() ([]*protos.Identity, error) {
+	var ids []*protos.Identity
+
 	store, err := a.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
@@ -58,7 +60,7 @@ func (a *accessdBlobstore) ListAllIdentity() ([]*protos.Identity, error) {
 	}
 
 	if len(idHashes) == 0 {
-		return make([]*protos.Identity, 0), store.Commit()
+		return ids, store.Commit()
 	}
 
 	tks := storage.MakeTKs(AccessdDefaultType, idHashes)
@@ -67,20 +69,20 @@ func (a *accessdBlobstore) ListAllIdentity() ([]*protos.Identity, error) {
 		return nil, status.Errorf(codes.Internal, "failed to get many acls: %s", err)
 	}
 
-	ret := make([]*protos.Identity, 0, len(tks))
+	ids = make([]*protos.Identity, 0, len(tks))
 	for _, blob := range blobs {
 		acl := &accessprotos.AccessControl_List{}
 		err = proto.Unmarshal(blob.Value, acl)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to unmarshal acl: %s", err)
 		}
-		ret = append(ret, acl.Operator)
+		ids = append(ids, acl.Operator)
 	}
 	err = store.Commit()
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "failed to commit transaction: %s", err)
 	}
-	return ret, nil
+	return ids, nil
 }
 
 func (a *accessdBlobstore) GetACL(id *protos.Identity) (*accessprotos.AccessControl_List, error) {

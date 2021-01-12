@@ -97,7 +97,7 @@ func (c *certifierBlobstore) GetManyCertInfo(serialNumbers []string) (map[string
 }
 
 func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInfo, error) {
-	infos := make(map[string]*protos.CertificateInfo)
+	infos := map[string]*protos.CertificateInfo{}
 
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {

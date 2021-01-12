@@ -32,6 +32,25 @@ type Blob struct {
 
 type Blobs []Blob
 
+// TKs converts blobs to their associated type and key.
+func (bs Blobs) TKs() []storage.TypeAndKey {
+	tks := make([]storage.TypeAndKey, 0, len(bs))
+	for _, blob := range bs {
+		tks = append(tks, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
+	}
+	return tks
+}
+
+// ByTK returns a computed view of a list of blobs as a map of
+// blobs keyed by blob TypeAndKey.
+func (bs Blobs) ByTK() map[storage.TypeAndKey]Blob {
+	ret := make(map[storage.TypeAndKey]Blob, len(bs))
+	for _, blob := range bs {
+		ret[storage.TypeAndKey{Type: blob.Type, Key: blob.Key}] = blob
+	}
+	return ret
+}
+
 func (bs Blobs) GetKeys() []string {
 	var keys []string
 	for _, b := range bs {
@@ -214,25 +233,6 @@ type LoadCriteria struct {
 	// LoadValue specifies whether to load the value of a blob.
 	// Set to false to only load blob metadata.
 	LoadValue bool
-}
-
-// TKs converts blobs to their associated type and key.
-func (bs Blobs) TKs() []storage.TypeAndKey {
-	tks := make([]storage.TypeAndKey, 0, len(bs))
-	for _, blob := range bs {
-		tks = append(tks, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
-	}
-	return tks
-}
-
-// ByTK returns a computed view of a list of blobs as a map of
-// blobs keyed by blob TypeAndKey.
-func (bs Blobs) ByTK() map[storage.TypeAndKey]Blob {
-	ret := make(map[storage.TypeAndKey]Blob, len(bs))
-	for _, blob := range bs {
-		ret[storage.TypeAndKey{Type: blob.Type, Key: blob.Key}] = blob
-	}
-	return ret
 }
 
 func stringListToSet(v []string) map[string]bool {
