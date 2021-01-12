@@ -29,8 +29,8 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
     def test_attach_active_tau_with_combined_tala_update_reattach(self):
         """This test case validates reattach after active combined TAU reject:
         1. End-to-end attach with attach type COMBINED_EPS_IMSI_ATTACH
-        2. Send active TAU request with combined TALA update as update type
-        3. Receive TAU reject (Combined TALA update not supported in Magma)
+        2. Send active TAU request (Combined TALA update)
+        3. Receive TAU reject (Combined TALA update not supported)
         4. Retry end-to-end combined EPS IMSI attach to verify if UE context
            was released properly after combined TAU reject
         """
@@ -52,7 +52,7 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
             eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_COMB_EPS_IMSI_ATTACH,
         )
 
-        # Wait on EMM Information from MME
+        # Wait for EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         # Delay to ensure S1APTester sends attach complete before sending UE
@@ -80,8 +80,8 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
         )
 
         print(
-            "************************* Sending active TAU request with "
-            "combined TALA update as update type for UE id ",
+            "************************* Sending active TAU request (Combined "
+            "TALA update) for UE id ",
             ue_id,
         )
         # Send active TAU request with combined TALA update as update type
@@ -92,10 +92,7 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
         req.ueMtmsi.pres = False
         self._s1ap_wrapper.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_TAU_REQ, req)
 
-        print(
-            "************************* Waiting for Tracking Area Update Reject"
-            " Indication"
-        )
+        # Waiting for TAU Reject Indication -Combined TALA update not supported
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_TAU_REJECT_IND.value
@@ -105,11 +102,9 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
             "Indication"
         )
 
-        print(
-            "************************* TAU request was received by UE in idle "
-            "mode. So, UE state should again be set to idle after handling TAU"
-            " message. Waiting for UE context release indication"
-        )
+        # TAU request was received by UE in idle mode. So, UE state should
+        # again be set to idle after handling TAU message. Waiting for UE
+        # context release indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
@@ -133,7 +128,7 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
             eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_COMB_EPS_IMSI_ATTACH,
         )
 
-        # Wait on EMM Information from MME
+        # Wait for EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         print("************************* Running UE detach for UE id", ue_id)
