@@ -97,9 +97,13 @@ The relevant configurations for disabling Gx/Gy are:
 
 ### PLMN filter
 
-FEG allows filtering subscribers by PLMN id. If the subscriber does not belong to a PLMN, the request will not be sent to HSS and FEG will return an UNAUTHORIZED message.
+FEG allows filtering subscribers by PLMN id. If the subscriber does not belong 
+to a PLMN, the request will not be sent to HSS and FEG will return an 
+UNAUTHORIZED message.
 
-To enable this feature add a list `plmn_ids` to `s6a` and add a list of PLMN ids. The list can contain 5 digit or 6 digit PLMN ids. If the list is empty or null, s6a will send any IMSI request to HSS.
+To enable this feature add a list `plmn_ids` to `s6a` and add a list of PLMN 
+ids. The list can contain 5 digit or 6 digit PLMN ids. If the list is empty or 
+null, s6a will send any IMSI request to HSS.
 
 ![API-Federation-Network-Config.png](assets/feg/API-Federation-Network-Config.png)
 
@@ -113,7 +117,31 @@ To enable this feature add a list `plmn_ids` to `s6a` and add a list of PLMN ids
 
 This feature is disabled by default (so any session request from any IMSI will be sent to HSS)
 
+### Virtual APN
+To replace UE specified APNs with a config specified APN for Gx and Gy, use the 
+Federation API endpoint. 
+Under either Gx or Gy configuration, you can specify a list of filters and 
+virtual APN value. 
 
+For example, the configuration below will replace any APNs of sessions with
+APN of form `internet.*` and charging characteristic 12. However, the virtual 
+APN will only be applied for the Gx interactions, as the config for Gy is empty.
+```
+"gx": {
+    ...
+    "virtual_apn_rules": [
+        {
+            "apn_filter": "internet.*",
+            "apn_overwrite": "new.apn!",
+            "charging_characteristics_filter": "12"
+        }
+    ]
+  },
+  "gy": {
+    ...
+    "virtual_apn_rules": []
+  },
+```
 
 ## Basic Sanity Checks
 

@@ -98,3 +98,6 @@ services:
   envoy_controller:
     ip_address: 127.0.0.1
     port: 50081
+  connectiond:
+    ip_address: 127.0.0.1
+    port: 50082

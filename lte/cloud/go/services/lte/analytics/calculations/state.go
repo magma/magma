@@ -189,6 +189,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 			for _, ent := range gatewayEnts {
 				status, err := wrappers.GetGatewayStatus(networkID, ent.PhysicalID)
 				if err != nil || status == nil || status.PlatformInfo == nil || len(status.PlatformInfo.Packages) == 0 {
+					glog.V(2).Infof("gateway %s, err %v or version not available", ent.PhysicalID, err)
 					continue
 				}
 
@@ -196,10 +197,12 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 				for _, pkg := range status.PlatformInfo.Packages {
 					if pkg.Name == "magma" {
 						gatewayVersion = pkg.Version
+						glog.V(2).Infof("gateway %s version %s", ent.PhysicalID, gatewayVersion)
 						break
 					}
 				}
 				if gatewayVersion == "" {
+					glog.V(2).Infof("gateway %s, version not found", ent.PhysicalID)
 					continue
 				}
 

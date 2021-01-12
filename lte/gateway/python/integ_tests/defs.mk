@@ -101,6 +101,12 @@ s1aptests/test_attach_detach_nw_triggered_delete_last_pdn.py \
 s1aptests/test_different_enb_s1ap_id_same_ue.py \
 s1aptests/test_attach_detach_with_pcscf_address.py \
 s1aptests/test_attach_detach_secondary_pdn_with_pcscf_address.py \
+s1aptests/test_secondary_pdn_reject_multiple_sessions_not_allowed_per_apn.py \
+s1aptests/test_secondary_pdn_reject_unknown_pdn_type.py \
+s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej.py \
+s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \
+s1aptests/test_ics_timer_expiry_ue_registered.py \
+s1aptests/test_ics_timer_expiry_ue_unregistered.py \
 s1aptests/test_multi_enb_multi_ue.py \
 s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
@@ -114,14 +120,15 @@ s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
 s1aptests/test_attach_asr.py \
+s1aptests/test_attach_detach_with_sctpd_restart.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_nw_initiated_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
-s1aptests/test_attach_detach_with_sctpd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
@@ -129,7 +136,6 @@ s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 # Enable these tests once the CI job time-out has increased

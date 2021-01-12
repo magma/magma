@@ -15,28 +15,28 @@ analytics:
     active_users_over_time:
       export: true
       register: false
-      enforceMinThreshold: true
+      enforceMinUserThreshold: true
       labels:
         class: "engagement"
 
     user_throughput:
       export: true
       register: false
-      enforceMinThreshold: true
+      enforceMinUserThreshold: true
       labels:
         class: "qos"
 
     user_consumption:
       export: true
       register: false
-      enforceMinThreshold: true
+      enforceMinUserThreshold: true
       labels:
         class: "qos"
 
     user_consumption_hourly:
       export: true
       register: false
-      enforceMinThreshold: true
+      enforceMinUserThreshold: true
       labels:
         class: "qos"
 
@@ -49,7 +49,7 @@ analytics:
     authentications_over_time:
       export: true
       register: false
-      enforceMinThreshold: true
+      enforceMinUserThreshold: true
       labels:
         class: "network"
 

@@ -38,7 +38,7 @@ services:
       csfb:
         port: 9079
       feg_hello:
-        port: 9079
+        port: 9103
       ocs:
         port: 9079
       pcrf:
