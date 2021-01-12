@@ -5379,6 +5379,22 @@ paths:
       summary: Update a call trace
       tags:
       - Call Tracing
+  /networks/{network_id}/tracing/{trace_id}/download:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/trace_id'
+      responses:
+        "200":
+          description: Show tracing status
+          schema:
+            format: binary
+            type: file
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get the call trace in PCAP format
+      tags:
+      - Call Tracing
   /networks/{network_id}/type:
     get:
       parameters:
@@ -8225,6 +8241,11 @@ definitions:
         description: IP address for IPv4 P-CSCF on the AGW
         example: 172.27.23.150
         format: ipv4
+        type: string
+      ipv4_sgw_s1u_addr:
+        description: IP address for IPv4 S1U endpoint on the AGW
+        maxLength: 49
+        minLength: 5
         type: string
       ipv6_block:
         example: fdee:5:6c::/48

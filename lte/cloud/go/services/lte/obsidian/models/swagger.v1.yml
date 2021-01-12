@@ -1955,6 +1955,11 @@ definitions:
         type: string
         format: ipv6
         example: '2a12:577:9941:f99c:0002:0001:c731:f114'
+      ipv4_sgw_s1u_addr:
+        description: IP address for IPv4 S1U endpoint on the AGW
+        type: string
+        minLength: 5
+        maxLength: 49
       sgi_management_iface_vlan:
         type: string
         description: VLAN ID for management interface traffic on the AGW

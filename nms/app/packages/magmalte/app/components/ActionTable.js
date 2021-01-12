@@ -80,7 +80,7 @@ const tableIcons = {
 
 type ActionMenuItems = {
   name: string,
-  handleFunc?: () => void,
+  handleFunc?: () => void | (() => Promise<void>),
 };
 
 type ColumnType =

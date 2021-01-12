@@ -56,7 +56,7 @@ export function EnodebStatus() {
       },
       {
         category: 'Health',
-        value: isEnbManaged ? (isEnbHealthy ? 'Good' : 'Bad') : 'Unavailable',
+        value: isEnbManaged ? (isEnbHealthy ? 'Good' : 'Bad') : '-',
         statusCircle: isEnbManaged,
         status: isEnbHealthy,
         tooltip: isEnbManaged
@@ -73,6 +73,10 @@ export function EnodebStatus() {
         statusCircle: true,
         status: enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled,
         tooltip: 'current transmit configuration on the eNodeB',
+      },
+      {
+        category: 'Subscribers',
+        value: enbInfo.enb_state?.ues_connected ?? 0,
       },
     ],
     [

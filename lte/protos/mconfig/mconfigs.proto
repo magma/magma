@@ -305,6 +305,9 @@ message MME {
     // IPv6 DNS server
     string ipv6_dns_address = 30;
 
+    // SGW S1U endpoint on AGW
+    string ipv4_sgw_s1u_addr = 31;
+
 }
 
 

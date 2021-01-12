@@ -98,6 +98,7 @@ func (c *collectorServicer) filterResult(result *protos.CalculationResult) bool 
 		return false
 	}
 	if !metricConfig.EnforceMinUserThreshold {
+		glog.V(2).Infof("Metric(%s) not a user metric, skipping filtering", result.GetMetricName())
 		return true
 	}
 
@@ -114,10 +115,18 @@ func (c *collectorServicer) filterResult(result *protos.CalculationResult) bool 
 	}
 
 	if numUsers > analyticsConfig.MinUserThreshold {
+		glog.V(2).Infof("Metric(%s) network label(%s) gateway label(%s) can "+
+			"be exported numUsers(%d) greater than minUserThreshold(%d)\n",
+			result.GetMetricName(),
+			networkID,
+			gatewayID,
+			numUsers,
+			analyticsConfig.MinUserThreshold)
 		return true
 	}
 	glog.V(1).Infof(
-		"Metric(%s) network label(%s) gateway label(%s) dropped,active users(%d) below user threshold (%d)",
+		"Metric(%s) network label(%s) gateway label(%s) dropped, active "+
+			"users(%d) below user threshold (%d)\n",
 		result.GetMetricName(),
 		networkID,
 		gatewayID,
