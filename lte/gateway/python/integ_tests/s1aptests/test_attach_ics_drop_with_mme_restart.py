@@ -125,8 +125,6 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         drop_init_ctxt_setup_req = s1ap_types.UeDropInitCtxtSetup()
         drop_init_ctxt_setup_req.ue_Id = req.ue_id
         drop_init_ctxt_setup_req.flag = 0
-        # Timer to release UE context at s1ap tester
-        # drop_init_ctxt_setup_req.tmrVal = 2000
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req
         )
