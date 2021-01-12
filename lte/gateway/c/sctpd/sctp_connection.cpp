@@ -196,7 +196,8 @@ SctpStatus SctpConnection::HandleClientSock(int sd)
         return HandleAssocChange(sd, &notif->sn_assoc_change);
       }
       default: {
-        MLOG(MWARNING) << "Unhandled notification type " << std::to_string(notif->sn_header.sn_type);
+        MLOG(MWARNING) << "Unhandled notification type "
+		       << std::to_string(notif->sn_header.sn_type);
         return SctpStatus::OK;
       }
     }

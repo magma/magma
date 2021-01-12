@@ -17,9 +17,7 @@
   Description Defines Access Management default values
 
 *****************************************************************************/
-
-#ifndef FILE_AMF_DEFAULT_VALUES_SEEN
-#define FILE_AMF_DEFAULT_VALUES_SEEN
+#pragma once
 
 /*******************************************************************************
  * Timer Constants
@@ -36,14 +34,6 @@
 
 #define NGAP_OUTCOME_TIMER_DEFAULT (5)  ///< NGAP Outcome drop timer (s)
 
-/*******************************************************************************
- * SCTP Constants
- ******************************************************************************/
-
-#define SCTP_RECV_BUFFER_SIZE (1 << 16)
-#define SCTP_OUT_STREAMS (32)
-#define SCTP_IN_STREAMS (32)
-#define SCTP_MAX_ATTEMPTS (5)
 
 /*******************************************************************************
  * AMF global definitions
@@ -57,5 +47,3 @@
 #define PLMN_TAC (1)
 
 #define RELATIVE_CAPACITY (15)
-
-#endif /* FILE_AMF_DEFAULT_VALUES_SEEN */

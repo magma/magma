@@ -19,7 +19,7 @@
 #include <unistd.h>
 #include "sctpd.h"
 #include "util.h"
-#include "magma_logging.h"
+
 namespace magma {
 namespace sctpd {
 

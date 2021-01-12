@@ -154,15 +154,19 @@ static void* sctp_thread(__attribute__((unused)) void* args_p) {
 }
 
 int sctp_init(const mme_config_t* mme_config_p) {
+  OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface\n");
+
   if (init_sctpd_downlink_client(!mme_config.use_stateless) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to init sctpd downlink client\n");
   }
 
   if (itti_create_task(TASK_SCTP, &sctp_thread, NULL) < 0) {
     OAILOG_ERROR(LOG_SCTP, "create task failed\n");
+    OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: FAILED\n");
     return -1;
   }
 
+OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: DONE\n");
   return 0;
 }
 

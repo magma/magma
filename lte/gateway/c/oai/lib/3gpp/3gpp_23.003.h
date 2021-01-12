@@ -208,11 +208,11 @@ typedef struct guamfi_s {
   amf_Pointer_t amf_Pointer;
 } guamfi_t;
 typedef struct guti_m5_s {
-  guamfi_t guamfi; /*!< \brief  Globally Unique MME Identity             */
+  guamfi_t guamfi; /*!< \brief  Globally Unique AMF Identity             */
   tmsi_t m_tmsi;   /*!< \brief  M-Temporary Mobile Subscriber Identity   */
 } guti_m5_t;
 typedef struct s_tmsi_m5_s {
-  amf_code_t amf_code; /* MME code that allocated the GUTI     */
+  amf_code_t amf_code; /* AMF code that allocated the GUTI     */
   tmsi_t m_tmsi;       /* M-Temporary Mobile Subscriber Identity   */
 } s_tmsi_m5_t;
 
