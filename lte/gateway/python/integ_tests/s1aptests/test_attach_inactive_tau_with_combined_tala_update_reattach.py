@@ -102,7 +102,7 @@ class TestAttachInactiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
             "Indication"
         )
 
-        # TAU request was received by UE in idle mode. So, UE state should
+        # TAU request was sent by the UE in idle mode. So, UE state should
         # again be set to idle after handling TAU message. Waiting for UE
         # context release indication
         response = self._s1ap_wrapper.s1_util.get_response()
