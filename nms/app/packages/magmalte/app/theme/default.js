@@ -49,6 +49,12 @@ export const colors = {
     warningAlt: '#B69900',
     warningFill: '#FFFCED',
   },
+  alerts: {
+    severe: 'E52240',
+    major: '#E36730',
+    minor: '#F5DD5A',
+    other: '#88B3F9',
+  },
   data: {
     coral: '#FF824B',
     flamePea: '#E36730',
