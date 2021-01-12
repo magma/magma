@@ -183,7 +183,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
                     print(
                         "******************** Ignoring re-transmitted (",
                         resp_count,
-                        ") NW initiated detach request message"
+                        ") NW initiated detach request message",
                     )
             else:
                 break
