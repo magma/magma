@@ -11,5 +11,5 @@
  limitations under the License.
 */
 
-//go:generate mockery --name TransactionalBlobStorage|BlobStorageFactory
+//go:generate mockery --name TransactionalBlobStorage|BlobStorageFactory|DefaultMethods
 package blobstore

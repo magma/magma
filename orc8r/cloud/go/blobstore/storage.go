@@ -59,6 +59,31 @@ func (bs Blobs) Keys() []string {
 	return keys
 }
 
+func GetKeys(bs []Blob) []string {
+	var keys []string
+	for _, b := range bs {
+		keys = append(keys, b.Key)
+	}
+	return keys
+}
+
+type DefaultMethods interface {
+	// ListKeys returns all the blob keys stored for the network and type.
+	ListKeys(store TransactionalBlobStorage, networkID string, typeVal string) ([]string, error)
+}
+
+type defaultMethodsImpl struct {}
+var Helpers = defaultMethodsImpl{}
+
+func (d *defaultMethodsImpl) ListKeys(store TransactionalBlobStorage, networkID string, typeVal string) ([]string, error){
+	filter := CreateSearchFilter(&networkID, []string{typeVal}, nil, nil )
+	criteria := LoadCriteria{LoadValue: false}
+
+	networkBlobs, err := store.Search(filter, criteria)
+	if err != nil{return nil, err}
+	return GetKeys(networkBlobs[networkID]), nil
+}
+
 // CreateSearchFilter creates a search filter for the given criteria.
 // Nil elements result in no filtering. If you prefer to instantiate string
 // sets manually, you can also create a SearchFilter directly.
@@ -99,7 +124,7 @@ type TransactionalBlobStorage interface {
 	Rollback() error
 
 	// ListKeys returns all the blob keys stored for the network and type.
-	ListKeys(networkID string, typeVal string) ([]string, error)
+	//ListKeys(networkID string, typeVal string) ([]string, error)
 
 	// Get loads a specific blob from storage.
 	// If there is no blob matching the given ID, ErrNotFound from

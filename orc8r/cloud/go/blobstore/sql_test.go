@@ -37,7 +37,7 @@ func TestSqlBlobStorage_ListKeys(t *testing.T) {
 				)
 		},
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.ListKeys("network", "type")
+			return blobstore.Helpers.ListKeys(store, "network", "type")
 		},
 		expectedError:  nil,
 		expectedResult: []string{"key1", "key2"},
@@ -50,7 +50,7 @@ func TestSqlBlobStorage_ListKeys(t *testing.T) {
 				WillReturnError(errors.New("mock query error"))
 		},
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.ListKeys("network", "type")
+			return blobstore.Helpers.ListKeys(store,"network", "type")
 		},
 		expectedError:  errors.New("mock query error"),
 		expectedResult: nil,

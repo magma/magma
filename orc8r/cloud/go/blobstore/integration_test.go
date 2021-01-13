@@ -31,7 +31,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, err)
 	store, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)
-	listActual, err := store.ListKeys("network", "type")
+	listActual, err := blobstore.Helpers.ListKeys(store,"network", "type")
 	assert.NoError(t, err)
 	assert.Empty(t, listActual)
 
@@ -103,7 +103,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	}
 	assert.Equal(t, byNetworkExpected, byNetworkActual)
 
-	listActual, err = store.ListKeys("network1", "t1")
+	listActual, err = blobstore.Helpers.ListKeys(store,"network1", "t1")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"k1", "k2"}, listActual)
 
