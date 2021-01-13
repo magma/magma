@@ -505,7 +505,7 @@ class Lockfile(object):
     def add_root_package(self, pkgname, pkginfo):
         pkgname = pkgname.lower()
         if self._release == self._default_release:
-            self._root_packages[pkgnamep] = pkginfo
+            self._root_packages[pkgname] = pkginfo
         else:
             default_info = self._root_packages.get(pkgname)
             if default_info and json_equal(default_info, pkginfo):
