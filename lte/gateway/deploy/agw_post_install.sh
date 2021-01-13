@@ -3,10 +3,6 @@
 ERROR=""
 INFO=""
 SUCCESS_MESSAGE="ok"
-RED='\033[0;31m'
-WHITE='\033[1;37m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
 
 addError() {
     ERROR="$ERROR\n$1  to fix it: $2"
@@ -84,34 +80,42 @@ if [ -n "$INFO" ]; then
     printf "%s" "$INFO"
 fi
 
-echo -e "${WHITE}Checking for Root Certificate"
+echo "- Check for Root Certificate"
 CA=/var/opt/magma/tmp/certs/rootCA.pem
 if [ -d "/var/opt/magma/tmp/certs/" ]; then
     if [ -f "$CA" ]; then
-        echo -e "${GREEN}$CA exists"
-    else
-    echo -e "${RED}Check Root CA in /var/opt/magma/tmp/certs/"
-    echo -e "${RED}Access Gateway configurations failed"
+        echo "$CA exists"
     fi
+else
+    echo "Verify Root CA in /var/opt/magma/tmp/certs/"
+    echo "Access Gateway configurations failed"
 fi
 
-echo -e "${WHITE}Checking for Control Proxy"
+echo "- Check for Control Proxy"
 CP=/var/opt/magma/configs/control_proxy.yml
 if [ -d "/var/opt/magma/configs/" ]; then
     if [ -f "$CP" ]; then
-        echo -e "${GREEN}$CP exists"
+        echo "$CP exists"
+        echo "- Check control proxy content"
+        cp_content=("cloud_address" "cloud_port" "bootstrap_address" "bootstrap_port" "rootca_cert")
+        for content in "${cp_content[@]}"; do
+            if ! grep -q $content $CP; then
+                echo "Missing $content in control proxy"
+            fi
+        done
     else
-    echo -e "${RED}Check Control Proxy Configs in /var/opt/magma/configs/"
-    echo -e "${RED}Access Gateway configurations failed"
+        echo "Control proxy file missing. Check magma installation docs"
     fi
+else
+    echo "Check Control Proxy Configs in /var/opt/magma/configs/"
+    echo "Access Gateway configurations failed"
 fi
 
-echo -e "${WHITE}Checking for Cloud Checking"
+echo "- Verifying Cloud check-in"
 CLOUD=$(journalctl -n20 -u magma@magmad | grep -e 'Checkin Successful' -e 'Got heartBeat from cloud')
 if [ "$CLOUD" ]; then
-    echo -e "${GREEN}Cloud Checkin successful"
+    echo "Cloud Check Success"
 else
-    echo -e "${RED}Check Control Proxy Content"
+    echo "Cloud Check Failed"
+    echo "Check control proxy content in $CP"
 fi
-
-echo -e "$NC"
