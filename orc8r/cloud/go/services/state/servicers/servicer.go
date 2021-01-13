@@ -268,8 +268,8 @@ func wrapStateWithAdditionalInfo(st *protos.State, hwID string, time uint64, cer
 	return ret, nil
 }
 
-func addWrapperAndMakeBlobs(states []*protos.State, hwID string, timeMs uint64, certExpiry int64) ([]blobstore.Blob, error) {
-	var blobs []blobstore.Blob
+func addWrapperAndMakeBlobs(states []*protos.State, hwID string, timeMs uint64, certExpiry int64) (blobstore.Blobs, error) {
+	var blobs blobstore.Blobs
 	for _, st := range states {
 		wrappedValue, err := wrapStateWithAdditionalInfo(st, hwID, timeMs, certExpiry)
 		if err != nil {
@@ -301,7 +301,7 @@ func idAndVersionsToTKs(IDs []*protos.IDAndVersion) []storage.TypeAndKey {
 	return ids
 }
 
-func blobsToStates(blobs []blobstore.Blob) []*protos.State {
+func blobsToStates(blobs blobstore.Blobs) []*protos.State {
 	var states []*protos.State
 	for _, b := range blobs {
 		st := &protos.State{

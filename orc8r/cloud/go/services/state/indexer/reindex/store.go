@@ -59,7 +59,7 @@ func (s *storeImpl) GetAllIDs() (state_types.IDsByNetwork, error) {
 	return ids, nil
 }
 
-func blobsToIDs(byNetwork map[string][]blobstore.Blob) state_types.IDsByNetwork {
+func blobsToIDs(byNetwork map[string]blobstore.Blobs) state_types.IDsByNetwork {
 	ids := state_types.IDsByNetwork{}
 	for network, blobs := range byNetwork {
 		for _, b := range blobs {
