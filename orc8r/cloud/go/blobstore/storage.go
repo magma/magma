@@ -51,7 +51,7 @@ func (bs Blobs) ByTK() map[storage.TypeAndKey]Blob {
 	return ret
 }
 
-func (bs Blobs) GetKeys() []string {
+func (bs Blobs) Keys() []string {
 	var keys []string
 	for _, b := range bs {
 		keys = append(keys, b.Key)
