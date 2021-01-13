@@ -31,12 +31,14 @@
 #include "assertions.h"
 #include "log.h"
 #include "mme_config.h"
+#include "amf_config.h"
 #include "shared_ts_log.h"
 #include "common_defs.h"
 
 #include "intertask_interface_init.h"
 #include "sctp_primitives_server.h"
 #include "s1ap_mme.h"
+#include "ngap_amf.h"
 #include "mme_app_extern.h"
 /* FreeDiameter headers for support of S6A interface */
 #include "s6a_defs.h"
@@ -73,7 +75,7 @@ static int main_init(void) {
   init_task_context(
       TASK_MAIN,
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
-                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP,
+                    TASK_S6A, TASK_S1AP,TASK_NGAP, TASK_SCTP, TASK_SPGW_APP,
                     TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
       10, NULL, &main_zmq_ctx);
 
@@ -131,6 +133,7 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
 #endif
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
+  CHECK_INIT_RETURN(ngap_amf_init(&amf_config));
   CHECK_INIT_RETURN(s6a_init(&mme_config));
 
   // Create SGS Task only if non_eps_service_control is not set to OFF
