@@ -18,7 +18,7 @@ analytics:
       enforceMinUserThreshold: true
       labels:
         class: reliability
-      expr: round((sum by(gatewayID) (increase(ue_attach{action="attach_accept_sent"}[{{.Duration}}]))) * 100 / (sum by(gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[{{.Duration}}]))))
+      expr: round((sum by(networkID, gatewayID) (increase(ue_attach{action="attach_accept_sent"}[{{.Duration}}]))) * 100 / (sum by(networkID, gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[{{.Duration}}]))))
 
     subscriber_attach_reject_percent:
       register: false
@@ -26,7 +26,7 @@ analytics:
       enforceMinUserThreshold: true
       labels:
         class: reliability
-      expr: round((sum by(gatewayID) (increase(ue_attach{action="attach_reject_sent"}[{{.Duration}}]))) * 100 / (sum by(gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[{{.Duration}}]))))
+      expr: round((sum by(networkID, gatewayID) (increase(ue_attach{action="attach_reject_sent"}[{{.Duration}}]))) * 100 / (sum by(networkID, gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[{{.Duration}}]))))
 
     subscriber_duplicate_attach_count:
       register: false
@@ -62,6 +62,7 @@ analytics:
     gateway_throughput_dl:
       register: false
       export: true
+      enforceMinUserThreshold: true
       labels:
         class: network
       expr: sum(increase(gtp_port_user_plane_dl_bytes[{{.Duration}}])) by (networkID, gatewayID)
@@ -77,6 +78,7 @@ analytics:
     gateway_throughput_ul:
       register: false
       export: true
+      enforceMinUserThreshold: true
       labels:
         class: network
       expr: sum(increase(gtp_port_user_plane_ul_bytes[{{.Duration}}])) by (networkID, gatewayID)
@@ -120,19 +122,7 @@ analytics:
       labels:
         class: engagement
 
-    network_type:
-      register: false
-      export: true
-      labels:
-        class: network
-
     enodeb_connected:
-      register: false
-      export: true
-      labels:
-        class: site
-
-    gateway_version:
       register: false
       export: true
       labels:
