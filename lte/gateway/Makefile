@@ -59,7 +59,14 @@ OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABL
 endif
 
 # debian stretch build uses older cc not recognizing options needed on ubuntu focal
-COMMON_FLAGS := $(shell grep -q stretch /etc/os-release || echo -DCMAKE_C_FLAGS='"-Wno-error=duplicate-decl-specifier -Wno-error=maybe-uninitialized -Wno-error=address-of-packed-member"')
+
+OS_VERSION_NAME := $(shell (grep VERSION_CODENAME /etc/os-release || true) | sed 's/.*=//g')
+
+ifeq ($(OS_VERSION_NAME), focal)
+COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wno-error=duplicate-decl-specifier -Wno-error=maybe-uninitialized -Wno-error=address-of-packed-member"
+else
+COMMON_FLAGS =
+endif
 
 $(info OAI_FLAGS $(OAI_FLAGS))
 
