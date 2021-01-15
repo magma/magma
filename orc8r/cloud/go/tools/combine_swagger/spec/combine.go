@@ -238,8 +238,8 @@ func getFilepaths(inDir string) []string {
 // merge b's contents into a, recording merge warnings to errs.
 func merge(a, b map[string]interface{}, fieldName string, errs error) {
 	for k, v := range b {
-		if _, ok := a[k]; ok {
-			multierror.Append(errs, errors.Errorf("overwriting spec key '%s' in field '%s'", k, fieldName))
+		if name, ok := a[k]; ok {
+			multierror.Append(errs, errors.Errorf("overwriting spec key '%s' in field '%s' from '%s' \n", k, fieldName, name))
 		}
 		a[k] = v
 	}
@@ -249,7 +249,7 @@ func merge(a, b map[string]interface{}, fieldName string, errs error) {
 func mergeTags(a map[string]string, b []generate.TagDefinition, errs error) {
 	for _, tag := range b {
 		if _, ok := a[tag.Name]; ok {
-			multierror.Append(errs, errors.Errorf("overwriting tag '%s'", tag.Name))
+			multierror.Append(errs, errors.Errorf("overwriting tag '%s' : '%s", tag.Name, tag.Description))
 		}
 		a[tag.Name] = tag.Description
 	}
