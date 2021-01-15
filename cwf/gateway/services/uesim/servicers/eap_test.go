@@ -15,6 +15,7 @@ package servicers_test
 
 import (
 	"context"
+	"magma/orc8r/cloud/go/test_utils"
 	"reflect"
 	"testing"
 
@@ -22,7 +23,6 @@ import (
 	"magma/cwf/gateway/services/uesim/servicers"
 	fegprotos "magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	"magma/orc8r/cloud/go/blobstore"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -40,8 +40,8 @@ const (
 	Seq  = 31
 )
 
-func setupTest() (*servicers.UESimServer, *cwfprotos.UEConfig, error) {
-	store := blobstore.NewMemoryBlobStorageFactory()
+func setupTest(t *testing.T) (*servicers.UESimServer, *cwfprotos.UEConfig, error) {
+	store := test_utils.NewSQLBlobstore(t, "blobstore_uesim_table")
 
 	server, err := servicers.NewUESimServer(store)
 	if err != nil {
@@ -54,7 +54,7 @@ func setupTest() (*servicers.UESimServer, *cwfprotos.UEConfig, error) {
 }
 
 func TestEapIdentityRequest(t *testing.T) {
-	server, ue, err := setupTest()
+	server, ue, err := setupTest(t)
 	assert.NoError(t, err)
 
 	res, err := server.HandleEap(ue, eap.Packet(EapIdentityRequestPacket))
@@ -69,7 +69,7 @@ func TestEapIdentityRequest(t *testing.T) {
 }
 
 func TestInvalidEapPacket(t *testing.T) {
-	server, ue, err := setupTest()
+	server, ue, err := setupTest(t)
 	assert.NoError(t, err)
 
 	// Make packet and set its length to zero.
@@ -82,7 +82,7 @@ func TestInvalidEapPacket(t *testing.T) {
 }
 
 func TestUnsupportedEapType(t *testing.T) {
-	server, ue, err := setupTest()
+	server, ue, err := setupTest(t)
 	assert.NoError(t, err)
 
 	// Make packet and set its type to an unsupported type.

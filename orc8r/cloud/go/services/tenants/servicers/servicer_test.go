@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/services/tenants/servicers"
@@ -99,7 +98,7 @@ func TestTenantsServicer(t *testing.T) {
 
 func newTestService(t *testing.T) (protos.TenantsServiceServer, error) {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, tenants.ServiceName)
-	factory := blobstore.NewMemoryBlobStorageFactory()
+	factory := test_utils.NewSQLBlobstore(t, "blobstore_tenant_servicer_table")
 	store := storage.NewBlobstoreStore(factory)
 	servicer, err := servicers.NewTenantsServicer(store)
 	assert.NoError(t, err)
