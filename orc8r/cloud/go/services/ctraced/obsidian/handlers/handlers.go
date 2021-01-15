@@ -212,7 +212,13 @@ func getDownloadCallTraceHandlerFunc(storage storage.CtracedStorage) echo.Handle
 			return obsidian.HttpError(errors.Wrap(err, "failed to retrieve call trace data"), http.StatusInternalServerError)
 		}
 
-		return c.Blob(http.StatusOK, "application/pcapng", callTrace)
+		res := c.Response()
+		header := res.Header()
+		header.Set(echo.HeaderContentType, "application/pcapng")
+		header.Set(echo.HeaderContentDisposition, "attachment; filename="+fmt.Sprintf("%s.pcapng", callTraceID))
+		res.WriteHeader(http.StatusOK)
+		_, err = res.Write(callTrace)
+		return err
 	}
 }
 
