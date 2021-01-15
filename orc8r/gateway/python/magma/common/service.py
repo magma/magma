@@ -59,7 +59,7 @@ class MagmaService(Service303Servicer):
     entities to interact with the service.
     """
 
-    def __init__(self, name, empty_mconfig, loop=None):
+    def __init__(self, name, empty_mconfig, loop=None, workers=None):
         self._name = name
         self._port = 0
         self._get_status_callback = None
@@ -89,6 +89,9 @@ class MagmaService(Service303Servicer):
         self._loop = loop
         self._start_time = int(time.time())
         self._register_signal_handlers()
+
+        if workers is None:
+            workers = 10
 
         # Load the service config if present
         self._config = None
@@ -122,7 +125,7 @@ class MagmaService(Service303Servicer):
         except pkg_resources.ResolutionError as e:
             logging.info(e)
 
-        self._server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        self._server = grpc.server(futures.ThreadPoolExecutor(max_workers=workers))
         add_Service303Servicer_to_server(self, self._server)
 
     @property
