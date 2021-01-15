@@ -42,15 +42,10 @@ export async function FetchSubscribers(props: FetchProps) {
   const {networkId, enqueueSnackbar, id} = props;
   if (id !== null && id !== undefined) {
     try {
-      const subscriber = await MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId(
-        {
-          networkId,
-          subscriberId: id,
-        },
-      );
-      if (subscriber) {
-        return subscriber;
-      }
+      return await MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId({
+        networkId,
+        subscriberId: id,
+      });
     } catch (e) {
       enqueueSnackbar?.('failed fetching subscriber information', {
         variant: 'error',
@@ -59,12 +54,9 @@ export async function FetchSubscribers(props: FetchProps) {
     }
   } else {
     try {
-      const subscribers = await MagmaV1API.getLteByNetworkIdSubscribers({
+      return await MagmaV1API.getLteByNetworkIdSubscribers({
         networkId,
       });
-      if (subscribers) {
-        return subscribers;
-      }
     } catch (e) {
       enqueueSnackbar?.('failed fetching subscriber information', {
         variant: 'error',
@@ -78,15 +70,10 @@ export async function FetchSubscriberState(props: FetchProps) {
   const {networkId, enqueueSnackbar, id} = props;
   if (id !== null && id !== undefined) {
     try {
-      const session = await MagmaV1API.getLteByNetworkIdSubscriberStateBySubscriberId(
-        {
-          networkId,
-          subscriberId: id,
-        },
-      );
-      if (session) {
-        return session;
-      }
+      return await MagmaV1API.getLteByNetworkIdSubscriberStateBySubscriberId({
+        networkId,
+        subscriberId: id,
+      });
     } catch (e) {
       enqueueSnackbar?.('failed fetching subscriber state', {
         variant: 'error',
@@ -95,12 +82,9 @@ export async function FetchSubscriberState(props: FetchProps) {
     }
   } else {
     try {
-      const sessions = await MagmaV1API.getLteByNetworkIdSubscriberState({
+      return await MagmaV1API.getLteByNetworkIdSubscriberState({
         networkId,
       });
-      if (sessions) {
-        return sessions;
-      }
     } catch (e) {
       enqueueSnackbar?.('failed fetching subscriber state', {
         variant: 'error',
@@ -179,12 +163,30 @@ type SubscriberStateProps = {
   networkId: network_id,
   subscriberMap: {[string]: subscriber},
   setSubscriberMap: ({[string]: subscriber}) => void,
+  setSessionState: ({[string]: subscriber_state}) => void,
   key: string,
   value?: mutable_subscriber,
+  newState?: {
+    state: {[string]: subscriber},
+    sessionState: {[string]: subscriber_state},
+  },
 };
 
 export async function setSubscriberState(props: SubscriberStateProps) {
-  const {networkId, subscriberMap, setSubscriberMap, key, value} = props;
+  const {
+    networkId,
+    subscriberMap,
+    setSubscriberMap,
+    setSessionState,
+    key,
+    value,
+    newState,
+  } = props;
+  if (newState) {
+    setSessionState(newState.sessionState);
+    setSubscriberMap(newState.state);
+    return;
+  }
   if (value != null) {
     if (key in subscriberMap) {
       await MagmaV1API.putLteByNetworkIdSubscribersBySubscriberId({

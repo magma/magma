@@ -217,10 +217,12 @@ describe('<AddSubscriberButton />', () => {
 
   const AddWrapper = () => {
     const [subscribers, setSubscribers] = useState(subscribersMock);
+    const [sessionState, setSessionState] = useState({});
+
     const subscriberCtx = {
       state: subscribers,
       gwSubscriberMap: {},
-      sessionState: {},
+      sessionState: sessionState,
       setState: async (key, value?) =>
         setSubscriberState({
           networkId: 'test',
@@ -228,6 +230,7 @@ describe('<AddSubscriberButton />', () => {
           setSubscriberMap: setSubscribers,
           key: key,
           value: value,
+          setSessionState: setSessionState,
         }),
     };
     const policyCtx = {

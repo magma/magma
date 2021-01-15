@@ -16,6 +16,8 @@
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
@@ -32,9 +34,9 @@ import {
 import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const CHART_TITLE = 'Total Throughput';
 
@@ -117,104 +119,136 @@ function EnodebTableRaw(props: WithAlert) {
   const {history, relativeUrl, match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
   const networkId: string = nullthrows(match.params.networkId);
+  const ctx = useContext(EnodebContext);
+  const [refresh, setRefresh] = useState(true);
+  const [lastRefreshTime, setLastRefreshTime] = useState(
+    new Date().toLocaleString(),
+  );
 
-  // Auto refresh gateways every 30 seconds
-  const ctx = useRefreshingContext({
+  // Auto refresh  every 30 seconds
+  const state = useRefreshingContext({
     context: EnodebContext,
     networkId: networkId,
     type: 'enodeb',
     interval: REFRESH_INTERVAL,
-    enqueueSnackbar: enqueueSnackbar,
-    refresh: true,
+    refresh: refresh,
+    lastRefreshTime: lastRefreshTime,
   });
+  const ctxValues = [...Object.values(ctx.state.enbInfo)];
+  useEffect(() => {
+    setLastRefreshTime(new Date().toLocaleString());
+  }, [ctxValues.length]);
 
   const [currRow, setCurrRow] = useState<EnodebRowType>({});
-  const enbInfo = ctx.state.enbInfo;
-  const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
-    (serialNum: string) => {
-      const enbInf = enbInfo[serialNum];
-      const isEnbManaged = enbInf.enb?.enodeb_config?.config_type === 'MANAGED';
-      return {
-        name: enbInf.enb.name,
-        id: serialNum,
-        numSubscribers: enbInf.enb_state?.ues_connected ?? 0,
-        sessionName: enbInf.enb_state?.fsm_state ?? '-',
-        ipAddress: enbInf.enb_state?.ip_address ?? '-',
-        mmeConnected: enbInf.enb_state?.mme_connected
-          ? 'Connected'
-          : 'Disconnected',
-        health: isEnbManaged ? (isEnodebHealthy(enbInf) ? 'Good' : 'Bad') : '-',
-        reportedTime: new Date(enbInf.enb_state.time_reported ?? 0),
-      };
-    },
-  );
+  // $FlowIgnore
+  const enbInfo = state?.enbInfo;
+  const enbRows: Array<EnodebRowType> = enbInfo
+    ? Object.keys(enbInfo).map((serialNum: string) => {
+        const enbInf = enbInfo[serialNum];
+        const isEnbManaged =
+          enbInf.enb?.enodeb_config?.config_type === 'MANAGED';
+        return {
+          name: enbInf.enb.name,
+          id: serialNum,
+          numSubscribers: enbInf.enb_state?.ues_connected ?? 0,
+          sessionName: enbInf.enb_state?.fsm_state ?? '-',
+          ipAddress: enbInf.enb_state?.ip_address ?? '-',
+          mmeConnected: enbInf.enb_state?.mme_connected
+            ? 'Connected'
+            : 'Disconnected',
+          health: isEnbManaged
+            ? isEnodebHealthy(enbInf)
+              ? 'Good'
+              : 'Bad'
+            : '-',
+          reportedTime: new Date(enbInf.enb_state.time_reported ?? 0),
+        };
+      })
+    : [];
 
   return (
-    <ActionTable
-      titleIcon={SettingsInputAntennaIcon}
-      title="EnodeBs"
-      data={enbRows}
-      columns={[
-        {title: 'Name', field: 'name'},
-        {
-          title: 'Serial Number',
-          field: 'id',
-          render: currRow => (
-            <Link
-              variant="body2"
-              component="button"
-              onClick={() => history.push(relativeUrl('/' + currRow.id))}>
-              {currRow.id}
-            </Link>
-          ),
-        },
-        {title: 'Session State Name', field: 'sessionName'},
-        {title: 'IP Address', field: 'ipAddress'},
-        {title: 'Subscribers', field: 'numSubscribers', width: 100},
-        {title: 'MME', field: 'mmeConnected', width: 100},
-        {title: 'Health', field: 'health', width: 100},
-        {title: 'Reported Time', field: 'reportedTime', type: 'datetime'},
-      ]}
-      handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}
-      menuItems={[
-        {
-          name: 'View',
-          handleFunc: () => {
-            history.push(relativeUrl('/' + currRow.id));
+    <>
+      <CardTitleRow
+        key="title"
+        icon={SettingsInputAntennaIcon}
+        label={`Enodebs (${Object.keys(ctx.state).length})`}
+        filter={() => (
+          <Grid container justify="flex-end" alignItems="center" spacing={1}>
+            <Grid item>
+              <AutorefreshCheckbox
+                autorefreshEnabled={refresh}
+                onToggle={() => setRefresh(current => !current)}
+              />
+            </Grid>
+          </Grid>
+        )}
+      />
+      <ActionTable
+        title=""
+        data={enbRows}
+        columns={[
+          {title: 'Name', field: 'name'},
+          {
+            title: 'Serial Number',
+            field: 'id',
+            render: currRow => (
+              <Link
+                variant="body2"
+                component="button"
+                onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+                {currRow.id}
+              </Link>
+            ),
           },
-        },
-        {
-          name: 'Edit',
-          handleFunc: () => {
-            history.push(relativeUrl('/' + currRow.id + '/config'));
+          {title: 'Session State Name', field: 'sessionName'},
+          {title: 'IP Address', field: 'ipAddress'},
+          {title: 'Subscribers', field: 'numSubscribers', width: 100},
+          {title: 'MME', field: 'mmeConnected', width: 100},
+          {title: 'Health', field: 'health', width: 100},
+          {title: 'Reported Time', field: 'reportedTime', type: 'datetime'},
+        ]}
+        handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}
+        menuItems={[
+          {
+            name: 'View',
+            handleFunc: () => {
+              history.push(relativeUrl('/' + currRow.id));
+            },
           },
-        },
-        {
-          name: 'Remove',
-          handleFunc: () => {
-            props
-              .confirm(`Are you sure you want to delete ${currRow.id}?`)
-              .then(async confirmed => {
-                if (!confirmed) {
-                  return;
-                }
+          {
+            name: 'Edit',
+            handleFunc: () => {
+              history.push(relativeUrl('/' + currRow.id + '/config'));
+            },
+          },
+          {
+            name: 'Remove',
+            handleFunc: () => {
+              props
+                .confirm(`Are you sure you want to delete ${currRow.id}?`)
+                .then(async confirmed => {
+                  if (!confirmed) {
+                    return;
+                  }
 
-                try {
-                  await ctx.setState(currRow.id);
-                } catch (e) {
-                  enqueueSnackbar('failed deleting enodeb ' + currRow.id, {
-                    variant: 'error',
-                  });
-                }
-              });
+                  try {
+                    await ctx.setState(currRow.id);
+                    // setLastRefreshTime(new Date().toLocaleString());
+                  } catch (e) {
+                    enqueueSnackbar('failed deleting enodeb ' + currRow.id, {
+                      variant: 'error',
+                    });
+                  }
+                });
+            },
           },
-        },
-      ]}
-      options={{
-        actionsColumnIndex: -1,
-        pageSizeOptions: [5, 10],
-      }}
-    />
+        ]}
+        options={{
+          actionsColumnIndex: -1,
+          pageSizeOptions: [5, 10],
+        }}
+      />
+    </>
   );
 }
 

@@ -14,7 +14,6 @@
  * @format
  */
 'use strict';
-
 import {FetchEnodebs, FetchGateways} from '../../state/lte/EquipmentState';
 import {
   FetchSubscriberState,
@@ -39,80 +38,106 @@ type refreshType = 'subscriber' | 'gateway' | 'enodeb';
 
 export function useRefreshingContext(props: Props) {
   const ctx = useContext(props.context);
-  const [state, setState] = useState(ctx);
+  const [state, setState] = useState(
+    props.type === 'subscriber'
+      ? {state: ctx.state, sessionState: ctx.sessionState}
+      : ctx.state,
+  );
 
+  const [autoRefreshTime, setAutoRefreshTime] = useState(props.lastRefreshTime);
   async function fetchState(props: FetchProps) {
     const newState = await fetchRefreshState({
-      context: props.context,
       type: props.type,
       networkId: props.networkId,
       id: props.id,
       enqueueSnackbar: props.enqueueSnackbar,
     });
     if (newState) {
-      setState(prevState => {
+      setState(() => {
         if (props.type === 'subscriber') {
           return {
-            ...prevState,
             sessionState: newState?.sessionState || {},
             state: newState?.state || {},
           };
         } else {
-          return {
-            ...prevState,
-            state: newState,
-          };
+          return newState;
         }
       });
     }
   }
 
+  function updateContext(id?: string, state) {
+    let newState = state;
+    if (id !== null && id !== undefined) {
+      if (props.type === 'subscriber') {
+        newState = {
+          state: {
+            ...ctx.state,
+            // $FlowIgnore
+            [id]: state.state?.[id],
+          },
+          // $FlowIgnore
+          sessionState: Object.keys(state.sessionState || {}).length
+            ? {
+                ...ctx.sessionState,
+                // $FlowIgnore
+                [id]: state.sessionState?.[id],
+              }
+            : {},
+        };
+      } else if (props.type === 'enodeb') {
+        // $FlowIgnore
+        newState = {...ctx.state, [id]: state.enbInfo?.[id]};
+      } else {
+        newState = {...ctx.state, [id]: state?.[id]};
+      }
+    }
+    return ctx.setState(null, null, newState);
+  }
+
   useEffect(() => {
-    fetchState({
-      context: ctx,
-      type: props.type,
-      networkId: props.networkId,
-      id: props.id,
-      enqueueSnackbar: props.enqueueSnackbar,
-    });
     const intervalId = setInterval(
-      () =>
-        fetchState({
-          context: ctx,
-          type: props.type,
-          networkId: props.networkId,
-          id: props.id,
-          enqueueSnackbar: props.enqueueSnackbar,
-        }),
+      () => setAutoRefreshTime(new Date().toLocaleString()),
       props.interval,
     );
     if (!props.refresh) {
       return clearInterval(intervalId);
     }
     return () => {
+      updateContext(props.id, state);
       clearInterval(intervalId);
     };
+    // eslint-disable-next-line
+  }, [props.interval, props.refresh, state]);
+
+  useEffect(() => {
+    if (props.lastRefreshTime != autoRefreshTime) {
+      fetchState({
+        type: props.type,
+        networkId: props.networkId,
+        id: props.id,
+        enqueueSnackbar: props.enqueueSnackbar,
+      });
+    }
   }, [
-    ctx,
     props.type,
     props.networkId,
     props.enqueueSnackbar,
     props.id,
-    props.interval,
-    props.refresh,
+    props.lastRefreshTime,
+    autoRefreshTime,
   ]);
   return state;
 }
 
 type FetchProps = {
-  context: typeof React.Context,
   type: refreshType,
   networkId: string,
   id?: string,
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
 async function fetchRefreshState(props: FetchProps) {
-  const {type, networkId, id, enqueueSnackbar, context} = props;
+  const {type, networkId, id, enqueueSnackbar} = props;
   if (type === 'subscriber') {
     const subscribers = await FetchSubscribers({
       id: id,
@@ -124,14 +149,10 @@ async function fetchRefreshState(props: FetchProps) {
       networkId,
       enqueueSnackbar,
     });
-    if (id?.length) {
+    if (id !== null && id !== undefined) {
       return {
-        sessionState: Object.keys(sessions).length
-          ? {...context.sessionState, [id]: sessions}
-          : context.sessionState,
-        state: Object.keys(subscribers).length
-          ? {...context.state, [id]: subscribers}
-          : context.state,
+        sessionState: {[id]: sessions || {}},
+        state: {[id]: subscribers || {}},
       };
     }
     return {sessionState: sessions, state: subscribers};
@@ -139,23 +160,17 @@ async function fetchRefreshState(props: FetchProps) {
     const gateways = await FetchGateways({
       id: id,
       networkId,
-      enqueueSnackbar: enqueueSnackbar,
+      enqueueSnackbar,
     });
 
-    if (id?.length) {
-      return {...context.state, [id]: gateways};
-    }
     return gateways;
   } else {
     const enodebs = await FetchEnodebs({
       id: id,
       networkId,
-      enqueueSnackbar: enqueueSnackbar,
+      enqueueSnackbar,
     });
 
-    if (id?.length) {
-      return {enbInfo: {...context.state.enbInfo, enodebs}};
-    }
     return {enbInfo: enodebs};
   }
 }

@@ -13,7 +13,21 @@
  * @flow strict-local
  * @format
  */
+import * as React from 'react';
+import ApnContext from '../context/ApnContext';
+import EnodebContext from '../context/EnodebContext';
+import GatewayContext from '../context/GatewayContext';
+import GatewayTierContext from '../context/GatewayTierContext';
+import InitSubscriberState from '../../state/lte/SubscriberState';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LteNetworkContext from '../context/LteNetworkContext';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import NetworkContext from '../../components/context/NetworkContext';
+import PolicyContext from '../context/PolicyContext';
+import SubscriberContext from '../context/SubscriberContext';
+import TraceContext from '../context/TraceContext';
 import type {EnodebInfo} from '../lte/EnodebUtils';
+import type {EnodebState} from '../context/EnodebContext';
 import type {
   apn,
   call_trace,
@@ -33,20 +47,6 @@ import type {
   subscriber_id,
   tier,
 } from '@fbcnms/magma-api';
-
-import * as React from 'react';
-import ApnContext from '../context/ApnContext';
-import EnodebContext from '../context/EnodebContext';
-import GatewayContext from '../context/GatewayContext';
-import GatewayTierContext from '../context/GatewayTierContext';
-import InitSubscriberState from '../../state/lte/SubscriberState';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import LteNetworkContext from '../context/LteNetworkContext';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import NetworkContext from '../../components/context/NetworkContext';
-import PolicyContext from '../context/PolicyContext';
-import SubscriberContext from '../context/SubscriberContext';
-import TraceContext from '../context/TraceContext';
 
 import {FEG_LTE, LTE} from '@fbcnms/types/network';
 import {
@@ -111,13 +111,14 @@ export function GatewayContextProvider(props: Props) {
     <GatewayContext.Provider
       value={{
         state: lteGateways,
-        setState: (key, value?) => {
+        setState: (key, value?, newState?) => {
           return SetGatewayState({
             lteGateways,
             setLteGateways,
             networkId,
             key,
             value,
+            newState,
           });
         },
         updateGateway: props =>
@@ -165,13 +166,14 @@ export function EnodebContextProvider(props: Props) {
       value={{
         state: {enbInfo},
         lteRanConfigs: lteRanConfigs,
-        setState: (key: string, value?) => {
+        setState: (key: string, value?, newState?: EnodebState) => {
           return SetEnodebState({
             enbInfo,
             setEnbInfo,
             networkId,
             key,
             value,
+            newState,
           });
         },
         setLteRanConfigs: lteRanConfigs => setLteRanConfigs(lteRanConfigs),
@@ -262,7 +264,7 @@ export function SubscriberContextProvider(props: Props) {
         metrics: subscriberMetrics,
         sessionState: sessionState,
         gwSubscriberMap: getSubscriberGatewayMap(subscriberMap),
-        setState: (key: subscriber_id, value?: mutable_subscriber) =>
+        setState: (key: subscriber_id, value?: mutable_subscriber, newState?) =>
           setSubscriberState({
             networkId,
             subscriberMap,
@@ -270,6 +272,7 @@ export function SubscriberContextProvider(props: Props) {
             setSessionState,
             key,
             value,
+            newState,
           }),
       }}>
       {props.children}

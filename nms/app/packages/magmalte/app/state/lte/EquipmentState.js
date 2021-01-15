@@ -13,8 +13,8 @@
  * @flow strict-local
  * @format
  */
-
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
+import type {EnodebState} from '../../components/context/EnodebContext';
 import type {
   enodeb_serials,
   gateway_dns_configs,
@@ -198,10 +198,15 @@ type EnodebStateProps = {
   setEnbInfo: ({[string]: EnodebInfo}) => void,
   key: string,
   value?: EnodebInfo,
+  newState?: EnodebState,
 };
 
 export async function SetEnodebState(props: EnodebStateProps) {
-  const {networkId, enbInfo, setEnbInfo, key, value} = props;
+  const {networkId, enbInfo, setEnbInfo, key, value, newState} = props;
+  if (newState) {
+    setEnbInfo(newState.enbInfo);
+    return;
+  }
   if (value != null) {
     // remove attached gateway id read only property
     if (value.enb.hasOwnProperty('attached_gateway_id')) {
@@ -245,23 +250,20 @@ export async function FetchGateways(props: FetchProps) {
         gatewayId: id,
       });
       if (gateway) {
-        return gateway;
+        return {[id]: gateway};
       }
     } catch (e) {
-      enqueueSnackbar?.('failed fetching gateway informations', {
+      enqueueSnackbar?.('failed fetching gateway information', {
         variant: 'error',
       });
     }
   } else {
     try {
-      const gateways = await MagmaV1API.getLteByNetworkIdGateways({
+      return await MagmaV1API.getLteByNetworkIdGateways({
         networkId: networkId,
       });
-      if (gateways) {
-        return gateways;
-      }
     } catch (e) {
-      enqueueSnackbar?.('failed fetching gateway informations', {
+      enqueueSnackbar?.('failed fetching gateway information', {
         variant: 'error',
       });
     }
@@ -274,10 +276,15 @@ type GatewayStateProps = {
   setLteGateways: ({[string]: lte_gateway}) => void,
   key: gateway_id,
   value?: mutable_lte_gateway,
+  newState?: {[string]: lte_gateway},
 };
 
 export async function SetGatewayState(props: GatewayStateProps) {
-  const {networkId, lteGateways, setLteGateways, key, value} = props;
+  const {networkId, lteGateways, setLteGateways, key, value, newState} = props;
+  if (newState) {
+    setLteGateways(newState);
+    return;
+  }
   if (value != null) {
     if (!(key in lteGateways)) {
       await MagmaV1API.postLteByNetworkIdGateways({

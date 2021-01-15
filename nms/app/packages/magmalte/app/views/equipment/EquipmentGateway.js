@@ -17,6 +17,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
@@ -27,7 +28,7 @@ import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
-import React, {useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
@@ -42,7 +43,6 @@ import {
 import {SelectEditComponent} from '../../components/ActionTable';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -140,14 +140,23 @@ function GatewayTable() {
   const [currentView, setCurrentView] = useState<$Keys<typeof ViewTypes>>(
     'STATUS',
   );
+  const ctx = useContext(GatewayContext);
+  const [refresh, setRefresh] = useState(true);
+
   return (
     <>
       <CardTitleRow
         key="title"
         icon={CellWifiIcon}
-        label={'Gateways'}
+        label={`Gateways (${Object.keys(ctx.state).length})`}
         filter={() => (
           <Grid container justify="flex-end" alignItems="center" spacing={1}>
+            <Grid item>
+              <AutorefreshCheckbox
+                autorefreshEnabled={refresh}
+                onToggle={() => setRefresh(current => !current)}
+              />
+            </Grid>
             <Grid item>
               <Text variant="body3" className={classes.viewLabelText}>
                 View
@@ -167,7 +176,11 @@ function GatewayTable() {
           </Grid>
         )}
       />
-      {currentView === 'UPGRADE' ? <UpgradeTable /> : <StatusTable />}
+      {currentView === 'UPGRADE' ? (
+        <UpgradeTable />
+      ) : (
+        <StatusTable refresh={refresh} />
+      )}
     </>
   );
 }
@@ -296,25 +309,33 @@ function UpgradeTable() {
     />
   );
 }
-function GatewayStatusTable(props: WithAlert) {
+function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
   const {history, relativeUrl, match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
   const networkId: string = nullthrows(match.params.networkId);
-
+  const gwCtx = useContext(GatewayContext);
+  const [lastRefreshTime, setLastRefreshTime] = useState(
+    new Date().toLocaleString(),
+  );
   // Auto refresh gateways every 30 seconds
-  const gwCtx = useRefreshingContext({
+  const state = useRefreshingContext({
     context: GatewayContext,
     networkId: networkId,
     type: 'gateway',
     interval: REFRESH_INTERVAL,
-    enqueueSnackbar: enqueueSnackbar,
-    refresh: true,
+    enqueueSnackbar,
+    refresh: props.refresh,
+    lastRefreshTime: lastRefreshTime,
   });
+  const ctxValues = [...Object.values(gwCtx.state)];
+  useEffect(() => {
+    setLastRefreshTime(new Date().toLocaleString());
+  }, [ctxValues.length]);
 
   const subscriberCtx = useContext(SubscriberContext);
   const gwSubscriberMap = subscriberCtx.gwSubscriberMap;
 
-  const lteGateways = gwCtx.state;
+  const lteGateways = state;
   const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
   const lteGatewayRows: Array<EquipmentGatewayRowType> = [];
 

@@ -55,6 +55,7 @@ describe('<Enodeb />', () => {
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockThroughput,
     );
+    //   MagmaAPIBindings.getLteByNetworkIdEnodebs.mockResolvedValue(enbInfo);
   });
 
   afterEach(() => {
@@ -128,7 +129,9 @@ describe('<Enodeb />', () => {
     setState: async _ => {},
   };
 
-  jest.spyOn(hooks, 'useRefreshingContext').mockImplementation(() => enbCtx);
+  jest
+    .spyOn(hooks, 'useRefreshingContext')
+    .mockImplementation(() => enbCtx.state);
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/enodeb']} initialIndex={0}>

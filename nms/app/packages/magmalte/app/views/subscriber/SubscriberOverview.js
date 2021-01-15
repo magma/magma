@@ -14,17 +14,21 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {mutable_subscriber} from '@fbcnms/magma-api';
+import type {
+  mutable_subscriber,
+  subscriber,
+  subscriber_state,
+} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import AddSubscriberButton from './SubscriberAddDialog';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
@@ -35,7 +39,6 @@ import React from 'react';
 import ReactJson from 'react-json-view';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
-import SwitchButton from '@material-ui/core/Switch';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -215,24 +218,13 @@ function Subscribers() {
                   alignItems="center"
                   spacing={2}>
                   <Grid item>
-                    <AddSubscriberButton />
+                    <AutorefreshCheckbox
+                      autorefreshEnabled={refresh}
+                      onToggle={() => setRefresh(current => !current)}
+                    />
                   </Grid>
                   <Grid item>
-                    <FormControlLabel
-                      value="top"
-                      control={
-                        <SwitchButton
-                          onChange={() => setRefresh(!refresh)}
-                          checked={refresh}
-                        />
-                      }
-                      label={
-                        <Text variant="subtitle3">{`Refresh ${
-                          refresh ? 'on' : 'off'
-                        }`}</Text>
-                      }
-                      labelPlacement="top"
-                    />
+                    <AddSubscriberButton />
                   </Grid>
                 </Grid>
               </Grid>
@@ -246,25 +238,35 @@ function Subscribers() {
 }
 
 function Table(props: WithAlert & {refresh: boolean}) {
-  const [refresh, setRefresh] = useState(props.refresh);
   const {history, match, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
   const networkId: string = nullthrows(match.params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
-  useEffect(() => setRefresh(props.refresh), [props.refresh]);
+  const ctx = useContext(SubscriberContext);
+  const [lastRefreshTime, setLastRefreshTime] = useState(
+    new Date().toLocaleString(),
+  );
 
   // Auto refresh subscribers every 30 seconds
-  const ctx = useRefreshingContext({
+  const state = useRefreshingContext({
     context: SubscriberContext,
     networkId: networkId,
     type: 'subscriber',
     interval: REFRESH_INTERVAL,
-    enqueueSnackbar: enqueueSnackbar,
-    refresh: refresh,
+    enqueueSnackbar,
+    refresh: props.refresh,
+    lastRefreshTime: lastRefreshTime,
   });
+  const ctxValues = [...Object.values(ctx.state)];
+  const sessionValues = [...Object.values(ctx.sessionState)];
+  useEffect(() => {
+    setLastRefreshTime(new Date().toLocaleString());
+  }, [ctxValues.length, sessionValues.length]);
   const networkCtx = useContext(NetworkContext);
-  const subscriberMap = ctx.state;
-  const sessionState = ctx.sessionState;
+  // $FlowIgnore
+  const subscriberMap: {[string]: subscriber} = state.state;
+  // $FlowIgnore
+  const sessionState: {[string]: subscriber_state} = state.sessionState;
   const subscriberMetrics = ctx.metrics;
   const [jsonDialog, setJsonDialog] = useState(false);
   const tableColumns = [

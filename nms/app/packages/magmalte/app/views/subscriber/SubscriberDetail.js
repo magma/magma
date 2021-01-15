@@ -41,7 +41,6 @@ import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -167,18 +166,17 @@ function StatusInfo() {
   const {match} = useRouter();
   const subscriberId: string = nullthrows(match.params.subscriberId);
   const networkId: string = nullthrows(match.params.networkId);
-  const enqueueSnackbar = useEnqueueSnackbar();
 
   const ctx = useRefreshingContext({
     context: SubscriberContext,
     networkId: networkId,
     type: 'subscriber',
     interval: REFRESH_INTERVAL,
-    enqueueSnackbar: enqueueSnackbar,
     refresh: true,
     id: subscriberId,
   });
-  const subscriberInfo = ctx.state?.[subscriberId];
+  // $FlowIgnore
+  const subscriberInfo: subscriber = ctx.state?.[subscriberId];
 
   return (
     <Grid container spacing={4}>

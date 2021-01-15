@@ -60,18 +60,20 @@ export function EnodebStatus() {
   const enqueueSnackbar = useEnqueueSnackbar();
 
   // Auto refresh enodeb every 30 seconds
-  const ctx = useRefreshingContext({
+  const state = useRefreshingContext({
     context: EnodebContext,
     networkId: networkId,
     type: 'enodeb',
     interval: REFRESH_INTERVAL,
     id: enodebSerial,
-    enqueueSnackbar: enqueueSnackbar,
+    enqueueSnackbar,
     refresh: true,
   });
-  const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const isEnbHealthy = isEnodebHealthy(enbInfo);
-  const isEnbManaged = enbInfo.enb?.enodeb_config?.config_type === 'MANAGED';
+
+  // $FlowIgnore
+  const enbInfo = state.enbInfo?.[enodebSerial];
+  const isEnbHealthy = enbInfo ? isEnodebHealthy(enbInfo) : false;
+  const isEnbManaged = enbInfo?.enb?.enodeb_config?.config_type === 'MANAGED';
 
   const kpiData: DataRows[] = [
     [
@@ -92,33 +94,33 @@ export function EnodebStatus() {
       },
       {
         category: 'Transmit Enabled',
-        value: enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled
+        value: enbInfo?.enb.enodeb_config?.managed_config?.transmit_enabled
           ? 'Enabled'
           : 'Disabled',
         statusCircle: true,
-        status: enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled,
+        status: enbInfo?.enb.enodeb_config?.managed_config?.transmit_enabled,
         tooltip: 'current transmit configuration on the eNodeB',
       },
       {
         category: 'Subscribers',
-        value: enbInfo.enb_state?.ues_connected ?? 0,
+        value: enbInfo?.enb_state?.ues_connected ?? 0,
       },
     ],
     [
       {
         category: 'Gateway ID',
-        value: enbInfo.enb_state.reporting_gateway_id ?? 'Not Available',
+        value: enbInfo?.enb_state.reporting_gateway_id ?? 'Not Available',
         statusCircle: true,
-        status: enbInfo.enb_state.enodeb_connected,
+        status: enbInfo?.enb_state.enodeb_connected,
       },
       {
         category: 'Mme Connected',
-        value: enbInfo.enb_state.mme_connected ? 'Connected' : 'Disconnected',
-        status: enbInfo.enb_state.mme_connected,
+        value: enbInfo?.enb_state.mme_connected ? 'Connected' : 'Disconnected',
+        status: enbInfo?.enb_state.mme_connected,
       },
       {
         category: 'IP Address',
-        value: enbInfo.enb_state.ip_address ?? 'Not Available',
+        value: enbInfo?.enb_state.ip_address ?? 'Not Available',
       },
     ],
   ];

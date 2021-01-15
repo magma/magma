@@ -14,9 +14,9 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {lte_gateway} from '@fbcnms/magma-api';
 
 import DataGrid from '../../components/DataGrid';
+import GatewayContext from '../../components/context/GatewayContext';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
@@ -24,11 +24,26 @@ import isGatewayHealthy, {DynamicServices} from '../../components/GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
+export default function GatewayDetailStatus() {
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
+  const gatewayId: string = nullthrows(match.params.gatewayId);
+  // Auto refresh gateways every 30 seconds
+  const state = useRefreshingContext({
+    context: GatewayContext,
+    networkId: networkId,
+    type: 'gateway',
+    interval: REFRESH_INTERVAL,
+    id: gatewayId,
+    refresh: true,
+  });
+  const gwInfo = state[gatewayId];
   let checkInTime = new Date(0);
   if (
     gwInfo.status &&
