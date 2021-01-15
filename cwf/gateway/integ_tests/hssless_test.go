@@ -105,7 +105,7 @@ func setupHssLessTestEnv(t *testing.T) (*servicers.UESimServerHssLess, error) {
 
 	registry.AddService("SESSIOND", "127.0.0.1", 50065)
 
-	store := test_utils.NewSQLBlobstore(t, "blobstore_hss_table")
+	store := test_utils.NewSQLBlobstore(t, "hssless_test_blobstore")
 	server, err := servicers.NewUESimServerHssLess(store)
 	return server, err
 }

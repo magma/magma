@@ -49,7 +49,6 @@ func DropTableFromSharedTestDB(t *testing.T, table string) {
 
 // NewSQLBlobstore returns a new blobstore storage factory utilizing the
 // singleton in-memory database.
-// Table name is an optional parameter. Defaults to "blobstore_table_name".
 func NewSQLBlobstore(t *testing.T, tableName string) blobstore.BlobStorageFactory {
 	if t == nil {
 		panic("for tests only")

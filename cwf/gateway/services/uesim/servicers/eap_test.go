@@ -15,7 +15,6 @@ package servicers_test
 
 import (
 	"context"
-	"magma/orc8r/cloud/go/test_utils"
 	"reflect"
 	"testing"
 
@@ -23,6 +22,7 @@ import (
 	"magma/cwf/gateway/services/uesim/servicers"
 	fegprotos "magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
+	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -41,7 +41,7 @@ const (
 )
 
 func setupTest(t *testing.T) (*servicers.UESimServer, *cwfprotos.UEConfig, error) {
-	store := test_utils.NewSQLBlobstore(t, "blobstore_uesim_table")
+	store := test_utils.NewSQLBlobstore(t, "useim_eap_test_blobstore")
 
 	server, err := servicers.NewUESimServer(store)
 	if err != nil {

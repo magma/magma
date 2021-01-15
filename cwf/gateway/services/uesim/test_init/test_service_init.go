@@ -25,7 +25,7 @@ import (
 )
 
 func StartTestService(t *testing.T) {
-	factory := test_utils.NewSQLBlobstore(t, "blobstore_cwf_table")
+	factory := test_utils.NewSQLBlobstore(t, "uesim_test_service_blobstore")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.UeSim)
 	server, err := servicers.NewUESimServer(factory)
 	assert.NoError(t, err)

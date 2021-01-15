@@ -98,7 +98,7 @@ func TestTenantsServicer(t *testing.T) {
 
 func newTestService(t *testing.T) (protos.TenantsServiceServer, error) {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, tenants.ServiceName)
-	factory := test_utils.NewSQLBlobstore(t, "blobstore_tenant_servicer_table")
+	factory := test_utils.NewSQLBlobstore(t, "tenants_servicer_test_blobstore")
 	store := storage.NewBlobstoreStore(factory)
 	servicer, err := servicers.NewTenantsServicer(store)
 	assert.NoError(t, err)

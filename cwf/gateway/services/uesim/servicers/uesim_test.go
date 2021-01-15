@@ -25,7 +25,7 @@ import (
 )
 
 func TestUESimulator_AddUE(t *testing.T) {
-	store := test_utils.NewSQLBlobstore(t, "blobstore_uesim_test_table")
+	store := test_utils.NewSQLBlobstore(t, "uesim_uesim_test_blobstore")
 
 	server, err := servicers.NewUESimServer(store)
 	assert.NoError(t, err)

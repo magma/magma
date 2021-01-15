@@ -56,7 +56,7 @@ func TestEapAkaIdentityRequest(t *testing.T) {
 }
 
 func TestEapAkaChallengeRequest(t *testing.T) {
-		server, ue, err := setupTest(t)
+	server, ue, err := setupTest(t)
 	assert.NoError(t, err)
 
 	res, err := server.HandleEap(ue, eap.Packet(EapAkaChallengeRequestPacket))

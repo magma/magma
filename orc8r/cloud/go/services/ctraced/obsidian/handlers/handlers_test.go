@@ -57,7 +57,7 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	e := echo.New()
 
 	mockGWClient := MockGWCtracedClient{}
-	fact := test_utils.NewSQLBlobstore(t, "blobstore_ctrace_table")
+	fact := test_utils.NewSQLBlobstore(t, "ctraced_handlers_test_blobstore")
 	blobstore := storage.NewCtracedBlobstore(fact)
 	obsidianHandlers := handlers.GetObsidianHandlers(mockGWClient, blobstore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
