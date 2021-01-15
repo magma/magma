@@ -337,8 +337,8 @@ function GatewayOverview() {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const ctx = useContext(GatewayContext);
-  const gwInfo = ctx.state[gatewayId];
+  const gwCtx = useContext(GatewayContext);
+  const gwInfo = gwCtx.state[gatewayId];
 
   return (
     <div className={classes.dashboardRoot}>
@@ -363,7 +363,7 @@ function GatewayOverview() {
           <Grid container spacing={4} direction="column">
             <Grid item>
               <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <GatewayDetailStatus gwInfo={gwInfo} />
+              <GatewayDetailStatus />
             </Grid>
             <Grid item>
               <CardTitleRow
