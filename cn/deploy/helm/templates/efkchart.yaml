@@ -159,11 +159,11 @@ spec:
             value: "9200"
           - name: FLUENT_ELASTICSEARCH_SCHEME
             value: "http"
-          # Option to configure elasticsearch plugin with self signed certs
+          # Option to configure elasticsearch plugin with self signed certs.
           # ================================================================
           - name: FLUENT_ELASTICSEARCH_SSL_VERIFY
             value: "false"
-          # Option to configure elasticsearch plugin with tls
+          # Option to configure elasticsearch plugin with tls.
           # ================================================================
           #- name: FLUENT_ELASTICSEARCH_SSL_VERSION
           #  value: "TLSv1_2"
