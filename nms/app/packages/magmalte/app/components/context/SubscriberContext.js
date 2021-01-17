@@ -33,7 +33,14 @@ export type SubscriberContextType = {
   metrics?: {[string]: Metrics},
   gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
   sessionState: {[string]: subscriber_state},
-  setState?: (key: string, val?: mutable_subscriber) => Promise<void>,
+  setState?: (
+    key: string,
+    val?: mutable_subscriber,
+    newState?: {
+      state: {[string]: subscriber},
+      sessionState: {[string]: subscriber_state},
+    },
+  ) => Promise<void>,
 };
 
 export default React.createContext<SubscriberContextType>({});

@@ -146,10 +146,7 @@ def disable_stateless_agw():
         sys.exit(return_codes.STATEFUL.value)
     for service, config, value in STATELESS_SERVICE_CONFIGS:
         cfg = load_override_config(service) or {}
-
-        # remove the stateless override
-        cfg.pop(config, None)
-
+        cfg[config] = not value
         save_override_config(service, cfg)
 
     # restart Sctpd so that eNB connections are reset and local state cleared
@@ -187,6 +184,12 @@ def flushall_redis_and_restart():
     sys.exit(0)
 
 
+def reset_sctpd_for_stateful():
+    if check_stateless_services() == return_codes.STATELESS:
+        print("AGW is stateless, no need to restart Sctpd")
+        sys.exit(0)
+    restart_sctpd()
+
 STATELESS_FUNC_DICT = {
     "check": check_stateless_agw,
     "enable": enable_stateless_agw,
@@ -195,6 +198,7 @@ STATELESS_FUNC_DICT = {
     "sctpd_post": sctpd_post_start,
     "clear_redis": clear_redis_and_restart,
     "flushall_redis": flushall_redis_and_restart,
+    "reset_sctpd_for_stateful": reset_sctpd_for_stateful
 }
 
 

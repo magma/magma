@@ -16,6 +16,7 @@ package analytics
 import (
 	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
+	orchestrator_calcs "magma/orc8r/cloud/go/services/orchestrator/analytics/calculations"
 )
 
 // GetAnalyticsCalculations returns all calculations computed by the component
@@ -24,7 +25,18 @@ func GetAnalyticsCalculations(config *calculations.AnalyticsConfig) []calculatio
 		return nil
 	}
 
-	calcs := analytics.GetLogMetricsCalculations(config)
+	calcs := make([]calculations.Calculation, 0)
+	calcs = append(calcs, analytics.GetLogMetricsCalculations(config)...)
 	calcs = append(calcs, analytics.GetRawMetricsCalculations(config)...)
+	calcs = append(calcs, &orchestrator_calcs.NetworkMetricsCalculation{
+		BaseCalculation: calculations.BaseCalculation{
+			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
+		},
+	})
+	calcs = append(calcs, &orchestrator_calcs.SiteMetricsCalculation{
+		BaseCalculation: calculations.BaseCalculation{
+			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
+		},
+	})
 	return calcs
 }

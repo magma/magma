@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
@@ -22,6 +23,8 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/ctraced/obsidian/handlers"
 	traceModels "magma/orc8r/cloud/go/services/ctraced/obsidian/models"
+	"magma/orc8r/cloud/go/services/ctraced/storage"
+	"magma/orc8r/lib/go/protos"
 	"testing"
 
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -31,12 +34,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type MockGWCtracedClient struct{}
+
+func (c MockGWCtracedClient) StartCallTrace(networkId string, gatewayId string, req *protos.StartTraceRequest) (*protos.StartTraceResponse, error) {
+	resp := &protos.StartTraceResponse{
+		Success: true,
+	}
+	return resp, nil
+}
+
+func (c MockGWCtracedClient) EndCallTrace(networkId string, gatewayId string, req *protos.EndTraceRequest) (*protos.EndTraceResponse, error) {
+	resp := &protos.EndTraceResponse{
+		Success:      true,
+		TraceContent: []byte("abcdefghijklmnopqrstuvwxyz\n"),
+	}
+	return resp, nil
+}
+
 func TestCtracedHandlersBasic(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := handlers.GetObsidianHandlers()
+	mockGWClient := MockGWCtracedClient{}
+	fact := blobstore.NewMemoryBlobStorageFactory()
+	blobstore := storage.NewCtracedBlobstore(fact)
+	obsidianHandlers := handlers.GetObsidianHandlers(mockGWClient, blobstore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
@@ -45,6 +68,7 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	getTrace := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing/:trace_id", obsidian.GET).HandlerFunc
 	updateTrace := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing/:trace_id", obsidian.PUT).HandlerFunc
 	deleteTrace := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing/:trace_id", obsidian.DELETE).HandlerFunc
+	downloadTrace := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/tracing/:trace_id/download", obsidian.GET).HandlerFunc
 
 	// Test empty response
 	tc := tests.Test{
@@ -89,7 +113,7 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Check that policy rule was added
+	// Check that call trace was added
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/networks/n1/tracing?view=full",
@@ -104,7 +128,7 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Test Read Rule Using URL based ID
+	// Test Read Call Trace Using URL based ID
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/networks/n1/tracing/CallTrace1",
@@ -117,7 +141,7 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Test Update Rule Using URL based ID
+	// Test Update Call Trace Using URL based ID
 	testMutableTrace := &traceModels.MutableCallTrace{
 		RequestedEnd: swag.Bool(true),
 	}
@@ -133,7 +157,10 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Verify update results
-	testTrace.State.CallTraceEnding = true
+	testTrace.State = &traceModels.CallTraceState{
+		CallTraceAvailable: true,
+		CallTraceEnding:    true,
+	}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/networks/n1/tracing/CallTrace1",
@@ -146,7 +173,20 @@ func TestCtracedHandlersBasic(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Delete a rule
+	// Verify download of call trace
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/networks/n1/tracing/CallTrace1/download",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "trace_id"},
+		ParamValues:    []string{"n1", "CallTrace1"},
+		Handler:        downloadTrace,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.ByteIdentityMarshaler([]byte("abcdefghijklmnopqrstuvwxyz")),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete a call trace
 	tc = tests.Test{
 		Method:         "DELETE",
 		URL:            "/magma/v1/networks/n1/tracing/CallTrace1",

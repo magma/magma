@@ -121,3 +121,15 @@ type jsonMarshaler struct {
 func (j *jsonMarshaler) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(j.v)
 }
+
+func ByteIdentityMarshaler(v []byte) encoding.BinaryMarshaler {
+	return &byteIdentityMarshaler{v: v}
+}
+
+type byteIdentityMarshaler struct {
+	v []byte
+}
+
+func (j *byteIdentityMarshaler) MarshalBinary() (data []byte, err error) {
+	return j.v, nil
+}
