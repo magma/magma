@@ -24,13 +24,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// MagmaSwaggerConfig is the Go struct version of our custom Swagger spec file.
+// MagmaSwaggerSpec is the Go struct version of our custom Swagger spec file.
 // The only difference is the magma-gen-meta field, which specifies
 // dependencies (other swagger specs that the spec has refs to), a desired
 // filename that this file should be ref'd with from dependent files, and
 // a list of Go struct types and filenames that this file produces when
 // models are generated.
-type MagmaSwaggerConfig struct {
+type MagmaSwaggerSpec struct {
 	Swagger      string
 	MagmaGenMeta MagmaGenMeta `yaml:"magma-gen-meta"`
 	Info         struct {
@@ -49,24 +49,25 @@ type MagmaSwaggerConfig struct {
 	Definitions map[string]interface{}
 }
 
-func (msc MagmaSwaggerConfig) ToSwaggerConfig() SwaggerConfig {
-	ret := SwaggerConfig{}
-	ret.Swagger = msc.Swagger
-	ret.Info = msc.Info
-	ret.BasePath = msc.BasePath
-	ret.Consumes = msc.Consumes
-	ret.Produces = msc.Produces
-	ret.Schemes = msc.Schemes
-	ret.Tags = msc.Tags
-	ret.Paths = msc.Paths
-	ret.Responses = msc.Responses
-	ret.Parameters = msc.Parameters
-	ret.Definitions = msc.Definitions
-	return ret
+func (m MagmaSwaggerSpec) ToSwaggerSpec() SwaggerSpec {
+	s := SwaggerSpec{
+		Swagger:     m.Swagger,
+		Info:        m.Info,
+		BasePath:    m.BasePath,
+		Consumes:    m.Consumes,
+		Produces:    m.Produces,
+		Schemes:     m.Schemes,
+		Tags:        m.Tags,
+		Paths:       m.Paths,
+		Responses:   m.Responses,
+		Parameters:  m.Parameters,
+		Definitions: m.Definitions,
+	}
+	return s
 }
 
-// SwaggerConfig is the Go struct version of a OAI/Swagger 2.0 YAML spec file.
-type SwaggerConfig struct {
+// SwaggerSpec is the Go struct version of a OAI/Swagger 2.0 YAML spec file.
+type SwaggerSpec struct {
 	Swagger string
 	Info    struct {
 		Title       string
@@ -123,100 +124,100 @@ type MagmaGenType struct {
 
 const tmpGenDir = "tmpgen"
 
-// GenerateModels parses the magma-gen-meta key of the given swagger YML file,
+// GenerateModels parses the magma-gen-meta key of the given swagger YAML file,
 // copies the files that the target file depends on into the current working
 // directory, shells out to `swagger generate models`, then cleans up the
 // dependency files.
-func GenerateModels(targetFilepath string, templateFilepath string, rootDir string) error {
+func GenerateModels(targetFilepath string, configFilepath string, rootDir string, specs map[string]MagmaSwaggerSpec) error {
 	absTargetFilepath, err := filepath.Abs(targetFilepath)
 	if err != nil {
 		return errors.Wrapf(err, "target filepath %s is invalid", targetFilepath)
 	}
 
-	allConfigs, err := ParseSwaggerDependencyTree(absTargetFilepath, rootDir)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
 	defer func() {
-		// we always want to do the cleanup step
+		// Always perform cleanup step
 		r := recover()
-		_ = os.RemoveAll("tmpgen")
+		_ = os.RemoveAll(tmpGenDir)
 		if r != nil {
-			// repanic after cleaning up
 			panic(r)
 		}
 	}()
 
 	// For each dependency, strip the magma-gen-meta and write the result to
 	// the filename specified by `dependent-filename`
-	err = StripAndWriteSwaggerConfigs(allConfigs)
+	err = StripAndWriteSwaggerSpecs(specs)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	// Shell out to go-swagger
-	targetConfig := allConfigs[absTargetFilepath]
-	outputDir := filepath.Join(os.Getenv("MAGMA_ROOT"), targetConfig.MagmaGenMeta.OutputDir)
-	absTemplateFilepath, err := filepath.Abs(templateFilepath)
+	targetSpec := specs[absTargetFilepath]
+	outputDir := filepath.Join(os.Getenv("MAGMA_ROOT"), targetSpec.MagmaGenMeta.OutputDir)
+	absConfigFilepath, err := filepath.Abs(configFilepath)
 	if err != nil {
 		return err
 	}
 
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 	err = os.Chdir(tmpGenDir)
 	if err != nil {
 		return err
 	}
+	defer os.Chdir(cwd)
+
 	cmd := exec.Command(
 		"swagger", "generate", "model",
-		"-f", targetConfig.MagmaGenMeta.TempGenFilename,
-		"-t", outputDir,
-		"-C", absTemplateFilepath,
+		"--spec", targetSpec.MagmaGenMeta.TempGenFilename,
+		"--target", outputDir,
+		"--config-file", absConfigFilepath,
 	)
-	stdOutBuffer := &strings.Builder{}
-	stdErrBuffer := &strings.Builder{}
-	cmd.Stdout = stdOutBuffer
-	cmd.Stderr = stdErrBuffer
+	stdoutBuf := &strings.Builder{}
+	stderrBuf := &strings.Builder{}
+	cmd.Stdout = stdoutBuf
+	cmd.Stderr = stderrBuf
 
 	err = cmd.Run()
 	if err != nil {
-		return errors.Wrapf(err, "failed to generate models; stdout:\n%s\nstderr:\n%s", stdOutBuffer.String(), stdErrBuffer.String())
+		return errors.Wrapf(err, "failed to generate models; stdout:\n%s\nstderr:\n%s", stdoutBuf.String(), stderrBuf.String())
 	}
 
-	return os.Chdir("../")
+	return nil
 }
 
 // ParseSwaggerDependencyTree parses the entire dependency tree of a magma
 // swagger spec file specified by the rootFilepath parameter.
 // The returned value maps between the absolute specified dependency filepath
 // and the parsed struct for the dependency file.
-func ParseSwaggerDependencyTree(rootFilepath string, rootDir string) (map[string]MagmaSwaggerConfig, error) {
+func ParseSwaggerDependencyTree(rootFilepath string, rootDir string) (map[string]MagmaSwaggerSpec, error) {
 	absRootFilepath, err := filepath.Abs(rootFilepath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "root filepath %s is invalid", rootFilepath)
 	}
 
-	targetConfig, err := readSwaggerSpec(absRootFilepath)
+	targetSpec, err := readSwaggerSpec(absRootFilepath)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	type mscAndPath struct {
-		MagmaSwaggerConfig
+		MagmaSwaggerSpec
 		path string
 	}
 
-	// Do a BFS to parse the entire dependency tree of swagger config files
+	// Do a BFS to parse the entire dependency tree of swagger spec files
 	// into structs
 	openedFiles := map[string]bool{absRootFilepath: true}
-	allConfigs := map[string]MagmaSwaggerConfig{}
-	configsToVisit := []mscAndPath{{MagmaSwaggerConfig: targetConfig, path: absRootFilepath}}
-	for len(configsToVisit) > 0 {
-		nextConfig := configsToVisit[0]
-		configsToVisit = configsToVisit[1:]
-		allConfigs[nextConfig.path] = nextConfig.MagmaSwaggerConfig
+	allSpecs := map[string]MagmaSwaggerSpec{}
+	specsToVisit := []mscAndPath{{MagmaSwaggerSpec: targetSpec, path: absRootFilepath}}
+	for len(specsToVisit) > 0 {
+		nextSpec := specsToVisit[0]
+		specsToVisit = specsToVisit[1:]
+		allSpecs[nextSpec.path] = nextSpec.MagmaSwaggerSpec
 
-		for _, dependencyPath := range nextConfig.MagmaGenMeta.Dependencies {
+		for _, dependencyPath := range nextSpec.MagmaGenMeta.Dependencies {
 			absDependencyPath, err := filepath.Abs(filepath.Join(rootDir, dependencyPath))
 			if err != nil {
 				return nil, errors.Wrapf(err, "dependency filepath %s is invalid", dependencyPath)
@@ -226,53 +227,53 @@ func ParseSwaggerDependencyTree(rootFilepath string, rootDir string) (map[string
 			}
 			openedFiles[absDependencyPath] = true
 
-			dependencyConfig, err := readSwaggerSpec(absDependencyPath)
+			dependencySpec, err := readSwaggerSpec(absDependencyPath)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to read dependency tree of swagger configs")
+				return nil, errors.Wrap(err, "failed to read dependency tree of swagger specs")
 			}
-			configsToVisit = append(
-				configsToVisit,
+			specsToVisit = append(
+				specsToVisit,
 				mscAndPath{
-					MagmaSwaggerConfig: dependencyConfig,
-					path:               absDependencyPath,
+					MagmaSwaggerSpec: dependencySpec,
+					path:             absDependencyPath,
 				},
 			)
 		}
 	}
-	return allConfigs, nil
+	return allSpecs, nil
 }
 
-func StripAndWriteSwaggerConfigs(allConfigs map[string]MagmaSwaggerConfig) error {
+func StripAndWriteSwaggerSpecs(specs map[string]MagmaSwaggerSpec) error {
 	err := os.Mkdir(tmpGenDir, 0777)
 	if err != nil {
 		return errors.Wrap(err, "could not create temporary gen directory")
 	}
 
-	for path, msc := range allConfigs {
-		sanitized := msc.ToSwaggerConfig()
+	for path, msc := range specs {
+		sanitized := msc.ToSwaggerSpec()
 		marshaledSanitized, err := yaml.Marshal(sanitized)
 		if err != nil {
-			return errors.Wrapf(err, "could not re-marshal swagger config %s", path)
+			return errors.Wrapf(err, "could not re-marshal swagger spec %s", path)
 		}
 
 		err = ioutil.WriteFile(filepath.Join(tmpGenDir, msc.MagmaGenMeta.TempGenFilename), marshaledSanitized, 0666) // \m/
 		if err != nil {
-			return errors.Wrapf(err, "could not write dependency swagger config %s", msc.MagmaGenMeta.TempGenFilename)
+			return errors.Wrapf(err, "could not write dependency swagger spec %s", msc.MagmaGenMeta.TempGenFilename)
 		}
 	}
 	return nil
 }
 
-func readSwaggerSpec(filepath string) (MagmaSwaggerConfig, error) {
+func readSwaggerSpec(filepath string) (MagmaSwaggerSpec, error) {
 	fileContents, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return MagmaSwaggerConfig{}, errors.Wrapf(err, "could not open target file %s", filepath)
+		return MagmaSwaggerSpec{}, errors.Wrapf(err, "could not open target file %s", filepath)
 	}
 
-	config := MagmaSwaggerConfig{}
-	err = yaml.Unmarshal(fileContents, &config)
+	spec := MagmaSwaggerSpec{}
+	err = yaml.Unmarshal(fileContents, &spec)
 	if err != nil {
-		return MagmaSwaggerConfig{}, errors.Wrapf(err, "could not parse target file %s as yml", filepath)
+		return MagmaSwaggerSpec{}, errors.Wrapf(err, "could not parse target file %s as yml", filepath)
 	}
-	return config, nil
+	return spec, nil
 }

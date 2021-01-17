@@ -185,7 +185,7 @@ func (s *TestControllerStore) put(networkID string, version string, timestamp in
 	if err != nil {
 		return err
 	}
-	err = s.store.CreateOrUpdate(networkID, []blobstore.Blob{blob})
+	err = s.store.CreateOrUpdate(networkID, blobstore.Blobs{blob})
 	if err != nil {
 		return err
 	}

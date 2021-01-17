@@ -66,7 +66,7 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 		{Type: astorage.AccessdDefaultType, Key: idHashes[0]},
 		{Type: astorage.AccessdDefaultType, Key: idHashes[1]},
 	}
-	blobs := []blobstore.Blob{
+	blobs := blobstore.Blobs{
 		{Type: astorage.AccessdDefaultType, Key: idHashes[0], Value: marshaledACL0},
 		{Type: astorage.AccessdDefaultType, Key: idHashes[1], Value: marshaledACL1},
 	}
@@ -102,8 +102,6 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("ListKeys", mock.Anything, astorage.AccessdDefaultType).Return([]string{}, nil).Once()
-	blobStoreMock.On("GetMany", mock.Anything, []storage.TypeAndKey{}).
-		Return([]blobstore.Blob{}, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -119,7 +117,7 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("ListKeys", mock.Anything, astorage.AccessdDefaultType).Return(idHashes, nil).Once()
-	blobStoreMock.On("GetMany", mock.Anything, tks).Return([]blobstore.Blob{}, someErr).Once()
+	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	_, err = store.ListAllIdentity()
@@ -161,7 +159,7 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 	marshaledACL, err := proto.Marshal(acl)
 	assert.NoError(t, err)
 	tks := []storage.TypeAndKey{{Type: astorage.AccessdDefaultType, Key: idHash}}
-	blobs := []blobstore.Blob{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACL}}
+	blobs := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACL}}
 
 	// Fail to start transaction
 	blobFactMock = &mocks.BlobStorageFactory{}
@@ -192,7 +190,7 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("GetMany", mock.Anything, tks).Return([]blobstore.Blob{}, nil).Once()
+	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -207,7 +205,7 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("GetMany", mock.Anything, tks).Return([]blobstore.Blob{}, someErr).Once()
+	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	_, err = store.GetACL(id)
@@ -266,7 +264,7 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 		{Type: astorage.AccessdDefaultType, Key: idHashes[0]},
 		{Type: astorage.AccessdDefaultType, Key: idHashes[1]},
 	}
-	blobs := []blobstore.Blob{
+	blobs := blobstore.Blobs{
 		{Type: astorage.AccessdDefaultType, Key: idHashes[0], Value: marshaledACL0},
 		{Type: astorage.AccessdDefaultType, Key: idHashes[1], Value: marshaledACL1},
 	}
@@ -302,7 +300,7 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("GetMany", mock.Anything, tks).Return([]blobstore.Blob{}, someErr).Once()
+	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	_, err = store.GetManyACL(ids)
@@ -315,7 +313,7 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("GetMany", mock.Anything, tks).Return([]blobstore.Blob{}, nil).Once()
+	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -356,7 +354,7 @@ func TestAccessdBlobstore_PutACL(t *testing.T) {
 
 	marshaledACL, err := proto.Marshal(acl)
 	assert.NoError(t, err)
-	blobs := []blobstore.Blob{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACL}}
+	blobs := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACL}}
 
 	// Call with nil id
 	blobFactMock = &mocks.BlobStorageFactory{}
@@ -437,8 +435,8 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 	marshaledACLFinal, err := proto.Marshal(aclFinal)
 	assert.NoError(t, err)
 	tk := storage.TypeAndKey{Type: astorage.AccessdDefaultType, Key: idHash}
-	blobsInitial := []blobstore.Blob{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACLInitial}}
-	blobsFinal := []blobstore.Blob{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACLFinal}}
+	blobsInitial := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACLInitial}}
+	blobsFinal := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACLFinal}}
 
 	// Fail to start transaction
 	blobFactMock = &mocks.BlobStorageFactory{}

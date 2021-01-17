@@ -2,15 +2,6 @@ version: "3.7"
 # This will override the main docker compose and will make sure to fetch pinned verion of xwf with magma components
 # this file is duplicated to magma repo as override of this directory docker-compose.yml file.
 services:
-  ofproxy:
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/ofproxy
-
-  ofproxy-mt:
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/ofproxy
-
-  ofredirector:
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/ofredirector
-
   httpserver:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/httpserver
 
@@ -26,25 +17,14 @@ services:
     build:
       context: ${MAGMA_BASE}../..
       dockerfile: xwf/gateway/integ_tests/gw/Dockerfile
-    environment:
-      - CONNECTION_MODE=ssl
 
   pipelined:
     build:
       context: ${MAGMA_BASE}../../
       dockerfile: cwf/gateway/docker/python/Dockerfile
 
-  tls-termination:
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/tls-termination
-
   tests:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/tests
 
   xwf_client:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/xwf_client
-
-  nlb:
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/nlb
-
-  logrouter:
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/logrouter

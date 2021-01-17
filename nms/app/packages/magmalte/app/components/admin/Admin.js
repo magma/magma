@@ -17,8 +17,6 @@
 import * as React from 'react';
 import AdminContextProvider from './AdminContextProvider';
 import AdminMain from './AdminMain';
-import AlarmIcon from '@material-ui/icons/Alarm';
-import Alerts from './Alerts';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import ApplicationMain from '../ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
@@ -65,11 +63,6 @@ function NavItems() {
         path={relativeUrl('/networks')}
         icon={<SignalCellularAlt />}
       />
-      <NavListItem
-        label="Alerts"
-        path={relativeUrl('/alerts')}
-        icon={<AlarmIcon />}
-      />
     </>
   );
 }
@@ -82,7 +75,6 @@ function NavRoutes() {
       <Route path={relativeUrl('/users')} component={UsersSettings} />
       <Route path={relativeUrl('/audit_log')} component={AuditLog} />
       <Route path={relativeUrl('/networks')} component={Networks} />
-      <Route path={relativeUrl('/alerts')} component={Alerts} />
       <Route
         path={relativeUrl('/settings')}
         render={() => (

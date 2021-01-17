@@ -26,9 +26,6 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
     """
 
     def __init__(self, lte_processor):
-        """
-        Store should be thread-safe since we use a thread pool for requests.
-        """
         self.lte_processor = lte_processor
         logging.info("starting s6a_proxy servicer")
 
@@ -39,9 +36,6 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         s6a_proxy_pb2_grpc.add_S6aProxyServicer_to_server(self, server)
 
     def AuthenticationInformation(self, request, context):
-        """
-        Adds a subscriber to the store
-        """
         imsi = request.user_name
         aia = s6a_proxy_pb2.AuthenticationInformationAnswer()
         try:

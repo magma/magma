@@ -43,11 +43,11 @@ type wwwExporter struct {
 }
 
 //NewWWWExporter exporter instance to export metrics
-func NewWWWExporter(metricsPrefix, appSecret, appID, metricExportURL, categoryName string) Exporter {
+func NewWWWExporter(metricsPrefix, appID, appSecret, metricExportURL, categoryName string) Exporter {
 	return &wwwExporter{
 		metricsPrefix:   metricsPrefix,
-		appSecret:       appSecret,
 		appID:           appID,
+		appSecret:       appSecret,
 		metricExportURL: metricExportURL,
 		categoryName:    categoryName,
 	}

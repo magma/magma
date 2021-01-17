@@ -67,12 +67,9 @@ def enable_stateless_agw():
 def disable_stateless_agw():
     if check_stateless_agw() == magmad_pb2.CheckStatelessResponse.STATEFUL:
         logging.info("Nothing to disable, AGW is stateful")
-    for service, config, _ in STATELESS_SERVICE_CONFIGS:
+    for service, config, value in STATELESS_SERVICE_CONFIGS:
         cfg = load_override_config(service) or {}
-
-        # remove the stateless override
-        cfg.pop(config, None)
-
+        cfg[config] = not value
         save_override_config(service, cfg)
 
     # restart Sctpd so that eNB connections are reset and local state cleared

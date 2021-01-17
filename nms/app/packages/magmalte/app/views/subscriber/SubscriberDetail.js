@@ -32,6 +32,10 @@ import SubscriberDetailConfig from './SubscriberDetailConfig';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
@@ -145,12 +149,46 @@ export default function SubscriberDetail() {
         <Route
           path={relativePath('/event')}
           render={() => (
-            <EventsTable sz="lg" eventStream="SUBSCRIBER" tags={subscriberId} />
+            <EventsTable
+              sz="lg"
+              eventStream="SUBSCRIBER"
+              isAutoRefreshing={true}
+              tags={subscriberId}
+            />
           )}
         />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
     </>
+  );
+}
+function StatusInfo() {
+  const {match} = useRouter();
+  const subscriberId: string = nullthrows(match.params.subscriberId);
+  const networkId: string = nullthrows(match.params.networkId);
+
+  const ctx = useRefreshingContext({
+    context: SubscriberContext,
+    networkId: networkId,
+    type: 'subscriber',
+    interval: REFRESH_INTERVAL,
+    refresh: true,
+    id: subscriberId,
+  });
+  // $FlowIgnore
+  const subscriberInfo: subscriber = ctx.state?.[subscriberId];
+
+  return (
+    <Grid container spacing={4}>
+      <Grid item xs={12} md={6}>
+        <CardTitleRow icon={PersonIcon} label="Subscriber" />
+        <Info subscriberInfo={subscriberInfo} />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <CardTitleRow icon={GraphicEqIcon} label="Status" />
+        <Status subscriberInfo={subscriberInfo} />
+      </Grid>
+    </Grid>
   );
 }
 
@@ -168,16 +206,7 @@ function Overview() {
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
-              <CardTitleRow icon={PersonIcon} label="Subscriber" />
-              <Info subscriberInfo={subscriberInfo} />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <Status subscriberInfo={subscriberInfo} />
-            </Grid>
-          </Grid>
+          <StatusInfo />
         </Grid>
         <Grid item xs={12}>
           <SubscriberChart />

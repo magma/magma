@@ -169,7 +169,7 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that enforcement flow is installed and traffic is less than the quota
-	tr.AssertPolicyUsage(imsi, "static-pass-all-raa1", 0, 500*KiloBytes+Buffer)
+	tr.AssertPolicyUsage(imsi, "static-pass-all-raa1", 100*KiloBytes, 500*KiloBytes+Buffer)
 
 	// Send ReAuth Request to update quota
 	rulesRemoval := &fegprotos.RuleRemovals{

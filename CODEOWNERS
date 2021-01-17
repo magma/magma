@@ -21,8 +21,9 @@ lte/gateway @ardzoht @pshelar
 lte/gateway/c/session_manager @themarwhal @uri200
 lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo
 lte/gateway/c/sctpd @ssanadhya @ulaskozat
+lte/gateway/c/connection_tracker @koolzz
 lte/gateway/docker @rdefosse @tmdzk
-lte/gateway/release @kkahrs
+lte/gateway/release @kkahrs @tmdzk
 lte/gateway/python/magma/pipelined @koolzz @pshelar
 lte/gateway/python/integ_tests @ssanadhya @ulaskozat
 lte/gateway/Vagrantfile @mattymo @119Vik @tmdzk

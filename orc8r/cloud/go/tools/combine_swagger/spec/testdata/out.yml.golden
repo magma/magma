@@ -1,0 +1,105 @@
+swagger: "2.0"
+info:
+  title: Test
+  description: Test API
+  version: 1.0.0
+basePath: /foo
+consumes:
+- application/json
+produces:
+- application/json
+schemes:
+- https
+- http
+tags:
+- description: Tag apple
+  name: AppleTag
+- description: Tag banana
+  name: BananaTag
+- description: Tag foobar
+  name: Tag
+paths:
+  /barpath:
+    post:
+      responses:
+        "200":
+          description: Soap sop
+          schema:
+            type: string
+      summary: Bar
+  /foopath:
+    get:
+      responses:
+        "200":
+          description: Bar baz
+          schema:
+            type: integer
+      summary: Foo
+responses: {}
+parameters: {}
+definitions:
+  bar_def:
+    properties:
+      baz:
+        properties:
+          hello:
+            minLength: 1
+            type: string
+          world:
+            type: integer
+        type: object
+      quz:
+        type: integer
+    required:
+    - baz
+    - quz
+    type: object
+  baz_array:
+    items:
+      $ref: '#/definitions/importing_def'
+    type: array
+  cycle1:
+    properties:
+      bar:
+        type: integer
+    required:
+    - bar
+    type: object
+  cycle2:
+    properties:
+      bar:
+        type: integer
+    required:
+    - bar
+    type: object
+  foo_def:
+    type: integer
+  importing_chain_def:
+    properties:
+      bar:
+        $ref: '#/definitions/bar_def'
+      baz:
+        $ref: '#/definitions/importing_def'
+      baz_array:
+        $ref: '#/definitions/baz_array'
+      foo:
+        $ref: '#/definitions/foo_def'
+    required:
+    - foo
+    - bar
+    - baz
+    type: object
+  importing_def:
+    properties:
+      bar:
+        $ref: '#/definitions/bar_def'
+      baz:
+        minLength: 1
+        type: string
+      foo:
+        $ref: '#/definitions/foo_def'
+    required:
+    - foo
+    - bar
+    - baz
+    type: object
