@@ -20,11 +20,11 @@ import webbrowser, socket
 import threading, platform
 
 
-#Initialize the lock
+#Initialize the lock.
 lock = threading.Lock()
 #Dictionary to maintain k8s services whether they are Running or not
 k8s_obj_dict = {}
-#Build context for Docker files for AMF, SMF, UPF
+#Build context for Docker files for AMF, SMF, UPF.
 BUILD_CONTEXT_PARENT_DIR = '/tmp/Orc8r_docker'
 BUILD_CONTEXT_AMF = os.path.join(BUILD_CONTEXT_PARENT_DIR, 'AMF')
 BUILD_CONTEXT_SMF = os.path.join(BUILD_CONTEXT_PARENT_DIR, 'SMF')
