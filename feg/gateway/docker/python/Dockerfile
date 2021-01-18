@@ -69,7 +69,6 @@ FROM ubuntu:focal AS gateway_python
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https curl
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
-# TODO: change repo to focal once there will be such
 RUN apt-key add /tmp/jfrog.pub && \
     apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main"
 RUN curl -L http://packages.fluentbit.io/fluentbit.key > /tmp/fluentbit.key
@@ -80,7 +79,6 @@ RUN apt-key add /tmp/fluentbit.key && \
 RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
 
-# TODO: magma-nghttpx=1.31.1-1 requires upgrade to ff.
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
   iproute2 \
