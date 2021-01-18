@@ -124,6 +124,7 @@ SessionState::SessionState(
       pdp_end_time_(marshaled.pdp_end_time),
       // 5G session version handlimg
       current_version_(marshaled.current_version),
+      throttle_count_(0),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
       static_rules_(rule_store),
@@ -181,6 +182,7 @@ SessionState::SessionState(
       config_(cfg),
       pdp_start_time_(pdp_start_time),
       pdp_end_time_(0),
+      throttle_count_(0),
       tgpp_context_(tgpp_context),
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
@@ -198,6 +200,7 @@ SessionState::SessionState(
       curr_state_(CREATING),
       config_(cfg),
       current_version_(0),
+      throttle_count_(0),
       static_rules_(rule_store) {}
 
 /* get-set methods of new messages  for 5G*/
@@ -205,6 +208,7 @@ uint32_t SessionState::get_current_version() {
   return current_version_;
 }
 
+/* method to set update the session current version */
 void SessionState::set_current_version(
     int new_session_version, SessionStateUpdateCriteria& session_uc) {
   current_version_                      = new_session_version;
@@ -217,12 +221,22 @@ void SessionState::insert_pdr(SetGroupPDR* rule) {
   PdrList_.push_back(*rule);
 }
 
-void SessionState::set_remove_all_pdrs() {
+/* method to change the PDR state */
+void SessionState::set_all_pdrs(enum PdrState pdstate) {
   for (auto& rule : PdrList_) {
-    rule.set_pdr_state(PdrState::REMOVE);
+    rule.set_pdr_state(pdstate);
   }
 }
-/* Remove all Pdr, FAR rules */
+
+/* method to search specific pdr id existense */
+bool SessionState::search_pdr(unsigned int id) {
+  for (auto& rule : PdrList_) {
+    if (rule.pdr_id() == id) return true;
+  }
+  return false;
+}
+
+/* Remove all PDR, FAR rules */
 void SessionState::remove_all_rules() {
   PdrList_.clear();
 }
@@ -232,6 +246,7 @@ std::vector<SetGroupPDR>& SessionState::get_all_pdr_rules() {
   return PdrList_;
 }
 
+/* method to get current session state */
 SessionFsmState SessionState::get_state() {
   return curr_state_;
 }
@@ -273,12 +288,6 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   /* TODO below to be changed after UPF node association message
    * completes . Revisit
    */
-}
-
-void SessionState::set_teids(
-    Teids teids, SessionStateUpdateCriteria session_uc) {
-  config_.common_context.mutable_teids()->CopyFrom(teids);
-  // session_uc.teids.CopyFrom(teids);
 }
 
 static UsageMonitorUpdate make_usage_monitor_update(
@@ -661,9 +670,6 @@ void SessionState::add_common_fields_to_usage_monitor_update(
   if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req->set_hardware_addr(wlan_context.mac_addr_binary());
-  } else {
-    const auto& lte_context = config_.rat_specific_context.lte_context();
-    req->set_charging_characteristics(lte_context.charging_characteristics());
   }
 }
 
@@ -722,7 +728,6 @@ SessionTerminateRequest SessionState::make_termination_request(
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
-    req.set_charging_characteristics(lte_context.charging_characteristics());
   } else if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req.set_hardware_addr(wlan_context.mac_addr_binary());
@@ -839,7 +844,6 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi      = imsi_;
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
-  info.teids     = config_.common_context.teids();
   info.msisdn    = config_.common_context.msisdn();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
@@ -1488,7 +1492,6 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
-    req.set_charging_characteristics(lte_context.charging_characteristics());
   } else if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req.set_hardware_addr(wlan_context.mac_addr_binary());
@@ -1604,7 +1607,6 @@ void SessionState::fill_service_action(
   action->set_imsi(imsi_);
   action->set_ip_addr(config_.common_context.ue_ipv4());
   action->set_ipv6_addr(config_.common_context.ue_ipv6());
-  action->set_teids(config_.common_context.teids());
   action->set_msisdn(config_.common_context.msisdn());
   action->set_session_id(session_id_);
   static_rules_.get_rule_ids_for_charging_key(
@@ -2133,6 +2135,22 @@ void SessionState::update_dropped_data_metrics(
       "ue_dropped_usage", dropped_rx, size_t(4), LABEL_IMSI, sid.c_str(),
       LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
       DIRECTION_DOWN);
+}
+/*
+ * If UPF received session version doesn't match with SMF local
+ * session version no, then we continue to resend till SESSION_THROTTLE_CNT
+ * reaches
+ */
+bool SessionState::inc_throttle() {
+  if (throttle_count_++ < SESSION_THROTTLE_CNT) {
+    return true;
+  }
+  return false;
+}
+
+/* Reset sesison throttle count */
+void SessionState::reset_throttle() {
+  throttle_count_ = 0;
 }
 
 }  // namespace magma

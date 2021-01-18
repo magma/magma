@@ -12,5 +12,5 @@
 # limitations under the License.
 
 # log_level is set in mconfig. it can be overridden here
-persist_to_redis: true
+persist_to_redis: false
 redis_port: 6380

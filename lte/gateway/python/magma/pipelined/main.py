@@ -41,7 +41,6 @@ from magma.pipelined.bridge_util import BridgeTools
 from lte.protos.mconfig import mconfigs_pb2
 
 
-
 def main():
     """
     Loads the Ryu apps we want to run from the config file.
@@ -132,8 +131,6 @@ def main():
         manager.applications.get('VlanLearnController', None),
         manager.applications.get('TunnelLearnController', None),
         manager.applications.get('Classifier', None),
-        manager.applications.get('InOutController', None),
-        manager.applications.get('NGServiceController', None),
         service.config,
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)

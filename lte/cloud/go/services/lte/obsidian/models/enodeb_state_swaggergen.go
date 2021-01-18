@@ -70,9 +70,6 @@ type EnodebState struct {
 
 	// Time at which the state was reported in ms
 	TimeReported uint64 `json:"time_reported,omitempty"`
-
-	// ues connected
-	UesConnected int32 `json:"ues_connected,omitempty"`
 }
 
 // Validate validates this enodeb state

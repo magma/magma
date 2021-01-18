@@ -35,8 +35,6 @@ message EnbDescription {
 
   map<uint64, uint64> ue_ids = 10; // enb_ue_s1ap_id -> comp_s1ap_id
   SupportedTaList supported_ta_list = 11; // TAs supported by eNB
-  bytes ran_cp_ipaddr = 12; // eNB sctp end point IP addr
-  uint32 ran_cp_ipaddr_sz = 13; // eNB sctp end point IP addr size
 }
 
 message UeDescription {

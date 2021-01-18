@@ -27,7 +27,6 @@
 #include "S6aServiceImpl.h"
 #include "SpgwServiceImpl.h"
 #include "AmfServiceImpl.h"
-#include "HaServiceImpl.h"
 
 extern "C" {
 #include "log.h"
@@ -39,7 +38,6 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using magma::AmfServiceImpl;
 using magma::CSFBGatewayServiceImpl;
-using magma::HaServiceImpl;
 using magma::S1apServiceImpl;
 using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
@@ -53,7 +51,6 @@ static S6aGatewayImpl s6a_proxy;
 static CSFBGatewayServiceImpl sgs_service;
 static SMSOrc8rGatewayServiceImpl sms_orc8r_service;
 static S1apServiceImpl s1ap_service;
-static HaServiceImpl ha_service;
 static std::unique_ptr<Server> server;
 
 // TODO Candidate: GRPC service may be evolved into a
@@ -69,6 +66,7 @@ void start_grpc_service(bstring server_address) {
   builder.RegisterService(&spgw_service);
 #endif
   builder.RegisterService(&amf_service);
+  builder.RegisterService(&s6a_proxy);
   builder.RegisterService(&s6a_service);
   // Start the SGS service only if non_eps_service_control is not set to OFF
   char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
@@ -81,9 +79,6 @@ void start_grpc_service(bstring server_address) {
     builder.RegisterService(&sms_orc8r_service);
   }
   builder.RegisterService(&s1ap_service);
-  if (mme_config.use_ha) {
-    builder.RegisterService(&ha_service);
-  }
   server = builder.BuildAndStart();
 }
 

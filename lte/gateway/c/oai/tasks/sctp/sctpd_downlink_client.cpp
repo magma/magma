@@ -19,6 +19,7 @@ extern "C" {
 #include "sctpd_downlink_client.h"
 
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include "assertions.h"
 #include "log.h"
@@ -27,7 +28,6 @@ extern "C" {
 }
 
 #include <memory.h>
-#include <unistd.h>
 
 #include <grpcpp/grpcpp.h>
 
@@ -104,9 +104,6 @@ using magma::sctpd::InitRes;
 using magma::sctpd::SendDlReq;
 using magma::sctpd::SendDlRes;
 
-// Max sleep backoff delay in microseconds
-constexpr useconds_t max_backoff_usecs = 1000000;  // 1 sec
-
 std::unique_ptr<SctpdDownlinkClient> _client = nullptr;
 
 int init_sctpd_downlink_client(bool force_restart) {
@@ -124,9 +121,6 @@ int sctpd_init(sctp_init_t* init) {
   InitRes res;
   char ipv4_str[INET_ADDRSTRLEN];
   char ipv6_str[INET6_ADDRSTRLEN];
-
-  // Retry backoff delay in microseconds
-  useconds_t current_delay = 500000;
 
   req.set_use_ipv4(init->ipv4);
   req.set_use_ipv6(init->ipv6);
@@ -148,43 +142,48 @@ int sctpd_init(sctp_init_t* init) {
     }
     req.add_ipv6_addrs(ipv6_str);
   }
-
   req.set_port(init->port);
   req.set_ppid(init->ppid);
 
+  OAILOG_ERROR(LOG_NGAP, "####ACL_TAG");
+  // req.set_ngap_port(init->ngap_port);
+  // req.set_ngap_ppid(init->ngap_ppid);
+
   req.set_force_restart(_client->should_force_restart);
 
-#define MAX_SCTPD_INIT_ATTEMPTS 50
-  int num_inits      = 0;
-  int sctpd_init_res = -1;
-  while (sctpd_init_res != 0) {
-    if (num_inits >= MAX_SCTPD_INIT_ATTEMPTS) {
-      OAILOG_ERROR(LOG_SCTP, "Reached max attempts for Sctpd init");
-      break;
-    }
-    ++num_inits;
-    OAILOG_DEBUG(LOG_SCTP, "Sctpd Init attempt %d", num_inits);
-    auto rc      = _client->init(req, &res);
-    auto init_ok = res.result() == InitRes::INIT_OK;
-    if ((rc == 0) && init_ok) {
-      sctpd_init_res = 0;
-    } else {
-      useconds_t sleep_time = std::min(current_delay, max_backoff_usecs);
-      OAILOG_DEBUG(LOG_SCTP, "Sleeping for %d usecs", sleep_time);
-      usleep(sleep_time);
-      if (current_delay < max_backoff_usecs) {
-        current_delay += 10000;  // Add 10 ms to backoff
-      }
-    }
+  auto rc      = _client->init(req, &res);
+  auto init_ok = res.result() == InitRes::INIT_OK;
+
+  OAILOG_ERROR(LOG_NGAP, "####ACL_TAG rc:%d, init_ok:%d ", rc, init_ok);
+  return (rc == 0) && init_ok ? 0 : -1;
+}
+
+// close
+void sctpd_exit() {
+  // send terminate message to sctpd if force_restart is true
+  if (!_client->should_force_restart) {
+    // do nothing
+    return;
   }
-  return sctpd_init_res;
+
+  // send a SIGTERM to sctpd
+  char line[PID_LEN];
+  FILE* cmd = popen("pidof sctpd", "r");
+  fgets(line, PID_LEN, cmd);
+  pid_t pid = strtoul(line, NULL, 10);
+  pclose(cmd);
+  OAILOG_DEBUG(LOG_SCTP, "Sending SIGTERM to pid %d", pid);
+  kill(pid, SIGTERM);
+  return;
 }
 
 // sendDl
-int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload) {
+int sctpd_send_dl(
+    uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload) {
   SendDlReq req;
   SendDlRes res;
 
+  req.set_ppid(ppid);
   req.set_assoc_id(assoc_id);
   req.set_stream(stream);
   req.set_payload(bdata(payload), blength(payload));

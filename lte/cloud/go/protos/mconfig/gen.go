@@ -11,5 +11,5 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//go:generate bash -c "protoc -I /usr/include -I $MAGMA_ROOT --go_out=plugins=grpc:$MAGMA_ROOT/.. $MAGMA_ROOT/lte/protos/mconfig/*.proto"
+//go:generate bash -c "protoc -I /usr/include --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:$MAGMA_ROOT/.. $MAGMA_ROOT/lte/protos/mconfig/*.proto"
 package mconfig

@@ -38,7 +38,6 @@ from magma.pipelined.tests.pipelined_test_util import (
     FlowVerifier,
     FlowTest,
     SnapshotVerifier,
-    fake_inout_setup,
 )
 from ryu.lib import hub
 
@@ -126,7 +125,6 @@ class UEMacAddressTest(unittest.TestCase):
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.ue_mac_controller = ue_mac_controller_reference.result()
-        cls.inout_controller = inout_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
     @classmethod
@@ -143,7 +141,6 @@ class UEMacAddressTest(unittest.TestCase):
         cli_ip = '1.1.1.1'
         server_ip = '151.42.41.122'
 
-        fake_inout_setup(self.inout_controller)
         # Add subscriber with UE MAC address """
         self.ue_mac_controller.add_ue_mac_flow(imsi_1, self.UE_MAC_1)
 

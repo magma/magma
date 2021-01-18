@@ -43,7 +43,6 @@
 #include "3gpp_23.003.h"
 #include "common_types.h"
 #include "3gpp_29.274.h"
-#include "log.h"
 
 /* Clear GUTI without free it */
 void clear_guti(guti_t* const guti) {
@@ -153,23 +152,15 @@ bstring paa_to_bstring(const paa_t* paa) {
       bstr = blk2bstr(&paa->ipv4_address.s_addr, 4);
       break;
     case IPv6:
-      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
-        bstr = blk2bstr(&paa->ipv6_address, paa->ipv6_prefix_length / 8);
-      } else {
-        OAILOG_ERROR(
-            LOG_COMMON, "Invalid ipv6_prefix_length : %u\n",
-            paa->ipv6_prefix_length);
-      }
+      DevAssert(
+          paa->ipv6_prefix_length == 64);  // NAS seems to only support 64 bits
+      bstr = blk2bstr(&paa->ipv6_address, paa->ipv6_prefix_length / 8);
       break;
     case IPv4_AND_v6:
-      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
-        bstr = blk2bstr(&paa->ipv6_address, paa->ipv6_prefix_length / 8);
-        bcatblk(bstr, &paa->ipv4_address, 4);
-      } else {
-        OAILOG_ERROR(
-            LOG_COMMON, "Invalid ipv6_prefix_length : %u\n",
-            paa->ipv6_prefix_length);
-      }
+      DevAssert(
+          paa->ipv6_prefix_length == 64);  // NAS seems to only support 64 bits
+      bstr = blk2bstr(&paa->ipv4_address.s_addr, 4);
+      bcatblk(bstr, &paa->ipv6_address, paa->ipv6_prefix_length / 8);
       break;
     case IPv4_OR_v6:
       // do it like that now, TODO

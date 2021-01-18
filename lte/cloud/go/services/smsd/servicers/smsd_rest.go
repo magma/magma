@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
-	"magma/lte/cloud/go/services/smsd/obsidian/models"
+	"magma/lte/cloud/go/services/smsd/servicers/models"
 	"magma/lte/cloud/go/services/smsd/storage"
 	"magma/orc8r/cloud/go/obsidian"
 

@@ -18,6 +18,7 @@
 #include "LocalSessionManagerHandler.h"
 #include "SessionProxyResponderHandler.h"
 #include "SetMessageManagerHandler.h"
+#include "UpfMsgManageHandler.h"
 
 #include <lte/protos/abort_session.grpc.pb.h>
 
@@ -104,6 +105,21 @@ class AmfPduSessionSmContextAsyncService final
   std::unique_ptr<SetMessageManager> handler_;
 };
 
+/* UpfContextAsysnService  Set RPC service object for 5G */
+class SetInterfaceForUserPlaneAsyncService final
+    : public AsyncService,
+      public SetInterfaceForUserPlane::AsyncService {
+ public:
+  SetInterfaceForUserPlaneAsyncService(
+      std::unique_ptr<ServerCompletionQueue> cq,
+      std::unique_ptr<UpfMsgManageHandler>  handler);
+
+ protected:
+  void init_call_data();
+
+ private:
+  std::unique_ptr<UpfMsgManageHandler> handler_;
+};
 /**
  * SessionProxyResponderAsyncService handles gRPC calls to SessionProxyResponder
  * through a completion queue where requests are processed and returned async
@@ -261,6 +277,89 @@ class SetAmfSessionContextCallData : public AsyncGRPCRequest<
  private:
   SetMessageManager& handler_;
 };
+
+/*Set RPC calldata to invoke notificaiton function of landing object for 5G */
+// AmfPduSessionSmContextToSmf
+class SetSmfNotificationCallData
+    : public AsyncGRPCRequest<
+          AmfPduSessionSmContext::AsyncService, SetSmNotificationContext,
+          SmContextVoid> {
+ public:
+  SetSmfNotificationCallData(
+      ServerCompletionQueue* cq, AmfPduSessionSmContext::AsyncService& service,
+      SetMessageManager& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestSetSmfNotification(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
+
+ protected:
+  void clone() override {
+    new SetSmfNotificationCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.SetSmfNotification(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  SetMessageManager& handler_;
+};
+
+/*Set RPC calldata to invoke first first function of landing object for 5G */
+// SetUpfNodeState
+class SetUpfNodeStateCallData:
+	public AsyncGRPCRequest<SetInterfaceForUserPlane::AsyncService,
+                       UPFNodeState, SmContextVoid > {
+ public:
+  SetUpfNodeStateCallData(
+      ServerCompletionQueue* cq,
+      SetInterfaceForUserPlane::AsyncService& service,
+      UpfMsgManageHandler& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestSetUPFNodeState(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
+
+ protected:
+  void clone() override {
+    new SetUpfNodeStateCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.SetUPFNodeState(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  UpfMsgManageHandler& handler_;
+};
+
+class SetUPFSessionsConfigCallData :
+	public AsyncGRPCRequest<SetInterfaceForUserPlane::AsyncService,
+                       UPFSessionConfigState, SmContextVoid > {
+ public:
+  SetUPFSessionsConfigCallData(
+      ServerCompletionQueue* cq,
+      SetInterfaceForUserPlane::AsyncService& service,
+      UpfMsgManageHandler& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestSetUPFSessionsConfig(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
+
+ protected:
+  void clone() override {
+    new SetUPFSessionsConfigCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.SetUPFSessionsConfig(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  UpfMsgManageHandler& handler_;
+};
+
 
 /**
  * Class to handle CreateSession requests

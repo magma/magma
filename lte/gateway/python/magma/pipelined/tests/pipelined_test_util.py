@@ -229,7 +229,7 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
 def setup_controller(controller, setup_req, sleep_time: float = 1,
                      retries: int = 5):
     for _ in range(0, retries):
-        ret = controller.check_setup_request_epoch(setup_req.epoch)
+        ret = controller.check_setup_request_epoch( setup_req.epoch)
         if ret == SetupFlowsResult.SUCCESS:
             return ret
         else:
@@ -238,12 +238,6 @@ def setup_controller(controller, setup_req, sleep_time: float = 1,
                 return SetupFlowsResult.SUCCESS
         hub.sleep(sleep_time)
     return res.result
-
-
-def fake_inout_setup(inout_controller):
-    TestCase().assertEqual(setup_controller(
-        inout_controller, SetupPolicyRequest(requests=[], epoch=global_epoch)),
-        SetupFlowsResult.SUCCESS)
 
 
 def fake_controller_setup(enf_controller=None,

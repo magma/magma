@@ -62,25 +62,29 @@ class SessionStateEnforcer {
       SessionMap& session_map, const std::string& imsi,
       const std::string& session_id, const SessionConfig& cfg);
   /*Charging & rule related*/
-  void handle_session_init_rule_updates(
+  bool handle_session_init_rule_updates(
       SessionMap& session_map, const std::string& imsi,
-      SessionState& session_state);
+      std::unique_ptr<SessionState>& session_state);
+
+  void m5g_state_change_action(
+      std::string& imsi, SessionStateUpdateCriteria& uc,
+      SetSmNotificationContext cfg, std::unique_ptr<SessionState>& session);
 
   /*Release request handle*/
   bool m5g_release_session(
-      SessionMap& session_map, const std::string& imsi, const std::string& dnn,
+      SessionMap& session_map, const std::string& imsi, const uint32_t& pdu_id,
       SessionUpdate& session_update);
 
   /*Handle and update respective session upon receiving message from UPF*/
-  void m5g_update_session_state_to_amf(
+  void m5g_process_response_from_upf(
       const std::string& imsi, uint32_t teid, uint32_t version);
 
+  void set_upf_node_addr (std::string);
+
  private:
-  std::vector<std::string> static_rules;
 
   ConvergedRuleStore GlobalRuleList;
   std::unordered_multimap<std::string, uint32_t> pdr_map_;
-  std::unordered_multimap<std::string, uint32_t> far_map_;
 
   std::shared_ptr<StaticRuleStore> rule_store_;
   SessionStore& session_store_;
@@ -91,13 +95,14 @@ class SessionStateEnforcer {
   magma::mconfig::SessionD mconfig_;
   // Timer used to forcefully terminate session context on time out
   long session_force_termination_timeout_ms_;
-  bool static_rule_init();
+  bool default_and_static_rule_init();
   /* To send response back to AMF
    * Fill the response structure and call rpc of AmfServiceClient
    */
   void prepare_response_to_access(
       const std::string& imsi, SessionState& session_state,
-      const magma::lte::M5GSMCause m5gsmcause);
+      const magma::lte::M5GSMCause m5gsmcause, std::string upf_ip,
+      uint32_t upf_teid);
 
   void handle_state_update_to_amf(
       const std::string& imsi, SessionState& session_state,
@@ -106,7 +111,7 @@ class SessionStateEnforcer {
   /*Start processing to terminate respective session requested from AMF*/
   void m5g_start_session_termination(
       const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      const std::string& dnn, SessionStateUpdateCriteria& uc);
+      const uint32_t& pdu_id, SessionStateUpdateCriteria& uc);
 
   /* Function to handle termination if UPF doesn't send required report
    * As per current implementation, upf report is not in place and
@@ -119,12 +124,18 @@ class SessionStateEnforcer {
   void m5g_complete_termination(
       SessionMap& session_map, const std::string& imsi,
       const std::string& session_id, SessionUpdate& session_update);
+  /* Send session requst to upf */
+  void m5g_send_session_request_to_upf(
+      const std::string& imsi, const std::unique_ptr<SessionState>& session);
 
-  /*Function is to remove the associated rules to respective sessions*/
-  void m5g_remove_rules_and_update_upf(
+  /* Pdr State change routine */
+  void m5g_pdr_rules_change_and_update_upf(
       const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      const std::string& dnn, SessionStateUpdateCriteria& uc);
-
+      enum PdrState pdrstate);
+  /* State change execution code */
+  void m5g_execute_state_change_action(
+      SessionStateUpdateCriteria& session_uc,
+      std::unique_ptr<SessionState>& session, SessionFsmState targetState);
 };  // End of class SessionStateEnforcer
 
 }  // end namespace magma

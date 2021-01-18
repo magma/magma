@@ -30,11 +30,6 @@ message SetupFlowsRequest {
   UpdateSubscriberQuotaStateRequest quota_updates = 3;
 }
 
-message SetupDefaultRequest {
-  // epoch to prevent outdated setup calls
-  uint64 epoch = 1;
-}
-
 message SetupUEMacRequest {
   // List of UEs to activate
   repeated UEMacFlowRequest requests = 1;
@@ -294,18 +289,25 @@ message DupParam {
   uint32 dest_iface = 1;
 }
 
+enum  SourceInterfaceType {
+  ACCESS = 0;
+  CORE   = 1;
+  SGiLAN = 2;
+} 
+
 //pdr_state variable for SessionSet message per PDR.
 enum PdrState {
   INSTALL = 0;
   REMOVE  = 1;
+  IDLE    =2;
 }
 
 //PDI Message Table 7.5.2.2-2: PDI IE within PFCP Session Establishment Request
 message PDI {
   uint32 src_interface = 1;
-  uint32 local_f_teid = 2; 
+  uint32 local_f_teid = 2;
   string net_instance = 3;
-  string ue_ip_adr = 4;        
+  string ue_ip_adr = 4;
   bytes tr_ep_id = 5;                //8.2.92
   SdfFilters sdf_filters = 6;
   string app_id = 7;
@@ -320,15 +322,15 @@ message SetGroupPDR {
   uint32 precedence = 3;
   PdrState pdr_state = 4;
   PDI pdi = 5;
-  uint32 o_h_remo_desc = 6; 
+  uint32 o_h_remo_desc = 6;
   string active_pred_rule = 7;
-  ActivateFlowsRequest activate_flow_req = 8;
-  SetGroupFAR set_gr_far = 9;  
+  SetGroupFAR set_gr_far = 8;
+  DeactivateFlowsRequest deactivate_flow_req = 9;
+  ActivateFlowsRequest activate_flow_req = 10;
 }
 
 //FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
 message SetGroupFAR {
-  uint32 far_id = 1;
   repeated Action far_action_to_apply = 2;
   FwdParam fwd_parm = 3;
   DupParam du_param = 4;
@@ -338,11 +340,10 @@ message SetGroupFAR {
 // ToDo  SetGroupBAR
 
 //SET message - SMF to Upf Session Requests
-//ToDo Flattening of SessionSet is in progress so will be updated along with addressing the comments
 message SessionSet {
   string subscriber_id = 1;
-  uint32 local_f_teid = 2; 
-  uint32 session_version = 3; 
+  uint32 local_f_teid = 2;
+  uint32 session_version = 3;
   NodeID node_id = 4;
   Fsm_state state = 5;
   repeated SetGroupPDR set_gr_pdr = 6;
@@ -352,9 +353,8 @@ message SessionSet {
 // 15.8 (Sec 7.5.3.1) : PFCP Session Response format
 message UPFSessionContextState {
     CauseIE cause_info = 1;
-    UPFSessionState session_snaphot = 2;
-    repeated FailureRuleInformation failure_rule_id = 3; // The session and version which failed in UPF
-    repeated ActivateFlowsResult qos_enforce_rule_results = 4;
+    UPFSessionState session_snapshot = 2;
+    FailureRuleInformation failure_rule_id = 3; // The session and version which failed in UPF
 }
 
 //15.8,  Section 8.2.1
@@ -382,30 +382,23 @@ message CauseIE {
    CauseValues cause_ie=1;
 }
 
+//For now only PDR is encoded as it encompass FAR and QER.
 message FailureRuleInformation {
-   OffendingIE pdr = 1;
-   OffendingIE far = 2;
-   OffendingIE qer = 3;
-   OffendingIE urr = 4;
-   OffendingIE bar = 5;
+   repeated OffendingIE pdr = 1;
 }
 
+//Failure Report
 message OffendingIE {
     uint32 identifier = 1;
     uint32 version = 2;
+    ActivateFlowsResult qos_enforce_rule_results = 3;
+    DeactivateFlowsResult del_qer_results = 4;
 }
 
 // --------------------------------------------------------------------------
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
 service Pipelined {
-
-  // -----------------
-  // General setup rpc
-  // -----------------
-
-  // Setup pipelined basic controllers
-  rpc SetupDefaultControllers (SetupDefaultRequest) returns (SetupFlowsResult) {}
 
   // ------------
   // Smf to Upf rpc

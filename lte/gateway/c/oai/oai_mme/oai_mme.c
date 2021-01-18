@@ -31,18 +31,19 @@
 #include "assertions.h"
 #include "log.h"
 #include "mme_config.h"
+#include "amf_config.h"
 #include "shared_ts_log.h"
 #include "common_defs.h"
 
 #include "intertask_interface_init.h"
 #include "sctp_primitives_server.h"
 #include "s1ap_mme.h"
+#include "ngap_amf.h"
 #include "mme_app_extern.h"
 /* FreeDiameter headers for support of S6A interface */
 #include "s6a_defs.h"
 #include "sgs_defs.h"
 #include "sms_orc8r_defs.h"
-#include "ha_defs.h"
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
@@ -64,17 +65,16 @@ static void send_timer_recovery_message(void);
 
 task_zmq_ctx_t main_zmq_ctx;
 
+extern amf_config_t amf_config;
 static int main_init(void) {
   // Initialize main thread ZMQ context
   // We dont use the PULL socket nor the ZMQ loop
-  // Don't include optional services such as CSFB, SMS, HA
-  // into target task list (i.e., they will not receive any
-  // broadcast messages or timer messages)
   init_task_context(
       TASK_MAIN,
-      (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
-                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP,
-                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
+      (task_id_t[]){TASK_MME_APP, TASK_AMF_APP, TASK_SERVICE303,
+                    TASK_SERVICE303_SERVER, TASK_S6A, TASK_S1AP, TASK_NGAP,
+                    TASK_SCTP, TASK_SPGW_APP, TASK_GRPC_SERVICE, TASK_LOG,
+                    TASK_SHARED_TS_LOG},
       10, NULL, &main_zmq_ctx);
 
   return RETURNok;
@@ -87,7 +87,11 @@ static void main_exit(void) {
 int main(int argc, char* argv[]) {
   srand(time(NULL));
   char* pid_file_name;
+  FILE* fd;
+  fd = fopen("OAI-INIT.text", "a+");
 
+  fprintf(fd, "inside OAI MAIN\n");
+  fclose(fd);
   CHECK_INIT_RETURN(OAILOG_INIT(
       MME_CONFIG_STRING_MME_CONFIG, OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
   CHECK_INIT_RETURN(shared_log_init(MAX_LOG_PROTOS));
@@ -104,6 +108,7 @@ int main(int argc, char* argv[]) {
       argc, argv, &mme_config, &spgw_config));
 #else
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
+  CHECK_INIT_RETURN(amf_config_parse_opt_line(argc, argv, &amf_config));
 #endif
 
   pid_file_name = get_pid_file_name(mme_config.pid_dir);
@@ -123,6 +128,7 @@ int main(int argc, char* argv[]) {
   event_client_init();
 
   CHECK_INIT_RETURN(mme_app_init(&mme_config));
+  CHECK_INIT_RETURN(amf_app_init(&amf_config));
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
@@ -131,6 +137,7 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
 #endif
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
+  CHECK_INIT_RETURN(ngap_amf_init(&amf_config));
   CHECK_INIT_RETURN(s6a_init(&mme_config));
 
   // Create SGS Task only if non_eps_service_control is not set to OFF
@@ -144,9 +151,6 @@ int main(int argc, char* argv[]) {
     OAILOG_DEBUG(LOG_MME_APP, "SMS_ORC8R Task initialized\n");
   }
   CHECK_INIT_RETURN(grpc_service_init());
-  if (mme_config.use_ha) {
-    CHECK_INIT_RETURN(ha_init(&mme_config));
-  }
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW

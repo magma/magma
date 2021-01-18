@@ -50,8 +50,7 @@ magma::SessionSet create_session_set_req(
 
 magma::DeactivateFlowsRequest create_deactivate_req(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids teids,
-    const std::vector<std::string>& rule_ids,
+    const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
     const std::vector<magma::PolicyRule>& dynamic_rules,
     const magma::RequestOriginType_OriginType origin_type,
     const bool remove_default_drop_rules) {
@@ -73,8 +72,7 @@ magma::DeactivateFlowsRequest create_deactivate_req(
 
 magma::ActivateFlowsRequest create_activate_req(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids teids,
-    const std::string& msisdn,
+    const std::string& ipv6_addr, const std::string& msisdn,
     const optional<magma::AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<magma::PolicyRule>& dynamic_rules,
@@ -105,13 +103,14 @@ magma::ActivateFlowsRequest create_activate_req(
 
 magma::ActivateFlowsRequest create_activate_req_for_update_tunnel_ids(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids teids) {
+    const std::string& ipv6_addr, const uint32_t enb_teid,
+    const uint32_t agw_teid) {
   magma::ActivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
   req.set_ipv6_addr(ipv6_addr);
-  req.set_uplink_tunnel(teids.agw_teid());
-  req.set_downlink_tunnel(teids.enb_teid());
+  req.set_uplink_tunnel(agw_teid);
+  req.set_downlink_tunnel(enb_teid);
   return req;
 }
 
@@ -137,13 +136,6 @@ magma::UEMacFlowRequest create_delete_ue_mac_flow_req(
   return req;
 }
 
-magma::SetupDefaultRequest create_setup_default_req(
-    const std::uint64_t& epoch) {
-  magma::SetupDefaultRequest req;
-  req.set_epoch(epoch);
-  return req;
-}
-
 magma::SetupPolicyRequest create_setup_policy_req(
     const std::vector<magma::SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch) {
@@ -151,14 +143,14 @@ magma::SetupPolicyRequest create_setup_policy_req(
   std::vector<magma::ActivateFlowsRequest> activation_reqs;
   for (auto it = infos.begin(); it != infos.end(); it++) {
     auto gx_activate_req = create_activate_req(
-        it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, it->ambr,
+        it->imsi, it->ip_addr, it->ipv6_addr, it->msisdn, it->ambr,
         it->static_rules, it->dynamic_rules, magma::RequestOriginType::GX);
     activation_reqs.push_back(gx_activate_req);
     if (!it->gy_dynamic_rules.empty()) {
       std::vector<std::string> static_rules;
       auto gy_activate_req = create_activate_req(
-          it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, {},
-          static_rules, it->gy_dynamic_rules, magma::RequestOriginType::GY);
+          it->imsi, it->ip_addr, it->ipv6_addr, it->msisdn, {}, static_rules,
+          it->gy_dynamic_rules, magma::RequestOriginType::GY);
       activation_reqs.push_back(gy_activate_req);
     }
   }
@@ -231,8 +223,6 @@ bool AsyncPipelinedClient::setup_cwf(
     const std::vector<std::uint64_t> pdp_start_times,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {
-  SetupDefaultRequest setup_default_req = create_setup_default_req(epoch);
-  setup_default_controllers_rpc(setup_default_req, callback);
   SetupPolicyRequest setup_policy_req = create_setup_policy_req(infos, epoch);
   setup_policy_rpc(setup_policy_req, callback);
 
@@ -249,8 +239,6 @@ bool AsyncPipelinedClient::setup_lte(
     const std::vector<SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {
-  SetupDefaultRequest setup_default_req = create_setup_default_req(epoch);
-  setup_default_controllers_rpc(setup_default_req, callback);
   SetupPolicyRequest setup_policy_req = create_setup_policy_req(infos, epoch);
   setup_policy_rpc(setup_policy_req, callback);
   return true;
@@ -280,8 +268,7 @@ bool AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
 
 bool AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids,
-    const std::vector<std::string>& rule_ids,
+    const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules,
     const RequestOriginType_OriginType origin_type) {
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
@@ -291,15 +278,13 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
                << imsi << " IP " << ip_addr << " " << ipv6_addr;
 
   auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, teids, rule_ids, dynamic_rules, origin_type,
-      true);
+      imsi, ip_addr, ipv6_addr, rule_ids, dynamic_rules, origin_type, true);
   return deactivate_flows(req);
 }
 
 bool AsyncPipelinedClient::deactivate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids,
-    const std::vector<std::string>& rule_ids,
+    const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules,
     const RequestOriginType_OriginType origin_type) {
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
@@ -307,8 +292,7 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules(
                << imsi << " IP " << ip_addr << " " << ipv6_addr;
 
   auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, teids, rule_ids, dynamic_rules, origin_type,
-      false);
+      imsi, ip_addr, ipv6_addr, rule_ids, dynamic_rules, origin_type, false);
   return deactivate_flows(req);
 }
 
@@ -326,7 +310,7 @@ bool AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
 
 bool AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
+    const std::string& ipv6_addr, const std::string& msisdn,
     const optional<AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules,
@@ -338,12 +322,12 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
   // TODO: Activate static rules and dynamic rules separately until bug
   //  is fixed in pipelined which crashes if activated at the same time
   auto static_req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
+      imsi, ip_addr, ipv6_addr, msisdn, ambr, static_rules,
       std::vector<PolicyRule>(), RequestOriginType::GX);
   activate_flows_rpc(static_req, callback);
 
   auto dynamic_req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, std::vector<std::string>(),
+      imsi, ip_addr, ipv6_addr, msisdn, ambr, std::vector<std::string>(),
       dynamic_rules, RequestOriginType::GX);
   activate_flows_rpc(dynamic_req, callback);
   return true;
@@ -351,16 +335,17 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
 
 bool AsyncPipelinedClient::update_tunnel_ids(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids) {
-  MLOG(MDEBUG) << "Sending a pipelined update for enb_teid="
-               << teids.DebugString() << " for subscirber " << imsi
+    const std::string& ipv6_addr, const uint32_t enb_teid,
+    const uint32_t agw_teid) {
+  MLOG(MDEBUG) << "Sending a pipelined update for enb_teid=" << enb_teid
+               << " and agw_teid=" << agw_teid << " for subscirber " << imsi
                << "(ipv4:" << ip_addr << " ipv6:" << ipv6_addr << ")";
 
   auto update_req = create_activate_req_for_update_tunnel_ids(
-      imsi, ip_addr, ipv6_addr, teids);
+      imsi, ip_addr, ipv6_addr, enb_teid, agw_teid);
   activate_flows_rpc(
-      update_req, [imsi, ip_addr, ipv6_addr, teids](
-                      Status status, ActivateFlowsResult resp) {
+      update_req,
+      [imsi, ip_addr, ipv6_addr](Status status, ActivateFlowsResult resp) {
         if (!status.ok()) {
           MLOG(MERROR) << "Could send pipelined update for tunnels for " << imsi
                        << "(ipv4:" << ip_addr << " ipv6:" << ipv6_addr << ")"
@@ -421,12 +406,12 @@ bool AsyncPipelinedClient::update_subscriber_quota_state(
 
 bool AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
+    const std::string& ipv6_addr, const std::string& msisdn,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules) {
   MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
   auto static_req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, {}, static_rules,
+      imsi, ip_addr, ipv6_addr, msisdn, {}, static_rules,
       std::vector<PolicyRule>(), RequestOriginType::GY);
   activate_flows_rpc(
       static_req, [imsi](Status status, ActivateFlowsResult resp) {
@@ -436,7 +421,7 @@ bool AsyncPipelinedClient::add_gy_final_action_flow(
         }
       });
   auto dynamic_req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, {}, std::vector<std::string>(),
+      imsi, ip_addr, ipv6_addr, msisdn, {}, std::vector<std::string>(),
       dynamic_rules, RequestOriginType::GY);
   activate_flows_rpc(
       dynamic_req, [imsi](Status status, ActivateFlowsResult resp) {
@@ -457,16 +442,6 @@ void AsyncPipelinedClient::set_upf_session_rpc(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(
       stub_->AsyncSetSMFSessions(local_resp->get_context(), request, &queue_)));
-}
-
-void AsyncPipelinedClient::setup_default_controllers_rpc(
-    const SetupDefaultRequest& request,
-    std::function<void(Status, SetupFlowsResult)> callback) {
-  auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
-      std::move(callback), RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(std::move(stub_->AsyncSetupDefaultControllers(
-      local_resp->get_context(), request, &queue_)));
 }
 
 void AsyncPipelinedClient::setup_policy_rpc(
@@ -561,6 +536,15 @@ uint32_t AsyncPipelinedClient::get_current_teid() {
   /* For now TEID we use current no, increment for next, later we plan to
      maintain  release/alloc table for reu sing */
   return teid;
+}
+
+void AsyncPipelinedClient::set_upf_n3_addr(std::string addr){	
+   upf_node_ip_addr = addr;
+   MLOG(MINFO) << "Set_upf_n3_addr" << upf_node_ip_addr;
+}
+  
+std::string AsyncPipelinedClient::get_upf_n3_addr(){
+    return upf_node_ip_addr;
 }
 
 }  // namespace magma

@@ -13,12 +13,12 @@ limitations under the License.
 
 # pylint:disable=protected-access
 
+import asyncio
 import unittest
 
 from unittest.mock import Mock
 
 from magma.subscriberdb.protocols.diameter import server, message
-from .common import MockTransport
 
 
 class ServerTests(unittest.TestCase):
@@ -43,7 +43,7 @@ class ServerTests(unittest.TestCase):
             """ Deep copy the memoryview for checking later  """
             return self._writes(memview.tobytes())
 
-        self._transport = MockTransport()
+        self._transport = asyncio.Transport()
         self._transport.write = Mock(side_effect=convert_memview_to_bytes)
 
         # Here goes nothing..
@@ -113,7 +113,7 @@ class WriterTests(unittest.TestCase):
             """ Deep copy the memoryview for checking later  """
             return self._writes(memview.tobytes())
 
-        self._transport = MockTransport()
+        self._transport = asyncio.Transport()
         self._transport.write = Mock(side_effect=convert_memview_to_bytes)
 
         self.writer = server.Writer("mai.facebook.com",

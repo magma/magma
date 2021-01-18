@@ -1,0 +1,530 @@
+Dec 19 13:14:32 magma-dev-dec18 pipelined[17086]: INFO:EnforcementStatsController:Received Setup request with epoch - 1608383477, current epoch  is - 1608383477
+Dec 19 13:14:32 magma-dev-dec18 pipelined[17086]: INFO:EnforcementController:Controller is in clean restart mode, remaining flows were removed, continuing with setup.
+Dec 19 13:14:32 magma-dev-dec18 pipelined[17086]: INFO:EnforcementController:Initialized proxy_controller <magma.pipelined.app.he.HeaderEnrichmentController object at 0x7f17e0450278>
+Dec 19 13:14:32 magma-dev-dec18 pipelined[17086]: INFO:GYController:Controller is in clean restart mode, remaining flows were removed, continuing with setup.
+Dec 19 13:14:32 magma-dev-dec18 pipelined[17086]: INFO:GYController:Initialized proxy_controller <magma.pipelined.app.he.HeaderEnrichmentController object at 0x7f17e0450278>
+Dec 19 13:14:32 magma-dev-dec18 pipelined[17086]: INFO:EnforcementStatsController:Controller is in clean restart mode, remaining flows were removed, continuing with setup.
+Dec 19 13:14:32 magma-dev-dec18 pipelined[17086]: INFO:EnforcementStatsController:Initialized proxy_controller <magma.pipelined.app.he.HeaderEnrichmentController object at 0x7f17e0450278>
+Dec 19 13:14:43 magma-dev-dec18 magmad[16882]: ERROR:root:GetChallenge error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:14:43 magma-dev-dec18 magmad[16882]: INFO:root:Retrying bootstrap in 30 seconds
+Dec 19 13:14:47 magma-dev-dec18 magmad[16882]: ERROR:root:GetServiceInfo Error for mme! [StatusCode.DEADLINE_EXCEEDED] Deadline Exceeded
+Dec 19 13:15:05 magma-dev-dec18 magmad[16882]: ERROR:root:GetServiceInfo Error for mme! [StatusCode.DEADLINE_EXCEEDED] Deadline Exceeded
+Dec 19 13:15:12 magma-dev-dec18 nghttpx[17227]: [WARN] [DHTTP2:0x7f8053cc5600] Backend connect failed; addr=10.0.2.2:7443: errno=111 (shrpx_http2_session.cc:1944)
+Dec 19 13:15:12 magma-dev-dec18 nghttpx[17227]: [WARN] Could not connect 8 times in a row; sleep for 47.8977 seconds (shrpx_connect_blocker.cc:93)
+Dec 19 13:15:12 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:15:12.642Z [127.0.0.1 -> metricsd-controller.magma.test,8443] "POST /magma.orc8r.MetricsController/Collect HTTP/2" 503 160bytes 0.001s
+Dec 19 13:15:12 magma-dev-dec18 magmad[16882]: ERROR:root:Metrics upload error! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:15:13 magma-dev-dec18 magmad[16882]: ERROR:root:GetChallenge error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:15:13 magma-dev-dec18 magmad[16882]: INFO:root:Retrying bootstrap in 30 seconds
+Dec 19 13:15:16 magma-dev-dec18 state[17095]: DEBUG:root:Check state
+Dec 19 13:15:16 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:15:16.710Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:15:16 magma-dev-dec18 subscriberdb[17088]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:15:16 magma-dev-dec18 state[17095]: DEBUG:root:Not re-syncing state. No local state found.
+Dec 19 13:15:16 magma-dev-dec18 state[17095]: DEBUG:root:Not replicating state. No state has changed!
+Dec 19 13:15:16 magma-dev-dec18 state[17095]: DEBUG:root:
+Dec 19 13:15:16 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:15:16.710Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:15:16 magma-dev-dec18 policydb[17105]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:15:16 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:15:16.710Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:15:16 magma-dev-dec18 policydb[17105]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:15:16 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:15:16.710Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:15:16 magma-dev-dec18 policydb[17105]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:15:23 magma-dev-dec18 magmad[16882]: ERROR:root:GetServiceInfo Error for mme! [StatusCode.DEADLINE_EXCEEDED] Deadline Exceeded
+Dec 19 13:15:28 magma-dev-dec18 magmad[16882]: ERROR:root:GetOperationalStates Error for mme! [StatusCode.DEADLINE_EXCEEDED] Deadline Exceeded
+Dec 19 13:15:37 magma-dev-dec18 systemd[1]: Started Session 60 of user vagrant.
+Dec 19 13:15:38 magma-dev-dec18 magmad[16882]: ERROR:root:GetOperationalStates Error for enodebd! [StatusCode.DEADLINE_EXCEEDED] Deadline Exceeded
+Dec 19 13:15:38 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:15:38.318Z [127.0.0.1 -> state-controller.magma.test,8443] "POST /magma.orc8r.StateService/ReportStates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:15:38 magma-dev-dec18 magmad[16882]: ERROR:root:Checkin Error! Failed to report states. [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:15:38 magma-dev-dec18 magmad[16882]: INFO:root:StateReporting (Checkin) failure threshold met, remediating...
+Dec 19 13:15:38 magma-dev-dec18 magmad[16882]: ERROR:root:Error making TCP connection: Connection refused, [Errno 111] Connect call failed ('10.0.2.2', 7443)
+Dec 19 13:15:38 magma-dev-dec18 magmad[16882]: ERROR:root:StateReporting failure likely not due to invalid cert
+Dec 19 13:15:41 magma-dev-dec18 magmad[16882]: ERROR:root:GetServiceInfo Error for mme! [StatusCode.DEADLINE_EXCEEDED] Deadline Exceeded
+Dec 19 13:15:42 magma-dev-dec18 magmad[16882]: WARNING:root:Collect mme Error! [StatusCode.DEADLINE_EXCEEDED] Deadline Exceeded
+Dec 19 13:15:43 magma-dev-dec18 magmad[16882]: ERROR:root:GetChallenge error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:15:43 magma-dev-dec18 magmad[16882]: INFO:root:Retrying bootstrap in 30 seconds
+Dec 19 13:15:48 magma-dev-dec18 enodebd[17102]: WARNING:root:GetEnbConnected error: [StatusCode.DEADLINE_EXCEEDED] Deadline Exceeded
+Dec 19 13:15:59 magma-dev-dec18 magmad[16882]: ERROR:root:GetServiceInfo Error for mme! [StatusCode.DEADLINE_EXCEEDED] Deadline Exceeded
+Dec 19 13:16:05 magma-dev-dec18 systemd[1]: Stopping Magma sctpd service...
+Dec 19 13:16:06 magma-dev-dec18 systemd[1]: Stopped Magma sctpd service.
+Dec 19 13:16:06 magma-dev-dec18 systemd[1]: Starting Magma sctpd service...
+Dec 19 13:16:06 magma-dev-dec18 sctpd[23553]: /bin/cp: cannot stat '/usr/local/share/sctpd/version': No such file or directory
+Dec 19 13:16:07 magma-dev-dec18 sctpd[23556]: STATEFUL#011mme -> use_stateless
+Dec 19 13:16:07 magma-dev-dec18 sctpd[23556]: STATEFUL#011mobilityd -> persist_to_redis
+Dec 19 13:16:07 magma-dev-dec18 sctpd[23556]: STATEFUL#011pipelined -> clean_restart
+Dec 19 13:16:07 magma-dev-dec18 sctpd[23556]: STATEFUL#011pipelined -> redis_enabled
+Dec 19 13:16:07 magma-dev-dec18 sctpd[23556]: STATEFUL#011sessiond -> support_stateless
+Dec 19 13:16:07 magma-dev-dec18 sctpd[23556]: Check returning return_codes.STATEFUL
+Dec 19 13:16:07 magma-dev-dec18 sctpd[23556]: AGW is stateful, nothing to be done
+Dec 19 13:16:07 magma-dev-dec18 sctpd[23561]: I1219 13:16:07.337949 23561 magma_logging.h:33] Setting verbosity to 4
+Dec 19 13:16:08 magma-dev-dec18 systemd[1]: Started Magma sctpd service.
+Dec 19 13:16:12 magma-dev-dec18 nghttpx[17227]: [WARN] [DHTTP2:0x7f8053cc5600] Backend connect failed; addr=10.0.2.2:7443: errno=111 (shrpx_http2_session.cc:1944)
+Dec 19 13:16:12 magma-dev-dec18 nghttpx[17227]: [WARN] Could not connect 9 times in a row; sleep for 79.955 seconds (shrpx_connect_blocker.cc:93)
+Dec 19 13:16:12 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:16:12.653Z [127.0.0.1 -> metricsd-controller.magma.test,8443] "POST /magma.orc8r.MetricsController/Collect HTTP/2" 503 160bytes 0.001s
+Dec 19 13:16:12 magma-dev-dec18 magmad[16882]: ERROR:root:Metrics upload error! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:16:13 magma-dev-dec18 magmad[16882]: ERROR:root:GetChallenge error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:16:13 magma-dev-dec18 magmad[16882]: INFO:root:Retrying bootstrap in 30 seconds
+Dec 19 13:16:14 magma-dev-dec18 magmad[16882]: WARNING:root:Collect mme Error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:16:14 magma-dev-dec18 magmad[16882]: ERROR:root:GetServiceInfo Error for mme! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:16:16 magma-dev-dec18 state[17095]: DEBUG:root:Check state
+Dec 19 13:16:16 magma-dev-dec18 state[17095]: DEBUG:root:Not re-syncing state. No local state found.
+Dec 19 13:16:16 magma-dev-dec18 state[17095]: DEBUG:root:Not replicating state. No state has changed!
+Dec 19 13:16:16 magma-dev-dec18 state[17095]: DEBUG:root:Not garbage collecting state. No state to delete!
+Dec 19 13:16:16 magma-dev-dec18 state[17095]: DEBUG:root:
+Dec 19 13:16:16 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:16:16.774Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:16:16 magma-dev-dec18 subscriberdb[17088]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:16:16 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:16:16.774Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:16:16 magma-dev-dec18 policydb[17105]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:16:16 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:16:16.774Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:16:16 magma-dev-dec18 policydb[17105]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:16:16 magma-dev-dec18 control_proxy[17220]: 2020-12-19T13:16:16.774Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:16:16 magma-dev-dec18 policydb[17105]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:16:32 magma-dev-dec18 directoryd[17097]: INFO:root:Stopping directoryd with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma directoryd service...
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]: INFO:root:Stopping magmad with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma magmad service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma ctraced service...
+Dec 19 13:16:32 magma-dev-dec18 eventd[17626]: INFO:root:Stopping eventd with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 ctraced[17117]: INFO:root:Stopping ctraced with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 state[17095]: INFO:root:Stopping state with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 enodebd[17102]: INFO:root:Stopping enodebd with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma eventd service...
+Dec 19 13:16:32 magma-dev-dec18 smsd[17113]: INFO:root:Stopping smsd with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 pipelined[17086]: INFO:root:Stopping pipelined with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 dnsmasq[17202]: exiting on receipt of SIGTERM
+Dec 19 13:16:32 magma-dev-dec18 health[17069]: INFO:root:Stopping health with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 policydb[17105]: INFO:root:Stopping policydb with reason SIGTERM...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma state service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma health service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma dnsd service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma Redis datastore service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma pipelined service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma session manager service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma smsd service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma policydb service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma enodebd service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopping Magma control_proxy service...
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopped Magma control_proxy service.
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]: ERROR:root:Exception from _run:
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]: Traceback (most recent call last):
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:   File "/home/vagrant/magma/orc8r/gateway/python/magma/common/job.py", line 121, in _periodic
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:     await self._run()
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:   File "/home/vagrant/magma/orc8r/gateway/python/magma/magmad/service_poller.py", line 133, in _run
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:     await self._get_service_info()
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:   File "/home/vagrant/magma/orc8r/gateway/python/magma/magmad/service_poller.py", line 157, in _get_service_info
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:     info = await grpc_async_wrapper(future, self._loop)
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:   File "/usr/lib/python3.5/asyncio/futures.py", line 380, in __iter__
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:     yield self  # This tells Task to wait for completion.
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:   File "/usr/lib/python3.5/asyncio/tasks.py", line 304, in _wakeup
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:     future.result()
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:   File "/usr/lib/python3.5/asyncio/futures.py", line 285, in result
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]:     raise CancelledError
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]: concurrent.futures._base.CancelledError
+Dec 19 13:16:32 magma-dev-dec18 systemd[1]: Stopped Magma Redis datastore service.
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]: ERROR:asyncio:Task was destroyed but it is pending!
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]: task: <Task pending coro=<Job._periodic() running at /home/vagrant/magma/orc8r/gateway/python/magma/common/job.py:129> wait_for=<Future pending cb=[Task._wakeup()]>>
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]: sys:1: RuntimeWarning: coroutine 'Job._sleep_for_interval' was never awaited
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]: ERROR:asyncio:Task was destroyed but it is pending!
+Dec 19 13:16:32 magma-dev-dec18 magmad[16882]: task: <Task pending coro=<Job._sleep_for_interval() running at /home/vagrant/magma/orc8r/gateway/python/magma/common/job.py:100>>
+Dec 19 13:16:33 magma-dev-dec18 run-parts[23692]: run-parts: executing /etc/redis/redis-server.pre-down.d/00_example
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]: Usage:
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]:  kill [options] <pid> [...]
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]: Options:
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]:  <pid> [...]            send signal to every <pid> listed
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]:  -<signal>, -s, --signal <signal>
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]:                         specify the <signal> to be sent
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]:  -l, --list=[<signal>]  list all signal names, or convert one to a name
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]:  -L, --table            list all signal names in a nice table
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]:  -h, --help     display this help and exit
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]:  -V, --version  output version information and exit
+Dec 19 13:16:33 magma-dev-dec18 kill[23699]: For more details see kill(1).
+Dec 19 13:16:33 magma-dev-dec18 systemd[1]: redis-server.service: Control process exited, code=exited status=1
+Dec 19 13:16:33 magma-dev-dec18 run-parts[23715]: run-parts: executing /etc/redis/redis-server.post-down.d/00_example
+Dec 19 13:16:33 magma-dev-dec18 systemd[1]: redis-server.service: Unit entered failed state.
+Dec 19 13:16:33 magma-dev-dec18 systemd[1]: redis-server.service: Failed with result 'exit-code'.
+Dec 19 13:16:33 magma-dev-dec18 systemd[1]: redis-server.service: Service hold-off time over, scheduling restart.
+Dec 19 13:16:33 magma-dev-dec18 systemd[1]: Stopped Advanced key-value store.
+Dec 19 13:16:33 magma-dev-dec18 systemd[1]: Starting Advanced key-value store...
+Dec 19 13:16:33 magma-dev-dec18 run-parts[23726]: run-parts: executing /etc/redis/redis-server.pre-up.d/00_example
+Dec 19 13:16:34 magma-dev-dec18 run-parts[23736]: run-parts: executing /etc/redis/redis-server.post-up.d/00_example
+Dec 19 13:16:34 magma-dev-dec18 systemd[1]: Started Advanced key-value store.
+Dec 19 13:16:35 magma-dev-dec18 dnsd[23683]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 dnsd[23683]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 dnsd[23683]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 dnsd[23683]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 sessiond[23687]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 sessiond[23687]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 sessiond[23687]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 sessiond[23687]: latest_exit_code: KILLED
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma dnsd service.
+Dec 19 13:16:35 magma-dev-dec18 policydb[23709]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 policydb[23709]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 policydb[23709]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 policydb[23709]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 health[23701]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 health[23701]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 health[23701]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 health[23701]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma session manager service.
+Dec 19 13:16:35 magma-dev-dec18 directoryd[23696]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 directoryd[23696]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 directoryd[23696]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 directoryd[23696]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma policydb service.
+Dec 19 13:16:35 magma-dev-dec18 smsd[23707]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma health service.
+Dec 19 13:16:35 magma-dev-dec18 smsd[23707]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 smsd[23707]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 smsd[23707]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 magmad[23717]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 magmad[23717]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 magmad[23717]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 magmad[23717]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 ctraced[23705]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 ctraced[23705]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 ctraced[23705]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 ctraced[23705]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma directoryd service.
+Dec 19 13:16:35 magma-dev-dec18 state[23713]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 state[23713]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 state[23713]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 state[23713]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 enodebd[23724]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma ctraced service.
+Dec 19 13:16:35 magma-dev-dec18 eventd[23711]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 enodebd[23724]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 enodebd[23724]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 enodebd[23724]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 eventd[23711]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 eventd[23711]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 eventd[23711]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma smsd service.
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma magmad service.
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma enodebd service.
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma eventd service.
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma state service.
+Dec 19 13:16:35 magma-dev-dec18 pipelined[23745]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:35 magma-dev-dec18 pipelined[23745]: ERROR:root:Logging exit info instead
+Dec 19 13:16:35 magma-dev-dec18 pipelined[23745]: latest_service_result: SUCCESS
+Dec 19 13:16:35 magma-dev-dec18 pipelined[23745]: latest_exit_code: EXITED
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopped Magma pipelined service.
+Dec 19 13:16:35 magma-dev-dec18 systemd[1]: Stopping Magma mobilityd service...
+Dec 19 13:16:35 magma-dev-dec18 mobilityd[17112]: INFO:root:Stopping mobilityd with reason SIGTERM...
+Dec 19 13:16:36 magma-dev-dec18 mobilityd[23778]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:36 magma-dev-dec18 mobilityd[23778]: ERROR:root:Logging exit info instead
+Dec 19 13:16:36 magma-dev-dec18 mobilityd[23778]: latest_service_result: SUCCESS
+Dec 19 13:16:36 magma-dev-dec18 mobilityd[23778]: latest_exit_code: EXITED
+Dec 19 13:16:36 magma-dev-dec18 systemd[1]: Stopped Magma mobilityd service.
+Dec 19 13:16:36 magma-dev-dec18 systemd[1]: Stopping Magma subscriberdb service...
+Dec 19 13:16:36 magma-dev-dec18 subscriberdb[17088]: INFO:root:Stopping subscriberdb with reason SIGTERM...
+Dec 19 13:16:37 magma-dev-dec18 subscriberdb[23785]: ERROR:root:Failed to write to redis, status Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:16:37 magma-dev-dec18 subscriberdb[23785]: ERROR:root:Logging exit info instead
+Dec 19 13:16:37 magma-dev-dec18 subscriberdb[23785]: latest_service_result: SUCCESS
+Dec 19 13:16:37 magma-dev-dec18 subscriberdb[23785]: latest_exit_code: EXITED
+Dec 19 13:16:37 magma-dev-dec18 systemd[1]: Stopped Magma subscriberdb service.
+Dec 19 13:17:01 magma-dev-dec18 CRON[23851]: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
+Dec 19 13:17:55 magma-dev-dec18 systemd[1]: Started Magma magmad service.
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: /home/vagrant/magma/orc8r/gateway/python/magma/common/cert_utils.py:16: CryptographyDeprecationWarning: Python 3.5 support will be dropped in the next release of cryptography. Please upgrade your Python.
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]:   from cryptography import x509
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: INFO:root:Starting magmad for UUID: 78a6bfbd-da24-4f07-844a-61e93892c878
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: INFO:root:Starting collector...
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: INFO:root:Streamer reconnect pause: 60
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: INFO:root:Streamer timeout: 150
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: INFO:root:Starting magmad...
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: INFO:root:Listening on address 127.0.0.1:50052
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: INFO:root:Cannot load a proper cert, start bootstrapping
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: INFO:root:Waiting before checking for updates for the first time...
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: WARNING:root:Collect subscriberdb Error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: WARNING:root:Collect mobilityd Error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: WARNING:root:Collect enodebd Error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: WARNING:root:Collect mme Error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: WARNING:root:Collect pipelined Error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma subscriberdb service.
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Starting Magma Redis datastore service...
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma ctraced service.
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Starting Magma eventd service...
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Starting Magma control_proxy service...
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma session manager service.
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma state service.
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma enodebd service.
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma policydb service.
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma directoryd service.
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma health service.
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: WARNING:root:Collect sessiond Error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for state! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma mobilityd service.
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Starting Magma pipelined service...
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Starting Magma dnsd service...
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: ERROR:root:GetChallenge error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: INFO:root:Retrying bootstrap in 30 seconds
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for health! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 ovs-vsctl: ovs|00001|vsctl|INFO|Called as /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true
+Dec 19 13:17:57 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for eventd! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:57 magma-dev-dec18 ovs-vsctl: ovs|00001|vsctl|INFO|Called as /usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma smsd service.
+Dec 19 13:17:57 magma-dev-dec18 ovs-vsctl: ovs|00001|vsctl|INFO|Called as /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Started Magma pipelined service.
+Dec 19 13:17:57 magma-dev-dec18 systemd[1]: Starting Magma OAI MME service...
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service sessiond
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.538838 24193 magma_logging.h:33] Setting verbosity to 3
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.539042 24193 sessiond_main.cpp:186] Starting Session Manager
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service control_proxy
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service redis
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.595633 24217 PolicyLoader.cpp:41] Could not connect to redis: connect() failure
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service service_registry
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.624730 24223 sessiond_main.cpp:204] Started PipelineD response thread
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.631690 24224 sessiond_main.cpp:210] Started DirectoryD response thread
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.646788 24225 sessiond_main.cpp:218] Started EventD response thread
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.657814 24226 sessiond_main.cpp:245] Started SPGW response thread
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.660504 24193 sessiond_main.cpp:73] Using policydb controller
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.674557 24227 sessiond_main.cpp:260] Started reporter thread
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.674687 24193 sessiond_main.cpp:152] Session store in memory
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.675197 24193 LocalEnforcer.cpp:2116] Access timezone is UTC +0 minutes
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.693104 24228 sessiond_main.cpp:282] Started SessionD restart handler thread
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.696899 24193 sessiond_main.cpp:306] Add localservice
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.696938 24193 sessiond_main.cpp:308] Add proxyservice
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.698073 24193 sessiond_main.cpp:332] session enforcer
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.698189 24193 sessiond_main.cpp:336] Amfpdusessionsmcontext set message started
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.698235 24193 sessiond_main.cpp:338] converged  GRPC Added
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.730619 24230 SessionManagerServer.cpp:71] Initializing new call data for SetSmfSessionContext
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.730978 24230 SessionManagerServer.cpp:73] Initializing new call data for SetSmfNotificattion
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.744520 24231 sessiond_main.cpp:369] Started local service thread
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.746702 24232 sessiond_main.cpp:374] Started proxy service thread
+Dec 19 13:17:57 magma-dev-dec18 sessiond[24193]: I1219 13:17:57.780763 24233 sessiond_main.cpp:383] Started abort session service thread
+Dec 19 13:17:58 magma-dev-dec18 magmad[24144]: ERROR:root:Could not fetch service status: Error 111 connecting to 127.0.0.1:6380. Connection refused.
+Dec 19 13:17:58 magma-dev-dec18 magmad[24144]: WARNING:root:Collect state Error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:58 magma-dev-dec18 magmad[24144]: ERROR:root:GetOperationalStates Error for state! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:58 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for enodebd! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:58 magma-dev-dec18 sessiond[24193]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service redis
+Dec 19 13:17:58 magma-dev-dec18 sessiond[24193]: I1219 13:17:58.598451 24217 PolicyLoader.cpp:41] Could not connect to redis: connect() failure
+Dec 19 13:17:59 magma-dev-dec18 sessiond[24193]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service redis
+Dec 19 13:17:59 magma-dev-dec18 sessiond[24193]: I1219 13:17:59.628880 24217 PolicyLoader.cpp:41] Could not connect to redis: connect() failure
+Dec 19 13:17:59 magma-dev-dec18 redis[24175]: WARNING:root:Service (redis) missing in mconfig
+Dec 19 13:17:59 magma-dev-dec18 magmad[24144]: ERROR:root:GetOperationalStates Error for health! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:59 magma-dev-dec18 magmad[24144]: ERROR:root:GetOperationalStates Error for eventd! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:17:59 magma-dev-dec18 systemd[1]: Started Magma Redis datastore service.
+Dec 19 13:17:59 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for mobilityd! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:00 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for mme! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:00 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for ctraced! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:00 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for policydb! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:00 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for directoryd! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:00 magma-dev-dec18 systemd[1]: Started Magma control_proxy service.
+Dec 19 13:18:00 magma-dev-dec18 nghttpx[24273]: [NOTICE] Listening on 0.0.0.0:8443
+Dec 19 13:18:00 magma-dev-dec18 nghttpx[24273]: [NOTICE] Worker process [24276] spawned
+Dec 19 13:18:00 magma-dev-dec18 ctraced[24178]: INFO:root:Starting ctraced...
+Dec 19 13:18:00 magma-dev-dec18 ctraced[24178]: INFO:root:Listening on address 127.0.0.1:50079
+Dec 19 13:18:00 magma-dev-dec18 systemd[1]: Started Magma dnsd service.
+Dec 19 13:18:00 magma-dev-dec18 dnsmasq[24294]: started, version 2.76 cachesize 150
+Dec 19 13:18:00 magma-dev-dec18 dnsmasq[24294]: compile time options: IPv6 GNU-getopt DBus i18n IDN DHCP DHCPv6 no-Lua TFTP conntrack ipset auth DNSSEC loop-detect inotify
+Dec 19 13:18:00 magma-dev-dec18 dnsmasq-dhcp[24294]: DHCP, IP range 192.168.60.240 -- 192.168.60.254, lease time 12h
+Dec 19 13:18:00 magma-dev-dec18 dnsmasq-dhcp[24294]: DHCP, sockets bound exclusively to interface eth1
+Dec 19 13:18:00 magma-dev-dec18 dnsmasq[24294]: reading /etc/resolv.conf
+Dec 19 13:18:00 magma-dev-dec18 dnsmasq[24294]: using nameserver 10.0.2.3#53
+Dec 19 13:18:00 magma-dev-dec18 dnsmasq[24294]: read /etc/hosts - 8 addresses
+Dec 19 13:18:00 magma-dev-dec18 smsd[24212]: WARNING:root:Service (smsd) missing in mconfig
+Dec 19 13:18:00 magma-dev-dec18 mme[24216]: ERROR:root:Error retrieving config for mme, key not found: enable_nat
+Dec 19 13:18:00 magma-dev-dec18 mme[24216]: ERROR:root:Error retrieving config for spgw, key not found: ovs_internal_sampling_fwd_tbl
+Dec 19 13:18:00 magma-dev-dec18 health[24199]: WARNING:root:Service (health) missing in mconfig
+Dec 19 13:18:00 magma-dev-dec18 mme[24216]: WARNING:root:Service (spgw) missing in mconfig
+Dec 19 13:18:00 magma-dev-dec18 smsd[24212]: INFO:root:Starting smsd...
+Dec 19 13:18:00 magma-dev-dec18 smsd[24212]: INFO:root:Listening on address 127.0.0.1:50078
+Dec 19 13:18:00 magma-dev-dec18 smsd[24212]: ERROR:root:Error fetching IMSIs from directoryd: <_Rendezvous of RPC that terminated with:
+Dec 19 13:18:00 magma-dev-dec18 smsd[24212]: #011status = StatusCode.UNAVAILABLE
+Dec 19 13:18:00 magma-dev-dec18 smsd[24212]: #011details = "Connect Failed"
+Dec 19 13:18:00 magma-dev-dec18 smsd[24212]: #011debug_error_string = "{"created":"@1608383880.557371828","description":"Failed to create subchannel","file":"src/core/ext/filters/client_channel/client_channel.cc","file_line":2721,"referenced_errors":[{"created":"@1608383880.557369291","description":"Pick Cancelled","file":"src/core/ext/filters/client_channel/lb_policy/pick_first/pick_first.cc","file_line":241,"referenced_errors":[{"created":"@1608383880.557331056","description":"Connect Failed","file":"src/core/ext/filters/client_channel/subchannel.cc","file_line":689,"grpc_status":14,"referenced_errors":[{"created":"@1608383880.557310032","description":"Failed to connect to remote host: OS Error","errno":111,"file":"src/core/lib/iomgr/tcp_client_posix.cc","file_line":205,"os_error":"Connection refused","syscall":"connect","target_address":"ipv4:127.0.0.1:50067"}]}]}]}"
+Dec 19 13:18:00 magma-dev-dec18 smsd[24212]: >
+Dec 19 13:18:00 magma-dev-dec18 health[24199]: INFO:root:Starting health...
+Dec 19 13:18:00 magma-dev-dec18 sessiond[24193]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service redis
+Dec 19 13:18:00 magma-dev-dec18 sessiond[24193]: I1219 13:18:00.635612 24217 PolicyLoader.cpp:55] Connected to redis server
+Dec 19 13:18:00 magma-dev-dec18 health[24199]: INFO:root:Listening on address 127.0.0.1:50080
+Dec 19 13:18:00 magma-dev-dec18 directoryd[24198]: ERROR:root:Unknown logging level in config: None, defaulting to INFO
+Dec 19 13:18:00 magma-dev-dec18 state[24194]: WARNING:root:Service (state) missing in mconfig
+Dec 19 13:18:00 magma-dev-dec18 directoryd[24198]: INFO:root:Starting directoryd...
+Dec 19 13:18:00 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for proto state S1AP
+Dec 19 13:18:00 magma-dev-dec18 directoryd[24198]: INFO:root:Listening on address 127.0.0.1:50067
+Dec 19 13:18:00 magma-dev-dec18 policydb[24197]: INFO:root:Streamer reconnect pause: 60
+Dec 19 13:18:00 magma-dev-dec18 policydb[24197]: INFO:root:Streamer timeout: 150
+Dec 19 13:18:00 magma-dev-dec18 policydb[24197]: INFO:root:Starting policydb...
+Dec 19 13:18:00 magma-dev-dec18 systemd[1]: Started Magma OAI MME service.
+Dec 19 13:18:00 magma-dev-dec18 policydb[24197]: INFO:root:Listening on address 127.0.0.1:50068
+Dec 19 13:18:00 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for proto state SPGW
+Dec 19 13:18:00 magma-dev-dec18 nghttpx[24276]: [WARN] [DHTTP2:0x7fbb158c5600] Backend connect failed; addr=10.0.2.2:7443: errno=111 (shrpx_http2_session.cc:1944)
+Dec 19 13:18:00 magma-dev-dec18 nghttpx[24276]: [WARN] Could not connect 1 times in a row; sleep for 1.39497 seconds (shrpx_connect_blocker.cc:93)
+Dec 19 13:18:00 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:18:00.898Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.001s
+Dec 19 13:18:00 magma-dev-dec18 policydb[24197]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:18:00 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:18:00.898Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:18:00 magma-dev-dec18 subscriberdb[24173]: INFO:root:Streamer reconnect pause: 60
+Dec 19 13:18:00 magma-dev-dec18 subscriberdb[24173]: INFO:root:Streamer timeout: 150
+Dec 19 13:18:00 magma-dev-dec18 policydb[24197]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:18:00 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:18:00.898Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:18:00 magma-dev-dec18 subscriberdb[24173]: INFO:root:Starting subscriberdb...
+Dec 19 13:18:00 magma-dev-dec18 policydb[24197]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:18:00 magma-dev-dec18 subscriberdb[24173]: INFO:root:Listening on address 127.0.0.1:50051
+Dec 19 13:18:01 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:18:01.004Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:18:01 magma-dev-dec18 subscriberdb[24173]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:18:01 magma-dev-dec18 mme[24330]: Initializing OAI Logging
+Dec 19 13:18:01 magma-dev-dec18 mme[24330]: Initializing OAI Logging to syslog
+Dec 19 13:18:01 magma-dev-dec18 mme[24330]: Initializing shared logging
+Dec 19 13:18:01 magma-dev-dec18 mme[24330]: Initializing shared logging Done
+Dec 19 13:18:01 magma-dev-dec18 mme[24330]: Initializing TIMER module
+Dec 19 13:18:01 magma-dev-dec18 mme[24330]: Initializing TIMER module: DONE
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for proto state MME
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for proto state mobilityd_ipdesc_record
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for json state directory_record
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for proto state S1AP
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for proto state SPGW
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for proto state MME
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for proto state mobilityd_ipdesc_record
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Initializing RedisSerde for json state directory_record
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Starting state...
+Dec 19 13:18:01 magma-dev-dec18 mme[24330]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service control_proxy
+Dec 19 13:18:01 magma-dev-dec18 mme[24330]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service service_registry
+Dec 19 13:18:01 magma-dev-dec18 mme[24330]: GetAssignedIPBlock fails with code 14, msg: Connect Failed
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: INFO:root:Listening on address 127.0.0.1:50074
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: DEBUG:root:Check state
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: DEBUG:root:Not re-syncing state. No local state found.
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: DEBUG:root:Not replicating state. No state has changed!
+Dec 19 13:18:01 magma-dev-dec18 state[24194]: DEBUG:root:
+Dec 19 13:18:01 magma-dev-dec18 enodebd[24195]: INFO:root:Starting enodebd...
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: /home/vagrant/build/python/lib/python3.5/site-packages/scapy/config.py:411: CryptographyDeprecationWarning: Python 3.5 support will be dropped in the next release of cryptography. Please upgrade your Python.
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]:   import cryptography
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: INFO:root:Using GW info: {2: [('10.0.2.2', 'eth0', True)], 'default': {2: ('10.0.2.2', 'eth0')}}
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: INFO:root:GW update: GW IP[NO_VLAN]: 10.0.2.2
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: INFO:root:Using allocator: 0 static ip: True multi_apn True
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: INFO:root:Adding IPv4 block
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: INFO:root:Added block 192.168.128.0/24 to the IPv4 address pool
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: INFO:root:Adding IPv6 block
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: INFO:root:Added block fdee:5:6c::/48 to the IPv6 address pool
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: INFO:root:Starting mobilityd...
+Dec 19 13:18:01 magma-dev-dec18 mobilityd[24200]: INFO:root:Listening on address 127.0.0.1:60051
+Dec 19 13:18:01 magma-dev-dec18 enodebd[24195]: INFO:root:Listening on address 127.0.0.1:60055
+Dec 19 13:18:01 magma-dev-dec18 enodebd[24195]: WARNING:root:The IP address of the eth1 interface is 192.168.60.159. The expected IP addresses are ('192.168.60.142', '10.0.2.1')
+Dec 19 13:18:01 magma-dev-dec18 enodebd[24195]: INFO:root:Starting TR-069 server on 192.168.60.159:48080
+Dec 19 13:18:01 magma-dev-dec18 enodebd[24195]: WARNING:root:GetEnbConnected error: [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:02 magma-dev-dec18 mme[24330]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service redis
+Dec 19 13:18:02 magma-dev-dec18 mme[24330]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service redis
+Dec 19 13:18:02 magma-dev-dec18 mme[24330]: Server running (127.0.0.1:6654)
+Dec 19 13:18:02 magma-dev-dec18 magmad[24144]: ERROR:root:GetOperationalStates Error for pipelined! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:02 magma-dev-dec18 magmad[24144]: ERROR:root:GetServiceInfo Error for pipelined! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:02 magma-dev-dec18 nghttpx[24276]: [WARN] [DHTTP2:0x7fbb158c5600] Backend connect failed; addr=10.0.2.2:7443: errno=111 (shrpx_http2_session.cc:1944)
+Dec 19 13:18:02 magma-dev-dec18 nghttpx[24276]: [WARN] Could not connect 2 times in a row; sleep for 2.51875 seconds (shrpx_connect_blocker.cc:93)
+Dec 19 13:18:02 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:18:02.576Z [127.0.0.1 -> state-controller.magma.test,8443] "POST /magma.orc8r.StateService/ReportStates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:18:02 magma-dev-dec18 magmad[24144]: ERROR:root:Checkin Error! Failed to report states. [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:18:02 magma-dev-dec18 magmad[24144]: INFO:root:StateReporting (Checkin) failure threshold met, remediating...
+Dec 19 13:18:02 magma-dev-dec18 magmad[24144]: ERROR:root:Error making TCP connection: Connection refused, [Errno 111] Connect call failed ('10.0.2.2', 7443)
+Dec 19 13:18:02 magma-dev-dec18 magmad[24144]: ERROR:root:StateReporting failure likely not due to invalid cert
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: /home/vagrant/build/python/lib/python3.5/site-packages/scapy/config.py:411: CryptographyDeprecationWarning: Python 3.5 support will be dropped in the next release of cryptography. Please upgrade your Python.
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]:   import cryptography
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:root:Nat: True
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:root:added uplink bridge controller
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.inout
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app ryu.app.ofctl_rest
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.startup_flows
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.uplink_bridge
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.arp
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.access_control
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.dpi
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.he
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.gy
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.enforcement
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app magma.pipelined.app.enforcement_stats
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:loading app ryu.controller.ofp_handler
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:creating context wsgi
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app None of DPSet
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:creating context dpset
+Dec 19 13:18:02 magma-dev-dec18 sessiond[24193]: I1219 13:18:02.711545 24228 RestartHandler.cpp:47] Successfully terminated all old sessions
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.dpi of DPIController
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.access_control of AccessControlController
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app ryu.controller.ofp_handler of OFPHandler
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.enforcement_stats of EnforcementStatsController
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.inout of InOutController
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.enforcement of EnforcementController
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.arp of ArpController
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.gy of GYController
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.uplink_bridge of UplinkBridgeController
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:UplinkBridgeController:uplink bridge app config: UplinkBridgeConfig(uplink_bridge='uplink_br0', uplink_eth_port_name='uplink_p0', uplink_patch='patch-agw', enable_nat=True, virtual_mac='62:f0:26:84:56:40', dhcp_port='dhcp0', sgi_management_iface_vlan='', sgi_management_iface_ip_addr='', dev_vlan_in='vlan_pop_in', dev_vlan_out='vlan_pop_out', ovs_vlan_workaround=True, sgi_management_iface_gw='')
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app ryu.app.ofctl_rest of RestStatsApi
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.he of HeaderEnrichmentController
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:HeaderEnrichmentController:Header Enrichment app config: heConfig(he_proxy_port=1, he_enabled=False, encryption_enabled=False, encryption_algorithm=None, hash_function=None, encoding_type=None, uplink_port=4294967294, gtp_port=32768)
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.base.app_manager:instantiating app magma.pipelined.app.startup_flows of StartupFlows
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:StartupFlows:Clean restart enabled, startup flows will not query flows.
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:root:Running GTP stats collector...
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:root:Starting pipelined...
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:root:Listening on address 127.0.0.1:50063
+Dec 19 13:18:02 magma-dev-dec18 pipelined[24213]: INFO:ryu.lib.hub:(24213) wsgi starting up on http://0.0.0.0:3333
+Dec 19 13:18:04 magma-dev-dec18 eventd[24191]: 19 Dec 13:18:04 ntpdate[24191]: adjust time server 5.103.139.163 offset 0.014514 sec
+Dec 19 13:18:04 magma-dev-dec18 systemd[1]: Started Magma eventd service.
+Dec 19 13:18:05 magma-dev-dec18 eventd[24511]: WARNING:root:Service (eventd) missing in mconfig
+Dec 19 13:18:05 magma-dev-dec18 eventd[24511]: INFO:root:Starting eventd...
+Dec 19 13:18:05 magma-dev-dec18 eventd[24511]: INFO:root:Listening on address 127.0.0.1:50075
+Dec 19 13:18:07 magma-dev-dec18 mme[24330]: [/home/vagrant/magma/orc8r/gateway/c/common/config/ServiceConfigLoader.cpp:34] Override file not found for service redis
+Dec 19 13:18:07 magma-dev-dec18 sctpd[23561]: I1219 13:18:07.324184 23567 sctpd_downlink_impl.cpp:39] SctpdDownlinkImpl::Init starting ERROR
+Dec 19 13:18:07 magma-dev-dec18 sctpd[23561]: I1219 13:18:07.324232 23567 sctpd_downlink_impl.cpp:40] SctpdDownlinkImpl::req->ppid()=18
+Dec 19 13:18:07 magma-dev-dec18 sctpd[23561]: I1219 13:18:07.324244 23567 sctpd_downlink_impl.cpp:41] SctpdDownlinkImpl::req->port()=36412
+Dec 19 13:18:07 magma-dev-dec18 sctpd[23561]: I1219 13:18:07.324251 23567 sctpd_downlink_impl.cpp:54] SctpdDownlinkImpl::Init creating new socket and listener
+Dec 19 13:18:07 magma-dev-dec18 sctpd[23561]: I1219 13:18:07.324257 23567 sctpd_downlink_impl.cpp:56] SctpdDownlinkImpl::1
+Dec 19 13:18:07 magma-dev-dec18 sctpd[23561]: I1219 13:18:07.324352 23567 sctpd_downlink_impl.cpp:63] SctpdDownlinkImpl::3
+Dec 19 13:18:07 magma-dev-dec18 sctpd[23561]: I1219 13:18:07.324432 23567 sctpd_downlink_impl.cpp:65] SctpdDownlinkImpl::4
+Dec 19 13:18:07 magma-dev-dec18 sctpd[23561]: I1219 13:18:07.324570 24533 sctp_connection.cpp:103] starting sctp connection listener sd = 15
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:pipelined.qos.qos_tc_impl:Init LinuxTC module uplink:eth2 downlink:eth1
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:pipelined.qos.common:Qos Setup: clean start
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:pipelined.qos.qos_tc_impl:destroying existing qos classes
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:ArpController:Setting local eth_dst to gtp_br0 for ip 10.1.0.1
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:ArpController:Setting default eth_dst to gtp_br0
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:pipelined.qos.qos_tc_impl:Init LinuxTC module uplink:eth2 downlink:eth1
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:pipelined.qos.common:Qos Setup: clean start
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:pipelined.qos.qos_tc_impl:destroying existing qos classes
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: RTNETLINK answers: File exists
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:UplinkBridgeController:Delete all flows: ovs-ofctl del-flows uplink_br0
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:UplinkBridgeController:SGi DHCP: port [uplink_br0] ip removed
+Dec 19 13:18:08 magma-dev-dec18 ovs-vsctl: ovs|00001|vsctl|INFO|Called as ovs-vsctl --if-exists del-port uplink_br0 uplink_p0
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:UplinkBridgeController:Remove ovs uplink port: ovs-vsctl --if-exists del-port uplink_br0 uplink_p0
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: ifup: unknown interface uplink_p0
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:UplinkBridgeController:could not bring up if: ['ifup', 'uplink_p0'], Command '['ifup', 'uplink_p0']' returned non-zero exit status 1
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:InOutController:Nat is on
+Dec 19 13:18:08 magma-dev-dec18 sessiond[24193]: I1219 13:18:08.936945 24231 LocalSessionManagerHandler.cpp:60] Pipelined has been restarted, attempting to sync flows, old epoch = 0, new epoch = 1608383882
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:GYController:Received Setup request with epoch - 1608383882, current epoch  is - 1608383882
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:EnforcementController:Received Setup request with epoch - 1608383882, current epoch  is - 1608383882
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:EnforcementStatsController:Received Setup request with epoch - 1608383882, current epoch  is - 1608383882
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:EnforcementController:Controller is in clean restart mode, remaining flows were removed, continuing with setup.
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:EnforcementController:Initialized proxy_controller <magma.pipelined.app.he.HeaderEnrichmentController object at 0x7fbaf05ff5c0>
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:GYController:Controller is in clean restart mode, remaining flows were removed, continuing with setup.
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:GYController:Initialized proxy_controller <magma.pipelined.app.he.HeaderEnrichmentController object at 0x7fbaf05ff5c0>
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:EnforcementStatsController:Controller is in clean restart mode, remaining flows were removed, continuing with setup.
+Dec 19 13:18:08 magma-dev-dec18 pipelined[24213]: INFO:EnforcementStatsController:Initialized proxy_controller <magma.pipelined.app.he.HeaderEnrichmentController object at 0x7fbaf05ff5c0>
+Dec 19 13:18:27 magma-dev-dec18 magmad[24144]: ERROR:root:GetChallenge error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:27 magma-dev-dec18 magmad[24144]: INFO:root:Retrying bootstrap in 30 seconds
+Dec 19 13:18:57 magma-dev-dec18 nghttpx[24276]: [WARN] [DHTTP2:0x7fbb158c5600] Backend connect failed; addr=10.0.2.2:7443: errno=111 (shrpx_http2_session.cc:1944)
+Dec 19 13:18:57 magma-dev-dec18 nghttpx[24276]: [WARN] Could not connect 3 times in a row; sleep for 3.51905 seconds (shrpx_connect_blocker.cc:93)
+Dec 19 13:18:57 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:18:57.038Z [127.0.0.1 -> metricsd-controller.magma.test,8443] "POST /magma.orc8r.MetricsController/Collect HTTP/2" 503 160bytes 0.001s
+Dec 19 13:18:57 magma-dev-dec18 magmad[24144]: ERROR:root:Metrics upload error! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:18:57 magma-dev-dec18 magmad[24144]: ERROR:root:GetChallenge error! [StatusCode.UNAVAILABLE] Connect Failed
+Dec 19 13:18:57 magma-dev-dec18 magmad[24144]: INFO:root:Retrying bootstrap in 30 seconds
+Dec 19 13:19:00 magma-dev-dec18 nghttpx[24276]: [WARN] [DHTTP2:0x7fbb158c5600] Backend connect failed; addr=10.0.2.2:7443: errno=111 (shrpx_http2_session.cc:1944)
+Dec 19 13:19:00 magma-dev-dec18 nghttpx[24276]: [WARN] Could not connect 4 times in a row; sleep for 5.36224 seconds (shrpx_connect_blocker.cc:93)
+Dec 19 13:19:00 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:19:00.960Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.002s
+Dec 19 13:19:00 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:19:00.960Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:19:00 magma-dev-dec18 policydb[24197]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:19:00 magma-dev-dec18 policydb[24197]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:19:00 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:19:00.960Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:19:00 magma-dev-dec18 policydb[24197]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:19:01 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:19:01.059Z [127.0.0.1 -> streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:19:01 magma-dev-dec18 subscriberdb[24173]: ERROR:root:Error! Streaming from the cloud failed! [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:19:01 magma-dev-dec18 state[24194]: DEBUG:root:Check state
+Dec 19 13:19:01 magma-dev-dec18 state[24194]: DEBUG:root:Not re-syncing state. No local state found.
+Dec 19 13:19:01 magma-dev-dec18 state[24194]: DEBUG:root:Not replicating state. No state has changed!
+Dec 19 13:19:01 magma-dev-dec18 state[24194]: DEBUG:root:Not garbage collecting state. No state to delete!
+Dec 19 13:19:01 magma-dev-dec18 state[24194]: DEBUG:root:
+Dec 19 13:19:02 magma-dev-dec18 control_proxy[24273]: 2020-12-19T13:19:02.639Z [127.0.0.1 -> state-controller.magma.test,8443] "POST /magma.orc8r.StateService/ReportStates HTTP/2" 503 160bytes 0.000s
+Dec 19 13:19:02 magma-dev-dec18 magmad[24144]: ERROR:root:Checkin Error! Failed to report states. [StatusCode.CANCELLED] Received http2 header with status: 503
+Dec 19 13:19:02 magma-dev-dec18 magmad[24144]: INFO:root:StateReporting (Checkin) failure threshold met, remediating...
+Dec 19 13:19:02 magma-dev-dec18 magmad[24144]: ERROR:root:Error making TCP connection: Connection refused, [Errno 111] Connect call failed ('10.0.2.2', 7443)
+Dec 19 13:19:02 magma-dev-dec18 magmad[24144]: ERROR:root:StateReporting failure likely not due to invalid cert

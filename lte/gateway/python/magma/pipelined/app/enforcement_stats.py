@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
+from typing import List
 from collections import defaultdict
 
 from lte.protos.pipelined_pb2 import RuleModResult
@@ -22,12 +23,12 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
+from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
     PROCESS_STATS, DROP_FLOW_STATS
-from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
 from magma.pipelined.policy_converters import get_ue_ip_match_args, \
     get_eth_type
 from magma.pipelined.openflow import messages, flows
@@ -45,7 +46,7 @@ from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 ETH_FRAME_SIZE_BYTES = 14
 
 
-class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
+class EnforcementStatsController(PolicyMixin, MagmaController):
     """
     This openflow controller installs flows for aggregating policy usage
     statistics, which are sent to sessiond for tracking.
@@ -126,14 +127,14 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         """
         self._datapath = datapath
 
-    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
+    def _install_default_flows_if_not_installed(self, datapath,
+            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
         """
-        Gets the default flow msg that drops traffic
+        Install default flows(if not already installed) to forward the traffic,
+        If no other flows are matched.
 
-        Args:
-            datapath: ryu datapath struct
         Returns:
-            The list of default msgs to add
+            The list of flows that remain after inserting default flows
         """
         match = MagmaMatch()
         msg = flows.get_add_drop_flow_msg(
@@ -141,7 +142,13 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             priority=flows.MINIMUM_PRIORITY,
             cookie=self.DEFAULT_FLOW_COOKIE)
 
-        return {self.tbl_num: [msg]}
+        msg, remaining_flows = \
+            self._msg_hub.filter_msgs_if_not_in_flow_list([msg], existing_flows)
+        if msg:
+            chan = self._msg_hub.send(msg, datapath)
+            self._wait_for_responses(chan, 1)
+
+        return remaining_flows
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -279,6 +286,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                                         priority=Utils.DROP_PRIORITY),
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
                                         priority=Utils.DROP_PRIORITY)]
+
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         pass

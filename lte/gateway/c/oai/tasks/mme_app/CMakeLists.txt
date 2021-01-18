@@ -62,7 +62,6 @@ add_library(TASK_MME_APP
     mme_app_state_manager.cpp
     mme_app_state.cpp
     mme_events.cpp
-    mme_app_ha.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     ${S11_RELATED_SRCS}

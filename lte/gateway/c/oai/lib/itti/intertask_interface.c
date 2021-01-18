@@ -269,7 +269,6 @@ static MessageDef* itti_alloc_new_message_sized(
   new_msg->ittiMsgHeader.messageId    = message_id;
   new_msg->ittiMsgHeader.originTaskId = origin_task_id;
   new_msg->ittiMsgHeader.ittiMsgSize  = size;
-  new_msg->ittiMsgHeader.imsi         = 0;
 
   return new_msg;
 }

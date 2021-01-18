@@ -24,8 +24,11 @@ import (
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 	"magma/orc8r/cloud/go/services/state/wrappers"
+	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -38,11 +41,15 @@ const (
 	validSecsSinceStateReported = 180
 )
 
-type HAServicer struct{}
+type HAServicer struct {
+	promClient query_api.PrometheusAPI
+}
 
-// NewHAServicer creates a new service implementing the HA proto file
-func NewHAServicer() lte_protos.HaServer {
-	return &HAServicer{}
+// NewHAServicer creates a new service implementing the HaD proto file
+func NewHAServicer(promClient query_api.PrometheusAPI) lte_protos.HaServer {
+	return &HAServicer{
+		promClient: promClient,
+	}
 }
 
 // GetEnodebOffloadState fetches all primary gateways that the calling gateway
@@ -186,12 +193,35 @@ func (s *HAServicer) getOffloadStateForEnb(networkID string, primaryGwID string,
 		glog.V(2).Infof("Returning NO_OP offload state for ENB %s; Enodeb state does not have Enodeb connected or MME connected", enbSN)
 		return lte_protos.GetEnodebOffloadStateResponse_NO_OP, nil
 	}
-	if enodebState.UesConnected == 0 {
-		glog.V(2).Infof("Returning PRIMARY_CONNECTED offload state for ENB %s; no UEs connected", enbSN)
+	isEnbServing, err := s.isEnbServingTraffic(networkID, primaryGwID, enodebState.IPAddress.String())
+	if err != nil {
+		glog.Error(err)
+	}
+	if err != nil || !isEnbServing {
 		return lte_protos.GetEnodebOffloadStateResponse_PRIMARY_CONNECTED, nil
 	}
-	glog.V(2).Infof("Returning PRIMARY_CONNECTED_AND_SERVING_UES offload state for ENB %s", enbSN)
 	return lte_protos.GetEnodebOffloadStateResponse_PRIMARY_CONNECTED_AND_SERVING_UES, nil
+}
+
+func (s *HAServicer) isEnbServingTraffic(networkID string, gatewayID string, enbIP string) (bool, error) {
+	// TODO: Update metric query to use the number of users connected to an ENB
+	// once this metric exists. This will avoid the edge case issue of
+	// throughput equal to 0 while there are only users connected in IDLE mode.
+	enbDLQuery := fmt.Sprintf("gtp_port_user_plane_dl_bytes{gatewayID=\"%s\", service=\"pipelined\", ip_addr=\"%s\"}", gatewayID, enbIP)
+	networkQueryRestrictor := *restrictor.NewQueryRestrictor(restrictor.DefaultOpts).AddMatcher(metrics.NetworkLabelName, networkID)
+	query, err := networkQueryRestrictor.RestrictQuery(enbDLQuery)
+	if err != nil {
+		return false, err
+	}
+	trafficVec, err := query_api.QueryPrometheusVector(s.promClient, query)
+	if err != nil {
+		return false, err
+	}
+	trafficSample := trafficVec[0]
+	if trafficSample.Value == 0 {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (s *HAServicer) getEnodebID(networkID string, hwID string, enodebSn string) (uint32, error) {

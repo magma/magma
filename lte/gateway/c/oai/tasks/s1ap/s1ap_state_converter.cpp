@@ -90,8 +90,6 @@ void S1apStateConverter::enb_to_proto(
   proto->set_next_sctp_stream(enb->next_sctp_stream);
   proto->set_instreams(enb->instreams);
   proto->set_outstreams(enb->outstreams);
-  proto->set_ran_cp_ipaddr(enb->ran_cp_ipaddr);
-  proto->set_ran_cp_ipaddr_sz(enb->ran_cp_ipaddr_sz);
 
   // store ue_ids
   hashtable_uint64_ts_to_proto(&enb->ue_id_coll, proto->mutable_ue_ids());
@@ -112,10 +110,6 @@ void S1apStateConverter::proto_to_enb(
   enb->next_sctp_stream   = proto.next_sctp_stream();
   enb->instreams          = proto.instreams();
   enb->outstreams         = proto.outstreams();
-  strncpy(
-      enb->ran_cp_ipaddr, proto.ran_cp_ipaddr().c_str(),
-      sizeof(enb->ran_cp_ipaddr));
-  enb->ran_cp_ipaddr_sz = proto.ran_cp_ipaddr_sz();
 
   // load ues
   hashtable_rc_t ht_rc;

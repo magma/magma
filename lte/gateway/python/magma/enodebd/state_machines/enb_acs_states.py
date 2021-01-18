@@ -658,7 +658,7 @@ class DeleteObjectsState(EnodebAcsState):
         if len(obj_list_to_delete) > 0:
             return AcsReadMsgResult(True, None)
         if len(get_all_objects_to_add(self.acs.desired_cfg,
-                                      self.acs.device_cfg)) == 0:
+                                      self.acs.device_cfg)) is 0:
             return AcsReadMsgResult(True, self.skip_transition)
         return AcsReadMsgResult(True, self.add_obj_transition)
 

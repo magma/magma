@@ -395,6 +395,9 @@ void NasStateConverter::esm_context_to_proto(
         state_esm_context->esm_proc_data,
         esm_context_proto->mutable_esm_proc_data());
   }
+  nas_timer_to_proto(
+      state_esm_context->T3489, esm_context_proto->mutable_t3489());
+  esm_context_proto->set_is_standalone(state_esm_context->is_standalone);
 }
 
 void NasStateConverter::proto_to_esm_context(
@@ -409,6 +412,8 @@ void NasStateConverter::proto_to_esm_context(
     proto_to_esm_proc_data(
         esm_context_proto.esm_proc_data(), state_esm_context->esm_proc_data);
   }
+  proto_to_nas_timer(esm_context_proto.t3489(), &state_esm_context->T3489);
+  state_esm_context->is_standalone = esm_context_proto.is_standalone();
 }
 
 void NasStateConverter::esm_ebr_context_to_proto(
@@ -426,6 +431,8 @@ void NasStateConverter::esm_ebr_context_to_proto(
     protocol_configuration_options_to_proto(
         *state_esm_ebr_context.pco, esm_ebr_context_proto->mutable_pco());
   }
+  nas_timer_to_proto(
+      state_esm_ebr_context.timer, esm_ebr_context_proto->mutable_timer());
   if (state_esm_ebr_context.args != nullptr) {
     esm_ebr_timer_data_to_proto(
         *state_esm_ebr_context.args,
@@ -448,6 +455,9 @@ void NasStateConverter::proto_to_esm_ebr_context(
     proto_to_protocol_configuration_options(
         esm_ebr_context_proto.pco(), state_esm_ebr_context->pco);
   }
+  proto_to_nas_timer(
+      esm_ebr_context_proto.timer(), &state_esm_ebr_context->timer);
+
   if (esm_ebr_context_proto.has_esm_ebr_timer_data()) {
     proto_to_esm_ebr_timer_data(
         esm_ebr_context_proto.esm_ebr_timer_data(),
@@ -458,6 +468,18 @@ void NasStateConverter::proto_to_esm_ebr_context(
 /*************************************************/
 /*        EMM State <-> Proto                  */
 /*************************************************/
+void NasStateConverter::nas_timer_to_proto(
+    const nas_timer_t& state_nas_timer, oai::Timer* timer_proto) {
+  timer_proto->set_id(state_nas_timer.id);
+  timer_proto->set_sec(state_nas_timer.sec);
+}
+
+void NasStateConverter::proto_to_nas_timer(
+    const oai::Timer& timer_proto, nas_timer_t* state_nas_timer) {
+  state_nas_timer->id  = timer_proto.id();
+  state_nas_timer->sec = timer_proto.sec();
+}
+
 void NasStateConverter::ue_network_capability_to_proto(
     const ue_network_capability_t* state_ue_network_capability,
     oai::UeNetworkCapability* ue_network_capability_proto) {
@@ -718,6 +740,8 @@ void NasStateConverter::nas_attach_proc_to_proto(
   attach_proc_proto->set_ue_id(state_nas_attach_proc->ue_id);
   attach_proc_proto->set_ksi(state_nas_attach_proc->ksi);
   attach_proc_proto->set_emm_cause(state_nas_attach_proc->emm_cause);
+  nas_timer_to_proto(
+      state_nas_attach_proc->T3450, attach_proc_proto->mutable_t3450());
 }
 
 void NasStateConverter::proto_to_nas_emm_attach_proc(
@@ -749,7 +773,8 @@ void NasStateConverter::proto_to_nas_emm_attach_proc(
   state_nas_emm_attach_proc->ue_id     = attach_proc_proto.ue_id();
   state_nas_emm_attach_proc->ksi       = attach_proc_proto.ksi();
   state_nas_emm_attach_proc->emm_cause = attach_proc_proto.emm_cause();
-  state_nas_emm_attach_proc->T3450.sec = T3450_DEFAULT_VALUE;
+  proto_to_nas_timer(
+      attach_proc_proto.t3450(), &state_nas_emm_attach_proc->T3450);
   set_callbacks_for_attach_proc(state_nas_emm_attach_proc);
 }
 
@@ -851,6 +876,8 @@ void NasStateConverter::nas_emm_auth_proc_to_proto(
         auth_proc_proto->mutable_unchecked_imsi(), IMSI_BCD8_SIZE);
   }
   auth_proc_proto->set_emm_cause(state_nas_emm_auth_proc->emm_cause);
+  nas_timer_to_proto(
+      state_nas_emm_auth_proc->T3460, auth_proc_proto->mutable_t3460());
 }
 
 void NasStateConverter::proto_to_nas_emm_auth_proc(
@@ -886,7 +913,7 @@ void NasStateConverter::proto_to_nas_emm_auth_proc(
   }
 
   state_nas_emm_auth_proc->emm_cause = auth_proc_proto.emm_cause();
-  state_nas_emm_auth_proc->T3460.sec = T3460_DEFAULT_VALUE;
+  proto_to_nas_timer(auth_proc_proto.t3460(), &state_nas_emm_auth_proc->T3460);
   // update callback functions for auth proc
   set_callbacks_for_auth_proc(state_nas_emm_auth_proc);
   set_notif_callbacks_for_auth_proc(state_nas_emm_auth_proc);
@@ -1236,6 +1263,9 @@ void NasStateConverter::nas_auth_info_proc_to_proto(
       state_nas_auth_info_proc->vector, state_nas_auth_info_proc->nb_vectors,
       auth_info_proc_proto);
   auth_info_proc_proto->set_nas_cause(state_nas_auth_info_proc->nas_cause);
+  nas_timer_to_proto(
+      state_nas_auth_info_proc->timer_s6a,
+      auth_info_proc_proto->mutable_timer_s6a());
   auth_info_proc_proto->set_ue_id(state_nas_auth_info_proc->ue_id);
   auth_info_proc_proto->set_resync(state_nas_auth_info_proc->resync);
 }
@@ -1248,6 +1278,8 @@ void NasStateConverter::proto_to_nas_auth_info_proc(
   state_nas_auth_info_proc->nas_cause = auth_info_proc_proto.nas_cause();
   state_nas_auth_info_proc->ue_id     = auth_info_proc_proto.ue_id();
   state_nas_auth_info_proc->resync    = auth_info_proc_proto.resync();
+  proto_to_nas_timer(
+      auth_info_proc_proto.timer_s6a(), &state_nas_auth_info_proc->timer_s6a);
   // update success_notif and failure_notif
   set_callbacks_for_auth_info_proc(state_nas_auth_info_proc);
 }

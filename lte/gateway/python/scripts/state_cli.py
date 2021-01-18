@@ -17,7 +17,7 @@ import json
 import jsonpickle
 import random
 import ast
-from typing import Union
+from typing import Any, Union
 
 from magma.common.redis.client import get_default_client
 from magma.common.redis.serializers import get_json_deserializer, \
@@ -30,8 +30,6 @@ from lte.protos.policydb_pb2 import PolicyRule, InstalledPolicies
 from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
 from lte.protos.oai.spgw_state_pb2 import SpgwState, S11BearerContext
 from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
-
-NO_DESERIAL_MSG = "No deserializer exists for type '{}'"
 
 
 def _deserialize_session_json(serialized_json_str: bytes) -> str:
@@ -87,7 +85,6 @@ class StateCLI(object):
         'rule_names': get_json_deserializer(),
         'rule_ids': get_json_deserializer(),
         'rule_versions': get_json_deserializer(),
-        'rules': get_proto_deserializer(PolicyRule),
     }
 
     STATE_PROTOS = {
@@ -133,12 +130,12 @@ class StateCLI(object):
         if redis_type == 'hash':
             deserializer = self.STATE_DESERIALIZERS.get(key_type)
             if not deserializer:
-                raise AttributeError(NO_DESERIAL_MSG.format(key_type))
+                raise AttributeError('Key not found on redis')
             self._parse_hash_type(deserializer, key)
         elif redis_type == 'set':
             deserializer = self.STATE_DESERIALIZERS.get(key_type)
             if not deserializer:
-                raise AttributeError(NO_DESERIAL_MSG.format(key_type))
+                raise AttributeError('Key not found on redis')
             self._parse_set_type(deserializer, key)
         else:
             value = self.client.get(key)

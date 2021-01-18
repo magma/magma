@@ -59,7 +59,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 static void* grpc_service_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_GRPC_SERVICE);
   init_task_context(
-      TASK_GRPC_SERVICE, (task_id_t[]){TASK_SPGW_APP, TASK_HA}, 2,
+      TASK_GRPC_SERVICE, (task_id_t[]){TASK_SPGW_APP, TASK_AMF_APP}, 2,
       handle_message, &grpc_service_task_zmq_ctx);
 
   start_grpc_service(grpc_service_config->server_address);

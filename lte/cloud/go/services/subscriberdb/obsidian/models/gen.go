@@ -11,5 +11,5 @@
  * limitations under the License.
  */
 
-//go:generate swaggergen --target=swagger.v1.yml --root=$MAGMA_ROOT --config=$SWAGGER_V1_CONFIG
+//go:generate bash -c "swaggergen --target=swagger.v1.yml --root=$MAGMA_ROOT --template=$SWAGGER_V1_TEMPLATE"
 package models

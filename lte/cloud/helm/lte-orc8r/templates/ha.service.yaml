@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "ha.service") -}}
 {{- define "ha.service" -}}
 metadata:
-  name: orc8r-ha
+  name: orc8r-lte
   labels:
     {{- with .Values.ha.service.labels }}
 {{ toYaml . | indent 4}}

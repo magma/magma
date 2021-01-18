@@ -183,13 +183,13 @@ def _get_context():
     Create the context which has the interface IP and the OAI log level to use.
     """
     mme_service_config = load_service_mconfig("mme", MME())
-
     context = {
         "mme_s11_ip": _get_iface_ip("mme", "s11_iface_name"),
         "sgw_s11_ip": _get_iface_ip("spgw", "s11_iface_name"),
         "remote_sgw_ip": get_service_config_value("mme",
                                                   "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
+        "s1u_ip": _get_iface_ip("spgw", "s1u_iface_name"),
         "oai_log_level": _get_oai_log_level(),
         "ipv4_dns": _get_primary_dns_ip(mme_service_config,
                                         'dns_iface_name'),
@@ -209,9 +209,6 @@ def _get_context():
         "attached_enodeb_tacs": _get_attached_enodeb_tacs(mme_service_config),
         "enable_nat": _get_enable_nat(mme_service_config)
     }
-
-    context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or \
-                        _get_iface_ip("spgw", "s1u_iface_name")
 
     # set ovs params
     for key in (

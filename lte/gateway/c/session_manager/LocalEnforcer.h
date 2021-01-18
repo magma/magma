@@ -486,8 +486,8 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
-      const std::string& msisdn, optional<AggregatedMaximumBitrate> ambr,
+      const std::string& ipv6_addr, const std::string& msisdn,
+      optional<AggregatedMaximumBitrate> ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);

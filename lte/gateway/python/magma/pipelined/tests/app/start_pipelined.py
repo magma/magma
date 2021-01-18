@@ -122,9 +122,7 @@ class PipelinedController(Enum):
     HeaderEnrichment = Controller(
         'magma.pipelined.app.he', 'proxy'
     )
-    NGServiceController = Controller(
-        'magma.pipelined.app.ng_services', 'ng_services'
-    )
+
 
 def assert_pipelined_not_running():
     """

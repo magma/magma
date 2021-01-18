@@ -116,9 +116,8 @@ class SubscriberState(object):
         if session_with_rule:
             for (d, _) in self.rules[rule_num]:
                 k = get_subscriber_key(self.imsi, session_with_rule.ip_addr,
-                                       rule_num, d)
-                if get_json(k) in self._qos_store:
-                    del self._qos_store[get_json(k)]
+                                        rule_num, d)
+                del self._qos_store[get_json(k)]
 
         del self.rules[rule_num]
         session_with_rule.rules.remove(rule_num)

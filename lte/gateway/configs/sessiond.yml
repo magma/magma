@@ -48,7 +48,7 @@ bearer_creation_delay_on_session_init: 2000
 send_access_timezone: true
 
 # Set to true to store session state in Redis for persistence.
-support_stateless: true
+support_stateless: false
 
 # Redis table name for session state.
 sessions_table: sessiond:sessions

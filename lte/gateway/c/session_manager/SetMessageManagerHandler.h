@@ -46,6 +46,10 @@ class SetMessageManager {
    * (SmContextVoid);" as its set-interface API, no need to send response back,
    * response is void and gRPC will take care on acknowledgement
    */
+  virtual void SetSmfNotification(
+      ServerContext* context, const SetSmNotificationContext* notif,
+      std::function<void(Status, SmContextVoid)> response_callback) = 0;
+
   virtual void SetAmfSessionContext(
       ServerContext* context, const SetSMSessionContext* request,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
@@ -57,6 +61,10 @@ class SetMessageManagerHandler : public SetMessageManager {
       std::shared_ptr<SessionStateEnforcer> m5G_monitor,
       SessionStore& session_store);
   ~SetMessageManagerHandler() {}
+
+  virtual void SetSmfNotification(
+      ServerContext* context, const SetSmNotificationContext* notif,
+      std::function<void(Status, SmContextVoid)> response_callback);
 
   virtual void SetAmfSessionContext(
       ServerContext* context, const SetSMSessionContext* request,
@@ -75,14 +83,13 @@ class SetMessageManagerHandler : public SetMessageManager {
    */
   void send_create_session(
       SessionMap& session_map, const std::string& imsi,
-      const std::string& session_ctx_id, const SessionConfig& cfg,
-      const std::string& dnn);
+      const SessionConfig& cfg, uint32_t& pdu_id);
   /*initialize the session message from proto message*/
   SessionConfig m5g_build_session_config(const SetSMSessionContext& request);
 
   /*Release request message handling*/
   void initiate_release_session(
-      SessionMap& session_map, const std::string& dnn, const std::string& imsi);
+      SessionMap& session_map, const uint32_t& pdu_id, const std::string& imsi);
 };  // end of class SetMessageManagerHandlerImpl
 
 }  // end namespace magma

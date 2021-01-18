@@ -55,11 +55,7 @@ from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
-from lte.protos.ha_service_pb2_grpc import HaServiceStub
-from lte.protos.ha_service_pb2 import (
-    StartAgwOffloadRequest,
-    EnbOffloadType,
-)
+
 DEFAULT_GRPC_TIMEOUT = 10
 
 
@@ -781,9 +777,9 @@ class MagmadUtil(object):
         """
         apn_correction_cmd = ""
         if cmd.name == MagmadUtil.apn_correction_cmds.ENABLE.name:
-            apn_correction_cmd = "sed -i \'s/enable_apn_correction: false/enable_apn_correction: true/g\' /etc/magma/mme.yml"
+            apn_correction_cmd = "sed -i \'s/correction: false/correction: true/g\' /etc/magma/mme.yml"
         else:
-            apn_correction_cmd = "sed -i \'s/enable_apn_correction: true/enable_apn_correction: false/g\' /etc/magma/mme.yml"
+            apn_correction_cmd = "sed -i \'s/correction: true/correction: false/g\' /etc/magma/mme.yml"
 
         ret_code = self.exec_command(
             "sudo " + apn_correction_cmd)
@@ -1305,20 +1301,3 @@ class GTPBridgeUtils:
             if self.gtp_port_name in line:
                 port_info = line.split()
                 return port_info[1]
-
-class HaUtil:
-    def __init__(self):
-        self._ha_stub = HaServiceStub(
-            get_rpc_channel("spgw_service")
-        )
-
-    def offload_agw(self, imsi, enbID, offloadtype=0):
-        req = StartAgwOffloadRequest(
-            enb_id = enbID,
-            enb_offload_type = offloadtype,
-            imsi = imsi,
-            )
-        try:
-            self._ha_stub.StartAgwOffload(req)
-        except grpc.RpcError as e:
-            print("gRPC failed with %s: %s" % (e.code(), e.details()))

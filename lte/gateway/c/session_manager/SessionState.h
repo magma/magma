@@ -26,6 +26,7 @@
 #include "SessionCredit.h"
 #include "Monitor.h"
 #include "ChargingGrant.h"
+#define SESSION_THROTTLE_CNT 3
 
 namespace magma {
 using std::experimental::optional;
@@ -104,7 +105,6 @@ class SessionState {
     std::string imsi;
     std::string ip_addr;
     std::string ipv6_addr;
-    Teids teids;
 
     uint32_t local_f_teid;
     std::string msisdn;
@@ -162,16 +162,20 @@ class SessionState {
       int new_session_version, SessionStateUpdateCriteria& uc);
 
   void insert_pdr(SetGroupPDR* rule);
+  
+  void set_all_pdrs(enum PdrState);
 
-  void set_remove_all_pdrs();
+  bool search_pdr(unsigned int id);
 
-  void insert_far(SetGroupFAR* rule);
+  void reset_throttle();
 
+  bool inc_throttle();
+
+  /* method to remove all pdrs */
   void remove_all_rules();
 
+  /* method to get all associated PDR vector */
   std::vector<SetGroupPDR>& get_all_pdr_rules();
-
-  std::vector<SetGroupFAR>& get_all_far_rules();
 
   /**
    * Updates rules to be scheduled, active, or removed, depending on the
@@ -431,8 +435,6 @@ class SessionState {
   void get_rules_per_credit_key(
       CreditKey charging_key, RulesToProcess& rulesToProcess);
 
-  void set_teids(Teids teids, SessionStateUpdateCriteria session_uc);
-
   // Event Triggers
   void add_new_event_trigger(
       magma::lte::EventTrigger trigger,
@@ -552,6 +554,7 @@ class SessionState {
   uint64_t pdp_end_time_;
   /*5G related message to handle session state context */
   uint32_t current_version_;  // To compare with incoming session version
+  uint32_t throttle_count_;
   // All 5G specific rules
   // use as shared_ptr to check
   std::vector<SetGroupPDR> PdrList_;

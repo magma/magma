@@ -113,13 +113,11 @@ typedef struct imsi_s {
   } u;
   uint8_t length;
 } imsi_t;
-
 #define IMSI_BCD_DIGITS_MAX 15
 typedef struct {
   uint8_t digit[IMSI_BCD_DIGITS_MAX + 1];  // +1 for '\0` macro sprintf changed
                                            // in snprintf
   uint8_t length;
-
 } Imsi_t;
 //------------------------------------------------------------------------------
 // 2.4 Structure of TMSI
@@ -154,10 +152,9 @@ typedef uint32_t
 
 #define INVALID_M_TMSI                                                         \
   UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32    \
-                bits equal to 1 (this is because the TMSI must be stored in    \
-                the SIM, and the SIM uses 4 octets with all bits               \
-                                                                        equal  \
-                to 1 to indicate that no valid TMSI is available).  */
+   bits equal to 1 (this is because the TMSI must be stored in the SIM, and    \
+   the SIM uses 4 octets with all bits equal to 1 to indicate that no valid    \
+   TMSI is available).  */
 
 typedef uint16_t
     mme_gid_t; /*!< \brief  MME Group ID shall be of 16 bits length. */
@@ -190,6 +187,31 @@ typedef struct s_tmsi_s {
   mme_code_t mme_code; /* MME code that allocated the GUTI     */
   tmsi_t m_tmsi;       /* M-Temporary Mobile Subscriber Identity   */
 } s_tmsi_t;
+//==================================================================================
+//----------------- 5G Globally Unique Temporary UE Identity (GUTI)-------------
+typedef uint16_t
+    amf_gid_t; /*!< \brief  AMF Group ID shall be of 16 bits length. */
+typedef uint8_t
+    amf_code_t; /*!< \brief  AMF Code shall be of 8 bits length.      */
+typedef uint8_t amf_Pointer_t;  // 9.3.3.19 AMF Pointer is used to identify one
+                                // or more AMF(s) within the AMF Set.
+/*! \struct  guamfi_t
+ * \brief Structure containing the Globally Unique AMF Identity.
+ */
+typedef struct guamfi_s {
+  plmn_t plmn;         /*!< \brief  GUAMFI               */
+  amf_gid_t amf_gid;   /*!< \brief  AMF group identifier */
+  amf_code_t amf_code; /*!< \brief  AMF code             */
+  amf_Pointer_t amf_Pointer;
+} guamfi_t;
+typedef struct guti_m5_s {
+  guamfi_t guamfi; /*!< \brief  Globally Unique MME Identity             */
+  tmsi_t m_tmsi;   /*!< \brief  M-Temporary Mobile Subscriber Identity   */
+} guti_m5_t;
+typedef struct s_tmsi_m5_s {
+  amf_code_t amf_code; /* MME code that allocated the GUTI     */
+  tmsi_t m_tmsi;       /* M-Temporary Mobile Subscriber Identity   */
+} s_tmsi_m5_t;
 
 //==============================================================================
 // 3 Numbering plan for mobile stations

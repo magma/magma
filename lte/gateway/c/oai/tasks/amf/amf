@@ -1,0 +1,66 @@
+set(NGAP_C_DIR ${PROJECT_BINARY_DIR}/ngap/r16.0)
+
+# compile the needed protos
+set(AMFAPP_STATE_CPP_PROTOS mme_nas_state nas_state ommon_types std_3gpp_types)
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
+generate_cpp_protos("${MMEAPP_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${LTE_OUT_DIR})
+
+set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
+link_directories(
+        ${MAGMA_LIB_DIR}/async_grpc
+        ${MAGMA_LIB_DIR}/eventd
+)
+
+add_library(TASK_AMF_APP
+    amf_app_handler.cpp
+    amf_app_main.cpp
+    amf_app_msg.cpp
+    amf_app_transport.cpp
+    amf_app_ue_context.cpp
+    amf_as.cpp
+	amf_authentication.cpp
+	amf_data.cpp
+	amf_message.cpp
+	amf_recv.cpp
+	amf_sap.cpp
+	#amf_msgdef.cpp
+	#amf_send.cpp
+	nas_network.cpp
+	nas_proc.cpp
+	Registration.cpp
+    ${PROTO_SRCS}
+    ${PROTO_HDRS}
+	
+    ${N11_RELATED_SRCS}
+    )
+
+target_compile_definitions(TASK_AMF_APP PRIVATE
+  PACKAGE_NAME=\"AMF\"
+  PACKAGE_VERSION=\"0.1\"
+  PACKAGE_BUGREPORT=\"TBD\"
+)
+target_link_libraries(TASK_AMF_APP
+  ${CONFIG_LIBRARIES}
+  COMMON
+  LIB_BSTR LIB_HASHTABLE LIB_DIRECTORYD LIB_SECU LIB_EVENT_CLIENT
+  TASK_NAS TASK_NGAP TASK_SERVICE303 TASK_SCTP_SERVER
+   protobuf cpp_redis yaml-cpp redis_utils
+    )
+
+if (EMBEDDED_SGW)
+target_link_libraries(TASK_AMF_APP )
+else (EMBEDDED_SGW)
+target_link_libraries(TASK_AMF_APP TASK_N11 )
+endif(EMBEDDED_SGW)
+
+target_include_directories(TASK_AMF_APP PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${NGAP_C_DIR}
+    )

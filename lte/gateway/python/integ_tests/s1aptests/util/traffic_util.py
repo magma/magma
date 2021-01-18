@@ -387,13 +387,6 @@ class TrafficTest(object):
             sc_in = sc.makefile('rb')
             sc_out = sc.makefile('wb')
 
-            # Flush all the addresses left by previous failed tests
-            net_iface_index = TrafficTest._iproute.link_lookup(
-                ifname=TrafficTest._net_iface)[0]
-            for instance in instances:
-                TrafficTest._iproute.flush_addr(index=net_iface_index,
-                                                address=instance.ip.exploded)
-
             # Set up network ifaces and get UL port assignments for DL
             aliases = ()
             for instance in instances:
@@ -476,9 +469,9 @@ class TrafficTest(object):
             # For some reason the first call to flush this address flushes all
             # the addresses brought up during testing. But subsequent flushes
             # do nothing if the address doesn't exist
-            for instance in instances:
+            for i in range(len(instances)):
                 TrafficTest._iproute.flush_addr(index=net_iface_index,
-                                                address=instance.ip.exploded)
+                                                address=instances[i].ip.exploded)
             # Do socket cleanup
             sc_in.close()
             sc_out.close()

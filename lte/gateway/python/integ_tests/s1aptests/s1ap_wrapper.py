@@ -56,7 +56,7 @@ class TestWrapper(object):
 
     def __init__(
         self,
-        stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
+        stateless_mode=MagmadUtil.stateless_cmds.DISABLE,
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
     ):
         """
@@ -413,17 +413,10 @@ class TestWrapper(object):
         time.sleep(0.5)
         print("************************* send SCTP SHUTDOWN")
         self._s1_util.issue_cmd(s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
-
         self._s1_util.cleanup()
         self._sub_util.cleanup()
         self._trf_util.cleanup()
         self._mobility_util.cleanup()
-
-        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        state_cli_cmd = "state_cli.py keys IMSI*"
-        redis_state = self._magmad_util.exec_command_output(
-                magtivate_cmd + " && " + state_cli_cmd)
-        print("Redis state is [\n", redis_state, "]")
 
         # Cloud cleanup needs to happen after cleanup for
         # subscriber util and mobility util

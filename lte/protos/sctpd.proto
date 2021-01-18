@@ -25,7 +25,9 @@ message InitReq {
     repeated string ipv6_addrs = 4; // ipv6 addresses to listen on
     uint32 port = 5; // port to listen on
     uint32 ppid = 6; // ppid used with new associations
-    bool force_restart = 7; // whether to force a new sctp connection setup
+    uint32 ngap_port = 7; // ngap port to listen on
+    uint32 ngap_ppid = 8; // ngap ppid used with new associations
+    bool force_restart = 9; // whether to force a new sctp connection setup
 }
 
 // InitRes - response with status of sctp initialization
@@ -41,6 +43,7 @@ message InitRes {
 
 // SendDlReq - requests a downlink packet to be sent to eNB
 message SendDlReq {
+    uint32  ppid = 4;
     uint32 assoc_id = 1; // association ID of eNB
     uint32 stream = 2; // stream id within association
     bytes payload = 3; // data to be sent
@@ -58,6 +61,7 @@ message SendDlRes {
 
 // SendUlReq - requests an uplink packet to be sent to MME
 message SendUlReq {
+    uint32  ppid = 4;
     uint32 assoc_id = 1; // association ID of eNB
     uint32 stream = 2; // stream id within association
     bytes payload = 3; // data to be sent
@@ -69,10 +73,10 @@ message SendUlRes {
 
 // NewAssocReq - request to notify MME of new eNB association
 message NewAssocReq {
+    uint32  ppid = 4;
     uint32 assoc_id = 1; // association ID of eNB
     uint32 instreams = 2; // number of instreams for eNB
     uint32 outstreams = 3; // number of outstreams for eNB
-    bytes ran_cp_ipaddr = 4; // sctp ran end point IP address
 }
 
 // NewAssocRes - response for NewAssocReq, present for forwards compat
@@ -81,6 +85,7 @@ message NewAssocRes {
 
 // CloseAssocReq - request to notify MME of a closing/resetting assocation
 message CloseAssocReq {
+    uint32  ppid = 4;
     uint32 assoc_id = 1; // association ID of eNB
     bool is_reset = 2; // whether the request represents a reset or shutdown
 }

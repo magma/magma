@@ -1002,9 +1002,7 @@ hashtable_rc_t hashtable_get(
    Searching for an element is easy. We just search through the linked list for
    the corresponding hash value. NULL is returned if we didn't find it.
 */
-hashtable_rc_t hashtable_ts_get(
-    const hash_table_ts_t* const hashtblP, const hash_key_t keyP,
-    void** dataP) {
+hashtable_rc_t hashtable_ts_get( const hash_table_ts_t* const hashtblP, const hash_key_t keyP, void** dataP) {
   hash_node_t* node = NULL;
   hash_size_t hash  = 0;
 

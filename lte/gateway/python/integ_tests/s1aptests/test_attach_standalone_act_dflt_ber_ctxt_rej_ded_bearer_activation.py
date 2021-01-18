@@ -17,9 +17,8 @@ import unittest
 import s1ap_types
 import s1ap_wrapper
 import time
-import ipaddress
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
-from lte.protos.policydb_pb2 import FlowMatch
+import ipaddress
 
 
 class TestAttachStandaloneActvDfltBearCtxtRejDedBerActivation(
@@ -56,63 +55,63 @@ class TestAttachStandaloneActvDfltBearCtxtRejDedBerActivation(
         ulFlow1 = {
             "ipv4_dst": "192.168.129.42",  # IPv4 destination address
             "tcp_dst_port": 5002,  # TCP dest port
-            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "direction": FlowMatch.UPLINK,  # Direction
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "UL",  # Direction
         }
 
         # UL Flow description #2
         ulFlow2 = {
             "ipv4_dst": "192.168.129.42",  # IPv4 destination address
             "tcp_dst_port": 5001,  # TCP dest port
-            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "direction": FlowMatch.UPLINK,  # Direction
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "UL",  # Direction
         }
 
         # UL Flow description #3
         ulFlow3 = {
             "ipv4_dst": "192.168.129.64",  # IPv4 destination address
             "tcp_dst_port": 5003,  # TCP dest port
-            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "direction": FlowMatch.UPLINK,  # Direction
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "UL",  # Direction
         }
 
         # UL Flow description #4
         ulFlow4 = {
             "ipv4_dst": "192.168.129.42",  # IPv4 destination address
             "tcp_dst_port": 5004,  # TCP dest port
-            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "direction": FlowMatch.UPLINK,  # Direction
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "UL",  # Direction
         }
 
         # DL Flow description #1
         dlFlow1 = {
             "ipv4_src": "192.168.129.42",  # IPv4 source address
             "tcp_src_port": 5001,  # TCP source port
-            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "direction": FlowMatch.DOWNLINK,  # Direction
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "DL",  # Direction
         }
 
         # DL Flow description #2
         dlFlow2 = {
             "ipv4_src": "192.168.129.64",  # IPv4 source address
             "tcp_src_port": 5002,  # TCP source port
-            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "direction": FlowMatch.DOWNLINK,  # Direction
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "DL",  # Direction
         }
 
         # DL Flow description #3
         dlFlow3 = {
             "ipv4_src": "192.168.129.64",  # IPv4 source address
             "tcp_src_port": 5003,  # TCP source port
-            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "direction": FlowMatch.DOWNLINK,  # Direction
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "DL",  # Direction
         }
         # DL Flow description #4
         dlFlow4 = {
             "ipv4_src": "192.168.129.42",  # IPv4 source address
             "tcp_src_port": 5004,  # TCP source port
-            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "direction": FlowMatch.DOWNLINK,  # Direction
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "DL",  # Direction
         }
 
         # Flow list to be configured

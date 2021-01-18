@@ -72,9 +72,6 @@ class MagmaMatch(object):
                 not is_valid_direction(self.direction):
             raise Exception("Invalid direction: %s" % self.direction)
 
-        # Avoid double register sets to ease debuggability
         for k in self._match_kwargs:
-            if k == DIRECTION_REG and self.direction:
-                raise Exception("Register %s should not be directly set" % k)
-            if k == IMSI_REG and self.imsi:
+            if k in [DIRECTION_REG, IMSI_REG]:
                 raise Exception("Register %s should not be directly set" % k)

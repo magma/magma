@@ -148,7 +148,6 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Ipv6DnsAddress:           string(gwEpc.IPV6DNSAddr),
 			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
-			Ipv4SgwS1UAddr:           string(gwEpc.IPV4SgwS1uAddr),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,

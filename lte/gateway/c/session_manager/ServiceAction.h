@@ -62,11 +62,6 @@ class ServiceAction {
     return *this;
   }
 
-  ServiceAction& set_teids(const Teids& teids) {
-    teids_ = std::make_unique<Teids>(teids);
-    return *this;
-  }
-
   ServiceAction& set_credit_key(const CreditKey& credit_key) {
     credit_key_ = credit_key;
     return *this;
@@ -106,8 +101,6 @@ class ServiceAction {
   const std::string& get_ip_addr() const { return *ip_addr_; }
 
   const std::string& get_ipv6_addr() const { return *ipv6_addr_; }
-
-  const Teids& get_teids() const { return *teids_; }
 
   const CreditKey& get_credit_key() const { return credit_key_; }
 
@@ -159,7 +152,6 @@ class ServiceAction {
   std::unique_ptr<std::string> session_id_;
   std::unique_ptr<std::string> ip_addr_;
   std::unique_ptr<std::string> ipv6_addr_;
-  std::unique_ptr<Teids> teids_;
   std::unique_ptr<std::string> msisdn_;
   CreditKey credit_key_;
   std::vector<std::string> rule_ids_;

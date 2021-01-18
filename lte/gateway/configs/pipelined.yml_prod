@@ -121,9 +121,9 @@ monitored_ifaces: ['gtp_br0',
                   ]
 
 # Whether pipelined should cleanup flows on restarts
-clean_restart: false
+clean_restart: true
 
-redis_enabled: true
+redis_enabled: false
 
 # Logs grpc payload content
 magma_print_grpc_payload: false

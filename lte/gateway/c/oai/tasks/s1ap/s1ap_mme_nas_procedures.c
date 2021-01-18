@@ -280,11 +280,12 @@ int s1ap_mme_handle_uplink_nas_transport(
       S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
   mme_ue_s1ap_id = (mme_ue_s1ap_id_t) ie->value.choice.MME_UE_S1AP_ID;
 
-  enb_ref = s1ap_state_get_enb(state, assoc_id);
   if (mme_ue_s1ap_id == INVALID_MME_UE_S1AP_ID) {
     OAILOG_WARNING(
         LOG_S1AP,
         "Received S1AP UPLINK_NAS_TRANSPORT message MME_UE_S1AP_ID unknown\n");
+
+    enb_ref = s1ap_state_get_enb(state, assoc_id);
 
     if (!(ue_ref = s1ap_state_get_ue_enbid(
               enb_ref->sctp_assoc_id, enb_ue_s1ap_id))) {
@@ -308,19 +309,6 @@ int s1ap_mme_handle_uplink_nas_transport(
           "Received S1AP UPLINK_NAS_TRANSPORT No UE is attached to this "
           "mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT "\n",
           mme_ue_s1ap_id);
-      imsi64_t imsi64                = INVALID_IMSI64;
-      s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-      hashtable_uint64_ts_get(
-          s1ap_imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
-          &imsi64);
-
-      s1ap_mme_generate_ue_context_release_command(
-          state, ue_ref, S1AP_INVALID_MME_UE_S1AP_ID, imsi64, assoc_id, stream,
-          mme_ue_s1ap_id, enb_ue_s1ap_id);
-      /* If UE context doesn't exist for received mme_ue_s1ap_id
-       * remove the corresponding enb_ue_s1ap_id_key entry in mme_app
-       */
-      s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id, enb_ref->enb_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
@@ -359,8 +347,7 @@ int s1ap_mme_handle_uplink_nas_transport(
   TBCD_TO_PLMN_T(&ie->value.choice.EUTRAN_CGI.pLMNidentity, &ecgi.plmn);
   BIT_STRING_TO_CELL_IDENTITY(
       &ie->value.choice.EUTRAN_CGI.cell_ID, ecgi.cell_identity);
-  // set the eNB ID
-  ecgi.cell_identity.enb_id = enb_ref->enb_id;
+
   // TODO optional GW Transport Layer Address
 
   bstring b = blk2bstr(
@@ -1046,9 +1033,10 @@ void s1ap_handle_conn_est_cnf(
         S1ap_InitialContextSetupRequestIEs__value_PR_UERadioCapability;
     OCTET_STRING_fromBuf(
         &ie->value.choice.UERadioCapability,
-        (const char*) conn_est_cnf_pP->ue_radio_capability->data,
-        conn_est_cnf_pP->ue_radio_capability->slen);
+        (const char*) conn_est_cnf_pP->ue_radio_capability,
+        conn_est_cnf_pP->ue_radio_cap_length);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    free_wrapper((void**) &(conn_est_cnf_pP->ue_radio_capability));
   }
 
   if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {

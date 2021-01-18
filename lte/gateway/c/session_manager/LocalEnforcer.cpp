@@ -330,16 +330,14 @@ void LocalEnforcer::handle_activate_service_action(
                     msisdn    = action_p->get_msisdn(),
                     ip_addr   = action_p->get_ip_addr(),
                     ipv6_addr = action_p->get_ipv6_addr();
-  const Teids teids           = action_p->get_teids();
   const auto ambr             = action_p->get_ambr();
   const auto rule_ids         = action_p->get_rule_ids();
   const auto rule_defs        = action_p->get_rule_definitions();
   pipelined_client_->activate_flows_for_rules(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rule_ids, rule_defs,
+      imsi, ip_addr, ipv6_addr, msisdn, ambr, rule_ids, rule_defs,
       std::bind(
           &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-          ip_addr, ipv6_addr, teids, msisdn, ambr, rule_ids, rule_defs, _1,
-          _2));
+          ip_addr, ipv6_addr, msisdn, ambr, rule_ids, rule_defs, _1, _2));
 }
 
 // Terminates sessions that correspond to the given IMSI and session.
@@ -428,16 +426,15 @@ void LocalEnforcer::remove_all_rules_for_termination(
 
   const auto ip_addr   = session->get_config().common_context.ue_ipv4();
   const auto ipv6_addr = session->get_config().common_context.ue_ipv6();
-  const Teids teids    = session->get_config().common_context.teids();
   pipelined_client_->deactivate_flows_for_rules_for_termination(
-      imsi, ip_addr, ipv6_addr, teids, info.static_rules, info.dynamic_rules,
+      imsi, ip_addr, ipv6_addr, info.static_rules, info.dynamic_rules,
       RequestOriginType::GX);
 
   auto gy_rules = session->get_all_final_unit_rules();
   if (!gy_rules.static_rules.empty() || !gy_rules.dynamic_rules.empty()) {
     pipelined_client_->deactivate_flows_for_rules_for_termination(
-        imsi, ip_addr, ipv6_addr, teids, gy_rules.static_rules,
-        gy_rules.dynamic_rules, RequestOriginType::GY);
+        imsi, ip_addr, ipv6_addr, gy_rules.static_rules, gy_rules.dynamic_rules,
+        RequestOriginType::GY);
   }
 }
 
@@ -546,7 +543,6 @@ void LocalEnforcer::install_final_unit_action_flows(
   const auto config          = session->get_config().common_context;
   const std::string &ip_addr = config.ue_ipv4(), &ipv6_addr = config.ue_ipv6(),
                     &msisdn = config.msisdn();
-  const Teids teids         = config.teids();
   const auto fua_type       = action->get_type();
   RuleLifetime lifetime;
 
@@ -563,15 +559,14 @@ void LocalEnforcer::install_final_unit_action_flows(
       // check if the rule has been installed already.
       if (!session->is_gy_dynamic_rule_installed(rule.id())) {
         pipelined_client_->add_gy_final_action_flow(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, static_rules, {rule});
+            imsi, ip_addr, ipv6_addr, msisdn, static_rules, {rule});
         session->insert_gy_dynamic_rule(rule, lifetime, session_uc);
       }
       return;
     }
     case RESTRICT_ACCESS: {
       pipelined_client_->add_gy_final_action_flow(
-          imsi, ip_addr, ipv6_addr, teids, msisdn, action->get_restrict_rules(),
-          {});
+          imsi, ip_addr, ipv6_addr, msisdn, action->get_restrict_rules(), {});
       return;
     }
     default:
@@ -600,7 +595,7 @@ void LocalEnforcer::cancel_final_unit_action(
 
   if (!gy_rules_to_deactivate.empty() || !restrict_rules.empty()) {
     pipelined_client_->deactivate_flows_for_rules(
-        info.imsi, info.ip_addr, info.ipv6_addr, info.teids, restrict_rules,
+        info.imsi, info.ip_addr, info.ipv6_addr, restrict_rules,
         gy_rules_to_deactivate, RequestOriginType::GY);
   }
 }
@@ -718,16 +713,15 @@ void LocalEnforcer::schedule_static_rule_activation(
           auto config          = session->get_config();
           const auto ip_addr   = config.common_context.ue_ipv4();
           const auto ipv6_addr = config.common_context.ue_ipv6();
-          const Teids teids    = config.common_context.teids();
           const auto ambr      = config.get_apn_ambr();
           const auto msisdn    = config.common_context.msisdn();
 
           session->install_scheduled_static_rule(rule_id, uc);
           pipelined_client_->activate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules, {},
+              imsi, ip_addr, ipv6_addr, msisdn, ambr, static_rules, {},
               std::bind(
                   &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-                  ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
+                  ip_addr, ipv6_addr, msisdn, ambr, static_rules,
                   empty_dynamic_rules, _1, _2));
 
           session_store_.update_sessions(session_update);
@@ -774,7 +768,6 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
           auto config          = session->get_config();
           const auto ip_addr   = config.common_context.ue_ipv4();
           const auto ipv6_addr = config.common_context.ue_ipv6();
-          const Teids teids    = config.common_context.teids();
           const auto ambr      = config.get_apn_ambr();
           const auto msisdn    = config.common_context.msisdn();
 
@@ -784,10 +777,10 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
           std::vector<PolicyRule> dynamic_rules{policy};
 
           pipelined_client_->activate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, {}, dynamic_rules,
+              imsi, ip_addr, ipv6_addr, msisdn, ambr, {}, dynamic_rules,
               std::bind(
                   &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-                  ip_addr, ipv6_addr, teids, msisdn, ambr, empty_static_rules,
+                  ip_addr, ipv6_addr, msisdn, ambr, empty_static_rules,
                   dynamic_rules, _1, _2));
 
           session_store_.update_sessions(session_update);
@@ -820,13 +813,11 @@ void LocalEnforcer::schedule_static_rule_deactivation(
           if (session->should_rule_be_active(rule_id, time(nullptr))) {
             return;
           }
-          auto ip_addr      = session->get_config().common_context.ue_ipv4();
-          auto ipv6_addr    = session->get_config().common_context.ue_ipv6();
-          const Teids teids = session->get_config().common_context.teids();
+          auto ip_addr   = session->get_config().common_context.ue_ipv4();
+          auto ipv6_addr = session->get_config().common_context.ue_ipv6();
 
           pipelined_client_->deactivate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, teids, {rule_id}, {},
-              RequestOriginType::GX);
+              imsi, ip_addr, ipv6_addr, {rule_id}, {}, RequestOriginType::GX);
 
           auto& session_uc = session_update[imsi][session_id];
           if (!session->deactivate_static_rule(rule_id, session_uc)) {
@@ -863,15 +854,13 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
           if (session->should_rule_be_active(rule_id, time(nullptr))) {
             return;
           }
-          auto ip_addr      = session->get_config().common_context.ue_ipv4();
-          auto ipv6_addr    = session->get_config().common_context.ue_ipv6();
-          const Teids teids = session->get_config().common_context.teids();
+          auto ip_addr   = session->get_config().common_context.ue_ipv4();
+          auto ipv6_addr = session->get_config().common_context.ue_ipv6();
 
           PolicyRule policy;
           session->get_scheduled_dynamic_rules().get_rule(rule_id, &policy);
           pipelined_client_->deactivate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, teids, {}, {policy},
-              RequestOriginType::GX);
+              imsi, ip_addr, ipv6_addr, {}, {policy}, RequestOriginType::GX);
           auto& uc = session_update[imsi][session_id];
           session->remove_dynamic_rule(policy.id(), nullptr, uc);
           session_store_.update_sessions(session_update);
@@ -1058,33 +1047,9 @@ void LocalEnforcer::init_session_credit(
     // TODO this uc is not doing anything here, modify interface
     if (!credit.success() &&
         DiameterCodeHandler::is_transient_failure(credit.result_code())) {
-      auto _    = get_default_update_criteria();
-      auto ckey = credit.charging_key();
-
-      // set state here because during init update criteria is not used.
-      session_state->set_suspend_credit(ckey, true, _);
-      session_state->suspend_service_if_needed_for_credit(ckey, _);
-
-      // schedule the removal of rules to avoid problems with install-unistall
-      // order
-      evb_->runAfterDelay(
-          [this, imsi, session_id, credit] {
-            auto session_map = session_store_.read_sessions({imsi});
-            SessionSearchCriteria criteria(
-                imsi, IMSI_AND_SESSION_ID, session_id);
-            auto session_it =
-                session_store_.find_session(session_map, criteria);
-            if (!session_it) {
-              MLOG(MWARNING) << "Not suspending credit for " << session_id
-                             << " since it no longer exists";
-              return;
-            }
-            auto& session = **session_it;
-            auto _        = get_default_update_criteria();
-            remove_rules_for_suspended_credit(
-                session, credit.charging_key(), _);
-          },
-          500);
+      auto uc = get_default_update_criteria();
+      remove_rules_for_suspended_credit(
+          session_state, credit.charging_key(), uc);
     }
   }
 
@@ -1700,13 +1665,12 @@ void LocalEnforcer::propagate_rule_updates_to_pipelined(
     const RulesToProcess& rules_to_deactivate, bool always_send_activate) {
   const auto ip_addr   = config.common_context.ue_ipv4();
   const auto ipv6_addr = config.common_context.ue_ipv6();
-  const Teids teids    = config.common_context.teids();
   // deactivate_flows_for_rules() should not be called when there is no rule
   // to deactivate, because pipelined deactivates all rules
   // when no rule is provided as the parameter
   if (rules_to_process_is_not_empty(rules_to_deactivate)) {
     pipelined_client_->deactivate_flows_for_rules(
-        imsi, ip_addr, ipv6_addr, teids, rules_to_deactivate.static_rules,
+        imsi, ip_addr, ipv6_addr, rules_to_deactivate.static_rules,
         rules_to_deactivate.dynamic_rules, RequestOriginType::GX);
   }
   if (always_send_activate ||
@@ -1714,13 +1678,12 @@ void LocalEnforcer::propagate_rule_updates_to_pipelined(
     const auto ambr   = config.get_apn_ambr();
     const auto msisdn = config.common_context.msisdn();
     pipelined_client_->activate_flows_for_rules(
-        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr,
-        rules_to_activate.static_rules, rules_to_activate.dynamic_rules,
+        imsi, ip_addr, ipv6_addr, msisdn, ambr, rules_to_activate.static_rules,
+        rules_to_activate.dynamic_rules,
         std::bind(
             &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-            ip_addr, ipv6_addr, teids, msisdn, ambr,
-            rules_to_activate.static_rules, rules_to_activate.dynamic_rules, _1,
-            _2));
+            ip_addr, ipv6_addr, msisdn, ambr, rules_to_activate.static_rules,
+            rules_to_activate.dynamic_rules, _1, _2));
   }
 }
 
@@ -1885,7 +1848,7 @@ void LocalEnforcer::schedule_revalidation(
 
 void LocalEnforcer::handle_activate_ue_flows_callback(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
+    const std::string& ipv6_addr, const std::string& msisdn,
     optional<AggregatedMaximumBitrate> ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules, Status status,
@@ -1902,7 +1865,7 @@ void LocalEnforcer::handle_activate_ue_flows_callback(
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
           pipelined_client_->activate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
+              imsi, ip_addr, ipv6_addr, msisdn, ambr, static_rules,
               dynamic_rules, [imsi](Status status, ActivateFlowsResult resp) {
                 if (!status.ok()) {
                   MLOG(MERROR) << "Could not activate flows for UE " << imsi
@@ -2092,19 +2055,10 @@ bool LocalEnforcer::update_tunnel_ids(
                  << imsi;
     return false;
   }
-
-  Teids teids;
-  teids.set_agw_teid(request.agw_teid());
-  teids.set_enb_teid(request.enb_teid());
-  SessionStateUpdateCriteria& state_uc =
-      session_update[imsi][session->get_session_id()];
-  session->set_teids(teids, state_uc);
-
   pipelined_client_->update_tunnel_ids(
       imsi, session->get_config().common_context.ue_ipv4(),
-      session->get_config().common_context.ue_ipv6(),
-      session->get_config().common_context.teids());
-
+      session->get_config().common_context.ue_ipv6(), request.enb_teid(),
+      request.agw_teid());
   return true;
 }
 
@@ -2135,8 +2089,7 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
   }
   pipelined_client_->deactivate_flows_for_rules_for_termination(
       imsi, session.get_config().common_context.ue_ipv4(),
-      session.get_config().common_context.ue_ipv6(),
-      session.get_config().common_context.teids(), static_rule_to_remove,
+      session.get_config().common_context.ue_ipv6(), static_rule_to_remove,
       dynamic_rule_to_remove, RequestOriginType::GX);
 }
 

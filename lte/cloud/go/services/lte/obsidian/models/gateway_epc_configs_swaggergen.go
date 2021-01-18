@@ -39,11 +39,6 @@ type GatewayEpcConfigs struct {
 	// Format: ipv4
 	IPV4pCscfAddr strfmt.IPv4 `json:"ipv4_p_cscf_addr,omitempty"`
 
-	// IP address for IPv4 S1U endpoint on the AGW
-	// Max Length: 49
-	// Min Length: 5
-	IPV4SgwS1uAddr string `json:"ipv4_sgw_s1u_addr,omitempty"`
-
 	// ipv6 block
 	IPV6Block string `json:"ipv6_block,omitempty"`
 
@@ -96,10 +91,6 @@ func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateIPV4pCscfAddr(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateIPV4SgwS1uAddr(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -195,23 +186,6 @@ func (m *GatewayEpcConfigs) validateIPV4pCscfAddr(formats strfmt.Registry) error
 	}
 
 	if err := validate.FormatOf("ipv4_p_cscf_addr", "body", "ipv4", m.IPV4pCscfAddr.String(), formats); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *GatewayEpcConfigs) validateIPV4SgwS1uAddr(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.IPV4SgwS1uAddr) { // not required
-		return nil
-	}
-
-	if err := validate.MinLength("ipv4_sgw_s1u_addr", "body", string(m.IPV4SgwS1uAddr), 5); err != nil {
-		return err
-	}
-
-	if err := validate.MaxLength("ipv4_sgw_s1u_addr", "body", string(m.IPV4SgwS1uAddr), 49); err != nil {
 		return err
 	}
 

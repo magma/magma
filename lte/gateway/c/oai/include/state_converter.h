@@ -33,8 +33,6 @@ extern "C" {
 }
 #endif
 
-#include <functional>
-
 #include <google/protobuf/map.h>
 
 #include "lte/protos/oai/common_types.pb.h"
@@ -97,7 +95,7 @@ class StateConverter {
         (*proto_map)[ht_keys->keys[i]] = proto;
       } else {
         OAILOG_ERROR(
-            log_task_level, "Key %lu not found on %s hashtable",
+            log_task_level, "Key %u not found on %s hashtable",
             ht_keys->keys[i], state_ht->name->data);
       }
     }

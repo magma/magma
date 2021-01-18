@@ -14,7 +14,6 @@
       "@type": "type.googleapis.com/magma.mconfig.MME",
       "mmeCode": 1,
       "mmeGid": 1,
-      "mmeRelativeCapacity": 11,
       "logLevel": "INFO",
       "mcc": "001",
       "mnc": "01",
@@ -129,10 +128,6 @@
     },
     "ctraced": {
       "@type": "type.googleapis.com/magma.mconfig.CtraceD",
-      "logLevel": "INFO"
-    },
-    "connectiond": {
-      "@type": "type.googleapis.com/magma.mconfig.ConnectionD",
       "logLevel": "INFO"
     }
   }

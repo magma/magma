@@ -15,6 +15,7 @@ package servicers_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -31,6 +32,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/analytics/query_api/mocks"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -41,7 +43,9 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func init() {
@@ -54,7 +58,8 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
 	lte_test_init.StartTestService(t)
-	servicer := servicers.NewHAServicer()
+	mockPromClient := &mocks.PrometheusAPI{}
+	servicer := servicers.NewHAServicer(mockPromClient)
 
 	testNetworkId := "n1"
 	testGwHwId1 := "hw1"
@@ -143,6 +148,15 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 	enbState := getDefaultEnodebState(testGwId1)
 	reportEnodebState(t, testNetworkId, testGwId1, enbSn, enbState)
 
+	metric1 := model.Metric{}
+	metric1["networkID"] = "n1"
+	metric1["gatewayID"] = "g1"
+	throughputVec := model.Vector{{
+		Metric: metric1,
+		Value:  10000000,
+	}}
+	mockPromClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(throughputVec, nil, nil).Once()
+
 	// First test primary healthy
 	ctx := orc8r_protos.NewGatewayIdentity(testGwHwId2, testNetworkId, testGwId2).NewContextWithIdentity(context.Background())
 	res, err := servicer.GetEnodebOffloadState(ctx, &protos.GetEnodebOffloadStateRequest{})
@@ -153,6 +167,7 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expectedRes, res)
+	mockPromClient.AssertExpectations(t)
 
 	// Now simulate failed primary not checking in
 	stateTooOld := time.Now().Add(-time.Second * 600)
@@ -195,10 +210,10 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 	}
 	assert.Equal(t, expectedRes, res)
 
-	// Connected but no UEs connected
+	// Connected but could not query metrics
 	enbState.EnodebConnected = swag.Bool(true)
-	enbState.UesConnected = 0
 	reportEnodebState(t, testNetworkId, testGwId1, enbSn, enbState)
+	mockPromClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, fmt.Errorf("error")).Once()
 
 	res, err = servicer.GetEnodebOffloadState(ctx, &protos.GetEnodebOffloadStateRequest{})
 	assert.NoError(t, err)
@@ -208,15 +223,31 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expectedRes, res)
+	mockPromClient.AssertExpectations(t)
 
-	// Back to connected with users
-	enbState.UesConnected = 10
-	reportEnodebState(t, testNetworkId, testGwId1, enbSn, enbState)
+	// Connected but no throughput
+	throughputVec2 := model.Vector{{
+		Metric: metric1,
+		Value:  0,
+	}}
+	mockPromClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(throughputVec2, nil, nil).Once()
+
+	res, err = servicer.GetEnodebOffloadState(ctx, &protos.GetEnodebOffloadStateRequest{})
+	assert.NoError(t, err)
+	expectedRes = &protos.GetEnodebOffloadStateResponse{
+		EnodebOffloadStates: map[uint32]protos.GetEnodebOffloadStateResponse_EnodebOffloadState{
+			138: protos.GetEnodebOffloadStateResponse_PRIMARY_CONNECTED,
+		},
+	}
+	assert.Equal(t, expectedRes, res)
+	mockPromClient.AssertExpectations(t)
 
 	// Simulate secondary gateway updating state to ensure primary state
 	// can still be fetched
 	reportEnodebState(t, testNetworkId, testGwId2, enbSn, enbState)
 
+	// Back to connected with users
+	mockPromClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(throughputVec, nil, nil).Once()
 	res, err = servicer.GetEnodebOffloadState(ctx, &protos.GetEnodebOffloadStateRequest{})
 	assert.NoError(t, err)
 	expectedRes = &protos.GetEnodebOffloadStateResponse{
@@ -225,6 +256,7 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expectedRes, res)
+	mockPromClient.AssertExpectations(t)
 }
 
 func reportEnodebState(t *testing.T, networkID string, gatewayID string, enodebSerial string, req *lte_models.EnodebState) {
@@ -296,6 +328,5 @@ func getDefaultEnodebState(gwID string) *lte_models.EnodebState {
 		RfTxOn:             swag.Bool(true),
 		RfTxDesired:        swag.Bool(true),
 		FsmState:           swag.String("abc"),
-		UesConnected:       5,
 	}
 }

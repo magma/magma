@@ -42,6 +42,7 @@ enum SessionSearchCriteriaType {
   IMSI_AND_UE_IPV4_OR_IPV6 = 3,
   IMSI_AND_BEARER          = 4,
   IMSI_AND_TEID            = 5,
+  IMSI_AND_PDUID           = 6,
 };
 
 struct SessionSearchCriteria {
@@ -85,14 +86,6 @@ class SessionStore {
   SessionStore(
       std::shared_ptr<StaticRuleStore> rule_store,
       std::shared_ptr<RedisStoreClient> store_client);
-
-  /**
-   * Writes the session map directly to the store. Note that the existing map
-   * will be overwriten
-   * @param session_map
-   * @return
-   */
-  bool raw_write_sessions(SessionMap session_map);
 
   /**
    * Read the last written values for the requested sessions through the

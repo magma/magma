@@ -509,6 +509,15 @@ func (m *Apn) FromBackendModels(ent configurator.NetworkEntity) *Apn {
 	return m
 }
 
+func (m ApnList) ToAssocs() []storage.TypeAndKey {
+	return funk.Map(
+		m,
+		func(rn string) storage.TypeAndKey {
+			return storage.TypeAndKey{Type: lte.APNEntityType, Key: rn}
+		},
+	).([]storage.TypeAndKey)
+}
+
 func LoadAPNResources(networkID string, ids []string) (ApnResources, error) {
 	ret := ApnResources{}
 	if len(ids) == 0 {

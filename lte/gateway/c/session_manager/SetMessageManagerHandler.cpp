@@ -52,7 +52,11 @@ SessionConfig SetMessageManagerHandler::m5g_build_session_config(
   /*copying pnly 5G specific data to respective elements*/
   cfg.common_context       = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-
+  /* As we dont have 5G polices defined yet, for now
+   * for all new connection we set SSC  mode as SSC_MODE_3
+   */
+  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
+      SSC_MODE_3);
   return cfg;
 }
 
@@ -78,6 +82,11 @@ void SetMessageManagerHandler::SetAmfSessionContext(
     // extract values from proto
     auto imsi       = request_cpy.common_context().sid().id();
     std::string dnn = request_cpy.common_context().apn();
+    // Fetch PDU session ID from rat_specific_context and
+    // pdu_id is unique to IMSI
+    auto pdu_id = request_cpy.rat_specific_context()
+                      .m5gsm_session_context()
+                      .pdu_session_id();
     // Fetch complete message from proto message
     SessionConfig cfg = m5g_build_session_config(request_cpy);
 
@@ -86,22 +95,24 @@ void SetMessageManagerHandler::SetAmfSessionContext(
      */
     // Requested message from AMF to release the session
     if (cfg.common_context.sm_session_state() == RELEASED_4) {
-      if (cfg.common_context.sm_session_version() != 0) {
-        MLOG(MERROR) << "Wrong version received from AMF for IMSI " << imsi
-                     << " but continuing release request";
+      if (cfg.common_context.sm_session_version() == 0) {
+        MLOG(MERROR) << "Wrong version received from AMF for IMSI " << imsi;
+        Status status(grpc::OUT_OF_RANGE, "Version number Out of Range");
+        response_callback(status, SmContextVoid());
+        return;
       }
       MLOG(MINFO) << "Release request for session from IMSI: " << imsi
-                  << " DNN " << dnn;
+                  << " pdu_id " << pdu_id;
       /* Read the SessionMap from global session_store,
        * if it is not found, it will be added w.r.t imsi
        */
       auto session_map = session_store_.read_sessions({imsi});
-      initiate_release_session(session_map, dnn, imsi);
+      initiate_release_session(session_map, pdu_id, imsi);
+      response_callback(Status::OK, SmContextVoid());
     } else {
       // The Event Based main_thread invocation and runs to handle session state
-      std::string session_id = id_gen_.gen_session_id(imsi);
       MLOG(MINFO) << "Requested session from UE with IMSI: " << imsi
-                  << " Generated session " << session_id;
+                  << " PDU id " << pdu_id;
 
       /* Message may be intial or modification message. Only taken care
        * intial message. Check if it's initial message
@@ -115,32 +126,110 @@ void SetMessageManagerHandler::SetAmfSessionContext(
         MLOG(MINFO)
             << "AMF request type INITIAL_REQUEST and session state CREATING";
         auto session_map = session_store_.read_sessions({imsi});
-        send_create_session(session_map, imsi, session_id, cfg, dnn);
+        send_create_session(session_map, imsi, cfg, pdu_id);
+        response_callback(Status::OK, SmContextVoid());
+        return;
       }
+      Status status(grpc::UNKNOWN, "Unknown session state or request");
+      response_callback(status, SmContextVoid());
     }
-    response_callback(Status::OK, SmContextVoid());
+    return;
+  });
+}
+
+/* Handling set message from AMF
+ * check if PDU_SESSION exists
+ * if the PDU_SESSION doen't exists, log and ignore
+ * If EXISTING_PDU_SESSION, get the session entry, check on incoming session
+ * state and version  accordingly take action, write to memory by SessionStore
+ */
+
+void SetMessageManagerHandler::SetSmfNotification(
+    ServerContext* context, const SetSmNotificationContext* notif,
+    std::function<void(Status, SmContextVoid)> response_callback) {
+  auto& notif_cpy = *notif;
+  // Print the message from AMF
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(notif_cpy));
+
+  // Requested message from AMF to release the session
+  m5g_enforcer_->get_event_base().runInEventBaseThread([this, response_callback,
+                                                        notif_cpy]() {
+    /* Read the proto message and check for state. Get the config out of proto.
+     * Code for Active state notification
+     */
+    // extract values from proto
+    auto pdu_id     = notif_cpy.rat_specific_notification().pdu_session_id();
+    auto imsi       = notif_cpy.common_context().sid().id();
+    std::string dnn = notif_cpy.common_context().apn();
+    /* Read the SessionMap from global session_store */
+    SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
+    auto session_map = session_store_.read_sessions({imsi});
+    auto session_it  = session_store_.find_session(session_map, criteria);
+    auto& session    = **session_it;
+    if (!session_it) {
+      MLOG(MINFO) << " No session found for IMSI: " << imsi << " pdu id "
+                  << pdu_id;
+      Status status(grpc::NOT_FOUND, "Sesion Not found");
+      response_callback(status, SmContextVoid());
+      return;
+    }
+    MLOG(MINFO) << "Received Session Notificaiton from UE with IMSI: " << imsi
+                << " of session Id " << session->get_session_id();
+    if (notif_cpy.common_context().sm_session_version() == 0) {
+      Status status(grpc::OUT_OF_RANGE, "Version number Out of Range");
+      response_callback(status, SmContextVoid());
+      return;
+    }
+    if (notif_cpy.rat_specific_notification().request_type() ==
+        EXISTING_PDU_SESSION) {
+      auto session_update =
+          SessionStore::get_default_session_update(session_map);
+      auto session_id = session->get_session_id();
+      SessionStateUpdateCriteria& session_crit =
+          session_update[imsi][session_id];
+      m5g_enforcer_->m5g_state_change_action(
+          imsi, session_crit, notif_cpy, **session_it);
+      bool update_success = session_store_.update_sessions(session_update);
+      if (update_success) {
+        MLOG(MINFO) << "Successfully released and updated SessionStore "
+                    << "of subscriber" << imsi;
+        response_callback(Status::OK, SmContextVoid());
+        return;
+      }
+      Status status(grpc::ABORTED, "Release operation aborted in  middle");
+      response_callback(status, SmContextVoid());
+      return;
+    } else {
+      MLOG(MINFO) << " Wrong request type for sesion id"
+                  << session->get_session_id();
+      Status status(grpc::UNKNOWN, "Unknown session request type");
+      response_callback(status, SmContextVoid());
+      return;
+    }
   });
 }
 
 /* Creeate respective SessionState and context*/
 void SetMessageManagerHandler::send_create_session(
-    SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, const SessionConfig& cfg,
-    const std::string& dnn) {
+    SessionMap& session_map, const std::string& imsi, const SessionConfig& cfg,
+    uint32_t& pdu_id) {
   /* If it is new session to be created, check for same DNN exists
    * for same IMSI, i.e if IMSI found and respective DNN found in
    * SessionStore, then return from here and nothing to do
    * as already same session exist, its duplicate request
    */
 
-  SessionSearchCriteria criteria(imsi, IMSI_AND_APN, dnn);
+  SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_it = session_store_.find_session(session_map, criteria);
   if (session_it) {
-    // DNN or APN found and return from here
-    MLOG(MERROR) << "Duplicate request of same DNN " << dnn << " of IMSI "
+    // PDU ID found and return from here
+    MLOG(MERROR) << "Duplicate request of same PDU_id " << pdu_id << " of IMSI "
                  << imsi << " nothing to do";
     return;
   }
+  std::string session_id = id_gen_.gen_session_id(imsi);
+  MLOG(MINFO) << "Requested session from UE with IMSI: " << imsi
+              << " Generated session " << session_id << " PDU id " << pdu_id;
 
   auto session_map_ptr = std::make_shared<SessionMap>(std::move(session_map));
   /* initialization of SessionState for IMSI by SessionStateEnforcer*/
@@ -171,12 +260,12 @@ void SetMessageManagerHandler::send_create_session(
 /* This starts releasing the session in main session enforcer thread context
  * Before startting it checks if respective session */
 void SetMessageManagerHandler::initiate_release_session(
-    SessionMap& session_map, const std::string& dnn, const std::string& imsi) {
+    SessionMap& session_map, const uint32_t& pdu_id, const std::string& imsi) {
   // TODO as modification and dynamic rules are not implemented this may
   // return empty map.
   auto update = SessionStore::get_default_session_update(session_map);
   bool exist =
-      m5g_enforcer_->m5g_release_session(session_map, imsi, dnn, update);
+      m5g_enforcer_->m5g_release_session(session_map, imsi, pdu_id, update);
   // If no entry found, nothing to do and return from here
   if (!exist) {
     MLOG(MERROR) << "Entry is not found in SessionStore for subscriber "

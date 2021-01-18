@@ -32,23 +32,30 @@
 #include "magma_logging.h"
 #include "EnumToString.h"
 #include "SessionStateEnforcer.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#define DEFAULT_AMBR_UNITS 1
+#define UPF_IP "10.32.116.9"
+#define DEFAULT_UP_LINK_PDR_ID 1
+#define DEFAULT_DOWN_LINK_PDR_ID 2
 
 std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
 namespace magma {
+
 void call_back_upf(grpc::Status, magma::UPFSessionContextState response) {
-  std::string imsi             = response.session_snaphot().subscriber_id();
-  uint32_t version             = response.session_snaphot().session_version();
-  uint32_t fteid               = response.session_snaphot().local_f_teid();
-  const std::string session_id = response.session_snaphot().subscriber_id();
+  std::string imsi             = response.session_snapshot().subscriber_id();
+  uint32_t version             = response.session_snapshot().session_version();
+  uint32_t fteid               = response.session_snapshot().local_f_teid();
+  const std::string session_id = response.session_snapshot().subscriber_id();
   MLOG(MINFO) << " Async Response received from UPF: imsi " << imsi
               << " local fteid : " << fteid;
-  conv_session_enforcer->get_event_base().runInEventBaseThread(
-      [imsi, fteid, version]() {
-        /* Update the state change, and notifiy to AMF */
-        // For now fteid will be zero in all cases
-        conv_session_enforcer->m5g_update_session_state_to_amf(
-            imsi, fteid, version);
-      });
+  conv_session_enforcer->get_event_base().runInEventBaseThread([imsi, fteid,
+                                                                version]() {
+    /* Update the state change, and notifiy to AMF */
+    // For now fteid will be zero in all cases
+    conv_session_enforcer->m5g_process_response_from_upf(imsi, fteid, version);
+  });
 }
 
 /*constructor*/
@@ -65,7 +72,7 @@ SessionStateEnforcer::SessionStateEnforcer(
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms) {
   // for now this is the right place, need to move if find  anohter right place
-  static_rule_init();
+  default_and_static_rule_init();
 }
 
 void SessionStateEnforcer::attachEventBase(folly::EventBase* evb) {
@@ -89,8 +96,8 @@ bool SessionStateEnforcer::m5g_init_session_credit(
       std::make_unique<SessionState>(imsi, session_id, cfg, *rule_store_);
   MLOG(MINFO) << " New SessionState object created with IMSI: " << imsi
               << " session context id : " << session_id;
-  handle_session_init_rule_updates(session_map, imsi, *session_state);
-
+  if (!handle_session_init_rule_updates(session_map, imsi, session_state))
+    return false;
   /* Find same UE or imsi already present, if not add
    * TODO - Need to check if same DNN/APN already exist
    */
@@ -106,24 +113,90 @@ bool SessionStateEnforcer::m5g_init_session_credit(
   return true;
 }
 
-void SessionStateEnforcer::handle_session_init_rule_updates(
+bool SessionStateEnforcer::handle_session_init_rule_updates(
     SessionMap& session_map, const std::string& imsi,
-    SessionState& session_state) {
-  uint32_t l_teid = 0;
-  auto itp        = pdr_map_.equal_range(imsi);
+    std::unique_ptr<SessionState>& session_state) {
+  uint32_t upf_teid = 0;
+  uint32_t len, gnode_teid = 0;
+  char ip_str[INET_ADDRSTRLEN];
+  struct sockaddr_in ip_sa;
+  bool byte_zero_skip, upf_teid_set = false;
+  std::string ip_addr, teid;
+  SetGroupPDR rule;
+
+  const auto& config = session_state->get_config();
+  /*
+   * Lets add the default uplink and downlink PDR rule to this
+   * imsi
+   */
+  pdr_map_.insert(
+      std::pair<std::string, uint32_t>(imsi, DEFAULT_DOWN_LINK_PDR_ID));
+  pdr_map_.insert(
+      std::pair<std::string, uint32_t>(imsi, DEFAULT_UP_LINK_PDR_ID));
+  /*
+   * Plus policy DB added anymore it would be part of
+   * this map
+   */
+  auto itp = pdr_map_.equal_range(imsi);
+  // Lets take local_teid of the session if already exists.
+  upf_teid = session_state->get_local_teid();
   for (auto itr = itp.first; itr != itp.second; itr++) {
     // Get the PDR numbers, now  get the rules from global static rule list
-    SetGroupPDR rule;
     GlobalRuleList.get_rule(itr->second, &rule);
-    session_state.insert_pdr(&rule);
-    // Get new TEID
-    if (!l_teid) l_teid = pipelined_client_->get_current_teid();
-    rule.mutable_pdi()->set_local_f_teid(pipelined_client_->get_next_teid());
+    // Check session pdr list, if its already part of the list
+    if (session_state->search_pdr(rule.pdr_id()))
+      continue;  // If rule alreay added part of Session PdrList
+    // Get the UE ip address
+    ip_addr.assign(config.rat_specific_context.m5gsm_session_context()
+                       .pdu_address()
+                       .redirect_server_address());
+    memcpy(&(ip_sa.sin_addr), ip_addr.c_str(), ip_addr.length());
+    inet_ntop(AF_INET, &(ip_sa.sin_addr), ip_str, INET_ADDRSTRLEN);
+    rule.mutable_pdi()->set_ue_ip_adr(ip_str);
+    switch (rule.pdi().src_interface()) {
+      case ACCESS:
+        // Get new UPF TEID
+        if (!upf_teid) {
+          upf_teid_set = true;
+          upf_teid     = pipelined_client_->get_current_teid();
+        }
+        rule.mutable_pdi()->set_local_f_teid(
+            pipelined_client_->get_next_teid());
+        break;
+      case CORE:
+        teid.assign(config.rat_specific_context.m5gsm_session_context()
+                        .gnode_endpoint()
+                        .teid());
+        len            = teid.length();
+        gnode_teid     = 0;
+        byte_zero_skip = true;
+        for (uint32_t i = 0; i < len; i++) {
+          // Logic to skip initial zeros
+          if (byte_zero_skip && (!teid[i])) continue;
+          // Rest continue;
+          byte_zero_skip = false;
+          gnode_teid <<= 8;
+          gnode_teid += teid[i];
+        }
+        ip_addr.assign(config.rat_specific_context.m5gsm_session_context()
+                           .gnode_endpoint()
+                           .end_ipv4_addr());
+        memcpy(&(ip_sa.sin_addr), ip_addr.c_str(), ip_addr.length());
+        inet_ntop(AF_INET, &(ip_sa.sin_addr), ip_str, INET_ADDRSTRLEN);
+        rule.mutable_set_gr_far()
+            ->mutable_fwd_parm()
+            ->mutable_outr_head_cr()
+            ->set_o_teid(gnode_teid);
+        rule.mutable_set_gr_far()
+            ->mutable_fwd_parm()
+            ->mutable_outr_head_cr()
+            ->set_gnb_ipv4_adr(ip_str);
+        MLOG(MINFO) << " AMF teid: " << gnode_teid << " ip address " << ip_str;
+        break;
+    }
+    // Insert the PDR along with teid into the session
+    session_state->insert_pdr(&rule);
   }
-  auto ip_addr = session_state.get_config()
-                     .rat_specific_context.m5gsm_session_context()
-                     .pdu_address()
-                     .redirect_server_address();
   /* session_state elments are filled with rules. State needs to be
    * moved to CREATED, increment version and send message to UPF.
    * Note: charging and credit related info not taken care in drop-1
@@ -137,26 +210,20 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
    *
    */
   auto update_criteria = get_default_update_criteria();
-  session_state.set_local_teid(l_teid, update_criteria);
-  session_state.set_fsm_state(CREATED, update_criteria);
-  MLOG(MINFO) << " Teid " << session_state.get_local_teid();
-  uint32_t cur_version = session_state.get_current_version();
-  session_state.set_current_version(++cur_version, update_criteria);
+  if (upf_teid_set) session_state->set_local_teid(upf_teid, update_criteria);
+  session_state->set_fsm_state(CREATED, update_criteria);
+  MLOG(MINFO) << " Teid " << session_state->get_local_teid();
+  uint32_t cur_version = session_state->get_current_version();
+  session_state->set_current_version(++cur_version, update_criteria);
 
   /* Update the m5gsm_cause and prepare for respone along with actual cause*/
+  std::string upf_ip = pipelined_client_->get_upf_n3_addr();
   prepare_response_to_access(
-      imsi, session_state, magma::lte::M5GSMCause::OPERATION_SUCCESS);
-
-  SessionState::SessionInfo sess_info;
-  sess_info.imsi         = imsi;
-  sess_info.ip_addr      = ip_addr;
-  sess_info.local_f_teid = session_state.get_local_teid();
-
-  sess_info.Pdr_rules_ = session_state.get_all_pdr_rules();
-  // sess_info.Far_rules_ = session_state.get_all_far_rules();
-  session_state.sess_infocopy(&sess_info);
-  pipelined_client_->set_upf_session(sess_info, call_back_upf);
-  return;
+      imsi, *session_state, magma::lte::M5GSMCause::OPERATION_SUCCESS, upf_ip,
+      upf_teid);
+  session_state->reset_throttle();
+  m5g_send_session_request_to_upf(imsi, session_state);
+  return true;
 }
 
 /* Function to initiate release of the session in enforcer requested by AMF
@@ -165,16 +232,17 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
  * start terminating session process
  */
 bool SessionStateEnforcer::m5g_release_session(
-    SessionMap& session_map, const std::string& imsi, const std::string& dnn,
+    SessionMap& session_map, const std::string& imsi, const uint32_t& pdu_id,
     SessionUpdate& session_update) {
   /* Search with session search criteria of IMSI and apn/dnn and
    * find  respective sesion to release operation
+   * Note: DNN is optiona field, so find session from PDU_session_id
    */
-  SessionSearchCriteria criteria(imsi, IMSI_AND_APN, dnn);
+  SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_it = session_store_.find_session(session_map, criteria);
   if (!session_it) {
     MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
-                 << " with DNN " << dnn << " to release";
+                 << " with pdu-id " << pdu_id << " to release";
     return false;
   }
   // Found the respective session to be updated
@@ -185,14 +253,14 @@ bool SessionStateEnforcer::m5g_release_session(
   MLOG(MINFO) << "Trying to release session with id " << session_id
               << " from state "
               << session_fsm_state_to_str(session->get_state());
-  m5g_start_session_termination(imsi, session, dnn, session_uc);
+  m5g_start_session_termination(imsi, session, pdu_id, session_uc);
   return true;
 }
 
 /*Start processing to terminate respective session requested from AMF*/
 void SessionStateEnforcer::m5g_start_session_termination(
     const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    const std::string& dnn, SessionStateUpdateCriteria& session_uc) {
+    const uint32_t& pdu_id, SessionStateUpdateCriteria& session_uc) {
   const auto session_id = session->get_session_id();
 
   /* update respective session's state and return from here before timeout
@@ -209,7 +277,9 @@ void SessionStateEnforcer::m5g_start_session_termination(
   /* Call for all rules to be de-associated from session
    * and inform to UPF
    */
-  m5g_remove_rules_and_update_upf(imsi, session, dnn, session_uc);
+  MLOG(MINFO) << "Will be removing all associated rules of session id "
+              << session->get_session_id();
+  m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::REMOVE);
 
   /* Forcefully terminate session context on time out
    * time out = 5000ms from sessiond.yml config file
@@ -302,26 +372,65 @@ void SessionStateEnforcer::m5g_complete_termination(
   return;
 }
 
-/*Removing all associated rules to session*/
-void SessionStateEnforcer::m5g_remove_rules_and_update_upf(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    const std::string& dnn, SessionStateUpdateCriteria& uc) {
-  // remove all rules;
-  MLOG(MINFO) << "Will be removing all associated rules of session id "
+void SessionStateEnforcer::m5g_state_change_action(
+    std::string& imsi, SessionStateUpdateCriteria& session_uc,
+    SetSmNotificationContext notif, std::unique_ptr<SessionState>& session) {
+  /*Irrespective of any State of Session, release and terminate*/
+  if ((notif.common_context().sm_session_state() == ACTIVE_2) &&
+      (session->get_state() == INACTIVE)) {
+    m5g_execute_state_change_action(session_uc, session, ACTIVE);
+    /* Call for all rules to be associated from session
+     * and inform to UPF
+     */
+    m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::INSTALL);
+  }
+  /* Now code for Inactive state notificaiton
+   */
+  else if (
+      (notif.common_context().sm_session_state() == INACTIVE_3) &&
+      (session->get_state() == ACTIVE)) {
+    m5g_execute_state_change_action(session_uc, session, INACTIVE);
+    /* Call for all rules to be de-associated from session
+     * and inform to UPF
+     */
+    m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::IDLE);
+  }
+}
+
+
+void SessionStateEnforcer::m5g_execute_state_change_action(
+    SessionStateUpdateCriteria& session_uc,
+    std::unique_ptr<SessionState>& session, SessionFsmState targetState) {
+  auto stateStr = session_fsm_state_to_str(targetState);
+  MLOG(MINFO) << stateStr << " state transition for session id "
               << session->get_session_id();
-  auto ip_addr = session->get_config()
-                     .rat_specific_context.m5gsm_session_context()
-                     .pdu_address()
-                     .redirect_server_address();
+  session->set_fsm_state(targetState, session_uc);
+  uint32_t cur_version = session->get_current_version();
+  session->set_current_version(++cur_version, session_uc);
+  MLOG(MINFO) << "During " << stateStr << " state of session changed to "
+              << session_fsm_state_to_str(session->get_state());
+  return;
+}
+
+void SessionStateEnforcer::m5g_pdr_rules_change_and_update_upf(
+    const std::string& imsi, const std::unique_ptr<SessionState>& session,
+    enum PdrState pdrstate) {
+  session->set_all_pdrs(pdrstate);
+  session->reset_throttle();
+  m5g_send_session_request_to_upf(imsi, session);
+  return;
+}
+
+void SessionStateEnforcer::m5g_send_session_request_to_upf(
+    const std::string& imsi, const std::unique_ptr<SessionState>& session) {
   // Update to UPF
   SessionState::SessionInfo sess_info;
   sess_info.imsi         = imsi;
-  sess_info.ip_addr      = ip_addr;
+  sess_info.Pdr_rules_   = session->get_all_pdr_rules();
+  auto& rule             = sess_info.Pdr_rules_.front();
+  sess_info.ip_addr      = rule.pdi().ue_ip_adr();
   sess_info.local_f_teid = session->get_local_teid();
   session->sess_infocopy(&sess_info);
-  // Set PDR state as  REMOVE for all PDRs
-  session->set_remove_all_pdrs();
-  sess_info.Pdr_rules_ = session->get_all_pdr_rules();
   pipelined_client_->set_upf_session(sess_info, call_back_upf);
   return;
 }
@@ -334,9 +443,11 @@ void SessionStateEnforcer::m5g_remove_rules_and_update_upf(
  * seid - session context id to find respective session
  * new_state - state change required w.r.t. UPF message
  */
-void SessionStateEnforcer::m5g_update_session_state_to_amf(
+void SessionStateEnforcer::m5g_process_response_from_upf(
     const std::string& imsi, uint32_t teid, uint32_t version) {
-  auto session_map = session_store_.read_sessions({imsi});
+  uint32_t cur_version;
+  bool amf_update_pending = false;
+  auto session_map        = session_store_.read_sessions({imsi});
   /* Search with session search criteria of IMSI and session_id and
    * find  respective sesion to operate
    */
@@ -347,9 +458,17 @@ void SessionStateEnforcer::m5g_update_session_state_to_amf(
                  << " with teid " << teid;
     return;
   }
-  bool amf_update_pending = false;
-  uint32_t cur_version;
-  auto& session       = **session_it;
+  auto& session = **session_it;
+  cur_version   = session->get_current_version();
+  if (version < cur_version) {
+    MLOG(MINFO) << "UPF verions of session imsi " << imsi << " of  teid "
+                << teid << " recevied version " << version
+                << " SMF latest version: " << cur_version << " Resending";
+    if (session->inc_throttle()) {
+      m5g_send_session_request_to_upf(imsi, session);
+    }
+    return;
+  }
   auto session_update = SessionStore::get_default_session_update(session_map);
   SessionStateUpdateCriteria& session_uc =
       session_update[imsi][session->get_session_id()];
@@ -391,7 +510,8 @@ void SessionStateEnforcer::m5g_update_session_state_to_amf(
  */
 void SessionStateEnforcer::prepare_response_to_access(
     const std::string& imsi, SessionState& session_state,
-    const magma::lte::M5GSMCause m5gsm_cause) {
+    const magma::lte::M5GSMCause m5gsm_cause, std::string upf_ip,
+    uint32_t upf_teid) {
   magma::SetSMSessionContextAccess response;
   const auto& config = session_state.get_config();
 
@@ -426,11 +546,50 @@ void SessionStateEnforcer::prepare_response_to_access(
       config.rat_specific_context.m5gsm_session_context()
           .pdu_address()
           .redirect_server_address());
-  /* TODO AMBR and QoS will be implemented later.
-   * AMBR value need to compared from AMF and PCF, then fill the required
+  rsp->set_procedure_trans_identity(
+      config.rat_specific_context.m5gsm_session_context()
+          .procedure_trans_identity());
+
+  /* AMBR value need to compared from AMF and PCF, then fill the required
    * values and sent to AMF.
    */
-
+  // For now its default QOS, AMBR has default values
+  auto* ambr = rsp->mutable_session_ambr();
+  ambr->set_downlink_unit_type(SessionAmbr_AmbrUnit_Kbps_64);
+  ambr->set_downlink_units(DEFAULT_AMBR_UNITS);
+  ambr->set_uplink_unit_type(SessionAmbr_AmbrUnit_Kbps_64);
+  ambr->set_uplink_units(DEFAULT_AMBR_UNITS);
+  /* For now interop keeping static vlaues */
+  /* change this after PCF integration, and also shift to another
+   * standard structure */
+  qos_flow_request_list* p_qoslist = rsp->mutable_qos_list();
+  qos_flow* p_qos                  = p_qoslist->mutable_flow();
+  p_qos->set_qos_flow_ident(5);
+  p_qos->mutable_param()->mutable_qos_chars()->set_fiveqi(9);
+  p_qos->mutable_param()->mutable_alloc_reten_prio()->set_pre_emtion_cap(
+      MAY_TRIGGER_PER_EMPTION);
+  p_qos->mutable_param()->mutable_alloc_reten_prio()->set_pre_emtion_vul(
+      PRE_EMPTABLE);
+  p_qos->mutable_param()->mutable_alloc_reten_prio()->set_prio_level(1);
+  // set upf end point address
+  in_addr upfip;
+  char teidar[10];
+  memset(teidar, '\0', 10);
+  inet_aton(upf_ip.c_str(), &upfip);
+  upfip.s_addr = ntohl(upfip.s_addr);
+  for (int i = 3; i >= 0; i--) {
+    teidar[i] = (upfip.s_addr & 0x000000FF);
+    upfip.s_addr >>= 8;
+  }
+  // Let set UPF ip first
+  rsp->mutable_upf_endpoint()->set_end_ipv4_addr(teidar);
+  // Now UPF teid endpoint, first convert 4byte number to byte
+  memset(teidar, '\0', 10);
+  for (int i = 3; i >= 0; i--) {
+    teidar[i] = (upf_teid & 0x000000FF);
+    upf_teid >>= 8;
+  }
+  rsp->mutable_upf_endpoint()->set_teid(teidar);
   rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
   rsp_cmn->set_sm_session_state(config.common_context.sm_session_state());
   rsp_cmn->set_sm_session_version(config.common_context.sm_session_version());
@@ -472,7 +631,7 @@ void SessionStateEnforcer::handle_state_update_to_amf(
   // Send message to AMF gRPC client handler.
   amf_srv_client_->handle_notification_to_access(notif);
 }
-bool SessionStateEnforcer::static_rule_init() {
+bool SessionStateEnforcer::default_and_static_rule_init() {
   // Static PDR, FAR, QDR, URR and BAR mapping  and also define 1 PDR and FAR
   SetGroupPDR reqpdr1;
   Action Value   = FORW;
@@ -482,12 +641,12 @@ bool SessionStateEnforcer::static_rule_init() {
   reqpdr1.set_precedence(32);
   reqpdr1.set_pdr_version(1);
   reqpdr1.set_pdr_state(PdrState::INSTALL);
+  reqpdr1.mutable_pdi()->set_src_interface(ACCESS);
 
   reqpdr1.mutable_pdi()->set_ue_ip_adr("192.168.128.11");
   reqpdr1.mutable_pdi()->set_net_instance("uplink");
   reqpdr1.set_o_h_remo_desc(0);
   reqpdr1.mutable_set_gr_far()->add_far_action_to_apply(Value);
-  reqpdr1.mutable_set_gr_far()->set_far_id(count);
   reqpdr1.mutable_activate_flow_req()->mutable_request_origin()->set_type(
       RequestOriginType_OriginType_N4);
   // Add rule 1
@@ -501,18 +660,16 @@ bool SessionStateEnforcer::static_rule_init() {
   rule1.mutable_flow_list()->Add()->CopyFrom(fd1);
   reqpdr1.mutable_activate_flow_req()->mutable_dynamic_rules()->Add()->CopyFrom(
       rule1);
-  GlobalRuleList.insert_rule(1, reqpdr1);
+  GlobalRuleList.insert_rule(DEFAULT_UP_LINK_PDR_ID, reqpdr1);
   // PDR 2 details
   SetGroupPDR reqpdr2;
   reqpdr2.set_pdr_id(++count);
   reqpdr2.set_precedence(32);
   reqpdr2.set_pdr_version(1);
   reqpdr2.set_pdr_state(PdrState::INSTALL);
-  reqpdr2.mutable_pdi()->set_src_interface(1);
+  reqpdr2.mutable_pdi()->set_src_interface(CORE);
   reqpdr2.mutable_pdi()->set_ue_ip_adr("192.168.128.11");
   reqpdr2.mutable_set_gr_far()->add_far_action_to_apply(Value);
-  reqpdr2.mutable_set_gr_far()->set_far_id(2);
-  reqpdr2.mutable_set_gr_far()->set_far_id(count);
 
   reqpdr2.mutable_set_gr_far()
       ->mutable_fwd_parm()
@@ -537,53 +694,12 @@ bool SessionStateEnforcer::static_rule_init() {
   rule2.mutable_flow_list()->Add()->CopyFrom(fd2);
   reqpdr2.mutable_activate_flow_req()->mutable_dynamic_rules()->Add()->CopyFrom(
       rule2);
-  GlobalRuleList.insert_rule(2, reqpdr2);
-
-  // subscriber Id 1 to PDR 1 and FAR 1
-  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000001", 1));
-  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000001", 2));
-  pdr_map_.insert(std::pair<std::string, uint32_t>("IMSI001222333", 1));
-  pdr_map_.insert(std::pair<std::string, uint32_t>("IMSI001222333", 2));
-  reqpdr1.set_pdr_id(++count);
-  reqpdr1.mutable_set_gr_far()->set_far_id(count);
-  reqpdr1.mutable_pdi()->set_ue_ip_adr("192.168.128.12");
-  GlobalRuleList.insert_rule(3, reqpdr1);
-  reqpdr2.set_pdr_id(++count);
-  reqpdr2.mutable_set_gr_far()->set_far_id(count);
-  reqpdr2.mutable_pdi()->set_ue_ip_adr("192.168.128.12");
-  reqpdr2.mutable_set_gr_far()
-      ->mutable_fwd_parm()
-      ->mutable_outr_head_cr()
-      ->set_o_teid(200 + count);
-  GlobalRuleList.insert_rule(4, reqpdr2);
-  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000002", 3));
-  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000002", 4));
-  reqpdr1.set_pdr_id(++count);
-  reqpdr1.mutable_set_gr_far()->set_far_id(count);
-  reqpdr1.mutable_pdi()->set_ue_ip_adr("192.168.128.13");
-  GlobalRuleList.insert_rule(5, reqpdr1);
-  reqpdr2.set_pdr_id(++count);
-  reqpdr2.mutable_set_gr_far()->set_far_id(count);
-  reqpdr2.mutable_pdi()->set_ue_ip_adr("192.168.128.13");
-  reqpdr2.mutable_set_gr_far()
-      ->mutable_fwd_parm()
-      ->mutable_outr_head_cr()
-      ->set_o_teid(200 + count);
-  GlobalRuleList.insert_rule(6, reqpdr2);
-  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000003", 5));
-  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000003", 6));
-  reqpdr1.set_pdr_id(++count);
-  reqpdr1.mutable_set_gr_far()->set_far_id(count);
-  reqpdr1.mutable_pdi()->set_ue_ip_adr("192.168.128.14");
-  GlobalRuleList.insert_rule(7, reqpdr1);
-  reqpdr2.set_pdr_id(++count);
-  reqpdr2.mutable_set_gr_far()->set_far_id(count);
-  reqpdr2.mutable_pdi()->set_ue_ip_adr("192.168.128.14");
-  reqpdr2.mutable_set_gr_far()
-      ->mutable_fwd_parm()
-      ->mutable_outr_head_cr()
-      ->set_o_teid(200 + count);
-  GlobalRuleList.insert_rule(8, reqpdr2);
+  GlobalRuleList.insert_rule(DEFAULT_DOWN_LINK_PDR_ID, reqpdr2);
   return true;
+}
+
+void  SessionStateEnforcer::set_upf_node_addr(std::string addr) {
+    pipelined_client_->set_upf_n3_addr(addr);
+    MLOG(MINFO) << " UPF ip addr : " << addr;
 }
 }  // end namespace magma

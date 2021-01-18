@@ -19,7 +19,7 @@ MME :
     # When the limits will be reached, overload procedure will take place.
     MAXENB                                    = 8;                              # power of 2
     MAXUE                                     = 16;                             # power of 2
-    RELATIVE_CAPACITY                         = {{ mmeRelativeCapacity }};
+    RELATIVE_CAPACITY                         = 10;
 
     EMERGENCY_ATTACH_SUPPORTED                     = "no";
     UNAUTHENTICATED_IMSI_SUPPORTED                 = "no";
@@ -34,8 +34,6 @@ MME :
     MME_STATISTIC_TIMER                       = 10;
 
     USE_STATELESS = "{{ use_stateless }}";
-    USE_HA = "{{ use_ha }}";
-    ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
 
     INTERTASK_INTERFACE :
     {

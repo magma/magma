@@ -51,17 +51,6 @@ MATCHER_P(CheckStaticRulesNames, list_static_rules, "") {
   return true;
 }
 
-MATCHER_P(CheckTeids, comming_teids, "") {
-  Teids configured_teids = static_cast<Teids>(arg);
-
-  if ((configured_teids.agw_teid() == comming_teids.agw_teid()) &&
-      (configured_teids.enb_teid() == comming_teids.enb_teid())) {
-    return true;
-  }
-
-  return false;
-}
-
 MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
   auto req = static_cast<const UpdateSessionRequest>(arg);
   return req.updates().size() == chargingCount &&

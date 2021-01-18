@@ -37,9 +37,7 @@ namespace sctpd {
                  << "): " << status.error_message();                           \
   } while (0)
 
-int create_sctp_sock(const InitReq& req);
-int pull_peer_ipaddr(
-    const int sd, const uint32_t assoc_id, std::string& ran_cp_ipaddr);
+int create_sctp_sock(const InitReq &req);
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

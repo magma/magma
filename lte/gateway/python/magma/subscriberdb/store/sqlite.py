@@ -186,8 +186,8 @@ class SqliteStore(BaseStore):
                                   "VALUES (?, ?)", (sid, data_str))
         self._on_ready.resync(subscribers)
 
-    async def on_ready(self):
-        return await self._on_ready.event.wait()
+    def on_ready(self):
+        return self._on_ready.event.wait()
 
     def _update_apn(self, apn_config, apn_data):
         """

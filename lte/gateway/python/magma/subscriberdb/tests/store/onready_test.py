@@ -47,8 +47,8 @@ class OnReadyMixinTests(unittest.TestCase):
         self.assertEqual(self._store._persistent_store._on_ready.event.is_set(), False)
         self._add_subscriber('IMSI11111')
 
-        async def defer():
-            await self._store.on_ready()
+        def defer():
+            yield from self._store.on_ready()
         self.loop.run_until_complete(defer())
 
         self.assertEqual(self._store._on_ready.event.is_set(), True)
@@ -63,8 +63,8 @@ class OnReadyMixinTests(unittest.TestCase):
         self.assertEqual(self._store._persistent_store._on_ready.event.is_set(), False)
         self._store.resync([])
 
-        async def defer():
-            await self._store.on_ready()
+        def defer():
+            yield from self._store.on_ready()
         self.loop.run_until_complete(defer())
 
         self.assertEqual(self._store._on_ready.event.is_set(), True)
