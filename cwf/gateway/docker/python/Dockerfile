@@ -3,6 +3,9 @@
 # -----------------------------------------------------------------------------
 FROM ubuntu:focal AS builder
 
+# workaround to avoid interactive tzdata configurtaion
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
   apt-utils software-properties-common apt-transport-https
@@ -41,17 +44,14 @@ RUN make -C $MAGMA_ROOT/orc8r/gateway/python protos
 # -----------------------------------------------------------------------------
 FROM ubuntu:focal AS lte_gateway_python
 
-# workaround to avoid interactive tzdata configuration
-ARG DEBIAN_FRONTEND=noninteractive
-
 # Add the magma apt repo
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ bionic main" && \
-    apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-proposed restricted main multiverse universe"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ focal main" && \
+    apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
 
  # Install python3.8 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
@@ -72,7 +72,7 @@ RUN apt-get -y update && apt-get -y install \
     pkg-config \
     python-cffi \
     python3-pip \
-    python3.5-dev \
+    python3.8-dev \
     redis-server \
     iptables \
     git \
@@ -116,7 +116,7 @@ RUN python3.8 -m pip install --no-cache-dir \
     python-dateutil \
     jsonpickle
 
-COPY cwf/gateway/deploy/roles/ovs/files/nx_actions.py /usr/local/lib/python3.5/dist-packages/ryu/ofproto/
+COPY cwf/gateway/deploy/roles/ovs/files/nx_actions.py /usr/local/lib/python3.8/dist-packages/ryu/ofproto/
 
 # Temporary workaround to restore uplink bridge flows
 RUN mkdir -p /var/opt/magma/scripts
@@ -128,11 +128,12 @@ RUN git clone --depth 1 --single-branch --branch v2.12.0 https://github.com/open
 COPY cwf/gateway/deploy/roles/ovs/files/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch /tmp
 COPY cwf/gateway/deploy/roles/ovs/files/0002-ovs-Handle-spaces-in-ovs-arguments.patch /tmp
 COPY cwf/gateway/deploy/roles/ovs/files/0003-Add-pdp_start_epoch-custom-field-to-IPFIX-export.patch /tmp
-
+COPY cwf/gateway/deploy/roles/ovs/files//0004-ovsdb-idlc.in-dict-changes.patch /tmp
 WORKDIR ovs
 RUN git apply /tmp/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch
 RUN git apply /tmp/0002-ovs-Handle-spaces-in-ovs-arguments.patch
 RUN git apply /tmp/0003-Add-pdp_start_epoch-custom-field-to-IPFIX-export.patch
+RUN git apply /tmp/0004-ovsdb-idlc.in-dict-changes.patch
 RUN ./boot.sh
 RUN ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc
 RUN make
@@ -154,4 +155,12 @@ RUN mkdir -p /var/opt/magma/configs
 WORKDIR /
 
 # Copy the build artifacts.
-COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
+COPY --from=builder /build/python/gen /usr/local/lib/python3.8/dist-packages/
+
+# update aioh2 since there is no pushed package, but master is fixed
+RUN python3.8 -m pip install --force-reinstall git+https://github.com/URenko/aioh2.git
+
+# patching aioeventlet
+RUN mkdir /patches
+COPY lte/gateway/python/patches/aioeventlet.py38.patch /patches
+RUN patch -N -s -f /usr/local/lib/python3.8/dist-packages/aioeventlet.py < patches/aioeventlet.py38.patch
