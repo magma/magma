@@ -19,7 +19,7 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
   chmod -R a+Xr /usr/include/google && \
   rm -rf protoc3.zip protoc3
 
-# Install python3.5 since it's not native on bionic
+# Install python3.8 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
 
@@ -63,22 +63,24 @@ RUN make -C $MAGMA_ROOT/orc8r/gateway/python swagger
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS gateway_python
+FROM ubuntu:focal AS gateway_python
 
 # Add the magma apt repo
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https curl
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
+# TODO: change repo to focal once there will be such
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ bionic main"
 RUN curl -L http://packages.fluentbit.io/fluentbit.key > /tmp/fluentbit.key
 RUN apt-key add /tmp/fluentbit.key && \
-    apt-add-repository "deb https://packages.fluentbit.io/ubuntu/bionic bionic main"
+    apt-add-repository "deb https://packages.fluentbit.io/ubuntu/focal focal main"
 
-# Install python3.5 since it's not native on focal
+# Install python3.8 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
 
+# TODO: magma-nghttpx=1.31.1-1 requires upgrade to ff.
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
   iproute2 \
@@ -86,7 +88,7 @@ RUN apt-get -y update && apt-get -y install \
   libev4 \
   libffi-dev \
   libjansson4 \
-  libjemalloc1 \
+  libjemalloc2 \
   libssl-dev \
   libsystemd-dev \
   magma-nghttpx=1.31.1-1 \
@@ -117,10 +119,7 @@ COPY orc8r/gateway/python /tmp/orc8r
 RUN python3.8 -m pip install --no-cache-dir /tmp/orc8r
 
 # update aioh2 since there is no pushed package
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-RUN python3.8 get-pip.py
 RUN pip3 install --force-reinstall git+https://github.com/URenko/aioh2.git
-
 
 # Copy the build artifacts.
 COPY --from=builder /build/python/gen /usr/local/lib/python3.8/dist-packages/
