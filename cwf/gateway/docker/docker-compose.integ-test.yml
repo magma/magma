@@ -109,7 +109,7 @@ services:
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/ocs -logtostderr=true -v=2
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
-   
+
   pcrf2:
     <<: *feggoservice
     container_name: pcrf2
