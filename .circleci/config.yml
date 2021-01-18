@@ -631,6 +631,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - magma_integ_test:
           stack: cwf
           test: 'True'
@@ -711,6 +713,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
+      - build/determinator:
+          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'True'
@@ -1025,7 +1029,8 @@ workflows:
   agw:
     jobs:
       - lte-test
-      - lte-integ-test
+      - lte-integ-test:
+          <<: *master_and_develop
       - lte-agw-deploy:
           <<: *only_master
           requires:
@@ -1041,8 +1046,10 @@ workflows:
   cwag:
     jobs:
       - cwag-precommit
-      - cwf-integ-test
-      - xwfm-test
+      - cwf-integ-test:
+          <<: *master_and_develop
+      - xwfm-test:
+          <<: *master_and_develop
       - cwag-deploy:
           <<: *only_master
           requires:
@@ -1079,14 +1086,14 @@ workflows:
           requires:
             - cwf-operator-precommit
 
-  # hourly_xwfm:
-  #   triggers:
-  #     - schedule:
-  #         cron: "0 * * * *"
-  #         <<: *only_master
-  #   jobs:
-  #     - xwfm-test:
-  #         notify_magma_ci: false
+  hourly_xwfm:
+    triggers:
+      - schedule:
+          cron: "0 * * * *"
+          <<: *only_master
+    jobs:
+      - xwfm-test:
+          notify_magma_ci: false
 
   nms:
     jobs:
