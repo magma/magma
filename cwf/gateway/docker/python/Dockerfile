@@ -2,9 +2,12 @@
 # Builder image for Magma proto files
 # -----------------------------------------------------------------------------
 FROM ubuntu:focal AS builder
+<<<<<<< HEAD
 
 # workaround to avoid interactive tzdata configurtaion
 ARG DEBIAN_FRONTEND=noninteractive
+=======
+>>>>>>> [feg/gw] upgrade dockers to focal with py3.8
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
