@@ -15,7 +15,7 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
   chmod -R a+Xr /usr/include/google && \
   rm -rf protoc3.zip protoc3
 
-# Install python3.8 since it's not native on bionic
+# Install python3.8 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
 
@@ -43,14 +43,13 @@ RUN apt-get update && \
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main"
 
-# Install python3.8 since it's not native on bionic
-#RUN apt-add-repository "ppa:deadsnakes/ppa"
-#RUN apt-get -y update && apt-get -y install python3.8
+# Install python3.8 since it's not native on focal
+RUN apt-add-repository "ppa:deadsnakes/ppa"
+RUN apt-get -y update && apt-get -y install python3.8
 
 # Install the runtime deps from apt.
-# TODO: magma-nghttpx=1.31.1-1 requires upgrade to ff.
 RUN apt-get -y update && apt-get -y install \
   curl \
   fabric \
