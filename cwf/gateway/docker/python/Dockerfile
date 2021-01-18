@@ -6,9 +6,6 @@ FROM ubuntu:focal AS builder
 # workaround to avoid interactive tzdata configurtaion
 ARG DEBIAN_FRONTEND=noninteractive
 
-# workaround to avoid interactive tzdata configurtaion
-ARG DEBIAN_FRONTEND=noninteractive
-
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
   apt-utils software-properties-common apt-transport-https
