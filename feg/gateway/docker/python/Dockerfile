@@ -1,7 +1,10 @@
 # -----------------------------------------------------------------------------
 # Builder image to generate proto files
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS builder
+FROM ubuntu:focal AS builder
+
+# workaround to avoid interactive tzdata configuration
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
@@ -18,7 +21,7 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
 
 # Install python3.5 since it's not native on bionic
 RUN apt-add-repository "ppa:deadsnakes/ppa"
-RUN apt-get -y update && apt-get -y install python3.5
+RUN apt-get -y update && apt-get -y install python3.8
 
 ENV MAGMA_ROOT /magma
 ENV PYTHON_BUILD /build/python
@@ -72,9 +75,9 @@ RUN curl -L http://packages.fluentbit.io/fluentbit.key > /tmp/fluentbit.key
 RUN apt-key add /tmp/fluentbit.key && \
     apt-add-repository "deb https://packages.fluentbit.io/ubuntu/bionic bionic main"
 
-# Install python3.5 since it's not native on bionic
+# Install python3.5 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
-RUN apt-get -y update && apt-get -y install python3.5
+RUN apt-get -y update && apt-get -y install python3.8
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
@@ -93,7 +96,7 @@ RUN apt-get -y update && apt-get -y install \
   pkg-config \
   python-cffi \
   python3-pip \
-  python3.5-dev \
+  python3.8-dev \
   redis-server \
   git \
   netcat \
@@ -111,10 +114,16 @@ RUN chmod 755 /usr/bin/docker-compose
 
 # Install python code.
 COPY orc8r/gateway/python /tmp/orc8r
-RUN python3.5 -m pip install --no-cache-dir /tmp/orc8r
+RUN python3.8 -m pip install --no-cache-dir /tmp/orc8r
+
+# update aioh2 since there is no pushed package
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN python3.8 get-pip.py
+RUN pip3 install --force-reinstall git+https://github.com/URenko/aioh2.git
+
 
 # Copy the build artifacts.
-COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
+COPY --from=builder /build/python/gen /usr/local/lib/python3.8/dist-packages/
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
