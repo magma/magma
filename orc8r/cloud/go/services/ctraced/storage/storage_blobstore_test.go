@@ -144,7 +144,7 @@ func TestCtracedBlobstoreStorage_StoreCallTrace(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("CreateOrUpdate", placeholderNetworkID, []blobstore.Blob{blob}).
+	blobStoreMock.On("CreateOrUpdate", placeholderNetworkID, blobstore.Blobs{blob}).
 		Return(nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = cstorage.NewCtracedBlobstore(blobFactMock)

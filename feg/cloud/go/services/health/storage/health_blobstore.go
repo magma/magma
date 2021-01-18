@@ -76,7 +76,7 @@ func (h *healthBlobstore) UpdateHealth(networkID string, gatewayID string, healt
 	if err != nil {
 		return err
 	}
-	err = store.CreateOrUpdate(networkID, []blobstore.Blob{healthBlob})
+	err = store.CreateOrUpdate(networkID, blobstore.Blobs{healthBlob})
 	if err != nil {
 		store.Rollback()
 		return err
@@ -95,7 +95,7 @@ func (h *healthBlobstore) UpdateClusterState(networkID string, clusterID string,
 	if err != nil {
 		return err
 	}
-	err = store.CreateOrUpdate(networkID, []blobstore.Blob{clusterBlob})
+	err = store.CreateOrUpdate(networkID, blobstore.Blobs{clusterBlob})
 	if err != nil {
 		store.Rollback()
 		return err
@@ -149,5 +149,5 @@ func (h *healthBlobstore) initializeCluster(store blobstore.TransactionalBlobSto
 	if err != nil {
 		return err
 	}
-	return store.CreateOrUpdate(networkID, []blobstore.Blob{clusterBlob})
+	return store.CreateOrUpdate(networkID, blobstore.Blobs{clusterBlob})
 }

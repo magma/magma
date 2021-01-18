@@ -13,24 +13,6 @@
  * @flow strict-local
  * @format
  */
-import type {EnodebInfo} from '../lte/EnodebUtils';
-import type {
-  apn,
-  feg_lte_network,
-  feg_network,
-  lte_gateway,
-  lte_network,
-  mutable_subscriber,
-  network_id,
-  network_ran_configs,
-  network_type,
-  policy_qos_profile,
-  policy_rule,
-  rating_group,
-  subscriber_id,
-  tier,
-} from '@fbcnms/magma-api';
-
 import * as React from 'react';
 import ApnContext from '../context/ApnContext';
 import EnodebContext from '../context/EnodebContext';
@@ -43,6 +25,28 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkContext from '../../components/context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
+import TraceContext from '../context/TraceContext';
+import type {EnodebInfo} from '../lte/EnodebUtils';
+import type {EnodebState} from '../context/EnodebContext';
+import type {
+  apn,
+  call_trace,
+  call_trace_config,
+  feg_lte_network,
+  feg_network,
+  lte_gateway,
+  lte_network,
+  mutable_call_trace,
+  mutable_subscriber,
+  network_id,
+  network_ran_configs,
+  network_type,
+  policy_qos_profile,
+  policy_rule,
+  rating_group,
+  subscriber_id,
+  tier,
+} from '@fbcnms/magma-api';
 
 import {FEG_LTE, LTE} from '@fbcnms/types/network';
 import {
@@ -53,6 +57,7 @@ import {
   SetTierState,
   UpdateGateway,
 } from '../../state/lte/EquipmentState';
+import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
 import {
   SetPolicyState,
@@ -106,13 +111,14 @@ export function GatewayContextProvider(props: Props) {
     <GatewayContext.Provider
       value={{
         state: lteGateways,
-        setState: (key, value?) => {
+        setState: (key, value?, newState?) => {
           return SetGatewayState({
             lteGateways,
             setLteGateways,
             networkId,
             key,
             value,
+            newState,
           });
         },
         updateGateway: props =>
@@ -129,7 +135,6 @@ export function EnodebContextProvider(props: Props) {
   const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
-
   useEffect(() => {
     const fetchState = async () => {
       try {
@@ -161,12 +166,66 @@ export function EnodebContextProvider(props: Props) {
       value={{
         state: {enbInfo},
         lteRanConfigs: lteRanConfigs,
-        setState: (key, value?) =>
-          SetEnodebState({enbInfo, setEnbInfo, networkId, key, value}),
+        setState: (key: string, value?, newState?: EnodebState) => {
+          return SetEnodebState({
+            enbInfo,
+            setEnbInfo,
+            networkId,
+            key,
+            value,
+            newState,
+          });
+        },
         setLteRanConfigs: lteRanConfigs => setLteRanConfigs(lteRanConfigs),
       }}>
       {props.children}
     </EnodebContext.Provider>
+  );
+}
+
+export function TraceContextProvider(props: Props) {
+  const {networkId} = props;
+  const [traceMap, setTraceMap] = useState<{[string]: call_trace}>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  useEffect(() => {
+    const fetchLteState = async () => {
+      if (networkId == null) {
+        return;
+      }
+      await InitTraceState({
+        networkId,
+        setTraceMap,
+        enqueueSnackbar,
+      }),
+        setIsLoading(false);
+    };
+    fetchLteState();
+  }, [networkId, enqueueSnackbar]);
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
+  return (
+    <TraceContext.Provider
+      value={{
+        state: traceMap,
+        setState: (
+          key: string,
+          value?: mutable_call_trace | call_trace_config,
+        ) =>
+          SetCallTraceState({
+            networkId,
+            callTraces: traceMap,
+            setCallTraces: setTraceMap,
+            key,
+            value,
+          }),
+      }}>
+      {props.children}
+    </TraceContext.Provider>
   );
 }
 
@@ -177,7 +236,6 @@ export function SubscriberContextProvider(props: Props) {
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
-
   useEffect(() => {
     const fetchLteState = async () => {
       if (networkId == null) {
@@ -206,13 +264,15 @@ export function SubscriberContextProvider(props: Props) {
         metrics: subscriberMetrics,
         sessionState: sessionState,
         gwSubscriberMap: getSubscriberGatewayMap(subscriberMap),
-        setState: (key: subscriber_id, value?: mutable_subscriber) =>
+        setState: (key: subscriber_id, value?: mutable_subscriber, newState?) =>
           setSubscriberState({
             networkId,
             subscriberMap,
             setSubscriberMap,
+            setSessionState,
             key,
             value,
+            newState,
           }),
       }}>
       {props.children}
@@ -613,22 +673,16 @@ export function LteContextProvider(props: Props) {
   }
 
   return (
-    <LteNetworkContextProvider networkId={networkId} networkType={networkType}>
-      <PolicyProvider networkId={networkId} networkType={networkType}>
-        <ApnProvider networkId={networkId} networkType={networkType}>
-          <SubscriberContextProvider
-            networkId={networkId}
-            networkType={networkType}>
-            <GatewayTierContextProvider
-              networkId={networkId}
-              networkType={networkType}>
-              <EnodebContextProvider
-                networkId={networkId}
-                networkType={networkType}>
-                <GatewayContextProvider
-                  networkId={networkId}
-                  networkType={networkType}>
-                  {props.children}
+    <LteNetworkContextProvider {...{networkId, networkType}}>
+      <PolicyProvider {...{networkId, networkType}}>
+        <ApnProvider {...{networkId, networkType}}>
+          <SubscriberContextProvider {...{networkId, networkType}}>
+            <GatewayTierContextProvider {...{networkId, networkType}}>
+              <EnodebContextProvider {...{networkId, networkType}}>
+                <GatewayContextProvider {...{networkId, networkType}}>
+                  <TraceContextProvider {...{networkId, networkType}}>
+                    {props.children}
+                  </TraceContextProvider>
                 </GatewayContextProvider>
               </EnodebContextProvider>
             </GatewayTierContextProvider>

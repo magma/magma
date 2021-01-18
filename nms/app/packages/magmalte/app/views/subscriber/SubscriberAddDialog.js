@@ -292,7 +292,6 @@ export function SubscriberEditDialog(props: DialogProps) {
       ? base64ToHex(subscriberState.lte.auth_opc)
       : '',
   );
-
   const [subscriberStaticIPRows, setSubscriberStaticIPRows] = useState<
     Array<subscriberStaticIpsRowType>,
   >(
@@ -384,7 +383,6 @@ export function SubscriberEditDialog(props: DialogProps) {
       subscriberStaticIPRows.forEach(
         apn => (staticIps[apn.apnName] = apn.staticIp),
       );
-
       await ctx.setState?.(subscriberState.id, {
         ...mutableSubscriber,
         static_ips: staticIps,

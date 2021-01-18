@@ -278,6 +278,11 @@ networks.forEach(network => {
       res.status(200).jsonp(db['lte']['enodebs']);
     }
   });
+  server.get(`/magma/v1/networks/${network}/tracing`, (req, res) => {
+    if (req.method === 'GET') {
+      res.status(200).jsonp([]);
+    }
+  });
   server.get(
     `/magma/v1/lte/{network}/enodebs/12020000051696P0013/state`,
     (req, res) => {

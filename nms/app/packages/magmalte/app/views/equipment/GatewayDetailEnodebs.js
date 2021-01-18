@@ -29,6 +29,7 @@ type EnodebRowType = {
   name: string,
   id: string,
   health: string,
+  mmeConnected: string,
 };
 
 export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
@@ -49,9 +50,13 @@ export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
   const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
     (serialNum: string) => {
       const enbInf = enbInfo[serialNum];
+      const isEnbManaged = enbInf.enb?.enodeb_config?.config_type === 'MANAGED';
       return {
-        health: isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
-        ipAddress: enbInf.enb_state.ip_address ?? 'Not Available',
+        health: isEnbManaged ? (isEnodebHealthy(enbInf) ? 'Good' : 'Bad') : '-',
+        mmeConnected: enbInf.enb_state?.mme_connected
+          ? 'Connected'
+          : 'Disconnected',
+        ipAddress: enbInf.enb_state.ip_address ?? '-',
         name: enbInf.enb.name,
         id: serialNum,
       };
@@ -84,6 +89,7 @@ export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
           ),
         },
         {title: 'Health', field: 'health'},
+        {title: 'MME', field: 'mmeConnected'},
         {title: 'IP Address', field: 'ipAddress'},
       ]}
       handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}

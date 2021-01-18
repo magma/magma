@@ -45,7 +45,7 @@ func (srv *deviceServicer) RegisterDevices(ctx context.Context, req *protos.Regi
 	defer store.Rollback()
 
 	blobs := protos.EntitiesToBlobs(req.GetEntities())
-	existingKeys, err := store.GetExistingKeys(blobs.GetKeys(), blobstore.SearchFilter{})
+	existingKeys, err := store.GetExistingKeys(blobs.Keys(), blobstore.SearchFilter{})
 	if err != nil {
 		return nil, err
 	}
