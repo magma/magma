@@ -106,31 +106,36 @@ func (c *collectorServicer) filterResult(result *protos.CalculationResult) bool 
 	gatewayID, gatewayLabelPresent := result.Labels[metrics.GatewayLabelName]
 
 	numUsers := 0
+	minUserVerificationScope := "Deployment Wide"
 	if networkLabelPresent && gatewayLabelPresent {
 		numUsers = c.userStateManager.GetTotalUsersInGateway(networkID, gatewayID)
+		minUserVerificationScope = "Site Wide"
 	} else if networkLabelPresent {
 		numUsers = c.userStateManager.GetTotalUsersInNetwork(networkID)
+		minUserVerificationScope = "Network Wide"
 	} else {
 		numUsers = c.userStateManager.GetTotalUsers()
 	}
 
 	if numUsers > analyticsConfig.MinUserThreshold {
 		glog.V(2).Infof("Metric(%s) network label(%s) gateway label(%s) can "+
-			"be exported numUsers(%d) greater than minUserThreshold(%d)\n",
+			"be exported numUsers(%d) in the %s greater than minUserThreshold(%d)",
 			result.GetMetricName(),
 			networkID,
 			gatewayID,
 			numUsers,
+			minUserVerificationScope,
 			analyticsConfig.MinUserThreshold)
 		return true
 	}
 	glog.V(1).Infof(
 		"Metric(%s) network label(%s) gateway label(%s) dropped, active "+
-			"users(%d) below user threshold (%d)\n",
+			"users(%d) in the %s below user threshold (%d)\n",
 		result.GetMetricName(),
 		networkID,
 		gatewayID,
 		numUsers,
+		minUserVerificationScope,
 		analyticsConfig.MinUserThreshold)
 	return false
 }

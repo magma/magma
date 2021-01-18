@@ -51,7 +51,7 @@ func (c *ctracedBlobStore) StoreCallTrace(networkID string, callTraceID string, 
 
 	err = store.CreateOrUpdate(
 		networkID,
-		[]blobstore.Blob{
+		blobstore.Blobs{
 			blobstore.Blob{Type: CtracedBlobType, Key: callTraceID, Value: data, Version: 0},
 		},
 	)

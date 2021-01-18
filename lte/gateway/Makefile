@@ -58,6 +58,9 @@ OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABL
 
 endif
 
+# debian stretch build uses older cc not recognizing options needed on ubuntu focal
+COMMON_FLAGS := $(shell grep -q stretch /etc/os-release || echo -DCMAKE_C_FLAGS='"-Wno-error=duplicate-decl-specifier -Wno-error=maybe-uninitialized -Wno-error=address-of-packed-member"')
+
 $(info OAI_FLAGS $(OAI_FLAGS))
 
 FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
@@ -131,10 +134,10 @@ build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
 build_common: ## Build shared libraries
-	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
+	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
 build_oai: format_oai build_common ## Build OAI
-	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
+	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS) $(COMMON_FLAGS))
 
 build_sctpd: build_common ## Build SCTPD
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
@@ -151,7 +154,7 @@ build_envoy_controller: ## Build envoy controller
 # Catch all for c services that don't have custom flags
 # This works with build_dpi
 build_%:
-	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, )
+	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
 
 scan_oai: ## Scan OAI
 	$(call run_scanbuild, $(C_BUILD)/scan/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))

@@ -201,7 +201,9 @@ pipeline {
                 """
               }
             }
-            archiveArtifacts("${test_folder}/*")
+            timeout(time: 10, unit: 'MINUTES') {
+              archiveArtifacts("${test_folder}/*")
+            }
           }
         }
       }

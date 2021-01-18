@@ -39,7 +39,7 @@ func DeviceIDsToTypeAndKey(deviceIDs []*DeviceID) []storage.TypeAndKey {
 }
 
 // BlobsToEntityByDeviceID maps a list of blobstore.Blob to map[deviceID]PhysicalEntity
-func BlobsToEntityByDeviceID(entities []blobstore.Blob) map[string]*PhysicalEntity {
+func BlobsToEntityByDeviceID(entities blobstore.Blobs) map[string]*PhysicalEntity {
 	ret := map[string]*PhysicalEntity{}
 	for _, blob := range entities {
 		ret[blob.Key] = blobToEntity(blob)

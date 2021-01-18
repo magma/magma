@@ -122,8 +122,8 @@ func (d *directorydBlobstore) MapSessionIDsToIMSIs(networkID string, sessionIDTo
 }
 
 // convertKVToBlobs deterministically converts a string-string map to blobstore blobs.
-func convertKVToBlobs(typ string, kv map[string]string) []blobstore.Blob {
-	var blobs []blobstore.Blob
+func convertKVToBlobs(typ string, kv map[string]string) blobstore.Blobs {
+	var blobs blobstore.Blobs
 	for k, v := range kv {
 		blobs = append(blobs, blobstore.Blob{Type: typ, Key: k, Value: []byte(v)})
 	}

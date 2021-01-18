@@ -5387,6 +5387,9 @@ paths:
       responses:
         "200":
           description: Show tracing status
+          headers:
+            Content-Disposition:
+              type: string
           schema:
             format: binary
             type: file
