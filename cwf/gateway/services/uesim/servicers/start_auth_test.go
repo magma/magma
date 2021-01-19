@@ -31,7 +31,7 @@ const (
 )
 
 func TestCreateEAPIdentityRequest(t *testing.T) {
-	server, _, err := setupTest()
+	server, _, err := setupTest(t)
 	assert.NoError(t, err)
 
 	radiusP, err := server.CreateEAPIdentityRequest(Imsi, CalledStationID2)
