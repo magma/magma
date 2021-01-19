@@ -14,6 +14,7 @@
  * @format
  */
 import 'jest-dom/extend-expect';
+import * as hooks from '../../../components/context/RefreshContext';
 
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';
@@ -272,6 +273,10 @@ describe('<SubscriberDashboard />', () => {
       gwSubscriberMap: {},
       sessionState: sessions,
     };
+
+    jest
+      .spyOn(hooks, 'useRefreshingContext')
+      .mockImplementation(() => subscriberCtx);
 
     return (
       <MemoryRouter

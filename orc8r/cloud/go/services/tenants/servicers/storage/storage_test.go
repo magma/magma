@@ -43,12 +43,12 @@ func setupTestStore() (*mocks.TransactionalBlobStorage, Store) {
 
 func TestBlobstoreStore_CreateTenant(t *testing.T) {
 	txStore, s := setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, []blobstore.Blob{sampleTenant0Blob}).Return(nil)
+	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(nil)
 	err := s.CreateTenant(0, sampleTenant0)
 	assert.NoError(t, err)
 
 	txStore, s = setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, []blobstore.Blob{sampleTenant0Blob}).Return(errors.New("error"))
+	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(errors.New("error"))
 	err = s.CreateTenant(0, sampleTenant0)
 	assert.EqualError(t, err, "error")
 }
@@ -78,7 +78,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 			Type: tenants.TenantInfoType,
 			Key:  "1",
 		},
-	}).Return([]blobstore.Blob{sampleTenant0Blob, sampleTenant1Blob}, nil)
+	}).Return(blobstore.Blobs{sampleTenant0Blob, sampleTenant1Blob}, nil)
 
 	retTenants, err := s.GetAllTenants()
 	assert.NoError(t, err)
@@ -101,7 +101,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 			Type: tenants.TenantInfoType,
 			Key:  "0",
 		},
-	}).Return([]blobstore.Blob{}, errors.New("error"))
+	}).Return(blobstore.Blobs{}, errors.New("error"))
 	retTenants, err = s.GetAllTenants()
 	assert.EqualError(t, err, "error")
 
@@ -113,7 +113,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 			Type: tenants.TenantInfoType,
 			Key:  "0",
 		},
-	}).Return([]blobstore.Blob{invalidBlob}, nil)
+	}).Return(blobstore.Blobs{invalidBlob}, nil)
 	retTenants, err = s.GetAllTenants()
 	assert.EqualError(t, err, `non-integer key: strconv.ParseInt: parsing "word": invalid syntax`)
 
@@ -121,12 +121,12 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 
 func TestBlobstoreStore_SetTenant(t *testing.T) {
 	txStore, s := setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, []blobstore.Blob{sampleTenant0Blob}).Return(nil)
+	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(nil)
 	err := s.SetTenant(0, sampleTenant0)
 	assert.NoError(t, err)
 
 	txStore, s = setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, []blobstore.Blob{sampleTenant0Blob}).Return(errors.New("error"))
+	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(errors.New("error"))
 	err = s.SetTenant(0, sampleTenant0)
 	assert.EqualError(t, err, "error")
 }
