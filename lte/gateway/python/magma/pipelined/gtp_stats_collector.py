@@ -80,9 +80,9 @@ class GTPStatsCollector(Job):
         for r in list(dump_stats_results)[0].out:
             if GTP_IP_INTERFACE_PREFIX in r.Interface or \
                     r.Interface == GTP_INTERFACE_PREFIX:
-                GTP_PORT_USER_PLANE_DL_BYTES.labels(r.remote_ip).inc(
+                GTP_PORT_USER_PLANE_DL_BYTES.labels(r.remote_ip).set(
                     float(r.rx_bytes))
-                GTP_PORT_USER_PLANE_UL_BYTES.labels(r.remote_ip).inc(
+                GTP_PORT_USER_PLANE_UL_BYTES.labels(r.remote_ip).set(
                     float(r.tx_bytes))
 
 
