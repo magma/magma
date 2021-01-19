@@ -84,6 +84,11 @@ func TestBuilder_Build(t *testing.T) {
 			RequestFailureThreshold: 0.50,
 			MinimumRequestThreshold: 1,
 		},
+		"s8_proxy": &feg_mconfig.S8Config{
+			LogLevel:     1,
+			LocalAddress: "10.0.0.1",
+			PgwAddress:   "10.0.0.2",
+		},
 		"hss": &feg_mconfig.HSSConfig{
 			Server: &feg_mconfig.DiamServerConfig{
 				Protocol:  "tcp",
@@ -314,6 +319,10 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Realm:            "magma.com",
 		},
 		PlmnIds: []string{"123456"},
+	},
+	S8: &models.S8{
+		LocalAddress: "10.0.0.1",
+		PgwAddress:   "10.0.0.2",
 	},
 	Gx: &models.Gx{
 		DisableGx: swag.Bool(true),
