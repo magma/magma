@@ -34,7 +34,6 @@ import (
 func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
-	var blobHelpersMock *mocks.DefaultMethods
 	someErr := errors.New("generic error")
 
 	ids := []*protos.Identity{
@@ -71,8 +70,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 		{Type: astorage.AccessdDefaultType, Key: idHashes[0], Value: marshaledACL0},
 		{Type: astorage.AccessdDefaultType, Key: idHashes[1], Value: marshaledACL1},
 	}
-	// TO:DO What's a better name?
-	testStr := "placeholder_network"
+	placeholderNetworkID := "placeholder_network"
+	searchResult := map[string]blobstore.Blobs{placeholderNetworkID: blobs}
 
 	// Fail to start transaction
 	blobFactMock = &mocks.BlobStorageFactory{}
@@ -88,38 +87,30 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	// store.ListKeys fails
 	blobFactMock = &mocks.BlobStorageFactory{}
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
-	blobHelpersMock = &mocks.DefaultMethods{}
 
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobHelpersMock.On("ListKeys", blobStoreMock, mock.Anything, astorage.AccessdDefaultType).
-		Return([]string{}, someErr).Once()
 	blobStoreMock.On("Search",
-		blobstore.CreateSearchFilter(&testStr, []string{astorage.AccessdDefaultType}, nil, nil),
+		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
-	).Return(map[string][]blobstore.Blob{}, someErr)
+	).Return(map[string]blobstore.Blobs{}, someErr)
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	_, err = store.ListAllIdentity()
 	assert.Error(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
-	blobHelpersMock.AssertExpectations(t)
 
 	// store.ListKeys succeeds with empty return
 	blobFactMock = &mocks.BlobStorageFactory{}
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
-	blobHelpersMock = &mocks.DefaultMethods{}
 
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobHelpersMock.On("ListKeys", blobStoreMock, mock.Anything, astorage.AccessdDefaultType).Return([]string{}, nil).Once()
 	blobStoreMock.On("Search",
-		blobstore.CreateSearchFilter(&testStr, []string{astorage.AccessdDefaultType}, nil, nil),
+		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
-	).Return(map[string][]blobstore.Blob{}, nil)
-	blobStoreMock.On("GetMany", mock.Anything, []storage.TypeAndKey{}).
-		Return([]blobstore.Blob{}, nil).Once()
+	).Return(map[string]blobstore.Blobs{}, nil)
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -128,40 +119,34 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	assert.Empty(t, idsRecvd)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
-	blobHelpersMock.AssertExpectations(t)
 
 	// store.GetMany fails
 	blobFactMock = &mocks.BlobStorageFactory{}
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
-	blobHelpersMock = &mocks.DefaultMethods{}
 
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobHelpersMock.On("ListKeys", blobStoreMock, mock.Anything, astorage.AccessdDefaultType).Return(idHashes, nil).Once()
 	blobStoreMock.On("Search",
-		blobstore.CreateSearchFilter(&testStr, []string{astorage.AccessdDefaultType}, nil, nil),
+		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
-	).Return(map[string][]blobstore.Blob{}, nil)
-	blobStoreMock.On("GetMany", mock.Anything, tks).Return([]blobstore.Blob{}, someErr).Once()
+	).Return(searchResult, nil)
+	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	_, err = store.ListAllIdentity()
 	assert.Error(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
-	blobHelpersMock.AssertExpectations(t)
 
 	// Success
 	blobFactMock = &mocks.BlobStorageFactory{}
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
-	blobHelpersMock = &mocks.DefaultMethods{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobHelpersMock.On("ListKeys", blobStoreMock, mock.Anything, astorage.AccessdDefaultType).Return(idHashes, nil).Once()
 	blobStoreMock.On("Search",
-		blobstore.CreateSearchFilter(&testStr, []string{astorage.AccessdDefaultType}, nil, nil),
+		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
-	).Return(map[string][]blobstore.Blob{}, nil)
+	).Return(searchResult, nil)
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobs, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
@@ -174,7 +159,6 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	}
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
-	blobHelpersMock.AssertExpectations(t)
 }
 
 func TestAccessdBlobstore_GetACL(t *testing.T) {

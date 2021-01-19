@@ -30,14 +30,16 @@ import (
 func TestSqlBlobStorage_ListKeys(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT \"key\" FROM network_table").
+			mock.ExpectQuery("SELECT network_id, type, \"key\", version FROM network_table").
 				WithArgs("network", "type").
 				WillReturnRows(
-					sqlmock.NewRows([]string{"key"}).AddRow("key1").AddRow("key2"),
+					sqlmock.NewRows([]string{"network_id", "type", "key", "version"}).
+						AddRow("network", "t1", "key1", 42).
+						AddRow("network", "t2", "key2", 43),
 				)
 		},
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return blobstore.Helpers.ListKeys(store, "network", "type")
+			return blobstore.ListKeys(store, "network", "type")
 		},
 		expectedError:  nil,
 		expectedResult: []string{"key1", "key2"},
@@ -45,14 +47,14 @@ func TestSqlBlobStorage_ListKeys(t *testing.T) {
 
 	queryError := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT \"key\" FROM network_table").
+			mock.ExpectQuery("SELECT network_id, type, \"key\", version FROM network_table").
 				WithArgs("network", "type").
 				WillReturnError(errors.New("mock query error"))
 		},
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return blobstore.Helpers.ListKeys(store,"network", "type")
+			return blobstore.ListKeys(store, "network", "type")
 		},
-		expectedError:  errors.New("mock query error"),
+		expectedError:  errors.New("failed to query DB: mock query error"),
 		expectedResult: nil,
 	}
 

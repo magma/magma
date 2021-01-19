@@ -48,7 +48,7 @@ func TestMigration(t *testing.T) {
 	require.Len(t, many, 2)
 	require.Equal(t, blobs[:2], many)
 
-	keys, err := blobstore.Helpers.ListKeys(storev1, "id1", "type1")
+	keys, err := blobstore.ListKeys(storev1, "id1", "type1")
 	require.NoError(t, err)
 	require.Equal(t, []string{"key1", "key2"}, keys)
 
@@ -78,11 +78,11 @@ func TestMigration(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, blobs[1], blob)
 
-	keys, err = blobstore.Helpers.ListKeys(storev2, "id1", "type1")
+	keys, err = blobstore.ListKeys(storev2, "id1", "type1")
 	require.NoError(t, err)
 	require.Equal(t, []string{"key1", "key2"}, keys)
 
-	keys, err = blobstore.Helpers.ListKeys(storev2, "id1", "type2")
+	keys, err = blobstore.ListKeys(storev2, "id1", "type2")
 	require.NoError(t, err)
 	require.Equal(t, []string{"key2"}, keys)
 
