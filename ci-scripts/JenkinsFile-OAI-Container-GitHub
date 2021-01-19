@@ -33,6 +33,11 @@ def cn_ci_resource = params.MagmaDockerResources
 // This base image is potentially subject to changes over time.
 def MAGMA_BASE_IMAGE_TAG = params.MagmaBaseImageTag
 
+// Name of the DsTester child pipeline
+def dsTesterPipelineName = params.dsTesterPipelineName
+// Name of the DsTester child pipeline HTML report file
+def dsTesterPipelineReport = params.dsTesterPipelineReport
+
 pipeline {
   agent {
     label nodeExecutor
@@ -104,6 +109,7 @@ pipeline {
           }
           // "ci-base-image" is the tag used in the docker file.
           sh('docker image tag magma-dev-mme:' + MAGMA_BASE_IMAGE_TAG + ' magma-dev-mme:ci-base-image')
+
           // Removing the .dockerignore file (troublesome for us)
           sh('mv .dockerignore .fockerignore')
           // Clean any residual images
@@ -116,7 +122,7 @@ pipeline {
           // Create the image to use
           // Once again, we are not using the full dockerfile from scratch: too long.
           sh('docker build --no-cache --target magma-mme --tag magma-mme:ci-tmp --file ci-scripts/docker/Dockerfile.mme.ci.ubuntu18 . > archives/build_magma_mme.log 2>&1')
-          sh('docker image prune --force')
+          sh('docker image prune --force > /dev/null 2>&1')
           sh('docker image ls >> archives/build_magma_mme.log')
         }
       }
@@ -142,6 +148,38 @@ pipeline {
         }
       }
     }
+    stage ("Test Image in Unified DsTester Framework") {
+      steps {
+        script {
+          localStatus = build job: dsTesterPipelineName,
+              parameters: [
+                  string(name: 'MAGMA_MME_TAG', value: 'ci-tmp')
+              ], propagate: false
+          localResult = localStatus.getResult()
+          echo "${dsTesterPipelineName} Slave Job status is ${localResult}"
+          if (localStatus.resultIsBetterOrEqualTo('SUCCESS')) {
+             echo "${dsTesterPipelineName} Slave Job is OK"
+          } else {
+             echo "${dsTesterPipelineName} Slave Job is KO"
+             error('DsTester pipeline failed')
+          }
+        }
+      }
+      post {
+        always {
+          script {
+            copyArtifacts(projectName: dsTesterPipelineName,
+                          filter: dsTesterPipelineReport,
+                          selector: lastCompleted())
+            if (fileExists(dsTesterPipelineReport)) {
+              sh "python3 ./ci-scripts/generateHtmlReport-OAI-pipeline.py --mode=TestWithDsTest --job_name=${JOB_NAME} --job_id=${BUILD_ID} --job_url=${BUILD_URL} --git_url=${GIT_URL} --git_src_branch=${GIT_BRANCH} --git_src_commit=${GIT_COMMIT}"
+              sh 'sed -i -e "s#TEMPLATE_TIME#' + JOB_TIMESTAMP + '#" ' + dsTesterPipelineReport
+              archiveArtifacts artifacts: dsTesterPipelineReport
+            }
+          }
+        }
+      }
+    }
   }
   post {
     always {
@@ -149,9 +187,9 @@ pipeline {
         // Remove CI Base image tag
         sh('docker rmi magma-dev-mme:ci-base-image')
         // Clean any residual images
-        sh('docker image prune --force')
+        sh('docker image prune --force > /dev/null 2>&1')
         try {
-          sh('docker image rm magma-mme:ci-tmp')
+          sh('docker image rm magma-mme:ci-tmp > /dev/null 2>&1')
         } catch (Exception e) {
           echo 'OK if not present'
         }
@@ -164,16 +202,16 @@ pipeline {
     }
     success {
       script {
-          def color = "good"
-          def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
-          echo message
+        def color = "good"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
+        echo message
       }
     }
     unsuccessful {
       script {
-          def color = "danger"
-          def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
-          echo message
+        def color = "danger"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
+        echo message
       }
     }
   }

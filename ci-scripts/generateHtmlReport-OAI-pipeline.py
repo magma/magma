@@ -86,63 +86,68 @@ class HtmlReport():
     self.file.write('   </tr>\n')
     self.file.write('  </table>\n')
     self.file.write('  <br>\n')
+    buildSummary = self.generateBuildSummary()
+    self.file.write(buildSummary)
 
+  def generateBuildSummary(self):
+    returnString = ''
     # Build Info Summary
-    self.file.write('  <table class="table-bordered" width = "80%" align = "center" border = "1">\n')
-    self.file.write('    <tr>\n')
-    self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-time"></span> Build Start Time</td>\n')
-    #date_formatted = re.sub('\..*', '', self.created)
-    self.file.write('      <td>' + self.job_start_time + '</td>\n')
-    self.file.write('    </tr>\n')
-    self.file.write('    <tr>\n')
-    self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-wrench"></span> Build Trigger</td>\n')
+    returnString += '  <table class="table-bordered" width = "80%" align = "center" border = "1">\n'
+    returnString += '    <tr>\n'
+    returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-time"></span> Build Start Time</td>\n'
+    #date_formatted = re.sub('\..*', '', self.created
+    returnString += '      <td>' + self.job_start_time + '</td>\n'
+    returnString += '    </tr>\n'
+    returnString += '    <tr>\n'
+    returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-wrench"></span> Build Trigger</td>\n'
     if self.git_merge_request:
-      self.file.write('      <td>Merge Request</td>\n')
+      returnString += '      <td>Merge Request</td>\n'
     else:
-      self.file.write('      <td>Push Event</td>\n')
-    self.file.write('    </tr>\n')
-    self.file.write('    <tr>\n')
-    self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-cloud-upload"></span> GIT Repository</td>\n')
-    self.file.write('      <td><a href="' + self.git_url + '">' + self.git_url + '</a></td>\n')
-    self.file.write('    </tr>\n')
+      returnString += '      <td>Push Event</td>\n'
+    returnString += '    </tr>\n'
+    returnString += '    <tr>\n'
+    returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-cloud-upload"></span> GIT Repository</td>\n'
+    returnString += '      <td><a href="' + self.git_url + '">' + self.git_url + '</a></td>\n'
+    returnString += '    </tr>\n'
     if self.git_merge_request:
-      self.file.write('    <tr>\n')
-      self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-log-out"></span> Source Branch</td>\n')
-      self.file.write('      <td>' + self.git_src_branch + '</td>\n')
-      self.file.write('    </tr>\n')
-      self.file.write('    <tr>\n')
-      self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Source Commit ID</td>\n')
-      self.file.write('      <td>' + self.git_src_commit + '</td>\n')
-      self.file.write('    </tr>\n')
+      returnString += '    <tr>\n'
+      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-log-out"></span> Source Branch</td>\n'
+      returnString += '      <td>' + self.git_src_branch + '</td>\n'
+      returnString += '    </tr>\n'
+      returnString += '    <tr>\n'
+      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Source Commit ID</td>\n'
+      returnString += '      <td>' + self.git_src_commit + '</td>\n'
+      returnString += '    </tr>\n'
       if (self.git_src_commit_msg is not None):
-        self.file.write('    <tr>\n')
-        self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-comment"></span> Source Commit Message</td>\n')
-        self.file.write('      <td>' + self.git_src_commit_msg + '</td>\n')
-        self.file.write('    </tr>\n')
-      self.file.write('    <tr>\n')
-      self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-log-in"></span> Target Branch</td>\n')
-      self.file.write('      <td>' + self.git_target_branch + '</td>\n')
-      self.file.write('    </tr>\n')
-      self.file.write('    <tr>\n')
-      self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Target Commit ID</td>\n')
-      self.file.write('      <td>' + self.git_target_commit + '</td>\n')
-      self.file.write('    </tr>\n')
+        returnString += '    <tr>\n'
+        returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-comment"></span> Source Commit Message</td>\n'
+        returnString += '      <td>' + self.git_src_commit_msg + '</td>\n'
+        returnString += '    </tr>\n'
+      returnString += '    <tr>\n'
+      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-log-in"></span> Target Branch</td>\n'
+      returnString += '      <td>' + self.git_target_branch + '</td>\n'
+      returnString += '    </tr>\n'
+      returnString += '    <tr>\n'
+      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Target Commit ID</td>\n'
+      returnString += '      <td>' + self.git_target_commit + '</td>\n'
+      returnString += '    </tr>\n'
     else:
-      self.file.write('    <tr>\n')
-      self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tree-deciduous"></span> Branch</td>\n')
-      self.file.write('      <td>' + self.git_src_branch + '</td>\n')
-      self.file.write('    </tr>\n')
-      self.file.write('    <tr>\n')
-      self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Commit ID</td>\n')
-      self.file.write('      <td>' + self.git_src_commit + '</td>\n')
-      self.file.write('    </tr>\n')
+      returnString += '    <tr>\n'
+      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tree-deciduous"></span> Branch</td>\n'
+      returnString += '      <td>' + self.git_src_branch + '</td>\n'
+      returnString += '    </tr>\n'
+      returnString += '    <tr>\n'
+      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Commit ID</td>\n'
+      returnString += '      <td>' + self.git_src_commit + '</td>\n'
+      returnString += '    </tr>\n'
       if (self.git_src_commit_msg is not None):
-        self.file.write('    <tr>\n')
-        self.file.write('      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-comment"></span> Commit Message</td>\n')
-        self.file.write('      <td>' + self.git_src_commit_msg + '</td>\n')
-        self.file.write('    </tr>\n')
-    self.file.write('  </table>\n')
-    self.file.write('  <br>\n')
+        returnString += '    <tr>\n'
+        returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-comment"></span> Commit Message</td>\n'
+        returnString += '      <td>' + self.git_src_commit_msg + '</td>\n'
+        returnString += '    </tr>\n'
+    returnString += '  </table>\n'
+    returnString += '  <br>\n'
+    return returnString
 
   def generateFooter(self):
     self.file.write('  </nav>\n')
@@ -437,6 +442,25 @@ class HtmlReport():
 
     self.file.write(cell_msg)
 
+  def appendBuildSummary(self, mode):
+    cwd = os.getcwd()
+    if mode == 'dsTester':
+      filename = 'test_results_magma_oai_epc.html'
+    if os.path.isfile(cwd + '/' + filename):
+      newEpcReport = open(cwd + '/new_' + filename, 'w')
+      buildSummaryToBeDone = True
+      with open(cwd + '/' + filename, 'r') as originalEpcReport:
+        for line in originalEpcReport:
+          result = re.search('Deployment Summary', line)
+          if (result is not None) and buildSummaryToBeDone:
+            buildSummary = self.generateBuildSummary()
+            newEpcReport.write(buildSummary)
+            buildSummaryToBeDone = False
+          newEpcReport.write(line)
+        originalEpcReport.close()
+      newEpcReport.close()
+      os.rename(cwd + '/new_' + filename, cwd + '/' + filename)
+
 #--------------------------------------------------------------------------------------------------------
 #
 # Start of main
@@ -509,3 +533,5 @@ if HTML.git_merge_request:
 
 if HTML.mode == 'build':
   HTML.generateBuild()
+elif HTML.mode == 'dsTester':
+  HTML.appendBuildSummary(HTML.mode)
