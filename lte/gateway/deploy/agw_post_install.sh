@@ -97,7 +97,7 @@ if [ -d "/var/opt/magma/configs/" ]; then
     if [ -f "$CP" ]; then
         echo "$CP exists"
         echo "- Check control proxy content"
-        cp_content=("cloud_address" "cloud_port" "bootstrap_address" "bootstrap_port" "rootca_cert")
+        cp_content=("cloud_address" "cloud_port" "bootstrap_address" "bootstrap_port" "rootca_cert" "fluentd_address" "fluentd_port")
         for content in "${cp_content[@]}"; do
             if ! grep -q $content $CP; then
                 echo "Missing $content in control proxy"
