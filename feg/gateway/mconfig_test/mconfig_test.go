@@ -139,6 +139,12 @@ const testMmconfigJsonV2 = `{
         "host": "magma.dagma.mai.com"
       }
     },
+	"s8_proxy":{
+      "@type": "type.googleapis.com/magma.mconfig.S8Config",
+      "logLevel": "INFO",
+      "local_address": "10.0.0.1:1",
+	  "pgw_address": "10.0.0.2:1"
+  	},
     "session_proxy": {
       "@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
       "logLevel": "INFO",
@@ -269,6 +275,21 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 				Host:             "magma-fedgw.magma.com",
 			}})
 
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedPwgAddress := "10.0.0.2:1"
+	mc.ConfigsByKey["s8_proxy"], err = ptypes.MarshalAny(
+		&fegmcfg.S8Config{
+			LogLevel:     1,
+			LocalAddress: "10.0.0.1:1",
+			PgwAddress:   expectedPwgAddress,
+		})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	mc.ConfigsByKey["session_proxy"], err = ptypes.MarshalAny(
 		&fegmcfg.SessionProxyConfig{
 			LogLevel: 1,
@@ -323,6 +344,9 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 				},
 				InitMethod: fegmcfg.GyInitMethod_PER_KEY,
 			}})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	marshaled, err := orcprotos.MarshalMconfig(mc)
 	if err != nil {
@@ -371,6 +395,17 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 		return
 	}
 
+	s8cfg := &fegmcfg.S8Config{}
+	err = mconfig.GetServiceConfigs("s8_proxy", s8cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s8cfg.GetPgwAddress() != expectedPwgAddress {
+		t.Fatalf(
+			"s8_proxy Configs Host Mismatch %s != %s",
+			s8cfg.GetPgwAddress(), expectedPwgAddress)
+	}
+
 	// test V2 - 'configsByKey' encoding version
 	if err = ioutil.WriteFile(mcpath, []byte(testMmconfigJsonV2), os.ModePerm); err != nil {
 		t.Fatal(err)
@@ -386,4 +421,14 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 			"s6a_proxy Configs Host Mismatch %s != %s",
 			s6acfg.GetServer().GetHost(), expectedHost)
 	}
+	err = mconfig.GetServiceConfigs("s8_proxy", s8cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s8cfg.GetPgwAddress() != expectedPwgAddress {
+		t.Fatalf(
+			"s8_proxy Configs Host Mismatch %s != %s",
+			s8cfg.GetPgwAddress(), expectedPwgAddress)
+	}
+
 }

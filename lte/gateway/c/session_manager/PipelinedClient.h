@@ -109,14 +109,6 @@ class PipelinedClient {
       std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
   /**
-   * update_tunnel_ids adds eNB tunnel ID and AGW Tunnel ID to an specific flow
-   * specified by its ip_addrs
-   * */
-  virtual bool update_tunnel_ids(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids) = 0;
-
-  /**
    * Send the MAC address of UE and the subscriberID
    * for pipelined to add a flow for the subscriber by matching the MAC
    */
@@ -254,14 +246,6 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules,
       std::function<void(Status status, ActivateFlowsResult)> callback);
-
-  /**
-   * update_tunnel_ids adds eNB tunnel ID and AGW Tunnel ID to an specific flow
-   * specified by its ip_addrs
-   */
-  bool update_tunnel_ids(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids);
 
   /**
    * Send the MAC address of UE and the subscriberID

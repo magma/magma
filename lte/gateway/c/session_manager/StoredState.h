@@ -218,6 +218,8 @@ struct StoredSessionState {
   uint32_t local_teid;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;
+  // will store the response from the core between Create and Activate Session
+  CreateSessionResponse create_session_response;
   // 5G session version handling
   uint32_t current_version;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
