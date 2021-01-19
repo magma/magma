@@ -1,6 +1,6 @@
 # Magma
 
-[![magma](https://circleci.com/gh/magma/magma.svg?style=shield)](https://circleci.com/gh/magma/magma)
+[![magma](https://circleci.com/gh/magma/magma/tree/v1.4.svg?style=shield)](https://circleci.com/gh/magma/magma/tree/v1.4)
 
 Magma is an open-source software platform that gives network operators an open, flexible and extendable mobile core network solution. Magma enables better connectivity by:
 
