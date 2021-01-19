@@ -391,9 +391,10 @@ void LocalSessionManagerHandlerImpl::handle_create_session_lte(
 void LocalSessionManagerHandlerImpl::send_local_create_session_response(
     Status status, const std::string& session_id,
     std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
+  LocalCreateSessionResponse resp;
+  resp.set_session_id(session_id);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(resp));
   try {
-    LocalCreateSessionResponse resp;
-    resp.set_session_id(session_id);
     response_callback(status, resp);
   } catch (...) {
     std::exception_ptr ep = std::current_exception();
