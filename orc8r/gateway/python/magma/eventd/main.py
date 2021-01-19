@@ -13,6 +13,7 @@ limitations under the License.
 
 from magma.common.service import MagmaService
 from .rpc_servicer import EventDRpcServicer
+from .event_validator import EventValidator
 from orc8r.protos.mconfig.mconfigs_pb2 import EventD
 
 
@@ -20,8 +21,8 @@ def main():
     """ main() for eventd """
     service = MagmaService('eventd', EventD())
 
-    eventd_servicer = EventDRpcServicer(service.config)
-    eventd_servicer.load_specs_from_registry()
+    event_validator = EventValidator(service.config)
+    eventd_servicer = EventDRpcServicer(service.config, event_validator)
     eventd_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop
