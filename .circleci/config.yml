@@ -760,8 +760,7 @@ jobs:
 
   ###TeraVM Run_Status & Upgrade_Run_3GPP_Tests
   Upgrade_Run_3GPP_Tests_teravm:
-    runner:
-      machine: true
+    machine: true
       resource_class: magma/teravm
       steps:
         - run: cd /home/magma
