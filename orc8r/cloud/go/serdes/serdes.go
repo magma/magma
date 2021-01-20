@@ -16,8 +16,8 @@ package serdes
 import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
-	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
 	ctraced_models "magma/orc8r/cloud/go/services/ctraced/obsidian/models"
+	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 )

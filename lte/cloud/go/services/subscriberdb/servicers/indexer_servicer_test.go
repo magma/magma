@@ -30,7 +30,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIndexerIP(t *testing.T) {

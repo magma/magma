@@ -23,7 +23,7 @@ import (
 	"magma/orc8r/lib/go/metrics"
 
 	"github.com/golang/glog"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 // APNThroughputCalculation APN throughput calc params

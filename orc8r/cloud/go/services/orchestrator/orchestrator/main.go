@@ -49,7 +49,7 @@ func main() {
 		return
 	}
 
-	if serviceConfig.UseGRPCExporter == true {
+	if serviceConfig.UseGRPCExporter {
 		grpcAddress := serviceConfig.PrometheusGRPCPushAddress
 		exporterServicer = servicers.NewGRPCPushExporterServicer(grpcAddress)
 	} else {

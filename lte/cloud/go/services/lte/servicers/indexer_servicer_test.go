@@ -36,7 +36,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/swag"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIndexerEnodebState(t *testing.T) {

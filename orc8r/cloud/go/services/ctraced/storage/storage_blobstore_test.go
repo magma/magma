@@ -94,6 +94,7 @@ func TestCtracedBlobstoreStorage_GetCallTrace(t *testing.T) {
 	store = cstorage.NewCtracedBlobstore(blobFactMock)
 
 	callTraceRecvd, err := store.GetCallTrace(placeholderNetworkID, ctid)
+	assert.NoError(t, err)
 	assert.Equal(t, ctData, string(callTraceRecvd))
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)

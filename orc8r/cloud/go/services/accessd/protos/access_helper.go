@@ -125,20 +125,17 @@ func CheckEntitiesPermissions(
 	acl *AccessControl_List,
 	entList []*AccessControl_Entity,
 ) error {
-	if entList != nil {
-		for _, ent := range entList {
-			if ent != nil {
-				reqPerm := ent.Permissions // Requested permissions for entity
-				aclPerm := GetEntityPermissions(acl, ent.Id)
-				if reqPerm&aclPerm != reqPerm {
-					return protos.Errorf(
-						codes.PermissionDenied,
-						"Unsatisfied permissions, need: b%08b, got: b%08b for %s",
-						reqPerm, aclPerm, ent.Id.HashString())
-				}
+	for _, ent := range entList {
+		if ent != nil {
+			reqPerm := ent.Permissions // Requested permissions for entity
+			aclPerm := GetEntityPermissions(acl, ent.Id)
+			if reqPerm&aclPerm != reqPerm {
+				return protos.Errorf(
+					codes.PermissionDenied,
+					"Unsatisfied permissions, need: b%08b, got: b%08b for %s",
+					reqPerm, aclPerm, ent.Id.HashString())
 			}
 		}
-
 	}
 	return nil
 }

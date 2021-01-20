@@ -220,7 +220,7 @@ func (s *sqlSMSStorage) GetSMSsToDeliver(networkID string, imsis []string, timeo
 		timeoutSecs := clock.Now().Add(-timeoutThreshold).Unix()
 		updatedTimeCreatedTS, err := ptypes.TimestampProto(time.Unix(timeCreated, 0))
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create timestmap")
+			return nil, errors.Wrap(err, "failed to create timestamp")
 		}
 
 		err = garbageCollectExpiredRefs(tx, s.builder, networkID, imsis, timeoutSecs)

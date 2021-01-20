@@ -94,6 +94,7 @@ func TestDirectorydBlobstoreStorage_GetHostnameForHWID(t *testing.T) {
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
 	hostnameRecvd, err := store.GetHostnameForHWID(hwid)
+	assert.NoError(t, err)
 	assert.Equal(t, hostname, hostnameRecvd)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -235,6 +236,7 @@ func TestDirectorydBlobstore_GetIMSIForSessionID(t *testing.T) {
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
 	imsiRecvd, err := store.GetIMSIForSessionID(nid, sid)
+	assert.NoError(t, err)
 	assert.Equal(t, imsi, imsiRecvd)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)

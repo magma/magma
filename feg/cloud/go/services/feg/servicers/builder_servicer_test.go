@@ -143,7 +143,7 @@ func TestBuilder_Build(t *testing.T) {
 				},
 				OverwriteApn: "apnGx.magma-fedgw.magma.com",
 				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
-					&feg_mconfig.VirtualApnRule{
+					{
 						ApnFilter:                     ".*",
 						ChargingCharacteristicsFilter: "1*",
 						ApnOverwrite:                  "vApnGx.magma-fedgw.magma.com",
@@ -188,7 +188,7 @@ func TestBuilder_Build(t *testing.T) {
 				InitMethod:   feg_mconfig.GyInitMethod_PER_SESSION,
 				OverwriteApn: "apnGy.magma-fedgw.magma.com",
 				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
-					&feg_mconfig.VirtualApnRule{
+					{
 						ApnFilter:                     ".*",
 						ChargingCharacteristicsFilter: "1*",
 						ApnOverwrite:                  "vApnGy.magma-fedgw.magma.com",
@@ -348,7 +348,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		OverwriteApn: "apnGx.magma-fedgw.magma.com",
 		VirtualApnRules: []*models.VirtualApnRule{
-			&models.VirtualApnRule{
+			{
 				ApnFilter:                     ".*",
 				ChargingCharacteristicsFilter: "1*",
 				ApnOverwrite:                  "vApnGx.magma-fedgw.magma.com",
@@ -380,7 +380,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		InitMethod:   uint32Ptr(1),
 		OverwriteApn: "apnGy.magma-fedgw.magma.com",
 		VirtualApnRules: []*models.VirtualApnRule{
-			&models.VirtualApnRule{
+			{
 				ApnFilter:                     ".*",
 				ChargingCharacteristicsFilter: "1*",
 				ApnOverwrite:                  "vApnGy.magma-fedgw.magma.com",

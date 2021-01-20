@@ -669,8 +669,9 @@ func TestCwfGateways(t *testing.T) {
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 404,
-		ExpectedError:  "Not found",
+		ExpectedError:  "Not Found",
 	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestCwfHaPairs(t *testing.T) {
@@ -704,7 +705,7 @@ func TestCwfHaPairs(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listHaPairs,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(make(map[string]*models2.CwfHaPair, 0)),
+		ExpectedResult: tests.JSONMarshaler(map[string]*models2.CwfHaPair{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 

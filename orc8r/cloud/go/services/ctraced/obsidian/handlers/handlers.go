@@ -115,7 +115,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to start call trace"), http.StatusInternalServerError)
 		}
-		if resp.Success == false {
+		if !resp.Success {
 			return obsidian.HttpError(errors.New("failed to start call trace"), http.StatusInternalServerError)
 		}
 
@@ -124,7 +124,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to create call trace"), http.StatusInternalServerError)
 		}
-		return c.JSON(http.StatusCreated, string(cfg.TraceID))
+		return c.JSON(http.StatusCreated, cfg.TraceID)
 	}
 }
 
@@ -163,7 +163,7 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 		if err != nil {
 			return err
 		}
-		if resp.Success == false {
+		if !resp.Success {
 			return obsidian.HttpError(errors.New("Failed to end call trace"), http.StatusInternalServerError)
 		}
 

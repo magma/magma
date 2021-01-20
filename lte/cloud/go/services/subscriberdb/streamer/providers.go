@@ -64,8 +64,7 @@ func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) (
 
 	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
 	for _, sub := range subEnts {
-		subProto := &lte_protos.SubscriberData{}
-		subProto, err = subscriberToMconfig(sub, apnsByName, apnResourcesByAPN)
+		subProto, err := subscriberToMconfig(sub, apnsByName, apnResourcesByAPN)
 		if err != nil {
 			return nil, err
 		}

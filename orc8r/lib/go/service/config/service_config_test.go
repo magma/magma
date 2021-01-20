@@ -70,6 +70,7 @@ func TestGetConfigWithoutOverride(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = f.WriteString(TestYML)
+	assert.NoError(t, err)
 	f.Close()
 	err = os.Mkdir(TestConfigOverrideDir, 0700)
 	assert.NoError(t, err)
@@ -108,6 +109,7 @@ func TestGetConfigWithOverride(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = f.WriteString(TestYML)
+	assert.NoError(t, err)
 	f.Close()
 	err = os.Mkdir(TestConfigOverrideDir, 0700)
 	assert.NoError(t, err)
@@ -115,6 +117,7 @@ func TestGetConfigWithOverride(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = f.WriteString(TestOverrideYML)
+	assert.NoError(t, err)
 	f.Close()
 
 	// ensure case insensitivity

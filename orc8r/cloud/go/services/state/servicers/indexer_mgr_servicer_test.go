@@ -25,8 +25,8 @@ import (
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

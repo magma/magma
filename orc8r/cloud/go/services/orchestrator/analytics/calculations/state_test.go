@@ -32,6 +32,7 @@ func TestSiteCalculations(t *testing.T) {
 			PhysicalID: "hw0"},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 
 	ctx := test_utils.GetContextWithCertificate(t, "hw0")
 	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw0"))

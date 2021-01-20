@@ -1133,9 +1133,10 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 		},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 
 	expectedEnts := map[string]*configurator.NetworkEntity{
-		"magmad": &configurator.NetworkEntity{
+		"magmad": {
 			NetworkID:   nID,
 			Type:        orc8r.MagmadGatewayType,
 			Key:         gID,
@@ -1170,20 +1171,20 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 			Config:  models2.NewDefaultMeshWifiConfigs(),
 			Version: 0,
 		},
-		"tier1": &configurator.NetworkEntity{
+		"tier1": {
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
 			GraphID:      "10",
 			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
-		"tier2": &configurator.NetworkEntity{
+		"tier2": {
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t2",
 			GraphID: "8",
 			Version: 0,
 		},
-		"gateway": &configurator.NetworkEntity{
+		"gateway": {
 			NetworkID:          nID,
 			Type:               wifi.WifiGatewayType,
 			Key:                gID,
@@ -1978,6 +1979,7 @@ func TestDeleteMesh(t *testing.T) {
 		},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	payload := models2.GatewayWifiConfigs{
 		AdditionalProps: map[string]string{
 			"gwprop1": "gwvalue1",
@@ -2106,7 +2108,7 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 	seedGatewaysAndMeshes(t)
 
 	expectedEnts := map[string]*configurator.NetworkEntity{
-		"magmad": &configurator.NetworkEntity{
+		"magmad": {
 			NetworkID:   nID,
 			Type:        orc8r.MagmadGatewayType,
 			Key:         gID,
@@ -2133,20 +2135,20 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
-		"tier1": &configurator.NetworkEntity{
+		"tier1": {
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
 			GraphID:      "10",
 			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
 			Version:      0,
 		},
-		"tier2": &configurator.NetworkEntity{
+		"tier2": {
 			NetworkID: nID,
 			Type:      orc8r.UpgradeTierEntityType, Key: "t2",
 			GraphID: "8",
 			Version: 0,
 		},
-		"gateway": &configurator.NetworkEntity{
+		"gateway": {
 			NetworkID:          nID,
 			Type:               wifi.WifiGatewayType,
 			Key:                gID,

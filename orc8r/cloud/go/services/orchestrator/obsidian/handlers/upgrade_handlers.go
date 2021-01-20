@@ -49,7 +49,7 @@ func createChannelHandler(c echo.Context) error {
 	entity := configurator.NetworkEntity{
 		Type:   orc8r.UpgradeReleaseChannelEntityType,
 		Key:    string(channel.ID),
-		Name:   string(channel.Name),
+		Name:   channel.Name,
 		Config: channel,
 	}
 	_, err := configurator.CreateInternalEntity(entity, serdes.Entity)
@@ -93,7 +93,7 @@ func updateChannelHandler(c echo.Context) error {
 	update := configurator.EntityUpdateCriteria{
 		Type:      orc8r.UpgradeReleaseChannelEntityType,
 		Key:       channelID,
-		NewName:   swag.String(string(channel.Name)),
+		NewName:   swag.String(channel.Name),
 		NewConfig: channel,
 	}
 	_, err := configurator.UpdateInternalEntity(update, serdes.Entity)

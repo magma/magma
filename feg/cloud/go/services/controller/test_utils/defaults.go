@@ -14,8 +14,9 @@
 package test_utils
 
 import (
-	"github.com/go-openapi/swag"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
+
+	"github.com/go-openapi/swag"
 )
 
 func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
@@ -81,7 +82,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 		},
 		Swx: &models.Swx{
 			Servers: []*models.DiameterClientConfigs{
-				&models.DiameterClientConfigs{
+				{
 					Protocol:         "sctp",
 					Retransmits:      3,
 					WatchdogInterval: 1,
