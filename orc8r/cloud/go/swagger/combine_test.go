@@ -1,8 +1,22 @@
+/*
+ Copyright 2020 The Magma Authors.
+
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package swagger_test
 
 import (
 	"flag"
 	"io/ioutil"
+	"magma/orc8r/cloud/go/tools/swaggergen/generate"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,17 +52,20 @@ func TestCombine(t *testing.T){
 	cleanup()
 	defer cleanup()
 
-	cfgsList := getFilepaths(t, cfgsDir)
-	cfgs, common, err := swagger.Load(commonFilepath, cfgsList)
+	cfgFiles, err := getFilepaths(t, cfgsDir)
+	assert.NoError(t, err)
+	cfgsStr, commonStr := readSpecs(t, cfgFiles, commonFilepath)
+
+	cfgs, common, err := swagger.Load(commonStr, cfgsStr)
 	assert.NoError(t, err)
 
-	combined, errs := swagger.Combine(common, cfgs)
+	combinedSpecs, errs := swagger.Combine(common, cfgs)
 	assert.Error(t, errs)
 	merrs, ok := errs.(*multierror.Error)
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
-	swagger.Write(combined, outFilepath)
+	write(combinedSpecs, outFilepath)
 
 	expected := readFile(t, goldenFilepath)
 	actual := readFile(t, outFilepath)
@@ -59,16 +76,24 @@ func TestCombineStr(t *testing.T){
 	cleanup()
 	defer cleanup()
 
-	cfgs := getFilepaths(t, cfgsDir)
-	outputFile, errs := swagger.CombineStr(commonFilepath, cfgs)
+	cfgFiles, err := getFilepaths(t, cfgsDir)
+	assert.NoError(t, err)
+	cfgs, common := readSpecs(t, cfgFiles, commonFilepath)
+	assert.NoError(t, err)
+
+	combinedSpecsStr, errs := swagger.CombineStr(common, cfgs)
 
 	assert.Error(t, errs)
 	merrs, ok := errs.(*multierror.Error)
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
+	output, err := swagger.UnmarshalFromYAML(combinedSpecsStr)
+	assert.NoError(t, err)
+	write(output, outFilepath)
+
 	expected := readFile(t, goldenFilepath)
-	actual := readFile(t, outputFile)
+	actual := readFile(t, outFilepath)
 	assert.Equal(t, expected, actual)
 }
 
@@ -77,8 +102,24 @@ func cleanup() {
 	_ = os.Remove(outFilepath)
 }
 
+func readSpecs(t *testing.T, cfgFiles []string, commonFile string) ([]string, string){
+	cfgs := readFiles(t, cfgFiles)
+	common := readFile(t, commonFile)
+	return cfgs, common
+}
+
+// readFiles maps the passed filepaths to their contents.
+func readFiles(t *testing.T, filepaths []string) ([]string) {
+	var contents []string
+	for _, path := range filepaths {
+		s := readFile(t, path)
+		contents = append(contents, s)
+	}
+	return contents
+}
+
 // readFile returns the content of the passed filepath.
-func readFile(t *testing.T, filepath string) string {
+func readFile(t *testing.T, filepath string) (string) {
 	data, err := ioutil.ReadFile(filepath)
 	assert.NoError(t, err)
 	return string(data)
@@ -86,7 +127,7 @@ func readFile(t *testing.T, filepath string) string {
 
 // getFilepaths returns the filepaths of each Swagger YAML file in or
 // below inDir, in lexical order.
-func getFilepaths(t *testing.T, inDir string) []string {
+func getFilepaths(t *testing.T, inDir string) ([]string, error) {
 	var filepaths []string
 	err := filepath.Walk(inDir, func(path string, info os.FileInfo, err error) error {
 		if strings.Contains(path, ".yml") {
@@ -94,6 +135,22 @@ func getFilepaths(t *testing.T, inDir string) []string {
 		}
 		return nil
 	})
-	assert.NoError(t, err)
-	return filepaths
+	return filepaths, err
+}
+
+func write(spec generate.SwaggerSpec, filepath string) error {
+	strSpec, err := swagger.MarshalToYAML(spec)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+	f.WriteString(strSpec)
+	f.Sync()
+	return nil
 }

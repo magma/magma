@@ -1,10 +1,21 @@
+/*
+ Copyright 2020 The Magma Authors.
+
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package swagger
 
 import (
 	"github.com/golang/glog"
-	//"fmt"
-	"io/ioutil"
-	"os"
+
 	"regexp"
 	"sort"
 
@@ -15,20 +26,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var (
-	/*to:do Replace with actual directory used when injected into pr*/
-	outFilePath = "testdata/out.yml"
-)
-
-// Load specs from file to Swagger structs.
+// Load specs from YAML format to Swagger structs.
 func Load(common string, configs []string) ([]generate.SwaggerSpec, generate.SwaggerSpec, error) {
-	glog.V(2).Infof("Reading in Swagger Specs from files \n %+v", configs)
 	specs, err := loadSwaggerSpecs(configs)
 	if err != nil {
 		return nil, generate.SwaggerSpec{}, err
 	}
 
-	glog.V(2).Infof("Reading in Common Swagger Spec from file \n %+v", common)
 	commonSpec, err := loadCommonSpec(common)
 	if err != nil {
 		return nil, generate.SwaggerSpec{}, err
@@ -39,8 +43,8 @@ func Load(common string, configs []string) ([]generate.SwaggerSpec, generate.Swa
 
 /*
 CombineStr is a wrapper function around the function Combine()
-which serves to combine multiple swagger specs. The outputted merged
-swagger file exists in the return path name
+which serves to combine multiple swagger specs whose contents
+are passed in. The output is the merged copy of the swagger spec
 */
 func CombineStr(common string, configs []string) (string, error) {
 	cfgs, commonCfg, err := Load(common, configs)
@@ -48,20 +52,19 @@ func CombineStr(common string, configs []string) (string, error) {
 		return "Error: Load of Swagger Specs Failed", err
 	}
 	
-	outSpec, warnings := Combine(commonCfg, cfgs)
+	combinedSpec, warnings := Combine(commonCfg, cfgs)
 	glog.V(2).Infof("Combining Swagger Specs Together \n")
 	merrs, _ := warnings.(*multierror.Error)
 	if len(merrs.Errors) != 0 {
 		glog.Warningf("%+v merge errors: %+v", len(merrs.Errors), merrs)
 	}
 
-	glog.V(2).Infof("Writing combined Swagger spec to file: \n %+v", outFilePath)
-	err = Write(outSpec, outFilePath)
+	out, err := MarshalToYAML(combinedSpec)
 	if err != nil {
-		return "Error: Write of Merged Swagger Spec Output Failed", err
+		return "Error: Marshaling of Combined Swagger Spec Failed", err
 	}
 
-	return outFilePath, merrs.ErrorOrNil()
+	return out, merrs.ErrorOrNil()
 }
 
 // Combine multiple Swagger specs, giving precedence to the "common" spec.
@@ -104,14 +107,10 @@ func Combine(common generate.SwaggerSpec, specs []generate.SwaggerSpec) (generat
 	return out, errs.ErrorOrNil()
 }
 
-// loadSwaggerSpecs unmarshals all of the passed in Swagger file's contents
-// to struct.
+// loadSwaggerSpecs unmarshals all of the passed in Swagger Specs YAML strings
+// to Swagger structs.
 func loadSwaggerSpecs(configs []string) ([]generate.SwaggerSpec, error){
-	contents, err := readFiles(configs)
-	if err != nil {
-		return nil, err
-	}
-	editedContents := makeAllYAMLReferencesLocal(contents)
+	editedContents := makeAllYAMLReferencesLocal(configs)
 
 	specs, err := unmarshalManyFromYAML(editedContents)
 	if err != nil {
@@ -121,21 +120,21 @@ func loadSwaggerSpecs(configs []string) ([]generate.SwaggerSpec, error){
 	return specs, err
 }
 
-// loadCommonSpec unmarshals the common Swagger file's contents to struct.
-func loadCommonSpec(inpPath string) (generate.SwaggerSpec, error) {
-	contents, err := readFile(inpPath)
+// loadCommonSpec unmarshals the common Swagger Specs YAML to struct.
+func loadCommonSpec(common string) (generate.SwaggerSpec, error) {
+	spec, err := UnmarshalFromYAML(common)
 	if err != nil {
 		return generate.SwaggerSpec{}, err
 	}
-	return unmarshalFromYAML(contents)
+	return spec ,err
 }
 
-// unmarshalFromYAML maps the passed strings to their respective
+// UnmarshalFromYAML maps the passed strings to their respective
 // Swagger specs.
 func unmarshalManyFromYAML(swaggerYAMLs []string) ([]generate.SwaggerSpec, error) {
 	var specs []generate.SwaggerSpec
 	for _, swaggerYAML := range swaggerYAMLs {
-		s, err := unmarshalFromYAML(swaggerYAML)
+		s, err := UnmarshalFromYAML(swaggerYAML)
 		if err != nil {
 			return nil, err
 		}
@@ -144,15 +143,15 @@ func unmarshalManyFromYAML(swaggerYAMLs []string) ([]generate.SwaggerSpec, error
 	return specs, nil
 }
 
-// unmarshalFromYAML unmarshals the passed string to a Swagger spec.
-func unmarshalFromYAML(swaggerYAML string) (generate.SwaggerSpec, error) {
+// UnmarshalFromYAML unmarshals the passed string to a Swagger spec.
+func UnmarshalFromYAML(swaggerYAML string) (generate.SwaggerSpec, error) {
 	spec := generate.SwaggerSpec{}
 	err := yaml.Unmarshal([]byte(swaggerYAML), &spec)
 	return spec, err
 }
 
-// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
-func marshalToYAML(spec generate.SwaggerSpec) (string, error) {
+// MarshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
+func MarshalToYAML(spec generate.SwaggerSpec) (string, error) {
 	d, err := yaml.Marshal(&spec)
 	if err != nil {
 		return "", err
@@ -220,43 +219,4 @@ func mergeTags(a map[string]string, b []generate.TagDefinition, errs error) {
 		}
 		a[tag.Name] = tag.Description
 	}
-}
-
-// readFiles maps the passed filepaths to their contents.
-func readFiles(filepaths []string) ([]string, error) {
-	var contents []string
-	for _, path := range filepaths {
-		s, err := readFile(path)
-		if err != nil {
-			return nil, err
-		}
-		contents = append(contents, s)
-	}
-	return contents, nil
-}
-
-// readFile returns the content of the passed filepath.
-func readFile(filepath string) (string, error) {
-	data, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
-}
-
-func Write(spec generate.SwaggerSpec, filepath string) error {
-	strSpec, err := marshalToYAML(spec)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-	f.WriteString(strSpec)
-	f.Sync()
-	return nil
 }
