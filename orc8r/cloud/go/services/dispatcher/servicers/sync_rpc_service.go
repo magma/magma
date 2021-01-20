@@ -159,7 +159,7 @@ func (srv *SyncRPCService) receiveFromStream(
 ) {
 	defer coordinator.Wg.Done()
 	for {
-		// recv() can be cancelled via ctx
+		// recv() can be canceled via ctx
 		syncRPCResp, err := RecvWithContext(coordinator.Ctx, func() (*protos.SyncRPCResponse, error) { return stream.Recv() })
 		if err == io.EOF {
 			coordinator.sendErr(nil)
@@ -223,7 +223,7 @@ type WrappedSyncResponse struct {
 	Err  error
 }
 
-// RecvWithContext runs f and returns its error. If the context is cancelled or
+// RecvWithContext runs f and returns its error. If the context is canceled or
 // times out first, it returns the context's error instead.
 // See https://github.com/grpc/grpc-go/issues/1229#issuecomment-300938770
 func RecvWithContext(ctx context.Context, f func() (*protos.SyncRPCResponse, error)) (*protos.SyncRPCResponse, error) {

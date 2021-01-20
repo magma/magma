@@ -1388,6 +1388,7 @@ func TestDeleteSubscriber(t *testing.T) {
 		configurator.EntityLoadCriteria{},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	assert.Equal(t, 0, len(actual))
 }
 
@@ -1637,6 +1638,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		configurator.FullEntityLoadCriteria(),
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	expected = configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
 		Config: &subscriberModels.SubscriberConfig{

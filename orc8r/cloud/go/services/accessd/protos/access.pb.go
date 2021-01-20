@@ -183,7 +183,7 @@ func (m *AccessControl_List) GetEntities() map[string]*AccessControl_Entity {
 	return nil
 }
 
-// RPC Request/Responce used to 1) manage AND 2) check permissions
+// RPC Request/Response used to 1) manage AND 2) check permissions
 // 1. When Adding or Modifying permissions entities will represent managed
 // entities Operator's permissions
 // 2. When verifying permissions, entities will represent a list of

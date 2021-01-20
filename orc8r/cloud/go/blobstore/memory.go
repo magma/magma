@@ -360,7 +360,7 @@ func (set *nIDAndTKSet) sortAndRemoveDuplicate() []string {
 
 // Must be called with read lock on change map.
 func (store *memoryBlobStorage) validateTx() error {
-	if store.transactionExists == false {
+	if !store.transactionExists {
 		return errors.New("no transaction is available")
 	}
 	return nil

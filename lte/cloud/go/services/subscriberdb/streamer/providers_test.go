@@ -33,7 +33,7 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
 )
 

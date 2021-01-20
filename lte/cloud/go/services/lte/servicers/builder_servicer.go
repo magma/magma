@@ -148,7 +148,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Ipv6DnsAddress:           string(gwEpc.IPV6DNSAddr),
 			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
-			Ipv4SgwS1UAddr:           string(gwEpc.IPV4SgwS1uAddr),
+			Ipv4SgwS1UAddr:           gwEpc.IPV4SgwS1uAddr,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -256,7 +256,7 @@ var networkServicesByName = map[string]lte_mconfig.PipelineD_NetworkServices{
 
 // move this out of this package eventually
 func getPipelineDServicesConfig(networkServices []string) ([]lte_mconfig.PipelineD_NetworkServices, error) {
-	if networkServices == nil || len(networkServices) == 0 {
+	if len(networkServices) == 0 {
 		return []lte_mconfig.PipelineD_NetworkServices{
 			lte_mconfig.PipelineD_ENFORCEMENT,
 		}, nil
@@ -481,9 +481,7 @@ func getGatewayDnsRecords(dns *lte_models.GatewayDNSConfigs) []*lte_mconfig.Gate
 		recordProto.ARecord = funk.Map(record.ARecord, func(a strfmt.IPv4) string { return string(a) }).([]string)
 		recordProto.AaaaRecord = funk.Map(record.AaaaRecord, func(a strfmt.IPv6) string { return string(a) }).([]string)
 		recordProto.CnameRecord = make([]string, 0, len(record.CnameRecord))
-		for _, cRecord := range record.CnameRecord {
-			recordProto.CnameRecord = append(recordProto.CnameRecord, cRecord)
-		}
+		recordProto.CnameRecord = append(recordProto.CnameRecord, record.CnameRecord...)
 		ret = append(ret, recordProto)
 	}
 	return ret

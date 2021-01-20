@@ -78,7 +78,7 @@ func initTestServer() string {
 				glog.Fatalf("tcpListener.Accept err: %v", err)
 			}
 			server.ServeConn(conn, &http2.ServeConnOpts{
-				Handler: http.HandlerFunc(servicers.RootHandler(config)),
+				Handler: servicers.RootHandler(config),
 			})
 		}
 	}()

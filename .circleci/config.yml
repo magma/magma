@@ -34,6 +34,19 @@ executors:
 orbs:
   artifactory: circleci/artifactory@0.0.7
 
+  python:
+    commands:
+      set_version:
+        parameters:
+          python_version:
+            description: Valid Python version to set
+            type: string
+            default: "3.7.0"
+        steps:
+          - run:
+              name: Set Python version
+              command: pyenv global <<parameters.python_version>>
+
   docker:
     commands:
       install-dc:
@@ -41,7 +54,7 @@ orbs:
           compose_version:
             description: Docker-compose version to install
             type: string
-            default: '1.25.4'
+            default: "1.25.4"
         steps:
           - run:
               name: Install Docker Compose
@@ -268,9 +281,7 @@ commands:
             echo export AWS_DEFAULT_REGION="us-east-1" >> $BASH_ENV
             echo export AWS_ACCESS_KEY_ID="$(printenv MAGMA_DEPLOY_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
             echo export AWS_SECRET_ACCESS_KEY="$(printenv MAGMA_DEPLOY_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
-      - run:
-          name: Select python 3.7.0
-          command: pyenv global 3.7.0
+      - python/set_version
       - run:
           name: Install python prerequisites
           command: pip3 install fabric3 jsonpickle requests PyYAML awscli
@@ -444,16 +455,35 @@ jobs:
       - build/determinator:
           <<: *all_gateways_build_verify
       - docker/install-dc
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
+      - python/set_version
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -t -l
+            python3 build.py --tests --up
           no_output_timeout: 15m
       - magma_slack_notify
 
+  # Fail if code doesn't pass formatting requirements.
+  cloud_lint:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
+      - python/set_version
+      - run:
+          name: Lint cloud Go code
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --lint
+      - magma_slack_notify
+
+  # Fail if checked-in generated code doesn't match output from
+  # generation command.
   insync-checkin:
     machine:
       image: ubuntu-1604:201903-01
@@ -466,13 +496,11 @@ jobs:
           <<: *all_gateways_build_verify
       - docker/install-dc
       - run: sudo apt-get update
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
+      - python/set_version
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -g
+            python3 build.py --generate
       - run: sudo chown -R circleci $MAGMA_ROOT/*
       - run: git add .
       - run: git status
@@ -492,13 +520,11 @@ jobs:
           <<: *all_gateways_build_verify
       - docker/install-dc
       - run: sudo apt-get update
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
+      - python/set_version
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -a --nocache --parallel
+            python3 build.py --all --nocache --parallel
       - tag-push-docker:
           project: orc8r
           images: "nginx|controller"
@@ -987,12 +1013,14 @@ workflows:
 
   cloud:
     jobs:
-      - cloud-test
       - insync-checkin
+      - cloud_lint
+      - cloud-test
       - orc8r-build:
           requires:
-            - cloud-test
             - insync-checkin
+            - cloud_lint
+            - cloud-test
 
   lib_gateway:
     jobs:

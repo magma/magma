@@ -30,6 +30,7 @@ func TestParseTime(t *testing.T) {
 	exampleRFCTimeString := "2018-07-01T20:10:30.781Z"
 	exampleBadRFCTimeString := "2018-07-01T20:10.781Z"
 	exampleRFCTime, err := time.Parse(time.RFC3339, "2018-07-01T20:10:30.781Z")
+	assert.NoError(t, err)
 
 	defaultTime := time.Time{}
 
@@ -45,13 +46,13 @@ func TestParseTime(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, exampleRFCTime, time)
 
-	time, err = utils.ParseTime(exampleBadRFCTimeString, &defaultTime)
+	_, err = utils.ParseTime(exampleBadRFCTimeString, &defaultTime)
 	assert.Error(t, err)
 
 	time, err = utils.ParseTime("", &defaultTime)
 	assert.NoError(t, err)
 	assert.Equal(t, time, defaultTime)
 
-	time, err = utils.ParseTime("", nil)
+	_, err = utils.ParseTime("", nil)
 	assert.Error(t, err)
 }

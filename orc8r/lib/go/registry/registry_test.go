@@ -16,7 +16,7 @@ package registry
 import (
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServiceRegistry_GetAnnotationFields(t *testing.T) {

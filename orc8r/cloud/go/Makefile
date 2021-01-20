@@ -6,8 +6,7 @@ TOOL_DEPS:= \
 	github.com/facebookincubator/ent/cmd/entc \
 	github.com/go-swagger/go-swagger/cmd/swagger \
 	github.com/golang/protobuf/protoc-gen-go \
-	github.com/vektra/mockery/cmd/mockery \
-	golang.org/x/lint/golint
+	github.com/vektra/mockery/cmd/mockery
 include $(MAGMA_ROOT)/orc8r/cloud/go/module.mk
 
 LIB_ROOT=$(MAGMA_ROOT)/orc8r/lib/go

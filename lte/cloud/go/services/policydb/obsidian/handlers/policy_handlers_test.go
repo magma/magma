@@ -1203,6 +1203,7 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.PolicyRule{"rule0": rule}),
 	}
+	tests.RunUnitTest(t, e, tc)
 
 	// Delete profile
 	tc = tests.Test{

@@ -26,7 +26,7 @@ download:
 	go mod download
 
 fmt::
-	go fmt ./...
+	gofmt -s -w .
 
 gen::
 	go generate ./...
@@ -48,7 +48,7 @@ copy_swagger_files:
 	for f in $$(find . -name swagger.v1.yml) ; do cp $$f $${SWAGGER_V1_TMP_GEN}/$(MODULE_NAME).$$(echo $$f | sed -r 's/.*\/services\/([^\/]*)\/obsidian\/models\/(swagger\.v1\.yml)/\1.\2/g') ; done
 
 lint:
-	golint ./...
+	golangci-lint run
 
 plugin::
 	go build -buildmode=plugin -o $(PLUGIN_DIR)/$(PLUGIN_NAME).so .

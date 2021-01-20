@@ -91,7 +91,7 @@ func RunUnitTest(t *testing.T, e *echo.Echo, test Test) {
 			expectedBytes, err := test.ExpectedResult.MarshalBinary()
 			if assert.NoError(t, err) {
 				// Convert to string for more readable assert failure messages
-				assert.Equal(t, string(expectedBytes)+"\n", string(recorder.Body.Bytes()))
+				assert.Equal(t, string(expectedBytes)+"\n", recorder.Body.String())
 			}
 		}
 	}

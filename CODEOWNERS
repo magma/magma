@@ -4,6 +4,7 @@ circleci/ @tmdzk @mattymo @119Vik
 ci-scripts/ @rdefosse @tmdzk @mattymo @119Vik
 
 */cloud/ @mpgermano @hcgatewood
+.golangci.yml @mpgermano @hcgatewood
 
 orc8r/ @mpgermano @hcgatewood @emakeev
 orc8r/tools/packer/ @tmdzk @mattymo @119Vik

@@ -86,7 +86,7 @@ func (broker *GatewayRPCBrokerImpl) ProcessGatewayResponse(response *protos.Sync
 }
 
 func (broker *GatewayRPCBrokerImpl) InitializeGateway(gwId string) chan *protos.SyncRPCRequest {
-	// Also returns the old queue that requests in which can be cancelled.
+	// Also returns the old queue that requests in which can be canceled.
 	// As we don't do anything now, the requests will just time out.
 	initializedQueue := broker.requests.InitializeQueue(gwId)
 	return initializedQueue.NewQueue

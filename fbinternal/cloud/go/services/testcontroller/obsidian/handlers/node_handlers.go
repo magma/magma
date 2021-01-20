@@ -188,7 +188,7 @@ func returnManuallyReservedCINode(c echo.Context) error {
 		return nerr
 	}
 
-	// TOOD: maybe expose this constant from the storage package?
+	// TODO: maybe expose this constant from the storage package?
 	err := testcontroller.ReleaseNode(idParam[0], "manual")
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)

@@ -191,7 +191,7 @@ func (s *DockerServiceRegistryServicer) doesComposeServiceExist(serviceName stri
 func (s *DockerServiceRegistryServicer) parseContainerNames(names []string) string {
 	// Docker allows multiple names to be specified for a container, returning
 	// the containers names in format ['/service1, /service_alias, ...]
-	// Return the non-aliased container name, removing the preceeding slash
+	// Return the non-aliased container name, removing the preceding slash
 	serviceName := names[0]
 	return strings.TrimPrefix(serviceName, "/")
 }

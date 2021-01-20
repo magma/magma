@@ -30,6 +30,7 @@ func TestUserCalculations(t *testing.T) {
 		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 
 	ctx := test_utils.GetContextWithCertificate(t, "hw0")
 
@@ -102,6 +103,7 @@ func TestSiteCalculations(t *testing.T) {
 			PhysicalID: "hw0"},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 
 	ctx := test_utils.GetContextWithCertificate(t, "hw0")
 	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw0"))
