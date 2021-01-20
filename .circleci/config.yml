@@ -23,6 +23,8 @@ aliases:
     paths: "nms"
   - &orc8r_build_verify
     paths: "orc8r"
+  - &cwf_build_verify
+    paths: "cwf"
 
 executors:
   node:
@@ -282,6 +284,7 @@ commands:
 
             mkdir -p versions
             cp *_version versions || true
+          no_output_timeout: 20m
       - store_artifacts:
           path: /tmp/logs
       - store_test_results:
@@ -435,7 +438,7 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -456,7 +459,7 @@ jobs:
       image: ubuntu-1604:201903-01
       #docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -481,8 +484,8 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MODULE_DIR=/home/circleci/project
-      - MAGMA_ROOT=/home/circleci/project
+      MODULE_DIR: /home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -498,7 +501,7 @@ jobs:
             python3 build.py -a --nocache --parallel
       - tag-push-docker:
           project: orc8r
-          images: "nginx|controller"
+          images: "nginx|controller|base"
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -512,8 +515,7 @@ jobs:
     docker:
       - image: circleci/golang:1.13-buster-node-browsers-legacy
     environment:
-      - GO111MODULE=on
-      - GOPROXY=https://proxy.golang.org
+      GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
@@ -534,7 +536,7 @@ jobs:
       - image: circleci/golang:1.13-stretch-node-browsers-legacy
     resource_class: medium+
     environment:
-      - GO111MODULE=on
+      GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
@@ -557,7 +559,7 @@ jobs:
       docker_layer_caching: true
     resource_class: large
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -581,8 +583,7 @@ jobs:
     docker:
       - image: circleci/golang:1.13-buster-node-browsers-legacy
     environment:
-      - GO111MODULE=on
-      - GOPROXY=https://proxy.golang.org
+      GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
@@ -626,12 +627,12 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
-      - DOCKER_REGISTRY=cwf_
+      MAGMA_ROOT: /home/circleci/project
+      DOCKER_REGISTRY: cwf_
     steps:
       - checkout
       - build/determinator:
-          <<: *all_gateways_build_verify
+          <<: *cwf_build_verify
       - docker/install-dc
       - run:
           name: Build CWAG containers
@@ -654,13 +655,13 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - MAGMA_ROOT=/home/circleci/project
-      - PYTHON_BUILD=${MAGMA_ROOT}/build
-      - PIP_CACHE_HOME=${MAGMA_ROOT}/.pipcache
-      - MAGMA_DEV_MODE=1
-      - SKIP_SUDO_TESTS=1
-      - CODEGEN_ROOT=/home/circleci/project/.codegen
-      - SWAGGER_CODEGEN_JAR=/home/circleci/project/.codegen/swagger-codegen-cli.jar
+      MAGMA_ROOT: /home/circleci/project
+      PYTHON_BUILD: ${MAGMA_ROOT}/build
+      PIP_CACHE_HOME: ${MAGMA_ROOT}/.pipcache
+      MAGMA_DEV_MODE: 1
+      SKIP_SUDO_TESTS: 1
+      CODEGEN_ROOT: /home/circleci/project/.codegen
+      SWAGGER_CODEGEN_JAR: /home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
       - build/determinator:
@@ -715,8 +716,7 @@ jobs:
     docker:
       - image: circleci/golang:1.13-buster-node-browsers-legacy
     environment:
-      - GO111MODULE=on
-      - GOPROXY=https://proxy.golang.org
+      GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
@@ -737,7 +737,7 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -757,6 +757,16 @@ jobs:
           artifact_name: CWF Operator
           version_path: versions/cwf_operator_version
       - magma_slack_notify
+
+  ###TeraVM Run_Status & Upgrade_Run_3GPP_Tests
+  Upgrade_Run_3GPP_Tests_teravm:
+    runner:
+      machine: true
+      resource_class: magma/teravm
+      steps:
+        - run: cd /home/magma
+        - run: fab upgrade_to_latest_and_run_3gpp_tests:setup_2
+        - magma_slack_notify
 
   ### NMS
 
@@ -808,9 +818,9 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
-      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+      NMS_ROOT: ${MAGMA_ROOT}/nms/app/packages/magmalte
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
     steps:
       - checkout
       - build/determinator:
@@ -835,7 +845,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
+      NMS_ROOT: ${MAGMA_ROOT}/nms/app/packages/magmalte
     steps:
       - checkout
       - build/determinator:
@@ -863,7 +873,7 @@ jobs:
       - image: circleci/buildpack-deps:xenial
     working_directory: /tmp/magma
     environment:
-      - MAGMA_ROOT=/tmp/magma
+      MAGMA_ROOT: /tmp/magma
     steps:
       - checkout
       - run: wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
@@ -879,6 +889,9 @@ jobs:
   docusaurus_build_and_deploy:
     docker:
       - image: circleci/node:8.11.1
+    environment:
+      DOCUSAURUS_URL: https://magma.github.io
+      DOCUSAURUS_BASE_URL: /magma/
     steps:
       - checkout
       - run:
@@ -925,13 +938,14 @@ jobs:
             echo export MAGMA_ROOT=$(pwd) >> $BASH_ENV
             echo export AWS_ACCESS_KEY_ID="$(printenv XWF_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
             echo export AWS_SECRET_ACCESS_KEY="$(printenv XWF_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
+            echo export RUN_UID=$RANDOM >> $BASH_ENV
       - run:
           command: |
             env
             docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
             cd ${MAGMA_ROOT}/xwf/docker/
             docker-compose pull || true
-            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
+            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py
       - when:
           condition: <<parameters.notify_magma_ci>>
           steps: magma_slack_notify
@@ -951,7 +965,7 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - docker/install-dc
@@ -979,7 +993,7 @@ jobs:
       - magma_slack_notify
 
 workflows:
-  version: 2.1
+  version: 2
 
   cloud:
     jobs:
@@ -1028,6 +1042,23 @@ workflows:
           requires:
             - xwfm-test
             - cwag-deploy
+      - cwag-deploy:
+          <<: *only_master
+          name: cwag-deploy-latest
+          requires:
+            - xwfm-test
+            - cwag-precommit
+            - cwf-integ-test
+          images: 'gateway_python|gateway_pipelined'
+          tag: 'latest'
+      - xwfm-deploy:
+          <<: *only_master
+          name: xwfm-deploy-latest
+          requires:
+            - xwfm-test
+            - cwag-precommit
+            - cwf-integ-test
+          tag: 'latest'
 
 
   cwf_operator:
@@ -1045,15 +1076,14 @@ workflows:
     jobs:
       - xwfm-test:
           notify_magma_ci: false
-      - xwfm-deploy:
-          requires:
-            - xwfm-test
-          tag: 'hourly'
-      - cwag-deploy:
-          requires:
-            - xwfm-test
-          images: 'gateway_python|gateway_pipelined'
-          tag: 'hourly'
+
+    teravm:
+      triggers:
+        - schedule:
+            cron: "0 7 * * *"
+            <<: *only_master
+      jobs:
+        - Upgrade_Run_3GPP_Tests_teravm
 
   nms:
     jobs:
@@ -1074,10 +1104,10 @@ workflows:
             - nms-yarn-test
             - nms-e2e-test
 
-#  docusaurus:
-#   jobs:
-#    - docusaurus_build_and_deploy:
-#        <<: *only_master
+  docusaurus:
+   jobs:
+    - docusaurus_build_and_deploy:
+        <<: *only_master
 
   fossa:
     jobs:
