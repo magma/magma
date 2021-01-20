@@ -1,0 +1,32 @@
+From 7f1c2ee1d1da679f3cb5f65774be9391510b7710 Mon Sep 17 00:00:00 2001
+From: vagrant <vagrant@magma-cloud>
+Date: Fri, 13 Apr 2018 01:14:14 +0000
+Subject: [PATCH] Variable length client cert
+
+---
+ src/shrpx_tls.cc | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/shrpx_tls.cc b/src/shrpx_tls.cc
+index 87ca928..cd92808 100644
+--- a/src/shrpx_tls.cc
++++ b/src/shrpx_tls.cc
+@@ -1991,11 +1991,12 @@ StringRef get_x509_serial(BlockAllocator &balloc, X509 *x) {
+     return StringRef{};
+   }
+ 
+-  std::array<uint8_t, 8> b;
++  std::array<uint8_t, 20> b;
++  assert(BN_num_bytes(bn) <= b.size());
+   auto n = BN_bn2bin(bn, b.data());
+-  assert(n == b.size());
+ 
+-  return util::format_hex(balloc, StringRef{std::begin(b), std::end(b)});
++  return util::format_hex(
++      balloc, StringRef{std::begin(b), static_cast<size_t>(n)});
+ #endif // !OPENSSL_1_1_API
+ }
+ 
+-- 
+2.7.4
+
