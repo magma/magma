@@ -20,7 +20,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/service/client"
 
-	"github.com/prometheus/client_model/go"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 )
 
 // CloudServiceMetricCollector is a MetricCollector which uses service303 to

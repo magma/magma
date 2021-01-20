@@ -47,6 +47,7 @@ func GetHealthyRequest() *protos.HealthRequest {
 	serviceStatsMap := make(map[string]*protos.ServiceHealthStats)
 	serviceStatsMap["SWX_PROXY"] = &serviceStats
 	serviceStatsMap["SESSION_PROXY"] = &serviceStats
+	serviceStatsMap["S6A_PROXY"] = &serviceStats
 
 	healthStats1 := &protos.HealthStats{
 		SystemStatus: &protos.SystemHealthStats{

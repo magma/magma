@@ -54,6 +54,10 @@ type NetworkFederationConfigs struct {
 	// Required: true
 	S6a *S6a `json:"s6a"`
 
+	// s8
+	// Required: true
+	S8 *S8 `json:"s8"`
+
 	// served network ids
 	// Required: true
 	ServedNetworkIds ServedNetworkIds `json:"served_network_ids"`
@@ -107,6 +111,10 @@ func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateS6a(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateS8(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -298,6 +306,24 @@ func (m *NetworkFederationConfigs) validateS6a(formats strfmt.Registry) error {
 		if err := m.S6a.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("s6a")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) validateS8(formats strfmt.Registry) error {
+
+	if err := validate.Required("s8", "body", m.S8); err != nil {
+		return err
+	}
+
+	if m.S8 != nil {
+		if err := m.S8.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("s8")
 			}
 			return err
 		}

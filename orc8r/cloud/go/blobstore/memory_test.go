@@ -150,6 +150,7 @@ func TestMemoryBlobStorage_GetMany(t *testing.T) {
 
 	// lookup
 	blobs, err := store.GetMany(network1, ids)
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(blobs))
 	assert.True(t, blobEqual(blobs[0], blob1) || blobEqual(blobs[1], blob1))
 	assert.True(t, blobEqual(blobs[0], blob2) || blobEqual(blobs[1], blob2))
@@ -214,6 +215,7 @@ func TestMemoryBlobStorage_ListKeys(t *testing.T) {
 	// Test local changes
 	assert.NoError(t, store.CreateOrUpdate(network1, blobstore.Blobs{blob1, blob2}))
 	keys, err := store.ListKeys(network1, type1)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{key1, key2}, keys)
 
 	assert.NoError(t, store.Commit())
@@ -222,11 +224,13 @@ func TestMemoryBlobStorage_ListKeys(t *testing.T) {
 
 	// Test committed changes
 	keys, err = store.ListKeys(network1, type1)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{key1, key2}, keys)
 
 	// Test locally deleted changes
-	assert.NoError(t, store.Delete(network1, []storage.TypeAndKey{{type1, key1}}))
+	assert.NoError(t, store.Delete(network1, []storage.TypeAndKey{{Type: type1, Key: key1}}))
 	keys, err = store.ListKeys(network1, type1)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{key2}, keys)
 }
 

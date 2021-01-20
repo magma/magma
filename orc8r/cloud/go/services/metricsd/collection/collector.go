@@ -13,7 +13,9 @@ limitations under the License.
 
 package collection
 
-import "github.com/prometheus/client_model/go"
+import (
+	io_prometheus_client "github.com/prometheus/client_model/go"
+)
 
 // MetricCollector provides an API to query for metrics.
 type MetricCollector interface {

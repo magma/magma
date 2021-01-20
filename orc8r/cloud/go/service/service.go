@@ -60,7 +60,7 @@ type OrchestratorService struct {
 // implementing service303. If configured, it will also initialize an HTTP echo
 // server as a part of the service. This service will implement a middleware
 // interceptor to perform identity check. If your service does not or can not
-// perform identity checks, (e.g. federation), use NewServiceWithOptions.
+// perform identity checks, (e.g., federation), use NewServiceWithOptions.
 func NewOrchestratorService(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*OrchestratorService, error) {
 	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})

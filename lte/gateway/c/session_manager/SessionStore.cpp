@@ -193,62 +193,83 @@ optional<SessionVector::iterator> SessionStore::find_session(
   }
   auto& sessions = sm_it->second;
   for (auto it = sessions.begin(); it != sessions.end(); ++it) {
+    const auto& context = (*it)->get_config().common_context;
     switch (criteria.search_type) {
       case IMSI_AND_SESSION_ID:
         if ((*it)->get_session_id() == criteria.secondary_key) {
           return it;
         }
         break;
-      case IMSI_AND_TEID:
-        if ((*it)->get_local_teid() == criteria.secondary_key_unit32) {
-          return it;
-        }
-        break;
+
       case IMSI_AND_APN:
-        if ((*it)->get_config().common_context.apn() ==
-            criteria.secondary_key) {
+        if (context.apn() == criteria.secondary_key) {
           return it;
         }
         break;
+
       case IMSI_AND_UE_IPV4:
-        if ((*it)->get_config().common_context.ue_ipv4() ==
-            criteria.secondary_key) {
+        if (context.ue_ipv4() == criteria.secondary_key) {
           return it;
         }
         break;
+
       case IMSI_AND_UE_IPV4_OR_IPV6:
         // cwag case (cwag doesn't store ip)
-        if ((*it)->get_config().common_context.rat_type() ==
-            RATType::TGPP_WLAN) {
+        if (context.rat_type() == RATType::TGPP_WLAN) {
           return it;
         }
         // other case(lte,5g)
-        // lte case
-        if ((*it)->get_config().common_context.ue_ipv4() ==
-                criteria.secondary_key ||
-            (*it)->get_config().common_context.ue_ipv6() ==
-                criteria.secondary_key) {
+        if (context.ue_ipv4() == criteria.secondary_key ||
+            context.ue_ipv6() == criteria.secondary_key) {
           return it;
         }
         break;
+
       case IMSI_AND_BEARER:
-        if ((*it)->get_config().common_context.rat_type() ==
-            RATType::TGPP_LTE) {
-          // lte case
-          if ((*it)
-                  ->get_config()
-                  .rat_specific_context.lte_context()
-                  .bearer_id() == criteria.secondary_key_unit32) {
+        switch (context.rat_type()) {
+          case RATType::TGPP_LTE:
+            // lte case
+            if ((*it)
+                    ->get_config()
+                    .rat_specific_context.lte_context()
+                    .bearer_id() == criteria.secondary_key_unit32) {
+              return it;
+            }
+            break;
+          case RATType::TGPP_WLAN:
             return it;
-          }
-        } else {
-          // 5g and cwag
-          MLOG(MERROR) << "find_session by bearer is not implemented "
-                          "for cwg or 5g. Couldnt find session for "
-                       << criteria.imsi;
-          return it;
+          default:
+          case RATType::TGPP_NR:
+            MLOG(MERROR) << "Search criteria for IMSI_AND_BEARER "
+                            "not implemented for this RAT "
+                         << context.rat_type();
+            break;
         }
-        break;
+        break;  // break IMSI_AND_BEARER
+
+      case IMSI_AND_TEID:
+        switch (context.rat_type()) {
+          case RATType::TGPP_WLAN:
+            return it;
+            break;
+          case RATType::TGPP_LTE:
+            if (context.teids().enb_teid() == criteria.secondary_key_unit32 ||
+                context.teids().agw_teid() == criteria.secondary_key_unit32) {
+              return it;
+            }
+            break;
+          case RATType::TGPP_NR:
+            if ((*it)->get_local_teid() == criteria.secondary_key_unit32) {
+              return it;
+            }
+            break;
+          default:
+            MLOG(MERROR) << "Search criteria for IMSI_AND_TEID not implemented"
+                            "for this RAT "
+                         << context.rat_type();
+            break;
+        }
+        break;  // break IMSI_AND_TEID
     }
     continue;
   }

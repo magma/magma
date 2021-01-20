@@ -393,7 +393,7 @@ func updateHAPairHandler(c echo.Context) error {
 	if err := mutableHaPair.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if string(mutableHaPair.HaPairID) != haPairID {
+	if mutableHaPair.HaPairID != haPairID {
 		err := fmt.Errorf("ha pair ID from parameters (%s) and payload (%s) must match", haPairID, mutableHaPair.HaPairID)
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}

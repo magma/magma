@@ -84,6 +84,7 @@ func testCertifierStorageImpl(t *testing.T, store storage.CertifierStorage) {
 
 	// Put info2, GetMany infos 0 and 1
 	err = store.PutCertInfo(sn2, info2)
+	assert.NoError(t, err)
 	infos, err := store.GetManyCertInfo([]string{sn0, sn1})
 	assert.NoError(t, err)
 	assert.Len(t, infos, 2)

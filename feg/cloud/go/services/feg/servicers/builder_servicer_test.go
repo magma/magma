@@ -84,6 +84,11 @@ func TestBuilder_Build(t *testing.T) {
 			RequestFailureThreshold: 0.50,
 			MinimumRequestThreshold: 1,
 		},
+		"s8_proxy": &feg_mconfig.S8Config{
+			LogLevel:     1,
+			LocalAddress: "10.0.0.1",
+			PgwAddress:   "10.0.0.2",
+		},
 		"hss": &feg_mconfig.HSSConfig{
 			Server: &feg_mconfig.DiamServerConfig{
 				Protocol:  "tcp",
@@ -138,7 +143,7 @@ func TestBuilder_Build(t *testing.T) {
 				},
 				OverwriteApn: "apnGx.magma-fedgw.magma.com",
 				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
-					&feg_mconfig.VirtualApnRule{
+					{
 						ApnFilter:                     ".*",
 						ChargingCharacteristicsFilter: "1*",
 						ApnOverwrite:                  "vApnGx.magma-fedgw.magma.com",
@@ -183,7 +188,7 @@ func TestBuilder_Build(t *testing.T) {
 				InitMethod:   feg_mconfig.GyInitMethod_PER_SESSION,
 				OverwriteApn: "apnGy.magma-fedgw.magma.com",
 				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
-					&feg_mconfig.VirtualApnRule{
+					{
 						ApnFilter:                     ".*",
 						ChargingCharacteristicsFilter: "1*",
 						ApnOverwrite:                  "vApnGy.magma-fedgw.magma.com",
@@ -315,6 +320,10 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		PlmnIds: []string{"123456"},
 	},
+	S8: &models.S8{
+		LocalAddress: "10.0.0.1",
+		PgwAddress:   "10.0.0.2",
+	},
 	Gx: &models.Gx{
 		DisableGx: swag.Bool(true),
 		Server: &models.DiameterClientConfigs{
@@ -339,7 +348,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		OverwriteApn: "apnGx.magma-fedgw.magma.com",
 		VirtualApnRules: []*models.VirtualApnRule{
-			&models.VirtualApnRule{
+			{
 				ApnFilter:                     ".*",
 				ChargingCharacteristicsFilter: "1*",
 				ApnOverwrite:                  "vApnGx.magma-fedgw.magma.com",
@@ -371,7 +380,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		InitMethod:   uint32Ptr(1),
 		OverwriteApn: "apnGy.magma-fedgw.magma.com",
 		VirtualApnRules: []*models.VirtualApnRule{
-			&models.VirtualApnRule{
+			{
 				ApnFilter:                     ".*",
 				ChargingCharacteristicsFilter: "1*",
 				ApnOverwrite:                  "vApnGy.magma-fedgw.magma.com",

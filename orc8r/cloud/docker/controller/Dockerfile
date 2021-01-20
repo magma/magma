@@ -4,10 +4,11 @@
 FROM ubuntu:xenial as base
 
 ENV GO111MODULE on
+ENV GOPATH ${USER}/go
 ENV GOBIN /build/bin
-ENV PATH ${PATH}:${GOBIN}
+ENV PATH ${PATH}:${GOBIN}:${GOPATH}/bin
 
-# Used in makefiles
+# Used in Makefiles
 ENV MAGMA_ROOT /src/magma
 
 # Apt runtime deps
@@ -54,7 +55,7 @@ RUN . /etc/profile.d/env.sh && for m in $GOCACHE_MODULES ; do cd ${m}/cloud/go &
 # ------------------------------------------------------------------------------
 FROM gocache as src
 
-ARG MAGMA_MODULES
+ARG MAGMA_MODULES="orc8r lte feg cwf wifi fbinternal"
 RUN echo "export MAGMA_MODULES=\"$(for m in $MAGMA_MODULES ; do echo -n /src/magma/$m ; echo -n ' ' ; done)\"" >> /etc/profile.d/env.sh
 
 # Source code

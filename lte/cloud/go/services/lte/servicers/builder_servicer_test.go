@@ -171,7 +171,7 @@ func TestBuilder_Build(t *testing.T) {
 
 	// Break with non-allowed network service
 	setEPCNetworkServices([]string{"0xdeadbeef"}, &nw)
-	actual, err = build(&nw, &graph, "gw1")
+	_, err = build(&nw, &graph, "gw1")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown network service name 0xdeadbeef")
 

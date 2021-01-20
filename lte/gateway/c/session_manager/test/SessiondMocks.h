@@ -72,7 +72,6 @@ class MockPipelinedClient : public PipelinedClient {
         .WillByDefault(Return(true));
     ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _, _, _, _, _))
         .WillByDefault(Return(true));
-    ON_CALL(*this, update_tunnel_ids(_, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _))
         .WillByDefault(Return(true));
     ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
@@ -132,11 +131,6 @@ class MockPipelinedClient : public PipelinedClient {
           const std::vector<std::string>& static_rules,
           const std::vector<PolicyRule>& dynamic_rules,
           std::function<void(Status status, ActivateFlowsResult)> callback));
-  MOCK_METHOD4(
-      update_tunnel_ids,
-      bool(
-          const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr, const Teids teids));
   MOCK_METHOD6(
       add_ue_mac_flow,
       bool(

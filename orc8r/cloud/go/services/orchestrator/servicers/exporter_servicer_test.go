@@ -26,7 +26,7 @@ import (
 	"magma/orc8r/lib/go/metrics"
 
 	prometheus_models "github.com/prometheus/client_model/go"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 const (

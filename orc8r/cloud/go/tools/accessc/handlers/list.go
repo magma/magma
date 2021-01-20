@@ -66,8 +66,6 @@ func list(cmd *commands.Command, args []string) int {
 			certSnsByOperMap[hash] = append(snlist, sn)
 		}
 	}
-	// try to "free" certMap
-	certMap = nil
 	fmt.Println("Operators:")
 	for idx, acl := range acls {
 		if acl == nil {

@@ -45,6 +45,9 @@ class SessionStoreTest : public ::testing::Test {
     rule_id_3         = "test_rule_3";
     dynamic_rule_id_1 = "dynamic_rule_1";
     dynamic_rule_id_2 = "dynamic_rule_2";
+
+    auto credits = response1.mutable_credits();
+    create_credit_update_response(IMSI2, session_id_3, 1, 1000, credits->Add());
   }
 
   PolicyRule get_dynamic_rule() {
@@ -77,7 +80,8 @@ class SessionStoreTest : public ::testing::Test {
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
-        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
+        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time,
+        response1);
   }
 
   std::unique_ptr<SessionState> get_lte_session(
@@ -106,7 +110,8 @@ class SessionStoreTest : public ::testing::Test {
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
-        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
+        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time,
+        response1);
   }
   UsageMonitoringUpdateResponse* get_monitoring_update() {
     auto units = new GrantedUnits();
@@ -217,6 +222,7 @@ class SessionStoreTest : public ::testing::Test {
   std::string rule_id_3;
   std::string dynamic_rule_id_1;
   std::string dynamic_rule_id_2;
+  CreateSessionResponse response1;
 };
 
 TEST_F(SessionStoreTest, test_metering_reporting) {
@@ -310,6 +316,9 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3), true);
+  EXPECT_EQ(
+      session->get_create_session_response().DebugString(),
+      response1.DebugString());
 
   auto credit_update                               = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
@@ -340,6 +349,9 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[IMSI1].size(), 2);
   EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
+  EXPECT_EQ(
+      session_map[IMSI1].front()->get_create_session_response().DebugString(),
+      response1.DebugString());
 
   // 6) Make updates to session via SessionUpdateCriteria
   auto update_req = SessionUpdate{};
@@ -534,23 +546,28 @@ TEST_F(SessionStoreTest, test_get_session) {
   auto rule_store = std::make_shared<StaticRuleStore>();
   SessionStore session_store(rule_store);
   SessionMap session_map = {};
+  // cwag teid
   Teids teid1;
-  teid1.set_enb_teid(TEID_1_DL);
-  teid1.set_agw_teid(TEID_1_UL);
+  teid1.set_enb_teid(0);
+  teid1.set_agw_teid(0);
   Teids teid2;
-  teid2.set_enb_teid(TEID_2_DL);
-  teid2.set_agw_teid(TEID_2_UL);
+  teid2.set_enb_teid(0);
+  teid2.set_agw_teid(0);
+  // lte teid
   Teids teid3;
-  teid3.set_enb_teid(TEID_3_UL);
+  teid3.set_enb_teid(TEID_3_DL);
   teid3.set_agw_teid(TEID_3_UL);
   Teids teid4;
-  teid4.set_enb_teid(TEID_4_UL);
+  teid4.set_enb_teid(TEID_4_DL);
   teid4.set_agw_teid(TEID_4_UL);
 
+  // cwag sessions (1 and 2)
   auto session1 =
       get_session(IMSI1, SESSION_ID_1, IP1, IPv6_1, teid1, "APN1", rule_store);
   auto session2 =
       get_session(IMSI1, SESSION_ID_2, IP2, IPv6_2, teid2, "APN2", rule_store);
+
+  // lte sessions (3 and 4)
   auto session3 = get_lte_session(
       IMSI3, SESSION_ID_3, IP3, IPv6_3, teid3, "APN2", rule_store);
   auto session4 = get_lte_session(
@@ -613,21 +630,23 @@ TEST_F(SessionStoreTest, test_get_session) {
 
   // Happy Path! cwag IMSI+UE IPv4 or IPv6
   SessionSearchCriteria id1_success_cwag1(IMSI1, IMSI_AND_UE_IPV4_OR_IPV6, "");
-  auto optional_it_cwag1 =
+  auto optional_it_cwg1 =
       session_store.find_session(session_map, id1_success_cwag1);
-  EXPECT_TRUE(optional_it_cwag1);
-  auto& found_session_cwag1 = **optional_it_cwag1;
+  EXPECT_TRUE(optional_it_cwg1);
+  auto& found_session_cwag1 = **optional_it_cwg1;
   EXPECT_EQ(found_session_cwag1->get_config().common_context.apn(), "APN1");
 
-  // Not found IMSI+UE Dual Stack (IPv4 and IPv6)
-  /*
-  SessionSearchCriteria id1_success_ipv4_cwag(IMSI1, IMSI_AND_UE_IPV4, "");
-  auto optional_it5 = session_store.find_session(session_map,
-  id1_success_ipv4_cwag); EXPECT_TRUE(optional_it5); auto& found_session5=
-  **optional_it5;
-  EXPECT_EQ(found_session5->get_config().common_context.ue_ipv4(), IP2);
-  EXPECT_EQ(found_session5->get_config().common_context.ue_ipv6(), IPv6_2);
-*/
+  // Happy Path! IMSI+TEID LTE
+  SessionSearchCriteria id6_success_sid(IMSI3, IMSI_AND_TEID, TEID_3_DL);
+  auto optional_it6 = session_store.find_session(session_map, id6_success_sid);
+  EXPECT_TRUE(optional_it6);
+  auto& found_session6 = **optional_it6;
+  EXPECT_EQ(found_session6->get_session_id(), SESSION_ID_3);
+
+  // Not found IMSI and TEID
+  SessionSearchCriteria id7_success_sid(IMSI3, IMSI_AND_TEID, 99);
+  auto optional_it7 = session_store.find_session(session_map, id7_success_sid);
+  EXPECT_FALSE(optional_it7);
 }
 
 int main(int argc, char** argv) {

@@ -56,7 +56,7 @@ Build and publish Orchestrator images
 
 ```bash
 cd MAGMA_ROOT/orc8r/cloud/docker
-./build.py -a
+./build.py --all
 for image in controller nginx ; do ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MAGMA_TAG} ; done
 ```
 

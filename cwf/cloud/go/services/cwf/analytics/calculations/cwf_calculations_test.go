@@ -36,7 +36,7 @@ var (
 	vectorReturnClient = &mocks.PrometheusAPI{}
 )
 
-// Initalize mocked Prometheus clients
+// Initialize mocked Prometheus clients
 func init() {
 	// Query returns error
 	errClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, fmt.Errorf("query error"))
@@ -114,8 +114,7 @@ func TestXAPCalculation(t *testing.T) {
 		Value:     1,
 		Timestamp: 123,
 	}
-	var vec model.Vector
-	vec = []*model.Sample{&sample1}
+	var vec model.Vector = []*model.Sample{&sample1}
 
 	successClient := &mocks.PrometheusAPI{}
 	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil, nil)

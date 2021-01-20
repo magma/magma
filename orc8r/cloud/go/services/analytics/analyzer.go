@@ -25,7 +25,7 @@ import (
 	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/robfig/cron/v3"
 )
 

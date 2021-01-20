@@ -77,6 +77,9 @@ func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (
 		return nil, err
 	}
 	stErrs, err := indexImpl(req.NetworkId, states)
+	if err != nil {
+		return nil, err
+	}
 	res := &protos.IndexResponse{StateErrors: state_types.MakeProtoStateErrors(stErrs)}
 	return res, nil
 }

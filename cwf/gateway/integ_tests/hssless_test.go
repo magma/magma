@@ -23,7 +23,7 @@ import (
 	"magma/cwf/gateway/registry"
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/test_utils"
 
 	"magma/cwf/gateway/services/uesim/servicers"
 
@@ -40,7 +40,7 @@ const (
 func TestHsslessAuthenticateUe(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateUe HSSLess...")
 
-	ueSimServer, err := setupHssLessTestEnv()
+	ueSimServer, err := setupHssLessTestEnv(t)
 	assert.NoError(t, err)
 
 	tr := NewTestRunner(t)
@@ -101,11 +101,11 @@ func TestHsslessAuthenticateUe(t *testing.T) {
 
 }
 
-func setupHssLessTestEnv() (*servicers.UESimServerHssLess, error) {
+func setupHssLessTestEnv(t *testing.T) (*servicers.UESimServerHssLess, error) {
 
 	registry.AddService("SESSIOND", "127.0.0.1", 50065)
 
-	store := blobstore.NewMemoryBlobStorageFactory()
+	store := test_utils.NewSQLBlobstore(t, "hssless_test_blobstore")
 	server, err := servicers.NewUESimServerHssLess(store)
 	return server, err
 }
