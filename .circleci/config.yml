@@ -1076,13 +1076,14 @@ workflows:
       - xwfm-test:
           notify_magma_ci: false
 
-    teravm:
-      triggers:
-        - schedule:
-            cron: "0 7 * * *"
-            <<: *only_master
-      jobs:
-        - Upgrade_Run_3GPP_Tests_teravm
+  teravm:
+    triggers:
+      - schedule:
+          cron: "0 7 * * *"
+          <<: *only_master
+    jobs:
+      - Upgrade_Run_3GPP_Tests_teravm:
+          notify_magma_ci: false
 
   nms:
     jobs:
