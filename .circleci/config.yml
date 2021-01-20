@@ -1029,8 +1029,7 @@ workflows:
   agw:
     jobs:
       - lte-test
-      - lte-integ-test:
-          <<: *master_and_develop
+      - lte-integ-test
       - lte-agw-deploy:
           <<: *only_master
           requires:
@@ -1046,10 +1045,8 @@ workflows:
   cwag:
     jobs:
       - cwag-precommit
-      - cwf-integ-test:
-          <<: *master_and_develop
-      - xwfm-test:
-          <<: *master_and_develop
+      - cwf-integ-test
+      - xwfm-test
       - cwag-deploy:
           <<: *only_master
           requires:
@@ -1086,14 +1083,14 @@ workflows:
           requires:
             - cwf-operator-precommit
 
-  hourly_xwfm:
-    triggers:
-      - schedule:
-          cron: "0 * * * *"
-          <<: *only_master
-    jobs:
-      - xwfm-test:
-          notify_magma_ci: false
+  # hourly_xwfm:
+  #   triggers:
+  #     - schedule:
+  #         cron: "0 * * * *"
+  #         <<: *only_master
+  #   jobs:
+  #     - xwfm-test:
+  #         notify_magma_ci: false
 
   nms:
     jobs:
