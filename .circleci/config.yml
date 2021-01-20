@@ -87,6 +87,10 @@ commands:
       command:
         description: Command to run
         type: string
+    steps:
+      - run: |
+          cd << parameters.workdir >>
+          << parameters.command >>
 
   run-with-retry:
     description: Run command with retry
