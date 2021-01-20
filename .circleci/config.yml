@@ -1082,8 +1082,7 @@ workflows:
           cron: "0 7 * * *"
           <<: *only_master
     jobs:
-      - Upgrade_Run_3GPP_Tests_teravm:
-          notify_magma_ci: false
+      - Upgrade_Run_3GPP_Tests_teravm
 
   nms:
     jobs:
