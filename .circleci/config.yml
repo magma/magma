@@ -761,11 +761,11 @@ jobs:
   ###TeraVM Run_Status & Upgrade_Run_3GPP_Tests
   Upgrade_Run_3GPP_Tests_teravm:
     machine: true
-      resource_class: magma/teravm
-      steps:
-        - run: cd /home/magma
-        - run: fab upgrade_to_latest_and_run_3gpp_tests:setup_2
-        - magma_slack_notify
+    resource_class: magma/teravm
+    steps:
+      - run: cd /home/magma
+      - run: fab upgrade_to_latest_and_run_3gpp_tests:setup_2
+      - magma_slack_notify
 
   ### NMS
 
