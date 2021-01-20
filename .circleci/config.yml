@@ -501,7 +501,7 @@ jobs:
             python3 build.py -a --nocache --parallel
       - tag-push-docker:
           project: orc8r
-          images: "nginx|controller"
+          images: "nginx|controller|base"
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -757,6 +757,16 @@ jobs:
           artifact_name: CWF Operator
           version_path: versions/cwf_operator_version
       - magma_slack_notify
+
+  ###TeraVM Run_Status & Upgrade_Run_3GPP_Tests
+  Upgrade_Run_3GPP_Tests_teravm:
+    runner:
+      machine: true
+      resource_class: magma/teravm
+      steps:
+        - run: cd /home/magma
+        - run: fab upgrade_to_latest_and_run_3gpp_tests:setup_2
+        - magma_slack_notify
 
   ### NMS
 
@@ -1066,6 +1076,14 @@ workflows:
     jobs:
       - xwfm-test:
           notify_magma_ci: false
+
+    teravm:
+      triggers:
+        - schedule:
+            cron: "0 7 * * *"
+            <<: *only_master
+      jobs:
+        - Upgrade_Run_3GPP_Tests_teravm
 
   nms:
     jobs:
