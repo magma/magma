@@ -830,6 +830,64 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         }
       }
     }
+
+    // RESTRICTED PLMN SETTING
+    setting = config_setting_get_member(
+        setting_mme, MME_CONFIG_STRING_RESTRICTED_PLMN_LIST);
+    config_pP->restricted_plmn.nb = 0;
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_RESTRICTED_PLMN_LIST \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(
+          LOG_MME_APP, "Number of restricted PLMNs configured =%d\n", num);
+      AssertFatal(
+          num <= MAX_RESTRICTED_PLMN,
+          "Number of restricted PLMNs configured:%d exceeds number of "
+          "restricted PLMNs supported "
+          ":%d \n",
+          num, MAX_RESTRICTED_PLMN);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+
+        if (sub2setting != NULL) {
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
+            AssertFatal(
+                strlen(mcc) == MAX_MCC_LENGTH,
+                "Bad MCC length (%ld), it must be %u digit ex: 001",
+                strlen(mcc), MAX_MCC_LENGTH);
+            char c[2]                                     = {mcc[0], 0};
+            config_pP->restricted_plmn.plmn[i].mcc_digit1 = (uint8_t) atoi(c);
+            c[0]                                          = mcc[1];
+            config_pP->restricted_plmn.plmn[i].mcc_digit2 = (uint8_t) atoi(c);
+            c[0]                                          = mcc[2];
+            config_pP->restricted_plmn.plmn[i].mcc_digit3 = (uint8_t) atoi(c);
+          }
+
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
+            AssertFatal(
+                (strlen(mnc) == MIN_MNC_LENGTH) ||
+                    (strlen(mnc) == MAX_MNC_LENGTH),
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
+                strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
+            char c[2]                                     = {mnc[0], 0};
+            config_pP->restricted_plmn.plmn[i].mnc_digit1 = (uint8_t) atoi(c);
+            c[0]                                          = mnc[1];
+            config_pP->restricted_plmn.plmn[i].mnc_digit2 = (uint8_t) atoi(c);
+            if (3 == strlen(mnc)) {
+              c[0]                                          = mnc[2];
+              config_pP->restricted_plmn.plmn[i].mnc_digit3 = (uint8_t) atoi(c);
+            } else {
+              config_pP->restricted_plmn.plmn[i].mnc_digit3 = 0x0F;
+            }
+          }
+          config_pP->restricted_plmn.nb += 1;
+        }
+      }
+    }
+
     // NETWORK INTERFACE SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG);

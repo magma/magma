@@ -112,6 +112,61 @@ int emm_recv_status(
    Functions executed by the MME upon receiving EMM message from the UE
    --------------------------------------------------------------------------
 */
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    check_plmn_restriction()                                      **
+ **                                                                        **
+ ** Description: Check if the received PLMN matches with the               **
+                 restricted PLMN list                                      **
+ **                                                                        **
+ ** Inputs:  eps_mob_identity: EPS mobile identity                        **
+ **                                                                        **
+ ** Outputs:                                                               **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int check_plmn_restriction(eps_mobile_identity_t eps_mob_identity) {
+  uint8_t itr;
+  if (eps_mob_identity.guti.typeofidentity == EPS_MOBILE_IDENTITY_GUTI) {
+    for (itr = 0; itr < mme_config.restricted_plmn.nb; itr++) {
+      if ((eps_mob_identity.guti.mcc_digit1 ==
+           mme_config.restricted_plmn.plmn[itr].mcc_digit1) &&
+          (eps_mob_identity.guti.mcc_digit2 ==
+           mme_config.restricted_plmn.plmn[itr].mcc_digit2) &&
+          (eps_mob_identity.guti.mcc_digit3 ==
+           mme_config.restricted_plmn.plmn[itr].mcc_digit3) &&
+          (eps_mob_identity.guti.mnc_digit1 ==
+           mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
+          (eps_mob_identity.guti.mnc_digit2 ==
+           mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
+          (eps_mob_identity.guti.mnc_digit3 ==
+           mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+      }
+    }
+  } else if (eps_mob_identity.imsi.typeofidentity == EPS_MOBILE_IDENTITY_IMSI) {
+    for (itr = 0; itr < mme_config.restricted_plmn.nb; itr++) {
+      if ((eps_mob_identity.imsi.identity_digit1 ==
+           mme_config.restricted_plmn.plmn[itr].mcc_digit1) &&
+          (eps_mob_identity.imsi.identity_digit2 ==
+           mme_config.restricted_plmn.plmn[itr].mcc_digit2) &&
+          (eps_mob_identity.imsi.identity_digit3 ==
+           mme_config.restricted_plmn.plmn[itr].mcc_digit3) &&
+          (eps_mob_identity.imsi.identity_digit4 ==
+           mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
+          (eps_mob_identity.imsi.identity_digit5 ==
+           mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
+          (eps_mob_identity.imsi.identity_digit6 ==
+           mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+      }
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+}
+
 /****************************************************************************
  **                                                                        **
  ** Name:    emm_recv_attach_request()                                 **
@@ -140,6 +195,18 @@ int emm_recv_attach_request(
   /*
    * Message checking
    */
+
+  // Check for PLMN restriction
+  if (check_plmn_restriction(msg->oldgutiorimsi) != RETURNok) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
+        "(%d)\n",
+        ue_id, EMM_CAUSE_PLMN_NOT_ALLOWED);
+    rc = emm_proc_attach_reject(ue_id, EMM_CAUSE_PLMN_NOT_ALLOWED);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
   if (msg->uenetworkcapability.spare != 0b000) {
     /*
      * Spare bits shall be coded as zero

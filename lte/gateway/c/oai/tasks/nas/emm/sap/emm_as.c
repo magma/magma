@@ -844,6 +844,7 @@ static int _emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
       break;
 
     case TRACKING_AREA_UPDATE_REQUEST:
+      // TODO - Check for PLMN restriction
       increment_counter("tracking_area_update", 1, NO_LABELS);
       OAILOG_INFO(
           LOG_NAS_EMM,
