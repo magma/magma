@@ -78,7 +78,6 @@ orbs:
                 circleci step halt
 
 commands:
-
   teravm:
     description: Run command in teravm
     parameters:
@@ -88,11 +87,7 @@ commands:
       command:
         description: Command to run
         type: string
-    steps:
-      - run: |
-          cd << parameters.workdir >>
-          << parameters.command >>
-          
+
   run-with-retry:
     description: Run command with retry
     parameters:
@@ -777,9 +772,12 @@ jobs:
   Upgrade_Run_3GPP_Tests_teravm:
     machine: true
     resource_class: magma/teravm
+    environment:
+      FAB_ROOT: /home/magma
     steps:
-      - run: cd /home/magma
-      - run: fab upgrade_to_latest_and_run_3gpp_tests:setup_2
+      - teravm:
+          workdir: ${FAB_ROOT}
+          command: fab upgrade_to_latest_and_run_3gpp_tests:setup_2
       - magma_slack_notify
 
   ### NMS
