@@ -49,7 +49,6 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
-# TODO: change repo to focal once there will be such
 RUN apt-key add /tmp/jfrog.pub && \
 
     apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" && \
