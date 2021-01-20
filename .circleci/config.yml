@@ -78,6 +78,21 @@ orbs:
                 circleci step halt
 
 commands:
+
+  teravm:
+    description: Run command in teravm
+    parameters:
+      workdir:
+        description: Path to cd into
+        type: string
+      command:
+        description: Command to run
+        type: string
+    steps:
+      - run: |
+          cd << parameters.workdir >>
+          << parameters.command >>
+          
   run-with-retry:
     description: Run command with retry
     parameters:
