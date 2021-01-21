@@ -14,7 +14,7 @@ limitations under the License.
 package collection
 
 import (
-	"github.com/prometheus/client_model/go"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 )
 
 type MetricLabel struct {
@@ -35,37 +35,6 @@ func MakeSingleGaugeFamily(
 		Help:   &help,
 		Type:   &mtype,
 		Metric: []*io_prometheus_client.Metric{MakeSingleGaugeMetric(label, value)},
-	}
-}
-
-// MakeMultiGaugeFamily returns a single MetricsFamily with multiple labeled
-// gauge metrics.
-func MakeMultiGaugeFamily(
-	name string, help string,
-	gaugesByLabel map[MetricLabel]float64,
-) *io_prometheus_client.MetricFamily {
-	metrics := make([]*io_prometheus_client.Metric, 0, len(gaugesByLabel))
-
-	for label, val := range gaugesByLabel {
-		clonedLabel := MetricLabel{Name: label.Name, Value: label.Value}
-
-		metrics = append(
-			metrics,
-			&io_prometheus_client.Metric{
-				Label: []*io_prometheus_client.LabelPair{
-					{Name: &clonedLabel.Name, Value: &clonedLabel.Value},
-				},
-				Gauge: &io_prometheus_client.Gauge{Value: &val},
-			},
-		)
-	}
-
-	mtype := io_prometheus_client.MetricType_GAUGE
-	return &io_prometheus_client.MetricFamily{
-		Name:   &name,
-		Help:   &help,
-		Type:   &mtype,
-		Metric: metrics,
 	}
 }
 

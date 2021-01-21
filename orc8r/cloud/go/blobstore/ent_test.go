@@ -100,7 +100,7 @@ func TestMigration(t *testing.T) {
 
 	err = storev2.Delete("id1", []storage.TypeAndKey{{Type: "type3", Key: "key1"}})
 	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TypeAndKey{Type: "type3", Key: "key1"})
+	_, err = storev2.Get("id1", storage.TypeAndKey{Type: "type3", Key: "key1"})
 	require.Equal(t, magmaerrors.ErrNotFound, err)
 
 	err = storev2.CreateOrUpdate("id1", blobstore.Blobs{

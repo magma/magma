@@ -33,7 +33,7 @@ type NetworkHealthStatusReporter struct {
 }
 
 func (reporter *NetworkHealthStatusReporter) ReportHealthStatus(dur time.Duration) {
-	for _ = range time.Tick(dur) {
+	for range time.Tick(dur) {
 		err := reporter.reportHealthStatus()
 		if err != nil {
 			glog.Errorf("err in reportHealthStatus: %v\n", err)

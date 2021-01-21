@@ -338,10 +338,7 @@ func isSystemHealthy(status *fegprotos.SystemHealthStats, config *healthConfig) 
 	usedMemoryBytes := status.MemTotalBytes - status.MemAvailableBytes
 	exceedsMemThreshold := status.MemTotalBytes != 0 &&
 		float64(usedMemoryBytes)/float64(status.MemTotalBytes) >= float64(config.memAvailableThreshold)
-	if exceedsMemThreshold {
-		return false
-	}
-	return true
+	return !exceedsMemThreshold
 }
 
 func isServiceHealthy(

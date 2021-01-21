@@ -64,6 +64,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	}
 
 	s6ac := gwConfig.S6a
+	s8c := gwConfig.S8
 	gxc := gwConfig.Gx
 	gyc := gwConfig.Gy
 	hss := gwConfig.Hss
@@ -84,6 +85,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		}
 		protos.FillIn(s6ac, mc)
 		vals["s6a_proxy"] = mc
+	}
+
+	if s8c != nil {
+		mc := &feg_mconfig.S8Config{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(s8c, mc)
+		vals["s8_proxy"] = mc
 	}
 
 	if gxc != nil || gyc != nil {

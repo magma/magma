@@ -74,7 +74,7 @@ pipeline {
           // sh "sleep 10"
           sh "vagrant global-status"
           sh "sudo virsh list --all --name"
-          sh "vagrant global-status 2>/dev/null | awk '/virtualbox/{print \$1}' | xargs -I {} vagrant destroy -f {}"
+          sh "vagrant global-status 2>/dev/null | awk '/workspace/{print \$1}' | xargs -I {} vagrant destroy -f {}"
           try {
             sh('sudo virsh list --all --name | grep magma | xargs --no-run-if-empty -n1 sudo virsh destroy')
             sh('sudo virsh list --all --name | grep cwag | xargs --no-run-if-empty -n1 sudo virsh destroy')

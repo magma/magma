@@ -56,7 +56,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.NoError(t, err)
 
 	// sign and add
-	csrMsg, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csrMsg, err := certifierTestUtils.CreateCSR(time.Hour*24*10, "cn", "cn")
 	assert.NoError(t, err)
 	certMsg, err := srv.SignAddCertificate(ctx, csrMsg)
 	assert.NoError(t, err)
@@ -79,7 +79,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.NoError(t, err)
 
 	// get should return not found error
-	certInfoMsg, err = srv.GetIdentity(ctx, certMsg.Sn)
+	_, err = srv.GetIdentity(ctx, certMsg.Sn)
 	assert.Error(t, err)
 
 	// test expiration
@@ -87,7 +87,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.NoError(t, err)
 	certMsg, err = srv.SignAddCertificate(ctx, csrMsg)
 	assert.NoError(t, err)
-	certInfoMsg, err = srv.GetIdentity(ctx, certMsg.Sn)
+	_, err = srv.GetIdentity(ctx, certMsg.Sn)
 	assert.Error(t, err)
 	_, err = srv.RevokeCertificate(ctx, certMsg.Sn)
 	assert.NoError(t, err)
@@ -108,7 +108,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.Equal(t, 0, len(allSns))
 
 	// test csr longer than cert
-	csrMsg, err = certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*100), "cn", "cn")
+	csrMsg, err = certifierTestUtils.CreateCSR(time.Hour*24*100, "cn", "cn")
 	assert.NoError(t, err)
 	certMsg, err = srv.SignAddCertificate(ctx, csrMsg)
 	assert.NoError(t, err)
@@ -118,13 +118,13 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.True(t, notAfter.Equal(caCert.NotAfter))
 
 	// test CN mismatch
-	csrMsg, err = certifierTestUtils.CreateCSR(time.Duration(time.Hour*1), "cn", "nc")
+	csrMsg, err = certifierTestUtils.CreateCSR(time.Hour*1, "cn", "nc")
 	assert.NoError(t, err)
-	certMsg, err = srv.SignAddCertificate(ctx, csrMsg)
+	_, err = srv.SignAddCertificate(ctx, csrMsg)
 	assert.Error(t, err)
 
 	// test CN onverwrite
-	csrMsg, err = certifierTestUtils.CreateCSR(time.Duration(time.Hour*1), "", "cn")
+	csrMsg, err = certifierTestUtils.CreateCSR(time.Hour*1, "", "cn")
 	assert.NoError(t, err)
 	certMsg, err = srv.SignAddCertificate(ctx, csrMsg)
 	assert.NoError(t, err)

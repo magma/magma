@@ -112,6 +112,9 @@ func (h *healthBlobstore) GetClusterState(networkID string, logicalID string) (*
 		NetworkID: &networkID,
 	}
 	store, err := h.factory.StartTransaction(nil)
+	if err != nil {
+		return nil, err
+	}
 	foundKeys, err := store.GetExistingKeys(keys, filter)
 	if err != nil {
 		store.Rollback()

@@ -20,9 +20,9 @@ default subprojects include `orc8r`, `lte`, `feg`, etc.
 
 ## Run tests on the host
 
-The normal way to run Orchestrator unit tests is `build.py -t`. This builds
-and brings up a test and DB container, then runs the full set of unit tests.
-Testing this way is effective, but can be heavyweight.
+The normal way to run Orchestrator unit tests is `build.py --tests`. This
+builds and brings up a test and DB container, then runs the full set of unit
+tests. Testing this way is effective, but can be heavyweight.
 
 Instead, you can also run tests directly from your IDE. We provide a default
 set of IntelliJ run configurations to support running all tests in one click,

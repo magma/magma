@@ -111,7 +111,6 @@ func dfsFrom(startPk string, edges map[string][]string, seenPKsOut map[string]bo
 		ufOut.union(startPk, nextPk)
 		dfsFrom(nextPk, edges, seenPKsOut, ufOut)
 	}
-	return
 }
 
 func findRootNodes(graph internalEntityGraph) []string {

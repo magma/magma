@@ -30,7 +30,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	"magma/orc8r/cloud/go/sqorc"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -160,9 +160,9 @@ func TestSQLJobQueue_Integration_ClaimAvailableReindexJob(t *testing.T) {
 	assert.Equal(t, version1, job1a.To)
 
 	// Still no errors saved
-	errs, err := reindex.GetErrors(queue)
+	errVals, err := reindex.GetErrors(queue)
 	assert.NoError(t, err)
-	assert.Empty(t, errVal)
+	assert.Empty(t, errVals)
 
 	// Fail to complete idx1 (aka idx1a) again => retry=2, error now saved
 	err = queue.CompleteJob(job1a, someErr)
@@ -179,10 +179,10 @@ func TestSQLJobQueue_Integration_ClaimAvailableReindexJob(t *testing.T) {
 	assertNoJob(t, j, err)
 
 	// Get all errors -- should just be for idx1
-	errs, err = reindex.GetErrors(queue)
+	errVals, err = reindex.GetErrors(queue)
 	assert.NoError(t, err)
-	assert.Contains(t, errs, idx1.GetID())
-	assert.Equal(t, someErr.Error(), errs[idx1.GetID()])
+	assert.Contains(t, errVals, idx1.GetID())
+	assert.Equal(t, someErr.Error(), errVals[idx1.GetID()])
 
 	// Fail idx2, then claim but allow to time out -- should result in an err
 	err = queue.CompleteJob(job2, someErr)

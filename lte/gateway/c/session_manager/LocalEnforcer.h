@@ -161,7 +161,7 @@ class LocalEnforcer {
    * Perform any rule installs/removals that need to be executed given a
    * CreateSessionResponse.
    */
-  void handle_session_init_rule_updates(
+  void handle_session_activate_rule_updates(
       const std::string& imsi, SessionState& session_state,
       const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
@@ -171,11 +171,11 @@ class LocalEnforcer {
       BearerUpdate& bearer_updates);
 
   /**
-   * Initialize credit received from the cloud in the system. This adds all the
-   * charging keys to the credit manager for tracking
+   * Initialize session on session map. Adds some information comming from
+   * the core (cloud). Rules will be installed by init_session_credit
    * @param credit_response - message from cloud containing initial credits
    */
-  void init_session_credit(
+  void init_session(
       SessionMap& session_map, const std::string& imsi,
       const std::string& session_id, const SessionConfig& cfg,
       const CreateSessionResponse& response);
@@ -281,12 +281,10 @@ class LocalEnforcer {
    * UE on pipelined. UE will be identified by pipelined using its IP
    * @param session_map
    * @param request
-   * @param session_update
    * @return true if successfully processed the request
    */
   bool update_tunnel_ids(
-      SessionMap& session_map, const UpdateTunnelIdsRequest& request,
-      SessionUpdate& session_update);
+      SessionMap& session_map, const UpdateTunnelIdsRequest& request);
 
   std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; };
 
@@ -621,7 +619,7 @@ class LocalEnforcer {
    * Otherwise, mark the subscriber as out of quota to pipelined, and schedule
    * the session to be terminated in a configured amount of time.
    */
-  void handle_session_init_subscriber_quota_state(
+  void handle_session_activate_subscriber_quota_state(
       const std::string& imsi, SessionState& session_state);
 
   bool is_wallet_exhausted(SessionState& session_state);

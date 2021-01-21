@@ -26,8 +26,8 @@ import (
 
 	edge_hub "github.com/facebookincubator/prometheus-edge-hub/grpc"
 	prometheus_models "github.com/prometheus/client_model/go"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
 )
 
 const (

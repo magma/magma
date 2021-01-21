@@ -14,6 +14,7 @@ package analytics
 
 import (
 	"fmt"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -22,7 +23,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/olivere/elastic/v7"
 	promAPI "github.com/prometheus/client_golang/api"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

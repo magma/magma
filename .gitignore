@@ -1,8 +1,8 @@
-### vagrant ###
+# Vagrant
 .vagrant
 *.retry
 
-### vim ###
+# Vim
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
 *.un~
@@ -10,11 +10,11 @@ Session.vim
 .netrwhist
 *~
 
-### python ###
-# Byte-compiled / optimized / DLL files
+# Python: byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-# Virtual environments
+
+# Python: virtual environments
 .env/
 .coverage
 .python-version
@@ -81,15 +81,15 @@ devmand/gateway/cmake-build-debug/
 cscope.*
 tags
 
-#CI files
+# CI files
 archives/
 test_results_magma_converged_mme.html
 
-#intellij
+# IntelliJ
 .idea/
 
 # Internal
 fb
 
-#MacOS artifacts
+# MacOS artifacts
 .DS_Store

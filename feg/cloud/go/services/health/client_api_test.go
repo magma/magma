@@ -54,8 +54,9 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 		test_utils.TestFegHwId1,
 		test_utils.TestFegLogicalId1,
 	)
-	_, err = health.GetActiveGateway(test_utils.TestFegNetwork)
-	assert.Error(t, err)
+	active, err := health.GetActiveGateway(test_utils.TestFegNetwork)
+	assert.NoError(t, err)
+	assert.Equal(t, test_utils.TestFegNetwork, active)
 
 	// Simulate request coming from feg1
 	testServicer.Feg1 = true

@@ -123,7 +123,7 @@ func TestWwwExporter_Export(t *testing.T) {
 			assertExpectations: func(t *testing.T) {
 				expectedURL := fmt.Sprintf(exportURLTemplate, metricExportURL, appID, appSecret)
 				expectedDatapointJSON := fmt.Sprintf(wwwDatapointJSONStringTemplate, testExporter.FormatEntity(sampleResult, "testNetwork"), testExporter.FormatKey(sampleResult), sampleResult.GetValue())
-				expectedPostData := url.Values{"datapoints": {string(expectedDatapointJSON)}, "category": {categoryName}}
+				expectedPostData := url.Values{"datapoints": {expectedDatapointJSON}, "category": {categoryName}}
 				successClient.AssertCalled(t, "PostForm", expectedURL, expectedPostData)
 			},
 		},

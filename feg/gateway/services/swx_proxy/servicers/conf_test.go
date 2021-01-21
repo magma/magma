@@ -106,8 +106,8 @@ func TestSwxProxyService_ValidateConfig(t *testing.T) {
 }
 
 func generateSwxProxyConfigFromString(t *testing.T, confString string) []*servicers.SwxProxyConfig {
-	res := mconfig.CreateLoadTempConfig(confString)
-	assert.NoError(t, res)
+	err := mconfig.CreateLoadTempConfig(confString)
+	assert.NoError(t, err)
 	// Note we get only get index 0
 	return servicers.GetSwxProxyConfig()
 }

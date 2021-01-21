@@ -32,6 +32,7 @@ import (
 	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -71,19 +72,22 @@ func TestSyncRPC(t *testing.T) {
 
 	stream, err := syncRPCClient.EstablishSyncRPCStream(context.Background())
 	assert.NoError(t, err)
-	waitc := make(chan struct{})
+	errc := make(chan error)
 	go func() {
 		for {
 			in, err := stream.Recv()
 			if err == io.EOF {
 				// read done.
-				close(waitc)
+				close(errc)
 				return
 			}
 			assert.NoError(t, err)
 			if protos.TestMarshal(in) != protos.TestMarshal(syncRPCReq) {
-				t.Fatalf("request received at gateway is different from request sent on the service: "+
-					"received: %v, sent: %v\n", in, syncRPCReq)
+				err := errors.Errorf(
+					"req received at gateway is different from req sent on the service: received: %v, sent: %v\n",
+					in, syncRPCReq,
+				)
+				errc <- err
 			}
 
 		}
@@ -101,7 +105,8 @@ func TestSyncRPC(t *testing.T) {
 	err = stream.Send(synResp2)
 	assert.NoError(t, err)
 	stream.CloseSend()
-	<-waitc
+	recvdErr := <-errc
+	assert.NoError(t, recvdErr)
 	// wait until server receives from the stream
 	time.Sleep(time.Second * 3)
 	mockBroker.AssertCalled(t, "InitializeGateway", TestSyncRPCAgHwId)

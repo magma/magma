@@ -120,9 +120,9 @@ func (m *MagmadClient) GenerateTraffic(networkId string, gatewayId string, ssid 
 	stringVal := fmt.Sprintf("-c 'python3 /usr/local/bin/traffic_cli.py gen_traffic %s %s http://www.google.com'", ssid, pw)
 	params := &structpb.Struct{
 		Fields: map[string]*structpb.Value{
-			"shell_params": &structpb.Value{Kind: &structpb.Value_ListValue{
+			"shell_params": {Kind: &structpb.Value_ListValue{
 				ListValue: &structpb.ListValue{
-					Values: []*structpb.Value{&structpb.Value{Kind: &structpb.Value_StringValue{StringValue: stringVal}}},
+					Values: []*structpb.Value{{Kind: &structpb.Value_StringValue{StringValue: stringVal}}},
 				},
 			}},
 		},
@@ -138,7 +138,7 @@ func (m *MagmadClient) GenerateTraffic(networkId string, gatewayId string, ssid 
 func (m *MagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSerial string) (*protos.GenericCommandResponse, error) {
 	params := &structpb.Struct{
 		Fields: map[string]*structpb.Value{
-			"shell_params": &structpb.Value{Kind: &structpb.Value_StringValue{StringValue: enodebSerial}},
+			"shell_params": {Kind: &structpb.Value_StringValue{StringValue: enodebSerial}},
 		},
 	}
 	rebootEndCmd := &protos.GenericCommandParams{

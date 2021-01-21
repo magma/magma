@@ -23,5 +23,4 @@ import (
 	_ "github.com/go-swagger/go-swagger/cmd/swagger"
 	_ "github.com/golang/protobuf/protoc-gen-go"
 	_ "github.com/vektra/mockery/cmd/mockery"
-	_ "golang.org/x/lint/golint"
 )

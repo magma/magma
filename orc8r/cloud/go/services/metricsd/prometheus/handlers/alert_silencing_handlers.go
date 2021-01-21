@@ -13,6 +13,7 @@ import (
 	"magma/orc8r/lib/go/metrics"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 	"github.com/prometheus/alertmanager/api/v2/client/silence"
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/alertmanager/pkg/parse"
@@ -77,6 +78,9 @@ func postSilencer(networkID, silencerURL string, c echo.Context) error {
 	silencer.Matchers = append(silencer.Matchers, &networkMatcher)
 
 	newSilencerBytes, err := json.Marshal(silencer)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "make silencer"), http.StatusInternalServerError)
+	}
 
 	resp, err := http.DefaultClient.Post(silencerURL, "application/json", bytes.NewBuffer(newSilencerBytes))
 	if err != nil {
@@ -156,6 +160,9 @@ func getSilencers(networkID, silencerURL string, c echo.Context) error {
 
 func deleteSilencer(silenceID, silencerURL string, c echo.Context) error {
 	req, err := http.NewRequest(http.MethodDelete, silencerURL+"/"+silenceID, nil)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)

@@ -83,7 +83,8 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
-        IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_context, pdp_start_time);
+        IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_context, pdp_start_time,
+        CreateSessionResponse{});
   }
 
   UsageMonitoringUpdateResponse* get_monitoring_update() {

@@ -400,10 +400,10 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   marshaled["local_teid"]        = std::to_string(stored.local_teid);
   marshaled["subscriber_quota_state"] =
       static_cast<int>(stored.subscriber_quota_state);
+  marshaled["create_session_response"] =
+      stored.create_session_response.SerializeAsString();
 
-  std::string tgpp_context;
-  stored.tgpp_context.SerializeToString(&tgpp_context);
-  marshaled["tgpp_context"]   = tgpp_context;
+  marshaled["tgpp_context"]   = stored.tgpp_context.SerializeAsString();
   marshaled["pdp_start_time"] = std::to_string(stored.pdp_start_time);
   marshaled["pdp_end_time"]   = std::to_string(stored.pdp_end_time);
 
@@ -473,6 +473,10 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
 
   stored.bearer_id_by_policy = deserialize_bearer_id_by_policy(
       marshaled["bearer_id_by_policy"].getString());
+
+  CreateSessionResponse csr;
+  csr.ParseFromString(marshaled["create_session_response"].getString());
+  stored.create_session_response = csr;
 
   magma::lte::TgppContext tgpp_context;
   tgpp_context.ParseFromString(marshaled["tgpp_context"].getString());

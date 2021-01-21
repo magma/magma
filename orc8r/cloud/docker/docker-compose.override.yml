@@ -20,6 +20,7 @@ services:
       target: src
     depends_on:
       - postgres_test
+    working_dir: /src/magma/orc8r/cloud
     entrypoint: /bin/bash -lc
     command: ["echo Hello World!"]
 
