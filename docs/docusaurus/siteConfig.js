@@ -26,19 +26,16 @@ const users = [
   },
 ];
 
-const url = process.env.DOCUSAURUS_URL || 'https://magmacore.org'
-const baseUrl = process.env.DOCUSAURUS_BASE_URL || '/'
-
 const siteConfig = {
   title: 'Magma Documentation', // Title for your website.
-  disableTitleTagline: true,
+  disableTitleTagline: true, 
   tagline: 'Bring more people online by enabling operators with open, flexible, and extensible network solutions',
 
   // Used for publishing and more
   projectName: 'magma',
-  organizationName: 'magma',
-  url: url, // Your website URL
-  baseUrl: baseUrl, // Base URL for your project */
+  organizationName: 'magma',  
+  url: 'https://magmacore.org', // Your website URL
+  baseUrl: '/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',
@@ -55,9 +52,11 @@ const siteConfig = {
     {label: ' | '},
     {href: '/', label: 'Docs'},
     {label: ' | '},
-    {href: 'https://github.com/magma', label: 'Code'},
+    {href: 'https://github.org/magma', label: 'Code'},
     {label: ' | '},
     {href: 'https://magmacore.org/community', label: 'Community'},
+    {label: ' | '},
+    {href: 'https://magmacore.org/blog', label: 'Blog'},
   ],
 
   // If you have users set above, you add it here:
