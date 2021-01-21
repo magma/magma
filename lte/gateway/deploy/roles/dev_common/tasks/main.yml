@@ -62,6 +62,14 @@
     group: "{{ ansible_user }}"
   when: full_provision
 
+- name: Create the Go cache directory
+  file:
+    path: "{{magma_root}}/.cache/go-build"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  when: full_provision
+
 #################################
 # Add common convenience aliases
 #################################
