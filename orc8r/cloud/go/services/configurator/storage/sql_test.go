@@ -1289,8 +1289,8 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 				m,
 				[]*storage.EntityID{{Type: "quz", Key: "baz"}, {Type: "baz", Key: "bar"}},
 				map[storage2.TypeAndKey]expectedEntQueryResult{
-					{"quz", "baz"}: getBasicQueryExpect("quz", "baz"),
-					{"baz", "bar"}: getBasicQueryExpect("baz", "bar"),
+					{Type: "quz", Key: "baz"}: getBasicQueryExpect("quz", "baz"),
+					{Type: "baz", Key: "bar"}: getBasicQueryExpect("baz", "bar"),
 				},
 			)
 			expectEdgeDeletions(m, [][2]string{{"bazquz", "quzbaz"}, {"bazquz", "bazbar"}})
@@ -1798,12 +1798,6 @@ func expectEdgeDeletions(m sqlmock.Sqlmock, edges [][2]string) {
 }
 
 func expectPermissionCreation(m sqlmock.Sqlmock, entPk string, startId int, perms ...*storage.ACL) {
-	args := make([]driver.Value, 0, len(perms)*6)
-	for _, perm := range perms {
-		exp := getExpectedACLInsert(entPk, &startId, perm)
-		args = append(args, exp.id, exp.entPk, exp.scope, exp.perm, exp.aclType, exp.filter)
-		startId++
-	}
 	m.ExpectExec("INSERT INTO cfg_acls").WillReturnResult(mockResult)
 }
 

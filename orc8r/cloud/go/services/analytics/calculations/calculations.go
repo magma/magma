@@ -91,7 +91,7 @@ type AnalyticsConfig struct {
 	Metrics          map[string]MetricConfig `yaml:"metrics"`
 }
 
-// CalculationParams calculations paramters
+// CalculationParams calculations parameters
 type CalculationParams struct {
 	Hours               uint
 	Days                uint
@@ -135,7 +135,7 @@ func MakeVectorResults(vec model.Vector, baseLabels prometheus.Labels, metricNam
 	var results []*protos.CalculationResult
 	for _, v := range vec {
 		// Get labels from query result
-		queryLabels := make(map[string]string, 0)
+		queryLabels := map[string]string{}
 		for label, value := range v.Metric {
 			queryLabels[string(label)] = string(value)
 		}

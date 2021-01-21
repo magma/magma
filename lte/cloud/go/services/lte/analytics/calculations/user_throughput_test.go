@@ -17,25 +17,25 @@ func TestUserThroughput(t *testing.T) {
 	metric1["networkID"] = "testNetwork1"
 	var vec model.Vector
 	vec = []*model.Sample{
-		&model.Sample{Metric: metric1, Value: 1, Timestamp: 123},
-		&model.Sample{Metric: metric1, Value: 1, Timestamp: 123},
-		&model.Sample{Metric: metric1, Value: 1, Timestamp: 123},
-		&model.Sample{Metric: metric1, Value: 1, Timestamp: 123},
-		&model.Sample{Metric: metric1, Value: 1, Timestamp: 123},
-		&model.Sample{Metric: metric1, Value: 1, Timestamp: 123},
-		&model.Sample{Metric: metric1, Value: 1, Timestamp: 123},
-		&model.Sample{Metric: metric1, Value: 1, Timestamp: 123},
-		&model.Sample{Metric: metric1, Value: 1, Timestamp: 123},
-		&model.Sample{Metric: metric1, Value: 10, Timestamp: 123},
+		{Metric: metric1, Value: 1, Timestamp: 123},
+		{Metric: metric1, Value: 1, Timestamp: 123},
+		{Metric: metric1, Value: 1, Timestamp: 123},
+		{Metric: metric1, Value: 1, Timestamp: 123},
+		{Metric: metric1, Value: 1, Timestamp: 123},
+		{Metric: metric1, Value: 1, Timestamp: 123},
+		{Metric: metric1, Value: 1, Timestamp: 123},
+		{Metric: metric1, Value: 1, Timestamp: 123},
+		{Metric: metric1, Value: 1, Timestamp: 123},
+		{Metric: metric1, Value: 10, Timestamp: 123},
 	}
 	metric2 := model.Metric{}
 	metric2["networkID"] = "testNetwork2"
 	vec = append(vec, []*model.Sample{
-		&model.Sample{Metric: metric2, Value: 10, Timestamp: 123},
-		&model.Sample{Metric: metric2, Value: 10, Timestamp: 123},
-		&model.Sample{Metric: metric2, Value: 12, Timestamp: 123},
-		&model.Sample{Metric: metric2, Value: 13, Timestamp: 123},
-		&model.Sample{Metric: metric2, Value: 15, Timestamp: 123},
+		{Metric: metric2, Value: 10, Timestamp: 123},
+		{Metric: metric2, Value: 10, Timestamp: 123},
+		{Metric: metric2, Value: 12, Timestamp: 123},
+		{Metric: metric2, Value: 13, Timestamp: 123},
+		{Metric: metric2, Value: 15, Timestamp: 123},
 	}...)
 	successClient := &mocks.PrometheusAPI{}
 	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil, nil)

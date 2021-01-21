@@ -58,6 +58,7 @@ func TestK8sFindServices(t *testing.T) {
 	assert.Equal(t, []string{"service1", "service_2"}, response.GetServices())
 
 	err = mockClient.Services(servicer.namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
+	assert.NoError(t, err)
 	response, err = servicer.FindServices(context.Background(), req)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"service_2"}, response.GetServices())

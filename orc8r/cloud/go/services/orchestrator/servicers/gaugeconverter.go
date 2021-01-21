@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"fmt"
+
 	prometheus_models "github.com/prometheus/client_model/go"
 )
 
@@ -58,7 +59,7 @@ func counterToGauge(family *prometheus_models.MetricFamily) *prometheus_models.M
 		if metric.Counter == nil {
 			continue
 		}
-		counterValue := float64(*metric.Counter.Value)
+		counterValue := *metric.Counter.Value
 		counterMetric := prometheus_models.Metric{
 			Label: metric.Label,
 			Gauge: &prometheus_models.Gauge{
@@ -91,7 +92,7 @@ func histogramToGauges(family *prometheus_models.MetricFamily) []*prometheus_mod
 		if metric.Histogram == nil {
 			continue
 		}
-		sumValue := float64(*metric.Histogram.SampleSum)
+		sumValue := *metric.Histogram.SampleSum
 		sumMetric := prometheus_models.Metric{
 			Label: metric.Label,
 			Gauge: &prometheus_models.Gauge{
@@ -153,7 +154,7 @@ func summaryToGauges(family *prometheus_models.MetricFamily) []*prometheus_model
 		if metric.Summary == nil {
 			continue
 		}
-		sumValue := float64(*metric.Summary.SampleSum)
+		sumValue := *metric.Summary.SampleSum
 		sumMetric := prometheus_models.Metric{
 			Label: metric.Label,
 			Gauge: &prometheus_models.Gauge{
@@ -205,7 +206,7 @@ func untypedToGauge(family *prometheus_models.MetricFamily) *prometheus_models.M
 		if metric.Untyped == nil {
 			continue
 		}
-		untypedValue := float64(*metric.Untyped.Value)
+		untypedValue := *metric.Untyped.Value
 		untypedMetric := prometheus_models.Metric{
 			Label: metric.Label,
 			Gauge: &prometheus_models.Gauge{

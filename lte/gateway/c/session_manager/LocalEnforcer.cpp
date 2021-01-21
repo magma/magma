@@ -216,7 +216,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       }
       // Reschedule termination if subscriber has no quota
       if (terminate_on_wallet_exhaust()) {
-        handle_session_init_subscriber_quota_state(imsi, *session);
+        handle_session_activate_subscriber_quota_state(imsi, *session);
       }
     }
   }
@@ -908,7 +908,7 @@ void LocalEnforcer::filter_rule_installs(
   dynamic_installs.erase(end_of_valid_dy_rules, dynamic_installs.end());
 }
 
-void LocalEnforcer::handle_session_init_rule_updates(
+void LocalEnforcer::handle_session_activate_rule_updates(
     const std::string& imsi, SessionState& session_state,
     const CreateSessionResponse& response,
     std::unordered_set<uint32_t>& charging_credits_received) {
@@ -1009,61 +1009,80 @@ void LocalEnforcer::schedule_session_init_dedicated_bearer_creations(
       LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT);
 }
 
-void LocalEnforcer::init_session_credit(
+void LocalEnforcer::init_session(
     SessionMap& session_map, const std::string& imsi,
     const std::string& session_id, const SessionConfig& cfg,
     const CreateSessionResponse& response) {
   const auto time_since_epoch = magma::get_time_in_sec_since_epoch();
   auto session_state          = std::make_unique<SessionState>(
       imsi, session_id, cfg, *rule_store_, response.tgpp_ctx(),
-      time_since_epoch);
+      time_since_epoch, response);
+  session_map[imsi].push_back(std::move(session_state));
+}
+
+bool LocalEnforcer::update_tunnel_ids(
+    SessionMap& session_map, const UpdateTunnelIdsRequest& request) {
+  const auto imsi             = request.sid().id();
+  const uint32_t bearer       = request.bearer_id();
+  const auto time_since_epoch = magma::get_time_in_sec_since_epoch();
+
+  SessionSearchCriteria criteria(imsi, IMSI_AND_BEARER, bearer);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << "Could not find session for " << imsi << " and bearer "
+                 << bearer << " during update tunnelIds ";
+    return false;
+  }
+  auto& session = **session_it;
+
+  session->set_teids(request.enb_teid(), request.agw_teid());
+  const CreateSessionResponse& csr = session->get_create_session_response();
 
   std::unordered_set<uint32_t> charging_credits_received;
-  for (const auto& credit : response.credits()) {
+  for (const auto& credit : csr.credits()) {
     // TODO this uc is not doing anything here, modify interface
     auto uc = get_default_update_criteria();
-    if (session_state->receive_charging_credit(credit, uc)) {
+    if (session->receive_charging_credit(credit, uc)) {
       charging_credits_received.insert(credit.charging_key());
     }
   }
   // We don't have to check 'success' field for monitors because command level
   // errors are handled in session proxy for the init exchange
-  for (const auto& monitor : response.usage_monitors()) {
+  for (const auto& monitor : csr.usage_monitors()) {
     // TODO this uc is not doing anything here, modify interface
     auto uc = get_default_update_criteria();
-    session_state->receive_monitor(monitor, uc);
+    session->receive_monitor(monitor, uc);
   }
 
-  handle_session_init_rule_updates(
-      imsi, *session_state, response, charging_credits_received);
+  handle_session_activate_rule_updates(
+      imsi, *session, csr, charging_credits_received);
 
   // if (session_state->get_config().common_context.rat_type() == TGPP_WLAN) {
-  if (session_state->is_radius_cwf_session()) {
-    update_ipfix_flow(imsi, cfg, time_since_epoch);
+  if (session->is_radius_cwf_session()) {
+    update_ipfix_flow(imsi, session->get_config(), time_since_epoch);
     if (terminate_on_wallet_exhaust()) {
-      handle_session_init_subscriber_quota_state(imsi, *session_state);
+      handle_session_activate_subscriber_quota_state(imsi, *session);
     }
   }
 
-  if (revalidation_required(response.event_triggers())) {
+  if (revalidation_required(csr.event_triggers())) {
     // TODO This might not work since the session is not initialized properly
     // at this point
     auto _ = get_default_update_criteria();
-    schedule_revalidation(
-        imsi, *session_state, response.revalidation_time(), _);
+    schedule_revalidation(imsi, *session, csr.revalidation_time(), _);
   }
 
   // handle transient errors during first init
-  for (const auto& credit : response.credits()) {
-    // TODO this uc is not doing anything here, modify interface
+  auto session_id = session->get_session_id();
+  for (const auto& credit : csr.credits()) {
     if (!credit.success() &&
         DiameterCodeHandler::is_transient_failure(credit.result_code())) {
       auto _    = get_default_update_criteria();
       auto ckey = credit.charging_key();
 
       // set state here because during init update criteria is not used.
-      session_state->set_suspend_credit(ckey, true, _);
-      session_state->suspend_service_if_needed_for_credit(ckey, _);
+      session->set_suspend_credit(ckey, true, _);
+      session->suspend_service_if_needed_for_credit(ckey, _);
 
       // schedule the removal of rules to avoid problems with install-unistall
       // order
@@ -1096,8 +1115,12 @@ void LocalEnforcer::init_session_credit(
     session_map[imsi] = SessionVector();
   }
 
-  events_reporter_->session_created(imsi, session_id, cfg, session_state);
-  session_map[imsi].push_back(std::move(session_state));
+  // once the session is activated, just get rid of the create session response
+  session->clear_create_session_response();
+
+  events_reporter_->session_created(
+      imsi, session_id, session->get_config(), session);
+  return true;
 }
 
 bool LocalEnforcer::terminate_on_wallet_exhaust() {
@@ -1115,14 +1138,14 @@ bool LocalEnforcer::is_wallet_exhausted(SessionState& session_state) {
   }
 }
 
-void LocalEnforcer::handle_session_init_subscriber_quota_state(
-    const std::string& imsi, SessionState& session) {
-  if (is_wallet_exhausted(session)) {
+void LocalEnforcer::handle_session_activate_subscriber_quota_state(
+    const std::string& imsi, SessionState& session_state) {
+  if (is_wallet_exhausted(session_state)) {
     handle_subscriber_quota_state_change(
-        imsi, session, SubscriberQuotaUpdate_Type_NO_QUOTA);
+        imsi, session_state, SubscriberQuotaUpdate_Type_NO_QUOTA);
     // Schedule a session termination for a configured number of seconds after
     // session create
-    const auto session_id = session.get_session_id();
+    const auto session_id = session_state.get_session_id();
     MLOG(MINFO) << "Scheduling session for session " << session_id
                 << " to be terminated in "
                 << quota_exhaustion_termination_on_init_ms_ << " ms";
@@ -1134,7 +1157,7 @@ void LocalEnforcer::handle_session_init_subscriber_quota_state(
 
   // Valid Quota
   handle_subscriber_quota_state_change(
-      imsi, session, SubscriberQuotaUpdate_Type_VALID_QUOTA);
+      imsi, session_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);
   return;
 }
 
@@ -2069,43 +2092,6 @@ bool LocalEnforcer::bind_policy_to_bearer(
         imsi, *session, request.policy_rule_id(), uc);
   }
   return false;
-}
-
-bool LocalEnforcer::update_tunnel_ids(
-    SessionMap& session_map, const UpdateTunnelIdsRequest& request,
-    SessionUpdate& session_update) {
-  const auto imsi       = request.sid().id();
-  const uint32_t bearer = request.bearer_id();
-
-  SessionSearchCriteria criteria(imsi, IMSI_AND_BEARER, bearer);
-  auto session_it = session_store_.find_session(session_map, criteria);
-  if (!session_it) {
-    MLOG(MERROR) << "Could not find session for " << imsi << " and bearer "
-                 << bearer << " during update tunnelIds ";
-    return false;
-  }
-  auto& session = **session_it;
-
-  const auto& config = session->get_config();
-  if (!config.rat_specific_context.has_lte_context()) {
-    MLOG(MERROR) << "Requested update_tunnel_ids for a non LTE session for "
-                 << imsi;
-    return false;
-  }
-
-  Teids teids;
-  teids.set_agw_teid(request.agw_teid());
-  teids.set_enb_teid(request.enb_teid());
-  SessionStateUpdateCriteria& state_uc =
-      session_update[imsi][session->get_session_id()];
-  session->set_teids(teids, state_uc);
-
-  pipelined_client_->update_tunnel_ids(
-      imsi, session->get_config().common_context.ue_ipv4(),
-      session->get_config().common_context.ue_ipv6(),
-      session->get_config().common_context.teids());
-
-  return true;
 }
 
 void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(

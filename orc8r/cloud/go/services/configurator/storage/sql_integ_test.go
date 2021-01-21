@@ -39,7 +39,7 @@ func (g *mockIDGenerator) New() string {
 
 func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// sqlite's default behavior is to disable foreign keys (wat): https://www.sqlite.org/draft/pragma.html#pragma_foreign_keys
-	// thankfully the sqlite3 driver supports the apporpriate pragma: https://github.com/mattn/go-sqlite3/issues/255
+	// thankfully the sqlite3 driver supports the appropriate pragma: https://github.com/mattn/go-sqlite3/issues/255
 	db, err := sqorc.Open("sqlite3", ":memory:?_foreign_keys=1")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
@@ -106,6 +106,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// ========================================================================
 
 	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
 	loadedNetworks, err := store.LoadAllNetworks(storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
 	assert.Equal(t, "n1", loadedNetworks[0].ID)
@@ -193,6 +194,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// ========================================================================
 
 	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
 
 	actualEntityLoad, err := store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)

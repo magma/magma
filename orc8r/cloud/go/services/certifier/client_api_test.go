@@ -36,7 +36,7 @@ func TestCertifier(t *testing.T) {
 	test_init.StartTestService(t)
 
 	// create and sign csr
-	csrMsg, err := certifier_test_utils.CreateCSR(time.Duration(time.Hour*24*365), "cn", "cn")
+	csrMsg, err := certifier_test_utils.CreateCSR(time.Hour*24*365, "cn", "cn")
 	assert.NoError(t, err)
 	certMsg, err := certifier.SignCSR(csrMsg)
 	assert.NoError(t, err, "Failed to sign CSR")
@@ -96,9 +96,9 @@ func TestCertifier(t *testing.T) {
 	assert.NoError(t, err, "Error Listing Certificates")
 	assert.Equal(t, 1, len(sns))
 
-	csrMsg, err = certifier_test_utils.CreateCSR(time.Duration(time.Hour*2), "cn1", "cn1")
+	csrMsg, err = certifier_test_utils.CreateCSR(time.Hour*2, "cn1", "cn1")
 	assert.NoError(t, err)
-	certMsg, err = certifier.SignCSR(csrMsg)
+	_, err = certifier.SignCSR(csrMsg)
 	assert.NoError(t, err, "Failed to sign CSR")
 
 	sns, err = certifier.ListCertificates()

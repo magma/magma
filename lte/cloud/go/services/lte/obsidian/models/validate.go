@@ -300,10 +300,10 @@ func (m *GatewayNonEpsConfigs) ValidateModel() error {
 	if err := validate.Required("arfcn_2g", "body", m.Arfcn2g); err != nil {
 		res = append(res, err)
 	}
-	if err := validate.RequiredString("csfb_mcc", "body", string(m.CsfbMcc)); err != nil {
+	if err := validate.RequiredString("csfb_mcc", "body", m.CsfbMcc); err != nil {
 		res = append(res, err)
 	}
-	if err := validate.RequiredString("csfb_mnc", "body", string(m.CsfbMnc)); err != nil {
+	if err := validate.RequiredString("csfb_mnc", "body", m.CsfbMnc); err != nil {
 		res = append(res, err)
 	}
 	if err := validate.Required("csfb_rat", "body", m.CsfbRat); err != nil {

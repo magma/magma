@@ -143,14 +143,14 @@ func TestLookupServicer_MSISDNs(t *testing.T) {
 		})
 		assert.Error(t, err)
 
-		// Emtpy network ID
+		// Empty network ID
 		_, err = l.DeleteMSISDN(ctx, &protos.DeleteMSISDNRequest{
 			NetworkId: "",
 			Msisdn:    "msisdn0",
 		})
 		assert.Error(t, err)
 
-		// Emtpy MSISDN
+		// Empty MSISDN
 		_, err = l.DeleteMSISDN(ctx, &protos.DeleteMSISDNRequest{
 			NetworkId: "nid0",
 			Msisdn:    "",

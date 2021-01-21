@@ -138,9 +138,9 @@ func TestDockerGetAnnotation(t *testing.T) {
 	// Test non-existent label
 	req.Annotation = "label4"
 	dockerClient.On("ContainerList", mock.Anything, mock.Anything).Return([]types.Container{containers[0]}, nil).Once()
-	response, err = servicer.GetAnnotation(ctx, req)
-	dockerClient.AssertExpectations(t)
+	_, err = servicer.GetAnnotation(ctx, req)
 	assert.Error(t, err)
+	dockerClient.AssertExpectations(t)
 }
 
 func getMockContainers() []types.Container {

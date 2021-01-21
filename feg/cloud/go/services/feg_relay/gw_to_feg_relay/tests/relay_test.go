@@ -172,7 +172,7 @@ func TestNHRouting(t *testing.T) {
 
 	// expect failure on absent default local FeG
 	helloReq = &feg_protos.HelloRequest{Greeting: "Hi" + nhImsi}
-	helloResp, err = helloClient.SayHello(toutctx, helloReq)
+	_, err = helloClient.SayHello(toutctx, helloReq)
 	assert.Error(t, err)
 
 	cancel()

@@ -439,4 +439,22 @@ PolicyBearerBindingRequest create_policy_bearer_bind_req(
   bearer_bind_req.set_bearer_id(bearer_id);
   return bearer_bind_req;
 }
+
+UpdateTunnelIdsRequest create_update_tunnel_ids_request(
+    const std::string& imsi, const uint32_t bearer_id, const Teids teids) {
+  return create_update_tunnel_ids_request(
+      imsi, bearer_id, teids.agw_teid(), teids.enb_teid());
+}
+
+UpdateTunnelIdsRequest create_update_tunnel_ids_request(
+    const std::string& imsi, const uint32_t bearer_id, const uint32_t agw_teid,
+    const uint32_t enb_teid) {
+  UpdateTunnelIdsRequest req;
+  req.mutable_sid()->set_id(imsi);
+  req.set_bearer_id(bearer_id);
+  req.set_agw_teid(agw_teid);
+  req.set_enb_teid(enb_teid);
+  return req;
+}
+
 }  // namespace magma

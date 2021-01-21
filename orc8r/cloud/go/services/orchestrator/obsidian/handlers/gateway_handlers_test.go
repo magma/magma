@@ -850,6 +850,7 @@ func TestGetGatewayTierHandler(t *testing.T) {
 		},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	// 404 tier
 	tc := tests.Test{
 		Method:         "GET",
@@ -918,6 +919,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 		},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	// 404 tier
 	tc := tests.Test{
 		Method:         "PUT",
@@ -1014,6 +1016,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	expectedTiers = configurator.NetworkEntities{
 		{
 			NetworkID: "n1",

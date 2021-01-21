@@ -15,13 +15,13 @@ package storage_test
 
 import (
 	"encoding/json"
-	"github.com/go-openapi/swag"
-	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"testing"
 
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/sqorc"
 
+	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 )
 

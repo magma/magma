@@ -54,8 +54,8 @@ func GetAllGatewayIDs(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return res, fmt.Errorf("Error getting Federated Gateway %s:%s configs: %v", networkID, logicalID, err)
 	}
-	// Find as many gateways as possible, don't exit on error, just return last error to the caller along with
-	// the list of GWs found
+
+	// Find as many gateways as possible, swallowing intermediate errors
 	for _, networkID := range cfg.ServedNetworkIds {
 		gateways, _, err := configurator.LoadEntities(
 			networkID, swag.String(orc8r.MagmadGatewayType), nil, nil, nil,
@@ -69,18 +69,19 @@ func GetAllGatewayIDs(ctx context.Context) ([]string, error) {
 		for _, gatewayEntity := range gateways {
 			record, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, gatewayEntity.PhysicalID, serdes.Device)
 			if err != nil {
-				err = fmt.Errorf("Find Gateway Record Error: %v for Gateway %s:%s", err, networkID, gatewayEntity.Key)
+				glog.Errorf("Find Gateway Record Error: %v for Gateway %s:%s", err, networkID, gatewayEntity.Key)
 				continue
 			}
 			hardwareID := record.(*orc8rModels.GatewayDevice).HardwareID
 			if len(hardwareID) > 0 {
 				res = append(res, hardwareID)
 			} else {
-				err = fmt.Errorf("Empty Harware ID for Gateway %s:%s", networkID, gatewayEntity.Key)
+				glog.Errorf("Empty Harware ID for Gateway %s:%s", networkID, gatewayEntity.Key)
 			}
 		}
 	}
-	return res, err
+
+	return res, nil
 }
 
 func getFegCfg(networkID, gatewayID string) (*models.GatewayFederationConfigs, error) {

@@ -18,15 +18,16 @@ package servicers
 import (
 	"fmt"
 	"github.com/golang/glog"
-	"magma/feg/gateway/gtp/enriched_message"
 	"net"
 	"time"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/gtp"
+	"magma/feg/gateway/gtp/enriched_message"
 
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/gtp"
 )
 
 func addS8GtpHandlers(c *gtp.Client) {
@@ -73,7 +74,6 @@ func getHandle_CreateSessionResponse() gtpv2.HandlerFunc {
 			}
 		}
 
-		// TODO: remove this, this is just for GTP-U
 		// get values sent by pgw
 		bearer := session.GetDefaultBearer()
 		if paaIE := csResGtp.PAA; paaIE != nil {
@@ -81,6 +81,8 @@ func getHandle_CreateSessionResponse() gtpv2.HandlerFunc {
 			if err != nil {
 				return err
 			}
+			csRes.SubscriberIp = ip
+			// TODO: remove this, this is just for GTP-U
 			bearer.SubscriberIP = ip
 		} else {
 			c.RemoveSession(session)
@@ -96,12 +98,37 @@ func getHandle_CreateSessionResponse() gtpv2.HandlerFunc {
 			if err != nil {
 				return err
 			}
+			fteidcIE.IPAddress()
+			fteidcIE.HasIPv4()
 			session.AddTEID(it, teid)
+			fteid := &protos.Fteid{Teid: teid}
+
+			if !fteidcIE.HasIPv4() && !fteidcIE.HasIPv6() {
+				return fmt.Errorf("Error: fteid %+v has no ips", fteidcIE.String())
+			}
+
+			if fteidcIE.HasIPv4() {
+				ipv4, err := fteidcIE.IPv4()
+				if err != nil {
+					return err
+				}
+				fteid.Ipv4Address = ipv4.String()
+			}
+			if fteidcIE.HasIPv6() {
+				ipv6, err := fteidcIE.IPv6()
+				if err != nil {
+					return err
+				}
+				fteid.Ipv6Address = ipv6.String()
+			}
+			csRes.PgwFteidU = fteid
+
 		} else {
 			c.RemoveSession(session)
 			return &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}
 		}
 
+		// TODO: remove this because it is for User Plane
 		if brCtxIE := csResGtp.BearerContextsCreated; brCtxIE != nil {
 			for _, childIE := range brCtxIE.ChildIEs {
 				switch childIE.Type {

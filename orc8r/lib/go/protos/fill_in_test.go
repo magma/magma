@@ -84,9 +84,9 @@ func TestOverlapFillIn(t *testing.T) {
 		map[string]Embeded1{}, map[string]*Embeded1{}, nil}
 	b := S_B{11, "str3", false, Embeded2{111, 222, 333},
 		"Foo bar", "foo1", "foo2",
-		map[string]*Embeded2{"key": &Embeded2{1, 2, 3}},
-		map[string]*Embeded1{"key": &Embeded1{1, 2, 3}},
-		map[string]Embeded1{"key": Embeded1{1, 2, 3}}}
+		map[string]*Embeded2{"key": {1, 2, 3}},
+		map[string]*Embeded1{"key": {1, 2, 3}},
+		map[string]Embeded1{"key": {1, 2, 3}}}
 
 	count := protos.FillIn(&b, &a)
 	if count <= 0 || a.I != b.I || a.S1 != b.S1 || a.S != "str1" || b.I != 11 ||
