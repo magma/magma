@@ -46,8 +46,8 @@ RUN apt-key add /tmp/jfrog.pub && \
     apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main"
 
 # Install python3.8 since it's not native on bionic
-#RUN apt-add-repository "ppa:deadsnakes/ppa"
-#RUN apt-get -y update && apt-get -y install python3.8
+RUN apt-add-repository "ppa:deadsnakes/ppa"
+RUN apt-get -y update && apt-get -y install python3.8
 
 # Install the runtime deps from apt.
 # TODO: magma-nghttpx=1.31.1-1 requires upgrade to ff.
