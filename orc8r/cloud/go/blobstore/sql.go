@@ -146,6 +146,10 @@ func (store *sqlBlobStorage) ListKeys(networkID string, typeVal string) ([]strin
 		}
 		keys = append(keys, key)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
+	}
 	return keys, nil
 }
 
@@ -186,6 +190,10 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 			return nil, err
 		}
 		blobs = append(blobs, Blob{Type: t, Key: k, Value: val, Version: version})
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
 	}
 	return blobs, nil
 }
@@ -247,6 +255,10 @@ func (store *sqlBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) 
 		nidCol = append(nidCol, Blob{Type: t, Key: k, Value: val, Version: version})
 		ret[nid] = nidCol
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
+	}
 	return ret, nil
 }
 
@@ -304,6 +316,10 @@ func (store *sqlBlobStorage) GetExistingKeys(keys []string, filter SearchFilter)
 			return nil, err
 		}
 		scannedKeys = append(scannedKeys, key)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
 	}
 	return scannedKeys, nil
 }
@@ -388,7 +404,7 @@ func (store *sqlBlobStorage) insertNewBlobs(networkID string, blobs Blobs) error
 	}
 	_, err := insertBuilder.RunWith(store.tx).Exec()
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("error creating blobs"))
+		return errors.Wrap(err, "error creating blobs")
 	}
 	return nil
 }

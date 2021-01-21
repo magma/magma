@@ -36,7 +36,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 // Ensure provider servicer properly forwards update requests

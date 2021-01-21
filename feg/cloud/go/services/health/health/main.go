@@ -14,7 +14,6 @@ limitations under the License.
 package main
 
 import (
-	"log"
 	"time"
 
 	"magma/feg/cloud/go/feg"
@@ -38,19 +37,22 @@ func main() {
 	// Create the service
 	srv, err := service.NewOrchestratorService(feg.ModuleName, health.ServiceName)
 	if err != nil {
-		log.Fatalf("Error creating service: %s", err)
+		glog.Fatalf("Error creating service: %+v", err)
 	}
 	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
 	if err != nil {
-		glog.Fatalf("Failed to connect to database: %s", err)
+		glog.Fatalf("Failed to connect to database: %+v", err)
 	}
 	store := blobstore.NewEntStorage(health.DBTableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
-		glog.Fatalf("Error initializing health database: %s", err)
+		glog.Fatalf("Error initializing health database: %+v", err)
 	}
 	// Add servicers to the service
 	healthServer, err := servicers.NewHealthServer(store)
+	if err != nil {
+		glog.Fatalf("Error creating health servicer: %+v", err)
+	}
 	protos.RegisterHealthServer(srv.GrpcServer, healthServer)
 
 	// create a networkHealthStatusReporter to monitor and periodically log metrics
@@ -61,6 +63,6 @@ func main() {
 	// Run the service
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running service: %s", err)
+		glog.Fatalf("Error running health service: %+v", err)
 	}
 }

@@ -187,11 +187,11 @@ func (c *SeriesCache) getEstimatedSize() int {
 // Note: uses labelset.Fingerprint() to get a key for each series. I've tested that
 // function on a set of >100k series and it had 0 collisions so I think it will
 // be fine here especially since accuracy is not super important.
-func mergeData(old, new values, ttl time.Duration) values {
+func mergeData(oldv, newv values, ttl time.Duration) values {
 	seriesSet := map[model.Fingerprint]struct{}{}
-	mergedSeries := make([]value, 0, len(old))
+	mergedSeries := make([]value, 0, len(oldv))
 	now := time.Now()
-	for _, val := range old {
+	for _, val := range oldv {
 		age := now.Sub(val.lastSeen)
 		if age > ttl {
 			continue
@@ -200,7 +200,7 @@ func mergeData(old, new values, ttl time.Duration) values {
 		val.lastSeen = now
 		mergedSeries = append(mergedSeries, val)
 	}
-	for _, val := range new {
+	for _, val := range newv {
 		if _, ok := seriesSet[val.series.Fingerprint()]; !ok {
 			mergedSeries = append(mergedSeries, val)
 		}

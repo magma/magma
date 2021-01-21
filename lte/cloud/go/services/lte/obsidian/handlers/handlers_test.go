@@ -564,7 +564,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	}
 	assert.Equal(t, expected, actualN2)
 
-	// Validation error (celullar config has both tdd and fdd config)
+	// Validation error (cellular config has both tdd and fdd config)
 	badCellularConfig := lteModels.NewDefaultTDDNetworkConfig()
 	badCellularConfig.Ran.FddConfig = &lteModels.NetworkRanConfigsFddConfig{
 		Earfcndl: 1,
@@ -1039,6 +1039,7 @@ func TestCreateGateway(t *testing.T) {
 		},
 		serdes.Device,
 	)
+	assert.NoError(t, err)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/gateways"
@@ -2459,7 +2460,7 @@ func TestCreateEnodeb(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	_, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 }
 

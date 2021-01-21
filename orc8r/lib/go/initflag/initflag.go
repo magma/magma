@@ -26,7 +26,8 @@ func init() {
 	flag.Var(
 		&syslogDest,
 		syslogFlag,
-		"Redirect stderr to syslog, optional syslog destination in network::address format (system default otherwise)")
+		"Redirect stderr to syslog, optional syslog destination in network::address format (system default otherwise)",
+	)
 
 	if shouldParse() {
 		// Save original settings
@@ -66,6 +67,18 @@ func init() {
 func shouldParse() bool {
 	isTest := strings.HasSuffix(os.Args[0], ".test") ||
 		strings.HasSuffix(os.Args[0], "_test.go") ||
-		strings.HasSuffix(os.Args[0], "_test_go")
+		strings.HasSuffix(os.Args[0], "_test_go") ||
+		isInArgs("-test.v")
 	return !flag.Parsed() && !isTest
+}
+
+// isInArgs returns true if any of the argunents passed to the command maches
+// with the passed match stirng
+func isInArgs(match string) bool {
+	for _, arg := range os.Args {
+		if arg == match {
+			return true
+		}
+	}
+	return false
 }

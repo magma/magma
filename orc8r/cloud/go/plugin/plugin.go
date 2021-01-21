@@ -112,7 +112,7 @@ func LoadAllPlugins(loader OrchestratorPluginLoader) error {
 // OrchestratorPluginLoader wraps the loading of OrchestratorPlugin impls.
 // Standard use case is to use the provided DefaultOrchestratorPluginLoader
 // in this package - only create a new impl if you need to customize the
-// loading process in some way (e.g. loading from a different directory).
+// loading process in some way (e.g., loading from a different directory).
 type OrchestratorPluginLoader interface {
 	LoadPlugins() ([]OrchestratorPlugin, error)
 }

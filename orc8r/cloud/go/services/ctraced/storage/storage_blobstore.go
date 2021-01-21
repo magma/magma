@@ -52,7 +52,7 @@ func (c *ctracedBlobStore) StoreCallTrace(networkID string, callTraceID string, 
 	err = store.CreateOrUpdate(
 		networkID,
 		blobstore.Blobs{
-			blobstore.Blob{Type: CtracedBlobType, Key: callTraceID, Value: data, Version: 0},
+			{Type: CtracedBlobType, Key: callTraceID, Value: data, Version: 0},
 		},
 	)
 	if err != nil {
@@ -95,7 +95,7 @@ func (c *ctracedBlobStore) DeleteCallTrace(networkID string, callTraceID string)
 	err = store.Delete(
 		networkID,
 		[]storage.TypeAndKey{
-			storage.TypeAndKey{Type: CtracedBlobType, Key: callTraceID},
+			{Type: CtracedBlobType, Key: callTraceID},
 		},
 	)
 	if err != nil {

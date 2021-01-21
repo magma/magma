@@ -24,7 +24,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 

@@ -46,8 +46,8 @@ import (
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
 )
 
 const (
@@ -188,7 +188,7 @@ func TestRunUnsafe(t *testing.T) {
 	updates := func(m string) {
 		assert.Contains(t, m, id0)
 	}
-	err := r.RunUnsafe(ctx, id0, updates) // this run gets a ctx+updates to ensure it doesn't break
+	err := r.RunUnsafe(ctx, id0, updates) // this run gets updates to ensure it doesn't break
 	assert.NoError(t, err)
 	assertVersions(t, q, id0, version0, version0)
 
@@ -196,7 +196,7 @@ func TestRunUnsafe(t *testing.T) {
 	idx0a := getIndexer(id0, version0, version0a, false)
 	idx0a.On("GetTypes").Return(allTypes).Once()
 	register(t, idx0a)
-	err = r.RunUnsafe(nil, id0, nil)
+	err = r.RunUnsafe(ctx, id0, nil)
 	assert.NoError(t, err)
 	assertVersions(t, q, id0, version0a, version0a)
 
@@ -204,7 +204,7 @@ func TestRunUnsafe(t *testing.T) {
 	idx0b := getIndexer(id0, version0a, version0a, false)
 	idx0b.On("GetTypes").Return(allTypes).Once()
 	register(t, idx0b)
-	err = r.RunUnsafe(nil, id0, nil)
+	err = r.RunUnsafe(ctx, id0, nil)
 	assert.NoError(t, err)
 	assertVersions(t, q, id0, version0a, version0a)
 
@@ -213,7 +213,7 @@ func TestRunUnsafe(t *testing.T) {
 	idx1.On("GetTypes").Return(gwStateType).Once()
 	idx1.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
 	register(t, idx1)
-	err = r.RunUnsafe(nil, id1, nil)
+	err = r.RunUnsafe(ctx, id1, nil)
 	assert.NoError(t, err)
 	assertVersions(t, q, id1, version1, version1)
 
@@ -221,7 +221,7 @@ func TestRunUnsafe(t *testing.T) {
 	idx2 := getIndexerNoIndex(id2, zero, version2, true)
 	idx2.On("GetTypes").Return(noTypes).Once()
 	register(t, idx2)
-	err = r.RunUnsafe(nil, id2, nil)
+	err = r.RunUnsafe(ctx, id2, nil)
 	assert.NoError(t, err)
 	assertVersions(t, q, id2, version2, version2)
 
@@ -231,7 +231,7 @@ func TestRunUnsafe(t *testing.T) {
 	idx3.On("GetTypes").Return(allTypes).Once()
 	idx4.On("GetTypes").Return(allTypes).Once()
 	register(t, idx3, idx4)
-	err = r.RunUnsafe(nil, "", nil)
+	err = r.RunUnsafe(ctx, "", nil)
 	assert.NoError(t, err)
 	assertVersions(t, q, id3, version3, version3)
 	assertVersions(t, q, id4, version4, version4)

@@ -54,13 +54,13 @@ func TestValuesCache_Get(t *testing.T) {
 	mockAPI.On("Series", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sampleLabelSet, nil, nil)
 	testCache.Set([]string{"testParam2"}, sampleLabelSet)
 	testCache.responses["testParam2"].updateTime = time.Now().Add(-5 * time.Minute)
-	data, ok = testCache.Get([]string{"testParam2"})
+	_, ok = testCache.Get([]string{"testParam2"})
 	assert.False(t, ok)
 	// Wait for goroutine updateFunc to be called
 	time.Sleep(time.Second)
 	mockAPI.AssertNumberOfCalls(t, "Series", 1)
 	// Now that it's been updated, cache get should return
-	data, ok = testCache.Get([]string{"testParam2"})
+	_, ok = testCache.Get([]string{"testParam2"})
 	assert.True(t, ok)
 }
 

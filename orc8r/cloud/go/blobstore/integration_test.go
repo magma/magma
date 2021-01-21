@@ -28,6 +28,7 @@ import (
 func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	// Check the contract for an empty data store
 	err := fact.InitializeFactory()
+	assert.NoError(t, err)
 	store, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)
 	listActual, err := store.ListKeys("network", "type")
@@ -292,7 +293,7 @@ func runSearchTestCases(t *testing.T, fact blobstore.BlobStorageFactory) {
 
 	allNetworkSearchTestCases := []searchTestCase{
 		{
-			// emtpy search filter
+			// Empty search filter
 			expected: map[string]blobstore.Blobs{
 				"network1": {
 					{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 0},

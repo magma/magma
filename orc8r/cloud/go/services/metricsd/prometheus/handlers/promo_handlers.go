@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers/cache"
@@ -31,7 +33,7 @@ import (
 	"magma/orc8r/lib/go/metrics"
 
 	"github.com/labstack/echo"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 )
 
@@ -191,6 +193,9 @@ func GetTenantQueryRangeHandler(api v1.API) func(c echo.Context) error {
 			return terr
 		}
 		orgRestrictor, err := tenantQueryRestrictorProvider(tID)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
 		restrictedQuery, err := preparePrometheusQuery(c, orgRestrictor)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -328,12 +333,20 @@ func GetTenantPromSeriesHandler(api v1.API, useCache bool) func(c echo.Context) 
 		// If cache miss, query the api and set response in the cache
 		defaultStartTime := time.Now().Add(-3 * time.Hour)
 		defaultEndTime := time.Now()
-		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &defaultStartTime)
-		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &defaultEndTime)
+		startStr := c.QueryParam(utils.ParamRangeStart)
+		startTime, err := utils.ParseTime(startStr, &defaultStartTime)
+		if err != nil {
+			return obsidian.HttpError(errors.Wrapf(err, "parse start time: %s", startStr), http.StatusBadRequest)
+		}
+		endStr := c.QueryParam(utils.ParamRangeEnd)
+		endTime, err := utils.ParseTime(endStr, &defaultEndTime)
+		if err != nil {
+			return obsidian.HttpError(errors.Wrapf(err, "parse end time: %s", endStr), http.StatusBadRequest)
+		}
 
 		res, _, err := api.Series(context.Background(), seriesMatches, startTime, endTime)
 		if err != nil {
-			return obsidian.HttpError(err, http.StatusInternalServerError)
+			return obsidian.HttpError(err)
 		}
 		if seriesCache != nil {
 			seriesCache.Set(seriesMatches, res)
@@ -412,8 +425,16 @@ func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 		}
 
 		defaultStartTime := time.Now().Add(-3 * time.Hour)
-		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &defaultStartTime)
-		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
+		startStr := c.QueryParam(utils.ParamRangeStart)
+		endStr := c.QueryParam(utils.ParamRangeEnd)
+		startTime, err := utils.ParseTime(startStr, &defaultStartTime)
+		if err != nil {
+			return obsidian.HttpError(errors.Wrapf(err, "parse start time: %s", startStr), http.StatusBadRequest)
+		}
+		endTime, err := utils.ParseTime(endStr, &maxTime)
+		if err != nil {
+			return obsidian.HttpError(errors.Wrapf(err, "parse end time: %s", endStr), http.StatusBadRequest)
+		}
 
 		res, _, err := api.Series(context.Background(), seriesMatchers, startTime, endTime)
 		if err != nil {
@@ -434,7 +455,7 @@ type prometheusValuesData struct {
 }
 
 func getSetOfValuesFromLabel(seriesList []model.LabelSet, labelName model.LabelName) []string {
-	values := make(map[model.LabelValue]struct{}, 0)
+	values := map[model.LabelValue]struct{}{}
 	for _, set := range seriesList {
 		val := set[labelName]
 		values[val] = struct{}{}

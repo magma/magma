@@ -72,6 +72,7 @@ func TestHealthServer_GetHealth(t *testing.T) {
 	unhealthyReq := test_utils.GetUnhealthyRequest()
 
 	marshaledUnhealthyStats, err := protos.Marshal(unhealthyReq.HealthStats)
+	assert.NoError(t, err)
 	unhealthyBlob := blobstore.Blob{
 		Value: marshaledUnhealthyStats,
 	}
@@ -307,7 +308,9 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 	// Simulate that both the active and standby are unhealthy
 	unhealthyRequest := test_utils.GetUnhealthyRequest()
 	unhealthyBlob, err := fegstorage.HealthToBlob(gwId, unhealthyRequest.HealthStats)
+	assert.NoError(t, err)
 	unhealthyBlob2, err := fegstorage.HealthToBlob(gwId2, unhealthyRequest.HealthStats)
+	assert.NoError(t, err)
 	clusterBlob, err := fegstorage.ClusterToBlob(testNetworkID, gwId)
 	assert.NoError(t, err)
 	clusterTK := storage.TypeAndKey{

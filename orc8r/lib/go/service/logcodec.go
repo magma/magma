@@ -33,12 +33,12 @@ type logCodec struct {
 func printMessage(prefix string, v interface{}) {
 	var payload string
 	if pm, ok := v.(proto.Message); ok {
-		var buff bytes.Buffer
-		err := (&jsonpb.Marshaler{EmitDefaults: true, Indent: "\t", OrigName: true}).Marshal(&buff, pm)
+		var buf bytes.Buffer
+		err := (&jsonpb.Marshaler{EmitDefaults: true, Indent: "\t", OrigName: true}).Marshal(&buf, pm)
 		if err == nil {
-			payload = string(buff.Bytes())
+			payload = buf.String()
 		} else {
-			payload = fmt.Sprintf("\n\t JSON encoding error: %v; %s", err, string(buff.Bytes()))
+			payload = fmt.Sprintf("\n\t JSON encoding error: %v; %s", err, buf.String())
 		}
 	} else {
 		payload = fmt.Sprintf("\n\t %T is not proto.Message; %+v", v, v)
