@@ -1,6 +1,6 @@
 ---
-id: nms_equipment
-title: NMS Equipment
+id: equipment
+title: Equipment
 hide_title: true
 ---
 
