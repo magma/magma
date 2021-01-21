@@ -966,11 +966,6 @@ static int _emm_attach_release(emm_context_t* emm_context) {
         LOG_NAS_EMM,
         "EMM-PROC  - Release UE context data (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
         ue_id);
-
-    /*
-     * Release the EMM context
-     */
-    _clear_emm_ctxt(emm_context);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
