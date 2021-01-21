@@ -58,6 +58,7 @@ RUN apt-key add /tmp/jfrog.pub && \
  # Install python3.8 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
+
 RUN apt-get -y update && apt-get -y install \
     curl \
     libc-ares2 \
