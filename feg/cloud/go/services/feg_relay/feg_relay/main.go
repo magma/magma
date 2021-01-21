@@ -55,6 +55,10 @@ func main() {
 	protos.RegisterHelloServer(srv.GrpcServer, nhServicer)
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, nhServicer)
 
+	// S8 Proxy NH Router
+	s8nhServicer := nh_servicers.NewS8RelayRouter(&nhServicer.Router)
+	protos.RegisterS8ProxyServer(srv.GrpcServer, s8nhServicer)
+
 	// create and run GW_TO_FEG httpserver
 	gwToFeGServer := gw_to_feg_relay.NewGatewayToFegServer()
 	go gwToFeGServer.Run(fmt.Sprintf(":%d", GwToFeGServerPort))
