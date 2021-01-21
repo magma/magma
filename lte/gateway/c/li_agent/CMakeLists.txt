@@ -18,7 +18,7 @@ add_compile_options(-std=c++14)
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 if (NOT BUILD_TESTS)
-  # Add AddressSanitizer (asan) support for debug builds of ConnectionD
+  # Add AddressSanitizer (asan) support for debug builds of LiAgentD
   set (CMAKE_CXX_FLAGS_DEBUG
       "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
   set (CMAKE_LINKER_FLAGS_DEBUG
@@ -43,7 +43,6 @@ endif ()
 
 include_directories("${OUTPUT_DIR}")
 include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
-
 
 include_directories(${MAGMA_LIB_DIR}/service303)
 include_directories(${MAGMA_LIB_DIR}/service_registry)
@@ -72,9 +71,11 @@ create_proto_dir("feg/gateway/services/aaa" CWF_CPP_OUT_DIR)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
+set(SMGR_ORC8R_CPP_PROTOS directoryd)
+generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb
-  pipelined spgw_service mconfig/mconfigs)
+set(SMGR_LTE_CPP_PROTOS mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
@@ -82,23 +83,32 @@ set(SMGR_CWF_CPP_PROTOS accounting context)
 generate_cwf_cpp_protos("${SMGR_CWF_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
 
+set(SMGR_ORC8R_GRPC_PROTOS directoryd)
+generate_grpc_protos("${SMGR_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
+
+message("Proto_srcs are ${PROTO_SRCS}")
+
 link_directories(
+  ${MAGMA_LIB_DIR}/async_grpc
   ${MAGMA_LIB_DIR}/config
   ${MAGMA_LIB_DIR}/service303
   ${MAGMA_LIB_DIR}/service_registry)
 
 add_library(LI_AGENT
-    PacketGenerator.cpp
-    PacketGenerator.h
-    EventTracker.cpp
-    EventTracker.h
+    PDUGenerator.cpp
+    PDUGenerator.h
+    InterfaceMonitor.cpp
+    InterfaceMonitor.h
+    DirectorydClient.cpp
+    DirectorydClient.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
 target_link_libraries(LI_AGENT
-  SERVICE303_LIB SERVICE_REGISTRY CONFIG
+  SERVICE303_LIB SERVICE_REGISTRY CONFIG ASYNC_GRPC
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
-  prometheus-cpp tacopie mnl tins
+  prometheus-cpp tacopie mnl tins pcap
   )
 
 if (CLANG_FORMAT)

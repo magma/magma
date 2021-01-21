@@ -19,30 +19,30 @@
 #include "MConfigLoader.h"
 #include "ServiceRegistrySingleton.h"
 
-#include "EventTracker.h"
-#include "PacketGenerator.h"
+#include "InterfaceMonitor.h"
+#include "PDUGenerator.h"
 
-#define CONNECTION_SERVICE "connectiond"
-#define CONNECTIOND_VERSION "1.0"
+#define LIAGENTD "liagentd"
+#define LIAGENTD_VERSION "1.0"
 
-static magma::mconfig::ConnectionD get_default_mconfig() {
-  magma::mconfig::ConnectionD mconfig;
+static magma::mconfig::LIAgentD get_default_mconfig() {
+  magma::mconfig::LIAgentD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
   return mconfig;
 }
 
-static magma::mconfig::ConnectionD load_mconfig() {
-  magma::mconfig::ConnectionD mconfig;
+static magma::mconfig::LIAgentD load_mconfig() {
+  magma::mconfig::LIAgentD mconfig;
   magma::MConfigLoader loader;
-  if (!loader.load_service_mconfig(CONNECTION_SERVICE, &mconfig)) {
-    MLOG(MERROR) << "Unable to load mconfig for connectiond, using default";
+  if (!loader.load_service_mconfig(LIAGENTD, &mconfig)) {
+    MLOG(MERROR) << "Unable to load mconfig for liagentd, using default";
     return get_default_mconfig();
   }
   return mconfig;
 }
 
 static uint32_t get_log_verbosity(
-    const YAML::Node& config, magma::mconfig::ConnectionD mconfig) {
+    const YAML::Node& config, magma::mconfig::LIAgentD mconfig) {
   if (!config["log_level"].IsDefined()) {
     if (mconfig.log_level() < 0 || mconfig.log_level() > 4) {
       return MINFO;
@@ -68,11 +68,11 @@ static uint32_t get_log_verbosity(
 }
 
 int main(void) {
-  magma::init_logging(CONNECTION_SERVICE);
+  magma::init_logging(LIAGENTD);
 
   auto mconfig = load_mconfig();
   auto config =
-      magma::ServiceConfigLoader{}.load_service_config(CONNECTION_SERVICE);
+      magma::ServiceConfigLoader{}.load_service_config(LIAGENTD);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
   MLOG(MINFO) << "Starting Connection Tracker";
 
@@ -81,14 +81,14 @@ int main(void) {
   std::string pkt_src_mac = config["pkt_src_mac"].as<std::string>();
 
   magma::service303::MagmaService server(
-      CONNECTION_SERVICE, CONNECTIOND_VERSION);
+      LIAGENTD, LIAGENTD_VERSION);
   server.Start();
 
-  auto pkt_generator = std::make_shared<magma::lte::PacketGenerator>(interface_name, pkt_dst_mac, pkt_src_mac);
+  auto pkt_generator = std::make_shared<magma::lte::PDUGenerator>(pkt_dst_mac, pkt_src_mac);
 
-  auto event_tracker = std::make_shared<magma::lte::EventTracker>(pkt_generator);
+  auto interface_watcher = std::make_shared<magma::lte::InterfaceMonitor>(interface_name, pkt_generator);
 
-  event_tracker->init_conntrack_event_loop();
+  interface_watcher->init_iface_pcap_monitor();
 
   return 0;
 }

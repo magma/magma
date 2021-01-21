@@ -30,80 +30,51 @@
 #include <netinet/ether.h>
 #include <linux/ip.h>
 #include <memory>
+#include <pcap.h>
 
-#include "EventTracker.h"
+#include "InterfaceMonitor.h"
 
 #include "magma_logging.h"
 
 namespace magma {
 namespace lte {
 
-/* close pcap file */
-static void pcap_close(pcap_t* p) {
-
-}
+InterfaceMonitor::InterfaceMonitor(
+    const std::string& iface_name,
+    std::shared_ptr<PDUGenerator> pkt_gen)
+    : iface_name_(iface_name),
+      pkt_gen_(pkt_gen) {}
 
 static void packet_handler(
     u_char* user, const struct pcap_pkthdr* phdr, const u_char* pdata) {
-  magma::DPIEngine* dpi_instance = reinterpret_cast<magma::DPIEngine*>(user);
-  struct qmdpi_result* result;
-  int ret;
 
-  dpi_instance->process_packet(pdata, phdr->caplen, &phdr->ts);
+  ((PDUGenerator*) user)->send_packet(phdr, pdata);
 }
 
-int init_iface_pcap_monitor(int argc, char* argv[]) {
+int InterfaceMonitor::init_iface_pcap_monitor() {
   char errbuf[PCAP_ERRBUF_SIZE];
-  const char* license;
   pcap_t* pcap;
   int ret;
 
-  magma::init_logging(argv[0]);
-  magma::set_verbosity(MINFO);
-
-  auto packet_encapsulator = std::make_shared<magma::PacketEncapsulator>();
-  // Create response loop for flow response processing
-  std::thread packet_encapsulator_thread([&]() {
-    std::cout << "Started flow response handler thread\n";
-    packet_encapsulator->rpc_response_loop();
-  });
-
-  license = getenv("DPI_LICENSE");
-  if (license == NULL) {
-    MLOG(MFATAL) << "Could not load DPI license env var";
-    return 1;
-  }
-  ret = qmdpi_license_load_from_file(license);
-  if (ret < 0) {
-    MLOG(MFATAL) << "Could not load DPI license with license file " << license
-                 << ", error code - " << ret;
-    return -1;
-  }
-
   // Snoop on mon1
-  pcap = pcap_open_live("mon1", BUFSIZ, 0, 1000, errbuf);
+  pcap = pcap_open_live(iface_name_.c_str(), BUFSIZ, 0, 1000, errbuf);
   if (pcap == nullptr) {
-    MLOG(MFATAL) << "Could not capture packets, exiting";
+    MLOG(MFATAL) << "Could not capture packets on " << iface_name_ << ", exiting";
     return 1;
   }
   std::cout << "Successfully started live pcap sniffing" << std::endl;
 
-  magma::service303::MagmaService server(DPID_SERVICE, DPID_VERSION);
-  server.Start();
-
   ret = pcap_loop(
-      pcap, -1, packet_handler, reinterpret_cast<u_char*>(&dpi_instance));
+      pcap, -1, packet_handler, (u_char*) pkt_gen_.get());
 
   if (ret == -1) {
     MLOG(MINFO) << "Could not capture packets";
-    if (p != nullptr) {
+    if (pcap != nullptr) {
         pcap_close(pcap);
     }
     return 1;
   }
 
-  server.Stop();
-  packet_encapsulator_thread.join();
   return 0;
 }
 

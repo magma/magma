@@ -12,19 +12,22 @@
  */
 #pragma once
 
-#include "PacketGenerator.h"
+#include "PDUGenerator.h"
 
 namespace magma {
 namespace lte {
 
-class EventTracker {
+class InterfaceMonitor {
  public:
-  EventTracker(std::shared_ptr<PacketGenerator> pkt_gen);
+  InterfaceMonitor(
+    const std::string& iface_name,
+    std::shared_ptr<PDUGenerator> pkt_gen);
 
-  int init_conntrack_event_loop(void);
+  int init_iface_pcap_monitor(void);
 
  private:
-  std::shared_ptr<PacketGenerator> pkt_gen_;
+  std::string iface_name_;
+  std::shared_ptr<PDUGenerator> pkt_gen_;
 };
 
 }  // namespace lte
