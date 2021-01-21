@@ -13,10 +13,6 @@ limitations under the License.
 
 package credit_control
 
-import (
-	"regexp"
-)
-
 type CreditRequestType uint8
 
 const (
@@ -48,11 +44,6 @@ const (
 	Gx
 	Gy
 )
-
-type VirtualApnRule struct {
-	ApnFilter    *regexp.Regexp
-	ApnOverwrite string
-}
 
 type SubscriptionIDType uint8
 

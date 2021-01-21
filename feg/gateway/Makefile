@@ -15,6 +15,9 @@ download:
 install:
 	go install ./... magma/gateway/services/magmad
 
+install_envoy_controller:
+	go install ./... magma/feg/gateway/services/envoy_controller
+
 test:
 	go test ./...
 	go test -tags link_local_service,with_builtin_radius magma/feg/gateway/services/eap/... magma/feg/gateway/services/aaa/...

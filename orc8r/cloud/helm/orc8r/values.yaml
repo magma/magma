@@ -96,7 +96,7 @@ nginx:
 
   # nginx image
   image:
-    repository:
+    repository: <registry>/nginx
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -140,22 +140,9 @@ controller:
     minAvailable: 1
     maxUnavailable: ""
 
-  # Service configuration.
-  service:
-    annotations: {}
-    labels: {}
-    type: ClusterIP
-    port: 8080
-    targetPort: 8080
-    # port range exposed by controller
-    portStart: 9079
-    portEnd: 9117
-    httpPortStart: 10079
-    httpPortEnd: 10117
-
-  # controller image
+  # orc8r_base image
   image:
-    repository:
+    repository: <registry>/orc8r_base
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -172,11 +159,6 @@ controller:
       pass: postgres
     service_registry:
       mode: "yaml"
-
-  migration:
-    new_handlers: 0
-    new_mconfigs: 0
-    mconfig_whitelist: ""
 
   podAnnotations: {}
 
@@ -209,6 +191,11 @@ accessd:
     labels: {}
     annotations: {}
 
+analytics:
+  service:
+    labels: {}
+    annotations: {}
+
 bootstrapper:
   service:
     labels: {}
@@ -220,6 +207,11 @@ certifier:
     annotations: {}
 
 configurator:
+  service:
+    labels: {}
+    annotations: {}
+
+ctraced:
   service:
     labels: {}
     annotations: {}
@@ -259,6 +251,7 @@ obsidian:
 orchestrator:
   service:
     labels:
+      orc8r.io/analytics_collector: "true"
       orc8r.io/mconfig_builder: "true"
       orc8r.io/metrics_exporter: "true"
       orc8r.io/obsidian_handlers: "true"

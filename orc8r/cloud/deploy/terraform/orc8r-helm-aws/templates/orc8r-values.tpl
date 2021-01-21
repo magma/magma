@@ -59,8 +59,8 @@ controller:
       host: ${orc8r_db_host}
       port: ${orc8r_db_port}
       user: ${orc8r_db_user}
-  service:
-    portEnd: 9121
+    service_registry:
+      mode: "k8s"
 
 metrics:
   imagePullSecrets:
@@ -129,6 +129,19 @@ metrics:
 
   thanos:
     enabled: ${thanos_enabled}
+
+    compact:
+      nodeSelector:
+        ${thanos_compact_selector}
+
+    store:
+      nodeSelector:
+        ${thanos_store_selector}
+
+    query:
+      nodeSelector:
+        ${thanos_query_selector}
+
     objstore:
       type: S3
       config:
@@ -166,6 +179,7 @@ nms:
 
     env:
       api_host: ${api_hostname}
+      mysql_db: ${nms_db_name}
       mysql_host: ${nms_db_host}
       mysql_user: ${nms_db_user}
       grafana_address: ${user_grafana_hostname}

@@ -119,6 +119,7 @@ func TestBuilder_Build(t *testing.T) {
 			Tac:                      1,
 			MmeCode:                  1,
 			MmeGid:                   1,
+			MmeRelativeCapacity:      10,
 			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
@@ -170,7 +171,7 @@ func TestBuilder_Build(t *testing.T) {
 
 	// Break with non-allowed network service
 	setEPCNetworkServices([]string{"0xdeadbeef"}, &nw)
-	actual, err = build(&nw, &graph, "gw1")
+	_, err = build(&nw, &graph, "gw1")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown network service name 0xdeadbeef")
 
@@ -252,6 +253,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			Tac:                      1,
 			MmeCode:                  1,
 			MmeGid:                   1,
+			MmeRelativeCapacity:      10,
 			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
@@ -471,6 +473,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		HeHashFunction:         "MD5",
 		HeEncodingType:         "BASE64",
 		EncryptionKey:          "melting_the_core",
+		HmacKey:                "magmamagma",
 	}
 	gatewayConfig := newDefaultGatewayConfig()
 	gatewayConfig.HeConfig = heConfig
@@ -515,6 +518,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			Tac:                      1,
 			MmeCode:                  1,
 			MmeGid:                   1,
+			MmeRelativeCapacity:      10,
 			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
@@ -539,6 +543,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 				HashFunction:           lte_mconfig.PipelineD_HEConfig_MD5,
 				EncodingType:           lte_mconfig.PipelineD_HEConfig_BASE64,
 				EncryptionKey:          "melting_the_core",
+				HmacKey:                "magmamagma",
 			},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
@@ -658,6 +663,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			Tac:                      1,
 			MmeCode:                  1,
 			MmeGid:                   1,
+			MmeRelativeCapacity:      10,
 			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
@@ -782,6 +788,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			Tac:                      1,
 			MmeCode:                  1,
 			MmeGid:                   1,
+			MmeRelativeCapacity:      10,
 			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
@@ -802,6 +809,132 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			},
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
+		},
+		"subscriberdb": &lte_mconfig.SubscriberDB{
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
+		},
+		"policydb": &lte_mconfig.PolicyDB{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sessiond": &lte_mconfig.SessionD{
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
+		},
+	}
+
+	actual, err := build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestBuilder_Build_MMEPool(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
+	lte_test_init.StartTestService(t)
+
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
+			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
+				EnableCaching: swag.Bool(true),
+			},
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
+		},
+	}
+	lteGatewayPool := configurator.NetworkEntity{
+		Type: lte.CellularGatewayPoolEntityType, Key: "pool1",
+		Config: &lte_models.CellularGatewayPoolConfigs{
+			MmeGroupID: 2,
+		},
+	}
+	lteGatewayConfigs := newDefaultGatewayConfig()
+	lteGatewayConfigs.Pooling = lte_models.CellularGatewayPoolRecords{
+		{
+			GatewayPoolID:       "pool1",
+			MmeCode:             3,
+			MmeRelativeCapacity: 255,
+		},
+	}
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             lteGatewayConfigs,
+		Associations:       []storage.TypeAndKey{},
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey(), lteGatewayPool.GetTypeAndKey()},
+	}
+	lteGatewayPool.Associations = []storage.TypeAndKey{lteGW.GetTypeAndKey()}
+
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGatewayPool, lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: lteGatewayPool.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+
+	expected := map[string]proto.Message{
+		"enodebd": &lte_mconfig.EnodebD{
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
+				Earfcndl:               44590,
+				SubframeAssignment:     2,
+				SpecialSubframePattern: 7,
+			},
+			BandwidthMhz:        20,
+			AllowEnodebTransmit: true,
+			Tac:                 1,
+			PlmnidList:          "00101",
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
+			Arfcn_2G:            nil,
+			EnbConfigsBySerial:  nil,
+		},
+		"mobilityd": &lte_mconfig.MobilityD{
+			LogLevel: protos.LogLevel_INFO,
+			IpBlock:  "192.168.128.0/24",
+		},
+		"mme": &lte_mconfig.MME{
+			LogLevel:                 protos.LogLevel_INFO,
+			Mcc:                      "001",
+			Mnc:                      "01",
+			Tac:                      1,
+			MmeCode:                  3,
+			MmeGid:                   2,
+			MmeRelativeCapacity:      255,
+			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			CsfbMcc:                  "001",
+			CsfbMnc:                  "01",
+			Lac:                      1,
+			HssRelayEnabled:          false,
+			CloudSubscriberdbEnabled: false,
+			AttachedEnodebTacs:       nil,
+			NatEnabled:               true,
+		},
+		"pipelined": &lte_mconfig.PipelineD{
+			LogLevel:      protos.LogLevel_INFO,
+			UeIpBlock:     "192.168.128.0/24",
+			NatEnabled:    true,
+			DefaultRuleId: "",
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
+			},
+			HeConfig: &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -878,6 +1011,7 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 			LocalTTL:          swag.Int32(0),
 		},
 		HeConfig: &lte_models.GatewayHeConfig{},
+		Pooling:  lte_models.CellularGatewayPoolRecords{},
 	}
 }
 

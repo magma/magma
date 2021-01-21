@@ -434,7 +434,8 @@ func TestListSubscribers(t *testing.T) {
 				ActiveApns: subscriberModels.ApnList{apn2, apn1},
 				Monitoring: &subscriberModels.SubscriberStatus{
 					Icmp: &subscriberModels.IcmpStatus{
-						LastReportedTime: frozenClock,
+						// LastReportedTime is calculated in milliseconds
+						LastReportedTime: frozenClock * 1000,
 						LatencyMs:        f32Ptr(12.34),
 					},
 				},
@@ -639,7 +640,8 @@ func TestGetSubscriber(t *testing.T) {
 			ActiveApns: subscriberModels.ApnList{apn2, apn1},
 			Monitoring: &subscriberModels.SubscriberStatus{
 				Icmp: &subscriberModels.IcmpStatus{
-					LastReportedTime: frozenClock,
+					// LastReportedTime is calculated in milliseconds
+					LastReportedTime: frozenClock * 1000,
 					LatencyMs:        f32Ptr(12.34),
 				},
 			},
@@ -1386,6 +1388,7 @@ func TestDeleteSubscriber(t *testing.T) {
 		configurator.EntityLoadCriteria{},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	assert.Equal(t, 0, len(actual))
 }
 
@@ -1635,6 +1638,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		configurator.FullEntityLoadCriteria(),
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	expected = configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
 		Config: &subscriberModels.SubscriberConfig{

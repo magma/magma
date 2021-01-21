@@ -17,3 +17,5 @@ prometheusQueryAddress: "http://prometheus:9090"
 alertmanagerApiURL: "http://alertmanager:9093/api/v2"
 prometheusConfigServiceURL: "http://prometheus-configurer:9100/v1"
 alertmanagerConfigServiceURL: "http://alertmanager-configurer:9101/v1"
+
+useSeriesCache: true

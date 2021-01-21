@@ -121,6 +121,15 @@ def package(vcs='hg', all_deps="False",
             run('cp /var/cache/apt/archives/*.deb ~/magma-packages')
 
 
+def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
+    destroy_vm = bool(strtobool(destroy_vm))
+    # If a host list isn't specified, default to the magma vagrant vm
+    if not env.hosts:
+        vagrant_setup('magma', destroy_vm=destroy_vm)
+    with cd('~/magma/lte/gateway'):
+        run('./release/build-ovs.sh ' + destdir)
+
+
 def depclean():
     '''Remove all generated packaged for dependencies'''
     # If a host list isn't specified, default to the magma vagrant vm
@@ -236,6 +245,15 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     else:
         env.hosts = [gateway_host]
     execute(_oai_coverage)
+
+
+def run_integ_tests():
+    """
+    Function is required to run tests only in pre-configured Jenkins env.
+    """
+    test_host = vagrant_setup("magma_test", destroy_vm=False)
+    gateway_ip = '192.168.60.142'
+    execute(_run_integ_tests, gateway_ip)
 
 
 def get_test_logs(gateway_host=None,

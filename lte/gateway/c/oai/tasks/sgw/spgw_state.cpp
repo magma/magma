@@ -59,13 +59,14 @@ void put_spgw_state() {
 
 void put_spgw_ue_state(spgw_state_t* spgw_state, imsi64_t imsi64) {
   if (SpgwStateManager::getInstance().is_persist_state_enabled()) {
-    uint64_t teid;
-    hashtable_uint64_ts_get(
-        spgw_state->imsi_teid_htbl, (const hash_key_t) imsi64, &teid);
-    auto spgw_ctxt = sgw_cm_get_spgw_context(teid);
-    if (spgw_ctxt) {
+    spgw_ue_context_t* ue_context_p = NULL;
+    hashtable_ts_get(
+        spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+        (void**) &ue_context_p);
+    if (ue_context_p) {
       auto imsi_str = SpgwStateManager::getInstance().get_imsi_str(imsi64);
-      SpgwStateManager::getInstance().write_ue_state_to_db(spgw_ctxt, imsi_str);
+      SpgwStateManager::getInstance().write_ue_state_to_db(
+          ue_context_p, imsi_str);
     }
   }
 }
@@ -119,5 +120,19 @@ void pgw_free_pcc_rule(void** rule) {
       }
       free_wrapper(rule);
     }
+  }
+}
+
+void spgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
+  if (*ue_context_p) {
+    sgw_s11_teid_t* p1 = LIST_FIRST(&(*ue_context_p)->sgw_s11_teid_list);
+    sgw_s11_teid_t* p2 = NULL;
+    while (p1) {
+      p2 = LIST_NEXT(p1, entries);
+      LIST_REMOVE(p1, entries);
+      free_wrapper((void**) &p1);
+      p1 = p2;
+    }
+    free_wrapper((void**) ue_context_p);
   }
 }

@@ -15,25 +15,21 @@ package analytics
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
-	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/lib/go/registry"
-	"magma/orc8r/lib/go/service/config"
-
-	promAPI "github.com/prometheus/client_golang/api"
-
-	"net/http"
 
 	"github.com/golang/glog"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/robfig/cron/v3"
 )
 
-//Analyzer generic interface to schedule any analysis to be scheduled
-//and run
+// Analyzer generic interface to schedule any analysis to run.
 type Analyzer interface {
 	// Schedule the analyzer to run calculations periodically based on the
 	// cron expression format schedule parameter
@@ -54,41 +50,6 @@ type PrometheusAnalyzer struct {
 	Exporter         Exporter
 }
 
-func getRemoteCollectors() ([]protos.AnalyticsCollectorClient, error) {
-	services, err := registry.FindServices(orc8r.AnalyticsCollectorLabel)
-	if err != nil {
-		glog.Infof("err %v attempting to find remote analytics services", err)
-		return nil, err
-	}
-
-	var collectorClientList []protos.AnalyticsCollectorClient
-	for _, s := range services {
-		conn, err := registry.GetConnection(s)
-		if err != nil {
-			glog.Infof("error getting connection to remote %s err %v", s, err)
-			continue
-		}
-		collectorClientList = append(collectorClientList, protos.NewAnalyticsCollectorClient(conn))
-	}
-	return collectorClientList, nil
-}
-
-// GetPrometheusClient returns prometheus client
-func GetPrometheusClient() v1.API {
-	metricsConfig, err := config.GetServiceConfig(orc8r.ModuleName, metricsd.ServiceName)
-	if err != nil {
-		glog.Fatalf("Could not retrieve metricsd configuration: %s", err)
-	}
-	promClient, err := promAPI.NewClient(promAPI.Config{Address: metricsConfig.MustGetString(metricsd.PrometheusQueryAddress)})
-	// todo - for testing, will clean it up
-	// promClient, err := promAPI.NewClient(promAPI.Config{Address: "http://192.168.0.124:9090"})
-	if err != nil {
-		glog.Fatalf("Error creating prometheus client: %s", promClient)
-	}
-	return v1.NewAPI(promClient)
-}
-
-// NewPrometheusAnalyzer contructs a new prometheus analyzer instance
 func NewPrometheusAnalyzer(config *Config, prometheusClient v1.API, exporter Exporter) Analyzer {
 	cronJob := cron.New()
 	return &PrometheusAnalyzer{
@@ -99,13 +60,13 @@ func NewPrometheusAnalyzer(config *Config, prometheusClient v1.API, exporter Exp
 	}
 }
 
-// Schedule method takes in a schedule string in cron format
-// and schedules the analyze job to be run at that schedule
+// Schedule method takes in a schedule string in cron format and schedules the
+// analyze job to be run at that schedule
 func (a *PrometheusAnalyzer) Schedule() error {
-	glog.Infof("Analytics job schedule %s", a.Config.AnalysisSchedule)
+	glog.V(1).Infof("Analyzer will be run every %d hours", a.Config.AnalysisSchedule)
 
 	a.Cron = cron.New()
-	_, err := a.Cron.AddFunc(a.Config.AnalysisSchedule, a.Analyze)
+	_, err := a.Cron.AddFunc(getAnalysisSchedule(a.Config.AnalysisSchedule), a.Analyze)
 	if err != nil {
 		glog.Infof("error scheduling the local analytics function %v", err)
 		return err
@@ -114,7 +75,7 @@ func (a *PrometheusAnalyzer) Schedule() error {
 	return nil
 }
 
-// Analyze methods runs through remote collectors and exports their metrics
+// Analyze methods runs through collectors and exports their metrics
 func (a *PrometheusAnalyzer) Analyze() {
 	glog.Info("Running  Analyze")
 	collectorClients, err := getRemoteCollectors()
@@ -143,7 +104,29 @@ func (a *PrometheusAnalyzer) Analyze() {
 	}
 }
 
-//Run runs the cron job
 func (a *PrometheusAnalyzer) Run() {
 	a.Cron.Run()
+}
+
+func getRemoteCollectors() ([]protos.AnalyticsCollectorClient, error) {
+	services, err := registry.FindServices(orc8r.AnalyticsCollectorLabel)
+	if err != nil {
+		glog.Errorf("Failed finding analytics collectors %v", err)
+		return nil, err
+	}
+
+	var collectorClientList []protos.AnalyticsCollectorClient
+	for _, s := range services {
+		conn, err := registry.GetConnection(s)
+		if err != nil {
+			glog.Errorf("Unable to get a remote connection %s error %v", s, err)
+			continue
+		}
+		collectorClientList = append(collectorClientList, protos.NewAnalyticsCollectorClient(conn))
+	}
+	return collectorClientList, nil
+}
+
+func getAnalysisSchedule(analysisSchedule uint) string {
+	return fmt.Sprintf("0 */%d * * *", analysisSchedule)
 }

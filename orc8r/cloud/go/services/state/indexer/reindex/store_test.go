@@ -26,7 +26,7 @@ import (
 )
 
 func TestIndexerServicer_GetAllIDs(t *testing.T) {
-	blobs := map[string][]blobstore.Blob{
+	blobs := map[string]blobstore.Blobs{
 		"nid0": {{Type: "typeA", Key: "keyA"}},
 		"nid1": {{Type: "typeB", Key: "keyB"}},
 	}

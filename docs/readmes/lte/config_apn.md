@@ -109,3 +109,17 @@ non_3gpp {
   }
 }
 ```
+
+## APN Override Config in MME
+To override the UE requested APN with a network specified APN, you can use the 
+`enable_apn_correction` and `apn_correction_map_list` in `/etc/magma/mme.yml`.
+```
+enable_apn_correction: false
+apn_correction_map_list:
+        - imsi_prefix: "00101"
+          apn_override: "magma.ipv4"
+```
+If `enable_apn_correction` is set to `true`, MME will override the original APN 
+based on the specified IMSI-prefix filtering.
+We support up to 10 IMSI prefix filters and corresponding APNs. 
+See under Proposals for a more detailed design doc.

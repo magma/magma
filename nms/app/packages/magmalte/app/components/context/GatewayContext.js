@@ -24,7 +24,11 @@ import React from 'react';
 
 export type GatewayContextType = {
   state: {[string]: lte_gateway},
-  setState: (key: gateway_id, val?: mutable_lte_gateway) => Promise<void>,
+  setState: (
+    key: gateway_id,
+    val?: mutable_lte_gateway,
+    newState?: {[string]: lte_gateway},
+  ) => Promise<void>,
   updateGateway: (props: $Shape<UpdateGatewayProps>) => Promise<void>,
 };
 

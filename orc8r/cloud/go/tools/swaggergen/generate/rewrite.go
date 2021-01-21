@@ -25,7 +25,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
@@ -40,16 +39,12 @@ import (
 // After rewriting the generated files, all files for types that aren't owned
 // by the target swagger spec will be removed from the output directory as
 // well.
-func RewriteGeneratedRefs(targetFilepath string, rootDir string) error {
+func RewriteGeneratedRefs(targetFilepath string, rootDir string, configs map[string]MagmaSwaggerSpec) error {
 	absTargetFilepath, err := filepath.Abs(targetFilepath)
 	if err != nil {
 		return errors.Wrapf(err, "target filepath %s is invalid", targetFilepath)
 	}
-	allConfigs, err := ParseSwaggerDependencyTree(targetFilepath, rootDir)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	targetConfig := allConfigs[absTargetFilepath]
+	targetConfig := configs[absTargetFilepath]
 	targetOutputDir, err := filepath.Abs(filepath.Join(
 		rootDir,
 		targetConfig.MagmaGenMeta.OutputDir,
@@ -63,29 +58,29 @@ func RewriteGeneratedRefs(targetFilepath string, rootDir string) error {
 	// (name and full path) and filename
 	filesToRewrite, err := getFilesToRewrite(targetConfig, targetOutputDir)
 	if err != nil {
-		return errors.Wrapf(err, "failed to rewrite generated swagger bindings for %s", absTargetFilepath)
+		return errors.Wrapf(err, "get files to rewrite generated swagger bindings for %s", absTargetFilepath)
 	}
-	validDependencyTypes := gatherAllValidDependentTypes(absTargetFilepath, allConfigs)
+	validDependencyTypes := gatherAllValidDependentTypes(absTargetFilepath, configs)
 
-	// rewrite all generated files
+	// Rewrite all generated files
 	for _, filename := range filesToRewrite {
 		err = rewriteGeneratedModelBinding(filename, validDependencyTypes)
 		if err != nil {
-			return errors.Wrapf(err, "failed to rewrite generated file at %s", filename)
+			return errors.Wrapf(err, "rewrite generated file at %s", filename)
 		}
 	}
 
-	// delete all files for models that aren't owned by the target swagger spec
+	// Delete all files for models that aren't owned by the target swagger spec
 	for _, dependency := range validDependencyTypes {
-		// ignore errors since not all dependent types are guaranteed to have
+		// Ignore errors since not all dependent types are guaranteed to have
 		// been generated (only those referenced)
 		_ = os.Remove(filepath.Join(targetOutputDir, dependency.filename))
 	}
 	return nil
 }
 
-func getFilesToRewrite(targetConfig MagmaSwaggerConfig, outputDir string) ([]string, error) {
-	// this depends on go-swagger generating exactly 1 type into each file
+func getFilesToRewrite(targetConfig MagmaSwaggerSpec, outputDir string) ([]string, error) {
+	// This depends on go-swagger generating exactly 1 type into each file
 	filesToRewrite := make([]string, 0, len(targetConfig.MagmaGenMeta.Types))
 	for _, typeSpec := range targetConfig.MagmaGenMeta.Types {
 		filesToRewrite = append(filesToRewrite, filepath.Join(outputDir, typeSpec.Filename))
@@ -99,8 +94,8 @@ type swaggerTypeDependency struct {
 	packageNumber int
 }
 
-func gatherAllValidDependentTypes(absTargetFilepath string, allConfigs map[string]MagmaSwaggerConfig) map[string]swaggerTypeDependency {
-	ret := map[string]swaggerTypeDependency{}
+func gatherAllValidDependentTypes(absTargetFilepath string, allConfigs map[string]MagmaSwaggerSpec) map[string]swaggerTypeDependency {
+	dependentTypes := map[string]swaggerTypeDependency{}
 
 	sortedPaths := funk.Keys(allConfigs).([]string)
 	sort.Strings(sortedPaths)
@@ -110,40 +105,40 @@ func gatherAllValidDependentTypes(absTargetFilepath string, allConfigs map[strin
 		}
 
 		for _, t := range allConfigs[path].MagmaGenMeta.Types {
-			ret[t.GoStructName] = swaggerTypeDependency{
+			dependentTypes[t.GoStructName] = swaggerTypeDependency{
 				goPackage:     allConfigs[path].MagmaGenMeta.GoPackage,
 				filename:      t.Filename,
 				packageNumber: i + 1,
 			}
 		}
 	}
-	return ret
+	return dependentTypes
 }
 
 func rewriteGeneratedModelBinding(filename string, dependentTypes map[string]swaggerTypeDependency) error {
 	fset := token.NewFileSet()
 	fileNode, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
 	if err != nil {
-		return errors.Wrapf(err, "could not parse Go file")
+		return errors.Wrapf(err, "parse Go file")
 	}
 
-	// find the idents to replace, add imports as needed, rewrite the idents
+	// Find the idents to replace, add imports as needed, rewrite the idents
 	targetIdents := findIdentsToChange(fset, fileNode, dependentTypes)
 	updateImports(fset, fileNode, targetIdents, dependentTypes)
 	updatedFileNode := updateIdents(fileNode, targetIdents, dependentTypes)
 
 	err = writeFinalFile(filename, fset, updatedFileNode)
 	if err != nil {
-		return errors.Wrap(err, "could not write result")
+		return err
 	}
 
 	return nil
 }
 
 func findIdentsToChange(fset *token.FileSet, fileNode ast.Node, validDependentTypes map[string]swaggerTypeDependency) map[*ast.Ident]bool {
-	// map keys are intentionally pointer types (the AST doesn't change across
-	// traversals)
-	ret := map[*ast.Ident]bool{}
+	// Map keys are intentionally pointer types, as the AST doesn't change
+	// across traversals
+	identsToChange := map[*ast.Ident]bool{}
 	ast.Inspect(fileNode, func(n ast.Node) bool {
 		switch n.(type) {
 		case *ast.TypeSpec:
@@ -156,7 +151,7 @@ func findIdentsToChange(fset *token.FileSet, fileNode ast.Node, validDependentTy
 						break
 					}
 					if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
-						ret[ident] = true
+						identsToChange[ident] = true
 					}
 				}
 			case *ast.ArrayType:
@@ -165,13 +160,13 @@ func findIdentsToChange(fset *token.FileSet, fileNode ast.Node, validDependentTy
 					break
 				}
 				if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
-					ret[ident] = true
+					identsToChange[ident] = true
 				}
 			}
 		}
 		return true
 	})
-	return ret
+	return identsToChange
 }
 
 func findLeafIdent(fset *token.FileSet, n ast.Node) *ast.Ident {
@@ -188,7 +183,7 @@ func findLeafIdent(fset *token.FileSet, n ast.Node) *ast.Ident {
 	case *ast.ArrayType:
 		return findLeafIdent(fset, t.Elt)
 	case *ast.MapType:
-		// again making a quick hacky assumption that generated types won't be
+		// Again making a quick hacky assumption that generated types won't be
 		// used as map keys
 		return findLeafIdent(fset, t.Value)
 	case *ast.SelectorExpr, *ast.InterfaceType:
@@ -213,61 +208,47 @@ func getUniqueNameForImport(dependency swaggerTypeDependency) string {
 }
 
 func updateIdents(fileNode *ast.File, targetIdents map[*ast.Ident]bool, validDependentTypes map[string]swaggerTypeDependency) ast.Node {
-	return astutil.Apply(
-		fileNode,
-		func(c *astutil.Cursor) bool {
-			switch n := c.Node().(type) {
-			case *ast.Ident:
-				_, found := targetIdents[n]
-				if found {
-					actualDependency := validDependentTypes[n.Name]
-					c.Replace(
-						// The right way to do this is to replace the node with
-						// *ast.SelectorExpr, but this is easy and it works
-						ast.NewIdent(
-							fmt.Sprintf(
-								"%s.%s",
-								getUniqueNameForImport(actualDependency),
-								n.Name,
-							),
-						),
-					)
-				}
-			}
+	applyFn := func(c *astutil.Cursor) bool {
+		ident, ok := c.Node().(*ast.Ident)
+		if !ok {
 			return true
-		},
-		nil)
+		}
+		_, found := targetIdents[ident]
+		if !found {
+			return true
+		}
+		actualDependency := validDependentTypes[ident.Name]
+		c.Replace(
+			// The right way to do this is to replace the node with
+			// *ast.SelectorExpr, but this is easy and it works
+			ast.NewIdent(fmt.Sprintf("%s.%s", getUniqueNameForImport(actualDependency), ident.Name)),
+		)
+		return true
+	}
+	return astutil.Apply(fileNode, applyFn, nil)
 }
 
+// writeFinalFile writes the updated AST to file.
+//
+// There used to be a bug requiring us to write the AST first to an
+// intermediate buffer. Seems to be fixed as of Go 1.13. If it crops up
+// again, revert this function to its previous double-write.
+// Ref: https://github.com/golang/go/issues/23771
 func writeFinalFile(filename string, fset *token.FileSet, fileNode ast.Node) error {
-	// we need to write the resulting AST twice due to a latent bug in the
-	// ast library - https://github.com/golang/go/issues/23771
-	intermediateBuffer := strings.Builder{}
-	err := printer.Fprint(&intermediateBuffer, fset, fileNode)
+	buf := &bytes.Buffer{}
+	err := printer.Fprint(buf, fset, fileNode)
 	if err != nil {
-		return errors.Wrap(err, "failed to write AST to intermediate buffer")
-	}
-	intermediateOutput := intermediateBuffer.String()
-	intermediateFset := token.NewFileSet()
-	intermediateFileNode, err := parser.ParseFile(intermediateFset, filename, intermediateOutput, parser.ParseComments)
-	if err != nil {
-		return errors.Wrap(err, "failed to parse intermediate output")
+		return errors.Wrap(err, "write final AST to intermediate buffer")
 	}
 
-	// Fprint again, then go fmt the code
-	outputBuffer := &bytes.Buffer{}
-	err = printer.Fprint(outputBuffer, intermediateFset, intermediateFileNode)
+	formattedOutput, err := format.Source(buf.Bytes())
 	if err != nil {
-		return errors.Wrap(err, "failed to write final AST to output file")
+		return errors.Wrap(err, "gofmt final source code")
 	}
-	formattedOutput, err := format.Source(outputBuffer.Bytes())
-	if err != nil {
-		return errors.Wrap(err, "failed to gofmt final source code")
-	}
-	// write out the modified file
+
 	err = ioutil.WriteFile(filename, formattedOutput, 0664)
 	if err != nil {
-		return errors.Wrap(err, "failed to write formatted source code to output file")
+		return errors.Wrap(err, "write formatted source code to output file")
 	}
 
 	return nil

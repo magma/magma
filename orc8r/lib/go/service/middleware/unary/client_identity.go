@@ -28,8 +28,24 @@ const (
 	ORC8R_CLIENT_CERT_VALUE = "7ZZXAF7CAETF241KL22B8YRR7B5UF401"
 )
 
-func UnaryCloudClientInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-	appendedCtx := metadata.AppendToOutgoingContext(ctx, CLIENT_CERT_SN_KEY, ORC8R_CLIENT_CERT_VALUE)
-	err := invoker(appendedCtx, method, req, reply, cc, opts...)
-	return err
+// CloudClientInterceptor sets Magic Certificate Value for orc8r service clients in the outgoing CTX
+// if the CTX metadata already has a client certificate SN key, CloudClientInterceptor will overwrite it with
+// the Magic Certificate Value
+func CloudClientInterceptor(
+	ctx context.Context, method string, req, reply interface{},
+	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+
+	return invoker(OutgoingCloudClientCtx(ctx), method, req, reply, cc, opts...)
+}
+
+// OutgoingCloudClientCtx amends outgoing cloud client context with magic client CSN metadata
+func OutgoingCloudClientCtx(ctx context.Context) context.Context {
+	md, exists := metadata.FromOutgoingContext(ctx)
+	if exists {
+		md = md.Copy()
+		md.Set(CLIENT_CERT_SN_KEY, ORC8R_CLIENT_CERT_VALUE)
+	} else {
+		md = metadata.Pairs(CLIENT_CERT_SN_KEY, ORC8R_CLIENT_CERT_VALUE)
+	}
+	return metadata.NewOutgoingContext(ctx, md)
 }

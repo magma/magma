@@ -1,38 +1,42 @@
 SHELL := /bin/bash
 
-ifndef MAGMA_MODULES
-$(error MAGMA_MODULES is undefined)
-endif
+#########################
+## Essential variables ##
+#########################
 
-##########################################
-## Some Useful Directory/File Variables ##
-##########################################
-# Allow MAGMA_ROOT and PLUGIN_DIR to be set from environment to support travis
 ifndef MAGMA_ROOT
 MAGMA_ROOT := /home/$(USER)/magma
+$(warning MAGMA_ROOT is undefined, using default: $(MAGMA_ROOT))
 endif
 export MAGMA_ROOT
+
+ifndef MAGMA_MODULES
+MAGMA_MODULES := \
+	$(MAGMA_ROOT)/orc8r \
+	$(MAGMA_ROOT)/lte \
+	$(MAGMA_ROOT)/feg \
+	$(MAGMA_ROOT)/cwf \
+	$(MAGMA_ROOT)/wifi \
+	$(MAGMA_ROOT)/fbinternal
+$(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
+endif
 
 SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
-SWAGGER_V1_TEMPLATE := $(SWAGGER_ROOT)/v1/swagger-template.yml
-SWAGGER_V1_TEMP_GEN := $(SWAGGER_ROOT)/v1/temp
+SWAGGER_V1_CONFIG := $(SWAGGER_ROOT)/v1/goswagger-config.yml
+SWAGGER_V1_TMP_GEN := $(SWAGGER_ROOT)/v1/tmp
 export SWAGGER_ROOT
 export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
-export SWAGGER_V1_TEMPLATE
-export SWAGGER_V1_TEMP_GEN
+export SWAGGER_V1_CONFIG
+export SWAGGER_V1_TMP_GEN
 
-ifndef PLUGIN_DIR
-PLUGIN_DIR := /home/$(USER)/go/plugins
-endif
-export PLUGIN_DIR
+#############
+## Modules ##
+#############
 
-############################
-## Declare Module Targets ##
-############################
 define add_module
 	$(eval MODULE := $1)
 
@@ -49,20 +53,18 @@ define add_module
 	TEST_LIST += $(MODULE)_test
 	TIDY_LIST += $(MODULE)_tidy
 	TOOLS_LIST += $(MODULE)_tools
-	VET_LIST += $(MODULE)_vet
 
 	MIGRATION_PLUGIN_LIST += $(MODULE)_migrationplugin
 endef
 _ := $(foreach module, $(MAGMA_MODULES), $(eval $(call add_module,$(module))))
 
-
 ###################
-## General Rules ##
+## General rules ##
 ###################
 
-precommit: fmt test vet swagger_validate
+precommit: fmt lint test
 
-build: plugin $(BUILD_LIST) migration_plugin swagger
+build: $(BUILD_LIST) migration_plugin swagger
 $(BUILD_LIST): %_build:
 	make -C $*/cloud/go build
 
@@ -87,57 +89,58 @@ $(DOWNLOAD_LIST): %_download:
 fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go fmt ; fi
 
-gen: tools $(GEN_LIST)
+gen: tools swagger $(GEN_LIST)
 $(GEN_LIST): %_gen:
 	make -C $*/cloud/go gen
 
-lint: $(LINT_LIST)
+fullgen: clean_gen gen tidy
+
+lint: lint_tools $(LINT_LIST)
 $(LINT_LIST): %_lint:
 	make -C $*/cloud/go lint
-
-plugin: $(PLUGIN_LIST)
-$(PLUGIN_LIST): %_plugin:
-	make -C $*/cloud/go plugin
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go lint ; fi
 
 test: tools $(TEST_LIST)
 $(TEST_LIST): %_test:
 	make -C $*/cloud/go test
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go test ; fi
 
 tidy: $(TIDY_LIST)
 $(TIDY_LIST): %_tidy:
 	make -C $*/cloud/go tidy
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go tidy ; fi
 
 tools: $(TOOLS_LIST)
 $(TOOLS_LIST): %_tools:
 	make -C $*/cloud/go tools
 
-vet: $(VET_LIST)
-$(VET_LIST): %_vet:
-	make -C $*/cloud/go vet
+lint_tools:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+		| sh -s -- -b $$(go env GOPATH)/bin v1.35.2
 
-##############################
-## Swagger/API docs Targets ##
-##############################
+######################
+## Swagger/API docs ##
+######################
 
-swagger: swagger_directories tools $(SWAGGER_LIST)
+swagger: tools swagger_directories $(SWAGGER_LIST)
 	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
-	combine_swagger --inp=$(SWAGGER_V1_TEMP_GEN) --common=$(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
-	rm -rf $(SWAGGER_V1_TEMP_GEN)
+	combine_swagger --in=$(SWAGGER_V1_TMP_GEN) --common=$(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
+	rm -rf $(SWAGGER_V1_TMP_GEN)
+	rm $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
+	swagger validate $(SWAGGER_V1_YML)
 
 swagger_directories:
-	rm -rf $(SWAGGER_V1_TEMP_GEN)
-	mkdir $(SWAGGER_V1_TEMP_GEN)
+	rm -rf $(SWAGGER_V1_TMP_GEN)
+	mkdir $(SWAGGER_V1_TMP_GEN)
 
 $(SWAGGER_LIST): %_swagger:
 	make -C $*/cloud/go copy_swagger_files
 
-swagger_validate: swagger
-	swagger validate $(SWAGGER_V1_YML)
-
-##################
-## Misc Targets ##
-##################
+##########
+## Misc ##
+##########
 
 list:  # List all commands
 	@echo -e "\nAvailable commands:\n"

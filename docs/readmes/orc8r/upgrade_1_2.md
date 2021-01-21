@@ -28,6 +28,9 @@ The v1.1 to v1.2 upgrade does not support Helm-only downgrades. That is,
 once you perform the Orchestrator data migrations, v1.1 deployments will lose
 access to a subset of the migrated data.
 
+If you are using local Terraform state (the default), ensure all Terraform state files (i.e. [`terraform.tfstate`](https://www.terraform.io/docs/state/index.html)) are located in your working directory before proceeding. This means `terraform show` should list existing state (rather than outputting `No state`).
+
+
 ## Helm 3 Upgrade
 
 Orchestrator v1.2 requires an upgrade from Helm 2 to Helm 3. Helm provides a

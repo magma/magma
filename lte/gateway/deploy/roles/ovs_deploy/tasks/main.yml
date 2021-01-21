@@ -11,69 +11,112 @@
 # limitations under the License.
 
 
-- fail: msg="PACKAGE_LOCATION is required"
-  when:
-    - PACKAGE_LOCATION is not defined
-
-- name: Include vars of all.yaml.
+- name: Include vars of all.yaml
   include_vars:
     file: all.yaml
-    name: all_vars
 
-- name: Converting PACKAGE_LOCATION to absolute path
-  shell: realpath {{ PACKAGE_LOCATION }}
-  register: PACKAGE_LOCATION_ABSOLUTE
+- name: Configuring private package manager.
+  copy:
+    content: >
+      deb {{ ovs_pkgrepo_proto }}://{{ ovs_pkgrepo_host }}{{ ovs_pkgrepo_path}}
+      {{ ovs_pkgrepo_dist }} {{ ovs_pkgrepo_component }}
+    dest: /etc/apt/sources.list.d/{{ ovs_pkgrepo_name }}.list
+  become: yes
+
+- name: Add unvalidated Apt signing key.
+  when: ovs_pkgrepo_key_fingerprint == ""
+  become: yes
+  block:
+    - name: Download key
+      apt_key:
+        url: "{{ ovs_pkgrepo_key }}"
+        state: present
+        validate_certs: no
+    - name: Ignore server ssl cert
+      copy:
+        dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
+        content: |
+          Acquire::https::{{ ovs_pkgrepo_host }} {
+          Verify-Peer "false";
+          Verify-Host "false";
+          };
+
+- name: Add validated Apt signing key.
+  when: ovs_pkgrepo_key_fingerprint != ""
+  become: yes
+  apt_key:
+    url: "{{ ovs_pkgrepo_key }}"
+    id: "{{ ovs_pkgrepo_key_fingerprint }}"
+    state: present
 
 - name: Update and upgrade apt packages
   become: yes
   apt:
     update_cache: yes
 
-- name: Install dependencies.
+- name: Install runtime dependencies.
   become: yes
   apt:
     name: "{{ packages }}"
   vars:
     packages:
       - graphviz
-      - debhelper
-      - dh-autoreconf
       - python-all
       - python-twisted-conch
       - module-assistant
       - openssl
-      - pkg-config
-      - libssl-dev
-      - build-essential
       - dkms
       - uuid-runtime
 
-- name: Load built packages.
-  shell: dpkg -i {{PACKAGE_LOCATION_ABSOLUTE.stdout}}/{{ item }}
-  become: yes
-  with_items:
-    - "{{ all_vars.packages }}"
+- name: Build openvswitch packages
+  when: not ovs_use_pkgrepo
+  block:
+    - fail: msg="PACKAGE_LOCATION is required"
+      when:
+        - PACKAGE_LOCATION is not defined
 
-- name: Configuring private package manager.
-  shell: echo "{{ all_vars.private_package }}" | tee /etc/apt/sources.list.d/{{ all_vars.source_name }}.list
-  become: yes
+    - name: Install build dependencies.
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        vars:
+          packages:
+            - debhelper
+            - dh-autoreconf
+            - pkg-config
+            - libssl-dev
+            - build-essential
 
-- name: Add Apt signing key.
-  shell: apt-key adv --fetch-keys "{{ all_vars.apt_key }}"
-  become: yes
+    - name: Converting PACKAGE_LOCATION to absolute path
+      shell: realpath {{ PACKAGE_LOCATION }}
+      register: PACKAGE_LOCATION_ABSOLUTE
 
-- name: Update and upgrade apt packages.
-  become: yes
-  apt:
-    update_cache: yes
+    - name: Load built packages.
+      shell: dpkg -i {{PACKAGE_LOCATION_ABSOLUTE.stdout}}/{{ item }}
+      become: yes
+      with_items:
+        - "{{ ovs_build_config.packages }}"
 
 - name: Configuring magma apt preferences.
-  shell: "{{ item }}"
   become: yes
-  with_items:
-    - 'echo "Package: *" > /etc/apt/preferences.d/magma-preferences'
-    - 'echo "Pin: origin packages.magma.etagecom.io" >> /etc/apt/preferences.d/magma-preferences'
-    - 'echo "Pin-Priority: 900" >> /etc/apt/preferences.d/magma-preferences'
+  copy:
+    dest: /etc/apt/preferences.d/magma-preferences
+    content: |
+      Package: *
+      Pin: origin {{ ovs_pkgrepo_host }}
+      Pin-Priority: 900
+
+- name: Install prebuilt openvswitch packages
+  when: ovs_use_pkgrepo
+  become: yes
+  apt:
+    name:
+      - oai-gtp
+      - libopenvswitch
+      - openvswitch-datapath-dkms
+      - openvswitch-datapath-source
+      - openvswitch-common
+      - openvswitch-switch
 
 - name: Preconfigure wireshark (tshark) SUID property
   become: yes
@@ -140,3 +183,6 @@
     state: started
   tags:
     - skipfirstinstall
+
+- name: Install ansible community collection
+  shell: ansible-galaxy collection install community.general

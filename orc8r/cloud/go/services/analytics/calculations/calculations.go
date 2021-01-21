@@ -27,62 +27,101 @@ import (
 )
 
 const (
-	//APNLabel defines label string literal for APN
+	//APNLabel defines label string literal for APN.
 	APNLabel = "apn"
 
-	//AuthCodeLabel defines label string literal for authentication code
+	//AuthCodeLabel defines label string literal for authentication code.
 	AuthCodeLabel = "code"
 
-	//DaysLabel defines label string literal for days
+	//DaysLabel defines label string literal for days.
 	DaysLabel = "days"
 
-	//DirectionLabel defines label string literal for direction
+	//DirectionLabel defines label string literal for direction.
 	DirectionLabel = "direction"
 )
 
-//Calculation interface
+// Calculation performs a computation to generate results (metrics), these
+// metrics can later be registered with prometheus or exported externally
 type Calculation interface {
 	Calculate(query_api.PrometheusAPI) ([]*protos.CalculationResult, error)
+	GetCalculationParams() CalculationParams
 }
 
-//MetricConfig is the expected configuration for a specific metric in the config file
+// BaseCalculation provides Base struct for all calculations.
+type BaseCalculation struct {
+	CalculationParams
+}
+
+// GetCalculationParams returns the calculation parameters passed to it.
+func (c *BaseCalculation) GetCalculationParams() CalculationParams {
+	return c.CalculationParams
+}
+
+// LogConfig provides the elastic query parameters. This enables analytics
+// service to build a metric based on the number of matches obtained for a
+// specific query
+type LogConfig struct {
+	// key value pair to perform Term search on elastic
+	Tags map[string]string `yaml:"tags"`
+
+	// Custom fields to match the query on
+	Fields []string `yaml:"fields"`
+
+	// Query specifies the actual query string
+	Query string `yaml:"query"`
+}
+
+// MetricConfig is the expected configuration for a specific metric in the
+// config file.
 type MetricConfig struct {
-	Register             bool     `yaml:"register"`
-	Export               bool     `yaml:"export"`
-	Expr                 string   `yaml:"expr"`
-	Labels               []string `yaml:"labels"`
-	EnforceAggrThreshold bool     `yaml:"enforceMinThreshold"`
+	Register                bool              `yaml:"register"`
+	Export                  bool              `yaml:"export"`
+	Expr                    string            `yaml:"expr"`
+	Labels                  map[string]string `yaml:"labels"`
+	EnforceMinUserThreshold bool              `yaml:"enforceMinUserThreshold"`
+	LogConfig               *LogConfig        `yaml:"logConfig"`
 }
 
-//AnalyticsConfig represents the configuration provided to analytics components
+// AnalyticsConfig represents the configuration provided to the components
+// implementing analytics collector service.
 type AnalyticsConfig struct {
-	//AggrMinThreshold minimum threshold for exporting aggregate metrics
-	AggrMinThreshold int                     `yaml:"aggrMetricThreshold"`
+	// MinUserThreshold sets the value below which aggregated user metrics
+	// shouldn't be exported.
+	MinUserThreshold int                     `yaml:"minUserThreshold"`
 	Metrics          map[string]MetricConfig `yaml:"metrics"`
 }
 
-//CalculationParams calculations paramters
+// CalculationParams calculations parameters
 type CalculationParams struct {
-	Hours               int
-	Days                int
+	Hours               uint
+	Days                uint
 	RegisteredGauge     *prometheus.GaugeVec
 	Labels              prometheus.Labels
 	Name                string
 	ExpectedGaugeLabels []string
-	MetricConfig        map[string]MetricConfig
+	AnalyticsConfig     *AnalyticsConfig
 }
 
-//ConsumptionDirection defines the direction type
+// ConsumptionDirection defines the direction type
 type ConsumptionDirection string
 
 const (
-	//ConsumptionIn string literal for identfying incoming data
+	// Note that the ConsumptionIn ~= ConsumptionDown and it is similar case
+	// with ConsumptionUp ~= ConsumptionOut. The variants are present due to
+	// the way labels are being exported by existing LTE and CWF deployments,
+	// this can be cleaned up once the gateway side code is cleaned up
+
+	// ConsumptionIn string literal for identfying incoming data
 	ConsumptionIn ConsumptionDirection = "in"
-	//ConsumptionOut string literal for identifying outgoign data
+	// ConsumptionOut string literal for identifying outgoing data
 	ConsumptionOut ConsumptionDirection = "out"
+	// ConsumptionUp string literal for identifying outgoing data
+	ConsumptionUp ConsumptionDirection = "up"
+	// ConsumptionDown string literal for identifying incoming data
+	ConsumptionDown ConsumptionDirection = "down"
 )
 
-//AverageDatapoints method to compute average of datapoints
+// AverageDatapoints method to compute average of datapoints
 func AverageDatapoints(samples []model.SamplePair) float64 {
 	sum := float64(0)
 	for _, val := range samples {
@@ -91,12 +130,12 @@ func AverageDatapoints(samples []model.SamplePair) float64 {
 	return sum / float64(len(samples))
 }
 
-//MakeVectorResults build results from vector
+// MakeVectorResults build results from vector.
 func MakeVectorResults(vec model.Vector, baseLabels prometheus.Labels, metricName string) []*protos.CalculationResult {
 	var results []*protos.CalculationResult
 	for _, v := range vec {
 		// Get labels from query result
-		queryLabels := make(map[string]string, 0)
+		queryLabels := map[string]string{}
 		for label, value := range v.Metric {
 			queryLabels[string(label)] = string(value)
 		}
@@ -110,7 +149,7 @@ func MakeVectorResults(vec model.Vector, baseLabels prometheus.Labels, metricNam
 	return results
 }
 
-//NewResult builds a new protos.CalculationResult
+// NewResult builds a new protos.CalculationResult
 func NewResult(value float64, metricName string, labels prometheus.Labels) *protos.CalculationResult {
 	return &protos.CalculationResult{
 		Value:      value,
@@ -119,7 +158,7 @@ func NewResult(value float64, metricName string, labels prometheus.Labels) *prot
 	}
 }
 
-//CombineLabels combine all the label
+// CombineLabels combine all the label
 func CombineLabels(l1, l2 map[string]string) map[string]string {
 	retLabels := make(map[string]string)
 	for l, v := range l1 {
@@ -131,26 +170,23 @@ func CombineLabels(l1, l2 map[string]string) map[string]string {
 	return retLabels
 }
 
-//RegisterResults exports the metrics to prometheus
+// RegisterResults exports the metrics to prometheus
 func RegisterResults(calc CalculationParams, results []*protos.CalculationResult) {
 	for _, res := range results {
+		if calc.RegisteredGauge == nil {
+			glog.Errorf("Attempting to register with %s non existent gauge ", res.MetricName)
+			continue
+		}
 		if !CheckLabelsMatch(calc.ExpectedGaugeLabels, res.Labels) {
 			glog.Errorf("Unmatched labels in Calculation. Expected: %s, Received: %s", calc.ExpectedGaugeLabels, printLabels(res.Labels))
 			continue
 		}
-		if calc.MetricConfig != nil {
-			metricConfig, ok := calc.MetricConfig[res.MetricName]
-			if ok && metricConfig.Register == false {
-				glog.V(2).Infof("%s result registration skipped due to configuration", calc.Name)
-				return
-			}
-		}
 		calc.RegisteredGauge.With(res.Labels).Set(res.Value)
-		glog.V(10).Infof("Set metric %s{%s} value: %f\n", res.MetricName, printLabels(res.Labels), res.Value)
+		glog.V(1).Infof("Set metric %s{%s} value: %f\n", res.MetricName, printLabels(res.Labels), res.Value)
 	}
 }
 
-//CheckLabelsMatch check if labels match
+// CheckLabelsMatch check if labels match
 func CheckLabelsMatch(expectedLabels []string, labels prometheus.Labels) bool {
 	givenLabels := []string{}
 	for l := range labels {
@@ -169,22 +205,4 @@ func printLabels(labels prometheus.Labels) string {
 	}
 	str.WriteString("}")
 	return str.String()
-}
-
-//GetRawMetricsCalculations ...
-func GetRawMetricsCalculations(metrics map[string]MetricConfig) []Calculation {
-	allCalculations := make([]Calculation, 0)
-	for metricName, metricConfig := range metrics {
-		if metricConfig.Expr != "" {
-			glog.V(10).Infof("Adding RawMetrics Calculation for %s", metricName)
-			allCalculations = append(allCalculations, &RawMetricsCalculation{
-				CalculationParams: CalculationParams{
-					Name:         metricName,
-					MetricConfig: metrics,
-				},
-				MetricExpr: metricConfig.Expr,
-			})
-		}
-	}
-	return allCalculations
 }

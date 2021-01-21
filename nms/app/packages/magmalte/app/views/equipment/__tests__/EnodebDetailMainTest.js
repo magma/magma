@@ -16,6 +16,7 @@
 import type {promql_return_object} from '@fbcnms/magma-api';
 
 import 'jest-dom/extend-expect';
+import * as hooks from '../../../components/context/RefreshContext';
 import EnodebContext from '../../../components/context/EnodebContext';
 import EnodebDetail from '../EnodebDetailMain';
 import MagmaAPIBindings from '@fbcnms/magma-api';
@@ -59,7 +60,6 @@ describe('<Enodeb />', () => {
   afterEach(() => {
     axiosMock.get.mockClear();
   });
-
   const enbInfo = {
     testEnodebSerial0: {
       enb: {
@@ -148,6 +148,9 @@ describe('<Enodeb />', () => {
   };
 
   it('managed eNodeB', async () => {
+    jest.spyOn(hooks, 'useRefreshingContext').mockImplementation(() => ({
+      enbInfo: {testEnodebSerial0: enbInfo['testEnodebSerial0']},
+    }));
     const Wrapper = () => (
       <MemoryRouter
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
@@ -190,6 +193,9 @@ describe('<Enodeb />', () => {
   });
 
   it('unManaged eNodeB', async () => {
+    jest.spyOn(hooks, 'useRefreshingContext').mockImplementation(() => ({
+      enbInfo: {testEnodebSerial1: enbInfo['testEnodebSerial1']},
+    }));
     const Wrapper = () => (
       <MemoryRouter
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial1/overview']}
@@ -225,7 +231,7 @@ describe('<Enodeb />', () => {
       'testEnodebSerial1',
     );
     expect(getByTestId('eNodeB Externally Managed')).toHaveTextContent('True');
-    expect(getByTestId('Health')).toHaveTextContent('Bad');
+    expect(getByTestId('Health')).toHaveTextContent('-');
     expect(getByTestId('Transmit Enabled')).toHaveTextContent('Disabled');
     expect(getByTestId('Gateway ID')).toHaveTextContent('testGw2');
     expect(getByTestId('Mme Connected')).toHaveTextContent('Disconnected');

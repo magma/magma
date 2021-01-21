@@ -13,12 +13,37 @@ limitations under the License.
 
 package servicers
 
+import (
+	"os"
+
+	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
+	"magma/gateway/mconfig"
+
+	"github.com/golang/glog"
+)
+
 const (
 	S8ProxyServiceName = "s8_proxy"
+
+	ClientAddrEnv = "CLIENT_ADDRESS"
+	ServerAddrEnv = "SERVER_ADDRESS"
 )
 
 func GetS8ProxyConfig() *S8ProxyConfig {
+	configPtr := &mcfgprotos.S8Config{}
+	err := mconfig.GetServiceConfigs(S8ProxyServiceName, configPtr)
+	if err != nil {
+		glog.V(2).Infof("%s Managed Configs Load Error: %v\nUsing EnvVars", S8ProxyServiceName, err)
+		return &S8ProxyConfig{
+			ClientAddr: os.Getenv(ClientAddrEnv),
+			ServerAddr: os.Getenv(ServerAddrEnv),
+		}
+	}
+
+	glog.V(2).Infof("Loaded %s configs: %+v", S8ProxyConfig{}, *configPtr)
+
 	return &S8ProxyConfig{
-		serverAddr: "127.0.0.68",
+		ClientAddr: configPtr.LocalAddress,
+		ServerAddr: configPtr.PgwAddress,
 	}
 }

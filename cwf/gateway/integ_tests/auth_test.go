@@ -155,7 +155,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NoError(t, err)
 
 	imsi := ues[0].GetImsi()
-	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
+	usageMonitorInfo := getUsageInformation("mkey1", 2*MegaBytes)
 
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
@@ -168,15 +168,19 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "100K"}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi: imsi,
+		Volume: &wrappers.StringValue{Value: "1M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
+		Timeout: 30,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
 	tr.AssertAllGxExpectationsMetNoError()
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Authenticate a UE through a first AP then switch to use a second AP
@@ -202,7 +206,7 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 	assert.NoError(t, err)
 
 	imsi := ues[0].GetImsi()
-	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
+	usageMonitorInfo := getUsageInformation("mkey1", 2*MegaBytes)
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetDynamicRuleInstall(getPassAllRuleDefinition("dynamic-pass-all", "mkey1", nil, 100)).
@@ -215,7 +219,12 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 	CalledStationIDs := getCalledStationIDs()
 	tr.AuthenticateWithCalledIDAndAssertSuccess(imsi, CalledStationIDs[0])
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "100K"}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi: imsi,
+		Volume: &wrappers.StringValue{Value: "1M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
+		Timeout: 30,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
@@ -228,6 +237,5 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 
 	_, err = tr.Disconnect(imsi, CalledStationIDs[1])
 	assert.NoError(t, err)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

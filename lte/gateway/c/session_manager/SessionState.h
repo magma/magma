@@ -104,6 +104,7 @@ class SessionState {
     std::string imsi;
     std::string ip_addr;
     std::string ipv6_addr;
+    Teids teids;
 
     uint32_t local_f_teid;
     std::string msisdn;
@@ -139,7 +140,8 @@ class SessionState {
   SessionState(
       const std::string& imsi, const std::string& session_id,
       const SessionConfig& cfg, StaticRuleStore& rule_store,
-      const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time);
+      const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time,
+      const CreateSessionResponse& csr);
 
   SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
@@ -296,6 +298,10 @@ class SessionState {
   SessionTerminateRequest make_termination_request(
       SessionStateUpdateCriteria& uc);
 
+  CreateSessionResponse get_create_session_response();
+
+  void clear_create_session_response();
+
   // Methods related to the session's static and dynamic rules
   /**
    * Infer the policy's type (STATIC or DYNAMIC)
@@ -427,8 +433,14 @@ class SessionState {
 
   SessionFsmState get_state();
 
+  void get_unsuspended_rules(RulesToProcess& rulesToProcess);
+
   void get_rules_per_credit_key(
       CreditKey charging_key, RulesToProcess& rulesToProcess);
+
+  void set_teids(uint32_t enb_teid, uint32_t agw_teid);
+
+  void set_teids(Teids teids);
 
   // Event Triggers
   void add_new_event_trigger(
@@ -556,6 +568,9 @@ class SessionState {
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;
   magma::lte::TgppContext tgpp_context_;
+
+  // Used between create session and activate session. Empty afterwards
+  CreateSessionResponse create_session_response_;
 
   // All static rules synced from policy DB
   StaticRuleStore& static_rules_;

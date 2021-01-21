@@ -455,6 +455,7 @@ func TestFederationGateways(t *testing.T) {
 		ExpectedStatus: 200,
 		ExpectedResult: expectedRes,
 	}
+	tests.RunUnitTest(t, e, tc)
 
 	// Test DeleteGateway
 	tc = tests.Test{
@@ -473,8 +474,9 @@ func TestFederationGateways(t *testing.T) {
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 404,
-		ExpectedError:  "Not found",
+		ExpectedError:  "Not Found",
 	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestFederatedLteNetworks(t *testing.T) {

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 
 """
 Copyright 2020 The Magma Authors.
@@ -20,29 +20,7 @@ import sys
 
 from typing import List
 
-MODULES = [
-    'lte',
-    'feg',
-    'cwf',
-    'wifi',
-    'fbinternal',
-]
-
-DEPLOYMENT_TO_MODULES = {
-    'all': MODULES,
-    'orc8r': [],
-    'orc8r-f': ['fbinternal'],
-    'fwa': ['lte'],
-    'fwa-f': ['lte', 'fbinternal'],
-    'ffwa': ['lte', 'feg'],
-    'ffwa-f': ['lte', 'feg', 'fbinternal'],
-    'cwf': ['lte', 'feg', 'cwf'],
-    'cwf-f': ['lte', 'feg', 'cwf', 'fbinternal'],
-    'wifi': ['wifi'],
-    'wifi-f': ['wifi', 'fbinternal'],
-}
-
-DEPLOYMENTS = DEPLOYMENT_TO_MODULES.keys()
+DO_NOT_COMMIT = '# DO NOT COMMIT THIS CHANGE'
 
 
 def main() -> None:
@@ -52,20 +30,26 @@ def main() -> None:
         _clear_line('.env', 'COMPOSE_FILE=')
         return
 
-    files = DEPLOYMENT_TO_MODULES[args.deployment]
-    if args.metrics:
-        files.append('metrics')
-    if args.thanos:
-        files.append('thanos')
-
-    file_args = _make_file_args(files)
-    compose_line = 'COMPOSE_FILE=%s' % ':'.join(file_args)
-    _add_or_replace_line('.env', 'COMPOSE_FILE=', compose_line)
+    default = not (args.metrics or args.thanos)
+    if default:
+        _clear_line('.env', 'COMPOSE_FILE=')
+    else:
+        f = []
+        if args.metrics:
+            f.append('metrics')
+        if args.thanos:
+            f.append('thanos')
+        file_args = _make_file_args(f)
+        compose_line = 'COMPOSE_FILE={}  {}\n'.format(
+            ':'.join(file_args),
+            DO_NOT_COMMIT,
+        )
+        _add_or_replace_line('.env', 'COMPOSE_FILE=', compose_line)
 
     if args.print:
         return
 
-    cmd = ['docker-compose'] + _make_cmd_args(file_args) + ['up', '-d']
+    cmd = ['docker-compose', 'up', '-d']
     print("Running '%s'..." % ' '.join(cmd))
     try:
         subprocess.run(cmd, check=True)
@@ -101,13 +85,6 @@ def _make_file_args(files: List[str]) -> List[str]:
     return files
 
 
-def _make_cmd_args(files: List[str]) -> List[str]:
-    args = []
-    for f in files:
-        args.extend(['-f', f])
-    return args
-
-
 def _parse_args() -> argparse.Namespace:
     """ Parse the command line args """
     parser = argparse.ArgumentParser(description='Orc8r run tool')
@@ -124,12 +101,6 @@ def _parse_args() -> argparse.Namespace:
         '--clear', '-c',
         action='store_true',
         help='Clear COMPOSE_FILE line from the .env file',
-    )
-    parser.add_argument(
-        '--deployment', '-d',
-        action='store',
-        default='all',
-        help='Activate deployment type: %s' % ','.join(DEPLOYMENTS),
     )
     parser.add_argument(
         '--metrics',

@@ -35,7 +35,7 @@ class SessionStateTest : public ::testing::Test {
     rule_store    = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
         "imsi", "session", test_sstate_cfg, *rule_store, tgpp_ctx,
-        pdp_start_time);
+        pdp_start_time, CreateSessionResponse{});
     update_criteria = get_default_update_criteria();
   }
   enum RuleType {

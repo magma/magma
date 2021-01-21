@@ -32,18 +32,21 @@ type GatewayHeConfig struct {
 
 	// he encoding type
 	// Required: true
-	// Enum: [BASE64]
+	// Enum: [BASE64 HEX2BIN]
 	HeEncodingType string `json:"he_encoding_type"`
 
 	// he encryption algorithm
 	// Required: true
-	// Enum: [RC4]
+	// Enum: [RC4 AES256_CBC_HMAC_MD5 AES256_ECB_HMAC_MD5 GZIPPED_AES256_ECB_SHA1]
 	HeEncryptionAlgorithm string `json:"he_encryption_algorithm"`
 
 	// he hash function
 	// Required: true
-	// Enum: [MD5]
+	// Enum: [MD5 HEX SHA256]
 	HeHashFunction string `json:"he_hash_function"`
+
+	// Hmac key to be used in header encryption
+	HmacKey string `json:"hmac_key,omitempty"`
 }
 
 // Validate validates this gateway he config
@@ -98,7 +101,7 @@ var gatewayHeConfigTypeHeEncodingTypePropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["BASE64"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["BASE64","HEX2BIN"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -110,6 +113,9 @@ const (
 
 	// GatewayHeConfigHeEncodingTypeBASE64 captures enum value "BASE64"
 	GatewayHeConfigHeEncodingTypeBASE64 string = "BASE64"
+
+	// GatewayHeConfigHeEncodingTypeHEX2BIN captures enum value "HEX2BIN"
+	GatewayHeConfigHeEncodingTypeHEX2BIN string = "HEX2BIN"
 )
 
 // prop value enum
@@ -138,7 +144,7 @@ var gatewayHeConfigTypeHeEncryptionAlgorithmPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["RC4"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["RC4","AES256_CBC_HMAC_MD5","AES256_ECB_HMAC_MD5","GZIPPED_AES256_ECB_SHA1"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -150,6 +156,15 @@ const (
 
 	// GatewayHeConfigHeEncryptionAlgorithmRC4 captures enum value "RC4"
 	GatewayHeConfigHeEncryptionAlgorithmRC4 string = "RC4"
+
+	// GatewayHeConfigHeEncryptionAlgorithmAES256CBCHMACMD5 captures enum value "AES256_CBC_HMAC_MD5"
+	GatewayHeConfigHeEncryptionAlgorithmAES256CBCHMACMD5 string = "AES256_CBC_HMAC_MD5"
+
+	// GatewayHeConfigHeEncryptionAlgorithmAES256ECBHMACMD5 captures enum value "AES256_ECB_HMAC_MD5"
+	GatewayHeConfigHeEncryptionAlgorithmAES256ECBHMACMD5 string = "AES256_ECB_HMAC_MD5"
+
+	// GatewayHeConfigHeEncryptionAlgorithmGZIPPEDAES256ECBSHA1 captures enum value "GZIPPED_AES256_ECB_SHA1"
+	GatewayHeConfigHeEncryptionAlgorithmGZIPPEDAES256ECBSHA1 string = "GZIPPED_AES256_ECB_SHA1"
 )
 
 // prop value enum
@@ -178,7 +193,7 @@ var gatewayHeConfigTypeHeHashFunctionPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["MD5"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["MD5","HEX","SHA256"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -190,6 +205,12 @@ const (
 
 	// GatewayHeConfigHeHashFunctionMD5 captures enum value "MD5"
 	GatewayHeConfigHeHashFunctionMD5 string = "MD5"
+
+	// GatewayHeConfigHeHashFunctionHEX captures enum value "HEX"
+	GatewayHeConfigHeHashFunctionHEX string = "HEX"
+
+	// GatewayHeConfigHeHashFunctionSHA256 captures enum value "SHA256"
+	GatewayHeConfigHeHashFunctionSHA256 string = "SHA256"
 )
 
 // prop value enum

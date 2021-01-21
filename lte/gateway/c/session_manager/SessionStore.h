@@ -87,6 +87,14 @@ class SessionStore {
       std::shared_ptr<RedisStoreClient> store_client);
 
   /**
+   * Writes the session map directly to the store. Note that the existing map
+   * will be overwriten
+   * @param session_map
+   * @return
+   */
+  bool raw_write_sessions(SessionMap session_map);
+
+  /**
    * Read the last written values for the requested sessions through the
    * storage interface.
    * @param req

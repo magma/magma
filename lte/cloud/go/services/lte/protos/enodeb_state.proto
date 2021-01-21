@@ -1,0 +1,64 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+package magma.lte.lte;
+
+option go_package = "protos";
+
+// EnodebStateLookup servicer provides methods for looking up an enodeb state
+// using gatewayID as an additional primary key.
+// Stores the following mappings
+//  - (gatewayID, ENB SN) -> EnodebState
+//
+service EnodebStateLookup {
+  // GetEnodebState returns (gatewayID, ENB SN) -> EnodebState.
+  rpc GetEnodebState (GetEnodebStateRequest) returns (GetEnodebStateResponse) {}
+
+  // SetEnodebState creates a (gatewayID, ENB SN) -> EnodebState record.
+  rpc SetEnodebState (SetEnodebStateRequest) returns (SetEnodebStateResponse) {}
+}
+
+message GetEnodebStateRequest {
+  // network_id of the enodeb
+  string network_id = 1;
+
+  // gateway_id of the reported state
+  string gateway_id = 2;
+
+  // enodeb serial number
+  string enodeb_sn = 3;
+}
+
+message GetEnodebStateResponse {
+  // serialized enode state
+  bytes serialized_state = 1;
+}
+
+message SetEnodebStateRequest {
+  // network_id of the enodeb
+  string network_id = 1;
+
+  // gateway_id of the reported state
+  string gateway_id = 2;
+
+  // enodeb serial number
+  string enodeb_sn = 3;
+
+  // serialized enodeb state
+  bytes serialized_state = 4;
+}
+
+message SetEnodebStateResponse {
+
+}

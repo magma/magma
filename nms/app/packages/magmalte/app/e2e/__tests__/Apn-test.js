@@ -79,6 +79,8 @@ describe('NMS Apn Add', () => {
       await page.click(apnSelector);
       await page.type(apnSelector, 'test_apn0');
 
+      // ksubraveti : TODO need to figure out why we need to add this delay
+      await page.waitForTimeout(500);
       const saveButtonSelector = await page.$x(`//span[text()='Save']`);
       saveButtonSelector[0].click();
       await page.waitForXPath(`//span[text()='APN saved successfully']`);
@@ -115,6 +117,8 @@ describe('NMS APN Edit', () => {
       await page.click(prioSelector, {clickCount: 3});
       await page.type(prioSelector, '10');
 
+      // ksubraveti : TODO need to figure out why we need to add this delay
+      await page.waitForTimeout(500);
       const saveButtonSelector = await page.$x(`//span[text()='Save']`);
       saveButtonSelector[0].click();
 

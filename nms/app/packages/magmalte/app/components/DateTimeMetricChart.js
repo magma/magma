@@ -34,6 +34,8 @@ export type DateTimeMetricChartProps = {
   queries: Array<string>,
   legendLabels: Array<string>,
   unit?: string,
+  startDate?: moment$Moment,
+  endDate?: moment$Moment,
 };
 
 const useStyles = makeStyles(_ => ({
@@ -89,7 +91,13 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
 
   return (
     <>
-      <CardTitleRow icon={DataUsageIcon} label={props.title} filter={Filter} />
+      {!(props.startDate && props.endDate) && (
+        <CardTitleRow
+          icon={DataUsageIcon}
+          label={props.title}
+          filter={Filter}
+        />
+      )}
       <Card elevation={0}>
         <CardHeader
           title={<Text variant="body2">{props.title}</Text>}
@@ -128,7 +136,10 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
               unit={props.unit ?? ''}
               queries={props.queries}
               timeRange={'3_hours'}
-              startEnd={[startDate, endDate]}
+              startEnd={[
+                props.startDate ?? startDate,
+                props.endDate ?? endDate,
+              ]}
               legendLabels={props.legendLabels}
               chartColors={CHART_COLORS}
             />

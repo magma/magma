@@ -31,13 +31,13 @@ type s8Proxy struct {
 }
 
 type S8ProxyConfig struct {
-	clientAddr string
-	serverAddr string
+	ClientAddr string
+	ServerAddr string
 }
 
 func NewS8Proxy(config *S8ProxyConfig) (*s8Proxy, error) {
 	// TODO: validate config
-	gtpCli, err := gtp.NewConnectedAutoClient(context.Background(), config.serverAddr, gtpv2.IFTypeS5S8SGWGTPC)
+	gtpCli, err := gtp.NewConnectedAutoClient(context.Background(), config.ServerAddr, gtpv2.IFTypeS5S8SGWGTPC)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating S8_Proxy: %s", err)
 	}
@@ -61,9 +61,9 @@ func (s *s8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 	}
 
 	// TODO: build grpc CreateSessionResponsePgw message
-	fmt.Printf("this is session response %s", csRes.String())
+	glog.V(2).Infof("This is session response %+v", csRes)
 
-	return &protos.CreateSessionResponsePgw{}, nil
+	return csRes, nil
 }
 
 // TODO

@@ -1,28 +1,35 @@
 # ------------------------------------------------------------------------------
-# Base image (for tests, precommit, codegen, etc.)
+# Base: for tests, precommit, codegen, etc.
 # ------------------------------------------------------------------------------
-ARG baseImage="ubuntu:xenial"
-FROM ${baseImage} as base
+FROM ubuntu:xenial as base
 
-# Install the runtime deps from apt
-RUN apt-get update && \
-    apt-get install -y curl make git gcc bzr unzip vim
+ENV GO111MODULE on
+ENV GOPATH ${USER}/go
+ENV GOBIN /build/bin
+ENV PATH ${PATH}:${GOBIN}:${GOPATH}/bin
 
-# Install Golang 1.13
+# Used in Makefiles
+ENV MAGMA_ROOT /src/magma
+
+# Apt runtime deps
+RUN apt-get update && apt-get install -y \
+  bzr \
+  curl \
+  gcc \
+  git \
+  make \
+  unzip \
+  vim
+
+# Golang 1.13
 WORKDIR /usr/local
 RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
     tar xf go1.13.4.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
-ENV GO111MODULE on
 
-# Env variables for specifying the output directories
-ENV GOBIN /build/bin
-ENV PLUGIN_DIR /build/plugins
-ENV PATH ${PATH}:${GOBIN}
-# Use public go modules proxy
-ENV GOPROXY https://proxy.golang.org
-
-# Install protobuf compiler
+# Protobuf compiler
+# Apt has 2.x but we need 3.x
+# See: https://grpc.io/docs/protoc-installation/
 RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
     unzip protoc3.zip -d protoc3 && \
     mv protoc3/bin/protoc /bin/protoc && \
@@ -31,78 +38,81 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
     chmod -R a+Xr /usr/include/google && \
     rm -rf protoc3.zip protoc3
 
-# Copy just the go.mod files to download the golang deps from internet.
-# This step would allow us to cache the downloads in a layer, and prevent
-# reaching out to the internet unless any of the go.mod file is changed.
+# ------------------------------------------------------------------------------
+# Gocache: cache Go modules
+# ------------------------------------------------------------------------------
+FROM base as gocache
+
+ARG MAGMA_MODULES="orc8r lte feg cwf wifi fbinternal"
+RUN echo "export GOCACHE_MODULES=\"$(for m in $MAGMA_MODULES ; do echo -n /gomod/src/magma/$m ; echo -n ' ' ; done)\"" >> /etc/profile.d/env.sh
+
 COPY gomod /gomod
-RUN mkdir -p /gomod/src/modules
-RUN for module in `ls -d /gomod/src/magma/**`; do cd ${module}/cloud/go && echo "${module}/cloud/go" && go mod download; done
-RUN find /gomod/src/modules -maxdepth 2 -mindepth 2 -type d -exec bash -c "cd {}/cloud/go && go mod download" \;
+RUN cat /etc/profile.d/env.sh
+RUN . /etc/profile.d/env.sh && for m in $GOCACHE_MODULES ; do cd ${m}/cloud/go && echo ${m}/cloud/go && go mod download ; done
 
-# Copy the configs
-COPY configs /etc/magma/configs
+# ------------------------------------------------------------------------------
+# Src: different src depending on MAGMA_MODULES
+# ------------------------------------------------------------------------------
+FROM gocache as src
 
-# Copy the code
-ENV MAGMA_ROOT /src/magma
+ARG MAGMA_MODULES="orc8r lte feg cwf wifi fbinternal"
+RUN echo "export MAGMA_MODULES=\"$(for m in $MAGMA_MODULES ; do echo -n /src/magma/$m ; echo -n ' ' ; done)\"" >> /etc/profile.d/env.sh
+
+# Source code
 COPY src /src
-RUN mkdir -p /src/modules
 WORKDIR /src/magma/orc8r/cloud
-RUN echo export INTERNAL_MAGMA_MODULES="\"`ls -d /src/magma/** | tr '\n' ' '`\"" >> /etc/profile.d/env.sh
-RUN echo export EXTERNAL_MAGMA_MODULES="\"`find /src/modules -maxdepth 2 -mindepth 2 -type d | tr '\n' ' '`\"" >> /etc/profile.d/env.sh
-RUN . /etc/profile.d/env.sh && echo export MAGMA_MODULES="\"$INTERNAL_MAGMA_MODULES $EXTERNAL_MAGMA_MODULES\"" >> /etc/profile.d/env.sh
 RUN . /etc/profile.d/env.sh && make tools
 
+# Configs
+COPY configs /etc/magma/configs
+
 # ------------------------------------------------------------------------------
-# Builder image with binaries and plugins
+# Builder: compile src
 # ------------------------------------------------------------------------------
-FROM base as builder
+FROM src as builder
 
 RUN . /etc/profile.d/env.sh && make build
 
-# -----------------------------------------------------------------------------
-# Go-cache base image
-# -----------------------------------------------------------------------------
-FROM ubuntu:xenial as gocache
-COPY --from=builder /root/.cache /root/.cache
-
 # ------------------------------------------------------------------------------
-# Production image
+# Production
 # ------------------------------------------------------------------------------
 FROM ubuntu:xenial
 
-# Install the runtime deps from apt
-RUN apt-get update && \
-    apt-get install -y daemontools netcat openssl supervisor wget unzip
+# Apt runtime deps
+RUN apt-get update && apt-get install -y \
+  daemontools \
+  netcat \
+  openssl \
+  supervisor \
+  unzip \
+  wget
 
-ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
+# Swagger UI
+# See: https://github.com/swagger-api/swagger-ui
+ARG SWAGGER_UI_VERSION="3.1.7"
+RUN cd /tmp && \
+  wget "https://github.com/swagger-api/swagger-ui/archive/v$SWAGGER_UI_VERSION.zip" && \
+  unzip "v$SWAGGER_UI_VERSION.zip" -d swagger-ui && \
+  mkdir -p /var/opt/magma/static/swagger-ui && \
+  cp -r "swagger-ui/swagger-ui-$SWAGGER_UI_VERSION/dist" /var/opt/magma/static/swagger-ui
 
-# Setup Swagger UI
-COPY ${CNTLR_FILES}/setup_swagger_ui /usr/local/bin/setup_swagger_ui
-RUN /usr/local/bin/setup_swagger_ui
-
-# Create an empty envdir for overriding in production
-RUN mkdir -p /var/opt/magma/envdir
-# TODO: automatically read the services from the plugins
-ENV CONTROLLER_SERVICES STREAMER,SUBSCRIBERDB,POLICYDB,METRICSD,CERTIFIER,BOOTSTRAPPER,ACCESSD,OBSIDIAN,DISPATCHER,DIRECTORYD,FEG_RELAY,HEALTH,VPNSERVICE,STATE,DEVICE,LTE_ANALYTICS,CWF_ANALYTICS,TENANTS
-# TODO: fix dispatcher to work on containers
-ENV SERVICE_HOST_NAME localhost
-# TODO: fix metricsd for fetching host level metrics
-ENV HOST_NAME dev
-
+# Script to wait for DB to be reachable
 COPY src/magma/orc8r/cloud/docker/wait-for-it.sh /usr/local/bin
 
-# Copy the configs
-COPY configs /etc/magma/configs
+# Empty envdir for overriding in production
+RUN mkdir -p /var/opt/magma/envdir
 
-# Copy the build artifacts
-COPY --from=builder /build/bin /var/opt/magma/bin
-COPY --from=builder /build/plugins /var/opt/magma/plugins
+# Build artifacts
+ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
 COPY --from=builder /${CNTLR_FILES}/apidocs /var/opt/magma/static/apidocs
+COPY --from=builder /build/bin /var/opt/magma/bin
 
-# Copy the scripts from the context
-COPY ${CNTLR_FILES}/create_test_controller_certs /usr/local/bin/create_test_controller_certs
-
-# Copy the supervisor configs
+# Supervisor configs
 COPY ${CNTLR_FILES}/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ${CNTLR_FILES}/supervisor_logger.py /usr/local/lib/python2.7/dist-packages/supervisor_logger.py
-CMD ["/usr/bin/supervisord"]
+
+# Scripts for dev mode
+COPY ${CNTLR_FILES}/create_test_controller_certs /usr/local/bin/create_test_controller_certs
+
+# Configs
+COPY configs /etc/magma/configs

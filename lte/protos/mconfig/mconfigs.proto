@@ -146,6 +146,7 @@ message PipelineD {
         HashFunction hashFunction = 4;
         EncodingType encodingType = 5;
         string encryption_key = 6;
+        string hmac_key = 7;
     }
     HEConfig he_config = 17;
 
@@ -272,6 +273,8 @@ message MME {
     // Overrides field 4 if this is not empty. Field 4 is in the process of
     // being deprecated
     repeated int32 attached_enodeb_tacs = 15;
+    // MME relative capacity - capacity within an MME group. 8-bit
+    int32 mme_relative_capacity = 16;
 
     // DEPRECATED
     // Use relay_enabled instead
@@ -301,6 +304,9 @@ message MME {
 
     // IPv6 DNS server
     string ipv6_dns_address = 30;
+
+    // SGW S1U endpoint on AGW
+    string ipv4_sgw_s1u_addr = 31;
 
 }
 
@@ -351,6 +357,13 @@ message MonitorD {
 // DPID configs
 //------------------------------------------------------------------------------
 message DPID {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// ConnectionD configs
+//------------------------------------------------------------------------------
+message ConnectionD {
     orc8r.LogLevel log_level = 1;
 }
 

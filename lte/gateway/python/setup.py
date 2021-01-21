@@ -36,6 +36,7 @@ setup(
         'magma.monitord',
         'magma.pipelined',
         'magma.pipelined.app',
+        'magma.pipelined.ng_manager',
         'magma.pipelined.openflow',
         'magma.pipelined.qos',
         'magma.pkt_tester',
@@ -61,6 +62,7 @@ setup(
         'scripts/feg_hello_cli.py',
         'scripts/generate_dnsd_config.py',
         'scripts/generate_oai_config.py',
+        'scripts/ha_cli.py',
         'scripts/hello_cli.py',
         'scripts/mobility_cli.py',
         'scripts/mobility_dhcp_cli.py',
@@ -83,42 +85,42 @@ setup(
     package_data={'magma.redirectd.templates': ['*.html']},
     install_requires=[
         'Cython>=0.29.1',
-        'pystemd==0.5.0',
+        'pystemd>=0.5.0',
         'fire>=0.2.0',
         'envoy>=0.0.3',
         'glob2>=0.7',
         # lxml required by spyne.
-        'lxml==4.2.1',
+        'lxml==4.6.2',
         'ryu>=4.30',
-        'spyne==2.12.16',
+        'spyne>=2.12.16',
         'scapy==2.4.4',
         'flask>=1.0.2',
         'aioeventlet>=0.4',
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
         'wsgiserver>=1.3',
-        'pycrypto>=2.6.1',
         # pin recursive dependencies of ryu and others
         'chardet==3.0.4',
         'docker==4.0.2',
-        'urllib3==1.25.3',
+        'urllib3>=1.25.3',
         'websocket-client==0.56.0',
-        'requests==2.22.0',
-        'certifi==2019.6.16',
+        'requests>=2.22.0',
+        'certifi>=2019.6.16',
         'idna==2.8',
         'python-dateutil==2.8.1',
         'six>=1.12.0',
         'eventlet>=0.24',
         'h2>=3.2.0',
         'hpack>=3.0',
-        'freezegun>=0.3.15'
+        'freezegun>=0.3.15',
+        'pycryptodome>=3.9.9'
     ],
     extras_require={
         'dev': [
             # Keep grpcio and grpcio-tools on same version for now
             # If you update this version here, you probably also want to
             # update it in lte/gateway/python/Makefile
-            'grpcio-tools==1.16.1',
+            'grpcio-tools>=1.16.1',
             'nose==1.3.7',
             'pyroute2',
             'iperf3',

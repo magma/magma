@@ -20,6 +20,10 @@ import logging
 from lte.protos.mobilityd_pb2 import IPAddress
 
 
+def _get_serialized_subscriber_states(cpe_monitor: CpeMonitoringModule):
+    return serialize_subscriber_states(cpe_monitor.get_subscriber_state())
+
+
 def main():
     """ main() for monitord service"""
     manual_ping_targets = {}
@@ -28,27 +32,31 @@ def main():
     # Monitoring thread loop
     mtr_interface = load_service_config("monitord")["mtr_interface"]
 
+    # Add manual IP targets from yml file
     try:
         targets = load_service_config("monitord")["ping_targets"]
         for target, data in targets.items():
             if "ip" in data:
-                ip = IPAddress(version=IPAddress.IPV4, address=str.encode(data["ip"]))
-                logging.debug('Adding {}:{}:{} to ping target'.format(target, ip.version, ip.address))
+                ip = IPAddress(version=IPAddress.IPV4,
+                               address=str.encode(data["ip"]))
+                logging.debug(
+                    'Adding {}:{}:{} to ping target'.format(target, ip.version,
+                                                            ip.address))
                 manual_ping_targets[target] = ip
     except KeyError:
-        logging.error("No ping targets configured")
+        logging.warning("No ping targets configured")
 
-    obj = CpeMonitoringModule()
-    obj.set_manually_configured_targets(manual_ping_targets)
+    cpe_monitor = CpeMonitoringModule()
+    cpe_monitor.set_manually_configured_targets(manual_ping_targets)
 
-    icmp_monitor = ICMPMonitoring(obj, service.mconfig.polling_interval,
+    icmp_monitor = ICMPMonitoring(cpe_monitor,
+                                  service.mconfig.polling_interval,
                                   service.loop, mtr_interface)
     icmp_monitor.start()
 
     # Register a callback function for GetOperationalStates
     service.register_operational_states_callback(
-        lambda: serialize_subscriber_states(
-            icmp_monitor.get_subscriber_state()))
+        _get_serialized_subscriber_states(cpe_monitor))
 
     # Run the service loop
     service.run()

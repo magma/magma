@@ -27,7 +27,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - updated vbguest-tool
     magma.vm.box = "magmacore/magma_dev"
     magma.vm.hostname = "magma-dev"
-    magma.vm.box_version = "1.1.20201124"
+    magma.vm.box_version = "1.1.20201221"
+
     magma.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
@@ -72,17 +73,45 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                               ["--timeout=30"]
       ansible.verbose = 'v'
     end
+  end
 
-    magma.vm.provision "shell",
-      run: "always",
-      inline: "sudo apt-get -y remove oai-asn1c && sudo apt-get -y install oai-asn1c-rel15"
+  config.vm.define :magma_focal, primary: false do |magma_focal|
+    # Get our prepackaged box from the atlas cloud, based on
+    # - debian/contrib-jessie64
+    # - linux kernel from debian jessie backports
+    # - updated vbguest-tool
+    magma_focal.vm.box = "ubuntu/focal64"
+    magma_focal.vm.hostname = "magma-dev-focal"
+    magma_focal.vm.box_version = "20201117.0.0"
+    magma_focal.vbguest.auto_update = false
 
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_focal.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
+    # iperf3 trfserver routable IP.
+    magma_focal.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
+
+    magma_focal.vm.provider "virtualbox" do |vb|
+      vb.name = "magma-focal-dev"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "6144"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+    magma_focal.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_dev_focal.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
   end
 
   config.vm.define :magma_trfserver, autostart: false do |magma_trfserver|
     magma_trfserver.vm.box = "magmacore/magma_trfserver"
     magma_trfserver.vm.hostname = "magma-trfserver"
-    magma_trfserver.vm.box_version = "1.1.20201124"
+    magma_trfserver.vm.box_version = "1.1.20201221"
     magma_trfserver.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
@@ -133,7 +162,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Get our prepackaged box from the atlas cloud
     magma_test.vm.box = "magmacore/magma_test"
     magma_test.vm.hostname = "magma-test"
-    magma_test.vm.box_version = "1.1.20201124"
+    magma_test.vm.box_version = "1.1.20201221"
     magma_test.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
@@ -257,4 +286,3 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
 end
-

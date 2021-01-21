@@ -59,7 +59,7 @@ def gen_bindings(
     protofiles = find_all_proto_files_in_dir(input_dir)
 
     inouts = [
-        '--proto_path=' + proto_path,
+        '-I' + proto_path,
         '--python_out=' + output_dir,
         '--grpc_python_out=' + output_dir,
     ]

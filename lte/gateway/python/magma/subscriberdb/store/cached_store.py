@@ -119,8 +119,8 @@ class CachedStore(BaseStore):
         """
         return self._persistent_store.list_subscribers()
 
-    def on_ready(self):
-        return self._on_ready.event.wait()
+    async def on_ready(self):
+        return await self._on_ready.event.wait()
 
     def _cache_get(self, k):
         """

@@ -556,6 +556,25 @@ imsi64_t imsi_to_imsi64(const imsi_t* const imsi);
     }                                                                          \
   }
 
+#define IMEISV_MOBID_TO_STRING(iMeIsV_t_PtR, iMeIsV_sTr, MaXlEn)                 \
+  {                                                                              \
+    int l_offset = 0;                                                            \
+    int l_ret    = 0;                                                            \
+    l_ret        = snprintf(                                                     \
+        iMeIsV_sTr + l_offset, MaXlEn - l_offset, "%u%u%u%u%u%u%u%u",     \
+        (iMeIsV_t_PtR)->tac1, (iMeIsV_t_PtR)->tac2, (iMeIsV_t_PtR)->tac3, \
+        (iMeIsV_t_PtR)->tac4, (iMeIsV_t_PtR)->tac5, (iMeIsV_t_PtR)->tac6, \
+        (iMeIsV_t_PtR)->tac7, (iMeIsV_t_PtR)->tac8);                      \
+    if (l_ret > 0) {                                                             \
+      l_offset += l_ret;                                                         \
+      l_ret = snprintf(                                                          \
+          iMeIsV_sTr + l_offset, MaXlEn - l_offset, "%u%u%u%u%u%u%u%u",          \
+          (iMeIsV_t_PtR)->snr1, (iMeIsV_t_PtR)->snr2, (iMeIsV_t_PtR)->snr3,      \
+          (iMeIsV_t_PtR)->snr4, (iMeIsV_t_PtR)->snr5, (iMeIsV_t_PtR)->snr6,      \
+          (iMeIsV_t_PtR)->svn1, (iMeIsV_t_PtR)->svn2);                           \
+    }                                                                            \
+  }
+
 /*Used to convert char* IMSI/TMSI Mobile Identity to MobileIdentity(digit)
  * format*/
 #define MOBILE_ID_CHAR_TO_MOBILE_ID_IMSI_NAS(mObId_ChAr, mObId_PtR, iMsI_LeN)  \

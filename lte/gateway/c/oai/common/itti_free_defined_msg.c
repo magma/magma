@@ -207,8 +207,11 @@ void itti_free_msg_content(MessageDef* const message_p) {
       bdestroy_wrapper(&message_p->ittiMsg.sctp_data_ind.payload);
       break;
 
-    case SCTP_DATA_CNF:
     case SCTP_NEW_ASSOCIATION:
+      bdestroy_wrapper(&message_p->ittiMsg.sctp_new_peer.ran_cp_ipaddr);
+      break;
+
+    case SCTP_DATA_CNF:
     case SCTP_CLOSE_ASSOCIATION:
       // DO nothing
       break;

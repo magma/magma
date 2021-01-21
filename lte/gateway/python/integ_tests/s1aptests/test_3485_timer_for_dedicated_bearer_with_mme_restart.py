@@ -42,10 +42,10 @@ class Test3485TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
                Request message, so that re-transmitted message reaches to
                TFW
         Step5: Send command to Magma to restart mme service
-        Step6: TFW shall receive re-transmitted Actiavte Dedicated EPS
-               Bearer Context Request and send Actiavte Dedicated EPS Bearer
+        Step6: TFW shall receive re-transmitted Activate Dedicated EPS
+               Bearer Context Request and send Activate Dedicated EPS Bearer
                Context Accept
-        Step7: TFW shall initaite de-activation of deidicated bearer and then
+        Step7: TFW shall initiate de-activation of dedicated bearer and then
                initiate Detach procedure.
         """
 

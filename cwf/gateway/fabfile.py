@@ -49,7 +49,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
                gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
                transfer_images=False, destroy_vm=False, no_build=False,
                tests_to_run="all", skip_unit_tests=False, test_re=None,
-               test_result_xml=None, run_tests=True):
+               test_result_xml=None, run_tests=True, count="1"):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -129,8 +129,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_set_cwag_networking, cwag_test_br_mac)
 
     # check if docker services are alive except for OCS2 and PCRF2
-    ignoreList = ["ocs2", "pcrf2"]
-    execute(_check_docker_services, ignoreList)
+    ignore_list = ["ocs2", "pcrf2"]
+    execute(_check_docker_services, ignore_list)
 
     _switch_to_vm_no_destroy(gateway_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
@@ -141,14 +141,15 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         print("run_test was set to false. Test will not be run\n"
               "You can now run the tests manually from cwag_test")
         sys.exit(0)
-
+    
     # HSSLESS tests are to be executed from gateway_host VM
     if tests_to_run.value == SubTests.HSSLESS.value:
         _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
-        execute(_run_integ_tests, gateway_host, trf_host, tests_to_run, test_re)
+        execute(_run_integ_tests, gateway_host, trf_host,
+                tests_to_run, test_re, count, test_result_xml)
     else:
         execute(_run_integ_tests, test_host, trf_host,
-                tests_to_run, test_re, test_result_xml)
+                tests_to_run, test_re, count, test_result_xml)
 
     # If we got here means everything work well!!
     if not test_host and not trf_host:
@@ -340,17 +341,17 @@ def _stop_docker_services(services):
         )
 
 
-def _check_docker_services(ignoreList):
+def _check_docker_services(ignore_list):
     with cd(CWAG_ROOT + "/docker"), settings(warn_only=True), hide("warnings"):
 
-        grepIgnore = "| grep --invert-match '" + \
-                     '\|'.join(ignoreList) + "'" if ignoreList else ""
+        grep_ignore = "| grep --invert-match '" + \
+                     '\|'.join(ignore_list) + "'" if ignore_list else ""
         count = 0
         while (count < 5):
             # force wait to make sure docker logs are up
             time.sleep(1)
             result = run(" docker ps --format \"{{.Names}}\t{{.Status}}\" | "
-                         "grep Restarting" + grepIgnore )
+                         "grep Restarting" + grep_ignore )
 
             if result.return_code == 1:
                 # grep returns code 1 when empty string
@@ -387,7 +388,7 @@ def _add_docker_host_remote_network_envvar():
 
 
 def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
-                     test_re=None, test_result_xml=None):
+                     test_re=None, count="1", test_result_xml=None):
     """ Run the integration tests """
     # add docker host environment as well
     shell_env_vars = {
@@ -401,7 +402,7 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
     go_test_cmd = "gotestsum --format=standard-verbose "
     if test_result_xml: # generate test result XML in cwf/gateway directory
         go_test_cmd += "--junitfile ../" + test_result_xml + " "
-    go_test_cmd += " -- -test.short -timeout 50m" # go test args
+    go_test_cmd += " -- -test.short -timeout 50m -count " + count # go test args
     go_test_cmd += " -tags=" + tests_to_run.value
     if test_re:
         go_test_cmd += " -run=" + test_re

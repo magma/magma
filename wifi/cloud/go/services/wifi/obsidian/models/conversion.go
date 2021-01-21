@@ -228,7 +228,7 @@ func (m *WifiMesh) ToUpdateCriteria() []configurator.EntityUpdateCriteria {
 		gwIds = append(gwIds, storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: string(gwId)})
 	}
 	return []configurator.EntityUpdateCriteria{
-		configurator.EntityUpdateCriteria{
+		{
 			Type:              wifi.MeshEntityType,
 			Key:               string(m.ID),
 			NewName:           swag.String(string(m.Name)),

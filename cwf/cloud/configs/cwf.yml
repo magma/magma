@@ -10,39 +10,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 analytics:
+  minUserThreshold: 100
   metrics:
-    aggrMetricThreshold: 100
     active_users_over_time:
-      export: false
-      enforceMinThreshold: true
+      export: true
+      register: false
+      enforceMinUserThreshold: true
       labels:
-        - "engagement"
+        class: "engagement"
 
     user_throughput:
-      export: false
-      enforceMinThreshold: true
+      export: true
+      register: false
+      enforceMinUserThreshold: true
       labels:
-        - "qos"
+        class: "qos"
 
     user_consumption:
-      export: false
-      enforceMinThreshold: true
+      export: true
+      register: false
+      enforceMinUserThreshold: true
       labels:
-        - "qos"
+        class: "qos"
 
     user_consumption_hourly:
-      export: false
-      enforceMinThreshold: true
+      export: true
+      register: false
+      enforceMinUserThreshold: true
       labels:
-        - "qos"
+        class: "qos"
 
     throughput_per_ap:
-      export: false
+      export: true
+      register: false
       labels:
-        - "network"
+        class: "network"
 
     authentications_over_time:
-      export: false
-      enforceMinThreshold: true
+      export: true
+      register: false
+      enforceMinUserThreshold: true
       labels:
-        - "network"
+        class: "network"
+

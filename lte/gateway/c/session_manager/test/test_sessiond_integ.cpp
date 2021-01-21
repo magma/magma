@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include <iostream>
 #include <string.h>
 #include <chrono>
@@ -281,8 +282,8 @@ TEST_F(SessiondTest, end_to_end_success) {
   std::string ipv4_addrs  = "192.168.0.1";
   std::string ipv6_addrs  = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
   uint32_t default_bearer = 5;
-  uint32_t enb_teid       = 10;
-  uint32_t agw_teid       = 20;
+  uint32_t enb_teid       = TEID_1_DL;
+  uint32_t agw_teid       = TEID_1_UL;
 
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "sessiond", ServiceRegistrySingleton::LOCAL);
@@ -295,6 +296,7 @@ TEST_F(SessiondTest, end_to_end_success) {
   {
     // 1- CreateSession Expectations
     // Expect create session with IMSI1
+
     EXPECT_CALL(
         *controller_mock,
         CreateSession(
@@ -302,32 +304,11 @@ TEST_F(SessiondTest, end_to_end_success) {
             testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
-            SetCreateSessionResponse(1536, 1024),
+            SetCreateSessionResponse(1536, 1024), SetPromise(&create_promise),
             testing::Return(grpc::Status::OK)));
-
-    EXPECT_CALL(
-        *events_reporter,
-        session_created(IMSI1, testing::_, testing::_, testing::_))
-        .Times(1);
-
-    // Temporary fix for PipelineD client in SessionD introduces separate
-    // calls for static and dynamic rules. So here is the call for static
-    // rules.
-    EXPECT_CALL(
-        *pipelined_mock,
-        ActivateFlows(
-            testing::_, CheckActivateFlows(IMSI1, 3, ipv4_addrs, ipv6_addrs),
-            testing::_))
-        .Times(1);
-    // Here is the call for dynamic rules, which in this case should be empty.
-    EXPECT_CALL(
-        *pipelined_mock,
-        ActivateFlows(
-            testing::_, CheckActivateFlows(IMSI1, 0, ipv4_addrs, ipv6_addrs),
-            testing::_))
-        .WillOnce(testing::DoAll(
-            SetPromise(&create_promise), testing::Return(grpc::Status::OK)));
   }
+
+  // send_empty_pipelined_table(stub);
 
   // 1- CreateSession Trigger
   grpc::ClientContext create_context;
@@ -336,9 +317,15 @@ TEST_F(SessiondTest, end_to_end_success) {
   request.mutable_common_context()->mutable_sid()->set_id(IMSI1);
   request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
   request.mutable_rat_specific_context()->mutable_lte_context()->set_bearer_id(
-      5);
+      default_bearer);
   request.mutable_common_context()->set_ue_ipv4(ipv4_addrs);
   request.mutable_common_context()->set_ue_ipv6(ipv6_addrs);
+  // Todo, remove emptyTeids once we split CreateSession
+  Teids emptyTeids;
+  emptyTeids.set_enb_teid(0);
+  emptyTeids.set_agw_teid(0);
+  request.mutable_common_context()->mutable_teids()->CopyFrom(emptyTeids);
+
   stub->CreateSession(&create_context, request, &create_resp);
 
   // Block and wait until we process CreateSessionResponse, after which the
@@ -352,14 +339,31 @@ TEST_F(SessiondTest, end_to_end_success) {
 
   {
     // 2- UpdateTunnelIds Expectations
+    // Expect rules to be installed and pipelined to be configured
+    EXPECT_CALL(
+        *events_reporter,
+        session_created(IMSI1, testing::_, testing::_, testing::_))
+        .Times(1);
+
+    // Temporary fix for PipelineD client in SessionD introduces separate
+    // calls for static and dynamic rules. So here is the call for static
+    // rules.
     EXPECT_CALL(
         *pipelined_mock,
         ActivateFlows(
             testing::_,
             CheckActivateFlowsForTunnIds(
-                IMSI1, ipv4_addrs, ipv6_addrs, enb_teid, agw_teid),
+                IMSI1, ipv4_addrs, ipv6_addrs, enb_teid, agw_teid, 3),
             testing::_))
-        .Times(1)
+        .Times(1);
+    // Here is the call for dynamic rules, which in this case should be empty.
+    EXPECT_CALL(
+        *pipelined_mock,
+        ActivateFlows(
+            testing::_,
+            CheckActivateFlowsForTunnIds(
+                IMSI1, ipv4_addrs, ipv6_addrs, enb_teid, agw_teid, 0),
+            testing::_))
         .WillOnce(testing::DoAll(
             SetPromise(&tunnel_promise), testing::Return(grpc::Status::OK)));
   }
@@ -462,6 +466,9 @@ TEST_F(SessiondTest, end_to_end_success) {
 TEST_F(SessiondTest, end_to_end_cloud_down) {
   std::promise<void> end_promise, failed_update_promise;
   std::promise<std::string> session_id_promise;
+  uint32_t default_bearer = 5;
+  uint32_t enb_teid       = TEID_1_DL;
+  uint32_t agw_teid       = TEID_1_UL;
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "sessiond", ServiceRegistrySingleton::LOCAL);
   auto stub = LocalSessionManager::NewStub(channel);
@@ -481,12 +488,26 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
             SetCreateSessionResponse(1025, 1024),
             testing::Return(grpc::Status::OK)));
   }
+  // 1- Create session
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
   request.mutable_common_context()->mutable_sid()->set_id(IMSI1);
   request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
+  request.mutable_rat_specific_context()->mutable_lte_context()->set_bearer_id(
+      default_bearer);
   stub->CreateSession(&create_context, request, &create_resp);
+
+  // 2- UpdateTunnelIds Trigger
+  grpc::ClientContext tun_update_context;
+  UpdateTunnelIdsResponse tun_update_response;
+  UpdateTunnelIdsRequest tun_update_request;
+  tun_update_request.mutable_sid()->set_id(IMSI1);
+  tun_update_request.set_bearer_id(default_bearer);
+  tun_update_request.set_enb_teid(enb_teid);
+  tun_update_request.set_agw_teid(agw_teid);
+  stub->UpdateTunnelIds(
+      &tun_update_context, tun_update_request, &tun_update_response);
 
   {
     CreditUsageUpdate expected_update_fail;

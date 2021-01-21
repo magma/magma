@@ -341,6 +341,14 @@ message ProtocolConfigurationOptions {
   repeated PcoProtocolOrContainerId proto_or_container_id = 5;
 }
 
+// 3485 and 3495 Timer argument
+message EsmEbrTimerData {
+  uint32 ue_id = 1;
+  uint32 ebi = 2;
+  uint32 count = 3;
+  bytes esm_msg = 4;
+}
+
 // esm_proc_data_t
 message EsmProcData {
   uint32 pti= 1;
@@ -361,6 +369,7 @@ message EsmContext {
   EsmProcData esm_proc_data = 5;
 
   Timer t3489 = 199;
+  bool is_standalone = 200;
 }
 
 // esm_ebr_context_t
@@ -373,6 +382,7 @@ message EsmEbrContext {
   TrafficFlowTemplate tft = 6;
   ProtocolConfigurationOptions pco = 7;
   Timer timer = 100; // nas_timer_t
+  EsmEbrTimerData esm_ebr_timer_data = 101;
 }
 
 // t3422_arg is nw_detach_data_t

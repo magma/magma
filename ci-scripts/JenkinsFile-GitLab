@@ -303,14 +303,14 @@ pipeline {
                 echo "Disabling TCP checksumming on all VMs"
                 sh('cd lte/gateway && vagrant ssh magma -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"')
                 sh('cd lte/gateway && vagrant ssh magma_test -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"')
+                // Adding capture on the S1 interface
+                sh('cd lte/gateway && vagrant ssh magma -c "nohup sudo tcpdump -i eth1 port 36412 -w ~/magma/archives/magma_run_s1ap_tester.pcap > /dev/null & sleep 1"')
 
                 // Making sure the Traffic server is up and running
                 sh "sleep 20"
 
                 echo "Starting the integration Tests - S1AP Tester"
                 // We have removed the traffic testcases from mandatory suite.
-
-          // FIXME!!!! set 110 MINUTES instead of 30
 
                 timeout (time: 110, unit: 'MINUTES') {
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test"', 'archives/magma_run_s1ap_tester.log')
@@ -342,6 +342,8 @@ pipeline {
           post {
             always {
               script {
+                // Stopping capture
+                sh('cd lte/gateway && vagrant ssh magma -c "sudo pkill tcpdump"')
                 def retrieveOAIcovFiles = true
                 try {
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make coverage_oai"', 'archives/magma_vagrant_make_coverage_oai.log')
@@ -438,8 +440,10 @@ stage ("Deploy SPGW-CUPS") {
 stage ("Test-AGW1-w-S11") {
       steps {
         script {
+          // Adding capture on the S1 and S11 interfaces
+          sh('cd lte/gateway && vagrant ssh magma -c "nohup sudo tcpdump -i any port 36412 or port 2123 -w ~/magma/archives/magma_run_s1ap_tester_s11.pcap > /dev/null & sleep 1"')
           // making sure the TRF server is up
-          echo "Remove unnecessary "
+          echo "Remove unnecessary route"
           sh('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo ip route del 192.168.128.0/24 via 192.168.129.1 dev eth2"')
           sh('cd lte/gateway && vagrant reload magma_test')
           // making sure the TRF server is up
@@ -480,6 +484,8 @@ stage ("Test-AGW1-w-S11") {
         always {
           script {
             sh('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make stop"')
+            // Stopping capture
+            sh('cd lte/gateway && vagrant ssh magma -c "sudo pkill tcpdump"')
             // Retrieving the sys logs and mme log for more debugging.
             sh('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/syslog" > ${WORKSPACE}/archives/magma_dev_syslog_s11.log')
             try {

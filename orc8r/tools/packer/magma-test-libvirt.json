@@ -4,12 +4,12 @@
     "version": "1.0.{{timestamp}}",
     "cpus": "2",
     "memory": "2048",
-    "disk_size": "10G",
+    "disk_size": "40G",
     "boot_wait": "10s"
   },
   "builders": [{
     "type": "qemu",
-    "vm_name": "qemu-magma-test",
+    "vm_name": "magma-test",
     "iso_checksum": "md5:5c583fd40360fd039b3ac98387b77dbb",
     "iso_url": "https://cdimage.debian.org/mirror/cdimage/archive/9.2.1/amd64/iso-cd/debian-9.2.1-amd64-netinst.iso",
     "disk_size": "{{ user `disk_size` }}",

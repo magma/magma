@@ -87,14 +87,19 @@ http {
       {%- endif %}
 
       {%- if service_registry_mode == 'k8s' %}
+      # certifier is internal only service
+      if ($srv = "certifier") {
+        return 403;
+      }
       # Helm services don't allow for underscores. Magma convention is
       # to use underscores in service names, so convert any hyphens in the
       # k8s service name.
-      if ($srv ~* "(\w+)[_](\w+)") {
-        set $srv "$1-$2";
+      set $k8s_svc $srv;
+      if ($k8s_svc ~* "(\w+)[_](\w+)") {
+        set $k8s_svc "$1-$2";
       }
-      grpc_pass grpc://orc8r-$srv:9180;
-      grpc_set_header Host $srv:9180;
+      grpc_pass grpc://orc8r-$k8s_svc.{{ backend }}:9180;
+      grpc_set_header Host $srv-orc8r-$k8s_svc.{{ backend }}:9180;
 
       {%- else %}
       grpc_pass grpc://{{ backend }}:$srvport;
@@ -131,7 +136,7 @@ http {
       if ($srv ~* "(\w+)[_](\w+)") {
         set $srv "$1-$2";
       }
-      grpc_pass grpc://orc8r-$srv:9180;
+      grpc_pass grpc://orc8r-$srv.{{ backend }}:9180;
       {%- else %}
       grpc_pass grpc://{{ backend }}:$open_srvport;
       {%- endif %}
@@ -157,7 +162,7 @@ http {
       {%- endif %}
 
       {%- if service_registry_mode == 'k8s' %}
-      proxy_pass http://orc8r-obsidian:8080;
+      proxy_pass http://orc8r-obsidian.{{ backend }}:8080;
       {%- else %}
       proxy_pass http://{{ backend }}:9081;
       {%- endif %}

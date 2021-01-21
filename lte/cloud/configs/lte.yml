@@ -10,106 +10,142 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 analytics:
-  aggrMetricThreshold: 100
+  minUserThreshold: 100
   metrics:
     subscriber_attach_success_percent:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - reliability
-      expr: round((sum by(gatewayID) (increase(ue_attach{action="attach_accept_sent"}[3h]))) * 100 / (sum by(gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[3h]))))
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: round((sum by(networkID, gatewayID) (increase(ue_attach{action="attach_accept_sent"}[{{.Duration}}]))) * 100 / (sum by(networkID, gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[{{.Duration}}]))))
 
     subscriber_attach_reject_percent:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - reliability
-      expr: round((sum by(gatewayID) (increase(ue_attach{action="attach_reject_sent"}[3h]))) * 100 / (sum by(gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[3h]))))
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: round((sum by(networkID, gatewayID) (increase(ue_attach{action="attach_reject_sent"}[{{.Duration}}]))) * 100 / (sum by(networkID, gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[{{.Duration}}]))))
 
     subscriber_duplicate_attach_count:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - reliability
-      expr: sum(duplicate_attach_request) by (networkID, gatewayID)
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: sum(increase(duplicate_attach_request[{{.Duration}}])) by (networkID, gatewayID)
 
     service_request_success_percent:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - reliability
-      expr: round((sum by(networkID) (increase(service_request{result="success"}[3h]))) *100 / ((sum by(networkID)(increase(service_request{result="failure"}[3h]))) + (sum by(networkID) (increase(service_request{ result="success"}[3h])))))
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: round((sum by(networkID) (increase(service_request{result="success"}[{{.Duration}}]))) *100 / ((sum by(networkID)(increase(service_request{result="failure"}[{{.Duration}}]))) + (sum by(networkID) (increase(service_request{ result="success"}[{{.Duration}}])))))
 
     session_create_success_percent:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - reliability
-      expr: round((sum by(networkID) (increase(mme_spgw_create_session_rsp{result="success"}[3h]) * 100)) / (sum by(networkID) (increase(mme_spgw_create_session_rsp[3h]))))
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: round((sum by(networkID) (increase(mme_spgw_create_session_rsp{result="success"}[{{.Duration}}]) * 100)) / (sum by(networkID) (increase(mme_spgw_create_session_rsp[{{.Duration}}]))))
 
     backhaul_latency:
       register: false
-      export: false
-      class:
-        - reliability
+      export: true
+      labels:
+        class: reliability
       expr: sum(magmad_ping_rtt_ms{service="magmad",host="8.8.8.8",metric="rtt_ms"}) by (gatewayID, networkID)
 
-    gateway_throughput:
+    gateway_throughput_dl:
       register: false
-      export: false
-      class:
-        - network
-      expr: sum(gtp_port_user_plane_dl_bytes) by (gatewayID)
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
+      expr: sum(increase(gtp_port_user_plane_dl_bytes[{{.Duration}}])) by (networkID, gatewayID)
 
-    enodeb_throughput:
+    enodeb_throughput_dl:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - network
-      expr: sum(gtp_port_user_plane_dl_bytes) by (gatewayID, ip_addr)
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
+      expr: sum(increase(gtp_port_user_plane_dl_bytes[{{.Duration}}])) by (networkID, gatewayID, ip_addr)
+
+    gateway_throughput_ul:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
+      expr: sum(increase(gtp_port_user_plane_ul_bytes[{{.Duration}}])) by (networkID, gatewayID)
+
+    enodeb_throughput_ul:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
+      expr: sum(increase(gtp_port_user_plane_ul_bytes[{{.Duration}}])) by (networkID, gatewayID, ip_addr)
 
     connected_ues:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - network
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
       expr: sum(ue_connected) by (gatewayID, networkID)
 
     unique_subscribers:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - engagement
-      expr: sum(group(ue_reported_usage) by (IMSI))
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+      expr: sum(group(ue_reported_usage) by (networkID, IMSI))
 
     new_subscribers:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - engagement
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
       expr: sum(group(ue_reported_usage) by (IMSI)  unless group(ue_reported_usage offset 1d) by (IMSI))
 
-    ue_throughput_ul_avg:
+    subscriber_throughput:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - engagement
-      expr: avg(rate(ue_reported_usage{direction="up"}[3h]))
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
 
-    ue_throughput_dl_avg:
+    enodeb_connected:
       register: false
-      export: false
-      enforceMinThreshold: true
-      class:
-        - engagement
-      expr: sum(avg_over_time(ue_reported_usage{direction="up"}[3h])) by (IMSI)
+      export: true
+      labels:
+        class: site
+
+    actual_subscriber:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+
+    active_sessions_apn:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+
+    configured_subscribers:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+

@@ -28,7 +28,10 @@
       {
         "type": "subcategory",
         "label": "Development",
-        "ids": ["orc8r/development/minikube_deployment"]
+        "ids": [
+          "orc8r/development/testing_tips",
+          "orc8r/development/minikube_deployment"
+        ]
       }
     ],
     "NMS User Guide": [
@@ -62,7 +65,7 @@
         "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes"]
       }
     ],
-    "Feature Guides": ["howtos/ue_metering", "howtos/config_agw_bridged"],
+    "Feature Guides": ["howtos/ue_metering", "howtos/config_agw_bridged", "howtos/thanos"],
     "Federation Gateway": [
       {
         "type": "subcategory",
@@ -82,7 +85,8 @@
       "proposals/p003_qos_enforcement",
       "proposals/p004_fua-restrict-feature",
       "proposals/p005_call_tracing",
-      "proposals/p007_header_enrichment"
+      "proposals/p007_header_enrichment",
+      "proposals/p008_apn_correction"
     ]
   }
 }

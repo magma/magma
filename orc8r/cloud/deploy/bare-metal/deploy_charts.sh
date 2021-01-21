@@ -53,7 +53,7 @@ if ! kubectl -n kube-system get svc kube-dns &>/dev/null; then
 fi
 
 echo "Setting up infra helm charts..."
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm repo add stable https://charts.helm.sh/stable/
 helm repo add jetstack https://charts.jetstack.io
 helm repo add bitnami https://charts.bitnami.com/bitnami
 
@@ -62,15 +62,14 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 
 kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.6/deploy/manifests/00-crds.yaml
 sleep 3
-helm -n mariadb upgrade --install mariadb-galera bitnami/mariadb-galera -f charts/mariadb-galera.yaml --wait
+helm -n mariadb upgrade --install mariadb bitnami/mariadb --version 7.3.14 -f charts/mariadb.yaml --wait
 
 helm -n infra upgrade --install cert-manager jetstack/cert-manager
 helm -n infra upgrade --install metallb stable/metallb -f charts/metallb.yaml --wait
 
 echo "Setting up DB..."
 envsubst < db_setup.sql.tpl > db_setup.sql
-mysql -h mariadb-galera.mariadb -u root --password=$db_root_password < db-setup-sql
-
+kubectl -n mariadb exec -it mariadb-master-0 -- mysql -u root --password=$db_root_password < db_setup.sql
 
 echo "Setting up Magma helm charts..."
 helm -n $namespace upgrade --install fluentd stable/fluentd -f charts/fluentd.yaml

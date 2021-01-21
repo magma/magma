@@ -865,6 +865,21 @@ definitions:
         example: false
     x-go-custom-tag: 'magma_alt_name:"HSS"'
 
+  s8:
+    type: object
+    description: s8 configuration
+    properties:
+      local_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+      pgw_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+
   gx:
     type: object
     description: gx configuration
@@ -1151,6 +1166,7 @@ definitions:
     minLength: 1
     required:
       - s6a
+      - s8
       - hss
       - gx
       - gy
@@ -1162,6 +1178,8 @@ definitions:
     properties:
       s6a:
         $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
       hss:
         $ref: '#/definitions/hss'
       gx:
@@ -1379,6 +1397,11 @@ definitions:
         type: string
         example: ".*\\.magma.*"
         x-nullable: false
+      charging_characteristics_filter:
+        description: Regex to match ChargingCharacteristics values
+        type: string
+        example: "12"
+        x-nullable: false
       apn_overwrite:
         description: New APN to overwrite when filter matches
         type: string
@@ -1463,6 +1486,7 @@ definitions:
     minLength: 1
     required:
       - s6a
+      - s8
       - hss
       - gx
       - gy
@@ -1474,6 +1498,8 @@ definitions:
     properties:
       s6a:
         $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
       hss:
         $ref: '#/definitions/hss'
       gx:

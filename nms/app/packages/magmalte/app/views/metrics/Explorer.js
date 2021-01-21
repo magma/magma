@@ -89,6 +89,11 @@ export default function MetricsExplorer() {
     end: startEnd.end.toISOString(),
   });
 
+  const {
+    response: tenantMetricSeriesDescription,
+    isLoading: isTenantMetricSeriesDescriptionLoading,
+  } = useMagmaAPI(MagmaV1API.getTenantsTargetsMetadata, {});
+
   useEffect(() => {
     fetch('/data/LteMetrics')
       .then(res => res.json())
@@ -109,7 +114,11 @@ export default function MetricsExplorer() {
       );
   }, [enqueueSnackbar]);
 
-  if (isLoading || isMetricSeriesLoading) {
+  if (
+    isLoading ||
+    isMetricSeriesLoading ||
+    isTenantMetricSeriesDescriptionLoading
+  ) {
     return <LoadingFiller />;
   }
 
@@ -129,12 +138,22 @@ export default function MetricsExplorer() {
     return false;
   });
 
+  const tenantMetricDescription = {};
+  tenantMetricSeriesDescription?.forEach(metricDesc => {
+    tenantMetricDescription[metricDesc.metric] = metricDesc.help;
+  });
+
   Object.keys(metricsMap).forEach(function (key) {
+    let metricDescription = tenantMetricDescription[key];
+    if (metricDescription === undefined || metricDescription === '') {
+      metricDescription = 'Description unavailable';
+    }
+
     metricsTable.push({
       MetricName: key,
       PromQL: key,
       Category: 'Category unavailable',
-      Description: 'Description unavailable',
+      Description: metricDescription,
       Service: metricsMap[key]?.['service'] ?? 'Service name unavailable',
     });
   });

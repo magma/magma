@@ -503,8 +503,10 @@ definitions:
         format: float
         example: 12.34
       last_reported_time:
+        description: Timestamp of last reported status for the subscriber in ms
         type: integer
         format: int64
+        example: 1605747300000
 
   apn_list:
     type: array

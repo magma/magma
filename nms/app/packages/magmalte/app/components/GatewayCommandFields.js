@@ -13,34 +13,50 @@
  * @flow
  * @format
  */
+import type {DataRows} from './DataGrid';
+import type {generic_command_response} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Check from '@material-ui/icons/Check';
+import DataGrid from './DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
 import Fade from '@material-ui/core/Fade';
 import FormField from './FormField';
+import FormLabel from '@material-ui/core/FormLabel';
 import Input from '@material-ui/core/Input';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 import grey from '@material-ui/core/colors/grey';
-
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+
+import {AltFormField} from './FormField';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   input: {
     margin: '10px 0',
     width: '100%',
   },
   divider: {
     margin: '10px 0',
+  },
+  jsonTextarea: {
+    fontFamily: 'monospace',
+    height: '95%',
+    border: 'none',
+    margin: theme.spacing(2),
+    width: '100%',
   },
 }));
 
@@ -247,7 +263,7 @@ function RebootEnodebControls(props: ChildProps) {
   );
 }
 
-function PingCommandControls(props: ChildProps) {
+export function PingCommandControls(props: ChildProps) {
   const classes = useStyles();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -317,7 +333,7 @@ function PingCommandControls(props: ChildProps) {
   );
 }
 
-function GenericCommandControls(props: ChildProps) {
+export function GenericCommandControls(props: ChildProps) {
   const classes = useStyles();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -390,4 +406,132 @@ function GenericCommandControls(props: ChildProps) {
       </FormField>
     </div>
   );
+}
+
+type FileComponentProps = {
+  title: string,
+  content: string,
+  error?: string,
+};
+function FileComponent(props: FileComponentProps) {
+  const classes = useStyles();
+
+  const content = props.content.replace(/\\n/g, '\n');
+  return (
+    <List>
+      <ListItem> {props.title} </ListItem>
+      {props.error !== '""' && (
+        <ListItem>
+          <AltFormField label={''}>
+            <FormLabel data-testid="fileError" error>
+              {props.error}
+            </FormLabel>
+          </AltFormField>
+        </ListItem>
+      )}
+      <ListItem>
+        <textarea
+          data-testid="fileContent"
+          rows="8"
+          className={classes.jsonTextarea}
+          autoCapitalize="none"
+          autoComplete="none"
+          autoCorrect="none"
+          spellCheck={false}
+          value={content}
+        />
+      </ListItem>
+    </List>
+  );
+}
+
+const TROUBLESHOOTING_HINTS = {
+  FLUENTD_SUCCESS:
+    'Gateway contains fluentd parameters, Verify if \
+control proxy config contains the right fluentd address and port information, \
+typically fluend address is fluentd.<orc8r_domain_name> and fluend port is 24224',
+  FLUENTD_MISSING:
+    'Gateway is missing fluentd parameters, Add the \
+right fluentd address and port information to the control proxy config on the \
+gateway, typically fluend address is fluentd.<orc8r_domain_name> and fluend port\
+ is 24224',
+  AGG_API_SUCCESS:
+    'event and log aggregation API are returning successful \
+responses',
+};
+
+export function TroubleshootingControl(props: ChildProps) {
+  const {match} = useRouter();
+  const [
+    controlProxyContent,
+    setControlProxyContent,
+  ] = useState<generic_command_response>({});
+  const networkId = nullthrows(match.params.networkId);
+  const parameters = {
+    command: 'bash',
+    params: {
+      shell_params: ["-c 'cat /etc/magma/control_proxy.yml'"],
+    },
+  };
+  const {isLoading: isProxyFileLoading} = useMagmaAPI(
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric,
+    // $FlowIssue[incompatible-call]
+    {networkId, gatewayId: props.gatewayID, parameters},
+    useCallback(response => setControlProxyContent(response), []),
+  );
+  const {
+    isLoading: isEventAPILoading,
+    error,
+  } = useMagmaAPI(MagmaV1API.getEventsByNetworkIdAboutCount, {networkId});
+  if (isProxyFileLoading || isEventAPILoading) {
+    return <LoadingFiller />;
+  }
+
+  const errContent = JSON.stringify(
+    controlProxyContent?.response?.['stderr'] ?? {},
+  );
+  const fileContent = JSON.stringify(
+    controlProxyContent?.response?.['stdout'] ?? {},
+    null,
+    2,
+  );
+  const containsFluentdParams =
+    fileContent.includes('fluentd_address') &&
+    fileContent.includes('fluentd_port');
+
+  const kpiData: DataRows[] = [
+    [
+      {
+        category: 'Control Proxy Config Validation',
+        value: containsFluentdParams ? 'Good' : 'Bad',
+        status: containsFluentdParams,
+        statusCircle: true,
+        tooltip: containsFluentdParams
+          ? TROUBLESHOOTING_HINTS.FLUENTD_SUCCESS
+          : TROUBLESHOOTING_HINTS.FLUENTD_MISSING,
+        collapse: (
+          <FileComponent
+            title={'Control Proxy Config'}
+            content={fileContent}
+            error={errContent}
+          />
+        ),
+      },
+    ],
+    [
+      {
+        category: 'API validation',
+        value: error == null ? 'Good' : 'Bad',
+        status: error == null,
+        statusCircle: true,
+        tooltip:
+          error == null
+            ? TROUBLESHOOTING_HINTS.AGG_API_SUCCESS
+            : `event and log aggregation api is failing,  ${
+                error ?? 'internal server error'
+              }`,
+      },
+    ],
+  ];
+  return <DataGrid data={kpiData} />;
 }

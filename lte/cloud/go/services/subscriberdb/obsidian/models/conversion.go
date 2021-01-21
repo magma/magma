@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"magma/lte/cloud/go/lte"
 	policymodels "magma/lte/cloud/go/services/policydb/obsidian/models"
@@ -74,8 +73,7 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) {
 			m.State.SubscriberState = stateVal.ReportedState.(*state.ArbitraryJSON)
 		case lte.ICMPStateType:
 			reportedState := stateVal.ReportedState.(*IcmpStatus)
-			// Reported time is unix timestamp in seconds, so divide ms by 1k
-			reportedState.LastReportedTime = int64(stateVal.TimeMs / uint64(time.Second/time.Millisecond))
+			reportedState.LastReportedTime = int64(stateVal.TimeMs)
 			m.Monitoring.Icmp = reportedState
 		case lte.SPGWStateType:
 			reportedState := stateVal.ReportedState.(*state.ArbitraryJSON)

@@ -5,7 +5,6 @@ set (CMAKE_CXX_FLAGS "-Wno-write-strings -Wno-literal-suffix")
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-
 create_proto_dir("lte" LTE_OUT_DIR)
 create_proto_dir("orc8r" ORC8R_OUT_DIR)
 create_proto_dir("feg" FEG_OUT_DIR)
@@ -61,6 +60,14 @@ generate_cpp_protos("${S1APSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
 generate_grpc_protos("${S1APSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
         "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
+# HA Service
+set(HASRV_LTE_CPP_PROTOS ha_service)
+set(HASRV_LTE_GRPC_PROTOS ha_service)
+generate_cpp_protos("${HASRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${HASRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(TASK_GRPC_SERVICE
@@ -71,6 +78,7 @@ add_library(TASK_GRPC_SERVICE
     CSFBGatewayServiceImpl.cpp
     SMSOrc8rGatewayServiceImpl.cpp
     S1apServiceImpl.cpp
+    HaServiceImpl.cpp
     spgw_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp

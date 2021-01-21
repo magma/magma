@@ -193,7 +193,9 @@ class IPV6SolicitationController(MagmaController):
                                   in_port=ofproto.OFPP_CONTROLLER,
                                   actions=actions_out,
                                   data=pkt.data)
-        self._datapath.send_msg(out)
+        ret = self._datapath.send_msg(out)
+        if not ret:
+            self.logger.error("Datapath disconnected, couldn't send RA")
 
     def _send_neighbor_advertisement(self, target_ipv6: str, tun_id: int,
                                      tun_ipv4_dst: str, output_port, direction):
@@ -251,7 +253,9 @@ class IPV6SolicitationController(MagmaController):
                                   in_port=ofproto.OFPP_CONTROLLER,
                                   actions=actions_out,
                                   data=pkt.data)
-        self._datapath.send_msg(out)
+        ret = self._datapath.send_msg(out)
+        if not ret:
+            self.logger.error("Datapath disconnected, couldn't send NA")
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _parse_pkt_in(self, ev):

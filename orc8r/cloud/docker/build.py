@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 
 """
 Copyright 2020 The Magma Authors.
@@ -23,11 +23,13 @@ import os
 import shutil
 import subprocess
 from collections import namedtuple
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 HOST_BUILD_CTX = '/tmp/magma_orc8r_build'
 HOST_MAGMA_ROOT = '../../../.'
 IMAGE_MAGMA_ROOT = os.path.join('src', 'magma')
+
+GOLINT_FILE = '.golangci.yml'
 
 MODULES = [
     'orc8r',
@@ -74,10 +76,20 @@ def main() -> None:
         _create_build_context(mods)
 
     if args.mount:
+        _run(['build', 'test'])
         _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'bash'])
         _down(args)
     elif args.generate:
-        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make gen'])
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make fullgen'])
+        _down(args)
+    elif args.lint:
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make lint'])
+        _down(args)
+    elif args.precommit:
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make precommit'])
         _down(args)
     elif args.tests:
         _run(['up', '-d', 'postgres_test'])
@@ -87,6 +99,7 @@ def main() -> None:
     else:
         d_args = _get_default_file_args(args) + _get_default_build_args(args)
         _run(d_args)
+        _down(args)
 
 
 def _get_modules(mods: Iterable[str]) -> Iterable[MagmaModule]:
@@ -112,7 +125,7 @@ def _create_build_context(modules: Iterable[MagmaModule]) -> None:
 
 
 def _down(args: argparse.Namespace) -> None:
-    if not args.leave:
+    if not args.up:
         _run(['down'])
 
 
@@ -128,34 +141,34 @@ def _run(cmd: List[str]) -> None:
 
 def _get_mnt_vols(modules: Iterable[MagmaModule]) -> List[str]:
     """ Return the volumes argument for docker-compose commands """
-    vols = []
+    vols = [
+        # .golangci.yml file
+        '-v', '%s:%s' % (
+            os.path.abspath(os.path.join(HOST_MAGMA_ROOT, GOLINT_FILE)),
+            os.path.join(os.sep, IMAGE_MAGMA_ROOT, GOLINT_FILE)
+        ),
+    ]
+    # Per-module directory mounts
     for m in modules:
         vols.extend(['-v', '%s:%s' % (m.host_path, _get_module_image_dst(m))])
     return vols
 
 
 def _get_default_file_args(args: argparse.Namespace) -> List[str]:
-    def make_file_args(fs: List[str]) -> List[str]:
+    def make_file_args(fs: Optional[List[str]] = None) -> List[str]:
+        if fs is None:
+            return []
         fs = ['docker-compose.yml'] + fs + ['docker-compose.override.yml']
         ret = []
         for f in fs:
             ret.extend(['-f', f])
         return ret
 
-    def get_files_for_modules(ms: Iterable[str]) -> List[str]:
-        return ['docker-compose.%s.yml' % m for m in ms if m != 'orc8r']
-
-    mods = DEPLOYMENT_TO_MODULES[args.deployment]
-
     if args.all:
-        all_files = get_files_for_modules(mods) + EXTRA_COMPOSE_FILES
-        return make_file_args(all_files)
-
-    if args.extras:
         return make_file_args(EXTRA_COMPOSE_FILES)
 
-    # Default to docker-compose.yml + all modules + docker-compose.override.yml
-    return make_file_args(get_files_for_modules(mods))
+    # Default implicitly to docker-compose.yml + docker-compose.override.yml
+    return make_file_args()
 
 
 def _get_default_build_args(args: argparse.Namespace) -> List[str]:
@@ -232,13 +245,9 @@ def _parse_args() -> argparse.Namespace:
     # (1) How many images to build
     #
     # all: all images
-    # extras: inverse of default
     # default: images required for minimum functionality
     #   - excluding metrics images
     #   - including postgres, proxy, etc
-    # core: only orc8r-specific images, across all modules
-    #   - excluding postgres, proxy, etc
-    #   - including orc8r, lte, cwf, etc
     #
     # (2) Of the core orc8r images, which modules to build
     #
@@ -263,12 +272,22 @@ def _parse_args() -> argparse.Namespace:
         action='store_true',
         help='Mount the source code and regenerate generated files',
     )
+    parser.add_argument(
+        '--precommit', '-c',
+        action='store_true',
+        help='Mount the source code and run pre-commit checks',
+    )
+    parser.add_argument(
+        '--lint', '-l',
+        action='store_true',
+        help='Mount the source code and run the linter',
+    )
 
     # Build something
     parser.add_argument(
         '--all', '-a',
         action='store_true',
-        help='Build all containers: core and extras',
+        help='Build all containers',
     )
     parser.add_argument(
         '--extras', '-e',
@@ -295,9 +314,9 @@ def _parse_args() -> argparse.Namespace:
         help='Build containers in parallel',
     )
     parser.add_argument(
-        '--leave', '-l',
+        '--up', '-u',
         action='store_true',
-        help='Leave containers running after running tests',
+        help='Leave containers up after running tests',
     )
 
     args = parser.parse_args()

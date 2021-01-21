@@ -89,15 +89,14 @@ Status SctpdUplinkImpl::SendUl(
 
 Status SctpdUplinkImpl::NewAssoc(
     ServerContext* context, const NewAssocReq* req, NewAssocRes* res) {
-  uint32_t assoc_id;
-  uint16_t instreams;
-  uint16_t outstreams;
+  uint32_t assoc_id   = req->assoc_id();
+  uint16_t instreams  = req->instreams();
+  uint16_t outstreams = req->outstreams();
+  bstring ran_cp_ipaddr =
+      blk2bstr(req->ran_cp_ipaddr().c_str(), req->ran_cp_ipaddr().size());
 
-  assoc_id   = req->assoc_id();
-  instreams  = req->instreams();
-  outstreams = req->outstreams();
-
-  if (sctp_itti_send_new_association(assoc_id, instreams, outstreams) < 0) {
+  if (sctp_itti_send_new_association(
+          assoc_id, instreams, outstreams, &ran_cp_ipaddr) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to send new_association for NewAssoc\n");
     return Status::OK;
   }

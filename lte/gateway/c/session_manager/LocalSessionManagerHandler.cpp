@@ -269,7 +269,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         if (status.ok()) {
           MLOG(MINFO) << "Processing a CreateSessionResponse for "
                       << session_id;
-          enforcer_->init_session_credit(
+          enforcer_->init_session(
               *session_map_ptr, imsi, session_id, cfg, response);
           bool write_success = session_store_.create_sessions(
               imsi, std::move((*session_map_ptr)[imsi]));
@@ -391,9 +391,10 @@ void LocalSessionManagerHandlerImpl::handle_create_session_lte(
 void LocalSessionManagerHandlerImpl::send_local_create_session_response(
     Status status, const std::string& session_id,
     std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
+  LocalCreateSessionResponse resp;
+  resp.set_session_id(session_id);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(resp));
   try {
-    LocalCreateSessionResponse resp;
-    resp.set_session_id(session_id);
     response_callback(status, resp);
   } catch (...) {
     std::exception_ptr ep = std::current_exception();
@@ -559,10 +560,7 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, imsi,
                                                     response_callback]() {
     auto session_map = session_store_.read_sessions({imsi});
-    SessionUpdate update =
-        SessionStore::get_default_session_update(session_map);
-    auto success =
-        enforcer_->update_tunnel_ids(session_map, request_cpy, update);
+    auto success     = enforcer_->update_tunnel_ids(session_map, request_cpy);
     if (!success) {
       MLOG(MDEBUG) << "Failed to UpdateTunnelIds for imsi " << imsi
                    << " and bearer " << request_cpy.bearer_id();
@@ -570,7 +568,8 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
       response_callback(err_status, UpdateTunnelIdsResponse());
       return;
     }
-    auto update_success = session_store_.update_sessions(update);
+    bool update_success =
+        session_store_.raw_write_sessions(std::move(session_map));
     if (!update_success) {
       MLOG(MERROR)
           << "Failed in updating SessionStore after processing UpdateTunnelIds";

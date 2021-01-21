@@ -19,8 +19,10 @@ from ryu.controller.controller import Datapath
 from ryu.lib import hub
 from ryu.ofproto.ofproto_parser import MsgBase
 
-from magma.pipelined.openflow.exceptions import MagmaOFError
+from magma.pipelined.openflow.exceptions import MagmaOFError,\
+    MagmaDPDisconnectedError
 from magma.pipelined.metrics import DP_SEND_MSG_ERROR
+from magma.pipelined.policy_converters import MATCH_ATTRIBUTES
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,9 @@ def send_msg(datapath, msg, retries=3):
     """
     for i in range(0, retries):
         try:
-            datapath.send_msg(msg)
+            ret = datapath.send_msg(msg)
+            if not ret:
+                raise MagmaDPDisconnectedError()
             return
         except Exception as e:  # pylint: disable=broad-except
             logger.warning(
@@ -165,12 +169,15 @@ class MessageHub(object):
         switch.requests_by_barrier[barrier.xid] = req
         for msg in msg_list:
             switch.results_by_msg[msg.xid] = None
-            datapath.send_msg(msg)
+            ret = datapath.send_msg(msg)
+            if not ret:
+                raise MagmaDPDisconnectedError()
         datapath.send_msg(barrier)
         req.set_timeout(timeout, switch, barrier.xid, msg_xids)
         return channel
 
     def filter_msgs_if_not_in_flow_list(self,
+                                        dp: Datapath,
                                         msg_list: List[MsgBase],
                                         flow_list):
         """
@@ -180,7 +187,7 @@ class MessageHub(object):
         msgs_to_send = []
         remaining_flows = flow_list.copy()
         for msg in msg_list:
-            index = self._get_msg_index_in_flow_list(msg, remaining_flows)
+            index = self._get_msg_index_in_flow_list(dp, msg, remaining_flows)
             if index >= 0:
                 remaining_flows.pop(index)
             else:
@@ -232,22 +239,63 @@ class MessageHub(object):
         # for now, result is unused. Just return if there's an exception
         switch.results_by_msg[msg.xid] = MagmaOFError(ev.msg)
 
-    def _flow_matches_flowmsg(self, flow, msg):
+    def _flow_matches_flowmsg(self, dp, flow, msg):
         """
-        Compare the flow and flow message based on
-         - cookie(Policy number)
-         - metadata(Subscriber IMSI)
-         - reg4(Policy version number)
+        Compare the flow and flow message based on match/instructions
         """
-        return flow.cookie == msg.cookie and\
-               flow.match.get('metadata', None) == msg.match.get('metadata', None) and\
-               flow.match.get('reg1', None) == msg.match.get('reg1', None) and\
-               flow.match.get('reg2', None) == msg.match.get('reg2', None) and\
-               flow.match.get('reg4', None) == msg.match.get('reg4', None)
+        reg_loads_match = True
+        resubmits_match = True
+        outputs_match = True
+        if len(flow.instructions) != len(msg.instructions):
+            return False
+        for j in range(0, len(flow.instructions)):
+            # TODO add support for OFPInstructionMeter and others
+            if type(flow.instructions[j]) != dp.ofproto_parser.OFPInstructionActions:
+                continue
+            if type(msg.instructions[j]) != dp.ofproto_parser.OFPInstructionActions:
+                continue
+            # Strip _nxm to handle nicira as eth_dst_nxm is same as eth_dst
+            reg_loads_flow = {i.dst.replace('_nxm', ''): i.value for i in flow.instructions[j].actions
+                              if type(i) == dp.ofproto_parser.NXActionRegLoad2}
+            reg_loads_msg = {i.dst.replace('_nxm', ''): i.value for i in msg.instructions[j].actions
+                             if type(i) == dp.ofproto_parser.NXActionRegLoad2}
 
-    def _get_msg_index_in_flow_list(self, msg, flow_list):
+            reg_loads_match = reg_loads_msg == reg_loads_flow
+
+            resubmits_flow = [i.table_id for i in flow.instructions[j].actions
+                              if type(i) == dp.ofproto_parser.NXActionResubmitTable]
+            resubmits_msg = [i.table_id for i in msg.instructions[j].actions
+                             if type(i) == dp.ofproto_parser.NXActionResubmitTable]
+            resubmits_match = sorted(resubmits_flow) == sorted(resubmits_msg)
+
+            outputs_flow = [i.port for i in flow.instructions[j].actions
+                            if type(i) == dp.ofproto_parser.OFPActionOutput]
+            outputs_msg = [i.port for i in msg.instructions[j].actions
+                           if type(i) == dp.ofproto_parser.OFPActionOutput]
+            outputs_match = sorted(outputs_flow) == sorted(outputs_msg)
+
+        match_flow = {key: flow.match.get(key) for key in MATCH_ATTRIBUTES
+                      if key in flow.match}
+        match_msg = {key: msg.match.get(key, None) for key in MATCH_ATTRIBUTES
+                     if key in msg.match}
+
+        def strip_common(match_dict):
+            """
+            Filter out args that break equality
+                - ('0.0.0.0', '0.0.0.0') is the same as unset
+            """
+            for key in list(match_dict.keys()):
+                if match_dict[key] == ('0.0.0.0', '0.0.0.0'):
+                    del match_dict[key]
+            return match_dict
+        flow_match = strip_common(match_flow) == strip_common(match_msg)
+
+        return flow_match and reg_loads_match and resubmits_match and \
+               outputs_match
+
+    def _get_msg_index_in_flow_list(self, dp, msg, flow_list):
         for i in range(len(flow_list)):
-            if self._flow_matches_flowmsg(msg, flow_list[i]):
+            if self._flow_matches_flowmsg(dp, msg, flow_list[i]):
                 return i
         return -1
 

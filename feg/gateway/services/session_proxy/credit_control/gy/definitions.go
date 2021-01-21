@@ -58,22 +58,23 @@ type UsedCredits struct {
 }
 
 type CreditControlRequest struct {
-	SessionID     string
-	Type          credit_control.CreditRequestType
-	IMSI          string
-	RequestNumber uint32
-	UeIPV4        string
-	SpgwIPV4      string
-	Apn           string
-	Imei          string
-	PlmnID        string
-	GcID          string
-	UserLocation  []byte
-	Msisdn        []byte
-	Qos           *QosRequestInfo
-	Credits       []*UsedCredits
-	RatType       string
-	TgppCtx       *protos.TgppContext
+	SessionID               string
+	Type                    credit_control.CreditRequestType
+	IMSI                    string
+	RequestNumber           uint32
+	UeIPV4                  string
+	SpgwIPV4                string
+	Apn                     string
+	Imei                    string
+	PlmnID                  string
+	GcID                    string
+	UserLocation            []byte
+	Msisdn                  []byte
+	Qos                     *QosRequestInfo
+	Credits                 []*UsedCredits
+	RatType                 string
+	TgppCtx                 *protos.TgppContext
+	ChargingCharacteristics string
 }
 
 type QosRequestInfo struct {

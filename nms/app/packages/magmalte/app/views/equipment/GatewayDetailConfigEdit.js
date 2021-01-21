@@ -61,6 +61,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {AltFormField} from '../../components/FormField';
+import {DynamicServices} from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
@@ -104,7 +105,7 @@ const DEFAULT_GATEWAY_CONFIG = {
     autoupgrade_poll_interval: 60,
     checkin_interval: 60,
     checkin_timeout: 30,
-    dynamic_services: [],
+    dynamic_services: [DynamicServices.EVENTD, DynamicServices.TD_AGENT_BIT],
   },
   name: '',
   status: {
@@ -289,7 +290,7 @@ function GatewayEditDialog(props: DialogProps) {
         />
       )}
       {tabPos === 1 && (
-        <AggregationEdit
+        <DynamicServicesEdit
           isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
@@ -518,7 +519,7 @@ export function ConfigEdit(props: Props) {
   );
 }
 
-export function AggregationEdit(props: Props) {
+export function DynamicServicesEdit(props: Props) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
@@ -526,27 +527,24 @@ export function AggregationEdit(props: Props) {
 
   const gatewayId: string =
     props.gateway?.id || nullthrows(match.params.gatewayId);
-  const [
-    aggregationConfig,
-    setAggregationConfig,
-  ] = useState<magmad_gateway_configs>(
+  const [config, setConfig] = useState<magmad_gateway_configs>(
     props.gateway?.magmad || DEFAULT_GATEWAY_CONFIG.magmad,
   );
 
-  const handleAggregationChange = (val: boolean, key: string) => {
-    const dynamicServices = [...(aggregationConfig.dynamic_services || [])];
+  const handleChange = (val: boolean, key: string) => {
+    const dynamicServices = [...(config.dynamic_services || [])];
     if (val) {
       dynamicServices.push(key);
-      setAggregationConfig({
-        ...aggregationConfig,
+      setConfig({
+        ...config,
         ['dynamic_services']: dynamicServices,
       });
     } else {
       const index = dynamicServices.indexOf(key);
       if (index !== -1) {
         dynamicServices.splice(index, 1);
-        setAggregationConfig({
-          ...aggregationConfig,
+        setConfig({
+          ...config,
           ['dynamic_services']: dynamicServices,
         });
       }
@@ -555,7 +553,7 @@ export function AggregationEdit(props: Props) {
 
   const onSave = async () => {
     try {
-      if (aggregationConfig.dynamic_services?.includes('td-agent-bit')) {
+      if (config.dynamic_services?.includes(DynamicServices.TD_AGENT_BIT)) {
         const logging: gateway_logging_configs = {
           aggregation: {
             target_files_by_tag: {
@@ -564,18 +562,18 @@ export function AggregationEdit(props: Props) {
           },
           log_level: 'DEBUG',
         };
-        aggregationConfig.logging = logging;
+        config.logging = logging;
       } else {
-        if (aggregationConfig.logging) {
-          delete aggregationConfig.logging;
+        if (config.logging) {
+          delete config.logging;
         }
       }
 
       const gateway = {
         ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
-        magmad: aggregationConfig,
+        magmad: config,
       };
-      await ctx.updateGateway({gatewayId, magmadConfigs: aggregationConfig});
+      await ctx.updateGateway({gatewayId, magmadConfigs: config});
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
       });
@@ -587,7 +585,7 @@ export function AggregationEdit(props: Props) {
 
   return (
     <>
-      <DialogContent data-testid="aggregationEdit">
+      <DialogContent data-testid="dynamicServicesEdit">
         <List>
           {error !== '' && (
             <AltFormField label={''}>
@@ -597,18 +595,30 @@ export function AggregationEdit(props: Props) {
           <AltFormField label={'Event Aggregation'}>
             <Switch
               onChange={({target}) =>
-                handleAggregationChange(target.checked, 'eventd')
+                handleChange(target.checked, DynamicServices.EVENTD)
               }
-              checked={aggregationConfig.dynamic_services?.includes('eventd')}
+              checked={config.dynamic_services?.includes(
+                DynamicServices.EVENTD,
+              )}
             />
           </AltFormField>
           <AltFormField label={'Log Aggregation'}>
             <Switch
               onChange={({target}) =>
-                handleAggregationChange(target.checked, 'td-agent-bit')
+                handleChange(target.checked, DynamicServices.TD_AGENT_BIT)
               }
-              checked={aggregationConfig.dynamic_services?.includes(
-                'td-agent-bit',
+              checked={config.dynamic_services?.includes(
+                DynamicServices.TD_AGENT_BIT,
+              )}
+            />
+          </AltFormField>
+          <AltFormField label={'CPE Monitoring'}>
+            <Switch
+              onChange={({target}) =>
+                handleChange(target.checked, DynamicServices.MONITORD)
+              }
+              checked={config.dynamic_services?.includes(
+                DynamicServices.MONITORD,
               )}
             />
           </AltFormField>

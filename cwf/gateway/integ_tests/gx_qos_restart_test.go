@@ -147,8 +147,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	verifyEgressRate(t, tr, req, float64(uplinkBwMax))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 func restartPipelined(t *testing.T, tr *TestRunner) {

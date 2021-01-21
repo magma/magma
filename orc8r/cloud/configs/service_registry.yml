@@ -110,6 +110,17 @@ services:
     port: 9108
     proxy_type: "clientcert"
 
+  ctraced:
+    host: "localhost"
+    port: 9118
+    echo_port: 10118
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/tracing,
+
   tenants:
     host: "localhost"
     port: 9110

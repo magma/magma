@@ -38,6 +38,9 @@ func NewPolicyAssignmentServer() *PolicyAssignmentServer {
 
 func (srv *PolicyAssignmentServer) EnableStaticRules(ctx context.Context, req *protos.EnableStaticRuleRequest) (*orcprotos.Void, error) {
 	networkID, err := getNetworkID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	if !doesSubscriberAndRulesExist(networkID, req.Imsi, req.RuleIds, req.BaseNames) {
 		return nil, status.Errorf(codes.InvalidArgument, "Either a subscriber or one more rules/basenames are not found")
 	}
@@ -57,6 +60,9 @@ func (srv *PolicyAssignmentServer) EnableStaticRules(ctx context.Context, req *p
 
 func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *protos.DisableStaticRuleRequest) (*orcprotos.Void, error) {
 	networkID, err := getNetworkID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	if !doesSubscriberAndRulesExist(networkID, req.Imsi, req.RuleIds, req.BaseNames) {
 		return nil, status.Errorf(codes.InvalidArgument, "Either a subscriber or one more rules/basenames are not found")
 	}

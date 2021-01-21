@@ -32,14 +32,17 @@ func init() {
 	cmd := CommandRegistry.Add(
 		"delete",
 		"Delete Given Operator, its ACL and all its Certificates",
-		delete)
+		deleteCmd,
+	)
 	cmd.Flags().Usage = func() {
-		fmt.Fprintf(os.Stderr, // std Usage() & PrintDefaults() use Stderr
-			"\tUsage: %s %s <Operator ID>\n", os.Args[0], cmd.Name())
+		fmt.Fprintf(
+			os.Stderr, // std Usage() & PrintDefaults() use Stderr
+			"\tUsage: %s %s <Operator ID>\n", os.Args[0], cmd.Name(),
+		)
 	}
 }
 
-func delete(cmd *commands.Command, args []string) int {
+func deleteCmd(cmd *commands.Command, args []string) int {
 	f := cmd.Flags()
 	oid := strings.TrimSpace(f.Arg(0))
 	if f.NArg() != 1 || len(oid) == 0 {

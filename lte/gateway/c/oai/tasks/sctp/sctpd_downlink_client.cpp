@@ -19,7 +19,6 @@ extern "C" {
 #include "sctpd_downlink_client.h"
 
 #include <arpa/inet.h>
-#include <signal.h>
 
 #include "assertions.h"
 #include "log.h"
@@ -28,6 +27,7 @@ extern "C" {
 }
 
 #include <memory.h>
+#include <unistd.h>
 
 #include <grpcpp/grpcpp.h>
 
@@ -104,6 +104,9 @@ using magma::sctpd::InitRes;
 using magma::sctpd::SendDlReq;
 using magma::sctpd::SendDlRes;
 
+// Max sleep backoff delay in microseconds
+constexpr useconds_t max_backoff_usecs = 1000000;  // 1 sec
+
 std::unique_ptr<SctpdDownlinkClient> _client = nullptr;
 
 int init_sctpd_downlink_client(bool force_restart) {
@@ -121,6 +124,9 @@ int sctpd_init(sctp_init_t* init) {
   InitRes res;
   char ipv4_str[INET_ADDRSTRLEN];
   char ipv6_str[INET6_ADDRSTRLEN];
+
+  // Retry backoff delay in microseconds
+  useconds_t current_delay = 500000;
 
   req.set_use_ipv4(init->ipv4);
   req.set_use_ipv6(init->ipv6);
@@ -148,7 +154,7 @@ int sctpd_init(sctp_init_t* init) {
 
   req.set_force_restart(_client->should_force_restart);
 
-#define MAX_SCTPD_INIT_ATTEMPTS 100
+#define MAX_SCTPD_INIT_ATTEMPTS 50
   int num_inits      = 0;
   int sctpd_init_res = -1;
   while (sctpd_init_res != 0) {
@@ -158,30 +164,20 @@ int sctpd_init(sctp_init_t* init) {
     }
     ++num_inits;
     OAILOG_DEBUG(LOG_SCTP, "Sctpd Init attempt %d", num_inits);
-    auto rc        = _client->init(req, &res);
-    auto init_ok   = res.result() == InitRes::INIT_OK;
-    sctpd_init_res = (rc == 0) && init_ok ? 0 : -1;
+    auto rc      = _client->init(req, &res);
+    auto init_ok = res.result() == InitRes::INIT_OK;
+    if ((rc == 0) && init_ok) {
+      sctpd_init_res = 0;
+    } else {
+      useconds_t sleep_time = std::min(current_delay, max_backoff_usecs);
+      OAILOG_DEBUG(LOG_SCTP, "Sleeping for %d usecs", sleep_time);
+      usleep(sleep_time);
+      if (current_delay < max_backoff_usecs) {
+        current_delay += 10000;  // Add 10 ms to backoff
+      }
+    }
   }
   return sctpd_init_res;
-}
-
-// close
-void sctpd_exit() {
-  // send terminate message to sctpd if force_restart is true
-  if (!_client->should_force_restart) {
-    // do nothing
-    return;
-  }
-
-  // send a SIGTERM to sctpd
-  char line[PID_LEN];
-  FILE* cmd = popen("pidof sctpd", "r");
-  fgets(line, PID_LEN, cmd);
-  pid_t pid = strtoul(line, NULL, 10);
-  pclose(cmd);
-  OAILOG_DEBUG(LOG_SCTP, "Sending SIGTERM to pid %d", pid);
-  kill(pid, SIGTERM);
-  return;
 }
 
 // sendDl

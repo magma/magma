@@ -28,7 +28,9 @@ from lte.protos.mconfig import mconfigs_pb2
 
 def main():
     """ main() for subscriberdb """
-    service = MagmaService('subscriberdb', mconfigs_pb2.SubscriberDB())
+    service = MagmaService('subscriberdb',
+                           mconfigs_pb2.SubscriberDB(),
+                           workers=1)
 
     # Initialize a store to keep all subscriber data.
     store = SqliteStore(service.config['db_path'], loop=service.loop)
@@ -55,10 +57,10 @@ def main():
 
     # Wait until the datastore is populated by addition or resync before
     # listening for clients.
-    def serve():
+    async def serve():
         if not store.list_subscribers():
             # Waiting for subscribers to be added to store
-            yield from store.on_ready()
+            await store.on_ready()
 
         if service.config['s6a_over_grpc']:
             s6a_proxy_servicer = S6aProxyRpcServicer(processor)

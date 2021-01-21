@@ -35,13 +35,13 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         Step2: Send an indication to S1ap stack to drop E-Rab Setup
                Request message, sent as part of secondary PDN activation
                procedure.
-        Step3: Initaite activation of secondary PDN
+        Step3: Initiate activation of secondary PDN
         Step4: Send an indication to S1ap stack to not to drop E-Rab Setup
                Request message, so that re-transmitted message reaches to
                TFW
         Step5: Send command to Magma to restart mme service
         Step6: TFW shall receive the PDN connectivity response
-        Step7: TFW shall initaite de-activation of secondary PDN and then
+        Step7: TFW shall initiate de-activation of secondary PDN and then
                initiate Detach procedure.
         """
         num_ue = 1
@@ -106,7 +106,7 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         )
 
         print(
-            "*** Sending indication to disbale dropping of Erab Setup Req",
+            "*** Sending indication to disable dropping of Erab Setup Req",
             " ***",
         )
         drop_erab_setup_req = s1ap_types.UeDropErabSetupReq_t()

@@ -56,15 +56,16 @@ StoredSessionState SessionState::marshal() {
   marshaled.session_id = session_id_;
   marshaled.local_teid = local_teid_;
   // 5G session version handling
-  marshaled.current_version        = current_version_;
-  marshaled.subscriber_quota_state = subscriber_quota_state_;
-  marshaled.tgpp_context           = tgpp_context_;
-  marshaled.request_number         = request_number_;
-  marshaled.pdp_start_time         = pdp_start_time_;
-  marshaled.pdp_end_time           = pdp_end_time_;
-  marshaled.pending_event_triggers = pending_event_triggers_;
-  marshaled.revalidation_time      = revalidation_time_;
-  marshaled.bearer_id_by_policy    = bearer_id_by_policy_;
+  marshaled.current_version         = current_version_;
+  marshaled.subscriber_quota_state  = subscriber_quota_state_;
+  marshaled.tgpp_context            = tgpp_context_;
+  marshaled.request_number          = request_number_;
+  marshaled.pdp_start_time          = pdp_start_time_;
+  marshaled.pdp_end_time            = pdp_end_time_;
+  marshaled.pending_event_triggers  = pending_event_triggers_;
+  marshaled.revalidation_time       = revalidation_time_;
+  marshaled.bearer_id_by_policy     = bearer_id_by_policy_;
+  marshaled.create_session_response = create_session_response_;
 
   marshaled.monitor_map = StoredMonitorMap();
   for (auto& monitor_pair : monitor_map_) {
@@ -126,6 +127,7 @@ SessionState::SessionState(
       current_version_(marshaled.current_version),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
+      create_session_response_(marshaled.create_session_response),
       static_rules_(rule_store),
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
@@ -171,7 +173,8 @@ SessionState::SessionState(
 SessionState::SessionState(
     const std::string& imsi, const std::string& session_id,
     const SessionConfig& cfg, StaticRuleStore& rule_store,
-    const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time)
+    const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time,
+    const CreateSessionResponse& csr)
     : imsi_(imsi),
       session_id_(session_id),
       local_teid_(0),
@@ -182,6 +185,7 @@ SessionState::SessionState(
       pdp_start_time_(pdp_start_time),
       pdp_end_time_(0),
       tgpp_context_(tgpp_context),
+      create_session_response_(csr),
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
 
@@ -273,6 +277,17 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   /* TODO below to be changed after UPF node association message
    * completes . Revisit
    */
+}
+
+void SessionState::set_teids(uint32_t enb_teid, uint32_t agw_teid) {
+  Teids teids;
+  teids.set_agw_teid(agw_teid);
+  teids.set_enb_teid(enb_teid);
+  set_teids(teids);
+}
+
+void SessionState::set_teids(Teids teids) {
+  config_.common_context.mutable_teids()->CopyFrom(teids);
 }
 
 static UsageMonitorUpdate make_usage_monitor_update(
@@ -655,6 +670,9 @@ void SessionState::add_common_fields_to_usage_monitor_update(
   if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req->set_hardware_addr(wlan_context.mac_addr_binary());
+  } else {
+    const auto& lte_context = config_.rat_specific_context.lte_context();
+    req->set_charging_characteristics(lte_context.charging_characteristics());
   }
 }
 
@@ -713,6 +731,7 @@ SessionTerminateRequest SessionState::make_termination_request(
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
+    req.set_charging_characteristics(lte_context.charging_characteristics());
   } else if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req.set_hardware_addr(wlan_context.mac_addr_binary());
@@ -829,6 +848,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi      = imsi_;
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
+  info.teids     = config_.common_context.teids();
   info.msisdn    = config_.common_context.msisdn();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
@@ -1341,6 +1361,15 @@ bool SessionState::is_credit_suspended(const CreditKey& charging_key) {
   return false;
 }
 
+void SessionState::get_unsuspended_rules(RulesToProcess& rulesToProcess) {
+  for (auto const& it : credit_map_) {
+    CreditKey ckey = it.first;
+    if (!it.second->get_suspended()) {
+      get_rules_per_credit_key(ckey, rulesToProcess);
+    }
+  }
+}
+
 void SessionState::get_rules_per_credit_key(
     CreditKey charging_key, RulesToProcess& rulesToProcess) {
   static_rules_.get_rule_ids_for_charging_key(
@@ -1477,6 +1506,7 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
+    req.set_charging_characteristics(lte_context.charging_characteristics());
   } else if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req.set_hardware_addr(wlan_context.mac_addr_binary());
@@ -1592,6 +1622,7 @@ void SessionState::fill_service_action(
   action->set_imsi(imsi_);
   action->set_ip_addr(config_.common_context.ue_ipv4());
   action->set_ipv6_addr(config_.common_context.ue_ipv6());
+  action->set_teids(config_.common_context.teids());
   action->set_msisdn(config_.common_context.msisdn());
   action->set_session_id(session_id_);
   static_rules_.get_rule_ids_for_charging_key(
@@ -2120,6 +2151,14 @@ void SessionState::update_dropped_data_metrics(
       "ue_dropped_usage", dropped_rx, size_t(4), LABEL_IMSI, sid.c_str(),
       LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
       DIRECTION_DOWN);
+}
+
+CreateSessionResponse SessionState::get_create_session_response() {
+  return create_session_response_;
+}
+
+void SessionState::clear_create_session_response() {
+  create_session_response_ = CreateSessionResponse();
 }
 
 }  // namespace magma

@@ -951,10 +951,15 @@ void mme_app_handle_delete_session_rsp(
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
 #endif
-    hashtable_uint64_ts_remove(
+    hashtable_rc_t hash_rc = hashtable_uint64_ts_remove(
         mme_app_desc_p->mme_ue_contexts.tun11_ue_context_htbl,
         (const hash_key_t) ue_context_p->mme_teid_s11);
-    ue_context_p->mme_teid_s11 = 0;
+    if (hash_rc == HASH_TABLE_OK) {
+      ue_context_p->mme_teid_s11 = 0;
+    }
+    if (ue_context_p->nb_active_pdn_contexts > 0) {
+      ue_context_p->nb_active_pdn_contexts -= 1;
+    }
 
     /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
@@ -1537,7 +1542,11 @@ void mme_app_handle_initial_context_setup_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  // Stop Initial context setup process guard timer,if running
+  /* Stop Initial context setup process guard timer,if running.
+   * Do not process the message if timer is not running because
+   * it means that the timer has already expired
+   * and implicit detach is triggered.
+   */
   if (ue_context_p->initial_context_setup_rsp_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
     nas_itti_timer_arg_t* timer_argP = NULL;
@@ -1556,29 +1565,29 @@ void mme_app_handle_initial_context_setup_rsp(
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
     ue_context_p->time_ics_rsp_timer_started = 0;
-  }
 
-  if (mme_app_send_modify_bearer_request_for_active_pdns(
-          ue_context_p, initial_ctxt_setup_rsp_p) != RETURNok) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to send modify bearer request for UE id  %d \n",
-        ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
-  /*
-   * During Service request procedure,after initial context setup response
-   * Send ULR, when UE moved from Idle to Connected and
-   * flag location_info_confirmed_in_hss set to true during hss reset.
-   */
-  if (ue_context_p->location_info_confirmed_in_hss == true) {
-    mme_app_send_s6a_update_location_req(ue_context_p);
-  }
-  if (ue_context_p->sgs_context) {
-    ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_NONE;
-    // Reset mt_call_in_progress flag
-    if (ue_context_p->sgs_context->mt_call_in_progress) {
-      ue_context_p->sgs_context->mt_call_in_progress = false;
+    if (mme_app_send_modify_bearer_request_for_active_pdns(
+            ue_context_p, initial_ctxt_setup_rsp_p) != RETURNok) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Failed to send modify bearer request for UE id  %d \n",
+          ue_context_p->mme_ue_s1ap_id);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
+    /*
+     * During Service request procedure,after initial context setup response
+     * Send ULR, when UE moved from Idle to Connected and
+     * flag location_info_confirmed_in_hss set to true during hss reset.
+     */
+    if (ue_context_p->location_info_confirmed_in_hss == true) {
+      mme_app_send_s6a_update_location_req(ue_context_p);
+    }
+    if (ue_context_p->sgs_context) {
+      ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_NONE;
+      // Reset mt_call_in_progress flag
+      if (ue_context_p->sgs_context->mt_call_in_progress) {
+        ue_context_p->sgs_context->mt_call_in_progress = false;
+      }
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -1888,6 +1897,12 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
       (const hash_key_t) ue_context_p->enb_s1ap_id_key);
 
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
+    nas_emm_attach_proc_t* attach_proc =
+        get_nas_specific_procedure_attach(&ue_context_p->emm_context);
+    // Stop T3450 timer if its still runinng
+    if (attach_proc) {
+      nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450, NULL);
+    }
     // Initiate Implicit Detach for the UE
     nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
     increment_counter(
@@ -1948,35 +1963,35 @@ void mme_app_handle_initial_context_setup_failure(
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
     ue_context_p->time_implicit_detach_timer_started = 0;
-  }
-  /* *********Abort the ongoing procedure*********
-   * Check if UE is registered already that implies service request procedure is
-   * active. If so then release the S1AP context and move the UE back to idle
-   * mode. Otherwise if UE is not yet registered that implies attach procedure
-   * is active. If so,then abort the attach procedure and release the UE
-   * context.
-   */
-  ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
-  if (ue_context_p->mm_state == UE_UNREGISTERED) {
-    // Initiate Implicit Detach for the UE
-    nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
-    increment_counter(
-        "ue_attach", 1, 2, "result", "failure", "cause",
-        "initial_context_setup_failure_rcvd");
-    increment_counter("ue_attach", 1, 1, "action", "attach_abort");
-  } else {
-    // Release S1-U bearer and move the UE to idle mode
+    /* *********Abort the ongoing procedure*********
+     * Check if UE is registered already that implies service request procedure
+     * is active. If so then release the S1AP context and move the UE back to
+     * idle mode. Otherwise if UE is not yet registered that implies attach
+     * procedure is active. If so,then abort the attach procedure and release
+     * the UE context.
+     */
+    ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
+    if (ue_context_p->mm_state == UE_UNREGISTERED) {
+      // Initiate Implicit Detach for the UE
+      nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
+      increment_counter(
+          "ue_attach", 1, 2, "result", "failure", "cause",
+          "initial_context_setup_failure_rcvd");
+      increment_counter("ue_attach", 1, 1, "action", "attach_abort");
+    } else {
+      // Release S1-U bearer and move the UE to idle mode
 
-    for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
-      if (ue_context_p->pdn_contexts[i]) {
-        mme_app_send_s11_release_access_bearers_req(ue_context_p, i);
+      for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
+        if (ue_context_p->pdn_contexts[i]) {
+          mme_app_send_s11_release_access_bearers_req(ue_context_p, i);
+        }
       }
-    }
-    /* Handles CSFB failure */
-    if (ue_context_p->sgs_context != NULL) {
-      handle_csfb_s1ap_procedure_failure(
-          ue_context_p, "initial_context_setup_failed",
-          INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
+      /* Handles CSFB failure */
+      if (ue_context_p->sgs_context != NULL) {
+        handle_csfb_s1ap_procedure_failure(
+            ue_context_p, "initial_context_setup_failed",
+            INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
+      }
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2304,6 +2319,19 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
         }
         free_wrapper((void**) &ue_context_p->pending_ded_ber_req[idx]);
       }
+    }
+    // Check if this is triggered by HA task
+    if (ue_context_p->ue_context_rel_cause == S1AP_NAS_MME_PENDING_OFFLOADING) {
+      // Initiate Implicit Detach for the UE:
+      // Secondary AGW tried paging the UE, but UE was not reachable. Treat this
+      // as if the user went out of secondary AGW service area.
+      OAILOG_INFO_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "The UE has been successfully offloaded to Primary AGW. "
+          "Perform implicit detach: ue_id " MME_UE_S1AP_ID_FMT,
+          mme_ue_s1ap_id);
+      ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
+      nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);

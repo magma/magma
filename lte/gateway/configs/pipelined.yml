@@ -123,15 +123,15 @@ monitored_ifaces: ['gtp_br0',
                   ]
 
 # Whether pipelined should cleanup flows on restarts
-clean_restart: true
+clean_restart: false
 
-redis_enabled: false
+redis_enabled: true
 
 # Logs grpc payload content
 magma_print_grpc_payload: false
 
 # MTR iface IP
-mtr_ip: 10.0.2.10
+mtr_ip: 10.1.0.1
 mtr_interface: mtr0
 
 ###############
@@ -163,3 +163,4 @@ he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
 # For 5G Functionality Support flag
 5G_feature_set:
  enable: False
+ node_identifier: 192.168.200.1

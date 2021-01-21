@@ -47,6 +47,7 @@ int sgw_handle_modify_bearer_request(
     const itti_s11_modify_bearer_request_t* const modify_bearer_p,
     imsi64_t imsi64);
 int sgw_handle_delete_session_request(
+    spgw_state_t* spgw_state,
     const itti_s11_delete_session_request_t* const delete_session_p,
     imsi64_t imsi64);
 int sgw_handle_release_access_bearers_request(
@@ -60,6 +61,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
     const itti_s11_nw_init_actv_bearer_rsp_t* const s11_actv_bearer_rsp,
     imsi64_t imsi64);
 int sgw_handle_nw_initiated_deactv_bearer_rsp(
+    spgw_state_t* spgw_state,
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_pcrf_ded_bearer_deactv_rsp,
     imsi64_t imsi64);

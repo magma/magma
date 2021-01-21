@@ -29,6 +29,7 @@ from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
     stop_ryu_app_thread, create_service_manager, assert_bridge_snapshot_match, \
     SnapshotVerifier
 
+
 class ConntrackTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'

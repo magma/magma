@@ -17,7 +17,7 @@ import (
 // swagger:model icmp_status
 type IcmpStatus struct {
 
-	// last reported time
+	// Timestamp of last reported status for the subscriber in ms
 	LastReportedTime int64 `json:"last_reported_time,omitempty"`
 
 	// latency ms
