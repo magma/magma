@@ -100,15 +100,16 @@ func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.S
 	for _, update := range pRequest.MonitorUsages {
 		reports = append(reports, (&gx.UsageReport{}).FromUsageMonitorUpdate(update))
 	}
+	common := pRequest.GetCommonContext()
 	request := &gx.CreditControlRequest{
 		SessionID:               pRequest.SessionId,
 		Type:                    credit_control.CRTTerminate,
-		IMSI:                    credit_control.RemoveIMSIPrefix(pRequest.Sid),
+		IMSI:                    credit_control.RemoveIMSIPrefix(common.GetSid().GetId()),
 		RequestNumber:           pRequest.RequestNumber,
-		IPAddr:                  pRequest.UeIpv4,
+		IPAddr:                  common.GetUeIpv4(),
 		UsageReports:            reports,
-		RATType:                 gx.GetRATType(pRequest.RatType),
-		IPCANType:               gx.GetIPCANType(pRequest.RatType),
+		RATType:                 gx.GetRATType(common.GetRatType()),
+		IPCANType:               gx.GetIPCANType(common.GetRatType()),
 		TgppCtx:                 pRequest.GetTgppCtx(),
 		ChargingCharacteristics: pRequest.ChargingCharacteristics,
 	}

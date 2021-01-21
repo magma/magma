@@ -38,13 +38,14 @@ func (credits *UsedCredits) FromCreditUsage(usage *protos.CreditUsage) *UsedCred
 }
 
 func (request *CreditControlRequest) FromCreditUsageUpdate(update *protos.CreditUsageUpdate) *CreditControlRequest {
+	common := update.GetCommonContext()
 	request.SessionID = update.SessionId
 	request.RequestNumber = update.RequestNumber
-	request.IMSI = credit_control.RemoveIMSIPrefix(update.Sid)
-	request.Msisdn = update.Msisdn
-	request.UeIPV4 = update.UeIpv4
+	request.IMSI = credit_control.RemoveIMSIPrefix(common.GetSid().GetId())
+	request.Msisdn = common.GetMsisdn()
+	request.UeIPV4 = common.GetUeIpv4()
 	request.SpgwIPV4 = update.SpgwIpv4
-	request.Apn = update.Apn
+	request.Apn = common.GetApn()
 	request.Imei = update.Imei
 	request.PlmnID = update.PlmnId
 	request.UserLocation = update.UserLocation
@@ -58,7 +59,7 @@ func (request *CreditControlRequest) FromCreditUsageUpdate(update *protos.Credit
 		Type:           UsedCreditsType(update.Usage.Type),
 		RequestedUnits: update.Usage.GetRequestedUnits(),
 	}}
-	request.RatType = GetRATType(update.GetRatType())
+	request.RatType = GetRATType(common.GetRatType())
 	request.TgppCtx = update.GetTgppCtx()
 	return request
 }
