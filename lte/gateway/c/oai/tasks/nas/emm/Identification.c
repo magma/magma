@@ -38,6 +38,7 @@
 #include "emm_cnDef.h"
 #include "emm_fsm.h"
 #include "emm_regDef.h"
+#include "emm_cause.h"
 #include "mme_app_state.h"
 #include "nas_procedures.h"
 
@@ -170,6 +171,41 @@ int emm_proc_identification(
 
 /****************************************************************************
  **                                                                        **
+ ** Name:    check_plmn_restriction_identity_proc()                        **
+ **                                                                        **
+ ** Description: Check if the received PLMN matches with the               **
+ **              restricted PLMN list                                      **
+ **                                                                        **
+ ** Inputs:  imsi : IMSI received in identity                              **
+ **                         response                                       **
+ ** Outputs:                                                               **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int check_plmn_restriction_identity_proc(imsi_t imsi) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  for (uint8_t itr = 0; itr < mme_config.restricted_plmn.nb; itr++) {
+    if ((imsi.u.num.digit1 ==
+         mme_config.restricted_plmn.plmn[itr].mcc_digit1) &&
+        (imsi.u.num.digit2 ==
+         mme_config.restricted_plmn.plmn[itr].mcc_digit2) &&
+        (imsi.u.num.digit3 ==
+         mme_config.restricted_plmn.plmn[itr].mcc_digit3) &&
+        (imsi.u.num.digit4 ==
+         mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
+        (imsi.u.num.digit5 ==
+         mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
+        (imsi.u.num.digit6 ==
+         mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_PLMN_NOT_ALLOWED);
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
+}
+
+/****************************************************************************
+ **                                                                        **
  ** Name:    emm_proc_identification_complete()                            **
  **                                                                        **
  ** Description: Performs the identification completion procedure executed **
@@ -219,6 +255,18 @@ int emm_proc_identification_complete(
       nas_stop_T3470(ue_id, &ident_proc->T3470, timer_callback_args);
 
       if (imsi) {
+        emm_cause_t emm_cause = check_plmn_restriction_identity_proc(*imsi);
+        if (emm_cause != EMM_CAUSE_SUCCESS) {
+          OAILOG_ERROR(
+              LOG_NAS_EMM,
+              "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause "
+              "= "
+              "(%d)\n",
+              ue_id, emm_cause);
+          rc = emm_proc_attach_reject(ue_id, emm_cause);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+        }
+
         /*
          * Update the IMSI
          */

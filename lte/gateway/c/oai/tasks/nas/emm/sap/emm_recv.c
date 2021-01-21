@@ -49,6 +49,7 @@
 #include "emm_data.h"
 #include "mme_api.h"
 #include "mme_app_ue_context.h"
+#include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -118,9 +119,9 @@ int emm_recv_status(
  ** Name:    check_plmn_restriction()                                      **
  **                                                                        **
  ** Description: Check if the received PLMN matches with the               **
-                 restricted PLMN list                                      **
+ **              restricted PLMN list                                      **
  **                                                                        **
- ** Inputs:  eps_mob_identity: EPS mobile identity                        **
+ ** Inputs:  eps_mob_identity: EPS mobile identity                         **
  **                                                                        **
  ** Outputs:                                                               **
  **      Return:    RETURNok, RETURNerror                                  **
@@ -128,26 +129,11 @@ int emm_recv_status(
  **                                                                        **
  ***************************************************************************/
 int check_plmn_restriction(eps_mobile_identity_t eps_mob_identity) {
-  uint8_t itr;
-  if (eps_mob_identity.guti.typeofidentity == EPS_MOBILE_IDENTITY_GUTI) {
-    for (itr = 0; itr < mme_config.restricted_plmn.nb; itr++) {
-      if ((eps_mob_identity.guti.mcc_digit1 ==
-           mme_config.restricted_plmn.plmn[itr].mcc_digit1) &&
-          (eps_mob_identity.guti.mcc_digit2 ==
-           mme_config.restricted_plmn.plmn[itr].mcc_digit2) &&
-          (eps_mob_identity.guti.mcc_digit3 ==
-           mme_config.restricted_plmn.plmn[itr].mcc_digit3) &&
-          (eps_mob_identity.guti.mnc_digit1 ==
-           mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
-          (eps_mob_identity.guti.mnc_digit2 ==
-           mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
-          (eps_mob_identity.guti.mnc_digit3 ==
-           mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
-        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
-      }
-    }
-  } else if (eps_mob_identity.imsi.typeofidentity == EPS_MOBILE_IDENTITY_IMSI) {
-    for (itr = 0; itr < mme_config.restricted_plmn.nb; itr++) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  /* If typeofidentity is GUTI, identity request is sent. After
+   the reception of identity response, plmn check is done*/
+  if (eps_mob_identity.imsi.typeofidentity == EPS_MOBILE_IDENTITY_IMSI) {
+    for (uint8_t itr = 0; itr < mme_config.restricted_plmn.nb; itr++) {
       if ((eps_mob_identity.imsi.identity_digit1 ==
            mme_config.restricted_plmn.plmn[itr].mcc_digit1) &&
           (eps_mob_identity.imsi.identity_digit2 ==
@@ -160,11 +146,11 @@ int check_plmn_restriction(eps_mobile_identity_t eps_mob_identity) {
            mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
           (eps_mob_identity.imsi.identity_digit6 ==
            mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
-        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_PLMN_NOT_ALLOWED);
       }
     }
   }
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
 }
 
 /****************************************************************************
@@ -197,13 +183,14 @@ int emm_recv_attach_request(
    */
 
   // Check for PLMN restriction
-  if (check_plmn_restriction(msg->oldgutiorimsi) != RETURNok) {
+  *emm_cause = check_plmn_restriction(msg->oldgutiorimsi);
+  if (*emm_cause != EMM_CAUSE_SUCCESS) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
         "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
         "(%d)\n",
-        ue_id, EMM_CAUSE_PLMN_NOT_ALLOWED);
-    rc = emm_proc_attach_reject(ue_id, EMM_CAUSE_PLMN_NOT_ALLOWED);
+        ue_id, *emm_cause);
+    rc = emm_proc_attach_reject(ue_id, *emm_cause);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
