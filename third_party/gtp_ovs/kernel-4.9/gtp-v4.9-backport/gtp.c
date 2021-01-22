@@ -47,6 +47,13 @@ enum ifla_gtp_role {
 
 #define GTP_PDP_HASHSIZE 1024
 #define GTPA_PEER_ADDRESS GTPA_SGSN_ADDRESS /* maintain legacy attr name */
+#define GTP_EXTENSION_HDR_FLAG 0x04
+
+struct gtpu_ext_hdr {
+	__be16 seq_num;
+	u8 n_pdu;
+        u8 type;
+};
 
 /* An active session for the subscriber. */
 struct pdp_ctx {
@@ -324,7 +331,28 @@ static int gtp1u_udp_encap_recv(struct gtp_dev *gtp, struct sk_buff *skb)
 	 * If any of the bit is set, then the remaining ones also have to be
 	 * set.
 	 */
-	if (gtp1->flags & GTP1_F_MASK)
+	if (gtp1->flags & GTP_EXTENSION_HDR_FLAG) {
+		struct gtpu_ext_hdr *geh;
+		u8 next_hdr;
+
+		geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
+		netdev_dbg(gtp->dev, "ext type type %d\n", geh->type);
+
+		hdrlen += sizeof (struct gtpu_ext_hdr);
+		next_hdr = geh->type;
+		while (next_hdr) {
+			u8 len = *(u8 *) (skb->data + hdrlen);
+
+			hdrlen += (len * 4);
+			if (!pskb_may_pull(skb, hdrlen)) {
+				netdev_dbg(gtp->dev, "malformed packet %d", hdrlen);
+				return -1;
+			}
+			next_hdr = *(u8*) (skb->data + hdrlen - 1);
+			netdev_dbg(gtp->dev, "current hdr len %d next hdr type: %d\n", len, next_hdr);
+		}
+		netdev_dbg(gtp->dev, "pkt type: %x", *(u8*) (skb->data + hdrlen));
+	} else if (gtp1->flags & GTP1_F_MASK)
 		hdrlen += 4;
 
 	/* Make sure the header is larger enough, including extensions. */
@@ -1637,7 +1665,7 @@ static int __init gtp_init(void)
 	if (err < 0)
 		goto unreg_genl_family;
 
-	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v7\n",
+	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v8\n",
 		sizeof(struct pdp_ctx));
 	return 0;
 
