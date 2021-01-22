@@ -24,14 +24,21 @@ import (
 	"magma/orc8r/lib/go/definitions"
 
 	"github.com/golang/glog"
+	"google.golang.org/grpc"
 )
 
 const (
 	defaultCategoryID = "magma"
+	// Set max msg received to 50MB
+	DefaultMaxGRPCMsgRecvSize = 50 * 1024 * 1024
 )
 
 func main() {
-	srv, err := service.NewOrchestratorService(fbinternal.ModuleName, fbinternal_service.ServiceName)
+	srv, err := service.NewOrchestratorService(
+		fbinternal.ModuleName,
+		fbinternal_service.ServiceName,
+		grpc.MaxRecvMsgSize(DefaultMaxGRPCMsgRecvSize),
+	)
 	if err != nil {
 		glog.Fatalf("Error creating orc8r service for fbinternal: %s", err)
 	}
