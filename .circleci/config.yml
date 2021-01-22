@@ -91,6 +91,20 @@ orbs:
                 circleci step halt
 
 commands:
+  teravm:
+    description: Run command in teravm
+    parameters:
+      workdir:
+        description: Path to cd into
+        type: string
+      command:
+        description: Command to run
+        type: string
+    steps:
+      - run: |
+          cd << parameters.workdir >>
+          << parameters.command >>
+
   run-with-retry:
     description: Run command with retry
     parameters:
@@ -783,6 +797,19 @@ jobs:
           artifact_name: CWF Operator
           version_path: versions/cwf_operator_version
       - magma_slack_notify
+  
+  ###TeraVM Run_Status & Upgrade_Run_3GPP_Tests
+
+  Upgrade_Run_3GPP_Tests_teravm:
+    machine: true
+    resource_class: magma/teravm
+    environment:
+      FAB_ROOT: /home/magma
+    steps:
+      - teravm:
+          workdir: ${FAB_ROOT}
+          command: fab upgrade_to_latest_and_run_3gpp_tests:setup_2
+      - magma_slack_notify
 
   ### NMS
 
@@ -1094,6 +1121,14 @@ workflows:
     jobs:
       - xwfm-test:
           notify_magma_ci: false
+  
+  teravm:
+    triggers:
+      - schedule:
+          cron: "0 7 * * *"
+          <<: *only_master
+    jobs:
+      - Upgrade_Run_3GPP_Tests_teravm
 
   nms:
     jobs:
