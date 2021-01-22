@@ -36,7 +36,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 from ipaddress import ip_address, ip_network
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 from random import choice
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
@@ -71,19 +71,21 @@ class IpDescriptorMap:
         ip_desc = self.ip_states[state].pop(ip.exploded, None)
         return ip_desc
 
-    def pop_ip_from_state(self, state: IPState) -> IPDesc:
+    def pop_ip_from_state(self, state: IPState) -> Optional[IPDesc]:
         """ Pop an IP from a internal dict """
         assert state in IPState, "unknown state %s" % state
 
-        ip_state_key = choice(list(self.ip_states[state].keys()))
-        ip_desc = self.ip_states[state].pop(ip_state_key)
-        return ip_desc
+        try:
+            _, ip_desc = self.ip_states[state].popitem()
+            return ip_desc
+        except KeyError:
+            return None
 
-    def get_ip_count(self, state: IPState) -> int:
-        """ Return number of IPs in a state """
+    def is_ip_state_map_empty(self, state: IPState) -> bool:
+        """ Return if IPs map is empty for a given state """
         assert state in IPState, "unknown state %s" % state
 
-        return len(self.ip_states[state])
+        return self.ip_states[state] == False
 
     def test_ip_state(self, ip: ip_address, state: IPState) -> bool:
         """ check if IP is in state X """
