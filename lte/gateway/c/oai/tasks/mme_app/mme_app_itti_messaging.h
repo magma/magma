@@ -37,6 +37,7 @@
 #include "itti_types.h"
 #include "mme_app_desc.h"
 #include "mme_app_ue_context.h"
+#include "mme_app_procedures.h"
 #include "s1ap_messages_types.h"
 #include "mme_app_defs.h"
 
@@ -118,6 +119,11 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
+
+void mme_app_send_s1ap_e_rab_modification_confirm(
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    const enb_ue_s1ap_id_t enb_ue_s1ap_id,
+    const mme_app_s1ap_proc_modify_bearer_ind_t* const proc);
 
 void nas_itti_sgsap_uplink_unitdata(
     const char* const imsi, uint8_t imsi_len, bstring nas_msg, imeisv_t* imeisv,

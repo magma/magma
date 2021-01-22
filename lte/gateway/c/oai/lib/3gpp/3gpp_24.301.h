@@ -207,7 +207,27 @@ typedef struct ue_network_capability_s {
 #define UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH 7
 
 typedef struct ue_security_capability_s {
-  /* EPS encryption algorithms supported (octet 3) */
+/* NR encryption algorithms supported (octet 1) */
+#define UE_SECURITY_CAPABILITY_NEA0 0b10000000
+#define UE_SECURITY_CAPABILITY_NEA1 0b01000000
+#define UE_SECURITY_CAPABILITY_NEA2 0b00100000
+#define UE_SECURITY_CAPABILITY_NEA3 0b00010000
+#define UE_SECURITY_CAPABILITY_NEA4 0b00001000
+#define UE_SECURITY_CAPABILITY_NEA5 0b00000100
+#define UE_SECURITY_CAPABILITY_NEA6 0b00000010
+#define UE_SECURITY_CAPABILITY_NEA7 0b00000001
+  uint8_t nea;
+  /* NR integrity algorithms supported (octet 2) */
+#define UE_SECURITY_CAPABILITY_NIA0 0b10000000
+#define UE_SECURITY_CAPABILITY_NIA1 0b01000000
+#define UE_SECURITY_CAPABILITY_NIA2 0b00100000
+#define UE_SECURITY_CAPABILITY_NIA3 0b00010000
+#define UE_SECURITY_CAPABILITY_NIA4 0b00001000
+#define UE_SECURITY_CAPABILITY_NIA5 0b00000100
+#define UE_SECURITY_CAPABILITY_NIA6 0b00000010
+#define UE_SECURITY_CAPABILITY_NIA7 0b00000001
+  uint8_t nia;
+/* EPS encryption algorithms supported (octet 3) */
 #define UE_SECURITY_CAPABILITY_EEA0 0b10000000
 #define UE_SECURITY_CAPABILITY_EEA1 0b01000000
 #define UE_SECURITY_CAPABILITY_EEA2 0b00100000
@@ -227,6 +247,7 @@ typedef struct ue_security_capability_s {
 #define UE_SECURITY_CAPABILITY_EIA6 0b00000010
 #define UE_SECURITY_CAPABILITY_EIA7 0b00000001
   uint8_t eia;
+  bool nr_present;
   bool umts_present;
   bool gprs_present;
   /* UMTS encryption algorithms supported (octet 5) */

@@ -29,6 +29,7 @@
 #include "intertask_interface.h"
 #include "mme_app_defs.h"
 #include "mme_app_ue_context.h"
+#include "mme_app_session_context.h"
 #include "sgw_ie_defs.h"
 #include "common_defs.h"
 #include "mme_app_procedures.h"
@@ -113,6 +114,85 @@ static void mme_app_free_s11_procedure_create_bearer(
   // DO here specific releases (memory,etc)
   // nothing to do actually
   free_wrapper((void**) s11_proc);
+}
+
+//------------------------------------------------------------------------------
+int mme_app_run_s1ap_procedure_modify_bearer_ind(
+    mme_app_s1ap_proc_modify_bearer_ind_t* proc,
+    const itti_s1ap_e_rab_modification_ind_t* const e_rab_modification_ind) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  struct ue_mm_context_s* ue_context_p = NULL;
+  memcpy(
+      (void*) &proc->e_rab_to_be_modified_list,
+      (void*) &e_rab_modification_ind->e_rab_to_be_modified_list,
+      sizeof(proc->e_rab_to_be_modified_list));
+
+  memcpy(
+      (void*) &proc->e_rab_not_to_be_modified_list,
+      (void*) &e_rab_modification_ind->e_rab_not_to_be_modified_list,
+      sizeof(proc->e_rab_not_to_be_modified_list));
+
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(proc->mme_ue_s1ap_id);
+  // ue_session_pool_t* ue_session_pool =
+  // mme_ue_session_pool_exists_mme_ue_s1ap_id(
+  //  &mme_app_desc.mme_ue_session_pools, proc->mme_ue_s1ap_id);
+
+  if (!ue_context_p) {
+    OAILOG_INFO(
+        LOG_MME_APP, "No UE session pool is found" MME_UE_S1AP_ID_FMT ". \n",
+        proc->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+  // todo: LOCK_UE_SESSION_POOL
+  // todo: checking on procedures of the function..
+  // mme_app_is_ue_context_clean(ue_context)?!?
+  /** Get the PDN Context. */
+  // TODO sort by pdn_context if different SGWs (not the case now)
+  // pdn_context_t* registered_pdn_ctx =
+  //  RB_MIN(PdnContexts, &ue_context_p->pdn_contexts);
+
+  for (int nb_bearer = 0;
+       nb_bearer < proc->e_rab_to_be_modified_list.no_of_items; nb_bearer++) {
+    e_rab_to_be_modified_bearer_mod_ind_t* item =
+        &proc->e_rab_to_be_modified_list.item[nb_bearer];
+    /** Get the bearer context. */
+    bearer_context_t* bearer_context = NULL;
+    mme_app_get_bearer_context(ue_context_p, item->e_rab_id);
+    if (!bearer_context) {
+      OAILOG_ERROR(
+          LOG_MME_APP,
+          "No bearer context (ebi=%d) could be found for " MME_UE_S1AP_ID_FMT
+          ". Skipping.. \n",
+          item->e_rab_id, proc->mme_ue_s1ap_id);
+      continue;
+    }
+    /** Set all bearers, not in the failed list, to inactive. */
+    // bearer_context->bearer_state &= (~BEARER_STATE_ACTIVE);
+    /** Update the FTEID of the bearer context and uncheck the established
+     * state. */
+    bearer_context->enb_fteid_s1u.teid           = item->s1_xNB_fteid.teid;
+    bearer_context->enb_fteid_s1u.interface_type = S1_U_ENODEB_GTP_U;
+    /** Set the IP address from the FTEID. */
+    if (item->s1_xNB_fteid.ipv4) {
+      bearer_context->enb_fteid_s1u.ipv4 = 1;
+      bearer_context->enb_fteid_s1u.ipv4_address.s_addr =
+          item->s1_xNB_fteid.ipv4_address.s_addr;
+    }
+    if (item->s1_xNB_fteid.ipv6) {
+      bearer_context->enb_fteid_s1u.ipv6 = 1;
+      memcpy(
+          &bearer_context->enb_fteid_s1u.ipv6_address,
+          &item->s1_xNB_fteid.ipv6_address, sizeof(item->s1_xNB_fteid));
+    }
+    // bearer_context->bearer_state |= BEARER_STATE_ENB_CREATED;
+    // bearer_context->bearer_state |=
+    //   BEARER_STATE_MME_CREATED;  // todo: remove this flag.. unnecessary
+  }
+
+  // uint8_t flags = INTERNAL_FLAG_E_RAB_MOD_IND;
+  // send_modify_bearer_req(proc->mme_ue_s1ap_id,);
+  //  todo: UNLOCK_UE_SESSION_POOL;
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 //------------------------------------------------------------------------------

@@ -141,6 +141,18 @@ int encode_ms_network_capability(
       (msnetworkcapability->geran_ns & 0x1);
   encoded++;
 
+  *(buffer + encoded) =
+      ((msnetworkcapability->up_integ_prot_support & 0x1)
+       << 7) |  // spare coded as zero
+      ((msnetworkcapability->gia4 & 0x1) << 6) |
+      ((msnetworkcapability->gia5 & 0x1) << 5) |
+      ((msnetworkcapability->gia6 & 0x1) << 4) |
+      ((msnetworkcapability->gia7 & 0x1) << 3) |
+      ((msnetworkcapability->epco_ie_ind & 0x1) << 2) |
+      ((msnetworkcapability->rest_use_enhanc_cov_cap & 0x1) << 1) |
+      (msnetworkcapability->en_dc & 0x1);
+  encoded++;
+
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
   return encoded;
 }

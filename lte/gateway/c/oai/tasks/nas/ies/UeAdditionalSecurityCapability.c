@@ -15,37 +15,58 @@
  *      contact@openairinterface.org
  */
 
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "TLVEncoder.h"
+#include "bstrlib.h"
+
 #include "TLVDecoder.h"
-#include "EpsNetworkFeatureSupport.h"
+#include "TLVEncoder.h"
+#include "UeAdditionalSecurityCapability.h"
 
 //------------------------------------------------------------------------------
-int decode_eps_network_feature_support(
-    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+int decode_ue_additional_security_capability(
+    ue_additional_security_capability_t* uasc, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
   int decoded   = 0;
   uint8_t ielen = 0;
-
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
     decoded++;
   }
-
-  ielen = *(buffer + decoded);
-  decoded++;
+  DECODE_U8(buffer + decoded, ielen, decoded);
+  memset(uasc, 0, sizeof(ue_additional_security_capability_t));
+  OAILOG_TRACE(
+      LOG_NAS_EMM, "decode_ue_additional_security_capability len = %d\n",
+      ielen);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  epsnetworkfeaturesupport->b1 = (*(buffer + decoded++)) & 0x1;
-  epsnetworkfeaturesupport->b2 = (*(buffer + decoded++));
+  uasc->_5g_ea = (*(buffer + decoded++));
+  uasc->_5g_ea = uasc->_5g_ea << 8;
+  uasc->_5g_ea |= (*(buffer + decoded++));
+
+  uasc->_5g_ia = (*(buffer + decoded++));
+  uasc->_5g_ia = uasc->_5g_ia << 8;
+  uasc->_5g_ia |= (*(buffer + decoded++));
+
+  OAILOG_TRACE(
+      LOG_NAS_EMM, "ue_additional_security_capability decoded=%u\n", decoded);
+
+  if ((ielen + 2) != decoded) {
+    decoded = ielen + 1 + (iei > 0 ? 1 : 0) /* Size of header for this IE */;
+    OAILOG_TRACE(
+        LOG_NAS_EMM, "ue_additional_security_capability then decoded=%u\n",
+        decoded);
+  }
   return decoded;
 }
 
 //------------------------------------------------------------------------------
-int encode_eps_network_feature_support(
-    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+int encode_ue_additional_security_capability(
+    ue_additional_security_capability_t* uasc, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -53,7 +74,7 @@ int encode_eps_network_feature_support(
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, EPS_NETWORK_FEATURE_SUPPORT_MINIMUM_LENGTH, len);
+      buffer, UE_ADDITIONAL_SECURITY_CAPABILITY_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -62,9 +83,13 @@ int encode_eps_network_feature_support(
 
   lenPtr = (buffer + encoded);
   encoded++;
-  *(buffer + encoded) = 0x00 | (epsnetworkfeaturesupport->b1 & 0x01);
+  *(buffer + encoded) = uasc->_5g_ea >> 8;
   encoded++;
-  *(buffer + encoded) = epsnetworkfeaturesupport->b2;
+  *(buffer + encoded) = (uasc->_5g_ea & 0x00FF);
+  encoded++;
+  *(buffer + encoded) = uasc->_5g_ia >> 8;
+  encoded++;
+  *(buffer + encoded) = (uasc->_5g_ia & 0x00FF);
   encoded++;
 
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);

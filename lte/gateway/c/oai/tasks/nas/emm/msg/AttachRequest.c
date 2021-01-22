@@ -264,6 +264,22 @@ int decode_attach_request(
         attach_request->presencemask |= ATTACH_REQUEST_OLD_GUTI_TYPE_PRESENT;
         break;
 
+      case ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI:
+        if ((decoded_result = decode_ue_additional_security_capability(
+                 &attach_request->ueadditionalsecuritycapability,
+                 ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
+                 buffer + decoded, len - decoded)) <= 0) {
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+        }
+
+        decoded += decoded_result;
+        /*
+         * Set corresponding mask to 1 in presencemask
+         */
+        attach_request->presencemask |=
+            ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI;
+        break;
+
       case ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI:
         if ((decoded_result =
                  decode_voice_domain_preference_and_ue_usage_setting(

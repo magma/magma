@@ -130,6 +130,7 @@ set(libnas_ies_OBJS
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/SupportedCodecList.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/TrackingAreaIdentity.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/TrackingAreaIdentityList.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeAdditionalSecurityCapability.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeNetworkCapability.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeRadioCapabilityInformationUpdateNeeded.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeSecurityCapability.c

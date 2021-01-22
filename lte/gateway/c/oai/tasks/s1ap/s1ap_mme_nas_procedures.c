@@ -1011,6 +1011,45 @@ void s1ap_handle_conn_est_cnf(
         conn_est_cnf_pP->ue_security_capabilities_integrity_algorithms);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
   }
+
+  {
+    ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
+        1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
+    ie->id          = S1ap_ProtocolIE_ID_id_NRUESecurityCapabilities;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present =
+        S1ap_InitialContextSetupRequestIEs__value_PR_NRUESecurityCapabilities;
+
+    S1ap_NRUESecurityCapabilities_t* const nr_ue_security_capabilities =
+        &ie->value.choice.NRUESecurityCapabilities;
+
+    nr_ue_security_capabilities->nRencryptionAlgorithms.buf =
+        calloc(1, sizeof(uint16_t));
+    memcpy(
+        nr_ue_security_capabilities->nRencryptionAlgorithms.buf,
+        &conn_est_cnf_pP->nr_ue_security_capabilities_encryption_algorithms,
+        sizeof(uint16_t));
+    nr_ue_security_capabilities->nRencryptionAlgorithms.size        = 2;
+    nr_ue_security_capabilities->nRencryptionAlgorithms.bits_unused = 0;
+    OAILOG_DEBUG(
+        LOG_S1AP, "security_capabilities_encryption_algorithms 0x%04X\n",
+        conn_est_cnf_pP->nr_ue_security_capabilities_encryption_algorithms);
+
+    nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.buf =
+        calloc(1, sizeof(uint16_t));
+    memcpy(
+        nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.buf,
+        &conn_est_cnf_pP->nr_ue_security_capabilities_integrity_algorithms,
+        sizeof(uint16_t));
+    nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.size = 2;
+    nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.bits_unused =
+        0;
+    OAILOG_DEBUG(
+        LOG_S1AP, "security_capabilities_integrity_algorithms 0x%04X\n",
+        conn_est_cnf_pP->nr_ue_security_capabilities_integrity_algorithms);
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+  }
+
   /* mandatory */
   ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
       1, sizeof(S1ap_InitialContextSetupRequestIEs_t));

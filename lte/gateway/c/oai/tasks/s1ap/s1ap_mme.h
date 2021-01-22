@@ -73,6 +73,13 @@ ue_description_t* s1ap_new_ue(
     s1ap_state_t* state, const sctp_assoc_id_t sctp_assoc_id,
     enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
+/** \brief Look for given ue mme id in the list
+ * \param enb_id The unique ue_mme_id to search in list
+ * @returns NULL if no UE matchs the ue_mme_id, or reference to the ue element
+ *in list if matches
+ **/
+ue_description_t* s1ap_is_ue_mme_id_in_list(const mme_ue_s1ap_id_t ue_mme_id);
+
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove
  **/

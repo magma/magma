@@ -63,9 +63,12 @@
   (mSGpTR)->ittiMsg.s1ap_ue_context_mod_response
 #define S1AP_UE_CONTEXT_MODIFICATION_FAILURE(mSGpTR)                           \
   (mSGpTR)->ittiMsg.s1ap_ue_context_mod_failure
-
 #define S1AP_E_RAB_SETUP_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_setup_req
 #define S1AP_E_RAB_SETUP_RSP(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_setup_rsp
+#define S1AP_E_RAB_MODIFICATION_IND(mSGpTR)                                    \
+  (mSGpTR)->ittiMsg.s1ap_e_rab_modification_ind
+#define S1AP_E_RAB_MODIFICATION_CNF(mSGpTR)                                    \
+  (mSGpTR)->ittiMsg.s1ap_e_rab_modification_cnf
 #define S1AP_INITIAL_UE_MESSAGE(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.s1ap_initial_ue_message
 #define S1AP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_nas_dl_data_req
@@ -185,6 +188,7 @@ enum s1cause {
   S1AP_NAS_NORMAL_RELEASE,
   S1AP_NAS_DETACH,
   S1AP_RADIO_EUTRAN_GENERATED_REASON,
+  S1AP_RADIO_UNKNOWN_E_RAB_ID,
   S1AP_IMPLICIT_CONTEXT_RELEASE,
   S1AP_INITIAL_CONTEXT_SETUP_FAILED,
   S1AP_SCTP_SHUTDOWN_OR_RESET,
@@ -192,6 +196,8 @@ enum s1cause {
   S1AP_INVALID_MME_UE_S1AP_ID,
   S1AP_CSFB_TRIGGERED,
   S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS,
+  S1AP_SYSTEM_FAILURE,
+  S1AP_RADIO_MULTIPLE_E_RAB_ID,
   S1AP_NAS_MME_OFFLOADING,
   S1AP_NAS_MME_PENDING_OFFLOADING
 };
@@ -350,4 +356,22 @@ typedef struct itti_s1ap_path_switch_request_failure_s {
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
 } itti_s1ap_path_switch_request_failure_t;
+
+typedef struct itti_s1ap_e_rab_modification_ind_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id;
+  // E-RAB to be Modified List
+  e_rab_to_be_modified_bearer_mod_ind_list_t e_rab_to_be_modified_list;
+  e_rab_not_to_be_modified_bearer_mod_ind_list_t e_rab_not_to_be_modified_list;
+  // Optional
+} itti_s1ap_e_rab_modification_ind_t;
+
+typedef struct itti_s1ap_e_rab_modification_cnf_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id;
+  // E-RAB Modify List
+  e_rab_modify_bearer_mod_conf_list_t e_rab_modify_list;
+  // Optional
+  e_rab_list_t e_rab_failed_to_modify_list;
+} itti_s1ap_e_rab_modification_cnf_t;
 #endif /* FILE_S1AP_MESSAGES_TYPES_SEEN */

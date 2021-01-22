@@ -31,6 +31,7 @@
 #include "log.h"
 #include "common_types.h"
 #include "mme_app_ue_context.h"
+#include "mme_app_session_context.h"
 #include "common_defs.h"
 #include "mme_app_bearer_context.h"
 #include "3gpp_29.274.h"
@@ -87,6 +88,19 @@ bearer_context_t* mme_app_get_bearer_context(
   }
   return NULL;
 }
+
+//------------------------------------------------------------------------------
+// void mme_app_get_session_bearer_context_from_all(
+// ue_session_pool_t* const ue_sp, const ebi_t ebi,
+//  struct bearer_context_new_s** bc_pp) {
+// pdn_context_t *pdn_context = NULL, *pdn_context_safe = NULL;
+// RB_FOREACH_SAFE(
+//    pdn_context, PdnContexts, &ue_sp->pdn_contexts,
+//    pdn_context_safe) { /**< Use the safe iterator. */
+//   *bc_pp = mme_app_get_session_bearer_context(pdn_context, ebi);
+//   if (*bc_pp) break;
+///  }
+//}
 
 //------------------------------------------------------------------------------
 void mme_app_add_bearer_context(
