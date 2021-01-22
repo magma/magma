@@ -169,6 +169,10 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	})
 	assert.NoError(t, err)
 
+	listActual, err = blobstore.ListKeys(store, "network2", "t3")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"k3", "k4"}, listActual)
+
 	getManyActual, err = store.GetMany("network1", []storage.TypeAndKey{
 		{Type: "t1", Key: "k1"},
 		{Type: "t9", Key: "k9"},

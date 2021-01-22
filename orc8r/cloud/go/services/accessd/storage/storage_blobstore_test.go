@@ -90,7 +90,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Search",
+	blobStoreMock.On(
+		"Search",
 		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
 	).Return(map[string]blobstore.Blobs{}, someErr)
@@ -107,7 +108,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Search",
+	blobStoreMock.On(
+		"Search",
 		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
 	).Return(map[string]blobstore.Blobs{}, nil)
@@ -126,7 +128,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Search",
+	blobStoreMock.On(
+		"Search",
 		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
 	).Return(searchResult, nil)
@@ -143,7 +146,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Search",
+	blobStoreMock.On(
+		"Search",
 		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
 	).Return(searchResult, nil)

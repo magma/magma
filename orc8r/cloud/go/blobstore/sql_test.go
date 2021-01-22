@@ -27,41 +27,6 @@ import (
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
-func TestSqlBlobStorage_ListKeys(t *testing.T) {
-	happyPath := &testCase{
-		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT network_id, type, \"key\", version FROM network_table").
-				WithArgs("network", "type").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"network_id", "type", "key", "version"}).
-						AddRow("network", "t1", "key1", 42).
-						AddRow("network", "t2", "key2", 43),
-				)
-		},
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return blobstore.ListKeys(store, "network", "type")
-		},
-		expectedError:  nil,
-		expectedResult: []string{"key1", "key2"},
-	}
-
-	queryError := &testCase{
-		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT network_id, type, \"key\", version FROM network_table").
-				WithArgs("network", "type").
-				WillReturnError(errors.New("mock query error"))
-		},
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return blobstore.ListKeys(store, "network", "type")
-		},
-		expectedError:  errors.New("failed to query DB: mock query error"),
-		expectedResult: nil,
-	}
-
-	runCase(t, happyPath)
-	runCase(t, queryError)
-}
-
 func TestSqlBlobStorage_Get(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
