@@ -52,7 +52,7 @@ const siteConfig = {
     {label: ' | '},
     {href: '/', label: 'Docs'},
     {label: ' | '},
-    {href: 'https://github.org/magma', label: 'Code'},
+    {href: 'https://github.com/magma', label: 'Code'},
     {label: ' | '},
     {href: 'https://magmacore.org/community', label: 'Community'},
     {label: ' | '},
