@@ -1,9 +1,9 @@
 ---
-id: nms_how_to_guide
-title: NMS How To Guide
+id: tips_and_tricks
+title: Tips and Tricks
 hide_title: true
 ---
-# NMS How Tos
+# NMS Tips and Tricks
 
 1. How to find all subscribers connected to a particular gateway ?
 Gateway detail screen displays the eNodeBs and subscribers connected to a particular gateway.

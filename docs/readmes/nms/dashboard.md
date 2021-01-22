@@ -1,9 +1,9 @@
 ---
-id: nms_dashboard
-title: NMS Dashboard
+id: dashboard
+title: Dashboard
 hide_title: true
 ---
-# NMS Main Dashboard
+# Top Level Dashboard
 
 ## Network
 ![lte_dashboard1](assets/nms/userguide/lte_dashboard1.png)

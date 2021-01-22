@@ -1,6 +1,6 @@
 ---
-id: nms_network
-title: NMS Network
+id: network
+title: Network
 hide_title: true
 ---
 
