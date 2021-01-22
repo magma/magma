@@ -1,0 +1,73 @@
+---
+id: upgrade_1_4
+title: Upgrade to v1.4
+hide_title: true
+---
+
+# Upgrade to v1.4
+
+This guide covers upgrading Orchestrator deployments from v1.3 to v1.4.
+Upgrades which skip versions (e.g. v1.2 to v1.4) are not explicitly documented
+or supported at this time.
+
+The v1.4 upgrade follows a standard procedure:
+
+- Upgrade Terraform modules
+- Bump version numbers
+
+## Prerequisites
+
+Build and publish the application containers and Helm charts on the head of the
+release branch by following the [Build Orchestrator](https://docs.magmacore.org/docs/orc8r/deploy_build)
+documentation.
+
+If you are using local Terraform state (the default), ensure all Terraform
+state files are located in your working directory before proceeding. This means
+ `terraform show` should list existing state, rather than outputting
+ `No state`.
+
+## Upgrade Terraform modules
+
+Set the `source` values for each of the Orchestrator modules in your root
+Terraform module to point to this release's modules and bump chart and
+container versions
+
+```hcl-terraform
+# this will likely be found in 'main.tf'
+
+module orc8r {
+  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.4"
+  # ...
+}
+
+module orc8r-app {
+  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.4"
+  # ...
+  orc8r_chart_version   = "1.5.8"
+  orc8r_tag             = "MAGMA_TAG"       # from build step, e.g. v1.4.0
+  orc8r_deployment_type = DEPLOYMENT_TYPE   # valid options are: ["fwa", "federated_fwa", "all"]
+}
+```
+
+Bump your chart version to `1.5.8` and `orc8r_tag` to the semver tag you
+published your new Orchestrator container images as. You also need to set
+the `orc8r_deployment_type` variable to the deployment type that you intend to
+deploy. This type sets which orc8r modules will run.
+
+Then, prepare Terraform for the upgrade
+
+```bash
+terraform init --upgrade
+terraform refresh
+```
+
+## Terraform apply
+
+Apply the upgrade
+
+```bash
+terraform apply     # Check this output VERY carefully!
+```
+
+After applying Terraform changes, all your application components should be
+upgraded.
