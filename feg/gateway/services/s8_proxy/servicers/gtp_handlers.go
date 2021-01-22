@@ -51,7 +51,7 @@ func getHandle_CreateSessionResponse() gtpv2.HandlerFunc {
 
 		csResGtp := msg.(*message.CreateSessionResponse)
 		csRes := &protos.CreateSessionResponsePgw{}
-		glog.V(2).Infof("Received Create Session Response:\n%s", csResGtp.String())
+		glog.V(2).Infof("Received Create Session Response (gtp):\n%s", csResGtp.String())
 
 		// check Cause value first.
 		if causeIE := csResGtp.Cause; causeIE != nil {
