@@ -129,3 +129,8 @@ swx_proxy:
   service:
     labels: {}
     annotations: {}
+
+s8_proxy:
+  service:
+    labels: {}
+    annotations: {}

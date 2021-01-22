@@ -14,9 +14,11 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
@@ -259,6 +261,10 @@ function GatewayMenuInternal(props: WithAlert) {
 }
 const GatewayMenu = withAlert(GatewayMenuInternal);
 
+export type GatewayDetailType = {
+  gwInfo: lte_gateway,
+  refresh: boolean,
+};
 export function GatewayDetail() {
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -339,6 +345,18 @@ function GatewayOverview() {
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const gwCtx = useContext(GatewayContext);
   const gwInfo = gwCtx.state[gatewayId];
+  const [refresh, setRefresh] = useState(true);
+  const [refreshEnodebs, setRefreshEnodebs] = useState(false);
+  const [refreshSubscribers, setRefreshSubscribers] = useState(false);
+
+  const filter = (refresh: boolean, setRefresh) => {
+    return (
+      <AutorefreshCheckbox
+        autorefreshEnabled={refresh}
+        onToggle={() => setRefresh(current => !current)}
+      />
+    );
+  };
 
   return (
     <div className={classes.dashboardRoot}>
@@ -362,19 +380,31 @@ function GatewayOverview() {
         <Grid item xs={12} md={6}>
           <Grid container spacing={4} direction="column">
             <Grid item>
-              <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <GatewayDetailStatus />
+              <CardTitleRow
+                icon={GraphicEqIcon}
+                label="Status"
+                filter={() => filter(refresh, setRefresh)}
+              />
+              <GatewayDetailStatus refresh={refresh} />
             </Grid>
             <Grid item>
               <CardTitleRow
                 icon={SettingsInputAntennaIcon}
                 label="Connected eNodeBs"
+                filter={() => filter(refreshEnodebs, setRefreshEnodebs)}
               />
-              <GatewayDetailEnodebs gwInfo={gwInfo} />
+              <GatewayDetailEnodebs gwInfo={gwInfo} refresh={refreshEnodebs} />
             </Grid>
             <Grid item>
-              <CardTitleRow icon={PeopleIcon} label="Subscribers" />
-              <GatewayDetailSubscribers gwInfo={gwInfo} />
+              <CardTitleRow
+                icon={PeopleIcon}
+                label="Subscribers"
+                filter={() => filter(refreshSubscribers, setRefreshSubscribers)}
+              />
+              <GatewayDetailSubscribers
+                gwInfo={gwInfo}
+                refresh={refreshSubscribers}
+              />
             </Grid>
           </Grid>
         </Grid>

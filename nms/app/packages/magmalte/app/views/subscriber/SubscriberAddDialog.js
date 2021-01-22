@@ -391,7 +391,7 @@ export function SubscriberEditDialog(props: DialogProps) {
         variant: 'success',
       });
     } catch (e) {
-      const errMsg = e.response.data?.message ?? e.message;
+      const errMsg = e.response?.data?.message ?? e.message;
       setError('error saving ' + subscriberState.id + ' : ' + errMsg);
       return;
     }

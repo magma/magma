@@ -143,7 +143,6 @@ bool RestartHandler::populate_sessions_to_terminate_with_retries() {
 void RestartHandler::terminate_previous_session(
     const std::string& sid, const std::string& session_id) {
   SessionTerminateRequest term_req;
-  term_req.set_sid(sid);  // TODO Deprecate
   term_req.mutable_common_context()->mutable_sid()->set_id(sid);
   term_req.set_session_id(session_id);
   std::promise<bool> termination_res;
