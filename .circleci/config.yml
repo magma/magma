@@ -91,6 +91,7 @@ orbs:
                 circleci step halt
 
 commands:
+
   teravm:
     description: Run command in teravm
     parameters:
