@@ -2,15 +2,13 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: magma/orc8r/cloud/go/tools/swaggergen/testdata/base/models
-  dependencies: []
+  go-package: magma/orc8r/cloud/go/swagger
+  dependencies: 'orc8r/cloud/go/swagger/testdata/common/common.yml'
   temp-gen-filename: base-swagger.yml
-  output-dir: orc8r/cloud/go/tools/swaggergen/testdata/base
+  output-dir: magma/orc8r/cloud/go/swagger/testdata
   types:
-    - go-struct-name: BarDef
-      filename: bar_def_swaggergen.actual
-    - go-struct-name: FooDef
-      filename: foo_def_swaggergen.actual
+    - go-struct-name: FruitBasket
+      filename: fruit_basket_swaggergen.go
 
 info:
   title: Test
@@ -30,44 +28,42 @@ schemes:
   - http
 
 tags:
-  - name: Tag
-    description: Tag foobar
+  - name: BitterTag
+    description: Tag Bitter
 
 paths:
-  /foopath:
-    get:
-      summary: Foo
+  /fruitbasketpath:
+    post:
+      summary: Make Fruit Basket
+      parameters:
+        - $ref: '#/definitions/fruit_basket'
       responses:
         '200':
-          description: Bar baz
+          description: Basket Made
           schema:
             type: integer
+        default:
+          $ref: './common-swagger.yml#/responses/UnexpectedError'
+
+parameters:
+  fruitColor:
+    in: path
+    name: color
+    description: fruit color
+    required: true
+    type: string
 
 definitions:
-  foo_def:
-    type: object
-    required:
-      - bar
-      - baz
-    properties:
-      bar:
-        type: string
-        minLength: 1
-      baz:
-        type: integer
-  bar_def:
-    type: object
-    required:
-      - baz
-      - quz
-    properties:
-      baz:
-        type: object
-        properties:
-          hello:
-            type: string
-            minLength: 1
-          world:
-            type: integer
-      quz:
-        type: integer
+  fruit_basket:
+    type: array
+    items:
+      $ref: './common-swagger.yml#/definitions/fruit'
+      maxItems: 2
+      minItems: 2
+      example: ["apple", "orange"]
+  season:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Winter
+

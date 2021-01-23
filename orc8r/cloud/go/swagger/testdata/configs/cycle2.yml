@@ -4,14 +4,15 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: magma/orc8r/cloud/go/tools/swaggergen/testdata/cycle2/models
+  go-package: magma/orc8r/cloud/go/swagger
   dependencies:
-    - 'orc8r/cloud/go/tools/swaggergen/testdata/cycle1.yml'
+    - 'orc8r/cloud/go/swagger/testdata/configs/cycle1.yml'
+    - 'orc8r/cloud/go/swagger/testdata/common/common.yml'
   temp-gen-filename: cycle2-swagger.yml
-  output-dir: orc8r/cloud/go/tools/swaggergen/testdata/cycle2
+  output-dir: magma/orc8r/cloud/go/swagger/testdata
   types:
-    - go-struct-name: Cycle2
-      filename: cycle2_swaggergen.go
+    - go-struct-name: Egg
+      filename: egg_swaggergen.go
 
 info:
   title: Test
@@ -30,22 +31,45 @@ schemes:
   - https
   - http
 
-tags:
-  - name: Tag
-    description: Tag foobar
-
 paths:
-  /foopath:
+  /fruitpath/{fruit}:
     get:
-      summary: Foo
+      summary: Eat fruit
+      tags:
+        - SweetTag
+      parameters:
+        - $ref: './common-swagger.yml#/definitions/fruit'
       responses:
         '200':
-          description: Bar baz
+          description: Success
           schema:
             type: integer
+  /foopath/{egg}:
+    put:
+      parameters:
+        - $ref: '#/definitions/egg'
+        - in: body
+          name: egg name
+          description: egg to add
+          required: true
+          schema:
+            $ref: './cycle1-swagger.yml/definitions/chicken'
+      summary: Give Egg
+      responses:
+        '200':
+          description: Egg Given
+          schema:
+            type: integer
+parameters:
+  fruitColor:
+    in: path
+    name: color
+    description: fruit color
+    required: true
+    type: string
 
 definitions:
-  cycle2:
+  egg:
     type: object
     required:
       - bar

@@ -20,10 +20,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/tools/combine_swagger/spec"
+	"magma/orc8r/cloud/go/tools/swaggergen/generate"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
 func init() {
@@ -50,16 +53,22 @@ func TestCombine(t *testing.T) {
 	cleanup()
 	defer cleanup()
 
-	cfgs, common, err := spec.Load(cfgsDir, commonFilepath)
+	cfgsStr, commonStr, err := spec.Load(cfgsDir, commonFilepath)
+	assert.NoError(t, err)
+	cfgs, common, err := swagger.ConvertToSwagger(commonStr, cfgsStr)
 	assert.NoError(t, err)
 
-	combined, errs := spec.Combine(common, cfgs)
+	combinedSpec, errs := swagger.Combine(common, cfgs)
 	assert.Error(t, errs)
 	merrs, ok := errs.(*multierror.Error)
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
-	spec.Write(combined, outFilepath)
+	out, err := marshalToYAML(combinedSpec)
+	assert.NoError(t, err)
+
+	err = spec.Write(out, outFilepath)
+	assert.NoError(t, err)
 
 	expected := readFile(t, goldenFilepath)
 	actual := readFile(t, outFilepath)
@@ -76,4 +85,14 @@ func readFile(t *testing.T, filepath string) string {
 	data, err := ioutil.ReadFile(filepath)
 	assert.NoError(t, err)
 	return string(data)
+}
+
+
+// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
+func marshalToYAML(spec generate.SwaggerSpec) (string, error) {
+	d, err := yaml.Marshal(&spec)
+	if err != nil {
+		return "", err
+	}
+	return string(d), nil
 }

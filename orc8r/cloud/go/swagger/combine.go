@@ -14,8 +14,6 @@
 package swagger
 
 import (
-	"github.com/golang/glog"
-
 	"regexp"
 	"sort"
 
@@ -26,45 +24,24 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Load specs from YAML format to Swagger structs.
-func Load(common string, configs []string) ([]generate.SwaggerSpec, generate.SwaggerSpec, error) {
-	specs, err := loadSwaggerSpecs(configs)
-	if err != nil {
-		return nil, generate.SwaggerSpec{}, err
-	}
 
-	commonSpec, err := loadCommonSpec(common)
+// CombineStr is a wrapper function around the function Combine()
+// which serves to combine the contents of multiple swagger specs.
+// The output is the merged copy of the swagger spec
+func CombineStr(common string, configs []string) (string, error, error) {
+	cfgs, commonCfg, err := ConvertToSwagger(common, configs)
 	if err != nil {
-		return nil, generate.SwaggerSpec{}, err
-	}
-
-	return specs, commonSpec, nil
-}
-
-/*
-CombineStr is a wrapper function around the function Combine()
-which serves to combine multiple swagger specs whose contents
-are passed in. The output is the merged copy of the swagger spec
-*/
-func CombineStr(common string, configs []string) (string, error) {
-	cfgs, commonCfg, err := Load(common, configs)
-	if err != nil {
-		return "Error: Load of Swagger Specs Failed", err
+		return "", err, nil
 	}
 	
 	combinedSpec, warnings := Combine(commonCfg, cfgs)
-	glog.V(2).Infof("Combining Swagger Specs Together \n")
-	merrs, _ := warnings.(*multierror.Error)
-	if len(merrs.Errors) != 0 {
-		glog.Warningf("%+v merge errors: %+v", len(merrs.Errors), merrs)
-	}
 
-	out, err := MarshalToYAML(combinedSpec)
+	out, err := marshalToYAML(combinedSpec)
 	if err != nil {
-		return "Error: Marshaling of Combined Swagger Spec Failed", err
+		return "", err, nil
 	}
 
-	return out, merrs.ErrorOrNil()
+	return out, nil, warnings
 }
 
 // Combine multiple Swagger specs, giving precedence to the "common" spec.
@@ -107,9 +84,25 @@ func Combine(common generate.SwaggerSpec, specs []generate.SwaggerSpec) (generat
 	return out, errs.ErrorOrNil()
 }
 
-// loadSwaggerSpecs unmarshals all of the passed in Swagger Specs YAML strings
+// ConvertToSwagger converts a list of specs and a common spec
+// from YAML format to Swagger structs.
+func ConvertToSwagger(common string, configs []string) ([]generate.SwaggerSpec, generate.SwaggerSpec, error) {
+	specs, err := convertCfgsToSwagger(configs)
+	if err != nil {
+		return nil, generate.SwaggerSpec{}, err
+	}
+
+	commonSpec, err := convertCommonToSwagger(common)
+	if err != nil {
+		return nil, generate.SwaggerSpec{}, err
+	}
+
+	return specs, commonSpec, nil
+}
+
+// convertCfgsToSwagger unmarshals all of the passed in Swagger Specs YAML strings
 // to Swagger structs.
-func loadSwaggerSpecs(configs []string) ([]generate.SwaggerSpec, error){
+func convertCfgsToSwagger(configs []string) ([]generate.SwaggerSpec, error){
 	editedContents := makeAllYAMLReferencesLocal(configs)
 
 	specs, err := unmarshalManyFromYAML(editedContents)
@@ -120,21 +113,21 @@ func loadSwaggerSpecs(configs []string) ([]generate.SwaggerSpec, error){
 	return specs, err
 }
 
-// loadCommonSpec unmarshals the common Swagger Specs YAML to struct.
-func loadCommonSpec(common string) (generate.SwaggerSpec, error) {
-	spec, err := UnmarshalFromYAML(common)
+// convertCommonToSwagger unmarshals the common Swagger Spec YAML to a swagger struct.
+func convertCommonToSwagger(common string) (generate.SwaggerSpec, error) {
+	spec, err := unmarshalFromYAML(common)
 	if err != nil {
 		return generate.SwaggerSpec{}, err
 	}
 	return spec ,err
 }
 
-// UnmarshalFromYAML maps the passed strings to their respective
+// unmarshalFromYAML maps the passed strings to their respective
 // Swagger specs.
 func unmarshalManyFromYAML(swaggerYAMLs []string) ([]generate.SwaggerSpec, error) {
 	var specs []generate.SwaggerSpec
 	for _, swaggerYAML := range swaggerYAMLs {
-		s, err := UnmarshalFromYAML(swaggerYAML)
+		s, err := unmarshalFromYAML(swaggerYAML)
 		if err != nil {
 			return nil, err
 		}
@@ -143,15 +136,15 @@ func unmarshalManyFromYAML(swaggerYAMLs []string) ([]generate.SwaggerSpec, error
 	return specs, nil
 }
 
-// UnmarshalFromYAML unmarshals the passed string to a Swagger spec.
-func UnmarshalFromYAML(swaggerYAML string) (generate.SwaggerSpec, error) {
+// unmarshalFromYAML unmarshals the passed string to a Swagger spec.
+func unmarshalFromYAML(swaggerYAML string) (generate.SwaggerSpec, error) {
 	spec := generate.SwaggerSpec{}
 	err := yaml.Unmarshal([]byte(swaggerYAML), &spec)
 	return spec, err
 }
 
-// MarshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
-func MarshalToYAML(spec generate.SwaggerSpec) (string, error) {
+// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
+func marshalToYAML(spec generate.SwaggerSpec) (string, error) {
 	d, err := yaml.Marshal(&spec)
 	if err != nil {
 		return "", err

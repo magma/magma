@@ -28,6 +28,7 @@ import (
 	"flag"
 	"fmt"
 
+	"magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/tools/combine_swagger/spec"
 
 	"github.com/golang/glog"
@@ -48,7 +49,11 @@ func main() {
 	}
 
 	fmt.Printf("Combining specs together...\n\n")
-	outSpec, warnings := spec.Combine(commonCfg, cfgs)
+	outSpec, err, warnings := swagger.CombineStr(commonCfg, cfgs)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	if warnings != nil {
 		fmt.Printf("Warnings: %+v\n", warnings)
 	}

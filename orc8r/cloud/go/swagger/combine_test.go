@@ -16,16 +16,17 @@ package swagger_test
 import (
 	"flag"
 	"io/ioutil"
-	"magma/orc8r/cloud/go/tools/swaggergen/generate"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/swagger"
+	"magma/orc8r/cloud/go/tools/combine_swagger/spec"
+	"magma/orc8r/cloud/go/tools/swaggergen/generate"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
 func init() {
@@ -39,7 +40,7 @@ var (
 	outFilepath    = filepath.Join(testdataDir, "out.yml")
 	goldenFilepath = filepath.Join(testdataDir, "out.yml.golden")
 
-	nErrsFromCombine = 9
+	nErrsFromCombine = 5
 )
 
 // TestCombine tests the generated output against a golden file.
@@ -52,20 +53,23 @@ func TestCombine(t *testing.T){
 	cleanup()
 	defer cleanup()
 
-	cfgFiles, err := getFilepaths(t, cfgsDir)
-	assert.NoError(t, err)
-	cfgsStr, commonStr := readSpecs(t, cfgFiles, commonFilepath)
-
-	cfgs, common, err := swagger.Load(commonStr, cfgsStr)
+	cfgsStr, commonStr, err := spec.Load(cfgsDir, commonFilepath)
 	assert.NoError(t, err)
 
-	combinedSpecs, errs := swagger.Combine(common, cfgs)
+	cfgs, common, err := swagger.ConvertToSwagger(commonStr, cfgsStr)
+	assert.NoError(t, err)
+
+	combinedSpecSwagger, errs := swagger.Combine(common, cfgs)
 	assert.Error(t, errs)
 	merrs, ok := errs.(*multierror.Error)
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
-	write(combinedSpecs, outFilepath)
+	out, err := marshalToYAML(combinedSpecSwagger)
+	assert.NoError(t, err)
+
+	err = spec.Write(out, outFilepath)
+	assert.NoError(t, err)
 
 	expected := readFile(t, goldenFilepath)
 	actual := readFile(t, outFilepath)
@@ -76,21 +80,19 @@ func TestCombineStr(t *testing.T){
 	cleanup()
 	defer cleanup()
 
-	cfgFiles, err := getFilepaths(t, cfgsDir)
-	assert.NoError(t, err)
-	cfgs, common := readSpecs(t, cfgFiles, commonFilepath)
+	cfgs, common, err := spec.Load(cfgsDir, commonFilepath)
 	assert.NoError(t, err)
 
-	combinedSpecsStr, errs := swagger.CombineStr(common, cfgs)
+	out, err, errs := swagger.CombineStr(common, cfgs)
+	assert.NoError(t, err)
 
 	assert.Error(t, errs)
 	merrs, ok := errs.(*multierror.Error)
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
-	output, err := swagger.UnmarshalFromYAML(combinedSpecsStr)
+	err = spec.Write(out, outFilepath)
 	assert.NoError(t, err)
-	write(output, outFilepath)
 
 	expected := readFile(t, goldenFilepath)
 	actual := readFile(t, outFilepath)
@@ -102,22 +104,6 @@ func cleanup() {
 	_ = os.Remove(outFilepath)
 }
 
-func readSpecs(t *testing.T, cfgFiles []string, commonFile string) ([]string, string){
-	cfgs := readFiles(t, cfgFiles)
-	common := readFile(t, commonFile)
-	return cfgs, common
-}
-
-// readFiles maps the passed filepaths to their contents.
-func readFiles(t *testing.T, filepaths []string) ([]string) {
-	var contents []string
-	for _, path := range filepaths {
-		s := readFile(t, path)
-		contents = append(contents, s)
-	}
-	return contents
-}
-
 // readFile returns the content of the passed filepath.
 func readFile(t *testing.T, filepath string) (string) {
 	data, err := ioutil.ReadFile(filepath)
@@ -125,32 +111,11 @@ func readFile(t *testing.T, filepath string) (string) {
 	return string(data)
 }
 
-// getFilepaths returns the filepaths of each Swagger YAML file in or
-// below inDir, in lexical order.
-func getFilepaths(t *testing.T, inDir string) ([]string, error) {
-	var filepaths []string
-	err := filepath.Walk(inDir, func(path string, info os.FileInfo, err error) error {
-		if strings.Contains(path, ".yml") {
-			filepaths = append(filepaths, path)
-		}
-		return nil
-	})
-	return filepaths, err
-}
-
-func write(spec generate.SwaggerSpec, filepath string) error {
-	strSpec, err := swagger.MarshalToYAML(spec)
+// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
+func marshalToYAML(spec generate.SwaggerSpec) (string, error) {
+	d, err := yaml.Marshal(&spec)
 	if err != nil {
-		return err
+		return "", err
 	}
-
-	f, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-	f.WriteString(strSpec)
-	f.Sync()
-	return nil
+	return string(d), nil
 }

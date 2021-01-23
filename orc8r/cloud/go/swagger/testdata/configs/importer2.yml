@@ -2,17 +2,17 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: magma/orc8r/cloud/go/tools/swaggergen/testdata/importer2/models
+  go-package: magma/orc8r/cloud/go/swagger
   dependencies:
-    - 'orc8r/cloud/go/tools/swaggergen/testdata/base.yml'
-    - 'orc8r/cloud/go/tools/swaggergen/testdata/importer.yml'
+    - 'orc8r/cloud/go/swagger/testdata/configs/base.yml'
+    - 'orc8r/cloud/go/swagger/testdata/configs/importer.yml'
   temp-gen-filename: importer2-swagger.yml
-  output-dir: orc8r/cloud/go/tools/swaggergen/testdata/importer2
+  output-dir: orc8r/cloud/go/swagger/testdata
   types:
-    - go-struct-name: ImportingChainDef
-      filename: importing_chain_def_swaggergen.actual
-    - go-struct-name: BazArray
-      filename: baz_array_swaggergen.actual
+    - go-struct-name: RandCollection
+      filename: rand_collection_swaggergen.go
+    - go-struct-name: Season
+      filename: season_swaggergen.go
 
 info:
   title: Test
@@ -32,8 +32,8 @@ schemes:
   - http
 
 tags:
-  - name: Tag
-    description: Tag foobar
+  - name: SaltyTag
+    description: Tag Salty
 
 paths:
   /foopath:
@@ -44,24 +44,36 @@ paths:
           description: Bar baz
           schema:
             type: integer
+    delete:
+      summary: Bar
+      responses:
+        '404':
+          description: fail
+          schema:
+            type: string
 
 definitions:
-  importing_chain_def:
+  rand_collection:
     type: object
     required:
       - foo
-      - bar
-      - baz
+      - weather
+      - season_list
     properties:
       foo:
-        $ref: './base-swagger.yml#/definitions/foo_def'
-      bar:
-        $ref: './base-swagger.yml#/definitions/bar_def'
-      baz:
-        $ref: './importer-swagger.yml#/definitions/importing_def'
-      baz_array:
-        $ref: '#/definitions/baz_array'
-  baz_array:
+        $ref: './importer-swagger.yml#/definitions/gift'
+      weather:
+        $ref: '#/definitions/weather'
+      season_list:
+        $ref: '#/definitions/season_list'
+  season_list:
     type: array
     items:
-      $ref: './importer-swagger.yml#/definitions/importing_def'
+      $ref: './base-swagger.yml#/definitions/season_list'
+
+  weather:
+    type: integer
+
+  animal:
+    type: string
+    example: dog
