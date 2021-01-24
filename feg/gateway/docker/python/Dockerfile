@@ -80,7 +80,6 @@ RUN apt-key add /tmp/fluentbit.key && \
 RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
 
-# TODO: magma-nghttpx=1.31.1-1 requires upgrade to ff.
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
   iproute2 \
