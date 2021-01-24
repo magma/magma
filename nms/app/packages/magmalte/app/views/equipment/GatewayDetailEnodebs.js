@@ -14,16 +14,21 @@
  * @format
  */
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {GatewayDetailType} from './GatewayDetailMain';
 
 import ActionTable from '../../components/ActionTable';
 import EnodebContext from '../../components/context/EnodebContext';
 import Link from '@material-ui/core/Link';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
-import {useContext, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 type EnodebRowType = {
   name: string,
@@ -32,14 +37,24 @@ type EnodebRowType = {
   mmeConnected: string,
 };
 
-export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
+export default function GatewayDetailEnodebs(props: GatewayDetailType) {
   const {history, match} = useRouter();
-  const enbCtx = useContext(EnodebContext);
+  const networkId: string = nullthrows(match.params.networkId);
+  // Auto refresh  every 30 seconds
+  const enbState = useRefreshingContext({
+    context: EnodebContext,
+    networkId: networkId,
+    type: 'enodeb',
+    interval: REFRESH_INTERVAL,
+    refresh: props.refresh || false,
+  });
   const enbInfo =
-    gwInfo.connected_enodeb_serials?.reduce(
+    props.gwInfo.connected_enodeb_serials?.reduce(
       (enbs: {[string]: EnodebInfo}, serial: string) => {
-        if (enbCtx.state.enbInfo[serial] != null) {
-          enbs[serial] = enbCtx.state.enbInfo[serial];
+        // $FlowIgnore
+        if (enbState?.enbInfo?.[serial] != null) {
+          // $FlowIgnore
+          enbs[serial] = enbState.enbInfo?.[serial];
         }
         return enbs;
       },
@@ -79,7 +94,7 @@ export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
               onClick={() => {
                 history.push(
                   match.url.replace(
-                    `gateway/${gwInfo.id}`,
+                    `gateway/${props.gwInfo.id}`,
                     `enodeb/${currRow.id}`,
                   ),
                 );
@@ -98,7 +113,10 @@ export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
           name: 'View',
           handleFunc: () => {
             history.push(
-              match.url.replace(`gateway/${gwInfo.id}`, `enodeb/${currRow.id}`),
+              match.url.replace(
+                `gateway/${props.gwInfo.id}`,
+                `enodeb/${currRow.id}`,
+              ),
             );
           },
         },

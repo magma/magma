@@ -677,11 +677,15 @@ func TestSessionTermination(t *testing.T) {
 	}).Once()
 
 	termResponse, err := srv.TerminateSession(ctx, &protos.SessionTerminateRequest{
-		Sid:       IMSI2,
 		SessionId: genSessionID(IMSI2),
 		CreditUsages: []*protos.CreditUsage{
 			createUsage(2, protos.CreditUsage_TERMINATED),
 			createUsage(1, protos.CreditUsage_TERMINATED),
+		},
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI2,
+			},
 		},
 	})
 	mocksGy.AssertExpectations(t)
@@ -1175,16 +1179,20 @@ func getTestConfig() []*servicers.SessionControllerConfig {
 }
 
 func createUsageUpdate(
-	sid string,
+	imsi string,
 	chargingKey uint32,
 	requestNumber uint32,
 	requestType protos.CreditUsage_UpdateType,
 ) *protos.CreditUsageUpdate {
 	return &protos.CreditUsageUpdate{
 		Usage:         createUsage(chargingKey, requestType),
-		SessionId:     genSessionID(sid),
+		SessionId:     genSessionID(imsi),
 		RequestNumber: requestNumber,
-		Sid:           sid,
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: imsi,
+			},
+		},
 	}
 }
 

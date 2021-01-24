@@ -20,6 +20,7 @@
         "label": "Upgrade Orchestrator",
         "ids": [
           "orc8r/upgrade_intro",
+          "orc8r/upgrade_1_4",
           "orc8r/upgrade_1_3",
           "orc8r/upgrade_1_2",
           "orc8r/upgrade_1_1"

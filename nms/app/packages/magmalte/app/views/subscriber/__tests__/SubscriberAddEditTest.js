@@ -24,6 +24,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
 import SubscriberContext from '../../../components/context/SubscriberContext';
+import SubscriberDetailConfig from '../SubscriberDetailConfig';
 import defaultTheme from '../../../theme/default.js';
 
 import {MemoryRouter, Route} from 'react-router-dom';
@@ -284,72 +285,74 @@ describe('<AddSubscriberButton />', () => {
     );
   };
 
-  // const DetailWrapper = () => {
-  //   const [subscribers, setSubscribers] = useState(subscribersMock);
-  //   const policyCtx = {
-  //     state: policies,
-  //     qosProfiles: {},
-  //     ratingGroups: {},
-  //     setRatingGroups: async () => {},
-  //     setQosProfiles: async () => {},
-  //     setState: async () => {},
-  //   };
+  const DetailWrapper = () => {
+    const [subscribers, setSubscribers] = useState(subscribersMock);
+    const [sessionState, setSessionState] = useState({});
+    const policyCtx = {
+      state: policies,
+      qosProfiles: {},
+      ratingGroups: {},
+      setRatingGroups: async () => {},
+      setQosProfiles: async () => {},
+      setState: async () => {},
+    };
 
-  //   const apnCtx = {
-  //     state: apns,
-  //     setState: async () => {},
-  //   };
+    const apnCtx = {
+      state: apns,
+      setState: async () => {},
+    };
 
-  //   const networkCtx = {
-  //     state: {
-  //       ...testNetwork,
-  //       cellular: {
-  //         epc: epc,
-  //         ran: ran,
-  //       },
-  //     },
-  //     updateNetworks: async () => {},
-  //   };
-  //   return (
-  //     <MemoryRouter
-  //       initialEntries={[
-  //         '/nms/test/subscribers/overview/IMSI00000000001002/config',
-  //       ]}
-  //       initialIndex={0}>
-  //       <MuiThemeProvider theme={defaultTheme}>
-  //         <MuiStylesThemeProvider theme={defaultTheme}>
-  //           <LteNetworkContext.Provider value={networkCtx}>
-  //             <PolicyContext.Provider value={policyCtx}>
-  //               <ApnContext.Provider value={apnCtx}>
-  //                 <SubscriberContext.Provider
-  //                   value={{
-  //                     state: {
-  //                       IMSI00000000001002: subscribers['IMSI00000000001002'],
-  //                     },
-  //                     gwSubscriberMap: {},
-  //                     sessionState: {},
-  //                     setState: (key, value?) =>
-  //                       setSubscriberState({
-  //                         networkId: 'test',
-  //                         subscriberMap: subscribers,
-  //                         setSubscriberMap: setSubscribers,
-  //                         key: key,
-  //                         value: value,
-  //                       }),
-  //                   }}>
-  //                   <Route
-  //                     path="/nms/:networkId/subscribers/overview/:subscriberId/config"
-  //                     render={props => <SubscriberDetailConfig {...props} />}
-  //                   />
-  //                 </SubscriberContext.Provider>
-  //               </ApnContext.Provider>
-  //             </PolicyContext.Provider>
-  //           </LteNetworkContext.Provider>
-  //         </MuiStylesThemeProvider>
-  //       </MuiThemeProvider>
-  //     </MemoryRouter>
-  //   );
-  // };
+    const networkCtx = {
+      state: {
+        ...testNetwork,
+        cellular: {
+          epc: epc,
+          ran: ran,
+        },
+      },
+      updateNetworks: async () => {},
+    };
+    return (
+      <MemoryRouter
+        initialEntries={[
+          '/nms/test/subscribers/overview/IMSI00000000001002/config',
+        ]}
+        initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <LteNetworkContext.Provider value={networkCtx}>
+              <PolicyContext.Provider value={policyCtx}>
+                <ApnContext.Provider value={apnCtx}>
+                  <SubscriberContext.Provider
+                    value={{
+                      state: {
+                        IMSI00000000001002: subscribers['IMSI00000000001002'],
+                      },
+                      gwSubscriberMap: {},
+                      sessionState: sessionState,
+                      setState: (key, value?) =>
+                        setSubscriberState({
+                          networkId: 'test',
+                          subscriberMap: subscribers,
+                          setSubscriberMap: setSubscribers,
+                          setSessionState,
+                          key: key,
+                          value: value,
+                        }),
+                    }}>
+                    <Route
+                      path="/nms/:networkId/subscribers/overview/:subscriberId/config"
+                      render={props => <SubscriberDetailConfig {...props} />}
+                    />
+                  </SubscriberContext.Provider>
+                </ApnContext.Provider>
+              </PolicyContext.Provider>
+            </LteNetworkContext.Provider>
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+  };
 
   it('Verify Subscribers Add', async () => {
     const {
@@ -443,47 +446,47 @@ describe('<AddSubscriberButton />', () => {
     );
   });
 
-  // it('Verify Subscriber edit', async () => {
-  //   const {getByTestId, queryByTestId} = render(<DetailWrapper />);
-  //   await wait();
-  //   expect(queryByTestId('editDialog')).toBeNull();
+  it('Verify Subscriber edit', async () => {
+    const {getByTestId, queryByTestId} = render(<DetailWrapper />);
+    await wait();
+    expect(queryByTestId('editDialog')).toBeNull();
 
-  //   // Edit tab 1 : subscriber info
-  //   fireEvent.click(getByTestId('subscriber'));
-  //   await wait();
-  //   expect(queryByTestId('editDialog')).not.toBeNull();
+    // Edit tab 1 : subscriber info
+    fireEvent.click(getByTestId('subscriber'));
+    await wait();
+    expect(queryByTestId('editDialog')).not.toBeNull();
 
-  //   const name = getByTestId('name').firstChild;
+    const name = getByTestId('name').firstChild;
 
-  //   if (name instanceof HTMLInputElement) {
-  //     fireEvent.change(name, {target: {value: 'test_subscriber'}});
-  //   } else {
-  //     throw 'invalid type';
-  //   }
+    if (name instanceof HTMLInputElement) {
+      fireEvent.change(name, {target: {value: 'test_subscriber'}});
+    } else {
+      throw 'invalid type';
+    }
 
-  //   fireEvent.click(getByTestId('subscriber-saveButton'));
-  //   await wait();
+    fireEvent.click(getByTestId('subscriber-saveButton'));
+    await wait();
 
-  //   expect(
-  //     MagmaAPIBindings.putLteByNetworkIdSubscribersBySubscriberId,
-  //   ).toHaveBeenCalledWith({
-  //     networkId: 'test',
-  //     subscriberId: 'IMSI00000000001002',
-  //     subscriber: {
-  //       active_apns: ['apn_0'],
-  //       active_base_names: undefined,
-  //       id: 'IMSI00000000001002',
-  //       lte: {
-  //         auth_algo: 'MILENAGE',
-  //         auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
-  //         auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
-  //         state: 'ACTIVE',
-  //         sub_profile: 'default',
-  //       },
-  //       name: 'test_subscriber',
-  //       static_ips: {apn_0: '1.1.1.1'},
-  //     },
-  //   });
-  //   // TODO: Test other tabs
-  // });
+    expect(
+      MagmaAPIBindings.putLteByNetworkIdSubscribersBySubscriberId,
+    ).toHaveBeenCalledWith({
+      networkId: 'test',
+      subscriberId: 'IMSI00000000001002',
+      subscriber: {
+        active_apns: ['apn_0'],
+        active_base_names: undefined,
+        id: 'IMSI00000000001002',
+        lte: {
+          auth_algo: 'MILENAGE',
+          auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
+          auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
+          state: 'ACTIVE',
+          sub_profile: 'default',
+        },
+        name: 'test_subscriber',
+        static_ips: {apn_0: '1.1.1.1'},
+      },
+    });
+    // TODO: Test other tabs
+  });
 });

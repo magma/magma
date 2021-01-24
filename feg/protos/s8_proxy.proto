@@ -14,7 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
-import "lte/protos/subscriberdb.proto";
+
 import "lte/protos/oai/mme_nas_state.proto";
 import "lte/protos/oai/std_3gpp_types.proto";
 
@@ -30,46 +30,102 @@ service S8Proxy {
     rpc SendEcho(magma.orc8r.Void) returns(EchoResponse) {}
 }
 
-// from
-// https://sites.google.com/site/amitsciscozone/home/lte-notes/default-bearer-setup
+
+
+// 3GPP TS 29.274  (not all 3gpp create session fields are included)
 message CreateSessionRequestPgw {
-  lte.SubscriberID sid = 1;
-  string MSISDN = 2;
-  string MEI = 3;
-  string MCC = 4; //serving network
-  string MNC = 5; //serving_network
-  uint32 rat_type = 6;
-  bytes indication_flag = 7;
-  uint32 bearer_id = 8;
+    string imsi = 1;
+    string msisdn = 2;
+    string mei = 3;
+    ServingNetwork serving_network = 5;
+    UserLocationInformation uli = 4;
 
-  // user plane data
-  uint32 user_plane_teid = 9;
-  string s5s8ip4_user_pane = 10;
-  string s5s8ip6_user_pane = 11;
 
-  string apn = 14;
-  string selection_mode = 16;
-  uint32 pdn_type = 18;
-  string pdn_address_allocation = 20;
-  uint32 apn_restriction = 30;
-  uint32 ambr_up = 35;
-  uint32 ambr_down = 37;
-  string uli = 40;
+    uint32 rat_type = 6;
+    PDNType pdn_type = 7;
+    PdnAddressAllocation paa = 8;
+
+    string apn = 9;
+    string selection_mode = 18;
+    uint32 apn_restriction = 11;
+    Ambr ambr = 12;         //Aggregate Maximum BitRate
+
+    BearerContext bearer_context = 14;
+
+    bytes indication_flag = 15;
+    string charging_characteristics = 16;
+    TimeZone time_zone = 17;
+}
+
+enum PDNType {
+    IPV4 = 0;
+    IPV6 = 1;
+    IPV4V6 = 2;
+}
+
+message UserLocationInformation {
+    uint32 lac = 1;
+    uint32 ci = 2;
+    uint32 sac = 3;
+    uint32 rac = 4;
+    uint32 tac = 5;       // used on magma
+    uint32 eci = 6;       // used on magma
+    uint32 MeNbi = 7;     // Macro eNodeB ID field
+    uint32 EMeNbi = 8;    // Extended Macro eNodeB ID field
+}
+
+message ServingNetwork {
+    string mcc = 1;
+    string mnc = 2;
+}
+
+message BearerContext {
+    uint32 id = 1;
+    Fteid  agw_user_plane_fteid = 2;
+    QosInformation qos = 3;
+}
+
+message QosInformation {
+    uint32 pci = 1;
+    uint32 priority_level = 2;
+    uint32 preemption_capability = 4;
+    uint32 preemption_vulnerability = 5;
+    uint32 qci = 6;
+    Ambr gbr = 7;
+    Ambr mbr = 8;
+}
+
+message Ambr {
+    uint64 br_ul = 1;
+    uint64 br_dl = 2;
 }
 
 message PdnAddressAllocation{
-    uint32 pdn_type = 1;
-    string ipv4_address = 2;
-    string ipv6_prefix = 3;
-    string ipv6_address = 4;
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 ipv6_prefix = 3;
+}
+
+message TimeZone {
+    uint32 time_zone = 1;
+    uint32 daylight_saving_time = 2;
+}
+
+message Fteid {
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 teid = 3;
 }
 
 message CreateSessionResponsePgw {
-    lte.oai.Fteid Fteid = 2;
-    PdnAddressAllocation pdn_address_allocation = 3;
+    Fteid pgw_fteid_u = 2 ;
+    string subscriber_ip = 3;
     uint32 apn_restriction = 4;
-    lte.oai.BearerContext bearer_context = 8;
+    uint32 ebi = 5;
+    QosInformation qos = 6;
+    //TrafficFlowTemplate saved_tft = 13;
 }
+
 
 message ModifyBearerRequestPgw {
 

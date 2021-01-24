@@ -59,11 +59,7 @@ func (s *s8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 		glog.Error(err)
 		return &protos.CreateSessionResponsePgw{}, err
 	}
-
-	// TODO: build grpc CreateSessionResponsePgw message
-	glog.V(2).Infof("This is session response %+v", csRes)
-
-	return &protos.CreateSessionResponsePgw{}, nil
+	return csRes, nil
 }
 
 // TODO

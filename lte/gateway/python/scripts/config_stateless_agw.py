@@ -93,6 +93,7 @@ def clear_redis_state():
         "NO_VLAN:mobilityd_gw_info",
         "QosManager",
         "s1ap_imsi_map",
+        "sessiond:sessions",
     ]:
         for key in redis_client.scan_iter(key_regex):
             redis_client.delete(key)
