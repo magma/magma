@@ -31,6 +31,7 @@ from magma.mobilityd.ip_allocator_pool import \
 from magma.mobilityd.ipv6_allocator_pool import \
     IPv6AllocatorPool
 from magma.mobilityd.mobility_store import MobilityStore
+from magma.mobilityd.subscriberdb_client import SubscriberDBStaticIPValueError
 
 from unittest import mock
 
@@ -86,13 +87,8 @@ class StaticIPAllocationTests(unittest.TestCase):
     def test_get_ip_for_subscriber(self):
         """ test get_ip_for_sid without any assignment """
         sid = 'IMSI11'
-        ip0, _ = self._allocator.alloc_ip_address(sid)
-
-        ip0_returned = self._allocator.get_ip_for_sid(sid)
-
-        # check if retrieved ip is the same as the one allocated
-        self.assertEqual(ip0, ip0_returned)
-        self.check_type(sid, IPType.IP_POOL)
+        with self.assertRaises(SubscriberDBStaticIPValueError):
+            ip0, _ = self._allocator.alloc_ip_address(sid)
 
     def test_get_ip_for_subscriber_with_apn(self):
         """ test get_ip_for_sid with static IP """
@@ -267,13 +263,8 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=None)
 
-        ip0, _ = self._allocator.alloc_ip_address(sid)
-        ip0_returned = self._allocator.get_ip_for_sid(sid)
-
-        # check if retrieved ip is the same as the one allocated
-        self.assertEqual(ip0, ip0_returned)
-        self.assertNotEqual(ip0, ipaddress.ip_address(assigned_ip_wild))
-        self.check_type(sid, IPType.IP_POOL)
+        with self.assertRaises(SubscriberDBStaticIPValueError):
+            ip0, _ = self._allocator.alloc_ip_address(sid)
 
     def test_get_ip_for_subscriber_with_apn_with_gw(self):
         """ test get_ip_for_sid with static IP """
