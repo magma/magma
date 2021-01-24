@@ -49,7 +49,6 @@ RUN apt-key add /tmp/jfrog.pub && \
 RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
 
-# Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
   curl \
   fabric \
