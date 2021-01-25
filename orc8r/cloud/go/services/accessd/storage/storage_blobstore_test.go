@@ -94,7 +94,7 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 		"Search",
 		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
-	).Return(map[string]blobstore.Blobs{}, someErr)
+	).Return(map[string]blobstore.Blobs{}, someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	_, err = store.ListAllIdentity()
@@ -112,7 +112,7 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 		"Search",
 		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
-	).Return(map[string]blobstore.Blobs{}, nil)
+	).Return(map[string]blobstore.Blobs{}, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -132,7 +132,7 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 		"Search",
 		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
-	).Return(searchResult, nil)
+	).Return(searchResult, nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -150,7 +150,7 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 		"Search",
 		blobstore.CreateSearchFilter(&placeholderNetworkID, []string{astorage.AccessdDefaultType}, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
-	).Return(searchResult, nil)
+	).Return(searchResult, nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobs, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
