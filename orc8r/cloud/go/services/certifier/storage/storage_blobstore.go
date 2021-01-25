@@ -51,7 +51,7 @@ func (c *certifierBlobstore) ListSerialNumbers() ([]string, error) {
 	}
 	defer store.Rollback()
 
-	serialNumbers, err := store.ListKeys(placeholderNetworkID, CertInfoType)
+	serialNumbers, err := blobstore.ListKeys(store, placeholderNetworkID, CertInfoType)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list keys")
 	}
@@ -105,7 +105,7 @@ func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInf
 	}
 	defer store.Rollback()
 
-	serialNumbers, err := store.ListKeys(placeholderNetworkID, CertInfoType)
+	serialNumbers, err := blobstore.ListKeys(store, placeholderNetworkID, CertInfoType)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list keys")
 	}
