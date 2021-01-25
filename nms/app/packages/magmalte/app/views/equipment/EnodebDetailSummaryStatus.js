@@ -18,7 +18,6 @@ import type {DataRows} from '../../components/DataGrid';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../components/context/EnodebContext';
-import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -53,7 +52,7 @@ export function EnodebSummary() {
   );
 }
 
-export function EnodebStatus() {
+export function EnodebStatus({refresh}: {refresh: boolean}) {
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   const networkId: string = nullthrows(match.params.networkId);
@@ -67,7 +66,7 @@ export function EnodebStatus() {
     interval: REFRESH_INTERVAL,
     id: enodebSerial,
     enqueueSnackbar,
-    refresh: true,
+    refresh: refresh,
   });
 
   // $FlowIgnore
@@ -126,7 +125,6 @@ export function EnodebStatus() {
   ];
   return (
     <>
-      <CardTitleRow icon={GraphicEqIcon} label="Status" />
       <DataGrid data={kpiData} />
     </>
   );

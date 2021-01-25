@@ -30,7 +30,7 @@ import {
 } from '../../components/context/RefreshContext';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-export default function GatewayDetailStatus() {
+export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -41,7 +41,7 @@ export default function GatewayDetailStatus() {
     type: 'gateway',
     interval: REFRESH_INTERVAL,
     id: gatewayId,
-    refresh: true,
+    refresh: refresh,
   });
   const gwInfo = state[gatewayId];
   let checkInTime = new Date(0);

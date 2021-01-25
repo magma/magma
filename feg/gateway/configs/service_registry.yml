@@ -24,6 +24,9 @@ services:
   s6a_proxy:
     ip_address: 127.0.0.1
     port: 9098
+  s8_proxy:
+    ip_address: 127.0.0.1
+    port: 9099
   swx_proxy:
     ip_address: 127.0.0.1
     port: 9110

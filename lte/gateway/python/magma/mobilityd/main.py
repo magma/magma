@@ -36,8 +36,10 @@ def _get_ipv4_allocator(store: MobilityStore, allocator_type: int,
                         static_ip_enabled: bool, multi_apn: bool,
                         dhcp_iface: str, dhcp_retry_limit: int,
                         subscriberdb_rpc_stub: SubscriberDBStub = None):
+    # Read default GW, this is required for static IP allocation.
+    store.dhcp_gw_info.read_default_gw()
+
     if allocator_type == mconfigs_pb2.MobilityD.IP_POOL:
-        store.dhcp_gw_info.read_default_gw()
         ip_allocator = IpAllocatorPool(store)
     elif allocator_type == mconfigs_pb2.MobilityD.DHCP:
         ip_allocator = IPAllocatorDHCP(store=store,

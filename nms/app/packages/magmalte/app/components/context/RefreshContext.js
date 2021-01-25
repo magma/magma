@@ -19,7 +19,7 @@ import {
   FetchSubscriberState,
   FetchSubscribers,
 } from '../../state/lte/SubscriberState';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useEffect, useRef, useState} from 'react';
 
 export const REFRESH_INTERVAL = 30000;
 
@@ -95,6 +95,12 @@ export function useRefreshingContext(props: Props) {
     return ctx.setState(null, null, newState);
   }
 
+  // Avoid using state as a dependency of useEffect
+  const stateRef = useRef(null);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
   useEffect(() => {
     const intervalId = setInterval(
       () => setAutoRefreshTime(new Date().toLocaleString()),
@@ -104,11 +110,11 @@ export function useRefreshingContext(props: Props) {
       return clearInterval(intervalId);
     }
     return () => {
-      updateContext(props.id, state);
+      updateContext(props.id, stateRef.current);
       clearInterval(intervalId);
     };
     // eslint-disable-next-line
-  }, [props.interval, props.refresh, state]);
+  }, [props.interval, props.refresh]);
 
   useEffect(() => {
     if (props.lastRefreshTime != autoRefreshTime) {

@@ -80,12 +80,13 @@ class SubscriberDbClient:
 
         except ValueError:
             logging.warning("Invalid data for sid %s: ", sid)
+            raise SubscriberDBStaticIPValueError(sid)
 
         except grpc.RpcError as err:
-            logging.error(
-                "GetSubscriberData while reading static ip, error[%s] %s",
-                err.code(),
-                err.details())
+            msg = "GetSubscriberData while reading vlan-id error[%s] %s" % \
+                  (err.code(), err.details())
+            logging.error(msg)
+            raise SubscriberDBConnectionError(msg)
         return None
 
     def get_subscriber_apn_network_info(self, sid: str) -> NetworkInfo:
@@ -105,12 +106,14 @@ class SubscriberDbClient:
 
             except ValueError:
                 logging.warning("Invalid data for sid %s: ", sid)
+                raise SubscriberDBMultiAPNValueError(sid)
 
             except grpc.RpcError as err:
-                logging.error(
-                    "GetSubscriberData while reading vlan-id error[%s] %s",
-                    err.code(),
-                    err.details())
+                msg = "GetSubscriberData while reading vlan-id error[%s] %s" % \
+                    (err.code(), err.details())
+                logging.error(msg)
+                raise SubscriberDBConnectionError(msg)
+
         return NetworkInfo()
 
     # use same API to retrieve IP address and related config.
@@ -142,3 +145,22 @@ class SubscriberDbClient:
             return selected_apn_conf
 
         return None
+
+
+class SubscriberDBConnectionError(Exception):
+    """ Exception thrown subscriber DB is not available
+    """
+    pass
+
+
+class SubscriberDBStaticIPValueError(Exception):
+    """ Exception thrown when subscriber DB has invalid IP value for the subscriber.
+    """
+    pass
+
+
+class SubscriberDBMultiAPNValueError(Exception):
+    """ Exception thrown when subscriber DB has invalid MultiAPN vlan value
+    for the subscriber.
+    """
+    pass
