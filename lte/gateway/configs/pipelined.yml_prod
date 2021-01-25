@@ -128,6 +128,9 @@ redis_enabled: true
 # Logs grpc payload content
 magma_print_grpc_payload: false
 
+# MTR iface
+mtr_interface: mtr0
+
 ###############
 ## IMPORTANT ##
 ###############
