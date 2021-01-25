@@ -19,8 +19,6 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -43,7 +41,6 @@ type (
 )
 
 func Test_GetPartialReadNetworkHandler(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	networkSerdes := serde.NewRegistry(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
 	e := echo.New()
@@ -126,7 +123,6 @@ func Test_GetPartialReadNetworkHandler(t *testing.T) {
 }
 
 func TestGetUpdateNetworkConfigHandler(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	networkSerdes := serde.NewRegistry(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
@@ -211,7 +207,6 @@ func TestGetUpdateNetworkConfigHandler(t *testing.T) {
 }
 
 func TestGetDeleteNetworkConfigHandler(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	networkSerdes := serde.NewRegistry(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
