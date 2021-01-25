@@ -79,7 +79,7 @@ class SubscriberDbClient:
                                     vlan=apn_config.resource.vlan_id)
 
         except ValueError:
-            logging.warning("Invalid data for sid %s: ", sid)
+            logging.warning("Invalid or missing data for sid %s: ", sid)
             raise SubscriberDBStaticIPValueError(sid)
 
         except grpc.RpcError as err:
@@ -105,7 +105,7 @@ class SubscriberDbClient:
                                        vlan=apn_config.resource.vlan_id)
 
             except ValueError:
-                logging.warning("Invalid data for sid %s: ", sid)
+                logging.warning("Invalid or missing data for sid %s: ", sid)
                 raise SubscriberDBMultiAPNValueError(sid)
 
             except grpc.RpcError as err:
