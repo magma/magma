@@ -17,8 +17,6 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/directoryd"
@@ -46,7 +44,6 @@ func TestIndexerSessionID(t *testing.T) {
 	var (
 		types = []string{orc8r.DirectoryRecordType} // copied from indexer_servicer.go
 	)
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 
 	directoryd_test_init.StartTestService(t)
 	orchestrator_test_init.StartTestService(t)

@@ -18,14 +18,11 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	lteplugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/storage"
@@ -37,8 +34,6 @@ import (
 
 // Basic API workflow tests
 func TestPolicyDBHandlersBasic(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	e := echo.New()
 
@@ -651,8 +646,6 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 
 // Associate base names and policies to subscribers
 func TestPolicyHandlersAssociations(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	e := echo.New()
 
@@ -876,8 +869,6 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 }
 
 func TestQoSProfile(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{}))
 	configurator_test_init.StartTestService(t)
 	e := echo.New()
 
@@ -1098,8 +1089,6 @@ func TestQoSProfile(t *testing.T) {
 }
 
 func TestPolicyWithQoSProfile(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{}))
 	configurator_test_init.StartTestService(t)
 	e := echo.New()
 
