@@ -356,20 +356,21 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 	for _, usage := range termination.CreditUsages {
 		usedCredits = append(usedCredits, (&gy.UsedCredits{}).FromCreditUsage(usage))
 	}
+	common := termination.GetCommonContext()
 	return &gy.CreditControlRequest{
 		SessionID:               termination.SessionId,
-		IMSI:                    credit_control.RemoveIMSIPrefix(termination.Sid),
-		Apn:                     termination.Apn,
+		IMSI:                    credit_control.RemoveIMSIPrefix(common.GetSid().GetId()),
+		Apn:                     common.GetApn(),
 		RequestNumber:           termination.RequestNumber,
 		Credits:                 usedCredits,
-		UeIPV4:                  termination.UeIpv4,
-		Msisdn:                  termination.Msisdn,
+		UeIPV4:                  common.GetUeIpv4(),
+		Msisdn:                  common.GetMsisdn(),
 		SpgwIPV4:                termination.SpgwIpv4,
 		Imei:                    termination.Imei,
 		PlmnID:                  termination.PlmnId,
 		UserLocation:            termination.UserLocation,
 		Type:                    credit_control.CRTTerminate,
-		RatType:                 gy.GetRATType(termination.GetRatType()),
+		RatType:                 gy.GetRATType(common.GetRatType()),
 		TgppCtx:                 termination.GetTgppCtx(),
 		ChargingCharacteristics: termination.ChargingCharacteristics,
 	}

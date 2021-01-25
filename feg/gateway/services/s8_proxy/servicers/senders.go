@@ -36,7 +36,7 @@ const (
 func (s *s8Proxy) sendAndReceiveCreateSession(csReqIE []*ie.IE, sessionTeids SessionFTeids) (*protos.CreateSessionResponsePgw, error) {
 	// Send Create Session Req
 	session, seq, err := s.gtpClient.CreateSession(s.gtpClient.GetServerAddress(), csReqIE...)
-	glog.V(2).Infof("Send Create Session Request:\n%s",
+	glog.V(2).Infof("Send Create Session Request (gtp):\n%s",
 		message.NewCreateSessionRequest(0, 0, csReqIE...).String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to send message: %s", err)
@@ -60,6 +60,7 @@ func (s *s8Proxy) sendAndReceiveCreateSession(csReqIE []*ie.IE, sessionTeids Ses
 		s.gtpClient.RemoveSession(session)
 		return nil, fmt.Errorf("Wrong response type, maybe received out of order response message: %s", err)
 	}
+	glog.V(2).Infof("Create Session Response (grpc):\n%s", csRes.String())
 	return csRes, nil
 }
 

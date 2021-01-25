@@ -229,10 +229,10 @@ optional<SessionVector::iterator> SessionStore::find_session(
         switch (context.rat_type()) {
           case RATType::TGPP_LTE:
             // lte case
-            if ((*it)
-                    ->get_config()
-                    .rat_specific_context.lte_context()
-                    .bearer_id() == criteria.secondary_key_unit32) {
+            if ((*it)->get_config()
+                        .rat_specific_context.lte_context()
+                        .bearer_id() == criteria.secondary_key_unit32 &&
+                (*it)->is_active()) {
               return it;
             }
             break;

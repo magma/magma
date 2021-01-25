@@ -1,5 +1,5 @@
 ---
-id: nms_grafana
+id: grafana
 title: Custom Grafana Dashboards
 hide_title: true
 ---

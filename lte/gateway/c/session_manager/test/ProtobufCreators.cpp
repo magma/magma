@@ -12,6 +12,7 @@
  */
 
 #include "ProtobufCreators.h"
+#include "Consts.h"
 
 namespace magma {
 

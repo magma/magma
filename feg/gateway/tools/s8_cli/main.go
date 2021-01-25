@@ -82,7 +82,7 @@ func createSession(cmd *commands.Command, args []string) int {
 	}
 
 	conf := &servicers.S8ProxyConfig{
-		ClientAddr: "127.0.0.1:0",
+		ClientAddr: ":0",
 		ServerAddr: pgwServerAddr,
 	}
 
@@ -99,7 +99,6 @@ func createSession(cmd *commands.Command, args []string) int {
 	}
 
 	var cli s8Cli
-
 	// Selection of builtIn Client or S8proxy running on the gateway
 	if useMconfig || useBuiltinCli {
 		// use builtin proxy (ignore loccal proxy)
@@ -109,8 +108,7 @@ func createSession(cmd *commands.Command, args []string) int {
 		fmt.Printf("Direct connection using built in S8 client: Client Config: %+v\n", *conf)
 		localProxy, err := servicers.NewS8Proxy(conf)
 		if err != nil {
-			f.Usage()
-			fmt.Printf("BuiltIn S8 Proxy initialization error: %v", err)
+			fmt.Printf("BuiltIn S8 Proxy initialization error: %v\n", err)
 			return 5
 		}
 		cli = s8BuiltIn{localProxy}
@@ -188,7 +186,7 @@ func createSession(cmd *commands.Command, args []string) int {
 		fmt.Printf("Create Session cli command failed: %s", err)
 		return 9
 	}
-	fmt.Printf("Create Session returned:\n\tCreateSessionReturnPGw{%s}", res.String())
+	fmt.Printf("Create Session returned:\n\tCreateSessionReturnPGw{%s}\n", res.String())
 	return 0
 }
 
