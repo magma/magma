@@ -25,10 +25,9 @@
 // WARNING: Do not include this header directly. Use intertask_interface.h
 // instead.
 
-MESSAGE_DEF(
-    AMF_APP_CONNECTION_ESTABLISHMENT_CNF,
-    itti_amf_app_connection_establishment_cnf_t,
-    amf_app_connection_establishment_cnf)
+// MESSAGE_DEF( AMF_APP_CONNECTION_ESTABLISHMENT_CNF,
+// itti_amf_app_connection_establishment_cnf_t,
+//  amf_app_connection_establishment_cnf)
 MESSAGE_DEF(
     AMF_APP_INITIAL_CONTEXT_SETUP_RSP, itti_amf_app_initial_context_setup_rsp_t,
     amf_app_initial_context_setup_rsp)

@@ -127,5 +127,3 @@ void amf_config_exit(void);
   pthread_rwlock_wrlock(&(aMFcONFIG)->rw_lock)
 #define amf_config_unlock(aMFcONFIG)                                           \
   pthread_rwlock_unlock(&(aMFcONFIG)->rw_lock)
-
-#endif

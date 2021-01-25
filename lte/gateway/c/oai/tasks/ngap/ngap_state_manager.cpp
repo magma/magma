@@ -12,11 +12,8 @@
  */
 /****************************************************************************
   Source      ngap_state_manager.cpp
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
 
 *****************************************************************************/

@@ -12,11 +12,8 @@
  */
 /****************************************************************************
   Source      ngap_types.h
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
 
 *****************************************************************************/
@@ -144,7 +141,7 @@ typedef struct gnb_description_s {
   /** UE list for this gNB **/
   /*@{*/
   uint32_t nb_ue_associated;  ///< Number of NAS associated UE on this gNB
-  hash_table_uint64_ts_t ue_id_coll;  ///< Contains comp_s1ap_id assoc to
+  hash_table_uint64_ts_t ue_id_coll;  ///< Contains comp_ngap_id assoc to
                                       ///< enodeb, key is amf_ue_ngap_id;
   /*@}*/
   /** SCTP stuff **/

@@ -12,11 +12,8 @@
  */
 /****************************************************************************
   Source      ngap_state.cpp
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
   Description Defines Access to states
 
 *****************************************************************************/
@@ -66,11 +63,8 @@ gnb_description_t* ngap_state_get_gnb(
   return gnb;
 }
 
-// m5g_ue_description_t* ngap_state_get_ue_enbid(
 m5g_ue_description_t* ngap_state_get_ue_gnbid(
-    sctp_assoc_id_t sctp_assoc_id,
-    // enb_ue_ngap_id_t enb_ue_ngap_id)
-    gnb_ue_ngap_id_t gnb_ue_ngap_id) {
+    sctp_assoc_id_t sctp_assoc_id, gnb_ue_ngap_id_t gnb_ue_ngap_id) {
   m5g_ue_description_t* ue = nullptr;
 
   hash_table_ts_t* state_ue_ht = get_ngap_ue_state();
@@ -80,8 +74,6 @@ m5g_ue_description_t* ngap_state_get_ue_gnbid(
   return ue;
 }
 
-// m5g_ue_description_t* ngap_state_get_ue_amfid(amf_ue_ngap_id_t
-// amf_ue_ngap_id)
 m5g_ue_description_t* ngap_state_get_ue_amfid(amf_ue_ngap_id_t amf_ue_ngap_id) {
   m5g_ue_description_t* ue = nullptr;
 
@@ -112,12 +104,6 @@ uint64_t ngap_get_comp_ngap_id(
 void put_ngap_imsi_map() {
   NgapStateManager::getInstance().put_ngap_imsi_map();
 }
-
-/*
-ngap_imsi_map_t* get_ngap_imsi_map() {
-  return NgapStateManager::getInstance().get_ngap_imsi_map();
-}
-*/
 
 ngap_imsi_map_t* get_ngap_imsi_map() {
   return NgapStateManager::getInstance().get_ngap_imsi_map();

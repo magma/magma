@@ -28,7 +28,7 @@
  * NGAP Constants
  ******************************************************************************/
 
-#define NGAP_PORT_NUMBER                   (38412)  
+#define NGAP_PORT_NUMBER (38412)
 ///< IANA assigned port number for NGAP payloads on SCTP endpoint
 #define NGAP_SCTP_PPID (60)  ///< NGAP SCTP Payload Protocol Identifier (PPID)
 

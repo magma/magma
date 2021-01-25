@@ -88,7 +88,7 @@ typedef struct bearer_context_s {
    */
   fteid_t s_gw_fteid_s1u;
 
-   /* NOTE:
+  /* NOTE:
    *      The PDN GW TEID and PDN GW IP address for user plane are needed
    *      in AMF context as  relocation is triggered without interaction
    *      with the source ,
@@ -558,6 +558,5 @@ bool is_amf_ue_context_network_access_mode_packet_only(
 int amf_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
 void amf_app_recover_timers_for_all_ues(void);
-
 
 /* @} */
