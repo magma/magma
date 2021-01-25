@@ -304,7 +304,7 @@ func (srv *CentralSessionController) TerminateSession(
 	// in the event of any errors on Gx or Gy, the session should regardless be
 	// terminated, so there are no errors sent back
 	return &protos.SessionTerminateResponse{
-		Sid:       request.Sid,
+		Sid:       request.GetCommonContext().GetSid().GetId(),
 		SessionId: request.SessionId,
 	}, nil
 }

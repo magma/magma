@@ -115,7 +115,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         resp = UpdateSessionResponse()
         for credit_usage_update in request.updates:
             resp.responses.extend(
-                self._get_credits(credit_usage_update.sid),
+                self._get_credits(credit_usage_update.common_context.sid.id),
             )
         return resp
 
@@ -124,10 +124,9 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         request: SessionTerminateResponse,
         context,
     ) -> SessionTerminateResponse:
-        logging.info('Terminating a session for session ID: %s',
-                     request.session_id)
+        logging.info('Terminating session: %s', request.session_id)
         return SessionTerminateResponse(
-            sid=request.sid,
+            sid=request.common_context.sid.id,
             session_id=request.session_id,
         )
 

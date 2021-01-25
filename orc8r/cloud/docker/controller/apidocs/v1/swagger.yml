@@ -9415,14 +9415,7 @@ definitions:
       active_apns:
         $ref: '#/definitions/apn_list'
       active_base_names:
-        description: Base names which are active for this subscriber
-        example:
-        - base_name_1
-        - base_name_2
-        items:
-          $ref: '#/definitions/base_name'
-        type: array
-        x-omitempty: true
+        $ref: '#/definitions/base_names'
       active_policies:
         $ref: '#/definitions/policy_ids'
       active_policies_by_apn:
@@ -10823,14 +10816,7 @@ definitions:
       active_apns:
         $ref: '#/definitions/apn_list'
       active_base_names:
-        description: Base names which are active for this subscriber
-        example:
-        - base_name_1
-        - base_name_2
-        items:
-          $ref: '#/definitions/base_name'
-        type: array
-        x-omitempty: true
+        $ref: '#/definitions/base_names'
       active_policies:
         $ref: '#/definitions/policy_ids'
       active_policies_by_apn:

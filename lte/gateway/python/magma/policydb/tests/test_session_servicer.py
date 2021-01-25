@@ -215,7 +215,7 @@ class SessionRpcServicerTest(unittest.TestCase):
         """
         msg = UpdateSessionRequest()
         credit_update = CreditUsageUpdate()
-        credit_update.sid = 'abc'
+        credit_update.common_context.sid.id = 'abc'
         msg.updates.extend([credit_update])
         resp = self.servicer.UpdateSession(msg, None)
         session_response = self._rm_whitespace(str(resp))
@@ -232,7 +232,7 @@ class SessionRpcServicerTest(unittest.TestCase):
             The session can be terminated successfully. Will always succeed.
         """
         msg = SessionTerminateRequest()
-        msg.sid = 'abc'
+        msg.common_context.sid.id = 'abc'
         msg.session_id = 'session_id_123'
         resp = self.servicer.TerminateSession(msg, None)
         self.assertEqual(resp.sid, 'abc', 'SID should be same as request')

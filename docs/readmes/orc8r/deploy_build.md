@@ -49,7 +49,14 @@ First define some necessary variables
 ```bash
 export PUBLISH=MAGMA_ROOT/orc8r/tools/docker/publish.sh  # or add to path
 export REGISTRY=registry.hub.docker.com/REGISTRY  # or desired registry
-export MAGMA_TAG=1.3.0-master  # or desired tag
+export MAGMA_TAG=1.4.0-master  # or desired tag
+```
+
+Checkout the v1.4 release branch
+```bash
+cd $MAGMA_ROOT
+git fetch origin
+git checkout -b v1.4 origin/v1.4
 ```
 
 Build and publish Orchestrator images
@@ -76,32 +83,31 @@ We'll build the Orchestrator Helm charts, as well as publish them to a
 To start, create a private GitHub repo to use as your Helm chart repo. We'll
 refer to this as `GITHUB_REPO`.
 
-Next, package the Magma Helm charts and publish them to the GitHub
-repo. You'll have to check out a temporary commit to build the `1.4.36` version
-of the orc8r chart for 1.3.x because `1.4.37` on the head of the release
-branch has some changes that you shouldn't try to deploy yet.
+Next, define some necessary variables
 
 ```bash
-cd MAGMA_ROOT
-git checkout a7580153
-
-mkdir ~/magma-charts && cd ~/magma-charts
-git init
-helm package MAGMA_ROOT/orc8r/cloud/helm/orc8r/ && helm repo index .
-git add . && git commit -m 'Initial chart commit'
-git remote add origin GITHUB_REPO_URL && git push -u origin master
-
+export GITHUB_REPO=GITHUB_REPO_NAME
+export GITHUB_REPO_URL=GITHUB_REPO_URL
+export GITHUB_USERNAME=GITHUB_USERNAME
+export GITHUB_ACCESS_TOKEN=GITHUB_ACCESS_TOKEN
 ```
 
-To confirm, reference the published charts locally
+Now run the package script. This script will package and publish the necessary
+helm charts to the `GITHUB_REPO`. The script expects a deployment type to be
+provided. The valid options are
+- `fwa`
+- `federated_fwa`
+- `all`
+
+This variable specifies which orc8r modules will be deployed.
+To run the script
 
 ```bash
-helm repo add GITHUB_REPO --username GITHUB_USERNAME --password GITHUB_ACCESS_TOKEN \
-      'https://raw.githubusercontent.com/GITHUB_USERNAME/GITHUB_REPO/master/'
-helm repo update && helm repo list  # should list the GITHUB_REPO repository
-helm search repo GITHUB_REPO  # should list the GITHUB_REPO chart
+$MAGMA_ROOT/orc8r/tools/helm/package.sh -d DEPLOYMENT_TYPE
 ```
 
-Finally, check out the newly-created `index.yaml`. It should contain the
-Orchestrator chart's version, which we'll use as a Terraform value in the next
-section.
+If successful, the script will output
+
+```bash
+Uploaded orc8r charts successfully.
+```
