@@ -10,7 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import subprocess
+import ipaddress
+import logging
 from collections import namedtuple
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
@@ -37,7 +39,7 @@ class Classifier(MagmaController):
     APP_TYPE = ControllerType.SPECIAL
     ClassifierConfig = namedtuple(
             'ClassifierConfig',
-            ['gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port', 'internal_sampling_fwd_tbl'],
+            ['gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port', 'internal_sampling_fwd_tbl', 'multi_tunnel_flag'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -48,6 +50,8 @@ class Classifier(MagmaController):
         self._uplink_port = OFPP_LOCAL
         self._datapath = None
         self._clean_restart = kwargs['config']['clean_restart']
+        if self.config.multi_tunnel_flag:
+            self._ovs_multi_tunnel_init()
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -58,6 +62,11 @@ class Classifier(MagmaController):
             mtr_ip = config_dict['mtr_ip']
             mtr_port = config_dict['ovs_mtr_port_number']
 
+        if 'ovs_multi_tunnel' in config_dict:
+            multi_tunnel_flag = config_dict['ovs_multi_tunnel']
+        else:
+            multi_tunnel_flag = False
+
         return self.ClassifierConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
             mtr_ip=mtr_ip,
@@ -66,8 +75,47 @@ class Classifier(MagmaController):
                                config_dict['ovs_internal_sampling_port_number'],
             internal_sampling_fwd_tbl=
                               config_dict['ovs_internal_sampling_fwd_tbl_number'],
+            multi_tunnel_flag=multi_tunnel_flag,
 
         )
+
+    def _get_gtp_port_no(self, port_name:str):
+        output = subprocess.check_output("sudo ovsdb-client dump Interface name ofport",
+                                          shell=True,).decode("utf-8")
+        for line in output.split('\n'):
+            if port_name in line:
+                port_info = line.split()
+                return int(port_info[1])
+
+    def _ovs_multi_tunnel_init(self):
+        try:
+            subprocess.check_output("sudo ovs-vsctl list Open_vSwitch | grep gtpu",
+                                     shell=True,)
+            self.ovs_gtp_type = "gtpu"
+        except subprocess.CalledProcessError:
+            self.ovs_gtp_type = "gtp"
+
+    def _ip_addr_to_gtp_port_name(self, enodeb_ip_addr:str):
+        ip_no = hex(int(ipaddress.ip_address(enodeb_ip_addr)))
+        buf = "g_{}".format(ip_no[2:])
+        return buf
+
+    def _find_gtp_port_no(self, enodeb_ip_addr:str):
+        if not self.config.multi_tunnel_flag:
+            return self.config.gtp_port
+
+        port_name = self._ip_addr_to_gtp_port_name(enodeb_ip_addr)
+        add_cmd = "sudo ovs-vsctl --may-exist add-port gtp_br0 {} \
+                   -- set interface {} type={} options:remote_ip={} \
+                   options:key=flow" \
+                .format(port_name, port_name, self.ovs_gtp_type, enodeb_ip_addr)
+
+        try:
+            subprocess.check_output(add_cmd,shell=True,)
+        except subprocess.CalledProcessError as e:
+            logging.warning("Error while adding ports: %s", e)
+
+        return self._get_gtp_port_no(port_name)
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
@@ -104,7 +152,11 @@ class Classifier(MagmaController):
         parser = self._datapath.ofproto_parser
         priority = Utils.get_of_priority(precedence)
         # Add flow for gtp port
-        match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
+        if enodeb_ip_addr:
+            gtp_portno = self._find_gtp_port_no(enodeb_ip_addr)
+        else:
+            gtp_portno = self.config.gtp_port
+        match = MagmaMatch(tunnel_id=i_teid, in_port=gtp_portno)
 
         actions = [parser.OFPActionSetField(eth_src=GTP_PORT_MAC),
                    parser.OFPActionSetField(eth_dst="ff:ff:ff:ff:ff:ff")]
@@ -120,7 +172,7 @@ class Classifier(MagmaController):
         actions = [parser.OFPActionSetField(tunnel_id=o_teid),
                    parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr),
                    parser.OFPActionSetField(tun_flags=TUNNEL_OAM_FLAG),
-                   parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=self.config.gtp_port)]
+                   parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=gtp_portno)]
         if sid:
             actions.append(parser.OFPActionSetField(metadata=sid))
 
@@ -154,10 +206,16 @@ class Classifier(MagmaController):
                        priority=priority, goto_table=self.next_table)
 
 
-    def _delete_tunnel_flows(self, i_teid:int, ue_ip_adr:str):
+    def _delete_tunnel_flows(self, i_teid:int, ue_ip_adr:str,
+                                 enodeb_ip_addr:str = None):
 
         # Delete flow for gtp port
-        match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
+        if enodeb_ip_addr:
+            gtp_portno = self._find_gtp_port_no(enodeb_ip_addr)
+        else:
+            gtp_portno = self.config.gtp_port
+
+        match = MagmaMatch(tunnel_id=i_teid, in_port=gtp_portno)
 
         flows.delete_flow(self._datapath, self.tbl_num, match)
 
