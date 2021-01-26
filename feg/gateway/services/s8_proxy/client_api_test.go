@@ -21,14 +21,14 @@ var (
 
 func TestS8ProxyClient(t *testing.T) {
 	// run both s8 and pgw
-	err := test_init.StartS8AndPGWService(t, gtpClientAddr, gtpServerAddr)
+	mockPgw, err := test_init.StartS8AndPGWService(t, gtpClientAddr, gtpServerAddr)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
 
-	// test create session through client
-	// Create Session Request message
+	//------------------------
+	//---- Create Session ----
 	csReq := &protos.CreateSessionRequestPgw{
 		Imsi:   IMSI1,
 		Msisdn: "00111",
@@ -40,7 +40,7 @@ func TestS8ProxyClient(t *testing.T) {
 		RatType: 0,
 		BearerContext: &protos.BearerContext{
 			Id: 5,
-			AgwUserPlaneFteid: &protos.Fteid{
+			UserPlaneFteid: &protos.Fteid{
 				Ipv4Address: "127.0.0.10",
 				Ipv6Address: "",
 				Teid:        11,
@@ -94,14 +94,26 @@ func TestS8ProxyClient(t *testing.T) {
 		return
 	}
 
-
 	assert.NoError(t, err)
 	assert.NotEmpty(t, csRes)
 
 	// check fteid was received properly
-	assert.NotEqual(t, 0, csRes.PgwFteidU.Teid)
-	assert.NotEmpty(t, csRes.PgwFteidU.Ipv4Address)
-	assert.Empty(t, csRes.PgwFteidU.Ipv6Address)
-	
+	assert.Equal(t, mockPgw.LastTEIDu, csRes.BearerContext.UserPlaneFteid.Teid)
+	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
+	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
+
 	t.Logf("Create Session: %#+v", *csRes)
+
+	//------------------------
+	//---- Delete session ----
+	cdReq := &protos.DeleteSessionRequestPgw{Imsi: IMSI1}
+	_, err = s8_proxy.DeleteSession(cdReq)
+	assert.NoError(t, err)
+
+	//------------------------
+	//---- Echo Request ----
+	eReq := &protos.EchoRequest{}
+	_, err = s8_proxy.SendEcho(eReq)
+	assert.NoError(t, err)
+
 }
