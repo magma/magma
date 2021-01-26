@@ -135,6 +135,7 @@ class HeaderEnrichmentController(MagmaController):
         encryption_key = None
         if mconfig.he_config and mconfig.he_config.enable_encryption:
             encryption_enabled = True
+            encryption_key = mconfig.he_config.encryption_key
             encryption_algorithm = mconfig.he_config.encryptionAlgorithm
             hash_function = mconfig.he_config.hashFunction
             encoding_type = mconfig.he_config.encodingType
@@ -190,15 +191,12 @@ class HeaderEnrichmentController(MagmaController):
         return ret
 
     def _set_he_target_urls(self, ue_addr: str, rule_id: str, urls: List[str], imsi: str, msisdn: bytes) -> bool:
-        if msisdn:
-            msisdn_str = msisdn.decode("utf-8")
-        else:
-            # Empty str so we don't fail encryption
-            msisdn_str = ''
+        msisdn_str = None
         ip_addr = convert_ipv4_str_to_ip_proto(ue_addr)
         if self.config.encryption_enabled:
             imsi = self.encrypt_header(imsi)
-            msisdn_str = self.encrypt_header(msisdn_str)
+            if msisdn:
+                msisdn_str = self.encrypt_header(msisdn.decode("utf-8"))
 
         return activate_he_urls_for_ue(ip_addr, rule_id, urls, imsi, msisdn_str)
 
