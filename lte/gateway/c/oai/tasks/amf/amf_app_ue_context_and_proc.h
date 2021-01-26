@@ -84,7 +84,6 @@ struct amf_procedures_t;
 #define PAGING_TIMER_EXPIRY_MSECS 4000
 
 #define MAX_PAGING_RETRY_COUNT 1
-
 // Header length boundaries of 5GS Mobility Management messages
 #define AMF_HEADER_LENGTH sizeof(amf_msg_header)
 
@@ -229,20 +228,9 @@ typedef struct smf_proc_data_s {
   SSCModeMsg ssc_mode;
 } smf_proc_data_t;
 
-/*PDU session states*/
-typedef enum {
-  CREATING,
-  CREATE,
-  ACTIVE,
-  INACTIVE,
-  PENDING_RELEASE,
-  RELEASED
-} SMSessionFSMState;
-
 // PDU session context part of AMFContext
 typedef struct smf_context_s {
   SMSessionFSMState pdu_session_state;
-  uint32_t pdu_session_version;
   uint32_t n_active_pdus;
   bool is_emergency;
   uint8_t dl_ambr_unit;
@@ -323,6 +311,8 @@ enum m5gmm_state_t {
   UNREGISTERED = 0,
   REGISTERED_IDLE,
   REGISTERED_CONNECTED,
+  UE_UNREGISTERED = 0,
+  UE_REGISTERED,
 };
 
 enum m5gcm_state_t {

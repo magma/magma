@@ -41,6 +41,12 @@ extern "C" {
 static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg);
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
+=======
+#include "amf_app_state_manager.h"
+#include "M5gNasMessage.h"
+#include "dynamic_memory_check.h"
+
+namespace magma5g {
 extern ue_m5gmm_context_s
     ue_m5gmm_global_context;  // TODO: This has been taken care in new PR with
                               // multi UE feature
@@ -1068,5 +1074,4 @@ int amf_app_handle_notification_received(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-
 }  // namespace magma5g
