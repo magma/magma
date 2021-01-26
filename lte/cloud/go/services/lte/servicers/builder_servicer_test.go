@@ -467,8 +467,8 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		},
 	}
 	heConfig := &lte_models.GatewayHeConfig{
-		EnableHeaderEnrichment: true,
-		EnableEncryption:       true,
+		EnableHeaderEnrichment: swag.Bool(true),
+		EnableEncryption:       swag.Bool(true),
 		HeEncryptionAlgorithm:  "RC4",
 		HeHashFunction:         "MD5",
 		HeEncodingType:         "BASE64",
