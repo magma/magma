@@ -189,13 +189,13 @@ describe('<Gateway />', () => {
     expect(rowItems[1]).toHaveTextContent('test_gateway0');
     expect(rowItems[1]).toHaveTextContent('0');
     expect(rowItems[1]).toHaveTextContent('Bad');
-    expect(rowItems[1]).toHaveTextContent(new Date(0).toLocaleDateString());
+    expect(rowItems[1]).toHaveTextContent('-');
 
     expect(rowItems[2]).toHaveTextContent('test_gw1');
     expect(rowItems[2]).toHaveTextContent('test_gateway1');
     expect(rowItems[2]).toHaveTextContent('2');
     expect(rowItems[2]).toHaveTextContent('Bad');
-    expect(rowItems[2]).toHaveTextContent(new Date(0).toLocaleDateString());
+    expect(rowItems[2]).toHaveTextContent('-');
 
     expect(rowItems[3]).toHaveTextContent('test_gw2');
     expect(rowItems[3]).toHaveTextContent('test_gateway2');

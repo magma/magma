@@ -110,17 +110,19 @@ export default function SubscriberDashboard() {
 type SubscriberRowType = {
   name: string,
   imsi: string,
-  activeApns?: number,
+  activeApns?: string,
+  ipAddresses?: string,
   activeSessions?: number,
   service: string,
   currentUsage: string,
   dailyAvg: string,
-  lastReportedTime: Date,
+  lastReportedTime: Date | string,
 };
 
 type SubscriberSessionRowType = {
   apnName: string,
   sessionId: string,
+  ipAddr: string,
   state: string,
   activeDuration: string,
   activePolicies: Array<string>,
@@ -324,9 +326,10 @@ function Table(props: WithAlert & {refresh: boolean}) {
         service: subscriberInfo.lte?.state || '',
         currentUsage: metrics?.currentUsage ?? '0',
         dailyAvg: metrics?.dailyAvg ?? '0',
-        lastReportedTime: new Date(
-          subscriberInfo.monitoring?.icmp?.last_reported_time ?? 0,
-        ),
+        lastReportedTime:
+          subscriberInfo.monitoring?.icmp?.last_reported_time === 0
+            ? new Date(subscriberInfo.monitoring?.icmp?.last_reported_time)
+            : '-',
       };
     },
   );
@@ -344,21 +347,25 @@ function Table(props: WithAlert & {refresh: boolean}) {
                 : tableData.map(row => {
                     const subscriber =
                       sessionState[row.imsi]?.subscriber_state || {};
-                    const sessions = Object.keys(subscriber || {}).map(
-                      apn =>
-                        subscriber[apn].filter(
-                          session =>
-                            session.lifecycle_state === 'SESSION_ACTIVE',
-                        ).length,
-                    );
+                    const ipAddresses = [];
+                    const activeApns = [];
+                    let activeSessions = 0;
+                    Object.keys(subscriber || {}).forEach(apn => {
+                      subscriber[apn].forEach(session => {
+                        if (session.lifecycle_state === 'SESSION_ACTIVE') {
+                          ipAddresses.push(session?.ipv4);
+                          activeSessions++;
+                        }
+                      });
+                      activeApns.push(apn);
+                    });
                     return {
                       ...row,
-                      activeApns: Object.keys(
-                        sessionState[row.imsi]?.subscriber_state || {},
-                      ).length,
-                      activeSessions: sessions.length
-                        ? sessions.reduce((a, b) => a + b)
-                        : 0,
+                      activeApns:
+                        activeApns.length > 0 ? activeApns.join() : '-',
+                      activeSessions: activeSessions,
+                      ipAddress:
+                        ipAddresses.length > 0 ? ipAddresses.join() : '-',
                     };
                   })
             }
@@ -367,8 +374,13 @@ function Table(props: WithAlert & {refresh: boolean}) {
                 ? tableColumns
                 : [
                     ...tableColumns,
+                    {
+                      title: 'Active Sessions',
+                      field: 'activeSessions',
+                      width: 175,
+                    },
                     {title: 'Active APNs', field: 'activeApns'},
-                    {title: 'Active Sessions', field: 'activeSessions'},
+                    {title: 'IP Address', field: 'ipAddress'},
                   ]
             }
             handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
@@ -453,6 +465,7 @@ function Table(props: WithAlert & {refresh: boolean}) {
                             subscriberSessionRows.push({
                               apnName: apn,
                               sessionId: infos.session_id,
+                              ipAddr: infos.ipv4 ?? '-',
                               state: infos.lifecycle_state,
                               activeDuration: `${infos.active_duration_sec} sec`,
                               activePolicies: infos.active_policy_rules,
@@ -469,6 +482,7 @@ function Table(props: WithAlert & {refresh: boolean}) {
                               {title: 'APN Name', field: 'apnName'},
                               {title: 'Session ID', field: 'sessionId'},
                               {title: 'State', field: 'state'},
+                              {title: 'IP Address', field: 'ipAddr'},
                               {
                                 title: 'Active Duration',
                                 field: 'activeDuration',
