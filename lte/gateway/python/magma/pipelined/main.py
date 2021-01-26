@@ -96,11 +96,10 @@ def main():
     service.config['he_enabled'] = he_enabled
 
     # monitoring related configuration
-    mtr_ip = None
     mtr_interface = service.config.get('mtr_interface', None)
     if mtr_interface:
         mtr_ip = get_ip_from_if(mtr_interface)
-    service.config['mtr_ip'] = mtr_ip
+        service.config['mtr_ip'] = mtr_ip
 
     # Load the ryu apps
     service_manager = ServiceManager(service)
