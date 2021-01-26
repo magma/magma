@@ -37,7 +37,6 @@ from __future__ import absolute_import, division, print_function, \
 
 from ipaddress import ip_address, ip_network
 from typing import Dict, List, Optional, Set
-from random import choice
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
 
@@ -82,10 +81,15 @@ class IpDescriptorMap:
             return None
 
     def is_ip_state_map_empty(self, state: IPState) -> bool:
-        """ Return if IPs map is empty for a given state """
+        """
+        Args:
+            state: IP State to check for
+
+        Returns: True if IPs map is empty for a given state, else otherwise
+        """
         assert state in IPState, "unknown state %s" % state
 
-        return self.ip_states[state] == False
+        return bool(self.ip_states[state]) == False
 
     def test_ip_state(self, ip: ip_address, state: IPState) -> bool:
         """ check if IP is in state X """
@@ -119,7 +123,7 @@ class IpDescriptorMap:
         assert ip == ip_desc.ip, "Unmatching ip_desc for %s" % ip
 
         if ip_desc.state == IPState.FREE:
-            assert ip_desc.sid is None,\
+            assert ip_desc.sid is None, \
                 "Unexpected sid in a freed IPDesc {}".format(ip_desc)
         else:
             assert ip_desc.sid is not None, \
