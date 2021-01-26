@@ -14,33 +14,27 @@
 package swagger_test
 
 import (
-	"flag"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/swagger"
-	"magma/orc8r/cloud/go/tools/combine_swagger/spec"
-	"magma/orc8r/cloud/go/tools/swaggergen/generate"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
 )
 
 func init() {
-	_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
 var (
 	testdataDir    = "testdata"
-	cfgsDir        = filepath.Join(testdataDir, "configs")
+	specsDir       = filepath.Join(testdataDir, "configs")
 	commonFilepath = filepath.Join(testdataDir, "common/common.yml")
-	outFilepath    = filepath.Join(testdataDir, "out.yml")
 	goldenFilepath = filepath.Join(testdataDir, "out.yml.golden")
-
-	nErrsFromCombine = 5
 )
 
 // TestCombine tests the generated output against a golden file.
@@ -49,73 +43,82 @@ var (
 // the golden file's correctness.
 //
 // go-swagger mixin: https://goswagger.io/usage/mixin.html
-func TestCombine(t *testing.T){
-	cleanup()
-	defer cleanup()
+func TestCombine(t *testing.T) {
+	nErrsFromCombine := 5
 
-	cfgsStr, commonStr, err := spec.Load(cfgsDir, commonFilepath)
+	yamlCommon, yamlSpecs, err := load(commonFilepath, specsDir)
 	assert.NoError(t, err)
 
-	cfgs, common, err := swagger.ConvertToSwagger(commonStr, cfgsStr)
+	combined, warnings, err := swagger.Combine(yamlCommon, yamlSpecs)
 	assert.NoError(t, err)
 
-	combinedSpecSwagger, errs := swagger.Combine(common, cfgs)
-	assert.Error(t, errs)
-	merrs, ok := errs.(*multierror.Error)
+	assert.Error(t, warnings)
+	merrs, ok := warnings.(*multierror.Error)
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
-	out, err := marshalToYAML(combinedSpecSwagger)
+	expected, err := readFile(goldenFilepath)
 	assert.NoError(t, err)
 
-	err = spec.Write(out, outFilepath)
-	assert.NoError(t, err)
-
-	expected := readFile(t, goldenFilepath)
-	actual := readFile(t, outFilepath)
-	assert.Equal(t, expected, actual)
+	assert.Equal(t, expected, combined)
 }
 
-func TestCombineStr(t *testing.T){
-	cleanup()
-	defer cleanup()
+// load a common swagger spec file and a directory of
+// swagger specs to their YAML string format.
+func load(commonFilepath, inDir string) (string, []string, error) {
+	specs, err := loadSpecsFromInputDir(inDir)
+	if err != nil {
+		return "", nil, err
+	}
 
-	cfgs, common, err := spec.Load(cfgsDir, commonFilepath)
-	assert.NoError(t, err)
+	commonSpec, err := readFile(commonFilepath)
+	if err != nil {
+		return "", nil, err
+	}
 
-	out, err, errs := swagger.CombineStr(common, cfgs)
-	assert.NoError(t, err)
-
-	assert.Error(t, errs)
-	merrs, ok := errs.(*multierror.Error)
-	assert.True(t, ok)
-	assert.Len(t, merrs.Errors, nErrsFromCombine)
-
-	err = spec.Write(out, outFilepath)
-	assert.NoError(t, err)
-
-	expected := readFile(t, goldenFilepath)
-	actual := readFile(t, outFilepath)
-	assert.Equal(t, expected, actual)
+	return commonSpec, specs, nil
 }
 
-// cleanup cleans up created tmp files.
-func cleanup() {
-	_ = os.Remove(outFilepath)
+// loadSpecsFromInputDir loads all input Swagger files' contents
+// to string.
+func loadSpecsFromInputDir(inDir string) ([]string, error) {
+	filepaths := getFilepaths(inDir)
+	contents, err := readFiles(filepaths)
+	if err != nil {
+		return nil, err
+	}
+
+	return contents, nil
+}
+
+// getFilepaths returns the filepaths of each Swagger YAML file in or
+// below inDir, in lexical order.
+func getFilepaths(inDir string) []string {
+	var filepaths []string
+	filepath.Walk(inDir, func(path string, info os.FileInfo, err error) error {
+		if strings.Contains(path, ".yml") {
+			filepaths = append(filepaths, path)
+		}
+		return nil
+	})
+	return filepaths
+}
+
+// readFiles maps the passed filepaths to their contents.
+func readFiles(filepaths []string) ([]string, error) {
+	var contents []string
+	for _, path := range filepaths {
+		s, err := readFile(path)
+		if err != nil {
+			return nil, err
+		}
+		contents = append(contents, s)
+	}
+	return contents, nil
 }
 
 // readFile returns the content of the passed filepath.
-func readFile(t *testing.T, filepath string) (string) {
+func readFile(filepath string) (string, error) {
 	data, err := ioutil.ReadFile(filepath)
-	assert.NoError(t, err)
-	return string(data)
-}
-
-// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
-func marshalToYAML(spec generate.SwaggerSpec) (string, error) {
-	d, err := yaml.Marshal(&spec)
-	if err != nil {
-		return "", err
-	}
-	return string(d), nil
+	return string(data), err
 }

@@ -11,7 +11,7 @@
  limitations under the License.
 */
 
-package spec
+package combine
 
 import (
 	"io/ioutil"
@@ -20,19 +20,41 @@ import (
 	"strings"
 )
 
-// Load specs from file to yaml string
-func Load(inDir, commonFilepath string) ([]string, string, error) {
-	specs, err := loadSpecsFromInputDir(inDir)
+// Load a common swagger spec file and a directory of
+// swagger specs to their YAML string format.
+func Load(commonFilepath, inDir string) (string, []string, error) {
+	yamlSpecs, err := loadSpecsFromInputDir(inDir)
 	if err != nil {
-		return nil, "", err
+		return "", nil, err
 	}
 
-	commonSpec, err := readFile(commonFilepath)
+	yamlCommon, err := readFile(commonFilepath)
 	if err != nil {
-		return nil, "", err
+		return "", nil, err
 	}
 
-	return specs, commonSpec, nil
+	return yamlCommon, yamlSpecs, nil
+}
+
+// Write spec to filepath.
+func Write(outSpec string, filepath string) error {
+	f, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+	_, err = f.WriteString(outSpec)
+	if err != nil {
+		return err
+	}
+
+	err = f.Sync()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // loadSpecsFromInputDir loads all input Swagger files' contents
@@ -45,19 +67,6 @@ func loadSpecsFromInputDir(inDir string) ([]string, error) {
 	}
 
 	return contents, nil
-}
-
-// Write spec to filepath.
-func Write(outSpec string, filepath string) error {
-	f, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-	f.WriteString(outSpec)
-	f.Sync()
-	return nil
 }
 
 // readFiles maps the passed filepaths to their contents.

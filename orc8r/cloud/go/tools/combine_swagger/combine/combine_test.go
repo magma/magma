@@ -11,36 +11,31 @@
  limitations under the License.
 */
 
-package spec_test
+package combine_test
 
 import (
-	"flag"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"magma/orc8r/cloud/go/swagger"
-	"magma/orc8r/cloud/go/tools/combine_swagger/spec"
-	"magma/orc8r/cloud/go/tools/swaggergen/generate"
+	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
 )
 
 func init() {
-	_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
 var (
 	testdataDir    = "testdata"
-	cfgsDir        = filepath.Join(testdataDir, "configs")
+	specsDir       = filepath.Join(testdataDir, "configs")
 	commonFilepath = filepath.Join(testdataDir, "common/common.yml")
 	outFilepath    = filepath.Join(testdataDir, "out.yml")
 	goldenFilepath = filepath.Join(testdataDir, "out.yml.golden")
-
-	nErrsFromCombine = 9
 )
 
 // TestCombine tests the generated output against a golden file.
@@ -53,21 +48,20 @@ func TestCombine(t *testing.T) {
 	cleanup()
 	defer cleanup()
 
-	cfgsStr, commonStr, err := spec.Load(cfgsDir, commonFilepath)
-	assert.NoError(t, err)
-	cfgs, common, err := swagger.ConvertToSwagger(commonStr, cfgsStr)
+	nErrsFromCombine := 9
+
+	yamlCommon, yamlSpecs, err := combine.Load(commonFilepath, specsDir)
 	assert.NoError(t, err)
 
-	combinedSpec, errs := swagger.Combine(common, cfgs)
-	assert.Error(t, errs)
-	merrs, ok := errs.(*multierror.Error)
+	combined, warnings, err := swagger.Combine(yamlCommon, yamlSpecs)
+	assert.NoError(t, err)
+
+	assert.Error(t, warnings)
+	merrs, ok := warnings.(*multierror.Error)
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
-	out, err := marshalToYAML(combinedSpec)
-	assert.NoError(t, err)
-
-	err = spec.Write(out, outFilepath)
+	err = combine.Write(combined, outFilepath)
 	assert.NoError(t, err)
 
 	expected := readFile(t, goldenFilepath)
@@ -85,14 +79,4 @@ func readFile(t *testing.T, filepath string) string {
 	data, err := ioutil.ReadFile(filepath)
 	assert.NoError(t, err)
 	return string(data)
-}
-
-
-// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
-func marshalToYAML(spec generate.SwaggerSpec) (string, error) {
-	d, err := yaml.Marshal(&spec)
-	if err != nil {
-		return "", err
-	}
-	return string(d), nil
 }
