@@ -1531,12 +1531,14 @@ int emm_send_security_mode_command(
 int emm_send_emm_information(
     const emm_as_data_t* msg, emm_information_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int size     = EMM_HEADER_MAXIMUM_LENGTH;
-  int addci    = 0;
-  int noOfBits = 0;
+  char string[MAX_MINUTE_DIGITS] = {0};
+  int size                       = EMM_HEADER_MAXIMUM_LENGTH;
+  int addci                      = 0;
+  int noOfBits                   = 0;
   time_t t;
   struct tm* tmp;
   struct tm updateTime;
+  uint8_t formatted;
 
   /*
    * Mandatory - Message type
@@ -1602,12 +1604,41 @@ int emm_send_emm_information(
   emm_msg->presencemask |=
       EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_PRESENT;
 
-  emm_msg->universaltimeandlocaltimezone.year   = updateTime.tm_year;
-  emm_msg->universaltimeandlocaltimezone.month  = updateTime.tm_mon;
-  emm_msg->universaltimeandlocaltimezone.day    = updateTime.tm_mday;
-  emm_msg->universaltimeandlocaltimezone.hour   = updateTime.tm_hour;
-  emm_msg->universaltimeandlocaltimezone.minute = updateTime.tm_min;
-  emm_msg->universaltimeandlocaltimezone.second = updateTime.tm_sec;
+  /*
+   * Time SHALL be encoded as specified in 3GPP 23.040 in SM-TL TPDU format.
+   */
+  /*
+   * updateTime.year is "years since 1900"
+   * GSM format is the last 2 digits of the year.
+   */
+  snprintf(string, sizeof(string), "%02d", updateTime.tm_year + 1900 - 2000);
+  formatted = (string[1] - '0') << 4;
+  formatted |= (string[0] - '0');
+  emm_msg->universaltimeandlocaltimezone.year = formatted;
+  /*
+   * updateTime.tm_mon is "months since January" in [0-11] range.
+   * GSM format is months in [1-12] range.
+   */
+  snprintf(string, sizeof(string), "%02d", updateTime.tm_mon + 1);
+  formatted = (string[1] - '0') << 4;
+  formatted |= (string[0] - '0');
+  emm_msg->universaltimeandlocaltimezone.month = formatted;
+  snprintf(string, sizeof(string), "%02d", updateTime.tm_mday);
+  formatted = (string[1] - '0') << 4;
+  formatted |= (string[0] - '0');
+  emm_msg->universaltimeandlocaltimezone.day = formatted;
+  snprintf(string, sizeof(string), "%02d", updateTime.tm_hour);
+  formatted = (string[1] - '0') << 4;
+  formatted |= (string[0] - '0');
+  emm_msg->universaltimeandlocaltimezone.hour = formatted;
+  snprintf(string, sizeof(string), "%02d", updateTime.tm_min);
+  formatted = (string[1] - '0') << 4;
+  formatted |= (string[0] - '0');
+  emm_msg->universaltimeandlocaltimezone.minute = formatted;
+  snprintf(string, sizeof(string), "%02d", updateTime.tm_sec);
+  formatted = (string[1] - '0') << 4;
+  formatted |= (string[0] - '0');
+  emm_msg->universaltimeandlocaltimezone.second = formatted;
   if (emm_msg->localtimezone != RETURNerror) {
     emm_msg->universaltimeandlocaltimezone.timezone = emm_msg->localtimezone;
   }
@@ -1713,6 +1744,7 @@ int get_time_zone(void) {
     OAILOG_ERROR(LOG_NAS_EMM, "EMMAS-SAP - strftime() Failed to get timezone");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
+
   /* the string shall be in the form of +hhmm (+0530) */
   if (timestr[0] == '-') {
     timezone = 0x08;
@@ -1721,9 +1753,9 @@ int get_time_zone(void) {
   minute = ((10 * (timestr[3] - '0')) | (timestr[4] - '0')) + (hour * 60);
   minute /= 15;
 
-  snprintf(string, sizeof(string), "%d", minute);
-  timezone |= (string[0] - '0') << 4;
-  timezone |= (string[1] - '0');
+  snprintf(string, sizeof(string), "%02d", minute);
+  timezone |= (string[1] - '0') << 4;
+  timezone |= (string[0] - '0');
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, timezone);
 }
