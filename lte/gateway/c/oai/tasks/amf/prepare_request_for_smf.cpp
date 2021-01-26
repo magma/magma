@@ -159,35 +159,6 @@ int create_session_grpc_req(amf_smf_establish_t* message, char* imsi) {
   req_rat_specific->mutable_pdu_address()->set_redirect_address_type(
       magma::lte::RedirectServer::IPV4);
   //  req_rat_specific->set_access_type(magma::lte::AccessType::M_3GPP_ACCESS_3GPP);
-  req_rat_specific->set_pdu_session_type(magma::lte::PduSessionType::IPV4);
-  req_rat_specific->mutable_gnode_endpoint()->mutable_teid()->assign(
-      (char*) message->gnb_gtp_teid);
-  req_rat_specific->mutable_gnode_endpoint()->mutable_end_ipv4_addr()->assign(
-      (char*) message->gnb_gtp_teid_ip_addr);
-  req_rat_specific->set_procedure_trans_identity(
-      (const char*) (&(message->pti)));
-  grpc_prep_estab_req_to_smf(req);
-
-  return RETURNok;
-}
-
-/***************************************************************************
-**                                                                        **
-** Name:    release_session_gprc_req()                                    **
-**                                                                        **
-** Description: Sends session release request to SMF                      **
-**                                                                        **
-**                                                                        **
-***************************************************************************/
-int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
-  magma::lte::SetSMSessionContext req;
-  auto* req_common = req.mutable_common_context();
-  req_common->mutable_sid()->mutable_id()->assign(imsi);
-  req_common->mutable_sid()->set_type(
-      magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
-  req_common->set_sm_session_state(magma::lte::SMSessionFSMState::RELEASED_4);
-  auto* req_rat_specific =
-      req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);
   req_rat_specific->set_procedure_trans_identity(
       (const char*) (&(message->pti)));
