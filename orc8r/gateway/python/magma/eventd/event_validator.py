@@ -21,13 +21,20 @@ import yaml
 from bravado_core.spec import Spec
 from bravado_core.validate import validate_object as bravado_validate
 
+EVENT_REGISTRY = 'event_registry'
+SWAGGER_SPEC = 'swagger_spec'
+BRAVADO_SPEC = 'bravado_spec'
+MODULE = 'module'
+FILENAME = 'filename'
+DEFINITIONS = 'definitions'
+
 class EventValidator(object):
     """
     gRPC based server for EventD.
     """
     def __init__(self, config: Dict[str, Any]):
-        self.event_registry = config['event_registry']
-        self.event_type_to_spec = self._load_specs_from_registry()
+        self.event_registry = config[EVENT_REGISTRY]
+        self.specs_by_filename = self._load_specs_from_registry()
 
     def validate_event(self, raw_event: str, event_type: str) -> None:
         """
@@ -50,17 +57,10 @@ class EventValidator(object):
             raise KeyError(
                 'Event type {} not registered, '
                 'please add it to the EventD config'.format(event_type))
-
-        # swagger_spec exists because we load it up for every event_type
-        # in load_specs_from_registry()
-        swagger_spec = self.event_type_to_spec[event_type]
-
-        # Field and type checking
-        bravado_spec = Spec.from_dict(swagger_spec,
-                                      config={'validate_swagger_spec': False})
+        filename = self.event_registry[event_type][FILENAME]
         bravado_validate(
-            bravado_spec,
-            swagger_spec['definitions'][event_type],
+            self.specs_by_filename[filename][BRAVADO_SPEC],
+            self.specs_by_filename[filename][SWAGGER_SPEC][event_type],
             event)
 
 
@@ -69,22 +69,50 @@ class EventValidator(object):
         Loads all swagger definitions from the files specified in the
         event registry.
         """
-        event_type_to_spec = {}
+        specs_by_filename = {}
         for event_type, info in self.event_registry.items():
-            module = '{}.swagger.specs'.format(info['module'])
-            filename = info['filename']
+            filename = info[FILENAME]
+            if filename in specs_by_filename:
+                # Spec for this file is already registered
+                self._check_event_exists_in_spec(
+                    specs_by_filename[filename][SWAGGER_SPEC],
+                    filename,
+                    event_type,
+                )
+                continue
+
+            module = '{}.swagger.specs'.format(info[MODULE])
             if not pkg_resources.resource_exists(module, filename):
                 raise LookupError(
                     'File {} not found under {}/swagger, please ensure that '
-                    'it exists'.format(filename, info['module']))
+                    'it exists'.format(filename, info[MODULE]))
 
             stream = pkg_resources.resource_stream(module, filename)
             with closing(stream) as spec_file:
-                spec = yaml.safe_load(spec_file)
-                if event_type not in spec['definitions']:
-                    raise KeyError(
-                        'Event type {} is not defined in {}, '
-                        'please add the definition and re-generate '
-                        'swagger specifications'.format(event_type, filename))
-                event_type_to_spec[event_type] = spec
-        return event_type_to_spec
+                swagger_spec = yaml.safe_load(spec_file)
+                self._check_event_exists_in_spec(
+                    swagger_spec[DEFINITIONS], filename, event_type)
+
+                config = {'validate_swagger_spec': False}
+                bravado_spec = Spec.from_dict(swagger_spec, config=config)
+                specs_by_filename[filename] = {
+                    SWAGGER_SPEC: swagger_spec[DEFINITIONS],
+                    BRAVADO_SPEC: bravado_spec,
+                }
+
+        return specs_by_filename
+
+    @staticmethod
+    def _check_event_exists_in_spec(
+            swagger_definitions: Dict[str, Any],
+            filename: str,
+            event_type: str,
+    ):
+        """
+        Throw a KeyError if the event_type does not exist in swagger_definitions
+        """
+        if event_type not in swagger_definitions:
+            raise KeyError(
+                'Event type {} is not defined in {}, '
+                'please add the definition and re-generate '
+                'swagger specifications'.format(event_type, filename))
