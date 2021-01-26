@@ -10,9 +10,9 @@
 # limitations under the License.
 #
 SHELL := /bin/bash
-.PHONY: build clean clean_gen download fmt gen lint plugin test tidy vet migration_plugin
+.PHONY: build clean clean_gen download fmt gen lint test tidy vet migration_plugin
 
-build:: plugin
+build::
 	go install ./...
 
 clean::
@@ -49,9 +49,6 @@ copy_swagger_files:
 
 lint:
 	golangci-lint run
-
-plugin::
-	go build -buildmode=plugin -o $(PLUGIN_DIR)/$(PLUGIN_NAME).so .
 
 test::
 	go test ./...
