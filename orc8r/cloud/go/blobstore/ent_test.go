@@ -48,11 +48,7 @@ func TestMigration(t *testing.T) {
 	require.Len(t, many, 2)
 	require.Equal(t, blobs[:2], many)
 
-	keys, err := storev1.ListKeys("id1", "type1")
-	require.NoError(t, err)
-	require.Equal(t, []string{"key1", "key2"}, keys)
-
-	keys, err = storev1.GetExistingKeys([]string{"key1"}, blobstore.SearchFilter{})
+	keys, err := storev1.GetExistingKeys([]string{"key1"}, blobstore.SearchFilter{})
 	require.NoError(t, err)
 	require.Equal(t, []string{"key1"}, keys)
 
@@ -77,14 +73,6 @@ func TestMigration(t *testing.T) {
 	blob, err = storev2.Get("id1", storage.TypeAndKey{Type: "type2", Key: "key2"})
 	require.NoError(t, err)
 	require.Equal(t, blobs[1], blob)
-
-	keys, err = storev2.ListKeys("id1", "type1")
-	require.NoError(t, err)
-	require.Equal(t, []string{"key1", "key2"}, keys)
-
-	keys, err = storev2.ListKeys("id1", "type2")
-	require.NoError(t, err)
-	require.Equal(t, []string{"key2"}, keys)
 
 	err = storev2.IncrementVersion("id1", storage.TypeAndKey{Type: "type3", Key: "key1"})
 	require.NoError(t, err)

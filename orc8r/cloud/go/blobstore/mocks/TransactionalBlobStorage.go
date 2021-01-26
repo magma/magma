@@ -138,29 +138,6 @@ func (_m *TransactionalBlobStorage) IncrementVersion(networkID string, id storag
 	return r0
 }
 
-// ListKeys provides a mock function with given fields: networkID, typeVal
-func (_m *TransactionalBlobStorage) ListKeys(networkID string, typeVal string) ([]string, error) {
-	ret := _m.Called(networkID, typeVal)
-
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(string, string) []string); ok {
-		r0 = rf(networkID, typeVal)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(networkID, typeVal)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Rollback provides a mock function with given fields:
 func (_m *TransactionalBlobStorage) Rollback() error {
 	ret := _m.Called()

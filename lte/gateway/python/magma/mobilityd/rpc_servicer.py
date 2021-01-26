@@ -29,6 +29,9 @@ from .ip_allocator_base import DuplicateIPAssignmentError, \
     DuplicatedIPAllocationError, IPBlockNotFoundError, NoAvailableIPError, \
     OverlappedIPBlocksError
 
+from .subscriberdb_client import SubscriberDBConnectionError,\
+    SubscriberDBStaticIPValueError, SubscriberDBMultiAPNValueError
+
 from .ipv6_allocator_pool import MaxCalculationError
 
 
@@ -288,6 +291,18 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             context.set_details(
                 'Reached maximum IPv6 calculation tries')
             context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
+        except SubscriberDBConnectionError:
+            context.set_details(
+                'Could not connect to SubscriberDB')
+            context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
+        except SubscriberDBStaticIPValueError:
+            context.set_details(
+                'Could not parse static IP response from SubscriberDB')
+            context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
+        except SubscriberDBMultiAPNValueError:
+            context.set_details(
+                'Could not parse MultiAPN IP response from SubscriberDB')
+            context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
         return AllocateIPAddressResponse()
 
     def _ipblock_msg_to_ipblock(self, ipblock_msg, context):

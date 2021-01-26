@@ -168,6 +168,8 @@
   retries: 5
 
 - name: Install build requirements for Ubuntu systems
+  # python3-aioeventlet manually built with fpm and uploaded to jfrog focal-dev repo
+  # due to upstream versioning bug
   when: preburn and ansible_distribution == "Ubuntu"
   apt:
     state: present
@@ -175,6 +177,7 @@
       - clang
       - cmake
       - make
+      - python3-aioeventlet
   retries: 5
 
 # /etc/environment doesn't expand variables, so if we want to modify the path,

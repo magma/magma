@@ -67,6 +67,6 @@
       "@type": "type.googleapis.com/magma.mconfig.MonitorD",
       "logLevel": "DEBUG",
       "pollingInterval": 60
-    },
+    }
   }
 }

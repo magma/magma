@@ -262,6 +262,7 @@ class DhcpClient(unittest.TestCase):
 
         self._sniffer = AsyncSniffer(iface=self._br,
                                      filter="udp and (port 67 or 68)",
+                                     store=False,
                                      prn=self._handle_dhcp_req_packet)
 
         self.pkt_list = []

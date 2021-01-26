@@ -7,8 +7,8 @@
       "ipv6Block": "fdee:5:6c::/48",
       "ipv6PrefixAllocationType": "RANDOM",
       "ip_allocator_type": "IP_POOL",
-      "static_ip_enabled": true,
-      "multi_apn_ip_alloc": true
+      "static_ip_enabled": false,
+      "multi_apn_ip_alloc": false
     },
     "mme": {
       "@type": "type.googleapis.com/magma.mconfig.MME",

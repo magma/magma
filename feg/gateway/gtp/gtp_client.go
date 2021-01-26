@@ -61,7 +61,7 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 	c := NewClient(localAddr, remoteAddr, connType)
 	c.Conn, err = gtpv2.Dial(ctx, localAddr, remoteAddr, connType, 0)
 	if err != nil {
-		return nil, fmt.Errorf("could not connect to GTP-C %s server:  %s", remoteAddr.String(), err)
+		return nil, fmt.Errorf("could not connect to GTP-C %s server: %s", remoteAddr.String(), err)
 	}
 	return c, nil
 }

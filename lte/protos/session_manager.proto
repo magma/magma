@@ -126,6 +126,7 @@ message UpdateTunnelIdsRequest {
   uint32 bearer_id = 2;
   uint32 enb_teid = 3;
   uint32 agw_teid = 4;
+  string session_id = 5;
 }
 
 message UpdateTunnelIdsResponse {
@@ -790,7 +791,7 @@ message RatSpecificContextAccess {
 }
 
 //AuthorizedQosRules
-//The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE, 
+//The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE,
 //where each QoS rule is a set of parameters.
 //a) for classification and marking of uplink user traffic; and
 //b) for identification of a QoS flow which the network is to use for a particular downlink user traffic.
@@ -799,19 +800,19 @@ message RatSpecificContextAccess {
 //description provided by the UE in an IMS session.
 
 message M5GSMSessionContextAccess{
-    //One byte, received from UE. For 5G pdu_session_id. 
+    //One byte, received from UE. For 5G pdu_session_id.
     bytes pdu_session_id = 1;
     //selected PDU session TS-24501 - 9.11.4.11
     PduSessionType    pdu_session_type = 2;
     //selected session and service continuty mode TS-24501 - 9.11.4.16
-    SscMode selected_ssc_mode = 3; 
+    SscMode selected_ssc_mode = 3;
     //TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
-    repeated QosRules authorized_qos_rules = 4; 
+    repeated QosRules authorized_qos_rules = 4;
     //TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
     AggregatedMaximumBitrate session_ambr = 5;
     M5GSMCause M5gsm_cause = 6; //TS-24501 - 9.11.4.2
     //PDU session is requested to be established as always-on PDU session.
-    bool always_on_pdu_session_indication = 7; 
+    bool always_on_pdu_session_indication = 7;
     SscMode allowed_ssc_mode = 8; //Indicates SSC mode.
     bool M5gsm_congetion_re_attempt_indicator = 9;
     //IP address. Imported from session_manager.proto file.

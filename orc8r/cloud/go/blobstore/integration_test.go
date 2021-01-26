@@ -31,7 +31,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, err)
 	store, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)
-	listActual, err := store.ListKeys("network", "type")
+	listActual, err := blobstore.ListKeys(store, "network", "type")
 	assert.NoError(t, err)
 	assert.Empty(t, listActual)
 
@@ -103,7 +103,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	}
 	assert.Equal(t, byNetworkExpected, byNetworkActual)
 
-	listActual, err = store.ListKeys("network1", "t1")
+	listActual, err = blobstore.ListKeys(store, "network1", "t1")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"k1", "k2"}, listActual)
 
@@ -168,6 +168,10 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 		{Type: "t9", Key: "k9", Value: []byte("world")},
 	})
 	assert.NoError(t, err)
+
+	listActual, err = blobstore.ListKeys(store, "network2", "t3")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"k3", "k4"}, listActual)
 
 	getManyActual, err = store.GetMany("network1", []storage.TypeAndKey{
 		{Type: "t1", Key: "k1"},

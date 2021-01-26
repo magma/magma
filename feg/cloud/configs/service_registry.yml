@@ -31,6 +31,8 @@ services:
     proxy_aliases:
       s6a_proxy:
         port: 9103
+      s8_proxy:
+        port: 9103
       session_proxy:
         port: 9079
       swx_proxy:
