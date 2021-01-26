@@ -225,12 +225,12 @@ namespace (by default this is <code>orc8r</code>). Also, assumes kubeconfig is s
 correctly from above.</p>
 <p>Create the Orchestrator admin user with the <code>admin_operator</code> certificate
 created earlier</p>
-<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath=<span class="hljs-string">'{.items[0].metadata.name}'</span>)
-kubectl <span class="hljs-built_in">exec</span> <span class="hljs-variable">${CNTLR_POD}</span> -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> ORC_POD=$(kubectl get pod -l app.kubernetes.io/component=orchestrator -o jsonpath=<span class="hljs-string">'{.items[0].metadata.name}'</span>)
+kubectl <span class="hljs-built_in">exec</span> <span class="hljs-variable">${ORC_POD}</span> -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 </code></pre>
 <p>If you want to verify the admin user was successfully created, inspect the
 output from</p>
-<pre><code class="hljs css language-bash">$ kubectl <span class="hljs-built_in">exec</span> <span class="hljs-variable">${CNTLR_POD}</span> -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc list-certs
+<pre><code class="hljs css language-bash">$ kubectl <span class="hljs-built_in">exec</span> <span class="hljs-variable">${ORC_POD}</span> -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc list-certs
 
 <span class="hljs-comment"># <span class="hljs-doctag">NOTE:</span> actual values will differ</span>
 Serial Number: 83550F07322CEDCD; Identity: Id_Operator_admin_operator; Not Before: 2020-06-26 22:39:55 +0000 UTC; Not After: 2030-06-24 22:39:55 +0000 UTC
