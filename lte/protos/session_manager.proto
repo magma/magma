@@ -77,6 +77,14 @@ message RatSpecificContext {
   }
 }
 
+enum NotifyUeEvents {
+   PDU_SESSION_INACTIVE_NOTIFY = 0; //AMF <=> SMF
+   UE_IDLE_MODE_NOTIFY = 1;         //AMF  => SMF
+   UE_PAGING_NOTIFY = 2;            //SMF  => AMF
+   UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY = 3; //AMF  => SMF
+   PDU_SESSION_STATE_NOTIFY = 4;    // SMF <=> AMF
+   UE_SERVICE_REQUEST_ON_PAGING = 5;// AMF <=> SMF
+}
 message RatSpecificNotification {
   bytes pdu_session_id = 1;            //One byte
   RequestType request_type = 2;
@@ -84,6 +92,8 @@ message RatSpecificNotification {
   PduSessionType pdu_session_type = 4;
   M5GSMCapability m5g_sm_capability = 5;
   M5GSMCause m5gsm_cause = 6;
+  //Idle/paging/periodic_reg events and UE state notification
+  NotifyUeEvents notify_ue_event = 7;
 }
 
 message SetSmNotificationContext {
@@ -957,6 +967,11 @@ service SetInterfaceForUserPlane {
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
 }
 
+//SET API for 3 procedures request from AMF to SMF
+service AmfPduSessionSmContext {
+  rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
+  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid) {}    //AMF to SMF
+}
 // RPC service and method
 service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    //SMF to AMF
