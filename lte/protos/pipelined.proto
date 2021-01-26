@@ -99,6 +99,8 @@ message DeactivateFlowsRequest {
   string ip_addr = 4; // Subscriber session ipv4 address
   bytes ipv6_addr = 5; // Subscriber session ipv6 address
   bool remove_default_drop_flows = 6;
+  uint32 uplink_tunnel = 7; // Subscriber uplink tunnel
+  uint32 downlink_tunnel = 8; // Subscriber downlink tunnel
 }
 
 message RuleModResult {
