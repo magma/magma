@@ -66,6 +66,23 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 	return c, nil
 }
 
+// NewRunningAutoClient creates a GTP-C client inding out automatically the local IP Address to
+// be used to reach the remote IP.
+// It DOES NOT send initial echo to check if the server is alive
+// It runs the GTP-C server to serve incoming calls and responses.
+func NewRunningAutoClient(ctx context.Context, remoteIPAndPortStr string, connType uint8) (*Client, error) {
+	remoteAddr, err := net.ResolveUDPAddr("udp", remoteIPAndPortStr)
+	if err != nil {
+		return nil, fmt.Errorf("could not resolve remote address %s: %s", remoteIPAndPortStr, err)
+	}
+	localAddrIp, err := GetOutboundIP(remoteAddr)
+	if err != nil {
+		return nil, fmt.Errorf("could not find local address automatically:  %s", err)
+	}
+	localAddr := &net.UDPAddr{IP: localAddrIp, Port: GTPC_PORT, Zone: ""}
+	return NewRunningClient(ctx, localAddr, remoteAddr, connType)
+}
+
 // NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incomming calls
 // If you need to check raddrs availability, use NewConnectedClient
 func NewRunningClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr, connType uint8) (*Client, error) {
