@@ -231,6 +231,7 @@ typedef enum {
 // PDU session context part of AMFContext
 typedef struct smf_context_s {
   SMSessionFSMState pdu_session_state;
+  uint32_t pdu_session_version;
   uint32_t n_active_pdus;
   bool is_emergency;
   uint8_t dl_ambr_unit;
