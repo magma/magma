@@ -4208,10 +4208,10 @@ func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
 		},
 		HeConfig: &lteModels.GatewayHeConfig{
 			EnableHeaderEnrichment: swag.Bool(true),
-			EnableEncryption: swag.Bool(false),
-			HeEncryptionAlgorithm: lteModels.GatewayHeConfigHeEncryptionAlgorithmRC4,
-			HeHashFunction: lteModels.GatewayHeConfigHeHashFunctionMD5,
-			HeEncodingType: lteModels.GatewayHeConfigHeEncodingTypeBASE64,
+			EnableEncryption:       swag.Bool(false),
+			HeEncryptionAlgorithm:  lteModels.GatewayHeConfigHeEncryptionAlgorithmRC4,
+			HeHashFunction:         lteModels.GatewayHeConfigHeHashFunctionMD5,
+			HeEncodingType:         lteModels.GatewayHeConfigHeEncodingTypeBASE64,
 		},
 	}
 }
