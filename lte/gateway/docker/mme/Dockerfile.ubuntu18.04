@@ -383,6 +383,7 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml 
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
+# Adding means to re-generate certificates
 WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
