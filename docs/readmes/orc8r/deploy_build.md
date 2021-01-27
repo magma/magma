@@ -14,6 +14,9 @@ different shell and coming back to this section as each command completes.
 
 ## Prerequisites
 
+We assume `MAGMA_ROOT` is set as described in the
+[deployment intro](./deploy_intro.md).
+
 We'll go over how to publish images to Docker Hub and charts to a GitHub repo.
 For this you'll need
 
@@ -35,11 +38,11 @@ $ docker login
 
 Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
 Username: REGISTRY_USERNAME
-Password: 
+Password:
 Login Succeeded
 ```
 
-## Build and Publish Container Images
+## Build and publish container images
 
 We provide scripts to build and publish images. The publish script is provided
 as a starting point, as individual needs may vary.
@@ -47,14 +50,14 @@ as a starting point, as individual needs may vary.
 First define some necessary variables
 
 ```bash
-export PUBLISH=MAGMA_ROOT/orc8r/tools/docker/publish.sh  # or add to path
+export PUBLISH=${MAGMA_ROOT}/orc8r/tools/docker/publish.sh  # or add to path
 export REGISTRY=registry.hub.docker.com/REGISTRY  # or desired registry
 export MAGMA_TAG=1.4.0-master  # or desired tag
 ```
 
 Checkout the v1.4 release branch
 ```bash
-cd $MAGMA_ROOT
+cd ${MAGMA_ROOT}
 git fetch origin
 git checkout -b v1.4 origin/v1.4
 ```
@@ -62,7 +65,7 @@ git checkout -b v1.4 origin/v1.4
 Build and publish Orchestrator images
 
 ```bash
-cd MAGMA_ROOT/orc8r/cloud/docker
+cd ${MAGMA_ROOT}/orc8r/cloud/docker
 ./build.py --all
 for image in controller nginx ; do ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MAGMA_TAG} ; done
 ```
@@ -70,12 +73,12 @@ for image in controller nginx ; do ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MA
 Build and publish NMS images
 
 ```bash
-cd MAGMA_ROOT/nms/app/packages/magmalte
+cd ${MAGMA_ROOT}/nms/app/packages/magmalte
 docker-compose build magmalte
 COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG}
 ```
 
-## Build and Publish Helm Charts
+## Build and publish Helm charts
 
 We'll build the Orchestrator Helm charts, as well as publish them to a
 [GitHub repo acting as a Helm chart repo](https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7).
@@ -83,7 +86,7 @@ We'll build the Orchestrator Helm charts, as well as publish them to a
 To start, create a private GitHub repo to use as your Helm chart repo. We'll
 refer to this as `GITHUB_REPO`.
 
-Next, define some necessary variables
+Define some necessary variables
 
 ```bash
 export GITHUB_REPO=GITHUB_REPO_NAME
@@ -92,22 +95,21 @@ export GITHUB_USERNAME=GITHUB_USERNAME
 export GITHUB_ACCESS_TOKEN=GITHUB_ACCESS_TOKEN
 ```
 
-Now run the package script. This script will package and publish the necessary
-helm charts to the `GITHUB_REPO`. The script expects a deployment type to be
-provided. The valid options are
+Next we'll run the package script. This script will package and publish the
+necessary helm charts to the `GITHUB_REPO`. The script expects a deployment
+type to be provided, which will determine which orc8r modules are deployed.
+The valid deployment type options are
+
 - `fwa`
 - `federated_fwa`
 - `all`
 
-This variable specifies which orc8r modules will be deployed.
-To run the script
+Run the package script
 
 ```bash
-$MAGMA_ROOT/orc8r/tools/helm/package.sh -d DEPLOYMENT_TYPE
-```
+$ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  # or chosen deployment type
 
-If successful, the script will output
+...
 
-```bash
 Uploaded orc8r charts successfully.
 ```
