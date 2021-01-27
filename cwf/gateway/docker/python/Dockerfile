@@ -1,7 +1,10 @@
 # -----------------------------------------------------------------------------
 # Builder image for Magma proto files
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS builder
+FROM ubuntu:focal AS builder
+
+# workaround to avoid interactive tzdata configurtaion
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
@@ -16,9 +19,9 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
   chmod -R a+Xr /usr/include/google && \
   rm -rf protoc3.zip protoc3
 
-# Install python3.5 since it's not native on bionic
+# Install python3.8 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
-RUN apt-get -y update && apt-get -y install python3.5
+RUN apt-get -y update && apt-get -y install python3.8
 
 ENV MAGMA_ROOT /magma
 ENV PYTHON_BUILD /build/python
@@ -39,28 +42,28 @@ RUN make -C $MAGMA_ROOT/orc8r/gateway/python protos
 # -----------------------------------------------------------------------------
 # Dev/Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS lte_gateway_python
+FROM ubuntu:focal AS lte_gateway_python
 
 # Add the magma apt repo
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
+# TODO: change repo to focal once there will be such
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ bionic main" && \
-    apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-proposed restricted main multiverse universe"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" && \
+    apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
 
- # Install python3.5 since it's not native on bionic
+ # Install python3.8 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
-RUN apt-get -y update && apt-get -y install python3.5
-
+RUN apt-get -y update && apt-get -y install python3.8
 RUN apt-get -y update && apt-get -y install \
     curl \
     libc-ares2 \
     libev4 \
     libffi-dev \
     libjansson4 \
-    libjemalloc1 \
+    libjemalloc2 \
     libssl-dev \
     libsystemd-dev \
     magma-nghttpx=1.31.1-1 \
@@ -69,7 +72,7 @@ RUN apt-get -y update && apt-get -y install \
     pkg-config \
     python-cffi \
     python3-pip \
-    python3.5-dev \
+    python3.8-dev \
     redis-server \
     iptables \
     git \
@@ -81,7 +84,7 @@ RUN apt-get -y update && apt-get -y install \
     netcat \
     iputils-ping
 
-RUN python3.5 -m pip install --no-cache-dir \
+RUN python3.8 -m pip install --no-cache-dir \
     Cython \
     fire \
     envoy \
@@ -113,7 +116,7 @@ RUN python3.5 -m pip install --no-cache-dir \
     python-dateutil \
     jsonpickle
 
-COPY cwf/gateway/deploy/roles/ovs/files/nx_actions.py /usr/local/lib/python3.5/dist-packages/ryu/ofproto/
+COPY cwf/gateway/deploy/roles/ovs/files/nx_actions.py /usr/local/lib/python3.8/dist-packages/ryu/ofproto/
 
 # Temporary workaround to restore uplink bridge flows
 RUN mkdir -p /var/opt/magma/scripts
@@ -125,11 +128,12 @@ RUN git clone --depth 1 --single-branch --branch v2.12.0 https://github.com/open
 COPY cwf/gateway/deploy/roles/ovs/files/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch /tmp
 COPY cwf/gateway/deploy/roles/ovs/files/0002-ovs-Handle-spaces-in-ovs-arguments.patch /tmp
 COPY cwf/gateway/deploy/roles/ovs/files/0003-Add-pdp_start_epoch-custom-field-to-IPFIX-export.patch /tmp
-
+COPY cwf/gateway/deploy/roles/ovs/files//0004-ovsdb-idlc.in-dict-changes.patch /tmp
 WORKDIR ovs
 RUN git apply /tmp/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch
 RUN git apply /tmp/0002-ovs-Handle-spaces-in-ovs-arguments.patch
 RUN git apply /tmp/0003-Add-pdp_start_epoch-custom-field-to-IPFIX-export.patch
+RUN git apply /tmp/0004-ovsdb-idlc.in-dict-changes.patch
 RUN ./boot.sh
 RUN ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc
 RUN make
@@ -137,11 +141,11 @@ RUN make install
 
 # Install orc8r python (magma.common required for lte python)
 COPY orc8r/gateway/python /tmp/orc8r
-RUN python3.5 -m pip install --no-cache-dir /tmp/orc8r
+RUN python3.8 -m pip install --no-cache-dir /tmp/orc8r
 
 # Install lte python
 COPY lte/gateway/python /tmp/lte
-RUN python3.5 -m pip install --no-cache-dir /tmp/lte
+RUN python3.8 -m pip install --no-cache-dir /tmp/lte
 
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
@@ -151,4 +155,12 @@ RUN mkdir -p /var/opt/magma/configs
 WORKDIR /
 
 # Copy the build artifacts.
-COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
+COPY --from=builder /build/python/gen /usr/local/lib/python3.8/dist-packages/
+
+# update aioh2 since there is no pushed package, but master is fixed
+RUN python3.8 -m pip install --force-reinstall git+https://github.com/URenko/aioh2.git
+
+# patching aioeventlet
+RUN mkdir /patches
+COPY lte/gateway/python/patches/aioeventlet.py38.patch /patches
+RUN patch -N -s -f /usr/local/lib/python3.8/dist-packages/aioeventlet.py < patches/aioeventlet.py38.patch

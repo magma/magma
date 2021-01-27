@@ -1,6 +1,6 @@
 # Builder image to generate proto files
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS builder
+FROM ubuntu:focal AS builder
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
@@ -15,9 +15,9 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
   chmod -R a+Xr /usr/include/google && \
   rm -rf protoc3.zip protoc3
 
-# Install python3.5 since it's not native on bionic
+# Install python3.8 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
-RUN apt-get -y update && apt-get -y install python3.5
+RUN apt-get -y update && apt-get -y install python3.8
 
 ENV MAGMA_ROOT /magma
 ENV PYTHON_BUILD /build/python
@@ -35,7 +35,7 @@ RUN make -C $MAGMA_ROOT/lte/gateway/python protos
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS gateway_python
+FROM ubuntu:focal AS gateway_python
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -43,11 +43,11 @@ RUN apt-get update && \
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main"
 
-# Install python3.5 since it's not native on bionic
+# Install python3.8 since it's not native on focal
 RUN apt-add-repository "ppa:deadsnakes/ppa"
-RUN apt-get -y update && apt-get -y install python3.5
+RUN apt-get -y update && apt-get -y install python3.8
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
@@ -57,7 +57,7 @@ RUN apt-get -y update && apt-get -y install \
   libev4 \
   libffi-dev \
   libjansson4 \
-  libjemalloc1 \
+  libjemalloc2 \
   libssl-dev \
   libsystemd-dev \
   magma-nghttpx=1.31.1-1 \
@@ -67,7 +67,7 @@ RUN apt-get -y update && apt-get -y install \
   pkg-config \
   python-cffi \
   python3-pip \
-  python3.5-dev \
+  python3.8-dev \
   redis-server \
   network-manager
 
@@ -77,10 +77,10 @@ RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
 
 # Install python code.
 COPY orc8r/gateway/python /tmp/orc8r
-RUN python3.5 -m pip install --no-cache-dir /tmp/orc8r
+RUN python3.8 -m pip install --no-cache-dir /tmp/orc8r
 
 # Copy the build artifacts.
-COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
+COPY --from=builder /build/python/gen /usr/local/lib/python3.8/dist-packages/
 
 # Copy the configs.
 COPY orc8r/gateway/configs /etc/magma

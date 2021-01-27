@@ -27,10 +27,8 @@ service S8Proxy {
     rpc CreateSession (CreateSessionRequestPgw) returns(CreateSessionResponsePgw){}
     rpc ModifyBearer (ModifyBearerRequestPgw) returns(ModifyBearerResponsePgw) {}
     rpc DeleteSession (DeleteSessionRequestPgw) returns(DeleteSessionResponsePgw) {}
-    rpc SendEcho(magma.orc8r.Void) returns(EchoResponse) {}
+    rpc SendEcho(EchoRequest) returns(EchoResponse) {}
 }
-
-
 
 // 3GPP TS 29.274  (not all 3gpp create session fields are included)
 message CreateSessionRequestPgw {
@@ -81,8 +79,9 @@ message ServingNetwork {
 
 message BearerContext {
     uint32 id = 1;
-    Fteid  agw_user_plane_fteid = 2;
+    Fteid user_plane_fteid = 2;
     QosInformation qos = 3;
+    uint32 charging_id = 4;
 }
 
 message QosInformation {
@@ -118,29 +117,30 @@ message Fteid {
 }
 
 message CreateSessionResponsePgw {
-    Fteid pgw_fteid_u = 2 ;
     string subscriber_ip = 3;
     uint32 apn_restriction = 4;
-    uint32 ebi = 5;
-    QosInformation qos = 6;
+    BearerContext bearer_context = 5;
     //TrafficFlowTemplate saved_tft = 13;
 }
 
-
 message ModifyBearerRequestPgw {
-
+    string imsi = 1;
+    Fteid enb_fteid = 2;
 }
 
 message ModifyBearerResponsePgw {
-
 }
 
 message DeleteSessionRequestPgw {
-
+    string imsi = 1; // needed for nh in feg
 }
 
 message DeleteSessionResponsePgw{
 
+}
+
+message EchoRequest{
+    string imsi = 1; // needed for nh in feg
 }
 
 message EchoResponse{

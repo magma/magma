@@ -150,6 +150,14 @@ func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity, policyProfil
 		model.ActiveApns = append(model.ActiveApns, tk.Key)
 	}
 
+	for _, tk := range ent.Associations.Filter(lte.PolicyRuleEntityType) {
+		model.ActivePolicies = append(model.ActivePolicies, policymodels.PolicyID(tk.Key))
+	}
+
+	for _, tk := range ent.Associations.Filter(lte.BaseNameEntityType) {
+		model.ActiveBaseNames = append(model.ActiveBaseNames, policymodels.BaseName(tk.Key))
+	}
+
 	// Each policy profile has 1 apn and n policy_rule
 	// Convert these assocs to a map of apn->policy_rules
 	for _, p := range policyProfileEnts {
@@ -170,6 +178,8 @@ func (m *MutableSubscriber) GetAssocs() []storage.TypeAndKey {
 	var assocs []storage.TypeAndKey
 	assocs = append(assocs, m.ActivePoliciesByApn.ToTKs(string(m.ID))...)
 	assocs = append(assocs, m.ActiveApns.ToTKs()...)
+	assocs = append(assocs, m.ActivePolicies.ToTKs()...)
+	assocs = append(assocs, m.ActiveBaseNames.ToTKs()...)
 	return assocs
 }
 

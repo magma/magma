@@ -66,7 +66,7 @@ services:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-    command: python3.5 -m magma.magmad.main
+    command: python3.8 -m magma.magmad.main
 
   pipelined:
     <<: *ltepyservice
@@ -85,7 +85,7 @@ services:
       sh -c "set bridge cwag_br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
-        python3.5 -m magma.pipelined.main"
+        python3.8 -m magma.pipelined.main"
 
   radius:
     <<: *service

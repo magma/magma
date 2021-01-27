@@ -99,6 +99,7 @@ class HeaderEnrichmentController(MagmaController):
          'he_enabled',
          'encryption_enabled',
          'encryption_algorithm',
+         'encryption_key',
          'hash_function',
          'encoding_type',
          'uplink_port',
@@ -131,8 +132,10 @@ class HeaderEnrichmentController(MagmaController):
         hash_function = None
         encoding_type = None
         encryption_enabled = False
+        encryption_key = None
         if mconfig.he_config and mconfig.he_config.enable_encryption:
             encryption_enabled = True
+            encryption_key = mconfig.he_config.encryption_key
             encryption_algorithm = mconfig.he_config.encryptionAlgorithm
             hash_function = mconfig.he_config.hashFunction
             encoding_type = mconfig.he_config.encodingType
@@ -145,6 +148,7 @@ class HeaderEnrichmentController(MagmaController):
             encryption_algorithm=encryption_algorithm,
             hash_function=hash_function,
             encoding_type=encoding_type,
+            encryption_key=encryption_key,
             uplink_port=uplink_port)
 
     def initialize_on_connect(self, datapath):
@@ -179,7 +183,7 @@ class HeaderEnrichmentController(MagmaController):
         Gets the hash, encryptes the header and encodes it depending on the
         configuration
         """
-        hash_hex = get_hash(self.config.key, self.config.hash_function)
+        hash_hex = get_hash(self.config.encryption_key, self.config.hash_function)
         encrypted = encrypt_str(header_value, hash_hex,
                                 self.config.encryption_algorithm)
         ret = encode_str(encrypted, self.config.encoding_type)
@@ -187,14 +191,12 @@ class HeaderEnrichmentController(MagmaController):
         return ret
 
     def _set_he_target_urls(self, ue_addr: str, rule_id: str, urls: List[str], imsi: str, msisdn: bytes) -> bool:
-        if msisdn:
-            msisdn_str = msisdn.decode("utf-8")
-        else:
-            msisdn_str = None
+        msisdn_str = None
         ip_addr = convert_ipv4_str_to_ip_proto(ue_addr)
         if self.config.encryption_enabled:
             imsi = self.encrypt_header(imsi)
-            msisdn_str = self.encrypt_header(msisdn_str)
+            if msisdn:
+                msisdn_str = self.encrypt_header(msisdn.decode("utf-8"))
 
         return activate_he_urls_for_ue(ip_addr, rule_id, urls, imsi, msisdn_str)
 

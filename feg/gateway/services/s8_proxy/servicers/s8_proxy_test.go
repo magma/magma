@@ -13,6 +13,7 @@ package servicers
 
 import (
 	"context"
+	"github.com/wmnsk/go-gtp/gtpv2"
 	"testing"
 
 	"magma/feg/cloud/go/protos"
@@ -36,7 +37,7 @@ func TestS8Proxy(t *testing.T) {
 		return
 	}
 	defer mockPgw.Close()
-	t.Logf("Running PGW at %s\n", mockPgw.LocalAddr().String())
+	//t.Logf("Running PGW at %s\n", mockPgw.LocalAddr().String())
 
 	// Run S8_proxy
 	config := getDefaultConfig(mockPgw.LocalAddr().String())
@@ -46,7 +47,8 @@ func TestS8Proxy(t *testing.T) {
 		return
 	}
 
-	// Create Session Request message
+	//------------------------
+	//---- Create Session ----
 	csReq := &protos.CreateSessionRequestPgw{
 		Imsi:   IMSI1,
 		Msisdn: "00111",
@@ -58,7 +60,7 @@ func TestS8Proxy(t *testing.T) {
 		RatType: 0,
 		BearerContext: &protos.BearerContext{
 			Id: 5,
-			AgwUserPlaneFteid: &protos.Fteid{
+			UserPlaneFteid: &protos.Fteid{
 				Ipv4Address: "127.0.0.10",
 				Ipv6Address: "",
 				Teid:        11,
@@ -68,7 +70,7 @@ func TestS8Proxy(t *testing.T) {
 				PriorityLevel:           0,
 				PreemptionCapability:    0,
 				PreemptionVulnerability: 0,
-				Qci:                     0,
+				Qci:                     9,
 				Gbr: &protos.Ambr{
 					BrUl: 123,
 					BrDl: 234,
@@ -111,10 +113,41 @@ func TestS8Proxy(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, csRes)
 
-	// check fteid was received properly
-	assert.NotEqual(t, 0, csRes.PgwFteidU.Teid)
-	assert.NotEmpty(t, csRes.PgwFteidU.Ipv4Address)
-	assert.Empty(t, csRes.PgwFteidU.Ipv6Address)
+	// check User Plane FTEID was received properly
+	assert.Equal(t, mockPgw.LastTEIDu, csRes.BearerContext.UserPlaneFteid.Teid)
+	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
+	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
+
+	// check Control Plane TEID
+	session, err := s8p.gtpClient.GetSessionByIMSI(IMSI1)
+	assert.NoError(t, err)
+	sessionCteid, err := session.GetTEID(gtpv2.IFTypeS5S8PGWGTPC)
+	assert.NoError(t, err)
+	assert.Equal(t, mockPgw.LastTEIDc, sessionCteid)
+
+	// check received QOS
+	sentQos := csReq.BearerContext.Qos
+	receivedQos := mockPgw.LastQos
+	assert.Equal(t, sentQos.Gbr.BrDl, receivedQos.Gbr.BrDl)
+	assert.Equal(t, sentQos.Gbr.BrUl, receivedQos.Gbr.BrUl)
+	assert.Equal(t, sentQos.Mbr.BrDl, receivedQos.Mbr.BrDl)
+	assert.Equal(t, sentQos.Mbr.BrUl, receivedQos.Mbr.BrUl)
+	assert.Equal(t, sentQos.Qci, receivedQos.Qci)
+
+	//------------------------
+	//---- Delete Session ----
+	cdReq := &protos.DeleteSessionRequestPgw{Imsi: IMSI1}
+	_, err = s8p.DeleteSession(context.Background(), cdReq)
+	assert.NoError(t, err)
+	// session shouldnt exist anymore
+	_, err = s8p.gtpClient.GetSessionByIMSI(IMSI1)
+	assert.Error(t, err)
+
+	//------------------------
+	//---- Echo Request ----
+	eReq := &protos.EchoRequest{}
+	_, err = s8p.SendEcho(context.Background(), eReq)
+	assert.NoError(t, err)
 }
 
 func getDefaultConfig(pgwActualAddrs string) *S8ProxyConfig {

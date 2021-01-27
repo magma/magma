@@ -152,9 +152,6 @@ message PipelineD {
 
     // DEPRECATED
     reserved 4, 11;
-    // repeated string apps = 4;
-    // repeated string li_imsis = 11;
-    bool disable_header_enrichment = 16 [deprecated = true];;
 }
 
 //------------------------------------------------------------------------------

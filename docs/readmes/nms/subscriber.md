@@ -1,6 +1,6 @@
 ---
-id: nms_subscriber
-title: NMS Subscriber
+id: subscriber
+title: Subscriber
 hide_title: true
 ---
 

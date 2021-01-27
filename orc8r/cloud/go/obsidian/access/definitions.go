@@ -13,7 +13,7 @@ limitations under the License.
 
 package access
 
-// RequestOperator relies on x-magma-client-cert-serial HTTP request header,
+// getOperator relies on x-magma-client-cert-serial HTTP request header,
 // the header string is redefined here to avoid sharing it with magma GRPC
 // Identity middleware & to comply with specific to Go's net/http header
 // capitalization: https://golang.org/pkg/net/http/#Request
