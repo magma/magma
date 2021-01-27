@@ -41,6 +41,11 @@ pipeline {
           echo "Clean Docker Cache"
           sh "sudo docker system prune -f"
           
+          echo "Purge old vagrant boxes"
+          sh "sudo vagrant box prune --force"
+          sh "sudo chown -R jenkins:libvirt ~jenkins/.vagrant.d"
+
+          
           echo "Clean VMs"
           sh "vagrant global-status"
           sh "sudo virsh list --all --name"
@@ -103,7 +108,8 @@ pipeline {
                 timeout(time: 70, unit: 'MINUTES') {
                   sh 'vagrant up --provider libvirt magma'
                   sh 'vagrant status'
-                  sh 'vagrant ssh magma -c "sudo apt-get update && sudo apt-get -y dist-upgrade"'
+                  sh 'sudo chown -R jenkins:libvirt "${WORKSPACE}/.cache"'
+
                   sh 'vagrant ssh magma -c "cd magma/lte/gateway && make"'
                   try {
                     sh 'vagrant ssh magma -c "cd magma/lte/gateway && make test"'
@@ -200,10 +206,11 @@ pipeline {
                   fab get_test_logs:dst_path=\"${log_path}\"
                 """
               }
+              timeout(time: 10, unit: 'MINUTES') {
+                archiveArtifacts("${test_folder}/*")
+              }
             }
-            timeout(time: 10, unit: 'MINUTES') {
-              archiveArtifacts("${test_folder}/*")
-            }
+            
           }
         }
       }
