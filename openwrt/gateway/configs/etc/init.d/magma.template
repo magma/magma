@@ -16,11 +16,11 @@ EXTRA_COMMANDS="status"
 EXTRA_HELP="        status  check service status"
 
 if [ -z "${FLGS}" ]; then
-  FLGS="-logtostderr -stderr2syslog -stdout2stderr -v=2"
+  FLGS="-logtostderr -stderr2syslog -stdout2stderr -grpc_keepalive -v=2"
 fi
 
 start() {
-  ulimit -v 30000 -m 20000
+  ulimit -v 36000 -m 24000
   export GODEBUG=madvdontneed=1
   service_start "/sbin/${CMD}" ${FLGS}
 }
