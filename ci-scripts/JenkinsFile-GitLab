@@ -171,6 +171,9 @@ pipeline {
                 } catch (Exception e) {
                   echo "It should not fail here but we still go on"
                 }
+                
+                sh ('sudo chown -R jenkins:libvirt .cache' )
+
                 timeout (time: 120, unit: 'MINUTES') {
                   // removing the magma/.cache/gateway folder will slow down build from 3 minutes to 27 minutes
                   myShCmdWithLog('''cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make run "''', 'archives/magma_vagrant_make_run.log')
