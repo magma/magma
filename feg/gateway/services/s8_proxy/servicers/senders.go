@@ -40,9 +40,7 @@ func (s *S8Proxy) sendAndReceiveCreateSession(csReqIEs []*ie.IE, sessionTeids Se
 	glog.V(2).Infof("Send Create Session Request (gtp):\n%s",
 		message.NewCreateSessionRequest(0, 0, csReqIEs...).String())
 
-	glog.V(2).Infof("Server addres to create session -> %s", s.gtpClient.GetServerAddress().String())
 	session, seq, err := s.gtpClient.CreateSession(s.gtpClient.GetServerAddress(), csReqIEs...)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to send message: %s", err)
 	}
