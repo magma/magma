@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	io_prometheus_client "github.com/prometheus/client_model/go"
+
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
@@ -22,12 +24,12 @@ func NewRemoteExporter(serviceName string) Exporter {
 	return &remoteExporter{service: strings.ToLower(serviceName)}
 }
 
-func (r *remoteExporter) Submit(metrics []MetricAndContext) error {
+func (r *remoteExporter) Submit(metrics []*io_prometheus_client.MetricFamily, ctx MetricContext) error {
 	c, err := r.getExporterClient()
 	if err != nil {
 		return err
 	}
-	_, err = c.Submit(context.Background(), &protos.SubmitMetricsRequest{Metrics: MakeProtoMetrics(metrics)})
+	_, err = c.Submit(context.Background(), makeProtoSubmitRequest(metrics, ctx))
 	return err
 }
 
@@ -39,4 +41,30 @@ func (r *remoteExporter) getExporterClient() (protos.MetricsExporterClient, erro
 		return nil, initErr
 	}
 	return protos.NewMetricsExporterClient(conn), nil
+}
+
+func makeProtoSubmitRequest(metrics []*io_prometheus_client.MetricFamily, ctx MetricContext) *protos.SubmitMetricsRequest {
+	switch metCtx := ctx.(type) {
+	case *GatewayMetricContext:
+		return &protos.SubmitMetricsRequest{Metrics: metrics, Context: &protos.SubmitMetricsRequest_GatewayContext{
+			GatewayContext: &protos.GatewayContext{
+				NetworkId: metCtx.NetworkID,
+				GatewayId: metCtx.GatewayID,
+			},
+		}}
+	case *CloudMetricContext:
+		return &protos.SubmitMetricsRequest{Metrics: metrics, Context: &protos.SubmitMetricsRequest_CloudContext{
+			CloudContext: &protos.CloudContext{
+				CloudHost: metCtx.CloudHost,
+			},
+		}}
+	case *PushedMetricContext:
+		return &protos.SubmitMetricsRequest{Metrics: metrics, Context: &protos.SubmitMetricsRequest_PushedContext{
+			PushedContext: &protos.PushedContext{
+				NetworkId: metCtx.NetworkID,
+			},
+		}}
+	default:
+		return &protos.SubmitMetricsRequest{}
+	}
 }

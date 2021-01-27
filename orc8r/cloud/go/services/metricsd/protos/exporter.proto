@@ -26,25 +26,16 @@ service MetricsExporter {
 }
 
 message SubmitMetricsRequest {
-  repeated ContextualizedMetric metrics = 1;
+  repeated io.prometheus.client.MetricFamily metrics = 1;
+  // context provides information to the exporter about a metric's origin.
+  oneof context {
+    CloudContext cloudContext = 2;
+    GatewayContext gatewayContext= 3;
+    PushedContext pushedContext = 4;
+  }
 }
 
 message SubmitMetricsResponse {}
-
-message ContextualizedMetric {
-  io.prometheus.client.MetricFamily family = 1;
-  Context context = 2;
-}
-
-// Context provides information to the exporter about a metric's origin.
-message Context {
-  string metric_name = 1;
-  oneof OriginContext {
-    CloudContext cloud_metric = 2;
-    GatewayContext gateway_metric = 3;
-    PushedContext pushed_metric = 4;
-  }
-}
 
 // CloudContext contains context for metrics scraped from cloud services.
 message CloudContext {

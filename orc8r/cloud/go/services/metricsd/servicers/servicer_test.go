@@ -53,14 +53,14 @@ const (
 // Set verbosity so we can capture exporter error logging
 var _ = flag.Set("vmodule", "*=2")
 
-func (e *testMetricExporter) Submit(metrics []exporters.MetricAndContext) error {
-	for _, metricAndContext := range metrics {
-		family := metricAndContext.Family
-		for _, metric := range family.GetMetric() {
-			convertedMetricAndContext := exporters.MakeProtoMetric(metricAndContext)
+func (e *testMetricExporter) Submit(metrics []*dto.MetricFamily, ctx exporters.MetricContext) error {
+	for _, family := range metrics {
+		name := family.GetName()
+		metType := family.GetType()
+		for _, metric := range family.Metric {
 			e.queue = append(
 				e.queue,
-				exporters.GetSamplesForMetrics(convertedMetricAndContext, metric)...,
+				exporters.GetSamplesForMetrics(name, metType, metric, ctx)...,
 			)
 		}
 	}

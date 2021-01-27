@@ -57,7 +57,8 @@ func (s *GRPCPushExporterServicer) Submit(ctx context.Context, req *protos.Submi
 	if len(metricsToSend) == 0 {
 		return &protos.SubmitMetricsResponse{}, nil
 	}
-	err := s.pushFamilies(metricsToSend)
+
+	err := s.pushFamilies(req.Metrics)
 	return &protos.SubmitMetricsResponse{}, err
 }
 

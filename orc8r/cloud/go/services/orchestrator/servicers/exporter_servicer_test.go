@@ -46,12 +46,9 @@ var (
 		{Name: tests.MakeStrPtr("testLabel"), Value: tests.MakeStrPtr("testValue")},
 	}
 
-	sampleGatewayContext = exporters.MetricContext{
-		MetricName: sampleMetricName,
-		AdditionalContext: &exporters.GatewayMetricContext{
-			NetworkID: sampleNetworkID,
-			GatewayID: sampleGatewayID,
-		},
+	sampleGatewayContext = &exporters.GatewayMetricContext{
+		NetworkID: sampleNetworkID,
+		GatewayID: sampleGatewayID,
 	}
 )
 
@@ -171,12 +168,8 @@ func TestPushExporterServicer_Submit_InvalidMetrics(t *testing.T) {
 	// Submitting a metric family with 0 metrics should not register the family
 	srv, exp := makeTestCustomPushExporter(t)
 	noMetricFamily := tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 0, sampleLabels)
-	mc := exporters.MetricAndContext{
-		Family:  noMetricFamily,
-		Context: sampleGatewayContext,
-	}
 
-	err := exp.Submit([]exporters.MetricAndContext{mc})
+	err := exp.Submit([]*prometheus_models.MetricFamily{noMetricFamily}, sampleGatewayContext)
 	assert.NoError(t, err)
 	assert.Equal(t, len(srv.FamiliesByName), 0)
 }
@@ -191,15 +184,9 @@ func TestPushExporterServicer_Submit_InvalidName(t *testing.T) {
 func testInvalidName(t *testing.T, inputName, expectedName string) {
 	srv, exp := makeTestCustomPushExporter(t)
 	mf := tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 1, sampleLabels)
+	mf.Name = &inputName
 
-	mc := exporters.MetricAndContext{
-		Family: mf,
-		Context: exporters.MetricContext{
-			MetricName: inputName,
-		},
-	}
-
-	err := exp.Submit([]exporters.MetricAndContext{mc})
+	err := exp.Submit([]*prometheus_models.MetricFamily{mf}, sampleGatewayContext)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(srv.FamiliesByName))
 	for name := range srv.FamiliesByName {
@@ -215,12 +202,7 @@ func TestPushExporterServicer_Submit_InvalidLabel(t *testing.T) {
 	mf.Metric[2] = &extraMetric
 	mf.Metric[2].Label = append(mf.Metric[2].Label, &prometheus_models.LabelPair{Name: tests.MakeStrPtr("1"), Value: tests.MakeStrPtr("badLabelName")})
 
-	mc := exporters.MetricAndContext{
-		Family:  mf,
-		Context: sampleGatewayContext,
-	}
-
-	err := exp.Submit([]exporters.MetricAndContext{mc})
+	err := exp.Submit([]*prometheus_models.MetricFamily{mf}, sampleGatewayContext)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(srv.FamiliesByName))
 	for _, fam := range srv.FamiliesByName {
@@ -234,12 +216,7 @@ func TestPushExporterServicer_Submit_InvalidLabel(t *testing.T) {
 	mf.Metric[0] = &badMetric
 	mf.Metric[0].Label = append(mf.Metric[0].Label, &prometheus_models.LabelPair{Name: tests.MakeStrPtr("1"), Value: tests.MakeStrPtr("badLabelName")})
 
-	mc = exporters.MetricAndContext{
-		Family:  mf,
-		Context: sampleGatewayContext,
-	}
-
-	err = exp.Submit([]exporters.MetricAndContext{mc})
+	err = exp.Submit([]*prometheus_models.MetricFamily{mf}, sampleGatewayContext)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(srv.FamiliesByName))
 }
@@ -253,11 +230,8 @@ func totalMetricCount(srv *servicers.PushExporterServicer) int {
 }
 
 func submitNewMetric(exp exporters.Exporter, mtype prometheus_models.MetricType, ctx exporters.MetricContext) error {
-	mc := exporters.MetricAndContext{
-		Family:  tests.MakeTestMetricFamily(mtype, 1, sampleLabels),
-		Context: ctx,
-	}
-	return exp.Submit([]exporters.MetricAndContext{mc})
+	mf := tests.MakeTestMetricFamily(mtype, 1, sampleLabels)
+	return exp.Submit([]*prometheus_models.MetricFamily{mf}, ctx)
 }
 
 func makeTestCustomPushExporter(t *testing.T) (*servicers.PushExporterServicer, exporters.Exporter) {

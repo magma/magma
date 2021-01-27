@@ -49,20 +49,20 @@ func TestODSSubmit(t *testing.T) {
 	exporter := exporters.NewRemoteExporter(fbinternal.ServiceName)
 
 	singleMetricTestFamily := test_common.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 1, []*prometheus_models.LabelPair{})
-	metricContext := exporters.MetricContext{MetricName: "test", AdditionalContext: &exporters.GatewayMetricContext{NetworkID: "testId1", GatewayID: "testId2"}}
-	err := exporter.Submit([]exporters.MetricAndContext{{Family: singleMetricTestFamily, Context: metricContext}})
+	metricContext := &exporters.GatewayMetricContext{NetworkID: "testId1", GatewayID: "testId2"}
+	err := exporter.Submit([]*prometheus_models.MetricFamily{singleMetricTestFamily}, metricContext)
 	assert.NoError(t, err)
 
 	// Submitting to a full queue should drop metrics
 	multiMetricTestFamily := test_common.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 100, []*prometheus_models.LabelPair{})
-	err = exporter.Submit([]exporters.MetricAndContext{
-		{Family: multiMetricTestFamily, Context: metricContext},
-		{Family: singleMetricTestFamily, Context: metricContext},
-	})
+	err = exporter.Submit([]*prometheus_models.MetricFamily{
+		multiMetricTestFamily,
+		singleMetricTestFamily,
+	}, metricContext)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "ODS queue full, dropping 100 samples")
 
-	err = exporter.Submit([]exporters.MetricAndContext{{Family: singleMetricTestFamily, Context: metricContext}})
+	err = exporter.Submit([]*prometheus_models.MetricFamily{singleMetricTestFamily}, metricContext)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "ODS queue full, dropping 1 samples")
 }
@@ -82,7 +82,7 @@ func TestExport(t *testing.T) {
 	exporterSrv := srv.(*servicers.ExporterServicer)
 
 	entity := "testId1.testId2"
-	nameStr := "test"
+	nameStr := "testGauge"
 	tagLabelPair := prometheus_models.LabelPair{
 		Name:  test_common.MakeStrPtr("tags"),
 		Value: test_common.MakeStrPtr("Tag1,Tag2"),
@@ -100,7 +100,7 @@ func TestExport(t *testing.T) {
 	datapointsJson, err := json.Marshal(datapoints)
 	assert.NoError(t, err)
 
-	expectedDatapoints := `[{"entity":"magma.testId1.testId2","key":"test","value":"0","time":0,"tags":["Tag1","Tag2"]}]`
+	expectedDatapoints := `[{"entity":"magma.testId1.testId2","key":"testGauge","value":"0","time":0,"tags":["Tag1","Tag2"]}]`
 	assert.Equal(t, expectedDatapoints, string(datapointsJson))
 
 	client.On("PostForm", mock.AnythingOfType("string"), url.Values{"datapoints": {string(datapointsJson)}, "category": {"100"}}).Return(resp, nil)
@@ -111,8 +111,8 @@ func TestExport(t *testing.T) {
 	client.AssertNotCalled(t, "PostForm", mock.AnythingOfType("string"), mock.AnythingOfType("url.Values"))
 
 	testFamily := test_common.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 1, []*prometheus_models.LabelPair{&tagLabelPair})
-	context := exporters.MetricContext{MetricName: "test", AdditionalContext: &exporters.GatewayMetricContext{NetworkID: "testId1", GatewayID: "testId2"}}
-	err = exporter.Submit([]exporters.MetricAndContext{{Family: testFamily, Context: context}})
+	context := &exporters.GatewayMetricContext{NetworkID: "testId1", GatewayID: "testId2"}
+	err = exporter.Submit([]*prometheus_models.MetricFamily{testFamily}, context)
 	assert.NoError(t, err)
 
 	err = exporterSrv.Export(client)
@@ -121,7 +121,7 @@ func TestExport(t *testing.T) {
 
 	// Fill queue (drop some samples), assert we didn't exceed queue length cap
 	multiTestFamily := test_common.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 100, []*prometheus_models.LabelPair{&tagLabelPair})
-	err = exporter.Submit([]exporters.MetricAndContext{{Family: multiTestFamily, Context: context}})
+	err = exporter.Submit([]*prometheus_models.MetricFamily{multiTestFamily}, context)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "ODS queue full, dropping 98 samples")
 

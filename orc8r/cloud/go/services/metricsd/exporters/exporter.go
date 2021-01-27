@@ -23,24 +23,13 @@ import (
 type Exporter interface {
 	// Submit metrics to the exporter.
 	// This method must be thread-safe.
-	Submit(metrics []MetricAndContext) error
-}
-
-// MetricAndContext wraps a metric family and metric context
-type MetricAndContext struct {
-	Family  *prometheus_models.MetricFamily
-	Context MetricContext
+	Submit(metrics []*prometheus_models.MetricFamily, context MetricContext) error
 }
 
 // MetricContext provides information to the exporter about where this metric
 // comes from.
-type MetricContext struct {
-	MetricName        string
-	AdditionalContext AdditionalMetricContext
-}
-
-type AdditionalMetricContext interface {
-	isExtraMetricContext()
+type MetricContext interface {
+	isMetricContext()
 }
 
 type CloudMetricContext struct {
@@ -57,6 +46,6 @@ type PushedMetricContext struct {
 	NetworkID string
 }
 
-func (c *CloudMetricContext) isExtraMetricContext()   {}
-func (c *GatewayMetricContext) isExtraMetricContext() {}
-func (c *PushedMetricContext) isExtraMetricContext()  {}
+func (c *CloudMetricContext) isMetricContext()   {}
+func (c *GatewayMetricContext) isMetricContext() {}
+func (c *PushedMetricContext) isMetricContext()  {}

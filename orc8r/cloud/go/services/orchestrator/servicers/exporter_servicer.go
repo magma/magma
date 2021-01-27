@@ -75,16 +75,16 @@ func (s *PushExporterServicer) Submit(ctx context.Context, req *protos.SubmitMet
 	return &protos.SubmitMetricsResponse{}, nil
 }
 
-func processMetrics(metrics []*protos.ContextualizedMetric) []*io_prometheus_client.MetricFamily {
+func processMetrics(metrics []*io_prometheus_client.MetricFamily) []*io_prometheus_client.MetricFamily {
 	processedMetrics := make([]*io_prometheus_client.MetricFamily, 0)
-	for _, metricAndContext := range metrics {
+	for _, family := range metrics {
 		// Don't register family if it has 0 metrics. Would cause prometheus scrape
 		// to fail.
-		if len(metricAndContext.Family.Metric) == 0 {
+		if len(family.Metric) == 0 {
 			continue
 		}
-		originalFamily := metricAndContext.Family
-		originalFamily.Name = sanitizePrometheusName(metricAndContext.Context.MetricName)
+		originalFamily := family
+		originalFamily.Name = sanitizePrometheusName(family.GetName())
 		// Convert all families to gauges to avoid name collisions of different
 		// types.
 		convertedFamilies := convertFamilyToGauges(originalFamily)

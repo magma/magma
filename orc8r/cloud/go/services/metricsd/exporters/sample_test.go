@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/protos"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
 	"magma/orc8r/lib/go/metrics"
 
@@ -32,13 +31,16 @@ func TestGetSamplesForMetrics(t *testing.T) {
 }
 
 type getSamplesTestCase struct {
-	name             string
-	metricAndContext protos.ContextualizedMetric
-	expectedSamples  []Sample
+	name            string
+	metricName      string
+	metricType      dto.MetricType
+	metric          *dto.Metric
+	context         MetricContext
+	expectedSamples []Sample
 }
 
 func (c *getSamplesTestCase) RunTest(t *testing.T) {
-	samples := GetSamplesForMetrics(&c.metricAndContext, c.metricAndContext.Family.Metric[0])
+	samples := GetSamplesForMetrics(c.metricName, c.metricType, c.metric, c.context)
 	assert.Equal(t, c.expectedSamples, samples)
 }
 
@@ -51,18 +53,11 @@ var (
 
 	cases = []getSamplesTestCase{
 		{
-			name: "Pushed Metric with GatewayID",
-			metricAndContext: protos.ContextualizedMetric{
-				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{{Name: tests.MakeStrPtr(metrics.GatewayLabelName), Value: &testGateway}}),
-				Context: &protos.Context{
-					MetricName: testMetricName,
-					OriginContext: &protos.Context_PushedMetric{
-						PushedMetric: &protos.PushedContext{
-							NetworkId: testNetwork,
-						},
-					},
-				},
-			},
+			name:       "Pushed Metric with GatewayID",
+			metricName: testMetricName,
+			metricType: dto.MetricType_GAUGE,
+			metric:     makeTestMetric([]*dto.LabelPair{{Name: tests.MakeStrPtr(metrics.GatewayLabelName), Value: &testGateway}}),
+			context:    &PushedMetricContext{NetworkID: testNetwork},
 			expectedSamples: []Sample{{
 				entity:      fmt.Sprintf("%s.%s", testNetwork, testGateway),
 				name:        testMetricName,
@@ -72,18 +67,11 @@ var (
 			}},
 		},
 		{
-			name: "Pushed Metric with no GatewayID",
-			metricAndContext: protos.ContextualizedMetric{
-				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{}),
-				Context: &protos.Context{
-					MetricName: testMetricName,
-					OriginContext: &protos.Context_PushedMetric{
-						PushedMetric: &protos.PushedContext{
-							NetworkId: testNetwork,
-						},
-					},
-				},
-			},
+			name:       "Pushed Metric with no GatewayID",
+			metricName: testMetricName,
+			metricType: dto.MetricType_GAUGE,
+			metric:     makeTestMetric([]*dto.LabelPair{}),
+			context:    &PushedMetricContext{NetworkID: testNetwork},
 			expectedSamples: []Sample{{
 				entity:      testNetwork,
 				name:        testMetricName,
@@ -93,18 +81,13 @@ var (
 			}},
 		},
 		{
-			name: "Gateway Metric",
-			metricAndContext: protos.ContextualizedMetric{
-				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, simpleLabels),
-				Context: &protos.Context{
-					MetricName: testMetricName,
-					OriginContext: &protos.Context_GatewayMetric{
-						GatewayMetric: &protos.GatewayContext{
-							NetworkId: testNetwork,
-							GatewayId: testGateway,
-						},
-					},
-				},
+			name:       "Gateway Metric",
+			metricName: testMetricName,
+			metricType: dto.MetricType_GAUGE,
+			metric:     makeTestMetric(simpleLabels),
+			context: &GatewayMetricContext{
+				NetworkID: testNetwork,
+				GatewayID: testGateway,
 			},
 			expectedSamples: []Sample{{
 				entity:      fmt.Sprintf("%s.%s", testNetwork, testGateway),
@@ -115,18 +98,11 @@ var (
 			}},
 		},
 		{
-			name: "Cloud Metric",
-			metricAndContext: protos.ContextualizedMetric{
-				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, simpleLabels),
-				Context: &protos.Context{
-					MetricName: testMetricName,
-					OriginContext: &protos.Context_CloudMetric{
-						CloudMetric: &protos.CloudContext{
-							CloudHost: testCloudHost,
-						},
-					},
-				},
-			},
+			name:       "Cloud Metric",
+			metricName: testMetricName,
+			metricType: dto.MetricType_GAUGE,
+			metric:     makeTestMetric(simpleLabels),
+			context:    &CloudMetricContext{CloudHost: testCloudHost},
 			expectedSamples: []Sample{{
 				entity:      fmt.Sprintf("cloud.%s", testCloudHost),
 				name:        testMetricName,
@@ -137,3 +113,13 @@ var (
 		},
 	}
 )
+
+func makeTestMetric(labels []*dto.LabelPair) *dto.Metric {
+	val := 0.0
+	return &dto.Metric{
+		Label: labels,
+		Gauge: &dto.Gauge{
+			Value: &val,
+		},
+	}
+}

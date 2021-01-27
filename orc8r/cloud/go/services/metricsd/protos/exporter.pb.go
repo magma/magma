@@ -26,10 +26,17 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type SubmitMetricsRequest struct {
-	Metrics              []*ContextualizedMetric `protobuf:"bytes,1,rep,name=metrics,proto3" json:"metrics,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
-	XXX_unrecognized     []byte                  `json:"-"`
-	XXX_sizecache        int32                   `json:"-"`
+	Metrics []*_go.MetricFamily `protobuf:"bytes,1,rep,name=metrics,proto3" json:"metrics,omitempty"`
+	// context provides information to the exporter about a metric's origin.
+	//
+	// Types that are valid to be assigned to Context:
+	//	*SubmitMetricsRequest_CloudContext
+	//	*SubmitMetricsRequest_GatewayContext
+	//	*SubmitMetricsRequest_PushedContext
+	Context              isSubmitMetricsRequest_Context `protobuf_oneof:"context"`
+	XXX_NoUnkeyedLiteral struct{}                       `json:"-"`
+	XXX_unrecognized     []byte                         `json:"-"`
+	XXX_sizecache        int32                          `json:"-"`
 }
 
 func (m *SubmitMetricsRequest) Reset()         { *m = SubmitMetricsRequest{} }
@@ -57,11 +64,70 @@ func (m *SubmitMetricsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SubmitMetricsRequest proto.InternalMessageInfo
 
-func (m *SubmitMetricsRequest) GetMetrics() []*ContextualizedMetric {
+func (m *SubmitMetricsRequest) GetMetrics() []*_go.MetricFamily {
 	if m != nil {
 		return m.Metrics
 	}
 	return nil
+}
+
+type isSubmitMetricsRequest_Context interface {
+	isSubmitMetricsRequest_Context()
+}
+
+type SubmitMetricsRequest_CloudContext struct {
+	CloudContext *CloudContext `protobuf:"bytes,2,opt,name=cloudContext,proto3,oneof"`
+}
+
+type SubmitMetricsRequest_GatewayContext struct {
+	GatewayContext *GatewayContext `protobuf:"bytes,3,opt,name=gatewayContext,proto3,oneof"`
+}
+
+type SubmitMetricsRequest_PushedContext struct {
+	PushedContext *PushedContext `protobuf:"bytes,4,opt,name=pushedContext,proto3,oneof"`
+}
+
+func (*SubmitMetricsRequest_CloudContext) isSubmitMetricsRequest_Context() {}
+
+func (*SubmitMetricsRequest_GatewayContext) isSubmitMetricsRequest_Context() {}
+
+func (*SubmitMetricsRequest_PushedContext) isSubmitMetricsRequest_Context() {}
+
+func (m *SubmitMetricsRequest) GetContext() isSubmitMetricsRequest_Context {
+	if m != nil {
+		return m.Context
+	}
+	return nil
+}
+
+func (m *SubmitMetricsRequest) GetCloudContext() *CloudContext {
+	if x, ok := m.GetContext().(*SubmitMetricsRequest_CloudContext); ok {
+		return x.CloudContext
+	}
+	return nil
+}
+
+func (m *SubmitMetricsRequest) GetGatewayContext() *GatewayContext {
+	if x, ok := m.GetContext().(*SubmitMetricsRequest_GatewayContext); ok {
+		return x.GatewayContext
+	}
+	return nil
+}
+
+func (m *SubmitMetricsRequest) GetPushedContext() *PushedContext {
+	if x, ok := m.GetContext().(*SubmitMetricsRequest_PushedContext); ok {
+		return x.PushedContext
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*SubmitMetricsRequest) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*SubmitMetricsRequest_CloudContext)(nil),
+		(*SubmitMetricsRequest_GatewayContext)(nil),
+		(*SubmitMetricsRequest_PushedContext)(nil),
+	}
 }
 
 type SubmitMetricsResponse struct {
@@ -95,157 +161,6 @@ func (m *SubmitMetricsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SubmitMetricsResponse proto.InternalMessageInfo
 
-type ContextualizedMetric struct {
-	Family               *_go.MetricFamily `protobuf:"bytes,1,opt,name=family,proto3" json:"family,omitempty"`
-	Context              *Context          `protobuf:"bytes,2,opt,name=context,proto3" json:"context,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
-}
-
-func (m *ContextualizedMetric) Reset()         { *m = ContextualizedMetric{} }
-func (m *ContextualizedMetric) String() string { return proto.CompactTextString(m) }
-func (*ContextualizedMetric) ProtoMessage()    {}
-func (*ContextualizedMetric) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a8826adc5babc285, []int{2}
-}
-
-func (m *ContextualizedMetric) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ContextualizedMetric.Unmarshal(m, b)
-}
-func (m *ContextualizedMetric) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ContextualizedMetric.Marshal(b, m, deterministic)
-}
-func (m *ContextualizedMetric) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ContextualizedMetric.Merge(m, src)
-}
-func (m *ContextualizedMetric) XXX_Size() int {
-	return xxx_messageInfo_ContextualizedMetric.Size(m)
-}
-func (m *ContextualizedMetric) XXX_DiscardUnknown() {
-	xxx_messageInfo_ContextualizedMetric.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ContextualizedMetric proto.InternalMessageInfo
-
-func (m *ContextualizedMetric) GetFamily() *_go.MetricFamily {
-	if m != nil {
-		return m.Family
-	}
-	return nil
-}
-
-func (m *ContextualizedMetric) GetContext() *Context {
-	if m != nil {
-		return m.Context
-	}
-	return nil
-}
-
-// Context provides information to the exporter about a metric's origin.
-type Context struct {
-	MetricName string `protobuf:"bytes,1,opt,name=metric_name,json=metricName,proto3" json:"metric_name,omitempty"`
-	// Types that are valid to be assigned to OriginContext:
-	//	*Context_CloudMetric
-	//	*Context_GatewayMetric
-	//	*Context_PushedMetric
-	OriginContext        isContext_OriginContext `protobuf_oneof:"OriginContext"`
-	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
-	XXX_unrecognized     []byte                  `json:"-"`
-	XXX_sizecache        int32                   `json:"-"`
-}
-
-func (m *Context) Reset()         { *m = Context{} }
-func (m *Context) String() string { return proto.CompactTextString(m) }
-func (*Context) ProtoMessage()    {}
-func (*Context) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a8826adc5babc285, []int{3}
-}
-
-func (m *Context) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Context.Unmarshal(m, b)
-}
-func (m *Context) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Context.Marshal(b, m, deterministic)
-}
-func (m *Context) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Context.Merge(m, src)
-}
-func (m *Context) XXX_Size() int {
-	return xxx_messageInfo_Context.Size(m)
-}
-func (m *Context) XXX_DiscardUnknown() {
-	xxx_messageInfo_Context.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Context proto.InternalMessageInfo
-
-func (m *Context) GetMetricName() string {
-	if m != nil {
-		return m.MetricName
-	}
-	return ""
-}
-
-type isContext_OriginContext interface {
-	isContext_OriginContext()
-}
-
-type Context_CloudMetric struct {
-	CloudMetric *CloudContext `protobuf:"bytes,2,opt,name=cloud_metric,json=cloudMetric,proto3,oneof"`
-}
-
-type Context_GatewayMetric struct {
-	GatewayMetric *GatewayContext `protobuf:"bytes,3,opt,name=gateway_metric,json=gatewayMetric,proto3,oneof"`
-}
-
-type Context_PushedMetric struct {
-	PushedMetric *PushedContext `protobuf:"bytes,4,opt,name=pushed_metric,json=pushedMetric,proto3,oneof"`
-}
-
-func (*Context_CloudMetric) isContext_OriginContext() {}
-
-func (*Context_GatewayMetric) isContext_OriginContext() {}
-
-func (*Context_PushedMetric) isContext_OriginContext() {}
-
-func (m *Context) GetOriginContext() isContext_OriginContext {
-	if m != nil {
-		return m.OriginContext
-	}
-	return nil
-}
-
-func (m *Context) GetCloudMetric() *CloudContext {
-	if x, ok := m.GetOriginContext().(*Context_CloudMetric); ok {
-		return x.CloudMetric
-	}
-	return nil
-}
-
-func (m *Context) GetGatewayMetric() *GatewayContext {
-	if x, ok := m.GetOriginContext().(*Context_GatewayMetric); ok {
-		return x.GatewayMetric
-	}
-	return nil
-}
-
-func (m *Context) GetPushedMetric() *PushedContext {
-	if x, ok := m.GetOriginContext().(*Context_PushedMetric); ok {
-		return x.PushedMetric
-	}
-	return nil
-}
-
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*Context) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
-		(*Context_CloudMetric)(nil),
-		(*Context_GatewayMetric)(nil),
-		(*Context_PushedMetric)(nil),
-	}
-}
-
 // CloudContext contains context for metrics scraped from cloud services.
 type CloudContext struct {
 	CloudHost            string   `protobuf:"bytes,1,opt,name=cloud_host,json=cloudHost,proto3" json:"cloud_host,omitempty"`
@@ -258,7 +173,7 @@ func (m *CloudContext) Reset()         { *m = CloudContext{} }
 func (m *CloudContext) String() string { return proto.CompactTextString(m) }
 func (*CloudContext) ProtoMessage()    {}
 func (*CloudContext) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a8826adc5babc285, []int{4}
+	return fileDescriptor_a8826adc5babc285, []int{2}
 }
 
 func (m *CloudContext) XXX_Unmarshal(b []byte) error {
@@ -299,7 +214,7 @@ func (m *GatewayContext) Reset()         { *m = GatewayContext{} }
 func (m *GatewayContext) String() string { return proto.CompactTextString(m) }
 func (*GatewayContext) ProtoMessage()    {}
 func (*GatewayContext) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a8826adc5babc285, []int{5}
+	return fileDescriptor_a8826adc5babc285, []int{3}
 }
 
 func (m *GatewayContext) XXX_Unmarshal(b []byte) error {
@@ -346,7 +261,7 @@ func (m *PushedContext) Reset()         { *m = PushedContext{} }
 func (m *PushedContext) String() string { return proto.CompactTextString(m) }
 func (*PushedContext) ProtoMessage()    {}
 func (*PushedContext) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a8826adc5babc285, []int{6}
+	return fileDescriptor_a8826adc5babc285, []int{4}
 }
 
 func (m *PushedContext) XXX_Unmarshal(b []byte) error {
@@ -377,8 +292,6 @@ func (m *PushedContext) GetNetworkId() string {
 func init() {
 	proto.RegisterType((*SubmitMetricsRequest)(nil), "magma.orc8r.metricsd.SubmitMetricsRequest")
 	proto.RegisterType((*SubmitMetricsResponse)(nil), "magma.orc8r.metricsd.SubmitMetricsResponse")
-	proto.RegisterType((*ContextualizedMetric)(nil), "magma.orc8r.metricsd.ContextualizedMetric")
-	proto.RegisterType((*Context)(nil), "magma.orc8r.metricsd.Context")
 	proto.RegisterType((*CloudContext)(nil), "magma.orc8r.metricsd.CloudContext")
 	proto.RegisterType((*GatewayContext)(nil), "magma.orc8r.metricsd.GatewayContext")
 	proto.RegisterType((*PushedContext)(nil), "magma.orc8r.metricsd.PushedContext")
@@ -387,34 +300,29 @@ func init() {
 func init() { proto.RegisterFile("exporter.proto", fileDescriptor_a8826adc5babc285) }
 
 var fileDescriptor_a8826adc5babc285 = []byte{
-	// 427 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0x5f, 0x6f, 0xd3, 0x30,
-	0x14, 0xc5, 0xd7, 0x0d, 0xb5, 0xf4, 0xa6, 0xe9, 0x24, 0xab, 0x88, 0x6a, 0xd2, 0xc4, 0x64, 0x78,
-	0x98, 0x40, 0xf8, 0xa1, 0x3c, 0x80, 0x78, 0x1c, 0x7f, 0xb6, 0x21, 0x6d, 0xa0, 0xf0, 0x86, 0x90,
-	0x2a, 0x2f, 0xb9, 0xb4, 0x16, 0x71, 0x1c, 0x6c, 0x87, 0x6d, 0x7c, 0x05, 0x3e, 0x04, 0x5f, 0x15,
-	0xc5, 0xbe, 0x61, 0x0c, 0x65, 0xc0, 0x53, 0xab, 0x93, 0x73, 0x7e, 0x3e, 0xbe, 0xba, 0x86, 0x29,
-	0x5e, 0xd4, 0xc6, 0x7a, 0xb4, 0xa2, 0xb6, 0xc6, 0x1b, 0x36, 0xd3, 0x72, 0xa5, 0xa5, 0x30, 0x36,
-	0x7f, 0x66, 0x85, 0x46, 0x6f, 0x55, 0xee, 0x8a, 0x9d, 0x94, 0xfe, 0x45, 0x13, 0xff, 0x08, 0xb3,
-	0xf7, 0xcd, 0x99, 0x56, 0xfe, 0x24, 0xca, 0x19, 0x7e, 0x69, 0xd0, 0x79, 0xf6, 0x12, 0x46, 0x64,
-	0x9c, 0x0f, 0xf6, 0xb6, 0xf6, 0x93, 0xc5, 0x43, 0xd1, 0x87, 0x13, 0x2f, 0x4c, 0xe5, 0xf1, 0xc2,
-	0x37, 0xb2, 0x54, 0xdf, 0xb0, 0x88, 0x90, 0xac, 0x8b, 0xf2, 0xbb, 0x70, 0xe7, 0x0f, 0xba, 0xab,
-	0x4d, 0xe5, 0x90, 0x7f, 0x1f, 0xc0, 0xac, 0x2f, 0xca, 0x9e, 0xc3, 0xf0, 0x93, 0xd4, 0xaa, 0xbc,
-	0x9c, 0x0f, 0xf6, 0x06, 0xfb, 0xc9, 0x82, 0x0b, 0x65, 0xda, 0xaa, 0x1a, 0xfd, 0x1a, 0x1b, 0x27,
-	0xf2, 0x52, 0x61, 0xe5, 0x45, 0x74, 0xbf, 0x0e, 0xce, 0x8c, 0x12, 0xec, 0x29, 0x8c, 0xf2, 0xc8,
-	0x9c, 0x6f, 0x86, 0xf0, 0xee, 0x5f, 0x3b, 0x67, 0x9d, 0x9b, 0xff, 0xd8, 0x84, 0x11, 0x89, 0xec,
-	0x1e, 0x24, 0xd1, 0xb8, 0xac, 0xa4, 0xc6, 0xd0, 0x62, 0x9c, 0x41, 0x94, 0x4e, 0xa5, 0x46, 0x76,
-	0x08, 0x93, 0xbc, 0x34, 0x4d, 0xb1, 0x8c, 0x1a, 0x1d, 0xc5, 0x6f, 0x38, 0xaa, 0x75, 0x12, 0xfa,
-	0x68, 0x23, 0x4b, 0x42, 0x92, 0xae, 0x7a, 0x02, 0xd3, 0x95, 0xf4, 0x78, 0x2e, 0x2f, 0x3b, 0xd4,
-	0x56, 0x40, 0x3d, 0xe8, 0x47, 0x1d, 0x46, 0xef, 0x15, 0x2c, 0xa5, 0x34, 0xe1, 0xde, 0x40, 0x5a,
-	0x37, 0x6e, 0x8d, 0xbf, 0x8a, 0xdd, 0x0a, 0xb4, 0xfb, 0xfd, 0xb4, 0x77, 0xc1, 0x7a, 0x05, 0x9b,
-	0xc4, 0x6c, 0x64, 0x1d, 0x6c, 0x43, 0xfa, 0xd6, 0xaa, 0x95, 0xaa, 0xc8, 0xc0, 0x1f, 0xc3, 0xe4,
-	0xf7, 0xab, 0xb0, 0x5d, 0x80, 0x38, 0x84, 0xb5, 0x71, 0x9e, 0x86, 0x34, 0x0e, 0xca, 0x91, 0x71,
-	0x9e, 0x9f, 0xc2, 0xf4, 0x7a, 0xdd, 0x36, 0x50, 0xa1, 0x3f, 0x37, 0xf6, 0xf3, 0x52, 0x15, 0x5d,
-	0x80, 0x94, 0xe3, 0xa2, 0xfd, 0xdc, 0xcd, 0x42, 0x15, 0x61, 0xa4, 0xe3, 0x6c, 0x4c, 0xca, 0x71,
-	0xc1, 0x05, 0xa4, 0xd7, 0x0a, 0xff, 0x03, 0xb7, 0xf8, 0x0a, 0xdb, 0xb4, 0x71, 0xaf, 0xe8, 0x4d,
-	0xb0, 0x1c, 0x86, 0x71, 0x15, 0xd9, 0x0d, 0x9b, 0xdc, 0xf7, 0x0c, 0x76, 0x1e, 0xfd, 0x97, 0x97,
-	0x96, 0x7a, 0xe3, 0xe0, 0xf6, 0x87, 0x61, 0x78, 0x56, 0xee, 0x2c, 0xfe, 0x3e, 0xf9, 0x19, 0x00,
-	0x00, 0xff, 0xff, 0xe1, 0x3b, 0x88, 0x72, 0x95, 0x03, 0x00, 0x00,
+	// 348 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0x41, 0x4f, 0xfa, 0x40,
+	0x10, 0xc5, 0x5b, 0xf8, 0x07, 0xfe, 0x8c, 0x80, 0xc9, 0x06, 0x23, 0x21, 0x31, 0x21, 0xd5, 0x03,
+	0xd1, 0xb8, 0x07, 0xbc, 0x78, 0xf0, 0x04, 0x51, 0x4b, 0x8c, 0xc4, 0xd4, 0x9b, 0x17, 0x52, 0xda,
+	0x09, 0x34, 0xd2, 0x6e, 0xed, 0x4e, 0x05, 0xbe, 0xa0, 0x9f, 0xcb, 0xb4, 0xbb, 0x18, 0x4a, 0x9a,
+	0xe8, 0x69, 0x37, 0x33, 0xef, 0xf7, 0x32, 0x6f, 0x32, 0xd0, 0xc6, 0x4d, 0x2c, 0x12, 0xc2, 0x84,
+	0xc7, 0x89, 0x20, 0xc1, 0x3a, 0xa1, 0xbb, 0x08, 0x5d, 0x2e, 0x12, 0xef, 0x36, 0xe1, 0x21, 0x52,
+	0x12, 0x78, 0xd2, 0xef, 0xb5, 0xf4, 0x4f, 0x89, 0xac, 0xaf, 0x0a, 0x74, 0x5e, 0xd3, 0x79, 0x18,
+	0xd0, 0xb3, 0xaa, 0x3b, 0xf8, 0x91, 0xa2, 0x24, 0x76, 0x07, 0x75, 0xad, 0xec, 0x9a, 0xfd, 0xea,
+	0xe0, 0x68, 0x68, 0xf1, 0x40, 0x64, 0x50, 0x88, 0xb4, 0xc4, 0x54, 0x72, 0x6f, 0x15, 0x60, 0x44,
+	0x5c, 0x61, 0x0f, 0x6e, 0x18, 0xac, 0xb6, 0xce, 0x0e, 0x61, 0x36, 0x34, 0xbd, 0x95, 0x48, 0xfd,
+	0xb1, 0x88, 0x08, 0x37, 0xd4, 0xad, 0xf4, 0xcd, 0xdc, 0xa2, 0x6c, 0x24, 0x3e, 0xde, 0x53, 0xda,
+	0x86, 0x53, 0x20, 0xd9, 0x14, 0xda, 0x0b, 0x97, 0x70, 0xed, 0x6e, 0x77, 0x5e, 0xd5, 0xdc, 0xeb,
+	0xa2, 0xdc, 0xeb, 0xb1, 0xa0, 0xb5, 0x0d, 0xe7, 0x80, 0x66, 0x4f, 0xd0, 0x8a, 0x53, 0xb9, 0xc4,
+	0x9f, 0xd1, 0xfe, 0xe5, 0x76, 0xe7, 0xe5, 0x76, 0x2f, 0xfb, 0x52, 0xdb, 0x70, 0x8a, 0xec, 0xa8,
+	0x01, 0x75, 0x4f, 0x7d, 0xad, 0x53, 0x38, 0x39, 0xd8, 0xa3, 0x8c, 0x45, 0x24, 0xd1, 0xba, 0x86,
+	0xe6, 0x7e, 0x40, 0x76, 0x06, 0x90, 0x07, 0x9c, 0x2d, 0x85, 0xa4, 0xae, 0xd9, 0x37, 0x07, 0x0d,
+	0xa7, 0x91, 0x57, 0x6c, 0x21, 0xc9, 0x9a, 0x42, 0xbb, 0x98, 0x21, 0x03, 0x22, 0xa4, 0xb5, 0x48,
+	0xde, 0x67, 0x81, 0xbf, 0x03, 0x74, 0x65, 0xe2, 0x67, 0x6d, 0x1d, 0x31, 0x6b, 0x57, 0x54, 0x5b,
+	0x57, 0x26, 0xbe, 0xc5, 0xa1, 0x55, 0x08, 0xf1, 0x8b, 0xdd, 0xf0, 0x13, 0x8e, 0x75, 0x82, 0x7b,
+	0x7d, 0x4e, 0xcc, 0x83, 0x9a, 0x8a, 0xc6, 0x2e, 0xcb, 0xb7, 0x54, 0x76, 0x40, 0xbd, 0xab, 0x3f,
+	0x69, 0xf5, 0x92, 0x8c, 0xd1, 0xff, 0xb7, 0x5a, 0x7e, 0x91, 0x72, 0xae, 0xde, 0x9b, 0xef, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0xa2, 0x29, 0x4b, 0x16, 0xd0, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.

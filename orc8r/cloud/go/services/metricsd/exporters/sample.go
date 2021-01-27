@@ -18,7 +18,6 @@ import (
 	"sort"
 	"strconv"
 
-	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/metrics"
 
 	prometheus_models "github.com/prometheus/client_model/go"
@@ -63,31 +62,28 @@ func (s *Sample) TimestampMs() int64 {
 
 // GetSamplesForMetrics takes a Metric protobuf and extracts Samples from them
 // since there may be multiple Samples per a single Metric instance
-func GetSamplesForMetrics(metricAndContext *protos.ContextualizedMetric, metric *prometheus_models.Metric) []Sample {
-	context := metricAndContext.Context
-	family := metricAndContext.Family
+func GetSamplesForMetrics(name string, metType prometheus_models.MetricType, metric *prometheus_models.Metric, ctx MetricContext) []Sample {
 	var entity string
 	labels := metric.Label
 
-	switch additionalCtx := metricAndContext.Context.GetOriginContext().(type) {
-	case *protos.Context_CloudMetric:
-		entity = fmt.Sprintf("cloud.%s", additionalCtx.CloudMetric.CloudHost)
-	case *protos.Context_GatewayMetric:
-		entity = fmt.Sprintf("%s.%s", additionalCtx.GatewayMetric.NetworkId, additionalCtx.GatewayMetric.GatewayId)
-	case *protos.Context_PushedMetric:
+	switch ctx := ctx.(type) {
+	case *CloudMetricContext:
+		entity = fmt.Sprintf("cloud.%s", ctx.CloudHost)
+	case *GatewayMetricContext:
+		entity = fmt.Sprintf("%s.%s", ctx.NetworkID, ctx.GatewayID)
+	case *PushedMetricContext:
 		gatewayID := popLabel(&labels, metrics.GatewayLabelName)
 		if gatewayID == "" {
-			entity = additionalCtx.PushedMetric.NetworkId
+			entity = ctx.NetworkID
 		} else {
-			entity = fmt.Sprintf("%s.%s", additionalCtx.PushedMetric.NetworkId, gatewayID)
+			entity = fmt.Sprintf("%s.%s", ctx.NetworkID, gatewayID)
 		}
 	}
 
-	name := context.MetricName
 	timestampMs := metric.GetTimestampMs()
 	sort.Sort(ByName(labels))
 
-	switch family.GetType() {
+	switch metType {
 	case prometheus_models.MetricType_COUNTER:
 		return getCounterSamples(name, labels, timestampMs, metric.GetCounter(), entity)
 	case prometheus_models.MetricType_GAUGE:

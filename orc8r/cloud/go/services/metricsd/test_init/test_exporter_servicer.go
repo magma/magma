@@ -15,6 +15,7 @@ package test_init
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -40,6 +41,23 @@ func StartNewTestExporter(t *testing.T, exporter exporters.Exporter) {
 }
 
 func (e *exporterServicer) Submit(ctx context.Context, req *protos.SubmitMetricsRequest) (*protos.SubmitMetricsResponse, error) {
-	err := e.exporter.Submit(exporters.MakeNativeMetrics(req.Metrics))
+	var metricContext exporters.MetricContext
+	fmt.Printf("%v\n", req.GetContext())
+	switch metCtx := req.GetContext().(type) {
+	case *protos.SubmitMetricsRequest_CloudContext:
+		metricContext = &exporters.CloudMetricContext{
+			CloudHost: metCtx.CloudContext.CloudHost,
+		}
+	case *protos.SubmitMetricsRequest_GatewayContext:
+		metricContext = &exporters.GatewayMetricContext{
+			NetworkID: metCtx.GatewayContext.NetworkId,
+			GatewayID: metCtx.GatewayContext.GatewayId,
+		}
+	case *protos.SubmitMetricsRequest_PushedContext:
+		metricContext = &exporters.PushedMetricContext{
+			NetworkID: metCtx.PushedContext.NetworkId,
+		}
+	}
+	err := e.exporter.Submit(req.Metrics, metricContext)
 	return &protos.SubmitMetricsResponse{}, err
 }

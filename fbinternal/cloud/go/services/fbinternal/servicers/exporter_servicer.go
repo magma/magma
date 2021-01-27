@@ -104,10 +104,25 @@ func (s *ExporterServicer) Submit(ctx context.Context, req *protos.SubmitMetrics
 		return ret, nil
 	}
 
+	var metCtx exporters.MetricContext
+	switch c := req.GetContext().(type) {
+	case *protos.SubmitMetricsRequest_GatewayMetric:
+		metCtx = &exporters.GatewayMetricContext{
+			NetworkID: c.GatewayMetric.NetworkId,
+			GatewayID: c.GatewayMetric.GatewayId,
+		}
+	case *protos.SubmitMetricsRequest_CloudMetric:
+		metCtx = &exporters.CloudMetricContext{CloudHost: c.CloudMetric.CloudHost}
+	case *protos.SubmitMetricsRequest_PushedMetric:
+		metCtx = &exporters.PushedMetricContext{NetworkID: c.PushedMetric.NetworkId}
+	}
+
 	var convertedSamples []exporters.Sample
-	for _, metricAndContext := range req.GetMetrics() {
-		for _, metric := range metricAndContext.Family.GetMetric() {
-			newSamples := exporters.GetSamplesForMetrics(metricAndContext, metric)
+	for _, family := range req.GetMetrics() {
+		name := family.GetName()
+		metType := family.GetType()
+		for _, metric := range family.GetMetric() {
+			newSamples := exporters.GetSamplesForMetrics(name, metType, metric, metCtx)
 			convertedSamples = append(convertedSamples, newSamples...)
 		}
 	}

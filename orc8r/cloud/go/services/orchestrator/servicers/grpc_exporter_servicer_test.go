@@ -36,7 +36,8 @@ const (
 
 type exporterTestCase struct {
 	name               string
-	metrics            []exporters.MetricAndContext
+	metrics            []*prometheus_models.MetricFamily
+	metricContext      exporters.MetricContext
 	assertExpectations func(t *testing.T, client *mocks.EdgeHubServer)
 }
 
@@ -47,7 +48,7 @@ func (tc exporterTestCase) RunTest(t *testing.T) {
 
 	exporter := makeExporter(t, srv)
 
-	err := exporter.Submit(tc.metrics)
+	err := exporter.Submit(tc.metrics, tc.metricContext)
 	assert.NoError(t, err)
 	tc.assertExpectations(t, srv)
 }
@@ -62,48 +63,54 @@ func TestGRPCExporter(t *testing.T) {
 			},
 		},
 		{
-			name:    "submit gauge",
-			metrics: []exporters.MetricAndContext{{Family: tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 1, []*prometheus_models.LabelPair{})}},
+			name:          "submit gauge",
+			metrics:       []*prometheus_models.MetricFamily{tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 1, []*prometheus_models.LabelPair{})},
+			metricContext: sampleGatewayContext,
 			assertExpectations: func(t *testing.T, srv *mocks.EdgeHubServer) {
 				srv.AssertCalled(t, "Collect", mock.Anything, mock.Anything)
 				srv.AssertNumberOfCalls(t, "Collect", 1)
 			},
 		},
 		{
-			name:    "submit counter",
-			metrics: []exporters.MetricAndContext{{Family: tests.MakeTestMetricFamily(prometheus_models.MetricType_COUNTER, 1, []*prometheus_models.LabelPair{})}},
+			name:          "submit counter",
+			metrics:       []*prometheus_models.MetricFamily{tests.MakeTestMetricFamily(prometheus_models.MetricType_COUNTER, 1, []*prometheus_models.LabelPair{})},
+			metricContext: sampleGatewayContext,
 			assertExpectations: func(t *testing.T, srv *mocks.EdgeHubServer) {
 				srv.AssertCalled(t, "Collect", mock.Anything, mock.Anything)
 				srv.AssertNumberOfCalls(t, "Collect", 1)
 			},
 		},
 		{
-			name:    "submit untyped",
-			metrics: []exporters.MetricAndContext{{Family: tests.MakeTestMetricFamily(prometheus_models.MetricType_UNTYPED, 1, []*prometheus_models.LabelPair{})}},
+			name:          "submit untyped",
+			metrics:       []*prometheus_models.MetricFamily{tests.MakeTestMetricFamily(prometheus_models.MetricType_UNTYPED, 1, []*prometheus_models.LabelPair{})},
+			metricContext: sampleGatewayContext,
 			assertExpectations: func(t *testing.T, srv *mocks.EdgeHubServer) {
 				srv.AssertCalled(t, "Collect", mock.Anything, mock.Anything)
 				srv.AssertNumberOfCalls(t, "Collect", 1)
 			},
 		},
 		{
-			name:    "submit histogram",
-			metrics: []exporters.MetricAndContext{{Family: tests.MakeTestMetricFamily(prometheus_models.MetricType_HISTOGRAM, 1, []*prometheus_models.LabelPair{})}},
+			name:          "submit histogram",
+			metrics:       []*prometheus_models.MetricFamily{tests.MakeTestMetricFamily(prometheus_models.MetricType_HISTOGRAM, 1, []*prometheus_models.LabelPair{})},
+			metricContext: sampleGatewayContext,
 			assertExpectations: func(t *testing.T, srv *mocks.EdgeHubServer) {
 				srv.AssertCalled(t, "Collect", mock.Anything, mock.Anything)
 				srv.AssertNumberOfCalls(t, "Collect", 1)
 			},
 		},
 		{
-			name:    "submit summary",
-			metrics: []exporters.MetricAndContext{{Family: tests.MakeTestMetricFamily(prometheus_models.MetricType_SUMMARY, 1, []*prometheus_models.LabelPair{})}},
+			name:          "submit summary",
+			metrics:       []*prometheus_models.MetricFamily{tests.MakeTestMetricFamily(prometheus_models.MetricType_SUMMARY, 1, []*prometheus_models.LabelPair{})},
+			metricContext: sampleGatewayContext,
 			assertExpectations: func(t *testing.T, srv *mocks.EdgeHubServer) {
 				srv.AssertCalled(t, "Collect", mock.Anything, mock.Anything)
 				srv.AssertNumberOfCalls(t, "Collect", 1)
 			},
 		},
 		{
-			name:    "submit many",
-			metrics: []exporters.MetricAndContext{{Family: tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 10, []*prometheus_models.LabelPair{})}},
+			name:          "submit many",
+			metrics:       []*prometheus_models.MetricFamily{tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 10, []*prometheus_models.LabelPair{})},
+			metricContext: sampleGatewayContext,
 			assertExpectations: func(t *testing.T, srv *mocks.EdgeHubServer) {
 				srv.AssertCalled(t, "Collect", mock.Anything, mock.Anything)
 				srv.AssertNumberOfCalls(t, "Collect", 1)
