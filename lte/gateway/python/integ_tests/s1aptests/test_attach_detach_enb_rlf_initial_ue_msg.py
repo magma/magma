@@ -26,6 +26,19 @@ class TestAttachEnbRlf(unittest.TestCase):
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
+        self._s1ap_wrapper.magmad_util.exec_command(
+            "sudo service sctpd restart"
+        )
+        print(
+            "Restart sctpd service to clear Redis state as test case doesn't"
+            " intend to initiate detach procedure"
+        )
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        state_cli_cmd = "state_cli.py keys IMSI*"
+        redis_state = self._s1ap_wrapper.magmad_util.exec_command_output(
+            magtivate_cmd + " && " + state_cli_cmd
+        )
+        print("Redis state is [\n", redis_state, "]")
 
     def test_attach_enb_rlf(self):
         """
@@ -100,7 +113,7 @@ class TestAttachEnbRlf(unittest.TestCase):
         sec_ctxt = s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT
         id_type = s1ap_types.TFW_MID_TYPE_IMSI
         eps_type = s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH
-        attach_req.ue_Id = 2
+        attach_req.ue_Id = 1
         attach_req.mIdType = id_type
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
