@@ -21,7 +21,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
-	"magma/orc8r/lib/go/errors"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -34,83 +34,69 @@ import (
 
 func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if c == nil || c.Request() == nil {
-			return handleError(c, http.StatusBadRequest, "Invalid Request")
+		decorate := getDecorator(c.Request())
+		req := c.Request()
+		if req == nil {
+			return makeErr(decorate, http.StatusBadRequest, "invalid request")
 		}
-		glog.V(1).Infof("Received request in the access middleware. Req: %v", c.Request())
-		// find out request's access type (READ|WRITE|READ & WRITE)
-		perm := requestPermissions(c)
+		glog.V(1).Infof("Received request in access middleware: %+v", req)
 
-		// Get Request's Operator
-		oper, err := RequestOperator(c)
+		operator, err := getOperator(req, decorate)
 		if err != nil {
-			if _, ok := err.(errors.ClientInitError); ok {
-				return handleError(c, http.StatusServiceUnavailable, "Service Unavailable")
-			}
-			return handleError(
-				c,
-				http.StatusUnauthorized,
-				"Client Credentials Error: %s", err)
+			return transformErr(decorate, err, http.StatusUnauthorized, "Invalid client credentials: %s", err)
 		}
-		if oper == nil {
-			return handleError(
-				c,
-				http.StatusUnauthorized,
-				"Missing Client Credentials")
+		if operator == nil {
+			return makeErr(decorate, http.StatusUnauthorized, "missing client credentials")
 		}
 
-		// Bypass farther identity Checks for static docs GET having an
-		// operator cert should be enough
-		if urlPath := c.Path(); perm != accessprotos.AccessControl_READ || !(strings.HasPrefix(urlPath, obsidian.StaticURLPrefix)) {
+		perms := getRequestedPermissions(req, decorate)
+		staticReadOnly := perms == accessprotos.AccessControl_READ && strings.HasPrefix(c.Path(), obsidian.StaticURLPrefix)
+		if !staticReadOnly {
 			// Get Request's Entities' Ids
 			ids := FindRequestedIdentities(c)
 
 			// Check Operator's ACL for required entity permissions
-			ents := make([]*accessprotos.AccessControl_Entity, len(ids))
-			for i, e := range ids {
-				ents[i] = &accessprotos.AccessControl_Entity{Id: e, Permissions: perm}
+			ents := make([]*accessprotos.AccessControl_Entity, 0, len(ids))
+			for _, id := range ids {
+				ents = append(ents, &accessprotos.AccessControl_Entity{Id: id, Permissions: perms})
 			}
-			err = accessd.CheckPermissions(oper, ents...)
+			err = accessd.CheckPermissions(operator, ents...)
 			if err != nil {
-				if _, ok := err.(errors.ClientInitError); ok {
-					return handleError(c, http.StatusServiceUnavailable, "Service Unavailable")
-				}
-				return handleError(
-					c, http.StatusForbidden, "Access Denied (%s)", err)
+				return transformErr(decorate, err, http.StatusForbidden, "access denied (%s)", err)
 			}
 		}
-		// all good, call next handler
+
 		if next != nil {
-			glog.V(1).Info("Access middleware successfully verified permissions. Sending request to the next middleware.")
+			glog.V(4).Info("Access middleware successfully verified permissions. Sending request to the next middleware.")
 			return next(c)
 		}
+
 		return nil
 	}
 }
 
-// Return required request permission (READ, WRITE or READ & WRITE)
-// corresponding to the request method
-func requestPermissions(c echo.Context) accessprotos.AccessControl_Permission {
-	// As a default - require ALL permissions (Read AND Write) for all
-	// 'unclassified' methods
-	perm := accessprotos.AccessControl_READ | accessprotos.AccessControl_WRITE
-	// Find out if it's READ or WRITE
-	switch c.Request().Method {
+// getRequestedPermissions returns the required request permission (READ, WRITE
+// or READ+WRITE) corresponding to the request method.
+func getRequestedPermissions(req *http.Request, decorate logDecorator) accessprotos.AccessControl_Permission {
+	switch req.Method {
 	case "GET", "HEAD":
-		perm = accessprotos.AccessControl_READ
+		return accessprotos.AccessControl_READ
 	case "PUT", "POST", "DELETE":
-		perm = accessprotos.AccessControl_WRITE
+		return accessprotos.AccessControl_WRITE
 	default:
-		glog.Error(LogDecorator(c)("Unclassified HTTP Method: %s", c.Request().Method))
+		glog.Info(decorate("Unclassified HTTP method '%s', defaulting to read+write requested permissions", req.Method))
+		return accessprotos.AccessControl_READ | accessprotos.AccessControl_WRITE
 	}
-	return perm
 }
 
-func handleError(
-	c echo.Context,
-	status int,
-	f string, a ...interface{},
-) error {
-	glog.Error(LogDecorator(c)(f, a...))
-	return echo.NewHTTPError(status, fmt.Sprintf(f, a...))
+func transformErr(decorate logDecorator, err error, status int, errFmt string, errArgs ...interface{}) error {
+	if _, ok := err.(merrors.ClientInitError); ok {
+		return makeErr(decorate, http.StatusServiceUnavailable, "service unavailable")
+	}
+	return makeErr(decorate, status, errFmt, errArgs...)
+}
+
+func makeErr(decorate logDecorator, status int, errFmt string, errArgs ...interface{}) error {
+	glog.V(1).Infof("REST middleware (obsidian) rejected request: %s", decorate(errFmt, errArgs...))
+	return echo.NewHTTPError(status, fmt.Sprintf(errFmt, errArgs...))
 }
