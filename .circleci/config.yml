@@ -1067,7 +1067,7 @@ workflows:
             - xwfm-test
             - cwag-precommit
             - cwf-integ-test
-          images: 'gateway_python|gateway_pipelined'
+          images: 'gateway_python|gateway_pipelined|gateway_go'
           tag: 'latest'
       - xwfm-deploy:
           <<: *only_master
