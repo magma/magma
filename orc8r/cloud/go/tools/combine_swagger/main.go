@@ -28,7 +28,8 @@ import (
 	"flag"
 	"fmt"
 
-	"magma/orc8r/cloud/go/tools/combine_swagger/spec"
+	"magma/orc8r/cloud/go/swagger"
+	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
 
 	"github.com/golang/glog"
 )
@@ -42,19 +43,22 @@ func main() {
 	fmt.Printf("Reading Swagger specs from directory:\n%s\n\n", *inDir)
 	fmt.Printf("Reading common spec from file:\n%s\n\n", *commonFilepath)
 
-	cfgs, commonCfg, err := spec.Load(*inDir, *commonFilepath)
+	yamlCommon, yamlSpecs, err := combine.Load(*commonFilepath, *inDir)
 	if err != nil {
 		glog.Fatal(err)
 	}
 
 	fmt.Printf("Combining specs together...\n\n")
-	outSpec, warnings := spec.Combine(commonCfg, cfgs)
+	combined, warnings, err := swagger.Combine(yamlCommon, yamlSpecs)
+	if err != nil {
+		glog.Fatal(err)
+	}
 	if warnings != nil {
 		fmt.Printf("Warnings: %+v\n", warnings)
 	}
 
 	fmt.Printf("Writing combined Swagger spec to file:\n%s\n\n", *outFilepath)
-	err = spec.Write(outSpec, *outFilepath)
+	err = combine.Write(combined, *outFilepath)
 	if err != nil {
 		glog.Fatal(err)
 	}
