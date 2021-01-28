@@ -331,20 +331,21 @@ pipeline {
                   myShCmdWithLog('cd lte/gateway && source .venv/bin/activate && fab run_integ_tests', 'archives/magma_run_s1ap_tester_s11.log')
                 }
 
-                timeout (time: 45, unit: 'SECONDS') {
-                  try {
-                    myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_udp_data.py"', 'archives/magma_run_s1ap_tester.log')
-                  } catch (Exception e) {
-                    echo "s1aptests/test_attach_dl_udp_data testcase may fail"
-                  }
-                }
-                timeout (time: 45, unit: 'SECONDS') {
-                  try {
-                    myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_tcp_data.py"', 'archives/magma_run_s1ap_tester.log')
-                  } catch (Exception e) {
-                    echo "s1aptests/test_attach_dl_tcp_data testcase may fail"
-                  }
-                }
+                // Fab Script should be extended to support specific test execution, So following 2 tests are excluded from the pipeline now.
+                // timeout (time: 45, unit: 'SECONDS') {
+                //   try {
+                //     myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_udp_data.py"', 'archives/magma_run_s1ap_tester.log')
+                //   } catch (Exception e) {
+                //     echo "s1aptests/test_attach_dl_udp_data testcase may fail"
+                //   }
+                // }
+                // timeout (time: 45, unit: 'SECONDS') {
+                //   try {
+                //     myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_tcp_data.py"', 'archives/magma_run_s1ap_tester.log')
+                //   } catch (Exception e) {
+                //     echo "s1aptests/test_attach_dl_tcp_data testcase may fail"
+                //   }
+                // }
 
                 echo "Stopping the Traffic server in background"
                 try {
