@@ -67,7 +67,7 @@ meter:
   idle_timeout: 0
 
 enforcement:
-  poll_interval: 2
+  poll_interval: 10
   default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
@@ -124,7 +124,6 @@ monitored_ifaces: ['gtp_br0',
 
 # Whether pipelined should cleanup flows on restarts
 clean_restart: false
-
 redis_enabled: true
 
 # Logs grpc payload content
