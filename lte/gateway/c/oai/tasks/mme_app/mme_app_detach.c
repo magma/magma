@@ -63,10 +63,6 @@ void mme_app_send_delete_session_request(
     const pdn_cid_t cid) {
   MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Handle Delete session request for mme_s11_teid :%d\n",
-      ue_context_p->mme_teid_s11);
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_DELETE_SESSION_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR(
@@ -124,17 +120,16 @@ void mme_app_send_delete_session_request(
 void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
   struct ue_mm_context_s* ue_context_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
+  OAILOG_INFO(
+      LOG_MME_APP,
+      "Handle Detach Req at MME app for ue-id: " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP, "UE context doesn't exist -> Nothing to do :-) \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  OAILOG_INFO(
-      LOG_MME_APP,
-      "Handle Detach Req at MME app for ue-id: " MME_UE_S1AP_ID_FMT
-      " with mme_s11_teid " TEID_FMT "\n",
-      ue_id, ue_context_p->mme_teid_s11);
   if ((!ue_context_p->mme_teid_s11) &&
       (!ue_context_p->nb_active_pdn_contexts)) {
     /* No Session.

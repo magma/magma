@@ -44,6 +44,8 @@
 
 #include "common_types.h"
 
+typedef uint32_t sctp_ppid_t;
+
 #define SCTP_DATA_IND(msg) (msg)->ittiMsg.sctp_data_ind
 #define SCTP_DATA_REQ(msg) (msg)->ittiMsg.sctp_data_req
 #define SCTP_DATA_CNF(msg) (msg)->ittiMsg.sctp_data_cnf
@@ -52,12 +54,16 @@
 #define SCTP_CLOSE_ASSOCIATION(msg) (msg)->ittiMsg.sctp_close_association
 #define SCTP_MME_SERVER_INITIALIZED(msg)                                       \
   (msg)->ittiMsg.sctp_mme_server_initialized
+#define SCTP_AMF_SERVER_INITIALIZED(msg)                                       \
+  (msg)->ittiMsg.sctp_amf_server_initialized
 
 typedef struct sctp_data_cnf_s {
   bstring payload;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream;
   uint32_t mme_ue_s1ap_id;
+  uint32_t amf_ue_ngap_id;
+  sctp_ppid_t ppid;
   bool is_success;
 } sctp_data_cnf_t;
 
@@ -66,6 +72,8 @@ typedef struct sctp_data_req_s {
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream;
   uint32_t mme_ue_s1ap_id;  // for helping data_rej
+  uint32_t amf_ue_ngap_id;
+  sctp_ppid_t ppid;
 } sctp_data_req_t;
 
 typedef struct sctp_data_ind_s {
@@ -108,4 +116,7 @@ typedef struct sctp_mme_server_initialized_s {
   bool successful;
 } sctp_mme_server_initialized_t;
 
+typedef struct sctp_amf_server_initialized_s {
+  bool successful;
+} sctp_amf_server_initialized_t;
 #endif /* FILE_SCTP_MESSAGES_TYPES_SEEN */

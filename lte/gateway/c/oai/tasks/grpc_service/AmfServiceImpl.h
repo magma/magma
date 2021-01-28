@@ -35,6 +35,11 @@ class SmContextVoid;
 
 using grpc::ServerContext;
 using magma::lte::SetSmNotificationContext;
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+
+using grpc::ServerContext;
 using magma::lte::SetSMSessionContextAccess;
 using magma::lte::SmContextVoid;
 using magma::lte::SmfPduSessionSmContext;

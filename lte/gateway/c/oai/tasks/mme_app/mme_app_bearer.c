@@ -846,7 +846,7 @@ void mme_app_handle_delete_session_rsp(
         " from SGW is NULL \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_MME_APP,
       "Received S11_DELETE_SESSION_RESPONSE from S+P-GW with teid " TEID_FMT
       "\n ",
@@ -951,11 +951,14 @@ void mme_app_handle_delete_session_rsp(
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
 #endif
-    if (ue_context_p->nb_active_pdn_contexts > 0) {
-      ue_context_p->nb_active_pdn_contexts -= 1;
+    hashtable_rc_t hash_rc = hashtable_uint64_ts_remove(
+        mme_app_desc_p->mme_ue_contexts.tun11_ue_context_htbl,
+        (const hash_key_t) ue_context_p->mme_teid_s11);
+    if (hash_rc == HASH_TABLE_OK) {
+      ue_context_p->mme_teid_s11 = 0;
     }
     if (ue_context_p->nb_active_pdn_contexts > 0) {
-      OAILOG_FUNC_OUT(LOG_MME_APP);
+      ue_context_p->nb_active_pdn_contexts -= 1;
     }
 
     /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach

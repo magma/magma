@@ -69,15 +69,14 @@ def test():
 
 def package(vcs='hg', all_deps="False",
             cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
-            destroy_vm='False',
-            vm='magma'):
+            destroy_vm='False'):
     """ Builds the magma package """
     all_deps = False if all_deps == "False" else True
     destroy_vm = bool(strtobool(destroy_vm))
 
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
-        vagrant_setup(vm, destroy_vm=destroy_vm)
+        vagrant_setup('magma', destroy_vm=destroy_vm)
 
     if not hasattr(env, 'debug_mode'):
         print("Error: The Deploy target isn't specified. Specify one with\n\n"
@@ -112,12 +111,8 @@ def package(vcs='hg', all_deps="False",
         run('mv *.deb ~/magma-packages')
 
         with cd('release'):
-            mirrored_packages_file = 'mirrored_packages'
-            if vm and vm.startswith('magma_'):
-                mirrored_packages_file += vm[5:]
-
-            run('cat {}'.format(mirrored_packages_file)
-                + ' | xargs -I% sudo aptitude download -q2 %')
+            run('cat mirrored_packages | '
+                'xargs -I% sudo aptitude download -q2 %')
             run('cp *.deb ~/magma-packages')
             run('sudo rm -f *.deb')
 

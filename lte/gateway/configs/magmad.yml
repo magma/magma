@@ -24,7 +24,6 @@ magma_services:
   - sessiond
   - mme
   - pipelined
-  - envoy_controller
   - redis
   - dnsd
   - policydb

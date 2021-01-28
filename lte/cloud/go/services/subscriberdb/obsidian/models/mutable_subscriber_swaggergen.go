@@ -6,8 +6,10 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
 	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
+	"strconv"
+
+	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -21,8 +23,8 @@ type MutableSubscriber struct {
 	// active apns
 	ActiveApns ApnList `json:"active_apns,omitempty"`
 
-	// active base names
-	ActiveBaseNames models1.BaseNames `json:"active_base_names,omitempty"`
+	// Base names which are active for this subscriber
+	ActiveBaseNames []models1.BaseName `json:"active_base_names,omitempty"`
 
 	// active policies
 	ActivePolicies models1.PolicyIds `json:"active_policies,omitempty"`
@@ -105,11 +107,15 @@ func (m *MutableSubscriber) validateActiveBaseNames(formats strfmt.Registry) err
 		return nil
 	}
 
-	if err := m.ActiveBaseNames.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("active_base_names")
+	for i := 0; i < len(m.ActiveBaseNames); i++ {
+
+		if err := m.ActiveBaseNames[i].Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("active_base_names" + "." + strconv.Itoa(i))
+			}
+			return err
 		}
-		return err
+
 	}
 
 	return nil

@@ -1972,7 +1972,8 @@ void mme_app_handle_s1ap_ue_context_release_complete(
   mme_app_delete_s11_procedure_create_bearer(ue_context_p);
 
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
-    if (ue_context_p->nb_active_pdn_contexts == 0) {
+    if ((ue_context_p->mme_teid_s11 == 0) &&
+        (!ue_context_p->nb_active_pdn_contexts)) {
       // No Session
       OAILOG_DEBUG_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,

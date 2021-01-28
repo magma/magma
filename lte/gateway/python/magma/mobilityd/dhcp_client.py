@@ -54,7 +54,6 @@ class DHCPClient:
         """
         self._sniffer = AsyncSniffer(iface=iface,
                                      filter="udp and (port 67 or 68)",
-                                     store=False,
                                      prn=self._rx_dhcp_pkt)
 
         self.dhcp_client_state = dhcp_store  # mac => DHCP_State

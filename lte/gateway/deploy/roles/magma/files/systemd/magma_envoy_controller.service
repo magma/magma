@@ -13,8 +13,6 @@
 Description=Magma envoy controller service
 PartOf=magma@pipelined.service
 Before=magma@pipelined.service
-Requires=magma_dp@envoy.service
-Before=magma_dp@envoy.service
 
 [Service]
 Type=simple

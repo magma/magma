@@ -50,10 +50,7 @@ class StaticIPInfo:
                  gw_ip: Optional[str],
                  gw_mac: Optional[str],
                  vlan: int):
-        if ip:
-            self.ip = ipaddress.ip_address(ip)
-        else:
-            self.ip = None
+        self.ip = ipaddress.ip_address(ip)
         self.net_info = NetworkInfo(gw_ip, gw_mac, vlan)
 
     def __str__(self):
@@ -75,22 +72,20 @@ class SubscriberDbClient:
         try:
             apn_config = self._find_ip_and_apn_config(sid)
             logging.debug("ip: Got APN: %s", apn_config)
-            if apn_config and apn_config.assigned_static_ip:
+            if apn_config:
                 return StaticIPInfo(ip=apn_config.assigned_static_ip,
                                     gw_ip=apn_config.resource.gateway_ip,
                                     gw_mac=apn_config.resource.gateway_mac,
                                     vlan=apn_config.resource.vlan_id)
 
-        except ValueError as ex:
-            logging.warning("static Ip: Invalid or missing data for sid %s: ", sid)
-            logging.debug(ex)
-            raise SubscriberDBStaticIPValueError(sid)
+        except ValueError:
+            logging.warning("Invalid data for sid %s: ", sid)
 
         except grpc.RpcError as err:
-            msg = "GetSubscriberData: while reading vlan-id error[%s] %s" % \
-                  (err.code(), err.details())
-            logging.error(msg)
-            raise SubscriberDBConnectionError(msg)
+            logging.error(
+                "GetSubscriberData while reading static ip, error[%s] %s",
+                err.code(),
+                err.details())
         return None
 
     def get_subscriber_apn_network_info(self, sid: str) -> NetworkInfo:
@@ -103,22 +98,19 @@ class SubscriberDbClient:
             try:
                 apn_config = self._find_ip_and_apn_config(sid)
                 logging.debug("vlan: Got APN: %s", apn_config)
-                if apn_config and apn_config.resource.vlan_id:
+                if apn_config:
                     return NetworkInfo(gw_ip=apn_config.resource.gateway_ip,
                                        gw_mac=apn_config.resource.gateway_mac,
                                        vlan=apn_config.resource.vlan_id)
 
-            except ValueError as ex:
-                logging.warning("vlan: Invalid or missing data for sid %s", sid)
-                logging.debug(ex)
-                raise SubscriberDBMultiAPNValueError(sid)
+            except ValueError:
+                logging.warning("Invalid data for sid %s: ", sid)
 
             except grpc.RpcError as err:
-                msg = "GetSubscriberData while reading vlan-id error[%s] %s" % \
-                    (err.code(), err.details())
-                logging.error(msg)
-                raise SubscriberDBConnectionError(msg)
-
+                logging.error(
+                    "GetSubscriberData while reading vlan-id error[%s] %s",
+                    err.code(),
+                    err.details())
         return NetworkInfo()
 
     # use same API to retrieve IP address and related config.
@@ -150,22 +142,3 @@ class SubscriberDbClient:
             return selected_apn_conf
 
         return None
-
-
-class SubscriberDBConnectionError(Exception):
-    """ Exception thrown subscriber DB is not available
-    """
-    pass
-
-
-class SubscriberDBStaticIPValueError(Exception):
-    """ Exception thrown when subscriber DB has invalid IP value for the subscriber.
-    """
-    pass
-
-
-class SubscriberDBMultiAPNValueError(Exception):
-    """ Exception thrown when subscriber DB has invalid MultiAPN vlan value
-    for the subscriber.
-    """
-    pass

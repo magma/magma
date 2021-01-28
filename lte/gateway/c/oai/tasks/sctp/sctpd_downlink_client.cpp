@@ -19,6 +19,7 @@ extern "C" {
 #include "sctpd_downlink_client.h"
 
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include "assertions.h"
 #include "log.h"
@@ -148,7 +149,6 @@ int sctpd_init(sctp_init_t* init) {
     }
     req.add_ipv6_addrs(ipv6_str);
   }
-
   req.set_port(init->port);
   req.set_ppid(init->ppid);
 
@@ -180,11 +180,32 @@ int sctpd_init(sctp_init_t* init) {
   return sctpd_init_res;
 }
 
+// close
+void sctpd_exit() {
+  // send terminate message to sctpd if force_restart is true
+  if (!_client->should_force_restart) {
+    // do nothing
+    return;
+  }
+
+  // send a SIGTERM to sctpd
+  char line[PID_LEN];
+  FILE* cmd = popen("pidof sctpd", "r");
+  fgets(line, PID_LEN, cmd);
+  pid_t pid = strtoul(line, NULL, 10);
+  pclose(cmd);
+  OAILOG_DEBUG(LOG_SCTP, "Sending SIGTERM to pid %d", pid);
+  kill(pid, SIGTERM);
+  return;
+}
+
 // sendDl
-int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload) {
+int sctpd_send_dl(
+    uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload) {
   SendDlReq req;
   SendDlRes res;
 
+  req.set_ppid(ppid);
   req.set_assoc_id(assoc_id);
   req.set_stream(stream);
   req.set_payload(bdata(payload), blength(payload));

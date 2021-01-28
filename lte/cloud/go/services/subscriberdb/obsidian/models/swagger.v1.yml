@@ -299,7 +299,14 @@ definitions:
       config:
         $ref: '#/definitions/subscriber_config'
       active_base_names:
-        $ref: './lte-policydb-swagger.yml#/definitions/base_names'
+        type: array
+        items:
+          $ref: './lte-policydb-swagger.yml#/definitions/base_name'
+        x-omitempty: true
+        description: 'Base names which are active for this subscriber'
+        example:
+          - 'base_name_1'
+          - 'base_name_2'
       active_policies:
         $ref: './lte-policydb-swagger.yml#/definitions/policy_ids'
       active_policies_by_apn:
@@ -329,7 +336,14 @@ definitions:
       lte:
         $ref: '#/definitions/lte_subscription'
       active_base_names:
-        $ref: './lte-policydb-swagger.yml#/definitions/base_names'
+        type: array
+        items:
+          $ref: './lte-policydb-swagger.yml#/definitions/base_name'
+        x-omitempty: true
+        description: 'Base names which are active for this subscriber'
+        example:
+          - 'base_name_1'
+          - 'base_name_2'
       static_ips:
         $ref: '#/definitions/subscriber_static_ips'
       active_policies:

@@ -474,8 +474,21 @@ void log_configure(const log_config_t* const config) {
       (MIN_LOG_LEVEL <= config->s1ap_log_level))
     g_oai_log.log_level[LOG_S1AP] = config->s1ap_log_level;
   if ((MAX_LOG_LEVEL > config->mme_app_log_level) &&
-      (MIN_LOG_LEVEL <= config->mme_app_log_level))
+      (MIN_LOG_LEVEL <= config->mme_app_log_level)) {
     g_oai_log.log_level[LOG_MME_APP] = config->mme_app_log_level;
+    // if ((MAX_LOG_LEVEL > config->amf_app_log_level) &&
+    //    (MIN_LOG_LEVEL <= config->amf_app_log_level))
+    // g_oai_log.log_level[LOG_AMF_APP] = config->amf_app_log_level;
+    g_oai_log.log_level[LOG_AMF_APP] = config->mme_app_log_level;
+    // if ((MAX_LOG_LEVEL > config->ngap_log_level) &&
+    //    (MIN_LOG_LEVEL <= config->ngap_log_level))
+    // g_oai_log.log_level[LOG_NGAP] = config->ngap_log_level;
+    g_oai_log.log_level[LOG_NGAP] = config->mme_app_log_level;
+    // if ((MAX_LOG_LEVEL > config->nas_amf_log_level) &&
+    //    (MIN_LOG_LEVEL <= config->nas_amf_log_level))
+    g_oai_log.log_level[LOG_NAS_AMF] = config->mme_app_log_level;
+    // g_oai_log.log_level[LOG_NAS_AMF] = config->nas_amf_log_level;
+  }
   if ((MAX_LOG_LEVEL > config->nas_log_level) &&
       (MIN_LOG_LEVEL <= config->nas_log_level)) {
     g_oai_log.log_level[LOG_NAS]     = config->nas_log_level;
@@ -640,6 +653,14 @@ int log_init(
   snprintf(
       &g_oai_log.log_proto2str[LOG_MME_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
       "MME-APP");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_AMF_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "AMF-APP");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_NGAP][0], LOG_MAX_PROTO_NAME_LENGTH, "NGAP");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_NAS_AMF][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "NAS-AMF");
   snprintf(
       &g_oai_log.log_proto2str[LOG_NAS][0], LOG_MAX_PROTO_NAME_LENGTH, "NAS");
   snprintf(

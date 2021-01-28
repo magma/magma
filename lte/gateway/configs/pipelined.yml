@@ -130,7 +130,8 @@ redis_enabled: true
 # Logs grpc payload content
 magma_print_grpc_payload: false
 
-# MTR iface
+# MTR iface IP
+mtr_ip: 10.1.0.1
 mtr_interface: mtr0
 
 ###############

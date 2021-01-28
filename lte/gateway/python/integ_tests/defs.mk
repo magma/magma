@@ -16,6 +16,7 @@ PROTO_LIST:=orc8r_protos lte_protos feg_protos
 MANDATORY_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_detach.py \
 s1aptests/test_gateway_metrics_attach_detach.py \
+s1aptests/test_attach_detach_multi_ue.py \
 s1aptests/test_attach_detach_looped.py  \
 s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_combined_eps_imsi.py \
@@ -68,7 +69,6 @@ s1aptests/test_sctp_shutdown_after_auth_req.py \
 s1aptests/test_sctp_shutdown_after_identity_req.py \
 s1aptests/test_sctp_shutdown_after_smc.py \
 s1aptests/test_sctp_shutdown_after_multi_ue_attach.py \
-s1aptests/test_attach_detach_multi_ue.py \
 s1aptests/test_attach_detach_dedicated.py \
 s1aptests/test_attach_detach_dedicated_qci_0.py \
 s1aptests/test_attach_detach_dedicated_multi_ue.py \

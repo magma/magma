@@ -93,7 +93,6 @@ def clear_redis_state():
         "NO_VLAN:mobilityd_gw_info",
         "QosManager",
         "s1ap_imsi_map",
-        "sessiond:sessions",
     ]:
         for key in redis_client.scan_iter(key_regex):
             redis_client.delete(key)
@@ -167,7 +166,6 @@ def sctpd_pre_start():
 def sctpd_post_start():
     subprocess.Popen("/bin/systemctl start magma@mme".split())
     subprocess.Popen("/bin/systemctl start magma@pipelined".split())
-    subprocess.Popen("/bin/systemctl start magma@envoy_controller".split())
     subprocess.Popen("/bin/systemctl start magma@sessiond".split())
     subprocess.Popen("/bin/systemctl start magma@mobilityd".split())
     sys.exit(0)

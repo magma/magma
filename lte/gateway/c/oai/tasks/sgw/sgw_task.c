@@ -81,8 +81,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S11_DELETE_SESSION_REQUEST: {
       sgw_handle_delete_session_request(
-          spgw_state, &received_message_p->ittiMsg.s11_delete_session_request,
-          imsi64);
+          &received_message_p->ittiMsg.s11_delete_session_request, imsi64);
     } break;
 
     case S11_MODIFY_BEARER_REQUEST: {
@@ -122,7 +121,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
       // Handle Dedicated bearer deactivation Rsp from MME
       sgw_handle_nw_initiated_deactv_bearer_rsp(
-          spgw_state,
           &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp, imsi64);
     } break;
 

@@ -46,8 +46,7 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(
 s_plus_p_gw_eps_bearer_context_information_t*
 sgw_cm_create_bearer_context_information_in_collection(
     spgw_state_t* spgw_state, teid_t teid, imsi64_t imsi64);
-int sgw_cm_remove_bearer_context_information(
-    spgw_state_t* state, teid_t teid, imsi64_t imsi64);
+int sgw_cm_remove_bearer_context_information(teid_t teid, imsi64_t imsi64);
 sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
     sgw_pdn_connection_t* const sgw_pdn_connection, const ebi_t eps_bearer_idP);
 sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(

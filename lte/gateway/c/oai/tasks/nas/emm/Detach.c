@@ -105,7 +105,9 @@ void detach_t3422_handler(void* args, imsi64_t* imsi64) {
   if (emm_ctx) {
     *imsi64 = emm_ctx->_imsi64;
   }
-  // Increment the retransmission counter
+  /*
+   * Increment the retransmission counter
+   */
   data->retransmission_count += 1;
   OAILOG_WARNING(
       LOG_NAS_EMM,
@@ -114,22 +116,22 @@ void detach_t3422_handler(void* args, imsi64_t* imsi64) {
       data->retransmission_count);
 
   if (data->retransmission_count < DETACH_REQ_COUNTER_MAX) {
-    // Resend detach request message to the UE
+    /*
+     * Resend detach request message to the UE
+     */
     emm_proc_nw_initiated_detach_request(ue_id, data->detach_type);
   } else {
-    // Abort the detach procedure and perform implicit detach
+    /*
+     * Abort the detach procedure and perform implict detach
+     */
     if (data) {
-      // Free timer argument
+      // free timer argument
       free_wrapper((void**) &data);
       emm_ctx->t3422_arg = NULL;
     }
     if (detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
-      /*
-       * This is implicit detach procedure, therefore, setting detach type as
-       * switched-off to avoid sending of detach accept message
-       */
-      emm_detach_request_params.switch_off = 1;
+      emm_detach_request_params.switch_off = 0;
       emm_detach_request_params.type       = 0;
       emm_proc_detach_request(ue_id, &emm_detach_request_params);
     }
