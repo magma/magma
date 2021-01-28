@@ -333,14 +333,14 @@ pipeline {
 
                 timeout (time: 45, unit: 'SECONDS') {
                   try {
-                    myShCmdWithLogAppend('cd lte/gateway && source .venv/bin/activate && fab run_integ_tests:tests=s1aptests/test_attach_dl_udp_data.py"', 'archives/magma_run_s1ap_tester.log')
+                    myShCmdWithLogAppend('cd lte/gateway && source .venv/bin/activate && fab run_integ_tests:tests=s1aptests/test_attach_dl_udp_data.py', 'archives/magma_run_s1ap_tester.log')
                   } catch (Exception e) {
                     echo "s1aptests/test_attach_dl_udp_data testcase may fail"
                   }
                 }
                 timeout (time: 45, unit: 'SECONDS') {
                   try {
-                    myShCmdWithLogAppend('cd lte/gateway && source .venv/bin/activate && fab run_integ_tests:tests=s1aptests/test_attach_dl_tcp_data.py"', 'archives/magma_run_s1ap_tester.log')
+                    myShCmdWithLogAppend('cd lte/gateway && source .venv/bin/activate && fab run_integ_tests:tests=s1aptests/test_attach_dl_tcp_data.py', 'archives/magma_run_s1ap_tester.log')
                   } catch (Exception e) {
                     echo "s1aptests/test_attach_dl_tcp_data testcase may fail"
                   }
