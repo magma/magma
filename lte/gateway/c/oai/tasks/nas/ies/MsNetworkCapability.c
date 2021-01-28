@@ -83,6 +83,25 @@ int decode_ms_network_capability(
           (b & MS_NETWORK_CAPABILITY_GERAN_NETWORK_SHARING);
       decoded++;
     }
+    if (ielen > 3) {
+      b = *(buffer + decoded);
+      msnetworkcapability->up_integ_prot_support =
+          (b & MS_NETWORK_CAPABILITY_USER_PLANE_INTEGRITY_PROTECTION_SUPPORT) >>
+          7;
+      msnetworkcapability->gia4 = (b & MS_NETWORK_CAPABILITY_GIA4) >> 6;
+      msnetworkcapability->gia5 = (b & MS_NETWORK_CAPABILITY_GIA5) >> 5;
+      msnetworkcapability->gia6 = (b & MS_NETWORK_CAPABILITY_GIA6) >> 4;
+      msnetworkcapability->gia7 = (b & MS_NETWORK_CAPABILITY_GIA7) >> 3;
+      msnetworkcapability->epco_ie_ind =
+          (b & MS_NETWORK_CAPABILITY_EPCO_IE_INDICATOR) >> 2;
+      msnetworkcapability->rest_use_enhanc_cov_cap =
+          (b &
+           MS_NETWORK_CAPABILITY_RESTRICTION_ON_USE_OF_ENHANCED_COVERAGE_CAPABILITY) >>
+          1;
+      msnetworkcapability->en_dc =
+          (b & MS_NETWORK_CAPABILITY_DUAL_CONNECTIVITY_EUTRA_NR_CAPABILITY);
+      decoded++;
+    }
   }
 
 #if NAS_DEBUG

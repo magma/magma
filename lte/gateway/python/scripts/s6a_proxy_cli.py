@@ -61,6 +61,7 @@ def send_ulr(client, args):
     req.user_name = args.user_name
     req.skip_subscriber_data = False
     req.initial_attach = True
+    req.dual_regis_5g_ind = True
 
     print("sending ULR:\n %s" % req)
     try:
@@ -115,6 +116,10 @@ def create_parser():
                             help='Send Cancel Location to other EPCs serving '
                                  'the UE',
                             default=False, nargs='?')
+    parser_ulr.add_argument('dual_regis_5g_ind',
+                            help='Send Dual registration 5g indicator '
+                                 'the UE',
+                            default=True, nargs='?')
     parser_ulr.set_defaults(func=send_ulr)
 
     return parser

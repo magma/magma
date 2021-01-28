@@ -169,6 +169,7 @@ class S6ARelayApplication(S6AApplication):
             visited_plmn=visited_plmn,
             skip_subscriber_data=ulr_flags & 1 << 2,
             initial_attach=ulr_flags & 1 << 5,
+            dual_regis_5g_ind=ulr_flags & 1 << 8,
         )
         future = self._client.UpdateLocation.future(request, self.grpc_timeout)
         future.add_done_callback(lambda answer:

@@ -140,6 +140,8 @@ message UpdateLocationRequest {
     bool skip_subscriber_data = 3; // bit 2
     // Send Cancel Location to other EPCs serving the UE
     bool initial_attach = 4; // bit 5
+//Send Dual Registration 5G Indicator
+    bool dual_regis_5g_ind = 5; // bit 8
 }
 
 // Update Location Answer (Section 7.2.4)

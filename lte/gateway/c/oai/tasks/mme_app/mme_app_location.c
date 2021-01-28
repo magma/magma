@@ -108,6 +108,27 @@ int mme_app_send_s6a_update_location_req(
         ue_context_p->mme_ue_s1ap_id);
   }
 
+  /*
+   * Check if we have UE 5G-NR
+   * connection supported in Attach request message.
+   * This is done by checking either en_dc flag in ms network capability or
+   * by checking  dcnr flag in ue network capability.
+   */
+  if (ue_context_p->emm_context._ms_network_capability.en_dc) {
+    s6a_ulr_p->dual_regis_5g_ind = 1;
+    OAILOG_DEBUG(
+        TASK_MME_APP,
+        "Dual registration with 5G-NR is enabled for (ue_id = %u)\n",
+        ue_context_p->mme_ue_s1ap_id);
+  } else {
+    s6a_ulr_p->dual_regis_5g_ind = 0;
+    OAILOG_DEBUG(
+        TASK_MME_APP,
+        "UE is connected on LTE, Dual registration with 5G-NR is disabled for "
+        "(ue_id = %u)\n",
+        ue_context_p->mme_ue_s1ap_id);
+  }
+
   // Check if we have voice domain preference IE and send to S6a task
   if (ue_context_p->emm_context.volte_params.presencemask &
       VOICE_DOMAIN_PREF_UE_USAGE_SETTING) {

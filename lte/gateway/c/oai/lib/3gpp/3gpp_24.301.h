@@ -196,7 +196,9 @@ typedef struct ue_network_capability_s {
   /* NF notification procedure capability */
 #define UE_NETWORK_CAPABILITY_NF 1
   uint8_t nf : 1;
-  // uint8_t spare[0..8]
+  /* DCNR notification flag */
+#define UE_NETWORK_DCNR 1
+  uint8_t dcnr : 1;
 
   bool umts_present;
   bool misc_present;

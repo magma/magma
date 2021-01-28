@@ -274,7 +274,8 @@ class S6AApplicationTests(unittest.TestCase):
             user_name=user_name,
             visited_plmn=visited_plmn_id,
             skip_subscriber_data=True,
-            initial_attach=True
+            initial_attach=True,
+            dual_regis_5g_ind=True
         )
 
         self._server.data_received(req_buf)
