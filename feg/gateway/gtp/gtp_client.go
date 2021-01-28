@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/wmnsk/go-gtp/gtpv2"
@@ -105,10 +106,12 @@ func NewClient(localAddr, remoteAddr *net.UDPAddr, connType uint8) *Client {
 	}
 }
 
+// Enable just creates the object connection enabling messages to be sent
 func (c *Client) Enable() {
 	c.Conn = gtpv2.NewConn(c.localAddr, c.connType, 0)
 }
 
+// Run launches the actual GTP-C cluent which will be able to send and receive GTP-C messages
 func (c *Client) Run(ctx context.Context) error {
 	if c.Conn == nil {
 		return fmt.Errorf("nil conn object. You may need to Enable the client first")
@@ -142,4 +145,28 @@ func GetOutboundIP(testIp *net.UDPAddr) (net.IP, error) {
 	defer connection.Close()
 	localAddr := connection.LocalAddr().(*net.UDPAddr)
 	return localAddr.IP, nil
+}
+
+//TODO: remove this once we find a way to safely wait for initialization of the service
+// WaitUntilClientIsReady is a hack to know when the client is ready and avoid null pointer issues using
+// the GTP-C client too early. Since go-gtp doesn't offer any visibuility on the readines of the connection
+// we use LocalAddrs as indicator
+func (c *Client) WaitUntilClientIsReady(count int) {
+	defer func() {
+		if count > 50 {
+			time.Sleep(time.Millisecond * 20)
+		}
+		if count > 100 {
+			glog.Errorf("Couldnt start GTP-Client")
+			return
+		}
+		if r := recover(); r != nil {
+			fmt.Print(".")
+			c.WaitUntilClientIsReady(count + 1)
+		}
+	}()
+	// this call will panic while client is starting
+	addr := c.LocalAddr().String()
+	fmt.Println()
+	glog.V(2).Infof("Started GTP-C client in %s", addr)
 }

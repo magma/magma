@@ -17,7 +17,6 @@ magma_services:
 
 # List of services that don't provide service303 interface
 non_service303_services:
-  - radius
 
 # Init system to use to control services
 init_system: procd
@@ -41,7 +40,6 @@ enable_sync_rpc: True
 
 upgrader_factory:
   gateway_module: openwrt
-  use_proxy: True
 
 mconfig_modules:
 

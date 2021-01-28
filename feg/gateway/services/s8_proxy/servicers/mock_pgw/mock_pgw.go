@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"time"
 
 	"github.com/wmnsk/go-gtp/gtpv1"
 
@@ -74,9 +73,9 @@ func (mPgw *MockPgw) Start(ctx context.Context, sgwAddrStr, pgwAddrsStr string) 
 	if err != nil {
 		return fmt.Errorf("Failed to get SGW IP: %s", err)
 	}
-	// Better handle wait for start of service to be ready
-	time.Sleep(time.Millisecond * 20)
-	time.Sleep(time.Millisecond * 20)
+
+	//TODO: remove this once we find a way to safely wait for initialization of the service
+	mPgw.Client.WaitUntilClientIsReady(0)
 
 	// register handlers for ALL the message you expect remote endpoint to send.
 	mPgw.AddHandlers(map[uint8]gtpv2.HandlerFunc{

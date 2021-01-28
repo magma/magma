@@ -43,7 +43,7 @@ func NewS8Proxy(config *S8ProxyConfig) (*S8Proxy, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error creating S8_Proxy: %s", err)
 	}
-	return newS8ProxyImps(gtpCli, config)
+	return newS8ProxyImp(gtpCli, config)
 }
 
 //NewS8ProxyNoFirstEcho creates an s8 proxy, but does not checks the PGW is alive
@@ -52,21 +52,14 @@ func NewS8ProxyNoFirstEcho(config *S8ProxyConfig) (*S8Proxy, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error creating S8_Proxy: %s", err)
 	}
-	return newS8ProxyImps(gtpCli, config)
+	return newS8ProxyImp(gtpCli, config)
 }
 
-func newS8ProxyImps(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
+func newS8ProxyImp(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
 	// TODO: validate config
-	//gtpCli, err := gtp.NewConnectedAutoClient(context.Background(), config.ServerAddr, gtpv2.IFTypeS5S8SGWGTPC)
-	gtpCli, err := gtp.NewRunningAutoClient(context.Background(), config.ServerAddr, gtpv2.IFTypeS5S8SGWGTPC)
-
-	if err != nil {
-		return nil, fmt.Errorf("Error creating S8_Proxy: %s", err)
-	}
-
 	s8p := &S8Proxy{
 		config:      config,
-		gtpClient:   gtpCli,
+		gtpClient:   cli,
 		echoChannel: make(chan error),
 	}
 	addS8GtpHandlers(s8p)
@@ -137,6 +130,12 @@ func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*proto
 		return nil, err
 	}
 	return &protos.EchoResponse{}, nil
+}
+
+// TODO: this is a function to expose WaitUntilClientIsReady. That function is only used
+// as a hack for testing and will be removed.
+func (s *S8Proxy) WaitUntilClientIsReady() {
+	s.gtpClient.WaitUntilClientIsReady(0)
 }
 
 func getSessionAndCTeid(cli *gtp.Client, imsi string) (*gtpv2.Session, uint32, error) {
