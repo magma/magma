@@ -19,6 +19,9 @@ pipeline {
           echo "Clean Env"
           cleanWs()
           sh "docker system prune -f"
+          echo "Purge old vagrant boxes"
+          sh "sudo vagrant box prune --force"
+          sh "sudo chown -R jenkins:libvirt ~jenkins/.vagrant.d"
           echo "Clone Sources"
           checkout(
             changelog: false, 
@@ -147,7 +150,9 @@ pipeline {
                 }
               } catch (Exception e) {}
             }
-            archiveArtifacts("$test_folder/*")
+            timeout(time: 10, unit: 'MINUTES') {
+              archiveArtifacts("$test_folder/*")
+            }
           }
         }
       }

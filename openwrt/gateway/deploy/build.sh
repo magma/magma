@@ -4,13 +4,13 @@ GO_VERSION_MAJOR=1
 GO_VERSION_MINOR=13
 LD_FLAGS="-s -w" # assume stripped non-debug binary
 MY_FULL_PATH="$(cd "$(dirname "${0}")" && pwd)"
-MAGMA_PATH=$(sed -E 's|fbcode/magma/.*|fbcode/magma|'  <<< "${MY_FULL_PATH}")
+MAGMA_PATH=$(sed -E 's|/magma/.*|/magma|'  <<< "${MY_FULL_PATH}")
 BIN_DIR="${HOME}/bin/magma/arm"
 BIN_DEPLOY_DIR="/sbin"
 IP="192.168.1.1"
 USER="root"
 PASSWORD="facebook"
-BINARIES="magmad aaa_server radius"
+BINARIES="magmad aaa_server"
 
 # Note: "go version" output format is "xx xxxx go1.13.3 xxxx"
 # shellcheck disable=SC2235
@@ -184,11 +184,7 @@ if [ -n "${build}" ]; then
 
   echo "Building AAA service"
   cd "${magma_path}/feg/gateway" || exit 1
-  GOOS=linux GOARCH=arm go build -tags link_local_service -o "${bin_dir}" -ldflags="${LD_FLAGS}" magma/feg/gateway/services/aaa/aaa_server
-
-  echo "Building radius server"
-  cd "${magma_path}/feg/radius/src" || exit 1
-  GOOS=linux GOARCH=arm go build -o "${bin_dir}" -ldflags="${LD_FLAGS}" .
+  GOOS=linux GOARCH=arm go build -tags link_local_service,with_builtin_radius -o "${bin_dir}" -ldflags="${LD_FLAGS}" magma/feg/gateway/services/aaa/aaa_server
 fi
 
 # Compress binaries
@@ -216,15 +212,15 @@ if [ -n "${deploy}" ]; then
     plink -4 -batch -pw "${password}" "${USER}@${ip}" "/etc/init.d/${b} stop 2>/dev/null >/dev/null;killall ${b} 2>/dev/null >/dev/null"
   done
   echo "Deploying magma binaries to gateway ${ip}"
-  pscp -4 -batch -scp -pw "${password}" "${bin_dir}/magmad" "${bin_dir}/aaa_server" "${bin_dir}/radius" "${USER}@${ip}:${BIN_DEPLOY_DIR}/"
+  pscp -4 -batch -scp -pw "${password}" "${bin_dir}/magmad" "${bin_dir}/aaa_server" "${USER}@${ip}:${BIN_DEPLOY_DIR}/"
 fi
 
 # Show the deployed binaries on the gateway
 # shellcheck disable=SC2005
 if [ -n "${show}" ]; then
   echo "Showing magma binaries on gateway ${ip}"
-  echo "$(plink -4 -batch -pw "${password}" "${USER}@${ip}" "ls -l ${BIN_DEPLOY_DIR}/aaa_server ${BIN_DEPLOY_DIR}/magmad ${BIN_DEPLOY_DIR}/radius")"
-  echo "$(plink -4 -batch -pw "${password}" "${USER}@${ip}" "md5sum ${BIN_DEPLOY_DIR}/aaa_server ${BIN_DEPLOY_DIR}/magmad ${BIN_DEPLOY_DIR}/radius")"
+  echo "$(plink -4 -batch -pw "${password}" "${USER}@${ip}" "ls -l ${BIN_DEPLOY_DIR}/aaa_server ${BIN_DEPLOY_DIR}/magmad")"
+  echo "$(plink -4 -batch -pw "${password}" "${USER}@${ip}" "md5sum ${BIN_DEPLOY_DIR}/aaa_server ${BIN_DEPLOY_DIR}/magmad")"
 fi
 
 echo "Done"

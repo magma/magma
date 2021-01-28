@@ -42,16 +42,14 @@ func addS8GtpHandlers(s8p *S8Proxy) {
 
 func getHandle_CreateSessionResponse() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
-
-		session, err := c.GetSessionByTEID(msg.TEID(), senderAddr)
-
-		if err != nil {
-			return fmt.Errorf("couldn't find session with TEID %d: %s", msg.TEID(), err)
-		}
-
 		csResGtp := msg.(*message.CreateSessionResponse)
 		csRes := &protos.CreateSessionResponsePgw{}
 		glog.V(2).Infof("Received Create Session Response (gtp):\n%s", csResGtp.String())
+
+		session, err := c.GetSessionByTEID(msg.TEID(), senderAddr)
+		if err != nil {
+			return fmt.Errorf("couldn't find session with TEID %d: %s", msg.TEID(), err)
+		}
 
 		// check Cause value first.
 		if causeIE := csResGtp.Cause; causeIE != nil {
@@ -173,15 +171,14 @@ func getHandle_ModifyBearerRequest() gtpv2.HandlerFunc {
 
 func getHandle_DeleteSessionResponse() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
-		session, err := c.GetSessionByTEID(msg.TEID(), senderAddr)
-
-		if err != nil {
-			return fmt.Errorf("couldn't find session with TEID %d: %s", msg.TEID(), err)
-		}
-
 		cdResGtp := msg.(*message.DeleteSessionResponse)
 		cdRes := &protos.DeleteSessionResponsePgw{}
 		glog.V(2).Infof("Received Delete Session Response (gtp):\n%s", cdResGtp.String())
+
+		session, err := c.GetSessionByTEID(msg.TEID(), senderAddr)
+		if err != nil {
+			return fmt.Errorf("couldn't find session with TEID %d: %s", msg.TEID(), err)
+		}
 
 		// check Cause value first.
 		if causeIE := cdResGtp.Cause; causeIE != nil {

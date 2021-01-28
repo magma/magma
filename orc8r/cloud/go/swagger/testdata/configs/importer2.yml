@@ -1,0 +1,79 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/swagger
+  dependencies:
+    - 'orc8r/cloud/go/swagger/testdata/configs/base.yml'
+    - 'orc8r/cloud/go/swagger/testdata/configs/importer.yml'
+  temp-gen-filename: importer2-swagger.yml
+  output-dir: orc8r/cloud/go/swagger/testdata
+  types:
+    - go-struct-name: RandCollection
+      filename: rand_collection_swaggergen.go
+    - go-struct-name: Season
+      filename: season_swaggergen.go
+
+info:
+  title: Test
+  description: Test API
+  version: 1.0.0
+
+basePath: /foo
+
+consumes:
+  - application/json
+
+produces:
+  - application/json
+
+schemes:
+  - https
+  - http
+
+tags:
+  - name: SaltyTag
+    description: Tag Salty
+
+paths:
+  /foopath:
+    get:
+      summary: Foo
+      responses:
+        '200':
+          description: Bar baz
+          schema:
+            type: integer
+    delete:
+      summary: Bar
+      responses:
+        '404':
+          description: fail
+          schema:
+            type: string
+
+definitions:
+  rand_collection:
+    type: object
+    required:
+      - foo
+      - weather
+      - season_list
+    properties:
+      foo:
+        $ref: './importer-swagger.yml#/definitions/gift'
+      weather:
+        $ref: '#/definitions/weather'
+      season_list:
+        $ref: '#/definitions/season_list'
+  season_list:
+    type: array
+    items:
+      $ref: './base-swagger.yml#/definitions/season_list'
+
+  weather:
+    type: integer
+
+  animal:
+    type: string
+    example: dog
