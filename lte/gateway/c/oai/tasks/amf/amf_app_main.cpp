@@ -23,7 +23,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -50,8 +50,8 @@ extern "C" {
 #include "amf_app_defs.h"
 #include "ngap_messages_types.h"
 #include "amf_app_state_manager.h"
-using namespace std;
 
+using namespace std;
 namespace magma5g {
 task_zmq_ctx_t amf_app_task_zmq_ctx;
 void amf_app_exit(void);
@@ -102,7 +102,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_app_handle_resource_setup_response(
           NGAP_PDUSESSIONRESOURCE_SETUP_RSP(received_message_p));
       break;
-
     case NGAP_PDUSESSIONRESOURCE_REL_RSP:
       /* This is non-nas message and can be handled directly to check if failure
        * or success messages are coming from NGAP
@@ -126,20 +125,17 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 }
 
 void* amf_app_thread(void* args) {
-  OAILOG_ERROR(LOG_AMF_APP, "Only for testing - amf_app_thread entered\n");
-
   itti_mark_task_ready(TASK_AMF_APP);
   const task_id_t tasks[] = {TASK_NGAP, TASK_SERVICE303};
   init_task_context(
       TASK_AMF_APP, tasks, 2, handle_message, &amf_app_task_zmq_ctx);
-
   // Service started, but not healthy yet
   send_app_health_to_service303(&amf_app_task_zmq_ctx, TASK_AMF_APP, false);
-
   zloop_start(amf_app_task_zmq_ctx.event_loop);
   amf_app_exit();
   return NULL;
 }
+
 extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
   if (amf_nas_state_init(amf_config_p)) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
@@ -149,7 +145,6 @@ extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
     OAILOG_ERROR(LOG_AMF_APP, "AMF APP create task failed\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
-
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 

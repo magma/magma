@@ -1,9 +1,7 @@
-
 set(NGAP_C_DIR ${PROJECT_BINARY_DIR}/ngap/r16.0)
 set(NAS5G_C_DIR /home/vagrant/magma/lte/gateway/c/oai/tasks/nas5g)
 set(NAS_C_DIR /home/vagrant/magma/lte/gateway/c/oai)
 set(NAS_DIR /home/vagrant/magma/lte/gateway/c/oai/tasks/nas)
-
 set(AMFAPP_STATE_CPP_PROTOS mme_nas_state nas_state common_types std_3gpp_types)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")

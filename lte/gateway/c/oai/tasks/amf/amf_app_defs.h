@@ -22,38 +22,27 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef AMF_APP_DEFS_SEEN
-#define AMF_APP_DEFS_SEEN
-
+#pragma once
 #include <sstream>
 #include "amf_as_message.h"
 #include "ngap_messages_types.h"
 #include "n11_messages_types.h"  //pdu_change
 #include "amf_app_ue_context_and_proc.h"
-using namespace std;
 
+using namespace std;
 namespace magma5g {
-// this class moved from amf_app_desc.h
 class amf_app_desc_t {
  public:
   /* UE contexts */
   amf_ue_context_t amf_ue_contexts;
-
+  amf_ue_ngap_id_t amf_app_ue_ngap_id_generator;
   long m5_statistic_timer_id;
   uint32_t m5_statistic_timer_period;
-  amf_ue_ngap_id_t amf_app_ue_ngap_id_generator;
-
-  /* ***************Statistics*************
-   * number of registered UE,number of connected UE,
-   * number of idle UE,number of PDU Sessions,
-   * number of NG_U PDU session,number of PDN sessions
-   */
-
   uint32_t nb_gnb_connected;
   uint32_t nb_ue_registered;
   uint32_t nb_ue_connected;
@@ -73,4 +62,3 @@ class amf_app_defs : public amf_app_ue_context, public amf_app_desc_t {
       itti_n11_create_pdu_session_response_t* pdu_session_resp);
 };
 }  // namespace magma5g
-#endif

@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -46,7 +46,6 @@ extern "C" {
 #include "amf_app_state_manager.h"
 
 using namespace std;
-
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 ue_m5gmm_context_s
@@ -112,11 +111,11 @@ int amf_app_ue_context::amf_insert_ue_context(
     OAILOG_ERROR(LOG_AMF_APP, "Invalid UE context received\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
-
   if (ue_context_p->gnb_ngap_id_key == INVALID_GNB_UE_NGAP_ID_KEY) {
     OAILOG_ERROR(LOG_AMF_APP, "Invalid gnb_ngap_id_key received\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
+
   // filled GNB UE NGAP ID
   h_rc = hashtable_uint64_ts_is_key_exists(
       amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
@@ -170,6 +169,7 @@ int amf_app_ue_context::amf_insert_ue_context(
 // warning: lock the UE context
 ue_m5gmm_context_s* amf_create_new_ue_context(void) {
   ue_m5gmm_context_s* new_p = new (ue_m5gmm_context_s);
+
   if (!new_p) {
     OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");
     return NULL;
@@ -181,9 +181,8 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
   // TODO amf_init_context(&new_p->amf_context, true);
 
   // Initialize timers to INVALID IDs
-  new_p->m5_mobile_reachability_timer.id = AMF_APP_TIMER_INACTIVE_ID;
-  new_p->m5_implicit_detach_timer.id     = AMF_APP_TIMER_INACTIVE_ID;
-
+  new_p->m5_mobile_reachability_timer.id    = AMF_APP_TIMER_INACTIVE_ID;
+  new_p->m5_implicit_detach_timer.id        = AMF_APP_TIMER_INACTIVE_ID;
   new_p->m5_initial_context_setup_rsp_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE};
   new_p->m5_paging_response_timer = (amf_app_timer_t){
@@ -217,9 +216,9 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
     const amf_ue_ngap_id_t amf_ue_ngap_id) {
   ue_m5gmm_context_s* ue_context_p = NULL;
   hash_table_ts_t* state_imsi_ht   = get_amf_ue_state();
-
   hashtable_ts_get(
       state_imsi_ht, (const hash_key_t) amf_ue_ngap_id, (void**) &ue_context_p);
+
   if (ue_context_p) {
     OAILOG_TRACE(
         LOG_AMF_APP,
@@ -241,11 +240,11 @@ int amf_context_upsert_imsi(amf_context_t* elm) {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
   amf_ue_ngap_id_t ue_id =
       (PARENT_STRUCT(elm, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id;
-
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   h_rc                           = hashtable_uint64_ts_remove(
       amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl,
       (const hash_key_t) elm->_imsi64);
+
   if (INVALID_AMF_UE_NGAP_ID != ue_id) {
     h_rc = hashtable_uint64_ts_insert(
         amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl,
@@ -287,6 +286,7 @@ void amf_app_ue_context::amf_remove_ue_context(
   //  delete_amf_ue_state(ue_context_p->amf_context._imsi64);
   // _clear_amf_ctxt(&ue_context_p->amf_context);
   // amf_app_ue_context_free_content(ue_context_p);
+
   // IMSI
   if (ue_context_p->amf_context._imsi64) {
     hash_rc = hashtable_uint64_ts_remove(
@@ -306,6 +306,7 @@ void amf_app_ue_context::amf_remove_ue_context(
   hash_rc = hashtable_uint64_ts_remove(
       amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
       (const hash_key_t) ue_context_p->gnb_ngap_id_key);
+
   if (HASH_TABLE_OK != hash_rc)
     OAILOG_ERROR(
         LOG_AMF_APP,
@@ -330,6 +331,7 @@ void amf_app_ue_context::amf_remove_ue_context(
           ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id,
           ue_context_p->amf_teid_n11);
   }
+
   // filled guti
   if ((ue_context_p->amf_context._m5_guti.guamfi.amf_code) ||
       (ue_context_p->amf_context._m5_guti.guamfi.amf_gid) ||
@@ -375,11 +377,11 @@ void amf_app_state_free_ue_context(void** ue_context_node) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p = (ue_m5gmm_context_s*) (*ue_context_node);
   amf_context_t* amf_ctx           = &ue_context_p->amf_context;
+
   // clean up AMF context TODO-RECHECK. Will be done after demo
   // free_amf_ctx_memory(amf_ctx, ue_context_p->amf_ue_ngap_id);
   // amf_app_ue_context_free_content(ue_context_p);
   // free_wrapper((void**) &ue_context_p);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
-
 }  // namespace magma5g

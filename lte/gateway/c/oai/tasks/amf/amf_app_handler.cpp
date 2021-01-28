@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -50,14 +50,13 @@ extern "C" {
 #include "ngap_messages_types.h"
 #include "amf_app_state_manager.h"
 #include "ngap_messages_types.h"
-#include "M5gNasMessage.h"  //pdu_change
-#include "nas5g_network.h"  //pdu_change
-using namespace std;
+#include "M5gNasMessage.h"
+#include "nas5g_network.h"
 
+using namespace std;
 namespace magma5g {
 amf_config_t amf_config_handler;
 amf_sap_c amf_sap_handler;
-
 //----------------------------------------------------------------------------
 static void amf_directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
@@ -81,7 +80,6 @@ void amf_ue_context_update_coll_keys(
       get_amf_ue_state();  // TODO -
                            // NEED-RECHECK as it is used in function
   OAILOG_FUNC_IN(LOG_AMF_APP);
-
   OAILOG_TRACE(
       LOG_AMF_APP,
       "Update ue context.old_gnb_ue_ngap_id_key %ld ue "
@@ -111,6 +109,7 @@ void amf_ue_context_update_coll_keys(
     }
     ue_context_p->gnb_ngap_id_key = gnb_ngap_id_key;
   }
+
   if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
     if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
       h_rc = hashtable_ts_remove(
@@ -121,17 +120,18 @@ void amf_ue_context_update_coll_keys(
           (void*) ue_context_p);
 
       if (HASH_TABLE_OK != h_rc) {
-	      //TODO
+        // TODO
       }
       ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
     }
   } else {
-	  //TODO
+    // TODO
   }
 
   h_rc = hashtable_uint64_ts_remove(
       amf_ue_context_p->imsi_amf_ue_id_htbl,
       (const hash_key_t) ue_context_p->amf_context._imsi64);
+
   if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
     h_rc = hashtable_uint64_ts_insert(
         amf_ue_context_p->imsi_amf_ue_id_htbl, (const hash_key_t) imsi,
@@ -139,16 +139,18 @@ void amf_ue_context_update_coll_keys(
   } else {
     h_rc = HASH_TABLE_KEY_NOT_EXISTS;
   }
+
   if (HASH_TABLE_OK != h_rc) {
     //    TODO
   }
+
   amf_directoryd_report_location(
       ue_context_p->amf_context._imsi64,
       ue_context_p->amf_context._imsi.length);
-
   h_rc = hashtable_uint64_ts_remove(
       amf_ue_context_p->tun11_ue_context_htbl,
       (const hash_key_t) ue_context_p->amf_teid_n11);
+
   if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
     h_rc = hashtable_uint64_ts_insert(
         amf_ue_context_p->tun11_ue_context_htbl,
@@ -158,8 +160,9 @@ void amf_ue_context_update_coll_keys(
   }
 
   if (HASH_TABLE_OK != h_rc) {
-  //TODO
+    // TODO
   }
+
   ue_context_p->amf_teid_n11 = amf_teid_n11;
 
   if (guti_p) {
@@ -185,9 +188,8 @@ void amf_ue_context_update_coll_keys(
       } else {
         h_rc = HASH_TABLE_KEY_NOT_EXISTS;
       }
-
       if (HASH_TABLE_OK != h_rc) {
-	      //TODO
+        // TODO
       }
       ue_context_p->amf_context._m5_guti = *guti_p;
     }
@@ -203,7 +205,6 @@ static bool amf_app_construct_guti(
    * and AMF Group Id of the serving AMF for this purpose.
    *
    */
-
   bool is_guti_valid =
       false;  // Set to true if serving AMF is found and GUTI is constructed
   uint8_t num_amf         = 0;  // Number of configured AMF in the AMF pool
@@ -261,23 +262,19 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
   hashtable_rc_t h_rc       = HASH_TABLE_OK;
   uint64_t amf_ue_ngap_id64 = 0;
-
-  h_rc = obj_hashtable_uint64_ts_get(
+  h_rc                      = obj_hashtable_uint64_ts_get(
       amf_ue_context_p->guti_ue_context_htbl, (const void*) guti_p,
       sizeof(*guti_p), &amf_ue_ngap_id64);
 
   if (HASH_TABLE_OK == h_rc) {
-    //TODO
+    // TODO
   } else {
     OAILOG_WARNING(LOG_AMF_APP, " No GUTI hashtable for GUTI ");
   }
 
   return NULL;
 }
-
-//------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-
 imsi64_t amf_app_defs::amf_app_handle_initial_ue_message(
     amf_app_desc_t* amf_app_desc_p,
     itti_ngap_initial_ue_message_t* const initial_pP) {
@@ -331,7 +328,6 @@ imsi64_t amf_app_defs::amf_app_handle_initial_ue_message(
            * UE sends Initial NAS message via new RRC connection.
            * However if this key is valid, remove the key from the hashtable.
            */
-
           OAILOG_ERROR(
               LOG_AMF_APP,
               "AMF_APP_INITAIL_UE_MESSAGE: gnb_ngap_id_key %ld has "
@@ -418,25 +414,21 @@ int amf_app_defs::amf_app_handle_uplink_nas_message(
                                                               // (%u)\n",
   if (msg) {
     amf_sap_t amf_sap;
-
     /*
      * Notify the AMF procedure call manager that data transfer
      * indication has been received from the Access-Stratum sublayer
      */
-
-    amf_sap.primitive = AMFAS_ESTABLISH_REQ;
+    amf_sap.primitive                  = AMFAS_ESTABLISH_REQ;
     amf_sap.u.amf_as.u.establish.ue_id = 1;  // TODO AMF_TEST, generate the
                                              // ue_id
     amf_sap.u.amf_as.u.establish.nas_msg = msg;
     msg                                  = NULL;
-
     rc = amf_sap_handler.amf_sap_send(&amf_sap);
   } else {
     OAILOG_WARNING(
         LOG_NAS, "Received NAS message in uplink is NULL for ue_id = (%u)\n",
         amf_app_desc_p->amf_app_ue_ngap_id_generator);
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -491,17 +483,14 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   OAILOG_INFO(
       LOG_AMF_APP,
       "Sending message to gNB for PDUSessionResourceSetupRequest\n");
-
   OAILOG_INFO(
       LOG_AMF_APP, "#######TIED: %02x %02x %02x %02x \n",
       smf_ctx->gtp_tunnel_id.upf_gtp_teid[0],
       smf_ctx->gtp_tunnel_id.upf_gtp_teid[1],
       smf_ctx->gtp_tunnel_id.upf_gtp_teid[2],
       smf_ctx->gtp_tunnel_id.upf_gtp_teid[3]);
-
   OAILOG_INFO(
       LOG_AMF_APP, "#######TIED: %s \n", smf_ctx->gtp_tunnel_id.upf_gtp_teid);
-
   OAILOG_INFO(
       LOG_AMF_APP, "#######IP: %02x %02x %02x %02x \n",
       smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr[0],
@@ -536,7 +525,6 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   encode_msg.pdu_session_identity.iei        = 0x12;
   encode_msg.pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
-
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
   container_len++;
@@ -547,7 +535,6 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   smf_msg->header.procedure_transaction_id =
       smf_ctx->smf_proc_data.pti.pti;  // TODO get it from SMF reply
   container_len++;
-
   smf_msg->pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   container_len++;
@@ -556,34 +543,39 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   container_len++;
   smf_msg->pdu_session_estab_accept.pti.pti =
       smf_ctx->smf_proc_data.pti.pti;  // TODO get it from SMF reply
+
   OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: pti: %d", smf_ctx->smf_proc_data.pti.pti);
   OAILOG_INFO(
       LOG_AMF_APP, "AMF_TEST: pti: %d",
       pdu_session_resp->procedure_trans_identity[0]);
+
   smf_msg->pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;
   container_len++;
   smf_msg->pdu_session_estab_accept.pdu_session_type.type_val =
       pdu_session_resp->pdu_session_type;
+
   OAILOG_INFO(
       LOG_AMF_APP, "AMF_TEST: pdu_session_type: %d",
       pdu_session_resp->pdu_session_type);
+
   smf_msg->pdu_session_estab_accept.ssc_mode.mode_val =
       0x1;  // TODO fix mapping from NAS not covered in amf_smf_send
+
   OAILOG_INFO(
       LOG_AMF_APP, "AMF_TEST: selected_ssc_mode: %d",
       pdu_session_resp->selected_ssc_mode);
+
   container_len++;
   smf_msg->pdu_session_estab_accept.pti.pti = 0x01;
   container_len++;
-
   memset(smf_msg->pdu_session_estab_accept.pdu_address.address_info, '\0', 12);
   memcpy(
       smf_msg->pdu_session_estab_accept.pdu_address.address_info,
       pdu_session_resp->pdu_address.redirect_server_address, 4);
   smf_msg->pdu_session_estab_accept.pdu_address.type_val = 0x1;
 
-// QOSRulesMsg qos_rules;
+  // QOSRulesMsg qos_rules;
   smf_msg->pdu_session_estab_accept.qos_rules.length = 0x9;
   QOSRule qos_rule;
   qos_rule.qos_rule_id         = 0x1;
@@ -595,7 +587,6 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   qos_rule.spare               = 0x0;
   qos_rule.segregation         = 0x0;
   qos_rule.qfi                 = 0x6;
-
   NewQOSRulePktFilter new_qos_rule_pkt_filter;
   new_qos_rule_pkt_filter.spare          = 0x0;
   new_qos_rule_pkt_filter.pkt_filter_dir = 0x3;
@@ -604,11 +595,9 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   uint8_t contents                       = 0x1;
   memcpy(
       new_qos_rule_pkt_filter.contents, &contents, new_qos_rule_pkt_filter.len);
-
   memcpy(
       qos_rule.new_qos_rule_pkt_filter, &new_qos_rule_pkt_filter,
       1 * sizeof(NewQOSRulePktFilter));
-
   memcpy(
       smf_msg->pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
       1 * sizeof(QOSRule));
@@ -635,13 +624,13 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   smf_msg->pdu_session_estab_accept.session_ambr.ul_session_ambr = 0x01;
   ambr_len += 2;
   smf_msg->pdu_session_estab_accept.session_ambr.length = ambr_len;
-  encode_msg.payload_container.len = 30;
+  encode_msg.payload_container.len                      = 30;
+
   OAILOG_INFO(
       LOG_AMF_APP,
       "AMF_TEST: start NAS encoding for PDU Session Establishment Accept\n");
 
-  len = 39;  // originally 38 and 30
-
+  len    = 39;  // originally 38 and 30
   buffer = bfromcstralloc(len, "\0");
   bytes  = encode_msg.EncodeDLNASTransportMsg(&encode_msg, buffer->data, len);
   OAILOG_INFO(LOG_AMF_APP, "bytes:%d \n", bytes);
@@ -672,7 +661,6 @@ void amf_app_handle_resource_setup_response(
    * NOTE: only handling success part not failure part
    * will be handled later
    */
-
   OAILOG_INFO(
       LOG_AMF_APP,
       "AMF_TEST: handling uplink PDU session setup response message\n");
@@ -700,7 +688,6 @@ void amf_app_handle_resource_release_response(
    * as pdu_session_resource_release_response_transfer is
    * optional as per 38.413 - 9.3.4.2.1
    */
-
   OAILOG_INFO(
       LOG_AMF_APP,
       "AMF_TEST: handling uplink PDU session release response message\n");
@@ -719,5 +706,4 @@ void amf_app_handle_resource_release_response(
         "AMF_TEST: Failure message not handled and dropping the message\n");
   }
 }
-
 }  // namespace magma5g

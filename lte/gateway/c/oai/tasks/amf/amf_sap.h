@@ -22,14 +22,12 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef AMF_SAP_SEEN
-#define AMF_SAP_SEEN
-
+#pragma once
 #include <sstream>
 #include <thread>
 #ifdef __cplusplus
@@ -39,6 +37,7 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
+
 using namespace std;
 #define MIN_GUMMEI 1
 #define MAX_GUMMEI 5
@@ -48,7 +47,6 @@ namespace magma5g {
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
-
 /*
  * AMFREG-SAP primitives
  */
@@ -123,7 +121,6 @@ enum amf_primitive_t {
 /****************************************************************************/
 /************************  G L O B A L    T Y P E S  ************************/
 /****************************************************************************/
-
 /*
  * EMMREG primitive for registration  procedure
  * -------------------------------------
@@ -166,7 +163,6 @@ typedef struct amf_reg_s {
 typedef struct amf_cn_auth_res_s {
   /* UE identifier */
   amf_ue_ngap_id_t ue_id;
-
   /* For future use: nb of vectors provided */
   // uint8_t nb_vectors;//TODO later
 
@@ -175,7 +171,6 @@ typedef struct amf_cn_auth_res_s {
 typedef struct amf_cn_auth_fail_s {
   /* UE identifier */
   amf_ue_ngap_id_t ue_id;
-
   /* NAS cause */
   // nas_cause_t cause; //TODO
 } amf_cn_auth_fail_t;
@@ -193,9 +188,10 @@ typedef struct primitive_s {
   primitive_s() {}
   ~primitive_s() {}
   amf_reg_t amf_reg; /* AMFREG-SAP primitives    */
-  amf_as_t amf_as; /* AMFAS-SAP primitives     */
-  amf_cn_t amf_cn; /* AMFCN-SAP primitives     */
+  amf_as_t amf_as;   /* AMFAS-SAP primitives     */
+  amf_cn_t amf_cn;   /* AMFCN-SAP primitives     */
 } primitive_t;
+
 /*
  * Structure of 5GMM Mobility Management primitive
  */
@@ -214,7 +210,6 @@ class amf_sap_c  //: public amf_sap_t
  public:
   amf_sap_c() {}
   ~amf_sap_c() {}
-
   void amf_sap_initialize(void);
   int amf_sap_send(amf_sap_t* msg);
 };
@@ -231,4 +226,3 @@ int amf_cn_send(const amf_cn_t* msg);
 int amf_reg_send(amf_reg_t* const msg);
 
 }  // namespace  magma5g
-#endif

@@ -22,14 +22,12 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef AMF_COMMON_DEFS_SEEN
-#define AMF_COMMON_DEFS_SEEN
-
+#pragma once
 #include <sstream>
 #include <thread>
 #ifdef __cplusplus
@@ -42,6 +40,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 using namespace std;
 #define NAS_MESSAGE_SECURITY_HEADER_SIZE 6
 #define NAS_MESSAGE_SERVICE_REQUEST_SECURITY_HEADER_SIZE 4
@@ -59,29 +58,25 @@ typedef uint32_t rau_tau_timer_t;
 typedef uint8_t pdn_type_t;
 typedef uint8_t proc_pti_t;
 typedef uint8_t amf_cause_t;
-
 typedef uint64_t imsi64_t;
-
 #define PDU_SESSION_PER_UE (11)
+
 namespace magma5g {
 // need to under stand *****************************
 #define OFFSET_OF(TyPe, MeMBeR) ((size_t) & ((TyPe*) 0)->MeMBeR)
 #define COUNT_OF(x)                                                            \
   ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
-
 #define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                                 \
   ({                                                                           \
     const typeof(((TyPe*) 0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD);             \
     (TyPe*) ((char*) __MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));                  \
   })
-
 #define OAI_MAX(a, b)                                                          \
   ({                                                                           \
     __typeof__(a) _a = (a);                                                    \
     __typeof__(b) _b = (b);                                                    \
     _a > _b ? _a : _b;                                                         \
   })
-
 #define OAI_MIN(a, b)                                                          \
   ({                                                                           \
     __typeof__(a) _a = (a);                                                    \
@@ -97,25 +92,23 @@ enum error_code_e {
   TLV_PROTOCOL_NOT_SUPPORTED        = -11,
   TLV_WRONG_MESSAGE_TYPE            = -10,
   TLV_OCTET_STRING_TOO_LONG_FOR_IEI = -9,
-
-  TLV_VALUE_DOESNT_MATCH          = -4,
-  TLV_MANDATORY_FIELD_NOT_PRESENT = -3,
-  TLV_UNEXPECTED_IEI              = -2,
-
-  RETURNerror = -1,
-  RETURNok    = 0,
-
-  TLV_ERROR_OK = RETURNok,
+  TLV_VALUE_DOESNT_MATCH            = -4,
+  TLV_MANDATORY_FIELD_NOT_PRESENT   = -3,
+  TLV_UNEXPECTED_IEI                = -2,
+  RETURNerror                       = -1,
+  RETURNok                          = 0,
+  TLV_ERROR_OK                      = RETURNok,
   /* Defines error code limit below which received message should be discarded
    * because it cannot be further processed */
   TLV_FATAL_ERROR = TLV_VALUE_DOESNT_MATCH
-
 };
+
 enum all_apn_conf_ind_t {
   ALL_APN_CONFIGURATIONS_INCLUDED            = 0,
   MODIFIED_ADDED_APN_CONFIGURATIONS_INCLUDED = 1,
   ALL_APN_MAX,
 };
+
 class ip_address_t {
  public:
   pdn_type_value_t pdn_type;
@@ -145,7 +138,6 @@ class apn_configuration_s {
    */
   uint8_t nb_ip_address;
   ip_address_t ip_address[2];
-
 #ifdef ACCESS_POINT_NAME_MAX_LENGTH
 #define SERVICE_SELECTION_MAX_LENGTH ACCESS_POINT_NAME_MAX_LENGTH
 #else
@@ -166,6 +158,7 @@ class apn_config_profile_t {
   /* List of APNs configuration 1 to n elements */
   apn_configuration_s apn_configuration[MAX_APN_PER_UE];
 };
+
 class in6_addr {
  public:
   union {
@@ -188,6 +181,7 @@ class pack_t {
   /* Note in rel.8 the ipv6 prefix length has a fixed value of /64 */
   uint8_t ipv6_prefix_length;
 };
+
 /* ESM procedure transaction states */
 enum smf_pt_state_e {
   SMF_PROCEDURE_TRANSACTION_INACTIVE = 0,
@@ -208,20 +202,17 @@ class esm_pdn_t {
                       * to activate the PDN connection entry     */
   bool is_emergency; /* Emergency bearer services indicator      */
   int ambr;          /* Aggregate Maximum Bit Rate of this APN   */
-
-  int addr_realloc; /* Indicates whether the UE is allowed to subsequently
-                     * request another PDN connectivity to the same APN
-                     * using an address PDN type (IPv4 or IPv6) other
-                     * than the one already activated       */
-  int n_pdusession; /* Number of allocated pdu session;*/
-
+  int addr_realloc;  /* Indicates whether the UE is allowed to subsequently
+                      * request another PDN connectivity to the same APN
+                      * using an address PDN type (IPv4 or IPv6) other
+                      * than the one already activated       */
+  int n_pdusession;  /* Number of allocated pdu session;*/
   smf_pt_state_e pt_state;  // procedure transaction state
 };
 
 class pdn_context_t {
  public:
   context_identifier_t context_identifier;
-
   /* APN in Use:an ID at UPF through which a user can access the Subscribed APN
    *            This APN shall be composed of the APN Network
    *            Identifier and the default APN Operator Identifier,
@@ -264,7 +255,6 @@ class pdn_context_t {
   /* SMF to UPF TEID for  (control plane) */
   teid_t p_gw_teid_n4_cp;
 
-
   /* default_ebi: Identifies the pdu session id Id of the default bearer
    * within the given PDN connection.
    */
@@ -276,16 +266,13 @@ class pdn_context_t {
   int bearer_contexts[PDU_SESSION_PER_UE];
 
   // set by N11 CREATE_SESSION_RESPONSE
-
   ip_address_t s_gw_address_s11_s4;
   teid_t s_gw_teid_s11_s4;
-
   esm_pdn_t esm_data;
+
   /* is_active == true indicates, pdu session is active */
   bool is_active;
-
   protocol_configuration_options_t* pco;
 };
 
 }  // namespace magma5g
-#endif

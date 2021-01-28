@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -42,8 +42,8 @@ extern "C" {
 #include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "nas5g_network.h"
-using namespace std;
 
+using namespace std;
 namespace magma5g {
 extern ue_m5gmm_context_s
     ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily store
@@ -59,15 +59,12 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = _nas_new_amf_procedures(amf_context);
   }
-
   nas_amf_smc_proc_t* smc_proc = new (nas_amf_smc_proc_t);
-
   smc_proc->amf_com_proc.amf_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   smc_proc->amf_com_proc.amf_proc.base_proc.type = NAS_PROC_TYPE_AMF;
   smc_proc->amf_com_proc.amf_proc.type           = NAS_AMF_PROC_TYPE_COMMON;
   smc_proc->amf_com_proc.type                    = AMF_COMM_PROC_SMC;
-
   nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t;
   if (wrapper) {
     wrapper->proc = &smc_proc->amf_com_proc;
@@ -83,10 +80,10 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_security_select_algorithms()                                 **
+ ** Name:    amf_security_select_algorithms()                              **
  **                                                                        **
  ** Description: Select int and enc algorithms based on UE capabilities and**
- **      5G MM capabilities and AMF preferences                              **
+ **      5G MM capabilities and AMF preferences                            **
  **                                                                        **
  ** Inputs:  ue_eia:      integrity algorithms supported by UE             **
  **          ue_eea:      ciphering algorithms supported by UE             **
@@ -103,7 +100,6 @@ static int amf_security_select_algorithms(
     int* const amf_eeaP) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int preference_index;
-
   *amf_eiaP = 0;
   *amf_eeaP = 0;
 
@@ -142,36 +138,34 @@ static int amf_security_ll_failure(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   if (nas_amf_proc) {
-
     amf_sap_t amf_sap_seq;
     amf_ue_ngap_id_t ue_id =
         PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
             ->amf_ue_ngap_id;
-
     amf_sap_seq.primitive           = AMFREG_COMMON_PROC_ABORT;
     amf_sap_seq.u.amf_reg.ue_id     = ue_id;
     amf_sap_seq.u.amf_reg.ctx       = amf_context;
     amf_sap_seq.u.amf_reg.notify    = true;
     amf_sap_seq.u.amf_reg.free_proc = true;
-    rc = amf_sap_sec.amf_sap_send(&amf_sap_seq);
+    rc                              = amf_sap_sec.amf_sap_send(&amf_sap_seq);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_security_request()                                       **
+ ** Name:    amf_security_request()                                        **
  **                                                                        **
  ** Description: Sends SECURITY MODE COMMAND message and start timer T3560 **
  **                                                                        **
- ** Inputs:  data:      Security mode control internal data        **
- **      is_new:    Indicates whether a new security context   **
- **             has just been taken into use               **
- **      Others:    None                                       **
+ ** Inputs:  data:      Security mode control internal data                **
+ **      is_new:    Indicates whether a new security context               **
+ **             has just been taken into use                               **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    T3560                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    T3560                                                  **
  **                                                                        **
  ***************************************************************************/
 static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
@@ -186,21 +180,19 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
      * Notify AMF-AS SAP that Security Mode Command message has to be sent
      * to the UE
      */
-
     amf_sap.primitive = AMFAS_SECURITY_REQ;
     amf_sap.u.amf_as.u.security.puid =
         smc_proc->amf_com_proc.amf_proc.base_proc.nas_puid;
-    amf_sap.u.amf_as.u.security.guti     = {0};
-    amf_sap.u.amf_as.u.security.ue_id    = smc_proc->ue_id;
-    amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_SMC;
-    amf_sap.u.amf_as.u.security.ksi      = smc_proc->ksi;
-    amf_sap.u.amf_as.u.security.eea      = smc_proc->eea;
-    amf_sap.u.amf_as.u.security.eia      = smc_proc->eia;
-    amf_sap.u.amf_as.u.security.ucs2     = smc_proc->ucs2;
+    amf_sap.u.amf_as.u.security.guti           = {0};
+    amf_sap.u.amf_as.u.security.ue_id          = smc_proc->ue_id;
+    amf_sap.u.amf_as.u.security.msg_type       = AMF_AS_MSG_TYPE_SMC;
+    amf_sap.u.amf_as.u.security.ksi            = smc_proc->ksi;
+    amf_sap.u.amf_as.u.security.eea            = smc_proc->eea;
+    amf_sap.u.amf_as.u.security.eia            = smc_proc->eia;
+    amf_sap.u.amf_as.u.security.ucs2           = smc_proc->ucs2;
     amf_sap.u.amf_as.u.security.selected_eea   = smc_proc->selected_eea;
     amf_sap.u.amf_as.u.security.selected_eia   = smc_proc->selected_eia;
     amf_sap.u.amf_as.u.security.imeisv_request = smc_proc->imeisv_request;
-
     ue_mm_context =
         &ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
                                    // store context inserted to ht
@@ -234,38 +226,37 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
         Security mode control procedure executed by the AMF
 --------------------------------------------------------------------------
 */
-
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_proc_security_mode_control()                          **
+ ** Name:    amf_proc_security_mode_control()                              **
  **                                                                        **
  ** Description: Initiates the security mode control procedure.            **
  **                                                                        **
- **              3GPP TS 24.501, section 8.2.25                          **
- **      The AMF initiates the NAS security mode control procedure **
- **      by sending a SECURITY MODE COMMAND message to the UE and  **
- **      starting timer T3560. The message shall be sent unciphe-  **
- **      red but shall be integrity protected using the NAS inte-  **
- **      grity key based on KASME.                                 **
+ **              3GPP TS 24.501, section 8.2.25                            **
+ **      The AMF initiates the NAS security mode control procedure         **
+ **      by sending a SECURITY MODE COMMAND message to the UE and          **
+ **      starting timer T3560. The message shall be sent unciphe-          **
+ **      red but shall be integrity protected using the NAS inte-          **
+ **      grity key based on KASME.                                         **
  **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                  **
- **      ksi:       NAS key set identifier                     **
- **      eea:       Replayed 5G encryption algorithms         **
- **      eia:       Replayed 5G integrity algorithms          **
- **      success:   Callback function executed when the secu-  **
- **             rity mode control procedure successfully   **
- **             completes                                  **
- **      reject:    Callback function executed when the secu-  **
- **             rity mode control procedure fails or is    **
- **             rejected                                   **
- **      failure:   Callback function executed whener a lower  **
- **             layer failure occured before the security  **
- **             mode control procedure completes          **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      ksi:       NAS key set identifier                                 **
+ **      eea:       Replayed 5G encryption algorithms                      **
+ **      eia:       Replayed 5G integrity algorithms                       **
+ **      success:   Callback function executed when the secu-              **
+ **             rity mode control procedure successfully                   **
+ **             completes                                                  **
+ **      reject:    Callback function executed when the secu-              **
+ **             rity mode control procedure fails or is                    **
+ **             rejected                                                   **
+ **      failure:   Callback function executed whener a lower              **
+ **             layer failure occured before the security                  **
+ **             mode control procedure completes                           **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 int amf_proc_security_mode_control(
@@ -279,13 +270,11 @@ int amf_proc_security_mode_control(
   /*
    * Get the UE context
    */
-
   OAILOG_INFO(
       LOG_NAS_AMF,
       "AMF_TEST: Initiating security mode control procedure, "
       "KSI = %d\n",
       ksi);
-
   if (!(amf_ctx)) {
     OAILOG_ERROR(LOG_NAS_AMF, "Amf Context NULL!\n");
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
@@ -318,7 +307,6 @@ int amf_proc_security_mode_control(
        * * * * the 5GS  security context created after a successful execution of
        * * * * the 5GS authentication procedure
        */
-
       smc_ctrl.amf_ctx_set_security_eksi(amf_ctx, ksi);
       amf_ctx->_security.dl_count.overflow = 0;
       amf_ctx->_security.dl_count.seq_num  = 0;
@@ -326,18 +314,16 @@ int amf_proc_security_mode_control(
       /*
        *  TODO Compute NAS cyphering and integrity keys
        */
-      // need to wright m5g_ue_network_capability class in 24.501 
+      // need to wright m5g_ue_network_capability class in 24.501
       /* rc = amf_security_select_algorithms(
            amf_ctx->m5g_ue_network_capability.eia,
            amf_ctx->m5g_ue_network_capability.eea, &amf_eia, &amf_eea); */
-      // need to wright m5g_ue_network_capability class in 24.501 
       rc                                                = RETURNok;  // AMF_TEST
       amf_ctx->_security.selected_algorithms.encryption = amf_eea;
       amf_ctx->_security.selected_algorithms.integrity  = amf_eia;
       if (rc == RETURNerror) {
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
       }
-
       smc_ctrl.amf_ctx_set_security_type(
           amf_ctx, SECURITY_CTX_TYPE_FULL_NATIVE);
       // TODO AssertFatal(KSI_NO_KEY_AVAILABLE > amf_ctx->_security.eksi, "eksi
@@ -367,12 +353,11 @@ int amf_proc_security_mode_control(
     /*
      * Setup ongoing AMF procedure callback functions
      */
-    smc_proc->amf_com_proc.amf_proc.delivered = NULL;
+    smc_proc->amf_com_proc.amf_proc.delivered               = NULL;
     smc_proc->amf_com_proc.amf_proc.base_proc.success_notif = success;
     smc_proc->amf_com_proc.amf_proc.base_proc.failure_notif = failure;
     smc_proc->amf_com_proc.amf_proc.base_proc.fail_in  = NULL;  // only response
     smc_proc->amf_com_proc.amf_proc.base_proc.fail_out = NULL;
-
     /*
      * Set the UE identifier
      */
@@ -411,7 +396,6 @@ int amf_proc_security_mode_control(
         LOG_NAS_AMF,
         "5G CN integrity algorithm selected is (%d) for ue_id (%u)\n",
         smc_proc->selected_eia, ue_id);
-
     smc_proc->is_new = security_context_is_new;
 
     // always ask for IMEISV (Do it simple now)
@@ -422,7 +406,6 @@ int amf_proc_security_mode_control(
      */
     rc = amf_security_request(smc_proc);
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 

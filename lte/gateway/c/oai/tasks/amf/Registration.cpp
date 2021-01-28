@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -56,7 +56,6 @@ using namespace std;
 namespace magma5g {
 extern ue_m5gmm_context_s
     ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily store
-                              // context inserted to ht
 amf_sap_c amf_sap_reg;
 nas_proc nas_procedure_reg;
 amf_as_data_t amf_data_sec;
@@ -79,7 +78,6 @@ int amf_registration_procedure::amf_registration_success_authentication_cb(
     amf_context_t* amf_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
-
   OAILOG_INFO(
       LOG_NAS_AMF,
       "AMF_TEST Authentication procedure success and start  Security mode"
@@ -110,7 +108,6 @@ static int amf_start_registration_proc_authentication(
         amf_registration_procedure::amf_registration_success_authentication_cb,
         amf_registration_failure_authentication_cb);
   }
-  // amf_registration_success_authentication_cb(amf_context);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -132,7 +129,6 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
       NAS_AMF_PROC_TYPE_CONN_MNGT;
   amf_context->amf_procedures->amf_specific_proc->type =
       AMF_SPEC_PROC_TYPE_REGISTRATION;
-
   nas_amf_registration_proc_t* proc =
       (nas_amf_registration_proc_t*)
           amf_context->amf_procedures->amf_specific_proc;
@@ -155,13 +151,13 @@ void amf_proc_create_procedure_registration_request(
   if ((reg_proc)) {
     reg_proc->ies   = ies;
     reg_proc->ue_id = ue_ctx->amf_ue_ngap_id;
-// TODO callbacl to be implemeted later
-/*
-    ((nas_base_proc_t*) reg_proc)->abort    = NULL;
-    ((nas_base_proc_t*) reg_proc)->fail_in  = NULL;  
-    ((nas_base_proc_t*) reg_proc)->time_out = NULL;
-    ((nas_base_proc_t*) reg_proc)->fail_out = NULL;
-*/
+    // TODO callbacl to be implemeted later
+    /*
+        ((nas_base_proc_t*) reg_proc)->abort    = NULL;
+        ((nas_base_proc_t*) reg_proc)->fail_in  = NULL;
+        ((nas_base_proc_t*) reg_proc)->time_out = NULL;
+        ((nas_base_proc_t*) reg_proc)->fail_out = NULL;
+    */
   }
 }
 
@@ -187,7 +183,7 @@ int amf_registration_procedure::amf_proc_registration_request(
         "SUPI as IMSI converted to imsi64 " IMSI_64_FMT " = ",
         imsi64);
   } else if (ies->guti) {
-	  //TODO
+    // TODO
   } else if (ies->imei) {
     char imei_str[16];
     IMEI_TO_STRING(ies->imei, imei_str, 16);
@@ -257,15 +253,14 @@ int amf_registration_procedure::amf_proc_registration_reject(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+
 int amf_registration_procedure::amf_registration_reject(
     amf_context_t* amf_context, nas_amf_registration_proc_t* nas_base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
-
   amf_sap_t amf_sap;
   nas_amf_registration_proc_t* registration_proc =
       (nas_amf_registration_proc_t*) nas_base_proc;
-
   OAILOG_WARNING(
       LOG_AMF_APP, "AMF-PROC  - AMF Registration procedure not accepted ");
   /*
@@ -306,7 +301,6 @@ int amf_registration_procedure::amf_registration_reject(
  * Functions that may initiate AMF common procedures
  * --------------------------------------------------------------------------
  */
-
 //------------------------------------------------------------------------------
 int amf_registration_procedure::amf_registration_run_procedure(
     amf_context_t* amf_context) {
@@ -321,9 +315,8 @@ int amf_registration_procedure::amf_registration_run_procedure(
   }
   if (registration_proc) {
     if (registration_proc->ies->last_visited_registered_tai) {
-	    //TODO
+      // TODO
     }
-
     if (registration_proc->ies->imsi) {
       if ((registration_proc->ies->decode_status.mac_matched) ||
           //!(registration_proc->ies->decode_status //TODO AMF_TEST value coming
@@ -375,7 +368,6 @@ int amf_registration_procedure::amf_registration_success_identification_cb(
     amf_context_t* amf_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
-
   OAILOG_INFO(LOG_NAS_AMF, "AMF_TEST: Identification procedure success\n");
   nas_amf_registration_proc_t* registration_proc =
       nas_procedure_reg.get_nas_specific_procedure_registration(amf_context);
@@ -396,7 +388,6 @@ static int amf_registration_failure_identification_cb(
     amf_context_t* amf_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
-
   // AssertFatal(0, "Cannot happen...\n");//TODO -  NEED-RECHECK
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -411,7 +402,6 @@ static int amf_registration_failure_authentication_cb(
 
   if (registration_proc) {
     registration_proc->amf_cause = amf_context->amf_cause;
-
     amf_sap_t amf_sap;
     amf_sap.primitive                   = AMFREG_REGISTRATION_REJ;
     amf_sap.u.amf_reg.ue_id             = registration_proc->ue_id;
@@ -419,7 +409,7 @@ static int amf_registration_failure_authentication_cb(
     amf_sap.u.amf_reg.notify            = true;
     amf_sap.u.amf_reg.free_proc         = true;
     amf_sap.u.amf_reg.u.registered.proc = registration_proc;
-    rc = amf_sap_reg.amf_sap_send(&amf_sap);
+    rc                                  = amf_sap_reg.amf_sap_send(&amf_sap);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -429,7 +419,6 @@ int amf_registration_procedure::amf_registration_success_security_cb(
     amf_context_t* amf_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
-
   nas_amf_registration_proc_t* registration_proc =
       nas_procedure_reg.get_nas_specific_procedure_registration(amf_context);
 
@@ -502,7 +491,6 @@ int m5g_authentication::amf_registration_security(amf_context_t* amf_context) {
                 AMF specific local functions
 --------------------------------------------------------------------------
 */
-
 /*
  *
  * Name:    amf_registration()
@@ -530,14 +518,12 @@ int amf_registration_procedure::amf_registration(amf_context_t* amf_context) {
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_context, struct ue_m5gmm_context_s, amf_context)
           ->amf_ue_ngap_id;
-
   OAILOG_INFO(
       LOG_NAS_AMF,
       "AMF_TEST: "
       "ue_id=" AMF_UE_NGAP_ID_FMT
       "Start REGISTRATION_ACCEPT procedures for UE \n",
       ue_id);
-
   nas_amf_registration_proc_t* registration_proc =
       nas_procedure_reg.get_nas_specific_procedure_registration(amf_context);
 
@@ -566,22 +552,21 @@ int amf_registration_procedure::amf_registration(amf_context_t* amf_context) {
     // increment_counter("ue_registration", 1, 2, "result", "failure", "cause",
     // "protocol_error");
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_send_registration_accept() **
+ ** Name:    amf_send_registration_accept()                                **
  **                                                                        **
- ** Description: Sends REGISTRATION ACCEPT message and start timer T3450 **
+ ** Description: Sends REGISTRATION ACCEPT message and start timer T3450   **
  **                                                                        **
- ** Inputs:  data:      Registration accept retransmission data          **
- **      Others:    None                                       **
+ ** Inputs:  data:      Registration accept retransmission data            **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    T3450                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    T3450                                                  **
  **                                                                        **
  ***************************************************************************/
 int amf_registration_procedure::amf_send_registration_accept(
@@ -644,270 +629,264 @@ int amf_registration_procedure::amf_send_registration_accept(
         // amf_ctx_set_valid_drx_parameter(amf_context,
         // registration_proc->ies->drx_parameter);
       }
-    /*
-     * Get the activate default 5GMM PDu Session context request message to
-     * transfer within the SMF container of the Registration accept message
-     */
-    amf_sap.u.amf_as.u.establish.nas_msg = registration_proc->amf_msg_out;
-    OAILOG_TRACE(
-        LOG_NAS_AMF,
-        "ue_id=" AMF_UE_NGAP_ID_FMT
-        " AMF-PROC  - nas_msg  src size = %d nas_msg  dst size = %d \n",
-        ue_id, blength(registration_proc->amf_msg_out),
-        blength(amf_sap.u.amf_as.u.establish.nas_msg));
-
-    // TODO Send T3402
-    // amf_sap.u.amf_as.u.establish.t3402 = &amf_config.nas_config.t3402_min;
-
-    // TODO Encode CSFB parameters
-    // _encode_csfb_parameters_attach_accept(amf_context,
-    // &amf_sap.u.amf_as.u.establish);
-
-    // REQUIREMENT_3GPP_24_501(R15_5_5_1_2_4__2);
-    rc = amf_sap_reg.amf_sap_send(&amf_sap);
-
-    if (RETURNerror != rc) {  //TODO
-    }
-  } else { //TODO
-  }
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-}
-/****************************************************************************
- **                                                                       **
- ** Name:    amf_send_registration_accept_dl_nas()                         **
- **                                                                        **
- ** Description: Builds Registration Accept message to be sent
- ** is NGAP : DL NAS Tx **
- **                                                                        **
- **      The registration Accept message is sent by the network to the     **
- **      UE to indicate that the corresponding attach request has          **
- **      been accepted.                                                    **
- **                                                                        **
- ** Inputs:  msg:       The AMFAS-SAP primitive to process                 **
- **      Others:    None                                                   **
- **                                                                        **
- ** Outputs:     amf_msg:   The AMF message to be sent                     **
- **      Return:    The size of the AMF message                            **
- **      Others:    None                                                   **
- **                                                                        **
- ***************************************************************************/
-int amf_registration_procedure::amf_send_registration_accept_dl_nas(
-    const amf_as_data_t* msg, RegistrationAcceptMsg* amf_msg) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int size = AMF_HEADER_MAXIMUM_LENGTH;
-
-  // Get the UE context
-  amf_context_t* amf_ctx = amf_context_get(msg->ue_id);
-  ue_m5gmm_context_s* ue_m5gmm_context_p =
-      PARENT_STRUCT(amf_ctx, class ue_m5gmm_context_s, amf_context);
-  amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
-
-  /*
-   * Mandatory - Message type
-   */
-  // amf_msg->messagetype = (uint8_t) REGISTRATION_ACCEPT;//TODO -  NEED-RECHECK
-  /*
-   * Mandatory - 5GS Registration result
-   */
-  size += M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH;  // TODO -  NEED-RECHECK
-  OAILOG_INFO(
-      LOG_NAS_AMF,
-      "AMFAS-SAP - size += AMF_REGISTRATION_RESULT_MAXIMUM_LENGTH(%d) (%d)\n",
-      M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH, size);
-  switch (amf_ctx->m5gsregistrationtype) {
-    case AMF_REGISTRATION_TYPE_INITIAL:
-      break;
-    case AMF_REGISTRATION_TYPE_EMERGENCY:  // We should not reach here
-      // TODO: fix once supported
-      break;
-  }
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
-}
-
-/****************************************************************************
- **                                                                        **
- ** Name:    amf_handle_registrationcomplete_response() **
- **                                                                        **
- ** Description: Processes registration Complete message **
- **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                  **
- **      msg:       The received AMF message                   **
- **      Others:    None                                       **
- **                                                                        **
- ** Outputs:     amf_cause: AMF cause code                             **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
- **                                                                        **
- ***************************************************************************/
-int amf_procedure_handler::amf_handle_registrationcomplete_response(
-    amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg* msg, int amf_cause,
-    amf_nas_message_decode_status_t status) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc;
-
-  OAILOG_INFO(
-      LOG_NAS_AMF,
-      "AMFAS-SAP - Received Registration Complete message for ue_id = (%u)\n",
-      ue_id);
-  /*
-   * Execute the registration procedure completion
-   */
-  rc = amf_registration_procedure::amf_proc_registration_complete(
-      ue_id, msg->smf_pdu, amf_cause, status);
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-}
-
-//===========================================================================================================
-
-int amf_registration_procedure::amf_proc_registration_complete(
-    amf_ue_ngap_id_t ue_id, bstring smf_msg_pP, int amf_cause,
-    const amf_nas_message_decode_status_t status) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  ue_m5gmm_context_s* ue_amf_context             = NULL;
-  nas_amf_registration_proc_t* registration_proc = NULL;
-  int rc                                         = RETURNerror;
-  amf_sap_t amf_sap;
-  // smf_sap_t smf_sap ; //TODO -  NEED-RECHECK as PDU ses req comes in
-  // different mesg
-  amf_context_t* amf_ctx = NULL;
-
-  /*
-   * Get the UE context
-   */
-  //  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  ue_amf_context =
-      &ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
-                                 // store context inserted to ht
-
-  if (ue_amf_context) {
-    if (nas_procedure_reg.is_nas_specific_procedure_registration_running(
-            &ue_amf_context->amf_context)) {
-      registration_proc =
-          (nas_amf_registration_proc_t*)
-              ue_amf_context->amf_context.amf_procedures->amf_specific_proc;
-
-      amf_ctx = &ue_amf_context->amf_context;
       /*
-       * Upon receiving an REGISTRATION COMPLETE message, the AMF shall enter
-       * state AMF-REGISTERED and consider the GUTI sent in the REGISTRATION
-       * ACCEPT message as valid.
+       * Get the activate default 5GMM PDu Session context request message to
+       * transfer within the SMF container of the Registration accept message
        */
-      amf_ctx_set_attribute_valid(
-          amf_ctx, AMF_CTXT_MEMBER_GUTI);  // TODO-RECHECK
+      amf_sap.u.amf_as.u.establish.nas_msg = registration_proc->amf_msg_out;
+      OAILOG_TRACE(
+          LOG_NAS_AMF,
+          "ue_id=" AMF_UE_NGAP_ID_FMT
+          " AMF-PROC  - nas_msg  src size = %d nas_msg  dst size = %d \n",
+          ue_id, blength(registration_proc->amf_msg_out),
+          blength(amf_sap.u.amf_as.u.establish.nas_msg));
 
-/*currently by default Activate  Bearer Context Accept message was
- * sent in Registration complete Now, modified the code to send the message
- * received in Uplink/smfContainer.
- * third byte of smf message container is a message_type*/
+      // TODO Send T3402
+      // amf_sap.u.amf_as.u.establish.t3402 = &amf_config.nas_config.t3402_min;
+
+      // TODO Encode CSFB parameters
+      // _encode_csfb_parameters_attach_accept(amf_context,
+      // &amf_sap.u.amf_as.u.establish);
+
+      // REQUIREMENT_3GPP_24_501(R15_5_5_1_2_4__2);
+      rc = amf_sap_reg.amf_sap_send(&amf_sap);
+
+      if (RETURNerror != rc) {  // TODO
+      }
+    } else {  // TODO
+    }
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+  /****************************************************************************
+   **                                                                        **
+   ** Name:    amf_send_registration_accept_dl_nas()                         **
+   **                                                                        **
+   ** Description: Builds Registration Accept message to be sent             **
+   **              is NGAP : DL NAS Tx                                       **
+   **                                                                        **
+   **      The registration Accept message is sent by the network to the     **
+   **      UE to indicate that the corresponding attach request has          **
+   **      been accepted.                                                    **
+   **                                                                        **
+   ** Inputs:  msg:       The AMFAS-SAP primitive to process                 **
+   **      Others:    None                                                   **
+   **                                                                        **
+   ** Outputs:     amf_msg:   The AMF message to be sent                     **
+   **      Return:    The size of the AMF message                            **
+   **      Others:    None                                                   **
+   **                                                                        **
+   ***************************************************************************/
+  int amf_registration_procedure::amf_send_registration_accept_dl_nas(
+      const amf_as_data_t* msg, RegistrationAcceptMsg* amf_msg) {
+    OAILOG_FUNC_IN(LOG_NAS_AMF);
+    int size = AMF_HEADER_MAXIMUM_LENGTH;
+
+    // Get the UE context
+    amf_context_t* amf_ctx = amf_context_get(msg->ue_id);
+    ue_m5gmm_context_s* ue_m5gmm_context_p =
+        PARENT_STRUCT(amf_ctx, class ue_m5gmm_context_s, amf_context);
+    amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
+
+    /*
+     * Mandatory - Message type
+     */
+    // amf_msg->messagetype = (uint8_t) REGISTRATION_ACCEPT;//TODO -
+    // NEED-RECHECK
+    /*
+     * Mandatory - 5GS Registration result
+     */
+    size += M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH;  // TODO -  NEED-RECHECK
+    OAILOG_INFO(
+        LOG_NAS_AMF,
+        "AMFAS-SAP - size += AMF_REGISTRATION_RESULT_MAXIMUM_LENGTH(%d) (%d)\n",
+        M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH, size);
+    switch (amf_ctx->m5gsregistrationtype) {
+      case AMF_REGISTRATION_TYPE_INITIAL:
+        break;
+      case AMF_REGISTRATION_TYPE_EMERGENCY:  // We should not reach here
+        // TODO: fix once supported
+        break;
+    }
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
+  }
+
+  /****************************************************************************
+   **                                                                        **
+   ** Name:    amf_handle_registrationcomplete_response()                    **
+   **                                                                        **
+   ** Description: Processes registration Complete message                   **
+   **                                                                        **
+   ** Inputs:  ue_id:      UE lower layer identifier                         **
+   **      msg:       The received AMF message                               **
+   **      Others:    None                                                   **
+   **                                                                        **
+   ** Outputs:     amf_cause: AMF cause code                                 **
+   **      Return:    RETURNok, RETURNerror                                  **
+   **      Others:    None                                                   **
+   **                                                                        **
+   ***************************************************************************/
+  int amf_procedure_handler::amf_handle_registrationcomplete_response(
+      amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg * msg, int amf_cause,
+      amf_nas_message_decode_status_t status) {
+    OAILOG_FUNC_IN(LOG_NAS_AMF);
+    int rc;
+    OAILOG_INFO(
+        LOG_NAS_AMF,
+        "AMFAS-SAP - Received Registration Complete message for ue_id = (%u)\n",
+        ue_id);
+    /*
+     * Execute the registration procedure completion
+     */
+    rc = amf_registration_procedure::amf_proc_registration_complete(
+        ue_id, msg->smf_pdu, amf_cause, status);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+
+  //===========================================================================================================
+  int amf_registration_procedure::amf_proc_registration_complete(
+      amf_ue_ngap_id_t ue_id, bstring smf_msg_pP, int amf_cause,
+      const amf_nas_message_decode_status_t status) {
+    OAILOG_FUNC_IN(LOG_NAS_AMF);
+    ue_m5gmm_context_s* ue_amf_context             = NULL;
+    nas_amf_registration_proc_t* registration_proc = NULL;
+    int rc                                         = RETURNerror;
+    amf_sap_t amf_sap;
+    // smf_sap_t smf_sap ; //TODO -  NEED-RECHECK as PDU ses req comes in
+    // different mesg
+    amf_context_t* amf_ctx = NULL;
+
+    /*
+     * Get the UE context
+     */
+    ue_amf_context =
+        &ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
+                                   // store context inserted to ht
+
+    if (ue_amf_context) {
+      if (nas_procedure_reg.is_nas_specific_procedure_registration_running(
+              &ue_amf_context->amf_context)) {
+        registration_proc =
+            (nas_amf_registration_proc_t*)
+                ue_amf_context->amf_context.amf_procedures->amf_specific_proc;
+        amf_ctx = &ue_amf_context->amf_context;
+        /*
+         * Upon receiving an REGISTRATION COMPLETE message, the AMF shall enter
+         * state AMF-REGISTERED and consider the GUTI sent in the REGISTRATION
+         * ACCEPT message as valid.
+         */
+        amf_ctx_set_attribute_valid(
+            amf_ctx, AMF_CTXT_MEMBER_GUTI);  // TODO-RECHECK
+
+        /*currently by default Activate  Bearer Context Accept message was
+         * sent in Registration complete Now, modified the code to send the
+         * message received in Uplink/smfContainer. third byte of smf message
+         * container is a message_type*/
+      } else {
+        OAILOG_INFO(
+            LOG_NAS_AMF,
+            "UE " AMF_UE_NGAP_ID_FMT
+            " REGISTRATION COMPLETE discarded (AMF procedure not found)\n",
+            ue_id);
+        bdestroy((bstring)(smf_msg_pP));
+      }
     } else {
+      OAILOG_WARNING(LOG_NAS_AMF, "UE Context not found..\n");
       OAILOG_INFO(
           LOG_NAS_AMF,
           "UE " AMF_UE_NGAP_ID_FMT
-          " REGISTRATION COMPLETE discarded (AMF procedure not found)\n",
+          " REGISTRATION COMPLETE discarded (context not found)\n",
           ue_id);
-      bdestroy((bstring)(smf_msg_pP));
     }
-  } else {
-    OAILOG_WARNING(LOG_NAS_AMF, "UE Context not found..\n");
-    OAILOG_INFO(
-        LOG_NAS_AMF,
-        "UE " AMF_UE_NGAP_ID_FMT
-        " REGISTRATION COMPLETE discarded (context not found)\n",
-        ue_id);
-  }
 
-  rc = RETURNok;  // AMF_TEST
-  if ((rc != RETURNerror)) {
-    /*
-     * Set the network registrationment indicator
-     */
-    ue_amf_context->amf_context.is_registered = true;
-    /*
-     * Notify AMF that registration procedure has successfully completed
-     */
-    amf_sap.primitive                   = AMFREG_REGISTRATION_CNF;
-    amf_sap.u.amf_reg.ue_id             = ue_id;
-    amf_sap.u.amf_reg.ctx               = &ue_amf_context->amf_context;
-    amf_sap.u.amf_reg.notify            = true;
-    amf_sap.u.amf_reg.free_proc         = true;
-    amf_sap.u.amf_reg.u.registered.proc = registration_proc;
-    rc                                  = amf_sap_reg.amf_sap_send(&amf_sap);
-    if (rc == RETURNok) {
+    rc = RETURNok;  // AMF_TEST
+    if ((rc != RETURNerror)) {
       /*
-       * Send AMF Information after handling Registration Complete message
-       * */
-      OAILOG_INFO(
-          LOG_NAS_AMF, " Sending AMF INFORMATION for ue_id = (%u)\n", ue_id);
-      amf_proc_amf_informtion(ue_amf_context);
-      increment_counter(
-          "ue_registration", 1, 1, "result", "registration_proc_successful");
+       * Set the network registrationment indicator
+       */
+      ue_amf_context->amf_context.is_registered = true;
+      /*
+       * Notify AMF that registration procedure has successfully completed
+       */
+      amf_sap.primitive                   = AMFREG_REGISTRATION_CNF;
+      amf_sap.u.amf_reg.ue_id             = ue_id;
+      amf_sap.u.amf_reg.ctx               = &ue_amf_context->amf_context;
+      amf_sap.u.amf_reg.notify            = true;
+      amf_sap.u.amf_reg.free_proc         = true;
+      amf_sap.u.amf_reg.u.registered.proc = registration_proc;
+      rc                                  = amf_sap_reg.amf_sap_send(&amf_sap);
+      if (rc == RETURNok) {
+        /*
+         * Send AMF Information after handling Registration Complete message
+         * */
+        OAILOG_INFO(
+            LOG_NAS_AMF, " Sending AMF INFORMATION for ue_id = (%u)\n", ue_id);
+        amf_proc_amf_informtion(ue_amf_context);
+        increment_counter(
+            "ue_registration", 1, 1, "result", "registration_proc_successful");
+      }
+    } else {
+      /*
+       * SMF procedure failed and, received message has been discarded or
+       * Status message has been returned; ignore SMF procedure failure
+       */
+      OAILOG_WARNING(
+          LOG_NAS_AMF,
+          "Ignore SMF procedure failure/received "
+          "message has been discarded for"
+          "ue_id = (%u)\n",
+          ue_id);
+      rc = RETURNok;
     }
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
-  else {
+
+  //==========================================================
+  int amf_proc_amf_informtion(ue_m5gmm_context_s * ue_amf_ctx) {
+    int rc = RETURNerror;
+    amf_sap_t amf_sap;
+    amf_sap_c amf_sap_reg;
+    amf_as_data_t* amf_as  = &amf_sap.u.amf_as.u.data;
+    amf_context_t* amf_ctx = &(ue_amf_ctx->amf_context);
+    OAILOG_FUNC_IN(LOG_NAS_AMF);
     /*
-     * SMF procedure failed and, received message has been discarded or
-     * Status message has been returned; ignore SMF procedure failure
+     * Setup NAS information message to transfer
      */
-    OAILOG_WARNING(
-        LOG_NAS_AMF,
-        "Ignore SMF procedure failure/received "
-        "message has been discarded for"
-        "ue_id = (%u)\n",
-        ue_id);
-    rc = RETURNok;
+    amf_as->nas_info = AMF_AS_NAS_AMF_INFORMATION;
+    amf_as->nas_msg  = "";
+    /*
+     * Set the UE identifier
+     */
+    amf_as->ue_id = ue_amf_ctx->amf_ue_ngap_id;
+    /*
+     * Setup EPS NAS security data
+     */
+    amf_as->amf_as_set_security_data(
+        &amf_as->sctx, &amf_ctx->_security, false, true);
+    /*
+     * Notify AMF-AS SAP that TAU Accept message has to be sent to the network
+     */
+    amf_sap.primitive = AMFAS_DATA_REQ;
+    rc                = amf_sap_reg.amf_sap_send(&amf_sap);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-}
-//==========================================================
-int amf_proc_amf_informtion(ue_m5gmm_context_s* ue_amf_ctx) {
-  int rc = RETURNerror;
-  amf_sap_t amf_sap;
-  amf_sap_c amf_sap_reg;
-  amf_as_data_t* amf_as  = &amf_sap.u.amf_as.u.data;
-  amf_context_t* amf_ctx = &(ue_amf_ctx->amf_context);
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  /*
-   * Setup NAS information message to transfer
-   */
-  amf_as->nas_info = AMF_AS_NAS_AMF_INFORMATION;
-  amf_as->nas_msg  = "";
-  /*
-   * Set the UE identifier
-   */
-  amf_as->ue_id = ue_amf_ctx->amf_ue_ngap_id;
-
-  /*
-   * Setup EPS NAS security data
-   */
-  amf_as->amf_as_set_security_data(
-      &amf_as->sctx, &amf_ctx->_security, false, true);
-  /*
-   * Notify AMF-AS SAP that TAU Accept message has to be sent to the network
-   */
-  amf_sap.primitive = AMFAS_DATA_REQ;
-  rc                = amf_sap_reg.amf_sap_send(&amf_sap);
-
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-}
-
-/***********************************************************************
- ** Name:    amf_reg_send()                                           **
- **                                                                   **
- ** Description: Processes the AMFREG Service Access Point primitive  **
- **                                                                   **
- ** Inputs:  msg:       The AMFREG-SAP primitive to process           **
- **      Others:    None                                              **
- **                                                                   **
- ** Outputs:     None                                                 **
- **      Return:    RETURNok, RETURNerror                             **
- **      Others:    None                                              **
- **                                                                   **
- ***********************************************************************/
-int amf_reg_send(amf_reg_t* const msg) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNok;
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-}
+  /***********************************************************************
+   ** Name:    amf_reg_send()                                           **
+   **                                                                   **
+   ** Description: Processes the AMFREG Service Access Point primitive  **
+   **                                                                   **
+   ** Inputs:  msg:       The AMFREG-SAP primitive to process           **
+   **      Others:    None                                              **
+   **                                                                   **
+   ** Outputs:     None                                                 **
+   **      Return:    RETURNok, RETURNerror                             **
+   **      Others:    None                                              **
+   **                                                                   **
+   ***********************************************************************/
+  int amf_reg_send(amf_reg_t* const msg) {
+    OAILOG_FUNC_IN(LOG_NAS_AMF);
+    int rc = RETURNok;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
 
 }  // namespace magma5g

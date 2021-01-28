@@ -41,7 +41,6 @@ extern "C" {
 #include "amf_app_state_manager.h"
 
 using namespace std;
-
 namespace magma5g {
 amf_as_data_t amf_data_de_reg_sec;
 amf_sap_c amf_sap_de_reg;
@@ -62,9 +61,7 @@ int amf_procedure_handler::amf_handle_deregistration_ue_origin_req(
       LOG_NAS_AMF,
       "AMF-TEST: UE originated Deregistration procedures started\n");
   int rc = RETURNerror;
-
   amf_deregistration_request_ies_t params;
-
   if (msg->m5gs_de_reg_type.switchoff) {
     params.de_reg_type = AMF_SWITCHOFF_DEREGISTRATION;
   } else {
@@ -107,7 +104,6 @@ int amf_procedure_handler::amf_handle_deregistration_ue_origin_req(
   // TODO need to recheck on this counter arguments
   increment_counter("ue_deregistration", 1, 1, "amf_cause", "ue_initiated");
   rc = amf_proc_deregistration_request(ue_id, &params);
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -194,7 +190,6 @@ int amf_proc_deregistration_request(
      */
     rc = amf_app_handle_deregistration_req(ue_id);
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -240,10 +235,8 @@ void amf_remove_ue_context(
     amf_ue_context_t* amf_ue_context_p, ue_m5gmm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_INFO(LOG_NAS_AMF, "AMF UE context remove from amf core\n");
-
   hashtable_rc_t hash_rc              = HASH_TABLE_OK;
   hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
-
   if (!amf_ue_context_p) {
     OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
     OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -315,6 +308,5 @@ void amf_remove_ue_context(
       "0x%08" PRIX64 " \n",
       ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
 }
-
 }  // end  namespace magma5g
 #endif

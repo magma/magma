@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -55,10 +55,10 @@ extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 void amf_app_msg::amf_app_ue_context_release(
     ue_m5gmm_context_s* ue_context_p, ngap_Cause_t cause) {
   MessageDef* message_p;
-
   OAILOG_FUNC_IN(LOG_AMF_APP);
   message_p = itti_alloc_new_message(
       TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);  // ngap_message_def
+
   if (message_p == NULL) {
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }

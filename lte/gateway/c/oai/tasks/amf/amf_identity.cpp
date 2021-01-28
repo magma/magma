@@ -21,7 +21,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -45,9 +45,9 @@ extern "C" {
 #include "M5GSMobileIdentity.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_recv.h"
+
 using namespace std;
 extern amf_config_t amf_config;
-
 namespace magma5g {
 extern ue_m5gmm_context_s
     ue_m5gmm_global_context;  // TODO AMF-TEST global var to temporarily store
@@ -55,16 +55,16 @@ extern ue_m5gmm_context_s
 // extern amf_config_t amf_config_handler;
 // Global map of supi to guti along with amf_ue_ngap_id
 std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
-
 nas_proc nas_proc_indt;
-/****************************************************************************
+
+/***************************************************************************
 **                                                                        **
 ** Name:    amf_cn_identity_res()                                         **
 **                                                                        **
 ** Description: Processes Identity Response message                       **
 **                                                                        **
 **      Inputs:  ue_id:      UE lower layer identifier                    **
-**      msg:       The received EMM message                               **
+**      msg:       The received AMF message                               **
 **      Others:    None                                                   **
 **                                                                        **
 ** Outputs:     amf_cause: AMF cause code                                 **
@@ -77,7 +77,6 @@ int amf_identity_msg::amf_cn_identity_res(
     const amf_nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNok;
-
   OAILOG_INFO(LOG_NAS_AMF, "AMFAS-SAP - Received Identity Response message\n");
   /*
    * Message processing
@@ -112,7 +111,6 @@ int amf_identity_msg::amf_cn_identity_res(
     imsi.u.num.digit15 = msg->mobile_identity.imsi.msin_digit5;
     imsi.u.num.parity  = 0x0f;
     imsi.length        = msg->mobile_identity.imsi.numOfValidImsiDigits;
-
   } else if (
       msg->mobile_identity.imei.type_of_identity == MOBILE_IDENTITY_IMEI) {
     /*
@@ -135,8 +133,8 @@ int amf_identity_msg::amf_cn_identity_res(
     imei.u.num.snr6   = msg->mobile_identity.imei.identity_digit14;
     imei.u.num.cdsd   = msg->mobile_identity.imei.identity_digit15;
     imei.u.num.parity = msg->mobile_identity.imei.odd_even;
-  }
-  else if (msg->mobile_identity.tmsi.type_of_identity == MOBILE_IDENTITY_TMSI) {
+  } else if (
+      msg->mobile_identity.tmsi.type_of_identity == MOBILE_IDENTITY_TMSI) {
     /*
      * Get the TMSI
      */
@@ -146,7 +144,6 @@ int amf_identity_msg::amf_cn_identity_res(
     tmsi |= (((tmsi_t) msg->mobile_identity.tmsi.m5g_tmsi_3) << 8);
     tmsi |= ((tmsi_t) msg->mobile_identity.tmsi.m5g_tmsi_4);
   }
-
   /*
    * TODO Execute the identification completion procedure
    */
@@ -179,8 +176,6 @@ void amf_ctx_set_valid_imei(amf_context_t* const ctxt, imei_t* imei) {
   amf_ctx_set_attribute_valid(ctxt, AMF_CTXT_MEMBER_IMEI);
 }
 
-//------------------------------------------------------------------------------
-
 /****************************************************************************
  **                                                                        **
  ** Name:    amf_proc_identification_complete()                            **
@@ -192,7 +187,7 @@ void amf_ctx_set_valid_imei(amf_context_t* const ctxt, imei_t* imei) {
  **      Upon receiving the IDENTITY RESPONSE message, the MME             **
  **      shall stop timer T3470.                                           **
  **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                          **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
  **      imsi:      The IMSI received from the UE                          **
  **      imei:      The IMEI received from the UE                          **
  **      tmsi:      The TMSI received from the UE                          **
@@ -200,7 +195,7 @@ void amf_ctx_set_valid_imei(amf_context_t* const ctxt, imei_t* imei) {
  **                                                                        **
  ** Outputs:     None                                                      **
  **      Return:    RETURNok, RETURNerror                                  **
- **      Others:    amf_data, T3570                                       **
+ **      Others:    amf_data, T3570                                        **
  **                                                                        **
  ***************************************************************************/
 int amf_identity_msg::amf_proc_identification_complete(
@@ -244,7 +239,7 @@ int amf_identity_msg::amf_proc_identification_complete(
       amf_ctx->_imsi64 = imsi64;  // TODO AMF_TEST global var to temporarily
                                   // store context inserted to ht  //pdu_change
       amf_ctx->_imsi.length = 8;
-      amf_ctx->_m5_guti = *amf_ctx_guti;
+      amf_ctx->_m5_guti     = *amf_ctx_guti;
     } else if (imei) {
       /*
        * Update the IMEI
@@ -259,9 +254,8 @@ int amf_identity_msg::amf_proc_identification_complete(
           "TODO, should not happen because this type of identity is not "
           "requested by AMF");
     }
-
     /*
-     * TODO Notify EMM that the identification procedure successfully completed
+     * TODO Notify AMF that the identification procedure successfully completed
      */
     // amf_sap.primitive               = AMFREG_COMMON_PROC_CNF;
     OAILOG_INFO(
@@ -272,13 +266,12 @@ int amf_identity_msg::amf_proc_identification_complete(
     amf_registration_procedure::amf_registration_success_identification_cb(
         amf_ctx);
   }  // else ignore the response if ue context not found
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+
 // Generating GUTI based on SUPI/IMSI received from identity message.
 void amf_app_generate_guti_on_supi(
-    amf_guti_m5g_t* amf_guti, supi_as_imsi_t* supi_imsi)
-{
+    amf_guti_m5g_t* amf_guti, supi_as_imsi_t* supi_imsi) {
   /* Generate GUTI with 5g-tmsi as rand value */
   amf_guti->guamfi.plmn.mcc_digit1 = supi_imsi->plmn.mcc_digit1;
   amf_guti->guamfi.plmn.mcc_digit2 = supi_imsi->plmn.mcc_digit2;
@@ -295,7 +288,6 @@ void amf_app_generate_guti_on_supi(
   amf_guti->guamfi.amf_regionid = amf_config.guamfi.guamfi[0].amf_code;
   amf_guti->guamfi.amf_set_id   = amf_config.guamfi.guamfi[0].amf_gid;
   amf_guti->guamfi.amf_pointer  = amf_config.guamfi.guamfi[0].amf_Pointer;
-
   amf_config_unlock(&amf_config);
   return;
 }

@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -48,10 +48,9 @@ extern "C" {
 #include "amf_sap.h"
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1
+
 using namespace std;
-
 namespace magma5g {
-
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 extern ue_m5gmm_context_s
     ue_m5gmm_global_context;  ////TODO AMF_TEST global var to temporarily store
@@ -63,13 +62,13 @@ amf_sap_c amf_sap_auth;
 nas_proc nas_proc_autn;
 /****************************************************************************
  **                                                                        **
- ** Name:    nas_itti_auth_info_req()                                     **
+ ** Name:        nas_itti_auth_info_req()                                  **
  **                                                                        **
  ** Description: Sends Authenticatio Req to UDM via S6a Task               **
  **                                                                        **
- ** Inputs: ue_idP: UE context Identifier                                  **
- **      imsiP: IMSI of UE                                                 **
- **      is_initial_reqP: Flag to indicate, whether Auth Req is sent       **
+ ** Inputs: ue_idP:         UE context Identifier                          **
+ **         imsiP:          IMSI of UE                                     **
+ **         is_initial_reqP:Flag to indicate, whether Auth Req is sent     **
  **                      for first time or initited as part of             **
  **                      re-synchronisation                                **
  **      visited_plmnP : Visited PLMN                                      **
@@ -87,13 +86,11 @@ static void nas_itti_auth_info_req(
   OAILOG_FUNC_IN(LOG_NAS);
   MessageDef* message_p             = NULL;
   n6_auth_info_req_t* auth_info_req = NULL;
-
   OAILOG_INFO(
       LOG_NAS_AMF,
       "Sending Authentication Information Request message to S6A for ue_id "
       "= " AMF_UE_NGAP_ID_FMT "\n",
       ue_id);
-
   message_p = itti_alloc_new_message(TASK_AMF_APP, S6A_AUTH_INFO_REQ);
   if (!message_p) {
     OAILOG_CRITICAL(
@@ -106,7 +103,6 @@ static void nas_itti_auth_info_req(
   // auth_info_req = &message_p->ittiMsg.n6_auth_info_req;//TODO -  NEED-RECHECK
   // IMP to consider
   memset(auth_info_req, 0, sizeof(n6_auth_info_req_t));
-
   IMSI_TO_STRING(imsiP, auth_info_req->imsi, IMSI_BCD_DIGITS_MAX + 1);
   auth_info_req->imsi_length = (uint8_t) strlen(auth_info_req->imsi);
 
@@ -116,13 +112,12 @@ static void nas_itti_auth_info_req(
     OAILOG_FUNC_OUT(LOG_NAS);
   }
   auth_info_req->nb_of_vectors = num_vectorsP;
-
   if (is_initial_reqP) {
     auth_info_req->re_synchronization = 0;
     memset(auth_info_req->resync_param, 0, sizeof auth_info_req->resync_param);
   } else {
     if (!auts_pP) {
-      OAILOG_WARNING(LOG_NAS_EMM, "Auts Null during resynchronization \n");
+      OAILOG_WARNING(LOG_NAS_AMF, "Auts Null during resynchronization \n");
       OAILOG_FUNC_OUT(LOG_NAS);
     }
     auth_info_req->re_synchronization = 1;
@@ -186,17 +181,14 @@ static int start_authentication_information_procedure(
   // &auth_info_proc->cn_proc.base_proc; auth_info_proc->success_notif =
   // _auth_info_proc_success_cb; auth_info_proc->failure_notif =
   // _auth_info_proc_failure_cb;
-  auth_info_proc->ue_id  = ue_id;
-  auth_info_proc->resync = auth_info_proc->request_sent;
-
+  auth_info_proc->ue_id        = ue_id;
+  auth_info_proc->resync       = auth_info_proc->request_sent;
   plmn_t visited_plmn          = {0};
   bool is_initial_req          = !(auth_info_proc->request_sent);
   auth_info_proc->request_sent = true;
-
   nas_itti_auth_info_req(
       ue_id, &amf_context->_imsi, is_initial_req, &visited_plmn,
       MAX_EPS_AUTH_VECTORS, auts);
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 //------------------------------------------------------------------------------
@@ -218,27 +210,24 @@ nas_amf_common_proc_t* nas_proc::get_nas5g_common_procedure(
   }
   return NULL;
 }
-
 //------------------------------------------------------------------------------
 nas_amf_auth_proc_t* get_nas5g_common_procedure_authentication(
     const amf_context_t* const ctxt) {
   return (nas_amf_auth_proc_t*) nas_proc_autn.get_nas5g_common_procedure(
       ctxt, AMF_COMM_PROC_AUTH);
 }
-
-//-----------------------------------------------------------------------------
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_authentication_abort()                                       **
+ ** Name:    amf_authentication_abort()                                    **
  **                                                                        **
  ** Description: Aborts the authentication procedure currently in progress **
  **                                                                        **
  ** Inputs:  args:      Authentication data to be released                 **
  **      Others:    None                                                   **
  **                                                                        **
- ** Outputs:     None
- **     Return: None
- **     Others: None
+ ** Outputs:     None                                                      **
+ **     Return: None                                                       **
+ **     Others: None                                                       **
  **                                                                        **
  ***************************************************************************/
 static int amf_authentication_abort(
@@ -254,7 +243,7 @@ static int amf_authentication_abort(
         "AMF-PROC  - Abort authentication procedure "
         "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
         ue_mm_context->amf_ue_ngap_id);
-//	TODO
+    //	TODO
     /*
      * Stop timer T3460
      */
@@ -263,38 +252,32 @@ static int amf_authentication_abort(
     // timer_callback_args);
     rc = RETURNok;
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-
 //-----------------------------------------------------------------------------
 nas_amf_auth_proc_t* nas5g_new_authentication_procedure(
     amf_context_t* const amf_context) {
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = _nas_new_amf_procedures(amf_context);
   }
-
   nas_amf_auth_proc_t* auth_proc = new (nas_amf_auth_proc_t);
-
   auth_proc->amf_com_proc.amf_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   auth_proc->amf_com_proc.amf_proc.base_proc.type = NAS_PROC_TYPE_AMF;
   auth_proc->amf_com_proc.amf_proc.type           = NAS_AMF_PROC_TYPE_COMMON;
   auth_proc->amf_com_proc.type                    = AMF_COMM_PROC_AUTH;
-
   nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t;
   if (wrapper) {
     wrapper->proc = &auth_proc->amf_com_proc;
     LIST_INSERT_HEAD(
         &amf_context->amf_procedures->amf_common_procs, wrapper, entries);
-    OAILOG_TRACE(LOG_NAS_EMM, "New EMM_COMM_PROC_AUTH\n");
+    OAILOG_TRACE(LOG_NAS_AMF, "New AMF_COMM_PROC_AUTH\n");
     return auth_proc;
   } else {
     nas_networks_auth.free_wrapper((void**) &auth_proc);
   }
   return NULL;
 }
-
 //------------------------------------------------------------------------------
 int m5g_authentication::amf_proc_authentication(
     amf_context_t* amf_context,
@@ -304,7 +287,6 @@ int m5g_authentication::amf_proc_authentication(
   int rc                  = RETURNerror;
   bool run_auth_info_proc = false;
   ksi_t eksi              = 0;
-
   OAILOG_INFO(LOG_NGAP, "AMF_TEST: starting Authentication procedure");
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
@@ -322,7 +304,6 @@ int m5g_authentication::amf_proc_authentication(
         auth_proc->is_cause_is_registered = false;
       }
     }
-
     auth_proc->amf_cause            = AMF_CAUSE_SUCCESS;
     auth_proc->retransmission_count = 0;
     auth_proc->ue_id                = ue_id;
@@ -342,8 +323,7 @@ int m5g_authentication::amf_proc_authentication(
     // auth_proc->amf_com_proc.amf_proc.base_proc.fail_out =
     // _authentication_reject;
     auth_proc->amf_com_proc.amf_proc.base_proc.time_out = NULL;
-
-    bool run_auth_info_proc = false;
+    bool run_auth_info_proc                             = false;
     if (!IS_AMF_CTXT_VALID_AUTH_VECTORS(amf_context)) {
       // Ask upper layer to fetch new security context
       nas_5g_auth_info_proc_t* auth_info_proc =
@@ -384,7 +364,6 @@ int m5g_authentication::amf_proc_authentication(
           amf_context, auth_proc, NULL);
     }
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -398,31 +377,31 @@ int m5g_authentication::amf_proc_authentication(
  ** Name:    amf_proc_authentication_ksi()                                 **
  **                                                                        **
  ** Description: Initiates authentication procedure to establish partial   **
- **      native 5G CN security context in the UE and the AMF.        **
+ **      native 5G CN security context in the UE and the AMF.              **
  **                                                                        **
  **              3GPP TS 24.501, section 5.4.1.3                           **
- **      The network initiates the authentication procedure by     **
- **      sending an AUTHENTICATION REQUEST message to the UE and   **
- **      starting the timer T3560. The AUTHENTICATION REQUEST mes- **
- **      sage contains the parameters necessary to calculate the   **
- **      authentication response.                                  **
+ **      The network initiates the authentication procedure by             **
+ **      sending an AUTHENTICATION REQUEST message to the UE and           **
+ **      starting the timer T3560. The AUTHENTICATION REQUEST mes-         **
+ **      sage contains the parameters necessary to calculate the           **
+ **      authentication response.                                          **
  **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                  **
- **      ksi:       NAS key set identifier                     **
- **      rand:      Random challenge number                    **
- **      autn:      Authentication token                       **
- **      success:   Callback function executed when the authen-**
- **             tication procedure successfully completes  **
- **      reject:    Callback function executed when the authen-**
- **             tication procedure fails or is rejected    **
- **      failure:   Callback function executed whener a lower  **
- **             layer failure occured before the authenti- **
- **             cation procedure comnpletes                **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      ksi:       NAS key set identifier                                 **
+ **      rand:      Random challenge number                                **
+ **      autn:      Authentication token                                   **
+ **      success:   Callback function executed when the authen-            **
+ **             tication procedure successfully completes                  **
+ **      reject:    Callback function executed when the authen-            **
+ **             tication procedure fails or is rejected                    **
+ **      failure:   Callback function executed whener a lower              **
+ **             layer failure occured before the authenti-                 **
+ **             cation procedure comnpletes                                **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 int m5g_authentication::amf_proc_authentication_ksi(
@@ -470,7 +449,7 @@ int m5g_authentication::amf_proc_authentication_ksi(
     auth_proc->ue_id                = ue_id;
     ((nas5g_base_proc_t*) auth_proc)->parent =
         (nas5g_base_proc_t*) amf_specific_proc;
-    auth_proc->amf_com_proc.amf_proc.delivered = NULL;
+    auth_proc->amf_com_proc.amf_proc.delivered               = NULL;
     auth_proc->amf_com_proc.amf_proc.base_proc.success_notif = success;
     auth_proc->amf_com_proc.amf_proc.base_proc.failure_notif = failure;
     auth_proc->amf_com_proc.amf_proc.base_proc.abort = amf_authentication_abort;
@@ -484,7 +463,7 @@ int m5g_authentication::amf_proc_authentication_ksi(
 
   if (rc != RETURNerror) {
     /*
-     * Notify EMM that common procedure has been initiated
+     * Notify AMF that common procedure has been initiated
      */
     amf_sap_t amf_sap;
     amf_sap.primitive       = AMFREG_COMMON_PROC_REQ;
@@ -494,7 +473,6 @@ int m5g_authentication::amf_proc_authentication_ksi(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-
 /****************************************************************************
  **                                                                        **
  ** Name:    amf_proc_authentication_complete()                            **
@@ -502,12 +480,12 @@ int m5g_authentication::amf_proc_authentication_ksi(
  ** Description: Performs the authentication completion procedure executed **
  **      by the network.                                                   **
  **                                                                        **
- **              3GPP TS 24.501, section 5.4.1.3.4                           **
+ **              3GPP TS 24.501, section 5.4.1.3.4                         **
  **      Upon receiving the AUTHENTICATION RESPONSE message, the           **
  **      MME shall stop timer T3560 and check the correctness of           **
  **      the RES parameter.                                                **
  **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                          **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
  **      emm_cause: Authentication failure AMF cause code                  **
  **      res:       Authentication response parameter. or auts             **
  **                 in case of sync failure                                **
@@ -515,7 +493,7 @@ int m5g_authentication::amf_proc_authentication_ksi(
  **                                                                        **
  ** Outputs:     None                                                      **
  **      Return:    RETURNok, RETURNerror                                  **
- **      Others:    amf_data, T3560                                       **
+ **      Others:    amf_data, T3560                                        **
  **                                                                        **
  ***************************************************************************/
 int m5g_authentication::amf_proc_authentication_complete(
@@ -531,7 +509,6 @@ int m5g_authentication::amf_proc_authentication_complete(
       "AMF_TEST: Authentication  procedures complete for "
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
-
   ue_m5gmm_context_s* ue_mm_context =
       &ue_m5gmm_global_context;  ////TODO AMF_TEST global var to temporarily
                                  /// store context inserted to ht
@@ -566,14 +543,13 @@ int m5g_authentication::amf_proc_authentication_complete(
      * Notify AMF that the authentication procedure successfully completed
      */
     amf_sap_t amf_sap;
-    amf_sap.primitive       = AMFREG_COMMON_PROC_CNF;
-    amf_sap.u.amf_reg.ue_id = ue_id;
-    amf_sap.u.amf_reg.ctx   = amf_ctx;
-
+    amf_sap.primitive               = AMFREG_COMMON_PROC_CNF;
+    amf_sap.u.amf_reg.ue_id         = ue_id;
+    amf_sap.u.amf_reg.ctx           = amf_ctx;
     amf_sap.u.amf_reg.notify        = true;
     amf_sap.u.amf_reg.free_proc     = true;
     amf_sap.u.amf_reg.u.common_proc = &auth_proc->amf_com_proc;
-    rc = amf_sap_auth.amf_sap_send(&amf_sap);
+    rc                              = amf_sap_auth.amf_sap_send(&amf_sap);
   } else {
     OAILOG_ERROR(LOG_NAS_AMF, "Auth proc is null");
   }
@@ -583,16 +559,13 @@ int m5g_authentication::amf_proc_authentication_complete(
    * will be used to manage RAN vector
    * Invoking success directly to hadle security mode command
    * */
-  // rc =
-  // amf_registration_procedure::amf_registration_success_authentication_cb(
   rc = amf_registration_procedure::amf_registration_success_authentication_cb(
       amf_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_send_authentication_request() **
+ ** Name:    amf_send_authentication_request()                             **
  **                                                                        **
  ** Description: Sends AUTHENTICATION REQUEST message and start timer T3560**
  **                                                                        **
@@ -600,7 +573,7 @@ int m5g_authentication::amf_proc_authentication_complete(
  **                handler parameters                                      **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
+ **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
 int m5g_authentication::amf_send_authentication_request(
@@ -629,10 +602,8 @@ int m5g_authentication::amf_send_authentication_request(
      */
     amf_data_sec_auth.amf_as_set_security_data(
         &amf_sap.u.amf_as.u.security.sctx, &amf_ctx->_security, false, true);
-
     rc = amf_sap_auth.amf_sap_send(&amf_sap);
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 

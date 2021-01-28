@@ -23,7 +23,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -39,6 +39,7 @@ extern "C" {
 #include "amf_fsm.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "M5gNasMessage.h"
+
 namespace magma5g {
 int AMFMsg::amf_msg_decode(AMFMsg* msg, uint8_t* buffer, uint32_t len) {
   int header_result = 0;

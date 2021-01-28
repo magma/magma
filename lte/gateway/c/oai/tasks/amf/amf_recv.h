@@ -22,21 +22,18 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author     
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef AMF_RECV_SEEN
-#define AMF_RECV_SEEN
-
+#pragma once
 #include <sstream>
-#include "amf_app_ue_context_and_proc.h"  
+#include "amf_app_ue_context_and_proc.h"
 #include "M5GRegistrationAccept.h"
 #include "amf_asDefs.h"
 
 using namespace std;
-
 namespace magma5g {
 class amf_procedure_handler {
  public:
@@ -45,26 +42,20 @@ class amf_procedure_handler {
       RegistrationRequestMsg* msg, const bool is_initial,
       const bool is_amf_ctx_new, int amf_cause,
       amf_nas_message_decode_status_t decode_status);
-
   int amf_handle_identity_response(
       amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg* msg, int amf_cause,
       amf_nas_message_decode_status_t decode_status);
-
   int amf_handle_authentication_response(
       amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg* msg, int amf_cause,
       amf_nas_message_decode_status_t status);
-
   int amf_handle_securitycomplete_response(
       amf_ue_ngap_id_t ue_id, amf_nas_message_decode_status_t decode_status);
-
   int amf_handle_registrationcomplete_response(
       amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg* msg, int amf_cause,
       amf_nas_message_decode_status_t decode_status);
-
   int amf_handle_deregistration_ue_origin_req(
       amf_ue_ngap_id_t ue_id, DeRegistrationRequestUEInitMsg* msg,
       int amf_cause, amf_nas_message_decode_status_t decode_status);
-
   int amf_smf_send(
       amf_ue_ngap_id_t ueid, ULNASTransportMsg* msg, int amf_cause);
 };
@@ -95,4 +86,3 @@ class amf_registration_procedure : public amf_context_t,
 };
 
 }  // namespace magma5g
-#endif

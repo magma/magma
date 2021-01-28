@@ -22,37 +22,32 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef AMF_AS_SEEN
-#define AMF_AS_SEEN
-
+#pragma once
 #include <sstream>
 #include <thread>
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "bstrlib.h"
-
 #ifdef __cplusplus
 };
 #endif
 #include "amf_app_ue_context_and_proc.h"  // "amf_data.h" included in it
 #include "amf_asDefs.h"
 #include "amf_as_message.h"
+
 using namespace std;
 namespace magma5g {
 class amf_as : public AMFMsg {
  public:
   void amf_as_initialize(void);
-
   int amf_as_send(amf_as_t* msg);
-
   int amf_as_send_ng(const amf_as_t* msg);
-
   static AMFMsg* amf_as_set_header(
       amf_nas_message_t* msg, const amf_as_security_data_t* security);
 };
@@ -91,4 +86,3 @@ typedef enum as_m5gcause_s {
 } as_m5gcause_t;
 
 }  // namespace magma5g
-#endif

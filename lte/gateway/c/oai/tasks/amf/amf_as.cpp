@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -54,6 +54,7 @@ extern "C" {
 #include "feg/protos/s6a_proxy.pb.h"
 #include "intertask_interface_types.h"
 #include "proto_msg_to_itti_msg.h"
+
 using namespace magma;
 using namespace magma::feg;
 using namespace std;
@@ -64,7 +65,6 @@ typedef uint32_t amf_ue_ngap_id_t;
 #define AMF_CAUSE_SUCCESS (1)
 
 namespace magma5g {
-
 /*forward declaration*/
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
 static int amf_as_security_req(
@@ -76,20 +76,20 @@ amf_procedure_handler procedure_handler;
 nas_proc nas_procedure_as;
 amf_app_defs amf_app_def_as;
 amf_as_dl_message as_dl_message;
-/****************************************************************************
-**                                                                        **
-** Name:    amf_as_send()                                             **
-**                                                                        **
-** Description: Processes the AMF-AS Service Access Point primitive.       **
-**                                                                        **
-** Inputs:  msg:       The AMF-AS-SAP primitive to process         **
-**      Others:    None                                       **
-**                                                                        **
-** Outputs:     None                                                      **
-**      Return:    RETURNok, RETURNerror                      **
-**      Others:    None                                       **
-**                                                                        **
-***************************************************************************/
+/**************************************************************************
+**                                                                       **
+** Name        : amf_as_send()                                           **
+**                                                                       **
+** Description : Processes the AMF-AS Service Access Point primitive.    **
+**                                                                       **
+** Inputs      : msg    :  The AMF-AS-SAP primitive to process           **
+**               Others :  None                                          **
+**                                                                       **
+** Outputs     : None                                                    **
+**      Return : RETURNok, RETURNerror                                   **
+**      Others : None                                                    **
+**                                                                       **
+**************************************************************************/
 int amf_as::amf_as_send(amf_as_t* msg) {
   int rc                       = RETURNok;
   int amf_cause                = AMF_CAUSE_SUCCESS;
@@ -100,24 +100,20 @@ int amf_as::amf_as_send(amf_as_t* msg) {
     case _AMFAS_DATA_IND:
       // TODO
       break;
-
     case _AMFAS_ESTABLISH_REQ:
       rc = amf_as_establish_req(
           &msg->u.establish,
           &amf_cause);  // registration request
       ue_id = msg->u.establish.ue_id;
       break;
-
     case _AMFAS_RELEASE_IND:
       // TODO
       break;
-
     default:
       /*
        * Other primitives are forwarded to NGAP
        */
       rc = amf_as::amf_as_send_ng(msg);  // TODO -  NEED-RECHECK
-
       break;
   }
 }
@@ -149,15 +145,14 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   int decoder_rc        = 1;                      // TODO enable
   int rc                = RETURNerror;
   tai_t originating_tai = {0};
-
   amf_nas_message_t nas_msg;  // TODO AMF_TEST // Union of nas messages
   // AMFMsg nas_msg;  // TODO AMF_TEST verify with Sanjay
   ue_m5gmm_context_s ue_m5gmm_context;
   ue_m5gmm_context.mm_state = UE_UNREGISTERED;
+  amf_ctx                   = &ue_m5gmm_context.amf_context;
 
-  amf_ctx = &ue_m5gmm_context.amf_context;
   if (amf_ctx) {
-    //TODO
+    // TODO
   }
 
   /*
@@ -169,6 +164,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
       &decode_status);
   OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: rc = %d", decoder_rc);
   nas_networks.bdestroy_wrapper(&msg->nas_msg);
+
   // TODO conditional IE error
   if (decoder_rc < 0) {
     if (decoder_rc < TLV_FATAL_ERROR) {
@@ -183,6 +179,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   } else {
     OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: NAS Decode Success");
   }
+
   /*
    * Process initial NAS message
    */
@@ -216,7 +213,6 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           msg->ue_id, &amf_msg->registrationcompletemsg, *amf_cause,
           decode_status);
       break;
-
     case DE_REG_REQUEST_UE_ORIGIN:  // DEREGISTRATION Request from UE
       OAILOG_INFO(
           LOG_NAS_AMF,
@@ -240,22 +236,22 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   }
 }
 
-/****************************************************************************
- **                                                                        **
- ** Name:    amf_as_send_ng()                                            **
- **                                                                        **
- ** Description: Builds NAS message according to the given AMFAS Service   **
- **      Access Point primitive and sends it to the Access Stratum **
- **      sublayer                                                  **
- **                                                                        **
- ** Inputs:  msg:       The AMFAS-SAP primitive to be sent         **
- **      Others:    None                                       **
- **                                                                        **
- ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
- **                                                                        **
- ***************************************************************************/
+/**************************************************************************
+ **                                                                      **
+ ** Name       : amf_as_send_ng()                                        **
+ **                                                                      **
+ ** Description: Builds NAS message according to the given AMFAS Service **
+ **      Access Point primitive and sends it to the Access Stratum       **
+ **      sublayer                                                        **
+ **                                                                      **
+ ** Inputs     : msg: The AMFAS-SAP primitive to be sent                 **
+ **      Others: None                                                    **
+ **                                                                      **
+ ** Outputs:     None                                                    **
+ **      Return: RETURNok, RETURNerror                                   **
+ **      Others: None                                                    **
+ **                                                                      **
+ *************************************************************************/
 int amf_as::amf_as_send_ng(const amf_as_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   amf_as_message_t as_msg = {0};
@@ -265,12 +261,10 @@ int amf_as::amf_as_send_ng(const amf_as_t* msg) {
       as_msg.msg_id = as_dl_message.amf_as_data_req(
           &msg->u.data, &as_msg.msg.dl_info_transfer_req);
       break;
-
     case _AMFAS_ESTABLISH_CNF:
       as_msg.msg_id = as_dl_message.amf_as_establish_cnf(
           &msg->u.establish, &as_msg.msg.nas_establish_rsp);
       break;
-
     case _AMFAS_ESTABLISH_REJ:
       as_msg.msg_id = as_dl_message.amf_as_establish_rej(
           &msg->u.establish, &as_msg.msg.nas_establish_rsp);
@@ -279,9 +273,7 @@ int amf_as::amf_as_send_ng(const amf_as_t* msg) {
       as_msg.msg_id = amf_as_security_req(
           &msg->u.security, &as_msg.msg.dl_info_transfer_req);
       break;
-
       // more case to wright......
-
     default:
       as_msg.msg_id = 0;
       break;
@@ -306,7 +298,6 @@ int amf_as::amf_as_send_ng(const amf_as_t* msg) {
             as_msg.msg.dl_info_transfer_req.err_code);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
       } break;
-
       case AS_NAS_ESTABLISH_RSP_:
       case AS_NAS_ESTABLISH_CNF_: {
         if (as_msg.msg.nas_establish_rsp.err_code == M5G_AS_SUCCESS) {
@@ -334,41 +325,38 @@ int amf_as::amf_as_send_ng(const amf_as_t* msg) {
           OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
         }
       } break;
-
       case AS_NAS_RELEASE_REQ_:
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
         break;
-
       default:
         break;
     }
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
 }
-/****************************************************************************
- **                                                                        **
- ** Name:    amf_as_encode()                                          **
- **                                                                        **
- ** Description: Encodes NAS message into NAS information container        **
- **                                                                        **
- ** Inputs:  msg:       The NAS message to encode                  **
- **      length:    The maximum length of the NAS message      **
- **      Others:    None                                       **
- **                                                                        **
- ** Outputs:     info:      The NAS information container              **
- **      msg:       The NAS message to encode                  **
- **      Return:    The number of bytes successfully encoded   **
- **      Others:    None                                       **
- **                                                                        **
- ***************************************************************************/
+/************************************************************************
+ **                                                                    **
+ ** Name       : amf_as_encode()                                       **
+ **                                                                    **
+ ** Description: Encodes NAS message into NAS information container    **
+ **                                                                    **
+ ** Inputs     : msg : The NAS message to encode                       **
+ **      length: The maximum length of the NAS message                 **
+ **      Others: None                                                  **
+ **                                                                    **
+ ** Outputs    : info : The NAS information container                  **
+ **      msg   : The NAS message to encode                             **
+ **      Return: The number of bytes successfully encoded              **
+ **      Others: None                                                  **
+ **                                                                    **
+ ***********************************************************************/
 static int amf_as_encode(
     bstring* info, amf_nas_message_t* msg, size_t length,
     amf_security_context_t* amf_security_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int bytes = 1;  // todo enable
 
-  /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
+  /* Ciphering algorithms, EA1 and EA2 expects length to be mode of 4,
    * so length is modified such that it will be mode of 4
    */
   AMF_GET_BYTE_ALIGNED_LENGTH(length);
@@ -396,7 +384,6 @@ static int amf_as_encode(
     /*
      * Encode the NAS message
      */
-    // TODO check with team on function name
     AmfMsg amf_msg_test;
     bytes = amf_msg_test.M5gNasMessageEncodeMsg(
         (AmfMsg*) &msg->security_protected.plain.amf, (uint8_t*) (*info)->data,
@@ -471,7 +458,6 @@ uint16_t amf_as_dl_message::amf_as_data_req(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size       = 0;
   int is_encoded = false;
-
   amf_nas_message_t nas_msg;
   nas_msg.security_protected.header           = {0};
   nas_msg.security_protected.plain.amf.header = {0};
@@ -509,7 +495,6 @@ uint16_t amf_as_dl_message::amf_as_data_req(
         size =
             amf_send_dl_nas_transportmsg(msg, &amf_msg->downlinknas5gtransport);
         break;
-
       case AMF_AS_NAS_DATA_DEREGISTRATION_ACCEPT: {
         // fill DL NAS message of deregistration accept
         // 0 1 0 0 0 1 1 0 Deregistration accept (UE originating) 70
@@ -526,9 +511,7 @@ uint16_t amf_as_dl_message::amf_as_data_req(
             0x7e;
         nas_msg.security_protected.plain.amf.identityrequestmsg.message_type
             .msg_type = DEREGISTRATION_ACCEPT_UE_INIT;
-      }
-
-      break;
+      } break;
       default:
         /*
          * Send other NAS messages as already encoded SMF messages
@@ -537,6 +520,7 @@ uint16_t amf_as_dl_message::amf_as_data_req(
         break;
     }
   }
+
   if (size > 0) {
     int bytes                                    = 0;
     amf_security_context_t* amf_security_context = NULL;
@@ -556,11 +540,7 @@ uint16_t amf_as_dl_message::amf_as_data_req(
       bytes =
           amf_as_encode(&as_msg->nas_msg, &nas_msg, size, amf_security_context);
     } else {
-      /*
-       * Encrypt the NAS information message
-       */
-      // bytes = amf_as_encrypt(&as_msg->nas_msg,&nas_msg.header,
-      // msg->nas_msg->data, size,amf_security_context);
+      // TODO
     }
 
     // Free any allocated data
@@ -568,8 +548,7 @@ uint16_t amf_as_dl_message::amf_as_data_req(
       // amf_information message and downlink_nas_transtport is the only message
       // that has allocated data
       case AMF_AS_NAS_DATA_REGISTRATION_ACCEPT:
-        // nas_networks.bdestroy_wrapper((amf_msg->registrationacceptmsg));
-        //&(amf_msg->registrationacceptmsg.smfmessagecontainer));
+        // TODO
         break;
         // many more remain....
     }
@@ -580,27 +559,25 @@ uint16_t amf_as_dl_message::amf_as_data_req(
     }
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
 }
-#endif
-/****************************************************************************
- **                                                                        **
- ** Name:    amf_as_set_header()                                      **
- **                                                                        **
- ** Description: Setup the security header of the given NAS message        **
- **                                                                        **
- ** Inputs:  security:  The NAS security data to use               **
- **      Others:    None                                       **
- **                                                                        **
- ** Outputs:     msg:       The NAS message                            **
- **      Return:    Pointer to the plain NAS message to be se- **
- **             curity protected if setting of the securi- **
- **             ty header succeed;                         **
- **             NULL pointer otherwise                     **
- **      Others:    None                                       **
- **                                                                        **
- ***************************************************************************/
+/***************************************************************************
+ **                                                                       **
+ ** Name:        amf_as_set_header()                                      **
+ **                                                                       **
+ ** Description: Setup the security header of the given NAS message       **
+ **                                                                       **
+ ** Inputs:      security: The NAS security data to use                   **
+ **              Others:   None                                           **
+ **                                                                       **
+ ** Outputs:     msg:     The NAS message                                 **
+ **              Return:  Pointer to the plain NAS message to be se-      **
+ **                       curity protected if setting of the securi-      **
+ **                       ty header succeed;                              **
+ **                       NULL pointer otherwise                          **
+ **              Others:  None                                            **
+ **                                                                       **
+ **************************************************************************/
 AMFMsg* amf_as::amf_as_set_header(
     amf_nas_message_t* msg, const amf_as_security_data_t* security) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
@@ -629,7 +606,6 @@ AMFMsg* amf_as::amf_as_set_header(
           msg->header.security_header_type =
               SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_NEW;
         }
-
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, &msg->security_protected.plain.amf);
       }
     } else if (security->is_knas_int_present) {
@@ -646,7 +622,6 @@ AMFMsg* amf_as::amf_as_set_header(
         msg->header.security_header_type =
             SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED;
       }
-
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, &msg->security_protected.plain.amf);
     } else {
       /*
@@ -707,14 +682,12 @@ static void _s6a_handle_authentication_info_ans(
                 << imsi << "; Status: " << status.error_message()
                 << "; StatusCode: " << response.error_code() << std::endl;
     }
-
   } else {
     OAILOG_INFO(
         LOG_AMF_APP,
         "AMF_TEST: S6A-AUTHENTICATION_INFORMATION_ANSWER failed with "
         "status:%d, StatusCode:%d\n",
         status.error_message(), response.error_code());
-
     std::cout << "[ERROR] " << status.error_code() << ": "
               << status.error_message() << std::endl;
     std::cout
@@ -725,25 +698,24 @@ static void _s6a_handle_authentication_info_ans(
 }
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_as_security_req()                                    **
+ ** Name:              amf_as_security_req()                               **
  **                                                                        **
- ** Description: Processes the AMFAS-SAP security request primitive        **
+ ** Description:       Processes the AMFAS-SAP security request primitive  **
  **                                                                        **
- ** AMFAS-SAP - AMF->AS: SECURITY_REQ - Security mode control procedure    **
+ ** AMFAS-SAP-AMF->AS: SECURITY_REQ - Security mode control procedure      **
  **                                                                        **
- ** Inputs:  msg:       The AMFAS-SAP primitive to process         **
- **      Others:    None                                       **
+ ** Inputs:  msg:      The AMFAS-SAP primitive to process                  **
+ **          Others:   None                                                **
  **                                                                        **
- ** Outputs:     as_msg:    The message to send to the AS              **
- **      Return:    The identifier of the AS message           **
- **      Others:    None                                       **
+ ** Outputs: as_msg:   The message to send to the AS                       **
+ **          Return:   The identifier of the AS message                    **
+ **          Others:   None                                                **
  **                                                                        **
  ***************************************************************************/
 static int amf_as_security_req(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = 0;
-
   amf_nas_message_t nas_msg;
   nas_msg.security_protected.header           = {0};
   nas_msg.security_protected.plain.amf.header = {0};
@@ -779,14 +751,12 @@ static int amf_as_security_req(
         nas_msg.security_protected.plain.amf.identityrequestmsg
             .m5gs_identity_type.toi = 1;
         break;
-
       case AMF_AS_MSG_TYPE_AUTH: {
         s6a_auth_info_req_t air_t;
         memset(&air_t, 0, sizeof(s6a_auth_info_req_t));
         extern ue_m5gmm_context_s
             ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
                                       // store context inserted to ht
-
         ue_m5gmm_context_s* ue_context =
             amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
         if (ue_context) {
@@ -810,8 +780,7 @@ static int amf_as_security_req(
         }
         char temp_imsi[IMSI_BCD_DIGITS_MAX + 1] = "208950000000031";
         strcpy(air_t.imsi, temp_imsi);
-
-        air_t.imsi_length = 15;
+        air_t.imsi_length             = 15;
         air_t.visited_plmn.mcc_digit1 = 0x2;
         air_t.visited_plmn.mcc_digit2 = 0x0;
         air_t.visited_plmn.mcc_digit3 = 0x8;
@@ -822,7 +791,6 @@ static int amf_as_security_req(
         air_t.re_synchronization      = 0;
         s6a_auth_info_ans_t aia_t;
         memset(&aia_t, 0, sizeof(s6a_auth_info_ans_t));
-
         auto imsi_len = air_t.imsi_length;
         OAILOG_INFO(
             LOG_AMF_APP,
@@ -834,7 +802,6 @@ static int amf_as_security_req(
               _s6a_handle_authentication_info_ans(
                   imsiStr, imsi_len, status, response, &aia_t);
             });
-
         std::this_thread::sleep_for(
             std::chrono::milliseconds(60));  // TODO remove this blocking call
         OAILOG_INFO(
@@ -872,7 +839,6 @@ static int amf_as_security_req(
                                  0x29, 0x83, 0x21, 0xd2};
           nas_msg.security_protected.plain.amf.authenticationrequestmsg
               .auth_autn.AUTN.assign((const char*) autn_buff, 16);
-
           uint8_t rand_buff[] = {0xad, 0x7f, 0x25, 0x2e, 0x97, 0x48,
                                  0x57, 0x35, 0x70, 0xfe, 0x24, 0x5e,
                                  0x41, 0x84, 0x60, 0x40};
@@ -901,9 +867,7 @@ static int amf_as_security_req(
             .iei = 0x21;
         nas_msg.security_protected.plain.amf.authenticationrequestmsg.auth_autn
             .iei = 0x20;
-      }
-      break;
-
+      } break;
       case AMF_AS_MSG_TYPE_SMC: {
         size = 8;
         OAILOG_INFO(
@@ -967,7 +931,6 @@ static int amf_as_security_req(
         nas_msg.security_protected.plain.amf.securitymodecommandmsg
             .imeisv_request.imeisv_request = 1;
       } break;
-
       default:
         OAILOG_WARNING(
             LOG_NAS_AMF,
@@ -975,6 +938,7 @@ static int amf_as_security_req(
             "message 0x%.2x is not valid\n",
             msg->msg_type);
     }
+
   if (size > 0) {
     amf_context_t* amf_ctx                       = NULL;
     amf_security_context_t* amf_security_context = NULL;
@@ -994,7 +958,7 @@ static int amf_as_security_req(
         }
       }
     } else {
-	    //TODO
+      // TODO
     }
 
     /*
@@ -1026,7 +990,6 @@ static int amf_as_security_req(
 void amf_free_send_authentication_request(
     AuthenticationRequestMsg* amf_msg_req) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-
   OAILOG_DEBUG(
       LOG_NAS_AMF, "AMFAS-SAP - Freeing Send Authentication Request message\n");
   OAILOG_FUNC_OUT(LOG_NAS_AMF);
@@ -1034,19 +997,19 @@ void amf_free_send_authentication_request(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_as_establish_cnf()                                        **
+ ** Name:             amf_as_establish_cnf()                               **
  **                                                                        **
- ** Description: Processes the AMFAS-SAP connection establish confirm      **
+ ** Description:      Processes the AMFAS-SAP connection establish confirm **
  **      primitive of PDU session                                          **
  **                                                                        **
- ** AMFAS-SAP - AMF->AS: ESTABLISH_CNF - NAS signalling connection         **
+ ** AMFAS-SAP-AMF->AS:ESTABLISH_CNF - NAS signalling connection            **
  **                                                                        **
- ** Inputs:  msg:       The AMFAS-SAP primitive to process                 **
- **      Others:    None                                                   **
+ ** Inputs:   msg:    The AMFAS-SAP primitive to process                   **
+ **           Others: None                                                 **
  **                                                                        **
- ** Outputs:     as_msg:    The message to send to the AS                  **
- **      Return:    The identifier of the AS message                       **
- **      Others:    None                                                   **
+ ** Outputs:  as_msg: The message to send to the AS                        **
+ **           Return: The identifier of the AS message                     **
+ **           Others: None                                                 **
  **                                                                        **
  ***************************************************************************/
 uint16_t amf_as_dl_message::amf_as_establish_cnf(
@@ -1054,7 +1017,6 @@ uint16_t amf_as_dl_message::amf_as_establish_cnf(
   AMFMsg* amf_msg = NULL;
   int size        = 0;
   int ret_val     = 0;
-
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_INFO(
       LOG_NAS_AMF,
@@ -1075,7 +1037,7 @@ uint16_t amf_as_dl_message::amf_as_establish_cnf(
   as_msg->nas_msg          = msg->nas_msg;
   as_msg->presencemask     = msg->presencemask;
   as_msg->m5g_service_type = msg->service_type;
-  amf_context_t* amf_ctx                       = NULL;
+  amf_context_t* amf_ctx   = NULL;
   amf_security_context_t* amf_security_context = NULL;
   amf_ctx                                      = amf_context_get(msg->ue_id);
   if (amf_ctx) {
@@ -1100,7 +1062,7 @@ uint16_t amf_as_dl_message::amf_as_establish_cnf(
        */
       OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: Sending REGISTRATION_ACCEPT to UE\n");
       amf_msg = amf_as::amf_as_set_header(&nas_msg, &msg->sctx);
-      size                                                     = 19;
+      size    = 19;
       nas_msg.security_protected.plain.amf.header.message_type = 0x42;
       nas_msg.security_protected.plain.amf.registrationacceptmsg
           .extended_protocol_discriminator.extended_proto_discriminator = 0x7e;
@@ -1141,7 +1103,6 @@ uint16_t amf_as_dl_message::amf_as_establish_cnf(
           .mobile_identity.guti.mnc_digit2 = msg->guti.guamfi.plmn.mnc_digit2;
       nas_msg.security_protected.plain.amf.registrationacceptmsg.mobile_id
           .mobile_identity.guti.mnc_digit3 = msg->guti.guamfi.plmn.mnc_digit3;
-
       uint8_t* offset;
       offset = (uint8_t*) &msg->guti.m_tmsi;
       nas_msg.security_protected.plain.amf.registrationacceptmsg.mobile_id
@@ -1156,7 +1117,6 @@ uint16_t amf_as_dl_message::amf_as_establish_cnf(
       nas_msg.security_protected.plain.amf.registrationacceptmsg.mobile_id
           .mobile_identity.guti.tmsi4 = *offset;
       break;
-
     case AMF_AS_NAS_INFO_TAU:
       /*
        * Setup the NAS security header
@@ -1189,10 +1149,10 @@ uint16_t amf_as_dl_message::amf_as_establish_cnf(
   OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: start NAS encoding \n");
   int bytes =
       amf_as_encode(&as_msg->nas_msg, &nas_msg, size, amf_security_context);
-
   // Free any allocated data
   if (msg->nas_info == AMF_AS_NAS_INFO_REGISTERD) {
-    // TODO bdestroy_wrapper(&(amf_msg->RegistrationAcceptMsg.esamfssagecontainer));
+    // TODO
+    // bdestroy_wrapper(&(amf_msg->RegistrationAcceptMsg.esamfssagecontainer));
   }
 
   if (bytes > 0) {
@@ -1211,18 +1171,17 @@ uint16_t amf_as_dl_message::amf_as_establish_cnf(
  ** AMFAS-SAP - AMF->AS: ESTABLISH_REJ - NAS signalling connection     **
  **                                                                    **
  ** Inputs:  msg:       The AMFAS-SAP primitive to process             **
- **      Others:    None                                               **
+ **          Others:    None                                           **
  **                                                                    **
- ** Outputs:     as_msg:    The message to send to the AS              **
- **      Return:    The identifier of the AS message                   **
- **      Others:    None                                               **
- ************************************************************************/
+ ** Outputs: as_msg:    The message to send to the AS                  **
+ **          Return:    The identifier of the AS message               **
+ **          Others:    None                                           **
+ ***********************************************************************/
 uint16_t amf_as_dl_message::amf_as_establish_rej(
     const amf_as_establish_t* msg, nas5g_establish_rsp_t* as_msg) {
   AMFMsg* amf_msg = NULL;
   int size        = 0;
   amf_nas_message_t nas_msg;
-
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_INFO(
       LOG_NAS_AMF, "AMFAS-SAP - Send AS PDU connection establish reject\n");
@@ -1248,21 +1207,18 @@ uint16_t amf_as_dl_message::amf_as_establish_rej(
   if (amf_msg) {
     switch (msg->nas_info) {
       case AMF_AS_NAS_INFO_REGISTERD:
-	      //TODO
+        // TODO
         break;
-
       case AMF_AS_NAS_INFO_TAU:
         // TODO - TA upadate rejection will be taken care later
         // size = amf_send_tracking_area_update_reject(
         //    msg, &amf_msg->tracking_area_update_reject);
         break;
-
       case AMF_AS_NAS_INFO_SR:
         // TODO - Network initiated rejection will be taken care later
         // size = amf_send_service_reject(msg->amf_cause,
         // &amf_msg->service_reject);
         break;
-
       default:
         OAILOG_WARNING(
             LOG_NAS_AMF,
@@ -1277,7 +1233,6 @@ uint16_t amf_as_dl_message::amf_as_establish_rej(
     amf_security_context_t* amf_security_context = NULL;
     ue_m5gmm_context_s* ue_m5g_context =
         amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
-
     if (ue_m5g_context) {
       amf_ctx = &ue_m5g_context->amf_context;
       if (amf_ctx) {
@@ -1304,36 +1259,29 @@ uint16_t amf_as_dl_message::amf_as_establish_rej(
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_NAS_ESTABLISH_RSP_);
     }
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
 }
 
-//-----------------------------------------------------------------------------
-
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_send_security_mode_command()                              **
+ ** Name:        amf_send_security_mode_command()                          **
  **                                                                        **
  ** Description: Builds Security Mode Command message.                     **
- **                                                                        **
  **      The Security Mode Command message is sent by the network          **
  **      to the UE to establish NAS signalling security.                   **
  **                                                                        **
- ** Inputs:  msg:       The AMFAS-SAP primitive to process                 **
- **      Others:    None                                                   **
+ ** Inputs:      msg:     The AMFAS-SAP primitive to process               **
+ **              Others:  None                                             **
  **                                                                        **
- ** Outputs:     amf_msg:   The AMF message to be sent                     **
- **      Return:    The size of the AMF message                            **
- **      Others:    None                                                   **
+ ** Outputs:     amf_msg: The AMF message to be sent                       **
+ **              Return:  The size of the AMF message                      **
+ **              Others:  None                                             **
  **                                                                        **
  ***************************************************************************/
-/* For demo perspective no cypher alog will be implemented. Only need to pass
- * NULL*/
 int amf_send_security_mode_command(
     const amf_as_security_t* msg, SecurityModeCommandMsg* amf_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = AMF_HEADER_MAXIMUM_LENGTH;
-
   OAILOG_INFO(
       LOG_NAS_AMF,
       "AMF_TEST: Send Security Mode Command message for ue_id = (%u)\n",
@@ -1352,5 +1300,4 @@ int amf_send_security_mode_command(
       .m5gtypeofintegrityalgorithm = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
-
 }  // namespace magma5g

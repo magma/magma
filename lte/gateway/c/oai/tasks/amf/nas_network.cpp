@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -32,13 +32,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "bstrlib.h"
 #include "log.h"
 #ifdef __cplusplus
 }
 #endif
 #include "nas5g_network.h"
+
 using namespace std;
 namespace magma5g {
 //------------------------------------------------------------------------------

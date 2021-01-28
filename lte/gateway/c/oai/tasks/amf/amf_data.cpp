@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -89,11 +89,10 @@ void nas_amf_smc_proc_t::amf_ctx_set_security_type(
 }
 
 inline void amf_ctx_clear_attribute_present(  // TODO and define new variables
-    amf_context_t* ctxt, const int attribute_bit_pos) {
-}
+    amf_context_t* ctxt, const int attribute_bit_pos) {}
+
 //------------------------------------------------------------------------------
 /* Clear security  */
-
 void nas_amf_smc_proc_t::amf_ctx_clear_security(amf_context_t* ctxt) {
   memset(&ctxt->_security, 0, sizeof(ctxt->_security));
   smc_data.amf_ctx_set_security_type(ctxt, SECURITY_CTX_TYPE_NOT_AVAILABLE);

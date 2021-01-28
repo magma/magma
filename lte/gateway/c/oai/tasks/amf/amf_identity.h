@@ -1,15 +1,15 @@
 /* copyright 2020 The Magma Authors.
  *
- *  * This source code is licensed under the BSD-style license found in the
- *   * LICENSE file in the root directory of this source tree.
- *    *
- *     * Unless required by applicable law or agreed to in writing, software
- *      * distributed under the License is distributed on an "AS IS" BASIS,
- *       * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ ** This source code is licensed under the BSD-style license found in the
+ ** LICENSE file in the root directory of this source tree.
+ **
+ ** Unless required by applicable law or agreed to in writing, software
+ ** distributed under the License is distributed on an "AS IS" BASIS,
+ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
  * implied.
- *        * See the License for the specific language governing permissions and
- *         * limitations under the License.
- *          ****************************************************************************/
+ ** See the License for the specific language governing permissions and
+ ** limitations under the License.
+ *****************************************************************************/
 /*****************************************************************************
  *
  *   Source      amf_identity.h
@@ -22,15 +22,13 @@
  *
  *   Subsystem   Access and Mobility Management Function
  *
- *   Author      
+ *   Author
  *
  *   Description Defines Access and Mobility Management Messages
  *
  ****************************************************************************/
 
-#ifndef AMF_IDENTITY_SEEN
-#define AMF_IDENTITY_SEEN
-
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,9 +42,7 @@ extern "C" {
 #include "M5GIdentityResponse.h"
 
 using namespace std;
-
 namespace magma5g {
-
 #define AMF_CTXT_MEMBER_IMSI ((uint32_t) 1 << 0)
 #define AMF_CTXT_MEMBER_IMEI ((uint32_t) 1 << 1)
 #define MOBILE_IDENTITY_PROTECTION_SCHEME_NULL                                 \
@@ -92,7 +88,7 @@ typedef struct amf_guti_m5g_s {
 
 typedef struct supi_as_imsi_s {
   // 12 bits for MCC and 12 bits for MNC
-  amf_plmn_t plmn; /*MCC + MNC*/
+  amf_plmn_t plmn;                /*MCC + MNC*/
 #define MSIN_MAX_LENGTH 5         // for 10 digits or nibbel
   uint8_t msin[MSIN_MAX_LENGTH];  // last one would be '\0'
 } supi_as_imsi_t;
@@ -109,5 +105,3 @@ void amf_app_generate_guti_on_supi(
     amf_guti_m5g_t* amf_guti, supi_as_imsi_t* supi_imsi);
 
 }  // namespace magma5g
-
-#endif

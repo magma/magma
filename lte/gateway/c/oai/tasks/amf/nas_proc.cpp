@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -34,17 +34,15 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
 #include <sstream>
-
 #include "amf_fsm.h"
 #include "amf_asDefs.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_as.h"
 #include "amf_sap.h"
 #include "nas5g_network.h"
-using namespace std;
 
+using namespace std;
 extern amf_config_t amf_config;
 namespace magma5g {
 amf_sap_c amf_sap_op;
@@ -69,15 +67,13 @@ int nas_proc::nas_proc_establish_ind(
     amf_sap.u.amf_as.u.establish.ue_id          = ue_id;
     amf_sap.u.amf_as.u.establish.is_initial     = true;
     amf_sap.u.amf_as.u.establish.is_amf_ctx_new = is_mm_ctx_new;
-
-    amf_sap.u.amf_as.u.establish.nas_msg = msg;
+    amf_sap.u.amf_as.u.establish.nas_msg        = msg;
     // TODO -  NEED-RECHECK
     // amf_sap.u.amf_as.u.establish.tai = &originating_tai;
     // amf_sap.u.amf_as.u.establish.plmn_id            = &originating_tai.plmn;
     // amf_sap.u.amf_as.u.establish.tac                = originating_tai.tac;
     amf_sap.u.amf_as.u.establish.ecgi = ecgi;
-
-    rc = amf_sap_op.amf_sap_send(&amf_sap);
+    rc                                = amf_sap_op.amf_sap_send(&amf_sap);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -94,14 +90,12 @@ nas_5g_auth_info_proc_t* nas_new_5gcn_auth_info_procedure(
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = _nas_new_amf_procedures(amf_context);
   }
-
   nas_5g_auth_info_proc_t* auth_info_proc = new nas_5g_auth_info_proc_t;
   auth_info_proc->cn_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   // auth_info_proc->cn_proc.base_proc.type = NAS_PROC_TYPE_CN;//TODO -
   // NEED-RECHECK
-  auth_info_proc->cn_proc.type = CN5G_PROC_AUTH_INFO;
-
+  auth_info_proc->cn_proc.type  = CN5G_PROC_AUTH_INFO;
   nas5g_cn_procedure_t* wrapper = new nas5g_cn_procedure_t;
   if (wrapper) {
     wrapper->proc = &auth_info_proc->cn_proc;
@@ -128,7 +122,6 @@ nas_amf_registration_proc_t* nas_proc::get_nas_specific_procedure_registration(
   OAILOG_INFO(
       LOG_AMF_APP, "AMF-TEST:amf_specific_proc->type:%d\n",
       ctxt->amf_procedures->amf_specific_proc->type);
-
   if ((ctxt) && (ctxt->amf_procedures) &&
       (ctxt->amf_procedures->amf_specific_proc) &&
       ((AMF_SPEC_PROC_TYPE_REGISTRATION ==
@@ -136,7 +129,6 @@ nas_amf_registration_proc_t* nas_proc::get_nas_specific_procedure_registration(
     return (nas_amf_registration_proc_t*)
         ctxt->amf_procedures->amf_specific_proc;
   }
-
   return NULL;
 }
 //------------------------------------------------------------------------------
@@ -197,14 +189,12 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
       "AMF_TEST: From nas5g_new_identification_procedure amf_procedures:%p\n",
       amf_context->amf_procedures);
   nas_amf_ident_proc_t* ident_proc = new nas_amf_ident_proc_t;
-
   ident_proc->amf_com_proc.amf_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   ident_proc->amf_com_proc.amf_proc.type = NAS_AMF_PROC_TYPE_COMMON;
-  ident_proc->T3570.sec = amf_config.nas_config.t3570_sec;
-  ident_proc->T3570.id  = NAS5G_TIMER_INACTIVE_ID;
-
-  nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t;
+  ident_proc->T3570.sec                  = amf_config.nas_config.t3570_sec;
+  ident_proc->T3570.id                   = NAS5G_TIMER_INACTIVE_ID;
+  nas_amf_common_procedure_t* wrapper    = new nas_amf_common_procedure_t;
   if (wrapper) {
     OAILOG_INFO(
         LOG_AMF_APP,
@@ -228,7 +218,6 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
                 AMF NAS specific local functions
    --------------------------------------------------------------------------
 */
-
 /*
  * Description: Sends IDENTITY REQUEST message and start timer T3470.
  *
@@ -293,7 +282,6 @@ int identification::amf_proc_identification(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   identification amf_identity;  // to access respective functions
-
   amf_context->amf_fsm_state =
       AMF_REGISTERED;  // TODO AMF-TEST amf_context->amf_fsm_state is set to 0;
                        // bypass
@@ -302,7 +290,6 @@ int identification::amf_proc_identification(
     amf_ue_ngap_id_t ue_id =
         PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
             ->amf_ue_ngap_id;
-
     nas_amf_ident_proc_t* ident_proc =
         nas5g_new_identification_procedure(amf_context);
     if (ident_proc) {
@@ -313,16 +300,15 @@ int identification::amf_proc_identification(
           ident_proc->is_cause_is_registered = true;
         }
       }
-      ident_proc->identity_type        = type;
-      ident_proc->retransmission_count = 0;
-      ident_proc->ue_id                = ue_id;
-      ident_proc->amf_com_proc.amf_proc.delivered = NULL;
+      ident_proc->identity_type                                 = type;
+      ident_proc->retransmission_count                          = 0;
+      ident_proc->ue_id                                         = ue_id;
+      ident_proc->amf_com_proc.amf_proc.delivered               = NULL;
       ident_proc->amf_com_proc.amf_proc.base_proc.success_notif = success;
       ident_proc->amf_com_proc.amf_proc.base_proc.failure_notif = failure;
       ident_proc->amf_com_proc.amf_proc.base_proc.fail_in =
           NULL;  // only response
     }
-
     rc = amf_identification_request(ident_proc);
 
     if (rc != RETURNerror) {
@@ -330,14 +316,12 @@ int identification::amf_proc_identification(
        * Notify 5G CN that common procedure has been initiated
        */
       amf_sap_t amf_sap;  // = {0};
-
       amf_sap.primitive       = AMFREG_COMMON_PROC_REQ;
       amf_sap.u.amf_reg.ue_id = ue_id;
       amf_sap.u.amf_reg.ctx   = amf_context;
       rc                      = amf_sap_op.amf_sap_send(&amf_sap);
     }
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 }  // namespace magma5g

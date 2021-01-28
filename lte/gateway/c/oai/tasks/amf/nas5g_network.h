@@ -22,14 +22,12 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef NAS5G_NETWORK_SEEN
-#define NAS5G_NETWORK_SEEN
-
+#pragma once
 #include <sstream>
 #include "amf_config.h"
 #ifdef __cplusplus
@@ -39,8 +37,8 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
-using namespace std;
 
+using namespace std;
 namespace magma5g {
 class nas_network {
  public:
@@ -49,5 +47,3 @@ class nas_network {
   void free_wrapper(void** ptr);
 };
 }  // namespace magma5g
-
-#endif

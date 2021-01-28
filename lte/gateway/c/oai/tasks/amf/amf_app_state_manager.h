@@ -19,15 +19,12 @@
   Author      Sanjay Kumar Ojha
   Description Define and  access AMF/NAS state
 *****************************************************************************/
-#ifndef AMF_APP_STATE_MANAGER_SEEN
-#define AMF_APP_STATE_MANAGER_SEEN
-
+#pragma once
 #include <sstream>
 #include "amf_common_defs.h"
-//#include "amf_app_desc.h"
 #include "amf_app_defs.h"  //includes amf_app_ue_context.h
-using namespace std;
 
+using namespace std;
 namespace magma5g {
 /**
  * Return pointer to the in-memory AMF/NAS state from state manager before
@@ -39,7 +36,6 @@ amf_app_desc_t* get_amf_nas_state(bool read_from_redis);
 
 /* Retriving respective global hash table*/
 hash_table_ts_t* get_amf_ue_state();
-
 int amf_nas_state_init(const amf_config_t* amf_config_p);
 
 /**
@@ -47,7 +43,6 @@ int amf_nas_state_init(const amf_config_t* amf_config_p);
  * that contains functions to maintain Amf and NAS state, i.e. for allocating
  * and freeing state structs, and writing/reading state to db.
  */
-
 class AmfNasStateManager {
  public:
   /**
@@ -70,7 +65,6 @@ class AmfNasStateManager {
    * Release the memory for Amf NAS state and destroy the read-write lock. This
    * is only called when task terminates
    */
-
   void free_state();
 
   // int read_ue_state_from_db(); TODO NEED-RECHECK during state machine impl
@@ -98,10 +92,7 @@ class AmfNasStateManager {
   amf_app_desc_t* state_cache_p;
 
  private:
-  // Constructor for Amf NAS state manager
   AmfNasStateManager() {}
-
-  // Destructor for Amf NAS state manager
   ~AmfNasStateManager() {}
 
   // Initialize state that is non-persistent, e.g. mutex locks and timers
@@ -120,6 +111,4 @@ class AmfNasStateManager {
   // Clean-up the in-memory hashtables
   void clear_amf_nas_hashtables();
 };
-
 }  // end namespace magma5g
-#endif

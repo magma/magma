@@ -23,14 +23,12 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef AMF_DATA_SEEN
-#define AMF_DATA_SEEN
-
+#pragma once
 #include <sstream>
 #include <thread>
 #ifdef __cplusplus
@@ -42,6 +40,7 @@ extern "C" {
 };
 #endif
 #include "amf_securityDef.h"
+
 using namespace std;
 typedef uint8_t ksi_t;
 #define AMF_CTXT_MEMBER_AUTH_VECTORS ((uint32_t) 1 << 7)
@@ -49,24 +48,19 @@ typedef uint8_t ksi_t;
 #define AMF_CTXT_MEMBER_GUTI ((uint32_t) 1 << 4)
 #define AMF_CTXT_MEMBER_OLD_GUTI ((uint32_t) 1 << 3)
 #define AMF_CTXT_MEMBER_AUTH_VECTOR0 ((uint32_t) 1 << 26)
-
 #define IS_AMF_CTXT_PRESENT_SECURITY(aMfCtXtPtR)                               \
   (!!((aMfCtXtPtR)->member_present_mask & AMF_CTXT_MEMBER_SECURITY))
-
 #define IS_AMF_CTXT_VALID_AUTH_VECTORS(aMfCtXtPtR)                             \
   (!!((aMfCtXtPtR)->member_valid_mask & AMF_CTXT_MEMBER_AUTH_VECTORS))
-
 #define IS_AMF_CTXT_VALID_AUTH_VECTOR(aMfCtXtPtR, KsI)                         \
   (!!((aMfCtXtPtR)->member_valid_mask &                                        \
       ((AMF_CTXT_MEMBER_AUTH_VECTOR0) << KsI)))
-
 #define AUTS_LENGTH 14
 #define RAND_LENGTH_BITS (128)
 #define RAND_LENGTH_OCTETS (RAND_LENGTH_BITS / 8)
 #define M5G_IMSI_BCD_DIGITS_MAX 15
 
 namespace magma5g {
-
 class capability {
  public:
   uint8_t m5gs_encryption; /* algorithm used for ciphering            */
@@ -83,6 +77,7 @@ typedef struct selected_algorithms_s {
   uint8_t encryption : 4; /* algorithm used for ciphering           */
   uint8_t integrity : 4;  /* algorithm used for integrity protection */
 } selected_algorithms_t;  /* AMF selected algorithms                */
+
 typedef struct count_s {
   uint32_t spare : 8;
   uint32_t overflow : 16;
@@ -112,7 +107,6 @@ class amf_security_context_t : public count_s, public capability {
   // security keys for HO
   uint8_t next_hop[AUTH_NEXT_HOP_SIZE]; /* Next HOP security parameter */
   uint8_t next_hop_chaining_count;      /* Next Hop Chaining Count */
-
 };
 
 // TODO -  NEED-RECHECK
@@ -121,7 +115,6 @@ typedef struct n6_auth_info_req_s {
   uint8_t imsi_length;
   /* Number of vectors to retrieve from HSS, should be equal to one */
   uint8_t nb_of_vectors;
-
   /* Bit to indicate that USIM has requested a re-synchronization of SQN */
   unsigned re_synchronization : 1;
   /* AUTS to provide to AUC.
@@ -136,4 +129,3 @@ typedef enum {
 } amf_imeisv_req_type_t;
 
 }  // namespace magma5g
-#endif

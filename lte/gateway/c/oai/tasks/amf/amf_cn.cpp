@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -40,19 +40,15 @@ extern "C" {
 #include "amf_identity.h"
 
 using namespace std;
-
 namespace magma5g {
-
 amf_identity_msg identity_msg;
 int amf_cn_send(const amf_cn_t* msg) {
   int rc                       = RETURNerror;
   amf_cn_primitive_t primitive = msg->primitive;
-
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-
   switch (primitive) {
     case AMFCN_AUTHENTICATION_PARAM_RES:
-	    //TODO
+      // TODO
       break;
     case AMFCN_IDENTITY_PARAM_RES:
       OAILOG_ERROR(
@@ -61,7 +57,6 @@ int amf_cn_send(const amf_cn_t* msg) {
           "response retuning to invoke authentication request\n");
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
       break;
-
     default:
       /*
        * Other primitives are forwarded to the Access Stratum
@@ -71,7 +66,7 @@ int amf_cn_send(const amf_cn_t* msg) {
   }
 
   if (rc != RETURNok) {
-	  //TODO
+    // TODO
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

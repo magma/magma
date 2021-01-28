@@ -22,14 +22,12 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef AMF_APP_UE_CONTEXT_AND_PROC_SEEN
-#define AMF_APP_UE_CONTEXT_AND_PROC_SEEN
-
+#pragma once
 #include <sstream>
 #include <thread>
 #ifdef __cplusplus
@@ -76,7 +74,6 @@ extern "C" {
 #include "M5GDLNASTransport.h"
 
 using namespace std;
-
 namespace magma5g {
 #define NAS5G_TIMER_INACTIVE_ID (-1)
 class amf_procedures_t;
@@ -85,18 +82,14 @@ class amf_procedures_t;
  * failed to be started)
  */
 #define AMF_APP_TIMER_INACTIVE_ID (-1)
-
 #define AMF_APP_DELTA_T3512_REACHABILITY_TIMER 4            // in minutes
 #define AMF_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER 0  // in minutes
-
-#define AMF_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 2  // In seconds
-#define AMF_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE 2    // In seconds
-#define AMF_APP_PAGING_RESPONSE_TIMER_VALUE 4            // In seconds
-#define AMF_APP_ULR_RESPONSE_TIMER_VALUE 3               // In seconds
-
+#define AMF_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 2     // In seconds
+#define AMF_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE 2       // In seconds
+#define AMF_APP_PAGING_RESPONSE_TIMER_VALUE 4               // In seconds
+#define AMF_APP_ULR_RESPONSE_TIMER_VALUE 3                  // In seconds
 #define NAS_SECURITY_ALGORITHMS_MINIMUM_LENGTH 1
 #define NAS5G_SECURITY_ALGORITHMS_MAXIMUM_LENGTH 2
-
 #define NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH 253
 
 /* Timer structure */
@@ -104,9 +97,6 @@ typedef struct amf_app_timer_s {
   long id;  /* The timer identifier                 */
   long sec; /* The timer interval value in seconds  */
 } amf_app_timer_t;
-
-//=============================
-//#if 1
 
 typedef struct ie_header_t {
   uint16_t protocol_id;
@@ -175,7 +165,6 @@ typedef struct pdu_session_resource_setup_rsp_s {
 
 } pdu_session_resource_setup_rsp_t;
 
-//=============================
 // Structure to handle Resource Release Response from gNB
 typedef enum {
   NR,
@@ -216,8 +205,6 @@ typedef struct pdu_session_resource_released_list_s {
   pdu_session_resource_released_item released_item;
 } pdu_session_resource_released_list;
 
-//=============================
-
 // Reusing structures
 typedef struct pdu_session_resource_setup_req_s {
   /*
@@ -227,6 +214,7 @@ typedef struct pdu_session_resource_setup_req_s {
   ngap_ue_aggregate_maximum_bit_rate_t pdu_aggregate_maximum_bit_rate;
   Ngap_PDUSessionID_t Pdu_Session_ID;  // from NGAP
   Ngap_SNSSAI_t Ngap_s_nssai;          // S-NSSAI as defined in TS 23.003 [23]
+
   // heavily nested structure
   pdu_session_resource_setup_request_transfer_t
       pdu_session_resource_setup_request_transfer;  // pdu_res_set_change
@@ -261,6 +249,7 @@ typedef struct smf_context_s {
   QOSRule qos_rules[32];     // QOS rules
   teid_upf_gnb_t gtp_tunnel_id;
   smf_proc_data_t smf_proc_data;
+
   // Request to gnb on PDU establisment request
   pdu_session_resource_setup_req_t pdu_resource_setup_req;
   pdu_session_resource_setup_rsp_t pdu_resource_setup_rsp;
@@ -304,7 +293,7 @@ class amf_context_t {
   imeisv_t _imeisv;      /* The IMEISV provided by the UE                   */
   guti_m5_t _m5_guti;    /* The GUTI assigned to the UE                     */
   guti_m5_t m5_old_guti; /* The GUTI assigned to the UE                     */
-  ksi_t ksi; /*key set identifier  */
+  ksi_t ksi;             /*key set identifier  */
   drx_parameter_t _drx_parameter;
   int remaining_vectors;  // remaining unused vectors
   m5g_auth_vector_t
@@ -317,19 +306,10 @@ class amf_context_t {
                     simultaneously with a native
                                       // non-current 5GMM security context.*/
 
-  // Requirement MME24.301R10_4.4.2.1_2
-  // amf_security_context_t  _non_current_security; /* Non-current 5GMM security
-  // context: A native 5GMM security context that is not the current one. A
-  // non-current 5GMM
-  /* security context may be stored along with a current 5GMM security context
-   in the UE and the MME. A non-current 5GMM security context does not contain
-   an 5GMM AS security context. A non-current 5GMM security context is either of
-   type 'full native' or of type 'partial native'.     */
-
-  int amf_cause; /* EMM failure cause code                          */
+  int amf_cause; /* AMF failure cause code                          */
   amf_fsm_state_t amf_fsm_state;
   void* t3422_arg;
-  smf_context_t smf_context;  // smf contents
+  smf_context_t smf_context;              // smf contents
   drx_parameter_t _current_drx_parameter; /* stored TAU Request IE Requirement
                                              AMF24.501R15_5.5.3.2.4_4*/
 
@@ -355,10 +335,12 @@ enum m5gmm_state_t {
   UE_UNREGISTERED = 0,
   UE_REGISTERED,
 };
+
 enum m5gcm_state_t {
   M5GCM_IDLE = 0,
   M5GCM_CONNECTED,
 };
+
 class ue_m5gmm_context_s  //:public amf_context_t
 {
  public:
@@ -368,7 +350,6 @@ class ue_m5gmm_context_s  //:public amf_context_t
    *         in the HSS, set by S6A UPDATE LOCATION ANSWER
    */
   bstring msisdn;
-
   ngap_Cause_t
       ue_context_rel_cause;  // define require for Ngcause in NGAP module
   m5gmm_state_t mm_state;
@@ -387,16 +368,15 @@ class ue_m5gmm_context_s  //:public amf_context_t
 
   /* apn_config_profile: set by UPDATE LOCATION ANSWER */
   apn_config_profile_t apn_config_profile;
-
   amf_context_t amf_context;
 
   /* access_restriction_data: The access restriction subscription information.
    *           set by UPDATE LOCATION ANSWER
    */
   ard_t access_restriction_data;
-
   bstring apn_oi_replacement;
   teid_t amf_teid_n11;
+
   /* SCTP assoc id */
   sctp_assoc_id_t sctp_assoc_id_key;
 
@@ -412,16 +392,17 @@ class ue_m5gmm_context_s  //:public amf_context_t
    *           subscription of the user. Set by SMF UPDATE LOCATION ANSWER
    */
   ambr_t subscribed_ue_ambr;
+
   /* used_ue_ambr: The currently used Maximum Aggregated uplink and downlink
    *           MBR values to be shared across all Non-GBR bearers.
    *           Set by S6A UPDATE LOCATION ANSWER
    */
   ambr_t used_ue_ambr;
+
   /* rau_tau_timer: Indicates a subscribed Periodic RAU/TAU Timer value
    *           Set by S6A UPDATE LOCATION ANSWER
    */
   rau_tau_timer_t rau_tau_timer;
-
   int nb_active_pdn_contexts;
 
   // TODO Required during dual connectivity communication
@@ -436,26 +417,33 @@ class ue_m5gmm_context_s  //:public amf_context_t
    *             Stop when UE moves to connected state
    */
   amf_app_timer_t m5_mobile_reachability_timer;
+
   /* implicit_detach_timer: Start at the expiry of Mobile Reachability timer.
    * Stop when UE moves to connected state
    */
   amf_app_timer_t m5_implicit_detach_timer;
+
   /* Initial Context Setup Procedure Guard timer */
   amf_app_timer_t m5_initial_context_setup_rsp_timer;
+
   /* UE Context Modification Procedure Guard timer */
   amf_app_timer_t m5_ue_context_modification_timer;
+
   /* Timer for retrying paging messages */
   amf_app_timer_t m5_paging_response_timer;
+
   /* send_ue_purge_request: If true AMF shall send - Purge Req to
    * delete contexts at HSS
    */
   bool send_ue_purge_request;
   bool hss_initiated_detach;
   bool location_info_confirmed_in_hss;
+
   /* S6a- update location request guard timer */
   amf_app_timer_t m5_ulr_response_timer;
   uint8_t registration_type;
   lai_t lai;
+
   /* granted_service_t: informs the granted service to UE */
   // TODO required during dual connectivity (DC)
   // granted_service_t m5_granted_service;
@@ -473,6 +461,7 @@ class ue_m5gmm_context_s  //:public amf_context_t
   network_access_mode_t network_access_mode;
   bool path_switch_req;
 };
+
 /** @class ue_m5gmm_context_s
  *  @brief Useful parameters to know in AMF application layer. They are set
  * according to 3GPP TS.23.518 #6.1.6.2.25
@@ -499,9 +488,9 @@ class ue_mm_context {
   std::string smsfId;  // NfInstanceId type
   std::string
       seafData;  // SeafData which will come while AUSF communication for AUTN.
-  std::string pcfId;           // NfInstanceId
-  std::string pcfAmPolicyUri;  // Uri
-  std::string pcfUePolicyUri;  // Uri
+  std::string pcfId;                   // NfInstanceId
+  std::string pcfAmPolicyUri;          // Uri
+  std::string pcfUePolicyUri;          // Uri
   std::string hpcfId;                  // NfInstanceId
   std::string restrictedRatList;       // array(RatType)
   std::string forbiddenAreaList;       // array(Area)
@@ -511,6 +500,7 @@ class ue_mm_context {
   std::string mmContextList;           // array(MmContext)
   std::string sessionContextList;      // array(PduSessionContext)
   std::string traceData;               // TraceData
+
   /* SCTP assoc id */
   sctp_assoc_id_t sctp_assoc_id_key;
 
@@ -552,14 +542,14 @@ int amf_context_upsert_imsi(amf_context_t* elm) __attribute__((nonnull));
 void amf_ctx_set_valid_imsi(
     amf_context_t* ctxt, imsi_t* imsi, const imsi64_t imsi64)
     __attribute__((nonnull)) __attribute__((flatten));
+
 void amf_ctx_set_attribute_valid(
     amf_context_t* ctxt, const uint32_t attribute_bit_pos)
     __attribute__((nonnull)) __attribute__((flatten));
+
 void amf_ctx_set_attribute_present(
     amf_context_t* ctxt, const int attribute_bit_pos) __attribute__((nonnull))
 __attribute__((flatten));
-
-//========== merged from amf_message.h =======
 
 class amf_msg_header;
 // moved from amf_msfdefs.com
@@ -643,8 +633,6 @@ typedef struct amf_nas_message_s {
   nas_message_plain_t plain;
 } amf_nas_message_t;
 
-//=========== merged from amf_nas5g_proc.h======
-
 typedef enum {
   CN5G_PROC_NONE = 0,
   CN5G_PROC_AUTH_INFO,
@@ -674,20 +662,19 @@ typedef int (*success_cb_t)(amf_context_t* amf_ctx);
 typedef int (*failure_cb_t)(amf_context_t* amf_ctx);
 typedef int (*proc_abort_t)(
     amf_context_t* amf_ctx, nas5g_base_proc_t* nas_proc);
-
 typedef int (*pdu_in_resp_t)(
     amf_context_t* amf_ctx, void* arg);  // can be RESPONSE, COMPLETE, ACCEPT
 typedef int (*pdu_in_rej_t)(amf_context_t* amf_ctx, void* arg);  // REJECT.
 typedef int (*pdu_out_rej_t)(
     amf_context_t* amf_ctx, nas5g_base_proc_t* nas_proc);  // REJECT.
 typedef void (*time_out_t)(void* arg);
-
 typedef int (*sdu_out_delivered_t)(
     amf_context_t* amf_ctx, nas_amf_proc_t* nas_proc);
 typedef int (*sdu_out_not_delivered_t)(
     amf_context_t* amf_ctx, nas_amf_proc_t* nas_proc);
 typedef int (*sdu_out_not_delivered_ho_t)(
     amf_context_t* amf_ctx, nas_amf_proc_t* nas_proc);
+
 /*Global variable and needed to increment based on nas procedures*/
 static uint64_t nas_puid = 1;
 
@@ -712,16 +699,17 @@ enum nas_amf_proc_type_t {
   NAS_AMF_PROC_TYPE_COMMON,
   NAS_AMF_PROC_TYPE_CONN_MNGT,
 };
+
 // AMF Specific procedures
 class nas_amf_proc_t {
  public:
   nas5g_base_proc_t base_proc;
   nas_amf_proc_type_t type;  // specific, common, connection management
+
   // SDU interface
   sdu_out_delivered_t delivered;
   sdu_out_not_delivered_t not_delivered;
   sdu_out_not_delivered_ho_t not_delivered_ho;
-
   amf_fsm_state_t previous_amf_fsm_state;
 };
 
@@ -738,7 +726,6 @@ enum amf_specific_proc_type_t {
 };
 
 /*Deregistration specific elements*/
-
 typedef enum deregistration_switchoff_e {
   /*In the UE to network direction, octate 1, 4th bit*/
   AMF_NORMAL_DEREGISTRATION = 0,
@@ -788,7 +775,7 @@ class nas_amf_auth_proc_t {
   nas5g_timer_t T3560; /* Authentication timer         */
 #define AUTHENTICATION_COUNTER_MAX 5
   unsigned int retransmission_count;
-#define EMM_AUTHENTICATION_SYNC_FAILURE_MAX 2
+#define AMF_AUTHENTICATION_SYNC_FAILURE_MAX 2
   unsigned int
       sync_fail_count; /* counter of successive AUTHENTICATION FAILURE messages
                       from the UE with AMF cause #21 "synch failure" */
@@ -836,21 +823,16 @@ class m5g_authentication : public amf_context_t {
       nas_amf_specific_proc_t* const amf_specific_proc, ksi_t ksi,
       const uint8_t* const rand, const uint8_t* const autn,
       success_cb_t success, failure_cb_t failure);
-
   int amf_proc_authentication(
       amf_context_t* amf_context,
       nas_amf_specific_proc_t* const amf_specific_proc, success_cb_t success,
       failure_cb_t failure);
-
   int amf_proc_authentication_failure(
       amf_ue_ngap_id_t ue_id, int amf_cause, const_bstring auts);
-
   int amf_proc_authentication_complete(
       amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg* msg, int amf_cause,
       const unsigned char* res);
-
   int amf_registration_security(amf_context_t* amf_context);
-
   void set_notif_callbacks_for_5g_auth_proc(nas_amf_auth_proc_t* auth_proc);
   void set_callbacks_for_5g_auth_proc(nas_amf_auth_proc_t* auth_proc);
   void set_callbacks_for_5g_auth_info_proc(
@@ -877,6 +859,7 @@ class nas_proc {
   nas_amf_common_proc_t* get_nas5g_common_procedure(
       const amf_context_t* const ctxt, amf_common_proc_type_t proc_type);
 };
+
 // 5G CN Specific procedures
 typedef struct nas_amf_common_procedure_s {
   nas_amf_common_proc_t* proc;
@@ -894,8 +877,6 @@ typedef struct nas_amf_ident_proc_s {
   identity_type2_t identity_type;
 } nas_amf_ident_proc_t;
 
-//======== merged from amf_proc.h================
-
 enum amf_proc_registration_type_t {
   AMF_REGISTRATION_TYPE_INITIAL = 1,
   AMF_REGISTRATION_TYPE_MOBILITY_UPDATING,
@@ -903,6 +884,7 @@ enum amf_proc_registration_type_t {
   AMF_REGISTRATION_TYPE_EMERGENCY,
   AMF_REGISTRATION_TYPE_RESERVED = 7,
 };
+
 class amf_registration_request_ies_t : public RegistrationRequestMsg {
  public:
   amf_registration_request_ies_t() {}
@@ -942,7 +924,6 @@ class amf_procedures_t {
   LIST_HEAD(nas5g_cn_procedures_head_s, nas5g_cn_procedure_s)
   cn_procs;  // triggered by AMF
              // nas_amf_con_mngt_proc_t* amf_con_mngt_proc;
-
   int nas_proc_mess_sign_next_location;  // next index in array
 #define MAX_NAS_PROC_MESS_SIGN 3
   nas5g_proc_mess_sign_t nas_proc_mess_sign[MAX_NAS_PROC_MESS_SIGN];
@@ -954,8 +935,6 @@ class amf_procedures_t {
 0 1 1 periodic registration updating
 1 0 0 emergency registration
 */
-
-//============= merged from amf_nas_common_defs.h=========
 
 class nas_amf_registration_proc_t  //: public amf_registration_request_ies_t
 {
@@ -975,9 +954,6 @@ class nas_amf_registration_proc_t  //: public amf_registration_request_ies_t
   int amf_cause;
 };
 
-//===========/end  merged from amf_nas5g_proc.h======
-
-//=========== moved from data.h ============
 class nas_amf_smc_proc_t {
  public:
   nas_amf_common_proc_t amf_com_proc;
@@ -989,9 +965,8 @@ class nas_amf_smc_proc_t {
   int eea;                           /* Replayed 5G encryption algorithms    */
   int eia;                           /* Replayed 5G integrity algorithms     */
   int ucs2;                          /* Replayed Alphabet                     */
-
-  int selected_eea;        /* Selected 5G encryption algorithms    */
-  int selected_eia;        /* Selected 5G integrity algorithms     */
+  int selected_eea;                  /* Selected 5G encryption algorithms    */
+  int selected_eia;                  /* Selected 5G integrity algorithms     */
   int saved_selected_eea;  /* Previous selected 5G encryption algorithms    */
   int saved_selected_eia;  /* Previous selected 5G integrity algorithms     */
   int saved_eksi;          /* Previous ksi     */
@@ -1000,7 +975,7 @@ class nas_amf_smc_proc_t {
   amf_sc_type_t saved_sc_type;
   bool notify_failure; /* Indicates whether the identification
                         * procedure failure shall be notified
-                        * to the ongoing EMM procedure */
+                        * to the ongoing AMF procedure */
   bool is_new;         /* new security context for SMC header type */
   bool imeisv_request;
   void amf_ctx_clear_security(amf_context_t* ctxt) __attribute__((nonnull))
@@ -1015,25 +990,19 @@ typedef struct nas_amf_info_proc_s {
 
 nas_5g_auth_info_proc_t* nas_new_5gcn_auth_info_procedure(
     amf_context_t* const amf_context);
-
 amf_fsm_state_t amf_fsm_get_state(amf_context_t* amf_context);
-
 void amf_free_send_authentication_request(AuthenticationRequestMsg* amf_msg);
-
 nas_amf_smc_proc_t* get_nas5g_common_procedure_smc(const amf_context_t* ctxt);
 nas5g_cn_proc_t* get_nas5g_cn_procedure(
     const amf_context_t* ctxt, cn5g_proc_type_t proc_type);
 nas_5g_auth_info_proc_t* get_nas5g_cn_procedure_auth_info(
     const amf_context_t* ctxt);
-
 void amf_app_state_free_ue_context(void** ue_context_node);
 int amf_proc_security_mode_control(
     amf_context_t* amf_ctx, nas_amf_specific_proc_t* amf_specific_proc,
     ksi_t ksi, success_cb_t success, failure_cb_t failure);
-
 void amf_proc_create_procedure_registration_request(
     ue_m5gmm_context_s* ue_ctx, amf_registration_request_ies_t* ies);
-
 amf_procedures_t* _nas_new_amf_procedures(amf_context_t* amf_context);
 int amf_proc_amf_informtion(ue_m5gmm_context_s* ue_amf_ctx);
 
@@ -1052,6 +1021,4 @@ int pdu_session_resource_release_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id);
 void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
-
 }  // namespace magma5g
-#endif

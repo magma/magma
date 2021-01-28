@@ -22,11 +22,12 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
+#pragma once
 #include <sstream>
 #include "securityDef.h"
 #include "common_types.h"
@@ -34,6 +35,7 @@
 #include "TrackingAreaIdentity.h"
 #include "amf_config.h"
 #include "SmfMessage.h"
+
 using namespace std;
 #pragma once
 namespace magma5g {
@@ -51,12 +53,10 @@ namespace magma5g {
 #define EMM_CAUSE_MESSAGE_NOT_COMPATIBLE 101
 #define EMM_CAUSE_PROTOCOL_ERROR 111
 #define AMF_CAUSE_PROTOCOL_ERROR 111
-
 #define PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED_t 0
 #define PROCEDURE_TRANSACTION_IDENTITY_FIRST_t 1
 #define PROCEDURE_TRANSACTION_IDENTITY_LAST_t 254
 #define PROCEDURE_TRANSACTION_IDENTITY_RESERVED_t 255
-
 //------------------------------------------------------------------------------
 // Causes related to nature of request
 //------------------------------------------------------------------------------
@@ -159,7 +159,6 @@ typedef struct amf_smf_release_s {
 
 typedef enum amf_smf_primitive_s {
   _AMFSMF_START = 400,
-
   _AMFSMF_END
 } amf_smf_primitive_t;
 

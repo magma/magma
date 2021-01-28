@@ -1,7 +1,6 @@
 /* file ngap_cause.h
  */
-#ifndef NGAP_CAUSE_SEEN
-#define NGAP_CAUSE_SEEN
+#pragma once
 typedef enum ngap_Cause_PR {
   ngap_Cause_PR_NOTHING = 0,
   ngap_Cause_PR_radioNetwork,
@@ -101,5 +100,3 @@ typedef struct ngap_Cause {
     e_ngap_CauseMisc misc;                  // Miscellaneous Cause
   } ngapCause_u;
 } ngap_Cause_t;
-
-#endif

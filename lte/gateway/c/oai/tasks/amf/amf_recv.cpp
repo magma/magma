@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -50,10 +50,10 @@ extern "C" {
 #include "amf_recv.h"
 #include "amf_identity.h"
 #include "common_types.h"
+
 using namespace std;
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
-
 amf_identity_msg amf_identity_rcv;
 m5g_authentication m5g_authentication_rcv;
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
@@ -86,7 +86,6 @@ int amf_procedure_handler::amf_handle_registration_request(
   if (amf_cause != AMF_CAUSE_SUCCESS) {
     rc = amf_reg_proc.amf_proc_registration_reject(ue_id, amf_cause);
   }
-
   amf_registration_request_ies_t* params = new (amf_registration_request_ies_t);
   /*
    * Message processing
@@ -97,7 +96,6 @@ int amf_procedure_handler::amf_handle_registration_request(
   params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_RESERVED;
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
-
   } else if (
       msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_MOBILITY_UPDATING) {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_MOBILITY_UPDATING;
@@ -111,11 +109,10 @@ int amf_procedure_handler::amf_handle_registration_request(
   } else {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
   }
-
   /*
    * Get the AMF mobile identity
    */
- // TODO -  NEED-RECHECK
+  // TODO -  NEED-RECHECK
 
   /* This is SUCI message identity type is SUPI as IMSI type
    * Extract the SUPI from SUCI directly as scheme is NULL */
@@ -146,10 +143,8 @@ int amf_procedure_handler::amf_handle_registration_request(
           &supi_imsi.msin,
           &msg->m5gs_mobile_identity.mobile_identity.imsi.scheme_output,
           MSIN_MAX_LENGTH);
-
       // Copy entire supi_imsi to param->imsi->u.value
       memcpy(&params->imsi->u.value, &supi_imsi, IMSI_BCD8_SIZE);
-
       OAILOG_INFO(
           LOG_AMF_APP,
           "AMF_TEST : printing SUPI/IMSI from params->imsi->u.value\n");
@@ -160,7 +155,6 @@ int amf_procedure_handler::amf_handle_registration_request(
           params->imsi->u.value[2], params->imsi->u.value[3],
           params->imsi->u.value[4], params->imsi->u.value[5],
           params->imsi->u.value[6], params->imsi->u.value[7]);
-
     }
   }
 
@@ -244,12 +238,10 @@ int amf_procedure_handler::amf_handle_identity_response(
       supi_imsi.plmn.mnc_digit1 = msg->mobile_identity.imsi.mnc_digit1;
       supi_imsi.plmn.mnc_digit2 = msg->mobile_identity.imsi.mnc_digit2;
       supi_imsi.plmn.mnc_digit3 = msg->mobile_identity.imsi.mnc_digit3;
-
       // copy 5 octet scheme_output to msin of supi_imsi
       memcpy(
           &supi_imsi.msin, &msg->mobile_identity.imsi.scheme_output,
           MSIN_MAX_LENGTH);
-
       // Copy entire supi_imsi to imsi.u.value which is 8 bytes
       memcpy(&imsi.u.value, &supi_imsi, IMSI_BCD8_SIZE);
       OAILOG_INFO(
@@ -280,7 +272,6 @@ int amf_procedure_handler::amf_handle_identity_response(
      * If authentication request rejected by UE, the MAP has to be cleared
      */
     amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
-
     uint8_t* offset_plmn;  // Only testing
     offset_plmn = (uint8_t*) &amf_guti.guamfi.plmn;
     uint8_t* octet1;
@@ -303,14 +294,6 @@ int amf_procedure_handler::amf_handle_identity_response(
         *set_id_pointer);
     OAILOG_INFO(
         LOG_NAS_AMF, "AMF_TEST: 5G-TMSI as 0x%08" PRIx32 "\n", amf_guti.m_tmsi);
-    //===== Only debugging purpose and will be deleted later=======
-    uint8_t plmn3ch[3];
-    memset(plmn3ch, 0, 3);
-    memcpy(&plmn3ch, &amf_guti, 3);
-    OAILOG_INFO(
-        LOG_AMF_APP,
-        "AMF_TEST: PLMN from GUTI generated function 3 octets  0x%02x%02x%02x",
-        plmn3ch[0], plmn3ch[1], plmn3ch[2]);
 
     /* Need to store guti in amf_ctx as well for quick access
      * which will be used to send in DL message during registration
@@ -322,8 +305,7 @@ int amf_procedure_handler::amf_handle_identity_response(
     /* store this GUTI in
      * unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map
      */
-    imsi64_t imsi64 = amf_imsi_to_imsi64(&imsi);
-
+    imsi64_t imsi64                = amf_imsi_to_imsi64(&imsi);
     guti_and_amf_id.amf_guti       = amf_guti;
     guti_and_amf_id.amf_ue_ngap_id = ue_id;
 
@@ -358,28 +340,26 @@ int amf_procedure_handler::amf_handle_identity_response(
 }
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_handle_authentication_response()                        **
+ ** Name:    amf_handle_authentication_response()                          **
  **                                                                        **
  ** Description: Processes Authentication Response message                 **
  **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                  **
- **      msg:       The received AMF message                   **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      msg:       The received AMF message                               **
+ **      Others:    None                                                   **
  **                                                                        **
- ** Outputs:     amf_cause: AMF cause code                             **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
- **                                                                      **
+ ** Outputs:     amf_cause: AMF cause code                                 **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
  ***************************************************************************/
 int amf_procedure_handler::amf_handle_authentication_response(
     amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNok;
-
   OAILOG_INFO(
       LOG_NAS_AMF, "AMF_TEST: Received AUTHENTICATION_RESPONSE message\n");
-
   /*
    * Message checking
    */
@@ -399,7 +379,6 @@ int amf_procedure_handler::amf_handle_authentication_response(
         LOG_AMF_APP, "AMF-TEST: != AMF_CAUSE_SUCCESS, from %s\n", __FUNCTION__);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-
   /*
    * Execute the authentication completion procedure
    */

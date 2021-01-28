@@ -42,10 +42,8 @@ extern "C" {
 #include "ngap_messages_types.h"
 
 using namespace std;
-
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
-
 /*
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
@@ -59,7 +57,6 @@ void ambr_calculation_pdu_session(
      */
     *dl_pdu_ambr = (64 * 32768);
     *ul_pdu_ambr = (64 * 32768);
-
   } else {
     // refer 24-501 9.11.4.14
     switch (smf_context->dl_ambr_unit) {
@@ -80,6 +77,7 @@ void ambr_calculation_pdu_session(
         *dl_pdu_ambr = (256 * smf_context->dl_session_ambr);
         break;
     }
+
     switch (smf_context->ul_ambr_unit) {
       case 1:
         *ul_pdu_ambr = (1 * smf_context->ul_session_ambr);
@@ -141,15 +139,12 @@ int pdu_session_resource_setup_request(
   // start filling message in DL to NGAP
   ngap_pdu_ses_setup_req->gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
   ngap_pdu_ses_setup_req->amf_ue_ngap_id = amf_ue_ngap_id;
-
   /*
    * by this time amf and smf context available but ambr for pdu not available
    * considering default or max bit rate.
    * leveraged ambr calculation from qos_params_to_eps_qos and 24-501 spec used
    */
   ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
-
-  // ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate_present = true;
   ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl = dl_pdu_ambr;
   ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul = ul_pdu_ambr;
 
@@ -165,6 +160,7 @@ int pdu_session_resource_setup_request(
    */
   amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
   amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
+
   // UPF tied 4 octet and respective ip address are from
   // SMF date that written to context
   memcpy(
@@ -194,6 +190,7 @@ int pdu_session_resource_setup_request(
           .qos_flow_level_qos_param.alloc_reten_priority.priority_level;
   amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
       .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap =
+
       // MAY_TRIGGER_PRE_EMPTION;
       smf_context->pdu_resource_setup_req
           .pdu_session_resource_setup_request_transfer
@@ -201,13 +198,14 @@ int pdu_session_resource_setup_request(
           .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap;
   amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
       .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul =
+
       // PRE_EMPTABLE;
       smf_context->pdu_resource_setup_req
           .pdu_session_resource_setup_request_transfer
           .qos_flow_setup_request_list.qos_flow_req_item
           .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul;
-  // Adding respective header to amf_pdu_ses_setup_transfer_request
 
+  // Adding respective header to amf_pdu_ses_setup_transfer_request
   // Convert amf_pdu_ses_setup_transfer_req to bstring and assign to message_p
   OAILOG_INFO(
       LOG_AMF_APP,
@@ -225,7 +223,7 @@ int pdu_session_resource_setup_request(
 int pdu_session_resource_release_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id) {
   if (!ue_context) {
-    // TODO 
+    // TODO
   }
   itti_ngap_pdusessionresource_rel_req_t* ngap_pdu_ses_release_req = nullptr;
   MessageDef* message_p                                            = nullptr;
@@ -261,18 +259,16 @@ int pdu_session_resource_release_request(
   amf_pdu_ses_rel_transfer_req.cause.cause_group.cause_group_type = NAS_GROUP;
 
   // Convert amf_pdu_ses_setup_transfer_req to bstring and assign to message_p
-
   OAILOG_INFO(
-      LOG_AMF_APP,
-      "filling pdu_session_resource_release_command_transfer\n");
+      LOG_AMF_APP, "filling pdu_session_resource_release_command_transfer\n");
   ngap_pdu_ses_release_req->pduSessionResourceToRelReqList.item[0]
       .PDU_Session_Resource_TO_Release_Command_Transfer =
       amf_pdu_ses_rel_transfer_req;
+
   // Send message to NGAP task
   send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
 
   return RETURNok;
 }
-
 }  // end  namespace magma5g
 #endif

@@ -22,7 +22,7 @@
 
   Subsystem   from AMF to NGAP
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -37,13 +37,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
 #include <thread>
 #include "amf_fsm.h"
 #include "amf_recv.h"
 #include "amf_sap.h"
-using namespace std;
 
+using namespace std;
 namespace magma5g {
 extern ue_m5gmm_context_s
     ue_m5gmm_global_context;  // TODO AMF-TEST global var to temporarily store
@@ -57,7 +56,6 @@ int amf_procedure_handler::amf_handle_securitycomplete_response(
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx            = NULL;
   int rc                            = RETURNerror;
-
   OAILOG_INFO(
       LOG_NAS_AMF,
       "AMF_TEST: Security mode procedures complete for "
@@ -75,32 +73,27 @@ int amf_procedure_handler::amf_handle_securitycomplete_response(
   } else {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-
   nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
-
   if (smc_proc) {
     /*
      * TODO Stop timer T3560
      */
     // void* timer_callback_arg = NULL;
     // nas_stop_T3560(ue_id, &smc_proc->T3560, timer_callback_arg);
-
     /*
      * Release retransmission timer parameters
      */
-
     if (amf_ctx && IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
       /*
        * Notify AMF that the authentication procedure successfully completed
        */
       amf_sap_t amf_sap;
-      amf_sap.primitive = AMFCN_CS_RESPONSE;
-      amf_sap.u.amf_reg.ue_id         = ue_id;
-      amf_sap.u.amf_reg.ctx           = amf_ctx;
-      amf_sap.u.amf_reg.notify        = true;
-      amf_sap.u.amf_reg.free_proc     = true;
-      amf_sap.u.amf_reg.u.common_proc = &smc_proc->amf_com_proc;
-
+      amf_sap.primitive                = AMFCN_CS_RESPONSE;
+      amf_sap.u.amf_reg.ue_id          = ue_id;
+      amf_sap.u.amf_reg.ctx            = amf_ctx;
+      amf_sap.u.amf_reg.notify         = true;
+      amf_sap.u.amf_reg.free_proc      = true;
+      amf_sap.u.amf_reg.u.common_proc  = &smc_proc->amf_com_proc;
       amf_ctx->_security.kenb_ul_count = amf_ctx->_security.ul_count;
       amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_SECURITY);
       rc = amf_sap_seq.amf_sap_send(&amf_sap);
@@ -108,7 +101,6 @@ int amf_procedure_handler::amf_handle_securitycomplete_response(
     /* Nothing to do in
      * Calling SMC response success and triggering registration accept message*/
     amf_registration_procedure::amf_registration_success_security_cb(amf_ctx);
-
   } else {
     OAILOG_ERROR(
         LOG_NAS_AMF,
@@ -117,7 +109,6 @@ int amf_procedure_handler::amf_handle_securitycomplete_response(
         "Complete message\n");
     rc = RETURNerror;
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 }  // namespace magma5g

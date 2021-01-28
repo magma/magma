@@ -22,24 +22,20 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef GS5_REGISTRATION_TYPE_SEEN
-#define GS5_REGISTRATION_TYPE_SEEN
-
+#pragma once
 #include <sstream>
 #include <thread>
 #include "bstrlib.h"
 using namespace std;
 #define AMF_REGISTRATION_TYPE_MINIMUM_LENGTH 1
 #define AMF_REGISTRATION_TYPE_MAXIMUM_LENGTH 1
-
 namespace magma5g {}
 
-#endif
 /*
 0 0 1 initial registration
 0 1 0 mobility registration updating

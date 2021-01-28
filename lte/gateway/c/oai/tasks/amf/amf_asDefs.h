@@ -22,14 +22,12 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef AMF_ASDEFS_SEEN
-#define AMF_ASDEFS_SEEN
-
+#pragma once
 #include <sstream>
 #ifdef __cplusplus
 extern "C" {
@@ -42,10 +40,12 @@ extern "C" {
 #include "common_types.h"
 #include "amf_config.h"
 #include "amf_securityDef.h"
+
 using namespace std;
 #define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
 #define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */
 typedef location_area_identification_t LAI_t;
+
 namespace magma5g {
 // Data used to setup 5g CN NAS security /
 typedef struct amf_as_security_data_s {
@@ -100,7 +100,6 @@ static const char* amf_cn_primitive_str[] = {
     "AMF_CN_AUTHENTICATION_PARAM_FAIL",
     "AMF_CN_ULA_SUCCESS",
     "AMFCN_NW_INITIATED_DEREGISTRATION_UE",
-
 };
 
 typedef enum amfcn_primitive_s {
@@ -118,12 +117,12 @@ class amf_as_data_t {
  public:
   amf_as_data_t() {}
   ~amf_as_data_t() {}
-  amf_ue_ngap_id_t ue_id; /* UE lower layer identifier        */
-  guti_m5_t* guti; /* GUTI temporary mobile identity   */
+  amf_ue_ngap_id_t ue_id;      /* UE lower layer identifier        */
+  guti_m5_t* guti;             /* GUTI temporary mobile identity   */
   amf_as_security_data_t sctx; /* M5G NAS security context         */
-  plmn_t* plmn_id; /* Identifier of the selected PLMN  */
-  ecgi_t ecgi;     /* NR CGI This information element is used to globally
-                     identify a cell */
+  plmn_t* plmn_id;             /* Identifier of the selected PLMN  */
+  ecgi_t ecgi; /* NR CGI This information element is used to globally
+                 identify a cell */
   // registered to          */ tai_list_t tai_list;                  /* Valid
   // field if num tai > 0 */
 
@@ -157,7 +156,6 @@ class amf_as_data_t {
   std::uint8_t* additional_update_result; /* TAU Additional update result   */
   std::uint32_t* amf_cause;               /* EMM failure cause code        */
   std::string cli;                        /* Calling Line Identification  */
-
   void amf_as_set_security_data(
       amf_as_security_data_t* data, const void* context, bool is_new,
       bool is_ciphered);
@@ -206,9 +204,9 @@ typedef struct amf_as_establish_s {
   bool switch_off;                      // true if the UE is switched off    /
   bool is_initial;  // true if contained in initial message    /
   bool is_amf_ctx_new;
-  uint8_t type;           // Network attach/detach type        /
-  uint8_t m5g_rrc_cause;  // Connection establishment cause    /
-  uint8_t m5g_rrc_type;   // Associated call type          /
+  uint8_t type;            // Network attach/detach type        /
+  uint8_t m5g_rrc_cause;   // Connection establishment cause    /
+  uint8_t m5g_rrc_type;    // Associated call type          /
   ksi_t ksi;               // NAS key set identifier        /
   uint8_t encryption : 4;  // Ciphering algorithm           /
   uint8_t integrity : 4;   // Integrity protection algorithm    /
@@ -231,9 +229,9 @@ typedef struct amf_as_establish_s {
   bstring nas_msg;   // NAS message to be transferred within
                      //  initial NAS information message   /
 
-  uint8_t m5gs_update_result;  // TAU EPS update result   /
-  uint32_t t3412;              // GPRS T3412 timer   */
-  guti_m5_t guti;              // TAU GUTI   */
+  uint8_t m5gs_update_result;               // TAU EPS update result   /
+  uint32_t t3412;                           // GPRS T3412 timer   */
+  guti_m5_t guti;                           // TAU GUTI   */
   uint16_t m5gs_pdusession_context_status;  // TAU EPS bearer context status */
   LAI_t location_area_identification;  // TAU Location area identification */
   mobile_identity_t
@@ -247,7 +245,6 @@ typedef struct amf_as_establish_s {
   uint8_t eps_network_feature_support;  // TAU Network feature support   */
   uint8_t additional_update_result;     // TAU Additional update result   */
   uint32_t t3412_extended;              // TAU GPRS timer   */
-
 #define SERVICE_TYPE_PRESENT (1 << 0)
   uint8_t presencemask; /* Indicates the presence of some params like service
                            type */
@@ -262,7 +259,7 @@ typedef struct amf_as_establish_s {
 typedef struct amf_as_security_s {
   amf_as_security_s() {}
   ~amf_as_security_s() {}
-  amf_ue_ngap_id_t ue_id;  // UE lower layer identifier        /
+  amf_ue_ngap_id_t ue_id;       // UE lower layer identifier        /
   guti_m5_t guti;               // GUTI temporary mobile identity   */
   amf_as_security_data_t sctx;  // 5G CN NAS security context     /
   int amf_cause;                // AMF failure cause code       /
@@ -302,7 +299,6 @@ typedef struct amf_as_security_s {
   uint8_t msg_type;  // Type of NAS security message to transfer /
 } amf_as_security_t;
 
-
 /*
  * AMFAS primitive for cell information
  * ------------------------------------
@@ -326,7 +322,6 @@ typedef struct as_primitive_s {
   amf_as_data_t data;
   amf_as_status_t status;
   amf_as_cell_info_t cell_info;
-
 } as_primitive_t;
 
 typedef struct amf_as_s {
@@ -337,4 +332,3 @@ typedef struct amf_as_s {
 } amf_as_t;
 
 }  // namespace magma5g
-#endif

@@ -22,7 +22,7 @@
 
   Subsystem   from AMF to NGAP
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -53,7 +53,6 @@ extern "C" {
 #include "amf_app_state_manager.h"
 
 using namespace std;
-
 namespace magma5g {
 amf_app_defs amf_defs;
 extern ue_m5gmm_context_s
@@ -71,6 +70,7 @@ int amf_app_defs::amf_app_handle_nas_dl_req(
   nas_network nas_nw;
   message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_NAS_DL_DATA_REQ);
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+
   if (!amf_app_desc_p) {
     OAILOG_CRITICAL(
         LOG_AMF_APP,
@@ -92,8 +92,8 @@ int amf_app_defs::amf_app_handle_nas_dl_req(
   NGAP_NAS_DL_DATA_REQ(message_p).amf_ue_ngap_id = ue_id;
   NGAP_NAS_DL_DATA_REQ(message_p).nas_msg        = bstrcpy(nas_msg);
   nas_nw.bdestroy_wrapper(&nas_msg);
-
   message_p->ittiMsgHeader.imsi = 13744632839234567870;
+
   /*
    * Store the NGAP NAS DL DATA REQ in case of IMSI or combined 5GMM/IMSI
    * deregister in sgs context and send it after recieving the 5GS IMSI
@@ -101,6 +101,7 @@ int amf_app_defs::amf_app_handle_nas_dl_req(
    */
   OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: sending downlink message to NGAP");
   rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+
   // Check the transaction status. And trigger the UE context release command
   // accrordingly.
   if (transaction_status != M5G_AS_SUCCESS) {

@@ -22,7 +22,7 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author     
+  Author
 
   Description Defines Access and Mobility Management Messages
 
@@ -41,15 +41,12 @@ extern "C" {
 #include "amf_sap.h"
 
 using namespace std;
-
 namespace magma5g {
 amf_as amf_access;  // Object to call respective functions
 int amf_sap_c::amf_sap_send(amf_sap_t* msg) {
   int rc                    = RETURNerror;
   amf_primitive_t primitive = msg->primitive;
-
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-
   /*
    * Check the AMF-SAP primitive
    */
@@ -61,8 +58,7 @@ int amf_sap_c::amf_sap_send(amf_sap_t* msg) {
      */
     msg->u.amf_reg.primitive = primitive;
     rc                       = amf_reg_send(&msg->u.amf_reg);
-  }
-  else if (
+  } else if (
       (primitive > (amf_primitive_t) AMFAS_PRIMITIVE_MIN) &&
       (primitive < (amf_primitive_t) AMFAS_PRIMITIVE_MAX)) {
     /*
@@ -76,13 +72,11 @@ int amf_sap_c::amf_sap_send(amf_sap_t* msg) {
     /*
      * Forward to the AMFCN-SAP
      */
-
     msg->u.amf_cn.primitive = (amf_cn_primitive_t) primitive;
     rc                      = amf_cn_send(&msg->u.amf_cn);
   } else {
-	  //TODO
+    // TODO
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -90,36 +84,27 @@ int amf_sap_c::amf_sap_send(amf_sap_t* msg) {
  **                                                                        **
  ** Name:    amf_as_set_security_data()                                    **
  **                                                                        **
- ** Description: Setup security data according to the given 5GCN security   **
- **      context when data transfer to lower layers is requested
- ***
+ ** Description: Setup security data according to the given 5GCN security  **
+ **      context when data transfer to lower layers is requested           **
  **                                                                        **
- ** Inputs:  args:  5GCN security context currently in use **
- **      			is_new:    Indicates whether a new security
- *context
- ***
- **             	has just been taken into use                          **
- **      			is_ciphered:   Indicates whether the NAS message
- *has
- ***
- **            		 be sent ciphered **
- **      Others:    None **
+ ** Inputs:  args:  5GCN security context currently in use                 **
+ **          is_new:    Indicates whether a new security context           **
+ **             	has just been taken into use                       **
+ **          is_ciphered:   Indicates whether the NAS message has          **
+ **            		 be sent ciphered                                  **
+ **      Others:    None                                                   **
  **                                                                        **
- **      Outputs:     data:      5GCN NAS security data to be setup          **
- **      Return:    None                                                 **
- **      Others:    None                                       **
+ **      Outputs:     data:      5GCN NAS security data to be setup        **
+ **      Return:    None                                                   **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-
 void amf_as_data_t::amf_as_set_security_data(
     amf_as_security_data_t* data, const void* args, bool is_new,
     bool is_ciphered) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-
   const amf_security_context_t* context = (amf_security_context_t*) (args);
-
   memset(data, 0, sizeof(amf_as_security_data_t));
-
   if (context && ((context->sc_type == SECURITY_CTX_TYPE_FULL_NATIVE) ||
                   (context->sc_type == SECURITY_CTX_TYPE_MAPPED))) {
     /*
@@ -170,7 +155,6 @@ void amf_as_data_t::amf_as_set_security_data(
   } else {
     data->ksi = KSI_NO_KEY_AVAILABLE;
   }
-
   OAILOG_FUNC_OUT(LOG_NAS_AMF);
 }
 }  // namespace magma5g

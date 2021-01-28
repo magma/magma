@@ -35,7 +35,6 @@ extern "C" {
 #include "nas5g_network.h"
 
 namespace magma5g {
-
 constexpr char AMF_NAS_STATE_KEY[]  = "amf_nas_state";
 const int AMF_NUM_MAX_UE_HTBL_LISTS = 6;
 constexpr char AMF_UE_ID_UE_CTXT_TABLE_NAME[] =
@@ -46,7 +45,6 @@ constexpr char AMF_GUTI_UE_ID_TABLE_NAME[] = "amf_app_tun11_ue_context_htbl";
 constexpr char AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME[] =
     "anf_app_gnb_ue_ngap_id_ue_context_htbl";
 constexpr char AMF_TASK_NAME[] = "AMF";
-
 extern nas_network nas_nw;
 
 /*hash functiosimilar to default to initialize during hash table
@@ -100,8 +98,8 @@ int amf_nas_state_init(const amf_config_t* amf_config_p) {
 void AmfNasStateManager::create_state() {
   state_cache_p                               = new (amf_app_desc_t);
   state_cache_p->amf_app_ue_ngap_id_generator = 1;
-
   create_hashtables();
+
   // Initialize the local timers, which are non-persistent
   amf_nas_state_init_local_state();
 }
@@ -120,12 +118,10 @@ void AmfNasStateManager::create_hashtables() {
   bassigncstr(b, AMF_UE_ID_UE_CTXT_TABLE_NAME);
   state_ue_ht = hashtable_ts_create(
       max_ue_htbl_lists_, nullptr, amf_app_state_free_ue_context, b);
-  // max_ue_htbl_lists_, nullptr, nullptr, b);
   btrunc(b, 0);
   bassigncstr(b, AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME);
   state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl =
       hashtable_uint64_ts_create(max_ue_htbl_lists_, amf_def_hashfunc, b);
-  // hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
   btrunc(b, 0);
   bassigncstr(b, AMF_GUTI_UE_ID_TABLE_NAME);
   state_cache_p->amf_ue_contexts.guti_ue_context_htbl =
@@ -137,7 +133,7 @@ void AmfNasStateManager::create_hashtables() {
 void AmfNasStateManager::amf_nas_state_init_local_state() {
   // create statistic timer locally
   state_cache_p->m5_statistic_timer_period = amf_statistic_timer_;
-  state_cache_p->m5_statistic_timer_id = 0;
+  state_cache_p->m5_statistic_timer_id     = 0;
 }
 
 /**
@@ -148,7 +144,6 @@ void AmfNasStateManager::amf_nas_state_init_local_state() {
  * pointer to amf_app_desc_t structure.
  */
 amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
-
   state_dirty = true;
 
   // if read_from_redis is false, no need to clear and create ht.
@@ -176,7 +171,6 @@ void AmfNasStateManager::clear_amf_nas_hashtables() {
   if (!state_cache_p) {
     return;
   }
-
   hashtable_ts_destroy(state_ue_ht);
   hashtable_uint64_ts_destroy(
       state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl);
@@ -212,5 +206,4 @@ amf_fsm_state_t amf_fsm_get_state(amf_context_t* amf_context) {
     return amf_context->amf_fsm_state;
   }
 }
-
 }  // namespace magma5g

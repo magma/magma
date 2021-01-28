@@ -22,29 +22,25 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      
+  Author
 
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-#ifndef AMF_FSM_SEEN
-#define AMF_FSM_SEEN
-
+#pragma once
 #include <sstream>
 #include <thread>
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "bstrlib.h"
 #ifdef __cplusplus
 };
 #endif
-using namespace std;
 
+using namespace std;
 namespace magma5g {
 enum amf_fsm_state_t {
-
   AMF_STATE_MIN = 0,
   AMF_DEREGISTERED,
   AMF_REGISTERED,
@@ -54,4 +50,3 @@ enum amf_fsm_state_t {
 };
 
 }
-#endif

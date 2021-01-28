@@ -43,7 +43,6 @@ int amf_smf_procedure_handler::amf_smf_handle_pdu_establishment_request(
     SmfMsg* msg, amf_smf_t* amf_smf_msg) {
   int rc        = RETURNerror;
   int smf_cause = SMF_CAUSE_SUCCESS;
-
   OAILOG_INFO(
       LOG_AMF_APP,
       "AMF SMF Handler- Received PDN Connectivity Request message ");
@@ -103,13 +102,11 @@ int amf_send_pdusession_reject(
   reject_req->header.procedure_transaction_id                  = pti;
   reject_req->header.message_type                              = 0xC3;
   reject_req->pdu_session_estab_reject.m5gsm_cause.cause_value = cause;
-
   rc = reject_req->SmfMsgEncodeMsg(reject_req, buffer, 5);
   if (rc > 0) {
     // TODO
     // Send the message to AS
   }
-
   return rc;
 }
 
@@ -125,8 +122,7 @@ void set_amf_smf_context(
       message->integrity_prot_max_data_rate;
   smf_ctx->smf_proc_data.pdu_session_type = message->pdu_session_type;
   smf_ctx->smf_proc_data.ssc_mode         = message->ssc_mode;
-
-  uint8_t buff_ip[] = {0x0a, 0x20, 0x74, 0x01};
+  uint8_t buff_ip[]                       = {0x0a, 0x20, 0x74, 0x01};
   memcpy(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, buff_ip, 4);
   uint8_t buff_teid[] = {0x01, 0x00, 0x00, 0x00};
   memcpy(
@@ -163,7 +159,6 @@ int amf_procedure_handler::amf_smf_send(
   amf_smf_procedure_handler procedure_handler;
   amf_smf_t amf_smf_msg = {};
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-
   amf_cause =
       SMF_CAUSE_SUCCESS;  // TODO SMF_CAUSE_SUCCESS and AMF_CAUSE_SUCCESS values
                           // differ, make it inline
@@ -179,17 +174,13 @@ int amf_procedure_handler::amf_smf_send(
   smf_context_t* smf_ctx;
   if (ue_context) {
     smf_ctx = &(ue_context->amf_context.smf_context);
-    IMSI64_TO_STRING(
-        ue_context->amf_context._imsi64, imsi,
-        15);
+    IMSI64_TO_STRING(ue_context->amf_context._imsi64, imsi, 15);
   } else {
     ue_context = &ue_m5gmm_global_context;
     smf_ctx    = &ue_m5gmm_global_context.amf_context
                    .smf_context;  // TODO AMF_TEST global var to temporarily
                                   // store context inserted to ht
-    IMSI64_TO_STRING(
-        ue_m5gmm_global_context.amf_context._imsi64, imsi,
-        15);
+    IMSI64_TO_STRING(ue_m5gmm_global_context.amf_context._imsi64, imsi, 15);
   }
   // Process initial NAS message
   switch (msg->payload_container.smf_msg.header.message_type) {
@@ -222,7 +213,6 @@ int amf_procedure_handler::amf_smf_send(
           4);  // TODO get the gnb_gtp_teid_ip_addr and gnb_gtp_teid from
                // PDUSessionResourceSetupResponse
                // TODO fix string null_term for bytes
-
       // Invoke Grpc Send call
       rc = create_session_grpc_req(&amf_smf_msg.u.establish, imsi);
     } break;
