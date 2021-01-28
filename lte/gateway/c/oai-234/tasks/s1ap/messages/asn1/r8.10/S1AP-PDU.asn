@@ -1,0 +1,679 @@
+--
+-- Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+-- contributor license agreements.  See the NOTICE file distributed with
+-- this work for additional information regarding copyright ownership.
+-- The OpenAirInterface Software Alliance licenses this file to You under
+-- the terms found in the LICENSE file in the root of this source tree.
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+---------------------------------------------------------------------------------
+-- For more information about the OpenAirInterface (OAI) Software Alliance:
+--      contact@openairinterface.org
+--
+S1AP-PDU {
+    itu-t (0) identified-organization (4) etsi (0) mobileDomain (0)
+    eps-Access (21) modules (3) s1ap (1) version1 (1)
+}
+
+DEFINITIONS AUTOMATIC TAGS ::=
+
+BEGIN
+
+IMPORTS
+	
+	UEAggregateMaximumBitrate,
+	Cause,
+	Cdma2000HORequiredIndication,
+	Cdma2000HOStatus,
+	Cdma2000OneXSRVCCInfo,
+	Cdma2000OneXRAND,
+	Cdma2000PDU,
+	Cdma2000RATType,
+	Cdma2000SectorID,
+	CNDomain,
+	CriticalityDiagnostics,
+	CSFallbackIndicator,
+	CSG-Id,
+	CSG-IdList,
+	Direct-Forwarding-Path-Availability,
+	Global-ENB-ID,
+	EUTRAN-CGI,
+	ENBname,
+	ENB-StatusTransfer-TransparentContainer,
+	ENB-UE-S1AP-ID,
+	GTP-TEID,
+	GUMMEI,
+	HandoverRestrictionList,
+	HandoverType,
+	MMEname,
+	MME-UE-S1AP-ID,
+	MSClassmark2,
+	MSClassmark3,
+	NAS-PDU,
+	NASSecurityParametersfromE-UTRAN,
+	NASSecurityParameterstoE-UTRAN,
+	OverloadResponse,
+	PagingDRX,
+	PLMNidentity,
+	RIMTransfer,
+	RelativeMMECapacity,
+	RequestType,
+	E-RAB-ID,
+	E-RABLevelQoSParameters,
+	E-RABList,
+	SecurityKey,
+	SecurityContext,
+	ServedGUMMEIs,
+	SONConfigurationTransfer,
+	Source-ToTarget-TransparentContainer,
+	SourceBSS-ToTargetBSS-TransparentContainer,
+	SourceeNB-ToTargeteNB-TransparentContainer,
+	SourceRNC-ToTargetRNC-TransparentContainer,
+	SubscriberProfileIDforRFP,
+	SRVCCOperationPossible,
+	SRVCCHOIndication,
+	SupportedTAs,
+	TAI,
+	Target-ToSource-TransparentContainer,
+	TargetBSS-ToSourceBSS-TransparentContainer,	
+	TargeteNB-ToSourceeNB-TransparentContainer,
+	TargetID,
+	TargetRNC-ToSourceRNC-TransparentContainer,
+	TimeToWait,
+	TraceActivation,
+	E-UTRAN-Trace-ID,
+	TransportLayerAddress,
+	UEIdentityIndexValue,
+	UEPagingID,
+	UERadioCapability,
+	UE-S1AP-IDs,
+	UE-associatedLogicalS1-ConnectionItem,
+	UESecurityCapabilities,
+	S-TMSI,
+	MessageIdentifier,
+	SerialNumber,
+	WarningAreaList,
+	RepetitionPeriod,
+	NumberofBroadcastRequest,
+	WarningType,
+	WarningSecurityInfo,
+	DataCodingScheme,
+	WarningMessageContents,
+	BroadcastCompletedAreaList,
+	RRC-Establishment-Cause
+
+FROM S1AP-IEs
+
+    ProcedureCode,
+    Criticality,
+    ProtocolIE-ID
+
+FROM S1AP-CommonDataTypes
+
+
+	id-uEaggregateMaximumBitrate,
+	id-Cause,
+	id-cdma2000HORequiredIndication,
+	id-cdma2000HOStatus,
+	id-cdma2000OneXSRVCCInfo,
+	id-cdma2000OneXRAND,
+	id-cdma2000PDU,
+	id-cdma2000RATType,
+	id-cdma2000SectorID,
+	id-CNDomain,
+	id-CriticalityDiagnostics,
+	id-CSFallbackIndicator,
+	id-CSG-Id,
+	id-CSG-IdList,
+	id-DefaultPagingDRX,
+	id-Direct-Forwarding-Path-Availability,
+	id-Global-ENB-ID,
+	id-EUTRAN-CGI,
+	id-eNBname,
+	id-eNB-StatusTransfer-TransparentContainer,
+	id-eNB-UE-S1AP-ID, 
+	id-GERANtoLTEHOInformationRes,
+	id-GUMMEI-ID,
+	id-HandoverRestrictionList,
+	id-HandoverType,
+	id-InitialContextSetup,
+	id-Inter-SystemInformationTransferTypeEDT,
+	id-Inter-SystemInformationTransferTypeMDT,
+	id-NAS-DownlinkCount,
+	id-MMEname,
+	id-MME-UE-S1AP-ID,
+	id-MSClassmark2,
+	id-MSClassmark3,
+	id-NAS-PDU,
+	id-NASSecurityParametersfromE-UTRAN,
+	id-NASSecurityParameterstoE-UTRAN,
+	id-OverloadResponse,
+	id-pagingDRX,
+	id-RelativeMMECapacity,
+	id-RequestType,
+	id-E-RABAdmittedItem,
+	id-E-RABAdmittedList,
+	id-E-RABDataForwardingItem,
+	id-E-RABFailedToModifyList,
+	id-E-RABFailedToReleaseList,
+	id-E-RABFailedtoSetupItemHOReqAck,
+	id-E-RABFailedToSetupListBearerSURes,
+	id-E-RABFailedToSetupListCtxtSURes,
+	id-E-RABFailedToSetupListHOReqAck,
+	id-E-RABFailedToBeReleasedList,
+	id-E-RABModify,
+	id-E-RABModifyItemBearerModRes,
+	id-E-RABModifyListBearerModRes,
+	id-E-RABRelease,
+	id-E-RABReleaseItemBearerRelComp,
+	id-E-RABReleaseItemHOCmd,
+	id-E-RABReleaseListBearerRelComp,
+	id-E-RABReleaseIndication,
+	id-E-RABSetup,
+	id-E-RABSetupItemBearerSURes,
+	id-E-RABSetupItemCtxtSURes,
+	id-E-RABSetupListBearerSURes,
+	id-E-RABSetupListCtxtSURes,
+	id-E-RABSubjecttoDataForwardingList,
+	id-E-RABToBeModifiedItemBearerModReq,
+	id-E-RABToBeModifiedListBearerModReq,
+	id-E-RABToBeReleasedList,
+	id-E-RABReleasedList,
+	id-E-RABToBeSetupItemBearerSUReq,
+	id-E-RABToBeSetupItemCtxtSUReq,
+	id-E-RABToBeSetupItemHOReq,
+	id-E-RABToBeSetupListBearerSUReq,
+	id-E-RABToBeSetupListCtxtSUReq,
+	id-E-RABToBeSetupListHOReq,
+	id-E-RABToBeSwitchedDLItem,
+	id-E-RABToBeSwitchedDLList,
+	id-E-RABToBeSwitchedULList,
+	id-E-RABToBeSwitchedULItem,
+	id-E-RABtoReleaseListHOCmd,
+	id-SecurityKey,
+	id-SecurityContext,
+	id-ServedGUMMEIs,
+	id-SONConfigurationTransferECT,
+	id-SONConfigurationTransferMCT,
+	id-Source-ToTarget-TransparentContainer,
+	id-Source-ToTarget-TransparentContainer-Secondary,
+	id-SourceMME-UE-S1AP-ID,
+	id-SRVCCOperationPossible,
+	id-SRVCCHOIndication,
+	id-SubscriberProfileIDforRFP,
+	id-SupportedTAs,
+	id-S-TMSI,
+	id-TAI,
+	id-TAIItem,
+	id-TAIList,
+	id-Target-ToSource-TransparentContainer,
+	id-Target-ToSource-TransparentContainer-Secondary,
+	id-TargetID,
+	id-TimeToWait,
+	id-TraceActivation,
+	id-E-UTRAN-Trace-ID,
+	id-UEIdentityIndexValue,
+	id-UEPagingID,
+	id-UERadioCapability,
+	id-UTRANtoLTEHOInformationRes,
+	id-UE-associatedLogicalS1-ConnectionListResAck,
+	id-UE-associatedLogicalS1-ConnectionItem,
+	id-UESecurityCapabilities,
+	id-UE-S1AP-IDs,
+	id-ResetType,
+	id-MessageIdentifier,
+	id-SerialNumber,
+	id-WarningAreaList,
+	id-RepetitionPeriod,
+	id-NumberofBroadcastRequest,
+	id-WarningType,
+	id-WarningSecurityInfo,
+	id-DataCodingScheme,
+	id-WarningMessageContents,
+	id-BroadcastCompletedAreaList,
+	id-RRC-Establishment-Cause,
+	id-TraceCollectionEntityIPAddress,
+	maxnoofTAIs,
+	maxNrOfErrors,
+	maxNrOfE-RABs,
+	maxNrOfIndividualS1ConnectionsToReset,
+	maxnoofEmergencyAreaID,
+	maxnoofCellID,
+	maxnoofTAIforWarning,
+	maxnoofCellinTAI,
+	maxnoofCellinEAI,
+
+	id-CellTrafficTrace,
+	id-DeactivateTrace,
+	id-downlinkNASTransport,
+	id-DownlinkS1cdma2000tunneling,
+	id-eNBStatusTransfer,
+	id-ErrorIndication,
+	id-HandoverCancel,
+	id-HandoverNotification,
+	id-HandoverPreparation,
+	id-HandoverResourceAllocation,
+	id-InitialContextSetup,
+	id-initialUEMessage,
+	id-ENBConfigurationUpdate,
+	id-LocationReportingControl,
+	id-LocationReportingFailureIndication,
+	id-LocationReport,
+	id-eNBDirectInformationTransfer,
+	id-MMEConfigurationUpdate,
+	id-MMEDirectInformationTransfer,
+	id-MMEStatusTransfer,
+	id-NASNonDeliveryIndication,
+	id-OverloadStart,
+	id-OverloadStop,
+	id-Paging,
+	id-PathSwitchRequest,
+	id-PrivateMessage,
+	id-Reset,
+	id-S1Setup,
+	id-E-RABModify,
+	id-E-RABRelease,
+	id-E-RABReleaseIndication,
+	id-E-RABSetup,
+	id-TraceFailureIndication,
+	id-TraceStart,
+	id-UECapabilityInfoIndication,
+	id-UEContextModification,
+	id-UEContextRelease,
+	id-UEContextReleaseRequest,
+	id-uplinkNASTransport,
+	id-UplinkS1cdma2000tunneling,
+	id-WriteReplaceWarning,
+	id-eNBConfigurationTransfer,
+	id-MMEConfigurationTransfer,
+    maxProtocolIEs
+FROM S1AP-Constants;
+
+-- **************************************************************
+--
+-- S1 SETUP ELEMENTARY PROCEDURE
+--
+-- **************************************************************
+
+S1AP-ELEMENTARY-PROCEDURE ::= CLASS {
+    &InitiatingMessage                              ,
+    &SuccessfulOutcome                              OPTIONAL,
+    &UnsuccessfulOutcome                            OPTIONAL,
+    &procedureCode                  ProcedureCode   UNIQUE,
+    &criticality                    Criticality     DEFAULT ignore
+}
+WITH SYNTAX {
+    INITIATING MESSAGE                      &InitiatingMessage
+    [SUCCESSFUL OUTCOME                     &SuccessfulOutcome]
+    [UNSUCCESSFUL OUTCOME           &UnsuccessfulOutcome]
+    PROCEDURE CODE                          &procedureCode
+    [CRITICALITY                            &criticality]
+}
+
+S1AP-PDU ::= CHOICE {
+    initiatingMessage       InitiatingMessage,
+    successfulOutcome       SuccessfulOutcome,
+    unsuccessfulOutcome     UnsuccessfulOutcome,
+    ...
+}
+
+InitiatingMessage ::= SEQUENCE {
+    procedureCode   ProcedureCode,
+    criticality     Criticality,
+    value           ANY
+}
+
+SuccessfulOutcome ::= SEQUENCE {
+    procedureCode   ProcedureCode,
+    criticality     Criticality,
+    value           ANY
+}
+
+UnsuccessfulOutcome ::= SEQUENCE {
+    procedureCode   ProcedureCode,
+    criticality     Criticality,
+    value           ANY
+}
+
+HandoverRequired ::= SEQUENCE {
+    handoverRequired-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverCommand ::= SEQUENCE {
+    handoverCommand-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverPreparationFailure ::= SEQUENCE {
+    handoverPreparationFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverRequest ::= SEQUENCE {
+    handoverRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverRequestAcknowledge ::= SEQUENCE {
+    handoverRequestAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverFailure ::= SEQUENCE {
+    handoverFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverNotify ::= SEQUENCE {
+    handoverNotify-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+PathSwitchRequest ::= SEQUENCE {
+    pathSwitchRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+PathSwitchRequestAcknowledge ::= SEQUENCE {
+    pathSwitchRequestAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+PathSwitchRequestFailure ::= SEQUENCE {
+    pathSwitchRequestFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABSetupRequest ::= SEQUENCE {
+    e-RABSetupRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABSetupResponse ::= SEQUENCE {
+    e-RABSetupResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABModifyRequest ::= SEQUENCE {
+    e-RABModifyRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABModifyResponse ::= SEQUENCE {
+    e-RABModifyResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABReleaseIndication ::= SEQUENCE {
+    e-RABReleaseIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABReleaseCommand ::= SEQUENCE {
+    e-RABReleaseCommand-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABReleaseResponse ::= SEQUENCE {
+    e-RABReleaseResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+InitialContextSetupRequest ::= SEQUENCE {
+    initialContextSetupRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+InitialContextSetupResponse ::= SEQUENCE {
+    initialContextSetupResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+InitialContextSetupFailure ::= SEQUENCE {
+    initialContextSetupFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextReleaseRequest ::= SEQUENCE {
+    ueContextReleaseRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+Paging ::= SEQUENCE {
+    paging-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+DownlinkNASTransport ::= SEQUENCE {
+    downlinkNASTransport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+InitialUEMessage ::= SEQUENCE {
+    initialUEMessage-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UplinkNASTransport ::= SEQUENCE {
+    uplinkNASTransport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+NASNonDeliveryIndication ::= SEQUENCE {
+    nasNonDeliveryIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverCancel ::= SEQUENCE {
+    handoverCancel-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverCancelAcknowledge ::= SEQUENCE {
+    handoverCancelAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+Reset ::= SEQUENCE {
+    reset-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ResetAcknowledge ::= SEQUENCE {
+    resetAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+S1SetupResponse ::= SEQUENCE {
+    s1SetupResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+S1SetupRequest ::= SEQUENCE {
+    s1SetupRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+S1SetupFailure ::= SEQUENCE
+{
+    s1SetupFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ErrorIndication ::= SEQUENCE {
+    errorIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBConfigurationUpdate ::= SEQUENCE {
+    eNBConfigurationUpdate-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBConfigurationUpdateAcknowledge ::= SEQUENCE {
+    eNBConfigurationUpdateAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBConfigurationUpdateFailure ::= SEQUENCE {
+    eNBConfigurationUpdateFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEConfigurationUpdate ::= SEQUENCE {
+    mmeConfigurationUpdate-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEConfigurationUpdateAcknowledge ::= SEQUENCE {
+    mmeConfigurationUpdateAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEConfigurationUpdateFailure ::= SEQUENCE {
+    mmeConfigurationUpdateFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+DownlinkS1cdma2000tunneling ::= SEQUENCE {
+    downlinkS1cdma2000tunneling-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UplinkS1cdma2000tunneling ::= SEQUENCE {
+    uplinkS1cdma2000tunneling-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextModificationRequest ::= SEQUENCE {
+    ueContextModificationRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextModificationResponse ::= SEQUENCE {
+    ueContextModificationResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextModificationFailure ::= SEQUENCE {
+    ueContextModificationFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UECapabilityInfoIndication ::= SEQUENCE {
+    ueCapabilityInfoIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextReleaseCommand ::= SEQUENCE {
+    ueContextReleaseCommand-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextReleaseComplete ::= SEQUENCE {
+    ueContextReleaseComplete-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBStatusTransfer ::= SEQUENCE {
+    eNBStatusTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEStatusTransfer ::= SEQUENCE {
+    mmeStatusTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+DeactivateTrace ::= SEQUENCE {
+    deactivateTrace-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+TraceStart ::= SEQUENCE {
+    traceStart-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+TraceFailureIndication ::= SEQUENCE {
+    traceFailureIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+CellTrafficTrace ::= SEQUENCE {
+    cellTrafficTrace-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+LocationReportingControl ::= SEQUENCE {
+    locationReportingControl-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+LocationReportingFailureIndication ::= SEQUENCE {
+    locationReportingFailureIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+LocationReport ::= SEQUENCE {
+    locationReport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+OverloadStart ::= SEQUENCE {
+    overloadStart-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+OverloadStop ::= SEQUENCE {
+    overloadStop-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+WriteReplaceWarningRequest ::= SEQUENCE {
+    writeReplaceWarningRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+WriteReplaceWarningResponse ::= SEQUENCE {
+    writeReplaceWarningResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBDirectInformationTransfer ::= SEQUENCE {
+    eNBDirectInformationTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEDirectInformationTransfer ::= SEQUENCE {
+    mmeDirectInformationTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBConfigurationTransfer ::= SEQUENCE {
+    eNBConfigurationTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEConfigurationTransfer ::= SEQUENCE {
+    mmeConfigurationTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+PrivateMessage ::= SEQUENCE {
+    privateMessage-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+IE ::= SEQUENCE {
+    id ProtocolIE-ID,
+    criticality Criticality,
+    value ANY
+}
+
+END

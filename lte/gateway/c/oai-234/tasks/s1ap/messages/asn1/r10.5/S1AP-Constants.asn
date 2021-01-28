@@ -1,0 +1,299 @@
+--
+-- Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+-- contributor license agreements.  See the NOTICE file distributed with
+-- this work for additional information regarding copyright ownership.
+-- The OpenAirInterface Software Alliance licenses this file to You under
+-- the terms found in the LICENSE file in the root of this source tree.
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+---------------------------------------------------------------------------------
+-- For more information about the OpenAirInterface (OAI) Software Alliance:
+--      contact@openairinterface.org
+--
+-- **************************************************************
+--
+-- Constant definitions
+--
+-- **************************************************************
+
+S1AP-Constants { 
+itu-t (0) identified-organization (4) etsi (0) mobileDomain (0) 
+eps-Access (21) modules (3) s1ap (1) version1 (1) s1ap-Constants (4) } 
+
+DEFINITIONS AUTOMATIC TAGS ::= 
+
+BEGIN
+
+-- **************************************************************
+--
+-- IE parameter types from other modules.
+--
+-- **************************************************************
+
+IMPORTS
+	S1ap-ProcedureCode,
+	S1ap-ProtocolIE-ID
+
+FROM S1AP-CommonDataTypes;
+
+
+-- **************************************************************
+--
+-- Elementary Procedures
+--
+-- **************************************************************
+
+id-HandoverPreparation 				S1ap-ProcedureCode ::= 0
+id-HandoverResourceAllocation 		S1ap-ProcedureCode ::= 1
+id-HandoverNotification 			S1ap-ProcedureCode ::= 2
+id-PathSwitchRequest 				S1ap-ProcedureCode ::= 3
+id-HandoverCancel 					S1ap-ProcedureCode ::= 4
+id-E-RABSetup						S1ap-ProcedureCode ::= 5
+id-E-RABModify 						S1ap-ProcedureCode ::= 6
+id-E-RABRelease						S1ap-ProcedureCode ::= 7
+id-E-RABReleaseIndication			S1ap-ProcedureCode ::= 8
+id-InitialContextSetup				S1ap-ProcedureCode ::= 9
+id-Paging							S1ap-ProcedureCode ::= 10
+id-downlinkNASTransport				S1ap-ProcedureCode ::= 11
+id-initialUEMessage					S1ap-ProcedureCode ::= 12
+id-uplinkNASTransport				S1ap-ProcedureCode ::= 13
+id-Reset							S1ap-ProcedureCode::= 14
+id-ErrorIndication					S1ap-ProcedureCode ::= 15
+id-NASNonDeliveryIndication			S1ap-ProcedureCode ::= 16
+id-S1Setup							S1ap-ProcedureCode ::= 17
+id-UEContextReleaseRequest			S1ap-ProcedureCode ::= 18
+id-DownlinkS1cdma2000tunneling		S1ap-ProcedureCode ::= 19
+id-UplinkS1cdma2000tunneling		S1ap-ProcedureCode ::= 20
+id-UEContextModification			S1ap-ProcedureCode ::= 21
+id-UECapabilityInfoIndication		S1ap-ProcedureCode ::= 22
+id-UEContextRelease					S1ap-ProcedureCode ::= 23
+id-eNBStatusTransfer				S1ap-ProcedureCode ::= 24
+id-MMEStatusTransfer				S1ap-ProcedureCode ::= 25
+id-DeactivateTrace					S1ap-ProcedureCode ::= 26
+id-TraceStart						S1ap-ProcedureCode ::= 27
+id-TraceFailureIndication			S1ap-ProcedureCode ::= 28
+id-ENBConfigurationUpdate			S1ap-ProcedureCode ::= 29
+id-MMEConfigurationUpdate			S1ap-ProcedureCode ::= 30
+id-LocationReportingControl			S1ap-ProcedureCode ::= 31
+id-LocationReportingFailureIndication	S1ap-ProcedureCode ::= 32
+id-LocationReport					S1ap-ProcedureCode ::= 33
+id-OverloadStart					S1ap-ProcedureCode ::= 34
+id-OverloadStop						S1ap-ProcedureCode ::= 35
+id-WriteReplaceWarning				S1ap-ProcedureCode ::= 36
+id-eNBDirectInformationTransfer		S1ap-ProcedureCode ::= 37
+id-MMEDirectInformationTransfer		S1ap-ProcedureCode ::= 38
+id-PrivateMessage					S1ap-ProcedureCode ::= 39
+id-eNBConfigurationTransfer			S1ap-ProcedureCode ::= 40
+id-MMEConfigurationTransfer			S1ap-ProcedureCode ::= 41
+id-CellTrafficTrace					S1ap-ProcedureCode ::= 42
+id-Kill								S1ap-ProcedureCode ::= 43
+id-downlinkUEAssociatedLPPaTransport	S1ap-ProcedureCode ::= 44
+id-uplinkUEAssociatedLPPaTransport		S1ap-ProcedureCode ::= 45
+id-downlinkNonUEAssociatedLPPaTransport	S1ap-ProcedureCode ::= 46
+id-uplinkNonUEAssociatedLPPaTransport	S1ap-ProcedureCode ::= 47
+
+-- **************************************************************
+--
+-- Extension constants
+--
+-- **************************************************************
+
+s1ap-maxPrivateIEs 						INTEGER ::= 65535
+s1ap-maxProtocolExtensions 				INTEGER ::= 65535
+s1ap-maxProtocolIEs						INTEGER ::= 65535
+-- **************************************************************
+--
+-- Lists
+--
+-- **************************************************************
+
+s1ap-maxNrOfCSGs								INTEGER ::= 256
+s1ap-maxNrOfE-RABs							INTEGER ::= 256
+s1ap-maxnoofTAIs								INTEGER ::= 256
+s1ap-maxnoofTACs								INTEGER ::= 256
+s1ap-maxNrOfErrors							INTEGER ::= 256
+s1ap-maxnoofBPLMNs							INTEGER ::= 6
+s1ap-maxnoofPLMNsPerMME						INTEGER ::= 32
+s1ap-maxnoofEPLMNs							INTEGER ::= 15
+s1ap-maxnoofEPLMNsPlusOne					INTEGER ::= 16
+s1ap-maxnoofForbLACs							INTEGER ::= 4096
+s1ap-maxnoofForbTACs							INTEGER ::= 4096
+s1ap-maxNrOfIndividualS1ConnectionsToReset	INTEGER ::= 256
+s1ap-maxnoofCells							INTEGER ::= 16
+s1ap-maxnoofTAIforWarning					INTEGER ::= 65535
+s1ap-maxnoofCellID							INTEGER ::= 65535
+s1ap-maxnoofEmergencyAreaID					INTEGER ::= 65535
+s1ap-maxnoofCellinTAI						INTEGER ::= 65535
+s1ap-maxnoofCellinEAI						INTEGER ::= 65535
+s1ap-maxnoofeNBX2TLAs						INTEGER ::= 2
+s1ap-maxnoofeNBX2ExtTLAs						INTEGER ::= 16
+s1ap-maxnoofeNBX2GTPTLAs						INTEGER ::= 16
+s1ap-maxnoofRATs								INTEGER ::= 8
+s1ap-maxnoofGroupIDs							INTEGER ::= 65535
+s1ap-maxnoofMMECs							INTEGER ::= 256
+s1ap-maxnoofCellIDforMDT						INTEGER ::= 32
+s1ap-maxnoofTAforMDT							INTEGER ::= 8
+
+
+-- **************************************************************
+--
+-- IEs
+--
+-- **************************************************************
+
+id-MME-UE-S1AP-ID							S1ap-ProtocolIE-ID ::= 0
+id-HandoverType								S1ap-ProtocolIE-ID ::= 1
+id-Cause									S1ap-ProtocolIE-ID ::= 2
+id-SourceID									S1ap-ProtocolIE-ID ::= 3
+id-TargetID									S1ap-ProtocolIE-ID ::= 4
+id-eNB-UE-S1AP-ID							S1ap-ProtocolIE-ID ::= 8
+id-E-RABSubjecttoDataForwardingList			S1ap-ProtocolIE-ID ::= 12
+id-E-RABtoReleaseListHOCmd					S1ap-ProtocolIE-ID ::= 13
+id-E-RABDataForwardingItem					S1ap-ProtocolIE-ID ::= 14
+id-E-RABReleaseItemBearerRelComp			S1ap-ProtocolIE-ID ::= 15
+id-E-RABToBeSetupListBearerSUReq			S1ap-ProtocolIE-ID ::= 16
+id-E-RABToBeSetupItemBearerSUReq			S1ap-ProtocolIE-ID ::= 17
+id-E-RABAdmittedList						S1ap-ProtocolIE-ID ::= 18
+id-E-RABFailedToSetupListHOReqAck			S1ap-ProtocolIE-ID ::= 19
+id-E-RABAdmittedItem						S1ap-ProtocolIE-ID ::= 20
+id-E-RABFailedtoSetupItemHOReqAck			S1ap-ProtocolIE-ID ::= 21
+id-E-RABToBeSwitchedDLList					S1ap-ProtocolIE-ID ::= 22
+id-E-RABToBeSwitchedDLItem					S1ap-ProtocolIE-ID ::= 23
+id-E-RABToBeSetupListCtxtSUReq				S1ap-ProtocolIE-ID ::= 24
+id-TraceActivation							S1ap-ProtocolIE-ID ::= 25
+id-NAS-PDU									S1ap-ProtocolIE-ID ::= 26
+id-E-RABToBeSetupItemHOReq					S1ap-ProtocolIE-ID ::= 27
+id-E-RABSetupListBearerSURes				S1ap-ProtocolIE-ID ::= 28
+id-E-RABFailedToSetupListBearerSURes		S1ap-ProtocolIE-ID ::= 29
+id-E-RABToBeModifiedListBearerModReq		S1ap-ProtocolIE-ID ::= 30
+id-E-RABModifyListBearerModRes				S1ap-ProtocolIE-ID ::= 31
+id-E-RABFailedToModifyList					S1ap-ProtocolIE-ID ::= 32
+id-E-RABToBeReleasedList					S1ap-ProtocolIE-ID ::= 33
+id-E-RABFailedToReleaseList					S1ap-ProtocolIE-ID ::= 34
+id-E-RABItem								S1ap-ProtocolIE-ID ::= 35
+id-E-RABToBeModifiedItemBearerModReq		S1ap-ProtocolIE-ID ::= 36
+id-E-RABModifyItemBearerModRes				S1ap-ProtocolIE-ID ::= 37
+id-E-RABReleaseItem							S1ap-ProtocolIE-ID ::= 38
+id-E-RABSetupItemBearerSURes				S1ap-ProtocolIE-ID ::= 39
+id-SecurityContext							S1ap-ProtocolIE-ID ::= 40
+id-HandoverRestrictionList					S1ap-ProtocolIE-ID ::= 41
+id-UEPagingID 								S1ap-ProtocolIE-ID ::= 43
+id-pagingDRX 								S1ap-ProtocolIE-ID ::= 44
+id-TAIList									S1ap-ProtocolIE-ID ::= 46
+id-TAIItem									S1ap-ProtocolIE-ID ::= 47
+id-E-RABFailedToSetupListCtxtSURes			S1ap-ProtocolIE-ID ::= 48
+id-E-RABReleaseItemHOCmd					S1ap-ProtocolIE-ID ::= 49
+id-E-RABSetupItemCtxtSURes					S1ap-ProtocolIE-ID ::= 50
+id-E-RABSetupListCtxtSURes					S1ap-ProtocolIE-ID ::= 51
+id-E-RABToBeSetupItemCtxtSUReq				S1ap-ProtocolIE-ID ::= 52
+id-E-RABToBeSetupListHOReq					S1ap-ProtocolIE-ID ::= 53
+id-GERANtoLTEHOInformationRes					S1ap-ProtocolIE-ID ::= 55
+id-UTRANtoLTEHOInformationRes					S1ap-ProtocolIE-ID ::= 57
+id-CriticalityDiagnostics 						S1ap-ProtocolIE-ID ::= 58
+id-Global-ENB-ID								S1ap-ProtocolIE-ID ::= 59
+id-eNBname										S1ap-ProtocolIE-ID ::= 60
+id-MMEname										S1ap-ProtocolIE-ID ::= 61
+id-ServedPLMNs									S1ap-ProtocolIE-ID ::= 63
+id-SupportedTAs									S1ap-ProtocolIE-ID ::= 64
+id-TimeToWait									S1ap-ProtocolIE-ID ::= 65
+id-uEaggregateMaximumBitrate					S1ap-ProtocolIE-ID ::= 66
+id-TAI											S1ap-ProtocolIE-ID ::= 67
+id-E-RABReleaseListBearerRelComp				S1ap-ProtocolIE-ID ::= 69
+id-cdma2000PDU									S1ap-ProtocolIE-ID ::= 70
+id-cdma2000RATType								S1ap-ProtocolIE-ID ::= 71
+id-cdma2000SectorID								S1ap-ProtocolIE-ID ::= 72
+id-SecurityKey									S1ap-ProtocolIE-ID ::= 73
+id-UERadioCapability							S1ap-ProtocolIE-ID ::= 74
+id-GUMMEI-ID									S1ap-ProtocolIE-ID ::= 75
+id-E-RABInformationListItem						S1ap-ProtocolIE-ID ::= 78
+id-Direct-Forwarding-Path-Availability			S1ap-ProtocolIE-ID ::= 79
+id-UEIdentityIndexValue							S1ap-ProtocolIE-ID ::= 80
+id-cdma2000HOStatus								S1ap-ProtocolIE-ID ::= 83
+id-cdma2000HORequiredIndication					S1ap-ProtocolIE-ID ::= 84
+id-E-UTRAN-Trace-ID								S1ap-ProtocolIE-ID ::= 86
+id-RelativeMMECapacity							S1ap-ProtocolIE-ID ::= 87
+id-SourceMME-UE-S1AP-ID							S1ap-ProtocolIE-ID ::= 88
+id-Bearers-SubjectToStatusTransfer-Item			S1ap-ProtocolIE-ID ::= 89
+id-eNB-StatusTransfer-TransparentContainer		S1ap-ProtocolIE-ID ::= 90
+id-UE-associatedLogicalS1-ConnectionItem		S1ap-ProtocolIE-ID ::= 91
+id-ResetType									S1ap-ProtocolIE-ID ::= 92
+id-UE-associatedLogicalS1-ConnectionListResAck	S1ap-ProtocolIE-ID ::= 93
+id-E-RABToBeSwitchedULItem						S1ap-ProtocolIE-ID ::= 94
+id-E-RABToBeSwitchedULList						S1ap-ProtocolIE-ID ::= 95
+id-S-TMSI										S1ap-ProtocolIE-ID ::= 96
+id-cdma2000OneXRAND								S1ap-ProtocolIE-ID ::= 97
+id-RequestType									S1ap-ProtocolIE-ID ::= 98
+id-UE-S1AP-IDs									S1ap-ProtocolIE-ID ::= 99
+id-EUTRAN-CGI									S1ap-ProtocolIE-ID ::= 100
+id-OverloadResponse								S1ap-ProtocolIE-ID ::= 101
+id-cdma2000OneXSRVCCInfo						S1ap-ProtocolIE-ID ::= 102
+id-E-RABFailedToBeReleasedList					S1ap-ProtocolIE-ID ::= 103
+id-Source-ToTarget-TransparentContainer			S1ap-ProtocolIE-ID ::= 104
+id-ServedGUMMEIs								S1ap-ProtocolIE-ID ::= 105
+id-SubscriberProfileIDforRFP					S1ap-ProtocolIE-ID ::= 106
+id-UESecurityCapabilities						S1ap-ProtocolIE-ID ::= 107
+id-CSFallbackIndicator							S1ap-ProtocolIE-ID ::= 108
+id-CNDomain										S1ap-ProtocolIE-ID ::= 109
+id-E-RABReleasedList							S1ap-ProtocolIE-ID ::= 110
+id-MessageIdentifier							S1ap-ProtocolIE-ID ::= 111
+id-SerialNumber									S1ap-ProtocolIE-ID ::= 112
+id-WarningAreaList								S1ap-ProtocolIE-ID ::= 113
+id-RepetitionPeriod								S1ap-ProtocolIE-ID ::= 114
+id-NumberofBroadcastRequest						S1ap-ProtocolIE-ID ::= 115
+id-WarningType									S1ap-ProtocolIE-ID ::= 116
+id-WarningSecurityInfo							S1ap-ProtocolIE-ID ::= 117
+id-DataCodingScheme								S1ap-ProtocolIE-ID ::= 118
+id-WarningMessageContents						S1ap-ProtocolIE-ID ::= 119
+id-BroadcastCompletedAreaList					S1ap-ProtocolIE-ID ::= 120
+id-Inter-SystemInformationTransferTypeEDT		S1ap-ProtocolIE-ID ::= 121
+id-Inter-SystemInformationTransferTypeMDT		S1ap-ProtocolIE-ID ::= 122
+id-Target-ToSource-TransparentContainer			S1ap-ProtocolIE-ID ::= 123
+id-SRVCCOperationPossible						S1ap-ProtocolIE-ID ::= 124
+id-SRVCCHOIndication							S1ap-ProtocolIE-ID ::= 125
+id-NAS-DownlinkCount							S1ap-ProtocolIE-ID ::= 126
+id-CSG-Id										S1ap-ProtocolIE-ID ::= 127
+id-CSG-IdList									S1ap-ProtocolIE-ID ::= 128
+id-SONConfigurationTransferECT					S1ap-ProtocolIE-ID ::= 129
+id-SONConfigurationTransferMCT					S1ap-ProtocolIE-ID ::= 130
+id-TraceCollectionEntityIPAddress				S1ap-ProtocolIE-ID ::= 131
+id-MSClassmark2									S1ap-ProtocolIE-ID ::= 132
+id-MSClassmark3									S1ap-ProtocolIE-ID ::= 133
+id-RRC-Establishment-Cause						S1ap-ProtocolIE-ID ::= 134
+id-NASSecurityParametersfromE-UTRAN				S1ap-ProtocolIE-ID ::= 135
+id-NASSecurityParameterstoE-UTRAN				S1ap-ProtocolIE-ID ::= 136
+id-DefaultPagingDRX								S1ap-ProtocolIE-ID ::= 137
+id-Source-ToTarget-TransparentContainer-Secondary	S1ap-ProtocolIE-ID ::= 138
+id-Target-ToSource-TransparentContainer-Secondary	S1ap-ProtocolIE-ID ::= 139
+id-EUTRANRoundTripDelayEstimationInfo			S1ap-ProtocolIE-ID ::= 140
+id-BroadcastCancelledAreaList					S1ap-ProtocolIE-ID ::= 141
+id-ConcurrentWarningMessageIndicator			S1ap-ProtocolIE-ID ::= 142
+id-Data-Forwarding-Not-Possible					S1ap-ProtocolIE-ID ::= 143
+id-ExtendedRepetitionPeriod						S1ap-ProtocolIE-ID ::= 144
+id-CellAccessMode								S1ap-ProtocolIE-ID ::= 145
+id-CSGMembershipStatus 							S1ap-ProtocolIE-ID ::= 146
+id-LPPa-PDU										S1ap-ProtocolIE-ID ::= 147
+id-Routing-ID									S1ap-ProtocolIE-ID ::= 148
+id-Time-Synchronization-Info					S1ap-ProtocolIE-ID ::= 149
+id-PS-ServiceNotAvailable						S1ap-ProtocolIE-ID ::= 150
+id-PagingPriority								S1ap-ProtocolIE-ID ::= 151
+id-x2TNLConfigurationInfo						S1ap-ProtocolIE-ID ::= 152
+id-eNBX2ExtendedTransportLayerAddresses			S1ap-ProtocolIE-ID ::= 153
+id-GUMMEIList									S1ap-ProtocolIE-ID ::= 154
+id-GW-TransportLayerAddress						S1ap-ProtocolIE-ID ::= 155
+id-Correlation-ID								S1ap-ProtocolIE-ID ::= 156
+id-SourceMME-GUMMEI								S1ap-ProtocolIE-ID ::= 157
+id-MME-UE-S1AP-ID-2								S1ap-ProtocolIE-ID ::= 158
+id-RegisteredLAI								S1ap-ProtocolIE-ID ::= 159
+id-RelayNode-Indicator							S1ap-ProtocolIE-ID ::= 160
+id-TrafficLoadReductionIndication				S1ap-ProtocolIE-ID ::= 161
+id-MDTConfiguration								S1ap-ProtocolIE-ID ::= 162
+id-MMERelaySupportIndicator						S1ap-ProtocolIE-ID ::= 163
+id-GWContextReleaseIndication					S1ap-ProtocolIE-ID ::= 164
+id-ManagementBasedMDTAllowed					S1ap-ProtocolIE-ID ::= 165
+id-PrivacyIndicator								S1ap-ProtocolIE-ID ::= 166
+
+END

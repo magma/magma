@@ -1,0 +1,1438 @@
+--
+-- Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+-- contributor license agreements.  See the NOTICE file distributed with
+-- this work for additional information regarding copyright ownership.
+-- The OpenAirInterface Software Alliance licenses this file to You under
+-- the terms found in the LICENSE file in the root of this source tree.
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+---------------------------------------------------------------------------------
+-- For more information about the OpenAirInterface (OAI) Software Alliance:
+--      contact@openairinterface.org
+--
+-- **************************************************************
+--
+-- Information Element Definitions
+--
+-- **************************************************************
+
+S1AP-IEs { 
+itu-t (0) identified-organization (4) etsi (0) mobileDomain (0) 
+eps-Access (21) modules (3) s1ap (1) version1 (1) s1ap-IEs (2) }
+
+DEFINITIONS AUTOMATIC TAGS ::= 
+
+BEGIN
+
+IMPORTS
+    s1ap-id-E-RABInformationListItem,
+    s1ap-id-E-RABItem,
+    s1ap-id-Bearers-SubjectToStatusTransfer-Item,
+    s1ap-id-Time-Synchronization-Info,
+    s1ap-id-x2TNLConfigurationInfo,
+    s1ap-id-eNBX2ExtendedTransportLayerAddresses,
+    s1ap-id-MDTConfiguration,
+    s1ap-maxNrOfCSGs,
+    s1ap-maxNrOfE-RABs,
+    s1ap-maxNrOfErrors,
+    s1ap-maxnoofBPLMNs,
+    s1ap-maxnoofPLMNsPerMME,
+    s1ap-maxnoofTACs,
+    s1ap-maxnoofEPLMNs,
+    s1ap-maxnoofEPLMNsPlusOne,
+    s1ap-maxnoofForbLACs,
+    s1ap-maxnoofForbTACs,
+    s1ap-maxnoofCells,
+    s1ap-maxnoofCellID,
+    s1ap-maxnoofEmergencyAreaID,
+    s1ap-maxnoofTAIforWarning,
+    s1ap-maxnoofCellinTAI,
+    s1ap-maxnoofCellinEAI,
+    s1ap-maxnoofeNBX2TLAs,
+    s1ap-maxnoofeNBX2ExtTLAs,
+    s1ap-maxnoofeNBX2GTPTLAs,
+    s1ap-maxnoofRATs,
+    s1ap-maxnoofGroupIDs,
+    s1ap-maxnoofMMECs,
+    s1ap-maxnoofTAforMDT,
+    s1ap-maxnoofCellIDforMDT,
+    s1ap-maxProtocolExtensions,
+    s1ap-maxNrOfIndividualS1ConnectionsToReset,
+    s1ap-maxnoofTAIs
+
+FROM S1AP-Constants
+
+    S1ap-IE
+FROM S1AP-PDU
+
+    S1ap-Criticality,
+    S1ap-ProcedureCode,
+    S1ap-ProtocolIE-ID,
+    S1ap-TriggeringMessage
+FROM S1AP-CommonDataTypes;
+
+S1ap-IE-Extensions ::= SEQUENCE (SIZE (1..s1ap-maxProtocolExtensions)) OF S1ap-IE
+
+-- A
+
+S1ap-AreaScopeOfMDT ::= CHOICE {
+    cellBased                    S1ap-CellBasedMDT,
+    tABased                      S1ap-TABasedMDT,
+    pLMNWide                     NULL,
+    ...
+}
+
+S1ap-AllocationAndRetentionPriority ::= SEQUENCE {
+    priorityLevel                S1ap-PriorityLevel,
+    pre-emptionCapability        S1ap-Pre-emptionCapability,
+    pre-emptionVulnerability     S1ap-Pre-emptionVulnerability,
+    iE-Extensions                S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+-- B
+
+S1ap-Bearers-SubjectToStatusTransfer-List ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+
+S1ap-Bearers-SubjectToStatusTransfer-Item ::= SEQUENCE {
+    e-RAB-ID                                S1ap-E-RAB-ID,
+    uL-COUNTvalue                           S1ap-COUNTvalue,
+    dL-COUNTvalue                           S1ap-COUNTvalue,
+    receiveStatusofULPDCPSDUs               S1ap-ReceiveStatusofULPDCPSDUs            OPTIONAL,
+    iE-Extensions                           S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-BitRate    ::= INTEGER (0..10000000000)
+
+S1ap-BPLMNs ::= SEQUENCE (SIZE(1.. s1ap-maxnoofBPLMNs)) OF S1ap-PLMNidentity
+
+S1ap-BroadcastCancelledAreaList ::= CHOICE {
+    cellID-Cancelled                S1ap-CellID-Cancelled,
+    tAI-Cancelled                   S1ap-TAI-Cancelled,
+    emergencyAreaID-Cancelled       S1ap-EmergencyAreaID-Cancelled,
+    ...
+}
+
+S1ap-BroadcastCompletedAreaList ::= CHOICE {
+    cellID-Broadcast                S1ap-CellID-Broadcast,
+    tAI-Broadcast                   S1ap-TAI-Broadcast,
+    emergencyAreaID-Broadcast       S1ap-EmergencyAreaID-Broadcast,
+    ...
+}
+
+
+-- C
+
+S1ap-CancelledCellinEAI ::= SEQUENCE (SIZE(1..s1ap-maxnoofCellinEAI)) OF S1ap-CancelledCellinEAI-Item
+
+S1ap-CancelledCellinEAI-Item ::= SEQUENCE {
+    eCGI                    S1ap-EUTRAN-CGI,
+    numberOfBroadcasts      S1ap-NumberOfBroadcasts,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-CancelledCellinTAI ::= SEQUENCE (SIZE(1..s1ap-maxnoofCellinTAI)) OF S1ap-CancelledCellinTAI-Item
+
+S1ap-CancelledCellinTAI-Item ::= SEQUENCE{
+    eCGI                S1ap-EUTRAN-CGI,
+    numberOfBroadcasts  S1ap-NumberOfBroadcasts,
+    iE-Extensions       S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-Cause ::= CHOICE {
+    radioNetwork        S1ap-CauseRadioNetwork,
+    transport           S1ap-CauseTransport,
+    nas                 S1ap-CauseNas,
+    protocol            S1ap-CauseProtocol,
+    misc                S1ap-CauseMisc,
+    ...
+}
+
+S1ap-CauseMisc ::= ENUMERATED {
+    control-processing-overload,
+    not-enough-user-plane-processing-resources,
+    hardware-failure,
+    om-intervention,
+    unspecified,
+    unknown-PLMN,
+    ...
+}
+
+S1ap-CauseProtocol ::= ENUMERATED {
+    transfer-syntax-error,
+    abstract-syntax-error-reject,
+    abstract-syntax-error-ignore-and-notify,
+    message-not-compatible-with-receiver-state,
+    semantic-error,
+    abstract-syntax-error-falsely-constructed-message,
+    unspecified,
+    ...
+}
+
+S1ap-CauseRadioNetwork ::= ENUMERATED {
+    unspecified,
+    tx2relocoverall-expiry,
+    successful-handover,
+    release-due-to-eutran-generated-reason,
+    handover-cancelled,
+    partial-handover,
+    ho-failure-in-target-EPC-eNB-or-target-system,
+    ho-target-not-allowed,
+    tS1relocoverall-expiry,
+    tS1relocprep-expiry,
+    cell-not-available,
+    unknown-targetID,
+    no-radio-resources-available-in-target-cell,
+    unknown-mme-ue-s1ap-id,
+    unknown-enb-ue-s1ap-id,
+    unknown-pair-ue-s1ap-id,
+    handover-desirable-for-radio-reason,
+    time-critical-handover,
+    resource-optimisation-handover,
+    reduce-load-in-serving-cell,
+    user-inactivity,
+    radio-connection-with-ue-lost,
+    load-balancing-tau-required,
+    cs-fallback-triggered,
+    ue-not-available-for-ps-service,
+    radio-resources-not-available,
+    failure-in-radio-interface-procedure,
+    invals1ap-id-qos-combination,
+    interrat-redirection,
+    interaction-with-other-procedure,
+    unknown-E-RAB-ID,
+    multiple-E-RAB-ID-instances,
+    encryption-and-or-integrity-protection-algorithms-not-supported,
+    s1-intra-system-handover-triggered,
+    s1-inter-system-handover-triggered,
+    x2-handover-triggered,
+    ...,
+    redirection-towards-1xRTT,
+    not-supported-QCI-value,
+    invals1ap-id-CSG-Id
+
+}
+
+S1ap-CauseTransport ::= ENUMERATED {
+    transport-resource-unavailable,
+    unspecified,
+    ...
+}
+
+S1ap-CauseNas ::= ENUMERATED {
+    normal-release,
+    authentication-failure,
+    detach,
+    unspecified,
+    ...,
+    csg-subscription-expiry
+}
+
+S1ap-CellAccessMode ::= ENUMERATED {
+    hybrid,
+    ...
+}
+
+S1ap-CellIdentity            ::= BIT STRING (SIZE (28))
+
+S1ap-CellID-Broadcast ::= SEQUENCE (SIZE(1..s1ap-maxnoofCellID)) OF S1ap-CellID-Broadcast-Item
+
+S1ap-CellID-Broadcast-Item ::= SEQUENCE {
+    eCGI                S1ap-EUTRAN-CGI,
+    iE-Extensions       S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-CellID-Cancelled::= SEQUENCE (SIZE(1..s1ap-maxnoofCellID)) OF S1ap-CellID-Cancelled-Item
+
+S1ap-CellID-Cancelled-Item ::= SEQUENCE {
+    eCGI                S1ap-EUTRAN-CGI,
+    numberOfBroadcasts  S1ap-NumberOfBroadcasts,
+    iE-Extensions       S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-CellBasedMDT::= SEQUENCE {
+    cellIdListforMDT    S1ap-CellIdListforMDT,
+    iE-Extensions       S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-CellIdListforMDT ::= SEQUENCE (SIZE(1..s1ap-maxnoofCellIDforMDT)) OF S1ap-EUTRAN-CGI
+
+S1ap-Cdma2000PDU    ::= OCTET STRING
+
+S1ap-Cdma2000RATType ::= ENUMERATED {
+    hRPD,
+    onexRTT,
+    ...
+}
+
+S1ap-Cdma2000SectorID ::= OCTET STRING
+
+S1ap-Cdma2000HOStatus ::= ENUMERATED {
+    hOSuccess,
+    hOFailure,
+    ...
+}
+
+S1ap-Cdma2000HORequiredIndication ::= ENUMERATED {
+    true,
+    ...
+}
+
+S1ap-Cdma2000OneXSRVCCInfo ::= SEQUENCE {
+    cdma2000OneXMEID            S1ap-Cdma2000OneXMEID,
+    cdma2000OneXMSI             S1ap-Cdma2000OneXMSI,
+    cdma2000OneXPilot           S1ap-Cdma2000OneXPilot,
+    iE-Extensions               S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-Cdma2000OneXMEID ::= OCTET STRING
+
+S1ap-Cdma2000OneXMSI ::= OCTET STRING
+
+S1ap-Cdma2000OneXPilot ::= OCTET STRING
+
+S1ap-Cdma2000OneXRAND ::= OCTET STRING
+
+S1ap-Cell-Size ::= ENUMERATED {verysmall, small, medium, large, ...}
+
+S1ap-CellType ::= SEQUENCE {
+    cell-Size               S1ap-Cell-Size,
+    iE-Extensions           S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-CGI ::= SEQUENCE {
+    pLMNidentity        S1ap-PLMNidentity,
+    lAC                 S1ap-LAC,
+    cI                  S1ap-CI,
+    rAC                 S1ap-RAC           OPTIONAL,
+    iE-Extensions       S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-CI ::= OCTET STRING (SIZE (2))
+
+S1ap-CNDomain ::= ENUMERATED {
+    ps,
+    cs
+}
+
+S1ap-ConcurrentWarningMessageIndicator ::= ENUMERATED {
+    true
+}
+
+S1ap-Correlation-ID        ::= OCTET STRING (SIZE (4))
+
+S1ap-CSFallbackIndicator ::= ENUMERATED { 
+    cs-fallback-required,
+    ...,
+    cs-fallback-high-priority
+}
+
+S1ap-CSG-Id ::= BIT STRING (SIZE (27))
+
+
+S1ap-CSG-IdList ::= SEQUENCE (SIZE (1..s1ap-maxNrOfCSGs)) OF S1ap-CSG-IdList-Item
+
+S1ap-CSG-IdList-Item ::= SEQUENCE {
+    cSG-Id          S1ap-CSG-Id,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-CSGMembershipStatus ::= ENUMERATED { 
+    member,
+    not-member
+}
+
+
+S1ap-COUNTvalue ::= SEQUENCE {
+    pDCP-SN            S1ap-PDCP-SN,
+    hFN                S1ap-HFN,
+    iE-Extensions      S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-CriticalityDiagnostics ::= SEQUENCE {
+    procedureCode                    S1ap-ProcedureCode                    OPTIONAL,
+    triggeringMessage                S1ap-TriggeringMessage                OPTIONAL,
+    procedureCriticality             S1ap-Criticality                      OPTIONAL,
+    iEsCriticalityDiagnostics        S1ap-CriticalityDiagnostics-IE-List   OPTIONAL,
+    iE-Extensions                    S1ap-IE-Extensions                    OPTIONAL,
+    ...
+}
+
+S1ap-CriticalityDiagnostics-IE-List ::= SEQUENCE (SIZE (1..s1ap-maxNrOfErrors)) OF S1ap-CriticalityDiagnostics-IE-Item
+
+S1ap-CriticalityDiagnostics-IE-Item ::=     SEQUENCE {
+    iECriticality            S1ap-Criticality,
+    iE-ID                    S1ap-ProtocolIE-ID,
+    typeOfError              S1ap-TypeOfError,
+    iE-Extensions            S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+-- D
+
+S1ap-DataCodingScheme ::= BIT STRING (SIZE (8))
+
+S1ap-DL-Forwarding ::= ENUMERATED {
+    dL-Forwarding-proposed,
+    ...
+}
+
+S1ap-Direct-Forwarding-Path-Availability ::= ENUMERATED {
+    directPathAvailable,
+    ...
+}
+
+S1ap-Data-Forwarding-Not-Possible ::= ENUMERATED {
+    data-Forwarding-not-Possible,
+    ...
+}
+
+-- E
+
+S1ap-ECGIList ::= SEQUENCE (SIZE(1..s1ap-maxnoofCellID)) OF S1ap-EUTRAN-CGI
+
+S1ap-EmergencyAreaIDList ::= SEQUENCE (SIZE(1..s1ap-maxnoofEmergencyAreaID)) OF S1ap-EmergencyAreaID
+
+S1ap-EmergencyAreaID ::= OCTET STRING (SIZE (3))
+
+S1ap-EmergencyAreaID-Broadcast ::= SEQUENCE (SIZE(1..s1ap-maxnoofEmergencyAreaID)) OF S1ap-EmergencyAreaID-Broadcast-Item
+
+S1ap-EmergencyAreaID-Broadcast-Item ::= SEQUENCE {
+    emergencyAreaID            S1ap-EmergencyAreaID,
+    completedCellinEAI         S1ap-CompletedCellinEAI,
+    iE-Extensions              S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-EmergencyAreaID-Cancelled ::= SEQUENCE (SIZE(1..s1ap-maxnoofEmergencyAreaID)) OF S1ap-EmergencyAreaID-Cancelled-Item
+
+S1ap-EmergencyAreaID-Cancelled-Item ::= SEQUENCE {
+    emergencyAreaID            S1ap-EmergencyAreaID,
+    cancelledCellinEAI         S1ap-CancelledCellinEAI,
+    iE-Extensions              S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-CompletedCellinEAI ::= SEQUENCE (SIZE(1..s1ap-maxnoofCellinEAI)) OF S1ap-CompletedCellinEAI-Item
+
+S1ap-CompletedCellinEAI-Item ::= SEQUENCE {
+    eCGI                    S1ap-EUTRAN-CGI,
+    iE-Extensions           S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-ENB-ID ::= CHOICE {
+    macroENB-ID            BIT STRING (SIZE(20)),
+    homeENB-ID             BIT STRING (SIZE(28)),
+    ...
+}
+
+S1ap-GERAN-Cell-ID ::= SEQUENCE {
+    lAI               S1ap-LAI,
+    rAC               S1ap-RAC,
+    cI                S1ap-CI,
+    iE-Extensions     S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-Global-ENB-ID ::= SEQUENCE {
+    pLMNidentity            S1ap-PLMNidentity,
+    eNB-ID                  S1ap-ENB-ID,
+    iE-Extensions           S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-GUMMEIList::= SEQUENCE (SIZE (1.. s1ap-maxnoofMMECs)) OF S1ap-GUMMEI
+
+S1ap-ENB-StatusTransfer-TransparentContainer        ::= SEQUENCE {
+    bearers-SubjectToStatusTransferList         S1ap-Bearers-SubjectToStatusTransfer-List,
+    iE-Extensions                               S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-ENB-UE-S1AP-ID                ::= INTEGER (0..16777215)
+
+S1ap-ENBname ::= PrintableString (SIZE (1..150,...))
+
+S1ap-ENBX2TLAs ::= SEQUENCE (SIZE(1.. s1ap-maxnoofeNBX2TLAs)) OF S1ap-TransportLayerAddress
+
+S1ap-EncryptionAlgorithms ::= BIT STRING (SIZE (16,...))
+
+S1ap-EPLMNs ::= SEQUENCE (SIZE(1..s1ap-maxnoofEPLMNs)) OF S1ap-PLMNidentity
+
+S1ap-EventType    ::= ENUMERATED {
+    direct,
+    change-of-serve-cell,
+    stop-change-of-serve-cell,
+    ...
+}
+
+S1ap-E-RAB-ID        ::= INTEGER (0..15, ...)
+
+S1ap-E-RABDataForwardingItem ::= SEQUENCE {
+    e-RAB-ID                            S1ap-E-RAB-ID,
+    dL-transportLayerAddress            S1ap-TransportLayerAddress                                                   OPTIONAL,
+    dL-gTP-TEID                         S1ap-GTP-TEID                                                                OPTIONAL,
+    uL-TransportLayerAddress            S1ap-TransportLayerAddress                                                   OPTIONAL,
+    uL-GTP-TEID                         S1ap-GTP-TEID                                                                OPTIONAL,
+--    iE-Extensions                       ProtocolExtensionContainer { { E-RABDataForwardingItem-ExtIEs} }    OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABToBeSetupItemHOReq ::= SEQUENCE {
+    e-RAB-ID                            S1ap-E-RAB-ID,
+    transportLayerAddress               S1ap-TransportLayerAddress,
+    gTP-TEID                            S1ap-GTP-TEID,
+    e-RABlevelQosParameters             S1ap-E-RABLevelQoSParameters,
+    -- iE-Extensions                       ProtocolExtensionContainer { {E-RABToBeSetupItemHOReq-ExtIEs} }         OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABAdmittedItem ::= SEQUENCE {
+    e-RAB-ID                        S1ap-E-RAB-ID,
+    transportLayerAddress           S1ap-TransportLayerAddress,
+    gTP-TEID                        S1ap-GTP-TEID,
+    dL-transportLayerAddress        S1ap-TransportLayerAddress   OPTIONAL,
+    dL-gTP-TEID                     S1ap-GTP-TEID                OPTIONAL,
+    uL-TransportLayerAddress        S1ap-TransportLayerAddress   OPTIONAL,
+    uL-GTP-TEID                     S1ap-GTP-TEID                OPTIONAL,
+    -- iE-Extensions                   ProtocolExtensionContainer { {E-RABAdmittedItem-ExtIEs} }   OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABToBeSwitchedDLItem ::= SEQUENCE {
+    e-RAB-ID                            S1ap-E-RAB-ID,
+    transportLayerAddress               S1ap-TransportLayerAddress,
+    gTP-TEID                            S1ap-GTP-TEID,
+    -- iE-Extensions                   ProtocolExtensionContainer { { E-RABToBeSwitchedDLItem-ExtIEs} }            OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABToBeSwitchedULItem ::= SEQUENCE {
+    e-RAB-ID                            S1ap-E-RAB-ID,
+    transportLayerAddress               S1ap-TransportLayerAddress,
+    gTP-TEID                            S1ap-GTP-TEID,
+    -- iE-Extensions                       ProtocolExtensionContainer { { E-RABToBeSwitchedULItem-ExtIEs} }            OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABToBeSetupItemBearerSUReq ::= SEQUENCE {
+    e-RAB-ID                        S1ap-E-RAB-ID,
+    e-RABlevelQoSParameters         S1ap-E-RABLevelQoSParameters,
+    transportLayerAddress           S1ap-TransportLayerAddress,
+    gTP-TEID                        S1ap-GTP-TEID,
+    nAS-PDU                         S1ap-NAS-PDU,
+    -- iE-Extensions                   ProtocolExtensionContainer { {E-RABToBeSetupItemBearerSUReqExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABSetupItemBearerSURes ::= SEQUENCE {
+    e-RAB-ID                    S1ap-E-RAB-ID,
+    transportLayerAddress       S1ap-TransportLayerAddress,
+    gTP-TEID                    S1ap-GTP-TEID,
+    -- iE-Extensions               ProtocolExtensionContainer { {E-RABSetupItemBearerSUResExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABToBeModifiedItemBearerModReq ::= SEQUENCE {
+    e-RAB-ID                        S1ap-E-RAB-ID,
+    e-RABLevelQoSParameters         S1ap-E-RABLevelQoSParameters,
+    nAS-PDU                         S1ap-NAS-PDU,
+    -- iE-Extensions                   ProtocolExtensionContainer { {E-RABToBeModifyItemBearerModReqExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABReleaseItemBearerRelComp ::= SEQUENCE {
+    e-RAB-ID                    S1ap-E-RAB-ID,
+    -- iE-Extensions                   ProtocolExtensionContainer { {E-RABReleaseItemBearerRelCompExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABToBeSetupItemCtxtSUReq ::= SEQUENCE {
+    e-RAB-ID                    S1ap-E-RAB-ID,
+    e-RABlevelQoSParameters     S1ap-E-RABLevelQoSParameters,
+    transportLayerAddress       S1ap-TransportLayerAddress,
+    gTP-TEID                    S1ap-GTP-TEID,
+    nAS-PDU                     S1ap-NAS-PDU       OPTIONAL,
+    iE-Extensions               S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABSetupItemCtxtSURes ::= SEQUENCE {
+    e-RAB-ID                S1ap-E-RAB-ID,
+    transportLayerAddress   S1ap-TransportLayerAddress,
+    gTP-TEID                S1ap-GTP-TEID,
+    iE-Extensions           S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABToBeModifiedListBearerModReq ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABReleaseListBearerRelComp ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABInformationList    ::= SEQUENCE (SIZE (1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABToBeSetupListCtxtSUReq ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABSetupListCtxtSURes ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABDataForwardingList ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABSetupListBearerSURes ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABFailedToSetupListHOReqAck ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABToBeSetupListBearerSUReq ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABAdmittedList ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABToBeSwitchedDLList ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABToBeSwitchedULList ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABModifyListBearerModRes ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+S1ap-E-RABToBeSetupListHOReq ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+
+S1ap-TAIList::= SEQUENCE (SIZE(1.. s1ap-maxnoofTAIs)) OF S1ap-IE
+S1ap-UE-associatedLogicalS1-ConnectionListRes ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfIndividualS1ConnectionsToReset)) OF S1ap-IE
+S1ap-UE-associatedLogicalS1-ConnectionListResAck ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfIndividualS1ConnectionsToReset)) OF S1ap-IE
+
+S1ap-E-RABModifyItemBearerModRes ::= SEQUENCE {
+    e-RAB-ID                    S1ap-E-RAB-ID,
+    -- iE-Extensions                   ProtocolExtensionContainer { {E-RABModifyItemBearerModResExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABFailedToSetupItemHOReqAck ::= SEQUENCE {
+    e-RAB-ID                        S1ap-E-RAB-ID,
+    cause                           S1ap-Cause,
+    -- iE-Extensions                   ProtocolExtensionContainer { { E-RABFailedToSetupItemHOReqAckExtIEs} }          OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABInformationListItem ::= SEQUENCE {
+    e-RAB-ID                         S1ap-E-RAB-ID,
+    dL-Forwarding                    S1ap-DL-Forwarding        OPTIONAL,
+ -- iE-Extensions                   ProtocolExtensionContainer { {E-RABInformationListItem-ExtIEs} }            OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+-- E-RABList ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF ProtocolIE-SingleContainer { {E-RABItemIEs} }
+S1ap-E-RABList ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfE-RABs)) OF S1ap-IE
+
+S1ap-E-RABItem ::= SEQUENCE {
+    e-RAB-ID                    S1ap-E-RAB-ID,
+    cause                       S1ap-Cause,
+ -- iE-Extensions               ProtocolExtensionContainer { {E-RABItem-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-E-RABLevelQoSParameters ::= SEQUENCE {
+    qCI            S1ap-QCI,
+    allocationRetentionPriority            S1ap-AllocationAndRetentionPriority,
+    gbrQosInformation                    S1ap-GBR-QosInformation            OPTIONAL,
+ -- iE-Extensions                       ProtocolExtensionContainer { {E-RABQoSParameters-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-EUTRAN-CGI ::= SEQUENCE {
+    pLMNidentity            S1ap-PLMNidentity,
+    cell-ID                 S1ap-CellIdentity,
+ -- iE-Extensions           ProtocolExtensionContainer { {EUTRAN-CGI-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-EUTRANRoundTripDelayEstimationInfo ::= INTEGER (0..2047)
+
+S1ap-ExtendedRNC-ID                    ::= INTEGER (4096..65535)
+
+S1ap-ExtendedRepetitionPeriod ::= INTEGER (4096..131071)
+
+-- F
+
+S1ap-ForbiddenInterRATs ::= ENUMERATED {
+    all,
+    geran,
+    utran,
+    cdma2000,
+    ...,
+    geranandutran,
+    cdma2000andutran
+
+}
+
+S1ap-ForbiddenTAs ::= SEQUENCE (SIZE(1.. s1ap-maxnoofEPLMNsPlusOne)) OF S1ap-ForbiddenTAs-Item
+
+S1ap-ForbiddenTAs-Item ::= SEQUENCE {
+    pLMN-Identity        S1ap-PLMNidentity,
+    forbiddenTACs        S1ap-ForbiddenTACs,
+ -- iE-Extensions       ProtocolExtensionContainer { {ForbiddenTAs-Item-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-ForbiddenTACs ::= SEQUENCE (SIZE(1..s1ap-maxnoofForbTACs)) OF S1ap-TAC
+
+S1ap-ForbiddenLAs ::= SEQUENCE (SIZE(1..s1ap-maxnoofEPLMNsPlusOne)) OF S1ap-ForbiddenLAs-Item
+
+S1ap-ForbiddenLAs-Item ::= SEQUENCE {
+    pLMN-Identity        S1ap-PLMNidentity,
+    forbiddenLACs        S1ap-ForbiddenLACs,
+ -- iE-Extensions       ProtocolExtensionContainer { {ForbiddenLAs-Item-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-ForbiddenLACs ::= SEQUENCE (SIZE(1..s1ap-maxnoofForbLACs)) OF S1ap-LAC
+
+-- G
+
+S1ap-GBR-QosInformation ::= SEQUENCE {
+    e-RAB-MaximumBitrateDL            S1ap-BitRate,
+    e-RAB-MaximumBitrateUL            S1ap-BitRate,
+    e-RAB-GuaranteedBitrateDL         S1ap-BitRate,
+    e-RAB-GuaranteedBitrateUL         S1ap-BitRate,
+ -- iE-Extensions                   ProtocolExtensionContainer { { GBR-QosInformation-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-GTP-TEID                    ::= OCTET STRING (SIZE (4))
+
+S1ap-GUMMEI            ::= SEQUENCE {
+    pLMN-Identity        S1ap-PLMNidentity,
+    mME-Group-ID         S1ap-MME-Group-ID,
+    mME-Code             S1ap-MME-Code,
+ -- iE-Extensions       ProtocolExtensionContainer { {GUMMEI-ExtIEs} } OPTIONAL,
+    iE-Extensions        S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-GWContextReleaseIndication ::= ENUMERATED {
+    true,
+    ...
+}
+
+-- H
+
+S1ap-HandoverRestrictionList ::= SEQUENCE {
+    servingPLMN                    S1ap-PLMNidentity,
+    equivalentPLMNs                S1ap-EPLMNs                    OPTIONAL,
+    forbiddenTAs                   S1ap-ForbiddenTAs            OPTIONAL,
+    forbiddenLAs                   S1ap-ForbiddenLAs            OPTIONAL,
+    forbiddenInterRATs             S1ap-ForbiddenInterRATs        OPTIONAL,
+ -- iE-Extensions               ProtocolExtensionContainer { {HandoverRestrictionList-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-HandoverType ::= ENUMERATED {
+    intralte,
+    ltetoutran,
+    ltetogeran,
+    utrantolte,
+    gerantolte,
+    ...
+}
+
+S1ap-HFN ::= INTEGER (0..1048575)
+
+-- I
+
+S1ap-ImmediateMDT ::= SEQUENCE { 
+    measurementsToActivate         S1ap-MeasurementsToActivate,
+    reportingTriggerMDT            S1ap-ReportingTriggerMDT,
+    thresholdeventA2               S1ap-ThresholdEventA2                OPTIONAL,
+-- Included in case of event-triggered reporting for measurement M1
+    periodicReportingMDT           S1ap-PeriodicReportingMDT            OPTIONAL,
+-- Included in case of periodic reporting
+ -- iE-Extensions               ProtocolExtensionContainer { { ImmediateMDT-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-IMSI    ::=    OCTET STRING (SIZE (3..8))
+
+S1ap-IntegrityProtectionAlgorithms ::= BIT STRING (SIZE (16,...))
+
+S1ap-InterfacesToTrace ::= BIT STRING (SIZE (8))
+
+S1ap-Inter-SystemInformationTransferType ::= CHOICE {
+    rIMTransfer     S1ap-RIMTransfer,
+    ...
+}
+
+-- J
+-- K
+-- L
+
+
+S1ap-LAC    ::= OCTET STRING (SIZE (2))
+
+S1ap-LAI ::= SEQUENCE {
+    pLMNidentity                S1ap-PLMNidentity,
+    lAC                S1ap-LAC,
+ -- iE-Extensions           ProtocolExtensionContainer { {LAI-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-LastVisitedCell-Item ::= CHOICE {
+    e-UTRAN-Cell                      S1ap-LastVisitedEUTRANCellInformation,
+    uTRAN-Cell                        S1ap-LastVisitedUTRANCellInformation,
+    gERAN-Cell                        S1ap-LastVisitedGERANCellInformation,
+    ...
+}
+
+S1ap-LastVisitedEUTRANCellInformation ::= SEQUENCE {
+    global-Cell-ID                    S1ap-EUTRAN-CGI,
+    cellType                          S1ap-CellType,
+    time-UE-StayedInCell              S1ap-Time-UE-StayedInCell,
+ -- iE-Extensions                   ProtocolExtensionContainer { { LastVisitedEUTRANCellInformation-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-LastVisitedUTRANCellInformation    ::= OCTET STRING
+
+S1ap-LastVisitedGERANCellInformation ::= CHOICE {
+    undefined                        NULL,
+    ...
+}
+
+S1ap-L3-Information                ::= OCTET STRING
+-- This is a dummy IE used only as a reference to the actual definition in relevant specification.
+
+S1ap-LPPa-PDU ::=  OCTET STRING
+
+S1ap-LoggedMDT ::= SEQUENCE {
+    loggingInterval                S1ap-LoggingInterval,
+    loggingDuration                S1ap-LoggingDuration,
+ -- iE-Extensions               ProtocolExtensionContainer { {LoggedMDT-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-LoggingInterval ::= ENUMERATED {ms128, ms256, ms512, ms1024, ms2048, ms3072, ms4096, ms6144}
+
+S1ap-LoggingDuration ::= ENUMERATED {m10, m20, m40, m60, m90, m120}
+
+-- M
+
+S1ap-MDT-Activation     ::= ENUMERATED {
+    immediate-MDT-only,
+    immediate-MDT-and-Trace,
+    logged-MDT-only,
+    ...
+}
+
+S1ap-MDT-Configuration ::= SEQUENCE {
+    mdt-Activation                S1ap-MDT-Activation,
+    areaScopeOfMDT                S1ap-AreaScopeOfMDT,
+    mDTMode                       S1ap-MDTMode,
+ -- iE-Extensions               ProtocolExtensionContainer { { MDT-Configuration-ExtIEs} } OPTIONAL,
+    iE-Extensions                 S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-ManagementBasedMDTAllowed ::= ENUMERATED {allowed, ...}
+
+S1ap-PrivacyIndicator ::= ENUMERATED {
+    immediate-MDT,
+    logged-MDT,
+    ...
+}
+
+S1ap-MDTMode ::= CHOICE {
+    immediateMDT                S1ap-ImmediateMDT,
+    loggedMDT                   S1ap-LoggedMDT,
+    ...
+}
+
+S1ap-MeasurementsToActivate ::= BIT STRING (SIZE (8))
+
+S1ap-MeasurementThresholdA2 ::= CHOICE { 
+    threshold-RSRP                S1ap-Threshold-RSRP,
+    threshold-RSRQ                S1ap-Threshold-RSRQ,
+    ...
+}
+
+S1ap-MessageIdentifier    ::= BIT STRING (SIZE (16))
+
+S1ap-MMEname ::= PrintableString (SIZE (1..150,...))
+
+S1ap-MMERelaySupportIndicator ::= ENUMERATED {true, ...}
+
+S1ap-MME-Group-ID    ::= OCTET STRING (SIZE (2))
+
+S1ap-MME-Code        ::= OCTET STRING (SIZE (1))
+
+S1ap-MME-UE-S1AP-ID    ::= INTEGER (0..4294967295)
+S1ap-M-TMSI            ::= OCTET STRING (SIZE (4))
+
+S1ap-MSClassmark2    ::= OCTET STRING
+S1ap-MSClassmark3    ::= OCTET STRING
+
+-- N
+
+S1ap-NAS-PDU ::=  OCTET STRING
+
+S1ap-NASSecurityParametersfromE-UTRAN ::= OCTET STRING
+
+S1ap-NASSecurityParameterstoE-UTRAN ::= OCTET STRING
+
+S1ap-NumberofBroadcastRequest ::= INTEGER (0..65535)
+
+S1ap-NumberOfBroadcasts ::= INTEGER (0..65535)
+
+-- O
+S1ap-OldBSS-ToNewBSS-Information        ::= OCTET STRING
+-- This is a dummy IE used only as a reference to the actual definition in relevant specification.
+
+S1ap-OverloadAction ::= ENUMERATED {
+    reject-non-emergency-mo-dt,
+    reject-rrc-cr-signalling,
+    permit-emergency-sessions-and-mobile-terminated-services-only,
+    ...,
+    permit-high-priority-sessions-and-mobile-terminated-services-only,
+    reject-delay-tolerant-access
+}
+
+S1ap-OverloadResponse ::= CHOICE {
+    overloadAction                    S1ap-OverloadAction,
+    ...
+}
+
+
+-- P
+
+S1ap-PagingDRX ::= ENUMERATED {
+    v32,
+    v64,
+    v128,
+    v256,
+    ...
+    }
+
+S1ap-PagingPriority ::= ENUMERATED {
+    priolevel1,
+    priolevel2,
+    priolevel3,
+    priolevel4,
+    priolevel5,
+    priolevel6,
+    priolevel7,
+    priolevel8,
+    ...
+}
+
+S1ap-PDCP-SN ::= INTEGER (0..4095) 
+
+S1ap-PeriodicReportingMDT ::= SEQUENCE { 
+    reportInterval                S1ap-ReportIntervalMDT,
+    reportAmount                  S1ap-ReportAmountMDT,
+ -- iE-Extensions               ProtocolExtensionContainer { { PeriodicReportingMDT-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-PLMNidentity                 ::= S1ap-TBCD-STRING
+
+S1ap-Pre-emptionCapability ::= ENUMERATED {
+    shall-not-trigger-pre-emption,
+    may-trigger-pre-emption
+}
+
+S1ap-Pre-emptionVulnerability ::= ENUMERATED {
+    not-pre-emptable,
+    pre-emptable
+}
+
+S1ap-PriorityLevel                ::= INTEGER { spare (0), highest (1), lowest (14), no-priority (15) } (0..15)
+
+S1ap-PS-ServiceNotAvailable ::= ENUMERATED {
+    ps-service-not-available,
+    ...
+}
+
+-- Q
+
+S1ap-QCI                        ::= INTEGER (0..255)
+
+-- R
+
+S1ap-ResetType ::= CHOICE {
+    s1-Interface                S1ap-ResetAll,
+    partOfS1-Interface          S1ap-UE-associatedLogicalS1-ConnectionListRes,
+    ...
+}
+
+S1ap-ResetAll ::= ENUMERATED {
+    reset-all,
+    ...
+}
+
+S1ap-ReceiveStatusofULPDCPSDUs ::= BIT STRING (SIZE(4096))
+
+S1ap-RelativeMMECapacity                ::= INTEGER (0..255)
+
+S1ap-RelayNode-Indicator ::= ENUMERATED {
+    true,
+    ...
+}
+
+S1ap-RAC                    ::= OCTET STRING (SIZE (1))
+
+S1ap-ReportAmountMDT ::= ENUMERATED{r1, r2, r4, r8, r16, r32, r64, rinfinity}
+
+S1ap-ReportIntervalMDT ::= ENUMERATED {ms120, ms240, ms480, ms640, ms1024, ms2048, ms5120, ms10240, min1, min6, min12, min30, min60} 
+
+S1ap-ReportingTriggerMDT ::= ENUMERATED{
+    periodic,
+    a2eventtriggered,
+    ...
+}
+
+S1ap-RequestType    ::= SEQUENCE {
+    eventType                  S1ap-EventType,
+    reportArea                 S1ap-ReportArea,
+ -- iE-Extensions           ProtocolExtensionContainer { { RequestType-ExtIEs} }    OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-RIMTransfer ::= SEQUENCE {
+    rIMInformation            S1ap-RIMInformation,
+    rIMRoutingAddress         S1ap-RIMRoutingAddress        OPTIONAL,
+ -- iE-Extensions           ProtocolExtensionContainer { { RIMTransfer-ExtIEs} }            OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-RIMInformation ::= OCTET STRING
+
+S1ap-RIMRoutingAddress ::= CHOICE {
+    gERAN-Cell-ID            S1ap-GERAN-Cell-ID,
+    ...,
+    targetRNC-ID             S1ap-TargetRNC-ID
+}
+
+S1ap-ReportArea ::= ENUMERATED {
+    ecgi,
+    ...
+}
+
+S1ap-RepetitionPeriod ::= INTEGER (0..4095)
+
+S1ap-RNC-ID                    ::= INTEGER (0..4095)
+
+S1ap-RRC-Container    ::= OCTET STRING
+
+S1ap-RRC-Establishment-Cause ::= ENUMERATED {
+    emergency,
+    highPriorityAccess,
+    mt-Access,
+    mo-Signalling,
+    mo-Data,
+    ...,
+    delay-TolerantAccess
+}
+
+S1ap-Routing-ID        ::= INTEGER (0..255)
+
+-- S
+
+
+S1ap-SecurityKey    ::= BIT STRING (SIZE(256))
+
+S1ap-SecurityContext ::= SEQUENCE {
+    nextHopChainingCount        INTEGER (0..7),
+    nextHopParameter            S1ap-SecurityKey,
+ -- iE-Extensions               ProtocolExtensionContainer { { SecurityContext-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-SerialNumber ::= BIT STRING (SIZE (16))
+
+S1ap-SONInformation ::= CHOICE{
+    sONInformationRequest        S1ap-SONInformationRequest,
+    sONInformationReply          S1ap-SONInformationReply,
+    ...
+}
+
+S1ap-SONInformationRequest ::= ENUMERATED { 
+    x2TNL-Configuration-Info,
+    ...,
+    time-Synchronization-Info
+}
+
+S1ap-SONInformationReply ::= SEQUENCE {
+    x2TNLConfigurationInfo            S1ap-X2TNLConfigurationInfo            OPTIONAL,
+ -- iE-Extensions                   ProtocolExtensionContainer {{SONInformationReply-ExtIEs}} OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-SONConfigurationTransfer ::= SEQUENCE {
+    targeteNB-ID                    S1ap-TargeteNB-ID,
+    sourceeNB-ID                    S1ap-SourceeNB-ID,
+    sONInformation                  S1ap-SONInformation,
+ -- iE-Extensions           ProtocolExtensionContainer { { SONConfigurationTransfer-ExtIEs} }           OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-Source-ToTarget-TransparentContainer ::= OCTET STRING
+-- This IE includes a transparent container from the source RAN node to the target RAN node. 
+-- The octets of the OCTET STRING are encoded according to the specifications of the target system.
+
+S1ap-SourceBSS-ToTargetBSS-TransparentContainer        ::= OCTET STRING
+-- This is a dummy IE used only as a reference to the actual definition in relevant specification.
+
+S1ap-SourceeNB-ID ::= SEQUENCE {
+    global-ENB-ID    S1ap-Global-ENB-ID,
+    selected-TAI     S1ap-TAI,
+ -- iE-Extensions   ProtocolExtensionContainer { {SourceeNB-ID-ExtIEs} } OPTIONAL
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL
+}
+
+S1ap-SRVCCOperationPossible ::= ENUMERATED {
+    possible,
+    ...
+}
+
+S1ap-SRVCCHOIndication ::= ENUMERATED {
+    pSandCS,
+    cSonly,
+    ...
+}
+
+S1ap-SourceeNB-ToTargeteNB-TransparentContainer        ::= SEQUENCE {
+    rRC-Container                    S1ap-RRC-Container,
+    e-RABInformationList             S1ap-E-RABInformationList        OPTIONAL,
+    targetCell-ID                    S1ap-EUTRAN-CGI,
+    subscriberProfileIDforRFP        S1ap-SubscriberProfileIDforRFP        OPTIONAL,
+    uE-HistoryInformation            S1ap-UE-HistoryInformation,
+ -- iE-Extensions           ProtocolExtensionContainer { {SourceeNB-ToTargeteNB-TransparentContainer-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-SourceRNC-ToTargetRNC-TransparentContainer        ::= OCTET STRING
+-- This is a dummy IE used only as a reference to the actual definition in relevant specification.
+
+
+S1ap-ServedGUMMEIs ::= SEQUENCE (SIZE (1.. s1ap-maxnoofRATs)) OF S1ap-ServedGUMMEIsItem
+
+S1ap-ServedGUMMEIsItem ::= SEQUENCE {
+    servedPLMNs                S1ap-ServedPLMNs,
+    servedGroupIDs             S1ap-ServedGroupIDs,
+    servedMMECs                S1ap-ServedMMECs,
+ -- iE-Extensions           ProtocolExtensionContainer { {ServedGUMMEIsItem-ExtIEs} }   OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-ServedGroupIDs ::= SEQUENCE (SIZE(1.. s1ap-maxnoofGroupIDs)) OF S1ap-MME-Group-ID
+S1ap-ServedMMECs ::= SEQUENCE (SIZE(1.. s1ap-maxnoofMMECs)) OF S1ap-MME-Code
+
+S1ap-ServedPLMNs ::= SEQUENCE (SIZE(1.. s1ap-maxnoofPLMNsPerMME)) OF S1ap-PLMNidentity
+
+S1ap-SubscriberProfileIDforRFP ::= INTEGER (1..256) 
+
+S1ap-SupportedTAs ::= SEQUENCE (SIZE(1.. s1ap-maxnoofTACs)) OF S1ap-SupportedTAs-Item
+
+S1ap-SupportedTAs-Item ::=    SEQUENCE  {
+    tAC                    S1ap-TAC,
+    broadcastPLMNs         S1ap-BPLMNs,
+ -- iE-Extensions       ProtocolExtensionContainer { {SupportedTAs-Item-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-StratumLevel ::= INTEGER (0..3, ...)
+
+S1ap-SynchronizationStatus ::= ENUMERATED { synchronous, asynchronous, ... }
+
+S1ap-TimeSynchronizationInfo ::= SEQUENCE {
+    stratumLevel                    S1ap-StratumLevel,
+    synchronizationStatus           S1ap-SynchronizationStatus,
+ -- iE-Extensions                   ProtocolExtensionContainer { { TimeSynchronizationInfo-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-S-TMSI ::= SEQUENCE {
+    mMEC      S1ap-MME-Code,
+    m-TMSI    S1ap-M-TMSI,
+ -- iE-Extensions       ProtocolExtensionContainer { {S-TMSI-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+-- T
+
+S1ap-TAC ::= OCTET STRING (SIZE (2))
+
+S1ap-TAIListforWarning ::= SEQUENCE (SIZE(1..s1ap-maxnoofTAIforWarning)) OF S1ap-TAI
+
+S1ap-TAI ::= SEQUENCE {
+    pLMNidentity            S1ap-PLMNidentity,
+    tAC                     S1ap-TAC,
+ -- iE-Extensions           ProtocolExtensionContainer { {TAI-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-TAIItem ::= SEQUENCE {
+    tAI                             S1ap-TAI,
+    -- iE-Extensions                   ProtocolExtensionContainer { {TAIItemExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-TAI-Broadcast ::= SEQUENCE (SIZE(1..s1ap-maxnoofTAIforWarning)) OF S1ap-TAI-Broadcast-Item
+
+S1ap-TAI-Broadcast-Item ::= SEQUENCE {
+    tAI                    S1ap-TAI,
+    completedCellinTAI     S1ap-CompletedCellinTAI,
+ -- iE-Extensions       ProtocolExtensionContainer { {TAI-Broadcast-Item-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-TAI-Cancelled ::= SEQUENCE (SIZE(1..s1ap-maxnoofTAIforWarning)) OF S1ap-TAI-Cancelled-Item
+
+S1ap-TAI-Cancelled-Item ::= SEQUENCE {
+    tAI                    S1ap-TAI,
+    cancelledCellinTAI     S1ap-CancelledCellinTAI,
+ -- iE-Extensions       ProtocolExtensionContainer { {TAI-Cancelled-Item-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-TABasedMDT ::= SEQUENCE {
+    tAListforMDT            S1ap-TAListforMDT,
+ -- iE-Extensions           ProtocolExtensionContainer { {TABasedMDT-ExtIEs} } OPTIONAL,
+ iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-TAListforMDT ::= SEQUENCE (SIZE(1..s1ap-maxnoofTAforMDT)) OF S1ap-TAC
+
+S1ap-CompletedCellinTAI ::= SEQUENCE (SIZE(1..s1ap-maxnoofCellinTAI)) OF S1ap-CompletedCellinTAI-Item
+
+S1ap-CompletedCellinTAI-Item ::= SEQUENCE{
+    eCGI                S1ap-EUTRAN-CGI,
+ -- iE-Extensions       ProtocolExtensionContainer { {CompletedCellinTAI-Item-ExtIEs} } OPTIONAL,
+    iE-Extensions  S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-TBCD-STRING ::= OCTET STRING (SIZE (3))
+
+S1ap-TargetID ::= CHOICE {
+    targeteNB-ID            S1ap-TargeteNB-ID,
+    targetRNC-ID            S1ap-TargetRNC-ID,
+    cGI                     S1ap-CGI,
+    ...
+}
+
+S1ap-TargeteNB-ID ::= SEQUENCE {
+    global-ENB-ID    S1ap-Global-ENB-ID,
+    selected-TAI     S1ap-TAI,
+ -- iE-Extensions   ProtocolExtensionContainer { {TargeteNB-ID-ExtIEs} } OPTIONAL,
+    iE-Extensions    S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-TargetRNC-ID ::= SEQUENCE {
+    lAI                    S1ap-LAI,
+    rAC                    S1ap-RAC         OPTIONAL,
+    rNC-ID                 S1ap-RNC-ID,
+    extendedRNC-ID         S1ap-ExtendedRNC-ID        OPTIONAL,
+ -- iE-Extensions       ProtocolExtensionContainer { {TargetRNC-ID-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-TargeteNB-ToSourceeNB-TransparentContainer        ::= SEQUENCE {
+    rRC-Container            S1ap-RRC-Container,
+ -- iE-Extensions           ProtocolExtensionContainer { {TargeteNB-ToSourceeNB-TransparentContainer-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-Target-ToSource-TransparentContainer ::= OCTET STRING
+-- This IE includes a transparent container from the target RAN node to the source RAN node. 
+-- The octets of the OCTET STRING are coded according to the specifications of the target system.
+
+S1ap-TargetRNC-ToSourceRNC-TransparentContainer        ::= OCTET STRING
+-- This is a dummy IE used only as a reference to the actual definition in relevant specification.
+
+S1ap-TargetBSS-ToSourceBSS-TransparentContainer        ::= OCTET STRING
+-- This is a dummy IE used only as a reference to the actual definition in relevant specification.
+
+S1ap-ThresholdEventA2 ::= SEQUENCE { 
+    measurementThreshold        S1ap-MeasurementThresholdA2,
+ -- iE-Extensions               ProtocolExtensionContainer { { ThresholdEventA2-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-Threshold-RSRP ::= INTEGER(0..97)
+
+S1ap-Threshold-RSRQ ::= INTEGER(0..34)
+
+S1ap-TimeToWait ::= ENUMERATED {v1s, v2s, v5s, v10s, v20s, v60s, ...}
+
+S1ap-Time-UE-StayedInCell ::= INTEGER (0..4095)
+
+S1ap-TransportLayerAddress        ::= BIT STRING (SIZE(1..160, ...))
+
+S1ap-TraceActivation ::= SEQUENCE {
+    e-UTRAN-Trace-ID                    S1ap-E-UTRAN-Trace-ID,
+    interfacesToTrace                   S1ap-InterfacesToTrace,
+    traceDepth                          S1ap-TraceDepth,
+    traceCollectionEntityIPAddress      S1ap-TransportLayerAddress,
+ -- iE-Extensions                   ProtocolExtensionContainer { { TraceActivation-ExtIEs} }        OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-TraceDepth ::= ENUMERATED { 
+    minimum,
+    medium,
+    s1ap-maximum,
+    minimumWithoutVendorSpecificExtension,
+    mediumWithoutVendorSpecificExtension,
+    s1ap-maximumWithoutVendorSpecificExtension,
+    ...
+}
+
+S1ap-E-UTRAN-Trace-ID ::=  OCTET STRING (SIZE (8))
+
+S1ap-TrafficLoadReductionIndication ::= INTEGER (1..99)
+
+S1ap-TypeOfError ::= ENUMERATED {
+    not-understood,
+    missing,
+    ...
+}
+
+-- U
+
+S1ap-UEAggregateMaximumBitrate ::= SEQUENCE {
+    uEaggregateMaximumBitRateDL                S1ap-BitRate,
+    uEaggregateMaximumBitRateUL                S1ap-BitRate,
+ -- iE-Extensions                           ProtocolExtensionContainer { {UEAggregate-MaximumBitrates-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-UE-S1AP-IDs ::= CHOICE{
+    uE-S1AP-ID-pair        S1ap-UE-S1AP-ID-pair,
+    mME-UE-S1AP-ID         S1ap-MME-UE-S1AP-ID,
+    ...
+}
+
+S1ap-UE-S1AP-ID-pair ::= SEQUENCE{
+    mME-UE-S1AP-ID        S1ap-MME-UE-S1AP-ID,
+    eNB-UE-S1AP-ID        S1ap-ENB-UE-S1AP-ID,
+ -- iE-Extensions       ProtocolExtensionContainer { {S1ap-UE-S1AP-ID-pair-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-UE-associatedLogicalS1-ConnectionItem ::= SEQUENCE {
+    mME-UE-S1AP-ID                    S1ap-MME-UE-S1AP-ID OPTIONAL,
+    eNB-UE-S1AP-ID                    S1ap-ENB-UE-S1AP-ID OPTIONAL,
+ -- iE-Extensions                   ProtocolExtensionContainer { { UE-associatedLogicalS1-ConnectionItemExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-UEIdentityIndexValue    ::=    BIT STRING (SIZE (10))
+
+S1ap-UE-HistoryInformation ::= SEQUENCE (SIZE(1..s1ap-maxnoofCells)) OF S1ap-LastVisitedCell-Item
+
+S1ap-UEPagingID ::= CHOICE {
+    s-TMSI        S1ap-S-TMSI,
+    iMSI          S1ap-IMSI,
+    ...
+}
+
+S1ap-UERadioCapability ::= OCTET STRING
+
+S1ap-UESecurityCapabilities ::= SEQUENCE {
+    encryptionAlgorithms            S1ap-EncryptionAlgorithms,
+    integrityProtectionAlgorithms   S1ap-IntegrityProtectionAlgorithms,
+ -- iE-Extensions                   ProtocolExtensionContainer { { UESecurityCapabilities-ExtIEs} }     OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+...
+}
+
+-- V
+-- W
+
+S1ap-WarningAreaList ::= CHOICE {
+    cellIDList                        S1ap-ECGIList,
+    trackingAreaListforWarning        S1ap-TAIListforWarning,
+    emergencyAreaIDList               S1ap-EmergencyAreaIDList,
+    ...
+}
+
+
+S1ap-WarningType ::= OCTET STRING (SIZE (2))
+
+S1ap-WarningSecurityInfo ::= OCTET STRING (SIZE (50))
+
+
+S1ap-WarningMessageContents ::= OCTET STRING (SIZE(1..9600))
+
+
+-- X
+
+
+S1ap-X2TNLConfigurationInfo ::= SEQUENCE {
+    eNBX2TransportLayerAddresses    S1ap-ENBX2TLAs,
+ -- iE-Extensions                   ProtocolExtensionContainer { { X2TNLConfigurationInfo-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-ENBX2ExtTLAs ::= SEQUENCE (SIZE(1.. s1ap-maxnoofeNBX2ExtTLAs)) OF S1ap-ENBX2ExtTLA
+
+S1ap-ENBX2ExtTLA ::= SEQUENCE {
+    iPsecTLA                    S1ap-TransportLayerAddress        OPTIONAL,
+    gTPTLAa                     S1ap-ENBX2GTPTLAs                OPTIONAL,
+ -- iE-Extensions               ProtocolExtensionContainer { { ENBX2ExtTLA-ExtIEs} } OPTIONAL,
+    iE-Extensions   S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
+S1ap-ENBX2GTPTLAs ::= SEQUENCE (SIZE(1.. s1ap-maxnoofeNBX2GTPTLAs)) OF S1ap-TransportLayerAddress
+
+-- Y
+-- Z
+
+END

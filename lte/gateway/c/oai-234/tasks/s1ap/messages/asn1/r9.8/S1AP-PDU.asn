@@ -1,0 +1,429 @@
+--
+-- Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+-- contributor license agreements.  See the NOTICE file distributed with
+-- this work for additional information regarding copyright ownership.
+-- The OpenAirInterface Software Alliance licenses this file to You under
+-- the terms found in the LICENSE file in the root of this source tree.
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+---------------------------------------------------------------------------------
+-- For more information about the OpenAirInterface (OAI) Software Alliance:
+--      contact@openairinterface.org
+--
+S1AP-PDU {
+    itu-t (0) identified-organization (4) etsi (0) mobileDomain (0)
+    eps-Access (21) modules (3) s1ap (1) version1 (1)
+}
+
+DEFINITIONS AUTOMATIC TAGS ::=
+
+BEGIN
+
+IMPORTS
+    Criticality,
+    ProcedureCode,
+    ProtocolIE-ID
+
+FROM S1AP-CommonDataTypes
+
+    maxProtocolIEs
+
+FROM S1AP-Constants;
+
+S1AP-PDU ::= CHOICE {
+    initiatingMessage       InitiatingMessage,
+    successfulOutcome       SuccessfulOutcome,
+    unsuccessfulOutcome     UnsuccessfulOutcome,
+    ...
+}
+
+InitiatingMessage ::= SEQUENCE {
+    procedureCode   ProcedureCode,
+    criticality     Criticality,
+    value           ANY
+}
+
+SuccessfulOutcome ::= SEQUENCE {
+    procedureCode   ProcedureCode,
+    criticality     Criticality,
+    value           ANY
+}
+
+UnsuccessfulOutcome ::= SEQUENCE {
+    procedureCode   ProcedureCode,
+    criticality     Criticality,
+    value           ANY
+}
+
+HandoverRequired ::= SEQUENCE {
+    handoverRequired-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverCommand ::= SEQUENCE {
+    handoverCommand-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverPreparationFailure ::= SEQUENCE {
+    handoverPreparationFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverRequest ::= SEQUENCE {
+    handoverRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverRequestAcknowledge ::= SEQUENCE {
+    handoverRequestAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverFailure ::= SEQUENCE {
+    handoverFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverNotify ::= SEQUENCE {
+    handoverNotify-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+PathSwitchRequest ::= SEQUENCE {
+    pathSwitchRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+PathSwitchRequestAcknowledge ::= SEQUENCE {
+    pathSwitchRequestAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+PathSwitchRequestFailure ::= SEQUENCE {
+    pathSwitchRequestFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABSetupRequest ::= SEQUENCE {
+    e-RABSetupRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABSetupResponse ::= SEQUENCE {
+    e-RABSetupResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABModifyRequest ::= SEQUENCE {
+    e-RABModifyRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABModifyResponse ::= SEQUENCE {
+    e-RABModifyResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABReleaseIndication ::= SEQUENCE {
+    e-RABReleaseIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABReleaseCommand ::= SEQUENCE {
+    e-RABReleaseCommand-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+E-RABReleaseResponse ::= SEQUENCE {
+    e-RABReleaseResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+InitialContextSetupRequest ::= SEQUENCE {
+    initialContextSetupRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+InitialContextSetupResponse ::= SEQUENCE {
+    initialContextSetupResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+InitialContextSetupFailure ::= SEQUENCE {
+    initialContextSetupFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextReleaseRequest ::= SEQUENCE {
+    ueContextReleaseRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+Paging ::= SEQUENCE {
+    paging-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+DownlinkNASTransport ::= SEQUENCE {
+    downlinkNASTransport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+InitialUEMessage ::= SEQUENCE {
+    initialUEMessage-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UplinkNASTransport ::= SEQUENCE {
+    uplinkNASTransport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+NASNonDeliveryIndication ::= SEQUENCE {
+    nasNonDeliveryIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverCancel ::= SEQUENCE {
+    handoverCancel-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+HandoverCancelAcknowledge ::= SEQUENCE {
+    handoverCancelAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+Reset ::= SEQUENCE {
+    reset-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ResetAcknowledge ::= SEQUENCE {
+    resetAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+S1SetupResponse ::= SEQUENCE {
+    s1SetupResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+S1SetupRequest ::= SEQUENCE {
+    s1SetupRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+S1SetupFailure ::= SEQUENCE
+{
+    s1SetupFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ErrorIndication ::= SEQUENCE {
+    errorIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBConfigurationUpdate ::= SEQUENCE {
+    eNBConfigurationUpdate-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBConfigurationUpdateAcknowledge ::= SEQUENCE {
+    eNBConfigurationUpdateAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBConfigurationUpdateFailure ::= SEQUENCE {
+    eNBConfigurationUpdateFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEConfigurationUpdate ::= SEQUENCE {
+    mmeConfigurationUpdate-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEConfigurationUpdateAcknowledge ::= SEQUENCE {
+    mmeConfigurationUpdateAcknowledge-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEConfigurationUpdateFailure ::= SEQUENCE {
+    mmeConfigurationUpdateFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+DownlinkS1cdma2000tunneling ::= SEQUENCE {
+    downlinkS1cdma2000tunneling-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UplinkS1cdma2000tunneling ::= SEQUENCE {
+    uplinkS1cdma2000tunneling-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextModificationRequest ::= SEQUENCE {
+    ueContextModificationRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextModificationResponse ::= SEQUENCE {
+    ueContextModificationResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextModificationFailure ::= SEQUENCE {
+    ueContextModificationFailure-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UECapabilityInfoIndication ::= SEQUENCE {
+    ueCapabilityInfoIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextReleaseCommand ::= SEQUENCE {
+    ueContextReleaseCommand-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UEContextReleaseComplete ::= SEQUENCE {
+    ueContextReleaseComplete-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBStatusTransfer ::= SEQUENCE {
+    eNBStatusTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEStatusTransfer ::= SEQUENCE {
+    mmeStatusTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+DeactivateTrace ::= SEQUENCE {
+    deactivateTrace-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+TraceStart ::= SEQUENCE {
+    traceStart-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+TraceFailureIndication ::= SEQUENCE {
+    traceFailureIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+CellTrafficTrace ::= SEQUENCE {
+    cellTrafficTrace-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+LocationReportingControl ::= SEQUENCE {
+    locationReportingControl-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+LocationReportingFailureIndication ::= SEQUENCE {
+    locationReportingFailureIndication-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+LocationReport ::= SEQUENCE {
+    locationReport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+OverloadStart ::= SEQUENCE {
+    overloadStart-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+OverloadStop ::= SEQUENCE {
+    overloadStop-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+WriteReplaceWarningRequest ::= SEQUENCE {
+    writeReplaceWarningRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+WriteReplaceWarningResponse ::= SEQUENCE {
+    writeReplaceWarningResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBDirectInformationTransfer ::= SEQUENCE {
+    eNBDirectInformationTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEDirectInformationTransfer ::= SEQUENCE {
+    mmeDirectInformationTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+ENBConfigurationTransfer ::= SEQUENCE {
+    eNBConfigurationTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+MMEConfigurationTransfer ::= SEQUENCE {
+    mmeConfigurationTransfer-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+PrivateMessage ::= SEQUENCE {
+    privateMessage-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+KillRequest ::= SEQUENCE {
+    killRequest-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+KillResponse ::= SEQUENCE {
+    killResponse-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+DownlinkUEAssociatedLPPaTransport ::= SEQUENCE {
+    downlinkUEAssociatedLPPaTransport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UplinkUEAssociatedLPPaTransport ::= SEQUENCE {
+    uplinkUEAssociatedLPPaTransport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+DownlinkNonUEAssociatedLPPaTransport ::= SEQUENCE {
+    downlinkNonUEAssociatedLPPaTransport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+UplinkNonUEAssociatedLPPaTransport ::= SEQUENCE {
+    uplinkNonUEAssociatedLPPaTransport-ies SEQUENCE (SIZE (0..maxProtocolIEs)) OF IE,
+    ...
+}
+
+IE ::= SEQUENCE {
+    id ProtocolIE-ID,
+    criticality Criticality,
+    value ANY
+}
+
+END

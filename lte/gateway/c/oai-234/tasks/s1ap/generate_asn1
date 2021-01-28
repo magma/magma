@@ -1,0 +1,51 @@
+#!/bin/bash
+################################################################################
+# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The OpenAirInterface Software Alliance licenses this file to You under 
+# the terms found in the LICENSE file in the root of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+# For more information about the OpenAirInterface (OAI) Software Alliance:
+#      contact@openairinterface.org
+################################################################################
+
+function main()
+{
+mkdir -p $1
+cd $1
+shift
+
+ASNC1=$(which asn1c)
+${ASNC1:-asn1c} -gen-PER -fcompound-names  $* 2>&1 | grep -v -- '->' | grep -v '^Compiled' |grep -v sample
+
+awk ' 
+  BEGIN { 
+     print "#ifndef __ASN1_CONSTANTS_H__"
+     print "#define __ASN1_CONSTANTS_H__"
+  }  
+  /INTEGER ::=/ { 
+     gsub("INTEGER ::=","")
+     gsub("--","//")
+     gsub("-1","_minus_1")
+     gsub("-","_")
+     printf("#define %s\n",$0)
+  } 
+  /::=.*INTEGER.*[(]/ {
+     nb_fields=split($0,val,"[:=().]+");
+     gsub("-","_",val[1]);
+     printf("#define min_val_%s %s\n",val[1],val[nb_fields-2]);
+     printf("#define max_val_%s %s\n",val[1],val[nb_fields-1]);
+  }
+  END {
+     print "#endif ";
+  } ' $1  > asn1_constants.h
+}
+
+main "$@"

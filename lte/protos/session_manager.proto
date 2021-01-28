@@ -77,6 +77,11 @@ message RatSpecificContext {
   }
 }
 
+message TeidSet {
+  bytes teid = 1;
+  string end_ipv4_addr = 2;
+}
+
 message RatSpecificNotification {
   bytes pdu_session_id = 1;            //One byte
   RequestType request_type = 2;
@@ -126,7 +131,6 @@ message UpdateTunnelIdsRequest {
   uint32 bearer_id = 2;
   uint32 enb_teid = 3;
   uint32 agw_teid = 4;
-  string session_id = 5;
 }
 
 message UpdateTunnelIdsResponse {
@@ -413,11 +417,16 @@ message CreditUsageUpdate {
   CreditUsage usage = 1;
   string session_id = 2;
   uint32 request_number = 3; // unique among session
+  string sid = 4; // TODO deprecate with common_context
+  bytes msisdn = 5; // TODO deprecate with common_context
+  string ue_ipv4 = 6; // TODO deprecate with common_context
   string spgw_ipv4 = 7;
+  string apn = 8; // TODO deprecate with common_context
   string imei = 9;
   string plmn_id = 10;
   string imsi_plmn_id = 11;
   bytes user_location = 12;
+  RATType rat_type = 13; // TODO deprecate with common_context
   bytes hardware_addr = 14; // MAC Address for WLAN
   TgppContext tgpp_ctx = 15;
   CommonSessionContext common_context = 16;
@@ -571,15 +580,20 @@ message SessionTerminateResponse {
 }
 
 message SessionTerminateRequest {
+  string sid = 1; // TODO deprecate with common_context
   string session_id = 2;
+  string apn = 3; // TODO deprecate with common_context
   uint32 request_number = 4;
   repeated CreditUsage credit_usages = 5;
   repeated UsageMonitorUpdate monitor_usages = 6;
+  string ue_ipv4 = 7; // TODO deprecate with common_context
+  bytes msisdn = 8; // TODO deprecate with common_context
   string spgw_ipv4 = 9;
   string imei = 10;
   string plmn_id = 11;
   string imsi_plmn_id = 12;
   bytes user_location = 13;
+  RATType rat_type = 14; // TODO deprecate with common_context
   bytes hardware_addr = 15; // MAC Address for WLAN
   TgppContext tgpp_ctx = 16;
   CommonSessionContext common_context = 17;
@@ -706,6 +720,38 @@ message QosRules {
    uint32 qos_flow_identifier = 7;
 }
 
+enum prem_capab {
+  SHALL_NOT_TRIGGER_PRE_EMPTION = 0;
+  MAY_TRIGGER_PER_EMPTION = 1;
+}
+enum  prem_vuner {
+  NOT_PREMTABLE = 0;
+  PRE_EMPTABLE = 1;
+}
+
+message allocation_and_retention_prio {
+   uint32       prio_level = 1;
+   prem_capab   pre_emtion_cap = 2;
+   prem_vuner   pre_emtion_vul = 3;
+}
+
+message qos_characteristics {
+   uint32 fiveQi = 1;
+}
+
+message flow_level_params {
+    qos_characteristics qos_chars = 1;
+    allocation_and_retention_prio alloc_reten_prio = 2;
+}
+message qos_flow {
+   uint32  qos_flow_ident = 1;
+   flow_level_params  param = 2;
+}
+message  qos_flow_request_list {
+   qos_flow flow  = 1;
+}
+
+
 message LadnServiceArea {
    string dnn_value = 1;
    repeated TrackingAreaIdentityList identity_list = 2;
@@ -762,7 +808,10 @@ message M5GSMSessionContext {
   bool pdu_session_req_always_on = 21;     //Always-on PDU session requested TS-24.501 9.11.4.4
   string sm_pdu_dn_req = 22;               //SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
   M5GSMCause m5gsm_cause = 23;
-  QosRules requested_qos_rules = 24; //TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+  TeidSet gnode_endpoint = 24; 
+  QosRules requested_qos_rules = 25; //TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+  //Procedure transaction identity  
+  bytes procedure_trans_identity = 26;   //One byte TS-24501 9.6
 }
 
 message SetSMSessionContext {
@@ -776,9 +825,9 @@ message SmContextVoid {
 }
 
 //SET API for 3 procedures request from AMF to SMF
-        service AmfPduSessionSmContext {
-                rpc SetAmfSessionContext (SetSMSessionContext) returns (SmContextVoid);
-        }
+//        service AmfPduSessionSmContext {
+//                rpc SetAmfSessionContext (SetSMSessionContext) returns (SmContextVoid);
+//        }
 
 ////////// SET MESSAGE PROTO DEFINATION OF SMF TO AMF ON RESPONSE /////////////
 
@@ -789,9 +838,33 @@ message RatSpecificContextAccess {
     M5GSMSessionContextAccess m5g_session_context_rsp = 2;
   //}
 }
+message SessionAmbr {
+ enum AmbrUnit {
+   Kbps_0 = 0;
+   Kbps_1 = 1;
+   Kbps_4 = 2;
+   Kbps_16 = 3;
+   Kbps_64 = 4;
+   //Kbps_256 = 5;
+   //Mbps_1 = 6;
+   //Mbps_4 = 7;
+   //Mbps_16 = 8;
+   //Mbps_64 = 9;
+   //Mbps_256 = 10;
+   //Gbps_1 = 11;
+   //Gbps_4 = 12;
+   //Gbps_16 = 13;
+   //Gbps_64 = 14;
+   //Gbps_256 = 15;
+ }
+ AmbrUnit downlink_unit_type =1;
+ uint32   downlink_units =2;   // Only to use lower 2 bytes (16 bit values)
+ AmbrUnit uplink_unit_type =3;
+ uint32   uplink_units =4;   // Only to use lower 2 bytes (16 bit values) 
+}
 
 //AuthorizedQosRules
-//The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE,
+//The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE, 
 //where each QoS rule is a set of parameters.
 //a) for classification and marking of uplink user traffic; and
 //b) for identification of a QoS flow which the network is to use for a particular downlink user traffic.
@@ -800,23 +873,28 @@ message RatSpecificContextAccess {
 //description provided by the UE in an IMS session.
 
 message M5GSMSessionContextAccess{
-    //One byte, received from UE. For 5G pdu_session_id.
+    //One byte, received from UE. For 5G pdu_session_id. 
     bytes pdu_session_id = 1;
     //selected PDU session TS-24501 - 9.11.4.11
     PduSessionType    pdu_session_type = 2;
     //selected session and service continuty mode TS-24501 - 9.11.4.16
-    SscMode selected_ssc_mode = 3;
+    SscMode selected_ssc_mode = 3; 
     //TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
-    repeated QosRules authorized_qos_rules = 4;
+    repeated QosRules authorized_qos_rules = 4; 
     //TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
-    AggregatedMaximumBitrate session_ambr = 5;
+    //    AggregatedMaximumBitrate session_ambr = 5;
+    SessionAmbr  session_ambr = 5;
     M5GSMCause M5gsm_cause = 6; //TS-24501 - 9.11.4.2
     //PDU session is requested to be established as always-on PDU session.
-    bool always_on_pdu_session_indication = 7;
+    bool always_on_pdu_session_indication = 7; 
     SscMode allowed_ssc_mode = 8; //Indicates SSC mode.
     bool M5gsm_congetion_re_attempt_indicator = 9;
     //IP address. Imported from session_manager.proto file.
     RedirectServer pdu_address = 12;
+    TeidSet upf_endpoint = 13; 
+    //Procedure transaction identity  
+    bytes procedure_trans_identity = 14;   //One byte TS-24501 9.6
+    qos_flow_request_list  qos_list = 15;
 }
 
 message SetSMSessionContextAccess {
@@ -957,10 +1035,15 @@ service SetInterfaceForUserPlane {
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
 }
 
-// RPC service and method
+//SET API for 3 procedures request from AMF to SMF
+service AmfPduSessionSmContext {
+  rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
+  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid) {}    //AMF to SMF
+}
+// SET API RPC service and method request from SMF to AMF
 service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    //SMF to AMF
- rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
+ rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid) {}
 }
 
 service AmfSmfSmNotification {
