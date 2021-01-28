@@ -21,12 +21,17 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 var (
 	stringifiedEAGAIN = fmt.Sprintf("%s", streamer.EAGAIN)
+)
+
+const (
+	defaultBatchSize = 100
 )
 
 type streamerServicer struct{}
@@ -74,11 +79,15 @@ func GetUpdatesUnverified(request *protos.StreamRequest, stream protos.Streamer_
 		if err != nil && err != streamer.EAGAIN {
 			return status.Errorf(codes.Aborted, "error while streaming updates: %s", err)
 		}
-		batch := &protos.DataUpdateBatch{Updates: updates, Resync: true}
 
-		sendErr := stream.Send(batch)
-		if sendErr != nil {
-			return status.Errorf(codes.Internal, "error sending update batch %+v: %v", batch, sendErr)
+		// batch subscribers into group of 100 subscribers at a time
+		chunkList := funk.Chunk(updates, defaultBatchSize)
+		for _, chunk := range chunkList.([][]*protos.DataUpdate) {
+			batch := &protos.DataUpdateBatch{Updates: chunk, Resync: true}
+			sendErr := stream.Send(batch)
+			if sendErr != nil {
+				return status.Errorf(codes.Internal, "error sending update batch %+v: %v", batch, sendErr)
+			}
 		}
 	}
 	return nil

@@ -36,10 +36,15 @@ import (
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
+	"google.golang.org/grpc"
 )
 
 func main() {
-	srv, err := service.NewOrchestratorService(lte.ModuleName, lte_service.ServiceName)
+	srv, err := service.NewOrchestratorService(
+		lte.ModuleName,
+		lte_service.ServiceName,
+		grpc.MaxSendMsgSize(service.DefaultMaxGRPCMsgSize),
+		grpc.MaxRecvMsgSize(service.DefaultMaxGRPCMsgSize))
 	if err != nil {
 		glog.Fatalf("Error creating lte service: %s", err)
 	}

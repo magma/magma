@@ -135,6 +135,11 @@ func GetConnection(service string) (*grpc.ClientConn, error) {
 	return globalRegistry.GetConnection(service)
 }
 
+// GetConnectionWithAddOptions provides a gRPC connection to a service in the registry.
+func GetConnectionWithAddOptions(service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+	return globalRegistry.GetConnectionWithAddOptions(service)
+}
+
 func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	return globalRegistry.GetConnectionImpl(ctx, service, opts...)
 }

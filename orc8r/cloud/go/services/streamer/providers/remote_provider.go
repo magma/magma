@@ -24,6 +24,11 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/grpc"
+)
+
+const (
+	defaultMaxGRPCMsgSize = 50 * 1024 * 1024
 )
 
 type remoteProvider struct {
@@ -61,7 +66,8 @@ func (r *remoteProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*pr
 }
 
 func (r *remoteProvider) getProviderClient() (streamer_protos.StreamProviderClient, error) {
-	conn, err := registry.GetConnection(r.service)
+	conn, err := registry.GetConnectionWithAddOptions(r.service,
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(defaultMaxGRPCMsgSize)))
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)
 		glog.Error(initErr)
