@@ -14,14 +14,6 @@ set(ORC8R_CPP_PROTOS common)
 generate_cpp_protos("${ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
 
-# AMF
-set(AMFSRV_LTE_CPP_PROTOS subscriberdb session_manager)
-set(AMFSRV_LTE_GRPC_PROTOS session_manager)
-generate_cpp_protos("${AMFSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
-generate_grpc_protos("${AMFSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
-
 # SPGW
 set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd session_manager)
 set(SPGWSRV_LTE_GRPC_PROTOS spgw_service session_manager)
@@ -88,7 +80,6 @@ add_library(TASK_GRPC_SERVICE
     S1apServiceImpl.cpp
     HaServiceImpl.cpp
     spgw_service_handler.c
-    amf_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp
     ${PROTO_SRCS}
