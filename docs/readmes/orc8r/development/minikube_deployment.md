@@ -50,12 +50,12 @@ Mysql is a requirement to run the NMS (you can skip this step if you don't want 
 
 ```
 $ helm install mysql \
-  --namespace magma
+  --namespace magma \
   --set mysqlRootPassword=password,mysqlUser=magma,mysqlPassword=password,mysqlDatabase=magma \
     stable/mysql
 ```
 
-> Note: You may need to run `helm repo add stable https://kubernetes-charts.storage.googleapis.com/` if the chart is not found
+> Note: You may need to run `helm repo add stable https://charts.helm.sh/stable` if the chart is not found
 
 ### Generate Secrets
 
