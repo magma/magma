@@ -33,37 +33,6 @@
 #define MAX_GUMMEI 5
 #define MAX_APN_CORRECTION_MAP_LIST 10
 
-typedef struct m5g_apn_map_s {
-  bstring imsi_prefix;
-  bstring apn_override;
-} m5g_apn_map_t;
-
-typedef struct m5g_apn_map_config_s {
-  int nb;
-  m5g_apn_map_t apn_map[MAX_APN_CORRECTION_MAP_LIST];
-} m5g_apn_map_config_t;
-
-typedef struct m5g_nas_config_s {
-  uint8_t prefered_integrity_algorithm[8];
-  uint8_t prefered_ciphering_algorithm[8];
-  uint32_t t3502_min;
-  uint32_t t3512_min;
-  uint32_t t3522_sec;
-  uint32_t t3550_sec;
-  uint32_t t3560_sec;
-  uint32_t t3570_sec;
-  uint32_t t3585_sec;
-  uint32_t t3586_sec;
-  uint32_t t3589_sec;
-  uint32_t t3595_sec;
-  // non standard features
-  bool force_reject_tau;
-  bool force_reject_sr;
-  bool disable_esm_information;
-  // apn correction
-  bool enable_apn_correction;
-  m5g_apn_map_config_t m5g_apn_map_config;
-} m5g_nas_config_t;
 typedef uint64_t imsi64_t;
 typedef uint32_t amf_ue_ngap_id_t;
 

@@ -22,7 +22,7 @@
 /*******************************************************************************
  * Timer Constants
  ******************************************************************************/
-#define AMF_STATISTIC_TIMER_S (60)
+//#define AMF_STATISTIC_TIMER_S (60)
 
 /*******************************************************************************
  * NGAP Constants
@@ -32,14 +32,14 @@
 ///< IANA assigned port number for NGAP payloads on SCTP endpoint
 #define NGAP_SCTP_PPID (60)  ///< NGAP SCTP Payload Protocol Identifier (PPID)
 
-#define NGAP_OUTCOME_TIMER_DEFAULT (5)  ///< NGAP Outcome drop timer (s)
+//#define NGAP_OUTCOME_TIMER_DEFAULT (5)  ///< NGAP Outcome drop timer (s)
 
 /*******************************************************************************
  * AMF global definitions
  ******************************************************************************/
 
-#define AMFC (0)
-#define AMFGID (0)
+#define AMFC (1)
+#define AMFGID (1)
 #define PLMN_MCC (208)
 #define PLMN_MNC (34)
 #define PLMN_MNC_LEN (2)

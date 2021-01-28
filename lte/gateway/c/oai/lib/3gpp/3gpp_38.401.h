@@ -15,11 +15,8 @@
 
   Source      3gpp_38401.h
 
-  Version     0.1
 
   Date        2020/09/07
-
-  Product     NGAP
 
   Subsystem   NG Application Protocol IEs
 
@@ -28,9 +25,7 @@
   Description Defines NG Application Protocol Messages
 
 *****************************************************************************/
-#ifndef FILE_3GPP_38_401_SEEN
-#define FILE_3GPP_38_401_SEEN
-
+#pragma once
 //------------------------------------------------------------------------------
 // 6.2 5G Identifiers
 //------------------------------------------------------------------------------
@@ -57,4 +52,3 @@ typedef uint32_t
 typedef uint32_t
     ran_ue_ngap_id_t;  // This IE uniquely identifies the UE association over
                        // the NG interface within the NG-RAN node
-#endif                 /* FILE_3GPP_38_401_SEEN */

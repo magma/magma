@@ -1,7 +1,5 @@
 
-
-#ifndef FILE_3GPP_38_331_SEEN
-#define FILE_3GPP_38_331_SEEN
+#pragma once
 
 // could be extracted with asn1 tool
 
@@ -23,7 +21,6 @@ typedef enum m5g_EstablishmentCause {
   M5G_SPARE1,
 } m5g_rrc_establishment_cause_t;
 
-#endif /* FILE_3GPP_38_331_SEEN */
 /*EstablishmentCause ::= ENUMERATED {
 emergency, highPriorityAccess, mt-Access, mo-Signalling,
 mo-Data, mo-VoiceCall, mo-VideoCall, mo-SMS, mps-PriorityAccess,

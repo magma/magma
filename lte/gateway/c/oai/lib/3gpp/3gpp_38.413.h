@@ -14,25 +14,16 @@
 
   Source      3gpp_38413.h
 
-  Version     0.1
-
   Date        2020/09/07
 
-  Product     NGAP
-
   Subsystem   NG Application Protocol IEs
-
-  Author      Sandeep Kumar Mall
 
   Description Defines NG Application Protocol Messages
 
 *****************************************************************************/
-
-#ifndef FILE_3GPP_38_413_SEEN
-#define FILE_3GPP_38_413_SEEN
+#pragma once
 
 #include "3gpp_23.003.h"
-//#include "Ngap_Cause.h"
 #include "bstrlib.h"
 
 #define MAX_NO_OF_PDUSESSIONS 16
@@ -274,5 +265,3 @@ typedef struct Ngap_initial_context_setup_response_s {
       PDU_session_resource_setup_res_trans;
 
 } Ngap_initial_context_setup_response_t;
-
-#endif /* FILE_3GPP_38_413_SEEN */

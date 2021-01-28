@@ -67,9 +67,6 @@ typedef struct m5g_supported_ta_list_s {
       supported_tai_items[NGAP_MAX_TAI_ITEMS];  ///< List of TAIs
 } m5g_supported_ta_list_t;
 
-#define NGAP_TIMER_INACTIVE_ID (-1)
-#define NGAP_UE_CONTEXT_REL_COMP_TIMER 1  // in seconds
-
 typedef struct ngap_state_s {
   // contains gNB_description_s, key is gNB_description_s.gnb_id (uint32_t)
   hash_table_ts_t gnbs;

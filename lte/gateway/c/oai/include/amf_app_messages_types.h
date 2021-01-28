@@ -46,46 +46,6 @@
 #define AMF_APP_DL_DATA_CNF(mSGpTR) (mSGpTR)->ittiMsg.amf_app_dl_data_cnf
 #define AMF_APP_DL_DATA_REJ(mSGpTR) (mSGpTR)->ittiMsg.amf_app_dl_data_rej
 
-#if 0
-typedef struct itti_amf_app_connection_establishment_cnf_s {
-  amf_ue_ngap_id_t ue_id;
-  ambr_t ue_ambr;
-  // E-RAB to Be Setup List
-  uint8_t no_of_e_rabs;  // spec says max 256, actually stay with BEARERS_PER_UE
-  //     >>E-RAB ID
-  ebi_t e_rab_id[BEARERS_PER_UE];
-  //     >>E-RAB Level QoS Parameters
-  qci_t e_rab_level_qos_qci[BEARERS_PER_UE];
-  //       >>>Allocation and Retention Priority
-  priority_level_t e_rab_level_qos_priority_level[BEARERS_PER_UE];
-  //       >>>Pre-emption Capability
-  pre_emption_capability_t
-      e_rab_level_qos_preemption_capability[BEARERS_PER_UE];
-  //       >>>Pre-emption Vulnerability
-  pre_emption_vulnerability_t
-      e_rab_level_qos_preemption_vulnerability[BEARERS_PER_UE];
-  //     >>Transport Layer Address
-  bstring transport_layer_address[BEARERS_PER_UE];
-  //     >>GTP-TEID
-  teid_t gtp_teid[BEARERS_PER_UE];
-  //     >>NAS-PDU (optional)
-  bstring nas_pdu[BEARERS_PER_UE];
-  //     >>Correlation ID TODO? later...
-
-  // UE Security Capabilities
-  uint16_t ue_security_capabilities_encryption_algorithms;
-  uint16_t ue_security_capabilities_integrity_algorithms;
-
-  // Security key
-  uint8_t kgnb[AUTH_KENB_SIZE];
-
-  bstring ue_radio_capability;
-
-  uint8_t presencemask;
-#define NGAP_CSFB_INDICATOR_PRESENT (1 << 0)
-} itti_amf_app_connection_establishment_cnf_t;
-#endif
-
 typedef struct itti_amf_app_initial_context_setup_rsp_s {
   amf_ue_ngap_id_t ue_id;
   Ngap_PDUSession_Resource_Setup_Request_List_t pdusesssion_setup_list;

@@ -14,13 +14,9 @@
 
   Source      ngap_messages_def.h
 
-  Version     0.1
-
   Date        2020/09/08
 
   Subsystem   Access and Mobility Management Function
-
-  Author      Sandeep Kumar Mall
 
   Description Defines Access and Mobility Management Messages
 
