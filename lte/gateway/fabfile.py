@@ -253,13 +253,22 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_oai_coverage)
 
 
-def run_integ_tests():
+def run_integ_tests(tests=None):
     """
     Function is required to run tests only in pre-configured Jenkins env.
+    To Run:
+    make integ_test TESTS=s1aptests/test_attach_detach.py
+    
+    We need to run this command as:
+    fab run_integ_tests:tests=s1aptests/test_attach_detach.py
+
     """
     test_host = vagrant_setup("magma_test", destroy_vm=False)
     gateway_ip = '192.168.60.142'
-    execute(_run_integ_tests, gateway_ip)
+    if tests:
+        tests = "TESTS=" + tests
+    
+    execute(_run_integ_tests, gateway_ip, tests)
 
 def get_test_summaries(
         gateway_host=None,
@@ -434,7 +443,7 @@ def _make_integ_tests():
         run('make')
 
 
-def _run_integ_tests(gateway_ip='192.168.60.142'):
+def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
     """ Run the integration tests
 
     For now, just run a single basic test
@@ -443,6 +452,7 @@ def _run_integ_tests(gateway_ip='192.168.60.142'):
     host = env.hosts[0].split(':')[0]
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
+    tests = tests or ''
     """
     NOTE: the s1aptester produces a bunch of output which the python ssh
     library, and thus fab, has trouble processing quickly. Instead, we manually
@@ -464,6 +474,7 @@ def _run_integ_tests(gateway_ip='192.168.60.142'):
           ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
           ' source ~/build/python/bin/activate;'
           ' export GATEWAY_IP=%s;'
+<<<<<<< HEAD
           ' make integ_test\''
           % (key, host, port, gateway_ip))
 
@@ -473,3 +484,7 @@ def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
         vagrant_setup(host_name, destroy_vm)
     else:
         ansible_setup(addr, host_name, ansible_file)
+=======
+          ' make integ_test %s\''
+          % (key, host, port, gateway_ip, tests))
+>>>>>>> add ability to run specific tests using fabric script. Update magma_integration_tests pipeline
