@@ -88,10 +88,6 @@ magma::ActivateFlowsRequest create_activate_req(
   req.set_msisdn(msisdn);
   req.mutable_request_origin()->set_type(origin_type);
   if (ambr) {
-    // TODO remove log once feature is stable
-    MLOG(MINFO) << "Sending AMBR info for " << imsi << ", ip addr=" << ip_addr
-                << " " << ipv6_addr << ", dl=" << ambr->max_bandwidth_dl()
-                << ", ul=" << ambr->max_bandwidth_ul();
     req.mutable_apn_ambr()->CopyFrom(*ambr);
   }
   auto ids = req.mutable_rule_ids();

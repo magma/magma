@@ -151,14 +151,16 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
-  std::chrono::milliseconds retry_timeout_;
+  std::chrono::milliseconds retry_timeout_ms_;
+  // True if there is an ongoing attempt to setup PipelineD
+  bool is_setting_up_pipelined_;
   static const std::string hex_digit_;
 
  private:
   void check_usage_for_reporting(
       SessionMap session_map, SessionUpdate& session_uc);
   bool is_pipelined_restarted();
-  bool restart_pipelined(const std::uint64_t& epoch);
+  void call_setup_pipelined(const std::uint64_t& epoch);
 
   void end_session(
       SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
