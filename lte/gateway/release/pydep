@@ -64,17 +64,6 @@ log = logging.getLogger(__name__)
 PYPI_API_BASE = "https://pypi.python.org/pypi/%s/json"
 PIP_BLACKLIST = {'pip', 'wheel', 'setuptools', 'virtualenv'}
 
-# In general, system package repos use the same name as PyPI package names,
-# with a prefix (for example, python3-requests is the system package for
-# requests). Some packages break this convention, however, and we maintain a
-# list here. We use the all lower-case version of the package name here.
-PYPI_TO_DEB = {
-    'pyyaml': 'yaml',
-    'msgpack-python': 'msgpack',
-    'scapy-python3': 'scapy',
-    'python-apt': 'apt',
-}
-
 # Some packages exist in the standard Debian repos with an epoch number
 # prepended (this is to handle changes in upstream versioning scheme). This
 # allows us to handle that.
@@ -83,7 +72,7 @@ DEB_EPOCH = {
 }
 
 
-def os_release():
+def os_release() -> Dict[str, str]:
     # copied from third_party/build/build.py
     # FIXME: should be a magma python library for this kind of thing
     release_info = {}
@@ -95,6 +84,33 @@ def os_release():
             except Exception:
                 pass
     return release_info
+
+
+# In general, system package repos use the same name as PyPI package names,
+# with a prefix (for example, python3-requests is the system package for
+# requests). Some packages break this convention, however, and we maintain a
+# list here. We use the all lower-case version of the package name here.
+def pypi_name_remap(pkgname: str, release_name: str='stretch') -> str:
+    base_map = {
+        'pyyaml': 'yaml',
+        'msgpack-python': 'msgpack',
+        'scapy-python3': 'scapy',
+        'python-apt': 'apt',
+    }
+
+    override_maps = {
+        'focal': {
+            'attrs': 'attr',
+            'jsonpointer': 'json-pointer'
+            }
+    }
+
+    if release_name in override_maps and pkgname in override_maps[release_name]:
+        pkgname = override_maps[release_name][pkgname]
+    else:
+        if pkgname in base_map:
+            pkgname = base_map[pkgname]
+    return pkgname
 
 
 def json_equal(a, b):
@@ -150,7 +166,7 @@ def gen_sys_package_name(py_pkgname: str, use_py2: bool=False) -> str:
     Generate the system package name for a Python package. In general, this
     will be `python3-pkgname` for py3 and `python-pkgname` for py2, but some
     packages break convention. We use the PyPI package name as our canonical
-    name source, and PYPI_TO_DEB to handle edge cases.
+    name source, and pypi_name_remap to handle edge cases.
 
     Args:
         py_pkgname: PyPI package name
@@ -164,10 +180,10 @@ def gen_sys_package_name(py_pkgname: str, use_py2: bool=False) -> str:
     else:
         prefix = "python3"
 
-    if py_pkgname.lower() in PYPI_TO_DEB:
-        suffix = PYPI_TO_DEB[py_pkgname.lower()]
-    else:
-        suffix = py_pkgname
+    release_info = os_release()
+
+    suffix = pypi_name_remap(py_pkgname.lower(),
+                             release_name=release_info.get('VERSION_CODENAME'))
 
     sysdep_name = "%s-%s" % (prefix, suffix)
     return sysdep_name.lower()  # deb likes lowercase
