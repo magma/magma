@@ -19,8 +19,6 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
@@ -39,7 +37,6 @@ import (
 const TestSyncRPCAgHwId = "Test-AGW-Hw-Id"
 
 func TestSyncRPC(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	directorydTestInit.StartTestService(t)

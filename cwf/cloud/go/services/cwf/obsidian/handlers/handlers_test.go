@@ -18,21 +18,16 @@ import (
 	"time"
 
 	"magma/cwf/cloud/go/cwf"
-	plugin2 "magma/cwf/cloud/go/plugin"
 	"magma/cwf/cloud/go/serdes"
 	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
 	models2 "magma/cwf/cloud/go/services/cwf/obsidian/models"
 	"magma/feg/cloud/go/feg"
-	plugin3 "magma/feg/cloud/go/plugin"
 	models3 "magma/feg/cloud/go/services/feg/obsidian/models"
-	plugin4 "magma/lte/cloud/go/plugin"
 	"magma/orc8r/cloud/go/clock"
 	models5 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
@@ -52,10 +47,6 @@ import (
 )
 
 func TestCwfNetworks(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin4.LteOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin3.FegOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -326,8 +317,6 @@ func TestCwfNetworks(t *testing.T) {
 }
 
 func TestCwfGateways(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 	test_init.StartTestService(t)
@@ -675,8 +664,6 @@ func TestCwfGateways(t *testing.T) {
 }
 
 func TestCwfHaPairs(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 	test_init.StartTestService(t)

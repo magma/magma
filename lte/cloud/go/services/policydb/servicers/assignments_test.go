@@ -17,15 +17,12 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	plugin2 "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/policydb/servicers"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
@@ -38,9 +35,6 @@ import (
 )
 
 func TestAssignmentsServicer(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
-
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 

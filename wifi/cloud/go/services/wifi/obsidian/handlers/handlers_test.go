@@ -21,8 +21,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
@@ -36,7 +34,6 @@ import (
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
-	plugin2 "magma/wifi/cloud/go/plugin"
 	models2 "magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
 
@@ -44,8 +41,6 @@ import (
 )
 
 func TestListNetworks(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -80,8 +75,6 @@ func TestListNetworks(t *testing.T) {
 }
 
 func TestCreateNetwork(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	e := echo.New()
 
@@ -130,8 +123,6 @@ func TestCreateNetwork(t *testing.T) {
 }
 
 func TestGetNetwork(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -183,8 +174,6 @@ func TestGetNetwork(t *testing.T) {
 }
 
 func TestUpdateNetwork(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -274,8 +263,6 @@ func TestUpdateNetwork(t *testing.T) {
 }
 
 func TestDeleteNetwork(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -325,8 +312,6 @@ func TestDeleteNetwork(t *testing.T) {
 }
 
 func TestPartialUpdateAndGetNetwork(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -497,8 +482,6 @@ func TestPartialUpdateAndGetNetwork(t *testing.T) {
 }
 
 func TestListGateways(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -625,8 +608,6 @@ func TestListGateways(t *testing.T) {
 }
 
 func TestCreateGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -773,8 +754,6 @@ func TestCreateGateway(t *testing.T) {
 }
 
 func TestGetGateways(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -833,8 +812,6 @@ func TestGetGateways(t *testing.T) {
 }
 
 func TestUpdateGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -1016,8 +993,6 @@ func TestUpdateGateway(t *testing.T) {
 }
 
 func TestDeleteGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -1087,8 +1062,6 @@ func TestDeleteGateway(t *testing.T) {
 }
 
 func TestPartialUpdateAndGetGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1522,8 +1495,6 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 }
 
 func TestListMeshes(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1607,8 +1578,6 @@ func TestListMeshes(t *testing.T) {
 }
 
 func TestCreateMesh(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1728,8 +1697,6 @@ func TestCreateMesh(t *testing.T) {
 }
 
 func TestGetMeshes(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1778,8 +1745,6 @@ func TestGetMeshes(t *testing.T) {
 }
 
 func TestUpdateMesh(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -1922,8 +1887,6 @@ func TestUpdateMesh(t *testing.T) {
 }
 
 func TestDeleteMesh(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -2084,8 +2047,6 @@ func TestDeleteMesh(t *testing.T) {
 }
 
 func TestPartialUpdateAndGetMesh(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
