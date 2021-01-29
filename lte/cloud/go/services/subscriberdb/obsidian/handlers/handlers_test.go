@@ -1628,9 +1628,6 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 }
 
 func TestSubscriberBasename(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
@@ -1738,9 +1735,6 @@ func TestSubscriberBasename(t *testing.T) {
 }
 
 func TestSubscriberPolicy(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
