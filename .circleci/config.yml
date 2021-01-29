@@ -558,9 +558,10 @@ jobs:
       - magma_slack_notify
 
   feg-precommit:
-    docker:
-      - image: circleci/golang:1.13-stretch-node-browsers-legacy
-    resource_class: medium+
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
     environment:
       GO111MODULE: 'on'
     steps:
