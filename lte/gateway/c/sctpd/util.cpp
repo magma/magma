@@ -54,8 +54,11 @@ int create_sctp_sock(const InitReq &req)
 
   if (convert_addrs(&req, &addrs, &num_addrs) < 0) goto fail;
 
-  if (sctp_bindx(sd, addrs, num_addrs, SCTP_BINDX_ADD_ADDR) < 0) {
-    MLOG_perror("sctp_bindx");
+  if (sctp_bindx(sd, addrs, num_addrs, SCTP_BINDX_ADD_ADDR)) {
+    MLOG_perror("sctp_bindx ADD error");
+    if (sctp_bindx(sd, addrs, num_addrs, SCTP_BINDX_REM_ADDR)) {
+      MLOG_perror("sctp_bindx REM error");
+    }
     goto fail;
   }
 
