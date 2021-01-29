@@ -22,6 +22,13 @@ func smsCpError(field string) error {
 
 // Handles creation of SMS-CM messages (3GPP TS 24.011 7.2)
 
+// SMS CM packet constants
+const (
+	CpCommonHeaderMinLegalPacketLength int = 2
+	CpDataMinLegalPacketLength int = 3
+	CpErrorMinLegalPacketLength int = 3
+)
+
 // CP Message represents
 type cpMessage struct {
 	// Contains Transaction ID and Protocol Disc
@@ -84,13 +91,29 @@ func (cpm cpMessage) marshalBinary() []byte {
 }
 
 func (cpm *cpMessage) unmarshalBinary(input []byte) error {
-	// must be at least two octets long
-	if len(input) < 2 {
-		return smsCpError("Message too short")
+	if len(input) < CpCommonHeaderMinLegalPacketLength {
+		return smsCpError(fmt.Sprintf("Message too short (have: %d, need: %d)",
+		 len(input), CpCommonHeaderMinLegalPacketLength))
 	}
 
 	cpm.firstOctet = input[0]
 	cpm.messageType = input[1]
+
+	// Validate per-messageType minimum packet sizes
+	switch cpm.messageType {
+	case CpData:
+		if len(input) < CpDataMinLegalPacketLength {
+			return smsCpError(fmt.Sprintf("Data message too short (have: %d, need: %d)",
+                   		 len(input), CpDataMinLegalPacketLength))
+		}
+	case CpError:
+		if len(input) < CpErrorMinLegalPacketLength {
+			return smsCpError(fmt.Sprintf("Error message too short (have: %d, need: %d)",
+                   		 len(input), CpErrorMinLegalPacketLength))
+		}
+	default:
+		// Do nothing -- remaining types handled below
+	}
 
 	switch cpm.messageType {
 	case CpData:
