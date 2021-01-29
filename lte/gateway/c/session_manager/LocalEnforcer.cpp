@@ -119,7 +119,7 @@ bool LocalEnforcer::setup(
       std::string apn_name;
       auto apn = config.common_context.apn();
       if (!parse_apn(apn, apn_mac_addr, apn_name)) {
-        MLOG(MWARNING) << "Failed mac/name parsiong for apn " << apn;
+        MLOG(MWARNING) << "Failed mac/name parsing for apn " << apn;
         apn_mac_addr = "";
         apn_name     = apn;
       }
