@@ -31,6 +31,8 @@ import (
 const (
 	defaultK8sQPS   = 50
 	defaultK8sBurst = 50
+
+	pollFrequencyConfigKey = "poll_frequency"
 )
 
 func main() {
@@ -50,7 +52,7 @@ func main() {
 		protos.RegisterServiceRegistryServer(srv.GrpcServer, servicer)
 	case registry.K8sRegistryMode:
 		glog.Infof("Registry Mode set to %s. Creating k8s service registry", registry.K8sRegistryMode)
-		config, err := getK8sClientConfig()
+		config, err := rest.InClusterConfig()
 		if err != nil {
 			glog.Fatalf("Error querying kubernetes config: %s", err)
 		}
@@ -58,7 +60,7 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Error creating kubernetes clientset: %s", err)
 		}
-		servicer, err := servicers.NewKubernetesServiceRegistryServicer(clientset.CoreV1())
+		servicer, err := servicers.NewKubernetesServiceRegistryServicer(clientset.CoreV1(), srv.Config.MustGetString(pollFrequencyConfigKey), nil)
 		if err != nil {
 			glog.Fatal(err)
 		}
@@ -70,16 +72,4 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error while running service: %s", err)
 	}
-}
-
-func getK8sClientConfig() (*rest.Config, error) {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, err
-	}
-	// TODO: Remove QPS and Burst overrides after service registry cache
-	// is implemented.
-	config.QPS = defaultK8sQPS
-	config.Burst = defaultK8sBurst
-	return config, err
 }
