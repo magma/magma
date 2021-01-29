@@ -33,6 +33,7 @@ executors:
 
 orbs:
   artifactory: circleci/artifactory@0.0.7
+  codecov: codecov/codecov@1.1.3
 
   python:
     commands:
@@ -284,7 +285,7 @@ commands:
       - python/set_version
       - run:
           name: Install python prerequisites
-          command: pip3 install fabric3 jsonpickle requests PyYAML awscli
+          command: pip3 install fabric3 jsonpickle requests PyYAML awscli coverage
       # sleep 10 just in case the vpn client takes time to spin up
       - run:
           name: Run remote integ test
@@ -459,8 +460,12 @@ jobs:
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --tests --up
+            coverage3 run build.py --tests --up
+            coverage3 report
+            coverage3 html
           no_output_timeout: 15m
+      - store_artifacts:
+          path: htmlcov
       - magma_slack_notify
 
   # Fail if code doesn't pass formatting requirements.
@@ -479,7 +484,11 @@ jobs:
           name: Lint cloud Go code
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --lint
+            coverage3 run build.py --lint
+            coverage3 report
+            coverage3 html
+      - store_artifacts:
+          path: htmlcov
       - magma_slack_notify
 
   # Fail if checked-in generated code doesn't match output from
@@ -500,7 +509,11 @@ jobs:
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --generate
+            coverage3 run build.py --generate
+            coverage3 report
+            coverage3 html
+      - store_artifacts:
+          path: htmlcov
       - run: sudo chown -R circleci $MAGMA_ROOT/*
       - run: git add .
       - run: git status
@@ -524,7 +537,11 @@ jobs:
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --all --nocache --parallel
+            coverage3 run build.py --all --nocache --parallel
+            coverage3 report
+            coverage3 html
+      - store_artifacts:
+          path: htmlcov
       - tag-push-docker:
           project: orc8r
           images: "nginx|controller"
