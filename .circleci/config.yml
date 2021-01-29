@@ -91,6 +91,21 @@ orbs:
                 circleci step halt
 
 commands:
+  install-go:
+    description: Install go from sources
+    parameters:
+      go-version:
+        description: go version default 1.15.7
+        type: string
+        default: "1.15.7"
+    steps:
+      - run: |
+          GO_VERSION=<< parameters.go-version >>
+          wget "https://golang.org/dl/go$GO_VERSION.linux-amd64.tar.gz" -O ./go.tar
+          tar -C /usr/local -xzf go.tar
+          export PATH=$PATH:/usr/local/go/bin
+
+
   run-with-retry:
     description: Run command with retry
     parameters:
@@ -568,6 +583,7 @@ jobs:
       - checkout
       - build/determinator:
           <<: *federated_build_verify
+      - install-go
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
