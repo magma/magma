@@ -103,7 +103,7 @@ commands:
           sudo rm -rf /usr/local/go
           GO_VERSION=<< parameters.go-version >>
           wget "https://golang.org/dl/go$GO_VERSION.linux-amd64.tar.gz" -O ./go.tar
-          tar -C /usr/local -xzf go.tar
+          sudo tar -C /usr/local -xzf go.tar
           export PATH=$PATH:/usr/local/go/bin
 
 
