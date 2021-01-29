@@ -1,0 +1,221 @@
+swagger: "2.0"
+info:
+  title: Test
+  description: Test API
+  version: 1.0.0
+basePath: /fruit
+consumes:
+- application/json
+produces:
+- application/json
+schemes:
+- https
+- http
+tags:
+- description: Tag Bitter
+  name: BitterTag
+- description: Tag Salty
+  name: SaltyTag
+- description: Tag Sour
+  name: SourTag
+- description: Tag Spicy
+  name: SpicyTag
+- description: Tag Sweet
+  name: SweetTag
+paths:
+  /foopath:
+    delete:
+      responses:
+        "404":
+          description: fail
+          schema:
+            type: string
+      summary: Bar
+    get:
+      responses:
+        "200":
+          description: Bar baz
+          schema:
+            type: integer
+      summary: Foo
+  /foopath/{egg}:
+    put:
+      parameters:
+      - $ref: '#/definitions/egg'
+      - description: egg to add
+        in: body
+        name: egg name
+        required: true
+        schema:
+          $ref: ./cycle1-swagger.yml/definitions/chicken
+      responses:
+        "200":
+          description: Egg Given
+          schema:
+            type: integer
+      summary: Give Egg
+  /fruitbasketpath:
+    post:
+      parameters:
+      - $ref: '#/definitions/fruit_basket'
+      responses:
+        "200":
+          description: Basket Made
+          schema:
+            type: integer
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Make Fruit Basket
+  /fruitbasketpath/{color}:
+    get:
+      parameters:
+      - $ref: '#/parameters/fruitColor'
+      responses:
+        "200":
+          description: Random Fruit Basket
+          schema:
+            $ref: '#/definitions/fruitBasket'
+      summary: Get Random Fruit Basket with Color
+  /fruitpath/{fruit}:
+    delete:
+      parameters:
+      - $ref: '#/definitions/fruit'
+      responses:
+        "204":
+          description: Ok
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Delete Fruit
+      tags:
+      - SourTag
+    get:
+      parameters:
+      - $ref: '#/definitions/fruit'
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: integer
+      summary: Get Fruit
+    post:
+      parameters:
+      - description: Add a fruit
+        in: body
+        name: fruit
+        required: true
+        schema:
+          $ref: '#/definitions/fruit'
+      responses:
+        "201":
+          description: Success
+      summary: Add a fruit
+      tags:
+      - SweetTag
+  /vegetablebasket/:
+    get:
+      parameters:
+      - description: Retrieve active alerts. Default true.
+        in: query
+        name: active
+        required: false
+        type: boolean
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: integer
+      summary: Get Vegetables
+responses:
+  UnexpectedError:
+    description: Unexpected Error
+    schema:
+      $ref: '#/definitions/error'
+parameters:
+  fruitColor:
+    description: fruit color
+    in: path
+    name: color
+    required: true
+    type: string
+definitions:
+  animal:
+    example: dog
+    type: string
+  chicken:
+    properties:
+      animal:
+        $ref: '#/definitions/animal'
+      bar:
+        example: 1
+        type: integer
+    required:
+    - bar
+    - animal
+    type: object
+  egg:
+    properties:
+      bar:
+        type: integer
+    required:
+    - bar
+    type: object
+  error:
+    properties:
+      message:
+        example: Error string
+        type: string
+    required:
+    - message
+    type: object
+  fruit:
+    example: Orange
+    minLength: 1
+    type: string
+    x-nullable: false
+  fruit_basket:
+    items:
+      $ref: '#/definitions/fruit'
+      example:
+      - apple
+      - orange
+      maxItems: 2
+      minItems: 2
+    type: array
+  gift:
+    properties:
+      fruitBasket:
+        $ref: '#/definitions/fruit_basket'
+      fruitColor:
+        $ref: '#/definitions/season'
+      name:
+        minLength: 1
+        type: string
+    required:
+    - fruitBasket
+    - fruitColor
+    - name
+    type: object
+  rand_collection:
+    properties:
+      foo:
+        $ref: '#/definitions/gift'
+      season_list:
+        $ref: '#/definitions/season_list'
+      weather:
+        $ref: '#/definitions/weather'
+    required:
+    - foo
+    - weather
+    - season_list
+    type: object
+  season:
+    example: Winter
+    minLength: 1
+    type: string
+    x-nullable: false
+  season_list:
+    items:
+      $ref: '#/definitions/season_list'
+    type: array
+  weather:
+    type: integer

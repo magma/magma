@@ -101,7 +101,7 @@ class HtmlReport():
     returnString += '    <tr>\n'
     returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-wrench"></span> Build Trigger</td>\n'
     if self.git_merge_request:
-      returnString += '      <td>Merge Request</td>\n'
+      returnString += '      <td>Pull Request</td>\n'
     else:
       returnString += '      <td>Push Event</td>\n'
     returnString += '    </tr>\n'
@@ -110,6 +110,14 @@ class HtmlReport():
     returnString += '      <td><a href="' + self.git_url + '">' + self.git_url + '</a></td>\n'
     returnString += '    </tr>\n'
     if self.git_merge_request:
+      returnString += '    <tr>\n'
+      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-link"></span> Pull Request Link</td>\n'
+      returnString += '      <td><a href="TEMPLATE_PULL_REQUEST_LINK">TEMPLATE_PULL_REQUEST_LINK</a></td>\n'
+      returnString += '    </tr>\n'
+      returnString += '    <tr>\n'
+      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-header"></span> Pull Request Title</td>\n'
+      returnString += '      <td>TEMPLATE_PULL_REQUEST_TEMPLATE</td>\n'
+      returnString += '    </tr>\n'
       returnString += '    <tr>\n'
       returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-log-out"></span> Source Branch</td>\n'
       returnString += '      <td>' + self.git_src_branch + '</td>\n'

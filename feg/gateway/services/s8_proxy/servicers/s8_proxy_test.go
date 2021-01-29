@@ -13,13 +13,14 @@ package servicers
 
 import (
 	"context"
-	"github.com/wmnsk/go-gtp/gtpv2"
+	"log"
 	"testing"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wmnsk/go-gtp/gtpv2"
 )
 
 const (
@@ -37,7 +38,7 @@ func TestS8Proxy(t *testing.T) {
 		return
 	}
 	defer mockPgw.Close()
-	//t.Logf("Running PGW at %s\n", mockPgw.LocalAddr().String())
+	log.Printf("Running PGW at %s\n", mockPgw.LocalAddr().String())
 
 	// Run S8_proxy
 	config := getDefaultConfig(mockPgw.LocalAddr().String())

@@ -122,6 +122,10 @@ func createSession(cmd *commands.Command, args []string) int {
 			fmt.Printf("BuiltIn S8 Proxy initialization error: %v\n", err)
 			return 5
 		}
+
+		//TODO: remove this once we find a way to safely wait for initialization of the service
+		localProxy.WaitUntilClientIsReady()
+
 		cli = s8BuiltIn{localProxy}
 	} else {
 		// TODO: use local proxy running on the gateway

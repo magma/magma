@@ -11,33 +11,31 @@
  limitations under the License.
 */
 
-package spec_test
+package combine_test
 
 import (
-	"flag"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"magma/orc8r/cloud/go/tools/combine_swagger/spec"
+	"magma/orc8r/cloud/go/swagger"
+	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
 )
 
 func init() {
-	_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
 var (
 	testdataDir    = "testdata"
-	cfgsDir        = filepath.Join(testdataDir, "configs")
+	specsDir       = filepath.Join(testdataDir, "configs")
 	commonFilepath = filepath.Join(testdataDir, "common/common.yml")
 	outFilepath    = filepath.Join(testdataDir, "out.yml")
 	goldenFilepath = filepath.Join(testdataDir, "out.yml.golden")
-
-	nErrsFromCombine = 9
 )
 
 // TestCombine tests the generated output against a golden file.
@@ -50,16 +48,21 @@ func TestCombine(t *testing.T) {
 	cleanup()
 	defer cleanup()
 
-	cfgs, common, err := spec.Load(cfgsDir, commonFilepath)
+	nErrsFromCombine := 9
+
+	yamlCommon, yamlSpecs, err := combine.Load(commonFilepath, specsDir)
 	assert.NoError(t, err)
 
-	combined, errs := spec.Combine(common, cfgs)
-	assert.Error(t, errs)
-	merrs, ok := errs.(*multierror.Error)
+	combined, warnings, err := swagger.Combine(yamlCommon, yamlSpecs)
+	assert.NoError(t, err)
+
+	assert.Error(t, warnings)
+	merrs, ok := warnings.(*multierror.Error)
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
-	spec.Write(combined, outFilepath)
+	err = combine.Write(combined, outFilepath)
+	assert.NoError(t, err)
 
 	expected := readFile(t, goldenFilepath)
 	actual := readFile(t, outFilepath)
