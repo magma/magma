@@ -97,7 +97,7 @@ MAGMA_DEPS=(
     "python3-protobuf >= 3.14.0"
     "redis-server >= 3.2.0"
     "sudo"
-    "dnsmasq > 2.83"
+    "dnsmasq >= 2.7"
     "net-tools" # for ifconfig
     "python3-pip"
     "python3-apt" # The version in pypi is abandoned and broken on stretch
