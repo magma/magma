@@ -116,6 +116,31 @@ func TestPiecewiseDecodeDeliveryFailure(t *testing.T) {
 	}
 }
 
+func TestInvalidCpMessages(t *testing.T) {
+	tests := []struct {
+		Description string
+		Input       string
+	}{
+		{Description: "too short for common header",
+			Input: "d9"},
+		{Description: "CP-DATA SMS message too short",
+			Input: "d901"},
+		{Description: "CP-ERROR SMS message too short",
+			Input: "d910"},
+	}
+
+	for _, test := range tests {
+		cp_hex, _ := hex.DecodeString(test.Input)
+		cpm := new(cpMessage)
+		err := cpm.unmarshalBinary(cp_hex)
+
+		if err == nil {
+			t.Errorf("test %s got cpm.unmarshalBinary(input=%s) == nil, wanted error",
+				test.Description, test.Input)
+		}
+	}
+}
+
 func TestPiecewiseDecodeDeliveryReport(t *testing.T) {
 	input := "d90106020141020000"
 	cp_hex, _ := hex.DecodeString(input)
