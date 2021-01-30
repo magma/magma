@@ -22,10 +22,13 @@ import (
 	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -55,6 +58,14 @@ func main() {
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+
+	specPath := config.GetSpecPath(subscriberdb.ServiceName)
+	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
+	if err != nil {
+		glog.Infof("Error retrieving Swagger Spec of service %s", subscriberdb.ServiceName)
+	} else {
+		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	}
 
 	// Run service
 	err = srv.Run()

@@ -21,17 +21,18 @@ MAGMA_MODULES := \
 $(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
 endif
 
+SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/configs/specs
+COMMON_DIR := common
 SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
 SWAGGER_V1_CONFIG := $(SWAGGER_ROOT)/v1/goswagger-config.yml
-SWAGGER_V1_TMP_GEN := $(SWAGGER_ROOT)/v1/tmp
+export SPECS_DIR
 export SWAGGER_ROOT
 export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
 export SWAGGER_V1_CONFIG
-export SWAGGER_V1_TMP_GEN
 
 #############
 ## Modules ##
@@ -125,15 +126,14 @@ lint_tools:
 ######################
 
 swagger: tools swagger_directories $(SWAGGER_LIST)
-	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
-	combine_swagger --in=$(SWAGGER_V1_TMP_GEN) --common=$(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
-	rm -rf $(SWAGGER_V1_TMP_GEN)
-	rm $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
+	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SPECS_DIR)/$(COMMON_DIR)/$(SWAGGER_COMMON)
+	combine_swagger --in=$(SPECS_DIR) --common=$(SPECS_DIR)/$(COMMON_DIR)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
 	swagger validate $(SWAGGER_V1_YML)
 
 swagger_directories:
-	rm -rf $(SWAGGER_V1_TMP_GEN)
-	mkdir $(SWAGGER_V1_TMP_GEN)
+	rm -rf $(SPECS_DIR)
+	mkdir $(SPECS_DIR)
+	mkdir $(SPECS_DIR)/$(COMMON_DIR)
 
 $(SWAGGER_LIST): %_swagger:
 	make -C $*/cloud/go copy_swagger_files

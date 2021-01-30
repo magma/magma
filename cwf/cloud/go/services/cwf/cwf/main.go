@@ -20,6 +20,8 @@ import (
 	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
 	"magma/cwf/cloud/go/services/cwf/servicers"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
@@ -39,6 +41,14 @@ func main() {
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+
+	specPath := config.GetSpecPath(cwf_service.ServiceName)
+	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
+	if err != nil {
+		glog.Infof("Error retrieving Swagger Spec of service %s", cwf_service.ServiceName)
+	} else {
+		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	}
 
 	var serviceConfig cwf_service.Config
 	_, _, err = config.GetStructuredServiceConfig(cwf.ModuleName, cwf_service.ServiceName, &serviceConfig)

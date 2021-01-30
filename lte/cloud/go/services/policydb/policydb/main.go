@@ -20,7 +20,10 @@ import (
 	"magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	"magma/lte/cloud/go/services/policydb/servicers"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -32,7 +35,17 @@ func main() {
 		glog.Fatalf("Error creating service: %s", err)
 	}
 	assignmentServicer := servicers.NewPolicyAssignmentServer()
+
 	protos.RegisterPolicyAssignmentControllerServer(srv.GrpcServer, assignmentServicer)
+
+	specPath := config.GetSpecPath(policydb.ServiceName)
+	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
+	if err != nil {
+		glog.Infof("Error retrieving Swagger Spec of service %s", policydb.ServiceName)
+	} else {
+		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	}
+
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	err = srv.Run()
 	if err != nil {

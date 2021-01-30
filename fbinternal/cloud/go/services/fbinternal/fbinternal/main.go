@@ -19,9 +19,12 @@ import (
 	"magma/fbinternal/cloud/go/fbinternal"
 	fbinternal_service "magma/fbinternal/cloud/go/services/fbinternal"
 	"magma/fbinternal/cloud/go/services/fbinternal/servicers"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/definitions"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
@@ -53,6 +56,14 @@ func main() {
 		servicers.ODSMetricsExportInterval,
 	)
 	protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
+
+	specPath := config.GetSpecPath(fbinternal_service.ServiceName)
+	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
+	if err != nil {
+		glog.Infof("Error retrieving Swagger Spec of service %s", fbinternal_service.ServiceName)
+	} else {
+		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	}
 
 	err = srv.Run()
 	if err != nil {

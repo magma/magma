@@ -33,8 +33,16 @@ var (
 	configDir         = "/etc/magma/configs"
 	oldConfigDir      = "/etc/magma"
 	configOverrideDir = "/var/opt/magma/configs/"
+	specDir           = "/etc/magma/configs/orc8r/specs/"
 	cfgDirMu          sync.RWMutex
 )
+
+// GetSpecPath returns the file on the production image
+// that contains the service's Swagger spec
+func GetSpecPath(service string) string {
+	specPath := filepath.Join(specDir, fmt.Sprintf("%s.swagger.v1.yml", service))
+	return specPath
+}
 
 // GetServiceConfig loads a config by name to a map of parameters
 // Input: configName - name of config to load, e.g. control_proxy

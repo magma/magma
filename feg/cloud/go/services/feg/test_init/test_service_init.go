@@ -19,6 +19,8 @@ import (
 	"magma/feg/cloud/go/feg"
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/servicers"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/test_utils"
@@ -31,6 +33,7 @@ func StartTestService(t *testing.T) {
 
 	srv, lis := test_utils.NewTestOrchestratorService(t, feg.ModuleName, feg_service.ServiceName, labels, nil)
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer("swaggerSpec"))
 
 	go srv.RunTest(lis)
 }

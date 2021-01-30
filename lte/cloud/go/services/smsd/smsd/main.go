@@ -21,9 +21,12 @@ import (
 	storage2 "magma/lte/cloud/go/services/smsd/storage"
 	"magma/lte/cloud/go/sms_ll"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -48,6 +51,14 @@ func main() {
 	restServicer := servicers.NewRESTServicer(store)
 	obsidian.AttachHandlers(srv.EchoServer, restServicer.GetHandlers())
 	protos.RegisterSmsDServer(srv.GrpcServer, servicers.NewSMSDServicer(store, &sms_ll.DefaultSMSSerde{}))
+
+	specPath := config.GetSpecPath(smsd.ServiceName)
+	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
+	if err != nil {
+		glog.Infof("Error retrieving Swagger Spec of service %s", smsd.ServiceName)
+	} else {
+		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	}
 
 	err = srv.Run()
 	if err != nil {

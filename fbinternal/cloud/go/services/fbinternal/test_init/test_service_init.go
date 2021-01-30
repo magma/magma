@@ -19,6 +19,8 @@ import (
 
 	"magma/fbinternal/cloud/go/services/fbinternal"
 	"magma/fbinternal/cloud/go/services/fbinternal/servicers"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/test_utils"
@@ -34,11 +36,20 @@ func StartTestService(t *testing.T) {
 		servicers.ODSMetricsQueueLength,
 		servicers.ODSMetricsExportInterval,
 	)
-	StartTestServiceInternal(t, exporterServicer)
+
+	specServicer := swagger.NewSpecServicer("swaggerSpec")
+	StartTestServiceInternal(t, exporterServicer, specServicer)
 }
 
-func StartTestServiceInternal(t *testing.T, exporter protos.MetricsExporterServer) {
+func StartTestServiceInternal(t *testing.T, exporter protos.MetricsExporterServer, specServicer swagger_protos.SwaggerSpecServer) {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, fbinternal.ServiceName)
-	protos.RegisterMetricsExporterServer(srv.GrpcServer, exporter)
+
+	if exporter != nil {
+		protos.RegisterMetricsExporterServer(srv.GrpcServer, exporter)
+	}
+	if specServicer != nil {
+		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	}
+
 	go srv.RunTest(lis)
 }

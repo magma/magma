@@ -16,6 +16,8 @@ package main
 import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/ctraced"
@@ -23,6 +25,7 @@ import (
 	ctraced_storage "magma/orc8r/cloud/go/services/ctraced/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -32,6 +35,14 @@ func main() {
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, ctraced.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating ctraced service: %s", err)
+	}
+
+	specPath := config.GetSpecPath(ctraced.ServiceName)
+	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
+	if err != nil {
+		glog.Infof("Error retrieving Swagger Spec of service %s", ctraced.ServiceName)
+	} else {
+		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
 	}
 
 	// Init storage

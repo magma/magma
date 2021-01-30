@@ -22,6 +22,8 @@ import (
 	lte_protos "magma/lte/cloud/go/services/lte/protos"
 	"magma/lte/cloud/go/services/lte/servicers"
 	"magma/lte/cloud/go/services/lte/storage"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
@@ -52,6 +54,8 @@ func StartTestService(t *testing.T) {
 	srv, lis := test_utils.NewTestOrchestratorService(t, lte.ModuleName, lte_service.ServiceName, labels, annotations)
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
+
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer("swaggerSpec"))
 
 	// Init storage
 	db, err := sqorc.Open("sqlite3", ":memory:")

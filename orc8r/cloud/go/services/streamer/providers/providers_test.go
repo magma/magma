@@ -41,7 +41,7 @@ import (
 func TestMconfigStreamer_Configurator(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	streamer_test_init.StartTestService(t)
-	orchestrator_test_init.StartTestServiceInternal(t, nil, nil, servicers.NewProviderServicer())
+	orchestrator_test_init.StartTestServiceInternal(t, nil, nil, servicers.NewProviderServicer(), nil)
 
 	vals := map[string]proto.Message{
 		"some_service": &test_protos.Message1{Field: "hello"},

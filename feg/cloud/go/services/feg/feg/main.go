@@ -19,8 +19,11 @@ import (
 	"magma/feg/cloud/go/services/feg/obsidian/handlers"
 	"magma/feg/cloud/go/services/feg/servicers"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -34,6 +37,14 @@ func main() {
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+
+	specPath := config.GetSpecPath(feg_service.ServiceName)
+	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
+	if err != nil {
+		glog.Infof("Error retrieving Swagger Spec of service %s", feg_service.ServiceName)
+	} else {
+		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	}
 
 	err = srv.Run()
 	if err != nil {

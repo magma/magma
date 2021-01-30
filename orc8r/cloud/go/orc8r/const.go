@@ -42,6 +42,7 @@ const (
 	ObsidianHandlersLabel   = "orc8r.io/obsidian_handlers"
 	StateIndexerLabel       = "orc8r.io/state_indexer"
 	StreamProviderLabel     = "orc8r.io/stream_provider"
+	SpecServicerLabel       = "orc8r.io/spec_servicer"
 
 	ObsidianHandlersPathPrefixesAnnotation = "orc8r.io/obsidian_handlers_path_prefixes"
 	StateIndexerVersionAnnotation          = "orc8r.io/state_indexer_version"

@@ -45,7 +45,7 @@ func TestODSSubmit(t *testing.T) {
 		2,
 		time.Second*10,
 	)
-	test_init.StartTestServiceInternal(t, srv)
+	test_init.StartTestServiceInternal(t, srv, nil)
 	exporter := exporters.NewRemoteExporter(fbinternal.ServiceName)
 
 	singleMetricTestFamily := test_common.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 1, []*prometheus_models.LabelPair{})
@@ -77,7 +77,7 @@ func TestExport(t *testing.T) {
 		2,
 		time.Second*10,
 	)
-	test_init.StartTestServiceInternal(t, srv)
+	test_init.StartTestServiceInternal(t, srv, nil)
 	exporter := exporters.NewRemoteExporter(fbinternal.ServiceName)
 	exporterSrv := srv.(*servicers.ExporterServicer)
 

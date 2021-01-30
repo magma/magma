@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -24,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 	io_prometheus_client "github.com/prometheus/client_model/go"
@@ -47,6 +50,14 @@ func main() {
 
 	controllerServicer := servicers.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
+
+	specPath := config.GetSpecPath(metricsd.ServiceName)
+	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
+	if err != nil {
+		glog.Infof("Error retrieving Swagger Spec of service %s", metricsd.ServiceName)
+	} else {
+		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	}
 
 	// Initialize gatherers
 	additionalCollectors := []collection.MetricCollector{
