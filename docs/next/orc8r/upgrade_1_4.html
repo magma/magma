@@ -69,13 +69,12 @@ release branch by following the <a href="https://docs.magmacore.org/docs/orc8r/d
 documentation.</p>
 <p>If you are using local Terraform state (the default), ensure all Terraform
 state files are located in your working directory before proceeding. This means
-<code>terraform show</code> should list existing state, rather than outputting
-<code>No state</code>.</p>
+<code>terraform show</code> should list existing state, rather than outputting <code>No state</code>.</p>
 <h2><a class="anchor" aria-hidden="true" id="upgrade-terraform-modules"></a><a href="#upgrade-terraform-modules" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Upgrade Terraform modules</h2>
 <p>Set the <code>source</code> values for each of the Orchestrator modules in your root
 Terraform module to point to this release's modules and bump chart and
 container versions</p>
-<pre><code class="hljs css language-hcl-terraform"><span class="hljs-comment"># this will likely be found in 'main.tf'</span>
+<pre><code class="hljs css language-hcl-terraform"><span class="hljs-comment"># This will likely be found in main.tf</span>
 
 module <span class="hljs-keyword">orc8r</span> {
   <span class="hljs-literal">source</span> = <span class="hljs-string">"github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.4"</span>
@@ -86,8 +85,8 @@ module <span class="hljs-keyword">orc8r</span> {
   <span class="hljs-literal">source</span> = <span class="hljs-string">"github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.4"</span>
   <span class="hljs-comment"># ...</span>
   orc8r_chart_version   = <span class="hljs-string">"1.5.8"</span>
-  orc8r_tag             = <span class="hljs-string">"MAGMA_TAG"</span>       <span class="hljs-comment"># from build step, e.g. v1.4.0</span>
-  orc8r_deployment_type = DEPLOYMENT_TYPE   <span class="hljs-comment"># valid options are: ["fwa", "federated_fwa", "all"]</span>
+  orc8r_tag             = <span class="hljs-string">"MAGMA_TAG"</span>  <span class="hljs-comment"># from build step, e.g. v1.4.0</span>
+  orc8r_deployment_type = <span class="hljs-string">"fwa"</span>        <span class="hljs-comment"># valid options: ["fwa", "federated_fwa", "all"]</span>
 }
 </code></pre>
 <p>Bump your chart version to <code>1.5.8</code> and <code>orc8r_tag</code> to the semver tag you

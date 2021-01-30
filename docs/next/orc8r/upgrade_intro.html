@@ -71,5 +71,12 @@ are only documented for adjacent releases. Upgrades which skip versions
 decide that you need to roll back your application. While the application
 components are stateless and can be upgraded or downgraded at any time, the
 data migrations that come with each release are not always reversible.</p>
-<p>If you are using local Terraform state (the default), ensure all Terraform state files (i.e. <a href="https://www.terraform.io/docs/state/index.html"><code>terraform.tfstate</code></a>) are located in your working directory before proceeding. This means <code>terraform show</code> should list existing state (rather than outputting <code>No state</code>).</p>
+<p>If you are using local Terraform state (the default), ensure all Terraform
+state files (i.e.
+<a href="https://www.terraform.io/docs/state/index.html"><code>terraform.tfstate</code></a>) are
+located in your working directory before proceeding. This means
+<code>terraform show</code> should list existing state (rather than outputting
+<code>No state</code>).</p>
+<p>Finally, we assume <code>MAGMA_ROOT</code> is set as described in the
+<a href="/magma/docs/next/orc8r/deploy_intro">deployment intro</a>.</p>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/orc8r/deploy_install"><span class="arrow-prev">← </span><span>Install Orchestrator</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/upgrade_1_4"><span>Upgrade to v1.4</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div></body></html>
