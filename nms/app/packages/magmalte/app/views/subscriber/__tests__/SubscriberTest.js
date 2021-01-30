@@ -182,7 +182,7 @@ describe('<SubscriberDashboard />', () => {
             msisdn: '',
             apn: 'apn_1',
             session_start_time: 1605281209,
-            ipv4: '192.168.128.217',
+            ipv4: '192.168.128.218',
           },
         ],
       },
@@ -236,7 +236,7 @@ describe('<SubscriberDashboard />', () => {
             msisdn: '',
             apn: 'apn_4',
             session_start_time: 1605281600,
-            ipv4: '192.168.128.217',
+            ipv4: '192.168.128.219',
           },
         ],
         apn_5: [
@@ -328,17 +328,22 @@ describe('<SubscriberDashboard />', () => {
     expect(rowItems[1]).toHaveTextContent('ACTIVE');
     expect(rowItems[1]).toHaveTextContent('0');
     expect(rowItems[1]).toHaveTextContent('2');
+    expect(rowItems[1]).toHaveTextContent('apn_0,apn_1');
+    expect(rowItems[1]).toHaveTextContent('-');
 
     expect(rowItems[2]).toHaveTextContent('subscriber1');
     expect(rowItems[2]).toHaveTextContent('IMSI0000000001');
     expect(rowItems[2]).toHaveTextContent('INACTIVE');
     expect(rowItems[2]).toHaveTextContent('0');
     expect(rowItems[2]).toHaveTextContent('1');
+    expect(rowItems[2]).toHaveTextContent('apn_3');
+    expect(rowItems[2]).toHaveTextContent('-');
 
     expect(rowItems[3]).toHaveTextContent('IMSI0000000002');
     expect(rowItems[3]).toHaveTextContent('0');
-    expect(rowItems[3]).toHaveTextContent('3');
     expect(rowItems[3]).toHaveTextContent('1');
+    expect(rowItems[3]).toHaveTextContent('apn_4,apn_5,apn_6');
+    expect(rowItems[3]).toHaveTextContent('192.168.128.219');
 
     // click the actions button for subscriber0
     const actionList = getAllByTitle('Actions');
