@@ -18,26 +18,28 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import DataUsageIcon from '@material-ui/icons/DataUsage';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebConfig from './EnodebDetailConfig';
 import EnodebContext from '../../components/context/EnodebContext';
 import GatewayLogs from './GatewayLogs';
-import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
+import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
+import {DateTimePicker} from '@material-ui/pickers';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -58,19 +60,20 @@ const useStyles = makeStyles(theme => ({
       background: colors.primary.mirage,
     },
   },
+  dateTimeText: {
+    color: colors.primary.comet,
+  },
 }));
 const CHART_TITLE = 'Bandwidth Usage';
 
 export function EnodebDetail() {
-  const ctx = useContext(EnodebContext);
   const {relativePath, relativeUrl, match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
-  const enbInfo = ctx.state.enbInfo[enodebSerial];
 
   return (
     <>
       <TopBar
-        header={`Equipment/${enbInfo.enb.name}`}
+        header={`Equipment/${enodebSerial}`}
         tabs={[
           {
             label: 'Overview',
@@ -160,44 +163,98 @@ function EnodebRebootButtonInternal(props: WithAlert) {
 const EnodebRebootButton = withAlert(EnodebRebootButtonInternal);
 
 function Overview() {
-  const ctx = useContext(EnodebContext);
   const classes = useStyles();
-  const {match} = useRouter();
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
-  const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const enbIpAddress = enbInfo?.enb_state?.ip_address ?? '';
+  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
+  const [endDate, setEndDate] = useState(moment());
+
+  function MetricChartFilter() {
+    return (
+      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            Filter By Date
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="outlined"
+            inputVariant="outlined"
+            maxDate={endDate}
+            disableFuture
+            value={startDate}
+            onChange={setStartDate}
+          />
+        </Grid>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            to
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="outlined"
+            inputVariant="outlined"
+            disableFuture
+            value={endDate}
+            onChange={setEndDate}
+          />
+        </Grid>
+      </Grid>
+    );
+  }
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Grid container spacing={4}>
             <Grid item xs={12} md={6} alignItems="center">
-              <CardTitleRow
-                icon={SettingsInputAntennaIcon}
-                label={enbInfo.enb.name}
-              />
               <EnodebSummary />
             </Grid>
 
             <Grid item xs={12} md={6} alignItems="center">
-              <CardTitleRow icon={GraphicEqIcon} label="Status" />
               <EnodebStatus />
             </Grid>
           </Grid>
         </Grid>
         <Grid item xs={12}>
-          <DateTimeMetricChart
-            title={CHART_TITLE}
-            unit={'Throughput(mb/s)'}
-            queries={[
-              `sum(rate(gtp_port_user_plane_dl_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000)`,
-              `sum(rate(gtp_port_user_plane_ul_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000)`,
-            ]}
-            legendLabels={['Download', 'Upload']}
+          <CardTitleRow
+            icon={DataUsageIcon}
+            label={CHART_TITLE}
+            filter={MetricChartFilter}
           />
+          <EnodebMetricChart startDate={startDate} endDate={endDate} />
         </Grid>
       </Grid>
     </div>
+  );
+}
+
+type Props = {
+  startDate: moment$Moment,
+  endDate: moment$Moment,
+};
+
+function EnodebMetricChart(props: Props) {
+  const ctx = useContext(EnodebContext);
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const enbIpAddress = enbInfo?.enb_state?.ip_address ?? '';
+
+  return (
+    <DateTimeMetricChart
+      title={CHART_TITLE}
+      unit={'Throughput(mb/s)'}
+      queries={[
+        `rate(gtp_port_user_plane_dl_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000`,
+        `rate(gtp_port_user_plane_ul_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000`,
+      ]}
+      legendLabels={['Download', 'Upload']}
+      startDate={props.startDate}
+      endDate={props.endDate}
+    />
   );
 }
 

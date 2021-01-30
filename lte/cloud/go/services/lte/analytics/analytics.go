@@ -26,11 +26,7 @@ func GetAnalyticsCalculations(config *calculations.AnalyticsConfig) []calculatio
 	}
 
 	calcs := make([]calculations.Calculation, 0)
-	calcs = append(calcs, &lte_calculations.NetworkMetricsCalculation{
-		BaseCalculation: calculations.BaseCalculation{
-			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
-		},
-	})
+
 	calcs = append(calcs, &lte_calculations.UserMetricsCalculation{
 		BaseCalculation: calculations.BaseCalculation{
 			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},

@@ -300,8 +300,8 @@ func getHEConfig(gwConfig *lte_models.GatewayHeConfig) *lte_mconfig.PipelineD_HE
 	}
 
 	return &lte_mconfig.PipelineD_HEConfig{
-		EnableHeaderEnrichment: gwConfig.EnableHeaderEnrichment,
-		EnableEncryption:       gwConfig.EnableEncryption,
+		EnableHeaderEnrichment: swag.BoolValue(gwConfig.EnableHeaderEnrichment),
+		EnableEncryption:       swag.BoolValue(gwConfig.EnableEncryption),
 		EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm(lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm_value[gwConfig.HeEncryptionAlgorithm]),
 		HashFunction:           lte_mconfig.PipelineD_HEConfig_HashFunction(lte_mconfig.PipelineD_HEConfig_HashFunction_value[gwConfig.HeHashFunction]),
 		EncodingType:           lte_mconfig.PipelineD_HEConfig_EncodingType(lte_mconfig.PipelineD_HEConfig_EncodingType_value[gwConfig.HeEncodingType]),

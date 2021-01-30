@@ -57,6 +57,7 @@ const (
 	APNLabel                 = "apnType"
 	GatewayMagmaVersionLabel = "version"
 	QuantileLabel            = "quantile"
+	ImsiLabelName            = "IMSI"
 )
 
 // GetMetrics gathers metrics from Prometheus' default registry,

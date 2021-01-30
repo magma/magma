@@ -1,6 +1,6 @@
 ---
-id: nms_developer
-title: Quick-Start Guide to NMS Development
+id: developer
+title: Developer
 hide_title: true
 ---
 # Spacing Guidelines
@@ -41,7 +41,7 @@ We've adapted the Symphony styles to better reflect the typography found in the 
 * h1
 * h2
 * h3
-* h4 
+* h4
 * h5
 * subtitle1
 * subtitle2
@@ -128,7 +128,7 @@ The Data Grid component allows developers to quickly display information, whethe
 `DataRows` which make up `DataGrid` take in the following properties to determine how each data entry should render and operate based on the specifics of the content you are making.
 <br />
 
-#### category `string` **(Optional)** 
+#### category `string` **(Optional)**
 Passes a category label for this specific data entry.
 <br />
 
@@ -161,7 +161,7 @@ Passes the state of the `statusCircle`. **True** renders a green status indicato
 <br />
 
 #### statusInactive `boolean` **(Optional)**
-Passes the state of inactive to `statusCircle` rendering a gray status indicator. 
+Passes the state of inactive to `statusCircle` rendering a gray status indicator.
 <br />
 
 #### tooltip `string` **(Optional)**

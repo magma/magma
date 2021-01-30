@@ -21,10 +21,8 @@ import (
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/wrappers"
-	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/metrics"
 
 	"github.com/golang/glog"
@@ -39,50 +37,6 @@ const (
 	// sessionActive string literal identifying active subscriber session
 	sessionActive = "SESSION_ACTIVE"
 )
-
-type NetworkMetricsCalculation struct {
-	calculations.BaseCalculation
-}
-
-func (x *NetworkMetricsCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
-	glog.V(1).Info("Calculate Network Metrics")
-
-	var results []*protos.CalculationResult
-	networks, err := configurator.ListNetworkIDs()
-	if err != nil || networks == nil {
-		return results, err
-	}
-
-	metricConfig, ok := x.AnalyticsConfig.Metrics[metrics.NetworkTypeMetric]
-	if !ok {
-		glog.Errorf("%s metric not found in metric config", metrics.NetworkTypeMetric)
-		return results, err
-	}
-
-	for _, networkID := range networks {
-		network, err := configurator.LoadNetwork(networkID, true, true, serdes.Network)
-		if err == merrors.ErrNotFound {
-			glog.Errorf("Network %s not found", networkID)
-			continue
-		}
-		if err != nil {
-			glog.Errorf("Failed %v loading network %s", err, networkID)
-			continue
-		}
-		ret := (&models.Network{}).FromConfiguratorNetwork(network)
-		labels := prometheus.Labels{
-			metrics.NetworkLabelName: networkID,
-			metrics.NetworkTypeLabel: string(ret.Type),
-		}
-		results = append(results,
-			calculations.NewResult(1,
-				metrics.NetworkTypeMetric,
-				calculations.CombineLabels(labels, metricConfig.Labels)))
-	}
-
-	glog.V(1).Info("Network Metrics Results ", results)
-	return results, nil
-}
 
 type UserMetricsCalculation struct {
 	calculations.BaseCalculation

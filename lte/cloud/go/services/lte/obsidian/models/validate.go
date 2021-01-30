@@ -331,6 +331,10 @@ func (m *EnodebSerials) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
+func (m *GatewayHeConfig) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *Enodeb) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err

@@ -61,8 +61,8 @@ orbs:
           - run:
               name: Checking for changes
               command: |
-                if [ "${CIRCLE_BRANCH}" = "master" ]; then
-                  echo "Determinator does not run on master"
+                if [ "${CIRCLE_BRANCH}" = "v1.4" ]; then
+                  echo "Determinator does not run on release branch"
                   exit 0
                 fi
 
@@ -192,8 +192,8 @@ commands:
         type: boolean
     steps:
       - run: |
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
-            echo "Push only happens for master branch"
+          if [ "${CIRCLE_BRANCH}" != "v1.4" ]; then
+            echo "Push only happens for release branch"
             exit 0
           fi
 
@@ -384,7 +384,7 @@ commands:
       - run:
           name: Send slack message
           command: |
-            if [ "${CIRCLE_BRANCH}" != "master" ]; then
+            if [ "${CIRCLE_BRANCH}" != "v1.4" ]; then
               exit 0
             fi
 
@@ -420,6 +420,11 @@ commands:
                     {
                       "title": "Revision",
                       "value": "${gh_text}",
+                      "short": false
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "\`${CIRCLE_BRANCH}\`",
                       "short": false
                     }
                   ]
@@ -699,8 +704,6 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
-      - build/determinator:
-          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'False'
@@ -1001,12 +1004,11 @@ workflows:
   agw:
     jobs:
       - lte-test
-      - lte-integ-test:
-          <<: *master_and_develop
+      - agw-hold:
+          type: approval
       - lte-agw-deploy:
-          <<: *only_master
           requires:
-            - lte-integ-test
+            - agw-hold
 
   feg:
     jobs:
