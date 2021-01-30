@@ -13,6 +13,9 @@ If you want to install a specific release version, see the notes in the
 
 ## Prerequisites
 
+We assume `MAGMA_ROOT` is set as described in the
+[deployment intro](./deploy_intro.md).
+
 This walkthrough assumes you already have the following
 
 - a registered domain name
@@ -22,6 +25,9 @@ This walkthrough assumes you already have the following
 If your AWS account is not blank, this can cause errors while Terraforming.
 If you know what you're doing, this is fine - otherwise, consider signing up
 for a new account.
+
+Finally, our install process assumes the chosen region contains at least 3
+availability zones. This should be the case for all major regions.
 
 ## Assemble Certificates
 
@@ -50,7 +56,7 @@ If you aren't worried about a browser warning, you can generate self-signed
 versions of these certs
 
 ```bash
-MAGMA_ROOT/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
+${MAGMA_ROOT}/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
 ```
 
 Alternatively, if you already have these certs, rename and move them as follows
@@ -64,7 +70,7 @@ Next, with the domain certs placed in the correct directory, generate the
 application certs
 
 ```bash
-MAGMA_ROOT/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
+${MAGMA_ROOT}/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
 ```
 
 NOTE: `yourdomain.com` above should match the relevant Terraform variables in
