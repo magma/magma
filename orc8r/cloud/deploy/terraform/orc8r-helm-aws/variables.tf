@@ -164,7 +164,7 @@ variable "orc8r_deployment_type" {
       var.orc8r_deployment_type == "federated_fwa" ||
       var.orc8r_deployment_type == "all"
     )
-    error_message = "The orc8r_deployment_type value must be one of ['fwa', 'federated_fwa', 'all']"
+    error_message = "The orc8r_deployment_type value must be one of ['fwa', 'federated_fwa', 'all']."
   }
 }
 
