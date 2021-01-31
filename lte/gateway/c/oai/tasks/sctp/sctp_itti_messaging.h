@@ -33,20 +33,24 @@
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 
+#define S1AP 18
+#define NGAP 60
+
 extern task_zmq_ctx_t sctp_task_zmq_ctx;
 
 int sctp_itti_send_lower_layer_conf(
-    task_id_t origin_task_id, sctp_assoc_id_t assoc_id, sctp_stream_id_t stream,
-    uint32_t mme_ue_s1ap_id, bool is_success);
+    task_id_t origin_task_id, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
+    sctp_stream_id_t stream, uint32_t mme_ue_s1ap_id, bool is_success);
 
 int sctp_itti_send_new_association(
-    sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
+    sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
     sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr);
 
 int sctp_itti_send_new_message_ind(
-    STOLEN_REF bstring* payload, sctp_assoc_id_t assoc_id,
+    STOLEN_REF bstring* payload, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream);
 
-int sctp_itti_send_com_down_ind(sctp_assoc_id_t assoc_id, bool reset);
+int sctp_itti_send_com_down_ind(
+    sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, bool reset);
 
 #endif /* FILE_SCTP_ITTI_MESSAGING_SEEN */

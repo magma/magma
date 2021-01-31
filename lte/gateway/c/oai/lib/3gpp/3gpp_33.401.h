@@ -67,5 +67,6 @@
  * MME.
  */
 #define MAX_EPS_AUTH_VECTORS 1
+#define MAX_5G_AUTH_VECTORS 1
 
 #endif /* FILE_3GPP_33_401_SEEN */
