@@ -55,7 +55,6 @@ typedef enum eps_protocol_discriminator_value_e {
   RADIO_RESOURCES_MANAGEMENT_MESSAGE  = 0x6,
   EPS_MOBILITY_MANAGEMENT_MESSAGE =
       0x7, /* Protocol discriminator identifier for EPS Mobility Management */
-  M5GS_MOBILITY_MANAGEMENT_MESSAGE = 0x7E,  // NEED TO CHECK
   GPRS_MOBILITY_MANAGEMENT_MESSAGE = 0x8,
   SMS_MESSAGE                      = 0x9,
   GPRS_SESSION_MANAGEMENT_MESSAGE  = 0xA,
@@ -83,27 +82,5 @@ typedef uint8_t pti_t;
 #define PROCEDURE_TRANSACTION_IDENTITY_FIRST (pti_t) 1
 #define PROCEDURE_TRANSACTION_IDENTITY_LAST (pti_t) 254
 #define PROCEDURE_TRANSACTION_IDENTITY_RESERVED (pti_t) 255
-
-//..............................................................................
-// 11.2.3.1b PDU session identity
-//..............................................................................
-typedef uint8_t psi_t;  // 4 bits only
-
-#define NO_PDU_SESSION_IDENTITY (psi_t) 0
-#define PDU_SESSION_IDENTITY_VALUE_1 (psi_t) 1
-#define PDU_SESSION_IDENTITY_VALUE_2 (psi_t) 2
-#define PDU_SESSION_IDENTITY_VALUE_3 (psi_t) 3
-#define PDU_SESSION_IDENTITY_VALUE_4 (psi_t) 4
-#define PDU_SESSION_IDENTITY_VALUE_5 (psi_t) 5
-#define PDU_SESSION_IDENTITY_VALUE_6 (psi_t) 6
-#define PDU_SESSION_IDENTITY_VALUE_7 (psi_t) 7
-#define PDU_SESSION_IDENTITY_VALUE_8 (psi_t) 8
-#define PDU_SESSION_IDENTITY_VALUE_9 (psi_t) 9
-#define PDU_SESSION_IDENTITY_VALUE_10 (psi_t) 10
-#define PDU_SESSION_IDENTITY_VALUE_11 (psi_t) 11
-#define PDU_SESSION_IDENTITY_VALUE_12 (psi_t) 12
-#define PDU_SESSION_IDENTITY_VALUE_13 (psi_t) 13
-#define PDU_SESSION_IDENTITY_VALUE_14 (psi_t) 14
-#define PDU_SESSION_IDENTITY_VALUE_15 (psi_t) 15
 
 #endif /* FILE_3GPP_24_007_SEEN */

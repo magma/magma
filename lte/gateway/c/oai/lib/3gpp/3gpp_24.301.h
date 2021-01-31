@@ -363,15 +363,12 @@ typedef struct ue_security_capability_s {
 //------------------------------------------------------------------------------
 #define EMM_CAUSE_SEMANTICALLY_INCORRECT 95
 #define EMM_CAUSE_INVALID_MANDATORY_INFO 96
-#define AMF_CAUSE_INVALID_MANDATORY_INFO 96
 #define EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED 97
 #define EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE 98
 #define EMM_CAUSE_IE_NOT_IMPLEMENTED 99
-#define AMF_CAUSE_IE_NOT_IMPLEMENTED 99
 #define EMM_CAUSE_CONDITIONAL_IE_ERROR 100
 #define EMM_CAUSE_MESSAGE_NOT_COMPATIBLE 101
 #define EMM_CAUSE_PROTOCOL_ERROR 111
-#define AMF_CAUSE_PROTOCOL_ERROR 111
 
 //==============================================================================
 // Annex B (informative): Cause values for EPS session management
@@ -420,7 +417,6 @@ typedef struct ue_security_capability_s {
 //------------------------------------------------------------------------------
 #define ESM_CAUSE_SEMANTICALLY_INCORRECT 95
 #define ESM_CAUSE_INVALID_MANDATORY_INFO 96
-#define AMF_CAUSE_INVALID_MANDATORY_INFO 96
 #define ESM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED 97
 #define ESM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE 98
 #define ESM_CAUSE_IE_NOT_IMPLEMENTED 99
