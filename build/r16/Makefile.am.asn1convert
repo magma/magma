@@ -1,0 +1,14 @@
+include /home/vagrant/build/c/oai/tasks/ngap/r16/Makefile.am.libasncodec
+
+bin_PROGRAMS += asn1convert
+asn1convert_CFLAGS = $(ASN_MODULE_CFLAGS) -DASN_PDU_COLLECTION 
+asn1convert_CPPFLAGS = -I$(top_srcdir)//home/vagrant/build/c/oai/tasks/ngap/r16/
+asn1convert_LDADD = libasncodec.la
+asn1convert_SOURCES = \
+	/home/vagrant/build/c/oai/tasks/ngap/r16/converter-example.c\
+	/home/vagrant/build/c/oai/tasks/ngap/r16/pdu_collection.c
+regen: regenerate-from-asn1-source
+
+regenerate-from-asn1-source:
+	asn1c -pdu=all -fcompound-names -fno-include-deps -gen-PER -D /home/vagrant/build/c/oai/tasks/ngap/r16 /home/vagrant/magma/lte/gateway/c/oai/tasks/ngap/messages/asn1/r16/r16.asn1
+
