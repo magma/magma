@@ -21,12 +21,16 @@ from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.app.inout import INGRESS
 from ryu.lib.packet import ether_types
+from ryu.lib.ovs import bridge
+from ryu import cfg
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import TUN_PORT_REG
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
+OVSDB_PORT = 6640  # The IANA registered port for OVSDB [RFC7047]
+OVSDB_MANAGER_ADDR = 'ptcp:6640'
 
 class Classifier(MagmaController):
     """
@@ -52,6 +56,9 @@ class Classifier(MagmaController):
         self._clean_restart = kwargs['config']['clean_restart']
         if self.config.multi_tunnel_flag:
             self._ovs_multi_tunnel_init()
+        self.CONF = cfg.CONF
+        # OVSBridge instance instantiated later
+        self.ovs = None
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -79,14 +86,6 @@ class Classifier(MagmaController):
 
         )
 
-    def _get_gtp_port_no(self, port_name:str):
-        output = subprocess.check_output("sudo ovsdb-client dump Interface name ofport",
-                                          shell=True,).decode("utf-8")
-        for line in output.split('\n'):
-            if port_name in line:
-                port_info = line.split()
-                return int(port_info[1])
-
     def _ovs_multi_tunnel_init(self):
         try:
             subprocess.check_output("sudo ovs-vsctl list Open_vSwitch | grep gtpu",
@@ -95,27 +94,66 @@ class Classifier(MagmaController):
         except subprocess.CalledProcessError:
             self.ovs_gtp_type = "gtp"
 
+        try:
+            subprocess.check_output('ovs-vsctl set-manager %s' % OVSDB_MANAGER_ADDR,
+                                     shell=True,)
+        except subprocess.CalledProcessError as e:
+            logging.warning("Error for set manager with ovsdb: %s", e)
+
     def _ip_addr_to_gtp_port_name(self, enodeb_ip_addr:str):
         ip_no = hex(int(ipaddress.ip_address(enodeb_ip_addr)))
         buf = "g_{}".format(ip_no[2:])
         return buf
 
-    def _find_gtp_port_no(self, enodeb_ip_addr:str):
+    def _get_ovs_bridge(self, dpid):
+        ovsdb_addr = 'tcp:%s:%d' % (self._datapath.address[0], OVSDB_PORT)
+        if (self.ovs is not None
+                and self.ovs.datapath_id == dpid
+                and self.ovs.vsctl.remote == ovsdb_addr):
+            return self.ovs
+
+        try:
+            self.ovs = bridge.OVSBridge(
+                CONF=self.CONF,
+                datapath_id=self._datapath.id,
+                ovsdb_addr=ovsdb_addr)
+            self.ovs.init()
+        except (ValueError, KeyError) as e:
+            self.logger.exception('Cannot initiate OVSDB connection: %s', e)
+            return None
+        return self.ovs
+
+    def _get_ofport(self, dpid, port_name):
+        ovs = self._get_ovs_bridge(dpid)
+        if ovs is None:
+            return None
+
+        try:
+            return ovs.get_ofport(port_name)
+        except Exception as e:
+            self.logger.debug('Cannot get port number for %s: %s',
+                              port_name, e)
+            return None
+
+    def _add_gtp_port(self, dpid, gnb_ip):
         if not self.config.multi_tunnel_flag:
             return self.config.gtp_port
 
-        port_name = self._ip_addr_to_gtp_port_name(enodeb_ip_addr)
-        add_cmd = "sudo ovs-vsctl --may-exist add-port gtp_br0 {} \
-                   -- set interface {} type={} options:remote_ip={} \
-                   options:key=flow" \
-                .format(port_name, port_name, self.ovs_gtp_type, enodeb_ip_addr)
+        port_name = self._ip_addr_to_gtp_port_name(gnb_ip)
+        # If GTP port already exists, returns OFPort number
+        gtpport = self._get_ofport(dpid, port_name)
+        if gtpport is not None:
+            return gtpport
 
-        try:
-            subprocess.check_output(add_cmd,shell=True,)
-        except subprocess.CalledProcessError as e:
-            logging.warning("Error while adding ports: %s", e)
+        ovs = self._get_ovs_bridge(dpid)
+        if ovs is None:
+            return None
 
-        return self._get_gtp_port_no(port_name)
+        port_name = self._ip_addr_to_gtp_port_name(gnb_ip)
+        ovs.add_tunnel_port(port_name, self.ovs_gtp_type,
+                            gnb_ip, key="flow")
+
+        return self._get_ofport(dpid, port_name)
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
@@ -150,10 +188,11 @@ class Classifier(MagmaController):
                           enodeb_ip_addr:str, sid:int = None):
 
         parser = self._datapath.ofproto_parser
+        dpid = self._datapath.id
         priority = Utils.get_of_priority(precedence)
         # Add flow for gtp port
         if enodeb_ip_addr:
-            gtp_portno = self._find_gtp_port_no(enodeb_ip_addr)
+            gtp_portno = self._add_gtp_port(dpid, enodeb_ip_addr)
         else:
             gtp_portno = self.config.gtp_port
         match = MagmaMatch(tunnel_id=i_teid, in_port=gtp_portno)
@@ -209,9 +248,10 @@ class Classifier(MagmaController):
     def _delete_tunnel_flows(self, i_teid:int, ue_ip_adr:str,
                                  enodeb_ip_addr:str = None):
 
+        dpid = self._datapath.id
         # Delete flow for gtp port
         if enodeb_ip_addr:
-            gtp_portno = self._find_gtp_port_no(enodeb_ip_addr)
+            gtp_portno = self._add_gtp_port(dpid, enodeb_ip_addr)
         else:
             gtp_portno = self.config.gtp_port
 

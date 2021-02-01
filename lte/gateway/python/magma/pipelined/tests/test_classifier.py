@@ -74,6 +74,7 @@ class ClassifierTest(unittest.TestCase):
                 'ovs_internal_sampling_port_number': 15578,
                 'ovs_internal_sampling_fwd_tbl_number': 201,
                 'clean_restart': True,
+                'ovs_multi_tunnel': True,
             },
             mconfig=None,
             loop=None,
