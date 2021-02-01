@@ -37,13 +37,8 @@ func main() {
 		glog.Fatalf("Error creating ctraced service: %s", err)
 	}
 
-	specPath := config.GetSpecPath(ctraced.ServiceName)
-	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
-	if err != nil {
-		glog.Infof("Error retrieving Swagger Spec of service %s", ctraced.ServiceName)
-	} else {
-		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
-	}
+	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(ctraced.ServiceName), ctraced.ServiceName)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
 
 	// Init storage
 	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)

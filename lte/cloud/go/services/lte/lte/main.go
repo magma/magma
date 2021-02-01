@@ -50,13 +50,8 @@ func main() {
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 
-	specPath := config.GetSpecPath(lte_service.ServiceName)
-	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
-	if err != nil {
-		glog.Infof("Error retrieving Swagger Spec of service %s", lte_service.ServiceName)
-	} else {
-		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
-	}
+	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(lte_service.ServiceName), lte_service.ServiceName)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
 
 	// Init storage
 	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)

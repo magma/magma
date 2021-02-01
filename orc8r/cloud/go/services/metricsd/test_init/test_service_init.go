@@ -16,8 +16,6 @@ package test_init
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/swagger"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
@@ -27,7 +25,5 @@ import (
 func StartTestServiceInternal(t *testing.T, exporter protos.MetricsExporterServer) {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, metricsd.ServiceName)
 	protos.RegisterMetricsExporterServer(srv.GrpcServer, exporter)
-
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer("swaggerSpec"))
 	go srv.RunTest(lis)
 }

@@ -37,13 +37,6 @@ var (
 	cfgDirMu          sync.RWMutex
 )
 
-// GetSpecPath returns the file on the production image
-// that contains the service's Swagger spec
-func GetSpecPath(service string) string {
-	specPath := filepath.Join(specDir, fmt.Sprintf("%s.swagger.v1.yml", service))
-	return specPath
-}
-
 // GetServiceConfig loads a config by name to a map of parameters
 // Input: configName - name of config to load, e.g. control_proxy
 // Output: map of parameters if it exists, error if not
@@ -163,6 +156,13 @@ func SetConfigDirectories(main, legacy, overwrite string) {
 	cfgDirMu.Lock()
 	configDir, oldConfigDir, configOverrideDir = main, legacy, overwrite
 	cfgDirMu.Unlock()
+}
+
+// GetSpecPath returns the filepath on the production image
+// that contains the service's Swagger spec
+func GetSpecPath(service string) string {
+	specPath := filepath.Join(specDir, fmt.Sprintf("%s.swagger.v1.yml", service))
+	return specPath
 }
 
 func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {

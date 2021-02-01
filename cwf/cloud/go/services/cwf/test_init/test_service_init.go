@@ -18,18 +18,16 @@ import (
 
 	"magma/cwf/cloud/go/services/cwf"
 	"magma/cwf/cloud/go/services/cwf/servicers"
-	"magma/orc8r/cloud/go/obsidian/swagger"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
 func StartTestService(t *testing.T) {
-	StartTestServiceInternal(t, servicers.NewBuilderServicer(), swagger.NewSpecServicer("swaggerSpec"))
+	StartTestServiceInternal(t, servicers.NewBuilderServicer())
 }
 
-func StartTestServiceInternal(t *testing.T, builder builder_protos.MconfigBuilderServer, specServicer swagger_protos.SwaggerSpecServer) {
+func StartTestServiceInternal(t *testing.T, builder builder_protos.MconfigBuilderServer) {
 	labels := map[string]string{}
 	annotations := map[string]string{}
 
@@ -41,9 +39,6 @@ func StartTestServiceInternal(t *testing.T, builder builder_protos.MconfigBuilde
 
 	if builder != nil {
 		builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder)
-	}
-	if specServicer != nil {
-		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
 	}
 
 	go srv.RunTest(lis)

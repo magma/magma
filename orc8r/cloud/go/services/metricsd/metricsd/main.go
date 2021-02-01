@@ -51,13 +51,8 @@ func main() {
 	controllerServicer := servicers.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
 
-	specPath := config.GetSpecPath(metricsd.ServiceName)
-	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
-	if err != nil {
-		glog.Infof("Error retrieving Swagger Spec of service %s", metricsd.ServiceName)
-	} else {
-		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
-	}
+	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(metricsd.ServiceName), metricsd.ServiceName)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
 
 	// Initialize gatherers
 	additionalCollectors := []collection.MetricCollector{

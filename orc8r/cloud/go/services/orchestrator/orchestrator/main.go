@@ -73,13 +73,8 @@ func main() {
 	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 
-	specPath := config.GetSpecPath(orchestrator.ServiceName)
-	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
-	if err != nil {
-		glog.Infof("Error retrieving Swagger Spec of service %s", orchestrator.ServiceName)
-	} else {
-		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
-	}
+	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(orchestrator.ServiceName), orchestrator.ServiceName)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
 
 	collectorServicer := analytics.NewCollectorServicer(
 		&serviceConfig.Analytics,

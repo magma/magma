@@ -16,8 +16,6 @@ package test_init
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/swagger"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/services/orchestrator"
@@ -39,13 +37,7 @@ func (srv *testStreamerServer) GetUpdates(req *protos.StreamRequest, stream prot
 }
 
 func StartTestService(t *testing.T) {
-	StartTestServiceInternal(
-		t,
-		servicers.NewBuilderServicer(),
-		servicers.NewIndexerServicer(),
-		servicers.NewProviderServicer(),
-		swagger.NewSpecServicer("swaggerSpec"),
-	)
+	StartTestServiceInternal(t, servicers.NewBuilderServicer(), servicers.NewIndexerServicer(), servicers.NewProviderServicer())
 }
 
 func StartTestServiceInternal(
@@ -53,7 +45,6 @@ func StartTestServiceInternal(
 	builder builder_protos.MconfigBuilderServer,
 	indexer indexer_protos.IndexerServer,
 	provider streamer_protos.StreamProviderServer,
-	specServicer swagger_protos.SwaggerSpecServer,
 ) {
 	labels := map[string]string{}
 	annotations := map[string]string{}
@@ -77,9 +68,6 @@ func StartTestServiceInternal(
 	}
 	if provider != nil {
 		streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, provider)
-	}
-	if specServicer != nil {
-		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
 	}
 
 	go srv.RunTest(lis)

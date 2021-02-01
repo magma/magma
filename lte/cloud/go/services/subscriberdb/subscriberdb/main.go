@@ -59,13 +59,8 @@ func main() {
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 
-	specPath := config.GetSpecPath(subscriberdb.ServiceName)
-	specServicer, err := swagger.NewSpecServicerWithPath(specPath)
-	if err != nil {
-		glog.Infof("Error retrieving Swagger Spec of service %s", subscriberdb.ServiceName)
-	} else {
-		swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
-	}
+	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(subscriberdb.ServiceName), subscriberdb.ServiceName)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
 
 	// Run service
 	err = srv.Run()

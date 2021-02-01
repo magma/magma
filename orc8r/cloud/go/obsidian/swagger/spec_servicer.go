@@ -17,20 +17,24 @@ import (
 	"context"
 	"io/ioutil"
 
-	protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	"magma/orc8r/cloud/go/obsidian/swagger/protos"
+
+	"github.com/golang/glog"
 )
 
 type specServicer struct {
 	spec string
 }
 
-func NewSpecServicerWithPath(specPath string) (protos.SwaggerSpecServer, error) {
-	data, err := ioutil.ReadFile(specPath)
+func NewSpecServicerFromFile(path string, service string) protos.SwaggerSpecServer {
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
+		// We are swallowing this error because a singular service spec failure
+		// should not down the entire Swagger UI
+		glog.Errorf("Error retrieving Swagger Spec of service %s: %+v", service, err)
+		return NewSpecServicer("")
 	}
-
-	return NewSpecServicer(string(data)), nil
+	return NewSpecServicer(string(data))
 }
 
 func NewSpecServicer(spec string) protos.SwaggerSpecServer {
@@ -38,8 +42,5 @@ func NewSpecServicer(spec string) protos.SwaggerSpecServer {
 }
 
 func (s *specServicer) GetSpec(ctx context.Context, request *protos.GetSpecRequest) (*protos.GetSpecResponse, error) {
-	ret := &protos.GetSpecResponse{SwaggerSpec: ""}
-	ret.SwaggerSpec = s.spec
-
-	return ret, nil
+	return &protos.GetSpecResponse{SwaggerSpec: s.spec}, nil
 }
