@@ -657,6 +657,7 @@ int amf_registration_procedure::amf_send_registration_accept(
     }
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
+}
   /****************************************************************************
    **                                                                        **
    ** Name:    amf_send_registration_accept_dl_nas()                         **
@@ -888,5 +889,4 @@ int amf_registration_procedure::amf_send_registration_accept(
     int rc = RETURNok;
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
-
 }  // namespace magma5g
