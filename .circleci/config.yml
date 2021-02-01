@@ -544,6 +544,10 @@ jobs:
       - tag-push-docker:
           project: orc8r
           images: "nginx|controller"
+      - tag-push-docker:
+          project: orc8r
+          images: "nginx|controller"
+          tag-latest: true
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
