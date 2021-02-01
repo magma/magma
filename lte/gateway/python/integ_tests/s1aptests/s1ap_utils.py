@@ -620,6 +620,7 @@ class MagmadUtil(object):
             "sshpass -p {password} ssh "
             "-o UserKnownHostsFile=/dev/null "
             "-o StrictHostKeyChecking=no "
+            "-o LogLevel=ERROR "
             "{user}@{host} {command}"
         )
 
@@ -816,11 +817,24 @@ class MagmadUtil(object):
         Print the per-IMSI state in Redis data store on AGW
         """
         magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        state_cli_cmd = "state_cli.py keys IMSI*"
-        redis_state = self.exec_command_output(
-                magtivate_cmd + " && " + state_cli_cmd)
-        print("Redis state is [\n", redis_state, "]")
-
+        imsi_state_cmd = "state_cli.py keys IMSI*"
+        redis_imsi_keys = self.exec_command_output(
+                magtivate_cmd + " && " + imsi_state_cmd)
+        keys_to_be_cleaned = ""
+        for key in redis_imsi_keys.split('\n'):
+            if "directory" not in key:
+                keys_to_be_cleaned = keys_to_be_cleaned + key + "\n"
+        print("Keys left in Redis [\n", keys_to_be_cleaned, "]")
+        mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
+        mme_nas_state = self.exec_command_output(
+                magtivate_cmd + " && " + mme_nas_state_cmd)
+        num_htbl_entries = 0
+        for state in mme_nas_state.split("\n"):
+            if "nb_enb_connected" in state or "nb_ue_attached" in state:
+                print(state,"\n")
+            elif "htbl" in state:
+                num_htbl_entries += 1
+        print("Entries left in hashtables:", num_htbl_entries)
 
 
 class MobilityUtil(object):
