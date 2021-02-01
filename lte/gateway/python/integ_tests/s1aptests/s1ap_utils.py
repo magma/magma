@@ -819,22 +819,28 @@ class MagmadUtil(object):
         magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
         imsi_state_cmd = "state_cli.py keys IMSI*"
         redis_imsi_keys = self.exec_command_output(
-                magtivate_cmd + " && " + imsi_state_cmd)
-        keys_to_be_cleaned = ""
+            magtivate_cmd + " && " + imsi_state_cmd
+        )
+        keys_to_be_cleaned = []
         for key in redis_imsi_keys.split('\n'):
             if "directory" not in key:
-                keys_to_be_cleaned = keys_to_be_cleaned + key + "\n"
-        print("Keys left in Redis [\n", keys_to_be_cleaned, "]")
+                keys_to_be_cleaned.append(key)
+        print(
+            "Keys left in Redis (list should be empty)[\n",
+            "\n".join(keys_to_be_cleaned),
+            "\n]"
+        )
         mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
         mme_nas_state = self.exec_command_output(
-                magtivate_cmd + " && " + mme_nas_state_cmd)
+            magtivate_cmd + " && " + mme_nas_state_cmd
+        )
         num_htbl_entries = 0
         for state in mme_nas_state.split("\n"):
             if "nb_enb_connected" in state or "nb_ue_attached" in state:
-                print(state,"\n")
+                print(state,"(should be zero)\n")
             elif "htbl" in state:
                 num_htbl_entries += 1
-        print("Entries left in hashtables:", num_htbl_entries)
+        print("Entries left in hashtables (should be zero):", num_htbl_entries)
 
 
 class MobilityUtil(object):
