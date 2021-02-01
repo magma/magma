@@ -195,8 +195,8 @@ class IpAllocatorPool(IPAllocator):
         TODO: Add support of per APN IP-POOL
         """
         # if an IP is not yet allocated for the UE, allocate a new IP
-        if self._store.ip_state_map.get_ip_count(IPState.FREE):
-            ip_desc = self._store.ip_state_map.pop_ip_from_state(IPState.FREE)
+        ip_desc = self._store.ip_state_map.pop_ip_from_state(IPState.FREE)
+        if ip_desc:
             ip_desc.sid = sid
             ip_desc.state = IPState.ALLOCATED
             return ip_desc
