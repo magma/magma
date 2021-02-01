@@ -118,7 +118,7 @@ class TrafficClass:
 
         qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(intf=intf)
         parent_q_cmd = "tc class add dev {intf} parent 1: classid 1:{root_qid} htb "
-        parent_q_cmd +="rate {speed}Mbit ceil {speed}Mbit"
+        parent_q_cmd += "rate {speed}Mbit ceil {speed}Mbit"
         parent_q_cmd = parent_q_cmd.format(intf=intf, root_qid=qid_hex, speed=speed)
         tc_cmd = "tc class add dev {intf} parent 1:{root_qid} classid 1:1 htb "
         tc_cmd += "rate {rate} ceil {speed}Mbit"
