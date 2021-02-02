@@ -11,13 +11,12 @@
 #
 [Unit]
 Description=Magma envoy service
-PartOf=magma@envoy_controller.service
-Before=magma@envoy_controller.service
+After=magma@envoy_controller.service
 
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStart=/sbin/ip netns exec envoy_ns1 /usr/bin/envoy -c /var/opt/magma/envoy.yaml --log-path /var/log/envoy.log -l debug
+ExecStart=/sbin/ip netns exec envoy_ns1 /usr/bin/envoy --bootstrap-version 2 -c /var/opt/magma/envoy.yaml --log-path /var/log/envoy.log -l debug
 MemoryAccounting=yes
 StandardOutput=syslog
 StandardError=syslog

@@ -214,6 +214,7 @@ class QosManager(object):
         else:
             # read existing state from qos_impl
             LOG.info("Qos Setup: recovering existing state")
+            self.impl.setup()
 
             def callback(fut):
                 LOG.debug("read_all_state complete => \n%s", fut.result())

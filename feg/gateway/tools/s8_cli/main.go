@@ -25,7 +25,6 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s8_proxy/servicers"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
-	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/tools/commands"
 )
 
@@ -39,6 +38,8 @@ var (
 	testServer     bool
 	testServerAddr string = "127.0.0.1:0"
 	pgwServerAddr  string
+
+	noecho bool = false
 )
 
 func init() {
@@ -65,6 +66,9 @@ func init() {
 	csFlags.StringVar(&pgwServerAddr, "server", pgwServerAddr,
 		"PGW IP addres and port to send request with format ip:port")
 
+	csFlags.BoolVar(&noecho, "noecho", noecho,
+		fmt.Sprintf("Starts s8 proxy without checking PGW is alive (%s)", pgwServerAddr))
+
 	csFlags.BoolVar(&useMconfig, "use_mconfig", false,
 		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
 
@@ -83,7 +87,7 @@ func createSession(cmd *commands.Command, args []string) int {
 	}
 
 	conf := &servicers.S8ProxyConfig{
-		ClientAddr: "127.0.0.1:0",
+		ClientAddr: ":0",
 		ServerAddr: pgwServerAddr,
 	}
 
@@ -100,7 +104,6 @@ func createSession(cmd *commands.Command, args []string) int {
 	}
 
 	var cli s8Cli
-
 	// Selection of builtIn Client or S8proxy running on the gateway
 	if useMconfig || useBuiltinCli {
 		// use builtin proxy (ignore loccal proxy)
@@ -108,12 +111,21 @@ func createSession(cmd *commands.Command, args []string) int {
 			conf = servicers.GetS8ProxyConfig()
 		}
 		fmt.Printf("Direct connection using built in S8 client: Client Config: %+v\n", *conf)
-		localProxy, err := servicers.NewS8Proxy(conf)
+		var localProxy *servicers.S8Proxy
+		if noecho {
+			fmt.Println("Disable send echo message on start")
+			localProxy, err = servicers.NewS8ProxyNoFirstEcho(conf)
+		} else {
+			localProxy, err = servicers.NewS8Proxy(conf)
+		}
 		if err != nil {
-			f.Usage()
-			fmt.Printf("BuiltIn S8 Proxy initialization error: %v", err)
+			fmt.Printf("BuiltIn S8 Proxy initialization error: %v\n", err)
 			return 5
 		}
+
+		//TODO: remove this once we find a way to safely wait for initialization of the service
+		localProxy.WaitUntilClientIsReady()
+
 		cli = s8BuiltIn{localProxy}
 	} else {
 		// TODO: use local proxy running on the gateway
@@ -122,37 +134,74 @@ func createSession(cmd *commands.Command, args []string) int {
 	}
 
 	// Dummy request
+
+	// Create Session Request message
 	csReq := &protos.CreateSessionRequestPgw{
-		Sid: &lteprotos.SubscriberID{
-			Id:   imsi,
-			Type: lteprotos.SubscriberID_IMSI,
+		Imsi:   imsi,
+		Msisdn: "00111",
+		Mei:    "111",
+		ServingNetwork: &protos.ServingNetwork{
+			Mcc: "222",
+			Mnc: "333",
 		},
-		MSISDN:               "00111",
-		MEI:                  "111",
-		MCC:                  "222",
-		MNC:                  "333",
-		RatType:              0,
-		IndicationFlag:       nil,
-		BearerId:             5,
-		UserPlaneTeid:        0,
-		S5S8Ip4UserPane:      "127.0.0.10",
-		S5S8Ip6UserPane:      "",
-		Apn:                  "internet.com",
-		SelectionMode:        "",
-		PdnType:              0,
-		PdnAddressAllocation: "",
-		ApnRestriction:       0,
-		AmbrUp:               0,
-		AmbrDown:             0,
-		Uli:                  "",
+		RatType: 0,
+		BearerContext: &protos.BearerContext{
+			Id: 5,
+			UserPlaneFteid: &protos.Fteid{
+				Ipv4Address: "127.0.0.10",
+				Ipv6Address: "",
+				Teid:        11,
+			},
+			Qos: &protos.QosInformation{
+				Pci:                     0,
+				PriorityLevel:           0,
+				PreemptionCapability:    0,
+				PreemptionVulnerability: 0,
+				Qci:                     0,
+				Gbr: &protos.Ambr{
+					BrUl: 123,
+					BrDl: 234,
+				},
+				Mbr: &protos.Ambr{
+					BrUl: 567,
+					BrDl: 890,
+				},
+			},
+		},
+		PdnType: protos.PDNType_IPV4,
+		Paa: &protos.PdnAddressAllocation{
+			Ipv4Address: "10.0.0.10",
+			Ipv6Address: "",
+			Ipv6Prefix:  0,
+		},
+
+		Apn:            "internet.com",
+		SelectionMode:  "",
+		ApnRestriction: 0,
+		Ambr: &protos.Ambr{
+			BrUl: 999,
+			BrDl: 888,
+		},
+		Uli: &protos.UserLocationInformation{
+			Lac:    1,
+			Ci:     2,
+			Sac:    3,
+			Rac:    4,
+			Tac:    5,
+			Eci:    6,
+			MeNbi:  7,
+			EMeNbi: 8,
+		},
+		IndicationFlag: nil,
 	}
+
 	res, err := cli.CreateSession(csReq)
 
 	if err != nil {
-		fmt.Printf("Create Session cli command failed: %s", err)
+		fmt.Printf("Create Session cli command failed: %s\n", err)
 		return 9
 	}
-	fmt.Printf("Create Session returned:\n%s", res)
+	fmt.Printf("Create Session returned:\n\tCreateSessionReturnPGw{%s}\n", res.String())
 	return 0
 }
 

@@ -25,7 +25,7 @@ from ryu.base.app_manager import AppManager
 from scapy.arch import get_if_hwaddr
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
-from magma.common.misc_utils import call_process
+from magma.common.misc_utils import call_process, get_ip_from_if
 from magma.common.service import MagmaService
 from magma.configuration import environment
 from magma.pipelined.app import of_rest_server
@@ -94,6 +94,12 @@ def main():
         he_enabled_flag = service.mconfig.he_config.enable_header_enrichment
     he_enabled = service.config.get('he_enabled', he_enabled_flag)
     service.config['he_enabled'] = he_enabled
+
+    # monitoring related configuration
+    mtr_interface = service.config.get('mtr_interface', None)
+    if mtr_interface:
+        mtr_ip = get_ip_from_if(mtr_interface)
+        service.config['mtr_ip'] = mtr_ip
 
     # Load the ryu apps
     service_manager = ServiceManager(service)

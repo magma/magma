@@ -107,7 +107,7 @@ fi
 
 # Push charts
 git add . && git commit -m "orc8r charts commit for version $ORC8R_VERSION"
-git remote set-url origin $GITHUB_REPO_URL
+git config remote.origin.url >&- || git remote add origin $GITHUB_REPO_URL
 git push -u origin master
 
 # Ensure push was successful
@@ -121,4 +121,4 @@ HELM_SEARCH_RESULTS=$(helm search repo $GITHUB_REPO) # should list the uploaded 
 if [ "$HELM_SEARCH_RESULTS" == "No results found" ]; then
   exitmsg "Error! Unable to find uploaded orc8r charts"
 fi
-echo "Uploaded orc8r charts successfully!"
+echo "Uploaded orc8r charts successfully."

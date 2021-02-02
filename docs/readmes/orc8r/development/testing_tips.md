@@ -48,8 +48,8 @@ Our tests are not fully isolated from their environment. To set up your
 environment for testing, run
 
 ```bash
-cd $MAGMA_ROOT/orc8r/cloud/ && make tools  # install tools
-cd $MAGMA_ROOT/orc8r/cloud/docker && ./run.py  # bring up postgres_test
+cd ${MAGMA_ROOT}/orc8r/cloud/ && make tools  # install tools
+cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./run.py  # bring up postgres_test
 ```
 
 ### Run tests

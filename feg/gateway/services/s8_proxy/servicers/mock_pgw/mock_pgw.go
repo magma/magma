@@ -17,11 +17,14 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"time"
 
+	"github.com/wmnsk/go-gtp/gtpv1"
+
+	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
 
 	"github.com/wmnsk/go-gtp/gtpv2"
+	"github.com/wmnsk/go-gtp/gtpv2/ie"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
 )
 
@@ -29,12 +32,19 @@ const (
 	dummyUserPlanePgwIP = "10.0.0.1"
 )
 
-// mockPgw is just a wrapper around gtp.Client
-type mockPgw struct {
+// MockPgw is just a wrapper around gtp.Client
+type MockPgw struct {
 	*gtp.Client
+	LastValues
 }
 
-func NewStarted(ctx context.Context, sgwAddrStr, pgwAddrsStr string) (*mockPgw, error) {
+type LastValues struct {
+	LastTEIDu uint32
+	LastTEIDc uint32
+	LastQos   *protos.QosInformation
+}
+
+func NewStarted(ctx context.Context, sgwAddrStr, pgwAddrsStr string) (*MockPgw, error) {
 	mPgw := New()
 	err := mPgw.Start(ctx, sgwAddrStr, pgwAddrsStr)
 	if err != nil {
@@ -43,11 +53,11 @@ func NewStarted(ctx context.Context, sgwAddrStr, pgwAddrsStr string) (*mockPgw, 
 	return mPgw, nil
 }
 
-func New() *mockPgw {
-	return &mockPgw{}
+func New() *MockPgw {
+	return &MockPgw{}
 }
 
-func (mPgw *mockPgw) Start(ctx context.Context, sgwAddrStr, pgwAddrsStr string) error {
+func (mPgw *MockPgw) Start(ctx context.Context, sgwAddrStr, pgwAddrsStr string) error {
 	pgwAddrs, err := net.ResolveUDPAddr("udp", pgwAddrsStr)
 	if err != nil {
 		return fmt.Errorf("Failed to get mock PGW IP: %s", err)
@@ -63,14 +73,28 @@ func (mPgw *mockPgw) Start(ctx context.Context, sgwAddrStr, pgwAddrsStr string) 
 	if err != nil {
 		return fmt.Errorf("Failed to get SGW IP: %s", err)
 	}
-	// Better handle wait for start of service to be ready
-	time.Sleep(time.Millisecond * 20)
-	time.Sleep(time.Millisecond * 20)
+
+	//TODO: remove this once we find a way to safely wait for initialization of the service
+	mPgw.Client.WaitUntilClientIsReady(0)
 
 	// register handlers for ALL the message you expect remote endpoint to send.
 	mPgw.AddHandlers(map[uint8]gtpv2.HandlerFunc{
-		message.MsgTypeCreateSessionRequest: getHandleCreateSessionRequest(),
-		message.MsgTypeDeleteSessionRequest: getHandleDeleteSessionRequest(),
+		message.MsgTypeCreateSessionRequest:       mPgw.getHandleCreateSessionRequest(),
+		message.MsgTypeModifyAccessBearersRequest: mPgw.getHandleModifyBearerRequest(),
+		message.MsgTypeDeleteSessionRequest:       mPgw.getHandleDeleteSessionRequest(),
+		//message.MsgTypeEchoRequest: mPgw.getHandleEchoRequest(),
 	})
 	return nil
+}
+
+// ONLY FOR DEBUGGING PURPOSES
+// getHandleEchoResponse is the same method as the one found in Go-GTP gtpv1.handleEchoResponse
+func (mPgw *MockPgw) getHandleEchoRequest() gtpv2.HandlerFunc {
+	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
+		if _, ok := msg.(*message.EchoRequest); !ok {
+			return gtpv1.ErrUnexpectedType
+		}
+		// respond with EchoResponse.
+		return c.RespondTo(sgwAddr, msg, message.NewEchoResponse(0, ie.NewRecovery(c.RestartCounter)))
+	}
 }

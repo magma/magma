@@ -23,17 +23,13 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/feg/cloud/go/feg"
-	plugin2 "magma/feg/cloud/go/plugin"
 	"magma/feg/cloud/go/serdes"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	health_servicers "magma/feg/cloud/go/services/health/servicers"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/lte/cloud/go/lte"
-	plugin3 "magma/lte/cloud/go/plugin"
 	models3 "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
@@ -63,9 +59,6 @@ var (
 
 func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 	once.Do(func() {
-		_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-		_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
-		_ = plugin.RegisterPluginForTests(t, &plugin3.LteOrchestratorPlugin{})
 		configuratorTestInit.StartTestService(t)
 		deviceTestInit.StartTestService(t)
 	})

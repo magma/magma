@@ -10,9 +10,8 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	protos "magma/lte/cloud/go/protos"
-	oai "magma/lte/cloud/go/protos/oai"
-	protos1 "magma/orc8r/lib/go/protos"
+	_ "magma/lte/cloud/go/protos/oai"
+	_ "magma/orc8r/lib/go/protos"
 	math "math"
 )
 
@@ -27,32 +26,55 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-// from
-// https://sites.google.com/site/amitsciscozone/home/lte-notes/default-bearer-setup
+type PDNType int32
+
+const (
+	PDNType_IPV4   PDNType = 0
+	PDNType_IPV6   PDNType = 1
+	PDNType_IPV4V6 PDNType = 2
+)
+
+var PDNType_name = map[int32]string{
+	0: "IPV4",
+	1: "IPV6",
+	2: "IPV4V6",
+}
+
+var PDNType_value = map[string]int32{
+	"IPV4":   0,
+	"IPV6":   1,
+	"IPV4V6": 2,
+}
+
+func (x PDNType) String() string {
+	return proto.EnumName(PDNType_name, int32(x))
+}
+
+func (PDNType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_8a775e17ac280154, []int{0}
+}
+
+// 3GPP TS 29.274  (not all 3gpp create session fields are included)
 type CreateSessionRequestPgw struct {
-	Sid            *protos.SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	MSISDN         string               `protobuf:"bytes,2,opt,name=MSISDN,proto3" json:"MSISDN,omitempty"`
-	MEI            string               `protobuf:"bytes,3,opt,name=MEI,proto3" json:"MEI,omitempty"`
-	MCC            string               `protobuf:"bytes,4,opt,name=MCC,proto3" json:"MCC,omitempty"`
-	MNC            string               `protobuf:"bytes,5,opt,name=MNC,proto3" json:"MNC,omitempty"`
-	RatType        uint32               `protobuf:"varint,6,opt,name=rat_type,json=ratType,proto3" json:"rat_type,omitempty"`
-	IndicationFlag []byte               `protobuf:"bytes,7,opt,name=indication_flag,json=indicationFlag,proto3" json:"indication_flag,omitempty"`
-	BearerId       uint32               `protobuf:"varint,8,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
-	// user plane data
-	UserPlaneTeid        uint32   `protobuf:"varint,9,opt,name=user_plane_teid,json=userPlaneTeid,proto3" json:"user_plane_teid,omitempty"`
-	S5S8Ip4UserPane      string   `protobuf:"bytes,10,opt,name=s5s8ip4_user_pane,json=s5s8ip4UserPane,proto3" json:"s5s8ip4_user_pane,omitempty"`
-	S5S8Ip6UserPane      string   `protobuf:"bytes,11,opt,name=s5s8ip6_user_pane,json=s5s8ip6UserPane,proto3" json:"s5s8ip6_user_pane,omitempty"`
-	Apn                  string   `protobuf:"bytes,14,opt,name=apn,proto3" json:"apn,omitempty"`
-	SelectionMode        string   `protobuf:"bytes,16,opt,name=selection_mode,json=selectionMode,proto3" json:"selection_mode,omitempty"`
-	PdnType              uint32   `protobuf:"varint,18,opt,name=pdn_type,json=pdnType,proto3" json:"pdn_type,omitempty"`
-	PdnAddressAllocation string   `protobuf:"bytes,20,opt,name=pdn_address_allocation,json=pdnAddressAllocation,proto3" json:"pdn_address_allocation,omitempty"`
-	ApnRestriction       uint32   `protobuf:"varint,30,opt,name=apn_restriction,json=apnRestriction,proto3" json:"apn_restriction,omitempty"`
-	AmbrUp               uint32   `protobuf:"varint,35,opt,name=ambr_up,json=ambrUp,proto3" json:"ambr_up,omitempty"`
-	AmbrDown             uint32   `protobuf:"varint,37,opt,name=ambr_down,json=ambrDown,proto3" json:"ambr_down,omitempty"`
-	Uli                  string   `protobuf:"bytes,40,opt,name=uli,proto3" json:"uli,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Imsi                    string                   `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	Msisdn                  string                   `protobuf:"bytes,2,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
+	Mei                     string                   `protobuf:"bytes,3,opt,name=mei,proto3" json:"mei,omitempty"`
+	ServingNetwork          *ServingNetwork          `protobuf:"bytes,5,opt,name=serving_network,json=servingNetwork,proto3" json:"serving_network,omitempty"`
+	Uli                     *UserLocationInformation `protobuf:"bytes,4,opt,name=uli,proto3" json:"uli,omitempty"`
+	RatType                 uint32                   `protobuf:"varint,6,opt,name=rat_type,json=ratType,proto3" json:"rat_type,omitempty"`
+	PdnType                 PDNType                  `protobuf:"varint,7,opt,name=pdn_type,json=pdnType,proto3,enum=magma.feg.PDNType" json:"pdn_type,omitempty"`
+	Paa                     *PdnAddressAllocation    `protobuf:"bytes,8,opt,name=paa,proto3" json:"paa,omitempty"`
+	Apn                     string                   `protobuf:"bytes,9,opt,name=apn,proto3" json:"apn,omitempty"`
+	SelectionMode           string                   `protobuf:"bytes,18,opt,name=selection_mode,json=selectionMode,proto3" json:"selection_mode,omitempty"`
+	ApnRestriction          uint32                   `protobuf:"varint,11,opt,name=apn_restriction,json=apnRestriction,proto3" json:"apn_restriction,omitempty"`
+	Ambr                    *Ambr                    `protobuf:"bytes,12,opt,name=ambr,proto3" json:"ambr,omitempty"`
+	BearerContext           *BearerContext           `protobuf:"bytes,14,opt,name=bearer_context,json=bearerContext,proto3" json:"bearer_context,omitempty"`
+	IndicationFlag          []byte                   `protobuf:"bytes,15,opt,name=indication_flag,json=indicationFlag,proto3" json:"indication_flag,omitempty"`
+	ChargingCharacteristics string                   `protobuf:"bytes,16,opt,name=charging_characteristics,json=chargingCharacteristics,proto3" json:"charging_characteristics,omitempty"`
+	TimeZone                *TimeZone                `protobuf:"bytes,17,opt,name=time_zone,json=timeZone,proto3" json:"time_zone,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}                 `json:"-"`
+	XXX_unrecognized        []byte                   `json:"-"`
+	XXX_sizecache           int32                    `json:"-"`
 }
 
 func (m *CreateSessionRequestPgw) Reset()         { *m = CreateSessionRequestPgw{} }
@@ -80,39 +102,39 @@ func (m *CreateSessionRequestPgw) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateSessionRequestPgw proto.InternalMessageInfo
 
-func (m *CreateSessionRequestPgw) GetSid() *protos.SubscriberID {
+func (m *CreateSessionRequestPgw) GetImsi() string {
 	if m != nil {
-		return m.Sid
+		return m.Imsi
+	}
+	return ""
+}
+
+func (m *CreateSessionRequestPgw) GetMsisdn() string {
+	if m != nil {
+		return m.Msisdn
+	}
+	return ""
+}
+
+func (m *CreateSessionRequestPgw) GetMei() string {
+	if m != nil {
+		return m.Mei
+	}
+	return ""
+}
+
+func (m *CreateSessionRequestPgw) GetServingNetwork() *ServingNetwork {
+	if m != nil {
+		return m.ServingNetwork
 	}
 	return nil
 }
 
-func (m *CreateSessionRequestPgw) GetMSISDN() string {
+func (m *CreateSessionRequestPgw) GetUli() *UserLocationInformation {
 	if m != nil {
-		return m.MSISDN
+		return m.Uli
 	}
-	return ""
-}
-
-func (m *CreateSessionRequestPgw) GetMEI() string {
-	if m != nil {
-		return m.MEI
-	}
-	return ""
-}
-
-func (m *CreateSessionRequestPgw) GetMCC() string {
-	if m != nil {
-		return m.MCC
-	}
-	return ""
-}
-
-func (m *CreateSessionRequestPgw) GetMNC() string {
-	if m != nil {
-		return m.MNC
-	}
-	return ""
+	return nil
 }
 
 func (m *CreateSessionRequestPgw) GetRatType() uint32 {
@@ -122,39 +144,18 @@ func (m *CreateSessionRequestPgw) GetRatType() uint32 {
 	return 0
 }
 
-func (m *CreateSessionRequestPgw) GetIndicationFlag() []byte {
+func (m *CreateSessionRequestPgw) GetPdnType() PDNType {
 	if m != nil {
-		return m.IndicationFlag
+		return m.PdnType
+	}
+	return PDNType_IPV4
+}
+
+func (m *CreateSessionRequestPgw) GetPaa() *PdnAddressAllocation {
+	if m != nil {
+		return m.Paa
 	}
 	return nil
-}
-
-func (m *CreateSessionRequestPgw) GetBearerId() uint32 {
-	if m != nil {
-		return m.BearerId
-	}
-	return 0
-}
-
-func (m *CreateSessionRequestPgw) GetUserPlaneTeid() uint32 {
-	if m != nil {
-		return m.UserPlaneTeid
-	}
-	return 0
-}
-
-func (m *CreateSessionRequestPgw) GetS5S8Ip4UserPane() string {
-	if m != nil {
-		return m.S5S8Ip4UserPane
-	}
-	return ""
-}
-
-func (m *CreateSessionRequestPgw) GetS5S8Ip6UserPane() string {
-	if m != nil {
-		return m.S5S8Ip6UserPane
-	}
-	return ""
 }
 
 func (m *CreateSessionRequestPgw) GetApn() string {
@@ -171,20 +172,6 @@ func (m *CreateSessionRequestPgw) GetSelectionMode() string {
 	return ""
 }
 
-func (m *CreateSessionRequestPgw) GetPdnType() uint32 {
-	if m != nil {
-		return m.PdnType
-	}
-	return 0
-}
-
-func (m *CreateSessionRequestPgw) GetPdnAddressAllocation() string {
-	if m != nil {
-		return m.PdnAddressAllocation
-	}
-	return ""
-}
-
 func (m *CreateSessionRequestPgw) GetApnRestriction() uint32 {
 	if m != nil {
 		return m.ApnRestriction
@@ -192,32 +179,384 @@ func (m *CreateSessionRequestPgw) GetApnRestriction() uint32 {
 	return 0
 }
 
-func (m *CreateSessionRequestPgw) GetAmbrUp() uint32 {
+func (m *CreateSessionRequestPgw) GetAmbr() *Ambr {
 	if m != nil {
-		return m.AmbrUp
+		return m.Ambr
 	}
-	return 0
+	return nil
 }
 
-func (m *CreateSessionRequestPgw) GetAmbrDown() uint32 {
+func (m *CreateSessionRequestPgw) GetBearerContext() *BearerContext {
 	if m != nil {
-		return m.AmbrDown
+		return m.BearerContext
 	}
-	return 0
+	return nil
 }
 
-func (m *CreateSessionRequestPgw) GetUli() string {
+func (m *CreateSessionRequestPgw) GetIndicationFlag() []byte {
 	if m != nil {
-		return m.Uli
+		return m.IndicationFlag
+	}
+	return nil
+}
+
+func (m *CreateSessionRequestPgw) GetChargingCharacteristics() string {
+	if m != nil {
+		return m.ChargingCharacteristics
 	}
 	return ""
 }
 
+func (m *CreateSessionRequestPgw) GetTimeZone() *TimeZone {
+	if m != nil {
+		return m.TimeZone
+	}
+	return nil
+}
+
+type UserLocationInformation struct {
+	Lac                  uint32   `protobuf:"varint,1,opt,name=lac,proto3" json:"lac,omitempty"`
+	Ci                   uint32   `protobuf:"varint,2,opt,name=ci,proto3" json:"ci,omitempty"`
+	Sac                  uint32   `protobuf:"varint,3,opt,name=sac,proto3" json:"sac,omitempty"`
+	Rac                  uint32   `protobuf:"varint,4,opt,name=rac,proto3" json:"rac,omitempty"`
+	Tac                  uint32   `protobuf:"varint,5,opt,name=tac,proto3" json:"tac,omitempty"`
+	Eci                  uint32   `protobuf:"varint,6,opt,name=eci,proto3" json:"eci,omitempty"`
+	MeNbi                uint32   `protobuf:"varint,7,opt,name=MeNbi,proto3" json:"MeNbi,omitempty"`
+	EMeNbi               uint32   `protobuf:"varint,8,opt,name=EMeNbi,proto3" json:"EMeNbi,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserLocationInformation) Reset()         { *m = UserLocationInformation{} }
+func (m *UserLocationInformation) String() string { return proto.CompactTextString(m) }
+func (*UserLocationInformation) ProtoMessage()    {}
+func (*UserLocationInformation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8a775e17ac280154, []int{1}
+}
+
+func (m *UserLocationInformation) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserLocationInformation.Unmarshal(m, b)
+}
+func (m *UserLocationInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserLocationInformation.Marshal(b, m, deterministic)
+}
+func (m *UserLocationInformation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserLocationInformation.Merge(m, src)
+}
+func (m *UserLocationInformation) XXX_Size() int {
+	return xxx_messageInfo_UserLocationInformation.Size(m)
+}
+func (m *UserLocationInformation) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserLocationInformation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserLocationInformation proto.InternalMessageInfo
+
+func (m *UserLocationInformation) GetLac() uint32 {
+	if m != nil {
+		return m.Lac
+	}
+	return 0
+}
+
+func (m *UserLocationInformation) GetCi() uint32 {
+	if m != nil {
+		return m.Ci
+	}
+	return 0
+}
+
+func (m *UserLocationInformation) GetSac() uint32 {
+	if m != nil {
+		return m.Sac
+	}
+	return 0
+}
+
+func (m *UserLocationInformation) GetRac() uint32 {
+	if m != nil {
+		return m.Rac
+	}
+	return 0
+}
+
+func (m *UserLocationInformation) GetTac() uint32 {
+	if m != nil {
+		return m.Tac
+	}
+	return 0
+}
+
+func (m *UserLocationInformation) GetEci() uint32 {
+	if m != nil {
+		return m.Eci
+	}
+	return 0
+}
+
+func (m *UserLocationInformation) GetMeNbi() uint32 {
+	if m != nil {
+		return m.MeNbi
+	}
+	return 0
+}
+
+func (m *UserLocationInformation) GetEMeNbi() uint32 {
+	if m != nil {
+		return m.EMeNbi
+	}
+	return 0
+}
+
+type ServingNetwork struct {
+	Mcc                  string   `protobuf:"bytes,1,opt,name=mcc,proto3" json:"mcc,omitempty"`
+	Mnc                  string   `protobuf:"bytes,2,opt,name=mnc,proto3" json:"mnc,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ServingNetwork) Reset()         { *m = ServingNetwork{} }
+func (m *ServingNetwork) String() string { return proto.CompactTextString(m) }
+func (*ServingNetwork) ProtoMessage()    {}
+func (*ServingNetwork) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8a775e17ac280154, []int{2}
+}
+
+func (m *ServingNetwork) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServingNetwork.Unmarshal(m, b)
+}
+func (m *ServingNetwork) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServingNetwork.Marshal(b, m, deterministic)
+}
+func (m *ServingNetwork) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServingNetwork.Merge(m, src)
+}
+func (m *ServingNetwork) XXX_Size() int {
+	return xxx_messageInfo_ServingNetwork.Size(m)
+}
+func (m *ServingNetwork) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServingNetwork.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServingNetwork proto.InternalMessageInfo
+
+func (m *ServingNetwork) GetMcc() string {
+	if m != nil {
+		return m.Mcc
+	}
+	return ""
+}
+
+func (m *ServingNetwork) GetMnc() string {
+	if m != nil {
+		return m.Mnc
+	}
+	return ""
+}
+
+type BearerContext struct {
+	Id                   uint32          `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserPlaneFteid       *Fteid          `protobuf:"bytes,2,opt,name=user_plane_fteid,json=userPlaneFteid,proto3" json:"user_plane_fteid,omitempty"`
+	Qos                  *QosInformation `protobuf:"bytes,3,opt,name=qos,proto3" json:"qos,omitempty"`
+	ChargingId           uint32          `protobuf:"varint,4,opt,name=charging_id,json=chargingId,proto3" json:"charging_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *BearerContext) Reset()         { *m = BearerContext{} }
+func (m *BearerContext) String() string { return proto.CompactTextString(m) }
+func (*BearerContext) ProtoMessage()    {}
+func (*BearerContext) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8a775e17ac280154, []int{3}
+}
+
+func (m *BearerContext) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_BearerContext.Unmarshal(m, b)
+}
+func (m *BearerContext) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_BearerContext.Marshal(b, m, deterministic)
+}
+func (m *BearerContext) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_BearerContext.Merge(m, src)
+}
+func (m *BearerContext) XXX_Size() int {
+	return xxx_messageInfo_BearerContext.Size(m)
+}
+func (m *BearerContext) XXX_DiscardUnknown() {
+	xxx_messageInfo_BearerContext.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_BearerContext proto.InternalMessageInfo
+
+func (m *BearerContext) GetId() uint32 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *BearerContext) GetUserPlaneFteid() *Fteid {
+	if m != nil {
+		return m.UserPlaneFteid
+	}
+	return nil
+}
+
+func (m *BearerContext) GetQos() *QosInformation {
+	if m != nil {
+		return m.Qos
+	}
+	return nil
+}
+
+func (m *BearerContext) GetChargingId() uint32 {
+	if m != nil {
+		return m.ChargingId
+	}
+	return 0
+}
+
+type QosInformation struct {
+	Pci                     uint32   `protobuf:"varint,1,opt,name=pci,proto3" json:"pci,omitempty"`
+	PriorityLevel           uint32   `protobuf:"varint,2,opt,name=priority_level,json=priorityLevel,proto3" json:"priority_level,omitempty"`
+	PreemptionCapability    uint32   `protobuf:"varint,4,opt,name=preemption_capability,json=preemptionCapability,proto3" json:"preemption_capability,omitempty"`
+	PreemptionVulnerability uint32   `protobuf:"varint,5,opt,name=preemption_vulnerability,json=preemptionVulnerability,proto3" json:"preemption_vulnerability,omitempty"`
+	Qci                     uint32   `protobuf:"varint,6,opt,name=qci,proto3" json:"qci,omitempty"`
+	Gbr                     *Ambr    `protobuf:"bytes,7,opt,name=gbr,proto3" json:"gbr,omitempty"`
+	Mbr                     *Ambr    `protobuf:"bytes,8,opt,name=mbr,proto3" json:"mbr,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{} `json:"-"`
+	XXX_unrecognized        []byte   `json:"-"`
+	XXX_sizecache           int32    `json:"-"`
+}
+
+func (m *QosInformation) Reset()         { *m = QosInformation{} }
+func (m *QosInformation) String() string { return proto.CompactTextString(m) }
+func (*QosInformation) ProtoMessage()    {}
+func (*QosInformation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8a775e17ac280154, []int{4}
+}
+
+func (m *QosInformation) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_QosInformation.Unmarshal(m, b)
+}
+func (m *QosInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_QosInformation.Marshal(b, m, deterministic)
+}
+func (m *QosInformation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QosInformation.Merge(m, src)
+}
+func (m *QosInformation) XXX_Size() int {
+	return xxx_messageInfo_QosInformation.Size(m)
+}
+func (m *QosInformation) XXX_DiscardUnknown() {
+	xxx_messageInfo_QosInformation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QosInformation proto.InternalMessageInfo
+
+func (m *QosInformation) GetPci() uint32 {
+	if m != nil {
+		return m.Pci
+	}
+	return 0
+}
+
+func (m *QosInformation) GetPriorityLevel() uint32 {
+	if m != nil {
+		return m.PriorityLevel
+	}
+	return 0
+}
+
+func (m *QosInformation) GetPreemptionCapability() uint32 {
+	if m != nil {
+		return m.PreemptionCapability
+	}
+	return 0
+}
+
+func (m *QosInformation) GetPreemptionVulnerability() uint32 {
+	if m != nil {
+		return m.PreemptionVulnerability
+	}
+	return 0
+}
+
+func (m *QosInformation) GetQci() uint32 {
+	if m != nil {
+		return m.Qci
+	}
+	return 0
+}
+
+func (m *QosInformation) GetGbr() *Ambr {
+	if m != nil {
+		return m.Gbr
+	}
+	return nil
+}
+
+func (m *QosInformation) GetMbr() *Ambr {
+	if m != nil {
+		return m.Mbr
+	}
+	return nil
+}
+
+type Ambr struct {
+	BrUl                 uint64   `protobuf:"varint,1,opt,name=br_ul,json=brUl,proto3" json:"br_ul,omitempty"`
+	BrDl                 uint64   `protobuf:"varint,2,opt,name=br_dl,json=brDl,proto3" json:"br_dl,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Ambr) Reset()         { *m = Ambr{} }
+func (m *Ambr) String() string { return proto.CompactTextString(m) }
+func (*Ambr) ProtoMessage()    {}
+func (*Ambr) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8a775e17ac280154, []int{5}
+}
+
+func (m *Ambr) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Ambr.Unmarshal(m, b)
+}
+func (m *Ambr) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Ambr.Marshal(b, m, deterministic)
+}
+func (m *Ambr) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Ambr.Merge(m, src)
+}
+func (m *Ambr) XXX_Size() int {
+	return xxx_messageInfo_Ambr.Size(m)
+}
+func (m *Ambr) XXX_DiscardUnknown() {
+	xxx_messageInfo_Ambr.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Ambr proto.InternalMessageInfo
+
+func (m *Ambr) GetBrUl() uint64 {
+	if m != nil {
+		return m.BrUl
+	}
+	return 0
+}
+
+func (m *Ambr) GetBrDl() uint64 {
+	if m != nil {
+		return m.BrDl
+	}
+	return 0
+}
+
 type PdnAddressAllocation struct {
-	PdnType              uint32   `protobuf:"varint,1,opt,name=pdn_type,json=pdnType,proto3" json:"pdn_type,omitempty"`
-	Ipv4Address          string   `protobuf:"bytes,2,opt,name=ipv4_address,json=ipv4Address,proto3" json:"ipv4_address,omitempty"`
-	Ipv6Prefix           string   `protobuf:"bytes,3,opt,name=ipv6_prefix,json=ipv6Prefix,proto3" json:"ipv6_prefix,omitempty"`
-	Ipv6Address          string   `protobuf:"bytes,4,opt,name=ipv6_address,json=ipv6Address,proto3" json:"ipv6_address,omitempty"`
+	Ipv4Address          string   `protobuf:"bytes,1,opt,name=ipv4_address,json=ipv4Address,proto3" json:"ipv4_address,omitempty"`
+	Ipv6Address          string   `protobuf:"bytes,2,opt,name=ipv6_address,json=ipv6Address,proto3" json:"ipv6_address,omitempty"`
+	Ipv6Prefix           uint32   `protobuf:"varint,3,opt,name=ipv6_prefix,json=ipv6Prefix,proto3" json:"ipv6_prefix,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -227,7 +566,7 @@ func (m *PdnAddressAllocation) Reset()         { *m = PdnAddressAllocation{} }
 func (m *PdnAddressAllocation) String() string { return proto.CompactTextString(m) }
 func (*PdnAddressAllocation) ProtoMessage()    {}
 func (*PdnAddressAllocation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8a775e17ac280154, []int{1}
+	return fileDescriptor_8a775e17ac280154, []int{6}
 }
 
 func (m *PdnAddressAllocation) XXX_Unmarshal(b []byte) error {
@@ -248,23 +587,9 @@ func (m *PdnAddressAllocation) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PdnAddressAllocation proto.InternalMessageInfo
 
-func (m *PdnAddressAllocation) GetPdnType() uint32 {
-	if m != nil {
-		return m.PdnType
-	}
-	return 0
-}
-
 func (m *PdnAddressAllocation) GetIpv4Address() string {
 	if m != nil {
 		return m.Ipv4Address
-	}
-	return ""
-}
-
-func (m *PdnAddressAllocation) GetIpv6Prefix() string {
-	if m != nil {
-		return m.Ipv6Prefix
 	}
 	return ""
 }
@@ -276,21 +601,129 @@ func (m *PdnAddressAllocation) GetIpv6Address() string {
 	return ""
 }
 
+func (m *PdnAddressAllocation) GetIpv6Prefix() uint32 {
+	if m != nil {
+		return m.Ipv6Prefix
+	}
+	return 0
+}
+
+type TimeZone struct {
+	TimeZone             uint32   `protobuf:"varint,1,opt,name=time_zone,json=timeZone,proto3" json:"time_zone,omitempty"`
+	DaylightSavingTime   uint32   `protobuf:"varint,2,opt,name=daylight_saving_time,json=daylightSavingTime,proto3" json:"daylight_saving_time,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TimeZone) Reset()         { *m = TimeZone{} }
+func (m *TimeZone) String() string { return proto.CompactTextString(m) }
+func (*TimeZone) ProtoMessage()    {}
+func (*TimeZone) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8a775e17ac280154, []int{7}
+}
+
+func (m *TimeZone) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TimeZone.Unmarshal(m, b)
+}
+func (m *TimeZone) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TimeZone.Marshal(b, m, deterministic)
+}
+func (m *TimeZone) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TimeZone.Merge(m, src)
+}
+func (m *TimeZone) XXX_Size() int {
+	return xxx_messageInfo_TimeZone.Size(m)
+}
+func (m *TimeZone) XXX_DiscardUnknown() {
+	xxx_messageInfo_TimeZone.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TimeZone proto.InternalMessageInfo
+
+func (m *TimeZone) GetTimeZone() uint32 {
+	if m != nil {
+		return m.TimeZone
+	}
+	return 0
+}
+
+func (m *TimeZone) GetDaylightSavingTime() uint32 {
+	if m != nil {
+		return m.DaylightSavingTime
+	}
+	return 0
+}
+
+type Fteid struct {
+	Ipv4Address          string   `protobuf:"bytes,1,opt,name=ipv4_address,json=ipv4Address,proto3" json:"ipv4_address,omitempty"`
+	Ipv6Address          string   `protobuf:"bytes,2,opt,name=ipv6_address,json=ipv6Address,proto3" json:"ipv6_address,omitempty"`
+	Teid                 uint32   `protobuf:"varint,3,opt,name=teid,proto3" json:"teid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Fteid) Reset()         { *m = Fteid{} }
+func (m *Fteid) String() string { return proto.CompactTextString(m) }
+func (*Fteid) ProtoMessage()    {}
+func (*Fteid) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8a775e17ac280154, []int{8}
+}
+
+func (m *Fteid) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Fteid.Unmarshal(m, b)
+}
+func (m *Fteid) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Fteid.Marshal(b, m, deterministic)
+}
+func (m *Fteid) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Fteid.Merge(m, src)
+}
+func (m *Fteid) XXX_Size() int {
+	return xxx_messageInfo_Fteid.Size(m)
+}
+func (m *Fteid) XXX_DiscardUnknown() {
+	xxx_messageInfo_Fteid.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Fteid proto.InternalMessageInfo
+
+func (m *Fteid) GetIpv4Address() string {
+	if m != nil {
+		return m.Ipv4Address
+	}
+	return ""
+}
+
+func (m *Fteid) GetIpv6Address() string {
+	if m != nil {
+		return m.Ipv6Address
+	}
+	return ""
+}
+
+func (m *Fteid) GetTeid() uint32 {
+	if m != nil {
+		return m.Teid
+	}
+	return 0
+}
+
 type CreateSessionResponsePgw struct {
-	Fteid                *oai.Fteid            `protobuf:"bytes,2,opt,name=Fteid,proto3" json:"Fteid,omitempty"`
-	PdnAddressAllocation *PdnAddressAllocation `protobuf:"bytes,3,opt,name=pdn_address_allocation,json=pdnAddressAllocation,proto3" json:"pdn_address_allocation,omitempty"`
-	ApnRestriction       uint32                `protobuf:"varint,4,opt,name=apn_restriction,json=apnRestriction,proto3" json:"apn_restriction,omitempty"`
-	BearerContext        *oai.BearerContext    `protobuf:"bytes,8,opt,name=bearer_context,json=bearerContext,proto3" json:"bearer_context,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_unrecognized     []byte                `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	SubscriberIp         string         `protobuf:"bytes,3,opt,name=subscriber_ip,json=subscriberIp,proto3" json:"subscriber_ip,omitempty"`
+	ApnRestriction       uint32         `protobuf:"varint,4,opt,name=apn_restriction,json=apnRestriction,proto3" json:"apn_restriction,omitempty"`
+	BearerContext        *BearerContext `protobuf:"bytes,5,opt,name=bearer_context,json=bearerContext,proto3" json:"bearer_context,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
 }
 
 func (m *CreateSessionResponsePgw) Reset()         { *m = CreateSessionResponsePgw{} }
 func (m *CreateSessionResponsePgw) String() string { return proto.CompactTextString(m) }
 func (*CreateSessionResponsePgw) ProtoMessage()    {}
 func (*CreateSessionResponsePgw) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8a775e17ac280154, []int{2}
+	return fileDescriptor_8a775e17ac280154, []int{9}
 }
 
 func (m *CreateSessionResponsePgw) XXX_Unmarshal(b []byte) error {
@@ -311,18 +744,11 @@ func (m *CreateSessionResponsePgw) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateSessionResponsePgw proto.InternalMessageInfo
 
-func (m *CreateSessionResponsePgw) GetFteid() *oai.Fteid {
+func (m *CreateSessionResponsePgw) GetSubscriberIp() string {
 	if m != nil {
-		return m.Fteid
+		return m.SubscriberIp
 	}
-	return nil
-}
-
-func (m *CreateSessionResponsePgw) GetPdnAddressAllocation() *PdnAddressAllocation {
-	if m != nil {
-		return m.PdnAddressAllocation
-	}
-	return nil
+	return ""
 }
 
 func (m *CreateSessionResponsePgw) GetApnRestriction() uint32 {
@@ -332,7 +758,7 @@ func (m *CreateSessionResponsePgw) GetApnRestriction() uint32 {
 	return 0
 }
 
-func (m *CreateSessionResponsePgw) GetBearerContext() *oai.BearerContext {
+func (m *CreateSessionResponsePgw) GetBearerContext() *BearerContext {
 	if m != nil {
 		return m.BearerContext
 	}
@@ -340,6 +766,8 @@ func (m *CreateSessionResponsePgw) GetBearerContext() *oai.BearerContext {
 }
 
 type ModifyBearerRequestPgw struct {
+	Imsi                 string   `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	EnbFteid             *Fteid   `protobuf:"bytes,2,opt,name=enb_fteid,json=enbFteid,proto3" json:"enb_fteid,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -349,7 +777,7 @@ func (m *ModifyBearerRequestPgw) Reset()         { *m = ModifyBearerRequestPgw{}
 func (m *ModifyBearerRequestPgw) String() string { return proto.CompactTextString(m) }
 func (*ModifyBearerRequestPgw) ProtoMessage()    {}
 func (*ModifyBearerRequestPgw) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8a775e17ac280154, []int{3}
+	return fileDescriptor_8a775e17ac280154, []int{10}
 }
 
 func (m *ModifyBearerRequestPgw) XXX_Unmarshal(b []byte) error {
@@ -370,6 +798,20 @@ func (m *ModifyBearerRequestPgw) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ModifyBearerRequestPgw proto.InternalMessageInfo
 
+func (m *ModifyBearerRequestPgw) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
+func (m *ModifyBearerRequestPgw) GetEnbFteid() *Fteid {
+	if m != nil {
+		return m.EnbFteid
+	}
+	return nil
+}
+
 type ModifyBearerResponsePgw struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -380,7 +822,7 @@ func (m *ModifyBearerResponsePgw) Reset()         { *m = ModifyBearerResponsePgw
 func (m *ModifyBearerResponsePgw) String() string { return proto.CompactTextString(m) }
 func (*ModifyBearerResponsePgw) ProtoMessage()    {}
 func (*ModifyBearerResponsePgw) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8a775e17ac280154, []int{4}
+	return fileDescriptor_8a775e17ac280154, []int{11}
 }
 
 func (m *ModifyBearerResponsePgw) XXX_Unmarshal(b []byte) error {
@@ -402,6 +844,7 @@ func (m *ModifyBearerResponsePgw) XXX_DiscardUnknown() {
 var xxx_messageInfo_ModifyBearerResponsePgw proto.InternalMessageInfo
 
 type DeleteSessionRequestPgw struct {
+	Imsi                 string   `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -411,7 +854,7 @@ func (m *DeleteSessionRequestPgw) Reset()         { *m = DeleteSessionRequestPgw
 func (m *DeleteSessionRequestPgw) String() string { return proto.CompactTextString(m) }
 func (*DeleteSessionRequestPgw) ProtoMessage()    {}
 func (*DeleteSessionRequestPgw) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8a775e17ac280154, []int{5}
+	return fileDescriptor_8a775e17ac280154, []int{12}
 }
 
 func (m *DeleteSessionRequestPgw) XXX_Unmarshal(b []byte) error {
@@ -432,6 +875,13 @@ func (m *DeleteSessionRequestPgw) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteSessionRequestPgw proto.InternalMessageInfo
 
+func (m *DeleteSessionRequestPgw) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
 type DeleteSessionResponsePgw struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -442,7 +892,7 @@ func (m *DeleteSessionResponsePgw) Reset()         { *m = DeleteSessionResponseP
 func (m *DeleteSessionResponsePgw) String() string { return proto.CompactTextString(m) }
 func (*DeleteSessionResponsePgw) ProtoMessage()    {}
 func (*DeleteSessionResponsePgw) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8a775e17ac280154, []int{6}
+	return fileDescriptor_8a775e17ac280154, []int{13}
 }
 
 func (m *DeleteSessionResponsePgw) XXX_Unmarshal(b []byte) error {
@@ -463,6 +913,45 @@ func (m *DeleteSessionResponsePgw) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteSessionResponsePgw proto.InternalMessageInfo
 
+type EchoRequest struct {
+	Imsi                 string   `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EchoRequest) Reset()         { *m = EchoRequest{} }
+func (m *EchoRequest) String() string { return proto.CompactTextString(m) }
+func (*EchoRequest) ProtoMessage()    {}
+func (*EchoRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8a775e17ac280154, []int{14}
+}
+
+func (m *EchoRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EchoRequest.Unmarshal(m, b)
+}
+func (m *EchoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EchoRequest.Marshal(b, m, deterministic)
+}
+func (m *EchoRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EchoRequest.Merge(m, src)
+}
+func (m *EchoRequest) XXX_Size() int {
+	return xxx_messageInfo_EchoRequest.Size(m)
+}
+func (m *EchoRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_EchoRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EchoRequest proto.InternalMessageInfo
+
+func (m *EchoRequest) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
 type EchoResponse struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -473,7 +962,7 @@ func (m *EchoResponse) Reset()         { *m = EchoResponse{} }
 func (m *EchoResponse) String() string { return proto.CompactTextString(m) }
 func (*EchoResponse) ProtoMessage()    {}
 func (*EchoResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8a775e17ac280154, []int{7}
+	return fileDescriptor_8a775e17ac280154, []int{15}
 }
 
 func (m *EchoResponse) XXX_Unmarshal(b []byte) error {
@@ -495,70 +984,103 @@ func (m *EchoResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_EchoResponse proto.InternalMessageInfo
 
 func init() {
+	proto.RegisterEnum("magma.feg.PDNType", PDNType_name, PDNType_value)
 	proto.RegisterType((*CreateSessionRequestPgw)(nil), "magma.feg.CreateSessionRequestPgw")
+	proto.RegisterType((*UserLocationInformation)(nil), "magma.feg.UserLocationInformation")
+	proto.RegisterType((*ServingNetwork)(nil), "magma.feg.ServingNetwork")
+	proto.RegisterType((*BearerContext)(nil), "magma.feg.BearerContext")
+	proto.RegisterType((*QosInformation)(nil), "magma.feg.QosInformation")
+	proto.RegisterType((*Ambr)(nil), "magma.feg.Ambr")
 	proto.RegisterType((*PdnAddressAllocation)(nil), "magma.feg.PdnAddressAllocation")
+	proto.RegisterType((*TimeZone)(nil), "magma.feg.TimeZone")
+	proto.RegisterType((*Fteid)(nil), "magma.feg.Fteid")
 	proto.RegisterType((*CreateSessionResponsePgw)(nil), "magma.feg.CreateSessionResponsePgw")
 	proto.RegisterType((*ModifyBearerRequestPgw)(nil), "magma.feg.ModifyBearerRequestPgw")
 	proto.RegisterType((*ModifyBearerResponsePgw)(nil), "magma.feg.ModifyBearerResponsePgw")
 	proto.RegisterType((*DeleteSessionRequestPgw)(nil), "magma.feg.DeleteSessionRequestPgw")
 	proto.RegisterType((*DeleteSessionResponsePgw)(nil), "magma.feg.DeleteSessionResponsePgw")
+	proto.RegisterType((*EchoRequest)(nil), "magma.feg.EchoRequest")
 	proto.RegisterType((*EchoResponse)(nil), "magma.feg.EchoResponse")
 }
 
 func init() { proto.RegisterFile("feg/protos/s8_proxy.proto", fileDescriptor_8a775e17ac280154) }
 
 var fileDescriptor_8a775e17ac280154 = []byte{
-	// 797 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x55, 0xdd, 0x6e, 0x22, 0x37,
-	0x18, 0x0d, 0x21, 0x9b, 0x1f, 0x27, 0x90, 0xac, 0x15, 0x05, 0xc3, 0xb6, 0xdd, 0xec, 0x44, 0xdb,
-	0xd2, 0xbd, 0x00, 0x29, 0x9b, 0x22, 0x6e, 0x77, 0x27, 0xbb, 0x52, 0x2e, 0x12, 0x21, 0xd8, 0xb4,
-	0x52, 0x6e, 0x46, 0x66, 0xfc, 0x31, 0xb5, 0x34, 0x63, 0xbb, 0xb6, 0x69, 0x92, 0x67, 0xe8, 0x0b,
-	0xf4, 0xc1, 0xfa, 0x1c, 0x7d, 0x86, 0xca, 0x9e, 0xc9, 0x30, 0x20, 0x90, 0x7a, 0x05, 0x3e, 0xe7,
-	0xf8, 0xcc, 0xf7, 0x1d, 0xff, 0xa1, 0xf6, 0x0c, 0x92, 0xbe, 0xd2, 0xd2, 0x4a, 0xd3, 0x37, 0xc3,
-	0x48, 0x69, 0xf9, 0xf4, 0xdc, 0xf3, 0x63, 0x7c, 0x90, 0xd1, 0x24, 0xa3, 0xbd, 0x19, 0x24, 0x9d,
-	0xb6, 0xd4, 0xf1, 0x50, 0xbf, 0xe8, 0x62, 0x99, 0x65, 0x52, 0xe4, 0xaa, 0xce, 0xf7, 0xa9, 0x85,
-	0xd2, 0x60, 0x3e, 0x35, 0xb1, 0xe6, 0x53, 0xd0, 0x6c, 0x5a, 0xd0, 0x41, 0x85, 0x96, 0x94, 0xf7,
-	0xb3, 0x0c, 0x22, 0x41, 0x4d, 0x64, 0x2c, 0xb5, 0x50, 0x68, 0x2e, 0x56, 0x34, 0xc6, 0xb2, 0xe8,
-	0x63, 0xa2, 0x54, 0x64, 0x9f, 0x15, 0x98, 0x5c, 0x14, 0xfc, 0xbb, 0x83, 0x5a, 0xa1, 0x06, 0x6a,
-	0x61, 0x02, 0xc6, 0x70, 0x29, 0xc6, 0xf0, 0xc7, 0x1c, 0x8c, 0x1d, 0x25, 0x8f, 0xf8, 0x67, 0x54,
-	0x37, 0x9c, 0x91, 0xda, 0x79, 0xad, 0x7b, 0x78, 0xd9, 0xea, 0xe5, 0x75, 0xa7, 0x16, 0x7a, 0x93,
-	0xb2, 0xa0, 0x9b, 0xeb, 0xb1, 0xd3, 0xe0, 0x33, 0xb4, 0x7b, 0x3b, 0xb9, 0x99, 0x5c, 0xdf, 0x91,
-	0xed, 0xf3, 0x5a, 0xf7, 0x60, 0x5c, 0x8c, 0xf0, 0x09, 0xaa, 0xdf, 0x7e, 0xb9, 0x21, 0x75, 0x0f,
-	0xba, 0xbf, 0x1e, 0x09, 0x43, 0xb2, 0x53, 0x20, 0x61, 0xe8, 0x91, 0xbb, 0x90, 0xbc, 0x2a, 0x90,
-	0xbb, 0x10, 0xb7, 0xd1, 0xbe, 0xa6, 0xd6, 0xd7, 0x49, 0x76, 0xcf, 0x6b, 0xdd, 0xc6, 0x78, 0x4f,
-	0x53, 0xfb, 0xed, 0x59, 0x01, 0xfe, 0x09, 0x1d, 0x73, 0xc1, 0x78, 0x4c, 0x2d, 0x97, 0x22, 0x9a,
-	0xa5, 0x34, 0x21, 0x7b, 0xe7, 0xb5, 0xee, 0xd1, 0xb8, 0xb9, 0x80, 0xbf, 0xa6, 0x34, 0xc1, 0x6f,
-	0xd0, 0xc1, 0x14, 0xa8, 0x06, 0x1d, 0x71, 0x46, 0xf6, 0xbd, 0xc9, 0x7e, 0x0e, 0xdc, 0x30, 0xfc,
-	0x23, 0x3a, 0x9e, 0x1b, 0xd0, 0x91, 0x4a, 0xa9, 0x80, 0xc8, 0x02, 0x67, 0xe4, 0xc0, 0x4b, 0x1a,
-	0x0e, 0x1e, 0x39, 0xf4, 0x1b, 0x70, 0x86, 0x3f, 0xa0, 0xd7, 0xe6, 0x17, 0x33, 0xe4, 0xea, 0x2a,
-	0xca, 0xf5, 0x54, 0x00, 0x41, 0xbe, 0xd0, 0xe3, 0x82, 0xb8, 0x77, 0x13, 0xa8, 0x80, 0x85, 0x76,
-	0x50, 0xd1, 0x1e, 0x56, 0xb5, 0x83, 0x52, 0x7b, 0x82, 0xea, 0x54, 0x09, 0xd2, 0xcc, 0x5b, 0xa6,
-	0x4a, 0xe0, 0xf7, 0xa8, 0x69, 0x20, 0x85, 0xd8, 0xb7, 0x95, 0x49, 0x06, 0xe4, 0xc4, 0x93, 0x8d,
-	0x12, 0xbd, 0x95, 0x0c, 0x5c, 0x32, 0x8a, 0x89, 0x3c, 0x19, 0x9c, 0x27, 0xa3, 0x98, 0xf0, 0xc9,
-	0x5c, 0xa1, 0x33, 0x47, 0x51, 0xc6, 0x34, 0x18, 0x13, 0xd1, 0x34, 0x95, 0x79, 0x1c, 0xe4, 0xd4,
-	0x3b, 0x9d, 0x2a, 0x26, 0x3e, 0xe5, 0xe4, 0xa7, 0x92, 0x73, 0x79, 0x52, 0x25, 0x22, 0x0d, 0xc6,
-	0x6a, 0xee, 0xbf, 0x43, 0x7e, 0xf0, 0xbe, 0x4d, 0xaa, 0xc4, 0x78, 0x81, 0xe2, 0x16, 0xda, 0xa3,
-	0xd9, 0x54, 0x47, 0x73, 0x45, 0x2e, 0xbc, 0x60, 0xd7, 0x0d, 0xef, 0x95, 0x0b, 0xda, 0x13, 0x4c,
-	0x3e, 0x0a, 0xf2, 0x3e, 0x0f, 0xda, 0x01, 0xd7, 0xf2, 0x51, 0xb8, 0x46, 0xe7, 0x29, 0x27, 0xdd,
-	0xbc, 0xd1, 0x79, 0xca, 0x83, 0xbf, 0x6b, 0xe8, 0x74, 0xb4, 0xae, 0x92, 0x6a, 0x6b, 0xb5, 0xe5,
-	0xd6, 0xde, 0xa1, 0x23, 0xae, 0xfe, 0xbc, 0x7a, 0xe9, 0xad, 0xd8, 0x63, 0x87, 0x0e, 0x2b, 0x7c,
-	0xf0, 0x5b, 0xe4, 0x86, 0x83, 0x48, 0x69, 0x98, 0xf1, 0xa7, 0x62, 0xc3, 0x21, 0x07, 0x8d, 0x3c,
-	0x52, 0x78, 0x0c, 0x4a, 0x8f, 0x9d, 0xd2, 0x63, 0x50, 0x78, 0x04, 0x7f, 0x6d, 0x23, 0xb2, 0x72,
-	0x16, 0x8c, 0x92, 0xc2, 0x80, 0x3b, 0x0c, 0x1f, 0xd0, 0xab, 0xaf, 0x7e, 0xa3, 0x6c, 0xfb, 0xe3,
-	0x70, 0x5a, 0x39, 0x0e, 0x92, 0xf2, 0x9e, 0xe7, 0xc6, 0xb9, 0x04, 0xdf, 0x6f, 0x5c, 0x8a, 0xba,
-	0x9f, 0xfc, 0xb6, 0x57, 0xde, 0x01, 0xbd, 0x75, 0x59, 0xfc, 0xff, 0xb5, 0xda, 0x59, 0xbb, 0x56,
-	0x21, 0x6a, 0x16, 0x7b, 0x3f, 0x96, 0xc2, 0xc2, 0x93, 0xf5, 0x07, 0xe0, 0xf0, 0xf2, 0xbb, 0x95,
-	0xa2, 0x3f, 0x7b, 0x51, 0x98, 0x6b, 0xc6, 0x8d, 0x69, 0x75, 0x18, 0x10, 0x74, 0x76, 0x2b, 0x19,
-	0x9f, 0x3d, 0xe7, 0xaa, 0xc5, 0xbd, 0x10, 0xb4, 0x51, 0x6b, 0x99, 0x29, 0x53, 0x72, 0xd4, 0x35,
-	0xa4, 0xb0, 0xe6, 0x36, 0x09, 0x3a, 0x88, 0xac, 0x50, 0x8b, 0x69, 0x4d, 0x74, 0xf4, 0x25, 0xfe,
-	0x5d, 0xbe, 0x40, 0x97, 0xff, 0x6c, 0xa3, 0xbd, 0xc9, 0x70, 0xe4, 0x6e, 0x4d, 0xfc, 0x80, 0x1a,
-	0x4b, 0x8b, 0x82, 0x83, 0x4a, 0x7a, 0x1b, 0xae, 0xae, 0xce, 0xc5, 0x66, 0xcd, 0xe2, 0xab, 0x5b,
-	0xf8, 0x37, 0x74, 0x54, 0xed, 0x04, 0xbf, 0xab, 0x4c, 0x5b, 0xdf, 0x7c, 0x27, 0xd8, 0x28, 0xa9,
-	0x1a, 0x3f, 0xa0, 0xc6, 0x52, 0xb3, 0x4b, 0x45, 0x6f, 0x48, 0x68, 0xa9, 0xe8, 0x8d, 0x51, 0x6d,
-	0xe1, 0x21, 0xda, 0x9f, 0x80, 0x60, 0x2e, 0x30, 0xfc, 0xba, 0x98, 0xe2, 0x1f, 0x92, 0xde, 0xaf,
-	0x92, 0xb3, 0x4e, 0xab, 0xe2, 0x52, 0x0d, 0x35, 0xd8, 0xfa, 0xfc, 0xe6, 0xa1, 0xed, 0xb9, 0xbe,
-	0x7b, 0x9d, 0xe2, 0x54, 0xce, 0x59, 0x3f, 0x91, 0xc5, 0x13, 0x31, 0xdd, 0xf5, 0xbf, 0x1f, 0xff,
-	0x0b, 0x00, 0x00, 0xff, 0xff, 0x0d, 0x6f, 0xef, 0x18, 0xbb, 0x06, 0x00, 0x00,
+	// 1178 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0xef, 0x4e, 0x1b, 0x47,
+	0x10, 0xc7, 0xc6, 0x80, 0x19, 0x38, 0xe3, 0x6e, 0x68, 0x7c, 0x90, 0x0f, 0x81, 0x43, 0x55, 0x69,
+	0xab, 0x40, 0x4a, 0x10, 0x4a, 0x2b, 0x55, 0x55, 0x42, 0x12, 0x09, 0x29, 0x89, 0xe8, 0x91, 0xa4,
+	0x2a, 0xfd, 0x70, 0xda, 0xdb, 0x1b, 0x3b, 0xab, 0xde, 0xed, 0x2e, 0xbb, 0x67, 0x12, 0x57, 0xea,
+	0x43, 0xf4, 0x31, 0x2a, 0xf5, 0x4b, 0x1f, 0xa7, 0x6f, 0x53, 0xed, 0xde, 0xd9, 0xbe, 0x23, 0xb6,
+	0xd2, 0x4a, 0xfd, 0xe4, 0x99, 0xdf, 0xfc, 0x66, 0x3d, 0x7f, 0x77, 0x0f, 0xb6, 0xfa, 0x38, 0x38,
+	0x54, 0x5a, 0xe6, 0xd2, 0x1c, 0x9a, 0x87, 0x91, 0xd2, 0xf2, 0xfd, 0xe8, 0xc0, 0xe9, 0x64, 0x35,
+	0xa3, 0x83, 0x8c, 0x1e, 0xf4, 0x71, 0xb0, 0xbd, 0x25, 0x35, 0x7b, 0xa8, 0xc7, 0x3c, 0x26, 0xb3,
+	0x4c, 0x8a, 0x82, 0xb5, 0x1d, 0xa4, 0x39, 0x8e, 0x0d, 0x92, 0xf2, 0xc3, 0x2c, 0xc3, 0x48, 0x50,
+	0x13, 0x99, 0x9c, 0xe6, 0x58, 0x72, 0xf6, 0x6e, 0x70, 0x4c, 0x9e, 0x44, 0x0f, 0x06, 0x4a, 0x45,
+	0xf9, 0x48, 0xa1, 0x29, 0x48, 0xc1, 0x9f, 0x4b, 0xd0, 0x3b, 0xd5, 0x48, 0x73, 0xbc, 0x40, 0x63,
+	0xb8, 0x14, 0x21, 0x5e, 0x0d, 0xd1, 0xe4, 0xe7, 0x83, 0x77, 0x84, 0x40, 0x8b, 0x67, 0x86, 0xfb,
+	0x8d, 0x9d, 0xc6, 0xfe, 0x6a, 0xe8, 0x64, 0x72, 0x1b, 0x96, 0x33, 0xc3, 0x4d, 0x22, 0xfc, 0xa6,
+	0x43, 0x4b, 0x8d, 0x74, 0x61, 0x31, 0x43, 0xee, 0x2f, 0x3a, 0xd0, 0x8a, 0xe4, 0x31, 0x6c, 0x18,
+	0xd4, 0xd7, 0x5c, 0x0c, 0x22, 0x81, 0xf9, 0x3b, 0xa9, 0x7f, 0xf1, 0x97, 0x76, 0x1a, 0xfb, 0x6b,
+	0x47, 0x5b, 0x07, 0x93, 0x14, 0x0f, 0x2e, 0x0a, 0xc6, 0xcb, 0x82, 0x10, 0x76, 0x4c, 0x4d, 0x27,
+	0xc7, 0xb0, 0x38, 0x4c, 0xb9, 0xdf, 0x72, 0x7e, 0x41, 0xc5, 0xef, 0xb5, 0x41, 0xfd, 0x5c, 0x32,
+	0x9a, 0x73, 0x29, 0xce, 0x44, 0x5f, 0xea, 0xcc, 0x89, 0xa1, 0xa5, 0x93, 0x2d, 0x68, 0x6b, 0x9a,
+	0xbb, 0x34, 0xfd, 0xe5, 0x9d, 0xc6, 0xbe, 0x17, 0xae, 0x68, 0x9a, 0xbf, 0x1a, 0x29, 0x24, 0xf7,
+	0xa0, 0xad, 0x12, 0x51, 0x98, 0x56, 0x76, 0x1a, 0xfb, 0x9d, 0x23, 0x52, 0x39, 0xf5, 0xfc, 0xc9,
+	0x4b, 0xcb, 0x0a, 0x57, 0x54, 0x22, 0x1c, 0xfd, 0x6b, 0x58, 0x54, 0x94, 0xfa, 0x6d, 0xf7, 0xff,
+	0x77, 0xab, 0xcc, 0x44, 0x3c, 0x4a, 0x12, 0x8d, 0xc6, 0x3c, 0x4a, 0xd3, 0x32, 0x8e, 0xd0, 0x72,
+	0x6d, 0x21, 0xa8, 0x12, 0xfe, 0x6a, 0x51, 0x08, 0xaa, 0x04, 0xf9, 0x0c, 0x3a, 0x06, 0x53, 0x64,
+	0x96, 0x13, 0x65, 0x32, 0x41, 0x9f, 0x38, 0xa3, 0x37, 0x41, 0x5f, 0xc8, 0x04, 0xc9, 0xe7, 0xb0,
+	0x41, 0x95, 0x88, 0x34, 0x9a, 0x5c, 0x73, 0x07, 0xfb, 0x6b, 0x2e, 0xf8, 0x0e, 0x55, 0x22, 0x9c,
+	0xa2, 0x64, 0x0f, 0x5a, 0x34, 0x8b, 0xb5, 0xbf, 0xee, 0xa2, 0xda, 0xa8, 0x44, 0xf5, 0x28, 0x8b,
+	0x75, 0xe8, 0x8c, 0xe4, 0x7b, 0xe8, 0xc4, 0x48, 0x35, 0xea, 0x88, 0x49, 0x91, 0xe3, 0xfb, 0xdc,
+	0xef, 0x38, 0xba, 0x5f, 0xa1, 0x3f, 0x76, 0x84, 0xd3, 0xc2, 0x1e, 0x7a, 0x71, 0x55, 0xb5, 0xe1,
+	0x70, 0x91, 0xf0, 0x22, 0xb5, 0xa8, 0x9f, 0xd2, 0x81, 0xbf, 0xb1, 0xd3, 0xd8, 0x5f, 0x0f, 0x3b,
+	0x53, 0xf8, 0x59, 0x4a, 0x07, 0xe4, 0x1b, 0xf0, 0xd9, 0x5b, 0xaa, 0x07, 0xb6, 0xd1, 0x56, 0xa0,
+	0x2c, 0x47, 0xcd, 0x4d, 0xce, 0x99, 0xf1, 0xbb, 0x2e, 0xd1, 0xde, 0xd8, 0x7e, 0x5a, 0x37, 0x93,
+	0xfb, 0xb0, 0x9a, 0xf3, 0x0c, 0xa3, 0x5f, 0xa5, 0x40, 0xff, 0x13, 0x17, 0xdf, 0xad, 0x4a, 0x7c,
+	0xaf, 0x78, 0x86, 0x97, 0x52, 0x60, 0xd8, 0xce, 0x4b, 0x29, 0xf8, 0xab, 0x01, 0xbd, 0x39, 0xbd,
+	0xb7, 0x95, 0x4f, 0x29, 0x73, 0xd3, 0xea, 0x85, 0x56, 0x24, 0x1d, 0x68, 0x32, 0xee, 0x06, 0xd5,
+	0x0b, 0x9b, 0x8c, 0x5b, 0x86, 0xa1, 0xcc, 0x0d, 0xa9, 0x17, 0x5a, 0xd1, 0x22, 0x9a, 0x32, 0x37,
+	0x60, 0x5e, 0x68, 0x45, 0x8b, 0xe4, 0x94, 0xb9, 0x51, 0xf5, 0x42, 0x2b, 0x5a, 0x04, 0x19, 0x2f,
+	0x27, 0xc9, 0x8a, 0x64, 0x13, 0x96, 0x5e, 0xe0, 0xcb, 0x98, 0xbb, 0x11, 0xf2, 0xc2, 0x42, 0xb1,
+	0xab, 0xf1, 0xb4, 0x80, 0xdb, 0x0e, 0x2e, 0xb5, 0xe0, 0x18, 0x3a, 0xf5, 0x31, 0x77, 0xcb, 0xc2,
+	0x58, 0xb9, 0x57, 0x56, 0x74, 0x88, 0x60, 0xe5, 0x4e, 0x59, 0x31, 0xf8, 0xa3, 0x01, 0x5e, 0xad,
+	0x41, 0x36, 0x1b, 0x9e, 0x94, 0xe9, 0x35, 0x79, 0x42, 0xbe, 0x85, 0xee, 0xd0, 0xa0, 0x8e, 0x54,
+	0x4a, 0x05, 0x46, 0xfd, 0x1c, 0x79, 0xe2, 0x0e, 0x58, 0x3b, 0xea, 0x56, 0x8a, 0xf8, 0xcc, 0xe2,
+	0x61, 0xc7, 0x32, 0xcf, 0x2d, 0xd1, 0xe9, 0xe4, 0x2b, 0x58, 0xbc, 0x92, 0xc6, 0x55, 0xa2, 0xbe,
+	0x90, 0x3f, 0x48, 0x53, 0xdb, 0xa7, 0x2b, 0x69, 0xc8, 0x5d, 0x58, 0x9b, 0x74, 0x98, 0x27, 0x65,
+	0xb1, 0x60, 0x0c, 0x9d, 0x25, 0xc1, 0xef, 0x4d, 0xe8, 0xd4, 0x1d, 0x6d, 0x42, 0x8a, 0xf1, 0x71,
+	0x33, 0x14, 0xe3, 0x76, 0x0d, 0x94, 0xe6, 0x52, 0xf3, 0x7c, 0x14, 0xa5, 0x78, 0x8d, 0x69, 0xd9,
+	0x18, 0x6f, 0x8c, 0x3e, 0xb7, 0x20, 0x79, 0x00, 0x9f, 0x2a, 0x8d, 0x98, 0x29, 0x37, 0x77, 0x8c,
+	0x2a, 0x1a, 0xf3, 0x94, 0xe7, 0xa3, 0xf2, 0x6f, 0x37, 0xa7, 0xc6, 0xd3, 0x89, 0xcd, 0xce, 0x60,
+	0xc5, 0xe9, 0x7a, 0x98, 0x0a, 0xd4, 0x63, 0xbf, 0xa2, 0x93, 0xbd, 0xa9, 0xfd, 0x4d, 0xd5, 0x6c,
+	0x03, 0xbd, 0x9a, 0x76, 0xf7, 0x8a, 0x71, 0xb2, 0x0b, 0x8b, 0x83, 0x58, 0xbb, 0xde, 0xce, 0x58,
+	0x2f, 0x6b, 0xb3, 0x14, 0xbb, 0x81, 0xed, 0x39, 0x94, 0x2c, 0xd6, 0xc1, 0x7d, 0x68, 0x59, 0x85,
+	0xdc, 0x82, 0xa5, 0x58, 0x47, 0xc3, 0xd4, 0x95, 0xa2, 0x15, 0xb6, 0x62, 0xfd, 0x3a, 0x2d, 0xc1,
+	0xa4, 0x28, 0x81, 0x03, 0x9f, 0xa4, 0xc1, 0x6f, 0xb0, 0x39, 0xeb, 0x5a, 0x21, 0xbb, 0xb0, 0xce,
+	0xd5, 0xf5, 0x71, 0x44, 0x0b, 0x4b, 0x39, 0x36, 0x6b, 0x16, 0x2b, 0xc9, 0x25, 0xe5, 0x64, 0x42,
+	0x69, 0x4e, 0x28, 0x27, 0x63, 0xca, 0x5d, 0x70, 0x6a, 0xa4, 0x34, 0xf6, 0xf9, 0xfb, 0x72, 0x07,
+	0xc0, 0x42, 0xe7, 0x0e, 0x09, 0x7e, 0x82, 0xf6, 0x78, 0xe1, 0xc8, 0x9d, 0xea, 0x62, 0x16, 0x3d,
+	0x9c, 0xec, 0x20, 0xb9, 0x0f, 0x9b, 0x09, 0x1d, 0xa5, 0x7c, 0xf0, 0x36, 0x8f, 0x0c, 0x75, 0x17,
+	0xbc, 0xb5, 0x95, 0xed, 0x24, 0x63, 0xdb, 0x85, 0x33, 0xd9, 0x23, 0x03, 0x0a, 0x4b, 0xc5, 0xd8,
+	0xfd, 0x3f, 0xa9, 0x10, 0x68, 0xb9, 0x61, 0x2f, 0x72, 0x70, 0xb2, 0x5d, 0x17, 0xff, 0xc6, 0x3b,
+	0x66, 0x94, 0x14, 0x06, 0xed, 0x43, 0xb6, 0x07, 0x9e, 0x19, 0xc6, 0x86, 0x69, 0x1e, 0xa3, 0x8e,
+	0xb8, 0x2a, 0x9f, 0xa9, 0xf5, 0x29, 0x78, 0xa6, 0x66, 0xdd, 0xbf, 0xad, 0x99, 0xf7, 0xef, 0x87,
+	0x57, 0xeb, 0xd2, 0x7f, 0xba, 0x5a, 0x83, 0x9f, 0xe1, 0xf6, 0x0b, 0x99, 0xf0, 0xfe, 0xa8, 0x60,
+	0x7d, 0xe4, 0xc5, 0xbd, 0x07, 0xab, 0x28, 0xe2, 0x8f, 0xec, 0x77, 0x1b, 0x45, 0xec, 0xa4, 0x60,
+	0x0b, 0x7a, 0xf5, 0xc3, 0x27, 0x65, 0x08, 0xee, 0x41, 0xef, 0x09, 0xa6, 0xf8, 0x2f, 0x9f, 0xfa,
+	0x60, 0x1b, 0xfc, 0x1b, 0xf4, 0xe9, 0x51, 0xbb, 0xb0, 0xf6, 0x94, 0xbd, 0x95, 0xe5, 0x09, 0x33,
+	0xdd, 0x3b, 0xb0, 0x5e, 0x50, 0x0a, 0xaf, 0x2f, 0xbf, 0x80, 0x95, 0xf2, 0x7d, 0x25, 0x6d, 0x68,
+	0x9d, 0x9d, 0xbf, 0x39, 0xee, 0x2e, 0x94, 0xd2, 0x49, 0xb7, 0x41, 0x00, 0x96, 0x2d, 0xf6, 0xe6,
+	0xa4, 0xdb, 0x3c, 0xfa, 0xbb, 0x09, 0x2b, 0x17, 0x0f, 0xcf, 0xed, 0x57, 0x11, 0xb9, 0x04, 0xaf,
+	0xd6, 0x57, 0x52, 0xfd, 0x0c, 0x98, 0xf3, 0xe5, 0xb2, 0xbd, 0x37, 0x9f, 0x33, 0xcd, 0x61, 0x81,
+	0xfc, 0x08, 0xeb, 0xd5, 0x5a, 0x91, 0xdd, 0x8a, 0xdb, 0xec, 0x0e, 0x6d, 0x07, 0x73, 0x29, 0xd5,
+	0x83, 0x2f, 0xc1, 0xab, 0x95, 0xae, 0x16, 0xf4, 0x9c, 0x1e, 0xd4, 0x82, 0x9e, 0x5b, 0xf8, 0x05,
+	0xf2, 0x1d, 0xb4, 0x2f, 0x50, 0x24, 0xb6, 0xb6, 0xe4, 0x76, 0xc5, 0xa5, 0xd2, 0x8f, 0xed, 0xde,
+	0x07, 0x78, 0x71, 0x42, 0xb0, 0xf0, 0xf8, 0xce, 0xe5, 0x96, 0xb3, 0x1d, 0xda, 0x4f, 0x50, 0x96,
+	0xca, 0x61, 0x72, 0x38, 0x90, 0xe5, 0x67, 0x62, 0xbc, 0xec, 0x7e, 0x1f, 0xfc, 0x13, 0x00, 0x00,
+	0xff, 0xff, 0x3e, 0xe0, 0x6c, 0x04, 0xa0, 0x0a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -576,7 +1098,7 @@ type S8ProxyClient interface {
 	CreateSession(ctx context.Context, in *CreateSessionRequestPgw, opts ...grpc.CallOption) (*CreateSessionResponsePgw, error)
 	ModifyBearer(ctx context.Context, in *ModifyBearerRequestPgw, opts ...grpc.CallOption) (*ModifyBearerResponsePgw, error)
 	DeleteSession(ctx context.Context, in *DeleteSessionRequestPgw, opts ...grpc.CallOption) (*DeleteSessionResponsePgw, error)
-	SendEcho(ctx context.Context, in *protos1.Void, opts ...grpc.CallOption) (*EchoResponse, error)
+	SendEcho(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
 }
 
 type s8ProxyClient struct {
@@ -614,7 +1136,7 @@ func (c *s8ProxyClient) DeleteSession(ctx context.Context, in *DeleteSessionRequ
 	return out, nil
 }
 
-func (c *s8ProxyClient) SendEcho(ctx context.Context, in *protos1.Void, opts ...grpc.CallOption) (*EchoResponse, error) {
+func (c *s8ProxyClient) SendEcho(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
 	out := new(EchoResponse)
 	err := c.cc.Invoke(ctx, "/magma.feg.S8Proxy/SendEcho", in, out, opts...)
 	if err != nil {
@@ -628,7 +1150,7 @@ type S8ProxyServer interface {
 	CreateSession(context.Context, *CreateSessionRequestPgw) (*CreateSessionResponsePgw, error)
 	ModifyBearer(context.Context, *ModifyBearerRequestPgw) (*ModifyBearerResponsePgw, error)
 	DeleteSession(context.Context, *DeleteSessionRequestPgw) (*DeleteSessionResponsePgw, error)
-	SendEcho(context.Context, *protos1.Void) (*EchoResponse, error)
+	SendEcho(context.Context, *EchoRequest) (*EchoResponse, error)
 }
 
 // UnimplementedS8ProxyServer can be embedded to have forward compatible implementations.
@@ -644,7 +1166,7 @@ func (*UnimplementedS8ProxyServer) ModifyBearer(ctx context.Context, req *Modify
 func (*UnimplementedS8ProxyServer) DeleteSession(ctx context.Context, req *DeleteSessionRequestPgw) (*DeleteSessionResponsePgw, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSession not implemented")
 }
-func (*UnimplementedS8ProxyServer) SendEcho(ctx context.Context, req *protos1.Void) (*EchoResponse, error) {
+func (*UnimplementedS8ProxyServer) SendEcho(ctx context.Context, req *EchoRequest) (*EchoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendEcho not implemented")
 }
 
@@ -707,7 +1229,7 @@ func _S8Proxy_DeleteSession_Handler(srv interface{}, ctx context.Context, dec fu
 }
 
 func _S8Proxy_SendEcho_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(protos1.Void)
+	in := new(EchoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -719,7 +1241,7 @@ func _S8Proxy_SendEcho_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/magma.feg.S8Proxy/SendEcho",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(S8ProxyServer).SendEcho(ctx, req.(*protos1.Void))
+		return srv.(S8ProxyServer).SendEcho(ctx, req.(*EchoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

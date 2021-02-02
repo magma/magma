@@ -63,7 +63,7 @@ describe('<verify successful aggregation validation/>', () => {
   });
 
   it('', async () => {
-    const {getByTestId} = render(<Wrapper />);
+    const {getByTestId, getAllByTestId} = render(<Wrapper />);
     await wait();
     const controProxyValidationContent = getByTestId(
       'Control Proxy Config Validation',
@@ -71,7 +71,7 @@ describe('<verify successful aggregation validation/>', () => {
     const apiValidationContent = getByTestId('API validation');
 
     expect(controProxyValidationContent).toHaveTextContent('Good');
-    expect(getByTestId('fileContent')).toHaveTextContent(
+    expect(getAllByTestId('fileContent')[0]).toHaveTextContent(
       'fluentd_address: fluentd.magma.io fluentd_port: 24224',
     );
     expect(apiValidationContent).toHaveTextContent('Good');
@@ -99,7 +99,7 @@ describe('<verify control proxy validation failure/>', () => {
   });
 
   it('', async () => {
-    const {getByTestId} = render(<Wrapper />);
+    const {getByTestId, getAllByTestId} = render(<Wrapper />);
     await wait();
     const controProxyValidationContent = getByTestId(
       'Control Proxy Config Validation',
@@ -107,7 +107,7 @@ describe('<verify control proxy validation failure/>', () => {
     const apiValidationContent = getByTestId('API validation');
 
     expect(controProxyValidationContent).toHaveTextContent('Bad');
-    expect(getByTestId('fileError')).toHaveTextContent('file not found');
+    expect(getAllByTestId('fileError')[0]).toHaveTextContent('file not found');
     expect(apiValidationContent).toHaveTextContent('Good');
   });
 });

@@ -13,13 +13,14 @@ package servicers
 
 import (
 	"context"
+	"log"
 	"testing"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
-	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wmnsk/go-gtp/gtpv2"
 )
 
 const (
@@ -37,7 +38,7 @@ func TestS8Proxy(t *testing.T) {
 		return
 	}
 	defer mockPgw.Close()
-	t.Logf("Running PGW at %s\n", mockPgw.LocalAddr().String())
+	log.Printf("Running PGW at %s\n", mockPgw.LocalAddr().String())
 
 	// Run S8_proxy
 	config := getDefaultConfig(mockPgw.LocalAddr().String())
@@ -47,34 +48,106 @@ func TestS8Proxy(t *testing.T) {
 		return
 	}
 
-	// Create Session Request message
+	//------------------------
+	//---- Create Session ----
 	csReq := &protos.CreateSessionRequestPgw{
-		Sid: &lteprotos.SubscriberID{
-			Id:   IMSI1,
-			Type: lteprotos.SubscriberID_IMSI,
+		Imsi:   IMSI1,
+		Msisdn: "00111",
+		Mei:    "111",
+		ServingNetwork: &protos.ServingNetwork{
+			Mcc: "222",
+			Mnc: "333",
 		},
-		MSISDN:               "00111",
-		MEI:                  "111",
-		MCC:                  "222",
-		MNC:                  "333",
-		RatType:              0,
-		IndicationFlag:       nil,
-		BearerId:             5,
-		UserPlaneTeid:        0,
-		S5S8Ip4UserPane:      "127.0.0.10",
-		S5S8Ip6UserPane:      "",
-		Apn:                  "internet.com",
-		SelectionMode:        "",
-		PdnType:              0,
-		PdnAddressAllocation: "",
-		ApnRestriction:       0,
-		AmbrUp:               0,
-		AmbrDown:             0,
-		Uli:                  "",
+		RatType: 0,
+		BearerContext: &protos.BearerContext{
+			Id: 5,
+			UserPlaneFteid: &protos.Fteid{
+				Ipv4Address: "127.0.0.10",
+				Ipv6Address: "",
+				Teid:        11,
+			},
+			Qos: &protos.QosInformation{
+				Pci:                     0,
+				PriorityLevel:           0,
+				PreemptionCapability:    0,
+				PreemptionVulnerability: 0,
+				Qci:                     9,
+				Gbr: &protos.Ambr{
+					BrUl: 123,
+					BrDl: 234,
+				},
+				Mbr: &protos.Ambr{
+					BrUl: 567,
+					BrDl: 890,
+				},
+			},
+		},
+		PdnType: protos.PDNType_IPV4,
+		Paa: &protos.PdnAddressAllocation{
+			Ipv4Address: "10.0.0.10",
+			Ipv6Address: "",
+			Ipv6Prefix:  0,
+		},
+
+		Apn:            "internet.com",
+		SelectionMode:  "",
+		ApnRestriction: 0,
+		Ambr: &protos.Ambr{
+			BrUl: 999,
+			BrDl: 888,
+		},
+		Uli: &protos.UserLocationInformation{
+			Lac:    1,
+			Ci:     2,
+			Sac:    3,
+			Rac:    4,
+			Tac:    5,
+			Eci:    6,
+			MeNbi:  7,
+			EMeNbi: 8,
+		},
+		IndicationFlag: nil,
 	}
 
 	// Send and receive Create Session Request
-	_, err = s8p.CreateSession(context.Background(), csReq)
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+
+	// check User Plane FTEID was received properly
+	assert.Equal(t, mockPgw.LastTEIDu, csRes.BearerContext.UserPlaneFteid.Teid)
+	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
+	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
+
+	// check Control Plane TEID
+	session, err := s8p.gtpClient.GetSessionByIMSI(IMSI1)
+	assert.NoError(t, err)
+	sessionCteid, err := session.GetTEID(gtpv2.IFTypeS5S8PGWGTPC)
+	assert.NoError(t, err)
+	assert.Equal(t, mockPgw.LastTEIDc, sessionCteid)
+
+	// check received QOS
+	sentQos := csReq.BearerContext.Qos
+	receivedQos := mockPgw.LastQos
+	assert.Equal(t, sentQos.Gbr.BrDl, receivedQos.Gbr.BrDl)
+	assert.Equal(t, sentQos.Gbr.BrUl, receivedQos.Gbr.BrUl)
+	assert.Equal(t, sentQos.Mbr.BrDl, receivedQos.Mbr.BrDl)
+	assert.Equal(t, sentQos.Mbr.BrUl, receivedQos.Mbr.BrUl)
+	assert.Equal(t, sentQos.Qci, receivedQos.Qci)
+
+	//------------------------
+	//---- Delete Session ----
+	cdReq := &protos.DeleteSessionRequestPgw{Imsi: IMSI1}
+	_, err = s8p.DeleteSession(context.Background(), cdReq)
+	assert.NoError(t, err)
+	// session shouldnt exist anymore
+	_, err = s8p.gtpClient.GetSessionByIMSI(IMSI1)
+	assert.Error(t, err)
+
+	//------------------------
+	//---- Echo Request ----
+	eReq := &protos.EchoRequest{}
+	_, err = s8p.SendEcho(context.Background(), eReq)
 	assert.NoError(t, err)
 }
 

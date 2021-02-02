@@ -232,6 +232,8 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 		serialNumbers[0]: info0,
 		serialNumbers[1]: info1,
 	}
+	placeHolderNetwork := "placeholder_network"
+	searchResult := map[string]blobstore.Blobs{placeHolderNetwork: blobs}
 
 	// Fail to start transaction
 	blobFactMock = &mocks.BlobStorageFactory{}
@@ -249,8 +251,11 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("ListKeys", mock.Anything, cstorage.CertInfoType).
-		Return([]string{}, someErr).Once()
+	blobStoreMock.On(
+		"Search",
+		blobstore.CreateSearchFilter(&placeHolderNetwork, []string{cstorage.CertInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(map[string]blobstore.Blobs{}, someErr).Once()
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
 
 	_, err = store.GetAllCertInfo()
@@ -263,7 +268,11 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("ListKeys", mock.Anything, cstorage.CertInfoType).Return([]string{}, nil).Once()
+	blobStoreMock.On(
+		"Search",
+		blobstore.CreateSearchFilter(&placeHolderNetwork, []string{cstorage.CertInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(map[string]blobstore.Blobs{}, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
 
@@ -278,7 +287,11 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("ListKeys", mock.Anything, cstorage.CertInfoType).Return(serialNumbers, nil).Once()
+	blobStoreMock.On(
+		"Search",
+		blobstore.CreateSearchFilter(&placeHolderNetwork, []string{cstorage.CertInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(searchResult, nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
 
@@ -292,7 +305,11 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("ListKeys", mock.Anything, cstorage.CertInfoType).Return(serialNumbers, nil).Once()
+	blobStoreMock.On(
+		"Search",
+		blobstore.CreateSearchFilter(&placeHolderNetwork, []string{cstorage.CertInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(searchResult, nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobs, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
@@ -311,6 +328,7 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 func TestCertifierBlobstore_PutCertInfo(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
+
 	someErr := errors.New("generic error")
 
 	serialNumber := "serial_number"
@@ -366,6 +384,7 @@ func TestCertifierBlobstore_PutCertInfo(t *testing.T) {
 func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
+
 	someErr := errors.New("generic error")
 
 	serialNumber := "serial_number"
@@ -413,8 +432,35 @@ func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
 func TestCertifierBlobstore_ListSerialNumbers(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
+
 	someErr := errors.New("generic error")
-	serialNumbers := []string{"serial_number_0", "serial_number_1"}
+
+	info0 := &protos.CertificateInfo{
+		Id:        nil,
+		NotBefore: &timestamp.Timestamp{Seconds: 0xdead, Nanos: 0xbeef},
+		NotAfter:  &timestamp.Timestamp{Seconds: 0xbeef, Nanos: 0xfeed},
+		CertType:  1,
+	}
+	info1 := &protos.CertificateInfo{
+		Id:        nil,
+		NotBefore: &timestamp.Timestamp{Seconds: 0xaaaa, Nanos: 0xbbbb},
+		NotAfter:  &timestamp.Timestamp{Seconds: 0xcccc, Nanos: 0xdddd},
+		CertType:  2,
+	}
+	marshaledInfo0, err := proto.Marshal(info0)
+	assert.NoError(t, err)
+	marshaledInfo1, err := proto.Marshal(info1)
+	assert.NoError(t, err)
+
+	blobs := blobstore.Blobs{
+		{Type: cstorage.CertInfoType, Key: "serial_number_0", Value: marshaledInfo0},
+		{Type: cstorage.CertInfoType, Key: "serial_number_1", Value: marshaledInfo1},
+	}
+	placeHolderNetwork := "placeholder_network"
+	searchResult := map[string]blobstore.Blobs{placeHolderNetwork: blobs}
+
+	serialNumbers := blobs.Keys()
+	assert.Equal(t, serialNumbers, []string{"serial_number_0", "serial_number_1"})
 
 	// Fail to start transaction
 	blobFactMock = &mocks.BlobStorageFactory{}
@@ -422,7 +468,7 @@ func TestCertifierBlobstore_ListSerialNumbers(t *testing.T) {
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := cstorage.NewCertifierBlobstore(blobFactMock)
 
-	_, err := store.ListSerialNumbers()
+	_, err = store.ListSerialNumbers()
 	assert.Error(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -432,8 +478,11 @@ func TestCertifierBlobstore_ListSerialNumbers(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("ListKeys", mock.Anything, cstorage.CertInfoType).
-		Return([]string{}, someErr).Once()
+	blobStoreMock.On(
+		"Search",
+		blobstore.CreateSearchFilter(&placeHolderNetwork, []string{cstorage.CertInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(map[string]blobstore.Blobs{}, someErr).Once()
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
 
 	_, err = store.ListSerialNumbers()
@@ -446,8 +495,11 @@ func TestCertifierBlobstore_ListSerialNumbers(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("ListKeys", mock.Anything, cstorage.CertInfoType).
-		Return(serialNumbers, nil).Once()
+	blobStoreMock.On(
+		"Search",
+		blobstore.CreateSearchFilter(&placeHolderNetwork, []string{cstorage.CertInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(searchResult, nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
 

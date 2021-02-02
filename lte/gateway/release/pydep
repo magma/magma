@@ -83,6 +83,27 @@ DEB_EPOCH = {
 }
 
 
+def os_release():
+    # copied from third_party/build/build.py
+    # FIXME: should be a magma python library for this kind of thing
+    release_info = {}
+    with open('/etc/os-release', 'r') as f:
+        for line in f:
+            try:
+                k,v = line.rstrip().split('=')
+                release_info[k] = v.strip('"')
+            except Exception:
+                pass
+    return release_info
+
+
+def json_equal(a, b):
+    a_json = json.dumps(a, sort_keys=True)
+    b_json = json.dumps(b, sort_keys=True)
+    compare = a == b
+    return compare
+
+
 def _higher_version(version_a: Optional[str], version_b: Optional[str]) -> bool:
     """ Return true if :version_a: > :version_b:, false otherwise. """
     a = pkg_resources.parse_version(str(version_a))
@@ -429,31 +450,82 @@ def _format_dep(syspkg: str,
 
 class Lockfile(object):
     """
-    Read-only copy of a lockfile
+    Add-only copy of a lockfile
+    To remove a root package or derived dependency, manually remove it from the source lockfile
     """
-    def __init__(self, data: Optional[str]=None, dependencies: Dict[str, Any]=None,
-                 root_packages: Dict[str, Any]=None):
+    _default_release = 'stretch'
+    def __init__(self, data: Optional[str]=None, reference_lockfile: Optional[Any]=None):
+        # parameter `reference_lockfile` should be an instance of `Lockfile`
+        # not fully annotated due to circular dependency
+        release_info = os_release()
+        if 'VERSION_CODENAME' not in release_info:
+            log.warning('missing expected key VERSION_CODENAME in /etc/os-release')
+            log.warning('dependencies may not be generated correctly')
+        self._release = release_info.get('VERSION_CODENAME', self._default_release)
+
         def lower_keys(d: Dict[str, Any]):
             return {k.lower(): v for k, v in d.items()}
+
         if data:
             lockfile = json.loads(data)
             self._root_packages = lower_keys(lockfile['root_packages'])
             self._dependencies = lower_keys(lockfile['dependencies'])
+            self._override = lower_keys(lockfile.get('override', {}))
+        elif reference_lockfile:
+            self._root_packages = copy.copy(reference_lockfile._root_packages)
+            self._dependencies = copy.copy(reference_lockfile._dependencies)
+            self._override = copy.copy(reference_lockfile._override)
         else:
-            self._dependencies = lower_keys(dependencies) if dependencies else {}
-            self._root_packages = lower_keys(root_packages) if root_packages else {}
+            self._root_packages = {}
+            self._dependencies = {}
+            self._override = {}
+
+        if self._release != self._default_release and self._release not in self._override:
+            self._override[self._release] = {'root_packages': {}, 'dependencies': {}}
 
     def __str__(self):
         output = {}
-        output['root_packages'] = self.root_packages()
-        output['dependencies'] = self.dependencies()
+        output['root_packages'] = self._root_packages
+        output['dependencies'] = self._dependencies
+        output['override'] = self._override
         return json.dumps(output, sort_keys=True, indent=2)
 
     def root_packages(self):
-        return copy.copy(self._root_packages)
+        output = copy.copy(self._root_packages)
+        if self._release != self._default_release:
+            output.update(copy.copy(self._override[self._release]['root_packages']))
+        return output
 
     def dependencies(self):
-        return copy.copy(self._dependencies)
+        output = copy.copy(self._dependencies)
+        if self._release != self._default_release:
+            output.update(copy.copy(self._override[self._release]['dependencies']))
+        return output
+
+    def add_root_package(self, pkgname, pkginfo):
+        pkgname = pkgname.lower()
+        if self._release == self._default_release:
+            self._root_packages[pkgname] = pkginfo
+        else:
+            default_info = self._root_packages.get(pkgname)
+            if default_info and json_equal(default_info, pkginfo):
+                # incoming pkginfo is the same as default_info -- no need to override
+                pass
+            else:
+                self._override[self._release]['root_packages'][pkgname] = pkginfo
+        return
+
+    def add_dependency(self, pkgname, depinfo):
+        pkgname = pkgname.lower()
+        if self._release == self._default_release:
+            self._dependencies[pkgname] = depinfo
+        else:
+            default_info = self._dependencies.get(pkgname)
+            if default_info and json_equal(default_info, depinfo):
+                # incoming pkginfo is the same as default_info -- no need to override
+                pass
+            else:
+                self._override[self._release]['dependencies'][pkgname] = depinfo
 
 
 @contextlib.contextmanager
@@ -527,7 +599,7 @@ def py_to_deb(pkgname: str,
         log.error(msg)
         raise Exception(msg)
 
-    if "/.virtualenvs/pydep" not in dist.location:
+    if "/.virtualenvs/" not in dist.location:
         # valid package but found in system packages -- source is apt
         return 0
 
@@ -661,34 +733,75 @@ def _pkg_version_available(pkg: str,
     # if we didn't find an *equivalent* match, we return false.
     return False
 
+@contextlib.contextmanager
+def tmpvirtualenv():
+    load_virtualenvwrapper = 'source /usr/share/virtualenvwrapper/virtualenvwrapper.sh'
 
-def venv(cmd: Union[List[str], str],
-         capture: int=None) -> subprocess.CompletedProcess:
-    capture = subprocess.PIPE if capture else None
-    setup = ['source /usr/share/virtualenvwrapper/virtualenvwrapper.sh',
-             'workon pydep']
+    initcmd = [load_virtualenvwrapper,
+               'mktmpenv -p /usr/bin/python3 --system-site-packages 2>&1 > /dev/null',
+               'echo $VIRTUAL_ENV']
 
-    if isinstance(cmd, list):
-        cmd = ' '.join([shlex.quote(token) for token in cmd])
+    def runcmd(cmd: Union[List[str], str],
+               capture: int=None) -> subprocess.CompletedProcess:
+        # run cmd in separate shell
+        # cmd must be
+        # * a single string representing a valid command
+        # * a list of single strings each representing a valid command
+        capture = subprocess.PIPE if capture else None
+        if isinstance(cmd, list):
+            cmd = '; '.join(cmd)
 
-    script = ['/bin/bash', '-c', '; '.join(setup + [cmd])]
-    log.debug(script)
-    result = subprocess.run(script, stdout=capture, stderr=capture,
-                            check=True)
-    return result
+        script = ['/bin/bash', '-c', cmd]
+        log.debug(script)
+        result = subprocess.run(script, stdout=capture, stderr=capture,
+                                check=True)
+        return result
+
+    active = True
+
+    envpath = runcmd(initcmd, capture=True).stdout.decode('utf-8')
+    envname = envpath.split(os.path.sep)[-1].strip()
+
+    def venv(cmd: Union[List[str], str],
+             cd: Optional[str]=None,
+             capture: int=None) -> subprocess.CompletedProcess:
+
+        if not active:
+            raise RuntimeError('tmpvirtualenv context already destroyed')
+
+        setup = [load_virtualenvwrapper,
+                 'workon ' + envname]
+        if cd:
+            setup.append(' '.join(['cd', shlex.quote(cd)]))
+
+        if isinstance(cmd, list):
+            cmd = ' '.join([shlex.quote(token) for token in cmd])
+
+        result = runcmd(setup + [cmd], capture=capture)
+
+        return result
+
+    try:
+        yield venv
+    finally:
+        venv('deactivate')
+        active = False
 
 
 def gen_pip_distributions(
         root_requirements: List[pkg_resources.Requirement],
         existing_versions: Optional[Dict[str, str]]=None,
         pypi_only: bool=True,
-        py2: bool=False) -> Dict[str, pkg_resources.Distribution]:
+        py2: bool=False,
+        venv: Optional[callable]=None) -> Dict[str, pkg_resources.Distribution]:
     """
     Recursively get the dependency tree for a given package.
 
     For each package, we calculate the list of deps and add it to a running
     list.
     """
+    if not venv:
+        raise ValueError('must supply valid virtualenv command (see tmpvirtualenv)')
     if not existing_versions:
         existing_versions = {}
     selected_versions = copy.copy(existing_versions)
@@ -719,11 +832,14 @@ def gen_pip_distributions(
     log.debug(args)
 
     # clean up from any previous runs
-    venv('wipeenv')
-    venv('pip install --use-feature=2020-resolver --force-reinstall pip setuptools wheel')
+    release_info = os_release()
+    extra_args = []
+    if release_info.get('VERSION_CODENAME', '') == 'stretch':
+        extra_args.append('--use-feature=2020-resolver')
+
 
     # install all packages to populate pkg_resources.working_set
-    venv('pip install --use-feature=2020-resolver ' + " ".join(args))
+    venv('pip install ' + " ".join(extra_args + args))
 
     # python code to be run in subprocess inside venv
     # fetching pickled pkg_resources.working_set
@@ -779,7 +895,8 @@ def gen_dep_sources(dep_set: Dict[str, Optional[str]],
 def lockfile(root_packages: Dict[str, Dict[str, str]],
              dep_set: Dict[str, Optional[str]],
              dep_source: Dict[str, str],
-             py2: bool=False) -> str:
+             py2: bool=False,
+             reference_lockfile: Optional[Lockfile]=None) -> str:
     """
     Based on the root packages, produces a json description of
     the actual packages we depend on.
@@ -788,11 +905,13 @@ def lockfile(root_packages: Dict[str, Dict[str, str]],
     could be possible to satisfy those deps from multiple sources. We
     resolve that here based on what's available in the apt repos.
     """
-    root_package_names = set(root_packages.keys())
-    output = {}  # type: Dict[str, Any]
-    output['root_packages'] = copy.copy(root_packages)
+    lf = Lockfile(reference_lockfile=reference_lockfile)
 
-    dependencies = {}
+    root_package_names = set(root_packages.keys())
+    for pkgname, pkginfo in root_packages.items():
+        lf.add_root_package(pkgname, pkginfo)
+
+
     for k in sorted(dep_set.keys()):
         item = {
             "version": dep_set[k],
@@ -800,9 +919,8 @@ def lockfile(root_packages: Dict[str, Dict[str, str]],
             "root": (k in root_package_names),
             "sysdep": gen_sys_package_name(k, py2)
         }
-        dependencies[k] = item
+        lf.add_dependency(k, item)
 
-    lf = Lockfile(root_packages=root_packages, dependencies=dependencies)
     return str(lf)
 
 
@@ -821,6 +939,8 @@ def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
 def save_lockfile(lockfilename: str, lockfilecontent: str) -> None:
     with open(lockfilename, "w") as f:
         f.write(lockfilecontent)
+        if lockfilecontent[-1] != "\n":
+            f.write("\n")
 
 
 def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
@@ -888,53 +1008,55 @@ def main(args):
     if args.lockfile:
         try:
             with open(args.lockfile, 'r') as r:
-                lf = Lockfile(r.read())
-                deps = lf.dependencies()
-                for key in deps:
-                    if deps[key]['source'] == 'pypi':
-                        try:
-                            ver = typing.cast(str, deps[key]['version'])
-                            existing_versions[key] = ver
-                        except KeyError as e:
-                            log.error('{} missing key: {}'.format(key, e))
+                lf = Lockfile(data=r.read())
         except FileNotFoundError:
             pass
+    else:
+        lf = Lockfile()
 
-        log.debug(deps)
+    deps = lf.dependencies()
+    for key in deps:
+        if deps[key]['source'] == 'pypi':
+            try:
+                ver = typing.cast(str, deps[key]['version'])
+                existing_versions[key] = ver
+            except KeyError as e:
+                log.error('{} missing key: {}'.format(key, e))
+
+    log.debug(deps)
 
     repo_pkgs = [gen_sys_package_name(p.key, args.use_py2) for p in repo_installable]
     if args.install_from_repo:
         try:
-            log.error(repo_pkgs)
             subprocess.call(shlex.split('sudo apt install -y '
                                         + ' '.join(repo_pkgs)))
         except Exception:
             log.error('error trying to install repo packages')
             raise
 
-    pip_distributions = gen_pip_distributions(root_requirements,
-                                              existing_versions=existing_versions,
-                                              pypi_only=args.force_pypi,
-                                              py2=args.use_py2)
+    with tmpvirtualenv() as venv:
+        pip_distributions = gen_pip_distributions(root_requirements,
+                                                  existing_versions=existing_versions,
+                                                  pypi_only=args.force_pypi,
+                                                  py2=args.use_py2,
+                                                  venv=venv)
 
-    required_distributions = {}
-    to_traverse = [pip_distributions[k] for k in [req.key for req in input_root_requirements]]
-    while to_traverse:
-        dist = to_traverse.pop()
-        required_distributions[dist.key] = dist
-        requires = dist.requires()
-        log.debug(requires)
-        for req in requires:
-            prereq_dist = pip_distributions.get(req.key)
-            if prereq_dist:
-                to_traverse.append(prereq_dist)
-            else:
-                log.error('{} required but not detected'.format(prereq_dist))
+        required_distributions = {}
+        to_traverse = [pip_distributions[k] for k in [req.key for req in input_root_requirements]
+                       if k not in repo_installable]
+        while to_traverse:
+            dist = to_traverse.pop()
+            required_distributions[dist.key] = dist
+            requires = dist.requires()
+            for req in requires:
+                prereq_dist = pip_distributions.get(req.key)
+                if prereq_dist:
+                    to_traverse.append(prereq_dist)
+                else:
+                    log.error('{} required but not detected'.format(prereq_dist))
 
     dep_set = {p.key: p.version for p in required_distributions.values()
                if p.key not in PIP_BLACKLIST}
-
-    log.debug(dep_set)
 
     dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi, py2=args.use_py2)
 
@@ -944,7 +1066,8 @@ def main(args):
     log.debug(root_versions)
 
     save_lockfile(args.lockfile, lockfile(root_versions, dep_set,
-                                          dep_source, args.use_py2))
+                                          dep_source, py2=args.use_py2,
+                                          reference_lockfile=lf))
 
     if args.build:
         build_all(pip_distributions, dep_source, build_output=args.build_output)

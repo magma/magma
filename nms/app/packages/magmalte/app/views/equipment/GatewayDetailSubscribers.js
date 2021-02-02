@@ -13,13 +13,18 @@
  * @flow strict-local
  * @format
  */
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {GatewayDetailType} from './GatewayDetailMain';
 
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
+import nullthrows from '@fbcnms/util/nullthrows';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -28,23 +33,29 @@ type SubscriberRowType = {
   service: string,
 };
 
-export default function GatewayDetailSubscribers({
-  gwInfo,
-}: {
-  gwInfo: lte_gateway,
-}) {
+export default function GatewayDetailSubscribers(props: GatewayDetailType) {
   const {history, match} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
+  // Auto refresh  every 30 seconds
+  const subscriberState = useRefreshingContext({
+    context: SubscriberContext,
+    networkId: networkId,
+    type: 'subscriber',
+    interval: REFRESH_INTERVAL,
+    refresh: props.refresh,
+  });
   const subscriberCtx = useContext(SubscriberContext);
   const gwSubscriberMap =
-    subscriberCtx.gwSubscriberMap[gwInfo?.device?.hardware_id] || [];
+    subscriberCtx.gwSubscriberMap[props.gwInfo?.device?.hardware_id] || [];
 
   const subscriberRows: Array<SubscriberRowType> = gwSubscriberMap.map(
     (serialNum: string) => {
-      const subscriberInfo = subscriberCtx.state[serialNum];
+      // $FlowIgnore
+      const subscriberInfo = subscriberState.state?.[serialNum];
       return {
         name: subscriberInfo?.name || serialNum,
         id: serialNum,
-        service: subscriberInfo.lte.state,
+        service: subscriberInfo?.lte.state || '-',
       };
     },
   );
@@ -65,7 +76,7 @@ export default function GatewayDetailSubscribers({
               onClick={() => {
                 history.push(
                   match.url.replace(
-                    `equipment/overview/gateway/${gwInfo.id}`,
+                    `equipment/overview/gateway/${props.gwInfo.id}`,
                     `subscribers/overview/${currRow.id}`,
                   ),
                 );

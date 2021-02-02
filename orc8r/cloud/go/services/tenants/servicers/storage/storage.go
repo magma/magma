@@ -77,7 +77,7 @@ func (b *blobstoreStore) GetAllTenants() (*protos.TenantList, error) {
 	}
 	defer store.Rollback()
 
-	keys, err := store.ListKeys(networkWildcard, tenants.TenantInfoType)
+	keys, err := blobstore.ListKeys(store, networkWildcard, tenants.TenantInfoType)
 	if err != nil {
 		return nil, err
 	}

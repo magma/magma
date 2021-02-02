@@ -97,7 +97,7 @@ MAGMA_DEPS=(
     "python3-protobuf >= 3.14.0"
     "redis-server >= 3.2.0"
     "sudo"
-    "dnsmasq >= 2.72"
+    "dnsmasq >= 2.7"
     "net-tools" # for ifconfig
     "python3-pip"
     "python3-apt" # The version in pypi is abandoned and broken on stretch
@@ -164,7 +164,8 @@ RELEASE_DIR=${MAGMA_ROOT}/lte/gateway/release
 POSTINST=${RELEASE_DIR}/magma-postinst
 
 # python environment
-PY_VERSION=python3.5
+# python3.5 on stretch, python3.8 on focal
+PY_VERSION=python3
 PY_PKG_LOC=dist-packages
 PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/

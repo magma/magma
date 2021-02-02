@@ -187,7 +187,12 @@ SessionState::SessionState(
       tgpp_context_(tgpp_context),
       create_session_response_(csr),
       static_rules_(rule_store),
-      credit_map_(4, &ccHash, &ccEqual) {}
+      credit_map_(4, &ccHash, &ccEqual) {
+  // other default initializations
+  current_version_        = 0;
+  session_level_key_      = "";
+  subscriber_quota_state_ = SubscriberQuotaUpdate_Type_VALID_QUOTA;
+}
 
 /*For 5G which doesn't have response context*/
 SessionState::SessionState(
@@ -715,13 +720,6 @@ SessionTerminateRequest SessionState::make_termination_request(
   req.set_session_id(session_id_);
   req.set_request_number(request_number_);
   req.mutable_common_context()->CopyFrom(config_.common_context);
-  // TODO deprecate following fields once FeG migrates to reading from common
-  // context
-  req.set_sid(imsi_);
-  req.set_ue_ipv4(config_.common_context.ue_ipv4());
-  req.set_msisdn(config_.common_context.msisdn());
-  req.set_apn(config_.common_context.apn());
-  req.set_rat_type(config_.common_context.rat_type());
 
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
   if (config_.rat_specific_context.has_lte_context()) {
@@ -1489,13 +1487,6 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
   req.set_request_number(request_number_);
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
   req.mutable_common_context()->CopyFrom(config_.common_context);
-
-  // TODO deprecate below as it is already covered by common context
-  req.set_sid(imsi_);
-  req.set_msisdn(config_.common_context.msisdn());
-  req.set_ue_ipv4(config_.common_context.ue_ipv4());
-  req.set_apn(config_.common_context.apn());
-  req.set_rat_type(config_.common_context.rat_type());
 
   // TODO keep RAT specific fields separate for now as we may not always want to
   // send the entire context

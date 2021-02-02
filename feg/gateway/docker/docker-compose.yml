@@ -63,7 +63,7 @@ services:
   eventd:
     <<: *pyservice
     container_name: eventd
-    command: python3.5 -m magma.eventd.main
+    command: python3.8 -m magma.eventd.main
 
   aaa_server:
     <<: *goservice
@@ -132,7 +132,7 @@ services:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-    command: python3.5 -m magma.magmad.main
+    command: python3.8 -m magma.magmad.main
 
   redis:
     <<: *pyservice

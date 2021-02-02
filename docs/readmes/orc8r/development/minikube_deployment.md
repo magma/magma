@@ -28,7 +28,7 @@ Setup minikube with the following command to give it enough resources and seed t
 metrics config files:
 
 ```
-$ minikube start --memory=8192 --cpus=8 --kubernetes-version=v1.14.1 --mount --mount-string "MAGMA_ROOT/orc8r/cloud/docker/metrics-configs:/configs"
+$ minikube start --memory=8192 --cpus=8 --kubernetes-version=v1.14.1 --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
 ```
 
 > Note: This has been tested on MacOS. There are a lot of things that can go wrong
@@ -65,14 +65,14 @@ uses.
 Generate the NMS certificate
 
 ```
-$ cd MAGMA_ROOT/.cache/test_certs
+$ cd ${MAGMA_ROOT}/.cache/test_certs
 $ openssl req -nodes -new -x509 -batch -keyout nms_nginx.key -out nms_nginx.pem -subj "/CN=*.localhost"
 ```
 
 Move the certs to the charts directory
 
 ```
-$ cd MAGMA_ROOT/orc8r/cloud/helm/orc8r
+$ cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
 $ mkdir -p charts/secrets/.secrets/certs
 $ cp -r ../../../../.cache/test_certs/* charts/secrets/.secrets/certs/.
 ```
@@ -100,7 +100,7 @@ helm template orc8r-secrets charts/secrets \
 
 ### Create Values File
 
-A minimum values file that can be used to deploy orc8r is at `MAGMA_ROOT/cloud/helm/orc8r/helm/examples/minikube_values.yml`.
+A minimum values file that can be used to deploy orc8r is at `${MAGMA_ROOT}/cloud/helm/orc8r/helm/examples/minikube_values.yml`.
 Use that file and make sure to replace `<DOCKER_REGISTRY>` with your registry and `<TAG>` with your tag.
 
 Save this file wherever you want.
@@ -109,7 +109,7 @@ Save this file wherever you want.
 
 ```
 $ helm dep update
-$ cd MAGMA_ROOT/orc8r/cloud/helm/orc8r
+$ cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
 $ helm install orc8r --namespace magma . --values=<path-to-values-file>
 ```
 

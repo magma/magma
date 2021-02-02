@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"net"
 
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
@@ -63,7 +62,6 @@ type OrchestratorService struct {
 // perform identity checks, (e.g., federation), use NewServiceWithOptions.
 func NewOrchestratorService(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*OrchestratorService, error) {
 	flag.Parse()
-	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 
 	err := registry.PopulateServices()
 	if err != nil {

@@ -19,12 +19,9 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	lte_plugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/subscriberdb"
 	subscriberdb_test_init "magma/lte/cloud/go/services/subscriberdb/test_init"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -40,8 +37,6 @@ func TestIndexerIP(t *testing.T) {
 	var (
 		types = []string{lte.MobilitydStateType} // copied from indexer_servicer.go
 	)
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 
 	subscriberdb_test_init.StartTestService(t)
 	idx := indexer.NewRemoteIndexer(subscriberdb.ServiceName, version, types...)

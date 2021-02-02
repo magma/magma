@@ -16,8 +16,6 @@ package handlers_test
 import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/ctraced/obsidian/handlers"
@@ -52,7 +50,6 @@ func (c MockGWCtracedClient) EndCallTrace(networkId string, gatewayId string, re
 }
 
 func TestCtracedHandlersBasic(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	e := echo.New()
 

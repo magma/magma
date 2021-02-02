@@ -813,6 +813,29 @@ class MagmadUtil(object):
         print("Waiting for mme to restart. 20 sec")
         time.sleep(20)
 
+    def restart_sctpd(self):
+        """
+        The Sctpd service is not managed by magmad, hence needs to be
+        restarted explicitly
+        """
+        self.exec_command(
+            "sudo service sctpd restart"
+        )
+        for j in range(30):
+            print("Waiting for", 30-j, "seconds for restart to complete")
+            time.sleep(1)
+
+    def print_redis_state(self):
+        """
+        Print the per-IMSI state in Redis data store on AGW
+        """
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        state_cli_cmd = "state_cli.py keys IMSI*"
+        redis_state = self.exec_command_output(
+                magtivate_cmd + " && " + state_cli_cmd)
+        print("Redis state is [\n", redis_state, "]")
+
+
 
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """

@@ -8347,13 +8347,10 @@ definitions:
         description: True if headers should be encrypted
         example: true
         type: boolean
-        x-nullable: false
       enable_header_enrichment:
-        default: true
         description: True if header enrichment feature should be disabled for gateway
-        example: false
+        example: true
         type: boolean
-        x-nullable: false
       encryption_key:
         description: Key to be used in header encryption
         example: C14r0315v0x
@@ -9415,14 +9412,7 @@ definitions:
       active_apns:
         $ref: '#/definitions/apn_list'
       active_base_names:
-        description: Base names which are active for this subscriber
-        example:
-        - base_name_1
-        - base_name_2
-        items:
-          $ref: '#/definitions/base_name'
-        type: array
-        x-omitempty: true
+        $ref: '#/definitions/base_names'
       active_policies:
         $ref: '#/definitions/policy_ids'
       active_policies_by_apn:
@@ -10823,14 +10813,7 @@ definitions:
       active_apns:
         $ref: '#/definitions/apn_list'
       active_base_names:
-        description: Base names which are active for this subscriber
-        example:
-        - base_name_1
-        - base_name_2
-        items:
-          $ref: '#/definitions/base_name'
-        type: array
-        x-omitempty: true
+        $ref: '#/definitions/base_names'
       active_policies:
         $ref: '#/definitions/policy_ids'
       active_policies_by_apn:

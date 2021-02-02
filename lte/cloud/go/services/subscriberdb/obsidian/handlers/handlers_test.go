@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"magma/lte/cloud/go/lte"
-	ltePlugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/serdes"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -31,8 +30,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
@@ -50,9 +47,6 @@ import (
 )
 
 func TestCreateSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -243,9 +237,6 @@ func TestCreateSubscriber(t *testing.T) {
 }
 
 func TestListSubscribers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -484,9 +475,6 @@ func TestListSubscribers(t *testing.T) {
 }
 
 func TestGetSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -885,9 +873,6 @@ func TestGetSubscriberState(t *testing.T) {
 }
 
 func TestGetSubscriberByMSISDN(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1046,9 +1031,6 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 }
 
 func TestGetSubscriberByIP(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1190,9 +1172,6 @@ func TestGetSubscriberByIP(t *testing.T) {
 }
 
 func TestUpdateSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -1331,9 +1310,6 @@ func TestUpdateSubscriber(t *testing.T) {
 }
 
 func TestDeleteSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -1393,9 +1369,6 @@ func TestDeleteSubscriber(t *testing.T) {
 }
 
 func TestActivateDeactivateSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -1499,8 +1472,6 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 }
 
 func TestUpdateSubscriberProfile(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
@@ -1656,10 +1627,222 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestAPNPolicyProfile(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
+func TestSubscriberBasename(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntities(
+		"n0",
+		[]configurator.NetworkEntity{
+			{Type: lte.APNEntityType, Key: "apn0"},
+			{Type: lte.APNEntityType, Key: "apn1"},
+			{Type: lte.BaseNameEntityType, Key: "basename0"},
+			{Type: lte.BaseNameEntityType, Key: "basename2"},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
 
+	e := echo.New()
+	urlBase := "/magma/v1/lte/:network_id/subscribers"
+	urlManage := urlBase + "/:subscriber_id"
+	subscriberdbHandlers := handlers.GetHandlers()
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
+	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
+
+	imsi := "IMSI1234567890"
+	mutableSub := newMutableSubscriber(imsi)
+
+	// Post a policy association with a non existent policy
+	mutableSub.ActiveBaseNames = policydbModels.BaseNames{"baseXXX"}
+	tc := tests.Test{
+		Method:                 "POST",
+		URL:                    "/magma/v1/lte/n0/subscribers",
+		Payload:                mutableSub,
+		Handler:                postSubscriber,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n0"},
+		ExpectedStatus:         500, // would make more sense as 400
+		ExpectedErrorSubstring: `could not find entities matching [type:"base_name" key:"baseXXX" ]`,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Successful post request
+	mutableSub.ActiveBaseNames = policydbModels.BaseNames{"basename0"}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/n0/subscribers",
+		Payload:        mutableSub,
+		Handler:        postSubscriber,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all, posted subscriber found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/subscribers",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put request with non existent basename
+	mutableSub.ActiveBaseNames = policydbModels.BaseNames{"baseXXX"}
+	tc = tests.Test{
+		Method:                 "PUT",
+		URL:                    "/magma/v1/lte/n0/subscribers/" + imsi,
+		Payload:                mutableSub,
+		ParamNames:             []string{"network_id", "subscriber_id"},
+		ParamValues:            []string{"n0", imsi},
+		Handler:                putSubscriber,
+		ExpectedStatus:         500, // would make more sense as 400
+		ExpectedErrorSubstring: `could not find entities matching [type:"base_name" key:"baseXXX" ]`,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Successful put request
+	mutableSub.ActiveBaseNames = policydbModels.BaseNames{"basename2"}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/n0/subscribers/" + imsi,
+		Payload:        mutableSub,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n0", imsi},
+		Handler:        putSubscriber,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all, updated subscriber matches the expected value
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/subscribers",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestSubscriberPolicy(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntities(
+		"n0",
+		[]configurator.NetworkEntity{
+			{Type: lte.APNEntityType, Key: "apn0"},
+			{Type: lte.APNEntityType, Key: "apn1"},
+			{Type: lte.PolicyRuleEntityType, Key: "rule0"},
+			{Type: lte.PolicyRuleEntityType, Key: "rule1"},
+			{Type: lte.PolicyRuleEntityType, Key: "rule2"},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	urlBase := "/magma/v1/lte/:network_id/subscribers"
+	urlManage := urlBase + "/:subscriber_id"
+	subscriberdbHandlers := handlers.GetHandlers()
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
+	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
+	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
+
+	imsi := "IMSI1234567890"
+	mutableSub := newMutableSubscriber(imsi)
+
+	// Post a policy association with a non existent policy
+	mutableSub.ActivePolicies = policydbModels.PolicyIds{"ruleXXX"}
+	tc := tests.Test{
+		Method:                 "POST",
+		URL:                    "/magma/v1/lte/n0/subscribers",
+		Payload:                mutableSub,
+		Handler:                postSubscriber,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n0"},
+		ExpectedStatus:         500, // would make more sense as 400
+		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX" ]`,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Successful post request
+	mutableSub.ActivePolicies = policydbModels.PolicyIds{"rule0"}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/n0/subscribers",
+		Payload:        mutableSub,
+		Handler:        postSubscriber,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all, posted subscriber found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/subscribers",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put request with non existent policy
+	mutableSub.ActivePolicies = policydbModels.PolicyIds{"ruleXXX"}
+	tc = tests.Test{
+		Method:                 "PUT",
+		URL:                    "/magma/v1/lte/n0/subscribers/" + imsi,
+		Payload:                mutableSub,
+		ParamNames:             []string{"network_id", "subscriber_id"},
+		ParamValues:            []string{"n0", imsi},
+		Handler:                putSubscriber,
+		ExpectedStatus:         500, // would make more sense as 400
+		ExpectedErrorSubstring: `could not find entities matching [type:"policy" key:"ruleXXX" ]`,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Successful put request
+	mutableSub.ActivePolicies = policydbModels.PolicyIds{"rule2"}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/n0/subscribers/" + imsi,
+		Payload:        mutableSub,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n0", imsi},
+		Handler:        putSubscriber,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all, updated subscriber matches the expected value
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/subscribers",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestAPNPolicyProfile(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)

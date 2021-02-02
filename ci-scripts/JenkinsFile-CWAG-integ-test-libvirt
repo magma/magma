@@ -19,6 +19,9 @@ pipeline {
           echo "Clean Env"
           cleanWs()
           sh "docker system prune -f"
+          echo "Purge old vagrant boxes"
+          sh "sudo vagrant box prune --force"
+          sh "sudo chown -R jenkins:libvirt ~jenkins/.vagrant.d"
           echo "Clone Sources"
           checkout(
             changelog: false, 
@@ -74,7 +77,7 @@ pipeline {
           // sh "sleep 10"
           sh "vagrant global-status"
           sh "sudo virsh list --all --name"
-          sh "vagrant global-status 2>/dev/null | awk '/virtualbox/{print \$1}' | xargs -I {} vagrant destroy -f {}"
+          sh "vagrant global-status 2>/dev/null | awk '/workspace/{print \$1}' | xargs -I {} vagrant destroy -f {}"
           try {
             sh('sudo virsh list --all --name | grep magma | xargs --no-run-if-empty -n1 sudo virsh destroy')
             sh('sudo virsh list --all --name | grep cwag | xargs --no-run-if-empty -n1 sudo virsh destroy')
@@ -174,7 +177,9 @@ pipeline {
                 }
               } catch (Exception e) {}
             }
-            archiveArtifacts("$test_folder/*")
+            timeout(time: 10, unit: 'MINUTES') {
+              archiveArtifacts("$test_folder/*")
+            }
           }
         }
       }

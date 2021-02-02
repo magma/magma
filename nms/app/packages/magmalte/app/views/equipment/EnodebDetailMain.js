@@ -15,6 +15,7 @@
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
@@ -23,6 +24,7 @@ import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebConfig from './EnodebDetailConfig';
 import EnodebContext from '../../components/context/EnodebContext';
 import GatewayLogs from './GatewayLogs';
+import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -166,6 +168,7 @@ function Overview() {
   const classes = useStyles();
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [endDate, setEndDate] = useState(moment());
+  const [refresh, setRefresh] = useState(true);
 
   function MetricChartFilter() {
     return (
@@ -204,6 +207,15 @@ function Overview() {
       </Grid>
     );
   }
+
+  function refreshFilter() {
+    return (
+      <AutorefreshCheckbox
+        autorefreshEnabled={refresh}
+        onToggle={() => setRefresh(current => !current)}
+      />
+    );
+  }
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
@@ -214,7 +226,12 @@ function Overview() {
             </Grid>
 
             <Grid item xs={12} md={6} alignItems="center">
-              <EnodebStatus />
+              <CardTitleRow
+                icon={GraphicEqIcon}
+                label="Status"
+                filter={() => refreshFilter()}
+              />
+              <EnodebStatus refresh={refresh} />
             </Grid>
           </Grid>
         </Grid>
