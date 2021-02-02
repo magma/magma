@@ -45,7 +45,7 @@ func Combine(yamlCommon string, yamlSpecs []string) (string, error, error) {
 		return "", nil, err
 	}
 
-	return out, warnings, nil
+	return out, warnings.ErrorOrNil(), nil
 }
 
 func combine(common Spec, specs []Spec) (Spec, error) {
