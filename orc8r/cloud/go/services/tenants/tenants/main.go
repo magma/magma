@@ -16,6 +16,8 @@ package main
 import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/tenants"
@@ -50,6 +52,9 @@ func main() {
 		glog.Fatalf("Error creating tenants server: %s", err)
 	}
 	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
+
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(tenants.ServiceName))
+
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 
 	err = srv.Run()

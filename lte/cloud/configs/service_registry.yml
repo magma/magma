@@ -26,6 +26,7 @@ services:
       orc8r.io/obsidian_handlers: "true"
       orc8r.io/state_indexer: "true"
       orc8r.io/stream_provider: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/state_indexer_types: "single_enodeb"
       orc8r.io/state_indexer_version: "1"
@@ -48,6 +49,7 @@ services:
     labels:
       orc8r.io/obsidian_handlers: "true"
       orc8r.io/state_indexer: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/state_indexer_types: "mobilityd_ipdesc_record"
       orc8r.io/state_indexer_version: "1"
@@ -63,6 +65,7 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/lte/:network_id/policy_qos_profiles,
@@ -76,6 +79,7 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/lte/:network_id/sms,

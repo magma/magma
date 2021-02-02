@@ -39,13 +39,13 @@ gen::
 #
 # copy_swagger_files copies Swagger files to the tmp directory under the name
 #
-#	MODULE.SERVICE.swagger.v1.yml
+#	SERVICE.swagger.v1.yml
 #
 # For example
 #	- Before: lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml
-#	- After: TMP_GEN/lte.policydb.swagger.v1.yml
+#	- After: configs/orc8r/swagger_specs/policydb.swagger.v1.yml
 copy_swagger_files:
-	for f in $$(find . -name swagger.v1.yml) ; do cp $$f $${SWAGGER_V1_TMP_GEN}/$(MODULE_NAME).$$(echo $$f | sed -r 's/.*\/services\/([^\/]*)\/obsidian\/models\/(swagger\.v1\.yml)/\1.\2/g') ; done
+	for f in $$(find . -name swagger.v1.yml) ; do cp $$f $${SWAGGER_V1_SPECS_DIR}/$$(echo $$f | sed -r 's/.*\/services\/([^\/]*)\/obsidian\/models\/(swagger\.v1\.yml)/\1.\2/g') ; done
 
 lint:
 	golangci-lint run

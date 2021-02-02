@@ -39,6 +39,7 @@ services:
       orc8r.io/state_indexer: "true"
       orc8r.io/stream_provider: "true"
       orc8r.io/analytics_collector: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/state_indexer_types: "directory_record"
       orc8r.io/state_indexer_version: "1"
@@ -62,6 +63,7 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/networks/:network_id/alerts,
@@ -122,6 +124,7 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/networks/:network_id/tracing,
@@ -133,6 +136,7 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/tenants,
