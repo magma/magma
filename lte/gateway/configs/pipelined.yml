@@ -160,7 +160,8 @@ ovs_gtp_stats_polling_interval: 180
 
 he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
 
-ovs_multi_tunnel: True
+# Make as a True when gnb ip will support for uplink 
+ovs_multi_tunnel: False
 
 # For 5G Functionality Support flag
 5G_feature_set:
