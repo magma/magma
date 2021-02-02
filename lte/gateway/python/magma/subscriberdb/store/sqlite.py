@@ -11,8 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import logging
+import random
 import sqlite3
 import threading
+import time
 from contextlib import contextmanager
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
@@ -25,6 +28,9 @@ from .base import (
 )
 from .onready import OnDataReady
 
+EXECUTE_TIMEOUT = 5 # wait period in sec if db is locked
+RAND_UPPERBOUND = 250 # maximum delta wait in 2nd attempt (unnormalized)
+RAND_LOWERBOUND = 10 # minimum delta wait after failed first attempt (unnormalized)
 
 class SqliteStore(BaseStore):
     """
@@ -46,7 +52,7 @@ class SqliteStore(BaseStore):
         Returns a thread local connection to the sqlite db.
         """
         if not getattr(self._tlocal, 'conn', None):
-            self._tlocal.conn = sqlite3.connect(self._db_location, uri=True)
+            self._tlocal.conn = sqlite3.connect(self._db_location, timeout=EXECUTE_TIMEOUT, uri=True)
         return self._tlocal.conn
 
     def _create_store(self):
@@ -90,10 +96,19 @@ class SqliteStore(BaseStore):
             subscriber_data.ParseFromString(row[0])
             yield subscriber_data
             data_str = subscriber_data.SerializeToString()
-            self.conn.execute(
-                "UPDATE subscriberdb SET data = ? " "WHERE subscriber_id = ?",
-                (data_str, subscriber_id),
-            )
+            try:
+                self.conn.execute(
+                    "UPDATE subscriberdb SET data = ? " "WHERE subscriber_id = ?",
+                    (data_str, subscriber_id),
+                )
+            except sqlite3.OperationalError:
+                logging.error("sqlite db error for subscriber: %s", subscriber_id)
+                time.sleep(random.randint(RAND_LOWERBOUND, RAND_UPPERBOUND)/100)
+                # Try one more time after random wait
+                self.conn.execute(
+                    "UPDATE subscriberdb SET data = ? " "WHERE subscriber_id = ?",
+                    (data_str, subscriber_id),
+                )
 
     def delete_subscriber(self, subscriber_id):
         """
