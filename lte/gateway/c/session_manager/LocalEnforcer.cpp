@@ -1059,7 +1059,7 @@ bool LocalEnforcer::update_tunnel_ids(
 
   update_ipfix_flow(imsi, session->get_config(), time_since_epoch);
   // if (session_state->get_config().common_context.rat_type() == TGPP_WLAN) {
-  if (session->is_radius_cwf_session() && terminate_on_wallet_exhaust()) {
+  if (terminate_on_wallet_exhaust()) {
       handle_session_activate_subscriber_quota_state(imsi, *session);
   }
 
