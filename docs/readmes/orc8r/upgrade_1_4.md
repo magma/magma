@@ -26,6 +26,19 @@ state files are located in your working directory before proceeding. This means
  `terraform show` should list existing state, rather than outputting
  `No state`.
 
+Now fetch the Kubernetes version that your cluster is running. If the AWS CLI
+is configured locally, run
+
+```
+aws eks describe-cluster --name orc8r
+```
+
+and note the `version` listed under `cluster`.
+
+Otherwise, navigate to the AWS UI. Enter service `EKS` and select clusters on
+the left hand side of the screen. Note the `Kubernetes version` for the
+`orc8r` cluster. Use this version to set `cluster_version` below.
+
 ## Upgrade Terraform modules
 
 Set the `source` values for each of the Orchestrator modules in your root
@@ -38,21 +51,24 @@ container versions
 module orc8r {
   source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.4"
   # ...
+
+  cluster_version = "1.17"   # set to Kubernetes version found above. 1.17 is used as an example here
 }
 
 module orc8r-app {
   source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.4"
   # ...
-  orc8r_chart_version   = "1.5.8"
+  orc8r_chart_version   = "1.5.10"
   orc8r_tag             = "MAGMA_TAG"       # from build step, e.g. v1.4.0
   orc8r_deployment_type = DEPLOYMENT_TYPE   # valid options are: ["fwa", "federated_fwa", "all"]
 }
 ```
 
-Bump your chart version to `1.5.8` and `orc8r_tag` to the semver tag you
-published your new Orchestrator container images as. You also need to set
-the `orc8r_deployment_type` variable to the deployment type that you intend to
-deploy. This type sets which orc8r modules will run.
+Set `cluster_version` to the Kubernetes version found during the
+`Prerequisites` section. Bump your chart version to `1.5.10` and `orc8r_tag` to
+the semver tag you published your new Orchestrator container images as.
+You also need to set the `orc8r_deployment_type` variable to the deployment
+type that you intend to deploy. This type sets which orc8r modules will run.
 
 Then, prepare Terraform for the upgrade
 
