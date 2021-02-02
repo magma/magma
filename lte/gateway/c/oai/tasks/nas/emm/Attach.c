@@ -1919,11 +1919,16 @@ static int _emm_attach_accept_retx(emm_context_t* emm_context) {
         " EMM-PROC  - Include the same GUTI in the Attach Accept Retx "
         "message\n",
         ue_id);
+    emm_sap.u.emm_as.u.establish.eps_network_feature_support =
+        calloc(1, sizeof(eps_network_feature_support_t));
     emm_sap.u.emm_as.u.data.new_guti = &emm_context->_guti;
     emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
         _emm_data.conf.eps_network_feature_support[0];
     emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
         _emm_data.conf.eps_network_feature_support[1];
+    free_wrapper(
+        (void**) &emm_sap.u.emm_as.u.establish.eps_network_feature_support);
+
     /*
      * Setup EPS NAS security data
      */
