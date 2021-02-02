@@ -834,7 +834,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     // RESTRICTED PLMN SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_RESTRICTED_PLMN_LIST);
-    config_pP->restricted_plmn.nb = 0;
+    config_pP->restricted_plmn.num = 0;
     OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_RESTRICTED_PLMN_LIST \n");
     if (setting != NULL) {
       num = config_setting_length(setting);
@@ -843,8 +843,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       AssertFatal(
           num <= MAX_RESTRICTED_PLMN,
           "Number of restricted PLMNs configured:%d exceeds number of "
-          "restricted PLMNs supported "
-          ":%d \n",
+          "restricted PLMNs supported :%d \n",
           num, MAX_RESTRICTED_PLMN);
 
       for (i = 0; i < num; i++) {
@@ -855,7 +854,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                   sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
             AssertFatal(
                 strlen(mcc) == MAX_MCC_LENGTH,
-                "Bad MCC length (%ld), it must be %u digit ex: 001",
+                "Bad MCC length (%ld), it must be %u digit ex: 001\n",
                 strlen(mcc), MAX_MCC_LENGTH);
             char c[2]                                     = {mcc[0], 0};
             config_pP->restricted_plmn.plmn[i].mcc_digit1 = (uint8_t) atoi(c);
@@ -870,7 +869,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             AssertFatal(
                 (strlen(mnc) == MIN_MNC_LENGTH) ||
                     (strlen(mnc) == MAX_MNC_LENGTH),
-                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
+                "123\n",
                 strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
             char c[2]                                     = {mnc[0], 0};
             config_pP->restricted_plmn.plmn[i].mnc_digit1 = (uint8_t) atoi(c);
@@ -883,7 +883,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
               config_pP->restricted_plmn.plmn[i].mnc_digit3 = 0x0F;
             }
           }
-          config_pP->restricted_plmn.nb += 1;
+          config_pP->restricted_plmn.num += 1;
         }
       }
     }

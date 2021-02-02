@@ -295,7 +295,7 @@ typedef struct gummei_config_s {
 } gummei_config_t;
 
 typedef struct restricted_plmn_s {
-  int nb;
+  int num;
   plmn_t plmn[MAX_RESTRICTED_PLMN];
 } restricted_plmn_config_t;
 

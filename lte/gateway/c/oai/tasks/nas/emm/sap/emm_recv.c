@@ -121,33 +121,29 @@ int emm_recv_status(
  ** Description: Check if the received PLMN matches with the               **
  **              restricted PLMN list                                      **
  **                                                                        **
- ** Inputs:  eps_mob_identity: EPS mobile identity                         **
- **                                                                        **
+ ** Inputs:  imsi : imsi received in attach request/identity               **
+ **                 response                                               **
  ** Outputs:                                                               **
- **      Return:    RETURNok, RETURNerror                                  **
+ **      Return:    EMM cause                                              **
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int check_plmn_restriction(eps_mobile_identity_t eps_mob_identity) {
+int check_plmn_restriction(imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  /* If typeofidentity is GUTI, identity request is sent. After
-   the reception of identity response, plmn check is done*/
-  if (eps_mob_identity.imsi.typeofidentity == EPS_MOBILE_IDENTITY_IMSI) {
-    for (uint8_t itr = 0; itr < mme_config.restricted_plmn.nb; itr++) {
-      if ((eps_mob_identity.imsi.identity_digit1 ==
-           mme_config.restricted_plmn.plmn[itr].mcc_digit1) &&
-          (eps_mob_identity.imsi.identity_digit2 ==
-           mme_config.restricted_plmn.plmn[itr].mcc_digit2) &&
-          (eps_mob_identity.imsi.identity_digit3 ==
-           mme_config.restricted_plmn.plmn[itr].mcc_digit3) &&
-          (eps_mob_identity.imsi.identity_digit4 ==
-           mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
-          (eps_mob_identity.imsi.identity_digit5 ==
-           mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
-          (eps_mob_identity.imsi.identity_digit6 ==
-           mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
-        OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_PLMN_NOT_ALLOWED);
-      }
+  for (uint8_t itr = 0; itr < mme_config.restricted_plmn.num; itr++) {
+    if ((imsi.u.num.digit1 ==
+         mme_config.restricted_plmn.plmn[itr].mcc_digit1) &&
+        (imsi.u.num.digit2 ==
+         mme_config.restricted_plmn.plmn[itr].mcc_digit2) &&
+        (imsi.u.num.digit3 ==
+         mme_config.restricted_plmn.plmn[itr].mcc_digit3) &&
+        (imsi.u.num.digit4 ==
+         mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
+        (imsi.u.num.digit5 ==
+         mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
+        (imsi.u.num.digit6 ==
+         mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_PLMN_NOT_ALLOWED);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
@@ -182,17 +178,6 @@ int emm_recv_attach_request(
    * Message checking
    */
 
-  // Check for PLMN restriction
-  *emm_cause = check_plmn_restriction(msg->oldgutiorimsi);
-  if (*emm_cause != EMM_CAUSE_SUCCESS) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
-        "(%d)\n",
-        ue_id, *emm_cause);
-    rc = emm_proc_attach_reject(ue_id, *emm_cause);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-  }
 
   if (msg->uenetworkcapability.spare != 0b000) {
     /*
@@ -295,6 +280,18 @@ int emm_recv_attach_request(
     params->imsi->u.num.digit15 = msg->oldgutiorimsi.imsi.identity_digit15;
     params->imsi->u.num.parity  = 0x0f;
     params->imsi->length        = msg->oldgutiorimsi.imsi.num_digits;
+
+    // Check for PLMN restriction
+    *emm_cause = check_plmn_restriction(*params->imsi);
+    if (*emm_cause != EMM_CAUSE_SUCCESS) {
+      OAILOG_ERROR(
+          LOG_NAS_EMM,
+          "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
+          " , emm_cause =(%d)\n", ue_id, *emm_cause);
+      rc = emm_proc_attach_reject(ue_id, *emm_cause);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+    }
+
   } else if (
       msg->oldgutiorimsi.imei.typeofidentity == EPS_MOBILE_IDENTITY_IMEI) {
     /*

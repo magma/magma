@@ -111,6 +111,8 @@ class S1ApUtil(object):
         """
         Initialize the s1aplibrary and its callbacks.
         """
+        self._imsi_idx = 1
+        self.IMSI_LEN = 15
         lib_path = os.environ["S1AP_TESTER_ROOT"]
         lib = os.path.join(lib_path, "bin", S1ApUtil.lib_name)
         os.chdir(lib_path)
@@ -516,6 +518,18 @@ class S1ApUtil(object):
                 and action["port"] == controller_port
             )
             assert bool(has_tunnel_action)"""
+
+    def gen_imsi(self, prefix=None):
+        """
+        Generate imsi based on index offset and prefix
+        """
+        idx = str(self._imsi_idx)
+        # Add 0 padding
+        padding = self.IMSI_LEN - len(idx) - len(prefix[4:])
+        imsi = prefix + "0" * padding + idx
+        self._imsi_idx += 1
+        print("Using subscriber IMSI %s" % imsi)
+        return imsi
 
 
 class SubscriberUtil(object):
