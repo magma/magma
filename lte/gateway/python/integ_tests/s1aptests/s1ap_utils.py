@@ -823,6 +823,8 @@ class MagmadUtil(object):
         )
         keys_to_be_cleaned = []
         for key in redis_imsi_keys.split('\n'):
+            # Ignore directoryd per-IMSI keys in this analysis as they will
+            # persist after each test
             if "directory" not in key:
                 keys_to_be_cleaned.append(key)
         print(
