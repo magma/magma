@@ -187,7 +187,12 @@ SessionState::SessionState(
       tgpp_context_(tgpp_context),
       create_session_response_(csr),
       static_rules_(rule_store),
-      credit_map_(4, &ccHash, &ccEqual) {}
+      credit_map_(4, &ccHash, &ccEqual) {
+  // other default initializations
+  current_version_        = 0;
+  session_level_key_      = "";
+  subscriber_quota_state_ = SubscriberQuotaUpdate_Type_VALID_QUOTA;
+}
 
 /*For 5G which doesn't have response context*/
 SessionState::SessionState(

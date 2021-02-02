@@ -54,7 +54,7 @@ func (a *accessdBlobstore) ListAllIdentity() ([]*protos.Identity, error) {
 	}
 	defer store.Rollback()
 
-	idHashes, err := store.ListKeys(placeholderNetworkID, AccessdDefaultType)
+	idHashes, err := blobstore.ListKeys(store, placeholderNetworkID, AccessdDefaultType)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list keys: %s", err)
 	}

@@ -344,6 +344,10 @@ export function PolicyProvider(props: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const networkType = networkCtx.networkType;
   const enqueueSnackbar = useEnqueueSnackbar();
+  let fegNetworkId = '';
+  if (networkType === FEG_LTE) {
+    fegNetworkId = lteNetworkCtx.state?.federation.feg_network_id;
+  }
 
   useEffect(() => {
     const fetchState = async () => {
@@ -360,18 +364,15 @@ export function PolicyProvider(props: Props) {
         setQosProfiles(
           await MagmaV1API.getLteByNetworkIdPolicyQosProfiles({networkId}),
         );
-        if (networkType === FEG_LTE) {
-          const fegNetworkId = lteNetworkCtx.state?.federation.feg_network_id;
-          if (fegNetworkId != null && fegNetworkId !== '') {
-            setFegNetwork(
-              await MagmaV1API.getFegByNetworkId({networkId: fegNetworkId}),
-            );
-            setFegPolicies(
-              await MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull({
-                networkId: fegNetworkId,
-              }),
-            );
-          }
+        if (fegNetworkId != null && fegNetworkId !== '') {
+          setFegNetwork(
+            await MagmaV1API.getFegByNetworkId({networkId: fegNetworkId}),
+          );
+          setFegPolicies(
+            await MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull({
+              networkId: fegNetworkId,
+            }),
+          );
         }
       } catch (e) {
         enqueueSnackbar?.('failed fetching policy information', {
@@ -381,7 +382,7 @@ export function PolicyProvider(props: Props) {
       setIsLoading(false);
     };
     fetchState();
-  }, [networkId, networkType, lteNetworkCtx, enqueueSnackbar]);
+  }, [networkId, fegNetworkId, networkType, enqueueSnackbar]);
 
   if (isLoading) {
     return <LoadingFiller />;

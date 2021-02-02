@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"magma/lte/cloud/go/lte"
-	ltePlugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -31,8 +30,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -57,8 +54,6 @@ func init() {
 }
 
 func TestListNetworks(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
@@ -89,8 +84,6 @@ func TestListNetworks(t *testing.T) {
 }
 
 func TestCreateNetwork(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
@@ -156,8 +149,6 @@ func TestCreateNetwork(t *testing.T) {
 }
 
 func TestGetNetwork(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
@@ -227,8 +218,6 @@ func TestGetNetwork(t *testing.T) {
 }
 
 func TestUpdateNetwork(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
@@ -350,8 +339,6 @@ func TestUpdateNetwork(t *testing.T) {
 }
 
 func TestDeleteNetwork(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
@@ -396,8 +383,6 @@ func TestDeleteNetwork(t *testing.T) {
 }
 
 func TestCellularPartialGet(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
@@ -520,8 +505,6 @@ func TestCellularPartialGet(t *testing.T) {
 }
 
 func TestCellularPartialUpdate(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
@@ -689,8 +672,6 @@ func TestCellularPartialUpdate(t *testing.T) {
 }
 
 func TestCellularDelete(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
@@ -717,8 +698,6 @@ func TestCellularDelete(t *testing.T) {
 }
 
 func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
@@ -790,8 +769,6 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 }
 
 func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
@@ -1013,8 +990,6 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 }
 
 func TestCreateGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -1209,8 +1184,6 @@ func TestCreateGateway(t *testing.T) {
 }
 
 func TestListAndGetGateways(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 
@@ -1416,8 +1389,6 @@ func TestListAndGetGateways(t *testing.T) {
 }
 
 func TestUpdateGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 
@@ -1567,8 +1538,6 @@ func TestUpdateGateway(t *testing.T) {
 }
 
 func TestDeleteGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 
@@ -1659,9 +1628,6 @@ func TestDeleteGateway(t *testing.T) {
 }
 
 func TestGetCellularGatewayConfig(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -1770,9 +1736,6 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 }
 
 func TestUpdateCellularGatewayConfig(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -2127,9 +2090,6 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 }
 
 func TestListAndGetEnodebs(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -2305,9 +2265,6 @@ func TestListAndGetEnodebs(t *testing.T) {
 }
 
 func TestCreateEnodeb(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -2465,9 +2422,6 @@ func TestCreateEnodeb(t *testing.T) {
 }
 
 func TestUpdateEnodeb(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -2653,9 +2607,6 @@ func TestUpdateEnodeb(t *testing.T) {
 }
 
 func TestDeleteEnodeb(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -2710,9 +2661,6 @@ func TestDeleteEnodeb(t *testing.T) {
 }
 
 func TestGetEnodebState(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2778,9 +2726,6 @@ func TestGetEnodebState(t *testing.T) {
 }
 
 func TestCreateApn(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -2816,9 +2761,6 @@ func TestCreateApn(t *testing.T) {
 }
 
 func TestListApns(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -2921,9 +2863,6 @@ func TestListApns(t *testing.T) {
 }
 
 func TestGetApn(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -2992,9 +2931,6 @@ func TestGetApn(t *testing.T) {
 }
 
 func TestUpdateApn(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -3080,9 +3016,6 @@ func TestUpdateApn(t *testing.T) {
 }
 
 func TestDeleteApn(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -3166,9 +3099,6 @@ func TestDeleteApn(t *testing.T) {
 }
 
 func TestAPNResource(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -3494,9 +3424,6 @@ func TestAPNResource(t *testing.T) {
 
 // Regression test for issue #3088
 func TestAPNResource_Regression_3088(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -3620,9 +3547,6 @@ func TestAPNResource_Regression_3088(t *testing.T) {
 
 // Regression test for issue #3149
 func TestAPNResource_Regression_3149(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -3841,8 +3765,6 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 }
 
 func TestHAGatewayPools(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -4205,6 +4127,13 @@ func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
 			CsfbRat:              swag.Uint32(0),
 			Arfcn2g:              []uint32{},
 			NonEpsServiceControl: swag.Uint32(0),
+		},
+		HeConfig: &lteModels.GatewayHeConfig{
+			EnableHeaderEnrichment: swag.Bool(true),
+			EnableEncryption:       swag.Bool(false),
+			HeEncryptionAlgorithm:  lteModels.GatewayHeConfigHeEncryptionAlgorithmRC4,
+			HeHashFunction:         lteModels.GatewayHeConfigHeHashFunctionMD5,
+			HeEncodingType:         lteModels.GatewayHeConfigHeEncodingTypeBASE64,
 		},
 	}
 }

@@ -13,6 +13,9 @@ If you want to install a specific release version, see the notes in the
 
 ## Prerequisites
 
+We assume `MAGMA_ROOT` is set as described in the
+[deployment intro](./deploy_intro.md).
+
 This walkthrough assumes you already have the following
 
 - a registered domain name
@@ -22,6 +25,9 @@ This walkthrough assumes you already have the following
 If your AWS account is not blank, this can cause errors while Terraforming.
 If you know what you're doing, this is fine - otherwise, consider signing up
 for a new account.
+
+Finally, our install process assumes the chosen region contains at least 3
+availability zones. This should be the case for all major regions.
 
 ## Assemble Certificates
 
@@ -50,7 +56,7 @@ If you aren't worried about a browser warning, you can generate self-signed
 versions of these certs
 
 ```bash
-MAGMA_ROOT/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
+${MAGMA_ROOT}/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
 ```
 
 Alternatively, if you already have these certs, rename and move them as follows
@@ -64,7 +70,7 @@ Next, with the domain certs placed in the correct directory, generate the
 application certs
 
 ```bash
-MAGMA_ROOT/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
+${MAGMA_ROOT}/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
 ```
 
 NOTE: `yourdomain.com` above should match the relevant Terraform variables in
@@ -232,15 +238,15 @@ Create the Orchestrator admin user with the `admin_operator` certificate
 created earlier
 
 ```bash
-export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
-kubectl exec ${CNTLR_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+export ORC_POD=$(kubectl get pod -l app.kubernetes.io/component=orchestrator -o jsonpath='{.items[0].metadata.name}')
+kubectl exec ${ORC_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
 
 If you want to verify the admin user was successfully created, inspect the
 output from
 
 ```bash
-$ kubectl exec ${CNTLR_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc list-certs
+$ kubectl exec ${ORC_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc list-certs
 
 # NOTE: actual values will differ
 Serial Number: 83550F07322CEDCD; Identity: Id_Operator_admin_operator; Not Before: 2020-06-26 22:39:55 +0000 UTC; Not After: 2030-06-24 22:39:55 +0000 UTC

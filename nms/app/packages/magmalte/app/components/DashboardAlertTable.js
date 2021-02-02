@@ -306,7 +306,7 @@ function AlertsTabbedTable(props: Props) {
                 style={{color: colors.alerts.severe}}
                 className={classes.tabIconLabel}
               />
-              {`Critical(${props.alerts['Major'].length})`}
+              {`Critical(${props.alerts['Critical'].length})`}
             </div>
           }
           className={classes.tab}

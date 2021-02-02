@@ -24,4 +24,12 @@ decide that you need to roll back your application. While the application
 components are stateless and can be upgraded or downgraded at any time, the
 data migrations that come with each release are not always reversible.
 
-If you are using local Terraform state (the default), ensure all Terraform state files (i.e. [`terraform.tfstate`](https://www.terraform.io/docs/state/index.html)) are located in your working directory before proceeding. This means `terraform show` should list existing state (rather than outputting `No state`).
+If you are using local Terraform state (the default), ensure all Terraform
+state files (i.e.
+[`terraform.tfstate`](https://www.terraform.io/docs/state/index.html)) are
+located in your working directory before proceeding. This means
+`terraform show` should list existing state (rather than outputting
+`No state`).
+
+Finally, we assume `MAGMA_ROOT` is set as described in the
+[deployment intro](./deploy_intro.md).

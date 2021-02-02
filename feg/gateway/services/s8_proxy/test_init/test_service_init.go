@@ -13,11 +13,11 @@ import (
 )
 
 // StartS8AndPGWService start both S8 proxy service and PGW (GTP service) for testing
-func StartS8AndPGWService(t *testing.T, clientAddr, serverAddr string) error {
+func StartS8AndPGWService(t *testing.T, clientAddr, serverAddr string) (*mock_pgw.MockPgw, error) {
 	// Start pgw and get the server address and real port
 	mockPgw, err := mock_pgw.NewStarted(nil, "", serverAddr)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// overwrite server Addrs to make sure we have the right port
 	serverAddr = mockPgw.LocalAddr().String()
@@ -38,17 +38,17 @@ func StartS8AndPGWService(t *testing.T, clientAddr, serverAddr string) error {
 	// load mconfig
 	err = mconfig.CreateLoadTempConfig(configStr)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	config := servicers.GetS8ProxyConfig()
 
 	// create and launch s8 Proxy
 	s8service, err := servicers.NewS8Proxy(config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.S8_PROXY)
 	protos.RegisterS8ProxyServer(srv.GrpcServer, s8service)
 	go srv.RunTest(lis)
-	return nil
+	return mockPgw, nil
 }

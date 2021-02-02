@@ -98,9 +98,6 @@ type TransactionalBlobStorage interface {
 	// rolling back has no effect and returns an error.
 	Rollback() error
 
-	// ListKeys returns all the blob keys stored for the network and type.
-	ListKeys(networkID string, typeVal string) ([]string, error)
-
 	// Get loads a specific blob from storage.
 	// If there is no blob matching the given ID, ErrNotFound from
 	// magma/orc8r/lib/go/errors will be returned.
@@ -151,6 +148,17 @@ func GetAllOfType(store TransactionalBlobStorage, networkID, typ string) (Blobs,
 	}
 
 	return blobsByNetwork[networkID], nil
+}
+
+func ListKeys(store TransactionalBlobStorage, networkID string, typ string) ([]string, error) {
+	filter := CreateSearchFilter(&networkID, []string{typ}, nil, nil)
+	criteria := LoadCriteria{LoadValue: false}
+
+	networkBlobs, err := store.Search(filter, criteria)
+	if err != nil {
+		return nil, err
+	}
+	return networkBlobs[networkID].Keys(), nil
 }
 
 // ListKeysByNetwork returns all blob keys, keyed by network ID.

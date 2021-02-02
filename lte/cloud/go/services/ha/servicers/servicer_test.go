@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"magma/lte/cloud/go/lte"
-	lte_plugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/ha/servicers"
@@ -28,8 +27,6 @@ import (
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -49,8 +46,6 @@ func init() {
 }
 
 func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 	configurator_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
 	lte_test_init.StartTestService(t)

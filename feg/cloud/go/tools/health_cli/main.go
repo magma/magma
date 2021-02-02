@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"magma/feg/cloud/go/services/health"
-	"magma/orc8r/cloud/go/plugin"
 )
 
 func main() {
@@ -41,8 +40,6 @@ func main() {
 	}
 	// parse command line inputs
 	flag.Parse()
-
-	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 
 	// print usage if requested or if required arguments are not provided
 	if *helpPtr || *cmdPtr == "" {

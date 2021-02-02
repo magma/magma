@@ -924,6 +924,7 @@ void emm_init_context(
     esm_init_context(&emm_ctx->esm_ctx);
   }
   emm_ctx->emm_procedures = NULL;
+  emm_ctx->esm_msg        = NULL;
 }
 
 //------------------------------------------------------------------------------

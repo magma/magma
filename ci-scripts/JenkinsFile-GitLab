@@ -50,6 +50,11 @@ pipeline {
       steps {
         script {
           cleanWs()
+          sh "docker system prune -f"
+          echo "Purge old vagrant boxes"
+          sh "sudo vagrant box prune --force"
+          sh "sudo chown -R jenkins:libvirt ~jenkins/.vagrant.d"
+          
           JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
           JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
 
@@ -166,6 +171,9 @@ pipeline {
                 } catch (Exception e) {
                   echo "It should not fail here but we still go on"
                 }
+                
+                sh ('sudo chown -R jenkins:libvirt .cache' )
+
                 timeout (time: 120, unit: 'MINUTES') {
                   // removing the magma/.cache/gateway folder will slow down build from 3 minutes to 27 minutes
                   myShCmdWithLog('''cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make run "''', 'archives/magma_vagrant_make_run.log')

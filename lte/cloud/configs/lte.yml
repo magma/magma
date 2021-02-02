@@ -125,6 +125,7 @@ analytics:
     enodeb_connected:
       register: false
       export: true
+      enforceMinUserThreshold: true
       labels:
         class: site
 

@@ -19,21 +19,17 @@ import (
 	"time"
 
 	"magma/feg/cloud/go/feg"
-	plugin2 "magma/feg/cloud/go/plugin"
 	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/handlers"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	healthTestInit "magma/feg/cloud/go/services/health/test_init"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/lte/cloud/go/lte"
-	plugin3 "magma/lte/cloud/go/plugin"
 	models3 "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
@@ -49,8 +45,6 @@ import (
 )
 
 func TestFederationNetworks(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	testHealthServicer, err := healthTestInit.StartTestService(t)
@@ -262,8 +256,6 @@ func TestFederationNetworks(t *testing.T) {
 }
 
 func TestFederationGateways(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 	configuratorTestInit.StartTestService(t)
@@ -480,9 +472,6 @@ func TestFederationGateways(t *testing.T) {
 }
 
 func TestFederatedLteNetworks(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin3.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 

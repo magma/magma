@@ -17,14 +17,12 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -38,7 +36,6 @@ import (
 )
 
 func TestSubscriberdbStreamer(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 

@@ -73,14 +73,6 @@ type entStorage struct {
 	*ent.Tx
 }
 
-func (e *entStorage) ListKeys(networkID string, typ string) ([]string, error) {
-	ctx := context.Background()
-	return e.Blob.Query().
-		Where(blob.NetworkID(networkID), blob.Type(typ)).
-		Select(blob.FieldKey).
-		Strings(ctx)
-}
-
 func (e *entStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
 	blobs, err := e.GetMany(networkID, []storage.TypeAndKey{id})
 	if err != nil {

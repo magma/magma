@@ -418,12 +418,7 @@ class TestWrapper(object):
         self._sub_util.cleanup()
         self._trf_util.cleanup()
         self._mobility_util.cleanup()
-
-        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        state_cli_cmd = "state_cli.py keys IMSI*"
-        redis_state = self._magmad_util.exec_command_output(
-                magtivate_cmd + " && " + state_cli_cmd)
-        print("Redis state is [\n", redis_state, "]")
+        self._magmad_util.print_redis_state()
 
         # Cloud cleanup needs to happen after cleanup for
         # subscriber util and mobility util

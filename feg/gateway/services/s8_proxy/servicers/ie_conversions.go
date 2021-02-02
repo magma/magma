@@ -14,12 +14,10 @@ limitations under the License.
 package servicers
 
 import (
-	"net"
-
-	"magma/feg/cloud/go/protos"
-
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/gtp"
 )
 
 type SessionFTeids struct {
@@ -27,12 +25,13 @@ type SessionFTeids struct {
 	uFTeid *ie.IE
 }
 
-func buildCreateSessionRequestIE(req *protos.CreateSessionRequestPgw, conn *gtpv2.Conn, s8IpAddr net.Addr) ([]*ie.IE, SessionFTeids) {
+// buildCreateSessionRequestIE creates a slice with all the IE needed for a Create Session Request
+func buildCreateSessionRequestIE(req *protos.CreateSessionRequestPgw, gtpCli *gtp.Client) ([]*ie.IE, SessionFTeids, error) {
 	// cTEID will be managed by s8_proxy
-	cFTeid := conn.NewSenderFTEID(s8IpAddr.String(), "")
+	cFTeid := gtpCli.Conn.NewSenderFTEID(gtpCli.GetServerAddress().String(), "")
 
 	// uTEID will be given by MME (managed by MME)
-	uFteidReq := req.BearerContext.GetAgwUserPlaneFteid()
+	uFteidReq := req.BearerContext.GetUserPlaneFteid()
 	uFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU,
 		uFteidReq.Teid, uFteidReq.Ipv6Address, uFteidReq.Ipv6Address)
 
@@ -41,19 +40,18 @@ func buildCreateSessionRequestIE(req *protos.CreateSessionRequestPgw, conn *gtpv
 	ieQos := ie.NewBearerQoS(uint8(qos.Pci), uint8(qos.PriorityLevel), uint8(qos.PreemptionVulnerability),
 		uint8(qos.Qci), qos.Mbr.BrUl, qos.Mbr.BrDl, qos.Gbr.BrUl, qos.Gbr.BrDl)
 
-	bearer := ie.NewBearerContext(ie.NewEPSBearerID(uint8(req.BearerContext.Id)), uFTeid, ieQos)
-	userLoc := getUserLocationIndication(req)
-	pdnAllocation := getPDNAddressAllocation(req)
+	// bearer
+	bearerId := ie.NewEPSBearerID(uint8(req.BearerContext.Id))
+	bearer := ie.NewBearerContext(bearerId, uFTeid, ieQos)
 
-	// TODO: indication flag
 	// TODO: set apn restriction
 
 	return []*ie.IE{
 		ie.NewIMSI(req.GetImsi()),
-		userLoc,
 		bearer,
-		pdnAllocation,
 		cFTeid,
+		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
+		getPDNAddressAllocation(req),
 		ie.NewMSISDN(string(req.Msisdn[:])),
 		ie.NewMobileEquipmentIdentity(req.Mei),
 		ie.NewServingNetwork(req.ServingNetwork.Mcc, req.ServingNetwork.Mnc),
@@ -61,9 +59,26 @@ func buildCreateSessionRequestIE(req *protos.CreateSessionRequestPgw, conn *gtpv
 		ie.NewAccessPointName(req.Apn),
 		// TODO: selection mode (hadcoded for now)
 		ie.NewSelectionMode(gtpv2.SelectionModeMSorNetworkProvidedAPNSubscribedVerified),
+		// TODO: hardcoded indication flags
+		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 		ie.NewPDNType(uint8(req.PdnType)),
 		ie.NewAggregateMaximumBitRate(uint32(req.Ambr.BrUl), uint32(req.Ambr.BrDl)),
-	}, SessionFTeids{cFTeid, uFTeid}
+	}, SessionFTeids{cFTeid, uFTeid}, nil
+}
+
+// buildModifyBearerRequest creates a slice with all the IE needed for a Modify Bearer Request
+func buildModifyBearerRequest(req *protos.ModifyBearerRequestPgw, bearerId uint8) []*ie.IE {
+
+	// User Plane enb TEID will be given by MME
+	enbUFteidReq := req.GetEnbFteid()
+	enbUFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS1UeNodeBGTPU,
+		enbUFteidReq.Teid, enbUFteidReq.Ipv6Address, enbUFteidReq.Ipv6Address)
+
+	return []*ie.IE{
+		// TODO: hardcoded indication flags
+		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+		ie.NewBearerContext(ie.NewEPSBearerID(bearerId), enbUFTeid),
+	}
 }
 
 func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
@@ -80,11 +95,7 @@ func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
 	return res
 }
 
-func getUserLocationIndication(req *protos.CreateSessionRequestPgw) *ie.IE {
-	mcc := req.ServingNetwork.Mcc
-	mnc := req.ServingNetwork.Mnc
-	uliReq := req.GetUli()
-
+func getUserLocationIndication(mcc, mnc string, uli *protos.UserLocationInformation) *ie.IE {
 	var (
 		cgi    *ie.CGI    = nil
 		sai    *ie.SAI    = nil
@@ -96,29 +107,29 @@ func getUserLocationIndication(req *protos.CreateSessionRequestPgw) *ie.IE {
 		emenbi *ie.EMENBI = nil
 	)
 
-	if uliReq.Lac != 0 && uliReq.Ci != 0 {
-		cgi = ie.NewCGI(mcc, mnc, uint16(uliReq.Lac), uint16(uliReq.Ci))
+	if uli.Lac != 0 && uli.Ci != 0 {
+		cgi = ie.NewCGI(mcc, mnc, uint16(uli.Lac), uint16(uli.Ci))
 	}
-	if uliReq.Lac != 0 && uliReq.Sac != 0 {
-		sai = ie.NewSAI(mcc, mnc, uint16(uliReq.Lac), uint16(uliReq.Sac))
+	if uli.Lac != 0 && uli.Sac != 0 {
+		sai = ie.NewSAI(mcc, mnc, uint16(uli.Lac), uint16(uli.Sac))
 	}
-	if uliReq.Lac != 0 && uliReq.Rac != 0 {
-		rai = ie.NewRAI(mcc, mnc, uint16(uliReq.Lac), uint16(uliReq.Rac))
+	if uli.Lac != 0 && uli.Rac != 0 {
+		rai = ie.NewRAI(mcc, mnc, uint16(uli.Lac), uint16(uli.Rac))
 	}
-	if uliReq.Tac != 0 {
-		tai = ie.NewTAI(mcc, mnc, uint16(uliReq.Tac))
+	if uli.Tac != 0 {
+		tai = ie.NewTAI(mcc, mnc, uint16(uli.Tac))
 	}
-	if uliReq.Eci != 0 {
-		ecgi = ie.NewECGI(mcc, mnc, uliReq.Eci)
+	if uli.Eci != 0 {
+		ecgi = ie.NewECGI(mcc, mnc, uli.Eci)
 	}
-	if uliReq.Lac != 0 {
-		lai = ie.NewLAI(mcc, mnc, uint16(uliReq.Lac))
+	if uli.Lac != 0 {
+		lai = ie.NewLAI(mcc, mnc, uint16(uli.Lac))
 	}
-	if uliReq.MeNbi != 0 {
-		menbi = ie.NewMENBI(mcc, mnc, uliReq.MeNbi)
+	if uli.MeNbi != 0 {
+		menbi = ie.NewMENBI(mcc, mnc, uli.MeNbi)
 	}
-	if uliReq.EMeNbi != 0 {
-		emenbi = ie.NewEMENBI(mcc, mnc, uliReq.EMeNbi)
+	if uli.EMeNbi != 0 {
+		emenbi = ie.NewEMENBI(mcc, mnc, uli.EMeNbi)
 	}
 	return ie.NewUserLocationInformationStruct(cgi, sai, rai, tai, ecgi, lai, menbi, emenbi)
 }

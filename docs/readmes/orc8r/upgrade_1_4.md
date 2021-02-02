@@ -23,8 +23,7 @@ documentation.
 
 If you are using local Terraform state (the default), ensure all Terraform
 state files are located in your working directory before proceeding. This means
- `terraform show` should list existing state, rather than outputting
- `No state`.
+`terraform show` should list existing state, rather than outputting `No state`.
 
 ## Upgrade Terraform modules
 
@@ -33,7 +32,7 @@ Terraform module to point to this release's modules and bump chart and
 container versions
 
 ```hcl-terraform
-# this will likely be found in 'main.tf'
+# This will likely be found in main.tf
 
 module orc8r {
   source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.4"
@@ -44,8 +43,8 @@ module orc8r-app {
   source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.4"
   # ...
   orc8r_chart_version   = "1.5.8"
-  orc8r_tag             = "MAGMA_TAG"       # from build step, e.g. v1.4.0
-  orc8r_deployment_type = DEPLOYMENT_TYPE   # valid options are: ["fwa", "federated_fwa", "all"]
+  orc8r_tag             = "MAGMA_TAG"  # from build step, e.g. v1.4.0
+  orc8r_deployment_type = "fwa"        # valid options: ["fwa", "federated_fwa", "all"]
 }
 ```
 

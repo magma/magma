@@ -17,7 +17,6 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -25,7 +24,6 @@ import (
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/policydb/streamer"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -39,7 +37,6 @@ import (
 )
 
 func TestRatingGroupStreamers(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
@@ -116,7 +113,6 @@ func TestRatingGroupStreamers(t *testing.T) {
 }
 
 func TestPolicyStreamers(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
@@ -329,7 +325,6 @@ func TestPolicyStreamers(t *testing.T) {
 }
 
 func TestApnRuleMappingsProvider(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
@@ -477,7 +472,6 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 }
 
 func TestNetworkWideRulesProvider(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 

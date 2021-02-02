@@ -429,7 +429,7 @@ class IPAddressManager:
 
             # Set timer for the next round of recycling
             self._recycle_timer = None
-            if self._store.ip_state_map.get_ip_count(IPState.RELEASED):
+            if not self._store.ip_state_map.is_ip_state_map_empty(IPState.RELEASED):
                 self._try_set_recycle_timer()
 
     def _try_set_recycle_timer(self):

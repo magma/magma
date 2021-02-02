@@ -167,6 +167,7 @@ def sctpd_pre_start():
 def sctpd_post_start():
     subprocess.Popen("/bin/systemctl start magma@mme".split())
     subprocess.Popen("/bin/systemctl start magma@pipelined".split())
+    subprocess.Popen("/bin/systemctl start magma@envoy_controller".split())
     subprocess.Popen("/bin/systemctl start magma@sessiond".split())
     subprocess.Popen("/bin/systemctl start magma@mobilityd".split())
     sys.exit(0)

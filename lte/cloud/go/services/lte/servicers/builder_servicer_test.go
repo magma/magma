@@ -17,15 +17,12 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/serdes"
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -39,8 +36,6 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 	lte_test_init.StartTestService(t)
 
 	nw := configurator.Network{
@@ -193,8 +188,6 @@ func TestBuilder_Build(t *testing.T) {
 }
 
 func TestBuilder_Build_NonNat(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 	lte_test_init.StartTestService(t)
 
 	// No dnsd config, no enodebs
@@ -449,8 +442,6 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 }
 
 func TestBuilder_Build_BaseCase(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 	lte_test_init.StartTestService(t)
 
 	// No dnsd config, no enodebs
@@ -467,8 +458,8 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		},
 	}
 	heConfig := &lte_models.GatewayHeConfig{
-		EnableHeaderEnrichment: true,
-		EnableEncryption:       true,
+		EnableHeaderEnrichment: swag.Bool(true),
+		EnableEncryption:       swag.Bool(true),
 		HeEncryptionAlgorithm:  "RC4",
 		HeHashFunction:         "MD5",
 		HeEncodingType:         "BASE64",
@@ -576,8 +567,6 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 
 // Minimal configuration of enodeB, inherit rest of props from nw/gw configs
 func TestBuilder_BuildInheritedProperties(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 	lte_test_init.StartTestService(t)
 
 	nw := configurator.Network{
@@ -714,8 +703,6 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 }
 
 func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 	lte_test_init.StartTestService(t)
 
 	nw := configurator.Network{
@@ -839,8 +826,6 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 }
 
 func TestBuilder_Build_MMEPool(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 	lte_test_init.StartTestService(t)
 
 	nw := configurator.Network{

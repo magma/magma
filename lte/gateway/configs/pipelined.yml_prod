@@ -65,7 +65,7 @@ meter:
   idle_timeout: 0
 
 enforcement:
-  poll_interval: 2
+  poll_interval: 10
   default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 dpi:
@@ -127,6 +127,9 @@ redis_enabled: true
 
 # Logs grpc payload content
 magma_print_grpc_payload: false
+
+# MTR iface
+mtr_interface: mtr0
 
 ###############
 ## IMPORTANT ##

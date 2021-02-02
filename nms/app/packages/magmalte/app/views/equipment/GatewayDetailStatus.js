@@ -44,7 +44,7 @@ export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
     refresh: refresh,
   });
   const gwInfo = state[gatewayId];
-  let checkInTime = new Date(0);
+  let checkInTime;
   if (
     gwInfo.status &&
     gwInfo.status.checkin_time !== undefined &&
@@ -93,7 +93,7 @@ export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
       },
       {
         category: 'Last Check in',
-        value: checkInTime.toLocaleString(),
+        value: checkInTime?.toLocaleString() ?? '-',
         statusCircle: false,
       },
       {

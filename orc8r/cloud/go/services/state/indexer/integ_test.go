@@ -26,8 +26,6 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -125,7 +123,6 @@ func TestStateIndexing(t *testing.T) {
 }
 
 func initTestServices(t *testing.T, dbName string) (reindex.Reindexer, reindex.JobQueue) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 	indexer.DeregisterAllForTest(t)
 
 	device_test_init.StartTestService(t)

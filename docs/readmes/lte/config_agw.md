@@ -51,6 +51,8 @@ cloud_address: controller.yourdomain.com
 cloud_port: 443
 bootstrap_address: bootstrapper-controller.yourdomain.com
 bootstrap_port: 443
+fluentd_address: fluentd.yourdomain.com
+fluentd_port: 24224
 
 rootca_cert: /var/opt/magma/tmp/certs/rootCA.pem
 ```

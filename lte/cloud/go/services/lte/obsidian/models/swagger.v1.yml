@@ -2062,13 +2062,10 @@ definitions:
       enable_header_enrichment:
         description: True if header enrichment feature should be disabled for gateway
         type: boolean
-        example: false
-        x-nullable: false
-        default: true
+        example: true
       enable_encryption:
         description: True if headers should be encrypted
         type: boolean
-        x-nullable: false
         example: true
       encryption_key:
         description: Key to be used in header encryption
