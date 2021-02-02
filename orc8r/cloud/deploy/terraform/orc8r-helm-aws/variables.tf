@@ -240,6 +240,24 @@ variable "elasticsearch_retention_days" {
   default     = 7
 }
 
+variable "elasticsearch_port" {
+  description = "Port Elastic search is listening."
+  type        = number
+  default     = 443
+}
+
+variable "elasticsearch_use_ssl" {
+  description = "Defines if elasicsearch curator should speak to ELK HTTP or HTTPS."
+  type        = string
+  default     = "True"
+}
+
+variable "elasticsearch_curator_log_level" {
+  description = "Defines Elasticsearch curator logging level."
+  type        = string
+  default     = "INFO"
+}
+
 ##############################################################################
 # Secret configuration and values
 ##############################################################################
