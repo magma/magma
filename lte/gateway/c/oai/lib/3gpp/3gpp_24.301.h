@@ -196,9 +196,40 @@ typedef struct ue_network_capability_s {
   /* NF notification procedure capability */
 #define UE_NETWORK_CAPABILITY_NF 1
   uint8_t nf : 1;
+
+  /* Bits 8 to 6 of octet 7 are spare and shall be coded as zero */
+  /* S1-U data transfer enabled */
+#define UE_NETWORK_CAPABILITY_S1UDATA 1
+  uint8_t s1udata : 1;
+  /* User plane CIoT EPS Optimization */
+#define UE_NETWORK_CAPABILITY_UPCIOT 1
+  uint8_t upciot : 1;
+  /* Control plane CIoT EPS Optimization */
+#define UE_NETWORK_CAPABILITY_CPCIOT 1
+  uint8_t cpciot : 1;
+  /* ProSe UE-to-network-relay */
+#define UE_NETWORK_CAPABILITY_PROSERELAY 1
+  uint8_t proserelay : 1;
+  /* ProSe direct communication */
+#define UE_NETWORK_CAPABILITY_PROSEDC 1
+  uint8_t prosedc : 1;
+
+  /* Bits 8 to 6 of octet 7 are spare and shall be coded as zero */
   /* DCNR notification flag */
-#define UE_NETWORK_DCNR 1
+#define UE_NETWORK_CAPABILITY_DCNR 1
   uint8_t dcnr : 1;
+  /* Control Plane data backoff support*/
+#define UE_NETWORK_CAPABILITY_CPBACKOFF 1
+  uint8_t cpbackoff : 1;
+  /* Restriction o nuse of enhanced coversage support */
+#define UE_NETWORK_CAPABILITY_RESTRICTEC 1
+  uint8_t restrictec : 1;
+  /* V2X communication ovre PC5 */
+#define UE_NETWORK_CAPABILITY_V2XPC5 1
+  uint8_t v2xpc5 : 1;
+  /* Multiple DRB support */
+#define UE_NETWORK_CAPABILITY_MULTIPLEDRB 1
+  uint8_t multipledrb : 1;
 
   bool umts_present;
   bool misc_present;
@@ -209,26 +240,6 @@ typedef struct ue_network_capability_s {
 #define UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH 7
 
 typedef struct ue_security_capability_s {
-/* NR encryption algorithms supported (octet 1) */
-#define UE_SECURITY_CAPABILITY_NEA0 0b10000000
-#define UE_SECURITY_CAPABILITY_NEA1 0b01000000
-#define UE_SECURITY_CAPABILITY_NEA2 0b00100000
-#define UE_SECURITY_CAPABILITY_NEA3 0b00010000
-#define UE_SECURITY_CAPABILITY_NEA4 0b00001000
-#define UE_SECURITY_CAPABILITY_NEA5 0b00000100
-#define UE_SECURITY_CAPABILITY_NEA6 0b00000010
-#define UE_SECURITY_CAPABILITY_NEA7 0b00000001
-  uint8_t nea;
-  /* NR integrity algorithms supported (octet 2) */
-#define UE_SECURITY_CAPABILITY_NIA0 0b10000000
-#define UE_SECURITY_CAPABILITY_NIA1 0b01000000
-#define UE_SECURITY_CAPABILITY_NIA2 0b00100000
-#define UE_SECURITY_CAPABILITY_NIA3 0b00010000
-#define UE_SECURITY_CAPABILITY_NIA4 0b00001000
-#define UE_SECURITY_CAPABILITY_NIA5 0b00000100
-#define UE_SECURITY_CAPABILITY_NIA6 0b00000010
-#define UE_SECURITY_CAPABILITY_NIA7 0b00000001
-  uint8_t nia;
 /* EPS encryption algorithms supported (octet 3) */
 #define UE_SECURITY_CAPABILITY_EEA0 0b10000000
 #define UE_SECURITY_CAPABILITY_EEA1 0b01000000
@@ -249,7 +260,6 @@ typedef struct ue_security_capability_s {
 #define UE_SECURITY_CAPABILITY_EIA6 0b00000010
 #define UE_SECURITY_CAPABILITY_EIA7 0b00000001
   uint8_t eia;
-  bool nr_present;
   bool umts_present;
   bool gprs_present;
   /* UMTS encryption algorithms supported (octet 5) */
@@ -281,6 +291,34 @@ typedef struct ue_security_capability_s {
 #define UE_SECURITY_CAPABILITY_GEA7 0b00000001
   uint8_t gea : 7;
 } ue_security_capability_t;
+
+// 9.2.1.127 NR UE security capability
+#define NR_UE_SECURITY_CAPABILITY_MINIMUM_LENGTH 4
+#define NR_UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH 7
+
+typedef struct nr_ue_security_capability_s {
+/* NR encryption algorithms supported (octet 1) */
+#define UE_SECURITY_CAPABILITY_NEA0 0b10000000
+#define UE_SECURITY_CAPABILITY_NEA1 0b01000000
+#define UE_SECURITY_CAPABILITY_NEA2 0b00100000
+#define UE_SECURITY_CAPABILITY_NEA3 0b00010000
+#define UE_SECURITY_CAPABILITY_NEA4 0b00001000
+#define UE_SECURITY_CAPABILITY_NEA5 0b00000100
+#define UE_SECURITY_CAPABILITY_NEA6 0b00000010
+#define UE_SECURITY_CAPABILITY_NEA7 0b00000001
+  uint8_t nea;
+  /* NR integrity algorithms supported (octet 2) */
+#define UE_SECURITY_CAPABILITY_NIA0 0b10000000
+#define UE_SECURITY_CAPABILITY_NIA1 0b01000000
+#define UE_SECURITY_CAPABILITY_NIA2 0b00100000
+#define UE_SECURITY_CAPABILITY_NIA3 0b00010000
+#define UE_SECURITY_CAPABILITY_NIA4 0b00001000
+#define UE_SECURITY_CAPABILITY_NIA5 0b00000100
+#define UE_SECURITY_CAPABILITY_NIA6 0b00000010
+#define UE_SECURITY_CAPABILITY_NIA7 0b00000001
+  uint8_t nia;
+  bool nr_present;
+} nr_ue_security_capability_t;
 
 //------------------------------------------------------------------------------
 // 10.2 Timers of EPS mobility management

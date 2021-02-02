@@ -69,10 +69,35 @@ int decode_ue_network_capability(
         decoded++;
         uenetworkcapability->misc_present = 1;
         OAILOG_TRACE(LOG_NAS_EMM, "uenetworkcapability decoded misc flags\n");
+
+        if (ielen > 5) {
+          uenetworkcapability->spare      = (*(buffer + decoded) >> 5) & 0x7;
+          uenetworkcapability->s1udata    = (*(buffer + decoded) >> 4) & 0x1;
+          uenetworkcapability->upciot     = (*(buffer + decoded) >> 3) & 0x1;
+          uenetworkcapability->cpciot     = (*(buffer + decoded) >> 2) & 0x1;
+          uenetworkcapability->proserelay = (*(buffer + decoded) >> 1) & 0x1;
+          uenetworkcapability->prosedc    = *(buffer + decoded) & 0x1;
+          decoded++;
+          OAILOG_TRACE(LOG_NAS_EMM, "uenetworkcapability decoded misc flags\n");
+
+          if (ielen > 6) {
+            uenetworkcapability->spare       = (*(buffer + decoded) >> 5) & 0x7;
+            uenetworkcapability->dcnr        = (*(buffer + decoded) >> 4) & 0x1;
+            uenetworkcapability->cpbackoff   = (*(buffer + decoded) >> 3) & 0x1;
+            uenetworkcapability->restrictec  = (*(buffer + decoded) >> 2) & 0x1;
+            uenetworkcapability->v2xpc5      = (*(buffer + decoded) >> 1) & 0x1;
+            uenetworkcapability->multipledrb = *(buffer + decoded) & 0x1;
+            decoded++;
+
+            OAILOG_TRACE(
+                LOG_NAS_EMM, "uenetworkcapability decoded misc flags\n");
+          }
+        }
       }
     }
   }
 
+  OAILOG_DEBUG(LOG_NAS_EMM, "    EN_DC value %d \n", uenetworkcapability->dcnr);
   OAILOG_TRACE(LOG_NAS_EMM, "uenetworkcapability decoded=%u\n", decoded);
 
   if ((ielen + 2) != decoded) {
@@ -130,6 +155,25 @@ int encode_ue_network_capability(
         LOG_NAS_EMM, "uenetworkcapability encoded misc flags %u\n", encoded);
   }
 
+  *(buffer + encoded) =
+      ((uenetworkcapability->spare & 0x7) << 5) |  // spare coded as zero
+      ((uenetworkcapability->s1udata & 0x1) << 4) |
+      ((uenetworkcapability->upciot & 0x1) << 3) |
+      ((uenetworkcapability->cpciot & 0x1) << 2) |
+      ((uenetworkcapability->proserelay & 0x1) << 1) |
+      (uenetworkcapability->prosedc & 0x1);
+  encoded++;
+
+  *(buffer + encoded) =
+      ((uenetworkcapability->spare & 0x7) << 5) |  // spare coded as zero
+      ((uenetworkcapability->dcnr & 0x1) << 4) |
+      ((uenetworkcapability->cpbackoff & 0x1) << 3) |
+      ((uenetworkcapability->restrictec & 0x1) << 2) |
+      ((uenetworkcapability->v2xpc5 & 0x1) << 1) |
+      (uenetworkcapability->multipledrb & 0x1);
+  encoded++;
+
+  OAILOG_DEBUG(LOG_NAS_EMM, "    EN_DC value %d \n", uenetworkcapability->dcnr);
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
   return encoded;
 }

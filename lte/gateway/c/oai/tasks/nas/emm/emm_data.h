@@ -237,6 +237,7 @@ typedef struct emm_context_s {
   ksi_t ksi;            /*key set identifier  */
   ue_network_capability_t _ue_network_capability;
   ms_network_capability_t _ms_network_capability;
+  nr_ue_security_capability_t _nr_ue_security_capability;
   drx_parameter_t _drx_parameter;
 
   int remaining_vectors;                       // remaining unused vectors

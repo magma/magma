@@ -134,6 +134,7 @@ set(libnas_ies_OBJS
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeNetworkCapability.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeRadioCapabilityInformationUpdateNeeded.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeSecurityCapability.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NrUeSecurityCapability.c
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/util)

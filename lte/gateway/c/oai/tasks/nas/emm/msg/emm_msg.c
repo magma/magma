@@ -141,6 +141,10 @@ int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
 
     case ATTACH_REQUEST:
       decode_result = decode_attach_request(&msg->attach_request, buffer, len);
+      OAILOG_DEBUG(
+          LOG_NAS_EMM, "    EN_DC value in Attach request in emm_msg %d \n",
+          msg->attach_request.uenetworkcapability.dcnr);
+
       break;
 
     case EMM_STATUS:

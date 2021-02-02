@@ -216,5 +216,20 @@ void dump_ms_network_capability_xml(
   OAILOG_DEBUG(
       LOG_NAS, "    <GERAN_NS>%01x<GERAN_NS/>\n",
       msnetworkcapability->geran_ns);
+  OAILOG_DEBUG(
+      LOG_NAS, "    <UP_INTEG_PROT_SUPPORT>%01x<UP_INTEG_PROT_SUPPORT/>\n",
+      msnetworkcapability->up_integ_prot_support);
+  OAILOG_DEBUG(LOG_NAS, "    <GIA4>%01x<GIA4/>\n", msnetworkcapability->gia4);
+  OAILOG_DEBUG(LOG_NAS, "    <GIA5>%01x<GIA5/>\n", msnetworkcapability->gia5);
+  OAILOG_DEBUG(LOG_NAS, "    <GIA6>%01x<GIA6/>\n", msnetworkcapability->gia6);
+  OAILOG_DEBUG(LOG_NAS, "    <GIA7>%01x<GIA7/>\n", msnetworkcapability->gia7);
+  OAILOG_DEBUG(
+      LOG_NAS, "    <EPCO_IE_IND>%01x<EPCO_IE_IND/>\n",
+      msnetworkcapability->epco_ie_ind);
+  OAILOG_DEBUG(
+      LOG_NAS, "    <REST_USE_ENHANC_COV_CAP>%01x<REST_USE_ENHANC_COV_CAP/>\n",
+      msnetworkcapability->rest_use_enhanc_cov_cap);
+  OAILOG_DEBUG(
+      LOG_NAS, "    <EN_DC>%01x<EN_DC/>\n", msnetworkcapability->en_dc);
   OAILOG_DEBUG(LOG_NAS, "</Ms Network Capability>\n");
 }
