@@ -25,7 +25,6 @@ import (
 	ctraced_storage "magma/orc8r/cloud/go/services/ctraced/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -37,8 +36,7 @@ func main() {
 		glog.Fatalf("Error creating ctraced service: %s", err)
 	}
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(ctraced.ServiceName), ctraced.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(ctraced.ServiceName))
 
 	// Init storage
 	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)

@@ -26,7 +26,6 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 	io_prometheus_client "github.com/prometheus/client_model/go"
@@ -51,8 +50,7 @@ func main() {
 	controllerServicer := servicers.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(metricsd.ServiceName), metricsd.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(metricsd.ServiceName))
 
 	// Initialize gatherers
 	additionalCollectors := []collection.MetricCollector{

@@ -32,8 +32,8 @@ var (
 	// configDir is where the per-service configuration files are stored
 	configDir         = "/etc/magma/configs"
 	oldConfigDir      = "/etc/magma"
-	configOverrideDir = "/var/opt/magma/configs/"
-	specDir           = "/etc/magma/configs/orc8r/specs/"
+	configOverrideDir = "/var/opt/magma/configs"
+	specDir           = "/etc/magma/configs/orc8r/swagger_specs"
 	cfgDirMu          sync.RWMutex
 )
 

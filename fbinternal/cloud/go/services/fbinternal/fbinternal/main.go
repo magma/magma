@@ -24,7 +24,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/definitions"
-	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
@@ -57,8 +56,7 @@ func main() {
 	)
 	protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(fbinternal_service.ServiceName), fbinternal_service.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(fbinternal_service.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

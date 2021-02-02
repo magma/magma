@@ -49,7 +49,7 @@ orc8r/cloud/test_certs/*.srl
 orc8r/cloud/test_certs/*.pfx
 
 # Ignore generated Swagger files
-orc8r/cloud/configs/specs
+orc8r/cloud/configs/swagger_specs
 
 # Ignore apt/build cache
 .cache/*

@@ -23,7 +23,6 @@ import (
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
-	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -38,8 +37,7 @@ func main() {
 
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(feg_service.ServiceName), feg_service.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(feg_service.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

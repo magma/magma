@@ -27,7 +27,6 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -54,8 +53,7 @@ func main() {
 	}
 	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(tenants.ServiceName), tenants.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(tenants.ServiceName))
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 

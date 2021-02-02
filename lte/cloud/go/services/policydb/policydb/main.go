@@ -23,7 +23,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -37,8 +36,7 @@ func main() {
 	assignmentServicer := servicers.NewPolicyAssignmentServer()
 	protos.RegisterPolicyAssignmentControllerServer(srv.GrpcServer, assignmentServicer)
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(policydb.ServiceName), policydb.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(policydb.ServiceName))
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	err = srv.Run()

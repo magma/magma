@@ -19,7 +19,6 @@ import (
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
-	"magma/orc8r/lib/go/service/config"
 	wifi_service "magma/wifi/cloud/go/services/wifi"
 	"magma/wifi/cloud/go/services/wifi/obsidian/handlers"
 	"magma/wifi/cloud/go/services/wifi/servicers"
@@ -38,8 +37,7 @@ func main() {
 
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(wifi_service.ServiceName), wifi_service.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(wifi_service.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

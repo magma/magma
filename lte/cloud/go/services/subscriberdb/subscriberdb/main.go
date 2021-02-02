@@ -28,7 +28,6 @@ import (
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -59,8 +58,7 @@ func main() {
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(subscriberdb.ServiceName), subscriberdb.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(subscriberdb.ServiceName))
 
 	// Run service
 	err = srv.Run()

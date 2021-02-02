@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -26,17 +27,21 @@ type specServicer struct {
 	spec string
 }
 
-func NewSpecServicerFromFile(path string, service string) protos.SwaggerSpecServer {
+// NewSpecServicerFromFile intializes a spec servicer
+// given a service name.
+func NewSpecServicerFromFile(service string) protos.SwaggerSpecServer {
+	path := config.GetSpecPath(service)
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		// We are swallowing this error because a singular service spec failure
-		// should not down the entire Swagger UI
+		// Swallowing ReadFile error because the service should
+		// continue to run even if it can't find its Swagger spec file.
 		glog.Errorf("Error retrieving Swagger Spec of service %s: %+v", service, err)
 		return NewSpecServicer("")
 	}
 	return NewSpecServicer(string(data))
 }
 
+// NewSpecServicer constructs a spec servicer.
 func NewSpecServicer(spec string) protos.SwaggerSpecServer {
 	return &specServicer{spec}
 }

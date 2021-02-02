@@ -50,8 +50,7 @@ func main() {
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(lte_service.ServiceName), lte_service.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(lte_service.ServiceName))
 
 	// Init storage
 	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)

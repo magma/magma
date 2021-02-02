@@ -30,22 +30,23 @@ var (
 	invalidPath      = "invalidPath"
 	testFile         = "test.swagger.v1.yml"
 	testFileContents = "test yaml spec"
+	tmpDir           = "/etc/magma/configs/orc8r/swagger_specs/"
 )
 
-func TestSpecServicer_NewSpecServicer(t *testing.T) {
+func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 	req := &swagger_protos.GetSpecRequest{}
 
-	dir, err := ioutil.TempDir("", "")
+	err := os.Mkdir(tmpDir, os.ModePerm)
 	assert.NoError(t, err)
 
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(tmpDir)
 
-	tmpSpecPath := filepath.Join(dir, testFile)
+	tmpSpecPath := filepath.Join(tmpDir, testFile)
 	err = ioutil.WriteFile(tmpSpecPath, []byte(testFileContents), 0644)
 	assert.NoError(t, err)
 
 	// Success
-	servicer := swagger.NewSpecServicerFromFile(tmpSpecPath, "testService")
+	servicer := swagger.NewSpecServicerFromFile("test")
 	assert.NoError(t, err)
 
 	res, err := servicer.GetSpec(context.Background(), req)

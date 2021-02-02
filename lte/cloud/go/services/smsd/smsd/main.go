@@ -26,7 +26,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -52,8 +51,7 @@ func main() {
 	obsidian.AttachHandlers(srv.EchoServer, restServicer.GetHandlers())
 	protos.RegisterSmsDServer(srv.GrpcServer, servicers.NewSMSDServicer(store, &sms_ll.DefaultSMSSerde{}))
 
-	specServicer := swagger.NewSpecServicerFromFile(config.GetSpecPath(smsd.ServiceName), smsd.ServiceName)
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, specServicer)
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(smsd.ServiceName))
 
 	err = srv.Run()
 	if err != nil {
