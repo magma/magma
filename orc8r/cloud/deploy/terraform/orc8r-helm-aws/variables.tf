@@ -164,14 +164,14 @@ variable "orc8r_deployment_type" {
       var.orc8r_deployment_type == "federated_fwa" ||
       var.orc8r_deployment_type == "all"
     )
-    error_message = "The orc8r_deployment_type value must be one of ['fwa', 'federated_fwa', 'all']"
+    error_message = "The orc8r_deployment_type value must be one of ['fwa', 'federated_fwa', 'all']."
   }
 }
 
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.8"
+  default     = "1.5.10"
 }
 
 variable "cwf_orc8r_chart_version" {
