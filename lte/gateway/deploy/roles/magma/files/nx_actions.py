@@ -215,8 +215,8 @@ def generate(ofp_name, ofpp_name):
         def serialize(self, buf, offset):
             data = self.serialize_body()
             payload_offset = (
-                ofp.OFP_ACTION_EXPERIMENTER_HEADER_SIZE +
-                struct.calcsize(NXAction._fmt_str)
+                    ofp.OFP_ACTION_EXPERIMENTER_HEADER_SIZE +
+                    struct.calcsize(NXAction._fmt_str)
             )
             self.len = utils.round_up(payload_offset + len(data), 8)
             super(NXAction, self).serialize(buf, offset)
