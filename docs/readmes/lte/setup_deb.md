@@ -45,10 +45,21 @@ installation process to get an IP using DHCP.
 
 ### 2. Deploy magma on the  AGW_HOST
 
+*Pre Install Check*
+
+Pre Install Check script provides information on the changes that will be made to the system
+by the AGW installation script.
+
 ```bash
-su
-wget https://raw.githubusercontent.com/facebookincubator/magma/v1.3/lte/gateway/deploy/agw_install.sh
-sh agw_install.sh
+cd ~/magma/lte/gateway/deploy
+./agw_pre_check.sh
+```
+
+*Run AGW installation*
+
+```bash
+cd ~/magma/lte/gateway/deploy
+./agw_install.sh
 ```
 
 The machine will reboot but It's not finished yet, the script is still running in the background.
@@ -64,7 +75,7 @@ When you see "AGW installation is done." It means that your AGW installation is 
 service magma@* status
 ```
 
-- Post Install Check
+*Post Install Check*
 
 ``` bash
 cd ~/magma/lte/gateway/deploy
