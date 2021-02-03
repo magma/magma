@@ -68,32 +68,31 @@ int pgw_process_pco_request_ipcp(
   in_addr_t ipcp_out_dns_prim_ipv4_addr      = INADDR_NONE;
   in_addr_t ipcp_out_dns_sec_ipv4_addr       = INADDR_NONE;
   pco_protocol_or_container_id_t poc_id_resp = {0};
-  size_t ipcp_req_remaining_length           = poc_id->length;
+  int16_t ipcp_req_remaining_length          = poc_id->length;
   size_t pco_in_index                        = 0;
 
-  uint8_t ipcp_req_code          = 0;
-  uint8_t ipcp_req_identifier    = 0;
-  uint16_t ipcp_req_length       = 0;
-  uint8_t ipcp_req_option        = 0;
-  uint8_t ipcp_req_option_length = 0;
+  int8_t ipcp_req_code       = 0;
+  int8_t ipcp_req_identifier = 0;
+  int16_t ipcp_req_length    = 0;
 
-  uint8_t ipcp_out_code    = 0;
-  uint16_t ipcp_out_length = 0;
+  uint8_t ipcp_req_option       = 0;
+  int8_t ipcp_req_option_length = 0;
+
+  int8_t ipcp_out_code    = 0;
+  int16_t ipcp_out_length = 0;
 
   OAILOG_DEBUG(
       LOG_SPGW_APP, "PCO: Protocol identifier IPCP length %u\n",
       poc_id->length);
 
-  ipcp_req_code = poc_id->contents->data[pco_in_index++];
-  UNUSED(ipcp_req_code);
+  ipcp_req_code       = poc_id->contents->data[pco_in_index++];
   ipcp_req_identifier = poc_id->contents->data[pco_in_index++];
-  ipcp_req_length = (((uint16_t) poc_id->contents->data[pco_in_index]) << 8) |
-                    ((uint16_t) poc_id->contents->data[pco_in_index + 1]);
-  UNUSED(ipcp_req_length);
+  ipcp_req_length = (((int16_t) poc_id->contents->data[pco_in_index]) << 8) |
+                    ((int16_t) poc_id->contents->data[pco_in_index + 1]);
   OAILOG_TRACE(
       LOG_SPGW_APP,
       "PCO: Protocol identifier IPCP (0x%x) code 0x%x identifier 0x%x length "
-      "%u\n",
+      "%i\n",
       poc_id->id, ipcp_req_code, ipcp_req_identifier, ipcp_req_length);
   pco_in_index += 2;
   ipcp_req_remaining_length = ipcp_req_remaining_length - 1 - 1 - 2;
@@ -113,8 +112,8 @@ int pgw_process_pco_request_ipcp(
         ipcp_req_remaining_length - ipcp_req_option_length;
     OAILOG_TRACE(
         LOG_SPGW_APP,
-        "PCO: Protocol identifier IPCP ipcp_option %u ipcp_option_length %u "
-        "ipcp_remaining_length %lu pco_in_index %lu\n",
+        "PCO: Protocol identifier IPCP ipcp_option %u ipcp_option_length %i "
+        "ipcp_remaining_length %i pco_in_index %lu\n",
         ipcp_req_option, ipcp_req_option_length, ipcp_req_remaining_length,
         pco_in_index);
 
@@ -133,7 +132,7 @@ int pgw_process_pco_request_ipcp(
             LOG_SPGW_APP,
             "PCO: Protocol identifier IPCP option "
             "PRIMARY_DNS_SERVER_IP_ADDRESS "
-            "length %u\n",
+            "length %i\n",
             ipcp_req_option_length);
         if (ipcp_req_option_length >= 6) {
           ipcp_dns_prim_ipv4_addr = htonl(
@@ -198,7 +197,7 @@ int pgw_process_pco_request_ipcp(
         OAILOG_DEBUG(
             LOG_SPGW_APP,
             "PCO: Protocol identifier IPCP option "
-            "SECONDARY_DNS_SERVER_IP_ADDRESS length %u\n",
+            "SECONDARY_DNS_SERVER_IP_ADDRESS length %i\n",
             ipcp_req_option_length);
 
         if (ipcp_req_option_length >= 6) {
