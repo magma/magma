@@ -34,12 +34,13 @@ var (
 )
 
 func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
+	os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir)
+
 	req := &swagger_protos.GetSpecRequest{}
 
 	err := os.Mkdir(tmpDir, os.ModePerm)
 	assert.NoError(t, err)
-
-	defer os.RemoveAll(tmpDir)
 
 	tmpSpecPath := filepath.Join(tmpDir, testFile)
 	err = ioutil.WriteFile(tmpSpecPath, []byte(testFileContents), 0644)
