@@ -1,0 +1,14 @@
+---
+
+- hosts: localhost
+  roles:
+    - devops-platform
+  vars_files:
+    - roles/vars/defaults.yaml
+    - roles/vars/cluster.yaml
+    - roles/vars/build.yaml
+    - "{{ dirLocalInventory }}/secrets.yaml"
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ awsAccessKey }}"
+    AWS_SECRET_ACCESS_KEY: "{{ awsSecretKey }}"
+    AWS_DEFAULT_REGION: "{{ awsAgwRegion }}"
