@@ -87,7 +87,10 @@ def clear_redis_state():
     redis_client = get_default_client()
     for key_regex in [
         "*_state",
-        "IMSI*",
+        "IMSI*MME",
+        "IMSI*S1AP",
+        "IMSI*SPGW",
+        "IMSI*mobilityd*",
         "mobilityd:assigned_ip_blocks",
         "mobilityd:ip_states:*",
         "NO_VLAN:mobilityd_gw_info",
