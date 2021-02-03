@@ -91,6 +91,7 @@
 #include "esm_data.h"
 #include "esm_sapDef.h"
 #include "esm_sap.h"
+#include "nas_proc.h"
 
 #include "AdditionalUpdateType.h"
 #include "EmmCause.h"
@@ -299,11 +300,7 @@ int emm_proc_attach_request(
        * This implies either UE or eNB has not sent S-TMSI in initial UE message
        * even though UE has old GUTI. Trigger clean up
        */
-      emm_sap_t emm_sap = {0};
-      emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
-      emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id =
-          guti_ue_mm_ctx->mme_ue_s1ap_id;
-      rc = emm_sap_send(&emm_sap);
+      nas_proc_implicit_detach_ue_ind(guti_ue_mm_ctx->mme_ue_s1ap_id);
     }
     // Allocate new context and process the new request as fresh attach request
     clear_emm_ctxt = true;
@@ -342,10 +339,7 @@ int emm_proc_attach_request(
                 ident_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
             // TODO Need to be reviewed and corrected
             // trigger clean up
-            memset(&emm_sap, 0, sizeof(emm_sap));
-            emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
-            emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = old_ue_id;
-            rc = emm_sap_send(&emm_sap);
+            nas_proc_implicit_detach_ue_ind(old_ue_id);
             // Allocate new context and process the new request as fresh attach
             // request
             clear_emm_ctxt = true;
@@ -363,20 +357,24 @@ int emm_proc_attach_request(
       if (EMM_REGISTERED == fsm_state) {
         REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_f);
         if (imsi_ue_mm_ctx->emm_context.is_attached) {
-          OAILOG_TRACE(
+          OAILOG_INFO(
               LOG_NAS_EMM,
               "EMM-PROC  - the new ATTACH REQUEST is progressed\n");
+          // process the new request as fresh attach request
+          imsi_ue_mm_ctx->emm_context.new_attach_info =
+              calloc(1, sizeof(new_attach_info_t));
+          imsi_ue_mm_ctx->emm_context.new_attach_info->mme_ue_s1ap_id =
+              ue_mm_context->mme_ue_s1ap_id;
+          imsi_ue_mm_ctx->emm_context.new_attach_info->ies = ies;
+          imsi_ue_mm_ctx->emm_context.new_attach_info->is_mm_ctx_new =
+              is_mm_ctx_new;
           // Trigger clean up
-          emm_sap_t emm_sap = {0};
-          emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
-          emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = old_ue_id;
-          rc = emm_sap_send(&emm_sap);
-          // Allocate new context and process the new request as fresh attach
-          // request
-          clear_emm_ctxt = true;
+          nas_proc_implicit_detach_ue_ind(old_ue_id);
+
           increment_counter(
               "duplicate_attach_request", 1, 1, "action",
               "processed_old_ctxt_cleanup");
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       } else if (
           (attach_proc) &&
@@ -393,25 +391,22 @@ int emm_proc_attach_request(
           /*
            * If one or more of the information elements in the ATTACH REQUEST
            * message differ from the ones received within the previous ATTACH
-           * REQUEST message, the previously initiated attach procedure shall be
-           * aborted if the ATTACH COMPLETE message has not been received and
-           * the new attach procedure shall be progressed;
+           * REQUEST message, the previously initiated attach procedure shall
+           * be aborted if the ATTACH COMPLETE message has not been received
+           * and the new attach procedure shall be progressed;
            */
-          emm_sap_t emm_sap               = {0};
-          emm_sap.primitive               = EMMREG_ATTACH_ABORT;
-          emm_sap.u.emm_reg.ue_id         = attach_proc->ue_id;
-          emm_sap.u.emm_reg.ctx           = &imsi_ue_mm_ctx->emm_context;
-          emm_sap.u.emm_reg.notify        = true;
-          emm_sap.u.emm_reg.free_proc     = true;
-          emm_sap.u.emm_reg.u.attach.proc = attach_proc;
-          rc                              = emm_sap_send(&emm_sap);
-          // trigger clean up
-          emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
-          emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = old_ue_id;
-          rc = emm_sap_send(&emm_sap);
-          // Allocate new context and process the new request as fresh attach
-          // request
-          clear_emm_ctxt = true;
+          // After releasing of contexts of old UE, process the new request as
+          // fresh attach request
+          imsi_ue_mm_ctx->emm_context.new_attach_info =
+              calloc(1, sizeof(new_attach_info_t));
+          imsi_ue_mm_ctx->emm_context.new_attach_info->mme_ue_s1ap_id =
+              ue_mm_context->mme_ue_s1ap_id;
+          imsi_ue_mm_ctx->emm_context.new_attach_info->ies = ies;
+          imsi_ue_mm_ctx->emm_context.new_attach_info->is_mm_ctx_new =
+              is_mm_ctx_new;
+
+          nas_proc_implicit_detach_ue_ind(old_ue_id);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         } else {
           imsi_ue_mm_ctx->emm_context.num_attach_request++;
           REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_d__2);
@@ -458,24 +453,26 @@ int emm_proc_attach_request(
            * REQUEST message, the previously initiated attach procedure shall be
            * aborted and the new attach procedure shall be executed;
            */
-          emm_sap_t emm_sap               = {0};
-          emm_sap.primitive               = EMMREG_ATTACH_ABORT;
-          emm_sap.u.emm_reg.ue_id         = attach_proc->ue_id;
-          emm_sap.u.emm_reg.ctx           = &imsi_ue_mm_ctx->emm_context;
-          emm_sap.u.emm_reg.notify        = true;
-          emm_sap.u.emm_reg.free_proc     = true;
-          emm_sap.u.emm_reg.u.attach.proc = attach_proc;
-          rc                              = emm_sap_send(&emm_sap);
-          // trigger clean up
-          emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
-          emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = old_ue_id;
-          rc = emm_sap_send(&emm_sap);
           // Allocate new context and process the new request as fresh attach
           // request
           increment_counter(
               "duplicate_attach_request", 1, 1, "action",
               "processed_old_ctxt_cleanup");
-          clear_emm_ctxt = true;
+          imsi_ue_mm_ctx->emm_context.new_attach_info =
+              calloc(1, sizeof(new_attach_info_t));
+          imsi_ue_mm_ctx->emm_context.new_attach_info->mme_ue_s1ap_id =
+              ue_mm_context->mme_ue_s1ap_id;
+          imsi_ue_mm_ctx->emm_context.new_attach_info->ies = ies;
+          imsi_ue_mm_ctx->emm_context.new_attach_info->is_mm_ctx_new =
+              is_mm_ctx_new;
+
+          // trigger clean up
+          nas_proc_implicit_detach_ue_ind(old_ue_id);
+          OAILOG_INFO(
+              LOG_NAS_EMM,
+              "Sent implicit detach for ue_id " MME_UE_S1AP_ID_FMT "\n",
+              ue_mm_context->mme_ue_s1ap_id);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         } else {
           REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_e__2);
           /*
@@ -2406,4 +2403,74 @@ static int _emm_attach_update(
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+}
+
+void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+
+  OAILOG_INFO(
+      LOG_NAS_EMM,
+      "Process new Attach Request for ue_id " MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+  new_attach_info_t* attach_info = ue_context_p->emm_context.new_attach_info;
+
+  /* The new Attach Request is received in s1ap initial ue message,
+   * So release previous Attach Request's contexts */
+  if (attach_info->is_mm_ctx_new) {
+    ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
+    /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
+       Do not send UE Context Release Command to eNB before receiving SGs IMSI
+       Detach Ack from MSC/VLR */
+    if (ue_context_p->sgs_context != NULL) {
+      if (((ue_context_p->sgs_detach_type !=
+            SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
+           (ue_context_p->sgs_detach_type !=
+            SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) &&
+          (ue_context_p->sgs_context->ts9_timer.id ==
+           MME_APP_TIMER_INACTIVE_ID)) {
+        /* Notify S1AP to send UE Context Release Command to eNB or free
+         * s1 context locally.
+         */
+        mme_app_itti_ue_context_release(
+            ue_context_p, ue_context_p->ue_context_rel_cause);
+      }
+    } else {
+      // Notify S1AP to send UE Context Release Command to eNB or free s1
+      // context locally.
+      mme_app_itti_ue_context_release(
+          ue_context_p, ue_context_p->ue_context_rel_cause);
+    }
+    ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
+  }
+  /* Proceed with new attach request */
+  ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(attach_info->mme_ue_s1ap_id);
+  emm_context_t* new_emm_ctx = &ue_mm_context->emm_context;
+  bdestroy(new_emm_ctx->esm_msg);
+  emm_init_context(new_emm_ctx, true);
+
+  new_emm_ctx->num_attach_request++;
+  new_emm_ctx->attach_type = attach_info->ies->type;
+  new_emm_ctx->additional_update_type =
+      attach_info->ies->additional_update_type;
+  OAILOG_NOTICE(
+      LOG_NAS_EMM,
+      "EMM-PROC  - Create EMM context ue_id = " MME_UE_S1AP_ID_FMT "\n",
+      ue_mm_context->mme_ue_s1ap_id);
+  new_emm_ctx->is_dynamic = true;
+  new_emm_ctx->emm_cause  = EMM_CAUSE_SUCCESS;
+  // Store Voice Domain pref IE to be sent to MME APP
+  if (attach_info->ies->voicedomainpreferenceandueusagesetting) {
+    memcpy(
+        &new_emm_ctx->volte_params.voice_domain_preference_and_ue_usage_setting,
+        attach_info->ies->voicedomainpreferenceandueusagesetting,
+        sizeof(voice_domain_preference_and_ue_usage_setting_t));
+    new_emm_ctx->volte_params.presencemask |=
+        VOICE_DOMAIN_PREF_UE_USAGE_SETTING;
+  }
+  if (!is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
+    _emm_proc_create_procedure_attach_request(ue_mm_context, attach_info->ies);
+  }
+  _emm_attach_run_procedure(&ue_mm_context->emm_context);
+  OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
