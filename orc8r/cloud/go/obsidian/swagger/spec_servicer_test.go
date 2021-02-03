@@ -26,14 +26,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	invalidPath      = "invalidPath"
-	testFile         = "test.swagger.v1.yml"
-	testFileContents = "test yaml spec"
-	tmpDir           = "/etc/magma/configs/orc8r/swagger_specs/"
-)
-
 func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
+	testFile := "test.swagger.v1.yml"
+	testFileContents := "test yaml spec"
+	tmpDir := "/etc/magma/configs/orc8r/swagger_specs/"
+
 	os.RemoveAll(tmpDir)
 	defer os.RemoveAll(tmpDir)
 
@@ -52,10 +49,12 @@ func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 	res, err := servicer.GetSpec(context.Background(), req)
 	assert.NoError(t, err)
 
-	assert.Equal(t, res.SwaggerSpec, testFileContents)
+	assert.Equal(t, testFileContents, res.SwaggerSpec)
 }
 
 func TestSpecServicer_GetSpec(t *testing.T) {
+	testFileContents := "test yaml spec"
+
 	// Success
 	servicer := swagger.NewSpecServicer(testFileContents)
 
@@ -63,5 +62,5 @@ func TestSpecServicer_GetSpec(t *testing.T) {
 	res, err := servicer.GetSpec(context.Background(), req)
 	assert.NoError(t, err)
 
-	assert.Equal(t, res.SwaggerSpec, testFileContents)
+	assert.Equal(t, testFileContents, res.SwaggerSpec)
 }

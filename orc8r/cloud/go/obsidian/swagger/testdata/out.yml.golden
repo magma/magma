@@ -1,0 +1,56 @@
+swagger: "2.0"
+info:
+  title: Test
+  description: Test API
+  version: 1.0.0
+basePath: /fruit
+consumes:
+- application/json
+produces:
+- application/json
+schemes:
+- https
+- http
+tags:
+- description: Tag Bitter
+  name: BitterTag
+- description: Tag Salty
+  name: SaltyTag
+- description: Tag Spicy
+  name: SpicyTag
+paths:
+  /Banana:
+    get:
+      responses:
+        "200":
+          description: Get Banana
+          schema:
+            type: integer
+      summary: Banana
+  /Mango:
+    get:
+      responses:
+        "200":
+          description: Get Mango
+          schema:
+            type: integer
+      summary: Mango
+  /apple:
+    get:
+      responses:
+        "200":
+          description: Get Apple
+          schema:
+            type: integer
+      summary: Apple
+  /fruitpath/{fruit}:
+    get:
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: integer
+      summary: Get Fruit
+responses: {}
+parameters: {}
+definitions: {}
