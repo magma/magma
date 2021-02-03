@@ -34,12 +34,11 @@ var (
 )
 
 func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
-	req := &swagger_protos.GetSpecRequest{}
+	os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir)
 
 	err := os.Mkdir(tmpDir, os.ModePerm)
 	assert.NoError(t, err)
-
-	defer os.RemoveAll(tmpDir)
 
 	tmpSpecPath := filepath.Join(tmpDir, testFile)
 	err = ioutil.WriteFile(tmpSpecPath, []byte(testFileContents), 0644)
@@ -49,6 +48,7 @@ func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 	servicer := swagger.NewSpecServicerFromFile("test")
 	assert.NoError(t, err)
 
+	req := &swagger_protos.GetSpecRequest{}
 	res, err := servicer.GetSpec(context.Background(), req)
 	assert.NoError(t, err)
 
@@ -56,10 +56,10 @@ func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 }
 
 func TestSpecServicer_GetSpec(t *testing.T) {
-	req := &swagger_protos.GetSpecRequest{}
-
 	// Success
 	servicer := swagger.NewSpecServicer(testFileContents)
+
+	req := &swagger_protos.GetSpecRequest{}
 	res, err := servicer.GetSpec(context.Background(), req)
 	assert.NoError(t, err)
 
