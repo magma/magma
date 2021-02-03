@@ -319,7 +319,7 @@ def _deploy_lte_packages(repo: str, magma_root: str):
 
     with open('magma_version') as f:
         magma_version = f.readlines()[0].strip()
-    s3_path = f's3://magma-images/gateway/{magma_version}'
+    s3_path = f's3://magma-images/gateway/v1.4/{magma_version}'
     local(f'aws s3 cp packages.txt {s3_path}.deplist '
           f'--acl bucket-owner-full-control')
     local(f'aws s3 cp magma.lockfile {s3_path}.lockfile '
