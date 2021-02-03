@@ -22,15 +22,31 @@ export default function getLteAlerts(
   return {
     'Service Restart Alert': {
       alert: 'Service Restart Alert',
-      expr: `avg_over_time(service_restart_status{networkID=~"${networkID}"}[5m]) > 0`,
+      expr: `increase(service_restart_status{networkID=~"${networkID}"}[5m]) > 0`,
       labels: {severity: 'minor'},
       annotations: {description: 'Alerts upon service restarts'},
     },
     'Cpu Percent Alert': {
       alert: 'Cpu Percent Alert',
-      expr: `avg_over_time(cpu_percent{networkID=~"${networkID}"}[5m]) > 75`,
+      expr: `avg_over_time(cpu_percent{networkID=~"${networkID}"}[5m]) > 70`,
       labels: {severity: 'minor'},
-      annotations: {description: 'Alerts when cpu percent is greater than 75%'},
+      annotations: {description: 'Alerts when cpu percent is greater than 70%'},
+    },
+    'High Disk Usage Alert': {
+      alert: 'High Disk Usage Alert',
+      expr: `avg_over_time(disk_percent{networkID="${networkID}"}[5m]) > 70`,
+      labels: {severity: 'major'},
+      annotations: {
+        description: 'Alerts when disk percent is greater than 70%',
+      },
+    },
+    'High Memory Usage Alert': {
+      alert: 'High Memory Usage Alert',
+      expr: `((1 - mem_available{networkID="${networkID}"} / mem_total{networkID=~"${networkID}"}) * 100) > 70`,
+      labels: {severity: 'major'},
+      annotations: {
+        description: 'Alerts when memory used is greater than 70%',
+      },
     },
     'Unexpected Service Restart Alert': {
       alert: 'Unexpected Service Restart Alert',
@@ -65,6 +81,21 @@ export default function getLteAlerts(
       expr: `increase(ue_attach{result="failure", networkID=~"${networkID}"}[5m]) > 0`,
       labels: {severity: 'minor'},
       annotations: {description: 'Alerts when we have UE attach failures'},
+    },
+    'Gateway Checkin Failure': {
+      alert: 'Gateway Checkin Failure',
+      expr: `checkin_status{networkID=~"${networkID}" < 1`,
+      labels: {severity: 'critical'},
+      annotations: {description: 'Alerts when we have gateway checkin failure'},
+    },
+    'Dip in Connected UEs': {
+      alert: 'Dip in Connected UEs',
+      expr: `(ue_connected{networkID=~"${networkID}"} - ue_connected{networkID=~"${networkID}"} offset 5m) / (ue_connected{networkID=~"${networkID}"}) < -0.5`,
+      labels: {severity: 'critical'},
+      annotations: {
+        description:
+          'Alerts when there is a 50% dip in connected UEs in last 5 minutes',
+      },
     },
   };
 }

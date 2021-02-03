@@ -22,6 +22,7 @@ module orc8r {
   deployment_secrets_bucket   = "magma.orc8r.test"
   orc8r_domain_name           = "orc8r.magma.test"
 
-  vpc_name     = "magma-orc8r-test"
-  cluster_name = "orc8r-test"
+  vpc_name        = "magma-orc8r-test"
+  cluster_name    = "orc8r-test"
+  cluster_version = "1.17"
 }

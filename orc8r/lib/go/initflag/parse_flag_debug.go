@@ -1,3 +1,5 @@
+// +build debug_build
+
 /*
 Copyright 2020 The Magma Authors.
 
@@ -10,23 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-//
-syntax = "proto3";
 
-package magma.migration.orc8r;
-option go_package = "types";
+package initflag
 
-message LegacyReleaseChannel {
-    repeated string supported_versions = 1;
-}
-
-message ImageSpec {
-    string name = 1;
-    int64 order = 2;
-}
-
-message TierInfo {
-    string name = 1;
-    string version = 2;
-    repeated ImageSpec images = 3;
+// shouldParse returns true if initflag should parse flags.
+func shouldParse() bool {
+	return false
 }

@@ -29,6 +29,7 @@ import Input from '@material-ui/core/Input';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
@@ -409,25 +410,26 @@ export function GenericCommandControls(props: ChildProps) {
 }
 
 type FileComponentProps = {
-  title: string,
+  title?: string,
   content: string,
   error?: string,
 };
 function FileComponent(props: FileComponentProps) {
   const classes = useStyles();
+  let content = props.content.replace(/\\n/g, '\n');
+  content = content.slice(1, -1);
 
-  const content = props.content.replace(/\\n/g, '\n');
   return (
     <List>
-      <ListItem> {props.title} </ListItem>
+      {props.title ?? <ListItemText> {props.title} </ListItemText>}
       {props.error !== '""' && (
-        <ListItem>
+        <ListItemText>
           <AltFormField label={''}>
             <FormLabel data-testid="fileError" error>
               {props.error}
             </FormLabel>
           </AltFormField>
-        </ListItem>
+        </ListItemText>
       )}
       <ListItem>
         <textarea
@@ -460,30 +462,49 @@ gateway, typically fluend address is fluentd.<orc8r_domain_name> and fluend port
 responses',
 };
 
+const CONTROL_PROXY_CONTENT = 'cat /var/opt/magma/configs/control_proxy.yml';
+const FLUENT_BIT_LOGS = 'journalctl -u magma@td-agent-bit  -n 10';
 export function TroubleshootingControl(props: ChildProps) {
   const {match} = useRouter();
   const [
     controlProxyContent,
     setControlProxyContent,
   ] = useState<generic_command_response>({});
+  const [
+    tdAgentLogsContent,
+    setTdAgentLogsContent,
+  ] = useState<generic_command_response>({});
   const networkId = nullthrows(match.params.networkId);
-  const parameters = {
+  const controlProxyParams = {
     command: 'bash',
     params: {
-      shell_params: ["-c 'cat /etc/magma/control_proxy.yml'"],
+      shell_params: [`-c '${CONTROL_PROXY_CONTENT}'`],
     },
   };
   const {isLoading: isProxyFileLoading} = useMagmaAPI(
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric,
     // $FlowIssue[incompatible-call]
-    {networkId, gatewayId: props.gatewayID, parameters},
+    {networkId, gatewayId: props.gatewayID, parameters: controlProxyParams},
     useCallback(response => setControlProxyContent(response), []),
+  );
+  const tdAgentBitLogs = {
+    command: 'bash',
+    params: {
+      shell_params: [`-c '${FLUENT_BIT_LOGS}'`],
+    },
+  };
+  const {isLoading: isTdAgentBitLogsLoading} = useMagmaAPI(
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric,
+    // $FlowIssue[incompatible-call]
+    {networkId, gatewayId: props.gatewayID, parameters: tdAgentBitLogs},
+    useCallback(response => setTdAgentLogsContent(response), []),
   );
   const {
     isLoading: isEventAPILoading,
     error,
   } = useMagmaAPI(MagmaV1API.getEventsByNetworkIdAboutCount, {networkId});
-  if (isProxyFileLoading || isEventAPILoading) {
+
+  if (isProxyFileLoading || isEventAPILoading || isTdAgentBitLogsLoading) {
     return <LoadingFiller />;
   }
 
@@ -495,6 +516,15 @@ export function TroubleshootingControl(props: ChildProps) {
     null,
     2,
   );
+  const tdErrContent = JSON.stringify(
+    controlProxyContent?.response?.['stderr'] ?? {},
+  );
+  const tdAgentLogsFileContent = JSON.stringify(
+    tdAgentLogsContent?.response?.['stdout'] ?? {},
+    null,
+    2,
+  );
+
   const containsFluentdParams =
     fileContent.includes('fluentd_address') &&
     fileContent.includes('fluentd_port');
@@ -509,13 +539,7 @@ export function TroubleshootingControl(props: ChildProps) {
         tooltip: containsFluentdParams
           ? TROUBLESHOOTING_HINTS.FLUENTD_SUCCESS
           : TROUBLESHOOTING_HINTS.FLUENTD_MISSING,
-        collapse: (
-          <FileComponent
-            title={'Control Proxy Config'}
-            content={fileContent}
-            error={errContent}
-          />
-        ),
+        collapse: <FileComponent content={fileContent} error={errContent} />,
       },
     ],
     [
@@ -530,6 +554,19 @@ export function TroubleshootingControl(props: ChildProps) {
             : `event and log aggregation api is failing,  ${
                 error ?? 'internal server error'
               }`,
+      },
+    ],
+    [
+      {
+        category: 'Fluent Bit Logs',
+        value: '',
+        tooltip: 'fluend bit logs',
+        collapse: (
+          <FileComponent
+            content={tdAgentLogsFileContent}
+            error={tdErrContent}
+          />
+        ),
       },
     ],
   ];

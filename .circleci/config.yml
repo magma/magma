@@ -91,6 +91,22 @@ orbs:
                 circleci step halt
 
 commands:
+  install-go:
+    description: Install go from sources
+    parameters:
+      go-version:
+        description: go version default 1.15.7
+        type: string
+        default: "1.15.7"
+    steps:
+      - run: |
+          sudo rm -rf /usr/local/go
+          GO_VERSION=<< parameters.go-version >>
+          wget "https://golang.org/dl/go$GO_VERSION.linux-amd64.tar.gz" -O ./go.tar
+          sudo tar -C /usr/local -xzf go.tar
+          export PATH=$PATH:/usr/local/go/bin
+
+
   run-with-retry:
     description: Run command with retry
     parameters:
@@ -528,6 +544,10 @@ jobs:
       - tag-push-docker:
           project: orc8r
           images: "nginx|controller"
+      - tag-push-docker:
+          project: orc8r
+          images: "nginx|controller"
+          tag-latest: true
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -558,14 +578,17 @@ jobs:
       - magma_slack_notify
 
   feg-precommit:
-    docker:
-      - image: circleci/golang:1.13-stretch-node-browsers-legacy
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
     environment:
       GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
           <<: *federated_build_verify
+      - install-go
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:

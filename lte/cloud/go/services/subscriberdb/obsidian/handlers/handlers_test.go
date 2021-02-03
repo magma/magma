@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"magma/lte/cloud/go/lte"
-	ltePlugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/serdes"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -31,8 +30,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
@@ -50,9 +47,6 @@ import (
 )
 
 func TestCreateSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -243,9 +237,6 @@ func TestCreateSubscriber(t *testing.T) {
 }
 
 func TestListSubscribers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -484,9 +475,6 @@ func TestListSubscribers(t *testing.T) {
 }
 
 func TestGetSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -885,9 +873,6 @@ func TestGetSubscriberState(t *testing.T) {
 }
 
 func TestGetSubscriberByMSISDN(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1046,9 +1031,6 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 }
 
 func TestGetSubscriberByIP(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1190,9 +1172,6 @@ func TestGetSubscriberByIP(t *testing.T) {
 }
 
 func TestUpdateSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -1331,9 +1310,6 @@ func TestUpdateSubscriber(t *testing.T) {
 }
 
 func TestDeleteSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -1393,9 +1369,6 @@ func TestDeleteSubscriber(t *testing.T) {
 }
 
 func TestActivateDeactivateSubscriber(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -1499,8 +1472,6 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 }
 
 func TestUpdateSubscriberProfile(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
@@ -1657,9 +1628,6 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 }
 
 func TestSubscriberBasename(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
@@ -1767,9 +1735,6 @@ func TestSubscriberBasename(t *testing.T) {
 }
 
 func TestSubscriberPolicy(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
@@ -1878,9 +1843,6 @@ func TestSubscriberPolicy(t *testing.T) {
 }
 
 func TestAPNPolicyProfile(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
-
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)

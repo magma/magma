@@ -21,8 +21,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
@@ -36,7 +34,6 @@ import (
 )
 
 func Test_GetNetworkHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -190,7 +187,6 @@ func Test_GetNetworkHandlers(t *testing.T) {
 }
 
 func Test_PostNetworkHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -340,7 +336,6 @@ func Test_PostNetworkHandlers(t *testing.T) {
 }
 
 func Test_DeleteNetworkHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -432,7 +427,6 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 }
 
 func Test_PutNetworkHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -519,7 +513,6 @@ func Test_PutNetworkHandlers(t *testing.T) {
 }
 
 func Test_GetNetworkMetadataHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -574,7 +567,6 @@ func Test_GetNetworkMetadataHandlers(t *testing.T) {
 }
 
 func Test_PutNetworkMetadataHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -663,7 +655,6 @@ func Test_PutNetworkMetadataHandlers(t *testing.T) {
 }
 
 func Test_GetNetworkFeaturesHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -689,7 +680,6 @@ func Test_GetNetworkFeaturesHandlers(t *testing.T) {
 }
 
 func Test_PutNetworkFeaturesHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -722,7 +712,6 @@ func Test_PutNetworkFeaturesHandlers(t *testing.T) {
 }
 
 func Test_GetNetworkDNSHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -790,7 +779,6 @@ func Test_GetNetworkDNSHandlers(t *testing.T) {
 }
 
 func Test_PutNetworkDNSHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -933,7 +921,6 @@ func Test_PutNetworkDNSHandlers(t *testing.T) {
 }
 
 func Test_CreateNetworkDNSRecord(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -997,7 +984,6 @@ func Test_CreateNetworkDNSRecord(t *testing.T) {
 }
 
 func Test_DeleteNetworkDNSHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()

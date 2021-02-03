@@ -60,6 +60,8 @@ from lte.protos.ha_service_pb2 import (
     StartAgwOffloadRequest,
     EnbOffloadType,
 )
+from orc8r.protos.common_pb2 import Void
+
 DEFAULT_GRPC_TIMEOUT = 10
 
 
@@ -159,7 +161,7 @@ class S1ApUtil(object):
         with self._cond:
             rc = self._test_api(cmd_type.value, c_req)
             if rc:
-                logging.error("Error executing command %s" % repr(cmd_type))
+                print("Error executing command %s" % repr(cmd_type))
                 return rc
         return 0
 
@@ -620,6 +622,7 @@ class MagmadUtil(object):
             "sshpass -p {password} ssh "
             "-o UserKnownHostsFile=/dev/null "
             "-o StrictHostKeyChecking=no "
+            "-o LogLevel=ERROR "
             "{user}@{host} {command}"
         )
 
@@ -816,11 +819,32 @@ class MagmadUtil(object):
         Print the per-IMSI state in Redis data store on AGW
         """
         magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        state_cli_cmd = "state_cli.py keys IMSI*"
-        redis_state = self.exec_command_output(
-                magtivate_cmd + " && " + state_cli_cmd)
-        print("Redis state is [\n", redis_state, "]")
-
+        imsi_state_cmd = "state_cli.py keys IMSI*"
+        redis_imsi_keys = self.exec_command_output(
+            magtivate_cmd + " && " + imsi_state_cmd
+        )
+        keys_to_be_cleaned = []
+        for key in redis_imsi_keys.split('\n'):
+            # Ignore directoryd per-IMSI keys in this analysis as they will
+            # persist after each test
+            if "directory" not in key:
+                keys_to_be_cleaned.append(key)
+        print(
+            "Keys left in Redis (list should be empty)[\n",
+            "\n".join(keys_to_be_cleaned),
+            "\n]"
+        )
+        mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
+        mme_nas_state = self.exec_command_output(
+            magtivate_cmd + " && " + mme_nas_state_cmd
+        )
+        num_htbl_entries = 0
+        for state in mme_nas_state.split("\n"):
+            if "nb_enb_connected" in state or "nb_ue_attached" in state:
+                print(state,"(should be zero)\n")
+            elif "htbl" in state:
+                num_htbl_entries += 1
+        print("Entries left in hashtables (should be zero):", num_htbl_entries)
 
 
 class MobilityUtil(object):
@@ -1260,18 +1284,35 @@ class SessionManagerUtil(object):
         qos = QoSInformation(qci=qos["qci"])
 
         # Get sessionid
-        req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
-        try:
-            res = self._directorydstub.GetDirectoryField(
-                req, DEFAULT_GRPC_TIMEOUT
-            )
-        except grpc.RpcError as err:
-            logging.error(
-                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
-                imsi,
-                err.code(),
-                err.details(),
-            )
+        #TODO: remove retries
+        i = 0
+        MAX = 3
+        res = None
+        while i < MAX:
+            req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
+            try:
+                res = self._directorydstub.GetDirectoryField(
+                    req, DEFAULT_GRPC_TIMEOUT
+                )
+            except grpc.RpcError as err:
+                print(
+                    "error: GetDirectoryFieldRequest error for id: %s! [%s] %s",
+                    imsi,
+                    err.code(),
+                    err.details(),
+                )
+            if req != None:
+                i = MAX
+            else:
+                i+=1
+                print("warning: directoryd failed to return sessionId for %s. Retrying", imsi)
+                time.sleep(3)
+
+        if res == None:
+            print("error: Couldnt find sessionid. Directoryd content:")
+            allRecordsResponse = self._directorydstub.GetAllDirectoryRecords(Void(), DEFAULT_GRPC_TIMEOUT)
+            for record in allRecordsResponse.recordsResponse:
+                print("%s", str(record))
 
         self._session_stub.PolicyReAuth(
             PolicyReAuthRequest(
@@ -1297,8 +1338,7 @@ class SessionManagerUtil(object):
                 req, DEFAULT_GRPC_TIMEOUT
             )
         except grpc.RpcError as err:
-            logging.error(
-                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
+            print("Error: GetDirectoryFieldRequest error for id: %s! [%s] %s",
                 imsi,
                 err.code(),
                 err.details(),

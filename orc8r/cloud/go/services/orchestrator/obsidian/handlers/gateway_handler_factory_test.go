@@ -19,8 +19,6 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -35,7 +33,6 @@ import (
 )
 
 func Test_GetPartialReadGatewayHandler(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -87,7 +84,6 @@ func Test_GetPartialReadGatewayHandler(t *testing.T) {
 }
 
 func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -159,7 +155,6 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 }
 
 func Test_GetGatewayDeviceHandler(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()

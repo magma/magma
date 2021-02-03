@@ -17,14 +17,12 @@ import (
 	"testing"
 
 	"magma/feg/cloud/go/feg"
-	feg_plugin "magma/feg/cloud/go/plugin"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/cloud/go/serdes"
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	feg_test_init "magma/feg/cloud/go/services/feg/test_init"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/storage"
@@ -35,7 +33,6 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &feg_plugin.FegOrchestratorPlugin{}))
 	feg_test_init.StartTestService(t)
 
 	// Empty case: no feg associated to magmad gateway
