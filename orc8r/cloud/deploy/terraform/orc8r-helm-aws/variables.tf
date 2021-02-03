@@ -171,7 +171,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.10"
+  default     = "1.5.11"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -395,4 +395,21 @@ variable "analytics_category_name" {
   description = "Category under which the exported metrics will be placed under"
   type = string
   default = "magma"
+}
+
+
+##############################################################################
+# Other dependency variables
+##############################################################################
+
+variable "prometheus_configurer_version" {
+  description = "Image version for prometheus configurer."
+  type        = string
+  default     = "1.0.4"
+}
+
+variable "alertmanager_configurer_version" {
+  description = "Image version for alertmanager configurer."
+  type        = string
+  default     = "1.0.4"
 }
