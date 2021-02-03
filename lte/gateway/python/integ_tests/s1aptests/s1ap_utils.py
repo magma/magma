@@ -1284,26 +1284,15 @@ class SessionManagerUtil(object):
         qos = QoSInformation(qci=qos["qci"])
 
         # Get sessionid
-        #TODO: remove retries
-        i = 0
-        MAX = 3
-        res = None
-        while i < MAX:
-            req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
-            try:
-                res = self._directorydstub.GetDirectoryField(
-                    req, DEFAULT_GRPC_TIMEOUT
-                )
-            except grpc.RpcError as err:
-                print("error: GetDirectoryFieldRequest error for id: "
-                      "%s! [%s] %s" % (imsi, err.code(),err.details())
-                )
-            if req != None:
-                i = MAX
-            else:
-                i+=1
-                print("warning: directoryd failed to return sessionId for %s. Retrying" % imsi)
-                time.sleep(3)
+        req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
+        try:
+            res = self._directorydstub.GetDirectoryField(
+                req, DEFAULT_GRPC_TIMEOUT
+            )
+        except grpc.RpcError as err:
+            print("error: GetDirectoryFieldRequest error for id: "
+                  "%s! [%s] %s" % (imsi, err.code(),err.details())
+            )
 
         if res == None:
             print("error: Couldnt find sessionid. Directoryd content:")
@@ -1355,7 +1344,6 @@ class SessionManagerUtil(object):
         else:
             for record in allRecordsResponse.records:
                 print("%s"%str(record))
-
 
 class GTPBridgeUtils:
     def __init__(self):
