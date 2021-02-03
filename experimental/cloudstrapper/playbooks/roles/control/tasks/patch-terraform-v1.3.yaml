@@ -1,0 +1,22 @@
+---
+
+- name: copy aws eks.tf
+  copy:
+    src: "roles/control/files/{{ orc8rVersion }}/orc8r-aws/eks.tf"
+    dest: "{{ localTerraformDir }}/orc8r-aws/eks.tf"
+
+- name: copy aws variables.tf
+  copy:
+    src: "roles/control/files/{{ orc8rVersion }}/orc8r-aws/variables.tf"
+    dest: "{{ localTerraformDir }}/orc8r-aws/variables.tf"
+
+- name: copy artifactory.tf
+  copy:
+    src: "roles/control/files/{{ orc8rVersion }}/orc8r-helm-aws/artifactory.tf"
+    dest: "{{ localTerraformDir }}/orc8r-helm-aws/artifactory.tf"
+
+- name: copy artifactory.tf
+  copy:
+    src: "roles/control/files/{{ orc8rVersion }}/orc8r-helm-aws/artifactory.tf"
+    dest: "{{ localTerraformAppDir }}/orc8r-helm-aws/artifactory.tf"
+

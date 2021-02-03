@@ -1,0 +1,14 @@
+[
+  {
+    "ParameterKey": "paramVpcDefault",
+    "ParameterValue": "vpc-ecc63687"
+  },
+  {
+    "ParameterKey": "paramSecgroupMagmaDefault",
+    "ParameterValue": "secgroupMagmaProto"
+  },
+  {
+    "ParameterKey": "paramBucketMagmaDefault",
+    "ParameterValue": "bucketMagmaProto"
+  }
+]

@@ -1,0 +1,27 @@
+---
+
+- name: create experimental home and inventory folders
+  file:
+    name: "{{ dirInventory }}"
+    state: directory
+    mode: '0775'
+
+- name: create local directory
+  file:
+    name: "{{ mantleHomeDir }}"
+    state: directory
+    mode: '0775'
+
+#doesn't work for now since repo is private and key needs to be on target
+- name: download mantle github repo 
+  git:
+    repo: "{{ mantleGitRpo }}"
+    dest: "{{ mantleHomeDir }}"
+    version: "{{ mantleBranchName }}"
+    key_file: "{{ gitKey }}"
+  tags: [ never, usingGitSshKey ]
+
+- name: download mantle github repo using CLI
+  command: "git clone https://{{ gitUser }}:{{ gitPat }}@github.com/{{ gitProject }}/{{ gitRepo }}.git --branch {{ mantleBranchName }}"
+  args:
+    chdir: "{{ mantleHomeDir }}"

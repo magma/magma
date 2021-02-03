@@ -1,0 +1,13 @@
+---
+
+- name: create magma directory
+  file:
+    path: "{{ dirSourceLocal }}"
+    state: directory
+
+- name: download github repo
+  git:
+    repo: "{{ buildMagmaRepo }}"
+    dest: "{{ dirSourceLocal }}"
+    version: "{{ buildMagmaVersion }}"
+

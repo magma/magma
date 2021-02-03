@@ -1,0 +1,12 @@
+
+#------------------
+#Source-specific Variables - Used for Devops
+#------------------
+
+mantle_git_repo: git@github.com:fbcinternal/mantle.git
+mantle_version_branch: jan12_aws
+
+#------------------
+#Source-specific Variables Ends
+#------------------
+
