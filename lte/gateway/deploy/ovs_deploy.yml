@@ -11,6 +11,8 @@
 # limitations under the License.
 
 - name: Deploy ovs and magma
+  become: yes
   hosts: ovs_deploy
   roles:
+    - role: envoy
     - role: ovs_deploy

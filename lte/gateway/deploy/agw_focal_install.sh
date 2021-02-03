@@ -3,7 +3,8 @@
 MAGMA_USER="magma"
 AGW_INSTALL_CONFIG="/etc/systemd/system/multi-user.target.wants/agw_installation.service"
 AGW_SCRIPT_PATH="/root/$(basename $0)"
-DEPLOY_PATH="/home/$MAGMA_USER/magma/lte/gateway/deploy"
+MAGMA_ROOT=/home/$MAGMA_USER/magma
+DEPLOY_PATH="${MAGMA_ROOT}/lte/gateway/deploy"
 SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
@@ -69,7 +70,7 @@ else
 fi
 
 # configure environment variable defaults needed for ansible
-ANSIBLE_VARS="PACKAGE_LOCATION=/tmp"
+ANSIBLE_VARS="preburn=yes PACKAGE_LOCATION=/tmp"
 if [ -n "${REPO_HOST}" ]; then
     if [ -z "${REPO_PROTO}" ]; then
         REPO_PROTO=http

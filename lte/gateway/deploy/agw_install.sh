@@ -3,7 +3,8 @@
 MAGMA_USER="magma"
 AGW_INSTALL_CONFIG="/etc/systemd/system/multi-user.target.wants/agw_installation.service"
 AGW_SCRIPT_PATH="/root/agw_install.sh"
-DEPLOY_PATH="/home/$MAGMA_USER/magma/lte/gateway/deploy"
+MAGMA_ROOT=/home/$MAGMA_USER/magma
+DEPLOY_PATH="${MAGMA_ROOT}/lte/gateway/deploy"
 SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
@@ -72,7 +73,7 @@ if [ "$KVERS" != "4.9.0-9-amd64" ]; then
 fi
 
 # configure environment variable defaults needed for ansible
-ANSIBLE_VARS="PACKAGE_LOCATION=/tmp"
+ANSIBLE_VARS="preburn=yes PACKAGE_LOCATION=/tmp"
 if [ -n "${REPO_HOST}" ]; then
     if [ -z "${REPO_PROTO}" ]; then
         REPO_PROTO=http
@@ -159,7 +160,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
   if [ -n "${FORCE_OVS_BUILD}" ]; then
       echo "Triggering ovs_build playbook"
-      su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_build.yml"
+      su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='${MAGMA_ROOT}' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_build.yml"
       ANSIBLE_VARS="${ANSIBLE_VARS} ovs_use_pkgrepo=no"
   fi
   echo "Triggering ovs_deploy playbook"

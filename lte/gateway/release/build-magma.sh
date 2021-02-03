@@ -88,9 +88,8 @@ SCTPD_PKGNAME=magma-sctpd
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
-MAGMA_DEPS=(
+MAGMA_DEPS_BASE=(
     "grpc-dev >= 1.15.0"
-    "libprotobuf10 >= 3.0.0"
     "lighttpd >= 1.4.45"
     "libxslt1.1"
     "nghttp2-proxy >= 1.18.1"
@@ -105,7 +104,6 @@ MAGMA_DEPS=(
     "libsystemd-dev"
     "libyaml-cpp-dev" # install yaml parser
     "libgoogle-glog-dev"
-    "nlohmann-json-dev" # c++ json parser
     "python-redis"
     "magma-cpp-redis"
     "libfolly-dev" # required for C++ services
@@ -120,32 +118,81 @@ MAGMA_DEPS=(
     "getenvoy-envoy" # for envoy dep
     )
 
+
+MAGMA_DEPS_STRETCH=(
+    "nlohmann-json-dev" # c++ json parser
+    "libprotobuf10 >= 3.0.0"
+)
+
+MAGMA_DEPS_FOCAL=(
+    "nlohmann-json3-dev" # c++ json parser
+    "libprotobuf17 >= 3.0.0"
+)
+
+if grep -q focal /etc/os-release; then
+    MAGMA_DEPS=("${MAGMA_DEPS_BASE[@]}" "${MAGMA_DEPS_FOCAL[@]}")
+else
+    MAGMA_DEPS=("${MAGMA_DEPS_BASE[@]}" "${MAGMA_DEPS_STRETCH[@]}")
+fi
+
 # OAI runtime dependencies
-OAI_DEPS=(
-    "libasan3"
+OAI_DEPS_BASE=(
     "libconfig9"
     "oai-asn1c"
-    "oai-freediameter >= 1.2.0-1"
     "oai-gnutls >= 3.1.23"
     "oai-nettle >= 1.0.1"
     "prometheus-cpp-dev >= 1.0.2"
     "liblfds710"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
+)
+OAI_DEPS_STRETCH=(
     "oai-gtp >= 4.9-5"
-    )
+    "libasan3"
+    "oai-freediameter >= 1.2.0-1"
+)
+OAI_DEPS_FOCAL=(
+    "libasan4"
+    "oai-freediameter >= 0.0.1"
+)
+if grep -q focal /etc/os-release; then
+    OAI_DEPS=("${OAI_DEPS_BASE[@]}" "${OAI_DEPS_FOCAL[@]}")
+else
+    OAI_DEPS=("${OAI_DEPS_BASE[@]}" "${OAI_DEPS_STRETCH[@]}")
+fi
 
 # OVS runtime dependencies
-OVS_DEPS=(
+OVS_DEPS_BASE=(
     "magma-libfluid >= 0.1.0.5"
+    )
+OVS_DEPS_STRETCH=(
     "libopenvswitch >= 2.8.9"
     "openvswitch-switch >= 2.8.9"
     "openvswitch-common >= 2.8.9"
-    "python-openvswitch >= 2.8.9"
     "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.9"
-    )
+    "python-openvswitch >= 2.8.9"
+)
+OVS_DEPS_FOCAL=(
+    "libopenvswitch >= 2.14.0"
+    "openvswitch-switch >= 2.14.0"
+    "openvswitch-common >= 2.14.0"
+    "python3-openvswitch >= 2.14.0"
+)
+if grep -q focal /etc/os-release; then
+    OVS_DEPS=("${OVS_DEPS_BASE[@]}" "${OVS_DEPS_FOCAL[@]}")
+else
+    OVS_DEPS=("${OVS_DEPS_BASE[@]}" "${OVS_DEPS_STRETCH[@]}")
+fi
 
 # generate string for FPM
+# compact experimental version
+ALL_DEPS=("${MAGMA_DEPS[@]}" "${OAI_DEPS[@]}" "${OVS_DEPS[@]}")
+SYSTEM_DEPS=""
+for dep in "${ALL_DEPS[@]}"; do
+    SYSTEM_DEPS=${SYSTEM_DEPS}" -d '"${dep}"'"
+done
+
+# original version
 SYSTEM_DEPS=""
 for dep in "${MAGMA_DEPS[@]}"
 do

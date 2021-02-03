@@ -348,8 +348,8 @@
         },
         "attrs": {
           "root": false,
-          "source": "pypi",
-          "sysdep": "python3-attrs",
+          "source": "apt",
+          "sysdep": "python3-attr",
           "version": "19.3.0"
         },
         "bravado-core": {
@@ -463,7 +463,7 @@
         "jsonpointer": {
           "root": true,
           "source": "pypi",
-          "sysdep": "python3-jsonpointer",
+          "sysdep": "python3-json-pointer",
           "version": "2.0"
         },
         "jsonref": {
@@ -483,6 +483,12 @@
           "source": "pypi",
           "sysdep": "python3-lazy-object-proxy",
           "version": "1.4.3"
+        },
+        "lxml": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-lxml",
+          "version": "4.6.2"
         },
         "mccabe": {
           "root": false,
@@ -613,7 +619,7 @@
         "systemd-python": {
           "root": true,
           "source": "pypi",
-          "sysdep": "python3-systemd-python",
+          "sysdep": "python3-systemd",
           "version": "234"
         },
         "toml": {
@@ -698,6 +704,9 @@
         },
         "jsonschema": {
           "version": "3.1.0"
+        },
+        "lxml": {
+          "version": "4.6.2"
         },
         "netifaces": {
           "version": "0.10.4"
