@@ -178,7 +178,6 @@ int emm_recv_attach_request(
    * Message checking
    */
 
-
   if (msg->uenetworkcapability.spare != 0b000) {
     /*
      * Spare bits shall be coded as zero
@@ -287,7 +286,8 @@ int emm_recv_attach_request(
       OAILOG_ERROR(
           LOG_NAS_EMM,
           "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
-          " , emm_cause =(%d)\n", ue_id, *emm_cause);
+          " , emm_cause =(%d)\n",
+          ue_id, *emm_cause);
       rc = emm_proc_attach_reject(ue_id, *emm_cause);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
