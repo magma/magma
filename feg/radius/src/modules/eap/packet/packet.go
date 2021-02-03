@@ -23,9 +23,10 @@ import (
 
 // EAP constants
 const (
-	EapMinLegalPacketLength  int = 4
-	EapPacketHeaderLength    int = 4
-	EapPacketTypeFieldLength int = 1
+	EapMinLegalPacketLength                int = 4
+	EapRequestResponseMinLegalPacketLength int = 5
+	EapPacketHeaderLength                  int = 4
+	EapPacketTypeFieldLength               int = 1
 )
 
 // EAP packet header offsets
@@ -105,6 +106,13 @@ func NewPacketFromRaw(b []byte) (*Packet, error) {
 	eapCode := Code(b[EapCodeOffset])
 	if !eapCode.IsValid() {
 		return nil, fmt.Errorf("invalid eap packet code '%d'", b[EapCodeOffset])
+	}
+	if eapCode.IsRequestOrResponse() && (len(b) < EapRequestResponseMinLegalPacketLength) {
+		return nil, fmt.Errorf(
+			"request or response packet length must be at least %d bytes, got %d bytes",
+			EapRequestResponseMinLegalPacketLength,
+			len(b),
+		)
 	}
 
 	var eapType = EAPTypeNONE

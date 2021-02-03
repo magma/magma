@@ -14,6 +14,7 @@ limitations under the License.
 package packet
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -51,20 +52,38 @@ func TestInvalidEAPTypeFails(t *testing.T) {
 }
 
 func TestInvalidLengthFails(t *testing.T) {
-	// Act
-	packet, err := NewPacketFromRaw([]byte{
-		byte(CodeREQUEST),
-		0x17,
-		0x00,
-		0x07,
-		byte(EAPTypeIDENTITY),
-		0x01,
-	})
+	tests := []struct {
+		Description string
+		Raw         []byte
+		Expect      error
+	}{
+		{
+			Description: "length mismatches actual raw bytes",
+			Raw: []byte{
+				byte(CodeREQUEST),
+				0x17,
+				0x00,
+				0x07,
+				byte(EAPTypeIDENTITY),
+				0x01,
+			},
+			Expect: fmt.Errorf("length mismatch (packet header indicates 7, but packet contains 6 data bytes)"),
+		},
+	}
 
-	// Assert
-	assert.True(t, packet == nil)
-	assert.True(t, err != nil)
-	assert.Equal(t, err.Error(), "length mismatch (packet header indicates 7, but packet contains 6 data bytes)")
+	for _, test := range tests {
+		packet, err := NewPacketFromRaw(test.Raw)
+		if packet != nil {
+			t.Errorf("test %s got non-nil packet pointer, wanted nil", test.Description)
+		}
+		if err == nil {
+			t.Errorf("test %s got cpm.unmarshalBinary(input=0x%x) == nil, wanted error",
+				test.Description, test.Raw)
+		}
+		if err.Error() != test.Expect.Error() {
+			t.Errorf("test %s got error %q, wanted error %q", test.Description, err.Error(), test.Expect.Error())
+		}
+	}
 }
 
 func TestPacketTooShortFails(t *testing.T) {
