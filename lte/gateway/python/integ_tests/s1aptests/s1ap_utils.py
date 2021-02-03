@@ -1295,24 +1295,19 @@ class SessionManagerUtil(object):
                     req, DEFAULT_GRPC_TIMEOUT
                 )
             except grpc.RpcError as err:
-                print(
-                    "error: GetDirectoryFieldRequest error for id: %s! [%s] %s",
-                    imsi,
-                    err.code(),
-                    err.details(),
+                print("error: GetDirectoryFieldRequest error for id: "
+                      "%s! [%s] %s" % (imsi, err.code(),err.details())
                 )
             if req != None:
                 i = MAX
             else:
                 i+=1
-                print("warning: directoryd failed to return sessionId for %s. Retrying", imsi)
+                print("warning: directoryd failed to return sessionId for %s. Retrying" % imsi)
                 time.sleep(3)
 
         if res == None:
             print("error: Couldnt find sessionid. Directoryd content:")
-            allRecordsResponse = self._directorydstub.GetAllDirectoryRecords(Void(), DEFAULT_GRPC_TIMEOUT)
-            for record in allRecordsResponse.recordsResponse:
-                print("%s", str(record))
+            self._print_directoryd_content()
 
         self._session_stub.PolicyReAuth(
             PolicyReAuthRequest(
@@ -1338,17 +1333,28 @@ class SessionManagerUtil(object):
                 req, DEFAULT_GRPC_TIMEOUT
             )
         except grpc.RpcError as err:
-            print("Error: GetDirectoryFieldRequest error for id: %s! [%s] %s",
-                imsi,
-                err.code(),
-                err.details(),
-            )
+            print("Error: GetDirectoryFieldRequest error for id: %s! [%s] %s" %
+                  (imsi, err.code(), err.details()))
+            self._print_directoryd_content()
+
         return self._abort_session_stub.AbortSession(
             AbortSessionRequest(
                 session_id=res.value,
                 user_name=imsi,
             )
         )
+
+    def _print_directoryd_content(self):
+        try:
+            allRecordsResponse = self._directorydstub.GetAllDirectoryRecords(Void(), DEFAULT_GRPC_TIMEOUT)
+        except grpc.RpcError as e:
+            print("error: couldnt print directoryd content. gRPC failed with %s: %s" % (e.code(), e.details()))
+            return
+        if allRecordsResponse is None:
+            print("No records were found at directoryd")
+        else:
+            for record in allRecordsResponse.records:
+                print("%s"%str(record))
 
 
 class GTPBridgeUtils:
