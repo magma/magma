@@ -18,6 +18,7 @@ import os
 import shlex
 import threading
 import time
+from pprint import pprint
 from enum import Enum
 from queue import Queue
 from typing import Optional
@@ -1353,8 +1354,7 @@ class SessionManagerUtil(object):
         if allRecordsResponse is None:
             print("No records were found at directoryd")
         else:
-            for record in allRecordsResponse.records:
-                print("%s"%str(record))
+            pprint(allRecordsResponse.records)
 
 
 class GTPBridgeUtils:
