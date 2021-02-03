@@ -620,6 +620,7 @@ class MagmadUtil(object):
             "sshpass -p {password} ssh "
             "-o UserKnownHostsFile=/dev/null "
             "-o StrictHostKeyChecking=no "
+            "-o LogLevel=ERROR "
             "{user}@{host} {command}"
         )
 
@@ -799,6 +800,49 @@ class MagmadUtil(object):
         print("Waiting for mme to restart. 20 sec")
         time.sleep(20)
 
+    def restart_sctpd(self):
+        """
+        The Sctpd service is not managed by magmad, hence needs to be
+        restarted explicitly
+        """
+        self.exec_command(
+            "sudo service sctpd restart"
+        )
+        for j in range(30):
+            print("Waiting for", 30-j, "seconds for restart to complete")
+            time.sleep(1)
+
+    def print_redis_state(self):
+        """
+        Print the per-IMSI state in Redis data store on AGW
+        """
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        imsi_state_cmd = "state_cli.py keys IMSI*"
+        redis_imsi_keys = self.exec_command_output(
+            magtivate_cmd + " && " + imsi_state_cmd
+        )
+        keys_to_be_cleaned = []
+        for key in redis_imsi_keys.split('\n'):
+            # Ignore directoryd per-IMSI keys in this analysis as they will
+            # persist after each test
+            if "directory" not in key:
+                keys_to_be_cleaned.append(key)
+        print(
+            "Keys left in Redis (list should be empty)[\n",
+            "\n".join(keys_to_be_cleaned),
+            "\n]"
+        )
+        mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
+        mme_nas_state = self.exec_command_output(
+            magtivate_cmd + " && " + mme_nas_state_cmd
+        )
+        num_htbl_entries = 0
+        for state in mme_nas_state.split("\n"):
+            if "nb_enb_connected" in state or "nb_ue_attached" in state:
+                print(state,"(should be zero)\n")
+            elif "htbl" in state:
+                num_htbl_entries += 1
+        print("Entries left in hashtables (should be zero):", num_htbl_entries)
 
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """

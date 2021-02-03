@@ -62,6 +62,9 @@ class TestWrapper(object):
         """
         Initialize the various classes required by the tests and setup.
         """
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+        print("Start time", current_time)
         self._s1_util = S1ApUtil()
         self._enBConfig()
 
