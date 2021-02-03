@@ -403,7 +403,7 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref) {
   eNB_LIST_OUT("SCTP assoc id:     %d", enb_ref->sctp_assoc_id);
   eNB_LIST_OUT("SCTP instreams:    %d", enb_ref->instreams);
   eNB_LIST_OUT("SCTP outstreams:   %d", enb_ref->outstreams);
-  eNB_LIST_OUT("UE attache to eNB: %d", enb_ref->nb_ue_associated);
+  eNB_LIST_OUT("UEs attached to eNB: %d", enb_ref->nb_ue_associated);
   indent++;
   sctp_assoc_id_t sctp_assoc_id = enb_ref->sctp_assoc_id;
 
