@@ -163,7 +163,7 @@ const EditTableType = {
   apnResources: 4,
 };
 
-type EditProps = {
+export type EditProps = {
   editTable: $Keys<typeof EditTableType>,
 };
 
