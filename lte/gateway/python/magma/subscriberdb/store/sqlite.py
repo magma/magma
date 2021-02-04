@@ -80,7 +80,7 @@ class SqliteStore(BaseStore):
         """
         sid = SIDUtils.to_str(subscriber_data.sid)
         data_str = subscriber_data.SerializeToString()
-        db_location = self._db_location[int(sid[SID_DIGITS:])]
+        db_location = self._db_location[int(sid[-SID_DIGITS:])]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -100,7 +100,7 @@ class SqliteStore(BaseStore):
         """
         Context manager to modify the subscriber data.
         """
-        db_location = self._db_location[int(subscriber_id[SID_DIGITS:])]
+        db_location = self._db_location[int(subscriber_id[-SID_DIGITS:])]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -126,7 +126,7 @@ class SqliteStore(BaseStore):
         """
         Method that deletes a subscriber, if present.
         """
-        db_location = self._db_location[int(subscriber_id[SID_DIGITS:])]
+        db_location = self._db_location[int(subscriber_id[-SID_DIGITS:])]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -153,7 +153,7 @@ class SqliteStore(BaseStore):
         """
         Method that returns the auth key for the subscriber.
         """
-        db_location = self._db_location[int(subscriber_id[SID_DIGITS:])]
+        db_location = self._db_location[int(subscriber_id[-SID_DIGITS:])]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -198,7 +198,7 @@ class SqliteStore(BaseStore):
         """
         sid = SIDUtils.to_str(subscriber_data.sid)
         data_str = subscriber_data.SerializeToString()
-        db_location = self._db_location[int(sid[SID_DIGITS:])]
+        db_location = self._db_location[int(sid[-SID_DIGITS:])]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -239,7 +239,7 @@ class SqliteStore(BaseStore):
         # Add the subscribers with the current state
         for sub in subscribers:
             sid = SIDUtils.to_str(sub.sid)
-            db_location = self._db_location[int(sid[SID_DIGITS:])]
+            db_location = self._db_location[int(sid[-SID_DIGITS:])]
             conn = sqlite3.connect(db_location, uri=True)
             if sid in current_state:
                 sub.state.CopyFrom(current_state[sid])
