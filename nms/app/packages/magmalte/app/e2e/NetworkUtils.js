@@ -35,6 +35,11 @@ export async function addFegNetwork(
   buttonSelector[0].click();
 
   await page.waitForXPath(ADD_NETWORK_DIALOG);
+
+  await page.waitForSelector('input[name=networkId]');
+  await page.click('input[name=networkId]');
+  await page.type('input[name=networkId]', params.name);
+
   await page.waitForSelector('input[name=name]');
   await page.click('input[name=name]');
   await page.type('input[name=name]', params.name);
@@ -67,6 +72,10 @@ export async function addFegLteNetwork(
   buttonSelector[0].click();
 
   await page.waitForXPath(ADD_NETWORK_DIALOG);
+
+  await page.waitForSelector('input[name=networkId]');
+  await page.click('input[name=networkId]');
+  await page.type('input[name=networkId]', params.name);
 
   await page.waitForSelector('input[name=name]');
   await page.click('input[name=name]');
