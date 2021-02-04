@@ -94,13 +94,13 @@ module orc8r {
 module orc8r-app {
   <span class="hljs-attr">source</span> = <span class="hljs-string">"github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.4"</span>
   <span class="hljs-comment"># ...</span>
-  <span class="hljs-attr">orc8r_chart_version</span>   = <span class="hljs-string">"1.5.10"</span>
+  <span class="hljs-attr">orc8r_chart_version</span>   = <span class="hljs-string">"1.5.11"</span>
   <span class="hljs-attr">orc8r_tag</span>             = <span class="hljs-string">"MAGMA_TAG"</span>       <span class="hljs-comment"># from build step, e.g. v1.4.0</span>
   <span class="hljs-attr">orc8r_deployment_type</span> = DEPLOYMENT_TYPE   <span class="hljs-comment"># valid options are: ["fwa", "federated_fwa", "all"]</span>
 }
 </code></pre>
 <p>Set <code>cluster_version</code> to the Kubernetes version found during the
-<code>Prerequisites</code> section. Bump your chart version to <code>1.5.10</code> and <code>orc8r_tag</code> to
+<code>Prerequisites</code> section. Bump your chart version to <code>1.5.11</code> and <code>orc8r_tag</code> to
 the semver tag you published your new Orchestrator container images as.
 You also need to set the <code>orc8r_deployment_type</code> variable to the deployment
 type that you intend to deploy. This type sets which orc8r modules will run.</p>
