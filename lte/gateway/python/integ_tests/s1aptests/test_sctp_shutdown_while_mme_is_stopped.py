@@ -87,6 +87,11 @@ class TestSctpShutdowniWhileStatelessMmeIsStopped(unittest.TestCase):
         self._s1ap_wrapper._s1setup()
 
         # Now detach the UE
+        print(
+            "************************* Calling detach for UE id ",
+            req.ue_id,
+        )
+
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
         )
