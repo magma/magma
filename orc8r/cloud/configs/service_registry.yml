@@ -146,3 +146,8 @@ services:
     host: "localhost"
     port: 9180
     proxy_type: "clientcert"
+
+  interceptd:
+    host: "localhost"
+    port: 9666
+    proxy_type: "internal"
