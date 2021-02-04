@@ -303,12 +303,11 @@ int s1ap_mme_generate_s1_setup_failure(
 bool get_stale_enb_connection_with_enb_id(
     __attribute__((unused)) const hash_key_t keyP, void* const elementP,
     void* parameterP, void** resultP) {
-
   enb_description_t* new_enb_association = (enb_description_t*) parameterP;
-  enb_description_t* ht_enb_association = (enb_description_t*) elementP;
+  enb_description_t* ht_enb_association  = (enb_description_t*) elementP;
 
   // No need to clean the newly created eNB association
-  if (ht_enb_association == new_enb_association){
+  if (ht_enb_association == new_enb_association) {
     return false;
   }
 
@@ -321,20 +320,34 @@ bool get_stale_enb_connection_with_enb_id(
   return false;
 }
 
-void clean_stale_enb_state(enb_description_t* new_enb_association){
+void clean_stale_enb_state(
+    s1ap_state_t* state, enb_description_t* new_enb_association) {
   enb_description_t* stale_enb_association = NULL;
 
-  hashtable_ts_apply_callback_on_elements((hash_table_ts_t* const) &state->enbs, get_stale_enb_connection_with_enb_id, enb_association, (void**) &stale_enb_association);
+  hashtable_ts_apply_callback_on_elements(
+      (hash_table_ts_t* const) & state->enbs,
+      get_stale_enb_connection_with_enb_id, new_enb_association,
+      (void**) &stale_enb_association);
   if (stale_enb_association == NULL) {
     // No stale eNB connection found;
     return;
   }
 
-  // Transfer the UEs from old eNB association to the new one
-  new_enb_association->nb_ue_associated = stale_enb_association->nb_ue_associated;
-  new_enb_association->ue_id_coll = stale_enb_association->ue_id_coll;
+  OAILOG_INFO(
+      LOG_S1AP, "Found stale eNB at association id %d",
+      stale_enb_association->sctp_assoc_id);
+  // Remove the S1 context for UEs associated with old eNB association
+  hashtable_key_array_t* keys =
+      hashtable_uint64_ts_get_keys(&stale_enb_association->ue_id_coll);
+  ue_description_t* ue_ref = NULL;
+  for (int i = 0; i < keys->num_keys; i++) {
+    ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t) keys->keys[i]);
+    s1ap_remove_ue(state, ue_ref);
+  }
+  FREE_HASHTABLE_KEY_ARRAY(keys);
   // Remove the old eNB association
   s1ap_remove_enb(state, stale_enb_association);
+  update_mme_app_stats_connected_enb_sub();
 }
 
 int s1ap_mme_handle_s1_setup_request(
@@ -556,8 +569,10 @@ int s1ap_mme_handle_s1_setup_request(
   }
 
   // Clean any stale connection for this enb_id and transfer the attached UEs
-  clean_stale_enb_state(enb_association);
-  OAILOG_DEBUG(LOG_S1AP, "Removed stale eNB and new eNB has %d UEs.", enb_association->nb_ue_associated);
+  clean_stale_enb_state(state, enb_association);
+  OAILOG_DEBUG(
+      LOG_S1AP, "Removed stale eNB and new eNB has %d UEs.",
+      enb_association->nb_ue_associated);
 
   s1ap_dump_enb(enb_association);
   rc = s1ap_generate_s1_setup_response(state, enb_association);
