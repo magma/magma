@@ -170,41 +170,18 @@ void mme_app_ue_sgs_context_free_content(
   }
   // Stop SGS Location update timer if running
   if (sgs_context_p->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts6_1_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS Location update timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts6_1_timer.id);
     sgs_context_p->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS EPS Detach indication timer if running
   if (sgs_context_p->ts8_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts8_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS EPS Detach Indication"
-          "timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts6_1_timer.id);
     sgs_context_p->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
   // Stop SGS IMSI Detach indication timer if running
   if (sgs_context_p->ts9_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts9_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS IMSI Detach Indication"
-          " timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts6_1_timer.id);
     sgs_context_p->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS Implicit IMSI Detach indication timer if running
