@@ -829,11 +829,7 @@ class MagmadUtil(object):
             # persist after each test
             if "directory" not in key:
                 keys_to_be_cleaned.append(key)
-        print(
-            "Keys left in Redis (list should be empty)[\n",
-            "\n".join(keys_to_be_cleaned),
-            "\n]"
-        )
+
         mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
         mme_nas_state = self.exec_command_output(
             magtivate_cmd + " && " + mme_nas_state_cmd
@@ -841,9 +837,14 @@ class MagmadUtil(object):
         num_htbl_entries = 0
         for state in mme_nas_state.split("\n"):
             if "nb_enb_connected" in state or "nb_ue_attached" in state:
-                print(state,"(should be zero)\n")
+                keys_to_be_cleaned.append(state)
             elif "htbl" in state:
                 num_htbl_entries += 1
+        print(
+            "Keys left in Redis (list should be empty)[\n",
+            "\n".join(keys_to_be_cleaned),
+            "\n]"
+        )
         print("Entries left in hashtables (should be zero):", num_htbl_entries)
 
 
