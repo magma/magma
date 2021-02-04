@@ -81,6 +81,7 @@ class S1ApUtil(object):
     PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST = 0x0001
     PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST = 0x000C
     PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST = 0x0003
+    PROT_CFG_PID_IPCP = 0x8021
 
     lib_name = "libtfw.so"
 
@@ -184,7 +185,8 @@ class S1ApUtil(object):
         return self._msg.get(True)
 
     def populate_pco(
-            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
+            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False,
+            ipcp=False
     ):
         """
         Populates the PCO values.
@@ -192,6 +194,7 @@ class S1ApUtil(object):
             protCfgOpts_pr: PCO structure
             pcscf_addr_type: ipv4/ipv6/ipv4v6 flag
             dns_ipv6_addr: True/False flag
+            ipcp: True/False flag
         Returns:
             None
         """
@@ -240,6 +243,35 @@ class S1ApUtil(object):
                 idx
             ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
+        if ipcp:
+            protCfgOpts_pr.numProtId += 1
+            protCfgOpts_pr.p[
+                0
+            ].pid = S1ApUtil.PROT_CFG_PID_IPCP
+            protCfgOpts_pr.p[
+                0
+            ].len = 0x10
+
+            # PPP IP Control Protocol packet as per rfc 1877
+            # 01 00 00 10 81 06 00 00 00 00 83 06 00 00 00 00
+
+            protCfgOpts_pr.p[0].val[0] = 0x01  # code = 01 - Config Request
+            protCfgOpts_pr.p[0].val[1] = 0x00  # Identifier : 00
+            protCfgOpts_pr.p[0].val[2] = 0x00  # Length : 16
+            protCfgOpts_pr.p[0].val[3] = 0x10
+            protCfgOpts_pr.p[0].val[4] = 0x81  # Options:Primary DNS IP Addr
+            protCfgOpts_pr.p[0].val[5] = 0x06  # len = 6
+            protCfgOpts_pr.p[0].val[6] = 0x00  # 00.00.00.00
+            protCfgOpts_pr.p[0].val[7] = 0x00
+            protCfgOpts_pr.p[0].val[8] = 0x00
+            protCfgOpts_pr.p[0].val[9] = 0x00
+            protCfgOpts_pr.p[0].val[10] = 0x83  # Options:Secondary DNS IP Addr
+            protCfgOpts_pr.p[0].val[11] = 0x06  # len = 6
+            protCfgOpts_pr.p[0].val[12] = 0x00  # 00.00.00.00
+            protCfgOpts_pr.p[0].val[13] = 0x00
+            protCfgOpts_pr.p[0].val[14] = 0x00
+            protCfgOpts_pr.p[0].val[15] = 0x00
+
     def attach(
             self,
             ue_id,
@@ -252,6 +284,7 @@ class S1ApUtil(object):
             pdn_type=1,
             pcscf_addr_type=None,
             dns_ipv6_addr=False,
+            ipcp=False,
     ):
         """
         Given a UE issue the attach request of specified type
@@ -280,9 +313,9 @@ class S1ApUtil(object):
         attach_req.pdnType_pr.pdn_type = pdn_type
 
         # Populate PCO only if pcscf_addr_type is set
-        if pcscf_addr_type or dns_ipv6_addr:
+        if pcscf_addr_type or dns_ipv6_addr or ipcp:
             self.populate_pco(
-                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr, ipcp
             )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
