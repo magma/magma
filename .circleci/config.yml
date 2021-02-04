@@ -237,18 +237,23 @@ commands:
           PROJECT=<< parameters.project >>
           TAG=<< parameters.tag >>
           TAG_LATEST=<< parameters.tag-latest >>
+
+          function tag_and_push {
+            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
+            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
+            docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
+          }
+
           for IMAGE in "${IMAGES_ARRAY[@]}"; do
             IMAGE_TOSEARCH=$IMAGE
             if [ ! -z $PROJECT ]; then
               IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
             fi
             IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
-            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$TAG"
+            tag_and_push "$TAG"
             if [ "$TAG_LATEST" = true ]; then
-              docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:latest"
+              tag_and_push "latest"
             fi
-            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$TAG"
-            docker push "${DOCKER_REGISTRY}/$IMAGE:$TAG"
           done
 
   magma_integ_test:
@@ -541,9 +546,6 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
             python3 build.py --all --nocache --parallel
-      - tag-push-docker:
-          project: orc8r
-          images: "nginx|controller"
       - tag-push-docker:
           project: orc8r
           images: "nginx|controller"
@@ -1016,6 +1018,7 @@ jobs:
           images: 'goradius'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: true
       - run:
           name: Load openvswitch kernel module for xwf integ test
           command: sudo modprobe openvswitch
@@ -1028,6 +1031,7 @@ jobs:
           images: 'xwfm-integ-tests'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: true
       - magma_slack_notify
 
 workflows:
