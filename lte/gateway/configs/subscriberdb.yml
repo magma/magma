@@ -45,4 +45,4 @@ relay_retry_count: 0
 s6a_over_grpc: True
 
 # Number of grpc workers
-grpc_workers: 1
+grpc_workers: 10
