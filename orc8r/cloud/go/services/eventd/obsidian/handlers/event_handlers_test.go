@@ -230,7 +230,7 @@ func runEventResultTestCase(t *testing.T, tc eventResultTestCase) {
 	hit := elastic.SearchHit{
 		Source: []byte(tc.jsonSource),
 	}
-	results, err := getEventResults([]*elastic.SearchHit{&hit})
+	results, err := GetEventResults([]*elastic.SearchHit{&hit})
 	if tc.expectsError {
 		assert.Error(t, err)
 	} else {

@@ -142,7 +142,7 @@ func doSearch(c echo.Context, search *elastic.SearchService) error {
 			result.Error.Reason))
 	}
 
-	eventResults, err := getEventResults(result.Hits.Hits)
+	eventResults, err := GetEventResults(result.Hits.Hits)
 	if err != nil {
 		glog.Error(err)
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -163,7 +163,7 @@ type eventElasticHit struct {
 
 // Retrieve Event properties from the _source of
 // ES Hits, including event metadata
-func getEventResults(hits []*elastic.SearchHit) ([]models.Event, error) {
+func GetEventResults(hits []*elastic.SearchHit) ([]models.Event, error) {
 	results := []models.Event{}
 	for _, hit := range hits {
 		var eventHit eventElasticHit
