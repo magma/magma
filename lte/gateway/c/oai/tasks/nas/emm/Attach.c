@@ -295,15 +295,24 @@ int emm_proc_attach_request(
   if (ies->guti) {  // no need for  && (is_native_guti)
     guti_ue_mm_ctx =
         mme_ue_context_exists_guti(&mme_app_desc_p->mme_ue_contexts, ies->guti);
+    // Allocate new context and process the new request as fresh attach
+    // request
     if (guti_ue_mm_ctx) {
+      guti_ue_mm_ctx->emm_context.new_attach_info =
+          calloc(1, sizeof(new_attach_info_t));
+      guti_ue_mm_ctx->emm_context.new_attach_info->mme_ue_s1ap_id =
+          ue_mm_context->mme_ue_s1ap_id;
+      guti_ue_mm_ctx->emm_context.new_attach_info->ies = ies;
+      guti_ue_mm_ctx->emm_context.new_attach_info->is_mm_ctx_new =
+          is_mm_ctx_new;
+
       /*
-       * This implies either UE or eNB has not sent S-TMSI in initial UE message
-       * even though UE has old GUTI. Trigger clean up
+       * This implies either UE or eNB has not sent S-TMSI in initial UE
+       * message even though UE has old GUTI. Trigger clean up
        */
       nas_proc_implicit_detach_ue_ind(guti_ue_mm_ctx->mme_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
-    // Allocate new context and process the new request as fresh attach request
-    clear_emm_ctxt = true;
   }
   if (ies->imsi) {
     imsi_ue_mm_ctx =
@@ -339,7 +348,10 @@ int emm_proc_attach_request(
                 ident_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
             // TODO Need to be reviewed and corrected
             // trigger clean up
-            nas_proc_implicit_detach_ue_ind(old_ue_id);
+            memset(&emm_sap, 0, sizeof(emm_sap));
+            emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
+            emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = old_ue_id;
+            rc = emm_sap_send(&emm_sap);
             // Allocate new context and process the new request as fresh attach
             // request
             clear_emm_ctxt = true;
