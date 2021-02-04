@@ -673,6 +673,9 @@ jobs:
         description: Images to deploy
         type: string
         default: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -694,6 +697,7 @@ jobs:
           images: <<parameters.images>>
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -1001,6 +1005,9 @@ jobs:
         description: Containers tag
         type: string
         default: ${CIRCLE_SHA1:0:8}
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -1018,7 +1025,7 @@ jobs:
           images: 'goradius'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
-          tag-latest: true
+          tag-latest: <<parameters.tag-latest>>
       - run:
           name: Load openvswitch kernel module for xwf integ test
           command: sudo modprobe openvswitch
@@ -1031,7 +1038,7 @@ jobs:
           images: 'xwfm-integ-tests'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
-          tag-latest: true
+          tag-latest: <<parameters.tag-latest>>
       - magma_slack_notify
 
 workflows:
@@ -1094,7 +1101,7 @@ workflows:
             - cwag-precommit
             - cwf-integ-test
           images: 'gateway_python|gateway_pipelined|gateway_go'
-          tag: 'latest'
+          tag-latest: true
       - xwfm-deploy:
           <<: *only_master
           name: xwfm-deploy-latest
@@ -1102,7 +1109,7 @@ workflows:
             - xwfm-test
             - cwag-precommit
             - cwf-integ-test
-          tag: 'latest'
+          tag-latest: true
 
 
   cwf_operator:
