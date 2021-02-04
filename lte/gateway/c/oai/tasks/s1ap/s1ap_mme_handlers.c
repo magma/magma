@@ -348,6 +348,7 @@ void clean_stale_enb_state(
   // Remove the old eNB association
   s1ap_remove_enb(state, stale_enb_association);
   update_mme_app_stats_connected_enb_sub();
+  OAILOG_DEBUG(LOG_S1AP, "Removed stale eNB and all associated UEs.");
 }
 
 int s1ap_mme_handle_s1_setup_request(
@@ -568,11 +569,8 @@ int s1ap_mme_handle_s1_setup_request(
     enb_association->enb_name[ie_enb_name->value.choice.ENBname.size] = '\0';
   }
 
-  // Clean any stale connection for this enb_id and transfer the attached UEs
+  // Clean any stale eNB association (from Redis) for this enb_id
   clean_stale_enb_state(state, enb_association);
-  OAILOG_DEBUG(
-      LOG_S1AP, "Removed stale eNB and new eNB has %d UEs.",
-      enb_association->nb_ue_associated);
 
   s1ap_dump_enb(enb_association);
   rc = s1ap_generate_s1_setup_response(state, enb_association);
