@@ -42,7 +42,7 @@ static_services: [
 
 of_server_port: 3333
 
-default_priority: 10
+default_priority: 2
 default_rule_tag: 0x1
 
 # Pipeline application level configs
