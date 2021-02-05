@@ -46,12 +46,11 @@ class Classifier(MagmaController):
         self.next_table = self._service_manager.get_table_num(INGRESS)
         self._uplink_port = OFPP_LOCAL
         self._datapath = None
-        self._clean_restart = kwargs['config']['clean_restart']
 
     def _get_config(self, config_dict):
         mtr_ip = None
         mtr_port = None
-        
+
         if 'mtr_ip' in config_dict:
             self._mtr_service_enabled = True
             mtr_ip = config_dict['mtr_ip']
@@ -70,8 +69,7 @@ class Classifier(MagmaController):
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
-        if self._clean_restart:
-            self._delete_all_flows()
+        self._delete_all_flows()
 
         self._install_default_tunnel_flows()
         self._install_internal_pkt_fwd_flow()
@@ -80,8 +78,7 @@ class Classifier(MagmaController):
         flows.delete_all_flows_from_table(self._datapath, self.tbl_num)
 
     def cleanup_on_disconnect(self, datapath):
-        if self._clean_restart:
-            self._delete_all_flows()
+        self._delete_all_flows()
 
     def _install_default_tunnel_flows(self):
         match = MagmaMatch()
@@ -132,7 +129,7 @@ class Classifier(MagmaController):
 
         flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
                        priority=priority, goto_table=self.next_table)
-       
+
         # Add ARP flow for LOCAL port
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
                            in_port=self._uplink_port, arp_tpa=ue_ip_adr)
@@ -203,7 +200,7 @@ class Classifier(MagmaController):
         # discard downlink Tunnel for mtr port
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            in_port=self.config.mtr_port,ipv4_dst=ue_ip_adr)
- 
+
         flows.add_flow(self._datapath, self.tbl_num, match,
                        priority=priority + 1)
 
