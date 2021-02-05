@@ -96,8 +96,8 @@ resource "kubernetes_secret" "orc8r_configs" {
       "prometheusQueryAddress" : var.thanos_enabled ? format("http://%s-thanos-query-http:10902", var.helm_deployment_name) : format("http://%s-prometheus:9090", var.helm_deployment_name),
 
       "alertmanagerApiURL" : format("http://%s-alertmanager:9093/api/v2", var.helm_deployment_name),
-      "prometheusConfigServiceURL" : format("http://%s-prometheus-configurer:9100", var.helm_deployment_name),
-      "alertmanagerConfigServiceURL" : format("http://%s-alertmanager-configurer:9101", var.helm_deployment_name),
+      "prometheusConfigServiceURL" : format("http://%s-prometheus-configurer:9100/v1", var.helm_deployment_name),
+      "alertmanagerConfigServiceURL" : format("http://%s-alertmanager-configurer:9101/v1", var.helm_deployment_name),
     })
 
     "orchestrator.yml" = yamlencode({

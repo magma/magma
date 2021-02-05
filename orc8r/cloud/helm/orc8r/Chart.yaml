@@ -13,7 +13,7 @@ apiVersion: v2
 appVersion: "1.0"
 description: A Helm chart for magma orchestrator
 name: orc8r
-version: 1.5.10
+version: 1.5.11
 engine: gotpl
 sources:
   - https://github.com/facebookincubator/magma
@@ -27,7 +27,7 @@ dependencies:
     repository: ""
     condition: secrets.create
   - name: metrics
-    version: 1.4.20
+    version: 1.4.21
     repository: ""
     condition: metrics.enabled
   - name: nms
