@@ -34,6 +34,13 @@ type Config struct {
 	UpdateIntervalSecs      uint   `yaml:"updateIntervalSecs"`
 	MaxEventsCollectRetries uint32 `yaml:"maxEventsCollectRetries"`
 	MaxRecordsExportRetries uint32 `yaml:"maxRecordsExportRetries"`
+
+	// Exporter config
+	DeliveryFunctionAddress string `yaml:"deliveryFunctionAddress"`
+	ExporterRootCA          string `yaml:"exporterRootCA"`
+	ExporterKeyFile         string `yaml:"exporterKeyFile"`
+	ExporterCrtFile         string `yaml:"exporterCrtFile"`
+	SkipVerifyServer        bool   `yaml:"skipVerifyServer"`
 }
 
 // GetServiceConfig parses interceptd service config and returns Config

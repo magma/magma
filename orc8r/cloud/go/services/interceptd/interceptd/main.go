@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/interceptd"
 	"magma/orc8r/cloud/go/services/interceptd/collector"
+	"magma/orc8r/cloud/go/services/interceptd/exporter"
 	manager "magma/orc8r/cloud/go/services/interceptd/intercept_manager"
 
 	"github.com/golang/glog"
@@ -43,7 +44,22 @@ func main() {
 		glog.Fatalf("Failed to create new EventsCollector: %v", err)
 	}
 
-	interceptManager := manager.NewInterceptManager(eventsCollector, serviceConfig)
+	tlsConfig, err := exporter.NewTlsConfig(
+		serviceConfig.ExporterCrtFile,
+		serviceConfig.ExporterKeyFile,
+		serviceConfig.ExporterRootCA,
+		serviceConfig.SkipVerifyServer,
+	)
+	if err != nil {
+		glog.Fatalf("Failed to create new RecordExporter: %v", err)
+	}
+
+	recordExporter, err := exporter.NewRecordExporter(serviceConfig.DeliveryFunctionAddress, tlsConfig)
+	if err != nil {
+		glog.Fatalf("Failed to create new RecordExporter: %v", err)
+	}
+
+	interceptManager := manager.NewInterceptManager(eventsCollector, recordExporter, serviceConfig)
 	// Run LI service in Loop
 	go func() {
 		for {

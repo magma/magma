@@ -16,6 +16,7 @@ package interceptmgr
 import (
 	"magma/orc8r/cloud/go/services/interceptd"
 	"magma/orc8r/cloud/go/services/interceptd/collector"
+	"magma/orc8r/cloud/go/services/interceptd/exporter"
 )
 
 // InterceptManager provides the main functionality for the interceptd
@@ -23,6 +24,7 @@ import (
 // them to LIMS.
 type InterceptManager struct {
 	Collector               *collector.EventsCollector
+	Exporter                *exporter.RecordExporter
 	MaxEventsCollectRetries uint32
 	MaxRecordsExportRetries uint32
 }
@@ -30,10 +32,12 @@ type InterceptManager struct {
 // NewInterceptManager creates and returns a new interceptManager
 func NewInterceptManager(
 	collector *collector.EventsCollector,
+	exporter *exporter.RecordExporter,
 	config interceptd.Config,
 ) *InterceptManager {
 	return &InterceptManager{
 		Collector:               collector,
+		Exporter:                exporter,
 		MaxEventsCollectRetries: config.MaxEventsCollectRetries,
 		MaxRecordsExportRetries: config.MaxRecordsExportRetries,
 	}

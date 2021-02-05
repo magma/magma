@@ -11,5 +11,11 @@
 # limitations under the License.
 
 updateIntervalSecs: 60
-MaxEventsCollectRetries: 10
-MaxRecordsExportRetries: 10
+consecutiveCollectFailures: 10
+consecutiveExportFailures: 10
+
+deliveryFunctionAddress: "172.19.87.55:8667"
+exporterRootCA: "/var/opt/magma/certs/ca.crt"
+exporterKeyFile: "/var/opt/magma/certs/client.key"
+exporterCrtFile: "/var/opt/magma/certs/client.crt"
+skipVerifyServer: True
