@@ -1290,27 +1290,6 @@ class SessionManagerUtil(object):
 
         # Get sessionid
         res = None
-<<<<<<< HEAD
-        while i < MAX:
-            req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
-            try:
-                res = self._directorydstub.GetDirectoryField(
-                    req, DEFAULT_GRPC_TIMEOUT
-                )
-            except grpc.RpcError as err:
-                print("error: GetDirectoryFieldRequest error for id: "
-                      "%s! [%s] %s" % (imsi, err.code(),err.details())
-                )
-            if req != None:
-                i = MAX
-            else:
-                i+=1
-                print("warning: directoryd failed to return sessionId for %s. Retrying" % imsi)
-                time.sleep(3)
-
-        if res == None:
-            print("error: Couldnt find sessionid. Directoryd content:")
-=======
         req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
         try:
             res = self._directorydstub.GetDirectoryField(
@@ -1323,7 +1302,6 @@ class SessionManagerUtil(object):
 
         if res == None:
             print("error: Couldn't find sessionid. Directoryd content:")
->>>>>>> 1177ebae976bfbf9beaa3e9edf37cbfdb5b565c7
             self._print_directoryd_content()
 
         self._session_stub.PolicyReAuth(
@@ -1370,12 +1348,8 @@ class SessionManagerUtil(object):
         if allRecordsResponse is None:
             print("No records were found at directoryd")
         else:
-<<<<<<< HEAD
-            pprint(allRecordsResponse.records)
-=======
             for record in allRecordsResponse.records:
                 print("%s" % str(record))
->>>>>>> 1177ebae976bfbf9beaa3e9edf37cbfdb5b565c7
 
 
 class GTPBridgeUtils:
