@@ -673,6 +673,9 @@ jobs:
         description: Images to deploy
         type: string
         default: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -694,6 +697,7 @@ jobs:
           images: <<parameters.images>>
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -999,6 +1003,9 @@ jobs:
         description: Containers tag
         type: string
         default: ${CIRCLE_SHA1:0:8}
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -1016,7 +1023,7 @@ jobs:
           images: 'goradius'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
-          tag-latest: true
+          tag-latest: <<parameters.tag-latest>>
       - run:
           name: Load openvswitch kernel module for xwf integ test
           command: sudo modprobe openvswitch
@@ -1029,7 +1036,7 @@ jobs:
           images: 'xwfm-integ-tests'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
-          tag-latest: true
+          tag-latest: <<parameters.tag-latest>>
       - magma_slack_notify
 
 workflows:
@@ -1059,6 +1066,7 @@ workflows:
           requires:
             - lte-integ-test
 
+<<<<<<< HEAD
   # feg:
   #   jobs:
   #     - feg-precommit
@@ -1146,3 +1154,92 @@ workflows:
   #   jobs:
   #     - fossa-analyze:
   #         <<: *only_master
+=======
+  feg:
+    jobs:
+      - feg-precommit
+      - feg-build:
+          requires:
+            - feg-precommit
+
+  cwag:
+    jobs:
+      - cwag-precommit
+      - cwf-integ-test:
+          <<: *master_and_develop
+      - xwfm-test:
+          <<: *master_and_develop
+      - cwag-deploy:
+          <<: *only_master
+          requires:
+            - cwag-precommit
+            - cwf-integ-test
+      - xwfm-deploy:
+          <<: *only_master
+          requires:
+            - xwfm-test
+            - cwag-deploy
+      - cwag-deploy:
+          <<: *only_master
+          name: cwag-deploy-latest
+          requires:
+            - xwfm-test
+            - cwag-precommit
+            - cwf-integ-test
+          images: 'gateway_python|gateway_pipelined|gateway_go'
+          tag-latest: true
+      - xwfm-deploy:
+          <<: *only_master
+          name: xwfm-deploy-latest
+          requires:
+            - xwfm-test
+            - cwag-precommit
+            - cwf-integ-test
+          tag-latest: true
+
+
+  cwf_operator:
+    jobs:
+      - cwf-operator-precommit
+      - cwf-operator-build:
+          requires:
+            - cwf-operator-precommit
+
+  hourly_xwfm:
+    triggers:
+      - schedule:
+          cron: "0 * * * *"
+          <<: *only_master
+    jobs:
+      - xwfm-test:
+          notify_magma_ci: false
+
+  nms:
+    jobs:
+      - nms-flow-test
+      - eslint
+      - nms-yarn-test:
+          requires:
+            - nms-flow-test
+      - nms-e2e-test:
+          requires:
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
+      - nms-build:
+          requires:
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
+            - nms-e2e-test
+
+  docusaurus:
+   jobs:
+    - docusaurus_build_and_deploy:
+        <<: *only_master
+
+  fossa:
+    jobs:
+      - fossa-analyze:
+          <<: *only_master
+>>>>>>> 1177ebae976bfbf9beaa3e9edf37cbfdb5b565c7
