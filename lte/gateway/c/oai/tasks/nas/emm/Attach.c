@@ -2425,6 +2425,12 @@ void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
       "Process new Attach Request for ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
   new_attach_info_t* attach_info = ue_context_p->emm_context.new_attach_info;
+  if (!attach_info) {
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, ue_context_p->emm_context._imsi64,
+        "New attach request within EMM context is null \n");
+    OAILOG_FUNC_OUT(LOG_NAS_EMM);
+  }
 
   /* The new Attach Request is received in s1ap initial ue message,
    * So release previous Attach Request's contexts */
@@ -2484,5 +2490,6 @@ void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
     _emm_proc_create_procedure_attach_request(ue_mm_context, attach_info->ies);
   }
   _emm_attach_run_procedure(&ue_mm_context->emm_context);
+  free_wrapper((void**) &ue_context_p->emm_context.new_attach_info);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }

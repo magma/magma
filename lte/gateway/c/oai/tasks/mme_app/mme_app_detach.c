@@ -155,7 +155,6 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
       nas_delete_all_emm_procedures(&ue_context_p->emm_context);
       free_esm_context_content(&ue_context_p->emm_context.esm_ctx);
       proc_new_attach_req(ue_context_p);
-      free_wrapper((void**) &ue_context_p->emm_context.new_attach_info);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     if (ECM_IDLE == ue_context_p->ecm_state) {
