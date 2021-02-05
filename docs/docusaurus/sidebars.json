@@ -86,6 +86,9 @@
       "howtos/thanos",
       "howtos/call_tracing"
     ],
+    "Debugging Tools": [
+      "debugging_tools/show_tech"
+    ],
     "Federation Gateway": [
       {
         "type": "subcategory",
