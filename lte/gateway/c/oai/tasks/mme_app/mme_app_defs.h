@@ -213,6 +213,8 @@ int mme_app_handle_sgsap_location_update_rej(
 
 int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
+int mme_app_handle_ts8_timer_expiry(zloop_t* loop, int timer_id, void* args);
+
 int mme_app_handle_sgsap_reset_indication(
     itti_sgsap_vlr_reset_indication_t* const reset_indication_pP);
 

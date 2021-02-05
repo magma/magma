@@ -966,6 +966,50 @@ int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
 
 /**********************************************************************************
  **
+ ** Name:                mme_app_handle_ts8_timer_expiry() **
+ ** Description          Ts8_1 timer expiry handler **
+ ** **
+ ** Inputs:              ue_mm_context_s **
+ ** **
+ ***********************************************************************************/
+int mme_app_handle_ts8_timer_expiry(zloop_t* loop, int timer_id, void* args) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+  struct ue_mm_context_s* ue_context_p =
+      mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs ts8 timer");
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+  if (ue_context_p->sgs_context == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Ts8  Timer expired, but sgs context is NULL for "
+        "ue-id " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
+  ue_context_p->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->sgs_state    = SGS_NULL;
+
+  // Handle SGS Location Update Failure
+  nas_proc_cs_domain_location_updt_fail(
+      SGS_MSC_NOT_REACHABLE, NULL, mme_ue_s1ap_id);
+
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+}
+
+/**********************************************************************************
+ **
  ** Name:                sgs_fsm_associated_loc_updt_rej() **
  ** Description          Handling of SGS_LOCATION UPDATE REJ in Associated **
  **                      state **
