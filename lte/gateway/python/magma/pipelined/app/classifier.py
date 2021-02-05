@@ -25,6 +25,7 @@ from magma.pipelined.openflow.registers import TUN_PORT_REG
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 
+
 class Classifier(MagmaController):
     """
     A controller that sets up an openflow pipeline for Magma.
