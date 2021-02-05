@@ -13,8 +13,6 @@ limitations under the License.
 
 import logging
 import sqlite3
-import threading
-import time
 from contextlib import contextmanager
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
