@@ -501,6 +501,7 @@ ue_description_t* s1ap_new_ue(
   }
   // Increment number of UE
   enb_ref->nb_ue_associated++;
+  OAILOG_DEBUG(LOG_S1AP, "Num ue associated: %d on assoc id:%d", enb_ref->nb_ue_associated, sctp_assoc_id);
   return ue_ref;
 }
 
@@ -547,10 +548,12 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       &imsi64);
   delete_s1ap_ue_state(imsi64);
 
-  if (!enb_ref->nb_ue_associated) {
+  OAILOG_DEBUG(LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu", enb_ref->nb_ue_associated, enb_ref->ue_id_coll.num_elements);
+  if ((!enb_ref->nb_ue_associated) || (enb_ref->ue_id_coll.num_elements == 0)) {
     if (enb_ref->s1_state == S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
       enb_ref->s1_state = S1AP_INIT;
+      enb_ref->nb_ue_associated = 0;
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name);
       update_mme_app_stats_connected_enb_sub();
     } else if (enb_ref->s1_state == S1AP_SHUTDOWN) {

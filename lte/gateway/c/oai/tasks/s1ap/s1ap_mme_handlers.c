@@ -2227,8 +2227,9 @@ int s1ap_handle_sctp_disconnection(
   OAILOG_INFO(
       LOG_S1AP,
       "SCTP disconnection request for association id %u, Reset Flag = "
-      "%u. Connected UEs = %u \n",
-      assoc_id, reset, enb_association->nb_ue_associated);
+      "%u. Connected UEs = %u Num elements = %zu\n",
+      assoc_id, reset, enb_association->nb_ue_associated,
+      enb_association->ue_id_coll.num_elements);
 
   // First check if we can just reset the eNB state if there are no UEs
   if (!enb_association->nb_ue_associated) {
