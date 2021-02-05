@@ -218,14 +218,18 @@ class SqliteStore(BaseStore):
         Args:
             subscribers - list of subscribers to be in the store.
         """
-        for db_location in self._db_location:
+        bucket_subs = {}
+        for sub in subscribers:
+            sid = SIDUtils.to_str(sub.sid)
+            bucket_subs[int(sid[-SID_DIGITS:])].append(sid)
+
+        for i, db_location in enumerate(self._db_location):
             conn = sqlite3.connect(db_location, uri=True)
-            current_state = {}
             try:
                 with conn:
                     # Capture the current state of the subscribers
                     res = conn.execute("SELECT subscriber_id, data FROM subscriberdb")
-
+                    current_state = {}
                     for row in res:
                         sub = SubscriberData()
                         sub.ParseFromString(row[1])
@@ -233,21 +237,14 @@ class SqliteStore(BaseStore):
 
                     # Clear all subscribers
                     conn.execute("DELETE FROM subscriberdb")
-            finally:
-                conn.close()
 
-        # Add the subscribers with the current state
-        for sub in subscribers:
-            sid = SIDUtils.to_str(sub.sid)
-            db_location = self._db_location[int(sid[-SID_DIGITS:])]
-            conn = sqlite3.connect(db_location, uri=True)
-            if sid in current_state:
-                sub.state.CopyFrom(current_state[sid])
-            data_str = sub.SerializeToString()
-            try:
-                with conn:
-                    conn.execute("INSERT INTO subscriberdb(subscriber_id, data) "
-                                        "VALUES (?, ?)", (sid, data_str))
+                    # Add the subscribers with the current state
+                    for sid in bucket_subs[i]:
+                        if sid in current_state:
+                            sub.state.CopyFrom(current_state[sid])
+                            data_str = sub.SerializeToString()
+                            conn.execute("INSERT INTO subscriberdb(subscriber_id, data) "
+                                         "VALUES (?, ?)", (sid, data_str))
             finally:
                 conn.close()
         self._on_ready.resync(subscribers)
