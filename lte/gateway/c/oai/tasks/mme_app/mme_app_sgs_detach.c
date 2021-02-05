@@ -121,12 +121,9 @@ static void mme_app_send_sgs_eps_detach_indication(
     }
   } else {
     // Start SGS EPS Detach indication timer
-    timer_callback_fun.nas_timer_callback =
-        mme_app_handle_sgs_eps_detach_timer_expiry;
-
     if ((ue_context_p->sgs_context->ts8_timer.id = mme_app_start_timer(
              ue_context_p->sgs_context->ts8_timer.sec * 1000, TIMER_REPEAT_ONCE,
-             mme_app_handle_ts8_timer_expiry, ue_context_p->mme_ue_s1ap_id)) ==
+             mme_app_handle_sgs_eps_detach_timer_expiry, ue_context_p->mme_ue_s1ap_id)) ==
         -1) {
       OAILOG_ERROR(
           LOG_MME_APP,
