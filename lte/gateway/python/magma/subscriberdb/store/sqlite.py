@@ -13,6 +13,7 @@ limitations under the License.
 
 import logging
 import sqlite3
+from collections import defaultdict
 from contextlib import contextmanager
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
@@ -216,7 +217,7 @@ class SqliteStore(BaseStore):
         Args:
             subscribers - list of subscribers to be in the store.
         """
-        bucket_subs = {}
+        bucket_subs = defaultdict(list)
         for sub in subscribers:
             sid = SIDUtils.to_str(sub.sid)
             bucket_subs[int(sid[-SID_DIGITS:])].append(sid)
