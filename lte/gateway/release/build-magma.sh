@@ -355,6 +355,7 @@ ${CONTROL_PROXY_FILE}=/etc/magma/ \
 $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.conf) \
 $(glob_files "${ANSIBLE_FILES}/configure_envoy_namespace.sh" /usr/local/bin/ ) \
 $(glob_files "${ANSIBLE_FILES}/logrotate_oai.conf" /etc/logrotate.d/oai) \
+$(glob_files "${ANSIBLE_FILES}/logrotate_rsyslog.conf" /etc/logrotate.d/rsyslog) \
 $(glob_files "${ANSIBLE_FILES}/local-cdn/*" /var/www/local-cdn/) \
 ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
