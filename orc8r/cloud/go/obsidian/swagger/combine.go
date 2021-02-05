@@ -19,47 +19,48 @@ import (
 	swagger_lib "magma/orc8r/cloud/go/swagger"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 )
 
 var (
 	commonSpecPath = "/etc/magma/configs/orc8r/swagger_specs/common/swagger-common.yml"
 )
 
-// GetCombinedSwaggerSpecs polls every servicer registered with
+// GetCombinedSpec polls every servicer registered with
 // a Swagger spec and merges them together to return a combined spec.
-func GetCombinedSwaggerSpecs() (string, error) {
+func GetCombinedSpec(yamlCommon string) (string, error) {
 	servicers, err := GetSpecServicers()
 	if err != nil {
 		return "", err
 	}
 
-	// Retrieve common spec
-	data, err := ioutil.ReadFile(commonSpecPath)
-	if err != nil {
-		glog.Fatalf("Error retrieving common Swagger spec %+v", err)
-	}
-	yamlCommon := string(data)
-
-	// Retrieve specs
 	var yamlSpecs []string
 	for _, s := range servicers {
 		yamlSpec, err := s.GetSpec()
 		if err != nil {
-			glog.Errorf("Invalid response from spec servicer \n %+v", err)
+			err = errors.Wrapf(err, "get Swagger spec from %s service", s.GetService())
+			glog.Error(err)
 		} else {
 			yamlSpecs = append(yamlSpecs, yamlSpec)
 		}
 	}
 
-	// Combine specs.
 	combined, warnings, err := swagger_lib.Combine(yamlCommon, yamlSpecs)
 	if err != nil {
-		glog.Fatal(err)
+		return "", err
 	}
 	if warnings != nil {
-		glog.Infof("Warnings: %+v \n", warnings)
+		glog.Infof("Swagger spec traits were overwritten or unable to be read: %+v \n", warnings)
 	}
 
-	// Merge specs
 	return combined, nil
+}
+
+// GetCommonSpec returns the YAML string of the Swagger Common Spec
+func GetCommonSpec() (string, error) {
+	data, err := ioutil.ReadFile(commonSpecPath)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }

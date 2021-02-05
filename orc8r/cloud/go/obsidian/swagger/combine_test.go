@@ -14,7 +14,6 @@
 package swagger_test
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -23,75 +22,82 @@ import (
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
+	swagger_lib "magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
-func Test_GetCombinedSwaggerSpecs(t *testing.T) {
-	tmpDir := "/etc/magma/configs/orc8r/swagger_specs/"
-	testdataDir := "testdata"
+func Test_GetCommonSpec(t *testing.T) {
+	specPath := "/etc/magma/configs/orc8r/swagger_specs"
 	commonSpecDir := "/etc/magma/configs/orc8r/swagger_specs/common"
-	commonSpecFile := "swagger-common.yml"
-	goldenFilePath := filepath.Join(testdataDir, "out.yml.golden")
-	testServices := []string{"test1", "test2", "test3"}
+	commonSpecFilePath := filepath.Join(commonSpecDir, "swagger-common.yml")
 
-	os.RemoveAll(tmpDir)
-	defer os.RemoveAll(tmpDir)
+	os.RemoveAll(specPath)
+	defer os.RemoveAll(specPath)
 
 	err := os.MkdirAll(commonSpecDir, os.ModePerm)
 	assert.NoError(t, err)
 
-	commonSpecPath := filepath.Join(testdataDir, commonSpecFile)
-	commonSpecTempPath := filepath.Join(commonSpecDir, commonSpecFile)
-	copyFileToTestImage(t, commonSpecPath, commonSpecTempPath)
+	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
+	commonSpec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{commonTag}}
+	yamlCommon := marshalToYAML(t, commonSpec)
 
-	for _, service := range testServices {
-		file := fmt.Sprintf("%s.swagger.v1.yml", service)
-		path := filepath.Join(testdataDir, file)
-		tmpSpecPath := filepath.Join(tmpDir, file)
+	err = ioutil.WriteFile(commonSpecFilePath, []byte(yamlCommon), 0644)
+	assert.NoError(t, err)
 
-		copyFileToTestImage(t, path, tmpSpecPath)
+	actual, err := swagger.GetCommonSpec()
+	assert.NoError(t, err)
+	assert.Equal(t, yamlCommon, actual)
+}
+
+func Test_GetCombinedSwaggerSpecs(t *testing.T) {
+	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
+	commonSpec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{commonTag}}
+	yamlCommon := marshalToYAML(t, commonSpec)
+
+	tags := []swagger_lib.TagDefinition{
+		{Name: "Tag 1"},
+		{Name: "Tag 2"},
+		{Name: "Tag 3"},
+	}
+	services := []string{"test_service1", "test_service2", "test_service3"}
+	assert.Equal(t, len(tags), len(services))
+
+	expectedSpec := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{tags[0], tags[1], tags[2], commonTag},
+	}
+	expectedYaml := marshalToYAML(t, expectedSpec)
+
+	setup(t, tags, services)
+
+	combined, err := swagger.GetCombinedSpec(yamlCommon)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedYaml, combined)
+}
+
+func setup(t *testing.T, tags []swagger_lib.TagDefinition, services []string) {
+	labels := map[string]string{
+		orc8r.SpecServicerLabel: "true",
 	}
 
-	StartTestServiceInternal(t, testServices[0], testServices[1], testServices[2])
+	for i, s := range services {
+		srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, s, labels, nil)
+		tag := tags[i]
+		spec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{tag}}
 
-	combined, err := swagger.GetCombinedSwaggerSpecs()
-	assert.NoError(t, err)
+		yamlSpec := marshalToYAML(t, spec)
+		protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer(yamlSpec))
 
-	data, err := ioutil.ReadFile(goldenFilePath)
-	assert.NoError(t, err)
-	expected := string(data)
-
-	assert.Equal(t, expected, combined)
+		go srv.RunTest(lis)
+	}
 }
 
-func StartTestServiceInternal(
-	t *testing.T,
-	serviceOne string,
-	serviceTwo string,
-	serviceThree string,
-) {
-	labels := map[string]string{}
-
-	labels[orc8r.SpecServicerLabel] = "true"
-
-	srv1, lis1 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service1", labels, nil)
-	srv2, lis2 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service2", labels, nil)
-	srv3, lis3 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service3", labels, nil)
-
-	protos.RegisterSwaggerSpecServer(srv1.GrpcServer, swagger.NewSpecServicerFromFile(serviceOne))
-	protos.RegisterSwaggerSpecServer(srv2.GrpcServer, swagger.NewSpecServicerFromFile(serviceTwo))
-	protos.RegisterSwaggerSpecServer(srv3.GrpcServer, swagger.NewSpecServicerFromFile(serviceThree))
-
-	go srv1.RunTest(lis1)
-	go srv2.RunTest(lis2)
-	go srv3.RunTest(lis3)
-}
-
-func copyFileToTestImage(t *testing.T, src string, dst string) {
-	data, err := ioutil.ReadFile(src)
+// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
+func marshalToYAML(t *testing.T, spec swagger_lib.Spec) string {
+	data, err := yaml.Marshal(&spec)
 	assert.NoError(t, err)
-	err = ioutil.WriteFile(dst, data, 0644)
-	assert.NoError(t, err)
+	return string(data)
 }

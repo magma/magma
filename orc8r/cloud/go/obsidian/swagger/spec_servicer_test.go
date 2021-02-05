@@ -29,7 +29,7 @@ import (
 func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 	testFile := "test.swagger.v1.yml"
 	testFileContents := "test yaml spec"
-	tmpDir := "/etc/magma/configs/orc8r/swagger_specs/"
+	tmpDir := "/etc/magma/configs/orc8r/swagger_specs"
 
 	os.RemoveAll(tmpDir)
 	defer os.RemoveAll(tmpDir)
