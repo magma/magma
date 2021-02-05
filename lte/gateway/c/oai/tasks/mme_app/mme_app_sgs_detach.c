@@ -123,8 +123,8 @@ static void mme_app_send_sgs_eps_detach_indication(
     // Start SGS EPS Detach indication timer
     if ((ue_context_p->sgs_context->ts8_timer.id = mme_app_start_timer(
              ue_context_p->sgs_context->ts8_timer.sec * 1000, TIMER_REPEAT_ONCE,
-             mme_app_handle_sgs_eps_detach_timer_expiry, ue_context_p->mme_ue_s1ap_id)) ==
-        -1) {
+             mme_app_handle_sgs_eps_detach_timer_expiry,
+             ue_context_p->mme_ue_s1ap_id)) == -1) {
       OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to start SGS EPS Detach indication timer for "
@@ -153,9 +153,15 @@ static void mme_app_send_sgs_eps_detach_indication(
 }
 
 // handle the SGS EPS detach timer expiry
-void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64) {
+int mme_app_handle_sgs_eps_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs eps detach timer");
   if (ue_context_p == NULL) {
@@ -163,7 +169,7 @@ void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64) {
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
@@ -171,9 +177,9 @@ void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64) {
         "SGS EPS Detach Timer expired but no assoicated SGS context for UE "
         "id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  *imsi64 = ue_context_p->emm_context._imsi64;
+
   /*
    * Increment the retransmission counter
    */
@@ -203,7 +209,7 @@ void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64) {
         "Ts8 timer expired after max tetransmission");
   }
 
-  OAILOG_FUNC_OUT(LOG_MME_APP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
 }
 
 // handle the SGS Implicit EPS detach timer expiry

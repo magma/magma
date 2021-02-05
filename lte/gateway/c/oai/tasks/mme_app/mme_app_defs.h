@@ -165,7 +165,8 @@ int mme_app_handle_initial_paging_request(
 void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64);
 void mme_app_handle_ulr_timer_expiry(void* args, imsi64_t* imsi64);
 
-void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64);
+int mme_app_handle_sgs_eps_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args, imsi64_t* imsi64);
 void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
     void* args, imsi64_t* imsi64);
@@ -212,8 +213,6 @@ int mme_app_handle_sgsap_location_update_rej(
     itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej);
 
 int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args);
-
-int mme_app_handle_ts8_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
 int mme_app_handle_sgsap_reset_indication(
     itti_sgsap_vlr_reset_indication_t* const reset_indication_pP);
