@@ -48,7 +48,6 @@ class SqliteStore(BaseStore):
             return [":memory:"]
 
         # construct db_location items as: file:<path>subscriber<shard>.db?cache=shared
-        i = db_location.find(".db")
         db_location_list = []
 
         # file name is passed, use it as a base
