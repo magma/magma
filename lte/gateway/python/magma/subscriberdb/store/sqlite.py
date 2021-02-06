@@ -219,7 +219,7 @@ class SqliteStore(BaseStore):
             sid = SIDUtils.to_str(sub.sid)
             bucket_subs[self._sid2bucket(sid)].append(sub)
 
-        for i, db_location in enumerate(self._db_location):
+        for i, db_location in enumerate(self._db_locations):
             conn = sqlite3.connect(db_location, uri=True)
             try:
                 with conn:
