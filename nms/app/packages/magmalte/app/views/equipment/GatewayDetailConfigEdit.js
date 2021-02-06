@@ -594,6 +594,7 @@ export function DynamicServicesEdit(props: Props) {
           )}
           <AltFormField label={'Event Aggregation'}>
             <Switch
+              data-testid="eventdService"
               onChange={({target}) =>
                 handleChange(target.checked, DynamicServices.EVENTD)
               }
@@ -604,6 +605,7 @@ export function DynamicServicesEdit(props: Props) {
           </AltFormField>
           <AltFormField label={'Log Aggregation'}>
             <Switch
+              data-testid="tdAgentService"
               onChange={({target}) =>
                 handleChange(target.checked, DynamicServices.TD_AGENT_BIT)
               }
@@ -614,6 +616,7 @@ export function DynamicServicesEdit(props: Props) {
           </AltFormField>
           <AltFormField label={'CPE Monitoring'}>
             <Switch
+              data-testid="monitordService"
               onChange={({target}) =>
                 handleChange(target.checked, DynamicServices.MONITORD)
               }
@@ -686,6 +689,7 @@ export function EPCEdit(props: Props) {
           )}
           <AltFormField label={'Nat Enabled'}>
             <Switch
+              data-testid="natEnabled"
               onChange={() =>
                 handleEPCChange('nat_enabled', !EPCConfig.nat_enabled)
               }
@@ -815,8 +819,9 @@ export function RanEdit(props: Props) {
       const gateway = {
         ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
         cellular: {
-          ...DEFAULT_GATEWAY_CONFIG.cellular,
+          ...(props.gateway?.cellular || DEFAULT_GATEWAY_CONFIG.cellular),
           ran: ranConfig,
+          dns: {...DEFAULT_DNS_CONFIG, ...dnsConfig},
         },
         connected_enodeb_serials: connectedEnodebs,
       };
@@ -869,7 +874,7 @@ export function RanEdit(props: Props) {
               onChange={({target}) => {
                 setConnectedEnodebs(Array.from(target.value));
               }}
-              data-testid="networkType"
+              data-testid="registeredEnodeb"
               MenuProps={{classes: {paper: classes.selectMenu}}}
               renderValue={selected => {
                 if (!selected.length) {
@@ -923,7 +928,7 @@ export function RanEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.isAdd ? 'Save And Close' : 'Save'}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>
@@ -942,7 +947,6 @@ export function ApnResourcesEdit(props: Props) {
   const [apnResourcesRows, setApnResourcesRows] = useState(
     Object.keys(apnResources).map(apn => apnResources[apn]),
   );
-
   const handleApnResourcesChange = (key: string, val, index: number) => {
     const rows = apnResourcesRows;
     rows[index][key] = val;
@@ -971,6 +975,7 @@ export function ApnResourcesEdit(props: Props) {
         apn_resources: gatewayApnResources,
       };
       await ctx.setState(gateway.id, gateway);
+
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
       });
@@ -982,7 +987,7 @@ export function ApnResourcesEdit(props: Props) {
 
   return (
     <>
-      <DialogContent data-testid="ranEdit">
+      <DialogContent data-testid="apnResourcesEdit">
         <List>
           {error !== '' && (
             <AltFormField label={''}>
@@ -990,6 +995,7 @@ export function ApnResourcesEdit(props: Props) {
             </AltFormField>
           )}
           <Button
+            data-testid="apnResourcesAdd"
             onClick={addApnResource}
             disabled={
               !lteCtx.state.cellular.epc.mobility
@@ -999,7 +1005,7 @@ export function ApnResourcesEdit(props: Props) {
             <AddIcon />
           </Button>
           {apnResourcesRows.map((apn, index) => (
-            <Accordion>
+            <Accordion key={index}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <List className={classes.accordionList}>
                   <ListItem>
@@ -1033,6 +1039,7 @@ export function ApnResourcesEdit(props: Props) {
                 <AltFormField label={'APN name'}>
                   <FormControl className={classes.input}>
                     <Select
+                      data-testid="apnName"
                       value={apn.apn_name}
                       onChange={({target}) => {
                         const apns = apnResourcesRows;
@@ -1041,7 +1048,7 @@ export function ApnResourcesEdit(props: Props) {
                       }}
                       input={<OutlinedInput />}>
                       {(Object.keys(apnCtx.state) || []).map(apn => (
-                        <MenuItem value={apn}>
+                        <MenuItem key={apn} value={apn}>
                           <ListItemText primary={apn} />
                         </MenuItem>
                       ))}
@@ -1050,6 +1057,7 @@ export function ApnResourcesEdit(props: Props) {
                 </AltFormField>
                 <AltFormField label={'APN Resource ID'}>
                   <OutlinedInput
+                    data-testid="apnID"
                     className={classes.input}
                     placeholder="Enter ID"
                     fullWidth={true}
@@ -1063,6 +1071,7 @@ export function ApnResourcesEdit(props: Props) {
                 </AltFormField>
                 <AltFormField label={'VLAN ID'}>
                   <OutlinedInput
+                    data-testid="vlanID"
                     className={classes.input}
                     type="number"
                     placeholder="Enter number"
