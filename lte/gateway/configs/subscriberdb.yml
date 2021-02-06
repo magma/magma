@@ -20,8 +20,11 @@ host_address: 0.0.0.0 # Bind to all interfaces
 enable_streaming: True
 
 # Keep subscriberdb in a file.
-# Change filename to :memory: to store subscribers in memory.
-db_path: file:/var/opt/magma/subscriber.db?cache=shared
+# Comment out db_path to default to :memory: to store subscribers in memory.
+db_path: /var/opt/magma/
+
+# Bucketize subscribers based on last sid_last_n digits
+sid_last_n: 2
 
 # S6A Peer Configurations
 mme_host_name: hss.magma.com

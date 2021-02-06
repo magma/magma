@@ -26,9 +26,6 @@ from .base import (
 )
 from .onready import OnDataReady
 
-SID_DIGITS = 2 # number of least significant digits from IMSI to use as table buckets
-N_SHARDS = 10 ** SID_DIGITS # number of shards to distribute UEs
-
 class SqliteStore(BaseStore):
     """
     A thread-safe sqlite based implementation of the subscriber database.
@@ -37,34 +34,34 @@ class SqliteStore(BaseStore):
     can't be shared by multiple processes.
     """
 
-    def __init__(self, db_location, loop=None):
-        self._db_location = self._create_db_locations(db_location)
+    def __init__(self, db_location, loop=None, sid_digits=2):
+        self._sid_digits = sid_digits # last digits to be included from subscriber id
+        self._n_shards = 10**sid_digits
+        self._db_locations = self._create_db_locations(db_location, self._n_shards)
         self._create_store()
         self._on_ready = OnDataReady(loop=loop)
 
 
-    def _create_db_locations(self, db_location):
-        # db_location in subscriberdb.yml: file:/var/opt/magma/subscriber.db?cache=shared
+    def _create_db_locations(self, db_location, n_shards):
+        # in memory if db_location is not specified
+        if not db_location:
+            return [":memory:"]
+
+        # construct db_location items as: file:<path>subscriber<shard>.db?cache=shared
         i = db_location.find(".db")
         db_location_list = []
-        # no sharding if it is not a file
-        if i == -1:
-            return [db_location]
 
         # file name is passed, use it as a base
-        for n_shard in range(N_SHARDS):
-            if n_shard < 10: # prefix i with '0'
-                db_location_list.append(db_location[:i] + '0' + str(n_shard) + db_location[i:])
-            else:
-                db_location_list.append(db_location[:i] + str(n_shard) + db_location[i:])
-            logging.info("db location: %s", db_location_list[n_shard])
+        for shard in range(n_shards):
+            db_location_list.append('file:' + db_location + 'subscriber' + str(shard) + ".db?cache=shared")
+            logging.info("db location: %s", db_location_list[shard])
         return db_location_list
 
     def _create_store(self):
         """
         Create the sqlite table if it doesn't exist already.
         """
-        for db_location in self._db_location:
+        for db_location in self._db_locations:
             conn = sqlite3.connect(db_location, uri=True)
             try:
                 with conn:
@@ -79,7 +76,7 @@ class SqliteStore(BaseStore):
         """
         sid = SIDUtils.to_str(subscriber_data.sid)
         data_str = subscriber_data.SerializeToString()
-        db_location = self._db_location[int(sid[-SID_DIGITS:])]
+        db_location = self._db_locations[self._sid2bucket(sid)]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -99,7 +96,7 @@ class SqliteStore(BaseStore):
         """
         Context manager to modify the subscriber data.
         """
-        db_location = self._db_location[int(subscriber_id[-SID_DIGITS:])]
+        db_location = self._db_locations[self._sid2bucket(subscriber_id)]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -125,7 +122,7 @@ class SqliteStore(BaseStore):
         """
         Method that deletes a subscriber, if present.
         """
-        db_location = self._db_location[int(subscriber_id[-SID_DIGITS:])]
+        db_location = self._db_locations[self._sid2bucket(subscriber_id)]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -140,7 +137,7 @@ class SqliteStore(BaseStore):
         """
         Method that removes all the subscribers from the store
         """
-        for db_location in self._db_location:
+        for db_location in self._db_locations:
             conn = sqlite3.connect(db_location, uri=True)
             try:
                 with conn:
@@ -152,7 +149,7 @@ class SqliteStore(BaseStore):
         """
         Method that returns the auth key for the subscriber.
         """
-        db_location = self._db_location[int(subscriber_id[-SID_DIGITS:])]
+        db_location = self._db_locations[self._sid2bucket(subscriber_id)]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -172,7 +169,7 @@ class SqliteStore(BaseStore):
         Method that returns the list of subscribers stored
         """
         sub_list = []
-        for db_location in self._db_location:
+        for db_location in self._db_locations:
             conn = sqlite3.connect(db_location, uri=True)
             try:
                 with conn:
@@ -197,7 +194,7 @@ class SqliteStore(BaseStore):
         """
         sid = SIDUtils.to_str(subscriber_data.sid)
         data_str = subscriber_data.SerializeToString()
-        db_location = self._db_location[int(sid[-SID_DIGITS:])]
+        db_location = self._db_locations[self._sid2bucket(sid)]
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
@@ -220,7 +217,7 @@ class SqliteStore(BaseStore):
         bucket_subs = defaultdict(list)
         for sub in subscribers:
             sid = SIDUtils.to_str(sub.sid)
-            bucket_subs[int(sid[-SID_DIGITS:])].append(sid)
+            bucket_subs[self._sid2bucket(sid)].append(sub)
 
         for i, db_location in enumerate(self._db_location):
             conn = sqlite3.connect(db_location, uri=True)
@@ -238,12 +235,13 @@ class SqliteStore(BaseStore):
                     conn.execute("DELETE FROM subscriberdb")
 
                     # Add the subscribers with the current state
-                    for sid in bucket_subs[i]:
+                    for sub in bucket_subs[i]:
+                        sid = SIDUtils.to_str(sub.sid)
                         if sid in current_state:
                             sub.state.CopyFrom(current_state[sid])
-                            data_str = sub.SerializeToString()
-                            conn.execute("INSERT INTO subscriberdb(subscriber_id, data) "
-                                         "VALUES (?, ?)", (sid, data_str))
+                        data_str = sub.SerializeToString()
+                        conn.execute("INSERT INTO subscriberdb(subscriber_id, data) "
+                                     "VALUES (?, ?)", (sid, data_str))
             finally:
                 conn.close()
         self._on_ready.resync(subscribers)
@@ -268,3 +266,16 @@ class SqliteStore(BaseStore):
         )
         apn_config.ambr.max_bandwidth_ul = apn_data.ambr.max_bandwidth_ul
         apn_config.ambr.max_bandwidth_dl = apn_data.ambr.max_bandwidth_dl
+
+
+    def _sid2bucket(self, subscriber_id):
+        """
+        Maps Subscriber ID to bucket
+        """
+        try:
+            bucket = int(subscriber_id[-self._sid_digits:])
+        except:
+            logging.info("Last %d digits of subscriber id %s cannot mapped to a bucket: default to bucket 0"
+                         % (self._sid_digits, subscriber_id))
+            bucket = 0
+        return bucket
