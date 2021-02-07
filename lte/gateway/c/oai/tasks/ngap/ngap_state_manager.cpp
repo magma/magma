@@ -13,6 +13,7 @@
 /****************************************************************************
   Source      ngap_state_manager.cpp
   Date        2020/07/28
+  Author      Ashish Prajapati
   Subsystem   Access and Mobility Management Function
   Description Defines NG Application Protocol Messages
 
@@ -23,7 +24,7 @@
 #include "log.h"
 typedef unsigned int uint32_t;
 namespace {
-constexpr char NGAP_GNB_COLL[]             = "ngap_eNB_coll";
+constexpr char NGAP_GNB_COLL[]             = "ngap_gNB_coll";
 constexpr char NGAP_AMF_ID2ASSOC_ID_COLL[] = "ngap_amf_id2assoc_id_coll";
 constexpr char NGAP_IMSI_MAP_TABLE_NAME[]  = "ngap_imsi_map";
 }  // namespace

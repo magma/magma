@@ -13,6 +13,7 @@
 /*****************************************************************************
   Source      amf_message.h
   Date        2020/07/28
+  Author      Ashish Prajapati
   Subsystem   Access and Mobility Management Function
   Description Defines Access and Mobility Management Messages
 *****************************************************************************/
@@ -73,7 +74,6 @@ typedef struct amf_config_s {
   m5g_served_tai_t served_tai;
   service303_data_t service303_config;
   ngap_config_t ngap_config;
-  m5g_nas_config_t m5g_nas_config;
   log_config_t log_config;
   bool use_stateless;
 } amf_config_t;

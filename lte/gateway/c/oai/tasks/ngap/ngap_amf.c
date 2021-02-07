@@ -13,6 +13,7 @@
 /****************************************************************************
   Source      ngap_amf.c
   Date        2020/07/28
+  Author      Ashish Prajapati
   Subsystem   Access and Mobility Management Function
   Description Defines NG Application Protocol Messages
 
@@ -93,7 +94,6 @@ static int ngap_send_init_sctp(void) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  ngap_state_t* state = NULL;
 
   zframe_t* msg_frame = zframe_recv(reader);
   assert(msg_frame);
