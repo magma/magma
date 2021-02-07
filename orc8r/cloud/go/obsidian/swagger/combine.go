@@ -50,16 +50,17 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 		return "", err
 	}
 	if warnings != nil {
-		glog.Infof("Swagger spec traits were overwritten or unable to be read: %+v \n", warnings)
+		glog.Infof("Some Swagger spec traits were overwritten or unable to be read: %+v", warnings)
 	}
 
 	return combined, nil
 }
 
-// GetCommonSpec returns the YAML string of the Swagger Common Spec
+// GetCommonSpec returns the Swagger common spec as a YAML string.
 func GetCommonSpec() (string, error) {
 	data, err := ioutil.ReadFile(commonSpecPath)
 	if err != nil {
+		err = errors.Wrapf(err, "get common Swagger spec")
 		return "", err
 	}
 	return string(data), nil

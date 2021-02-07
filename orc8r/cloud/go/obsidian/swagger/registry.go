@@ -18,7 +18,7 @@ import (
 	"magma/orc8r/lib/go/registry"
 )
 
-// GetSpecServicers returns all registered Swagger spec servicers
+// GetSpecServicers returns all registered Swagger spec servicers.
 func GetSpecServicers() ([]RemoteSpec, error) {
 	services, err := registry.FindServices(orc8r.SpecServicerLabel)
 	if err != nil {

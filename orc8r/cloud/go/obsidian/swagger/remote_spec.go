@@ -24,16 +24,19 @@ import (
 	"github.com/golang/glog"
 )
 
+// RemoteSpec identifies a remote spec
 type RemoteSpec struct {
 	// service name of the RemoteSpec
 	// should always be lowercase to match service registry convention
 	service string
 }
 
+// NewRemoteSpec constructs a endpoint to communicate with the spec servicer.
 func NewRemoteSpec(serviceName string) RemoteSpec {
 	return RemoteSpec{service: strings.ToLower(serviceName)}
 }
 
+// GetSpec returns the spec associated to the service as a YAML string.
 func (s *RemoteSpec) GetSpec() (string, error) {
 	c, err := s.getClient()
 	if err != nil {
@@ -48,6 +51,7 @@ func (s *RemoteSpec) GetSpec() (string, error) {
 	return res.SwaggerSpec, nil
 }
 
+// GetService returns the service name.
 func (s *RemoteSpec) GetService() string {
 	return s.service
 }
