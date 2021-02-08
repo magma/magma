@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	swagger_lib "magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
@@ -74,35 +75,50 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 		{Name: "Tag 2"},
 		{Name: "Tag 3"},
 	}
-	services := []string{"test_service1", "test_service2", "test_service3"}
+	services := []string{"test_spec_service1", "test_spec_service2", "test_spec_service3"}
 
 	expectedSpec = swagger_lib.Spec{
 		Tags: []swagger_lib.TagDefinition{tags[0], tags[1], tags[2], commonTag},
 	}
 	expectedYaml = marshalToYAML(t, expectedSpec)
 
-	setup(t, services, tags)
+	for i, s := range services {
+		registerTestSpecServicer(t, s, tags[i])
+	}
 
 	combined, err = swagger.GetCombinedSpec(yamlCommon)
 	assert.NoError(t, err)
 
 	assert.Equal(t, expectedYaml, combined)
+
+	// Success even with merge warnings(duplicate tag)
+	serviceDuplicate := "test_spec_service_dup"
+	registerTestSpecServicer(t, serviceDuplicate, tags[0])
+
+	combined, err = swagger.GetCombinedSpec(yamlCommon)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedYaml, combined)
+
+	// Clean up registry
+	registry.RemoveService(services[0])
+	registry.RemoveService(services[1])
+	registry.RemoveService(services[2])
+	registry.RemoveService(serviceDuplicate)
 }
 
-func setup(t *testing.T, services []string, tags []swagger_lib.TagDefinition) {
+func registerTestSpecServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {
 	labels := map[string]string{
 		orc8r.SpecServicerLabel: "true",
 	}
 
-	for i, s := range services {
-		srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, s, labels, nil)
-		spec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{tags[i]}}
+	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
+	spec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{tag}}
 
-		yamlSpec := marshalToYAML(t, spec)
-		protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer(yamlSpec))
+	yamlSpec := marshalToYAML(t, spec)
+	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer(yamlSpec))
 
-		go srv.RunTest(lis)
-	}
+	go srv.RunTest(lis)
 }
 
 // marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
