@@ -47,7 +47,7 @@
           "nms/network",
           "nms/subscriber",
           "nms/traffic",
-          "nms/grafana",
+          "nms/metrics",
           "nms/alerts",
           "nms/tips_and_tricks"
         ]
