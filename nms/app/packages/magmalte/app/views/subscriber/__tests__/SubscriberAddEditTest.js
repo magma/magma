@@ -272,7 +272,7 @@ describe('<AddSubscriberButton />', () => {
                   <SubscriberContext.Provider value={subscriberCtx}>
                     <Route
                       path="/nms/:networkId/subscribers"
-                      render={() => <AddSubscriberButton />}
+                      render={() => <AddSubscriberButton onClose={() => {}} />}
                     />
                   </SubscriberContext.Provider>
                 </ApnContext.Provider>
