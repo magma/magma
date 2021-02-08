@@ -11,20 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Upgrade Express Wi-FI Magma  Gateway for production
-  hosts: localhost
-  become: yes
-  roles:
-    - role: xwfmvars
-      tags:
-         - run_pipelined
-         - fbstatsd
-    - role: dhcpd
-      when: uplink_if is none
-    - role: docker_ce_update
-    - role: containers
-    - role: exporter
-    - role: fbstatsd
-      tags:
-         - fbstatsd
-    - role: system_updates
+- name: install docker-ce
+  yum:
+    name:
+      - docker-ce-20.10.3-3.el7
+      - docker-ce-cli-20.10.3-3.el7
+    state: present
+    allow_downgrade: yes # pin to a version even if the installed docker-ce is newer

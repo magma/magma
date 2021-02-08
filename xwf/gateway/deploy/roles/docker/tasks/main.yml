@@ -30,10 +30,9 @@
 - name: Add the stable repository for Docker
   shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
-- name: Install the latest version of Docker CE
-  yum:
-    name: docker-ce
-    state: present
+- name: Install Docker CE
+  include_role:
+    name: docker_ce_update
 
 - name: Install Docker compose
   become: true
@@ -50,5 +49,3 @@
 
 - name: start docker service
   systemd: name=docker state=started enabled=yes
-
-

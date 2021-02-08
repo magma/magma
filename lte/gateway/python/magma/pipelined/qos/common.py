@@ -12,7 +12,6 @@ limitations under the License.
 """
 from typing import List, Dict  # noqa
 
-import asyncio
 import logging
 from enum import Enum
 from lte.protos.policydb_pb2 import FlowMatch
@@ -23,7 +22,7 @@ from magma.pipelined.qos.utils import QosStore
 from magma.configuration.service_configs import load_service_config
 
 LOG = logging.getLogger("pipelined.qos.common")
-#LOG.setLevel(logging.DEBUG)
+# LOG.setLevel(logging.DEBUG)
 
 
 def normalize_imsi(imsi: str) -> str:
@@ -72,11 +71,14 @@ class SubscriberSession(object):
 
 
 class SubscriberState(object):
+    """
+     Map subscriber -> sessions
+    """
     def __init__(self, imsi: str, qos_store : Dict):
         self.imsi = imsi
-        self.rules = {}
-        self.sessions = {}
-        self._qos_store = qos_store
+        self.rules = {}   # rule -> qos handle
+        self.sessions = {}  # IP -> [sessions(ip, qos_argumets, rule_no), ...]
+        self._redis_store = qos_store
 
     def check_empty(self,) -> bool:
         return not self.rules and not self.sessions
@@ -102,7 +104,7 @@ class SubscriberState(object):
     def update_rule(self, ip_addr: str, rule_num: int, d: FlowMatch.Direction,
                     qos_handle: int) -> None:
         k = get_subscriber_key(self.imsi, ip_addr, rule_num, d)
-        self._qos_store[get_json(k)] = qos_handle
+        self._redis_store[get_json(k)] = qos_handle
 
         if rule_num not in self.rules:
             self.rules[rule_num] = []
@@ -117,8 +119,8 @@ class SubscriberState(object):
             for (d, _) in self.rules[rule_num]:
                 k = get_subscriber_key(self.imsi, session_with_rule.ip_addr,
                                        rule_num, d)
-                if get_json(k) in self._qos_store:
-                    del self._qos_store[get_json(k)]
+                if get_json(k) in self._redis_store:
+                    del self._redis_store[get_json(k)]
 
         del self.rules[rule_num]
         session_with_rule.rules.remove(rule_num)
@@ -173,9 +175,9 @@ class QosManager(object):
                 intf = 'nat_iface' if d == FlowMatch.UPLINK else 'enodeb_iface'
                 TrafficClass.dump_class_state(config[intf], v)
 
-    def redisAvailable(self):
+    def _is_redis_available(self):
         try:
-            self._qos_store.client.ping()
+            self._redis_store.client.ping()
         except ConnectionError:
             return False
         return True
@@ -189,7 +191,7 @@ class QosManager(object):
         self._subscriber_state = {}
         self._loop = loop
         self.impl = QosManager.get_impl(datapath, loop, config)
-        self._qos_store = QosStore(self.__class__.__name__)
+        self._redis_store = QosStore(self.__class__.__name__)
         self._initialized = False
         self._redis_conn_retry_secs = 1
 
@@ -197,7 +199,7 @@ class QosManager(object):
         if not self._qos_enabled:
             return
 
-        if self.redisAvailable():
+        if self._is_redis_available():
             return self._setupInternal()
         else:
             LOG.info("failed to connect to redis..retrying in %d secs",
@@ -208,67 +210,63 @@ class QosManager(object):
         if self._clean_restart:
             LOG.info("Qos Setup: clean start")
             self.impl.destroy()
-            self._qos_store.clear()
+            self._redis_store.clear()
             self.impl.setup()
             self._initialized = True
         else:
             # read existing state from qos_impl
-            LOG.info("Qos Setup: recovering existing state")
+            LOG.info("Qos Setup: recovering existing state pbs1")
             self.impl.setup()
 
-            def callback(fut):
-                LOG.debug("read_all_state complete => \n%s", fut.result())
-                qos_state = fut.result()
-                try:
-                    # populate state from db
-                    in_store_qid = set()
-                    purge_store_set = set()
-                    for k, v in self._qos_store.items():
-                        if v not in qos_state:
-                            purge_store_set.add(k)
-                            continue
-                        in_store_qid.add(v)
-                        _, imsi, ip_addr, rule_num, d = get_key(k)
-                        subscriber = self.get_or_create_subscriber(imsi)
-                        subscriber.update_rule(ip_addr, rule_num, d, v)
+            qos_state = self.impl.read_all_state()
+            try:
+                # populate state from db
+                in_store_qid = set()
+                purge_store_set = set()
+                for rule, qid in self._redis_store.items():
+                    if qid not in qos_state:
+                        purge_store_set.add(rule)
+                        continue
+                    in_store_qid.add(qid)
+                    _, imsi, ip_addr, rule_num, direction = get_key(rule)
+                    subscriber = self.get_or_create_subscriber(imsi)
+                    subscriber.update_rule(ip_addr, rule_num, direction, qid)
 
-                        qid_state = qos_state[v]
-                        if qid_state['ambr_qid'] != 0:
-                            session = subscriber.get_or_create_session(ip_addr)
-                            ambr_qid = qid_state['ambr_qid']
-                            leaf = 0
-                            # its AMBR QoS handle if its config matches with parent
-                            # pylint: disable=too-many-function-args
-                            if self.impl.same_qos_config(d, ambr_qid, v):
-                                leaf = v
-                            session.set_ambr(d, qid_state['ambr_qid'], leaf)
+                    qid_state = qos_state[qid]
+                    if qid_state['ambr_qid'] != 0:
+                        session = subscriber.get_or_create_session(ip_addr)
+                        ambr_qid = qid_state['ambr_qid']
+                        leaf = 0
+                        # its AMBR QoS handle if its config matches with parent
+                        # pylint: disable=too-many-function-args
+                        if self.impl.same_qos_config(direction, ambr_qid, qid):
+                            leaf = qid
+                        session.set_ambr(direction, qid_state['ambr_qid'], leaf)
 
-                    # purge entries from qos_store
-                    for k in purge_store_set:
-                        LOG.debug("purging qos_store entry %s qos_handle", k)
-                        del self._qos_store[k]
+                # purge entries from qos_store
+                for rule in purge_store_set:
+                    LOG.debug("purging qos_store entry %s qos_handle", rule)
+                    del self._redis_store[rule]
 
-                    # purge unreferenced qos configs from system
-                    for qos_handle in qos_state:
-                        if qos_handle not in in_store_qid:
-                            LOG.debug("removing qos_handle %d", qos_handle)
-                            self.impl.remove_qos(qos_handle,
-                                qos_state[qos_handle]['direction'], recovery_mode=True)
+                # purge unreferenced qos configs from system
+                for qos_handle in qos_state:
+                    if qos_handle not in in_store_qid:
+                        LOG.debug("removing qos_handle %d", qos_handle)
+                        self.impl.remove_qos(qos_handle,
+                                             qos_state[qos_handle]['direction'], recovery_mode=True)
 
-                    self._initialized = True
-                    LOG.info("init complete with state recovered successfully")
-                except Exception as e:  # pylint: disable=broad-except
-                    # in case of any exception start clean slate
-                    LOG.error("error %s. restarting clean", str(e))
-                    self._clean_restart = True
-                    self.setup()
+                LOG.info("init complete with state recovered successfully")
+            except Exception as e:  # pylint: disable=broad-except
+                # in case of any exception start clean slate
+                LOG.error("error %s. restarting clean", str(e))
+                self._clean_restart = True
 
-            asyncio.ensure_future(self.impl.read_all_state(), loop=self._loop).add_done_callback(callback)
+            self._initialized = True
 
     def get_or_create_subscriber(self, imsi):
         subscriber_state = self._subscriber_state.get(imsi)
         if not subscriber_state:
-            subscriber_state = SubscriberState(imsi, self._qos_store)
+            subscriber_state = SubscriberState(imsi, self._redis_store)
             self._subscriber_state[imsi] = subscriber_state
         return subscriber_state
 

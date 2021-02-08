@@ -980,8 +980,6 @@ jobs:
           name: Setup Environment Variables
           command: |
             echo export MAGMA_ROOT=$(pwd) >> $BASH_ENV
-            echo export AWS_ACCESS_KEY_ID="$(printenv XWF_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
-            echo export AWS_SECRET_ACCESS_KEY="$(printenv XWF_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
             echo export RUN_UID=$RANDOM >> $BASH_ENV
       - run:
           command: |

@@ -67,7 +67,7 @@ meter:
   idle_timeout: 0
 
 enforcement:
-  poll_interval: 10
+  poll_interval: 2
   default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
@@ -107,7 +107,7 @@ ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 
 # QoS parameters
 qos:
- enable: false
+ enable: true
  impl: linux_tc
  max_rate: 1000000000
  linux_tc:
