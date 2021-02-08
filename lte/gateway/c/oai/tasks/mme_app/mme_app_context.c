@@ -217,34 +217,15 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   bdestroy_wrapper(&ue_context_p->msisdn);
   bdestroy_wrapper(&ue_context_p->ue_radio_capability);
   bdestroy_wrapper(&ue_context_p->apn_oi_replacement);
-  nas_itti_timer_arg_t* timer_argP = NULL;
 
   // Stop Mobile reachability timer,if running
   if (ue_context_p->mobile_reachability_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(
-            ue_context_p->mobile_reachability_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop Mobile Reachability timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->mobile_reachability_timer.id);
     ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop Implicit detach timer,if running
   if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(
-            ue_context_p->implicit_detach_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop Implicit Detach timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->implicit_detach_timer.id);
     ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
@@ -259,6 +240,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   // Stop UE context modification process guard timer,if running
   if (ue_context_p->ue_context_modification_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
+    nas_itti_timer_arg_t* timer_argP = NULL;
     if (timer_remove(
             ue_context_p->ue_context_modification_timer.id,
             (void**) &timer_argP)) {
@@ -275,7 +257,8 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
 
   // Stop ULR Response timer if running
   if (ue_context_p->ulr_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    timer_argP = NULL;
+    nas_itti_timer_arg_t* timer_argP = NULL;
+    timer_argP                       = NULL;
     if (timer_remove(
             ue_context_p->ulr_response_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
@@ -291,7 +274,8 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
 
   // Stop paging response timer if running
   if (ue_context_p->paging_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    timer_argP = NULL;
+    nas_itti_timer_arg_t* timer_argP = NULL;
+    timer_argP                       = NULL;
     if (timer_remove(
             ue_context_p->paging_response_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
@@ -1431,16 +1415,11 @@ void mme_ue_context_update_ue_sig_connection_state(
       if (ue_context_p->mobile_reachability_timer.id ==
           MME_APP_TIMER_INACTIVE_ID) {
         // Start Mobile Reachability timer only if it is not running
-        nas_itti_timer_arg_t timer_callback_arg = {0};
-        timer_callback_arg.nas_timer_callback =
-            mme_app_handle_mobile_reachability_timer_expiry;
-        timer_callback_arg.nas_timer_callback_arg =
-            (void*) &(ue_context_p->mme_ue_s1ap_id);
-        if (timer_setup(
-                ue_context_p->mobile_reachability_timer.sec, 0, TASK_MME_APP,
-                INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_arg,
-                sizeof(timer_callback_arg),
-                &(ue_context_p->mobile_reachability_timer.id)) < 0) {
+        if ((ue_context_p->mobile_reachability_timer.id = mme_app_start_timer(
+                 ue_context_p->mobile_reachability_timer.sec * 1000,
+                 TIMER_REPEAT_ONCE,
+                 mme_app_handle_mobile_reachability_timer_expiry,
+                 ue_context_p->mme_ue_s1ap_id)) == -1) {
           OAILOG_ERROR_UE(
               LOG_MME_APP, ue_context_p->emm_context._imsi64,
               "Failed to start Mobile Reachability timer for UE id "
@@ -1473,8 +1452,7 @@ void mme_ue_context_update_ue_sig_connection_state(
   } else if (
       (ue_context_p->ecm_state == ECM_IDLE) &&
       (new_ecm_state == ECM_CONNECTED)) {
-    ue_context_p->ecm_state          = ECM_CONNECTED;
-    nas_itti_timer_arg_t* timer_argP = NULL;
+    ue_context_p->ecm_state = ECM_CONNECTED;
 
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
@@ -1487,34 +1465,12 @@ void mme_ue_context_update_ue_sig_connection_state(
     // Stop Mobile reachability timer,if running
     if (ue_context_p->mobile_reachability_timer.id !=
         MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(
-              ue_context_p->mobile_reachability_timer.id,
-              (void**) &timer_argP)) {
-        OAILOG_ERROR_UE(
-            LOG_MME_APP, ue_context_p->emm_context._imsi64,
-            "Failed to stop Mobile Reachability timer for UE "
-            "id " MME_UE_S1AP_ID_FMT "\n",
-            ue_context_p->mme_ue_s1ap_id);
-      }
-      ue_context_p->time_mobile_reachability_timer_started = 0;
-      if (timer_argP) {
-        free_wrapper((void**) &timer_argP);
-      }
+      mme_app_stop_timer(ue_context_p->mobile_reachability_timer.id);
       ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
     }
     // Stop Implicit detach timer,if running
     if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(
-              ue_context_p->implicit_detach_timer.id, (void**) &timer_argP)) {
-        OAILOG_ERROR_UE(
-            LOG_MME_APP, ue_context_p->emm_context._imsi64,
-            "Failed to stop Implicit Detach timer for UE id " MME_UE_S1AP_ID_FMT
-            "\n",
-            ue_context_p->mme_ue_s1ap_id);
-      }
-      if (timer_argP) {
-        free_wrapper((void**) &timer_argP);
-      }
+      mme_app_stop_timer(ue_context_p->implicit_detach_timer.id);
       ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
       ue_context_p->time_implicit_detach_timer_started = 0;
     }
@@ -2279,16 +2235,16 @@ static bool mme_app_recover_timers_for_ue(
   }
 
   if (ue_mm_context_pP->time_mobile_reachability_timer_started) {
-    mme_app_resume_timers(
+    mme_app_resume_timer(
         ue_mm_context_pP,
         ue_mm_context_pP->time_mobile_reachability_timer_started,
-        ue_mm_context_pP->mobile_reachability_timer,
+        &ue_mm_context_pP->mobile_reachability_timer,
         mme_app_handle_mobile_reachability_timer_expiry, "Mobile Reachability");
   }
   if (ue_mm_context_pP->time_implicit_detach_timer_started) {
-    mme_app_resume_timers(
+    mme_app_resume_timer(
         ue_mm_context_pP, ue_mm_context_pP->time_implicit_detach_timer_started,
-        ue_mm_context_pP->implicit_detach_timer,
+        &ue_mm_context_pP->implicit_detach_timer,
         mme_app_handle_implicit_detach_timer_expiry, "Implicit Detach");
   }
   if (ue_mm_context_pP->time_paging_response_timer_started) {

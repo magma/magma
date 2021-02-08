@@ -1777,10 +1777,16 @@ void mme_app_handle_e_rab_setup_rsp(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_mobile_reachability_timer_expiry(
-    void* args, imsi64_t* imsi64) {
+int mme_app_handle_mobile_reachability_timer_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_ue_s1ap_id_t mme_ue_s1ap_id      = *((mme_ue_s1ap_id_t*) (args));
+
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "Mobile reachability timer");
   if (ue_context_p == NULL) {
@@ -1788,23 +1794,16 @@ void mme_app_handle_mobile_reachability_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  *imsi64 = ue_context_p->emm_context._imsi64;
   ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_mobile_reachability_timer_started = 0;
 
   // Start Implicit Detach timer
-  nas_itti_timer_arg_t timer_callback_fun = {0};
-  timer_callback_fun.nas_timer_callback =
-      mme_app_handle_implicit_detach_timer_expiry;
-  timer_callback_fun.nas_timer_callback_arg =
-      (void*) &(ue_context_p->mme_ue_s1ap_id);
-  if (timer_setup(
-          ue_context_p->implicit_detach_timer.sec, 0, TASK_MME_APP,
-          INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_fun,
-          sizeof(timer_callback_fun),
-          &(ue_context_p->implicit_detach_timer.id)) < 0) {
+  if ((ue_context_p->implicit_detach_timer.id = mme_app_start_timer(
+           ue_context_p->implicit_detach_timer.sec * 1000, TIMER_REPEAT_ONCE,
+           mme_app_handle_implicit_detach_timer_expiry,
+           ue_context_p->mme_ue_s1ap_id)) == -1) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Failed to start Implicit Detach timer for UE id: " MME_UE_S1AP_ID_FMT
@@ -1823,12 +1822,18 @@ void mme_app_handle_mobile_reachability_timer_expiry(
    * VLR that UE is unreachable
    */
   ue_context_p->ppf = false;
-  OAILOG_FUNC_OUT(LOG_MME_APP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 //------------------------------------------------------------------------------
-void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64) {
+int mme_app_handle_implicit_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Implicit detach timer");
   if (ue_context_p == NULL) {
@@ -1836,14 +1841,14 @@ void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64) {
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  *imsi64                                = ue_context_p->emm_context._imsi64;
-  ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
+
+  ue_context_p->implicit_detach_timer.id           = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_implicit_detach_timer_started = 0;
   // Initiate Implicit Detach for the UE
   nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
-  OAILOG_FUNC_OUT(LOG_MME_APP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 //------------------------------------------------------------------------------
