@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 /*
-=======
-/**
->>>>>>> Implementation of SmfPduSessionSmContext gRPC call invoked by SMF, processeing the reply message and forwarding it onto AMF using ZMQ
-=======
-/*
->>>>>>> refinements made after local integration tests
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -67,15 +59,15 @@ Status AmfServiceImpl::SetSmfSessionContext(
   // CommonSessionContext
   strcpy(itti_msg.imsi, req_common.sid().id().c_str());
   itti_msg.sm_session_fsm_state =
-      (SMSessionFSMState_response) req_common.sm_session_state();
+      (sm_session_fsm_state_t) req_common.sm_session_state();
   itti_msg.sm_session_version = req_common.sm_session_version();
 
   // RatSpecificContextAccess
-  strcpy((char*) itti_msg.pdu_session_id, req_m5g.pdu_session_id().c_str());
-  itti_msg.pdu_session_type =
-      (PduSessionType_response) req_m5g.pdu_session_type();
-  itti_msg.selected_ssc_mode = (SscMode_response) req_m5g.selected_ssc_mode();
-  itti_msg.M5gsm_cause       = (M5GSMCause_response) req_m5g.m5gsm_cause();
+  strncpy(
+      (char*) (&itti_msg.pdu_session_id), req_m5g.pdu_session_id().c_str(), 1);
+  itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
+  itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
+  itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
   for (int i = 0, m = req_m5g.authorized_qos_rules_size(); i < m; i++) {
     itti_msg.authorized_qos_rules[i].qos_rule_identifier =
         (uint32_t) req_m5g.authorized_qos_rules(i).qos_rule_identifier();
@@ -99,12 +91,11 @@ Status AmfServiceImpl::SetSmfSessionContext(
   }
   itti_msg.always_on_pdu_session_indication =
       req_m5g.always_on_pdu_session_indication();
-  itti_msg.allowed_ssc_mode = (SscMode_response) req_m5g.allowed_ssc_mode();
-  itti_msg.M5gsm_congetion_re_attempt_indicator =
+  itti_msg.allowed_ssc_mode = (ssc_mode_t) req_m5g.allowed_ssc_mode();
+  itti_msg.m5gsm_congetion_re_attempt_indicator =
       req_m5g.m5gsm_congetion_re_attempt_indicator();
   itti_msg.pdu_address.redirect_address_type =
-      (RedirectAddressType_response) req_m5g.pdu_address()
-          .redirect_address_type();
+      (redirect_address_type_t) req_m5g.pdu_address().redirect_address_type();
   strcpy(
       (char*) itti_msg.pdu_address.redirect_server_address,
       req_m5g.pdu_address().redirect_server_address().c_str());
