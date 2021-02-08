@@ -517,6 +517,7 @@ class S1ApUtil(object):
             )
             assert bool(has_tunnel_action)"""
 
+
 class SubscriberUtil(object):
     """
     Helper class to manage subscriber data for the tests.
