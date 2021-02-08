@@ -53,7 +53,7 @@ class TestAttachRestrictedPlmn(unittest.TestCase):
         attach_req.ue_Id = req.ue_id
         attach_req.mIdType = id_type
         # Generate IMSI with prefix IMSI12345
-        imsi = self._s1ap_wrapper._s1_util.gen_imsi(prefix="IMSI12345")
+        imsi = self._s1ap_wrapper._s1_util.generate_imsi(prefix="IMSI12345")
         for i in range(0, 15):
             attach_req.imsi[i] = ctypes.c_ubyte(int(imsi[4 + i]))
         attach_req.imsi_len = 15
