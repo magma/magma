@@ -13,10 +13,9 @@ limitations under the License.
 
 import ipaddress
 import unittest
+import fakeredis
 from typing import Optional
 
-from magma.common.redis.client import get_default_client
-from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.mobilityd.ip_descriptor import IPDesc, IPType
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError, DuplicateIPAssignmentError
@@ -33,8 +32,6 @@ from magma.mobilityd.ipv6_allocator_pool import \
 from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.subscriberdb_client import SubscriberDBStaticIPValueError
 
-from unittest import mock
-
 
 class StaticIPAllocationTests(unittest.TestCase):
     """
@@ -42,13 +39,12 @@ class StaticIPAllocationTests(unittest.TestCase):
     """
     RECYCLING_INTERVAL_SECONDS = 1
 
-    @mock.patch("redis.Redis", MockRedis)
     def _new_ip_allocator(self, recycling_interval):
         """
         Creates and sets up an IPAllocator with the given recycling interval.
         """
 
-        store = MobilityStore(get_default_client(), False, 3980)
+        store = MobilityStore(fakeredis.FakeStrictRedis(), False, 3980)
         ip_allocator = IpAllocatorPool(store)
         ipv4_allocator = IPAllocatorStaticWrapper(store,
                                                   subscriberdb_rpc_stub=MockedSubscriberDBStub(),

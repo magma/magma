@@ -97,6 +97,7 @@ setup(
     ],
     extras_require={
         'dev': [
+            "fakeredis[lua]"
         ],
     },
 )
