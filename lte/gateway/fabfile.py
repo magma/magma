@@ -343,7 +343,7 @@ def get_test_logs(gateway_host=None,
 def _dist_upgrade():
     """ Upgrades OS packages on dev box """
     run('sudo apt-get update')
-    run('sudo apt-get -y dist-upgrade')
+    run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade')
 
 
 def _build_magma():
