@@ -53,6 +53,7 @@
 #include "nas_proc.h"
 #include "emm_cnDef.h"
 #include "emm_proc.h"
+#include "mme_app_timer.h"
 #include "dynamic_memory_check.h"
 
 //------------------------------------------------------------------------------
@@ -127,15 +128,10 @@ int mme_app_send_s6a_update_location_req(
    */
   if (ue_context_p->location_info_confirmed_in_hss == false) {
     // Start ULR Response timer
-    nas_itti_timer_arg_t timer_callback_fun = {0};
-    timer_callback_fun.nas_timer_callback   = mme_app_handle_ulr_timer_expiry;
-    timer_callback_fun.nas_timer_callback_arg =
-        (void*) &(ue_context_p->mme_ue_s1ap_id);
-    if (timer_setup(
-            ue_context_p->ulr_response_timer.sec, 0, TASK_MME_APP,
-            INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_fun,
-            sizeof(timer_callback_fun),
-            &(ue_context_p->ulr_response_timer.id)) < 0) {
+    if ((ue_context_p->ulr_response_timer.id = mme_app_start_timer(
+             ue_context_p->ulr_response_timer.sec * 1000, TIMER_REPEAT_ONCE,
+             mme_app_handle_ulr_timer_expiry, ue_context_p->mme_ue_s1ap_id)) ==
+        -1) {
       OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to start Update location update response timer for UE id  %d "
@@ -159,18 +155,7 @@ int _handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
 
   // Stop ULR Response timer if running
   if (ue_context_p->ulr_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_context_p->ulr_response_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop Update location update response timer for UE id  %d "
-          "\n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->ulr_response_timer.id);
     ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   increment_counter("mme_s6a_update_location_ans", 1, 1, "result", "failure");
@@ -258,18 +243,7 @@ int mme_app_handle_s6a_update_location_ans(
 
   // Stop ULR Response timer if running
   if (ue_mm_context->ulr_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_mm_context->ulr_response_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop Update location update response timer for UE id  %d "
-          "\n",
-          ue_mm_context->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_mm_context->ulr_response_timer.id);
     ue_mm_context->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
