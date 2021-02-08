@@ -22,6 +22,8 @@ import (
 	"magma/lte/cloud/go/services/lte/servicers"
 	lte_storage "magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
@@ -47,6 +49,9 @@ func main() {
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(lte_service.ServiceName))
+
 	// Init storage
 	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
 	if err != nil {

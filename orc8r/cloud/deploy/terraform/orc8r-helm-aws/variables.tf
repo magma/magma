@@ -164,14 +164,14 @@ variable "orc8r_deployment_type" {
       var.orc8r_deployment_type == "federated_fwa" ||
       var.orc8r_deployment_type == "all"
     )
-    error_message = "The orc8r_deployment_type value must be one of ['fwa', 'federated_fwa', 'all']"
+    error_message = "The orc8r_deployment_type value must be one of ['fwa', 'federated_fwa', 'all']."
   }
 }
 
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.8"
+  default     = "1.5.11"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -238,6 +238,24 @@ variable "elasticsearch_retention_days" {
   description = "Retention period in days of Elasticsearch indices."
   type        = number
   default     = 7
+}
+
+variable "elasticsearch_port" {
+  description = "Port Elastic search is listening."
+  type        = number
+  default     = 443
+}
+
+variable "elasticsearch_use_ssl" {
+  description = "Defines if elasicsearch curator should speak to ELK HTTP or HTTPS."
+  type        = string
+  default     = "True"
+}
+
+variable "elasticsearch_curator_log_level" {
+  description = "Defines Elasticsearch curator logging level."
+  type        = string
+  default     = "INFO"
 }
 
 ##############################################################################
@@ -377,4 +395,21 @@ variable "analytics_category_name" {
   description = "Category under which the exported metrics will be placed under"
   type = string
   default = "magma"
+}
+
+
+##############################################################################
+# Other dependency variables
+##############################################################################
+
+variable "prometheus_configurer_version" {
+  description = "Image version for prometheus configurer."
+  type        = string
+  default     = "1.0.4"
+}
+
+variable "alertmanager_configurer_version" {
+  description = "Image version for alertmanager configurer."
+  type        = string
+  default     = "1.0.4"
 }

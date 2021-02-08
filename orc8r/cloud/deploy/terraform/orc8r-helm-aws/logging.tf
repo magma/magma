@@ -144,6 +144,10 @@ resource "helm_release" "elasticsearch_curator" {
       client:
         hosts:
           - "${var.elasticsearch_endpoint}"
+        port: "${var.elasticsearch_port}"
+        use_ssl: "${var.elasticsearch_use_ssl}"
+      logging:
+        loglevel: "${var.elasticsearch_curator_log_level}"
 
     action_file_yml: |-
       ---

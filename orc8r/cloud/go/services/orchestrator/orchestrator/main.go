@@ -15,6 +15,8 @@ package main
 
 import (
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
@@ -70,6 +72,8 @@ func main() {
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
+
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(orchestrator.ServiceName))
 
 	collectorServicer := analytics.NewCollectorServicer(
 		&serviceConfig.Analytics,
