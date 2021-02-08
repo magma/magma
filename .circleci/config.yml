@@ -33,7 +33,6 @@ executors:
 
 orbs:
   artifactory: circleci/artifactory@0.0.7
-
   docker:
     commands:
       install-dc:
@@ -271,6 +270,9 @@ commands:
       - run:
           name: Select python 3.7.0
           command: pyenv global 3.7.0
+      - run:
+          name: Upgrade Pip
+          command: pip install --upgrade pip
       - run:
           name: Install python prerequisites
           command: pip3 install fabric3 jsonpickle requests PyYAML awscli
