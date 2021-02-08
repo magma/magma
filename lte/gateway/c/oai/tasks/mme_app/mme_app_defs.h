@@ -162,7 +162,7 @@ void mme_app_handle_enb_reset_req(
 int mme_app_handle_initial_paging_request(
     mme_app_desc_t* mme_app_desc_p, const char* imsi);
 
-void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64);
+int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
 void mme_app_handle_ulr_timer_expiry(void* args, imsi64_t* imsi64);
 
 int mme_app_handle_sgs_eps_detach_timer_expiry(
