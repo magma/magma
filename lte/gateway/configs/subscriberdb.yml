@@ -47,5 +47,5 @@ relay_retry_count: 0
 # TODO replace boolean with list of protocols: "s6a_over_grpc", "s6a_over_fd"
 s6a_over_grpc: True
 
-# Number of grpc workers
+# Number of thread workers for the gRPC server
 grpc_workers: 10
