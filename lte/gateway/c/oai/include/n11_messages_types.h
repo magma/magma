@@ -18,28 +18,24 @@
 /** @struct itti_n11_create_pdu_session_response_t
  *  @brief Create PDU Session Response */
 
-typedef enum SMSessionFSMState_response_s {
+typedef enum sm_session_fsm_state_e {
   CREATING_0,
   CREATE_1,
   ACTIVE_2,
   INACTIVE_3,
   RELEASED_4
-} SMSessionFSMState_response;
+} sm_session_fsm_state_t;
 
-typedef enum PduSessionType_response_s {
+typedef enum pdu_session_type_e {
   IPV4,
   IPV6,
   IPV4IPV6,
   UNSTRUCTURED
-} PduSessionType_response;
+} pdu_session_type_t;
 
-typedef enum SscMode_response_s {
-  SSC_MODE_1,
-  SSC_MODE_2,
-  SSC_MODE_3
-} SscMode_response;
+typedef enum ssc_mode_e { SSC_MODE_1, SSC_MODE_2, SSC_MODE_3 } ssc_mode_t;
 
-typedef enum M5GSMCause_response_s {
+typedef enum m5g_sm_cause_e {
   M5GSM_OPERATOR_DETERMINED_BARRING                       = 0,
   M5GSM_INSUFFICIENT_RESOURCES                            = 1,
   M5GSM_MISSING_OR_UNKNOWN_DNN                            = 2,
@@ -80,21 +76,21 @@ typedef enum M5GSMCause_response_s {
   M5GSM_PROTOCOL_ERROR_UNSPECIFIED                          = 37,
   M5GSM_PTI_ALREADY_IN_USE                                  = 38,
   M5GSM_OPERATION_SUCCESS                                   = 40
-} M5GSMCause_response;
+} m5g_sm_cause_t;
 
-typedef enum RedirectAddressType_response_s {
+typedef enum redirect_address_type_e {
   IPV4_1,
   IPV6_1,
   URL,
   SIP_URI
-} RedirectAddressType_response;
+} redirect_address_type_t;
 
-typedef struct RedirectServer_response_s {
-  RedirectAddressType_response redirect_address_type;
+typedef struct redirect_server_s {
+  redirect_address_type_t redirect_address_type;
   uint8_t redirect_server_address[16];
-} RedirectServer_response;
+} redirect_server_t;
 
-typedef struct QosRules_response_s {
+typedef struct qos_rules_s {
   uint32_t qos_rule_identifier;
   bool dqr;
   uint32_t number_of_packet_filters;
@@ -102,23 +98,23 @@ typedef struct QosRules_response_s {
   uint32_t qos_rule_precedence;
   bool segregation;
   uint32_t qos_flow_identifier;
-} QosRules_response;
+} qos_rules_t;
 
 typedef struct itti_n11_create_pdu_session_response_s {
   // common context
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-  SMSessionFSMState_response sm_session_fsm_state;
+  sm_session_fsm_state_t sm_session_fsm_state;
   uint32_t sm_session_version;
   // M5GSMSessionContextAccess
-  uint8_t pdu_session_id[2];
-  PduSessionType_response pdu_session_type;
-  SscMode_response selected_ssc_mode;
-  QosRules_response authorized_qos_rules[4];
-  M5GSMCause_response M5gsm_cause;
+  uint8_t pdu_session_id;
+  pdu_session_type_t pdu_session_type;
+  ssc_mode_t selected_ssc_mode;
+  qos_rules_t authorized_qos_rules[4];
+  m5g_sm_cause_t m5gsm_cause;
   bool always_on_pdu_session_indication;
-  SscMode_response allowed_ssc_mode;
-  bool M5gsm_congetion_re_attempt_indicator;
-  RedirectServer_response pdu_address;
+  ssc_mode_t allowed_ssc_mode;
+  bool m5gsm_congetion_re_attempt_indicator;
+  redirect_server_t pdu_address;
 } itti_n11_create_pdu_session_response_t;
 
 #define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \
