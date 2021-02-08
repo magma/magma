@@ -94,6 +94,7 @@ MME :
 
     # List of restricted PLMNs
     # By default this list is empty
+    # Max number of restricted plmn is 10
     RESTRICTED_PLMN_LIST = (
          # Sample plmn
          #{ MCC="001" ; MNC="010";}

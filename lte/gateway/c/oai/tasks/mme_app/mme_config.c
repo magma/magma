@@ -856,7 +856,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                 strlen(mcc) == MAX_MCC_LENGTH,
                 "Bad MCC length (%ld), it must be %u digit ex: 001\n",
                 strlen(mcc), MAX_MCC_LENGTH);
-            char c[2]                                     = {mcc[0], 0};
+            // NULL terminated string
+            char c[2]                                     = {mcc[0], '\0'};
             config_pP->restricted_plmn.plmn[i].mcc_digit1 = (uint8_t) atoi(c);
             c[0]                                          = mcc[1];
             config_pP->restricted_plmn.plmn[i].mcc_digit2 = (uint8_t) atoi(c);
@@ -872,7 +873,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                 "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
                 "123\n",
                 strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
-            char c[2]                                     = {mnc[0], 0};
+            // NULL terminated string
+            char c[2]                                     = {mnc[0], '\0'};
             config_pP->restricted_plmn.plmn[i].mnc_digit1 = (uint8_t) atoi(c);
             c[0]                                          = mnc[1];
             config_pP->restricted_plmn.plmn[i].mnc_digit2 = (uint8_t) atoi(c);
