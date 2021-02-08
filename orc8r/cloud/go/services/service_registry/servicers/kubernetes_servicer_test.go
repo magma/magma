@@ -11,13 +11,16 @@
  * limitations under the License.
  */
 
-package servicers
+package servicers_test
 
 import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/service_registry/servicers"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 
@@ -29,22 +32,31 @@ import (
 	corev1Interface "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
+const (
+	namespace          = "magma_namespace"
+	defaultTestTimeout = 5 * time.Second
+)
+
 func TestK8sListAllServices(t *testing.T) {
-	servicer, mockClient := setupTest(t)
+	servicer, mockClient, start, done := setupTest(t)
+
 	req := &protos.Void{}
 	response, err := servicer.ListAllServices(context.Background(), req)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"service1", "service_2"}, response.GetServices())
 
-	err = mockClient.Services(servicer.namespace).Delete("orc8r-service-2", &metav1.DeleteOptions{})
+	err = mockClient.Services(namespace).Delete("orc8r-service-2", &metav1.DeleteOptions{})
 	assert.NoError(t, err)
+	refreshCache(t, start, done)
+
 	response, err = servicer.ListAllServices(context.Background(), req)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"service1"}, response.GetServices())
 }
 
 func TestK8sFindServices(t *testing.T) {
-	servicer, mockClient := setupTest(t)
+	servicer, mockClient, start, done := setupTest(t)
+
 	req := &protos.FindServicesRequest{
 		Label: "label1",
 	}
@@ -57,15 +69,18 @@ func TestK8sFindServices(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"service1", "service_2"}, response.GetServices())
 
-	err = mockClient.Services(servicer.namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
+	err = mockClient.Services(namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
 	assert.NoError(t, err)
+	refreshCache(t, start, done)
+
 	response, err = servicer.FindServices(context.Background(), req)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"service_2"}, response.GetServices())
 }
 
 func TestK8sGetServiceAddress(t *testing.T) {
-	servicer, mockClient := setupTest(t)
+	servicer, mockClient, start, done := setupTest(t)
+
 	req := &protos.GetServiceAddressRequest{
 		Service: "service1",
 	}
@@ -73,13 +88,17 @@ func TestK8sGetServiceAddress(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, response.GetAddress(), fmt.Sprintf("orc8r-service1:%d", registry.GrpcServicePort))
 
-	mockClient.Services(servicer.namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
+	err = mockClient.Services(namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
+	assert.NoError(t, err)
+	refreshCache(t, start, done)
+
 	_, err = servicer.GetServiceAddress(context.Background(), req)
 	assert.Error(t, err)
 }
 
 func TestK8sGetHttpServerAddress(t *testing.T) {
-	servicer, mockClient := setupTest(t)
+	servicer, mockClient, start, done := setupTest(t)
+
 	req := &protos.GetHttpServerAddressRequest{
 		Service: "service1",
 	}
@@ -87,13 +106,17 @@ func TestK8sGetHttpServerAddress(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, response.GetAddress(), fmt.Sprintf("orc8r-service1:%d", registry.HttpServerPort))
 
-	mockClient.Services(servicer.namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
+	err = mockClient.Services(namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
+	assert.NoError(t, err)
+	refreshCache(t, start, done)
+
 	_, err = servicer.GetHttpServerAddress(context.Background(), req)
 	assert.Error(t, err)
 }
 
 func TestK8sGetAnnotation(t *testing.T) {
-	servicer, mockClient := setupTest(t)
+	servicer, mockClient, start, done := setupTest(t)
+
 	req := &protos.GetAnnotationRequest{
 		Service:    "service1",
 		Annotation: "annotation2",
@@ -102,20 +125,23 @@ func TestK8sGetAnnotation(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "bar,baz", response.GetAnnotationValue())
 
-	mockClient.Services(servicer.namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
+	err = mockClient.Services(namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
+	assert.NoError(t, err)
+	refreshCache(t, start, done)
+
 	_, err = servicer.GetAnnotation(context.Background(), req)
 	assert.Error(t, err)
 }
 
-func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface, namespace string) {
+func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface) {
 	svc1 := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      "orc8r-service1",
 			Labels: map[string]string{
-				partOfLabel: partOfOrc8rApp,
-				"label1":    "true",
-				"label2":    "true",
+				orc8r.PartOfLabel: orc8r.PartOfOrc8rApp,
+				"label1":          "true",
+				"label2":          "true",
 			},
 			Annotations: map[string]string{
 				"annotation1": "foo",
@@ -125,11 +151,11 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface,
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
 				{
-					Name: grpcPortName,
+					Name: orc8r.GRPCPortName,
 					Port: registry.GrpcServicePort,
 				},
 				{
-					Name: httpPortName,
+					Name: orc8r.HTTPPortName,
 					Port: registry.HttpServerPort,
 				},
 			},
@@ -142,9 +168,9 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface,
 			Namespace: namespace,
 			Name:      "orc8r-service-2",
 			Labels: map[string]string{
-				partOfLabel: partOfOrc8rApp,
-				"label2":    "true",
-				"label3":    "true",
+				orc8r.PartOfLabel: orc8r.PartOfOrc8rApp,
+				"label2":          "true",
+				"label3":          "true",
 			},
 			Annotations: map[string]string{
 				"annotation3": "roo",
@@ -154,7 +180,7 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface,
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
 				{
-					Name: grpcPortName,
+					Name: orc8r.GRPCPortName,
 					Port: registry.GrpcServicePort,
 				},
 			},
@@ -180,12 +206,37 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface,
 	assert.NoError(t, err)
 }
 
-func setupTest(t *testing.T) (*KubernetesServiceRegistryServicer, corev1Interface.CoreV1Interface) {
+func setupTest(t *testing.T) (*servicers.KubernetesServiceRegistryServicer, corev1Interface.CoreV1Interface, chan interface{}, chan interface{}) {
 	mockClient := fake.NewSimpleClientset().CoreV1()
-	os.Setenv(serviceRegistryNamespaceEnvVar, "magma")
+	createK8sServices(t, mockClient)
 
-	servicer, err := NewKubernetesServiceRegistryServicer(mockClient)
+	start := make(chan interface{})
+	done := make(chan interface{})
+	reporter := &servicers.Reporter{
+		RefreshStart: func() { start <- nil },
+		RefreshDone:  func() { done <- nil },
+	}
+
+	os.Setenv(servicers.ServiceRegistryNamespaceEnvVar, namespace)
+	refreshCacheFrequency := "@every 100ms" // ideally would be shorter, but seems like 1s is the effective minimum
+	servicer, err := servicers.NewKubernetesServiceRegistryServicer(mockClient, refreshCacheFrequency, reporter)
 	assert.NoError(t, err)
-	createK8sServices(t, mockClient, "magma")
-	return servicer, mockClient
+
+	refreshCache(t, start, done)
+
+	return servicer, mockClient, start, done
+}
+
+func refreshCache(t *testing.T, start, done chan interface{}) {
+	recvCh(t, start)
+	recvCh(t, done)
+}
+
+func recvCh(t *testing.T, ch chan interface{}) {
+	select {
+	case <-ch:
+		return
+	case <-time.After(defaultTestTimeout):
+		t.Fatal("receive on hook channel timed out")
+	}
 }

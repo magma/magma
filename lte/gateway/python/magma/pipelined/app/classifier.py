@@ -21,6 +21,7 @@ from magma.pipelined.app.inout import INGRESS
 from ryu.lib.packet import ether_types
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.utils import Utils
+from magma.pipelined.openflow.registers import TUN_PORT_REG
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 
@@ -45,6 +46,7 @@ class Classifier(MagmaController):
         self.next_table = self._service_manager.get_table_num(INGRESS)
         self._uplink_port = OFPP_LOCAL
         self._datapath = None
+        self._clean_restart = kwargs['config']['clean_restart']
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -68,7 +70,9 @@ class Classifier(MagmaController):
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
-        self._delete_all_flows()
+        if self._clean_restart:
+            self._delete_all_flows()
+
         self._install_default_tunnel_flows()
         self._install_internal_pkt_fwd_flow()
 
@@ -76,7 +80,8 @@ class Classifier(MagmaController):
         flows.delete_all_flows_from_table(self._datapath, self.tbl_num)
 
     def cleanup_on_disconnect(self, datapath):
-        self._delete_all_flows()
+        if self._clean_restart:
+            self._delete_all_flows()
 
     def _install_default_tunnel_flows(self):
         match = MagmaMatch()
@@ -112,7 +117,8 @@ class Classifier(MagmaController):
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,in_port=self._uplink_port,
                            ipv4_dst=ue_ip_adr)
         actions = [parser.OFPActionSetField(tunnel_id=o_teid),
-                   parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr)]
+                   parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr),
+                   parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=self.config.gtp_port)]
         if sid:
             actions.append(parser.OFPActionSetField(metadata=sid))
 
@@ -130,6 +136,7 @@ class Classifier(MagmaController):
         # Add ARP flow for LOCAL port
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
                            in_port=self._uplink_port, arp_tpa=ue_ip_adr)
+        actions = []
         if sid:
             actions = [parser.OFPActionSetField(metadata=sid)]
 

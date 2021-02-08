@@ -51,7 +51,13 @@
     dest: /etc/systemd/system/magma_dp@envoy.service
   when: full_provision
 
-- name: Copy logrotate config file
+- name: Copy syslog logrotate config file
+  copy:
+    src: logrotate_rsyslog.conf
+    dest: /etc/logrotate.d/rsyslog
+  when: full_provision
+
+- name: Copy OAI logrotate config file
   copy:
     src: logrotate_oai.conf
     dest: /etc/logrotate.d/oai

@@ -73,7 +73,6 @@ def main():
     sync_interval = metrics_config['sync_interval']
     grpc_timeout = metrics_config['grpc_timeout']
     grpc_msg_size = metrics_config.get('max_grpc_msg_size_mb', 4)
-    queue_length = metrics_config['queue_length']
     metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
     metric_scrape_targets = map(lambda x: ScrapeTarget(x['url'], x['name'],
@@ -87,7 +86,6 @@ def main():
         sync_interval=sync_interval,
         grpc_timeout=grpc_timeout,
         grpc_max_msg_size_mb=grpc_msg_size,
-        queue_length=queue_length,
         loop=service.loop,
         post_processing_fn=
         get_metrics_postprocessor_fn(metrics_post_processor_fn),

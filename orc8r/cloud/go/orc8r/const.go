@@ -15,7 +15,10 @@ package orc8r
 
 const (
 	ModuleName = "orc8r"
+)
 
+// State and entities
+const (
 	NetworkFeaturesConfig   = "orc8r_features"
 	MagmadGatewayType       = "magmad_gateway"
 	AccessGatewayRecordType = "access_gateway_record"
@@ -29,12 +32,19 @@ const (
 	UpgradeReleaseChannelEntityType = "upgrade_release_channel"
 
 	CallTraceEntityType = "call_trace"
+)
 
-	// ServiceHostnameEnvVar is the name of an environment variable which is
-	// required to hold the public IP of the service.
-	// In dev, this will generally be localhost.
-	// In prod, this will be the relevant pod's IP.
-	ServiceHostnameEnvVar = "SERVICE_HOSTNAME"
+// K8s
+const (
+	// PartOfLabel and PartOfOrc8rApp are K8s label key and values indicating
+	// a service is an orc8r application service.
+	PartOfLabel    = "app.kubernetes.io/part-of"
+	PartOfOrc8rApp = "orc8r-app"
+
+	GRPCPortName = "grpc"
+	HTTPPortName = "http"
+
+	AnnotationFieldSeparator = ","
 
 	AnalyticsCollectorLabel = "orc8r.io/analytics_collector"
 	MconfigBuilderLabel     = "orc8r.io/mconfig_builder"
@@ -42,11 +52,19 @@ const (
 	ObsidianHandlersLabel   = "orc8r.io/obsidian_handlers"
 	StateIndexerLabel       = "orc8r.io/state_indexer"
 	StreamProviderLabel     = "orc8r.io/stream_provider"
+	SpecServicerLabel       = "orc8r.io/swagger_spec"
 
 	ObsidianHandlersPathPrefixesAnnotation = "orc8r.io/obsidian_handlers_path_prefixes"
 	StateIndexerVersionAnnotation          = "orc8r.io/state_indexer_version"
 	StateIndexerTypesAnnotation            = "orc8r.io/state_indexer_types"
 	StreamProviderStreamsAnnotation        = "orc8r.io/stream_provider_streams"
+)
 
-	AnnotationFieldSeparator = ","
+// Environment variables
+const (
+	// ServiceHostnameEnvVar is the name of an environment variable which is
+	// required to hold the public IP of the service.
+	// In dev, this will generally be localhost.
+	// In prod, this will be the relevant pod's IP.
+	ServiceHostnameEnvVar = "SERVICE_HOSTNAME"
 )
