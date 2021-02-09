@@ -84,7 +84,7 @@ export default function getLteAlerts(
     },
     'Gateway Checkin Failure': {
       alert: 'Gateway Checkin Failure',
-      expr: `checkin_status{networkID=~"${networkID}" < 1`,
+      expr: `checkin_status{networkID=~"${networkID}"} < 1`,
       labels: {severity: 'critical'},
       annotations: {description: 'Alerts when we have gateway checkin failure'},
     },

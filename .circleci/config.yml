@@ -46,6 +46,9 @@ orbs:
           - run:
               name: Set Python version
               command: pyenv global <<parameters.python_version>>
+          - run:
+              name: Upgrade Pip
+              command: pip install --upgrade pip
 
   docker:
     commands:

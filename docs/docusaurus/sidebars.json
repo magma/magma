@@ -12,7 +12,8 @@
         "ids": [
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
-          "orc8r/deploy_install"
+          "orc8r/deploy_install",
+          "orc8r/deploy_faq"
         ]
       },
       {
@@ -47,7 +48,7 @@
           "nms/network",
           "nms/subscriber",
           "nms/traffic",
-          "nms/grafana",
+          "nms/metrics",
           "nms/alerts",
           "nms/tips_and_tricks"
         ]

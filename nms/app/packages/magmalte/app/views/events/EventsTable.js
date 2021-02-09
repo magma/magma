@@ -253,7 +253,7 @@ export default function EventsTable(props: EventTableProps) {
   let actionTableOptions = {
     actionsColumnIndex: -1,
     pageSize: 5,
-    pageSizeOptions: [10, 20],
+    pageSizeOptions: [5, 10, 20],
     toolbar: false,
   };
 
