@@ -12,6 +12,7 @@ limitations under the License.
 """
 import asyncio
 import calendar
+from random import randrange
 import time
 import unittest
 import unittest.mock
@@ -67,12 +68,10 @@ class MetricsCollectorTests(unittest.TestCase):
 
         self._services = ['test']
         self.gateway_id = "2876171d-bf38-4254-b4da-71a713952904"
-        self.queue_length = 5
         self.timeout = 1
         self._collector = MetricsCollector(self._services, 5, 10,
                                            self.timeout,
                                            grpc_max_msg_size_mb=4,
-                                           queue_length=self.queue_length,
                                            loop=asyncio.new_event_loop())
 
     @unittest.mock.patch('magma.magmad.metrics_collector.MetricsControllerStub')
@@ -82,64 +81,75 @@ class MetricsCollectorTests(unittest.TestCase):
         """
         # Mock out Collect.future
         mock = unittest.mock.Mock()
-        mock.Collect.future.side_effect = [unittest.mock.Mock()]
-        controller_mock.side_effect = [mock]
+        mock.Collect.future.side_effect = [
+            unittest.mock.Mock(),
+            unittest.mock.Mock(),
+            unittest.mock.Mock()]
+        controller_mock.side_effect = [mock, mock, mock]
 
         # Call with no samples
-        self._collector.sync()
+        service_name = "test"
+        self._collector.sync(service_name)
         controller_mock.Collect.future.assert_not_called()
         self._collector._loop.stop()
 
-        # Call with new samples to send and some to retry
+        # Call with new samples to send
         samples = [MetricFamily(name="1234")]
-        self._collector._samples.extend(samples)
-        self._collector._retry_queue.extend(samples)
+        self._collector._samples_for_service[service_name].extend(samples)
         with unittest.mock.patch('snowflake.snowflake') as mock_snowflake:
             mock_snowflake.side_effect = lambda: self.gateway_id
-            self._collector.sync()
+            self._collector.sync(service_name)
         mock.Collect.future.assert_called_once_with(
             MetricsContainer(
                 gatewayId=self.gateway_id,
-                family=samples * 2),
+                family=samples),
             self.timeout)
-        self.assertCountEqual(self._collector._samples, [])
-        self.assertCountEqual(self._collector._retry_queue, [])
+        self.assertCountEqual(
+            self._collector._samples_for_service[service_name],
+            [])
 
-    def test_sync_queue(self):
-        """
-        Test if the sync queues items on failure
-        """
-        # We should retry sending the newest samples
-        samples = [MetricFamily(name=str(i))
-                   for i in range(self.queue_length + 1)]
-        mock_future = MockFuture(is_error=True)
-        self._collector.sync_done(samples, mock_future)
-        self.assertCountEqual(self._collector._samples, [])
-        self.assertCountEqual(self._collector._retry_queue,
-                              samples[-self.queue_length:])
+        # Reduce max msg size to trigger msg chunking
+        self._collector.grpc_max_msg_size_bytes = 1500
+        samples = self._generate_samples(140)
+        self._collector._samples_for_service[service_name].extend(samples)
+        chunk1 = samples[:70]
+        chunk2 = samples[70:140]
 
-        # On success don't retry to send
-        self._collector._retry_queue.clear()
-        mock_future = MockFuture(is_error=False)
-        self._collector.sync_done(samples, mock_future)
-        self.assertCountEqual(self._collector._samples, [])
-        self.assertCountEqual(self._collector._retry_queue, [])
+        with unittest.mock.patch('snowflake.snowflake') as mock_snowflake:
+            mock_snowflake.side_effect = lambda: self.gateway_id
+            self._collector.sync(service_name)
+        mock.Collect.future.assert_any_call(
+            MetricsContainer(
+                gatewayId=self.gateway_id,
+                family=chunk1),
+            self.timeout)
+        mock.Collect.future.assert_any_call(
+            MetricsContainer(
+                gatewayId=self.gateway_id,
+                family=chunk2),
+            self.timeout)
+        self.assertCountEqual(
+            self._collector._samples_for_service[service_name],
+            [])
 
     def test_collect(self):
         """
         Test if the collector syncs our sample.
         """
         mock = unittest.mock.MagicMock()
+        service_name = "test"
         samples = [MetricFamily(name="2345")]
-        self._collector._samples.clear()
-        self._collector._samples.extend(samples)
+        self._collector._samples_for_service[service_name].clear()
+        self._collector._samples_for_service[service_name].extend(samples)
         mock.result.side_effect = [MetricsContainer(family=samples)]
         mock.exception.side_effect = [False]
 
         self._collector.collect_done('test', mock)
         # Should dequeue sample from the left, and enqueue on right
         # collector should add one more metric for collection success/failure
-        self.assertEqual(len(self._collector._samples), len(samples * 2) + 1)
+        self.assertEqual(
+            len(self._collector._samples_for_service[service_name]),
+            len(samples * 2) + 1)
 
     def test_collect_start_time(self):
         """
@@ -153,16 +163,20 @@ class MetricsCollectorTests(unittest.TestCase):
             metric=[start_metric],
         )
         samples = [start_time]
-        self._collector._samples.clear()
+        service_name = "test"
+        self._collector._samples_for_service[service_name].clear()
         mock.result.side_effect = [MetricsContainer(family=samples)]
         mock.exception.side_effect = [False]
 
         self._collector.collect_done('test', mock)
 
         # should have uptime, start time, and collection success
-        self.assertEqual(len(self._collector._samples), 3)
-        uptime_list = [fam for fam in self._collector._samples
-                       if fam.name == str(metricsd_pb2.process_uptime_seconds)]
+        self.assertEqual(
+            len(self._collector._samples_for_service[service_name]),
+            3)
+        uptime_list = [
+              fam for fam in self._collector._samples_for_service[service_name]
+              if fam.name == str(metricsd_pb2.process_uptime_seconds)]
         self.assertEqual(len(uptime_list), 1)
         self.assertEqual(len(uptime_list[0].metric), 1)
         self.assertGreater(uptime_list[0].metric[0].gauge.value, 0)
@@ -170,7 +184,7 @@ class MetricsCollectorTests(unittest.TestCase):
         # ensure no exceptions with empty metric
         empty = MetricFamily(name=str(metricsd_pb2.process_start_time_seconds))
         samples = [empty]
-        self._collector._samples.clear()
+        self._collector._samples_for_service[service_name].clear()
         mock.result.side_effect = [MetricsContainer(family=samples)]
         mock.exception.side_effect = [False]
         try:
@@ -329,6 +343,12 @@ class MetricsCollectorTests(unittest.TestCase):
                 self.assertEqual(4, proto.metric[0].histogram.bucket[
                     2].cumulative_count)
 
+    def _generate_samples(self, number):
+        samples = []
+        for _ in range(number):
+            sample_name = randrange(10000)
+            samples.append(MetricFamily(name=str(sample_name)))
+        return samples
 
 if __name__ == "__main__":
     unittest.main()
