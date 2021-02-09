@@ -32,10 +32,7 @@ func TestRegistry_GetSpecServicers(t *testing.T) {
 	assert.Empty(t, servicers)
 
 	// Success with some registered servicers
-	services := map[string]struct{}{
-		"test_spec_service1": {},
-		"test_spec_service2": {},
-	}
+	services := []string{"test_spec_service1", "test_spec_service2"}
 	labels := map[string]string{
 		orc8r.SwaggerSpecLabel: "true",
 	}
@@ -43,7 +40,7 @@ func TestRegistry_GetSpecServicers(t *testing.T) {
 	// Clean up registry
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
 
-	for s := range services {
+	for _, s := range services {
 		srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, s, labels, nil)
 		go srv.RunTest(lis)
 	}
@@ -51,8 +48,9 @@ func TestRegistry_GetSpecServicers(t *testing.T) {
 	servicers, err = swagger.GetSpecServicers()
 	assert.NoError(t, err)
 
-	_, exists := services[servicers[0].GetService()]
-	assert.True(t, exists)
-	_, exists = services[servicers[1].GetService()]
-	assert.True(t, exists)
+	var actual []string
+	for _, s := range servicers {
+		actual = append(actual, s.GetService())
+	}
+	assert.ElementsMatch(t, services, actual)
 }
