@@ -1,0 +1,63 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+require 'fileutils'
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.require_version ">=1.9.1"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.define :aptly, primary: true do |aptly|
+    # Get our prepackaged box from the atlas cloud, based on
+    # - debian/contrib-jessie64
+    # - linux kernel from debian jessie backports
+    # - updated vbguest-tool
+    aptly.vm.box = "ubuntu/xenial64"
+    aptly.vm.box_version = "= 20191108.0.0"
+    aptly.vm.hostname = "aptly-dev"
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    aptly.vm.network "private_network", ip: "192.168.60.194", nic_type: "82540EM"
+
+    cache_dir = File.expand_path('~/.magma/ubuntu_snapshots')
+    FileUtils.mkdir_p(cache_dir) unless Dir.exists?(cache_dir)
+
+    aptly.vm.synced_folder ".", "/vagrant", disabled: true
+    aptly.vm.synced_folder cache_dir, "/cache"
+
+    aptly.vm.provider "virtualbox" do |vb|
+      vb.name = "aptly-dev"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    aptly.vm.provision "shell",
+                       inline: "apt update; apt install -y python python3"
+
+    ENV["ANSIBLE_CONFIG"] = "deploy/ansible.cfg"
+    aptly.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_aptly_vagrant.yml"
+      ansible.inventory_path = "deploy/vagrant-hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+end

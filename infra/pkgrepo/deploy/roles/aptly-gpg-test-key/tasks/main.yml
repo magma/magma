@@ -1,0 +1,52 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Wait a few seconds for docker services to start
+  command: sleep 10
+
+- name: Ensure rngd tool for extra entropy generation is present
+  apt: pkg=rng-tools state=present
+
+- name: Start rngd
+  command: rngd -r /dev/urandom
+  become: yes
+
+- name: Check for existing gpg keyring
+  command: docker-compose exec -T aptly gpg1 --list-secret-keys
+  args:
+    chdir: docker
+  register: secret_key_output
+  
+- name: Create gpg test key
+  command: docker-compose exec -T aptly gpg1 --gen-key --yes --batch insecurekeygen.txt
+  args:
+    chdir: docker
+  when: not secret_key_output.stdout is search("\nsec ")
+
+- name: Create /aptly/public
+  command: docker-compose exec -T aptly mkdir -p /aptly/public
+  args:
+    chdir: docker
+  when: not secret_key_output.stdout is search("\nsec ")
+    
+- name: Export new secret key to /aptly/public/key.gpg
+  command: docker-compose exec -T aptly gpg1 --export --armor --output /aptly/public/key.gpg 'insecure test key'
+  args:
+    chdir: docker
+  when: not secret_key_output.stdout is search("\nsec ")
+
+- name: Stop rngd
+  ignore_errors: yes
+  command: killall -q rngd
+  become: yes

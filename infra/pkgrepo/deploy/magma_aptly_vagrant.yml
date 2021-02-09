@@ -1,0 +1,56 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Set up the Magma Package Server
+  hosts: aptly
+  become: yes
+
+  roles:
+    - role: test-ssl-key
+      vars:
+        - keypath: /etc/ssl/private/aptly.key
+        - crtpath: /etc/ssl/private/aptly.crt
+        - use_rngd: yes
+
+    - role: aptly-files
+      vars:
+        - user: vagrant
+        - aptly_user: aptly-user
+        - aptly_user_id: 12345
+        - group: aptly
+        - gid: 34567
+        - docker_path: /home/vagrant/
+
+    - role: docker
+      vars:
+        - compose_file: ../docker/docker-compose.yml
+        - image_names: ["aptly-nginx", "aptly"]
+        - systemd_extra: |
+            Environment=APTLY_NGINX_HTTP_PORT=80
+            Environment=APTLY_NGINX_HTTPS_PORT=443
+            Environment=APTLY_NGINX_CRT=/etc/ssl/private/aptly.crt
+            Environment=APTLY_NGINX_KEY=/etc/ssl/private/aptly.key
+        - systemd_service: aptly
+        - systemd_stdout: journal
+        - systemd_stop_args: ""
+        - systemd_start_args_pre: -f docker-compose.yml -f docker-compose-prod.yml
+        - working_dir: /home/vagrant/docker/
+
+    - role: aptly-gpg-test-key
+
+    - role: aptly-fix-unix-socket-perms
+      vars:
+        - socket_path: /home/vagrant/docker/run/aptly/aptly.sock
+
+    - role: aptly-magma-base-dependencies

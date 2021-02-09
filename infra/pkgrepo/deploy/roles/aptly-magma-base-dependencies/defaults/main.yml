@@ -1,0 +1,16 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+upstream_repo_url: http://packages.magma.etagecom.io
+pubkey_checksum: sha256:67b28492fe47050a12e2d61bfe1c1a690e75b6d70548452d75b3622682abad9d

@@ -1,0 +1,25 @@
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+version: '3.7'
+
+services:
+  aptly:
+    command: aptly api serve -no-lock -listen=unix:///var/run/aptly/aptly.sock
+    stdin_open: false
+    tty: false
+
+  nginx:
+    volumes:
+      - ${APTLY_NGINX_CRT:-./aptly.crt}:/etc/nginx/ssl/aptly.crt
+      - ${APTLY_NGINX_KEY:-./aptly.key}:/etc/nginx/ssl/aptly.key

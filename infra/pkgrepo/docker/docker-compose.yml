@@ -1,0 +1,81 @@
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+version: '3.7'
+
+services:
+  aptly:
+    user: aptly-user
+    build: aptly
+    image: facebookconnectivity-orc8r-docker.jfrog.io/aptly:${APTLY_TAG:-latest}
+    restart: always
+    stdin_open: true
+    tty: true
+    environment:
+      - TERM=xterm-256color
+    volumes:
+      - type: volume
+        source: aptlystorage
+        target: /aptly
+        volume:
+          # copy permissions from empty volume on init
+          nocopy: false
+      - type: volume
+        source: aptlyhome
+        target: /home
+        volume:
+          # copy new user aptly-user's home directory on init
+          nocopy: false
+      - ./run/aptly:/var/run/aptly
+
+  nginx:
+    build: nginx
+    image: facebookconnectivity-orc8r-docker.jfrog.io/aptly-nginx:${APTLY_TAG:-latest}
+    restart: always
+    expose:
+      # allow local containers to access without https
+      - "${APTLY_NGINX_HTTP_INTERNAL_PORT:-8080}"
+    ports:
+      # port 80 will probably be removed after ssl cert config
+      - "${APTLY_NGINX_HTTP_PORT:-8880}:80"
+      - "${APTLY_NGINX_HTTPS_PORT:-8443}:443"
+    logging:
+      # nginx is configured to log to /var/log/nginx/access.log which is a symlink
+      # to /dev/stdout -- new configuration for logging should probably keep that convention
+      # access.log -> /dev/stdout and error.log -> /dev/stderr
+      # include this just in case something in container does use syslog or similar
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+    volumes:
+      # the data to serve
+      - type: volume
+        source: aptlystorage
+        # minimize changes from default config for now
+        target: /usr/share/nginx/html
+        read_only: true
+        volume:
+          nocopy: true
+
+      # webserver config
+      - ./nginx/conf.d:/etc/nginx/conf.d
+
+volumes:
+  # cross-mounted between aptly and nginx to serve repositories
+  # deleting this volume will lose all pkgrepo contents and history; use caution when choosing to delete
+  aptlystorage:
+
+  # this volume should usually not be deleted -- it will contain encryption keys
+  aptlyhome:
+

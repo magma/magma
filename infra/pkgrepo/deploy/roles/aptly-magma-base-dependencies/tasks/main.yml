@@ -1,0 +1,75 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Initialize base dependencies
+  become: yes
+  block:
+    - name: Make sure {{ ansible_user }} is in docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups:
+          - docker
+
+    - name: Download pubkey.gpg from upstream
+      get_url:
+        url: "{{ upstream_repo_url }}/pubkey.gpg"
+        checksum: "{{ pubkey_checksum }}"
+        dest: ~/upstream-pubkey.gpg
+
+    - name: Register aptly container id
+      command: docker-compose ps -q aptly
+      args:
+        chdir: docker
+      register: aptly_instance_id
+
+    - name: Copy upstream-pubkey.gpg into aptly container
+      command: docker cp ~/upstream-pubkey.gpg {{ aptly_instance_id.stdout | quote }}:/home/aptly-user/upstream-pubkey.gpg
+
+    - name: Fix permissions
+      command: docker-compose exec -T -u root aptly chown aptly-user /home/aptly-user/upstream-pubkey.gpg
+      args:
+        chdir: docker
+
+    - name: Import upstream key to gpg1 keyring
+      command: docker-compose exec -T aptly gpg1 --no-default-keyring --keyring trustedkeys.gpg --import upstream-pubkey.gpg
+      args:
+        chdir: docker
+
+    - name: Create mirror of {{ upstream_repo_url }} for base-dependencies
+      ignore_errors: True
+      command: docker-compose exec -T aptly aptly mirror create upstream-base-dependencies http://packages.magma.etagecom.io base-dependencies
+      args:
+        chdir: docker
+
+    - name: Download contents of {{ upstream_repo_url }} for base-dependencies
+      command: docker-compose exec -T aptly aptly mirror update upstream-base-dependencies
+      args:
+        chdir: docker
+
+    - name: Create repo stretch-test
+      ignore_errors: True
+      command: docker-compose exec -T aptly aptly repo create stretch-test
+      args:
+        chdir: docker
+
+    - name: Clean stale packages
+      ignore_errors: True
+      command: docker-compose exec -T aptly aptly db cleanup
+      args:
+        chdir: docker
+
+    - name: Import downloaded packages into stretch-test
+      command: docker-compose exec -T aptly aptly repo import -with-deps -architectures=amd64 upstream-base-dependencies stretch-test 'Name (% *)'
+      args:
+        chdir: docker

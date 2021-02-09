@@ -1,0 +1,55 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Install dependencies
+  apt:
+    package: ['python3-pip', 'jq', 'python3-requests-unixsocket']
+    state: present
+    update_cache: yes
+
+- name: Install other dependencies with pip3
+  pip:
+    name: ["awscli", "verlib"]
+    executable: /usr/bin/pip3
+
+- name: Copy container definitions, configs, and docker-compose.yml
+  copy:
+    src: "{{ role_path }}/../../../docker"
+    dest: "{{ docker_path }}"
+    owner: "{{ user }}"
+
+- name: Ensure {{ group }} group is present
+  group:
+    name: "{{ group }}"
+    state: present
+    gid: "{{ gid }}"
+
+- name: Create a host account for docker user {{ aptly_user }}
+  user:
+    name: "{{ aptly_user }}"
+    shell: /sbin/nologin
+    create_home: no
+    uid: "{{ aptly_user_id }}"
+    group: "{{ group }}"
+    groups: ''
+    password: '!'
+    
+- name: Add {{ user }} to {{ group }} group
+  command: gpasswd -a {{ user | quote }} {{ group | quote }}
+
+- name: Ensure write permissions for aptly group (uid=34567) to create unix socket
+  command: setfacl -m g:aptly:rwx {{ docker_path | quote }}/docker/run/aptly
+
+- name: Copy alternate aptly config for snapshots
+  copy: src="template_aptly.conf" dest="/home/{{ user }}/template_aptly.conf"
