@@ -57,6 +57,8 @@ py_patches:
 	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <patches/aioeventlet.py38.patch && echo "aioeventlet was patched" ) \
 	|| ( true && echo "skipping aioeventlet patch since it was already applied")
 
+	$(VIRT_ENV_PIP_INSTALL) --force-reinstall git+https://github.com/URenko/aioh2.git
+
 swagger:: swagger_prereqs $(SWAGGER_LIST)
 swagger_prereqs:
 	test -f /usr/bin/java # Java exists

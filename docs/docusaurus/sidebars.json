@@ -12,7 +12,8 @@
         "ids": [
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
-          "orc8r/deploy_install"
+          "orc8r/deploy_install",
+          "orc8r/deploy_faq"
         ]
       },
       {
@@ -36,17 +37,29 @@
       }
     ],
     "NMS": [
-      "nms/setup",
-      "nms/overview",
-      "nms/dashboard",
-      "nms/equipment",
-      "nms/network",
-      "nms/subscriber",
-      "nms/traffic",
-      "nms/grafana",
-      "nms/alerts",
-      "nms/developer",
-      "nms/tips_and_tricks"
+      {
+        "type": "subcategory",
+        "label": "NMS Usage",
+        "ids": [
+          "nms/setup",
+          "nms/overview",
+          "nms/dashboard",
+          "nms/equipment",
+          "nms/network",
+          "nms/subscriber",
+          "nms/traffic",
+          "nms/metrics",
+          "nms/alerts",
+          "nms/tips_and_tricks"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS Development",
+        "ids": [
+          "nms/developer"
+        ]
+      }
     ],
     "Access Gateway": [
       {
@@ -68,7 +81,15 @@
         "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes"]
       }
     ],
-    "Feature Guides": ["howtos/ue_metering", "howtos/config_agw_bridged", "howtos/thanos"],
+    "Feature Guides": [
+      "howtos/ue_metering",
+      "howtos/config_agw_bridged",
+      "howtos/thanos",
+      "howtos/call_tracing"
+    ],
+    "Debugging Tools": [
+      "debugging_tools/show_tech"
+    ],
     "Federation Gateway": [
       {
         "type": "subcategory",
