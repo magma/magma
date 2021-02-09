@@ -2107,6 +2107,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
           "IDLE. mme_ue_s1ap_id = %d, enb_ue_s1ap_id = %d Action -- Handle the "
           "message\n ",
           ue_mm_context->mme_ue_s1ap_id, ue_mm_context->enb_ue_s1ap_id);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
