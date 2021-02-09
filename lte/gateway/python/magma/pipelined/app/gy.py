@@ -90,7 +90,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager(datapath, self.loop, self._config)
+        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
         self._qos_mgr.setup()
 
     def deactivate_rules(self, imsi, ip_addr, rule_ids):
