@@ -11,6 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import asyncio
+import os
+import shutil
 import unittest
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
@@ -20,6 +23,7 @@ from magma.subscriberdb.store.sqlite import SqliteStore
 
 from magma.subscriberdb.sid import SIDUtils
 
+dbdirectory = "/home/vagrant/test/"
 
 class StoreTests(unittest.TestCase):
     """
@@ -27,8 +31,22 @@ class StoreTests(unittest.TestCase):
     """
 
     def setUp(self):
-        # Create an in-memory sqlite3 database for testing
-        self._store = SqliteStore("file::memory:")
+        # Create sqlite3 database for testing
+        try:
+            os.mkdir(dbdirectory)
+        except OSError:
+            print ("Creation of the test directory %s failed" % dbdirectory)
+        else:
+            print ("Successfully created the test directory %s " % dbdirectory)
+        self._store = SqliteStore(dbdirectory)
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(dbdirectory)
+        except OSError:
+            print ("Deletion of the test directory %s failed" % dbdirectory)
+        else:
+            print ("Successfully deleted the test directory %s " % dbdirectory)
 
     def _add_subscriber(self, sid):
         sub = SubscriberData(sid=SIDUtils.to_pb(sid))

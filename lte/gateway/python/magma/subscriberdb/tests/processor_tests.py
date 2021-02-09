@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
+import shutil
 import unittest
 
 from lte.protos.mconfig.mconfigs_pb2 import SubscriberDB
@@ -24,6 +26,7 @@ from magma.subscriberdb.store.sqlite import SqliteStore
 
 from magma.subscriberdb.sid import SIDUtils
 
+dbdirectory = "/home/vagrant/test/"
 
 def _dummy_auth_tuple():
     rand = b'ni\x89\xbel\xeeqTT7p\xae\x80\xb1\xef\r'
@@ -80,7 +83,13 @@ class ProcessorTests(unittest.TestCase):
         processor.Milenage = Milenage
 
     def setUp(self):
-        store = SqliteStore('file::memory:')
+        try:
+            os.mkdir(dbdirectory)
+        except OSError:
+            print ("Creation of the test directory %s failed" % dbdirectory)
+        else:
+            print ("Successfully created the test directory %s " % dbdirectory)
+        store = SqliteStore(dbdirectory)
         op = 16*b'\x11'
         amf = b'\x80\x00'
         self._sub_profiles = {
@@ -122,6 +131,14 @@ class ProcessorTests(unittest.TestCase):
         store.add_subscriber(sub3)
         store.add_subscriber(sub4)
         store.add_subscriber(sub5)
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(dbdirectory)
+        except OSError:
+            print ("Deletion of the test directory %s failed" % dbdirectory)
+        else:
+            print ("Successfully deleted the test directory %s " % dbdirectory)
 
     def test_gsm_auth_success(self):
         """

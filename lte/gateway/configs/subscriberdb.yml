@@ -20,7 +20,7 @@ host_address: 0.0.0.0 # Bind to all interfaces
 enable_streaming: True
 
 # Keep subscriberdb in a file.
-# Comment out db_path to default to :memory: to store subscribers in memory.
+# If this is omitted default path of /var/opt/magma/ will be assumed.
 db_path: /var/opt/magma/
 
 # Bucketize subscribers based on last sid_last_n digits

@@ -45,7 +45,7 @@ class SqliteStore(BaseStore):
     def _create_db_locations(self, db_location, n_shards):
         # in memory if db_location is not specified
         if not db_location:
-            return [":memory:"]
+            db_location = "/var/opt/magma/"
 
         # construct db_location items as: file:<path>subscriber<shard>.db?cache=shared
         db_location_list = []

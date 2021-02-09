@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
+import shutil
 import unittest
 from concurrent import futures
 
@@ -22,6 +24,7 @@ from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.sqlite import SqliteStore
 from orc8r.protos.common_pb2 import Void
 
+dbdirectory = "/home/vagrant/test/"
 
 class RpcTests(unittest.TestCase):
     """
@@ -29,8 +32,15 @@ class RpcTests(unittest.TestCase):
     """
 
     def setUp(self):
+        try:
+            os.mkdir(dbdirectory)
+        except OSError:
+            print ("Creation of the test directory %s failed" % dbdirectory)
+        else:
+            print ("Successfully created the test directory %s " % dbdirectory)
+
         # Create an in-memory store
-        store = SqliteStore('file::memory:?cache=shared')
+        store = SqliteStore(dbdirectory)
 
         # Bind the rpc server to a free port
         self._rpc_server = grpc.server(
@@ -48,6 +58,12 @@ class RpcTests(unittest.TestCase):
         self._stub = SubscriberDBStub(channel)
 
     def tearDown(self):
+        try:
+            shutil.rmtree(dbdirectory)
+        except OSError:
+            print ("Deletion of the test directory %s failed" % dbdirectory)
+        else:
+            print ("Successfully deleted the test directory %s " % dbdirectory)
         self._rpc_server.stop(0)
 
     def test_get_invalid_subscriber(self):
