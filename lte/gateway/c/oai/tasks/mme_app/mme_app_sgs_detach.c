@@ -381,7 +381,7 @@ int mme_app_handle_sgs_imsi_detach_timer_expiry(
         "SGS EPS Detach Timer expired but no assoicated SGS context for UE "
         "id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   /*
