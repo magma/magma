@@ -14,8 +14,7 @@ limitations under the License.
 # pylint: disable=protected-access
 
 import asyncio
-import os
-import shutil
+import tempfile
 import unittest
 import unittest.mock
 
@@ -24,8 +23,6 @@ from magma.subscriberdb.store.sqlite import SqliteStore
 from magma.subscriberdb.streamer_callback import SubscriberDBStreamerCallback
 
 from magma.common.service_registry import ServiceRegistry
-
-dbdirectory = "/home/vagrant/test/"
 
 class MockFuture(object):
     is_error = True
@@ -51,13 +48,9 @@ class SubscriberDBStreamerCallbackTests(unittest.TestCase):
     """
 
     def setUp(self):
-        try:
-            os.mkdir(dbdirectory)
-        except OSError:
-            print ("Creation of the test directory %s failed" % dbdirectory)
-        else:
-            print ("Successfully created the test directory %s " % dbdirectory)
-        store = SqliteStore(dbdirectory)
+        # Create sqlite3 database for testing
+        self._tmpfile = tempfile.TemporaryDirectory()
+        store = SqliteStore(self._tmpfile.name +'/')
         self._streamer_callback = \
             SubscriberDBStreamerCallback(store, loop=asyncio.new_event_loop())
         ServiceRegistry.add_service('test', '0.0.0.0', 0)
@@ -70,12 +63,7 @@ class SubscriberDBStreamerCallbackTests(unittest.TestCase):
                                      }
 
     def tearDown(self):
-        try:
-            shutil.rmtree(dbdirectory)
-        except OSError:
-            print ("Deletion of the test directory %s failed" % dbdirectory)
-        else:
-            print ("Successfully deleted the test directory %s " % dbdirectory)
+        self._tmpfile.cleanup()
 
     @unittest.mock.patch('magma.subscriberdb.streamer_callback.S6aServiceStub')
     def test_detach_deleted_subscribers(self, s6a_service_mock_stub):
