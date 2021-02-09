@@ -43,6 +43,7 @@ from .log_count_handler import MsgCounterHandler
 from .metrics_export import get_metrics
 from .service_registry import ServiceRegistry
 
+MAX_DEFAULT_WORKER = 10
 
 async def loop_exit():
     """
@@ -59,7 +60,7 @@ class MagmaService(Service303Servicer):
     entities to interact with the service.
     """
 
-    def __init__(self, name, empty_mconfig, loop=None, workers=None):
+    def __init__(self, name, empty_mconfig, loop=None):
         self._name = name
         self._port = 0
         self._get_status_callback = None
@@ -90,12 +91,10 @@ class MagmaService(Service303Servicer):
         self._start_time = int(time.time())
         self._register_signal_handlers()
 
-        if workers is None:
-            workers = 10
-
         # Load the service config if present
         self._config = None
         self.reload_config()
+
         # Count errors
         self.log_counter = ServiceLogErrorReporter(
             loop=self._loop,
@@ -125,7 +124,11 @@ class MagmaService(Service303Servicer):
         except pkg_resources.ResolutionError as e:
             logging.info(e)
 
-        self._server = grpc.server(futures.ThreadPoolExecutor(max_workers=workers))
+        if self._config and 'grpc_workers' in self._config:
+            self._server = grpc.server(
+                futures.ThreadPoolExecutor(max_workers=self._config['grpc_workers']))
+        else:
+            self._server = grpc.server(futures.ThreadPoolExecutor(max_workers=MAX_DEFAULT_WORKER))
         add_Service303Servicer_to_server(self, self._server)
 
     @property
