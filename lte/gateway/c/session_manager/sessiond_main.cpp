@@ -185,6 +185,7 @@ int main(int argc, char* argv[]) {
   }
   MLOG(MINFO) << "Starting Session Manager";
   folly::EventBase* evb = folly::EventBaseManager::get()->getEventBase();
+  magma::EventBaseWrapper* evb_wrapper      = new magma::EventBaseWrapper(evb);
 
   // Start off a thread to periodically load policy definitions from Redis into
   // RuleStore
@@ -388,7 +389,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Block on main local_enforcer (to keep evb in this thread)
-  local_enforcer->attachEventBase(evb);
+  local_enforcer->attachEventBase(evb_wrapper);
   MLOG(MDEBUG) << "local enforcer Attached EventBase to evb";
   local_enforcer->sync_sessions_on_restart(time(NULL));
   MLOG(MDEBUG) << "Synced session on restart";
