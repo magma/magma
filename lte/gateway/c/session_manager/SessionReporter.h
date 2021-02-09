@@ -15,11 +15,11 @@
 #include <functional>
 #include <memory>
 
-#include <folly/io/async/EventBase.h>
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "GRPCReceiver.h"
+#include "EventBaseWrapper.h"
 
 namespace magma {
 using namespace lte;
@@ -40,13 +40,13 @@ template<typename ResponseType>
 class AsyncEvbResponse : public AsyncGRPCResponse<ResponseType> {
  public:
   AsyncEvbResponse(
-      folly::EventBase* base, ReporterCallbackFn<ResponseType> callback,
+      EventBaseWrapper* base, ReporterCallbackFn<ResponseType> callback,
       uint32_t timeout_sec);
 
   void handle_response() override;
 
  private:
-  folly::EventBase* base_;
+  EventBaseWrapper* base_;
 };
 
 class SessionReporter : public GRPCReceiver {
@@ -86,7 +86,7 @@ class SessionReporter : public GRPCReceiver {
 class SessionReporterImpl : public SessionReporter {
  public:
   SessionReporterImpl(
-      folly::EventBase* base, std::shared_ptr<grpc::Channel> channel);
+      EventBaseWrapper* base, std::shared_ptr<grpc::Channel> channel);
 
   void report_updates(
       const UpdateSessionRequest& request,
@@ -101,7 +101,7 @@ class SessionReporterImpl : public SessionReporter {
       std::function<void(grpc::Status, SessionTerminateResponse)> callback);
 
  private:
-  folly::EventBase* base_;
+  EventBaseWrapper* base_;
   std::unique_ptr<CentralSessionController::Stub> stub_;
   static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
 };

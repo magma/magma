@@ -33,6 +33,7 @@
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "SpgwServiceClient.h"
+#include "EventBaseWrapper.h"
 
 namespace magma {
 using std::experimental::optional;
@@ -100,13 +101,14 @@ class LocalEnforcer {
       magma::mconfig::SessionD mconfig);
 
   void attachEventBase(folly::EventBase* evb);
+  void attachEventBase(EventBaseWrapper* evb_wrapper);
 
   // blocks
   void start();
 
   void stop();
 
-  folly::EventBase& get_event_base();
+  EventBaseWrapper& get_event_base();
 
   /**
    * Setup rules for all sessions in pipelined, used whenever pipelined
@@ -303,7 +305,7 @@ class LocalEnforcer {
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   SessionStore& session_store_;
-  folly::EventBase* evb_;
+  EventBaseWrapper* evb_;
   long session_force_termination_timeout_ms_;
   // [CWF-ONLY] This configures how long we should wait before terminating a
   // session after it is created without any monitoring quota

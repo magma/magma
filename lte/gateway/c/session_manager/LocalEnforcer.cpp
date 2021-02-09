@@ -85,6 +85,10 @@ void LocalEnforcer::start() {
 }
 
 void LocalEnforcer::attachEventBase(folly::EventBase* evb) {
+  evb_ = new EventBaseWrapper(evb);
+}
+
+void LocalEnforcer::attachEventBase(EventBaseWrapper* evb) {
   evb_ = evb;
 }
 
@@ -92,7 +96,7 @@ void LocalEnforcer::stop() {
   evb_->terminateLoopSoon();
 }
 
-folly::EventBase& LocalEnforcer::get_event_base() {
+EventBaseWrapper& LocalEnforcer::get_event_base() {
   return *evb_;
 }
 

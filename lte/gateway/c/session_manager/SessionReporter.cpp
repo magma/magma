@@ -21,7 +21,7 @@ namespace magma {
 
 template<class ResponseType>
 AsyncEvbResponse<ResponseType>::AsyncEvbResponse(
-    folly::EventBase* base,
+    EventBaseWrapper* base,
     std::function<void(grpc::Status, ResponseType)> callback,
     uint32_t timeout_sec)
     : AsyncGRPCResponse<ResponseType>(callback, timeout_sec), base_(base) {}
@@ -49,7 +49,7 @@ SessionReporter::get_terminate_logging_cb(
 }
 
 SessionReporterImpl::SessionReporterImpl(
-    folly::EventBase* base, std::shared_ptr<grpc::Channel> channel)
+    EventBaseWrapper* base, std::shared_ptr<grpc::Channel> channel)
     : base_(base), stub_(CentralSessionController::NewStub(channel)) {}
 
 void SessionReporterImpl::report_updates(

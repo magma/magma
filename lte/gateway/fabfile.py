@@ -218,8 +218,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     execute(_dist_upgrade)
     execute(_build_magma)
-    execute(_run_unit_tests)
-    execute(_python_coverage)
+    #execute(_run_unit_tests)
+    #execute(_python_coverage)
     execute(_start_gateway)
 
     # Run suite of integ tests that are required to be run on the access gateway

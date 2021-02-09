@@ -165,6 +165,9 @@ add_library(SESSION_MANAGER
     Utilities.h
     OperationalStatesHandler.cpp
     OperationalStatesHandler.h
+    EventBaseWrapper.cpp
+    EventBaseWrapper.h
+    date.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

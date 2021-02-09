@@ -185,6 +185,7 @@ int main(int argc, char* argv[]) {
   }
   MLOG(MINFO) << "Starting Session Manager";
   folly::EventBase* evb = folly::EventBaseManager::get()->getEventBase();
+  magma::EventBaseWrapper* evb_wrapper = new magma::EventBaseWrapper(evb);
 
   // Start off a thread to periodically load policy definitions from Redis into
   // RuleStore
@@ -255,7 +256,7 @@ int main(int argc, char* argv[]) {
     gx_gy_relay_enabled = mconfig.gx_gy_relay_enabled();
   }
   auto reporter = std::make_shared<magma::SessionReporterImpl>(
-      evb, get_controller_channel(config, gx_gy_relay_enabled));
+      evb_wrapper, get_controller_channel(config, gx_gy_relay_enabled));
   std::thread policy_response_handler([&]() {
     MLOG(MINFO) << "Started reporter thread";
     reporter->rpc_response_loop();
@@ -308,10 +309,10 @@ int main(int argc, char* argv[]) {
   MLOG(MINFO) << "Add proxyservice";
 
   // Register state polling callback
-  server.SetOperationalStatesCallback([evb, session_store]() {
+  server.SetOperationalStatesCallback([evb_wrapper, session_store]() {
     std::promise<magma::OpState> result;
     std::future<magma::OpState> future = result.get_future();
-    evb->runInEventBaseThread([session_store, &result, &future]() {
+    evb_wrapper->runInEventBaseThread([session_store, &result, &future]() {
       result.set_value(magma::get_operational_states(session_store));
     });
     return future.get();
@@ -388,11 +389,11 @@ int main(int argc, char* argv[]) {
   }
 
   // Block on main local_enforcer (to keep evb in this thread)
-  local_enforcer->attachEventBase(evb);
+  local_enforcer->attachEventBase(evb_wrapper);
   MLOG(MDEBUG) << "local enforcer Attached EventBase to evb";
   local_enforcer->sync_sessions_on_restart(time(NULL));
   MLOG(MDEBUG) << "Synced session on restart";
-  evb->loopForever();
+  evb_wrapper->loopForever();
   MLOG(MINFO) << "Stoping.. session manager GRPC server";
 
   server.Stop();
