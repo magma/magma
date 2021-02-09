@@ -16,6 +16,7 @@ import unittest
 import s1ap_types
 import s1ap_wrapper
 
+import time
 
 class TestAttachDlUlTcpDataMultiUe(unittest.TestCase):
     def setUp(self):
@@ -27,7 +28,7 @@ class TestAttachDlUlTcpDataMultiUe(unittest.TestCase):
     def test_attach_dl_ul_tcp_data_multi_ue(self):
         """ Attach and send DL and UL TCP data with multiple UEs """
         reqs = []
-        num_ues = 32
+        num_ues = 140
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         for _ in range(num_ues):
@@ -57,11 +58,11 @@ class TestAttachDlUlTcpDataMultiUe(unittest.TestCase):
             "and uplink (TCP) for UE Ids",
             [req.ue_id for req in ul_reqs],
         )
-        dl_tests = self._s1ap_wrapper.configDownlinkTest(*dl_reqs, duration=1)
-        ul_tests = self._s1ap_wrapper.configUplinkTest(*ul_reqs, duration=1)
-        with dl_tests.combine(dl_tests, ul_tests) as test:
-            test.verify()
-
+        #dl_tests = self._s1ap_wrapper.configDownlinkTest(*dl_reqs, duration=1)
+        #ul_tests = self._s1ap_wrapper.configUplinkTest(*ul_reqs, duration=1)
+        #with dl_tests.combine(dl_tests, ul_tests) as test:
+        #    test.verify()
+        time.sleep(5)
         for req in reqs:
             print(
                 "************************* Running UE detach for UE id",

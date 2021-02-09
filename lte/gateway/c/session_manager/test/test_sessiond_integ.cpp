@@ -257,6 +257,83 @@ ACTION(SetSessionTerminateResponse) {
   res->set_session_id(req->session_id());
 }
 
+
+
+TEST_F(SessiondTest, many_ues) {
+  std::promise<void> create_promise, tunnel_promise, update_promise,
+      terminate_promise;
+  std::promise<std::string> session_id_promise;
+  std::string ipv4_addrs  = "192.168.0.1";
+  std::string ipv6_addrs  = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+  uint32_t default_bearer = 5;
+  //uint32_t enb_teid       = TEID_1_DL;
+  //uint32_t agw_teid       = TEID_1_UL;
+
+  auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+      "sessiond", ServiceRegistrySingleton::LOCAL);
+  auto stub = LocalSessionManager::NewStub(channel);
+
+  // Setup the SessionD/PipelineD epoch value by sending an empty record. This
+  // will prevent SessionD thinking that PipelineD has restarted mid-test.
+  send_empty_pipelined_table(stub);
+
+  EXPECT_CALL(
+      *controller_mock,
+      CreateSession(
+          testing::_, testing::_,
+          testing::_))
+      .Times(2)
+      .WillOnce(testing::DoAll(
+          SetCreateSessionResponse(1536, 1024),
+          testing::Return(grpc::Status::OK)));
+
+
+
+
+  // send_empty_pipelined_table(stub);
+  for(int i= 0; i< 2; i++) {
+    // 1- CreateSession Trigger
+    grpc::ClientContext create_context;
+    LocalCreateSessionResponse create_resp;
+    LocalCreateSessionRequest request;
+
+    auto imsi = IMSI1;
+    if (i == 1) {
+        imsi = IMSI2;
+      }
+
+    request.mutable_common_context()->mutable_sid()->set_id(imsi);
+    request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
+    request.mutable_rat_specific_context()
+        ->mutable_lte_context()
+        ->set_bearer_id(default_bearer);
+    request.mutable_common_context()->set_ue_ipv4(ipv4_addrs);
+    request.mutable_common_context()->set_ue_ipv6(ipv6_addrs);
+    // Todo, remove emptyTeids once we split CreateSession
+    Teids emptyTeids;
+    emptyTeids.set_enb_teid(0);
+    emptyTeids.set_agw_teid(0);
+    request.mutable_common_context()->mutable_teids()->CopyFrom(emptyTeids);
+
+    stub->CreateSession(&create_context, request, &create_resp);
+  }
+  // Block and wait until we process CreateSessionResponse, after which the
+  // SessionID value will be set.
+  std::string session_id = session_id_promise.get_future().get();
+  // The thread needs to be halted before proceeding to call ReportRuleStats()
+  // because the call to PipelineD within CreateSession() is an async call,
+  // and the call to PipelineD, ActivateFlows(), is assumed in this test
+  // to happened before the ReportRuleStats().
+  create_promise.get_future().get();
+
+
+}
+
+
+
+
+
+
 /**
  * End to end test.
  * 1) Create session, respond with 2 charging keys

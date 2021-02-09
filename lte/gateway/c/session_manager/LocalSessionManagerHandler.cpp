@@ -43,17 +43,46 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
-  if (request_cpy.records_size() > 0) {
-    PrintGrpcMessage(
-        static_cast<const google::protobuf::Message&>(request_cpy));
-  }
+  //if (request_cpy.records_size() > 0) {
+  //  PrintGrpcMessage(
+  //      static_cast<const google::protobuf::Message&>(request_cpy));
+  //}
   MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
-  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+  auto begin_time = std::chrono::high_resolution_clock::now();
+
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, begin_time]() {
+    auto start_procoes_t = std::chrono::high_resolution_clock::now();
+
     auto session_map = session_store_.read_all_sessions();
+    auto read_all_sessions_t = std::chrono::high_resolution_clock::now();
+
+
     SessionUpdate update =
         SessionStore::get_default_session_update(session_map);
+
     enforcer_->aggregate_records(session_map, request_cpy, update);
+    auto aggregate_records_t = std::chrono::high_resolution_clock::now();
+
     check_usage_for_reporting(std::move(session_map), update);
+
+    auto check_usage_for_reporting_ = std::chrono::high_resolution_clock::now();
+
+
+    MLOG(MINFO) << "---------------------------------------------------------";
+    MLOG(MINFO) << "---DELTA ReportRules from receiving grps to start process "
+                << std::chrono::duration<double, std::milli>(start_procoes_t-begin_time).count()/1000;
+    MLOG(MINFO) << "---DELTA ReportRules to read_all_sessions from redis "
+                << std::chrono::duration<double, std::milli>(read_all_sessions_t-start_procoes_t).count()/1000;
+    MLOG(MINFO) << "---DELTA ReportRules to aggregate_records "
+                << std::chrono::duration<double, std::milli>(aggregate_records_t-read_all_sessions_t).count()/1000;
+    MLOG(MINFO) << "---DELTA ReportRules to check_usage_for_reporting_ "
+                << std::chrono::duration<double, std::milli>(check_usage_for_reporting_-aggregate_records_t).count()/1000;
+    MLOG(MINFO) << "---DELTA ReportRules totaal "
+    << std::chrono::duration<double, std::milli>(check_usage_for_reporting_-start_procoes_t).count()/1000;
+    MLOG(MINFO) << "---DELTA ReportRules totaal_client_side "
+    << std::chrono::duration<double, std::milli>(check_usage_for_reporting_-begin_time).count()/1000;
+    MLOG(MINFO) << " ";
+
   });
 
   reported_epoch_ = request_cpy.epoch();
@@ -89,11 +118,11 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
               << " monitor updates to OCS and PCRF";
 
   // set reporting flag for those sessions reporting
-  session_store_.set_and_save_reporting_flag(true, request, session_uc);
+  //session_store_.set_and_save_reporting_flag(true, request, session_uc);
 
   // Before reporting and returning control to the event loop, increment the
   // request numbers stored for the sessions in SessionStore
-  session_store_.sync_request_numbers(session_uc);
+  //session_store_.sync_request_numbers(session_uc);
 
   // report to cloud
   // NOTE: It is not possible to construct a std::function from a move-only type
@@ -107,12 +136,12 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
       [this, request, session_uc,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, UpdateSessionResponse response) mutable {
-        PrintGrpcMessage(
-            static_cast<const google::protobuf::Message&>(response));
+        //PrintGrpcMessage(
+        //    static_cast<const google::protobuf::Message&>(response));
 
         // clear all the reporting flags
         // TODO this could be done in one go with the SessionStore update below
-        session_store_.set_and_save_reporting_flag(false, request, session_uc);
+        //session_store_.set_and_save_reporting_flag(false, request, session_uc);
         auto updates_by_session = UpdateRequestsBySession(request);
         if (!status.ok()) {
           MLOG(MERROR)
@@ -223,9 +252,16 @@ void LocalSessionManagerHandlerImpl::CreateSession(
     ServerContext* context, const LocalCreateSessionRequest* request,
     std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
   auto& request_cpy = *request;
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  MLOG(DEBUG) << "CreateSession Received for " << request->common_context().sid().id();
+  //PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  clock_t begin_time = clock();
   enforcer_->get_event_base().runInEventBaseThread(
-      [this, context, response_callback, request_cpy]() {
+      [this, context, response_callback, request_cpy, begin_time]() {
+
+        auto start_procoes_t = clock();
+        MLOG(MINFO) << "---DELTA CreateSession from receiving grps to start process "
+                    << float( start_procoes_t - begin_time )/CLOCKS_PER_SEC;
+
         const auto& imsi       = request_cpy.common_context().sid().id();
         const auto& session_id = id_gen_.gen_session_id(imsi);
         SessionConfig cfg(request_cpy);
@@ -253,6 +289,13 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                 session_id, response_callback);
             return;
         }
+
+        auto create_session_total = clock();
+        MLOG(MINFO) << "---DELTA CreateSession totaal "
+                    << float( create_session_total - start_procoes_t )/CLOCKS_PER_SEC;
+        MLOG(MINFO) << "---DELTA CreateSession totaal_client_side "
+                    << float( create_session_total - begin_time )/CLOCKS_PER_SEC;
+
       });
 }
 
@@ -270,8 +313,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
       [this, imsi, session_id, cfg, cb,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, CreateSessionResponse response) mutable {
-        PrintGrpcMessage(
-            static_cast<const google::protobuf::Message&>(response));
+        //PrintGrpcMessage(
+        //    static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
           MLOG(MINFO) << "Processing a CreateSessionResponse for "
                       << session_id;
@@ -399,7 +442,7 @@ void LocalSessionManagerHandlerImpl::send_local_create_session_response(
     std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
   LocalCreateSessionResponse resp;
   resp.set_session_id(session_id);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(resp));
+  //PrintGrpcMessage(static_cast<const google::protobuf::Message&>(resp));
   try {
     response_callback(status, resp);
   } catch (...) {
@@ -443,10 +486,10 @@ void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
 void LocalSessionManagerHandlerImpl::EndSession(
     ServerContext* context, const LocalEndSessionRequest* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
-  auto& request_cpy = *request;
+  //auto& request_cpy = *request;
   auto& sid         = request->sid();
   auto& apn         = request->apn();
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  //PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
       [this, sid, apn, response_callback]() {
         auto session_map = session_store_.read_sessions({sid.id()});
@@ -525,7 +568,7 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
     std::function<void(Status, PolicyBearerBindingResponse)>
         response_callback) {
   auto& request_cpy = *request;
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  //PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(INFO) << "Received a BindPolicy2Bearer request for "
              << request->sid().id()
              << " with default bearerID: " << request->linked_bearer_id()
@@ -556,15 +599,19 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
 void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
     ServerContext* context, UpdateTunnelIdsRequest* request,
     std::function<void(Status, UpdateTunnelIdsResponse)> response_callback) {
+  clock_t begin_time = clock();
   auto& request_cpy = *request;
   auto imsi         = request->sid().id();
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  //PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(MDEBUG) << "Received a UpdateTunnelIds request for " << imsi
                << " with default bearer id: " << request->bearer_id()
                << " enb_teid= " << request->enb_teid()
                << " agw_teid= " << request->agw_teid();
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, imsi,
-                                                    response_callback]() {
+                                                    response_callback, begin_time]() {
+    auto start_procoes_t = clock();
+    MLOG(MINFO) << "---DELTA UpdateTunnelIds from receiving grps to start process "
+                << float( start_procoes_t - begin_time )/CLOCKS_PER_SEC;
     auto session_map = session_store_.read_sessions({imsi});
     auto success     = enforcer_->update_tunnel_ids(session_map, request_cpy);
     if (!success) {
@@ -584,6 +631,13 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
       return;
     }
     response_callback(Status::OK, UpdateTunnelIdsResponse());
+
+    auto total = clock();
+    MLOG(MINFO) << "---DELTA UpdateTunnelIds totaal "
+                << float( total - start_procoes_t )/CLOCKS_PER_SEC;
+
+    MLOG(MINFO) << "---DELTA UpdateTunnelIds totaal_client_side "
+                << float( total - begin_time )/CLOCKS_PER_SEC;
   });
 }
 
@@ -591,7 +645,7 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
     ServerContext* context, const SessionRules* request,
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  //PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(MDEBUG) << "Received session <-> rule associations";
 
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
