@@ -82,8 +82,11 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 	}
 	expectedYaml = marshalToYAML(t, expectedSpec)
 
+	// Clean up registry
+	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
+
 	for i, s := range services {
-		registerTestSpecServicer(t, s, tags[i])
+		registerServicer(t, s, tags[i])
 	}
 
 	combined, err = swagger.GetCombinedSpec(yamlCommon)
@@ -91,25 +94,19 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 
 	assert.Equal(t, expectedYaml, combined)
 
-	// Success even with merge warnings(duplicate tag)
+	// Success even with merge warnings (duplicate tag)
 	serviceDuplicate := "test_spec_service_dup"
-	registerTestSpecServicer(t, serviceDuplicate, tags[0])
+	registerServicer(t, serviceDuplicate, tags[0])
 
 	combined, err = swagger.GetCombinedSpec(yamlCommon)
 	assert.NoError(t, err)
 
 	assert.Equal(t, expectedYaml, combined)
-
-	// Clean up registry
-	registry.RemoveService(services[0])
-	registry.RemoveService(services[1])
-	registry.RemoveService(services[2])
-	registry.RemoveService(serviceDuplicate)
 }
 
-func registerTestSpecServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {
+func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {
 	labels := map[string]string{
-		orc8r.SpecServicerLabel: "true",
+		orc8r.SwaggerSpecLabel: "true",
 	}
 
 	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)

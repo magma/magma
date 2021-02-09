@@ -20,7 +20,7 @@ import (
 
 // GetSpecServicers returns all registered Swagger spec servicers.
 func GetSpecServicers() ([]RemoteSpec, error) {
-	services, err := registry.FindServices(orc8r.SpecServicerLabel)
+	services, err := registry.FindServices(orc8r.SwaggerSpecLabel)
 	if err != nil {
 		return nil, err
 	}

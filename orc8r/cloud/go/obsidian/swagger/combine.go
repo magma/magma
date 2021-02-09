@@ -38,6 +38,8 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 	for _, s := range servicers {
 		yamlSpec, err := s.GetSpec()
 		if err != nil {
+			// Swallowing GetSpec error because the polling should continue
+			// even if it fails to receive from a single servicer
 			err = errors.Wrapf(err, "get Swagger spec from %s service", s.GetService())
 			glog.Error(err)
 		} else {

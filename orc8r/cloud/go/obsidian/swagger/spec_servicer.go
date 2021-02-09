@@ -46,7 +46,6 @@ func NewSpecServicer(spec string) protos.SwaggerSpecServer {
 	return &specServicer{spec}
 }
 
-// GetSpec returns the associated spec as a YAML string
 func (s *specServicer) GetSpec(ctx context.Context, request *protos.GetSpecRequest) (*protos.GetSpecResponse, error) {
 	return &protos.GetSpecResponse{SwaggerSpec: s.spec}, nil
 }
