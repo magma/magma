@@ -274,7 +274,7 @@ class SqliteStore(BaseStore):
         try:
             bucket = int(subscriber_id[-self._sid_digits:])
         except (TypeError, ValueError):
-            logging.info("Last %d digits of subscriber id %s cannot mapped to a bucket: default to bucket 0"
-                         % (self._sid_digits, subscriber_id))
+            logging.info("Last %d digits of subscriber id %s cannot mapped to a bucket:"
+                         " default to bucket 0", self._sid_digits, subscriber_id)
             bucket = 0
         return bucket
