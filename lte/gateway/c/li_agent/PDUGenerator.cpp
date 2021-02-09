@@ -18,6 +18,12 @@
 #include <iostream>
 #include <string>
 
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <net/if.h>
+#include <net/ethernet.h>
+#include <arpa/inet.h>
+
 #include <tins/tins.h>
 #include <tins/ip.h>
 
@@ -59,6 +65,7 @@ PDUGenerator::PDUGenerator(
   iface_ = NetworkInterface("testy1");
   // Don't know why but changing ethernet-> IP produces an error, resolve
   Allocators::register_allocator<EthernetII, LIX3PDU>(LI_X3_LINK_TYPE);
+  directoryd_client_ = std::make_shared<magma::AsyncDirectorydClient>();
 }
 
 std::vector<uint8_t> PDUGenerator::get_conditional_attr(void) {
@@ -70,6 +77,24 @@ std::vector<uint8_t> PDUGenerator::get_conditional_attr(void) {
     return conditional_attr;
 }
 
+bool extract_ip_addr(const u_char* packet, std::string* src_ip, std::string* dst_ip) {
+    const struct ether_header* ethernetHeader;
+    const struct ip* ipHeader;
+    //char sourceIP[INET_ADDRSTRLEN];
+    //char destIP[INET_ADDRSTRLEN];
+
+    ethernetHeader = (struct ether_header*)packet;
+    if (ntohs(ethernetHeader->ether_type) != ETHERTYPE_IP) {
+        ipHeader = (struct ip*)(packet + sizeof(struct ether_header));
+        inet_ntop(AF_INET, &(ipHeader->ip_src), (char*)src_ip, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &(ipHeader->ip_dst), (char*)dst_ip, INET_ADDRSTRLEN);
+        //src_ip.assign(sourceIP, INET_ADDRSTRLEN);
+        //dst_ip.assign(destIP, INET_ADDRSTRLEN);
+        return true;
+    } else {
+        return false;
+    }
+}
 
 bool PDUGenerator::send_packet(const struct pcap_pkthdr* phdr, const u_char* pdata) {
   PacketSender sender;
@@ -87,6 +112,21 @@ bool PDUGenerator::send_packet(const struct pcap_pkthdr* phdr, const u_char* pda
   std::vector<uint8_t> data((uint8_t*)&pdu, (uint8_t*)&pdu + sizeof(struct pdu_info));
 
   // TODO extract both IPs, check both in directoryd
+  std::string src_ip;
+  std::string dst_ip;
+  extract_ip_addr(pdata, &src_ip, &dst_ip);
+
+  auto request = directoryd_client_->get_directoryd_xid_field(
+      src_ip, [this, src_ip](Status status, DirectoryField resp) {
+        if (!status.ok()) {
+          MLOG(MERROR) << "Could not fetch subscriber with ip - " << src_ip;
+        } else {
+          printf("REsp value %s", resp.value().c_str());
+        }
+      });
+  if (!request) {
+    MLOG(MERROR) << "Could not query directoryd for ip - " << src_ip;
+  }
 
   /* Append the conditional attributes to the header */
   std::vector<uint8_t> cond = get_conditional_attr();

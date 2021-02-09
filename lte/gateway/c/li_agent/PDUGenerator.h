@@ -16,6 +16,7 @@
 #include <tins/pdu.h>
 
 #include "magma_logging.h"
+#include "DirectorydClient.h"
 
 struct pdu_info {
   uint16_t version;
@@ -129,6 +130,7 @@ class PDUGenerator {
   std::string pkt_dst_mac_;
   std::string pkt_src_mac_;
   Tins::NetworkInterface iface_;
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
 };
 
 }  // namespace lte
