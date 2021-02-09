@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAdfasdfadsfGetS8ProxyConfig(t *testing.T) {
+func TestGetS8ProxyConfig(t *testing.T) {
 	conf := generateS8Mconfig(t, config)
-	assert.Equal(t, "", conf.ClientAddr)
+	assert.Equal(t, ":1", conf.ClientAddr)
 	assert.Equal(t, "10.0.0.1:0", conf.ServerAddr)
 }
 
@@ -26,7 +26,7 @@ var (
 			"s8_proxy": {
 				"@type": "type.googleapis.com/magma.mconfig.S8Config",
 				"logLevel": "INFO",
-				"local_address": "",
+				"local_address": ":1",
 				"pgw_address": "10.0.0.1:0"
 			}
 		}

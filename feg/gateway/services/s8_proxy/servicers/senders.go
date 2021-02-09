@@ -23,6 +23,7 @@ import (
 	"github.com/wmnsk/go-gtp/gtpv2/message"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp/enriched_message"
+	"net"
 	"time"
 
 	"github.com/golang/glog"
@@ -36,18 +37,18 @@ const (
 // sendAndReceiveCreateSession creates a session in the gtp client, sends the create session request
 // to PGW and waits for its answers.
 // Returns a GRPC message translaged from the GTP-U create session response
-func (s *S8Proxy) sendAndReceiveCreateSession(csReqIEs []*ie.IE, sessionTeids SessionFTeids) (*protos.CreateSessionResponsePgw, error) {
+func (s *S8Proxy) sendAndReceiveCreateSession(cPgwUDPAddr *net.UDPAddr, csReqIEs []*ie.IE, sessionTeids MagmaSessionFTeids) (*protos.CreateSessionResponsePgw, error) {
 	glog.V(2).Infof("Send Create Session Request (gtp):\n%s",
 		message.NewCreateSessionRequest(0, 0, csReqIEs...).String())
 
-	session, seq, err := s.gtpClient.CreateSession(s.gtpClient.GetServerAddress(), csReqIEs...)
+	session, seq, err := s.gtpClient.CreateSession(cPgwUDPAddr, csReqIEs...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send message: %s", err)
+		return nil, fmt.Errorf("failed to send create session at %s: %s", cPgwUDPAddr.String(), err)
 	}
 
 	// add TEID to session and register session
-	session.AddTEID(sessionTeids.uFTeid.MustInterfaceType(), sessionTeids.uFTeid.MustTEID())
-	s.gtpClient.RegisterSession(sessionTeids.cFTeid.MustTEID(), session)
+	session.AddTEID(sessionTeids.uAgwFTeid.MustInterfaceType(), sessionTeids.uAgwFTeid.MustTEID())
+	s.gtpClient.RegisterSession(sessionTeids.cFegFTeid.MustTEID(), session)
 
 	grpcMessage, err := waitMessageAndExtractGrpc(session, seq)
 	if err != nil {
@@ -111,9 +112,9 @@ func (s *S8Proxy) sendAndReceiveDeleteSession(teid uint32, session *gtpv2.Sessio
 	return dsRes, err
 }
 
-func (s *S8Proxy) sendAndReceiveEchoRequest() error {
+func (s *S8Proxy) sendAndReceiveEchoRequest(cPgwUDPAddr *net.UDPAddr) error {
 	c := s.gtpClient.Conn
-	_, err := c.EchoRequest(s.gtpClient.GetServerAddress())
+	_, err := c.EchoRequest(cPgwUDPAddr)
 	if err != nil {
 		return err
 	}

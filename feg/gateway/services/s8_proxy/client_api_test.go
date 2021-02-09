@@ -14,25 +14,30 @@ const (
 	IMSI1 = "001010000000055"
 )
 
-var (
-	gtpServerAddr = "127.0.0.1:0"
-	gtpClientAddr = "127.0.0.1:0"
+const (
+	PGW_ADDRS      = "127.0.0.1:0"
+	S8_PROXY_ADDRS = ":0"
 )
 
 func TestS8ProxyClient(t *testing.T) {
 	// run both s8 and pgw
-	mockPgw, err := test_init.StartS8AndPGWService(t, gtpClientAddr, gtpServerAddr)
+	mockPgw, err := test_init.StartS8AndPGWService(t, S8_PROXY_ADDRS, PGW_ADDRS)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
 
+	// in case pgwAddres has a 0 port, mock_pgw will chose the port. With this variable we make
+	// sure we use the right address (this only happens in testing)
+	actualPgwAddress := mockPgw.LocalAddr().String()
+
 	//------------------------
 	//---- Create Session ----
 	csReq := &protos.CreateSessionRequestPgw{
-		Imsi:   IMSI1,
-		Msisdn: "00111",
-		Mei:    "111",
+		PgwAddrs: actualPgwAddress,
+		Imsi:     IMSI1,
+		Msisdn:   "00111",
+		Mei:      "111",
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "222",
 			Mnc: "333",
@@ -112,8 +117,7 @@ func TestS8ProxyClient(t *testing.T) {
 
 	//------------------------
 	//---- Echo Request ----
-	eReq := &protos.EchoRequest{}
+	eReq := &protos.EchoRequest{PgwAddrs: actualPgwAddress}
 	_, err = s8_proxy.SendEcho(eReq)
 	assert.NoError(t, err)
-
 }

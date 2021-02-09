@@ -39,7 +39,8 @@ var (
 	testServerAddr string = "127.0.0.1:0"
 	pgwServerAddr  string
 
-	noecho bool = false
+	withecho bool   = false
+	apn      string = "internet.com"
 )
 
 func init() {
@@ -64,16 +65,19 @@ func init() {
 		fmt.Sprintf("Start local test s8 server bound to default PGW address (%s)", testServerAddr))
 
 	csFlags.StringVar(&pgwServerAddr, "server", pgwServerAddr,
-		"PGW IP addres and port to send request with format ip:port")
+		"PGW IP:port to send request with format ip:port")
 
-	csFlags.BoolVar(&noecho, "noecho", noecho,
-		fmt.Sprintf("Starts s8 proxy without checking PGW is alive (%s)", pgwServerAddr))
+	csFlags.BoolVar(&withecho, "withecho", withecho,
+		fmt.Sprintf("Starts s8 proxy checking PGW is alive (%s)", pgwServerAddr))
 
 	csFlags.BoolVar(&useMconfig, "use_mconfig", false,
 		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
 
 	csFlags.BoolVar(&useBuiltinCli, "use_builtincli", true,
 		"Use local built in client instead of the running instance on the gateway")
+
+	csFlags.StringVar(&apn, "apn", apn,
+		"APN on the request")
 }
 
 func createSession(cmd *commands.Command, args []string) int {
@@ -86,11 +90,6 @@ func createSession(cmd *commands.Command, args []string) int {
 		return 1
 	}
 
-	conf := &servicers.S8ProxyConfig{
-		ClientAddr: ":0",
-		ServerAddr: pgwServerAddr,
-	}
-
 	// start and configure a test server that will act as a PGW
 	if testServer {
 		pgwServerAddr, err = startTestServer()
@@ -100,7 +99,11 @@ func createSession(cmd *commands.Command, args []string) int {
 		}
 		// If test server is enabled, pgwServerAddr will be overwritten
 		// and S8 config too
-		conf.ServerAddr = pgwServerAddr
+	}
+
+	conf := &servicers.S8ProxyConfig{
+		ClientAddr: ":0",
+		ServerAddr: pgwServerAddr,
 	}
 
 	var cli s8Cli
@@ -112,9 +115,9 @@ func createSession(cmd *commands.Command, args []string) int {
 		}
 		fmt.Printf("Direct connection using built in S8 client: Client Config: %+v\n", *conf)
 		var localProxy *servicers.S8Proxy
-		if noecho {
-			fmt.Println("Disable send echo message on start")
-			localProxy, err = servicers.NewS8ProxyNoFirstEcho(conf)
+		if withecho {
+			fmt.Println("Send echo message on start Enabled")
+			localProxy, err = servicers.NewS8ProxyWithEcho(conf)
 		} else {
 			localProxy, err = servicers.NewS8Proxy(conf)
 		}
@@ -122,9 +125,6 @@ func createSession(cmd *commands.Command, args []string) int {
 			fmt.Printf("BuiltIn S8 Proxy initialization error: %v\n", err)
 			return 5
 		}
-
-		//TODO: remove this once we find a way to safely wait for initialization of the service
-		localProxy.WaitUntilClientIsReady()
 
 		cli = s8BuiltIn{localProxy}
 	} else {
@@ -137,20 +137,21 @@ func createSession(cmd *commands.Command, args []string) int {
 
 	// Create Session Request message
 	csReq := &protos.CreateSessionRequestPgw{
-		Imsi:   imsi,
-		Msisdn: "00111",
-		Mei:    "111",
+		PgwAddrs: pgwServerAddr,
+		Imsi:     imsi,
+		Msisdn:   "00111",
+		Mei:      "542990449908273",
 		ServingNetwork: &protos.ServingNetwork{
-			Mcc: "222",
-			Mnc: "333",
+			Mcc: "310",
+			Mnc: "14",
 		},
-		RatType: 0,
+		RatType: 9,
 		BearerContext: &protos.BearerContext{
 			Id: 5,
 			UserPlaneFteid: &protos.Fteid{
 				Ipv4Address: "127.0.0.10",
 				Ipv6Address: "",
-				Teid:        11,
+				Teid:        123456,
 			},
 			Qos: &protos.QosInformation{
 				Pci:                     0,
@@ -175,7 +176,7 @@ func createSession(cmd *commands.Command, args []string) int {
 			Ipv6Prefix:  0,
 		},
 
-		Apn:            "internet.com",
+		Apn:            apn,
 		SelectionMode:  "",
 		ApnRestriction: 0,
 		Ambr: &protos.Ambr{

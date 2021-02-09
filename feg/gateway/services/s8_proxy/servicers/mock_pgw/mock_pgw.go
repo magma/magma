@@ -58,24 +58,29 @@ func New() *MockPgw {
 }
 
 func (mPgw *MockPgw) Start(ctx context.Context, sgwAddrStr, pgwAddrsStr string) error {
-	pgwAddrs, err := net.ResolveUDPAddr("udp", pgwAddrsStr)
-	if err != nil {
-		return fmt.Errorf("Failed to get mock PGW IP: %s", err)
-	}
+	/*
+		pgwAddrs, err := net.ResolveUDPAddr("udp", pgwAddrsStr)
+		if err != nil {
+			return fmt.Errorf("Failed to get mock PGW IP: %s", err)
+		}
 
-	sgwAddrs, err := net.ResolveUDPAddr("udp", sgwAddrStr)
+		sgwAddrs, err := net.ResolveUDPAddr("udp", sgwAddrStr)
+		if err != nil {
+			return fmt.Errorf("Failed to get SGW IP: %s", err)
+		}
+
+		// start listening on the specified IP:Port.
+		mPgw.Client, err = gtp.NewRunningClient(ctx, pgwAddrs, sgwAddrs, gtpv2.IFTypeS5S8PGWGTPC)
+		if err != nil {
+			return fmt.Errorf("Failed to get SGW IP: %s", err)
+		}
+	*/
+
+	var err error
+	mPgw.Client, err = gtp.NewRunningClient(ctx, pgwAddrsStr, gtpv2.IFTypeS5S8PGWGTPC)
 	if err != nil {
 		return fmt.Errorf("Failed to get SGW IP: %s", err)
 	}
-
-	// start listening on the specified IP:Port.
-	mPgw.Client, err = gtp.NewRunningClient(ctx, pgwAddrs, sgwAddrs, gtpv2.IFTypeS5S8PGWGTPC)
-	if err != nil {
-		return fmt.Errorf("Failed to get SGW IP: %s", err)
-	}
-
-	//TODO: remove this once we find a way to safely wait for initialization of the service
-	mPgw.Client.WaitUntilClientIsReady(0)
 
 	// register handlers for ALL the message you expect remote endpoint to send.
 	mPgw.AddHandlers(map[uint8]gtpv2.HandlerFunc{

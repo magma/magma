@@ -16,8 +16,11 @@ package servicers
 import (
 	"context"
 	"fmt"
+	"net"
+
 	"github.com/golang/glog"
 	"github.com/wmnsk/go-gtp/gtpv2"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
 )
@@ -34,21 +37,22 @@ type S8Proxy struct {
 
 type S8ProxyConfig struct {
 	ClientAddr string
-	ServerAddr string
+	ServerAddr string //TODO: delete since server will be provided by mme
 }
 
-// NewS8Proxy creates an s8 proxy already connected to a server (checks with echo if PGW is alive)
+// NewS8Proxy creates an s8 proxy, but does not checks the PGW is alive
 func NewS8Proxy(config *S8ProxyConfig) (*S8Proxy, error) {
-	gtpCli, err := gtp.NewConnectedAutoClient(context.Background(), config.ServerAddr, gtpv2.IFTypeS5S8SGWGTPC)
+	gtpCli, err := gtp.NewRunningClient(
+		context.Background(), config.ClientAddr, gtpv2.IFTypeS5S8SGWGTPC)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating S8_Proxy: %s", err)
 	}
 	return newS8ProxyImp(gtpCli, config)
 }
 
-//NewS8ProxyNoFirstEcho creates an s8 proxy, but does not checks the PGW is alive
-func NewS8ProxyNoFirstEcho(config *S8ProxyConfig) (*S8Proxy, error) {
-	gtpCli, err := gtp.NewRunningAutoClient(context.Background(), config.ServerAddr, gtpv2.IFTypeS5S8SGWGTPC)
+//NewS8ProxyWithEcho creates an s8 proxy already connected to a server (checks with echo if PGW is alive)
+func NewS8ProxyWithEcho(config *S8ProxyConfig) (*S8Proxy, error) {
+	gtpCli, err := gtp.NewConnectedAutoClient(context.Background(), config.ServerAddr, gtpv2.IFTypeS5S8SGWGTPC)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating S8_Proxy: %s", err)
 	}
@@ -67,14 +71,22 @@ func newS8ProxyImp(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
 }
 
 func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRequestPgw) (*protos.CreateSessionResponsePgw, error) {
+	// check pgw address
+	cPgwUDPAddr, err := net.ResolveUDPAddr("udp", req.PgwAddrs)
+	if err != nil {
+		err = fmt.Errorf("Create Session Request couldn't get PgwAddrs %s: %s", cPgwUDPAddr, err)
+		glog.Error(err)
+		return nil, err
+	}
+
 	// build csReq IE message
-	csReqIEs, sessionTeids, err := buildCreateSessionRequestIE(req, s.gtpClient)
+	csReqIEs, sessionTeids, err := buildCreateSessionRequestIE(cPgwUDPAddr, req, s.gtpClient)
 	if err != nil {
 		return nil, err
 	}
 
 	// send, register and receive create session (session is created on the gtp client during this process too)
-	csRes, err := s.sendAndReceiveCreateSession(csReqIEs, sessionTeids)
+	csRes, err := s.sendAndReceiveCreateSession(cPgwUDPAddr, csReqIEs, sessionTeids)
 	if err != nil {
 		err = fmt.Errorf("Create Session Request failed: %s", err)
 		glog.Error(err)
@@ -92,7 +104,7 @@ func (s *S8Proxy) ModifyBearer(ctx context.Context, req *protos.ModifyBearerRequ
 		return nil, err
 	}
 
-	session, teid, err := getSessionAndCTeid(s.gtpClient, req.Imsi)
+	session, teid, err := s.gtpClient.GetSessionAndCTeidByIMSI(req.Imsi)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +119,7 @@ func (s *S8Proxy) ModifyBearer(ctx context.Context, req *protos.ModifyBearerRequ
 }
 
 func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
-	session, teid, err := getSessionAndCTeid(s.gtpClient, req.Imsi)
+	session, teid, err := s.gtpClient.GetSessionAndCTeidByIMSI(req.Imsi)
 	if err != nil {
 		return nil, err
 	}
@@ -125,29 +137,17 @@ func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRe
 }
 
 func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*protos.EchoResponse, error) {
-	err := s.sendAndReceiveEchoRequest()
+	// check pgw address
+	cPgwUDPAddr, err := net.ResolveUDPAddr("udp", req.PgwAddrs)
+	if err != nil {
+		err = fmt.Errorf("SendEcho couldn't find  %s: %s", cPgwUDPAddr, err)
+		glog.Error(err)
+		return nil, err
+	}
+
+	err = s.sendAndReceiveEchoRequest(cPgwUDPAddr)
 	if err != nil {
 		return nil, err
 	}
 	return &protos.EchoResponse{}, nil
-}
-
-// TODO: this is a function to expose WaitUntilClientIsReady. That function is only used
-// as a hack for testing and will be removed.
-func (s *S8Proxy) WaitUntilClientIsReady() {
-	s.gtpClient.WaitUntilClientIsReady(0)
-}
-
-func getSessionAndCTeid(cli *gtp.Client, imsi string) (*gtpv2.Session, uint32, error) {
-	session, err := cli.GetSessionByIMSI(imsi)
-	if err != nil {
-		glog.Errorf("Couldnt delete session. Couldnt find a session for IMSI %s:, %s", imsi, err)
-		return nil, 0, err
-	}
-	teid, err := session.GetTEID(gtpv2.IFTypeS5S8PGWGTPC)
-	if err != nil {
-		glog.Errorf("Couldnt delete session. Couldnt find control TEID for IMSI %s:, %s", imsi, err)
-		return nil, 0, err
-	}
-	return session, teid, nil
 }

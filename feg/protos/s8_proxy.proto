@@ -32,27 +32,28 @@ service S8Proxy {
 
 // 3GPP TS 29.274  (not all 3gpp create session fields are included)
 message CreateSessionRequestPgw {
-    string imsi = 1;
-    string msisdn = 2;
-    string mei = 3;
-    ServingNetwork serving_network = 5;
-    UserLocationInformation uli = 4;
+    string pgwAddrs = 1;        // Ip:port of pgw to send the request
+    string imsi = 2;
+    string msisdn = 3;
+    string mei = 4;
+    ServingNetwork serving_network = 6;
+    UserLocationInformation uli = 7;
 
 
-    uint32 rat_type = 6;
-    PDNType pdn_type = 7;
-    PdnAddressAllocation paa = 8;
+    uint32 rat_type = 9;
+    PDNType pdn_type = 10;
+    PdnAddressAllocation paa = 11;
 
-    string apn = 9;
-    string selection_mode = 18;
-    uint32 apn_restriction = 11;
-    Ambr ambr = 12;         //Aggregate Maximum BitRate
+    string apn = 14;
+    string selection_mode = 15;
+    uint32 apn_restriction = 16;
+    Ambr ambr = 17;         //Aggregate Maximum BitRate
 
-    BearerContext bearer_context = 14;
+    BearerContext bearer_context = 20;  // Contains AGW TEID
 
-    bytes indication_flag = 15;
-    string charging_characteristics = 16;
-    TimeZone time_zone = 17;
+    bytes indication_flag = 21;
+    string charging_characteristics = 22;
+    TimeZone time_zone = 23;
 }
 
 enum PDNType {
@@ -80,8 +81,8 @@ message ServingNetwork {
 message BearerContext {
     uint32 id = 1;
     Fteid user_plane_fteid = 2;
-    QosInformation qos = 3;
-    uint32 charging_id = 4;
+    QosInformation qos = 4;
+    uint32 charging_id = 5;
 }
 
 message QosInformation {
@@ -140,7 +141,8 @@ message DeleteSessionResponsePgw{
 }
 
 message EchoRequest{
-    string imsi = 1; // needed for nh in feg
+    string pgwAddrs = 1;        // Ip:port of pgw to send the request
+    string imsi = 2;            // needed for nh in feg
 }
 
 message EchoResponse{

@@ -14,26 +14,39 @@ limitations under the License.
 package servicers
 
 import (
+	"net"
+
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
 )
 
-type SessionFTeids struct {
-	cFTeid *ie.IE
-	uFTeid *ie.IE
+// MagmaSessionFTeids contains the user and control plane FTEIDs of a connection on
+// the Magma side
+type MagmaSessionFTeids struct {
+	cFegFTeid *ie.IE
+	uAgwFTeid *ie.IE
 }
 
 // buildCreateSessionRequestIE creates a slice with all the IE needed for a Create Session Request
-func buildCreateSessionRequestIE(req *protos.CreateSessionRequestPgw, gtpCli *gtp.Client) ([]*ie.IE, SessionFTeids, error) {
-	// cTEID will be managed by s8_proxy
-	cFTeid := gtpCli.Conn.NewSenderFTEID(gtpCli.GetServerAddress().String(), "")
+func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSessionRequestPgw, gtpCli *gtp.Client) ([]*ie.IE, MagmaSessionFTeids, error) {
+	// Create session needs 3 FTEIDs:
+	// - FEG (S8) control plane FTEID will be built using local address and TEID handled by s8_proxy
+	// - PGW control plane FTEID will bu built using the pgwAddrs on the Request and 0 as TEID
+	// - AGW user plane FTEID, provided by the bearer in the request
 
-	// uTEID will be given by MME (managed by MME)
-	uFteidReq := req.BearerContext.GetUserPlaneFteid()
-	uFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU,
-		uFteidReq.Teid, uFteidReq.Ipv6Address, uFteidReq.Ipv6Address)
+	// FEG control plane TEID
+	cFegFTeid := gtpCli.NewSenderFTEID(gtpCli.GetLocalAddress().String(), "")
+
+	// PGW control plane local control plane TEID
+	cPgwFTeid := gtpCli.Conn.NewSenderFTEID(cPgwUDPAddr.IP.String(), "")
+
+	// AGW user plane TEID (comming from request)
+	uAgwFTeidReq := req.BearerContext.GetUserPlaneFteid()
+	uAgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU,
+		uAgwFTeidReq.Teid, uAgwFTeidReq.Ipv4Address, uAgwFTeidReq.Ipv6Address)
 
 	// Qos
 	qos := req.BearerContext.GetQos()
@@ -42,14 +55,15 @@ func buildCreateSessionRequestIE(req *protos.CreateSessionRequestPgw, gtpCli *gt
 
 	// bearer
 	bearerId := ie.NewEPSBearerID(uint8(req.BearerContext.Id))
-	bearer := ie.NewBearerContext(bearerId, uFTeid, ieQos)
+	bearer := ie.NewBearerContext(bearerId, uAgwFTeid, ieQos)
 
 	// TODO: set apn restriction
 
 	return []*ie.IE{
 		ie.NewIMSI(req.GetImsi()),
 		bearer,
-		cFTeid,
+		cFegFTeid,
+		cPgwFTeid,
 		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
 		getPDNAddressAllocation(req),
 		ie.NewMSISDN(string(req.Msisdn[:])),
@@ -63,7 +77,7 @@ func buildCreateSessionRequestIE(req *protos.CreateSessionRequestPgw, gtpCli *gt
 		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 		ie.NewPDNType(uint8(req.PdnType)),
 		ie.NewAggregateMaximumBitRate(uint32(req.Ambr.BrUl), uint32(req.Ambr.BrDl)),
-	}, SessionFTeids{cFTeid, uFTeid}, nil
+	}, MagmaSessionFTeids{cPgwFTeid, uAgwFTeid}, nil
 }
 
 // buildModifyBearerRequest creates a slice with all the IE needed for a Modify Bearer Request

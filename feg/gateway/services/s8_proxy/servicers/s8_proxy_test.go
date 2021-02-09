@@ -26,7 +26,7 @@ import (
 const (
 	//port 0 means golang will choose the port. Selected port will be injected on getDefaultConfig
 	s8proxyAddrs = "127.0.0.1:0" // equivalent to sgwAddrs
-	pgwAddrs     = "127.0.0.1:0"
+	pgwAddrs     = "127.0.0.1:9997"
 	IMSI1        = "123456789012345"
 )
 
@@ -38,7 +38,11 @@ func TestS8Proxy(t *testing.T) {
 		return
 	}
 	defer mockPgw.Close()
-	log.Printf("Running PGW at %s\n", mockPgw.LocalAddr().String())
+
+	// in case pgwAddres has a 0 port, mock_pgw will chose the port. With this variable we make
+	// sure we use the right address (this only happens in testing)
+	actualPgwAddress := mockPgw.LocalAddr().String()
+	log.Printf("Running PGW at %s\n", actualPgwAddress)
 
 	// Run S8_proxy
 	config := getDefaultConfig(mockPgw.LocalAddr().String())
@@ -51,9 +55,10 @@ func TestS8Proxy(t *testing.T) {
 	//------------------------
 	//---- Create Session ----
 	csReq := &protos.CreateSessionRequestPgw{
-		Imsi:   IMSI1,
-		Msisdn: "00111",
-		Mei:    "111",
+		PgwAddrs: actualPgwAddress,
+		Imsi:     IMSI1,
+		Msisdn:   "00111",
+		Mei:      "111",
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "222",
 			Mnc: "333",
@@ -146,13 +151,13 @@ func TestS8Proxy(t *testing.T) {
 
 	//------------------------
 	//---- Echo Request ----
-	eReq := &protos.EchoRequest{}
+	eReq := &protos.EchoRequest{PgwAddrs: actualPgwAddress}
 	_, err = s8p.SendEcho(context.Background(), eReq)
 	assert.NoError(t, err)
 }
 
 func getDefaultConfig(pgwActualAddrs string) *S8ProxyConfig {
 	return &S8ProxyConfig{
-		ServerAddr: pgwActualAddrs,
+		ClientAddr: s8proxyAddrs,
 	}
 }

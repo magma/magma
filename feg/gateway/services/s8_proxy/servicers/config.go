@@ -40,7 +40,7 @@ func GetS8ProxyConfig() *S8ProxyConfig {
 		}
 	}
 
-	glog.V(2).Infof("Loaded %s configs: %+v", S8ProxyConfig{}, *configPtr)
+	glog.V(2).Infof("Loaded %+v configs: %+v", S8ProxyConfig{}, *configPtr)
 
 	return &S8ProxyConfig{
 		ClientAddr: configPtr.LocalAddress,
