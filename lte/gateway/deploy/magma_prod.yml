@@ -17,9 +17,10 @@
   become: yes
 
   vars:
-    preburn: false
+    preburn: true
     full_provision: true
 
   roles:
     - role: stretch_snapshot
     - role: uselocalpkgrepo
+    - role: envoy

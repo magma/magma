@@ -26,18 +26,6 @@ log = logging.getLogger(__name__)
 SUDO='sudo'
 
 
-"""
-sudo apt install ruby ruby-dev build-essential rubygems libffi-dev python3-setuptools python-setuptools libssl-dev
-
-x E: Unable to locate package grpc-dev
-E: Unable to locate package magma-cpp-redis
-x E: Unable to locate package prometheus-cpp-dev
-x E: Unable to locate package libfolly-dev
-x E: Unable to locate package magma-libfluid
-
-"""
-
-
 def find_magma_root():
     path = os.path.realpath(__file__)
     m = re.match(r'(?P<magma>.*/magma/).*', path)
@@ -94,20 +82,27 @@ def buildrequires(package_name, env=None):
     return req
 
 
-def build(package_name, env=None, install=True):
+def build(package_name, env=None, install=True, destdir='./'):
     script = buildscript(package_name)
     outputfilename = subprocess.check_output([script, '-F'], env=env).decode('utf-8').strip()
-    if not os.path.exists('./' + outputfilename):
-        subprocess.run([script], check=True, env=env)
+    if not os.path.exists(destdir + outputfilename):
+        subprocess.run([script, destdir], check=True, env=env)
     else:
         log.info('found {}; skipping'.format(outputfilename))
     if install:
-        subprocess.run([SUDO, packagemanager(), 'install', '-y', './' + outputfilename],
+        # FIXME: --allow-downgrades seems needed due to lack of 'debian9' in
+        # packages installed from jfrog
+        # probably a good idea to rebuild those packages and replace in jfrog
+        # also a good idea to attempt to download prebuilt package here instead
+        # of always rebuilding absent packages
+        subprocess.run([SUDO, packagemanager(), 'install', '-y', '--allow-downgrades',
+                        destdir + outputfilename],
                        check=True)
 
 
 def main(args):
     env = copy.copy(os.environ)
+    destdir=os.getcwd() + os.path.sep
     release_info = os_release()
     arch_map = {
         'x86_64': 'amd64',
@@ -123,6 +118,8 @@ def main(args):
         magma_root = find_magma_root()
         if magma_root:
             env['MAGMA_ROOT'] = magma_root
+
+    os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
     env['ARCH'] = arch
     env['PKGFMT'] = pkgfmt()
@@ -168,7 +165,7 @@ def main(args):
     subprocess.run([SUDO, packagemanager(), 'install', '-y'] + list(to_install))
 
     for package in ordered_packages:
-        build(package, env=env, install=not args.no_install)
+        build(package, env=env, install=not args.no_install, destdir=destdir)
 
 
 if __name__ == '__main__':

@@ -126,13 +126,39 @@ def package(vcs='hg', all_deps="False",
             run('cp /var/cache/apt/archives/*.deb ~/magma-packages')
 
 
-def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
+def openvswitch(destroy_vm='False', destdir='~/magma-deps/'):
     destroy_vm = bool(strtobool(destroy_vm))
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
         vagrant_setup('magma', destroy_vm=destroy_vm)
     with cd('~/magma/lte/gateway'):
         run('./release/build-ovs.sh ' + destdir)
+
+
+def base_dependencies(destroy_vm='False', destdir='~/magma-deps'):
+    """
+    NOTICE: this will also attempt to install generated packages on build vm
+    """
+    destroy_vm = bool(strtobool(destroy_vm))
+    if not env.hosts:
+        vagrant_setup('magma', destroy_vm=destroy_vm)
+    run('mkdir -p ' + destdir)
+    with cd(destdir):
+        packages = [
+            'asn1c',
+            'freediameter',
+            'folly',
+            'gnutls',
+            'grpc',
+            'libfluid',
+            'liblfds',
+            'magma-cpp-redis',
+            'magma-libtacopie',
+            'nettle',
+            'prometheus-cpp',
+        ]
+
+        run('~/magma/third_party/build/build.py ' + ' '.join(packages))
 
 
 def depclean():

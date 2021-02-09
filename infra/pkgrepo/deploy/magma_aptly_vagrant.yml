@@ -52,5 +52,3 @@
     - role: aptly-fix-unix-socket-perms
       vars:
         - socket_path: /home/vagrant/docker/run/aptly/aptly.sock
-
-    - role: aptly-magma-base-dependencies
