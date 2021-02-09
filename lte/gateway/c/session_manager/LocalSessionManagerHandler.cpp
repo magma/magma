@@ -171,8 +171,8 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
   }
 
   enforcer_->get_event_base().runInEventBaseThread([=] {
-    enforcer_->get_event_base().timer().scheduleTimeoutFn(
-        std::move([=] { call_setup_pipelined(epoch); }), retry_timeout_ms_);
+    enforcer_->get_event_base().runAfterDelay(
+        [=] { call_setup_pipelined(epoch); }, retry_timeout_ms_.count());
   });
 }
 
