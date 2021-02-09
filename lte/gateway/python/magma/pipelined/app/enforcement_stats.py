@@ -372,12 +372,22 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 if stat.table_id != self.tbl_num:
                     # this update is not intended for policy
                     return
-                current_usage = self._update_usage_from_flow_stat(
-                    current_usage, stat)
+                try:
+                    current_usage = self._update_usage_from_flow_stat(
+                        current_usage, stat)
+                except ConnectionError:
+                    self.logger.error('Failed processing stats, redis unavailable')
+                    self.unhandled_stats_msgs.append(stats_msgs)
+                    return
 
         # Calculate the delta values from last stat update
-        delta_usage = self._delta_usage_maps(current_usage,
-                                             self.last_usage_for_delta)
+        try:
+            delta_usage = self._delta_usage_maps(current_usage,
+                                                 self.last_usage_for_delta)
+        except ConnectionError:
+            self.logger.error('Failed processing delta stats, redis unavailable')
+            self.unhandled_stats_msgs.append(stats_msgs)
+            return
         self.total_usage = current_usage
 
         # Append any records which we couldn't send to session manager earlier
@@ -388,7 +398,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         # recognize when flows have ended
         self._report_usage(delta_usage)
 
-        self._delete_old_flows(stats_msgs)
+        try:
+            self._delete_old_flows(stats_msgs)
+        except ConnectionError:
+            self.logger.error('Failed remove old flows, redis unavailable')
+            return
 
     def deactivate_default_flow(self, imsi, ip_addr):
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
