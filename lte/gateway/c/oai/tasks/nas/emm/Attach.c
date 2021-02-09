@@ -160,6 +160,10 @@ static int _emm_attach_update(
 
 static int _emm_attach_accept_retx(emm_context_t* emm_context);
 
+static void _create_new_attach_info(
+    emm_context_t* emm_context_p, mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new);
+
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
@@ -298,14 +302,9 @@ int emm_proc_attach_request(
     // Allocate new context and process the new request as fresh attach
     // request
     if (guti_ue_mm_ctx) {
-      guti_ue_mm_ctx->emm_context.new_attach_info =
-          calloc(1, sizeof(new_attach_info_t));
-      guti_ue_mm_ctx->emm_context.new_attach_info->mme_ue_s1ap_id =
-          ue_mm_context->mme_ue_s1ap_id;
-      guti_ue_mm_ctx->emm_context.new_attach_info->ies = ies;
-      guti_ue_mm_ctx->emm_context.new_attach_info->is_mm_ctx_new =
-          is_mm_ctx_new;
-
+      _create_new_attach_info(
+          &guti_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id, ies,
+          is_mm_ctx_new);
       /*
        * This implies either UE or eNB has not sent S-TMSI in initial UE
        * message even though UE has old GUTI. Trigger clean up
@@ -373,13 +372,9 @@ int emm_proc_attach_request(
               LOG_NAS_EMM,
               "EMM-PROC  - the new ATTACH REQUEST is progressed\n");
           // process the new request as fresh attach request
-          imsi_ue_mm_ctx->emm_context.new_attach_info =
-              calloc(1, sizeof(new_attach_info_t));
-          imsi_ue_mm_ctx->emm_context.new_attach_info->mme_ue_s1ap_id =
-              ue_mm_context->mme_ue_s1ap_id;
-          imsi_ue_mm_ctx->emm_context.new_attach_info->ies = ies;
-          imsi_ue_mm_ctx->emm_context.new_attach_info->is_mm_ctx_new =
-              is_mm_ctx_new;
+          _create_new_attach_info(
+              &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id, ies,
+              is_mm_ctx_new);
           // Trigger clean up
           nas_proc_implicit_detach_ue_ind(old_ue_id);
 
@@ -409,13 +404,9 @@ int emm_proc_attach_request(
            */
           // After releasing of contexts of old UE, process the new request as
           // fresh attach request
-          imsi_ue_mm_ctx->emm_context.new_attach_info =
-              calloc(1, sizeof(new_attach_info_t));
-          imsi_ue_mm_ctx->emm_context.new_attach_info->mme_ue_s1ap_id =
-              ue_mm_context->mme_ue_s1ap_id;
-          imsi_ue_mm_ctx->emm_context.new_attach_info->ies = ies;
-          imsi_ue_mm_ctx->emm_context.new_attach_info->is_mm_ctx_new =
-              is_mm_ctx_new;
+          _create_new_attach_info(
+              &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id, ies,
+              is_mm_ctx_new);
 
           nas_proc_implicit_detach_ue_ind(old_ue_id);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
@@ -470,13 +461,9 @@ int emm_proc_attach_request(
           increment_counter(
               "duplicate_attach_request", 1, 1, "action",
               "processed_old_ctxt_cleanup");
-          imsi_ue_mm_ctx->emm_context.new_attach_info =
-              calloc(1, sizeof(new_attach_info_t));
-          imsi_ue_mm_ctx->emm_context.new_attach_info->mme_ue_s1ap_id =
-              ue_mm_context->mme_ue_s1ap_id;
-          imsi_ue_mm_ctx->emm_context.new_attach_info->ies = ies;
-          imsi_ue_mm_ctx->emm_context.new_attach_info->is_mm_ctx_new =
-              is_mm_ctx_new;
+          _create_new_attach_info(
+              &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id, ies,
+              is_mm_ctx_new);
 
           // trigger clean up
           nas_proc_implicit_detach_ue_ind(old_ue_id);
@@ -2491,5 +2478,16 @@ void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
   }
   _emm_attach_run_procedure(&ue_mm_context->emm_context);
   free_wrapper((void**) &ue_context_p->emm_context.new_attach_info);
+  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+}
+
+static void _create_new_attach_info(
+    emm_context_t* emm_context_p, mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  emm_context_p->new_attach_info = calloc(1, sizeof(new_attach_info_t));
+  emm_context_p->new_attach_info->mme_ue_s1ap_id = mme_ue_s1ap_id;
+  emm_context_p->new_attach_info->ies            = ies;
+  emm_context_p->new_attach_info->is_mm_ctx_new  = is_mm_ctx_new;
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }

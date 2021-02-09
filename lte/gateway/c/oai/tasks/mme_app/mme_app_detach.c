@@ -50,7 +50,6 @@
 #include "s1ap_messages_types.h"
 #include "service303.h"
 #include "sgw_ie_defs.h"
-#include "dynamic_memory_check.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
