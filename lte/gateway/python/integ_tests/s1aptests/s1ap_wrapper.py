@@ -52,7 +52,7 @@ class TestWrapper(object):
     # Decreasing the mask value will provide more UE IP addresses in the free
     # IP address pool
     TEST_IP_BLOCK = "192.168.128.0/24"
-    MSX_S1_RETRY = 2
+    MSX_S1_RETRY = 5
 
     def __init__(
         self,
@@ -132,6 +132,9 @@ class TestWrapper(object):
     def _issue_s1setup_req(self):
         """ Issue the actual setup request and get the response"""
         req = None
+        print(
+                "Sending S1-Setup-Request"
+            )
         assert (
             self._s1_util.issue_cmd(s1ap_types.tfwCmd.ENB_S1_SETUP_REQ, req)
             == 0
