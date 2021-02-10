@@ -26,8 +26,6 @@ from magma.pipelined.openflow.registers import TUN_PORT_REG
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
-OVSDB_PORT = 6640  # The IANA registered port for OVSDB [RFC7047]
-OVSDB_MANAGER_ADDR = 'ptcp:6640'
 
 class Classifier(MagmaController):
     """
@@ -87,12 +85,6 @@ class Classifier(MagmaController):
             self.ovs_gtp_type = "gtpu"
         except subprocess.CalledProcessError:
             self.ovs_gtp_type = "gtp"
-
-        try:
-            subprocess.check_output('ovs-vsctl set-manager %s' % OVSDB_MANAGER_ADDR,
-                                     shell=True,)
-        except subprocess.CalledProcessError as e:
-            self.logger.debug("Error for set manager with ovsdb: %s", e)
 
     def _ip_addr_to_gtp_port_name(self, enodeb_ip_addr:str):
         ip_no = hex(int(ipaddress.ip_address(enodeb_ip_addr)))
