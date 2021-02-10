@@ -12,6 +12,7 @@ WHOAMI=$(whoami)
 KVERS=$(uname -r)
 MAGMA_VERSION="${MAGMA_VERSION:-v1.3}"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
+INSTALL_TIMEOUT="${INSTALL_TIMEOUT:-3800}"
 
 REQUIRED_OS_DIST=Ubuntu
 REQUIRED_OS_RELEASE=20.04
@@ -122,8 +123,8 @@ Environment=REPO_KEY=${REPO_KEY}
 Environment=REPO_KEY_FINGERPRINT=${REPO_KEY_FINGERPRINT}
 Type=oneshot
 ExecStart=/bin/bash ${AGW_SCRIPT_PATH}
-TimeoutStartSec=3800
-TimeoutSec=3600
+TimeoutStartSec=${INSTALL_TIMEOUT}
+TimeoutSec=${INSTALL_TIMEOUT}
 User=root
 Group=root
 [Install]
