@@ -18,8 +18,7 @@
 - name: Configuring private package manager.
   copy:
     content: >
-      deb {{ ovs_pkgrepo_proto }}://{{ ovs_pkgrepo_host }}{{ ovs_pkgrepo_path}}
-      {{ ovs_pkgrepo_dist }} {{ ovs_pkgrepo_component }}
+      deb {{ ovs_pkgrepo_proto }}://{{ ovs_pkgrepo }} {{ ovs_pkgrepo_dist }} {{ ovs_pkgrepo_component }}
     dest: /etc/apt/sources.list.d/{{ ovs_pkgrepo_name }}.list
   become: yes
 

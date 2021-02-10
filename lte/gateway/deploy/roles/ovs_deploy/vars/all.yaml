@@ -24,8 +24,7 @@ ovs_build_config:
     - "openvswitch-switch_2.8.9-1_amd64.deb"
 
 ovs_pkgrepo_proto: http
-ovs_pkgrepo_host: packages.magma.etagecom.io
-ovs_pkgrepo_path: ""
+ovs_pkgrepo: packages.magma.etagecom.io
 ovs_pkgrepo_dist: stretch-stable
 ovs_pkgrepo_component: main
 ovs_pkgrepo_name: "ovs_package_repo"

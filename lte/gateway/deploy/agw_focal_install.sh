@@ -73,7 +73,7 @@ fi
 
 # configure environment variable defaults needed for ansible
 ANSIBLE_VARS="preburn=yes PACKAGE_LOCATION=/tmp"
-if [ -n "${REPO_HOST}" ]; then
+if [ -n "${REPO}" ]; then
     if [ -z "${REPO_PROTO}" ]; then
         REPO_PROTO=http
     fi
@@ -84,7 +84,7 @@ if [ -n "${REPO_HOST}" ]; then
         REPO_COMPONENT=main
     fi
     # configure pkgrepo location
-    ANSIBLE_VARS="ovs_pkgrepo_proto=${REPO_PROTO} ovs_pkgrepo_host=${REPO_HOST} ovs_pkgrepo_path=${REPO_PATH} ${ANSIBLE_VARS}"
+    ANSIBLE_VARS="ovs_pkgrepo_proto=${REPO_PROTO} ovs_pkgrepo=${REPO} ${ANSIBLE_VARS}"
 
     # configure pkgrepo distribution
     ANSIBLE_VARS="ovs_pkgrepo_dist=${REPO_DIST} ovs_pkgrepo_component=${REPO_COMPONENT} ${ANSIBLE_VARS}"
@@ -115,7 +115,7 @@ Wants=network-online.target
 Environment=MAGMA_VERSION=${MAGMA_VERSION}
 Environment=GIT_URL=${GIT_URL}
 Environment=REPO_PROTO=${REPO_PROTO}
-Environment=REPO_HOST=${REPO_HOST}
+Environment=REPO=${REPO}
 Environment=REPO_DIST=${REPO_DIST}
 Environment=REPO_COMPONENT=${REPO_COMPONENT}
 Environment=REPO_KEY=${REPO_KEY}
