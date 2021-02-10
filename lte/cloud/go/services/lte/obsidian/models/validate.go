@@ -436,3 +436,11 @@ func (m *CellularGatewayPoolRecords) ValidateModel() error {
 	}
 	return nil
 }
+
+func (m *X1Task) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *X1Destination) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}

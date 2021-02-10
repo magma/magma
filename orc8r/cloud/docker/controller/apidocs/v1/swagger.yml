@@ -3633,6 +3633,156 @@ paths:
       summary: Change a subscriber's data profile
       tags:
       - Subscribers
+  /lte/{network_id}/x1_destinations:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: Provisioned LI X1Destination
+          schema:
+            $ref: '#/definitions/x1_destination'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List X1Destination in the network
+      tags:
+      - Lawful Interception
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - in: body
+        name: x1_destination
+        required: true
+        schema:
+          $ref: '#/definitions/x1_destination'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add a new X1Destination to the network
+      tags:
+      - Lawful Interception
+  /lte/{network_id}/x1_destinations/{destination_id}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/destination_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Remove an X1Destination from the network
+      tags:
+      - Lawful Interception
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/destination_id'
+      responses:
+        "200":
+          description: X1Destination Info
+          schema:
+            $ref: '#/definitions/x1_destination'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve the X1Destination info
+      tags:
+      - Lawful Interception
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/destination_id'
+      - description: New X1Destination configuration
+        in: body
+        name: x1_destination
+        required: true
+        schema:
+          $ref: '#/definitions/x1_destination'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update an existing X1Destination in the network
+      tags:
+      - Lawful Interception
+  /lte/{network_id}/x1_tasks:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: Provisioned LI X1Tasks
+          schema:
+            $ref: '#/definitions/x1_task'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List X1Task in the network
+      tags:
+      - Lawful Interception
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - in: body
+        name: x1_task
+        required: true
+        schema:
+          $ref: '#/definitions/x1_task'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add a new X1Task to the network
+      tags:
+      - Lawful Interception
+  /lte/{network_id}/x1_tasks/{task_id}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/task_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Remove an X1Task from the network
+      tags:
+      - Lawful Interception
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/task_id'
+      responses:
+        "200":
+          description: X1Task Info
+          schema:
+            $ref: '#/definitions/x1_task'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve the X1Task info
+      tags:
+      - Lawful Interception
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/task_id'
+      - description: New X1Task configuration
+        in: body
+        name: x1_task
+        required: true
+        schema:
+          $ref: '#/definitions/x1_task'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update an existing X1Task in the network
+      tags:
+      - Lawful Interception
   /networks:
     get:
       responses:
@@ -6509,6 +6659,12 @@ parameters:
     name: channel_id
     required: true
     type: string
+  destination_id:
+    description: X1 Destination ID
+    in: path
+    name: destination_id
+    required: true
+    type: string
   dns_domain:
     description: DNS record domain
     in: path
@@ -6608,6 +6764,12 @@ parameters:
     description: Subscriber ID
     in: path
     name: subscriber_id
+    required: true
+    type: string
+  task_id:
+    description: X1 Task ID
+    in: path
+    name: task_id
     required: true
     type: string
   tenant_id:
@@ -11217,3 +11379,76 @@ definitions:
     - description
     - wifi
     type: object
+  x1_destination:
+    description: Lawful interception X1 Destination
+    properties:
+      destination_id:
+        $ref: '#/definitions/x1_destination_id'
+      details:
+        $ref: '#/definitions/x1_destination_details'
+    required:
+    - destination_id
+    - details
+    type: object
+  x1_destination_details:
+    properties:
+      delivery_addr:
+        type: string
+        x-nullable: false
+      delivery_type:
+        type: string
+        x-nullable: false
+      did:
+        type: string
+        x-nullable: false
+    required:
+    - did
+    - delivery_type
+    - delivery_addr
+    type: object
+  x1_destination_id:
+    example: xxxx-yyyy-zzzz
+    type: string
+    x-nullable: false
+  x1_task:
+    description: Lawful interception X1 Task
+    properties:
+      details:
+        $ref: '#/definitions/x1_task_details'
+      task_id:
+        $ref: '#/definitions/x1_task_id'
+    required:
+    - task_id
+    - details
+    type: object
+  x1_task_details:
+    properties:
+      correlation_id:
+        type: string
+        x-nullable: false
+      delivery_type:
+        type: string
+        x-nullable: false
+      did:
+        type: string
+        x-nullable: false
+      target_id:
+        type: string
+        x-nullable: false
+      timestamp:
+        format: date-time
+        type: string
+        x-nullable: false
+      xid:
+        type: string
+        x-nullable: false
+    required:
+    - xid
+    - did
+    - target_id
+    - delivery_type
+    type: object
+  x1_task_id:
+    example: imsi1023
+    type: string
+    x-nullable: false

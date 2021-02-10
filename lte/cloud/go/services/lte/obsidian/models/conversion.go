@@ -771,3 +771,15 @@ func validateNewGatewayPools(networkID string, ids []GatewayPoolID) error {
 	}
 	return nil
 }
+
+func (m *X1Task) FromBackendModels(ent configurator.NetworkEntity) *X1Task {
+	m.TaskID = X1TaskID(ent.Key)
+	m.Details = ent.Config.(*X1TaskDetails)
+	return m
+}
+
+func (m *X1Destination) FromBackendModels(ent configurator.NetworkEntity) *X1Destination {
+	m.DestinationID = X1DestinationID(ent.Key)
+	m.Details = ent.Config.(*X1DestinationDetails)
+	return m
+}

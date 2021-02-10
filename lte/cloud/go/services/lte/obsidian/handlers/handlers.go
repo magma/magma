@@ -85,6 +85,14 @@ const (
 	ListEnodebsPath    = ManageNetworkPath + obsidian.UrlSep + Enodebs
 	ManageEnodebPath   = ListEnodebsPath + obsidian.UrlSep + ":enodeb_serial"
 	GetEnodebStatePath = ManageEnodebPath + obsidian.UrlSep + "state"
+
+	X1Tasks                        = "x1_tasks"
+	ManageNetworkX1TasksPath       = ManageNetworkPath + obsidian.UrlSep + X1Tasks
+	ManageNetworkX1TaskDetailsPath = ManageNetworkX1TasksPath + obsidian.UrlSep + ":task_id"
+
+	X1Destinations                        = "x1_destinations"
+	ManageNetworkX1DestinationsPath       = ManageNetworkPath + obsidian.UrlSep + X1Destinations
+	ManageNetworkX1DestinationDetailsPath = ManageNetworkX1DestinationsPath + obsidian.UrlSep + ":destination_id"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -126,6 +134,20 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageNetworkSubscriberRuleNamePath, Methods: obsidian.POST, HandlerFunc: AddNetworkWideSubscriberRuleName},
 		{Path: ManageNetworkSubscriberBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: RemoveNetworkWideSubscriberBaseName},
 		{Path: ManageNetworkSubscriberRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: RemoveNetworkWideSubscriberRuleName},
+
+		// LI X1 Tasks
+		{Path: ManageNetworkX1TasksPath, Methods: obsidian.GET, HandlerFunc: listX1Tasks},
+		{Path: ManageNetworkX1TasksPath, Methods: obsidian.POST, HandlerFunc: createX1Task},
+		{Path: ManageNetworkX1TaskDetailsPath, Methods: obsidian.GET, HandlerFunc: getX1Task},
+		{Path: ManageNetworkX1TaskDetailsPath, Methods: obsidian.PUT, HandlerFunc: updateX1Task},
+		{Path: ManageNetworkX1TaskDetailsPath, Methods: obsidian.DELETE, HandlerFunc: deleteX1Task},
+
+		// LI X1 Destination
+		{Path: ManageNetworkX1DestinationsPath, Methods: obsidian.GET, HandlerFunc: listX1Destinations},
+		{Path: ManageNetworkX1DestinationsPath, Methods: obsidian.POST, HandlerFunc: createX1Destination},
+		{Path: ManageNetworkX1DestinationDetailsPath, Methods: obsidian.GET, HandlerFunc: getX1Destination},
+		{Path: ManageNetworkX1DestinationDetailsPath, Methods: obsidian.PUT, HandlerFunc: updateX1Destination},
+		{Path: ManageNetworkX1DestinationDetailsPath, Methods: obsidian.DELETE, HandlerFunc: deleteX1Destination},
 	}
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, lte.NetworkType, &lte_models.LteNetwork{}, serdes.Network)...)
 
@@ -139,6 +161,8 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &lte_models.NetworkRanConfigs{}, "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(lte_models.FegNetworkID), "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policydb_models.NetworkSubscriberConfig{}, "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policydb_models.RuleNames), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policydb_models.BaseNames), "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policydb_models.RuleNames), "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policydb_models.BaseNames), "", serdes.Network)...)
 
@@ -857,4 +881,247 @@ func makeErr(err error) *echo.HTTPError {
 		return echo.ErrNotFound
 	}
 	return obsidian.HttpError(err, http.StatusInternalServerError)
+}
+
+func getParamValues(c echo.Context, paramNames []string) ([]string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, paramNames...)
+	if err != nil {
+		return []string{}, err
+	}
+	return vals, nil
+}
+
+func getX1EntityAndIDs(c echo.Context, entityType string) (configurator.NetworkEntity, string, string, error) {
+	ent := configurator.NetworkEntity{}
+	paramNames := []string{"network_id"}
+	switch {
+	case entityType == lte.X1TaskEntityType:
+		paramNames = append(paramNames, "task_id")
+	case entityType == lte.X1DestinationEntityType:
+		paramNames = append(paramNames, "destination_id")
+	}
+
+	values, err1 := getParamValues(c, paramNames)
+	if err1 != nil {
+		return ent, "", "", err1
+	}
+	networkID, taskID := values[0], values[1]
+	ent, err2 := configurator.LoadEntity(networkID, entityType, taskID, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
+	return ent, networkID, taskID, err2
+}
+
+func getX1Task(c echo.Context) error {
+	ent, _, _, err := getX1EntityAndIDs(c, lte.X1TaskEntityType)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := (&lte_models.X1Task{}).FromBackendModels(ent)
+	return c.JSON(http.StatusOK, ret)
+}
+
+func deleteX1Task(c echo.Context) error {
+	ent, networkID, _, err := getX1EntityAndIDs(c, lte.X1TaskEntityType)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	var deletes []storage.TypeAndKey
+	deletes = append(deletes, ent.GetTypeAndKey())
+	err = configurator.DeleteEntities(networkID, deletes)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func getX1Destination(c echo.Context) error {
+	ent, _, _, err := getX1EntityAndIDs(c, lte.X1DestinationEntityType)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := (&lte_models.X1Destination{}).FromBackendModels(ent)
+	return c.JSON(http.StatusOK, ret)
+}
+
+func deleteX1Destination(c echo.Context) error {
+	ent, networkID, _, err := getX1EntityAndIDs(c, lte.X1DestinationEntityType)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	var deletes []storage.TypeAndKey
+	deletes = append(deletes, ent.GetTypeAndKey())
+	err = configurator.DeleteEntities(networkID, deletes)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func updateX1Task(c echo.Context) error {
+	_, networkID, taskID, err := getX1EntityAndIDs(c, lte.X1TaskEntityType)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(errors.Wrap(err, "failed to load existing X1Task"), http.StatusInternalServerError)
+	}
+
+	payload := &lte_models.X1Task{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.X1TaskEntityType, taskID, payload.Details, serdes.Entity)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func updateX1Destination(c echo.Context) error {
+	_, networkID, taskID, err := getX1EntityAndIDs(c, lte.X1DestinationEntityType)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(errors.Wrap(err, "failed to load existing X1Destination"), http.StatusInternalServerError)
+	}
+
+	payload := &lte_models.X1Destination{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.X1DestinationEntityType, taskID, payload.Details, serdes.Entity)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func listX1Tasks(c echo.Context) error {
+	networkID, err1 := obsidian.GetNetworkId(c)
+	if err1 != nil {
+		return err1
+	}
+
+	ents, err2 := configurator.LoadAllEntitiesOfType(
+		networkID, lte.X1TaskEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
+	switch {
+	case err2 == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err2 != nil:
+		return obsidian.HttpError(errors.Wrap(err2, "failed to load existing X1Tasks"), http.StatusInternalServerError)
+	}
+
+	ret := make(map[string]*lte_models.X1Task, len(ents))
+	for _, ent := range ents {
+		ret[ent.Key] = (&lte_models.X1Task{}).FromBackendModels(ent)
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func listX1Destinations(c echo.Context) error {
+	networkID, err1 := obsidian.GetNetworkId(c)
+	if err1 != nil {
+		return err1
+	}
+
+	ents, err2 := configurator.LoadAllEntitiesOfType(
+		networkID, lte.X1DestinationEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
+	if err2 != nil {
+		return obsidian.HttpError(err2, http.StatusInternalServerError)
+	}
+
+	ret := make(map[string]*lte_models.X1Destination, len(ents))
+	for _, ent := range ents {
+		ret[ent.Key] = (&lte_models.X1Destination{}).FromBackendModels(ent)
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func createX1Task(c echo.Context) error {
+	networkID, err1 := obsidian.GetNetworkId(c)
+	if err1 != nil {
+		return err1
+	}
+
+	payload := &lte_models.X1Task{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err2 := configurator.CreateEntity(
+		networkID,
+		configurator.NetworkEntity{
+			Type:   lte.X1TaskEntityType,
+			Key:    string(payload.TaskID),
+			Config: payload.Details,
+		},
+		serdes.Entity,
+	)
+	if err2 != nil {
+		return obsidian.HttpError(err2, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusCreated)
+}
+
+func createX1Destination(c echo.Context) error {
+	networkID, err1 := obsidian.GetNetworkId(c)
+	if err1 != nil {
+		return err1
+	}
+
+	payload := &lte_models.X1Destination{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err2 := configurator.CreateEntity(
+		networkID,
+		configurator.NetworkEntity{
+			Type:   lte.X1DestinationEntityType,
+			Key:    string(payload.DestinationID),
+			Config: payload.Details,
+		},
+		serdes.Entity,
+	)
+	if err2 != nil {
+		return obsidian.HttpError(err2, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusCreated)
 }

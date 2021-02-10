@@ -31,5 +31,7 @@ var (
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebEntityType, &EnodebConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayEntityType, &GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayPoolEntityType, &CellularGatewayPoolConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.X1TaskEntityType, &X1TaskDetails{}),
+		configurator.NewNetworkEntityConfigSerde(lte.X1DestinationEntityType, &X1DestinationDetails{}),
 	)
 )

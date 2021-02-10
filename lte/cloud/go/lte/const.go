@@ -74,6 +74,8 @@ const (
 	PolicyRuleEntityType          = "policy"
 	RatingGroupEntityType         = "rating_group"
 	SubscriberEntityType          = "subscriber"
+	X1TaskEntityType              = "x1_task"
+	X1DestinationEntityType       = "x1_destination"
 
 	// ApnRuleMappingsStreamName etc. are streamer stream names.
 	ApnRuleMappingsStreamName  = "apn_rule_mappings"
