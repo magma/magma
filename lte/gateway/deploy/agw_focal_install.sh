@@ -141,7 +141,7 @@ if [ "$PING_RESULT" != "$SUCCESS_MESSAGE" ]; then
   exit 1
 fi
 echo "Checking if magma has been installed"
-MAGMA_INSTALLED=$(apt-cache show magma >  /dev/null 2>&1 echo "$SUCCESS_MESSAGE")
+MAGMA_INSTALLED=$(apt-cache show magma >  /dev/null 2>&1 && echo "$SUCCESS_MESSAGE")
 if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   echo "Magma not installed, processing installation"
   apt-get update
