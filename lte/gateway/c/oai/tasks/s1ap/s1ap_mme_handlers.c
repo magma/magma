@@ -2262,6 +2262,18 @@ int s1ap_handle_sctp_disconnection(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
+  if (reset) {
+    // Check if the UE counters for eNB are equal.
+    // If note, the eNB will never switch to INIT state, particularly in
+    // stateless mode.
+    // Exit the process so that health checker can clean-up all Redis
+    // state and restart all stateless services.
+    AssertFatal(
+        enb_association->nb_ue_associated ==
+            enb_association->ue_id_coll.num_elements,
+        "Num UEs associated with eNB is more than the UEs with valid "
+        "mme_ue_s1ap_id, the eNB will never recover from this. Asserting.");
+  }
   /*
    * Send S1ap deregister indication to MME app in batches of UEs where
    * UE count in each batch <= S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE
