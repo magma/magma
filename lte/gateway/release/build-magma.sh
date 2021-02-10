@@ -165,7 +165,11 @@ POSTINST=${RELEASE_DIR}/magma-postinst
 
 # python environment
 # python3.5 on stretch, python3.8 on focal
-PY_VERSION=python3
+if grep -q stretch /etc/os-release; then
+    PY_VERSION=python3.5
+else
+    PY_VERSION=python3.8
+fi
 PY_PKG_LOC=dist-packages
 PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
