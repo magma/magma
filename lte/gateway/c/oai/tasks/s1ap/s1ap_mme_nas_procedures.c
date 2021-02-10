@@ -1103,6 +1103,10 @@ void s1ap_handle_mme_ue_id_notification(
           ue_ref->comp_s1ap_id);
 
       OAILOG_DEBUG(
+          LOG_S1AP, "Num elements in ue_id_coll %zu and num ue associated %u",
+          enb_ref->ue_id_coll.num_elements, enb_ref->nb_ue_associated);
+
+      OAILOG_DEBUG(
           LOG_S1AP,
           "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
