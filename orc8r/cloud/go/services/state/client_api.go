@@ -15,6 +15,7 @@ package state
 
 import (
 	"context"
+	"time"
 
 	"magma/orc8r/cloud/go/serde"
 	state_types "magma/orc8r/cloud/go/services/state/types"
@@ -24,11 +25,20 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
+	"google.golang.org/grpc"
+)
+
+const (
+	maxGrpcTimeout        = 5 * time.Minute
+	defaultMaxGRPCMsgSize = 50 * 1024 * 1024
 )
 
 // GetStateClient returns a client to the state service.
 func GetStateClient() (protos.StateServiceClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
+	dialOpts := []grpc.DialOption{
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(defaultMaxGRPCMsgSize)),
+	}
+	conn, err := registry.GetConnectionWithAddOptions(ServiceName, dialOpts...)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
@@ -64,9 +74,11 @@ func GetStates(networkID string, stateIDs state_types.IDs, serdes serde.Registry
 	if err != nil {
 		return nil, err
 	}
-
+	ctx, cancel := context.WithDeadline(context.Background(),
+		time.Now().Add(maxGrpcTimeout))
+	defer cancel()
 	res, err := client.GetStates(
-		context.Background(), &protos.GetStatesRequest{
+		ctx, &protos.GetStatesRequest{
 			NetworkID: networkID,
 			Ids:       makeProtoIDs(stateIDs),
 		},
@@ -99,7 +111,10 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string, key
 		req.IdPrefix = *keyPrefix
 		req.IdFilter = nil
 	}
-	res, err := client.GetStates(context.Background(), req)
+	ctx, cancel := context.WithDeadline(context.Background(),
+		time.Now().Add(maxGrpcTimeout))
+	defer cancel()
+	res, err := client.GetStates(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -113,8 +128,11 @@ func DeleteStates(networkID string, stateIDs state_types.IDs) error {
 	if err != nil {
 		return err
 	}
+	ctx, cancel := context.WithDeadline(context.Background(),
+		time.Now().Add(maxGrpcTimeout))
+	defer cancel()
 	_, err = client.DeleteStates(
-		context.Background(),
+		ctx,
 		&protos.DeleteStatesRequest{
 			NetworkID: networkID,
 			Ids:       makeProtoIDs(stateIDs),
@@ -134,9 +152,11 @@ func GetSerializedStates(networkID string, stateIDs state_types.IDs) (state_type
 	if err != nil {
 		return nil, err
 	}
-
+	ctx, cancel := context.WithDeadline(context.Background(),
+		time.Now().Add(maxGrpcTimeout))
+	defer cancel()
 	res, err := client.GetStates(
-		context.Background(), &protos.GetStatesRequest{
+		ctx, &protos.GetStatesRequest{
 			NetworkID: networkID,
 			Ids:       makeProtoIDs(stateIDs),
 		},

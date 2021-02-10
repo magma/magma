@@ -365,6 +365,16 @@ func (r *ServiceRegistry) GetConnection(service string) (*grpc.ClientConn, error
 	return r.GetConnectionImpl(ctx, service, r.getGRPCDialOptions()...)
 }
 
+// GetConnectionWithAddOptions is same as GetConnection, but allows caller to
+// provide their own gRPC dial options appended to current default dial options.
+func (r *ServiceRegistry) GetConnectionWithAddOptions(service string, options ...grpc.DialOption) (*grpc.ClientConn, error) {
+	service = strings.ToLower(service)
+	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
+	defer cancel()
+	opts := append(r.getGRPCDialOptions(), options...)
+	return r.GetConnectionImpl(ctx, service, opts...)
+}
+
 // GetConnectionWithOptions is same as GetConnection, but allows caller to
 // provide their own gRPC dial options.
 func (r *ServiceRegistry) GetConnectionWithOptions(service string, options ...grpc.DialOption) (*grpc.ClientConn, error) {
