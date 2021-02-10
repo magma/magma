@@ -40,6 +40,8 @@ metrics:
     create: false
   thanos:
     enabled: false
+  victoriametrics:
+    enabled: false
 
 # secrets sub-chart configuration.
 secrets:

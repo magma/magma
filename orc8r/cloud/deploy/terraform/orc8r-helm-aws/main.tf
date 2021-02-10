@@ -223,6 +223,7 @@ data "template_file" "orc8r_values" {
     grafana_pvc_grafanaProviders   = kubernetes_persistent_volume_claim.storage["grafanaproviders"].metadata.0.name
     grafana_pvc_grafanaDashboards  = kubernetes_persistent_volume_claim.storage["grafanadashboards"].metadata.0.name
 
+    prometheus_enabled        = var.prometheus_enabled
     prometheus_cache_hostname = format("%s-prometheus-cache", var.helm_deployment_name)
     alertmanager_hostname     = format("%s-alertmanager", var.helm_deployment_name)
     alertmanager_url          = format("%s-alertmanager:9093", var.helm_deployment_name)
@@ -240,6 +241,7 @@ data "template_file" "orc8r_values" {
     thanos_query_selector   = var.thanos_query_node_selector != "" ? format("compute-type: %s", var.thanos_query_node_selector) : "{}"
     thanos_store_selector   = var.thanos_store_node_selector != "" ? format("compute-type: %s", var.thanos_store_node_selector) : "{}"
 
+    victoriametrics_enabled = var.victoriametrics_enabled
     region = var.region
   }
 }

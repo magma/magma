@@ -358,6 +358,16 @@ variable "thanos_store_node_selector" {
 }
 
 ##############################################################################
+# VictoriaMetrics
+##############################################################################
+
+variable "victoriametrics_enabled" {
+  description = "Deploy VictoriaMetrics as opposed to prometheus"
+  type        = bool
+  default     = false
+}
+
+##############################################################################
 # Analytics Service
 ##############################################################################
 variable "analytics_export_enabled" {
@@ -399,8 +409,14 @@ variable "analytics_category_name" {
 
 
 ##############################################################################
-# Other dependency variables
+# Metrics Variables
 ##############################################################################
+
+variable "prometheus_enabled" {
+  description = "Deploy prometheus server"
+  type        = bool
+  default     = false
+}
 
 variable "prometheus_configurer_version" {
   description = "Image version for prometheus configurer."
@@ -412,4 +428,10 @@ variable "alertmanager_configurer_version" {
   description = "Image version for alertmanager configurer."
   type        = string
   default     = "1.0.4"
+}
+
+variable "victoriametrics_enabled" {
+  description = "Deploy VictoriaMetrics as the TSDB"
+  type        = bool
+  default     = false
 }

@@ -13,7 +13,7 @@ apiVersion: v1
 appVersion: "1.0"
 description: A Helm chart for magma metrics
 name: metrics
-version: 1.4.22
+version: 1.4.24
 engine: gotpl
 sources:
   - https://github.com/magma/magma
@@ -21,3 +21,17 @@ keywords:
   - magma
   - orc8r
   - metrics
+
+dependencies:
+  - name: victoria-metrics-single
+    version: 0.6.18
+    repository: "https://victoriametrics.github.io/helm-charts"
+    condition: victoriametrics.create
+  - name: victoria-metrics-alert
+    version: 0.3.21
+    repository: "https://victoriametrics.github.io/helm-charts"
+    condition: victoriametrics.create
+  - name: thanos
+    version: 0.3.28
+    repository: "@banzaicloud-stable"
+    condition: thanos.enabled
