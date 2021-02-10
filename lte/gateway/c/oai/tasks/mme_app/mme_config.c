@@ -857,12 +857,18 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                 "Bad MCC length (%ld), it must be %u digit ex: 001\n",
                 strlen(mcc), MAX_MCC_LENGTH);
             // NULL terminated string
-            char c[2]                                     = {mcc[0], '\0'};
-            config_pP->restricted_plmn.plmn[i].mcc_digit1 = (uint8_t) atoi(c);
-            c[0]                                          = mcc[1];
-            config_pP->restricted_plmn.plmn[i].mcc_digit2 = (uint8_t) atoi(c);
-            c[0]                                          = mcc[2];
-            config_pP->restricted_plmn.plmn[i].mcc_digit3 = (uint8_t) atoi(c);
+            AssertFatal(
+                mcc[0] >= '0' && mcc[0] <= '9',
+                "MCC[0] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit1 = mcc[0] - '0';
+            AssertFatal(
+                mcc[1] >= '0' && mcc[1] <= '9',
+                "MCC[1] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit2 = mcc[1] - '0';
+            AssertFatal(
+                mcc[2] >= '0' && mcc[2] <= '9',
+                "MCC[2] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit3 = mcc[2] - '0';
           }
 
           if ((config_setting_lookup_string(
@@ -874,13 +880,19 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                 "123\n",
                 strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
             // NULL terminated string
-            char c[2]                                     = {mnc[0], '\0'};
-            config_pP->restricted_plmn.plmn[i].mnc_digit1 = (uint8_t) atoi(c);
-            c[0]                                          = mnc[1];
-            config_pP->restricted_plmn.plmn[i].mnc_digit2 = (uint8_t) atoi(c);
+            AssertFatal(
+                mnc[0] >= '0' && mnc[0] <= '9',
+                "MNC[0] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mnc_digit1 = mnc[0] - '0';
+            AssertFatal(
+                mnc[1] >= '0' && mnc[1] <= '9',
+                "MNC[1] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mnc_digit2 = mnc[1] - '0';
             if (3 == strlen(mnc)) {
-              c[0]                                          = mnc[2];
-              config_pP->restricted_plmn.plmn[i].mnc_digit3 = (uint8_t) atoi(c);
+              AssertFatal(
+                  mnc[2] >= '0' && mnc[2] <= '9',
+                  "MNC[2] is not a decimal digit\n");
+              config_pP->restricted_plmn.plmn[i].mnc_digit3 = mnc[2] - '0';
             } else {
               config_pP->restricted_plmn.plmn[i].mnc_digit3 = 0x0F;
             }
