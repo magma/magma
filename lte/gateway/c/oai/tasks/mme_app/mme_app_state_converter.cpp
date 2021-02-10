@@ -137,9 +137,6 @@ void MmeNasStateConverter::guti_table_to_proto(
       OAILOG_ERROR(
           LOG_MME_APP, "Key %s not in guti_ue_context_htbl", guti_str.c_str());
     }
-    /*OAILOG_DEBUG(
-        LOG_MME_APP, "guti_str:%s mme_ue_id:%lu\n", guti_str.c_str(),
-        mme_ue_id);*/
   }
   FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
 }
