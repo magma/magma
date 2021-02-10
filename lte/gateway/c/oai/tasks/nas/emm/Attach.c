@@ -284,6 +284,26 @@ int emm_proc_attach_request(
    */
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context                  = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  if (!ue_mm_context) {
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, ue_ctx.emm_context._imsi64,
+        "EMM-PROC - Sending Attach Reject for ue_id = " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
+    struct nas_emm_attach_proc_s no_attach_proc = {0};
+    no_attach_proc.ue_id                        = ue_id;
+    no_attach_proc.emm_cause                    = ue_ctx.emm_context.emm_cause;
+    no_attach_proc.esm_msg_out                  = NULL;
+    ue_ctx.emm_context.emm_cause = EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW;
+    rc                           = _emm_attach_reject(
+        &ue_ctx.emm_context, (struct nas_base_proc_s*) &no_attach_proc);
+    increment_counter(
+        "ue_attach", 1, 2, "result", "failure", "cause",
+        "ue_context_not_found");
+    if (ies) {
+      free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
+    }
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
   // if is_mm_ctx_new==TRUE then ue_mm_context should always be not NULL
 
   // Actually uplink_nas_transport is sent from S1AP task to NAS task without

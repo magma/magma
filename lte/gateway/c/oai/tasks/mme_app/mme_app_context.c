@@ -1556,12 +1556,27 @@ void mme_ue_context_update_ue_sig_connection_state(
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "UE STATE - CONNECTED.\n");
+  } else if (ue_context_p->ecm_state == ECM_IDLE && new_ecm_state == ECM_IDLE) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Old UE ECM State (IDLE) is same as the new UE ECM state (IDLE)\n");
+    hash_rc = hashtable_uint64_ts_remove(
+        mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
+        (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+    if (HASH_TABLE_OK != hash_rc) {
+      OAILOG_WARNING_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "UE context enb_ue_s1ap_ue_id_key %ld "
+          "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+          ", ENB_UE_S1AP_ID_KEY could not be found",
+          ue_context_p->enb_s1ap_id_key, ue_context_p->mme_ue_s1ap_id);
+    }
+    ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
   } else {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Old UE ECM State (%s) is same as the new UE ECM state (%s)\n",
-        (ue_context_p->ecm_state == ECM_CONNECTED ? "CONNECTED" : "IDLE"),
-        (new_ecm_state == ECM_CONNECTED ? "CONNECTED" : "IDLE"));
+        "Old UE ECM State (CONNECTED) is same as the new UE ECM state "
+        "(CONNECTED)\n");
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -2107,6 +2122,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
           "IDLE. mme_ue_s1ap_id = %d, enb_ue_s1ap_id = %d Action -- Handle the "
           "message\n ",
           ue_mm_context->mme_ue_s1ap_id, ue_mm_context->enb_ue_s1ap_id);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,

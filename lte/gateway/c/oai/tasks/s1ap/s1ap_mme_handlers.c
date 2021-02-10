@@ -437,6 +437,10 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_WARNING(
         LOG_S1AP, "Ignoring s1setup from eNB in state %s on assoc id %u",
         s1_enb_state2str(enb_association->s1_state), assoc_id);
+    OAILOG_DEBUG(
+        LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
+        enb_association->nb_ue_associated,
+        enb_association->ue_id_coll.num_elements);
     rc = s1ap_mme_generate_s1_setup_failure(
         assoc_id, S1ap_Cause_PR_transport,
         S1ap_CauseTransport_transport_resource_unavailable,
@@ -2227,8 +2231,9 @@ int s1ap_handle_sctp_disconnection(
   OAILOG_INFO(
       LOG_S1AP,
       "SCTP disconnection request for association id %u, Reset Flag = "
-      "%u. Connected UEs = %u \n",
-      assoc_id, reset, enb_association->nb_ue_associated);
+      "%u. Connected UEs = %u Num elements = %zu\n",
+      assoc_id, reset, enb_association->nb_ue_associated,
+      enb_association->ue_id_coll.num_elements);
 
   // First check if we can just reset the eNB state if there are no UEs
   if (!enb_association->nb_ue_associated) {
