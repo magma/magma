@@ -56,6 +56,23 @@ export default function getLteAlerts(
         description: 'Alerts when we have unexpected service restarts',
       },
     },
+    'Service Crashlooping Alert': {
+      alert: 'Service Crashlooping Alert',
+      expr: `increase(unexpected_service_restarts{networkID=~"${networkID}"}[5m]) > 3`,
+      labels: {severity: 'critical'},
+      annotations: {
+        description: 'Alerts when we have services crashlooping',
+      },
+    },
+    'Sctpd Crashlooping Alert': {
+      alert: 'Sctpd Crashlooping Alert',
+      expr: `increase(unexpected_service_restarts{networkID=~"${networkID}", service_name="sctpd"}[5m]) > 3`,
+      labels: {severity: 'critical'},
+      annotations: {
+        description: 'Alerts when we have sctpd service crashlooping',
+        remediation: 'Reboot the gateway',
+      },
+    },
     'Bootstrap Exception Alert': {
       alert: 'Bootstrap Exception Alert',
       expr: `increase(bootstrap_exception{networkID=~"${networkID}"}[5m]) > 0`,
@@ -74,7 +91,10 @@ export default function getLteAlerts(
       alert: 'S1 Setup Failure',
       expr: `increase(s1_setup{result="failure", networkID=~"${networkID}"}[5m]) > 0`,
       labels: {severity: 'major'},
-      annotations: {description: 'Alerts when we have S1 setup failures'},
+      annotations: {
+        description: 'Alerts when we have S1 setup failures',
+        remediation: 'Restart sctpd service',
+      },
     },
     'UE attach Failure': {
       alert: 'UE attach Failure',
@@ -86,7 +106,11 @@ export default function getLteAlerts(
       alert: 'Gateway Checkin Failure',
       expr: `checkin_status{networkID=~"${networkID}"} < 1`,
       labels: {severity: 'critical'},
-      annotations: {description: 'Alerts when we have gateway checkin failure'},
+      annotations: {
+        description: 'Alerts when we have gateway checkin failure',
+        troubleshooting:
+          'Run checkin_cli.py script on the gateway and follow resolution steps suggested',
+      },
     },
     'Dip in Connected UEs': {
       alert: 'Dip in Connected UEs',
