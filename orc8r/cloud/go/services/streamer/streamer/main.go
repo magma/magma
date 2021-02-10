@@ -24,7 +24,10 @@ import (
 )
 
 func main() {
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, streamer.ServiceName)
+	srv, err := service.NewOrchestratorService(
+		orc8r.ModuleName,
+		streamer.ServiceName)
+
 	if err != nil {
 		glog.Fatalf("Error creating streamer service: %s", err)
 	}

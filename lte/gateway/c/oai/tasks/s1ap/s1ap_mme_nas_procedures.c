@@ -98,7 +98,7 @@ int s1ap_mme_handle_initial_ue_message(
   OAILOG_INFO(
       LOG_S1AP,
       "Received S1AP INITIAL_UE_MESSAGE ENB_UE_S1AP_ID " ENB_UE_S1AP_ID_FMT
-      "assoc-id:%d \n",
+      " assoc-id:%d \n",
       (enb_ue_s1ap_id_t) ie->value.choice.ENB_UE_S1AP_ID, assoc_id);
 
   if ((eNB_ref = s1ap_state_get_enb(state, assoc_id)) == NULL) {
@@ -111,7 +111,7 @@ int s1ap_mme_handle_initial_ue_message(
   OAILOG_INFO(
       LOG_S1AP,
       "New Initial UE message received with eNB UE S1AP ID: " ENB_UE_S1AP_ID_FMT
-      "assoc-id :%d \n",
+      " assoc-id :%d \n",
       enb_ue_s1ap_id, eNB_ref->sctp_assoc_id);
   ue_ref = s1ap_state_get_ue_enbid(eNB_ref->sctp_assoc_id, enb_ue_s1ap_id);
 
@@ -138,6 +138,8 @@ int s1ap_mme_handle_initial_ue_message(
           enb_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
+
+    OAILOG_DEBUG(LOG_S1AP, "Creating new UE Ref on S1ap");
 
     ue_ref->s1_ue_state = S1AP_UE_WAITING_CSR;
 

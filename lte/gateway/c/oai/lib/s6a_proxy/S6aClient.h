@@ -83,7 +83,7 @@ class S6aClient : public GRPCReceiver {
   S6aClient();
   static S6aClient& get_instance();
   std::unique_ptr<feg::S6aProxy::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 3;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
 };
 
 // There are 3 services which can handle authentication:
