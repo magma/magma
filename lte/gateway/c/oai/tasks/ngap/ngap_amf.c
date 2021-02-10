@@ -19,10 +19,6 @@
 
 *****************************************************************************/
 
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -94,7 +90,6 @@ static int ngap_send_init_sctp(void) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-
   zframe_t* msg_frame = zframe_recv(reader);
   assert(msg_frame);
   MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
@@ -128,7 +123,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  // put_n1ap_state(); //TODO : implement
+  // put_ngap_state(); //TODO : implement
   put_ngap_imsi_map();
   // put_ngap_ue_state(imsi64); //TODO
   itti_free_msg_content(received_message_p);
@@ -146,7 +141,7 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   if (ngap_send_init_sctp() < 0) {
     OAILOG_ERROR(LOG_NGAP, "Error while sending SCTP_INIT_MSG to SCTP \n");
   } else
-    OAILOG_ERROR(LOG_NGAP, " sending SCTP_INIT_MSG to SCTP \n");
+    OAILOG_INFO(LOG_NGAP, " sending SCTP_INIT_MSG to SCTP \n");
 
   zloop_start(ngap_task_zmq_ctx.event_loop);
   ngap_amf_exit();

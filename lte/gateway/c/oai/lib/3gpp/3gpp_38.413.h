@@ -241,9 +241,8 @@ typedef struct DL_QoS_Flow_per_TNL_Info_s {
 typedef struct PDU_Session_Resource_Setup_Response_Transfer_s {
   DL_QoS_Flow_per_TNL_Info_t
       dl_qos_flow_per_tnl_info;  // QoS Flow per TNL Information 9. 3.2.8
-  // Additional DL QoS Flow per TNL Information //optional TODO
-  // Security Result //optional TODO
-  // QoS Flow Failed to Setup List //optional TODO
+  // Additional DL QoS Flow per TNL Information //optional TODO :will be part of
+  // PDU Session establishment exchanges
 
 } PDU_Session_Resource_Setup_Response_Transfer_t;
 
