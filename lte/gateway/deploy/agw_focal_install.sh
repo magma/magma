@@ -35,6 +35,7 @@ fi
 
 echo "Making sure $MAGMA_USER user is sudoers"
 if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
+  apt update
   apt install -y sudo
   adduser $MAGMA_USER sudo
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
