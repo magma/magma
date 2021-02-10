@@ -29,15 +29,22 @@ class TestAttachRestrictedPlmn(unittest.TestCase):
 
     def test_attach_restricted_plmn(self):
         """
-        1.Manually add PLMN - { MCC="123" ; MNC="450";}
-          under the RESTRICTED_PLMN_LIST
-          in mme.conf.template.
-        2.Send attach request with IMSI containing the PLMN
-          configured in the above step
-        3.Verify that MME sends attach reject with cause(11) PLMN NOT ALLOWED
-        4.Attach a 2nd UE with an allowed PLMN by invoking attach utility
-          function
-        5.Detach the UE
+        If this TC is executed individually run
+        test_modify_mme_config_for_sanity.py to add
+        PLMN - { MCC="123" ; MNC="450";}
+        under the RESTRICTED_PLMN_LIST
+        in mme.conf.template.
+
+        This TC does the following:
+        1. Send attach request with IMSI containing the PLMN
+           configured in mme.conf.template
+        2. Verify that MME sends attach reject with cause(11) PLMN NOT ALLOWED
+        3. Attach a 2nd UE with an allowed PLMN by invoking attach utility
+           function
+        4. Detach the UE
+
+        After execution of this TC run test_restore_mme_config_after_sanity.py
+        to restore the old mme.conf.template.
         """
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
