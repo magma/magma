@@ -437,9 +437,10 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_WARNING(
         LOG_S1AP, "Ignoring s1setup from eNB in state %s on assoc id %u",
         s1_enb_state2str(enb_association->s1_state), assoc_id);
-   OAILOG_DEBUG(
-       LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
-       enb_association->nb_ue_associated, enb_association->ue_id_coll.num_elements);
+    OAILOG_DEBUG(
+        LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
+        enb_association->nb_ue_associated,
+        enb_association->ue_id_coll.num_elements);
     rc = s1ap_mme_generate_s1_setup_failure(
         assoc_id, S1ap_Cause_PR_transport,
         S1ap_CauseTransport_transport_resource_unavailable,
