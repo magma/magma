@@ -162,7 +162,7 @@ class TrafficClass:
                 qid_list.append((qid, pqid))
 
         except subprocess.CalledProcessError as e:
-            LOG.error('failed extracting classids from tc %s', str(e))
+            LOG.error('failed extracting classids from tc %s', e)
         return qid_list
 
     @staticmethod
@@ -184,7 +184,8 @@ class TrafficClass:
         args = argSplit(tc_cmd)
         try:
             # output: class htb 1:3 parent 1:2 prio 2 rate 250Kbit ceil 500Kbit burst 1600b cburst 1600b
-            output = subprocess.check_output(args)
+            raw_output = subprocess.check_output(args)
+            output = raw_output.decode('utf-8')
             # return all config from 'rate' onwards
             config = output.split("rate")
             return config[1]
@@ -285,6 +286,7 @@ class TCManager(object):
     def read_all_state(self, ):
         LOG.debug("read_all_state")
         st = {}
+        apn_qid_list = []
         ul_qid_list = TrafficClass.read_all_classes(self._uplink)
         dl_qid_list = TrafficClass.read_all_classes(self._downlink)
         for (d, qid_list) in ((FlowMatch.UPLINK, ul_qid_list),
@@ -293,14 +295,16 @@ class TCManager(object):
                 qid, pqid = qid_tuple
                 if qid < self._start_idx or qid > (self._max_idx - 1):
                     continue
+                apn_qid = pqid if pqid != self._max_idx else 0
                 st[qid] = {
                     'direction': d,
-                    'ambr_qid': pqid if pqid != self._max_idx else 0,
+                    'ambr_qid': apn_qid,
                 }
+                if apn_qid != 0:
+                    apn_qid_list.append(apn_qid)
 
         self._id_manager.restore_state(st)
-        LOG.debug("map -> %s", st)
-        return st
+        return st, apn_qid_list
 
     def same_qos_config(self, d: FlowMatch.Direction,
                         qid1: int, qid2: int) -> bool:

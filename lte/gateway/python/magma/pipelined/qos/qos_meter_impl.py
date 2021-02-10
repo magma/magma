@@ -88,7 +88,7 @@ class MeterManager(object):
     def read_all_state(self, ):
         LOG.debug("read_all_state")
         MeterClass.dump_all_meters(self._datapath)
-        return self._fut
+        return {}, []
 
     def handle_meter_config_stats(self, ev_body):
         LOG.debug("handle_meter_config_stats %s", ev_body)
