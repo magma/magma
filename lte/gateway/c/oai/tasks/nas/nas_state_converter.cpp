@@ -1606,6 +1606,11 @@ void NasStateConverter::emm_context_to_proto(
         (nw_detach_data_t*) state_emm_context->t3422_arg,
         emm_context_proto->mutable_nw_detach_data());
   }
+  if (state_emm_context->new_attach_info) {
+    new_attach_info_to_proto(
+        state_emm_context->new_attach_info,
+        emm_context_proto->mutable_new_attach_info());
+  }
 }
 
 void NasStateConverter::proto_to_emm_context(
@@ -1689,6 +1694,45 @@ void NasStateConverter::proto_to_emm_context(
         emm_context_proto.nw_detach_data(),
         (nw_detach_data_t**) &state_emm_context->t3422_arg);
   }
+  if (emm_context_proto.has_new_attach_info()) {
+    state_emm_context->new_attach_info =
+        (new_attach_info_t*) calloc(1, sizeof(new_attach_info_t));
+    proto_to_new_attach_info(
+        emm_context_proto.new_attach_info(),
+        state_emm_context->new_attach_info);
+  }
+}
+
+void NasStateConverter::new_attach_info_to_proto(
+    const new_attach_info_t* state_new_attach_info,
+    oai::NewAttachInfo* proto_new_attach_info) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  proto_new_attach_info->set_mme_ue_s1ap_id(
+      state_new_attach_info->mme_ue_s1ap_id);
+  proto_new_attach_info->set_is_mm_ctx_new(
+      state_new_attach_info->is_mm_ctx_new);
+
+  if (state_new_attach_info->ies) {
+    emm_attach_request_ies_to_proto(
+        state_new_attach_info->ies, proto_new_attach_info->mutable_ies());
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+}
+
+void NasStateConverter::proto_to_new_attach_info(
+    const oai::NewAttachInfo& proto_new_attach_info,
+    new_attach_info_t* state_new_attach_info) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  state_new_attach_info->mme_ue_s1ap_id =
+      proto_new_attach_info.mme_ue_s1ap_id();
+  state_new_attach_info->is_mm_ctx_new = proto_new_attach_info.is_mm_ctx_new();
+  if (proto_new_attach_info.has_ies()) {
+    state_new_attach_info->ies = (emm_attach_request_ies_t*) calloc(
+        1, sizeof(*(state_new_attach_info->ies)));
+    proto_to_emm_attach_request_ies(
+        proto_new_attach_info.ies(), state_new_attach_info->ies);
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
 
 }  // namespace lte
