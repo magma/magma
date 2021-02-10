@@ -143,6 +143,14 @@ typedef struct volte_params_s {
       voice_domain_preference_and_ue_usage_setting;
 } volte_params_t;
 
+struct emm_attach_request_ies_s;
+typedef struct new_attach_info_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id; /* mme_ue_s1ap_id for which Attach Request
+                                      is received */
+  bool
+      is_mm_ctx_new; /* Attach request is received in S1ap initial UE message */
+  struct emm_attach_request_ies_s* ies;
+} new_attach_info_t;
 /*
  * Structure of the EMM context established by the network for a particular UE
  * ---------------------------------------------------------------------------
@@ -361,6 +369,7 @@ typedef struct emm_context_s {
    *if this flag is set after receving service req, send detach
    */
   bool nw_init_bearer_deactv;
+  new_attach_info_t* new_attach_info;
 } emm_context_t;
 
 /*

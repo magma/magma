@@ -917,8 +917,9 @@ void emm_init_context(
   emm_ctx_clear_ue_nw_cap(emm_ctx);
   emm_ctx_clear_drx_parameter(emm_ctx);
   emm_ctx_clear_mobile_station_clsMark2(emm_ctx);
-  emm_ctx->T3422.id  = NAS_TIMER_INACTIVE_ID;
-  emm_ctx->T3422.sec = T3422_DEFAULT_VALUE;
+  emm_ctx->T3422.id        = NAS_TIMER_INACTIVE_ID;
+  emm_ctx->T3422.sec       = T3422_DEFAULT_VALUE;
+  emm_ctx->new_attach_info = NULL;
 
   if (init_esm_ctxt) {
     esm_init_context(&emm_ctx->esm_ctx);
