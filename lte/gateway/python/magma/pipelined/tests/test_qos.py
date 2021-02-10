@@ -463,6 +463,7 @@ get_action_instruction"
         else:
             mock_traffic_cls.read_all_classes.side_effect = tc_read
 
+        qos_mgr._initialized = False
         qos_mgr._setupInternal()
 
         # verify that qos_handle 20 not found in system is purged from map
@@ -510,6 +511,7 @@ get_action_instruction"
         else:
             mock_traffic_cls.read_all_classes.side_effect = lambda _: []
 
+        qos_mgr._initialized = False
         qos_mgr._setupInternal()
 
         self.assertTrue(not qos_mgr._redis_store)
@@ -530,6 +532,7 @@ get_action_instruction"
         else:
             mock_traffic_cls.read_all_classes.side_effect = tc_read
 
+        qos_mgr._initialized = False
         qos_mgr._setupInternal()
 
         self.assertTrue(not qos_mgr._redis_store)
