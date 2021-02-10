@@ -33,7 +33,8 @@ import (
 )
 
 const (
-	RunEchoServerFlag = "run_echo_server"
+	RunEchoServerFlag     = "run_echo_server"
+	DefaultMaxGRPCMsgSize = 50 * 1024 * 1024
 )
 
 var (
