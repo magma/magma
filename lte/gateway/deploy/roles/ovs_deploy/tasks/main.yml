@@ -35,7 +35,7 @@
       copy:
         dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
         content: |
-          Acquire::https::{{ ovs_pkgrepo_host }} {
+          Acquire::https::{{ ovs_pkgrepo }} {
           Verify-Peer "false";
           Verify-Host "false";
           };
@@ -107,7 +107,7 @@
     dest: /etc/apt/preferences.d/magma-preferences
     content: |
       Package: *
-      Pin: origin {{ ovs_pkgrepo_host }}
+      Pin: origin {{ ovs_pkgrepo }}
       Pin-Priority: 900
 
 - name: Install prebuilt openvswitch packages
