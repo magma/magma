@@ -93,19 +93,16 @@ resource "kubernetes_secret" "orc8r_configs" {
   data = {
     "metricsd.yml" = yamlencode({
       "profile" : "prometheus",
-      "prometheusQueryAddress" : var.thanos_enabled ? format("http://%s-thanos-query-http:10902", var.helm_deployment_name) : format("http://%s-prometheus:9090", var.helm_deployment_name),
-
+      "prometheusQueryAddress" : var.thanos_enabled ? format("http://%s-thanos-query-http:10902", var.helm_deployment_name) : var.victoriametrics_enabled ? format("http://%s-victoriametrics:8428", var.helm_deployment_name) : format("http://%s-prometheus:9090", var.helm_deployment_name),
       "alertmanagerApiURL" : format("http://%s-alertmanager:9093/api/v2", var.helm_deployment_name),
       "prometheusConfigServiceURL" : format("http://%s-prometheus-configurer:9100/v1", var.helm_deployment_name),
       "alertmanagerConfigServiceURL" : format("http://%s-alertmanager-configurer:9101/v1", var.helm_deployment_name),
     })
 
     "orchestrator.yml" = yamlencode({
-      "useGRPCExporter": true,
+      "useGRPCExporter": var.victoriametrics_enabled ? false : true
       "prometheusGRPCPushAddress" : format("%s-prometheus-cache:9092", var.helm_deployment_name),
-      "prometheusPushAddresses" : [
-        format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
-      ],
+      "prometheusPushAddresses" : var.victoriametrics_enabled ?  [format("http://%s-victoriametrics:8428/api/v1/import/prometheus", var.helm_deployment_name)] : [format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name)]
     })
 
     "elastic.yml" = yamlencode({

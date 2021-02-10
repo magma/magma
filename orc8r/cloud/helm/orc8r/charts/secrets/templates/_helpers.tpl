@@ -21,15 +21,24 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 {{- define "orchestrator-config-template" -}}
 useGRPCExporter: true
 prometheusGRPCPushAddress: "{{ .Release.Name }}-prometheus-cache:9092"
-# Comment out above line, uncomment below, and set useGRPCExporter to false
-# to switch to HTTP metric pushing (less efficient)
-# prometheusPushAddresses:
-#  - "http://{{ .Release.Name }}-prometheus-cache:9091/metrics"
+{{- end -}}
+
+{{- define "orchestrator-victoriametrics-config-template" -}}
+prometheusPushAddresses:
+  - "{{ .Release.Name }}-victoriametrics:8428/api/v1/import/prometheus"
 {{- end -}}
 
 {{- define "metricsd-thanos-config-template" -}}
 profile: "prometheus"
 prometheusQueryAddress: "http://{{ .Release.Name }}-thanos-query-http:10902"
+alertmanagerApiURL: "http://{{ .Release.Name }}-alertmanager:9093/api/v2"
+prometheusConfigServiceURL: "http://{{ .Release.Name }}-prometheus-configurer:9100/v1"
+alertmanagerConfigServiceURL: "http://{{ .Release.Name }}-alertmanager-configurer:9101/v1"
+{{- end -}}
+
+{{- define "metricsd-victoriametrics-config-template" -}}
+profile: "prometheus"
+prometheusQueryAddress: "http://{{ .Release.Name }}-victoriametrics:8428"
 alertmanagerApiURL: "http://{{ .Release.Name }}-alertmanager:9093/api/v2"
 prometheusConfigServiceURL: "http://{{ .Release.Name }}-prometheus-configurer:9100/v1"
 alertmanagerConfigServiceURL: "http://{{ .Release.Name }}-alertmanager-configurer:9101/v1"

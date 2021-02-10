@@ -171,7 +171,8 @@ prometheusConfigurer:
 
   prometheusConfigurerPort: 9100
   rulesDir: "/etc/configs/alert_rules/"
-  prometheusURL: "orc8r-prometheus:9090"
+  prometheusURL: "orc8r-victoriametrics-alert:8880"
+#  prometheusURL: "orc8r-prometheus:9090"
 
   image:
     repository: docker.io/facebookincubator/prometheus-configurer
@@ -181,7 +182,7 @@ prometheusConfigurer:
   resources: {}
   nodeSelector: {}
   tolerations: []
-  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  # Pod affinity must be used to ensure that this pod runs on same node as [prometheus/vmalert]
   affinity:
     podAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -190,7 +191,8 @@ prometheusConfigurer:
               - key: app.kubernetes.io/component
                 operator: In
                 values:
-                  - prometheus
+                  # - prometheus
+                  - victoria-metrics-alert
           topologyKey: "kubernetes.io/hostname"
 
 alertmanagerConfigurer:
@@ -353,6 +355,25 @@ userGrafana:
   # Assign grafana to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
+
+victoria-metrics-single:
+  create: true
+  server:
+    selfScrapeInterval: 10s
+
+victoria-metrics-alert:
+  create: true
+  server:
+    datasource:
+      url: "http://{{ .Release.Name }}-victoriametrics:8428"
+    remote:
+      write:
+        url: "http://{{ .Release.Name }}-victoriametrics:8428"
+    notifier:
+      alertmanager:
+        url: "{{ .Release.name }}-alertmanager:9093"
+    extraArgs:
+      rule: "/etc/victoriametrics/alert_rules/*.yml"
 
 configFiles:
   useDefaults:
