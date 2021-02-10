@@ -59,6 +59,12 @@ func main() {
 		log.Fatalf("Error creating service: %s", err)
 	}
 
+	enableRunTimeSpec := srv.Config.MustGetBool(obsidian.EnableRunTimeSpecs)
+	flag.BoolVar(
+		&obsidian.CombineSpecAtRuntime, "combine_spec_at_runtime", enableRunTimeSpec,
+		"Poll and combine Swagger specs at runtime",
+	)
+
 	if obsidian.Port == -1 {
 		obsidian.Port = obsidian.DefaultPort
 		if obsidian.TLS {

@@ -44,6 +44,9 @@ func Start() {
 	e.Use(middleware.Recover())
 
 	// Serve static pages for the API docs
+	if obsidian.CombineSpecAtRuntime {
+		e.Use(GenerateSwaggerSpec)
+	}
 	e.Static(obsidian.StaticURLPrefix, obsidian.StaticFolder+"/apidocs")
 	e.Static(obsidian.StaticURLPrefix+"/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
 

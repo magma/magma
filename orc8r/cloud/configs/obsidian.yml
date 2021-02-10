@@ -9,3 +9,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# When true, poll and merge Swagger specs at runtime
+# When false, do not poll or merge Swagger specs at runtime
+enable_runtime_specs : true

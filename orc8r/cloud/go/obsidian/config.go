@@ -24,15 +24,20 @@ const (
 	DefaultStaticFolder  = "/var/opt/magma/static"
 	StaticURLPrefix      = "/apidocs"
 	ServiceName          = "OBSIDIAN"
+	// EnableRunTimeSpecs is a parameter name in the obsidian service config.
+	// When true, poll and merge Swagger specs at runtime
+	// When false, do not poll or merge Swagger specs at runtime
+	EnableRunTimeSpecs = "enable_runtime_specs"
 )
 
 // configs
 var (
-	TLS                bool
-	Port               int
-	ServerCertPemPath  string
-	ServerKeyPemPath   string
-	ClientCAPoolPath   string
-	AllowAnyClientCert bool
-	StaticFolder       string
+	TLS                  bool
+	Port                 int
+	ServerCertPemPath    string
+	ServerKeyPemPath     string
+	ClientCAPoolPath     string
+	AllowAnyClientCert   bool
+	StaticFolder         string
+	CombineSpecAtRuntime bool
 )
