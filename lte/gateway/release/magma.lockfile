@@ -350,7 +350,7 @@
           "root": false,
           "source": "pypi",
           "sysdep": "python3-attrs",
-          "version": "19.3.0"
+          "version": "20.3.0"
         },
         "bravado-core": {
           "root": true,
@@ -374,7 +374,7 @@
           "root": true,
           "source": "pypi",
           "sysdep": "python3-cryptography",
-          "version": "2.8"
+          "version": "3.2.1"
         },
         "docker": {
           "root": true,
@@ -404,7 +404,7 @@
           "root": true,
           "source": "pypi",
           "sysdep": "python3-grpcio",
-          "version": "1.34.0"
+          "version": "1.35.0"
         },
         "hpack": {
           "root": true,
@@ -428,13 +428,13 @@
           "root": false,
           "source": "apt",
           "sysdep": "python3-importlib-metadata",
-          "version": "1.5.0"
+          "version": "2.1.1"
         },
         "isort": {
           "root": false,
           "source": "pypi",
           "sysdep": "python3-isort",
-          "version": "5.7.0"
+          "version": "4.3.21"
         },
         "itsdangerous": {
           "root": true,
@@ -500,7 +500,7 @@
           "root": true,
           "source": "pypi",
           "sysdep": "python3-netifaces",
-          "version": "0.10.4"
+          "version": "0.10.9"
         },
         "priority": {
           "root": false,
@@ -560,13 +560,13 @@
           "root": true,
           "source": "apt",
           "sysdep": "python3-redis",
-          "version": "3.3.11"
+          "version": "3.5.3"
         },
         "redis-collections": {
           "root": true,
           "source": "pypi",
           "sysdep": "python3-redis-collections",
-          "version": "0.8.1"
+          "version": "0.9.0"
         },
         "rfc3987": {
           "root": true,
@@ -590,7 +590,7 @@
           "root": true,
           "source": "apt",
           "sysdep": "python3-six",
-          "version": "1.14.0"
+          "version": "1.12.0"
         },
         "snowflake": {
           "root": true,
@@ -673,7 +673,7 @@
           "version": "7.1.2"
         },
         "cryptography": {
-          "version": "2.8"
+          "version": "3.2.1"
         },
         "fire": {
           "version": "0.2.1"
@@ -682,7 +682,7 @@
           "version": "1.1.1"
         },
         "grpcio": {
-          "version": "1.34.0"
+          "version": "1.35.0"
         },
         "itsdangerous": {
           "version": "1.1.0"
@@ -727,10 +727,10 @@
           "version": "5.3.1"
         },
         "redis": {
-          "version": "3.3.11"
+          "version": "3.5.3"
         },
         "redis-collections": {
-          "version": "0.8.1"
+          "version": "0.9.0"
         },
         "rfc3987": {
           "version": "1.3.8"
@@ -739,7 +739,7 @@
           "version": "49.6.0"
         },
         "six": {
-          "version": "1.14.0"
+          "version": "1.12.0"
         },
         "snowflake": {
           "version": "0.0.3"
@@ -812,7 +812,7 @@
       "version": "1.0.2"
     },
     "pystemd": {
-      "version": "0.5.0"
+      "version": "0.8.0"
     },
     "python-dateutil": {
       "version": "2.8.1"
