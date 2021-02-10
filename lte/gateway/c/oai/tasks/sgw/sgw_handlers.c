@@ -1061,9 +1061,10 @@ int sgw_handle_delete_session_request(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   delete_session_resp_p = &message_p->ittiMsg.s11_delete_session_response;
-  OAILOG_WARNING_UE(
+  OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
-      "Delete session handler needs to be completed...\n");
+      "Handle delete session request for sgw_s11_teid " TEID_FMT "\n",
+      delete_session_req_pP->teid);
 
   if (delete_session_req_pP->indication_flags.oi) {
     OAILOG_DEBUG_UE(
