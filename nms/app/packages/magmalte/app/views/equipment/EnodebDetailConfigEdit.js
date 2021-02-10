@@ -161,7 +161,6 @@ function EnodeEditDialog(props: DialogProps) {
   const onClose = () => {
     // clear existing state
     setEnb({});
-    setTabPos(0);
     props.onClose();
   };
 

@@ -230,7 +230,6 @@ function GatewayEditDialog(props: DialogProps) {
   const ctx = useContext(GatewayContext);
   const onClose = () => {
     setGateway({});
-    setTabPos(0);
     props.onClose();
   };
 
