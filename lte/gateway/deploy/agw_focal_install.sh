@@ -2,7 +2,7 @@
 # Setting up env variable, user and project path
 MAGMA_USER="magma"
 AGW_INSTALL_SERVICE="/etc/systemd/system/multi-user.target.wants/agw_installation.service"
-AGW_INSTALL_CONFIG="/tmp/agw_installation.service"
+AGW_INSTALL_CONFIG="/lib/systemd/system/agw_installation.service"
 AGW_SCRIPT_PATH="/root/$(basename $0)"
 MAGMA_ROOT=/home/$MAGMA_USER/magma
 DEPLOY_PATH="${MAGMA_ROOT}/lte/gateway/deploy"
@@ -168,7 +168,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
 
   echo "Deleting boot script if it exists"
   if [ -f "$AGW_INSTALL_CONFIG" ]; then
-    rm -rf $AGW_INSTALL_CONFIG
+    rm -rf $AGW_INSTALL_CONFIG "${AGW_INSTALL_SERVICE}"
   fi
   rm -rf /home/$MAGMA_USER/build
   echo "AGW installation is done, make sure all services above are running correctly.. rebooting"
