@@ -817,10 +817,33 @@ class MagmadUtil(object):
         Print the per-IMSI state in Redis data store on AGW
         """
         magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        state_cli_cmd = "state_cli.py keys IMSI*"
-        redis_state = self.exec_command_output(
-                magtivate_cmd + " && " + state_cli_cmd)
-        print("Redis state is [\n", redis_state, "]")
+        imsi_state_cmd = "state_cli.py keys IMSI*"
+        redis_imsi_keys = self.exec_command_output(
+            magtivate_cmd + " && " + imsi_state_cmd
+        )
+        keys_to_be_cleaned = []
+        for key in redis_imsi_keys.split('\n'):
+            # Ignore directoryd per-IMSI keys in this analysis as they will
+            # persist after each test
+            if "directory" not in key:
+                keys_to_be_cleaned.append(key)
+
+        mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
+        mme_nas_state = self.exec_command_output(
+            magtivate_cmd + " && " + mme_nas_state_cmd
+        )
+        num_htbl_entries = 0
+        for state in mme_nas_state.split("\n"):
+            if "nb_enb_connected" in state or "nb_ue_attached" in state:
+                keys_to_be_cleaned.append(state)
+            elif "htbl" in state:
+                num_htbl_entries += 1
+        print(
+            "Keys left in Redis (list should be empty)[\n",
+            "\n".join(keys_to_be_cleaned),
+            "\n]"
+        )
+        print("Entries left in hashtables (should be zero):", num_htbl_entries)
 
 
 class MobilityUtil(object):
