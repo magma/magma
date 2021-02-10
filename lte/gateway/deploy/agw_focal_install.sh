@@ -1,7 +1,8 @@
 #!/bin/bash
 # Setting up env variable, user and project path
 MAGMA_USER="magma"
-AGW_INSTALL_CONFIG="/etc/systemd/system/multi-user.target.wants/agw_installation.service"
+AGW_INSTALL_SERVICE="/etc/systemd/system/multi-user.target.wants/agw_installation.service"
+AGW_INSTALL_CONFIG="/tmp/agw_installation.service"
 AGW_SCRIPT_PATH="/root/$(basename $0)"
 MAGMA_ROOT=/home/$MAGMA_USER/magma
 DEPLOY_PATH="${MAGMA_ROOT}/lte/gateway/deploy"
@@ -128,6 +129,7 @@ Group=root
 WantedBy=multi-user.target
 EOF
   chmod 644 $AGW_INSTALL_CONFIG
+  ln -sf "${AGW_INSTALL_CONFIG}" "${AGW_INSTALL_SERVICE}"
   reboot
 fi
 
