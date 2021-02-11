@@ -729,6 +729,25 @@ class MagmadUtil(object):
         """
         self._magmad_client.restart_services(services)
 
+    def enable_service(self, service):
+        """
+        Enables a magma service on magma_dev VM and starts it
+        Args:
+            service: (str) service to enable
+        """
+        self.exec_command("sudo systemctl unmask magma@{}".format(service))
+        self.exec_command("sudo systemctl start magma@{}".format(service))
+
+    def disable_service(self, service):
+        """
+        Disables a magma service on magma_dev VM, preventing from
+        starting again
+        Args:
+            service: (str) service to disable
+        """
+        self.exec_command("sudo systemctl mask magma@{}".format(service))
+        self.exec_command("sudo systemctl stop magma@{}".format(service))
+
     def update_mme_config_for_sanity(self, cmd):
         mme_config_update_script = (
             "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
