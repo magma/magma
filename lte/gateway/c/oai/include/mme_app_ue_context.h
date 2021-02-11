@@ -480,7 +480,7 @@ typedef struct mme_ue_context_s {
  *exists
  **/
 ue_mm_context_t* mme_ue_context_exists_imsi(
-    mme_ue_context_t* const mme_ue_context, const imsi64_t imsi);
+    mme_ue_context_t* const mme_ue_context, imsi64_t imsi);
 
 /** \brief Retrieve an UE context by selecting the provided S11 teid
  * \param teid The tunnel endpoint identifier used between MME and S-GW
@@ -546,7 +546,7 @@ void mme_ue_context_update_coll_keys(
     mme_ue_context_t* const mme_ue_context_p,
     ue_mm_context_t* const ue_context_p,
     const enb_s1ap_id_key_t enb_s1ap_id_key,
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id, const imsi64_t imsi,
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id, imsi64_t imsi,
     const s11_teid_t mme_s11_teid, const guti_t* const guti_p);
 
 /** \brief dump MME associative collections

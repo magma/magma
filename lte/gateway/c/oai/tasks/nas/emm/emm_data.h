@@ -438,11 +438,10 @@ void emm_ctx_set_valid_old_guti(emm_context_t* const ctxt, guti_t* guti)
 
 void emm_ctx_clear_imsi(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_imsi(
-    emm_context_t* const ctxt, imsi_t* imsi, const imsi64_t imsi64)
+void emm_ctx_set_imsi(emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_valid_imsi(
-    emm_context_t* const ctxt, imsi_t* imsi, const imsi64_t imsi64)
+    emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64)
     __attribute__((nonnull)) __attribute__((flatten));
 
 void emm_ctx_clear_imei(emm_context_t* const ctxt) __attribute__((nonnull))

@@ -164,7 +164,7 @@ inline void emm_ctx_clear_imsi(emm_context_t* const ctxt) {
 
 /* Set IMSI */
 inline void emm_ctx_set_imsi(
-    emm_context_t* const ctxt, imsi_t* imsi, const imsi64_t imsi64) {
+    emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64) {
   ctxt->_imsi   = *imsi;
   ctxt->_imsi64 = imsi64;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_IMSI);
@@ -181,7 +181,7 @@ inline void emm_ctx_set_imsi(
 
 /* Set IMSI, mark it as valid */
 inline void emm_ctx_set_valid_imsi(
-    emm_context_t* const ctxt, imsi_t* imsi, const imsi64_t imsi64) {
+    emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64) {
   ctxt->_imsi   = *imsi;
   ctxt->_imsi64 = imsi64;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_IMSI);

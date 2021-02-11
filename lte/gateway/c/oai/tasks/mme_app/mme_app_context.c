@@ -419,7 +419,7 @@ ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
 
 //------------------------------------------------------------------------------
 struct ue_mm_context_s* mme_ue_context_exists_imsi(
-    mme_ue_context_t* const mme_ue_context_p, const imsi64_t imsi) {
+    mme_ue_context_t* const mme_ue_context_p, imsi64_t imsi) {
   hashtable_rc_t h_rc       = HASH_TABLE_OK;
   uint64_t mme_ue_s1ap_id64 = 0;
 
@@ -496,7 +496,7 @@ void mme_ue_context_update_coll_keys(
     mme_ue_context_t* const mme_ue_context_p,
     ue_mm_context_t* const ue_context_p,
     const enb_s1ap_id_key_t enb_s1ap_id_key,
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id, const imsi64_t imsi,
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id, imsi64_t imsi,
     const s11_teid_t mme_teid_s11,
     const guti_t* const guti_p)  //  never NULL, if none put &ue_context_p->guti
 {
@@ -1879,7 +1879,7 @@ void mme_app_handle_enb_deregister_ind(
 
 //------------------------------------------------------------------------------
 void mme_app_handle_enb_reset_req(
-    const itti_s1ap_enb_initiated_reset_req_t const* enb_reset_req) {
+    const itti_s1ap_enb_initiated_reset_req_t* const enb_reset_req) {
   MessageDef* msg;
   itti_s1ap_enb_initiated_reset_ack_t* reset_ack;
 
@@ -1939,7 +1939,7 @@ void mme_app_handle_enb_reset_req(
 //------------------------------------------------------------------------------
 void mme_app_handle_s1ap_ue_context_release_complete(
     mme_app_desc_t* mme_app_desc_p,
-    const itti_s1ap_ue_context_release_complete_t const*
+    const itti_s1ap_ue_context_release_complete_t* const
         s1ap_ue_context_release_complete)
 //------------------------------------------------------------------------------
 {

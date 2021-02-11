@@ -217,7 +217,7 @@ void free_protocol_configuration_options(
 //------------------------------------------------------------------------------
 int decode_protocol_configuration_options(
     protocol_configuration_options_t* protocolconfigurationoptions,
-    const uint8_t* const buffer, const const uint32_t len) {
+    const uint8_t* const buffer, const uint32_t len) {
   int decoded       = 0;
   int decode_result = 0;
 
