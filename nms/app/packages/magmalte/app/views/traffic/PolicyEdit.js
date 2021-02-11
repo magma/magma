@@ -144,7 +144,6 @@ export default function PolicyRuleEditDialog(props: Props) {
   };
 
   const onClose = () => {
-    setTabPos(0);
     props.onClose();
   };
 

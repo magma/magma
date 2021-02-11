@@ -338,7 +338,6 @@ export function SubscriberEditDialog(props: DialogProps) {
   }, [props.editProps]);
 
   const onClose = () => {
-    setTabPos(0);
     props.onClose();
   };
 
