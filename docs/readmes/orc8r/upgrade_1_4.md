@@ -50,7 +50,6 @@ container versions
 module orc8r {
   source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.4"
   # ...
-
   cluster_version = "1.17"   # set to Kubernetes version found above. 1.17 is used as an example here
 }
 
@@ -58,8 +57,8 @@ module orc8r-app {
   source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.4"
   # ...
   orc8r_chart_version   = "1.5.12"
-  orc8r_tag             = "MAGMA_TAG"       # from build step, e.g. v1.4.0
-  orc8r_deployment_type = DEPLOYMENT_TYPE   # valid options are: ["fwa", "federated_fwa", "all"]
+  orc8r_tag             = "MAGMA_TAG"  # from build step, e.g. v1.4.0
+  orc8r_deployment_type = "all"        # valid options: ["fwa", "federated_fwa", "all"]
 }
 ```
 
@@ -78,11 +77,23 @@ terraform refresh
 
 ## Terraform apply
 
+Terraform the upgrade. We'll also need to manually rescale the Prometheus
+deployment, as a workaround for quirks in how its deployment handles upgrading
+(for context, see [issue #4580](https://github.com/magma/magma/issues/4580)).
+
 Apply the upgrade
 
 ```bash
 terraform apply     # Check this output VERY carefully!
 ```
 
-After applying Terraform changes, all your application components should be
-upgraded.
+Once the above command indicates it's applying the Helm upgrade, switch to
+a separate terminal tab and manually scale the Prometheus deployment. You can
+re-run the Terraform command if it times out.
+
+```bash
+kubectl -n orc8r scale deployment orc8r-prometheus --replicas=0 && kubectl -n orc8r scale deployment orc8r-prometheus --replicas=1
+```
+
+After the Terraform command completes, all application components should be
+successfully upgraded.
