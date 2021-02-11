@@ -41,6 +41,7 @@ class NASSecurityAlgorithmsMsg {
 #define M5G_NAS_SECURITY_ALGORITHMS_5G_EIA7 0b111
     uint8_t m5gtypeofintegrityalgorithm : 3;
   } M5GNasSecurityAlgorithms;
+
   M5GNasSecurityAlgorithms M5GNasSecurityAlgorithms_;
   NASSecurityAlgorithmsMsg();
   ~NASSecurityAlgorithmsMsg();

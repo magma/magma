@@ -20,10 +20,7 @@ class NASKeySetIdentifierMsg {
   uint8_t iei;
   uint8_t tsc : 1;
   uint8_t nas_key_set_identifier : 3;
-#define NAS_KEY_SET_IDENTIFIER_NATIVE 0
 #define NAS_KEY_SET_IDENTIFIER_MIN_LENGTH 1
-#define NAS_KEY_SET_IDENTIFIER_MAPPED 1
-#define NAS_KEY_SET_IDENTIFIER_NOT_AVAILABLE 0x7
 
   NASKeySetIdentifierMsg();
   ~NASKeySetIdentifierMsg();

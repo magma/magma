@@ -8,17 +8,17 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #pragma once
 #include <sstream>
 #include <cstdint>
-using namespace std;
 
+using namespace std;
 namespace magma5g {
 // AuthenticationParameterAUTN IE Class
 class AuthenticationParameterAUTNMsg {
  public:
 #define AUTN_MIN_LEN 16
-#define AUTN_MAX_LEN 16
   uint8_t iei;
   std::string AUTN;
 

@@ -19,7 +19,6 @@ namespace magma5g {
 class ABBAMsg {
  public:
 #define ABBA_MIN_LEN 2
-#define ABBA_MAX_LEN 254
   uint8_t iei;
   std::string contents;
 

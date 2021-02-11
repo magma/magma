@@ -20,7 +20,6 @@ namespace magma5g {
 class AuthenticationResponseParameterMsg {
  public:
 #define AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN 18
-#define AUTHENTICATION_RESPONSE_PARAMETER_MAX_LEN 18
   uint8_t iei;
   uint8_t length;
   // bstring response_parameter;

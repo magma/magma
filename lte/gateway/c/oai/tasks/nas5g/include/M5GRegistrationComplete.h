@@ -8,6 +8,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 #pragma once
 #include <sstream>
 #include "M5GExtendedProtocolDiscriminator.h"
@@ -26,6 +27,7 @@ class RegistrationCompleteMsg {
   MessageTypeMsg message_type;
 #define REGISTRATION_COMPLETE_MINIMUM_LENGTH 3
   bstring smf_pdu;
+
   RegistrationCompleteMsg();
   ~RegistrationCompleteMsg();
   int DecodeRegistrationCompleteMsg(
