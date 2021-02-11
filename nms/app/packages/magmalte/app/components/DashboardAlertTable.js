@@ -261,7 +261,7 @@ function TabPanel(props: TabPanelProps) {
     <ActionTable
       data={props.alerts}
       columns={[
-        {title: 'Date', field: 'date', type: 'datetime'},
+        {title: 'Date', field: 'date', type: 'datetime', defaultSort: 'desc'},
         {title: 'Status', field: 'status', width: 200},
         {title: 'Alert Name', field: 'alertName', width: 200},
         {title: 'Service', field: 'service', width: 200},
