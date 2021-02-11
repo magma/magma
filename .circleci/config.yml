@@ -1091,25 +1091,18 @@ workflows:
             - cwf-integ-test
       - xwfm-deploy:
           <<: *only_master
+          name: xwfm-deploy-latest
           requires:
-            - xwfm-test
             - cwag-deploy
+            - xwfm-test
+          tag-latest: true
       - cwag-deploy:
           <<: *only_master
           name: cwag-deploy-latest
           requires:
-            - xwfm-test
-            - cwag-precommit
-            - cwf-integ-test
+            - cwag-deploy
+            - xwfm-deploy-latest
           images: 'gateway_python|gateway_pipelined|gateway_go'
-          tag-latest: true
-      - xwfm-deploy:
-          <<: *only_master
-          name: xwfm-deploy-latest
-          requires:
-            - xwfm-test
-            - cwag-precommit
-            - cwf-integ-test
           tag-latest: true
 
 
