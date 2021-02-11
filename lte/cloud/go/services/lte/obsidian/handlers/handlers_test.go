@@ -4180,3 +4180,645 @@ func newMutableGateway(id string) *lteModels.MutableLteGateway {
 	}
 	return gw
 }
+
+func TestCreateX1Task(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_tasks"
+	handlers := handlers.GetHandlers()
+	createX1Task := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
+
+	payload := &lteModels.X1Task{
+		TaskID: "test",
+		Details: &lteModels.X1TaskDetails{
+			TargetID:      "test",
+			Did:           "1111-2222-3333",
+			Xid:           "3333-2222-1111",
+			DeliveryType:  "X2andX3",
+			CorrelationID: "123456789",
+		},
+	}
+
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        payload,
+		Handler:        createX1Task,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.X1TaskEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.X1TaskEntityType,
+		Key:       "test",
+		Config:    payload.Details,
+		GraphID:   "2",
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func TestListX1Tasks(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_tasks"
+	handlers := handlers.GetHandlers()
+	listX1Tasks := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listX1Tasks,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.X1Task{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Key:  "IMSI1234",
+				Type: lte.X1TaskEntityType,
+				Config: &lteModels.X1TaskDetails{
+					TargetID:      "IMSI1234",
+					Did:           "1111-2222-3333",
+					Xid:           "3333-2222-1111",
+					DeliveryType:  "X2andX3",
+					CorrelationID: "123456789",
+				},
+			},
+			{
+				Key:  "4444-3333-2222",
+				Type: lte.X1TaskEntityType,
+				Config: &lteModels.X1TaskDetails{
+					TargetID:      "4444-3333-2222",
+					Did:           "2222-3333-4444",
+					Xid:           "4444-3333-2222",
+					DeliveryType:  "X2andX3",
+					CorrelationID: "123456799",
+				},
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listX1Tasks,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.X1Task{
+			"IMSI1234": {
+				TaskID: "IMSI1234",
+				Details: &lteModels.X1TaskDetails{
+					TargetID:      "IMSI1234",
+					Did:           "1111-2222-3333",
+					Xid:           "3333-2222-1111",
+					DeliveryType:  "X2andX3",
+					CorrelationID: "123456789",
+				},
+			},
+			"4444-3333-2222": {
+				TaskID: "4444-3333-2222",
+				Details: &lteModels.X1TaskDetails{
+					TargetID:      "4444-3333-2222",
+					Did:           "2222-3333-4444",
+					Xid:           "4444-3333-2222",
+					DeliveryType:  "X2andX3",
+					CorrelationID: "123456799",
+				},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestGetX1Task(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_tasks/:task_id"
+	handlers := handlers.GetHandlers()
+	getX1Task := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getX1Task,
+		ParamNames:     []string{"network_id", "task_id"},
+		ParamValues:    []string{"n1", "IMSI1234"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Key:  "IMSI1234",
+			Type: lte.X1TaskEntityType,
+			Config: &lteModels.X1TaskDetails{
+				TargetID:      "IMSI1234",
+				Did:           "2222-3333-4444",
+				Xid:           "4444-3333-2222",
+				DeliveryType:  "X2andX3",
+				CorrelationID: "123456799",
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getX1Task,
+		ParamNames:     []string{"network_id", "task_id"},
+		ParamValues:    []string{"n1", "IMSI1234"},
+		ExpectedStatus: 200,
+		ExpectedResult: &lteModels.X1Task{
+			TaskID: "IMSI1234",
+			Details: &lteModels.X1TaskDetails{
+				TargetID:      "IMSI1234",
+				Did:           "2222-3333-4444",
+				Xid:           "4444-3333-2222",
+				DeliveryType:  "X2andX3",
+				CorrelationID: "123456799",
+			},
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestUpdateX1Task(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_tasks/:task_id"
+	handlers := handlers.GetHandlers()
+	updateX1Task := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
+
+	// 404
+	payload := &lteModels.X1Task{
+		TaskID: "IMSI1234",
+		Details: &lteModels.X1TaskDetails{
+			TargetID:      "IMSI1234",
+			Did:           "1111-2222-3333",
+			Xid:           "3333-2222-1111",
+			DeliveryType:  "X2andX3",
+			CorrelationID: "123456789",
+		},
+	}
+
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateX1Task,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "task_id"},
+		ParamValues:    []string{"n1", "IMSI1234"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Add the X1Task
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Key:  "IMSI1234",
+			Type: lte.X1TaskEntityType,
+			Config: &lteModels.X1TaskDetails{
+				TargetID:      "IMSI1234",
+				Did:           "2222-3333-4444",
+				Xid:           "4444-3333-2222",
+				DeliveryType:  "X2andX3",
+				CorrelationID: "123456799",
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateX1Task,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "task_id"},
+		ParamValues:    []string{"n1", "IMSI1234"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.X1TaskEntityType, "IMSI1234", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.X1TaskEntityType,
+		Key:       "IMSI1234",
+		Config:    payload.Details,
+		GraphID:   "2",
+		Version:   1,
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func TestDeleteX1Task(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_tasks/:task_id"
+	handlers := handlers.GetHandlers()
+	deleteX1Task := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Key:  "IMSI1234",
+				Type: lte.X1TaskEntityType,
+				Config: &lteModels.X1TaskDetails{
+					TargetID:      "IMSI1234",
+					Did:           "1111-2222-3333",
+					Xid:           "3333-2222-1111",
+					DeliveryType:  "X2andX3",
+					CorrelationID: "123456789",
+				},
+			},
+			{
+				Key:  "4444-3333-2222",
+				Type: lte.X1TaskEntityType,
+				Config: &lteModels.X1TaskDetails{
+					TargetID:      "4444-3333-2222",
+					Did:           "2222-3333-4444",
+					Xid:           "4444-3333-2222",
+					DeliveryType:  "X2andX3",
+					CorrelationID: "123456799",
+				},
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	tc := tests.Test{
+		Method:         "DELETE",
+		URL:            testURLRoot,
+		Handler:        deleteX1Task,
+		ParamNames:     []string{"network_id", "task_id"},
+		ParamValues:    []string{"n1", "IMSI1234"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadAllEntitiesOfType("n1", lte.X1TaskEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(actual))
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.X1TaskEntityType,
+		Key:       "4444-3333-2222",
+		Config: &lteModels.X1TaskDetails{
+			TargetID:      "4444-3333-2222",
+			Did:           "2222-3333-4444",
+			Xid:           "4444-3333-2222",
+			DeliveryType:  "X2andX3",
+			CorrelationID: "123456799",
+		},
+		GraphID: "4",
+		Version: 0,
+	}
+	assert.Equal(t, expected, actual[0])
+}
+
+func TestCreateX1Destination(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_destinations"
+	handlers := handlers.GetHandlers()
+	createX1Destination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
+
+	payload := &lteModels.X1Destination{
+		DestinationID: "test",
+		Details: &lteModels.X1DestinationDetails{
+			DeliveryAddr: "127.0.0.1:4000",
+			DeliveryType: "X2andX3",
+			Did:          "1111-2222-3333",
+		},
+	}
+
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        payload,
+		Handler:        createX1Destination,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.X1DestinationEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.X1DestinationEntityType,
+		Key:       "test",
+		Config:    payload.Details,
+		GraphID:   "2",
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func TestListX1Destinations(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_destinations"
+	handlers := handlers.GetHandlers()
+	listX1Destinations := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listX1Destinations,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.X1Destination{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Key:  "1111-2222-3333",
+				Type: lte.X1DestinationEntityType,
+				Config: &lteModels.X1DestinationDetails{
+					Did:          "1111-2222-3333",
+					DeliveryAddr: "127.0.0.1:4000",
+					DeliveryType: "X2andX3",
+				},
+			},
+			{
+				Key:  "2222-3333-4444",
+				Type: lte.X1DestinationEntityType,
+				Config: &lteModels.X1DestinationDetails{
+					Did:          "2222-3333-4444",
+					DeliveryAddr: "127.0.0.1:4001",
+					DeliveryType: "X2andX3",
+				},
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listX1Destinations,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.X1Destination{
+			"1111-2222-3333": {
+				DestinationID: "1111-2222-3333",
+				Details: &lteModels.X1DestinationDetails{
+					Did:          "1111-2222-3333",
+					DeliveryAddr: "127.0.0.1:4000",
+					DeliveryType: "X2andX3",
+				},
+			},
+			"2222-3333-4444": {
+				DestinationID: "2222-3333-4444",
+				Details: &lteModels.X1DestinationDetails{
+					Did:          "2222-3333-4444",
+					DeliveryAddr: "127.0.0.1:4001",
+					DeliveryType: "X2andX3",
+				},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestGetX1Destination(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_destinations/:destination_id"
+	handlers := handlers.GetHandlers()
+	getX1Destination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getX1Destination,
+		ParamNames:     []string{"network_id", "destination_id"},
+		ParamValues:    []string{"n1", "1111-2222-3333"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Key:  "1111-2222-3333",
+			Type: lte.X1DestinationEntityType,
+			Config: &lteModels.X1DestinationDetails{
+				Did:          "2222-3333-4444",
+				DeliveryAddr: "127.0.0.1:4000",
+				DeliveryType: "X2andX3",
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getX1Destination,
+		ParamNames:     []string{"network_id", "destination_id"},
+		ParamValues:    []string{"n1", "1111-2222-3333"},
+		ExpectedStatus: 200,
+		ExpectedResult: &lteModels.X1Destination{
+			DestinationID: "1111-2222-3333",
+			Details: &lteModels.X1DestinationDetails{
+				Did:          "2222-3333-4444",
+				DeliveryAddr: "127.0.0.1:4000",
+				DeliveryType: "X2andX3",
+			},
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestUpdateX1Destination(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_destinations/:destination_id"
+	handlers := handlers.GetHandlers()
+	updateX1Destination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
+
+	// 404
+	payload := &lteModels.X1Destination{
+		DestinationID: "1111-2222-3333",
+		Details: &lteModels.X1DestinationDetails{
+			Did:          "1111-2222-3333",
+			DeliveryAddr: "127.0.0.1:4000",
+			DeliveryType: "X2andX3",
+		},
+	}
+
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateX1Destination,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "destination_id"},
+		ParamValues:    []string{"n1", "1111-2222-3333"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Add the X1Destination
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Key:  "1111-2222-3333",
+			Type: lte.X1DestinationEntityType,
+			Config: &lteModels.X1DestinationDetails{
+				Did:          "2222-3333-4444",
+				DeliveryAddr: "127.0.0.1:4000",
+				DeliveryType: "X2andX3",
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateX1Destination,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "destination_id"},
+		ParamValues:    []string{"n1", "1111-2222-3333"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.X1DestinationEntityType, "1111-2222-3333", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.X1DestinationEntityType,
+		Key:       "1111-2222-3333",
+		Config:    payload.Details,
+		GraphID:   "2",
+		Version:   1,
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func TestDeleteX1Destination(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/x1_destinations/:destination_id"
+	handlers := handlers.GetHandlers()
+	deleteX1Destination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Key:  "1111-2222-3333",
+				Type: lte.X1DestinationEntityType,
+				Config: &lteModels.X1DestinationDetails{
+					DeliveryAddr: "127.0.0.1:4000",
+					DeliveryType: "X2andX3",
+					Did:          "1111-2222-3333",
+				},
+			},
+			{
+				Key:  "2222-3333-4444",
+				Type: lte.X1DestinationEntityType,
+				Config: &lteModels.X1DestinationDetails{
+					DeliveryAddr: "127.0.0.1:4001",
+					Did:          "2222-3333-4444",
+					DeliveryType: "X2andX3",
+				},
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	tc := tests.Test{
+		Method:         "DELETE",
+		URL:            testURLRoot,
+		Handler:        deleteX1Destination,
+		ParamNames:     []string{"network_id", "destination_id"},
+		ParamValues:    []string{"n1", "1111-2222-3333"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadAllEntitiesOfType("n1", lte.X1DestinationEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(actual))
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.X1DestinationEntityType,
+		Key:       "2222-3333-4444",
+		Config: &lteModels.X1DestinationDetails{
+			Did:          "2222-3333-4444",
+			DeliveryAddr: "127.0.0.1:4001",
+			DeliveryType: "X2andX3",
+		},
+		GraphID: "4",
+		Version: 0,
+	}
+	assert.Equal(t, expected, actual[0])
+}
