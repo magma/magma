@@ -17,6 +17,7 @@
 
 #include "magma_logging.h"
 #include "DirectorydClient.h"
+#include "ProxyConnector.h"
 
 struct pdu_info {
   uint16_t version;
@@ -112,6 +113,7 @@ namespace lte {
 class PDUGenerator {
  public:
   PDUGenerator(
+      std::shared_ptr<ProxyConnector> proxy_connector,
       const std::string& pkt_dst_mac,
       const std::string& pkt_src_mac);
 
@@ -131,6 +133,7 @@ class PDUGenerator {
   std::string pkt_src_mac_;
   Tins::NetworkInterface iface_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
+  std::shared_ptr<ProxyConnector> proxy_connector_;
 };
 
 }  // namespace lte

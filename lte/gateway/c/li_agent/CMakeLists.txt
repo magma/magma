@@ -102,13 +102,15 @@ add_library(LI_AGENT
     InterfaceMonitor.h
     DirectorydClient.cpp
     DirectorydClient.h
+    ProxyConnector.cpp
+    ProxyConnector.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
 target_link_libraries(LI_AGENT
   SERVICE303_LIB SERVICE_REGISTRY CONFIG ASYNC_GRPC
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
-  prometheus-cpp tacopie mnl tins pcap
+  prometheus-cpp tacopie mnl tins pcap ssl crypto
   )
 
 if (CLANG_FORMAT)

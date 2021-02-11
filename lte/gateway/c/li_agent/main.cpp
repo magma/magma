@@ -21,6 +21,7 @@
 
 #include "InterfaceMonitor.h"
 #include "PDUGenerator.h"
+#include "ProxyConnector.h"
 
 #define LIAGENTD "liagentd"
 #define LIAGENTD_VERSION "1.0"
@@ -79,12 +80,17 @@ int main(void) {
   std::string interface_name = config["interface_name"].as<std::string>();
   std::string pkt_dst_mac = config["pkt_dst_mac"].as<std::string>();
   std::string pkt_src_mac = config["pkt_src_mac"].as<std::string>();
+  std::string proxy_addr = config["proxy_addr"].as<std::string>();
+  int proxy_port = config["proxy_port"].as<int>();
+  std::string cert_file = config["cert_file"].as<std::string>();
+  std::string key_file = config["key_file"].as<std::string>();
 
   magma::service303::MagmaService server(
       LIAGENTD, LIAGENTD_VERSION);
   server.Start();
 
-  auto pkt_generator = std::make_shared<magma::lte::PDUGenerator>(pkt_dst_mac, pkt_src_mac);
+  auto proxy_connector = std::make_shared<magma::lte::ProxyConnector>(proxy_addr, proxy_port, cert_file, key_file);
+  auto pkt_generator = std::make_shared<magma::lte::PDUGenerator>(proxy_connector, pkt_dst_mac, pkt_src_mac);
 
   auto interface_watcher = std::make_shared<magma::lte::InterfaceMonitor>(interface_name, pkt_generator);
 

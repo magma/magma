@@ -57,12 +57,14 @@ namespace lte {
 using namespace Tins;
 
 PDUGenerator::PDUGenerator(
+    std::shared_ptr<ProxyConnector> proxy_connector,
     const std::string& pkt_dst_mac,
     const std::string& pkt_src_mac)
     : pkt_dst_mac_(pkt_dst_mac),
-      pkt_src_mac_(pkt_src_mac) {
+      pkt_src_mac_(pkt_src_mac),
+      proxy_connector_(proxy_connector) {
   MLOG(MINFO) << "Using interface for pkt generation";
-  iface_ = NetworkInterface("testy1");
+  //iface_ = NetworkInterface("testy1");
   // Don't know why but changing ethernet-> IP produces an error, resolve
   Allocators::register_allocator<EthernetII, LIX3PDU>(LI_X3_LINK_TYPE);
   directoryd_client_ = std::make_shared<magma::AsyncDirectorydClient>();
@@ -143,10 +145,11 @@ bool PDUGenerator::send_packet(const struct pcap_pkthdr* phdr, const u_char* pda
 
   print_bytes(data.data(), sizeof(struct pdu_info));
   // Random mac header
-  EthernetII eth_(pkt_dst_mac_, pkt_src_mac_);
-  eth_ /= LIX3PDU(data.data(),  pdu.header_length + pdu.payload_length);
+  //EthernetII eth_(pkt_dst_mac_, pkt_src_mac_);
+  //eth_ /= LIX3PDU(data.data(),  pdu.header_length + pdu.payload_length);
 
-  sender.send(eth_, iface_);
+  //sender.send(eth_, iface_);
+  proxy_connector_->SendData(data.data(), pdu.header_length + pdu.payload_length);
 
   return true;
 }
