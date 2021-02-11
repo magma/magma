@@ -34,7 +34,19 @@ NasStateConverter::~NasStateConverter() = default;
 
 void NasStateConverter::proto_to_guti(
     const oai::Guti& guti_proto, guti_t* state_guti) {
-  memcpy(&state_guti->gummei.plmn, (guti_proto.plmn()).c_str(), sizeof(plmn_t));
+  state_guti->gummei.plmn.mcc_digit1 =
+      ((int) guti_proto.plmn()[0]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mcc_digit2 =
+      ((int) guti_proto.plmn()[1]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mcc_digit3 =
+      ((int) guti_proto.plmn()[2]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mnc_digit1 =
+      ((int) guti_proto.plmn()[3]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mnc_digit2 =
+      ((int) guti_proto.plmn()[4]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mnc_digit3 =
+      ((int) guti_proto.plmn()[5]) - ASCII_ZERO;
+
   state_guti->gummei.mme_gid  = guti_proto.mme_gid();
   state_guti->gummei.mme_code = guti_proto.mme_code();
   state_guti->m_tmsi          = (tmsi_t) guti_proto.m_tmsi();
