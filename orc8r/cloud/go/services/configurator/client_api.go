@@ -15,7 +15,6 @@ package configurator
 
 import (
 	"context"
-	"time"
 
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator/protos"
@@ -29,12 +28,6 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
-	"google.golang.org/grpc"
-)
-
-const (
-	maxGrpcTimeout        = 5 * time.Minute
-	defaultMaxGRPCMsgSize = 50 * 1024 * 1024
 )
 
 // ListNetworkIDs loads a list of all networkIDs registered
@@ -291,10 +284,7 @@ func WriteEntities(networkID string, writes []EntityWriteOperation, serdes serde
 		}
 	}
 
-	ctx, cancel := context.WithDeadline(context.Background(),
-		time.Now().Add(maxGrpcTimeout))
-	defer cancel()
-	_, err = client.WriteEntities(ctx, req)
+	_, err = client.WriteEntities(context.Background(), req)
 	if err != nil {
 		return err
 	}
@@ -326,10 +316,7 @@ func CreateEntities(networkID string, entities NetworkEntities, serdes serde.Reg
 		}
 		req.Entities = append(req.Entities, protoEnt)
 	}
-	ctx, cancel := context.WithDeadline(context.Background(),
-		time.Now().Add(maxGrpcTimeout))
-	defer cancel()
-	res, err := client.CreateEntities(ctx, req)
+	res, err := client.CreateEntities(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -371,10 +358,7 @@ func UpdateEntities(networkID string, updates []EntityUpdateCriteria, serdes ser
 		}
 		req.Updates = append(req.Updates, upProto)
 	}
-	ctx, cancel := context.WithDeadline(context.Background(),
-		time.Now().Add(maxGrpcTimeout))
-	defer cancel()
-	res, err := client.UpdateEntities(ctx, req)
+	res, err := client.UpdateEntities(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -412,11 +396,8 @@ func DeleteEntities(networkID string, ids storage2.TKs) error {
 	if err != nil {
 		return err
 	}
-	ctx, cancel := context.WithDeadline(context.Background(),
-		time.Now().Add(maxGrpcTimeout))
-	defer cancel()
 	_, err = client.DeleteEntities(
-		ctx,
+		context.Background(),
 		&protos.DeleteEntitiesRequest{
 			NetworkID: networkID,
 			ID:        tksToEntIDs(ids),
@@ -452,11 +433,8 @@ func ListEntityKeys(networkID string, entityType string) ([]string, error) {
 		return []string{}, merrors.ErrNotFound
 	}
 
-	ctx, cancel := context.WithDeadline(context.Background(),
-		time.Now().Add(maxGrpcTimeout))
-	defer cancel()
 	res, err := client.LoadEntities(
-		ctx,
+		context.Background(),
 		&protos.LoadEntitiesRequest{
 			NetworkID: networkID,
 			Filter: &storage.EntityLoadFilter{
@@ -607,12 +585,9 @@ func loadEntities(
 	if err != nil {
 		return nil, nil, err
 	}
-	ctx, cancel := context.WithDeadline(context.Background(),
-		time.Now().Add(maxGrpcTimeout))
-	defer cancel()
 
 	res, err := client.LoadEntities(
-		ctx,
+		context.Background(),
 		&protos.LoadEntitiesRequest{
 			NetworkID: networkID,
 			Filter: &storage.EntityLoadFilter{
@@ -687,11 +662,9 @@ func LoadAllEntitiesOfType(networkID string, entityType string, criteria EntityL
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithDeadline(context.Background(),
-		time.Now().Add(maxGrpcTimeout))
-	defer cancel()
+
 	res, err := client.LoadEntities(
-		ctx,
+		context.Background(),
 		&protos.LoadEntitiesRequest{
 			NetworkID: networkID,
 			Filter: &storage.EntityLoadFilter{
@@ -713,11 +686,7 @@ func LoadAllEntitiesOfType(networkID string, entityType string, criteria EntityL
 }
 
 func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
-	dialOpts := []grpc.DialOption{
-		grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(defaultMaxGRPCMsgSize)),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(defaultMaxGRPCMsgSize)),
-	}
-	conn, err := registry.GetConnectionWithAddOptions(ServiceName, dialOpts...)
+	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
@@ -735,11 +704,7 @@ func GetMconfigFor(hardwareID string) (*protos.GetMconfigResponse, error) {
 }
 
 func getSBConfiguratorClient() (protos.SouthboundConfiguratorClient, error) {
-	dialOpts := []grpc.DialOption{
-		grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(defaultMaxGRPCMsgSize)),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(defaultMaxGRPCMsgSize)),
-	}
-	conn, err := registry.GetConnectionWithAddOptions(ServiceName, dialOpts...)
+	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
