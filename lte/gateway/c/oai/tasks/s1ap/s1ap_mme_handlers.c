@@ -447,6 +447,21 @@ int s1ap_mme_handle_s1_setup_request(
         S1ap_TimeToWait_v20s);
     increment_counter(
         "s1_setup", 1, 2, "result", "failure", "cause", "invalid_state");
+    // Check if the UE counters for eNB are equal.
+    // If not, the eNB will never switch to INIT state, particularly in
+    // stateless mode.
+    // Exit the process so that health checker can clean-up all Redis
+    // state and restart all stateless services.
+    AssertFatal(
+        enb_association->nb_ue_associated ==
+            enb_association->ue_id_coll.num_elements,
+        "Num UEs associated with eNB (%u) is more than the UEs with valid "
+        "mme_ue_s1ap_id (%zu). This is a deadlock state potentially caused by "
+        "misbehaving eNB; restarting MME. In stateless mode, health management "
+        "service will eventually detect multiple MME restarts due to this "
+        "deadlock state and force sctpd and hence all services to restart.",
+        enb_association->nb_ue_associated,
+        enb_association->ue_id_coll.num_elements);
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
   log_queue_item_t* context = NULL;
@@ -2180,6 +2195,7 @@ bool s1ap_send_enb_deregistered_ind(
     *resultP = arg->message_p;
   } else {
     OAILOG_TRACE(LOG_S1AP, "No valid UE provided in callback: %p\n", ue_ref_p);
+    AssertFatal(0, "No valid UE while creating S1AP_ENB_DEREGISTERED_IND");
   }
   return false;
 }
@@ -2262,6 +2278,23 @@ int s1ap_handle_sctp_disconnection(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
+  if (reset) {
+    // Check if the UE counters for eNB are equal.
+    // If not, the eNB will never switch to INIT state, particularly in
+    // stateless mode.
+    // Exit the process so that health checker can clean-up all Redis
+    // state and restart all stateless services.
+    AssertFatal(
+        enb_association->nb_ue_associated ==
+            enb_association->ue_id_coll.num_elements,
+        "Num UEs associated with eNB (%u) is more than the UEs with valid "
+        "mme_ue_s1ap_id (%zu). This is a deadlock state potentially caused by "
+        "misbehaving eNB; restarting MME. In stateless mode, health management "
+        "service will eventually detect multiple MME restarts due to this "
+        "deadlock state and force sctpd and hence all services to restart.",
+        enb_association->nb_ue_associated,
+        enb_association->ue_id_coll.num_elements);
+  }
   /*
    * Send S1ap deregister indication to MME app in batches of UEs where
    * UE count in each batch <= S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE
