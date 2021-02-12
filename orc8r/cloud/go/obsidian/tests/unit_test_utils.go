@@ -26,6 +26,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
+	"sigs.k8s.io/yaml"
 )
 
 type Test struct {
@@ -108,6 +109,18 @@ func GetHandlerByPathAndMethod(t *testing.T, handlers []obsidian.Handler, path s
 	}
 	assert.Fail(t, fmt.Sprintf("no handler registered for path %s", path))
 	return obsidian.Handler{}
+}
+
+func YAMLToJSONConverter(s string) encoding.BinaryMarshaler {
+	return &yamlToJsonConverter{yaml: s}
+}
+
+type yamlToJsonConverter struct {
+	yaml string
+}
+
+func (j *yamlToJsonConverter) MarshalBinary() (data []byte, err error) {
+	return yaml.YAMLToJSON([]byte(j.yaml))
 }
 
 func JSONMarshaler(v interface{}) encoding.BinaryMarshaler {
