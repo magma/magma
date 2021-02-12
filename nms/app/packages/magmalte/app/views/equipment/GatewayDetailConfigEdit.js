@@ -786,6 +786,7 @@ export function EPCEdit(props: Props) {
 }
 
 const DEFAULT_DNS_CONFIG = {
+  dhcp_server_enabled: false,
   enable_caching: false,
   local_ttl: 0,
   records: [],
