@@ -10,6 +10,7 @@
         "type": "subcategory",
         "label": "Deploy Orchestrator",
         "ids": [
+          "orc8r/intro",
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
           "orc8r/deploy_install",
