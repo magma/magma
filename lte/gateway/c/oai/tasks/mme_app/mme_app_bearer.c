@@ -3795,9 +3795,6 @@ void mme_app_handle_modify_bearer_rsp(
               ue_context_p->mme_ue_s1ap_id);
           mme_app_handle_create_dedicated_bearer_rej(
               ue_context_p, ue_context_p->pending_ded_ber_req[idx]->linked_ebi);
-        } else{
-          // Added dedicated bearer successfully, update s1u bearer stats
-          update_mme_app_stats_s1u_bearer_add();
         }
       } else {
         mme_app_handle_create_dedicated_bearer_rej(
