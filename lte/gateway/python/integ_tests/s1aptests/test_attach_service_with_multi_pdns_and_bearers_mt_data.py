@@ -328,7 +328,13 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
             self._s1ap_wrapper.s1_util.issue_cmd(
                 s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
             )
-            response = self._s1ap_wrapper.s1_util.get_response()
+            # Wait for INT_CTX_SETUP_IND
+            while response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value:
+                print(
+                    "Received Paging Indication for ue-id", ue_id,
+                )
+                response = self._s1ap_wrapper.s1_util.get_response()
+
             self.assertEqual(
                 response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             )
