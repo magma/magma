@@ -58,12 +58,16 @@ task_zmq_ctx_t sctp_task_zmq_ctx;
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   zframe_t* msg_frame = zframe_recv(reader);
   assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p    = (MessageDef*) zframe_data(msg_frame);
+  static bool UPLINK_SERVER_STARTED = false;
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SCTP_INIT_MSG: {
-      if (start_sctpd_uplink_server() < 0) {
-        Fatal("Failed to start sctpd uplink server\n");
+      if (!UPLINK_SERVER_STARTED) {
+        if (start_sctpd_uplink_server() < 0) {
+          Fatal("Failed to start sctpd uplink server\n");
+        }
+        UPLINK_SERVER_STARTED = true;
       }
 
       if (sctpd_init(&received_message_p->ittiMsg.sctpInit) < 0) {
@@ -83,8 +87,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
         send_msg_to_task(&sctp_task_zmq_ctx, TASK_AMF_APP, msg);
       } else {
         OAILOG_ERROR(
-            LOG_SCTP,
-            "Invalid Ppid: %d",
+            LOG_SCTP, "Invalid Ppid: %d",
             received_message_p->ittiMsg.sctpInit.ppid);
       }
     } break;
@@ -100,8 +103,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
       if (sctpd_send_dl(ppid, assoc_id, stream, payload) < 0) {
         if (ppid == S1AP) {
-          OAILOG_DEBUG(
-              LOG_SCTP, "Ppid S1AP in sctp_data_req ");
+          OAILOG_DEBUG(LOG_SCTP, "Ppid S1AP in sctp_data_req ");
           sctp_itti_send_lower_layer_conf(
               received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id,
               stream, SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id, false);
@@ -145,7 +147,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 static void* sctp_thread(__attribute__((unused)) void* args_p) {
   itti_mark_task_ready(TASK_SCTP);
   init_task_context(
-      TASK_SCTP, (task_id_t[]){TASK_MME_APP, TASK_S1AP, TASK_NGAP, TASK_AMF_APP}, 4,
+      TASK_SCTP,
+      (task_id_t[]){TASK_MME_APP, TASK_S1AP, TASK_NGAP, TASK_AMF_APP}, 4,
       handle_message, &sctp_task_zmq_ctx);
 
   zloop_start(sctp_task_zmq_ctx.event_loop);
@@ -166,7 +169,7 @@ int sctp_init(const mme_config_t* mme_config_p) {
     return -1;
   }
 
-OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: DONE\n");
+  OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: DONE\n");
   return 0;
 }
 
