@@ -14,7 +14,9 @@ limitations under the License.
 package servicers
 
 import (
+	"fmt"
 	"net"
+	"time"
 
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
@@ -38,10 +40,13 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 	// - AGW user plane FTEID, provided by the bearer in the request
 
 	// FEG control plane TEID
-	cFegFTeid := gtpCli.NewSenderFTEID(gtpCli.GetLocalAddress().String(), "")
-
-	// PGW control plane local control plane TEID
-	cPgwFTeid := gtpCli.Conn.NewSenderFTEID(cPgwUDPAddr.IP.String(), "")
+	// TODO: look for a better way to find the local ip (avoid pinging on each request)
+	// (obtain the IP that is going to send the packet first)
+	ip, err := gtp.GetOutboundIP(cPgwUDPAddr)
+	if err != nil {
+		return nil, MagmaSessionFTeids{}, err
+	}
+	cFegFTeid := gtpCli.NewSenderFTEID(ip.String(), "")
 
 	// AGW user plane TEID (comming from request)
 	uAgwFTeidReq := req.BearerContext.GetUserPlaneFteid()
@@ -57,14 +62,17 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 	bearerId := ie.NewEPSBearerID(uint8(req.BearerContext.Id))
 	bearer := ie.NewBearerContext(bearerId, uAgwFTeid, ieQos)
 
-	// TODO: set apn restriction
+	//timezone
+	offset := time.Duration(req.TimeZone.DeltaSeconds) * time.Second
+	daylightSavingTime := uint8(req.TimeZone.DaylightSavingTime)
 
+	// TODO: set charging characteristics
 	return []*ie.IE{
 		ie.NewIMSI(req.GetImsi()),
 		bearer,
 		cFegFTeid,
-		cPgwFTeid,
 		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
+		getPdnType(req.PdnType),
 		getPDNAddressAllocation(req),
 		ie.NewMSISDN(string(req.Msisdn[:])),
 		ie.NewMobileEquipmentIdentity(req.Mei),
@@ -75,9 +83,11 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 		ie.NewSelectionMode(gtpv2.SelectionModeMSorNetworkProvidedAPNSubscribedVerified),
 		// TODO: hardcoded indication flags
 		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
-		ie.NewPDNType(uint8(req.PdnType)),
+		// TODO: Hardcoded apn restriction
+		ie.NewAPNRestriction(gtpv2.APNRestrictionNoExistingContextsorRestriction),
 		ie.NewAggregateMaximumBitRate(uint32(req.Ambr.BrUl), uint32(req.Ambr.BrDl)),
-	}, MagmaSessionFTeids{cPgwFTeid, uAgwFTeid}, nil
+		ie.NewUETimeZone(offset, daylightSavingTime),
+	}, MagmaSessionFTeids{cFegFTeid, uAgwFTeid}, nil
 }
 
 // buildModifyBearerRequest creates a slice with all the IE needed for a Modify Bearer Request
@@ -107,6 +117,24 @@ func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
 		res = ie.NewPDNAddressAllocationDual(req.Paa.Ipv4Address, req.Paa.Ipv6Address, uint8(req.Paa.Ipv6Prefix))
 	}
 	return res
+}
+
+// getPdnType convert proto PDNType into GTP PDN type
+func getPdnType(pdnType protos.PDNType) *ie.IE {
+	var res = uint8(0)
+	switch pdnType {
+	case protos.PDNType_IPV4:
+		res = gtpv2.PDNTypeIPv4 // v4
+	case protos.PDNType_IPV6:
+		res = gtpv2.PDNTypeIPv6 // v6
+	case protos.PDNType_IPV4V6:
+		res = gtpv2.PDNTypeIPv4 // v4v6
+	case protos.PDNType_NonIP:
+		res = gtpv2.PDNTypeNonIP // nonIP
+	default:
+		panic(fmt.Sprintf("getPdnType %d does not exist", pdnType))
+	}
+	return ie.NewPDNType(res)
 }
 
 func getUserLocationIndication(mcc, mnc string, uli *protos.UserLocationInformation) *ie.IE {

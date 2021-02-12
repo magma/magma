@@ -44,9 +44,9 @@ type LastValues struct {
 	LastQos   *protos.QosInformation
 }
 
-func NewStarted(ctx context.Context, sgwAddrStr, pgwAddrsStr string) (*MockPgw, error) {
+func NewStarted(ctx context.Context, pgwAddrsStr string) (*MockPgw, error) {
 	mPgw := New()
-	err := mPgw.Start(ctx, sgwAddrStr, pgwAddrsStr)
+	err := mPgw.Start(ctx, pgwAddrsStr)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func New() *MockPgw {
 	return &MockPgw{}
 }
 
-func (mPgw *MockPgw) Start(ctx context.Context, sgwAddrStr, pgwAddrsStr string) error {
+func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 	/*
 		pgwAddrs, err := net.ResolveUDPAddr("udp", pgwAddrsStr)
 		if err != nil {

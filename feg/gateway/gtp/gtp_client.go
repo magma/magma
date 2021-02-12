@@ -35,8 +35,7 @@ const (
 
 type Client struct {
 	*gtpv2.Conn
-	connType  uint8
-	localAddr *net.UDPAddr
+	connType uint8
 }
 
 // NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incomming calls
@@ -67,14 +66,12 @@ func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8
 	}
 
 	localAddr := &net.UDPAddr{IP: ipAddr, Port: port, Zone: ""}
-	c := NewClient(localAddr, connType)
-	c.Enable()
-	err = c.Run(ctx)
+	c := newClient(localAddr, connType)
+	c.enable(localAddr)
+	err = c.run(ctx)
 	if err != nil {
 		return nil, err
 	}
-	//TODO: remove this wait once there is a way to check when the listener is ready
-	c.WaitUntilClientIsReady(0)
 	return c, nil
 }
 
@@ -100,7 +97,7 @@ func NewConnectedAutoClient(ctx context.Context, remoteIPAndPortStr string, conn
 // available. It also runs the GTP-C server waiting for incoming calls
 func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr, connType uint8) (*Client, error) {
 	var err error
-	c := NewClient(localAddr, connType)
+	c := newClient(localAddr, connType)
 	c.Conn, err = gtpv2.Dial(ctx, localAddr, remoteAddr, connType, 0)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to GTP-C %s server: %s", remoteAddr.String(), err)
@@ -110,20 +107,19 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 
 // NewClient creates basic configuration structure for a GTP-C client. It does
 // not starts any connection or server.
-func NewClient(localAddr *net.UDPAddr, connType uint8) *Client {
+func newClient(localAddr *net.UDPAddr, connType uint8) *Client {
 	return &Client{
-		connType:  connType,
-		localAddr: localAddr,
+		connType: connType,
 	}
 }
 
 // Enable just creates the object connection enabling messages to be sent
-func (c *Client) Enable() {
-	c.Conn = gtpv2.NewConn(c.localAddr, c.connType, 0)
+func (c *Client) enable(localAddr *net.UDPAddr) {
+	c.Conn = gtpv2.NewConn(localAddr, c.connType, 0)
 }
 
 // Run launches the actual GTP-C cluent which will be able to send and receive GTP-C messages
-func (c *Client) Run(ctx context.Context) error {
+func (c *Client) run(ctx context.Context) error {
 	if c.Conn == nil {
 		return fmt.Errorf("nil conn object. You may need to Enable the client first")
 	}
@@ -136,11 +132,9 @@ func (c *Client) Run(ctx context.Context) error {
 			return
 		}
 	}()
+	//TODO: remove this wait once there is a way to check when the listener is ready
+	c.WaitUntilClientIsReady(0)
 	return nil
-}
-
-func (c *Client) GetLocalAddress() *net.UDPAddr {
-	return c.localAddr
 }
 
 func (c *Client) GetSessionAndCTeidByIMSI(imsi string) (*gtpv2.Session, uint32, error) {

@@ -14,18 +14,25 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s8_proxy/servicers"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
 	"magma/orc8r/cloud/go/tools/commands"
+
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/jsonpb"
+	protobuf_proto "github.com/golang/protobuf/proto"
 )
 
 var (
@@ -39,11 +46,14 @@ var (
 	testServerAddr string = "127.0.0.1:0"
 	pgwServerAddr  string
 
-	withecho bool   = false
-	apn      string = "internet.com"
+	withecho  bool   = false
+	apn       string = "internet.com"
+	uTeid     uint
+	localPort string = "2123"
 )
 
 func init() {
+
 	// Enable logging
 	flag.Set("v", "10")             // enable the most verbose logging, can be overwritten by 'v' flag
 	flag.Set("logtostderr", "true") // enable printing to console, can be overwritten by 'logtostderr' flag
@@ -64,17 +74,24 @@ func init() {
 	csFlags.BoolVar(&testServer, "test", testServer,
 		fmt.Sprintf("Start local test s8 server bound to default PGW address (%s)", testServerAddr))
 
+	csFlags.StringVar(&localPort, "localport", localPort,
+		"S8 local port to run the server")
+
 	csFlags.StringVar(&pgwServerAddr, "server", pgwServerAddr,
 		"PGW IP:port to send request with format ip:port")
 
 	csFlags.BoolVar(&withecho, "withecho", withecho,
-		fmt.Sprintf("Starts s8 proxy checking PGW is alive (%s)", pgwServerAddr))
+		fmt.Sprint("Starts s8 proxy checking PGW is alive"))
 
 	csFlags.BoolVar(&useMconfig, "use_mconfig", false,
 		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
 
 	csFlags.BoolVar(&useBuiltinCli, "use_builtincli", true,
 		"Use local built in client instead of the running instance on the gateway")
+
+	rand.Seed(time.Now().UTC().UnixNano())
+	csFlags.UintVar(&uTeid, "teid", uint(rand.Uint32()),
+		"User Plane Teid on the magmaa side. Default is random")
 
 	csFlags.StringVar(&apn, "apn", apn,
 		"APN on the request")
@@ -102,7 +119,7 @@ func createSession(cmd *commands.Command, args []string) int {
 	}
 
 	conf := &servicers.S8ProxyConfig{
-		ClientAddr: ":0",
+		ClientAddr: fmt.Sprintf(":%s", localPort),
 		ServerAddr: pgwServerAddr,
 	}
 
@@ -135,12 +152,13 @@ func createSession(cmd *commands.Command, args []string) int {
 
 	// Dummy request
 
-	// Create Session Request message
+	// Create Session Request messagea
+	_, offset := time.Now().Zone()
 	csReq := &protos.CreateSessionRequestPgw{
 		PgwAddrs: pgwServerAddr,
 		Imsi:     imsi,
 		Msisdn:   "00111",
-		Mei:      "542990449908273",
+		Mei:      generateIMEIbasedOnIMSI(imsi),
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "310",
 			Mnc: "14",
@@ -149,9 +167,9 @@ func createSession(cmd *commands.Command, args []string) int {
 		BearerContext: &protos.BearerContext{
 			Id: 5,
 			UserPlaneFteid: &protos.Fteid{
-				Ipv4Address: "127.0.0.10",
+				Ipv4Address: generateRandomIPv4(),
 				Ipv6Address: "",
-				Teid:        123456,
+				Teid:        uint32(uTeid),
 			},
 			Qos: &protos.QosInformation{
 				Pci:                     0,
@@ -194,7 +212,13 @@ func createSession(cmd *commands.Command, args []string) int {
 			EMeNbi: 8,
 		},
 		IndicationFlag: nil,
+		TimeZone: &protos.TimeZone{
+			DeltaSeconds:       int32(offset),
+			DaylightSavingTime: 0,
+		},
 	}
+
+	printGRPCMessage("Send: ", csReq)
 
 	res, err := cli.CreateSession(csReq)
 
@@ -202,7 +226,7 @@ func createSession(cmd *commands.Command, args []string) int {
 		fmt.Printf("Create Session cli command failed: %s\n", err)
 		return 9
 	}
-	fmt.Printf("Create Session returned:\n\tCreateSessionReturnPGw{%s}\n", res.String())
+	printGRPCMessage("Received: ", res)
 	return 0
 }
 
@@ -211,15 +235,20 @@ func parseArgs(f *flag.FlagSet) (string, error) {
 		fmt.Printf("IMSI not provided. Using default IMSI: %s\n", IMSI)
 		return IMSI, nil
 	}
-	if f.NArg() > 1 {
-		return "", fmt.Errorf("Please provide only an IMSI argument - all other parameters should be provided with flags: %+v\n", f.Args())
-	}
 	imsi := strings.TrimSpace(f.Arg(0))
 	err := validateImsi(imsi)
 	if err != nil {
 		return "", err
 	}
 	return imsi, nil
+}
+
+func generateIMEIbasedOnIMSI(imsi string) string {
+	return fmt.Sprintf("94449%s", imsi[len(imsi)-10:])
+}
+
+func generateRandomIPv4() string {
+	return fmt.Sprintf("172.%d.%d.%d", rand.Intn(255), rand.Intn(255), rand.Intn(255))
 }
 
 func validateImsi(imsi string) error {
@@ -235,7 +264,7 @@ func validateImsi(imsi string) error {
 
 func startTestServer() (string, error) {
 	// Create and run PGW
-	mockPgw, err := mock_pgw.NewStarted(nil, "", testServerAddr)
+	mockPgw, err := mock_pgw.NewStarted(nil, testServerAddr)
 	if err != nil {
 		return "", fmt.Errorf("Error creating test server mock PGW: +%s\n", err)
 	}
@@ -243,6 +272,22 @@ func startTestServer() (string, error) {
 	pgwServerAddr = mockPgw.LocalAddr().String()
 
 	return pgwServerAddr, nil
+}
+
+func printGRPCMessage(prefix string, v interface{}) {
+	var payload string
+	if pm, ok := v.(protobuf_proto.Message); ok {
+		var buf bytes.Buffer
+		err := (&jsonpb.Marshaler{EmitDefaults: true, Indent: "\t", OrigName: true}).Marshal(&buf, pm)
+		if err == nil {
+			payload = buf.String()
+		} else {
+			payload = fmt.Sprintf("\n\t JSON encoding error: %v; %s", err, buf.String())
+		}
+	} else {
+		payload = fmt.Sprintf("\n\t %T is not proto.Message; %+v", v, v)
+	}
+	glog.Infof("%s%T: %s", prefix, v, payload)
 }
 
 func main() {

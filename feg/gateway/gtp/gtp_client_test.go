@@ -47,7 +47,7 @@ func TestEcho(t *testing.T) {
 }
 
 // TestReCreateSession tests the creation of new session over an existing session with the same IMSI
-func TeastGtpClient(t *testing.T) {
+func TestGtpClient(t *testing.T) {
 	// run GTP server (PGW)
 	pgwCli := startGTPServer(t)
 	actualServerIPAndPort := pgwCli.LocalAddr().String()
@@ -59,8 +59,12 @@ func TeastGtpClient(t *testing.T) {
 	remoteAddr, err := net.ResolveUDPAddr("udp", actualServerIPAndPort)
 	assert.NoError(t, err)
 
+	// find out the local interface to be used (because it is not specified for testing in sgwAddrs)
+	localIP, err := GetOutboundIP(remoteAddr)
+	assert.NoError(t, err)
+
 	// test CreateSession
-	csr := getCreateSessionRequest(t, cli, actualServerIPAndPort, bearerId1, qci1)
+	csr := getCreateSessionRequest(t, cli, localIP, actualServerIPAndPort, bearerId1, qci1)
 	expectedSession, _, err := cli.CreateSession(remoteAddr, csr...)
 	assert.NoError(t, err)
 
@@ -73,7 +77,7 @@ func TeastGtpClient(t *testing.T) {
 	assert.Equal(t, qci1, session.GetDefaultBearer().QCI)
 
 	// create same session with differnt QCI (old session should be removed)
-	csr = getCreateSessionRequest(t, cli, actualServerIPAndPort, bearerId1, qci2)
+	csr = getCreateSessionRequest(t, cli, localIP, actualServerIPAndPort, bearerId1, qci2)
 	session, _, err = cli.CreateSession(remoteAddr, csr...)
 	assert.NoError(t, err)
 	cteid, err = session.GetTEID(gtpv2.IFTypeS5S8PGWGTPC)
@@ -88,9 +92,9 @@ func startGTPServer(t *testing.T) *Client {
 	return pgwConn
 }
 
-func getCreateSessionRequest(t *testing.T, cli *Client, raddrs string, bearerId, qci uint8) []*ie.IE {
+func getCreateSessionRequest(t *testing.T, cli *Client, laddrs net.IP, raddrs string, bearerId, qci uint8) []*ie.IE {
 	// sgw will chose random teid on sgw side
-	cSgwFTeid := cli.NewSenderFTEID(cli.GetLocalAddress().String(), "")
+	cSgwFTeid := cli.NewSenderFTEID(laddrs.String(), "")
 	// pgw TEID will be 0. PGW will select one for sgw in the response
 	cPgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8PGWGTPC, 0, raddrs, "").WithInstance(1)
 

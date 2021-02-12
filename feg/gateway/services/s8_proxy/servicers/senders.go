@@ -62,6 +62,7 @@ func (s *S8Proxy) sendAndReceiveCreateSession(cPgwUDPAddr *net.UDPAddr, csReqIEs
 		s.gtpClient.RemoveSession(session)
 		return nil, fmt.Errorf("Wrong response type (no CreateSessionResponse), maybe received out of order response message: %s", err)
 	}
+	// TODO : Delete
 	glog.V(2).Infof("Create Session Response (grpc):\n%s", csRes.String())
 	return csRes, nil
 }

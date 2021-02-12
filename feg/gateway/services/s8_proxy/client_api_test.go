@@ -2,6 +2,7 @@ package s8_proxy_test
 
 import (
 	"testing"
+	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/s8_proxy"
@@ -33,6 +34,7 @@ func TestS8ProxyClient(t *testing.T) {
 
 	//------------------------
 	//---- Create Session ----
+	_, offset := time.Now().Zone()
 	csReq := &protos.CreateSessionRequestPgw{
 		PgwAddrs: actualPgwAddress,
 		Imsi:     IMSI1,
@@ -91,6 +93,10 @@ func TestS8ProxyClient(t *testing.T) {
 			EMeNbi: 8,
 		},
 		IndicationFlag: nil,
+		TimeZone: &protos.TimeZone{
+			DeltaSeconds:       int32(offset),
+			DaylightSavingTime: 0,
+		},
 	}
 
 	csRes, err := s8_proxy.CreateSession(csReq)

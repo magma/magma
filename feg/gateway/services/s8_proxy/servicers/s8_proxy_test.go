@@ -15,6 +15,7 @@ import (
 	"context"
 	"log"
 	"testing"
+	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
@@ -25,14 +26,14 @@ import (
 
 const (
 	//port 0 means golang will choose the port. Selected port will be injected on getDefaultConfig
-	s8proxyAddrs = "127.0.0.1:0" // equivalent to sgwAddrs
-	pgwAddrs     = "127.0.0.1:9997"
+	s8proxyAddrs = ":0" // equivalent to sgwAddrs
+	pgwAddrs     = "127.0.0.1:0"
 	IMSI1        = "123456789012345"
 )
 
 func TestS8Proxy(t *testing.T) {
 	// Create and run PGW
-	mockPgw, err := mock_pgw.NewStarted(nil, s8proxyAddrs, pgwAddrs)
+	mockPgw, err := mock_pgw.NewStarted(nil, pgwAddrs)
 	if err != nil {
 		t.Fatalf("Error creating mock PGW: +%s", err)
 		return
@@ -54,6 +55,7 @@ func TestS8Proxy(t *testing.T) {
 
 	//------------------------
 	//---- Create Session ----
+	_, offset := time.Now().Zone()
 	csReq := &protos.CreateSessionRequestPgw{
 		PgwAddrs: actualPgwAddress,
 		Imsi:     IMSI1,
@@ -112,6 +114,10 @@ func TestS8Proxy(t *testing.T) {
 			EMeNbi: 8,
 		},
 		IndicationFlag: nil,
+		TimeZone: &protos.TimeZone{
+			DeltaSeconds:       int32(offset),
+			DaylightSavingTime: 0,
+		},
 	}
 
 	// Send and receive Create Session Request
