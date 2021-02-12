@@ -16,7 +16,7 @@ name: orc8r
 version: 1.5.11
 engine: gotpl
 sources:
-  - https://github.com/facebookincubator/magma
+  - https://github.com/magma/magma
 keywords:
   - magma
   - or8cr

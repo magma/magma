@@ -20,6 +20,7 @@ from magma.pipelined.qos.qos_tc_impl import TCManager, TrafficClass
 from magma.pipelined.qos.types import QosInfo, get_json, get_key, get_subscriber_key
 from magma.pipelined.qos.utils import QosStore
 from magma.configuration.service_configs import load_service_config
+import traceback
 
 LOG = logging.getLogger("pipelined.qos.common")
 # LOG.setLevel(logging.DEBUG)
@@ -74,13 +75,14 @@ class SubscriberState(object):
     """
      Map subscriber -> sessions
     """
-    def __init__(self, imsi: str, qos_store : Dict):
+
+    def __init__(self, imsi: str, qos_store: Dict):
         self.imsi = imsi
-        self.rules = {}   # rule -> qos handle
+        self.rules = {}  # rule -> qos handle
         self.sessions = {}  # IP -> [sessions(ip, qos_argumets, rule_no), ...]
         self._redis_store = qos_store
 
-    def check_empty(self,) -> bool:
+    def check_empty(self, ) -> bool:
         return not self.rules and not self.sessions
 
     def get_or_create_session(self, ip_addr: str):
@@ -93,7 +95,7 @@ class SubscriberState(object):
     def remove_session(self, ip_addr: str) -> None:
         del self.sessions[ip_addr]
 
-    def find_session_with_rule(self, rule_num: int) ->SubscriberSession:
+    def find_session_with_rule(self, rule_num: int) -> SubscriberSession:
         session_with_rule = None
         for session in self.sessions.values():
             if rule_num in session.rules:
@@ -131,8 +133,8 @@ class SubscriberState(object):
     def get_all_rules(self, ) -> List:
         return self.rules
 
-    def get_all_empty_sessions(self,) -> List:
-        return [ s for s in self.sessions.values() if not s.rules]
+    def get_all_empty_sessions(self, ) -> List:
+        return [s for s in self.sessions.values() if not s.rules]
 
     def get_qos_handle(self, rule_num: int, direction: FlowMatch.Direction) -> int:
         rule = self.rules.get(rule_num)
@@ -144,6 +146,16 @@ class SubscriberState(object):
 
 
 class QosManager(object):
+    qos_mgr = None
+
+    @staticmethod
+    def get_qos_manager(datapath, loop, config):
+        if QosManager.qos_mgr:
+            LOG.debug("Got QosManager instance")
+            return QosManager.qos_mgr
+        QosManager.qos_mgr = QosManager(datapath, loop, config)
+        return QosManager.qos_mgr
+
     @staticmethod
     def get_impl(datapath, loop, config):
         try:
@@ -207,6 +219,8 @@ class QosManager(object):
             self._loop.call_later(self._redis_conn_retry_secs, self.setup)
 
     def _setupInternal(self):
+        if self._initialized:
+            return
         if self._clean_restart:
             LOG.info("Qos Setup: clean start")
             self.impl.destroy()
@@ -215,10 +229,12 @@ class QosManager(object):
             self._initialized = True
         else:
             # read existing state from qos_impl
-            LOG.info("Qos Setup: recovering existing state pbs1")
+            LOG.info("Qos Setup: recovering existing state")
             self.impl.setup()
 
-            qos_state = self.impl.read_all_state()
+            qos_state, apn_qid_list = self.impl.read_all_state()
+            LOG.debug("qos_state -> %s", qos_state)
+            LOG.debug("apn_qid_list -> %s", apn_qid_list)
             try:
                 # populate state from db
                 in_store_qid = set()
@@ -249,16 +265,35 @@ class QosManager(object):
                     del self._redis_store[rule]
 
                 # purge unreferenced qos configs from system
+                # Step 1. Delete child nodes
+                apn_list_for_step_2 = []
                 for qos_handle in qos_state:
                     if qos_handle not in in_store_qid:
+                        if qos_handle in apn_qid_list:
+                            apn_list_for_step_2.append(qos_handle)
+                        else:
+                            LOG.debug("removing qos_handle %d", qos_handle)
+                            self.impl.remove_qos(qos_handle,
+                                                 qos_state[qos_handle]['direction'],
+                                                 recovery_mode=True)
+
+                # Step 2. delete qos handle without any child
+                qos_state2, apn_qid_list2 = self.impl.read_all_state()
+                LOG.debug("intermediate qos_state -> %s", qos_state2)
+                LOG.debug("intermediate apn_qid_list -> %s", apn_qid_list2)
+                for qos_handle in apn_list_for_step_2:
+                    if qos_handle not in apn_qid_list2:
                         LOG.debug("removing qos_handle %d", qos_handle)
                         self.impl.remove_qos(qos_handle,
-                                             qos_state[qos_handle]['direction'], recovery_mode=True)
-
-                LOG.info("init complete with state recovered successfully")
+                                             qos_state[qos_handle]['direction'],
+                                             recovery_mode=True)
+                final_qos_state, _ = self.impl.read_all_state()
+                LOG.info("final_qos_state -> %s", final_qos_state)
+                LOG.info("final_redis state -> %s", self._redis_store)
             except Exception as e:  # pylint: disable=broad-except
                 # in case of any exception start clean slate
-                LOG.error("error %s. restarting clean", str(e))
+
+                LOG.error("error %s. restarting clean %s", e, traceback.format_exc())
                 self._clean_restart = True
 
             self._initialized = True
@@ -271,20 +306,20 @@ class QosManager(object):
         return subscriber_state
 
     def add_subscriber_qos(
-        self,
-        imsi: str,
-        ip_addr: str,
-        apn_ambr : int,
-        rule_num: int,
-        direction: FlowMatch.Direction,
-        qos_info: QosInfo,
+            self,
+            imsi: str,
+            ip_addr: str,
+            apn_ambr: int,
+            rule_num: int,
+            direction: FlowMatch.Direction,
+            qos_info: QosInfo,
     ):
         if not self._qos_enabled or not self._initialized:
             LOG.error("add_subscriber_qos: not enabled or initialized")
             return None, None
 
         LOG.debug("adding qos for imsi %s rule_num %d direction %d apn_ambr %d, qos_info %s",
-                   imsi, rule_num, direction, apn_ambr, qos_info)
+                  imsi, rule_num, direction, apn_ambr, qos_info)
 
         imsi = normalize_imsi(imsi)
 

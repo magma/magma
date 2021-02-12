@@ -28,12 +28,11 @@ from lte.protos.mconfig import mconfigs_pb2
 
 def main():
     """ main() for subscriberdb """
-    service = MagmaService('subscriberdb',
-                           mconfigs_pb2.SubscriberDB(),
-                           workers=1)
+    service = MagmaService('subscriberdb', mconfigs_pb2.SubscriberDB())
 
     # Initialize a store to keep all subscriber data.
-    store = SqliteStore(service.config['db_path'], loop=service.loop)
+    store = SqliteStore(service.config['db_path'], loop=service.loop,
+                        sid_digits=service.config['sid_last_n'])
 
     # Initialize the processor
     processor = Processor(store,

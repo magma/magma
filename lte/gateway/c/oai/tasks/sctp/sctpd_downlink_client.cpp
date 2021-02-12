@@ -113,6 +113,7 @@ int init_sctpd_downlink_client(bool force_restart) {
   auto channel =
       grpc::CreateChannel(DOWNSTREAM_SOCK, grpc::InsecureChannelCredentials());
   _client = std::make_unique<SctpdDownlinkClient>(channel, force_restart);
+  return 0;
 }
 
 // init

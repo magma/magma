@@ -78,14 +78,15 @@
       {
         "type": "subcategory",
         "label": "AGW Development",
-        "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes"]
+        "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes", "lte/eventd"]
       }
     ],
     "Feature Guides": [
       "howtos/ue_metering",
       "howtos/config_agw_bridged",
       "howtos/thanos",
-      "howtos/call_tracing"
+      "howtos/call_tracing",
+      "howtos/events_monitoring"
     ],
     "Debugging Tools": [
       "debugging_tools/show_tech"

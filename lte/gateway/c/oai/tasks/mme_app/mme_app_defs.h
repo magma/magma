@@ -44,11 +44,11 @@
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
 int mme_app_handle_s1ap_ue_capabilities_ind(
-    const itti_s1ap_ue_cap_ind_t const* s1ap_ue_cap_ind_pP);
+    const itti_s1ap_ue_cap_ind_t* const s1ap_ue_cap_ind_pP);
 
 void mme_app_handle_s1ap_ue_context_release_complete(
     mme_app_desc_t* mme_app_desc_p,
-    const itti_s1ap_ue_context_release_complete_t const*
+    const itti_s1ap_ue_context_release_complete_t* const
         s1ap_ue_context_release_complete);
 
 int mme_app_send_s6a_update_location_req(
@@ -73,11 +73,11 @@ void mme_app_handle_sgs_detach_req(
 
 int mme_app_handle_sgs_eps_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
-    const const itti_sgsap_eps_detach_ack_t* const eps_detach_ack_p);
+    const itti_sgsap_eps_detach_ack_t* const eps_detach_ack_p);
 
 int mme_app_handle_sgs_imsi_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
-    const const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p);
+    const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p);
 
 void mme_app_handle_conn_est_cnf(
     nas_establish_rsp_t* const nas_conn_est_cnf_pP);
@@ -156,7 +156,7 @@ void mme_app_handle_ue_context_modification_timer_expiry(
     void* args, imsi64_t* imsi64);
 
 void mme_app_handle_enb_reset_req(
-    const itti_s1ap_enb_initiated_reset_req_t const* enb_reset_req);
+    const itti_s1ap_enb_initiated_reset_req_t* const enb_reset_req);
 
 int mme_app_handle_initial_paging_request(
     mme_app_desc_t* mme_app_desc_p, const char* imsi);
