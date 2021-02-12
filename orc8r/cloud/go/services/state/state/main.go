@@ -33,18 +33,13 @@ import (
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
 // how often to report gateway status
 const gatewayStatusReportInterval = time.Second * 60
 
 func main() {
-	srv, err := service.NewOrchestratorService(
-		orc8r.ModuleName,
-		state.ServiceName,
-		grpc.MaxSendMsgSize(service.DefaultMaxGRPCMsgSize))
-
+	srv, err := service.NewOrchestratorService(orc8r.ModuleName, state.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating state service %v", err)
 	}

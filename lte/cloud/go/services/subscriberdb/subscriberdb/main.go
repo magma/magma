@@ -30,15 +30,11 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
 func main() {
 	// Create service
-	srv, err := service.NewOrchestratorService(
-		lte.ModuleName,
-		subscriberdb.ServiceName,
-		grpc.MaxRecvMsgSize(service.DefaultMaxGRPCMsgSize))
+	srv, err := service.NewOrchestratorService(lte.ModuleName, subscriberdb.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating service: %v", err)
 	}
