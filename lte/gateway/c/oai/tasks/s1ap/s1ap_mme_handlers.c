@@ -339,15 +339,17 @@ void clean_stale_enb_state(
   // Remove the S1 context for UEs associated with old eNB association
   hashtable_key_array_t* keys =
       hashtable_uint64_ts_get_keys(&stale_enb_association->ue_id_coll);
-  ue_description_t* ue_ref = NULL;
-  for (int i = 0; i < keys->num_keys; i++) {
-    ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t) keys->keys[i]);
-    s1ap_remove_ue(state, ue_ref);
+  if (keys != NULL) {
+    ue_description_t* ue_ref = NULL;
+    for (int i = 0; i < keys->num_keys; i++) {
+      ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t) keys->keys[i]);
+      s1ap_remove_ue(state, ue_ref);
+    }
+    FREE_HASHTABLE_KEY_ARRAY(keys);
   }
-  FREE_HASHTABLE_KEY_ARRAY(keys);
+
   // Remove the old eNB association
   s1ap_remove_enb(state, stale_enb_association);
-  update_mme_app_stats_connected_enb_sub();
   OAILOG_DEBUG(LOG_S1AP, "Removed stale eNB and all associated UEs.");
 }
 
@@ -2273,7 +2275,6 @@ int s1ap_handle_sctp_disconnection(
 
       OAILOG_INFO(LOG_S1AP, "Removing eNB with association id %u \n", assoc_id);
       s1ap_remove_enb(state, enb_association);
-      update_mme_app_stats_connected_enb_sub();
     }
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
