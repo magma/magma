@@ -170,6 +170,13 @@ export default function GatewayConfig() {
                   />
                   <GatewayRAN gwInfo={gwInfo} />
                 </Grid>
+                <Grid item xs={12}>
+                  <CardTitleRow
+                    label="Header Enrichment"
+                    filter={() => editFilter({editTable: 'headerEnrichment'})}
+                  />
+                  <GatewayHE gwInfo={gwInfo} />
+                </Grid>
               </Grid>
             </Grid>
           </Grid>
@@ -404,4 +411,50 @@ function ApnResourcesTable({gwInfo}: {gwInfo: lte_gateway}) {
       }}
     />
   );
+}
+
+function GatewayHE({gwInfo}: {gwInfo: lte_gateway}) {
+  const heEnabled =
+    gwInfo.cellular.he_config?.enable_header_enrichment ?? false;
+  const encryptionEnabled =
+    gwInfo.cellular.he_config?.enable_encryption ?? false;
+  const EncryptionDetail = () => {
+    const encryptionConfig: DataRows[] = [
+      [
+        {
+          category: 'Encryption Key',
+          value: gwInfo.cellular.he_config?.encryption_key || '',
+          obscure: true,
+        },
+        {
+          category: 'Encoding Type',
+          value: gwInfo.cellular.he_config?.he_encoding_type || '',
+        },
+      ],
+      [
+        {
+          category: 'Encryption Algorithm',
+          value: gwInfo.cellular.he_config?.he_encryption_algorithm || '',
+        },
+        {
+          category: 'Hash Function',
+          value: gwInfo.cellular.he_config?.he_hash_function || '',
+        },
+      ],
+    ];
+    return <DataGrid data={encryptionConfig} />;
+  };
+
+  const heConfig: DataRows[] = [
+    [
+      {
+        statusCircle: true,
+        status: heEnabled,
+        category: 'Header Enrichment',
+        value: heEnabled ? 'Enabled' : 'Disabled',
+        collapse: encryptionEnabled ? <EncryptionDetail /> : <></>,
+      },
+    ],
+  ];
+  return <DataGrid data={heConfig} />;
 }
