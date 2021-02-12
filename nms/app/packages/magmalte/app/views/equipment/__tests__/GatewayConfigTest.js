@@ -557,7 +557,7 @@ describe('<AddEditGatewayButton />', () => {
       throw 'invalid type';
     }
 
-    fireEvent.click(getByText('Save And Close'));
+    fireEvent.click(getByText('Save And Continue'));
     await wait();
 
     expect(
@@ -621,6 +621,61 @@ describe('<AddEditGatewayButton />', () => {
           },
         },
         tier: 'default',
+      },
+      gatewayId: 'testGatewayID1',
+      networkId: 'test',
+    });
+    expect(queryByTestId('configEdit')).toBeNull();
+    expect(queryByTestId('dynamicServicesEdit')).toBeNull();
+    expect(queryByTestId('epcEdit')).toBeNull();
+    expect(queryByTestId('ranEdit')).toBeNull();
+    expect(queryByTestId('apnResourcesEdit')).toBeNull();
+    expect(queryByTestId('headerEnrichmentEdit')).not.toBeNull();
+    // Verify Header Enrichment Edit
+    const HeEnabled = getByTestId('enableHE').firstChild;
+    if (
+      HeEnabled instanceof HTMLElement &&
+      HeEnabled.firstChild instanceof HTMLElement
+    ) {
+      fireEvent.click(HeEnabled.firstChild);
+    } else {
+      throw 'invalid type';
+    }
+
+    fireEvent.click(getByText('Save And Close'));
+    await wait();
+
+    expect(
+      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellular,
+    ).toHaveBeenCalledWith({
+      config: {
+        dns: {
+          dhcp_server_enabled: false,
+          enable_caching: false,
+          local_ttl: 0,
+          records: [],
+        },
+        epc: {
+          ip_block: '192.168.128.0/24',
+          nat_enabled: false,
+          dns_primary: '',
+          dns_secondary: '',
+          sgi_management_iface_gw: '',
+          sgi_management_iface_static_ip: '',
+          sgi_management_iface_vlan: '',
+        },
+        ran: {
+          pci: 260,
+          transmit_enabled: true,
+        },
+        he_config: {
+          enable_encryption: false,
+          enable_header_enrichment: true,
+          he_encoding_type: 'BASE64',
+          he_encryption_algorithm: 'RC4',
+          he_hash_function: 'MD5',
+          encryption_key: '',
+        },
       },
       gatewayId: 'testGatewayID1',
       networkId: 'test',

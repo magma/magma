@@ -20,6 +20,7 @@ import type {
   gateway_device,
   gateway_dns_configs,
   gateway_epc_configs,
+  gateway_he_config,
   gateway_logging_configs,
   gateway_ran_configs,
   lte_gateway,
@@ -61,7 +62,12 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {AltFormField} from '../../components/FormField';
-import {DynamicServices} from '../../components/GatewayUtils';
+import {
+  DEFAULT_DNS_CONFIG,
+  DEFAULT_GATEWAY_CONFIG,
+  DEFAULT_HE_CONFIG,
+  DynamicServices,
+} from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
@@ -73,52 +79,7 @@ const RAN_TITLE = 'Ran';
 const AGGREGATION_TITLE = 'Aggregation';
 const EPC_TITLE = 'Epc';
 const APN_RESOURCES_TITLE = 'APN Resources';
-const DEFAULT_GATEWAY_CONFIG = {
-  apn_resources: {},
-  cellular: {
-    epc: {
-      ip_block: '192.168.128.0/24',
-      nat_enabled: true,
-      dns_primary: '',
-      dns_secondary: '',
-      sgi_management_iface_gw: '',
-      sgi_management_iface_static_ip: '',
-      sgi_management_iface_vlan: '',
-    },
-    ran: {
-      pci: 260,
-      transmit_enabled: true,
-    },
-  },
-  connected_enodeb_serials: [],
-  description: '',
-  device: {
-    hardware_id: '',
-    key: {
-      key: '',
-      key_type: 'SOFTWARE_ECDSA_SHA256',
-    },
-  },
-  id: '',
-  magmad: {
-    autoupgrade_enabled: true,
-    autoupgrade_poll_interval: 60,
-    checkin_interval: 60,
-    checkin_timeout: 30,
-    dynamic_services: [DynamicServices.EVENTD, DynamicServices.TD_AGENT_BIT],
-  },
-  name: '',
-  status: {
-    platform_info: {
-      packages: [
-        {
-          version: '',
-        },
-      ],
-    },
-  },
-  tier: 'default',
-};
+const HEADER_ENRICHMENT_TITLE = 'Header Enrichment';
 
 const useStyles = makeStyles(_ => ({
   appBarBtn: {
@@ -161,6 +122,7 @@ const EditTableType = {
   epc: 2,
   ran: 3,
   apnResources: 4,
+  headerEnrichment: 5,
 };
 
 export type EditProps = {
@@ -222,16 +184,20 @@ function GatewayEditDialog(props: DialogProps) {
   const {open, editProps} = props;
   const classes = useStyles();
   const {match} = useRouter();
-  const [gateway, setGateway] = useState<lte_gateway>({});
+  const [gateway, setGateway] = useState<lte_gateway>(DEFAULT_GATEWAY_CONFIG);
   const gatewayId: string = match.params.gatewayId;
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
   const ctx = useContext(GatewayContext);
   const onClose = () => {
-    setGateway({});
     props.onClose();
   };
+
+  useEffect(() => {
+    setTabPos(editProps ? EditTableType[editProps.editTable] : 0);
+    setGateway(DEFAULT_GATEWAY_CONFIG);
+  }, [editProps, open]);
 
   return (
     <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="md">
@@ -269,14 +235,18 @@ function GatewayEditDialog(props: DialogProps) {
           disabled={editProps ? false : true}
           label={APN_RESOURCES_TITLE}
         />
+        <Tab
+          key="headerEnrichment"
+          data-testid="headerEnrichmentTab"
+          disabled={editProps ? false : true}
+          label={HEADER_ENRICHMENT_TITLE}
+        />
         ;
       </Tabs>
       {tabPos === 0 && (
         <ConfigEdit
           isAdd={!editProps}
-          gateway={
-            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
-          }
+          gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -291,9 +261,7 @@ function GatewayEditDialog(props: DialogProps) {
       {tabPos === 1 && (
         <DynamicServicesEdit
           isAdd={!editProps}
-          gateway={
-            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
-          }
+          gateway={ctx.state[gatewayId] || gateway}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -308,9 +276,7 @@ function GatewayEditDialog(props: DialogProps) {
       {tabPos === 2 && (
         <EPCEdit
           isAdd={!editProps}
-          gateway={
-            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
-          }
+          gateway={ctx.state[gatewayId] || gateway}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -325,9 +291,7 @@ function GatewayEditDialog(props: DialogProps) {
       {tabPos === 3 && (
         <RanEdit
           isAdd={!editProps}
-          gateway={
-            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
-          }
+          gateway={ctx.state[gatewayId] || gateway}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -342,9 +306,22 @@ function GatewayEditDialog(props: DialogProps) {
       {tabPos === 4 && (
         <ApnResourcesEdit
           isAdd={!editProps}
-          gateway={
-            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
-          }
+          gateway={ctx.state[gatewayId] || gateway}
+          onClose={onClose}
+          onSave={(gateway: lte_gateway) => {
+            setGateway(gateway);
+            if (editProps) {
+              onClose();
+            } else {
+              setTabPos(tabPos + 1);
+            }
+          }}
+        />
+      )}
+      {tabPos === 5 && (
+        <HeaderEnrichmentConfig
+          isAdd={!editProps}
+          gateway={ctx.state[gatewayId] || gateway}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -361,7 +338,7 @@ function GatewayEditDialog(props: DialogProps) {
 
 type Props = {
   isAdd: boolean,
-  gateway?: lte_gateway,
+  gateway: lte_gateway,
   onClose: () => void,
   onSave: lte_gateway => void,
 };
@@ -452,7 +429,7 @@ export function ConfigEdit(props: Props) {
               placeholder="Enter ID"
               fullWidth={true}
               value={gateway.id}
-              readOnly={props.gateway ? true : false}
+              readOnly={props.gateway.id !== '' ? true : false}
               onChange={({target}) =>
                 setGateway({...gateway, id: target.value})
               }
@@ -523,11 +500,10 @@ export function DynamicServicesEdit(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
   const {match} = useRouter();
-
   const gatewayId: string =
-    props.gateway?.id || nullthrows(match.params.gatewayId);
+    props.gateway.id || nullthrows(match.params.gatewayId);
   const [config, setConfig] = useState<magmad_gateway_configs>(
-    props.gateway?.magmad || DEFAULT_GATEWAY_CONFIG.magmad,
+    props.gateway.magmad,
   );
 
   const handleChange = (val: boolean, key: string) => {
@@ -569,7 +545,7 @@ export function DynamicServicesEdit(props: Props) {
       }
 
       const gateway = {
-        ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
+        ...props.gateway,
         magmad: config,
       };
       await ctx.updateGateway({gatewayId, magmadConfigs: config});
@@ -648,22 +624,20 @@ export function EPCEdit(props: Props) {
   };
 
   const [EPCConfig, setEPCConfig] = useState<gateway_epc_configs>(
-    props.gateway?.cellular.epc || DEFAULT_GATEWAY_CONFIG.cellular.epc,
+    props.gateway.cellular.epc,
   );
 
   useEffect(() => {
-    setEPCConfig(
-      props.gateway?.cellular.epc || DEFAULT_GATEWAY_CONFIG.cellular.epc,
-    );
+    setEPCConfig(props.gateway.cellular.epc);
     setError('');
-  }, [props.gateway?.cellular.epc]);
+  }, [props.gateway.cellular.epc]);
 
   const onSave = async () => {
     try {
       const gateway = {
-        ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
+        ...props.gateway,
         cellular: {
-          ...DEFAULT_GATEWAY_CONFIG.cellular,
+          ...props.gateway.cellular,
           epc: EPCConfig,
         },
       };
@@ -784,12 +758,6 @@ export function EPCEdit(props: Props) {
   );
 }
 
-const DEFAULT_DNS_CONFIG = {
-  enable_caching: false,
-  local_ttl: 0,
-  records: [],
-};
-
 export function RanEdit(props: Props) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -797,14 +765,13 @@ export function RanEdit(props: Props) {
   const ctx = useContext(GatewayContext);
   const enbsCtx = useContext(EnodebContext);
   const [ranConfig, setRanConfig] = useState<gateway_ran_configs>(
-    props.gateway?.cellular.ran || DEFAULT_GATEWAY_CONFIG.cellular.ran,
+    props.gateway.cellular.ran,
   );
   const [dnsConfig, setDnsConfig] = useState<gateway_dns_configs>(
-    props.gateway?.cellular.dns ?? {},
+    props.gateway.cellular.dns ?? {},
   );
   const [connectedEnodebs, setConnectedEnodebs] = useState<enodeb_serials>(
-    props.gateway?.connected_enodeb_serials ||
-      DEFAULT_GATEWAY_CONFIG.connected_enodeb_serials,
+    props.gateway.connected_enodeb_serials,
   );
   const handleRanChange = (key: string, val) => {
     setRanConfig({...ranConfig, [key]: val});
@@ -816,9 +783,9 @@ export function RanEdit(props: Props) {
   const onSave = async () => {
     try {
       const gateway = {
-        ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
+        ...props.gateway,
         cellular: {
-          ...(props.gateway?.cellular || DEFAULT_GATEWAY_CONFIG.cellular),
+          ...props.gateway.cellular,
           ran: ranConfig,
           dns: {...DEFAULT_DNS_CONFIG, ...dnsConfig},
         },
@@ -941,8 +908,7 @@ export function ApnResourcesEdit(props: Props) {
   const ctx = useContext(GatewayContext);
   const apnCtx = useContext(ApnContext);
   const lteCtx = useContext(LteNetworkContext);
-  const apnResources: apn_resources =
-    props.gateway?.apn_resources || DEFAULT_GATEWAY_CONFIG.apn_resources;
+  const apnResources: apn_resources = props.gateway.apn_resources ?? {};
   const [apnResourcesRows, setApnResourcesRows] = useState(
     Object.keys(apnResources).map(apn => apnResources[apn]),
   );
@@ -970,7 +936,7 @@ export function ApnResourcesEdit(props: Props) {
         apn => (gatewayApnResources[apn.apn_name] = apn),
       );
       const gateway = {
-        ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
+        ...props.gateway,
         apn_resources: gatewayApnResources,
       };
       await ctx.setState(gateway.id, gateway);
@@ -1088,6 +1054,174 @@ export function ApnResourcesEdit(props: Props) {
               </AccordionDetails>
             </Accordion>
           ))}
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose} skin="regular">
+          Cancel
+        </Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          {props.isAdd ? 'Save And Continue' : 'Save'}
+        </Button>
+      </DialogActions>
+    </>
+  );
+}
+
+export function HeaderEnrichmentConfig(props: Props) {
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [error, setError] = useState('');
+  const ctx = useContext(GatewayContext);
+  const [heConfig, setHeConfig] = useState<gateway_he_config>(
+    props.gateway.cellular.he_config || DEFAULT_HE_CONFIG,
+  );
+
+  const handleHEChange = (key: string, val) => {
+    setHeConfig({...heConfig, [key]: val});
+  };
+  const heEncodingTypes = ['BASE64', 'HEX2BIN'];
+  const heEncryptionAlgorithmTypes = [
+    'RC4',
+    'AES256_CBC_HMAC_MD5',
+    'AES256_ECB_HMAC_MD5',
+    'GZIPPED_AES256_ECB_SHA1',
+  ];
+  const heHashFunctionTypes = ['MD5', 'HEX', 'SHA256'];
+
+  const onSave = async () => {
+    try {
+      const gateway = {
+        ...props.gateway,
+        cellular: {
+          ...props.gateway.cellular,
+          he_config: heConfig,
+        },
+      };
+      await ctx.updateGateway({
+        gatewayId: gateway.id,
+        cellularConfigs: {
+          ...props.gateway.cellular,
+          he_config: heConfig.enable_header_enrichment ? heConfig : undefined,
+        },
+      });
+      enqueueSnackbar('Gateway saved successfully', {
+        variant: 'success',
+      });
+      props.onSave(gateway);
+    } catch (e) {
+      setError(e.response?.data?.message ?? e.message);
+    }
+  };
+
+  return (
+    <>
+      <DialogContent data-testid="headerEnrichmentEdit">
+        <List>
+          {error !== '' && (
+            <AltFormField label={''}>
+              <FormLabel error>{error}</FormLabel>
+            </AltFormField>
+          )}
+          <AltFormField label={'Enable Header Enrichment'}>
+            <Switch
+              data-testid="enableHE"
+              onChange={() =>
+                handleHEChange(
+                  'enable_header_enrichment',
+                  !(heConfig?.enable_header_enrichment ?? false),
+                )
+              }
+              checked={heConfig?.enable_header_enrichment ?? false}
+            />
+          </AltFormField>
+
+          <AltFormField label={'Enable Encryption'}>
+            <Switch
+              data-testid="enableEncryption"
+              disabled={!heConfig.enable_header_enrichment}
+              onChange={() =>
+                handleHEChange(
+                  'enable_encryption',
+                  !(heConfig?.enable_encryption ?? false),
+                )
+              }
+              checked={heConfig?.enable_encryption ?? false}
+            />
+          </AltFormField>
+
+          <AltFormField label={'Encryption Key'}>
+            <OutlinedInput
+              disabled={!heConfig.enable_header_enrichment}
+              data-testid="encryptionKey"
+              type="string"
+              fullWidth={true}
+              value={
+                heConfig.encryption_key ?? DEFAULT_HE_CONFIG.encryption_key
+              }
+              onChange={({target}) =>
+                handleHEChange('encryption_key', target.value)
+              }
+            />
+          </AltFormField>
+
+          <AltFormField label={'Encoding Type'}>
+            <Select
+              disabled={!heConfig.enable_header_enrichment}
+              fullWidth={true}
+              variant={'outlined'}
+              value={
+                heConfig.he_encoding_type ?? DEFAULT_HE_CONFIG.he_encoding_type
+              }
+              onChange={({target}) => {
+                handleHEChange('he_encoding_type', target.value);
+              }}
+              input={<OutlinedInput id="encodingType" />}>
+              {heEncodingTypes.map(type => (
+                <MenuItem key={type} value={type}>
+                  <ListItemText primary={type} />
+                </MenuItem>
+              ))}
+            </Select>
+          </AltFormField>
+          <AltFormField label={'Encryption Algorithm'}>
+            <Select
+              disabled={!heConfig.enable_header_enrichment}
+              fullWidth={true}
+              variant={'outlined'}
+              value={
+                heConfig.he_encryption_algorithm ??
+                DEFAULT_HE_CONFIG.he_encoding_type
+              }
+              onChange={({target}) => {
+                handleHEChange('he_encryption_algorithm', target.value);
+              }}
+              input={<OutlinedInput id="encryptionAlgorithm" />}>
+              {heEncryptionAlgorithmTypes.map(type => (
+                <MenuItem key={type} value={type}>
+                  <ListItemText primary={type} />
+                </MenuItem>
+              ))}
+            </Select>
+          </AltFormField>
+          <AltFormField label={'Hash Function'}>
+            <Select
+              disabled={!heConfig.enable_header_enrichment}
+              fullWidth={true}
+              variant={'outlined'}
+              value={
+                heConfig.he_hash_function ?? DEFAULT_HE_CONFIG.he_encoding_type
+              }
+              onChange={({target}) => {
+                handleHEChange('he_hash_function', target.value);
+              }}
+              input={<OutlinedInput id="hashFunction" />}>
+              {heHashFunctionTypes.map(type => (
+                <MenuItem key={type} value={type}>
+                  <ListItemText primary={type} />
+                </MenuItem>
+              ))}
+            </Select>
+          </AltFormField>
         </List>
       </DialogContent>
       <DialogActions>
