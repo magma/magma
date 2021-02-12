@@ -563,7 +563,6 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name);
       s1ap_remove_enb(state, enb_ref);
-      update_mme_app_stats_connected_enb_sub();
     }
   }
 }
@@ -577,4 +576,5 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref) {
   hashtable_uint64_ts_destroy(&enb_ref->ue_id_coll);
   hashtable_ts_free(&state->enbs, enb_ref->sctp_assoc_id);
   state->num_enbs--;
+  update_mme_app_stats_connected_enb_sub();
 }
