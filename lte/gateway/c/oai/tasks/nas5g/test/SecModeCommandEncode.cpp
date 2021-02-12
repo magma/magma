@@ -68,7 +68,6 @@ int encode(void) {
   MLOG(MDEBUG) << "---Decoding encoded message--- ";
   int ret2 = 0;
   ret2     = msg.DecodeSecurityModeCommandMsg(&msg, buffer, len);
-  MLOG(MDEBUG) << "\n\n";
   return 0;
 }
 }  // namespace magma5g

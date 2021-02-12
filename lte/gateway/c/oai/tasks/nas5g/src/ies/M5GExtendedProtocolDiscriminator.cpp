@@ -8,14 +8,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #include <sstream>
 #include <cstdint>
 #include "M5GExtendedProtocolDiscriminator.h"
 #include "M5GCommonDefs.h"
+
 using namespace std;
 namespace magma5g {
 ExtendedProtocolDiscriminatorMsg::ExtendedProtocolDiscriminatorMsg(){};
-
 ExtendedProtocolDiscriminatorMsg::~ExtendedProtocolDiscriminatorMsg(){};
 
 // Decode ExtendedProtocolDiscriminator IE

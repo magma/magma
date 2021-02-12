@@ -8,6 +8,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #include <sstream>
 #include <cstdint>
 #include <cstring>
@@ -15,10 +16,8 @@
 #include "M5GCommonDefs.h"
 
 using namespace std;
-
 namespace magma5g {
 EAPMessageMsg::EAPMessageMsg(){};
-
 EAPMessageMsg::~EAPMessageMsg(){};
 
 // Decode EAP Message

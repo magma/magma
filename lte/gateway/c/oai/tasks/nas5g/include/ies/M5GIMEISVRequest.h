@@ -18,7 +18,7 @@ namespace magma5g {
 class ImeisvRequestMsg {
  public:
 #define IMEISV_REQUEST_MINIMUM_LENGTH 1
-  uint8_t iei;
+  uint8_t iei : 4;
   uint8_t spare : 1;
   uint8_t imeisv_request : 3;
 

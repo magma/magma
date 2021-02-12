@@ -17,7 +17,6 @@
 using namespace std;
 namespace magma5g {
 M5GSIdentityTypeMsg::M5GSIdentityTypeMsg(){};
-
 M5GSIdentityTypeMsg::~M5GSIdentityTypeMsg(){};
 
 // Decode M5GSIdentityType IE

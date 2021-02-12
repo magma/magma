@@ -27,7 +27,6 @@ int AuthenticationResponseParameterMsg::
         AuthenticationResponseParameterMsg* response_parameter, uint8_t iei,
         uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
-  uint8_t ielen    = 0;
 
   MLOG(MDEBUG) << "Decoding Authentication Response Parameter IE";
 

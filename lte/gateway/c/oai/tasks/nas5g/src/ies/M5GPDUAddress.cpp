@@ -32,15 +32,14 @@ int PDUAddressMsg::DecodePDUAddressMsg(
 int PDUAddressMsg::EncodePDUAddressMsg(
     PDUAddressMsg* pdu_address, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
-  uint8_t* lenPtr;
 
+  //CHECKING IEI
   if (iei > 0) {
-    pdu_address->iei = (*buffer & 0xf0) >> 4;
+    pdu_address->iei = (*buffer + encoded);
     CHECK_IEI_DECODER(iei, (unsigned char) pdu_address->iei);
     encoded++;
   }
 
-  lenPtr = (buffer + encoded);
   encoded++;
   *(buffer + encoded) = 0x00 | (pdu_address->type_val & 0x07);
   MLOG(MDEBUG) << "EncodePDUAddressMsg__: type_val = " << hex

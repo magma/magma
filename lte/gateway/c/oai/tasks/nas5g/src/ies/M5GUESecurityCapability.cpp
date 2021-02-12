@@ -82,48 +82,6 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   MLOG(MDEBUG) << " ia6 = " << hex << int(ue_sec_capability->ia6) << endl;
   MLOG(MDEBUG) << " ia7 = " << hex << int(ue_sec_capability->ia7) << endl;
 
-#ifdef HANDLE_POST_MVC
-  // EPS encryption algorithms
-  ue_sec_capability->eea0 = (*(buffer + decoded) >> 7) & 0x1;
-  ue_sec_capability->eea1 = (*(buffer + decoded) >> 6) & 0x1;
-  ue_sec_capability->eea2 = (*(buffer + decoded) >> 5) & 0x1;
-  ue_sec_capability->eea3 = (*(buffer + decoded) >> 4) & 0x1;
-  ue_sec_capability->eea4 = (*(buffer + decoded) >> 3) & 0x1;
-  ue_sec_capability->eea5 = (*(buffer + decoded) >> 2) & 0x1;
-  ue_sec_capability->eea6 = (*(buffer + decoded) >> 1) & 0x1;
-  ue_sec_capability->eea7 = *(buffer + decoded) & 0x1;
-  decoded++;
-  // EPS integrity algorithms
-  ue_sec_capability->eia0 = (*(buffer + decoded) >> 7) & 0x1;
-  ue_sec_capability->eia1 = (*(buffer + decoded) >> 6) & 0x1;
-  ue_sec_capability->eia2 = (*(buffer + decoded) >> 5) & 0x1;
-  ue_sec_capability->eia3 = (*(buffer + decoded) >> 4) & 0x1;
-  ue_sec_capability->eia4 = (*(buffer + decoded) >> 3) & 0x1;
-  ue_sec_capability->eia5 = (*(buffer + decoded) >> 2) & 0x1;
-  ue_sec_capability->eia6 = (*(buffer + decoded) >> 1) & 0x1;
-  ue_sec_capability->eia7 = *(buffer + decoded) & 0x1;
-  decoded++;
-
-  // Decoded EPS encryption algorithms
-  MLOG(MDEBUG) << " eea0 = " << hex << int(ue_sec_capability->eea0) << endl;
-  MLOG(MDEBUG) << " eea1 = " << hex << int(ue_sec_capability->eea1) << endl;
-  MLOG(MDEBUG) << " eea2 = " << hex << int(ue_sec_capability->eea2) << endl;
-  MLOG(MDEBUG) << " eea3 = " << hex << int(ue_sec_capability->eea3) << endl;
-  MLOG(MDEBUG) << " eea4 = " << hex << int(ue_sec_capability->eea4) << endl;
-  MLOG(MDEBUG) << " eea5 = " << hex << int(ue_sec_capability->eea5) << endl;
-  MLOG(MDEBUG) << " eea6 = " << hex << int(ue_sec_capability->eea6) << endl;
-  MLOG(MDEBUG) << " eea7 = " << hex << int(ue_sec_capability->eea7) << endl;
-  // Decoded EPS integrity algorithms
-  MLOG(MDEBUG) << " eia0 = " << hex << int(ue_sec_capability->eia0) << endl;
-  MLOG(MDEBUG) << " eia1 = " << hex << int(ue_sec_capability->eia1) << endl;
-  MLOG(MDEBUG) << " eia2 = " << hex << int(ue_sec_capability->eia2) << endl;
-  MLOG(MDEBUG) << " eia3 = " << hex << int(ue_sec_capability->eia3) << endl;
-  MLOG(MDEBUG) << " eia4 = " << hex << int(ue_sec_capability->eia4) << endl;
-  MLOG(MDEBUG) << " eia5 = " << hex << int(ue_sec_capability->eia5) << endl;
-  MLOG(MDEBUG) << " eia6 = " << hex << int(ue_sec_capability->eia6) << endl;
-  MLOG(MDEBUG) << " eia7 = " << hex << int(ue_sec_capability->eia7) << endl;
-#endif
-
   return (decoded);
 };
 
@@ -175,33 +133,6 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
                << int(*(buffer + encoded));
   encoded++;
 
-#ifdef HANDLE_POST_MVC
-  // EPS encryption algorithms
-  *(buffer + encoded) = 0x00 | ((ue_sec_capability->eea0 & 0x1) << 7) |
-                        ((ue_sec_capability->eea1 & 0x1) << 6) |
-                        ((ue_sec_capability->eea2 & 0x1) << 5) |
-                        ((ue_sec_capability->eea3 & 0x1) << 4) |
-                        ((ue_sec_capability->eea4 & 0x1) << 3) |
-                        ((ue_sec_capability->eea5 & 0x1) << 2) |
-                        ((ue_sec_capability->eea6 & 0x1) << 1) |
-                        ((ue_sec_capability->eea7) & 0x1);
-  MLOG(MDEBUG) << " EPS Encryption Algorithms Supported : " << hex
-               << int(*(buffer + encoded));
-  encoded++;
-
-  // EPS integrity algorithms
-  *(buffer + encoded) = 0x00 | ((ue_sec_capability->eia0 & 0x1) << 7) |
-                        ((ue_sec_capability->eia1 & 0x1) << 6) |
-                        ((ue_sec_capability->eia2 & 0x1) << 5) |
-                        ((ue_sec_capability->eia3 & 0x1) << 4) |
-                        ((ue_sec_capability->eia4 & 0x1) << 3) |
-                        ((ue_sec_capability->eia5 & 0x1) << 2) |
-                        ((ue_sec_capability->eia6 & 0x1) << 1) |
-                        ((ue_sec_capability->eia7) & 0x1);
-  MLOG(MDEBUG) << " EPS Integrity Algorithms Supported : " << hex
-               << int(*(buffer + encoded));
-  encoded++;
-#endif
   return encoded;
 };
 }  // namespace magma5g

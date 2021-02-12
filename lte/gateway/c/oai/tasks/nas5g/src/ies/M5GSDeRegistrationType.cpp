@@ -8,15 +8,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 #include <iostream>
 #include <sstream>
 #include <cstdint>
 #include "M5GSDeRegistrationType.h"
 #include "M5GCommonDefs.h"
+
 using namespace std;
 namespace magma5g {
 M5GSDeRegistrationTypeMsg::M5GSDeRegistrationTypeMsg(){};
-
 M5GSDeRegistrationTypeMsg::~M5GSDeRegistrationTypeMsg(){};
 
 int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(

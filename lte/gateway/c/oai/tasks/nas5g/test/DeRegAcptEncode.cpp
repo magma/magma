@@ -37,7 +37,6 @@ int encode(void) {
   MLOG(MDEBUG) << " ENCODED MESSAGE : " << setfill('0') << hex << int(buffer[0])
                << setw(2) << hex << int(buffer[1]) << hex << int(buffer[2])
                << "\n";
-
   MLOG(MDEBUG) << "---Decoding encoded message--- ";
   int ret2 = 0;
   ret2     = msg.DecodeDeRegistrationAcceptUEInitMsg(&msg, buffer, len);
@@ -50,7 +49,6 @@ int encode(void) {
   MLOG(MDEBUG) << " Security Header Type : " << dec
                << int(msg.sec_header_type.sec_hdr);
   MLOG(MDEBUG) << " Message Type : 0x" << hex << int(msg.message_type.msg_type);
-  MLOG(MDEBUG) << "\n\n";
   return 0;
 }
 }  // namespace magma5g

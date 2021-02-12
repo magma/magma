@@ -27,10 +27,7 @@ int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
-  // MLOG(MDEBUG) << "   DecodeM5GSRegistrationTypeMsg : ";
-  // CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-  //    buffer, REGISTRATION_TYPE_MIN_LENGTH, len);
-
+  //CHECKING IEI
   if (iei > 0) {
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
   }

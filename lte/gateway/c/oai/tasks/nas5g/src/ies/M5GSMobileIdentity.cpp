@@ -530,7 +530,6 @@ int M5GSMobileIdentityMsg::EncodeSuciMobileIdentityMsg(
   for (i; i < suci->suci_nai.size(); i++) {
     MLOG(MDEBUG) << hex << int(suci->suci_nai[i]);
   }
-  MLOG(MDEBUG) << endl;
 
   return encoded;
 };

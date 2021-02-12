@@ -29,7 +29,7 @@ class ULNASTransportMsg {
   MessageTypeMsg message_type;
   PayloadContainerTypeMsg payload_container_type;
   PayloadContainerMsg payload_container;
-#define DL_NAS_TRANSPORT_MINIMUM_LENGTH 7
+#define UL_NAS_TRANSPORT_MINIMUM_LENGTH 7
 
   ULNASTransportMsg();
   ~ULNASTransportMsg();

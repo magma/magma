@@ -8,15 +8,16 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #include <iostream>
 #include <sstream>
 #include <cstdint>
 #include "M5GMessageType.h"
 #include "M5GCommonDefs.h"
+
 using namespace std;
 namespace magma5g {
 MessageTypeMsg::MessageTypeMsg(){};
-
 MessageTypeMsg::~MessageTypeMsg(){};
 
 // Decode MessageType IE

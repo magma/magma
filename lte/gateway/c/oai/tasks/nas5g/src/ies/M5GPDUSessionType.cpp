@@ -27,6 +27,7 @@ int PDUSessionTypeMsg::DecodePDUSessionTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
+  //CHECKING IEI
   if (iei > 0) {
     pdu_session_type->iei = (*buffer & 0xf0) >> 4;
     CHECK_IEI_DECODER((unsigned char) iei, pdu_session_type->iei);
@@ -48,6 +49,7 @@ int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(
     uint32_t len) {
   int encoded = 0;
 
+  //CHECKING IEI
   if (iei > 0) {
     *buffer = (pdu_session_type->iei & 0x0f) << 4;
     CHECK_IEI_ENCODER((unsigned char) iei, pdu_session_type->iei);

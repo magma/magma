@@ -96,7 +96,6 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
     return (RETURN_ERROR);
   }
 
-  MLOG(MDEBUG) << "msg type = 0x" << hex << int(msg->header.message_type);
   switch ((unsigned char) msg->header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_REQUEST:
       decode_result = msg->pdu_session_estab_request
@@ -140,7 +139,6 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   buffer        = buffer + header_result;
   encode_result = encode_result + header_result;
 
-  MLOG(MDEBUG) << "msg type = 0x" << hex << int(msg->header.message_type);
   switch ((unsigned char) msg->header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_ACCEPT:
       encode_result =

@@ -91,14 +91,6 @@ int AuthenticationRequestMsg::EncodeAuthenticationRequestMsg(
     return encoded_result;
   else
     encoded += encoded_result;
-#ifdef HANDLE_POST_MVC
-  if ((encoded_result = auth_request->eap.EncodeEAPMessageMsg(
-           &auth_request->eap, EAPMESSAGE, buffer + encoded, len - encoded)) <
-      0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-#endif
 
   return encoded;
 };

@@ -28,6 +28,7 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
 
   MLOG(MDEBUG) << "DecoseNASKeySetIdentifierMsg : ";
 
+  // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
 

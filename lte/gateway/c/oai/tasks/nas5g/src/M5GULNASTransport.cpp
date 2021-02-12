@@ -25,7 +25,7 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
 
   // Checking Pointer
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH, len);
+      buffer, UL_NAS_TRANSPORT_MINIMUM_LENGTH, len);
 
   MLOG(MDEBUG) << "DecodeULNASTransportMsg : \n";
   if ((decoded_result =
@@ -85,7 +85,7 @@ int ULNASTransportMsg::EncodeULNASTransportMsg(
   // Check if we got a NDLL pointer and if buffer length is >= minimum length
   // expected for the message.
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH, len);
+      buffer, UL_NAS_TRANSPORT_MINIMUM_LENGTH, len);
 
   if ((encoded_result =
            ul_nas_transport->extended_protocol_discriminator

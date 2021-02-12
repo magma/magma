@@ -25,8 +25,8 @@ M5GSMCauseMsg::~M5GSMCauseMsg(){};
 int M5GSMCauseMsg::DecodeM5GSMCauseMsg(
     M5GSMCauseMsg* m5gsm_cause, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded    = 0;
-  uint32_t ielen = 0;
 
+  //CHECKING IEI
   if (iei > 0) {
     m5gsm_cause->iei = *buffer;
     CHECK_IEI_DECODER(iei, (unsigned char) m5gsm_cause->iei);
@@ -47,6 +47,7 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(
     M5GSMCauseMsg* m5gsm_cause, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
+  //CHECKING IEI
   if (iei > 0) {
     m5gsm_cause->iei = *buffer;
     CHECK_IEI_DECODER(iei, (unsigned char) m5gsm_cause->iei);
