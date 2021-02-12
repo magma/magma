@@ -261,7 +261,7 @@ function GatewayEditDialog(props: DialogProps) {
       {tabPos === 1 && (
         <DynamicServicesEdit
           isAdd={!editProps}
-          gateway={ctx.state[gatewayId] || gateway}
+          gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -276,7 +276,7 @@ function GatewayEditDialog(props: DialogProps) {
       {tabPos === 2 && (
         <EPCEdit
           isAdd={!editProps}
-          gateway={ctx.state[gatewayId] || gateway}
+          gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -291,7 +291,7 @@ function GatewayEditDialog(props: DialogProps) {
       {tabPos === 3 && (
         <RanEdit
           isAdd={!editProps}
-          gateway={ctx.state[gatewayId] || gateway}
+          gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -306,7 +306,7 @@ function GatewayEditDialog(props: DialogProps) {
       {tabPos === 4 && (
         <ApnResourcesEdit
           isAdd={!editProps}
-          gateway={ctx.state[gatewayId] || gateway}
+          gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -321,7 +321,7 @@ function GatewayEditDialog(props: DialogProps) {
       {tabPos === 5 && (
         <HeaderEnrichmentConfig
           isAdd={!editProps}
-          gateway={ctx.state[gatewayId] || gateway}
+          gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
@@ -1134,7 +1134,6 @@ export function HeaderEnrichmentConfig(props: Props) {
               checked={heConfig?.enable_header_enrichment ?? false}
             />
           </AltFormField>
-
           <AltFormField label={'Enable Encryption'}>
             <Switch
               data-testid="enableEncryption"
@@ -1148,7 +1147,6 @@ export function HeaderEnrichmentConfig(props: Props) {
               checked={heConfig?.enable_encryption ?? false}
             />
           </AltFormField>
-
           <AltFormField label={'Encryption Key'}>
             <OutlinedInput
               disabled={!heConfig.enable_header_enrichment}
@@ -1163,7 +1161,6 @@ export function HeaderEnrichmentConfig(props: Props) {
               }
             />
           </AltFormField>
-
           <AltFormField label={'Encoding Type'}>
             <Select
               disabled={!heConfig.enable_header_enrichment}
