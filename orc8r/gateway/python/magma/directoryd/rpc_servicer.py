@@ -14,7 +14,7 @@ limitations under the License.
 
 import grpc
 import logging
-from redis.exceptions import RedisError
+from redis.exceptions import RedisError, LockError
 from typing import Dict, List
 
 from orc8r.protos.directoryd_pb2 import DirectoryField, AllDirectoryRecords
@@ -87,7 +87,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                 record.location_history = \
                     record.location_history[:LOCATION_MAX_LEN]
                 self._redis_dict[request.id] = record
-        except RedisError as e:
+        except (RedisError, LockError) as e:
             logging.error(e)
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details("Could not connect to redis: %s" % e)
@@ -115,7 +115,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                                         request.id)
                     return
                 self._redis_dict.mark_as_garbage(request.id)
-        except RedisError as e:
+        except (RedisError, LockError) as e:
             logging.error(e)
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details("Could not connect to redis: %s" % e)
@@ -146,7 +146,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                                         request.id)
                     return DirectoryField()
                 record = self._redis_dict[request.id]
-        except RedisError as e:
+        except (RedisError, LockError) as e:
             logging.error(e)
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details("Could not connect to redis: %s" % e)
@@ -182,7 +182,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                     # Lookup may produce an exception if the key has been
                     # deleted between the call to __iter__ and lock
                     stored_record = self._redis_dict[key]
-            except RedisError as e:
+            except (RedisError, LockError) as e:
                 logging.error(e)
                 context.set_code(grpc.StatusCode.UNAVAILABLE)
                 context.set_details("Could not connect to redis: %s" % e)

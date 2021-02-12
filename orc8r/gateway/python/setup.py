@@ -67,6 +67,7 @@ setup(
         'aioh2==0.2.2',
         'redis>=2.10.5',  # redis-py (Python bindings to redis)
         'redis-collections>=0.4.2',
+        'python-redis-lock>=3.7.0',
         'aiohttp>=0.17.2',
         'grpcio>=1.16.1',
         'protobuf>=3.14.0',
@@ -96,6 +97,7 @@ setup(
     ],
     extras_require={
         'dev': [
+            "fakeredis[lua]"
         ],
     },
 )
