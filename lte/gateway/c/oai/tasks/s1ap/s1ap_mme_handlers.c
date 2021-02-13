@@ -2357,7 +2357,8 @@ int s1ap_handle_new_association(
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
     }
     enb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
-    hashtable_rc_t hash_rc         = hashtable_ts_insert(
+    enb_association->enb_id = 0xFFFFFFFF;  // home or macro eNB is 28 or 20bits.
+    hashtable_rc_t hash_rc  = hashtable_ts_insert(
         &state->enbs, (const hash_key_t) enb_association->sctp_assoc_id,
         (void*) enb_association);
     if (HASH_TABLE_OK != hash_rc) {
