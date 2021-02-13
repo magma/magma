@@ -1,7 +1,7 @@
-From 3a14b601584fa645adbb82a22bec4404c65160fb Mon Sep 17 00:00:00 2001
+From f86aa76748d9df9c034c39501d04516306756b78 Mon Sep 17 00:00:00 2001
 From: Omar Ramadan <oramadan@fb.com>
 Date: Tue, 17 Oct 2017 16:46:14 +0000
-Subject: [PATCH 3/4] Build symbols for gtp-vport linux 4.9 module required for
+Subject: [PATCH 3/7] Build symbols for gtp-vport linux 4.9 module required for
  openvswitch module
 
 This is required until the gtp-vport module lands to netnext repos
