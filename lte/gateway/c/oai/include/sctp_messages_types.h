@@ -61,8 +61,8 @@ typedef struct sctp_data_cnf_s {
   bstring payload;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream;
-  uint32_t mme_ue_s1ap_id;
-  uint32_t amf_ue_ngap_id;
+  uint32_t agw_ue_xap_id;  // it will be set to mme_ue_s1ap_id or amf_ue_ngap_id
+                           // based on the xap_id
   sctp_ppid_t ppid;
   bool is_success;
 } sctp_data_cnf_t;
@@ -71,8 +71,8 @@ typedef struct sctp_data_req_s {
   bstring payload;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream;
-  uint32_t mme_ue_s1ap_id;  // for helping data_rej
-  uint32_t amf_ue_ngap_id;
+  uint32_t agw_ue_xap_id;  // it will be set to mme_ue_s1ap_id or amf_ue_ngap_id
+                           // based on the xap_id
   sctp_ppid_t ppid;
 } sctp_data_req_t;
 

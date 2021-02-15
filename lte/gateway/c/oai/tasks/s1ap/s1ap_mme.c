@@ -150,7 +150,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case SCTP_DATA_CNF:
       s1ap_mme_itti_nas_downlink_cnf(
-          SCTP_DATA_CNF(received_message_p).mme_ue_s1ap_id,
+          SCTP_DATA_CNF(received_message_p).agw_ue_xap_id,
           SCTP_DATA_CNF(received_message_p).is_success);
       break;
     // SCTP layer notifies S1AP of disconnection of a peer.

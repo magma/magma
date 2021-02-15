@@ -102,23 +102,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       bstring payload   = SCTP_DATA_REQ(received_message_p).payload;
 
       if (sctpd_send_dl(ppid, assoc_id, stream, payload) < 0) {
-        if (ppid == S1AP) {
-          OAILOG_DEBUG(LOG_SCTP, "Ppid S1AP in sctp_data_req ");
-          sctp_itti_send_lower_layer_conf(
-              received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id,
-              stream, SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id, false);
-        } else if (ppid == NGAP) {
-          OAILOG_DEBUG(
-              LOG_SCTP, "ppid match NGAP in sctp_itti_send_lower_layer_conf ");
-          sctp_itti_send_lower_layer_conf(
-              received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id,
-              stream, SCTP_DATA_REQ(received_message_p).amf_ue_ngap_id, false);
-        } else {
-          OAILOG_ERROR(
-              LOG_SCTP,
-              "ppid: %d not matching in sctp_itti_send_lower_layer_conf ",
-              ppid);
-        }
+        sctp_itti_send_lower_layer_conf(
+            received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id,
+            stream, SCTP_DATA_REQ(received_message_p).agw_ue_xap_id, false);
       }
     } break;
 

@@ -40,7 +40,7 @@ extern task_zmq_ctx_t sctp_task_zmq_ctx;
 
 int sctp_itti_send_lower_layer_conf(
     task_id_t origin_task_id, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
-    sctp_stream_id_t stream, uint32_t mme_ue_s1ap_id, bool is_success);
+    sctp_stream_id_t stream, uint32_t agw_ue_xap_id, bool is_success);
 
 int sctp_itti_send_new_association(
     sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,

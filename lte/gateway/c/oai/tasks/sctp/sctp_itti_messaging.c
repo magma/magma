@@ -30,40 +30,19 @@
 #include "itti_types.h"
 #include "log.h"
 #include "sctp_messages_types.h"
+#include "itti_free_defined_msg.h"
 
 //------------------------------------------------------------------------------
 int sctp_itti_send_lower_layer_conf(
     task_id_t origin_task_id, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
-    sctp_stream_id_t stream, uint32_t ap_id, bool is_success) {
+    sctp_stream_id_t stream, uint32_t xap_id, bool is_success) {
   MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_DATA_CNF);
 
-  SCTP_DATA_CNF(msg).ppid     = ppid;
-  SCTP_DATA_CNF(msg).assoc_id = assoc_id;
-  SCTP_DATA_CNF(msg).stream   = stream;
-
-switch(ppid) {
-    case S1AP:{	
-    OAILOG_DEBUG(
-        LOG_SCTP, "Ppid S1AP in sctp_itti_send_lower_layer_conf ");
-    SCTP_DATA_CNF(msg).mme_ue_s1ap_id = ap_id;
-    }
-    break;
-    
-    case NGAP:{	
-    OAILOG_DEBUG(
-        LOG_SCTP, " Ppid NGAP in sctp_itti_send_lower_layer_conf ");
-    SCTP_DATA_CNF(msg).amf_ue_ngap_id = ap_id;
-    }
-    break;
-    
-    default:	
-    OAILOG_ERROR(
-        LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_lower_layer_conf ",
-        ppid);
-    return RETURNerror;
-  }
-
-  SCTP_DATA_CNF(msg).is_success = is_success;
+  SCTP_DATA_CNF(msg).ppid          = ppid;
+  SCTP_DATA_CNF(msg).assoc_id      = assoc_id;
+  SCTP_DATA_CNF(msg).stream        = stream;
+  SCTP_DATA_CNF(msg).agw_ue_xap_id = xap_id;
+  SCTP_DATA_CNF(msg).is_success    = is_success;
 
   return send_msg_to_task(&sctp_task_zmq_ctx, origin_task_id, msg);
 }
@@ -74,32 +53,27 @@ int sctp_itti_send_new_association(
     sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr) {
   MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_NEW_ASSOCIATION);
 
-switch(ppid){ 
- case S1AP: {
-    SCTP_NEW_ASSOCIATION(msg).assoc_id      = assoc_id;
-    SCTP_NEW_ASSOCIATION(msg).instreams     = instreams;
-    SCTP_NEW_ASSOCIATION(msg).outstreams    = outstreams;
-    SCTP_NEW_ASSOCIATION(msg).ran_cp_ipaddr = *ran_cp_ipaddr;
-    OAILOG_DEBUG(
-        LOG_SCTP, "Ppid S1AP in sctp_itti_send_new_association ");
-    return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
+  SCTP_NEW_ASSOCIATION(msg).assoc_id   = assoc_id;
+  SCTP_NEW_ASSOCIATION(msg).instreams  = instreams;
+  SCTP_NEW_ASSOCIATION(msg).outstreams = outstreams;
+
+  switch (ppid) {
+    case S1AP: {
+      SCTP_NEW_ASSOCIATION(msg).ran_cp_ipaddr = *ran_cp_ipaddr;
+      OAILOG_DEBUG(LOG_SCTP, "Ppid S1AP in sctp_itti_send_new_association ");
+      return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
+    } break;
+    case NGAP: {
+      OAILOG_DEBUG(LOG_SCTP, "Ppid NGAP in sctp_itti_send_new_association ");
+      return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
+    } break;
+    default:
+      OAILOG_ERROR(
+          LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_new_association ",
+          ppid);
+      itti_free_msg_content(msg);
+      return RETURNerror;
   }
-  break;	
- case NGAP: {
-    SCTP_NEW_ASSOCIATION(msg).assoc_id   = assoc_id;
-    SCTP_NEW_ASSOCIATION(msg).instreams  = instreams;
-    SCTP_NEW_ASSOCIATION(msg).outstreams = outstreams;
-    OAILOG_DEBUG(
-        LOG_SCTP, "Ppid NGAP in sctp_itti_send_new_association ");
-    return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
-  } 
-  break;
-default: 
-    OAILOG_ERROR(
-        LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_new_association ",
-        ppid);
-    return RETURNerror;
-}
 }
 
 //------------------------------------------------------------------------------
@@ -113,25 +87,22 @@ int sctp_itti_send_new_message_ind(
   SCTP_DATA_IND(msg).assoc_id = assoc_id;
 
   STOLEN_REF* payload = NULL;
-  switch(ppid){
-  case S1AP: {
-    OAILOG_DEBUG(
-        LOG_SCTP, "Ppid S1AP in sctp_itti_send_new_message_ind ");
-    return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
-  } 
-  break;
-case NGAP: {
-    OAILOG_DEBUG(
-        LOG_SCTP, "Ppid NGAP in sctp_itti_send_new_message_ind ");
-    return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
+  switch (ppid) {
+    case S1AP: {
+      OAILOG_DEBUG(LOG_SCTP, "Ppid S1AP in sctp_itti_send_new_message_ind ");
+      return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
+    } break;
+    case NGAP: {
+      OAILOG_DEBUG(LOG_SCTP, "Ppid NGAP in sctp_itti_send_new_message_ind ");
+      return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
+    } break;
+    default:
+      OAILOG_ERROR(
+          LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_new_message_ind ",
+          ppid);
+      itti_free_msg_content(msg);
+      return RETURNok;
   }
-  break;
-default: 
-    OAILOG_ERROR(
-        LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_new_message_ind ",
-        ppid);
-    return RETURNok;
-}
 }
 
 //------------------------------------------------------------------------------
@@ -142,23 +113,20 @@ int sctp_itti_send_com_down_ind(
   SCTP_CLOSE_ASSOCIATION(msg).assoc_id = assoc_id;
   SCTP_CLOSE_ASSOCIATION(msg).reset    = reset;
 
-switch(ppid){
-  case S1AP: {
-    OAILOG_DEBUG(
-        LOG_SCTP, "Ppid match S1AP in sctp_itti_send_com_down_ind ");
-    return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
+  switch (ppid) {
+    case S1AP: {
+      OAILOG_DEBUG(LOG_SCTP, "Ppid match S1AP in sctp_itti_send_com_down_ind ");
+      return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
+    } break;
+    case NGAP: {
+      OAILOG_DEBUG(LOG_SCTP, "Ppid match NGAP in sctp_itti_send_com_down_ind ");
+      return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
+    } break;
+    default:
+      OAILOG_ERROR(
+          LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_com_down_ind ",
+          ppid);
+      itti_free_msg_content(msg);
+      return RETURNerror;
   }
-  break;
- case NGAP: {
-    OAILOG_DEBUG(LOG_SCTP, "Ppid match NGAP in sctp_itti_send_com_down_ind ");
-    return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
-  }
-  break;
- default: 
-    OAILOG_ERROR(
-        LOG_SCTP, "Ppid: %d not matching in sctp_itti_send_com_down_ind ",
-        ppid);
-    return RETURNerror;
-  
-}
 }
