@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
-	"sigs.k8s.io/yaml"
 )
 
 type Test struct {
@@ -91,8 +91,19 @@ func RunUnitTest(t *testing.T, e *echo.Echo, test Test) {
 		if assert.NoError(t, handlerErr) && test.ExpectedResult != nil {
 			expectedBytes, err := test.ExpectedResult.MarshalBinary()
 			if assert.NoError(t, err) {
-				// Convert to string for more readable assert failure messages
-				assert.Equal(t, string(expectedBytes)+"\n", recorder.Body.String())
+				// Convert to string for more readable assert failure messages.
+				//
+				// json.Marshal returns the serialized value as-is, without
+				// appending a newline.
+				//
+				// The echo.Context's JSON method uses a json.Encoder to encode
+				// its object. The json.Encoder object always appends a newline
+				// to the end of the serialized value.
+				//
+				// To handle this mismatch, trim a newline from both values.
+				expected := strings.TrimSuffix(string(expectedBytes), "\n")
+				actual := strings.TrimSuffix(recorder.Body.String(), "\n")
+				assert.Equal(t, expected, actual)
 			}
 		}
 	}
@@ -111,18 +122,6 @@ func GetHandlerByPathAndMethod(t *testing.T, handlers []obsidian.Handler, path s
 	return obsidian.Handler{}
 }
 
-func YAMLToJSONConverter(s string) encoding.BinaryMarshaler {
-	return &yamlToJsonConverter{yaml: s}
-}
-
-type yamlToJsonConverter struct {
-	yaml string
-}
-
-func (j *yamlToJsonConverter) MarshalBinary() (data []byte, err error) {
-	return yaml.YAMLToJSON([]byte(j.yaml))
-}
-
 func JSONMarshaler(v interface{}) encoding.BinaryMarshaler {
 	return &jsonMarshaler{v: v}
 }
@@ -133,6 +132,18 @@ type jsonMarshaler struct {
 
 func (j *jsonMarshaler) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(j.v)
+}
+
+func YAMLMarshaler(v string) encoding.BinaryMarshaler {
+	return &yamlMarshaler{v}
+}
+
+type yamlMarshaler struct {
+	s string
+}
+
+func (y *yamlMarshaler) MarshalBinary() (data []byte, err error) {
+	return []byte(y.s), nil
 }
 
 func ByteIdentityMarshaler(v []byte) encoding.BinaryMarshaler {

@@ -20,8 +20,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian/swagger"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
-	"sigs.k8s.io/yaml"
 )
 
 // GenerateCombinedSpecHandler is a routing handler which creates and serves the
@@ -37,10 +35,5 @@ func GenerateCombinedSpecHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 
-	combinedJson, err := yaml.YAMLToJSON([]byte(combined))
-	if err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "failed to convert combined spec to JSON"), http.StatusFailedDependency)
-	}
-
-	return c.Render(http.StatusOK, "swagger_template", string(combinedJson))
+	return c.String(http.StatusOK, combined)
 }

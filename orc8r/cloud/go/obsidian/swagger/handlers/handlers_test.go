@@ -17,7 +17,6 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
-	"text/template"
 
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
@@ -56,11 +55,6 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	err = ioutil.WriteFile(commonSpecFilePath, []byte(yamlCommon), 0644)
 	assert.NoError(t, err)
 
-	// New line is necessary since text/template rendering deletes trailing new lines.
-	template, err := template.New("swagger_template").Parse("{{.}}\n")
-	assert.NoError(t, err)
-	e.Renderer = swagger.NewSwaggerTemplate(template)
-
 	// Success with no registered servicers
 	tc := tests.Test{
 		Method:         "GET",
@@ -68,7 +62,7 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 		Payload:        nil,
 		Handler:        handlers.GenerateCombinedSpecHandler,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.YAMLToJSONConverter(yamlCommon),
+		ExpectedResult: tests.YAMLMarshaler(yamlCommon),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -97,7 +91,7 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 		Payload:        nil,
 		Handler:        handlers.GenerateCombinedSpecHandler,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.YAMLToJSONConverter(expectedYaml),
+		ExpectedResult: tests.YAMLMarshaler(expectedYaml),
 	}
 	tests.RunUnitTest(t, e, tc)
 }

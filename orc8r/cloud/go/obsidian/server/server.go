@@ -20,18 +20,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"text/template"
 	"time"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/obsidian/reverse_proxy"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -47,22 +44,13 @@ func Start() {
 	e.Use(CollectStats)
 	e.Use(middleware.Recover())
 
+	if obsidian.CombineSpecAtRuntime {
+		e.GET(obsidian.StaticURLPrefix+"/v1/swagger.yml", handlers.GenerateCombinedSpecHandler)
+	}
+
 	// Serve static pages for the API docs
 	e.Static(obsidian.StaticURLPrefix, obsidian.StaticFolder+"/apidocs")
 	e.Static(obsidian.StaticURLPrefix+"/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
-
-	if obsidian.CombineSpecAtRuntime {
-		template, err := template.ParseGlob(obsidian.StaticFolder + "/apidocs/v1/*.html")
-		if err != nil {
-			// Swallow error because the obsidian service should continue to run
-			// even if it can't retrieve the template for Swagger UI.
-			err = errors.Wrapf(err, "retrieve Swagger UI template")
-			log.Printf("An error occurred while retrieving the Swagger UI template %+v", err)
-		} else {
-			e.Renderer = swagger.NewSwaggerTemplate(template)
-			e.GET(obsidian.StaticURLPrefix+"/v1/", handlers.GenerateCombinedSpecHandler)
-		}
-	}
 
 	portStr := fmt.Sprintf(":%d", obsidian.Port)
 	log.Printf("Starting %s on %s", obsidian.Product, portStr)
