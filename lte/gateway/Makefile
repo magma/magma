@@ -1,5 +1,5 @@
 .PHONY: all build clean help log logs run status test
-
+# TEST CHANGE
 GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
