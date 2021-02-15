@@ -27,7 +27,12 @@ generate_cpp_protos("${S6ASRV_FEG_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${FEG_PROTO_DIR} ${FEG_OUT_DIR})
 generate_grpc_protos("${S6ASRV_FEG_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${FEG_PROTO_DIR} ${FEG_OUT_DIR})
-
+#test
+#test
+#test
+#test
+#test
+#test
 set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
 #generate_cpp_protos("${AMFAPP_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
 #  "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})

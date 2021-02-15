@@ -59,7 +59,10 @@ class amf_app_desc_t {
   uint32_t nb_ue_registered;
   uint32_t nb_ue_connected;
 };
+class test {
 
+
+}
 class amf_app_defs : public amf_app_ue_context, public amf_app_desc_t {
  public:
   uint64_t amf_app_handle_initial_ue_message(
