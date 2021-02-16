@@ -13,6 +13,7 @@ limitations under the License.
 from typing import List, Dict  # noqa
 
 import logging
+import json
 from enum import Enum
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.qos.qos_meter_impl import MeterManager
@@ -233,7 +234,7 @@ class QosManager(object):
             self.impl.setup()
 
             qos_state, apn_qid_list = self.impl.read_all_state()
-            LOG.debug("qos_state -> %s", qos_state)
+            LOG.debug("qos_state -> %s", json.dumps(qos_state, indent=1))
             LOG.debug("apn_qid_list -> %s", apn_qid_list)
             try:
                 # populate state from db
@@ -279,7 +280,7 @@ class QosManager(object):
 
                 # Step 2. delete qos handle without any child
                 qos_state2, apn_qid_list2 = self.impl.read_all_state()
-                LOG.debug("intermediate qos_state -> %s", qos_state2)
+                LOG.debug("intermediate qos_state -> %s", json.dumps(qos_state2, indent=1))
                 LOG.debug("intermediate apn_qid_list -> %s", apn_qid_list2)
                 for qos_handle in apn_list_for_step_2:
                     if qos_handle not in apn_qid_list2:
@@ -288,7 +289,7 @@ class QosManager(object):
                                              qos_state[qos_handle]['direction'],
                                              recovery_mode=True)
                 final_qos_state, _ = self.impl.read_all_state()
-                LOG.info("final_qos_state -> %s", final_qos_state)
+                LOG.info("final_qos_state -> %s", json.dumps(final_qos_state, indent=1))
                 LOG.info("final_redis state -> %s", self._redis_store)
             except Exception as e:  # pylint: disable=broad-except
                 # in case of any exception start clean slate
