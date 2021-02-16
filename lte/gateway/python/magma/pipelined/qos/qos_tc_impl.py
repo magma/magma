@@ -188,9 +188,12 @@ class TrafficClass:
             output = raw_output.decode('utf-8')
             # return all config from 'rate' onwards
             config = output.split("rate")
-            return config[1]
+            try:
+                return config[1]
+            except IndexError:
+                LOG.error("could not find rate: %s", output)
         except subprocess.CalledProcessError:
-            print("Exception dumping Qos State for %s", intf)
+            LOG.error("Exception dumping Qos State for %s", tc_cmd)
 
 
 class TCManager(object):
