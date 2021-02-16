@@ -197,5 +197,3 @@
        behavior. 
        
        Resolution: mv ~/magma ~/magma-backup-<identifier> to  move existing code base.
-
-
