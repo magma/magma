@@ -79,7 +79,7 @@ helm -n $namespace upgrade --install kibana stable/kibana -f charts/kibana.yaml
 
 helm -n $namespace upgrade --install orc8r github-repo/orc8r -f charts/orc8r.yaml --wait
 
-export ORC_POD=$(kubectl -n $namespace get pod -l app.kubernetes.io/component=orchestrator -o jsonpath='{.items[0].metadata.name}')
+export ORC_POD=$(kubectl -n $namespace get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
 export NMS_POD=$(kubectl -n $namespace get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
 
 kubectl -n $namespace exec -it ${ORC_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || :
