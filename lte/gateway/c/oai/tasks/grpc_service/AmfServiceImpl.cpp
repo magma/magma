@@ -56,7 +56,10 @@ Status AmfServiceImpl::SetAmfNotification(
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
-  OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request\n");
+  struct in_addr ip_addr = {0};
+  char ip_str[INET_ADDRSTRLEN] = {0};
+  uint32_t ip_int = 0;
+  OAILOG_INFO(LOG_UTIL, "Received GRPC SetSmfSessionContext request from SMF\n");
 
   itti_n11_create_pdu_session_response_t itti_msg;
   auto& req_common = request->common_context();
@@ -69,32 +72,12 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.sm_session_version = req_common.sm_session_version();
 
   // RatSpecificContextAccess
-  strncpy(
-      (char*) (&itti_msg.pdu_session_id), req_m5g.pdu_session_id().c_str(), 1);
+  memcpy(
+       (&itti_msg.pdu_session_id), req_m5g.pdu_session_id().c_str(), 1);
   itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
   itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
-  for (int i = 0, m = req_m5g.authorized_qos_rules_size(); i < m; i++) {
-    itti_msg.authorized_qos_rules[i].qos_rule_identifier =
-        (uint32_t) req_m5g.authorized_qos_rules(i).qos_rule_identifier();
-    itti_msg.authorized_qos_rules[i].dqr =
-        req_m5g.authorized_qos_rules(i).dqr();
-    itti_msg.authorized_qos_rules[i].number_of_packet_filters =
-        (uint32_t) req_m5g.authorized_qos_rules(i).number_of_packet_filters();
-    for (int j = 0, n = req_m5g.authorized_qos_rules(i)
-                            .packet_filter_identifier_size();
-         j < n; j++) {
-      itti_msg.authorized_qos_rules[i].packet_filter_identifier[j] =
-          (uint32_t) req_m5g.authorized_qos_rules(i).packet_filter_identifier(
-              j);
-    }
-    itti_msg.authorized_qos_rules[i].qos_rule_precedence =
-        (uint32_t) req_m5g.authorized_qos_rules(i).qos_rule_precedence();
-    itti_msg.authorized_qos_rules[i].segregation =
-        req_m5g.authorized_qos_rules(i).segregation();
-    itti_msg.authorized_qos_rules[i].qos_flow_identifier =
-        (uint32_t) req_m5g.authorized_qos_rules(i).qos_flow_identifier();
-  }
+
   itti_msg.always_on_pdu_session_indication =
       req_m5g.always_on_pdu_session_indication();
   itti_msg.allowed_ssc_mode = (ssc_mode_t) req_m5g.allowed_ssc_mode();
@@ -102,9 +85,17 @@ Status AmfServiceImpl::SetSmfSessionContext(
       req_m5g.m5gsm_congetion_re_attempt_indicator();
   itti_msg.pdu_address.redirect_address_type =
       (redirect_address_type_t) req_m5g.pdu_address().redirect_address_type();
+  /*PDU IP address coming from SMF in human-readable format has to be packed into 4 bytes in hex for NAS5G layer*/ 
   strcpy(
-      (char*) itti_msg.pdu_address.redirect_server_address,
+      ip_str,
       req_m5g.pdu_address().redirect_server_address().c_str());
+  inet_pton(AF_INET, ip_str, &(ip_addr.s_addr));
+  ip_int = ntohl(ip_addr.s_addr);
+  INT32_TO_BUFFER(ip_int, itti_msg.pdu_address.redirect_server_address);
+  
+  //get the 4 byte UPF TEID and UPF IP message 
+  memcpy(itti_msg.upf_endpoint.teid, req_m5g.upf_endpoint().teid().c_str(), TEID_SIZE);
+  memcpy(itti_msg.upf_endpoint.end_ipv4_addr, req_m5g.upf_endpoint().end_ipv4_addr().c_str(), UPF_IPV4_ADDR_SIZE);
   send_n11_create_pdu_session_resp_itti(&itti_msg);
   return Status::OK;
 }
