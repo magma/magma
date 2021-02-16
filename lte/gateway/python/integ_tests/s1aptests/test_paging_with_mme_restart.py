@@ -88,7 +88,7 @@ class TestPagingWithMmeRestart(unittest.TestCase):
 
         time.sleep(0.3)
         print(
-            "************************* Running UE downlink (UDP) for UE id ",
+            "************************* Running UE downlink (TCP) for UE id ",
             ue_id,
         )
         with self._s1ap_wrapper.configDownlinkTest(

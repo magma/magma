@@ -307,7 +307,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
         self._s1ap_wrapper.s1_util.verify_paging_flow_rules(ip_list)
 
         print(
-            "************************* Running UE downlink (UDP) for UE id ",
+            "************************* Running UE downlink (TCP) for UE id ",
             ue_id,
         )
         with self._s1ap_wrapper.configDownlinkTest(
