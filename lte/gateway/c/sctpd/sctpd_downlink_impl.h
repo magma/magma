@@ -45,6 +45,9 @@ class SctpdDownlinkImpl final : public SctpdDownlink::Service {
   // Implementation of SctpdDownlink.SendDl method (see sctpd.proto for more info)
   Status SendDl( ServerContext *context, const SendDlReq *request, SendDlRes *response)
     override;
+
+  // Implementation of SctpdDownlink.create_sctp_connection method
+  //(creates 4G/5G sctp connection)
   Status create_sctp_connection(std::unique_ptr<SctpConnection>& sctp_connection,
     const InitReq *request, InitRes *response);
 
