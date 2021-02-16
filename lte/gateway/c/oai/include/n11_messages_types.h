@@ -11,12 +11,12 @@
  * limitations under the License.
  */
 
-#ifndef N11_MESSAGES_TYPES_SEEN
-#define N11_MESSAGES_TYPES_SEEN
+#pragma once
 
 //-----------------------------------------------------------------------------
 /** @struct itti_n11_create_pdu_session_response_t
- *  @brief Create PDU Session Response */
+ *  @brief carries the PDU Session Establishment Response from SMF to AMF task
+ */
 
 typedef enum sm_session_fsm_state_e {
   CREATING_0,
@@ -109,7 +109,6 @@ typedef struct itti_n11_create_pdu_session_response_s {
   uint8_t pdu_session_id;
   pdu_session_type_t pdu_session_type;
   ssc_mode_t selected_ssc_mode;
-  qos_rules_t authorized_qos_rules[4];
   m5g_sm_cause_t m5gsm_cause;
   bool always_on_pdu_session_indication;
   ssc_mode_t allowed_ssc_mode;
@@ -119,5 +118,3 @@ typedef struct itti_n11_create_pdu_session_response_s {
 
 #define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \
   (mSGpTR)->ittiMsg.n11_create_pdu_session_response
-
-#endif
