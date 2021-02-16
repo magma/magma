@@ -248,3 +248,22 @@ target_include_directories(TASK_NAS PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/api/mme
     ${CMAKE_CURRENT_SOURCE_DIR}/api/network
 )
+
+set(ATTACH_ACCEPT_FUZZ_SRC
+    emm/msg/AttachAcceptFuzzer.cpp
+)
+add_executable(attach_accept_fuzz
+    ${ATTACH_ACCEPT_FUZZ_SRC}
+    ${PROJECT_SOURCE_DIR}/common/log.c
+)
+target_include_directories(attach_accept_fuzz PUBLIC
+    ${PROJECT_SOURCE_DIR}/common
+    ${PROJECT_SOURCE_DIR}/tasks/nas/emm
+    ${PROJECT_SOURCE_DIR}/tasks/nas/emm/msg
+    ${PROJECT_SOURCE_DIR}/lib/3gpp
+)
+target_link_libraries(attach_accept_fuzz
+    TASK_NAS
+    COMMON
+    LIB_3GPP
+)
