@@ -86,7 +86,7 @@ class TestPagingRequest(unittest.TestCase):
             ue_id,
         )
         with self._s1ap_wrapper.configDownlinkTest(
-            req, duration=1, is_udp=True
+            req, duration=1, is_udp=False
         ) as test:
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
