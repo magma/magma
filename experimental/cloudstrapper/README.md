@@ -9,15 +9,19 @@
      - Bootkey: Used only by Cloudstrapper instance
      - Hostkey: Used by all Gateway instances
        Both values are specified in the defaults.yaml vars file and embedded in hosts.
-     To generate keys through a playbook, see section 1 below.
+     [Optional ] To generate keys through a playbook, see section 1 below.
+     Customers who already have preferred keys to be used across their EC2 instances can
+     use them in this environment. If such keys do not exist or if the customers prefer
+     unique keys for the Cloudstrapper, the playbook below will generate the keys.
 
    - Create inventory directory on localhost to save keys, secrets etc. This directory
-     will be referred to as WORK_DIR and used as dirInventory in commands.
+     will be referred to as WORK_DIR and used as dirInventory in commands. 
+     Ex: mkdir ~/magma-experimental 
 
    - Gather following credentials and update secrets.yaml on local machine in WORK_DIR. 
      Use format from $CODE_DIR/playbooks/roles/vars/secrets.yaml as base.
      - AWS Access and Secret keys
-     - Github username and PAT
+     - Github username and PAT (Personal Access Token)
      - Dockerhub username and password 
 
    - Understand key directories
@@ -32,6 +36,7 @@
   - Create boot and host keys if required using the keyCreate tag. Default is to not create keys.
   - Create security group on the default VPC
   - Create default bucket for shared storage. Ensure bucket does not exist by checking defaults.yaml
+    under the 'bucketDefault' variable name
 
   - Command:
     ```
@@ -110,7 +115,9 @@
       - buildHelmRepo indicates which github repo will hold Helm charts
 
       - buildAwsRegion indicates which region will host the build instance. 
-      - buildAwsAz indicates an AZ within the region specified above
+      - buildAwsAz indicates an Availability Zone within the region specified above
+    All variables can be customized by making a change in the build.yaml file. Invocations
+    using Dynamic Inventory would have to be changed to reflect the new labels.
 
   - build-provision: Setup build instance using default security group, Bootkey and Ubuntu with
     t2.xlarge. Optionally, Provision a AGW compliant image (Debian 4909 or Ubuntu 20.04) 
@@ -151,10 +158,24 @@
   ```
 
   Note: First time installs might want to skip using Terraform from within Ansible to make sure the
-  new build works as expected. When using a stable build, the tag does not have to be skipped.
+  new build works as expected. When using a stable build, the tag does not have to be skipped. If this
+  tag is skipped, proceed with the following set of commands.
+
+  - Change to local directory
+    ```
+    cd ~/magma-experimental/<orc8rClusterName defined in roles/vars/cluster.yaml>
+    ``` 
+  - Run terraform commands manually to provision Cloud resources, load secrets and deploy magma artifacts
+    ```
+    terraform apply -target=module.orc8r
+    terraform apply -target=module.orc8r-app.null_resource.orc8r_seed_secrets
+    terraform apply
+    ```
 
   - Result: Orchestrator certificates created, Terraform files initialized, Orchestrator deployed
     via Terraform
+
+  - Validate Orchestrator deployment by following the verification steps in https://magma.github.io/magma/docs/orc8r/deploy_install
 
 ## Known Issues, Best Practices & Expected Behavior
 
@@ -170,9 +191,11 @@
 ### Expected Behavior - Install
 
     1. Prior code base
-       If a prior code base resides in the home folder, install exists reporting code already exists.
+       If a prior code base resides in the home folder, install exists with an error that code already exists.
        This is done to ensure the user is aware that a prior code base exists and needs to be moved
        before pulling the new code and not automatically have it overwritten. This is expected
        behavior. 
+       
+       Resolution: mv ~/magma ~/magma-backup-<identifier> to  move existing code base.
 
 

@@ -9,6 +9,7 @@ orc8rDomainName: arun.fbmagma.ninja
 orc8rLabel: 1.3.0
 orc8rVersion: v1.3
 gitHelmRepo: helm13
+#Ex: If the repo is avaialble from https://github.com/<username>/helm13.git, use the repo name for gitHelmRepo
 
 #AWS variables
 awsBootKey: "{{ keyBoot }}"
