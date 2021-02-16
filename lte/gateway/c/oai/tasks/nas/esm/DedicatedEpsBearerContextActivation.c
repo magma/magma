@@ -503,20 +503,32 @@ static int _dedicated_eps_bearer_activate(
    * Notify EMM that an activate dedicated EPS bearer context request
    * message has to be sent to the UE
    */
-  emm_esm_activate_bearer_req_t* emm_esm_activate =
-      &emm_sap.u.emm_esm.u.activate_bearer;
-
-  emm_sap.primitive       = EMMESM_ACTIVATE_BEARER_REQ;
   emm_sap.u.emm_esm.ue_id = ue_id;
   emm_sap.u.emm_esm.ctx   = emm_context;
-  emm_esm_activate->msg   = *msg;
-  emm_esm_activate->ebi   = ebi;
+  if (!(bearer_context->enb_fteid_s1u.teid)) {
+    emm_sap.primitive = EMMESM_ACTIVATE_BEARER_REQ;
+    emm_esm_activate_bearer_req_t* emm_esm_activate =
+        &emm_sap.u.emm_esm.u.activate_bearer;
+    emm_esm_activate->msg = *msg;
+    emm_esm_activate->ebi = ebi;
 
-  emm_esm_activate->mbr_dl = bearer_context->esm_ebr_context.mbr_dl;
-  emm_esm_activate->mbr_ul = bearer_context->esm_ebr_context.mbr_ul;
-  emm_esm_activate->gbr_dl = bearer_context->esm_ebr_context.gbr_dl;
-  emm_esm_activate->gbr_ul = bearer_context->esm_ebr_context.gbr_ul;
-
+    emm_esm_activate->mbr_dl = bearer_context->esm_ebr_context.mbr_dl;
+    emm_esm_activate->mbr_ul = bearer_context->esm_ebr_context.mbr_ul;
+    emm_esm_activate->gbr_dl = bearer_context->esm_ebr_context.gbr_dl;
+    emm_esm_activate->gbr_ul = bearer_context->esm_ebr_context.gbr_ul;
+    OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "Rashmi send dedicated bearer activation in erab setup for ebi:%d \n",
+        ebi);
+  } else {
+    emm_sap.primitive            = EMMESM_UNITDATA_REQ;
+    emm_sap.u.emm_esm.u.data.msg = *msg;
+    OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "Rashmi send dedicated bearer activation in DL nas message for ebi:%d "
+        "\n",
+        ebi);
+  }
   bstring msg_dup = bstrcpy(*msg);
   rc              = emm_sap_send(&emm_sap);
 

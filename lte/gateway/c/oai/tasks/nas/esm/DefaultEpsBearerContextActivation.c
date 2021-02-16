@@ -498,7 +498,13 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
        * If PDN connectivity is received along with attach req send
        * activate default eps bearer req message in ICS req
        */
-      if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone) {
+      ue_mm_context_t* ue_context_p = PARENT_STRUCT(
+          ((emm_context_t*) esm_ebr_timer_data->ctx), struct ue_mm_context_s,
+          emm_context);
+      bearer_context_t* bc =
+          mme_app_get_bearer_context(ue_context_p, esm_ebr_timer_data->ebi);
+      if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone &&
+          (!(bc->enb_fteid_s1u.teid))) {
         _default_eps_bearer_activate_in_bearer_setup_req(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       } else {
