@@ -436,3 +436,11 @@ func (m *CellularGatewayPoolRecords) ValidateModel() error {
 	}
 	return nil
 }
+
+func (m *NetworkProbeTask) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *NetworkProbeDestination) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
