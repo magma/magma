@@ -3203,6 +3203,156 @@ paths:
       summary: Update the name of an LTE network
       tags:
       - LTE Networks
+  /lte/{network_id}/network_probe_destinations:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: Provisioned NetworkProbe Destinations
+          schema:
+            $ref: '#/definitions/network_probe_destination'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List NetworkProbe Destinations in the network
+      tags:
+      - Network Probes
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - in: body
+        name: network_probe_destination
+        required: true
+        schema:
+          $ref: '#/definitions/network_probe_destination'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add a new NetworkProbeDestination to the network
+      tags:
+      - Network Probes
+  /lte/{network_id}/network_probe_destinations/{destination_id}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/destination_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Remove a NetworkProbe Destination from the network
+      tags:
+      - Network Probes
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/destination_id'
+      responses:
+        "200":
+          description: NetworkProbeDestination Info
+          schema:
+            $ref: '#/definitions/network_probe_destination'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve a NetworkProbe Destination
+      tags:
+      - Network Probes
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/destination_id'
+      - description: New NetworkProbeDestination configuration
+        in: body
+        name: network_probe_destination
+        required: true
+        schema:
+          $ref: '#/definitions/network_probe_destination'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update an existing NetworkProbe Destination in the network
+      tags:
+      - Network Probes
+  /lte/{network_id}/network_probe_tasks:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: Provisioned NetworkProbeTasks
+          schema:
+            $ref: '#/definitions/network_probe_task'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List NetworkProbeTask in the network
+      tags:
+      - Network Probes
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - in: body
+        name: network_probe_task
+        required: true
+        schema:
+          $ref: '#/definitions/network_probe_task'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add a new NetworkProbeTask to the network
+      tags:
+      - Network Probes
+  /lte/{network_id}/network_probe_tasks/{task_id}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/task_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Remove an NetworkProbeTask from the network
+      tags:
+      - Network Probes
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/task_id'
+      responses:
+        "200":
+          description: NetworkProbeTask Info
+          schema:
+            $ref: '#/definitions/network_probe_task'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve the NetworkProbeTask info
+      tags:
+      - Network Probes
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/task_id'
+      - description: New NetworkProbeTask configuration
+        in: body
+        name: network_probe_task
+        required: true
+        schema:
+          $ref: '#/definitions/network_probe_task'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update an existing NetworkProbeTask in the network
+      tags:
+      - Network Probes
   /lte/{network_id}/policy_qos_profiles:
     get:
       parameters:
@@ -6543,6 +6693,12 @@ parameters:
     name: channel_id
     required: true
     type: string
+  destination_id:
+    description: Network Probe Destination ID
+    in: path
+    name: destination_id
+    required: true
+    type: string
   dns_domain:
     description: DNS record domain
     in: path
@@ -6655,6 +6811,12 @@ parameters:
     description: Subscriber ID
     in: path
     name: subscriber_id
+    required: true
+    type: string
+  task_id:
+    description: Network Probe Task ID
+    in: path
+    name: task_id
     required: true
     type: string
   tenant_id:
@@ -9926,6 +10088,86 @@ definitions:
   network_name:
     example: Sample Network
     minLength: 1
+    type: string
+    x-nullable: false
+  network_probe_destination:
+    description: Network Probe Destination
+    properties:
+      destination_details:
+        $ref: '#/definitions/network_probe_destination_details'
+      destination_id:
+        $ref: '#/definitions/network_probe_destination_id'
+    required:
+    - destination_id
+    - destination_details
+    type: object
+  network_probe_destination_details:
+    properties:
+      delivery_address:
+        example: 127.0.0.1:4040
+        type: string
+        x-nullable: false
+      delivery_type:
+        enum:
+        - all
+        - events_only
+        example: events_only
+        type: string
+        x-nullable: false
+    required:
+    - delivery_type
+    - delivery_address
+    type: object
+  network_probe_destination_id:
+    example: xxxx-yyyy-zzzz
+    type: string
+    x-nullable: false
+  network_probe_task:
+    description: Network Probe Task
+    properties:
+      task_details:
+        $ref: '#/definitions/network_probe_task_details'
+      task_id:
+        $ref: '#/definitions/network_probe_task_id'
+    required:
+    - task_id
+    - task_details
+    type: object
+  network_probe_task_details:
+    properties:
+      correlation_id:
+        example: 06AAADFD0A40400D
+        type: string
+        x-nullable: false
+      delivery_type:
+        enum:
+        - all
+        - events_only
+        example: events_only
+        type: string
+        x-nullable: false
+      target_id:
+        type: string
+        x-nullable: false
+      target_type:
+        enum:
+        - imsi
+        - imei
+        - msisdn
+        example: imsi
+        type: string
+        x-nullable: false
+      timestamp:
+        format: date-time
+        type: string
+        x-nullable: false
+    required:
+    - target_id
+    - target_type
+    - delivery_type
+    type: object
+  network_probe_task_id:
+    example: imsi1023001
     type: string
     x-nullable: false
   network_ran_configs:
