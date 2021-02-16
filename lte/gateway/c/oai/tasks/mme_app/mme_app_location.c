@@ -116,10 +116,6 @@ int mme_app_send_s6a_update_location_req(
    */
   if (ue_context_p->emm_context._ms_network_capability.en_dc) {
     s6a_ulr_p->dual_regis_5g_ind = 1;
-    OAILOG_DEBUG(
-        TASK_MME_APP,
-        "Dual registration with 5G-NR is enabled for (ue_id = %u)\n",
-        ue_context_p->mme_ue_s1ap_id);
   } else {
     s6a_ulr_p->dual_regis_5g_ind = 0;
     OAILOG_DEBUG(

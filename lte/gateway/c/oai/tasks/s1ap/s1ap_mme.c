@@ -71,10 +71,6 @@
 #define UE_LIST_OUT(x, args...)
 #endif
 
-hash_table_ts_t g_s1ap_enb_coll = {.mutex = PTHREAD_MUTEX_INITIALIZER,
-                                   0};  // contains eNB_description_s, key is
-                                        // eNB_description_s.enb_id (uint32_t);
-
 bool s1ap_dump_enb_hash_cb(
     const hash_key_t keyP, void* const enb_void, void* unused_param,
     void** unused_res);
@@ -375,49 +371,6 @@ void s1ap_mme_exit(void) {
   pthread_exit(NULL);
 }
 
-//------------------------------------------------------------------------------
-bool s1ap_enb_compare_by_enb_id_cb(
-    __attribute__((unused)) const hash_key_t keyP, void* const elementP,
-    void* parameterP, void** resultP) {
-  const uint32_t* const enb_id_p = (const uint32_t* const) parameterP;
-  enb_description_t* enb_ref     = (enb_description_t*) elementP;
-  if (*enb_id_p == enb_ref->enb_id) {
-    *resultP = elementP;
-    return true;
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
-bool s1ap_enb_find_ue_by_mme_ue_id_cb(
-    __attribute__((unused)) const hash_key_t keyP, void* const elementP,
-    void* parameterP, void** resultP) {
-  enb_description_t* enb_ref = (enb_description_t*) elementP;
-
-  hashtable_ts_apply_callback_on_elements(
-      (hash_table_ts_t* const) & enb_ref->ue_id_coll,
-      s1ap_ue_compare_by_mme_ue_id_cb, parameterP, resultP);
-  if (*resultP) {
-    OAILOG_TRACE(
-        LOG_S1AP, "Found ue_ref %p mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-        *resultP, ((ue_description_t*) (*resultP))->mme_ue_s1ap_id);
-    return true;
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
-ue_description_t* s1ap_is_ue_mme_id_in_list(
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id) {
-  ue_description_t* ue_ref           = NULL;
-  mme_ue_s1ap_id_t* mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t*) &mme_ue_s1ap_id;
-
-  hashtable_ts_apply_callback_on_elements(
-      &g_s1ap_enb_coll, s1ap_enb_find_ue_by_mme_ue_id_cb,
-      (void*) mme_ue_s1ap_id_p, (void**) &ue_ref);
-  //  OAILOG_TRACE(LOG_S1AP, "Return ue_ref %p \n", ue_ref);
-  return ue_ref;
-}
 //------------------------------------------------------------------------------
 void s1ap_dump_enb_list(s1ap_state_t* state) {
   hashtable_ts_apply_callback_on_elements(

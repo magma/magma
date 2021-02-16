@@ -1012,9 +1012,6 @@ void s1ap_handle_conn_est_cnf(
         conn_est_cnf_pP->ue_security_capabilities_integrity_algorithms);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
   }
-
-  // if (UE_NETWORK_CAPABILITY_DCNR == true)
-
   if (uenetworkcapability.dcnr == 1) {
     OAILOG_DEBUG(
         LOG_S1AP, " EN_DC dual connectivity indicator = %d \n",
