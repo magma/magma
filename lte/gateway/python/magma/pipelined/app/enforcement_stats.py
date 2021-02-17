@@ -615,8 +615,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 new_usage[key] = current
         return new_usage
 
-    def recover_state(self, flows):
-        for flow in flows[self.tbl_num]:
+    def recover_state(self, stat_flows):
+        for flow in stat_flows[self.tbl_num]:
             self.last_usage_for_delta = self._update_usage_from_flow_stat(
                 self.last_usage_for_delta, flow)
         self.logger.info("Recovered stats:")
