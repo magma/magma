@@ -142,38 +142,6 @@ bool nas_proc::is_nas_specific_procedure_registration_running(
   return false;
 }
 //-----------------------------------------------------------------------------
-int nas_proc::nas5g_message_decode(
-    unsigned char* buffer, amf_nas_message_t* nas_msg, int length,
-    amf_security_context_t* amf_security_context,
-    amf_nas_message_decode_status_t* decode_status) {
-  OAILOG_FUNC_IN(LOG_NAS5G);
-  amf_security_context_t* amf_security = amf_security_context;
-  int bytes                            = 0;
-  uint32_t mac                         = 0;
-  uint16_t short_mac                   = 0;
-  int size                             = 0;
-  bool is_sr                           = false;
-  uint8_t sequence_number              = 0;
-  uint8_t temp_sequence_number         = 0;
-  AmfMsgHeader* msg_header             = nullptr;
-  AmfMsg* msg_amf                      = nullptr;
-  /*
-   * Decode the header
-   */
-  msg_header = (AmfMsgHeader*) &nas_msg->header;
-  size       = amf_msg_obj.AmfMsgDecodeHeaderMsg(msg_header, buffer, length);
-  if (size < 0) {
-    OAILOG_FUNC_RETURN(LOG_NAS5G, TLV_BUFFER_TOO_SHORT);
-  }
-  // TODO:  else part for nas5g_message_protected_decode
-  /*
-   * Decode plain NAS message
-   */
-  msg_amf = (AmfMsg*) &nas_msg->plain.amf;
-  bytes   = amf_msg_obj.M5gNasMessageDecodeMsg(msg_amf, buffer, length);
-  OAILOG_FUNC_RETURN(LOG_NAS, bytes);
-}
-//------------------------------------------------------------------------------------
 
 nas_amf_ident_proc_t* nas5g_new_identification_procedure(
     amf_context_t* const amf_context) {

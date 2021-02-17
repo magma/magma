@@ -66,6 +66,9 @@ typedef uint32_t amf_ue_ngap_id_t;
 
 namespace magma5g {
 /*forward declaration*/
+extern ue_m5gmm_context_s
+    ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
+                              // store context inserted to ht
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
 static int amf_as_security_req(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg);
@@ -148,18 +151,23 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   amf_nas_message_t nas_msg;  // TODO AMF_TEST // Union of nas messages
   // AMFMsg nas_msg;  // TODO AMF_TEST verify with Sanjay
   ue_m5gmm_context_s ue_m5gmm_context;
-  ue_m5gmm_context.mm_state = UE_UNREGISTERED;
-  amf_ctx                   = &ue_m5gmm_context.amf_context;
+  ue_m5gmm_context.mm_state = UNREGISTERED;
+  amf_ctx = &ue_m5gmm_global_context.amf_context;  // TODO AMF_TEST global var
+                                                   // to temporarily store
+                                                   // context inserted to ht
 
   if (amf_ctx) {
-    // TODO
+    if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST:AMF_CTXT_PRESENT_SECURITY ");
+      amf_security_context = &amf_ctx->_security;  // AMF_TEST
+    }
   }
 
   /*
    * Decode initial NAS message
    */
   OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: Decoding NAS Message");
-  decoder_rc = nas_procedure_as.nas5g_message_decode(
+  decoder_rc = nas5g_message_decode(
       msg->nas_msg->data, &nas_msg, blength(msg->nas_msg), amf_security_context,
       &decode_status);
   OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: rc = %d", decoder_rc);
@@ -385,9 +393,8 @@ static int amf_as_encode(
      * Encode the NAS message
      */
     AmfMsg amf_msg_test;
-    bytes = amf_msg_test.M5gNasMessageEncodeMsg(
-        (AmfMsg*) &msg->security_protected.plain.amf, (uint8_t*) (*info)->data,
-        (uint32_t) length);
+    bytes =
+        nas5g_message_encode((*info)->data, msg, length, amf_security_context);
 
     if (bytes > 0) {
       (*info)->slen = bytes;
@@ -500,10 +507,12 @@ uint16_t amf_as_dl_message::amf_as_data_req(
         // 0 1 0 0 0 1 1 0 Deregistration accept (UE originating) 70
         OAILOG_INFO(
             LOG_AMF_APP, "AMF_TEST: Sending DEREGISTRATION_ACCEPT to UE\n");
-        size = 3;
+        size = 5;
 
         amf_msg->deregistrationacceptmsg.message_type.msg_type =
             DEREGISTRATION_ACCEPT_UE_INIT;
+        nas_msg.security_protected.plain.amf.header
+            .extended_protocol_discriminator = 0x7e;
         nas_msg.security_protected.plain.amf.header.message_type =
             DEREGISTRATION_ACCEPT_UE_INIT;
         nas_msg.security_protected.plain.amf.deregistrationacceptmsg
@@ -530,6 +539,31 @@ uint16_t amf_as_dl_message::amf_as_data_req(
 
     if (ue_m5gmm_context) {
       amf_ctx = &ue_m5gmm_context->amf_context;
+      if (amf_ctx) {
+        if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
+          amf_security_context = &amf_ctx->_security;
+        }
+      }
+    } else {
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: get the security context\n");
+      amf_ctx =
+          &ue_m5gmm_global_context.amf_context;  // TODO AMF_TEST global var to
+                                                 // temporarily store context
+                                                 // inserted to ht
+      if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
+        OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: get the security context\n");
+        amf_security_context = &amf_ctx->_security;
+      }
+    }
+    if (amf_security_context) {
+      nas_msg.header.sequence_number = amf_security_context->dl_count.seq_num;
+      OAILOG_DEBUG(
+          LOG_NAS_AMF, "Set nas_msg.header.sequence_number -> %u\n",
+          nas_msg.header.sequence_number);
+    } else {
+      OAILOG_ERROR(
+          LOG_NAS_AMF, "Security context is NULL for UE -> %d\n", msg->ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
     OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: start NAS encoding\n");
     if (!is_encoded) {
@@ -742,14 +776,14 @@ static int amf_as_security_req(
       case AMF_AS_MSG_TYPE_IDENT:
         OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: Sending IDENTITY_REQUEST to UE\n");
         size = amf_send_identity_request(msg, &amf_msg->identityrequestmsg);
-        nas_msg.security_protected.plain.amf.header.message_type = 0x5B;
-        nas_msg.security_protected.plain.amf.identityrequestmsg
-            .extended_protocol_discriminator.extended_proto_discriminator =
-            0x7e;
-        nas_msg.security_protected.plain.amf.identityrequestmsg.message_type
-            .msg_type = 0x5b;
-        nas_msg.security_protected.plain.amf.identityrequestmsg
-            .m5gs_identity_type.toi = 1;
+        nas_msg.header.extended_protocol_discriminator           = 0x7E;
+        nas_msg.header.security_header_type                      = 0x0;
+        nas_msg.plain.amf.header.message_type                    = 0x5B;
+        nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
+        nas_msg.plain.amf.identityrequestmsg.extended_protocol_discriminator
+            .extended_proto_discriminator                           = 0x7e;
+        nas_msg.plain.amf.identityrequestmsg.message_type.msg_type  = 0x5b;
+        nas_msg.plain.amf.identityrequestmsg.m5gs_identity_type.toi = 1;
         break;
       case AMF_AS_MSG_TYPE_AUTH: {
         s6a_auth_info_req_t air_t;
@@ -812,25 +846,37 @@ static int amf_as_security_req(
         if (aia_t.auth_info.nb_of_vectors ==
             1) {  // TODO better conditional checks!!!!
           // if(aia_t.auth_info.nb_of_vectors != 1) { //bypassing s6a_AIR
-          OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: nb_of_vectors: 1\n");
+          OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: imsi in aia_t:%s\n", aia_t.imsi);
+          nas_msg.plain.amf.authenticationrequestmsg.auth_autn.AUTN.assign(
+              (const char*) aia_t.auth_info.eutran_vector[0].autn,
+              AUTN_LENGTH_OCTETS);
+          nas_msg.plain.amf.authenticationrequestmsg.auth_rand.rand_val.assign(
+              (const char*) aia_t.auth_info.eutran_vector[0].rand,
+              RAND_LENGTH_OCTETS);
+          memcpy(
+              ue_context->amf_context
+                  ._vector
+                      [ue_context->amf_context._security.eksi %
+                       MAX_EPS_AUTH_VECTORS]
+                  .autn,
+              aia_t.auth_info.eutran_vector[0].autn, AUTN_LENGTH_OCTETS);
+          memcpy(
+              ue_context->amf_context
+                  ._vector
+                      [ue_context->amf_context._security.eksi %
+                       MAX_EPS_AUTH_VECTORS]
+                  .rand,
+              aia_t.auth_info.eutran_vector[0].rand, RAND_LENGTH_OCTETS);
           for (int i = 0; i < AUTN_LENGTH_OCTETS; i++) {
-            OAILOG_INFO(
+            OAILOG_DEBUG(
                 LOG_AMF_APP, "AMF_TEST: autn[%d]:%x", i,
                 aia_t.auth_info.eutran_vector[0].autn[i]);
           }
-          nas_msg.security_protected.plain.amf.authenticationrequestmsg
-              .auth_autn.AUTN.assign(
-                  (const char*) aia_t.auth_info.eutran_vector[0].autn,
-                  AUTN_LENGTH_OCTETS);
           for (int i = 0; i < RAND_LENGTH_OCTETS; i++) {
-            OAILOG_INFO(
+            OAILOG_DEBUG(
                 LOG_AMF_APP, "AMF_TEST: rand[%d]:%x", i,
                 aia_t.auth_info.eutran_vector[0].rand[i]);
           }
-          nas_msg.security_protected.plain.amf.authenticationrequestmsg
-              .auth_rand.rand_val.assign(
-                  (const char*) aia_t.auth_info.eutran_vector[0].rand,
-                  RAND_LENGTH_OCTETS);
         } else {
           // TODO register error, s6a_air failed and return
           OAILOG_INFO(LOG_AMF_APP, "s6a_air request failed\n");
@@ -847,27 +893,31 @@ static int amf_as_security_req(
         }
         OAILOG_INFO(
             LOG_AMF_APP, "AMF_TEST: Sending AUTHENTICATION_REQUEST to UE\n");
-        size = 50;
-        nas_msg.security_protected.plain.amf.header
-            .extended_protocol_discriminator                     = 0x7e;
-        nas_msg.security_protected.plain.amf.header.message_type = 0x56;
-        nas_msg.security_protected.plain.amf.authenticationrequestmsg
+        size                                                     = 50;
+        nas_msg.header.extended_protocol_discriminator           = 0x7E;
+        nas_msg.header.security_header_type                      = 0x0;
+        nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7e;
+        nas_msg.plain.amf.header.message_type                    = 0x56;
+        nas_msg.plain.amf.authenticationrequestmsg
             .extended_protocol_discriminator.extended_proto_discriminator =
             0x7e;
-        nas_msg.security_protected.plain.amf.authenticationrequestmsg
-            .message_type.msg_type = 0x56;
-        nas_msg.security_protected.plain.amf.authenticationrequestmsg
-            .nas_key_set_identifier.tsc = 0;
-        nas_msg.security_protected.plain.amf.authenticationrequestmsg
-            .nas_key_set_identifier.nas_key_set_identifier = 0x1;
-        uint8_t abba_buff[]                                = {0x00, 0x00};
-        nas_msg.security_protected.plain.amf.authenticationrequestmsg.abba
-            .contents.assign((const char*) abba_buff, 2);
-        nas_msg.security_protected.plain.amf.authenticationrequestmsg.auth_rand
+        nas_msg.plain.amf.authenticationrequestmsg.message_type.msg_type = 0x56;
+        nas_msg.plain.amf.authenticationrequestmsg.nas_key_set_identifier.tsc =
+            0;
+        nas_msg.plain.amf.authenticationrequestmsg.nas_key_set_identifier
+            .nas_key_set_identifier = 0x0;
+        uint8_t abba_buff[]         = {0x00, 0x00};
+        nas_msg.plain.amf.authenticationrequestmsg.abba.contents.assign(
+            (const char*) abba_buff, 2);
+        nas_msg.plain.amf.authenticationrequestmsg.auth_rand.iei = 0x21;
+        nas_msg.plain.amf.authenticationrequestmsg.auth_autn.iei = 0x20;
+        nas_msg.plain.amf.authenticationrequestmsg.auth_rand
             .iei = 0x21;
-        nas_msg.security_protected.plain.amf.authenticationrequestmsg.auth_autn
+        nas_msg.plain.amf.authenticationrequestmsg.auth_autn
             .iei = 0x20;
-      } break;
+      }
+      break;
+
       case AMF_AS_MSG_TYPE_SMC: {
         size = 8;
         OAILOG_INFO(
@@ -884,50 +934,57 @@ static int amf_as_security_req(
             .spare_half_octet.spare = 0;
         nas_msg.security_protected.plain.amf.securitymodecommandmsg.message_type
             .msg_type = 0x5D;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .nas_sec_algorithms.tca = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .nas_sec_algorithms.tia = 0;
+        ue_m5gmm_context_s* ue_context =
+            amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
+        if (ue_context) {
+          amf_security_context_t* amf_security_context =
+              &ue_context->amf_context._security;
+          amf_security_context->selected_algorithms.integrity =
+              0;  // TODO get this computed
+          amf_security_context->selected_algorithms.encryption =
+              0;  // TODO get this computed
+          nas_msg.security_protected.plain.amf.securitymodecommandmsg
+              .nas_sec_algorithms.tca =
+              amf_security_context->selected_algorithms.encryption;
+          nas_msg.security_protected.plain.amf.securitymodecommandmsg
+              .nas_sec_algorithms.tia =
+              amf_security_context->selected_algorithms.integrity;
+          // relay UE security capabilities saved to amf_context back to UE
+          memcpy(
+              &(nas_msg.security_protected.plain.amf.securitymodecommandmsg
+                    .ue_sec_capability),
+              &(ue_context->amf_context.ue_sec_capability),
+              sizeof(UESecurityCapabilityMsg));
+
+        } else {
+          ue_context = &ue_m5gmm_global_context;  // TODO AMF_TEST global var to
+                                                  // temporarily store context
+                                                  // inserted to ht
+          amf_security_context_t* amf_security_context =
+              &ue_context->amf_context._security;
+          amf_security_context->selected_algorithms.integrity =
+              0;  // TODO get this computed
+          amf_security_context->selected_algorithms.encryption =
+              0;  // TODO get this computed
+          nas_msg.security_protected.plain.amf.securitymodecommandmsg
+              .nas_sec_algorithms.tca =
+              amf_security_context->selected_algorithms.encryption;
+          nas_msg.security_protected.plain.amf.securitymodecommandmsg
+              .nas_sec_algorithms.tia =
+              amf_security_context->selected_algorithms.integrity;
+          // relay UE security capabilities saved to amf_context back to UE
+          memcpy(
+              &(nas_msg.security_protected.plain.amf.securitymodecommandmsg
+                    .ue_sec_capability),
+              &(ue_context->amf_context.ue_sec_capability),
+              sizeof(UESecurityCapabilityMsg));
+        }
         nas_msg.security_protected.plain.amf.securitymodecommandmsg
             .nas_key_set_identifier.tsc = 0;
         nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .nas_key_set_identifier.nas_key_set_identifier = 1;
+            .nas_key_set_identifier.nas_key_set_identifier = 0x0;
         nas_msg.security_protected.plain.amf.securitymodecommandmsg
             .spare_half_octet.spare = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.length = 2;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ea0 = 1;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ea1 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ea2 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ea3 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ea4 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ea5 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ea6 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ea7 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ia0 = 1;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ia1 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ia2 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ia3 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ia4 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ia5 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ia6 = 0;
-        nas_msg.security_protected.plain.amf.securitymodecommandmsg
-            .ue_sec_capability.ia7 = 0;
         nas_msg.security_protected.plain.amf.securitymodecommandmsg
             .imeisv_request.imeisv_request = 1;
       } break;

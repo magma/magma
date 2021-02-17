@@ -295,6 +295,8 @@ class amf_context_t {
   guti_m5_t m5_old_guti; /* The GUTI assigned to the UE                     */
   ksi_t ksi;             /*key set identifier  */
   drx_parameter_t _drx_parameter;
+  UESecurityCapabilityMsg ue_sec_capability;
+
   int remaining_vectors;  // remaining unused vectors
   m5g_auth_vector_t
       _vector[MAX_EPS_AUTH_VECTORS]; /* 5GMM authentication vector */
@@ -562,6 +564,7 @@ class amf_msg_header {
   uint8_t extended_protocol_discriminator;
   uint8_t security_header_type;
   uint8_t message_type;
+  uint32_t message_authentication_code;
   uint8_t sequence_number;
 };
 
@@ -632,6 +635,28 @@ typedef struct amf_nas_message_s {
   nas_message_security_protected_t security_protected;
   nas_message_plain_t plain;
 } amf_nas_message_t;
+int nas5g_message_header_decode(
+    const unsigned char* const buffer, amf_msg_header* const header,
+    const uint32_t length, amf_nas_message_decode_status_t* const status,
+    bool* const is_sr);
+
+int nas5g_message_encrypt(
+    const unsigned char* inbuf, unsigned char* outbuf,
+    const amf_msg_header* header, uint32_t length, void* security);
+
+int nas5g_message_decrypt(
+    const unsigned char* const inbuf, unsigned char* const outbuf,
+    amf_msg_header* header, uint32_t length, void* security,
+    amf_nas_message_decode_status_t* status);
+
+int nas5g_message_decode(
+    const unsigned char* const buffer, amf_nas_message_t* msg, uint32_t length,
+    void* security, amf_nas_message_decode_status_t* status);
+
+int nas5g_message_encode(
+    unsigned char* buffer, const amf_nas_message_t* const msg, uint32_t length,
+    void* security);
+
 
 typedef enum {
   CN5G_PROC_NONE = 0,

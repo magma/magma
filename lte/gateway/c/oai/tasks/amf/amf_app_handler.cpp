@@ -54,6 +54,10 @@ extern "C" {
 #include "nas5g_network.h"
 
 using namespace std;
+#define QUADLET 4
+#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
+  LENGTH += QUADLET - (LENGTH % QUADLET)
+
 namespace magma5g {
 amf_config_t amf_config_handler;
 amf_sap_c amf_sap_handler;
@@ -437,7 +441,8 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   extern ue_m5gmm_context_s
       ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily store
                                 // context inserted to ht
-  DLNASTransportMsg encode_msg;
+  DLNASTransportMsg* encode_msg;
+  // amf_app_defs amf_app_def_as;
   nas_network nas_networks;
   SmfMsg* smf_msg;
   bstring buffer;
@@ -507,24 +512,38 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
     // in this negative case handling, send pdu reject command to UE and release
     // message to SMF
   }
-  sleep(1);
-  smf_msg = &encode_msg.payload_container.smf_msg;
+  // smf_msg = &encode_msg.payload_container.smf_msg.pdu_session_estab_accept;
 
-  // AmfHeader
-  encode_msg.extended_protocol_discriminator.extended_proto_discriminator =
+  amf_nas_message_t msg;
+  msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  encode_msg.spare_half_octet.spare     = 0x00;
-  encode_msg.sec_header_type.sec_hdr    = 0x00;
-  encode_msg.message_type.msg_type      = DLNASTRANSPORT;
-  encode_msg.payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
+  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  // amf_as::amf_as_set_header(&msg, ue_context->amf_context._security);
+  msg.header.security_header_type =
+      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_NEW;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.sequence_number =
+      ue_context->amf_context._security.dl_count.seq_num;
 
-// SmfMsg
+  encode_msg = &msg.security_protected.plain.amf.downlinknas5gtransport;
+  smf_msg    = &encode_msg->payload_container.smf_msg;
+
+  // NAS AmfHeader
+  encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  encode_msg->spare_half_octet.spare     = 0x00;
+  encode_msg->sec_header_type.sec_hdr    = 0x00;
+  encode_msg->message_type.msg_type      = DLNASTRANSPORT;
+  encode_msg->payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
+  encode_msg->pdu_session_identity.iei   = 0x12;
+  encode_msg->pdu_session_identity.pdu_session_id =
 #define N1_SM_INFO 0x1  // TODO define in "M5gNasMessage.h" //pdu_change
-  encode_msg.payload_container_type.type_val = N1_SM_INFO;
-  encode_msg.payload_container.iei           = PAYLOAD_CONTAINER;
-  encode_msg.pdu_session_identity.iei        = 0x12;
-  encode_msg.pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
+
+  // NAS SmfMsg
+  encode_msg->payload_container_type.type_val = N1_SM_INFO;
+  encode_msg->payload_container.iei           = PAYLOAD_CONTAINER;
+
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
   container_len++;
@@ -535,6 +554,7 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   smf_msg->header.procedure_transaction_id =
       smf_ctx->smf_proc_data.pti.pti;  // TODO get it from SMF reply
   container_len++;
+
   smf_msg->pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   container_len++;
@@ -624,25 +644,45 @@ void amf_app_defs::amf_app_handle_pdu_session_response(
   smf_msg->pdu_session_estab_accept.session_ambr.ul_session_ambr = 0x01;
   ambr_len += 2;
   smf_msg->pdu_session_estab_accept.session_ambr.length = ambr_len;
-  encode_msg.payload_container.len                      = 30;
-
+  smf_msg->pdu_session_estab_accept.dnn.len             = 12;
+  smf_msg->pdu_session_estab_accept.dnn.dnn             = "carrier.com";
+  encode_msg->payload_container.len = 30;
   OAILOG_INFO(
       LOG_AMF_APP,
       "AMF_TEST: start NAS encoding for PDU Session Establishment Accept\n");
 
-  len    = 39;  // originally 38 and 30
+  len = 41;  
+
+  /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
+   * so length is modified such that it will be mode of 4
+   */
+  AMF_GET_BYTE_ALIGNED_LENGTH(len);
+  if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
+    amf_msg_header* header = &msg.security_protected.plain.amf.header;
+    /*
+     * Expand size of protected NAS message
+     */
+    OAILOG_INFO(
+        LOG_AMF_APP, "AMF_TEST:before adding sec header, length %d ", len);
+    len += NAS_MESSAGE_SECURITY_HEADER_SIZE;
+    OAILOG_INFO(
+        LOG_AMF_APP, "AMF_TEST:after adding sec header, length %d ", len);
+    /*
+     * Set header of plain NAS message
+     */
+    header->extended_protocol_discriminator = M5GS_MOBILITY_MANAGEMENT_MESSAGE;
+    header->security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  }
+
   buffer = bfromcstralloc(len, "\0");
-  bytes  = encode_msg.EncodeDLNASTransportMsg(&encode_msg, buffer->data, len);
+  bytes = nas5g_message_encode(
+      buffer->data, &msg, len, &ue_context->amf_context._security);
   OAILOG_INFO(LOG_AMF_APP, "bytes:%d \n", bytes);
   if (bytes > 0) {
     OAILOG_INFO(
         LOG_AMF_APP,
         "NAS encode success, sent PDU Establishment Accept to UE\n");
-    buffer->slen =
-        bytes + 3;  // TODO fix length in all other DownlinkNASTransport
-    for (int i = 0; i < (buffer)->slen; i++) {
-      OAILOG_ERROR(LOG_AMF_APP, "%02x ", (unsigned char) (buffer)->data[i]);
-    }
+    buffer->slen = bytes;
     amf_app_handle_nas_dl_req(ue_id, buffer, rc);
 
   } else {

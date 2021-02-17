@@ -57,6 +57,9 @@ namespace magma5g {
 amf_identity_msg amf_identity_rcv;
 m5g_authentication m5g_authentication_rcv;
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
+extern ue_m5gmm_context_s
+    ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
+                              // store context inserted to ht
 
 int amf_procedure_handler::amf_handle_registration_request(
     amf_ue_ngap_id_t ue_id, tai_t* originating_tai, ecgi_t* originating_ecgi,
@@ -109,6 +112,21 @@ int amf_procedure_handler::amf_handle_registration_request(
   } else {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
   }
+
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_context) {
+    memcpy(
+        &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
+        sizeof(UESecurityCapabilityMsg));
+  } else {
+    ue_context = &ue_m5gmm_global_context;  // TODO AMF_TEST global var to
+                                            // temporarily store context
+                                            // inserted to ht
+    memcpy(
+        &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
+        sizeof(UESecurityCapabilityMsg));
+  }
+
   /*
    * Get the AMF mobile identity
    */
