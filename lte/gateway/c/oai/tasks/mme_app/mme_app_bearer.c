@@ -952,7 +952,8 @@ void mme_app_handle_delete_session_rsp(
       pdn_cid_t pid =
           ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
               ->pdn_cx_id;
-      if (ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req) {
+      if ((ue_context_p->pdn_contexts[pid]) &&
+          (ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req)) {
         // Reset flag
         ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = false;
         // Free the contents of PDN session
