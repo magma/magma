@@ -12,7 +12,11 @@
 module magma/lte/cloud/go
 
 replace (
+	magma/feg/cloud/go => ../../../feg/cloud/go
+	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
+
 	magma/gateway => ../../../orc8r/gateway/go
+	magma/lte/cloud/go => ../../../lte/cloud/go
 	magma/orc8r/cloud/go => ../../../orc8r/cloud/go
 	magma/orc8r/lib/go => ../../../orc8r/lib/go
 	magma/orc8r/lib/go/protos => ../../../orc8r/lib/go/protos
@@ -41,9 +45,13 @@ require (
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.31.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
+
+	magma/feg/cloud/go v0.0.0
+
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0
+
 )
 
 go 1.12

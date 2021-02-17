@@ -16,6 +16,9 @@ package servicers_test
 import (
 	"testing"
 
+	"magma/feg/cloud/go/feg"
+	lte_serdes "magma/feg/cloud/go/serdes"
+	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/serdes"
@@ -25,6 +28,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -34,6 +38,169 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestBuilder_Build_BaseCase(t *testing.T) {
+	lte_test_init.StartTestService(t)
+	nw, graph := getDefaultAgwConfig()
+	expected := getExpectedDefaultAgwConfig()
+	actual, err := build(nw, graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+// TestBuilder_Build_FederatedAGW test that MME configuration includes the NH routes in case a feg network exist
+// and this feg networks includes the routes
+func TestBuilder_Build_FederatedAGW(t *testing.T) {
+	lte_test_init.StartTestService(t)
+
+	// Test routes
+	nhRoutes := map[string]string{"00101": "fegNetwork"}
+
+	// Create Feg Network configuration
+	configuratorTestInit.StartTestService(t)
+	feg_nw := configurator.Network{ID: "fegNetwork"}
+	feg_nw.Configs = map[string]interface{}{
+		feg.FegNetworkType: &feg_models.NetworkFederationConfigs{
+			NhRoutes:         nhRoutes,
+			ServedNetworkIds: []string{"n1"},
+		}}
+	_, err := configurator.CreateNetworks([]configurator.Network{feg_nw}, lte_serdes.Network)
+	assert.NoError(t, err)
+
+	// get default config and inject name of feg network
+	nw, graph := getDefaultAgwConfig()
+	nw.Configs[lte.CellularNetworkConfigType].(*lte_models.NetworkCellularConfigs).FegNetworkID = "fegNetwork"
+
+	// get expected default and inject the routes we should see on MME
+	expected := getExpectedDefaultAgwConfig()
+	expected["mme"].(*lte_mconfig.MME).NhRoutes =
+		&lte_mconfig.NHRoutes{PlmnMap: nhRoutes}
+
+	actual, err := build(nw, graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func getDefaultAgwConfig() (*configurator.Network, *configurator.EntityGraph) {
+	// No dnsd config, no enodebs
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
+		},
+	}
+	heConfig := &lte_models.GatewayHeConfig{
+		EnableHeaderEnrichment: swag.Bool(true),
+		EnableEncryption:       swag.Bool(true),
+		HeEncryptionAlgorithm:  "RC4",
+		HeHashFunction:         "MD5",
+		HeEncodingType:         "BASE64",
+		EncryptionKey:          "melting_the_core",
+		HmacKey:                "magmamagma",
+	}
+	gatewayConfig := newDefaultGatewayConfig()
+	gatewayConfig.HeConfig = heConfig
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             gatewayConfig,
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+	return &nw, &graph
+}
+
+func getExpectedDefaultAgwConfig() map[string]proto.Message {
+	return map[string]proto.Message{
+		"enodebd": &lte_mconfig.EnodebD{
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
+				Earfcndl:               44590,
+				SubframeAssignment:     2,
+				SpecialSubframePattern: 7,
+			},
+			BandwidthMhz:        20,
+			AllowEnodebTransmit: true,
+			Tac:                 1,
+			PlmnidList:          "00101",
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
+			Arfcn_2G:            nil,
+			EnbConfigsBySerial:  nil,
+		},
+		"mobilityd": &lte_mconfig.MobilityD{
+			LogLevel: protos.LogLevel_INFO,
+			IpBlock:  "192.168.128.0/24",
+		},
+		"mme": &lte_mconfig.MME{
+			LogLevel:                 protos.LogLevel_INFO,
+			Mcc:                      "001",
+			Mnc:                      "01",
+			Tac:                      1,
+			MmeCode:                  1,
+			MmeGid:                   1,
+			MmeRelativeCapacity:      10,
+			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			CsfbMcc:                  "001",
+			CsfbMnc:                  "01",
+			Lac:                      1,
+			HssRelayEnabled:          false,
+			CloudSubscriberdbEnabled: false,
+			AttachedEnodebTacs:       nil,
+			NatEnabled:               true,
+			NhRoutes:                 &lte_mconfig.NHRoutes{},
+		},
+		"pipelined": &lte_mconfig.PipelineD{
+			LogLevel:      protos.LogLevel_INFO,
+			UeIpBlock:     "192.168.128.0/24",
+			NatEnabled:    true,
+			DefaultRuleId: "",
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
+			},
+			HeConfig: &lte_mconfig.PipelineD_HEConfig{
+				EnableHeaderEnrichment: true,
+				EnableEncryption:       true,
+				EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_RC4,
+				HashFunction:           lte_mconfig.PipelineD_HEConfig_MD5,
+				EncodingType:           lte_mconfig.PipelineD_HEConfig_BASE64,
+				EncryptionKey:          "melting_the_core",
+				HmacKey:                "magmamagma",
+			},
+		},
+		"subscriberdb": &lte_mconfig.SubscriberDB{
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
+		},
+		"policydb": &lte_mconfig.PolicyDB{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sessiond": &lte_mconfig.SessionD{
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
+		},
+	}
+}
 
 func TestBuilder_Build(t *testing.T) {
 	lte_test_init.StartTestService(t)
@@ -124,6 +291,7 @@ func TestBuilder_Build(t *testing.T) {
 			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{15000},
 			NatEnabled:               true,
+			NhRoutes:                 &lte_mconfig.NHRoutes{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -255,6 +423,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               false,
+			NhRoutes:                 &lte_mconfig.NHRoutes{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -441,130 +610,6 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 
 }
 
-func TestBuilder_Build_BaseCase(t *testing.T) {
-	lte_test_init.StartTestService(t)
-
-	// No dnsd config, no enodebs
-	nw := configurator.Network{
-		ID: "n1",
-		Configs: map[string]interface{}{
-			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
-		},
-	}
-	gw := configurator.NetworkEntity{
-		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
-		},
-	}
-	heConfig := &lte_models.GatewayHeConfig{
-		EnableHeaderEnrichment: swag.Bool(true),
-		EnableEncryption:       swag.Bool(true),
-		HeEncryptionAlgorithm:  "RC4",
-		HeHashFunction:         "MD5",
-		HeEncodingType:         "BASE64",
-		EncryptionKey:          "melting_the_core",
-		HmacKey:                "magmamagma",
-	}
-	gatewayConfig := newDefaultGatewayConfig()
-	gatewayConfig.HeConfig = heConfig
-	lteGW := configurator.NetworkEntity{
-		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             gatewayConfig,
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
-	}
-
-	graph := configurator.EntityGraph{
-		Entities: []configurator.NetworkEntity{lteGW, gw},
-		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
-		},
-	}
-
-	expected := map[string]proto.Message{
-		"enodebd": &lte_mconfig.EnodebD{
-			LogLevel: protos.LogLevel_INFO,
-			Pci:      260,
-			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
-				Earfcndl:               44590,
-				SubframeAssignment:     2,
-				SpecialSubframePattern: 7,
-			},
-			BandwidthMhz:        20,
-			AllowEnodebTransmit: true,
-			Tac:                 1,
-			PlmnidList:          "00101",
-			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
-			Arfcn_2G:            nil,
-			EnbConfigsBySerial:  nil,
-		},
-		"mobilityd": &lte_mconfig.MobilityD{
-			LogLevel: protos.LogLevel_INFO,
-			IpBlock:  "192.168.128.0/24",
-		},
-		"mme": &lte_mconfig.MME{
-			LogLevel:                 protos.LogLevel_INFO,
-			Mcc:                      "001",
-			Mnc:                      "01",
-			Tac:                      1,
-			MmeCode:                  1,
-			MmeGid:                   1,
-			MmeRelativeCapacity:      10,
-			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
-			CsfbMcc:                  "001",
-			CsfbMnc:                  "01",
-			Lac:                      1,
-			HssRelayEnabled:          false,
-			CloudSubscriberdbEnabled: false,
-			AttachedEnodebTacs:       nil,
-			NatEnabled:               true,
-		},
-		"pipelined": &lte_mconfig.PipelineD{
-			LogLevel:      protos.LogLevel_INFO,
-			UeIpBlock:     "192.168.128.0/24",
-			NatEnabled:    true,
-			DefaultRuleId: "",
-			Services: []lte_mconfig.PipelineD_NetworkServices{
-				lte_mconfig.PipelineD_ENFORCEMENT,
-			},
-			HeConfig: &lte_mconfig.PipelineD_HEConfig{
-				EnableHeaderEnrichment: true,
-				EnableEncryption:       true,
-				EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_RC4,
-				HashFunction:           lte_mconfig.PipelineD_HEConfig_MD5,
-				EncodingType:           lte_mconfig.PipelineD_HEConfig_BASE64,
-				EncryptionKey:          "melting_the_core",
-				HmacKey:                "magmamagma",
-			},
-		},
-		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:      []byte("\x80\x00"),
-			SubProfiles:     nil,
-			HssRelayEnabled: false,
-		},
-		"policydb": &lte_mconfig.PolicyDB{
-			LogLevel: protos.LogLevel_INFO,
-		},
-		"sessiond": &lte_mconfig.SessionD{
-			LogLevel:         protos.LogLevel_INFO,
-			GxGyRelayEnabled: false,
-			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
-				TerminateOnExhaust: false,
-			},
-		},
-		"dnsd": &lte_mconfig.DnsD{
-			LogLevel:          protos.LogLevel_INFO,
-			DhcpServerEnabled: true,
-		},
-	}
-
-	actual, err := build(&nw, &graph, "gw1")
-	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
-}
-
 // Minimal configuration of enodeB, inherit rest of props from nw/gw configs
 func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	lte_test_init.StartTestService(t)
@@ -662,6 +707,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
+			NhRoutes:                 &lte_mconfig.NHRoutes{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -785,6 +831,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
+			NhRoutes:                 &lte_mconfig.NHRoutes{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -910,6 +957,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
+			NhRoutes:                 &lte_mconfig.NHRoutes{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,

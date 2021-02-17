@@ -305,6 +305,7 @@ message MME {
     // SGW S1U endpoint on AGW
     string ipv4_sgw_s1u_addr = 31;
 
+    NHRoutes nh_routes = 32;
 }
 
 
@@ -380,4 +381,8 @@ message GatewayDNSConfigRecordsItems {
   repeated string aaaa_record = 2;
   repeated string cname_record = 3;
   string domain = 4;
+}
+
+message NHRoutes {
+    map<string, string> plmn_map = 1;
 }

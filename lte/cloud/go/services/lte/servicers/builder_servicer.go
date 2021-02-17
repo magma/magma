@@ -18,6 +18,12 @@ import (
 	"fmt"
 	"sort"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"magma/feg/cloud/go/feg"
+	lte_serdes "magma/feg/cloud/go/serdes"
+	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/serdes"
@@ -103,6 +109,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return nil, err
 	}
 
+	// fedConfig will be nil if this a non federated network
+	fedConfig, err := getFederatedNetworkConfig(network.ID, cellularNwConfig.FegNetworkID)
+	if err != nil {
+		glog.Errorf("Failed to retrieve federated network config while building lte mconfig")
+		return nil, err
+	}
+
 	vals := map[string]proto.Message{
 		"enodebd": &lte_mconfig.EnodebD{
 			LogLevel:            protos.LogLevel_INFO,
@@ -149,6 +162,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 			Ipv4SgwS1UAddr:           gwEpc.IPV4SgwS1uAddr,
+			NhRoutes:                 getNHroutesFromFeg(network.ID, fedConfig),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -492,4 +506,37 @@ func shouldEnableDNSCaching(dns *lte_models.GatewayDNSConfigs) bool {
 		return false
 	}
 	return swag.BoolValue(dns.EnableCaching)
+}
+
+// getFederatedNetworkConfig returns the FEG configuration for this specific network.
+// If the network is not federated returns nil, but not error
+func getFederatedNetworkConfig(agNwID string, federatedId lte_models.FegNetworkID) (*feg_models.NetworkFederationConfigs, error) {
+	fedId := string(federatedId)
+	if federatedId == "" {
+		return nil, nil
+	}
+	fegCfg, err := configurator.LoadNetworkConfig(fedId, feg.FegNetworkType, lte_serdes.Network)
+	if err != nil || fegCfg == nil {
+		return nil, status.Errorf(
+			codes.Internal, "unable to retrieve config for federation network: %s", fedId)
+	}
+
+	networkFegConfigs, ok := fegCfg.(*feg_models.NetworkFederationConfigs)
+	if !ok || networkFegConfigs == nil {
+		return nil, status.Errorf(
+			codes.Internal, "invalid federation network config found for network: %s", fedId)
+	}
+	return networkFegConfigs, nil
+}
+
+// getNHroutesFromFeg extracts NH routes from the model into mconfig object
+func getNHroutesFromFeg(agNwID string, networkFegConfigs *feg_models.NetworkFederationConfigs) *lte_mconfig.NHRoutes {
+	if networkFegConfigs != nil {
+		for _, network := range networkFegConfigs.ServedNetworkIds {
+			if agNwID == network {
+				return &lte_mconfig.NHRoutes{PlmnMap: networkFegConfigs.NhRoutes}
+			}
+		}
+	}
+	return &lte_mconfig.NHRoutes{}
 }

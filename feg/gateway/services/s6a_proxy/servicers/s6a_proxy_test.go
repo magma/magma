@@ -108,7 +108,7 @@ func TestS6aProxyService(t *testing.T) {
 			t.Errorf("Unexpected ULA Error Code: %d", ulResp.ErrorCode)
 		}
 		if len(ulResp.RegionalSubscriptionZoneCode) != 2 ||
-			(ulResp.RegionalSubscriptionZoneCode[0] != "112233" || ulResp.RegionalSubscriptionZoneCode[1]!= "445566") {
+			(ulResp.RegionalSubscriptionZoneCode[0] != "112233" || ulResp.RegionalSubscriptionZoneCode[1] != "445566") {
 			t.Errorf("There should be 2 Regional Subscription Zone Codes : %+v", ulResp.RegionalSubscriptionZoneCode)
 		}
 
