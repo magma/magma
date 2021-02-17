@@ -1434,6 +1434,7 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   CreateSessionResponse response;
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 1024, true, response.mutable_credits()->Add());
+  auto now = time(NULL);
 
   // add a dynamic rule without activation time
   auto dynamic_rule = response.mutable_dynamic_rules()->Add();
@@ -1443,19 +1444,17 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   policy_rule->set_tracking_type(PolicyRule::ONLY_OCS);
 
   // add a dynamic rule with activation time in the future
-  dynamic_rule         = response.mutable_dynamic_rules()->Add();
-  policy_rule          = dynamic_rule->mutable_policy_rule();
-  auto activation_time = dynamic_rule->mutable_activation_time();
-  activation_time->set_seconds(time(NULL) + SECONDS_A_DAY);
+  dynamic_rule = response.mutable_dynamic_rules()->Add();
+  policy_rule  = dynamic_rule->mutable_policy_rule();
+  dynamic_rule->mutable_activation_time()->set_seconds(now + SECONDS_A_DAY);
   policy_rule->set_id("rule2");
   policy_rule->set_rating_group(1);
   policy_rule->set_tracking_type(PolicyRule::ONLY_OCS);
 
   // add a dynamic rule with activation time in the past
-  dynamic_rule    = response.mutable_dynamic_rules()->Add();
-  policy_rule     = dynamic_rule->mutable_policy_rule();
-  activation_time = dynamic_rule->mutable_activation_time();
-  activation_time->set_seconds(time(NULL) - SECONDS_A_DAY);
+  dynamic_rule = response.mutable_dynamic_rules()->Add();
+  policy_rule  = dynamic_rule->mutable_policy_rule();
+  dynamic_rule->mutable_activation_time()->set_seconds(now - SECONDS_A_DAY);
   policy_rule->set_id("rule3");
   policy_rule->set_rating_group(1);
   policy_rule->set_tracking_type(PolicyRule::ONLY_OCS);
@@ -1467,16 +1466,14 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
 
   // add a static rule with activation time in the future
   insert_static_rule(1, "", "rule5");
-  static_rule     = response.mutable_static_rules()->Add();
-  activation_time = static_rule->mutable_activation_time();
-  activation_time->set_seconds(time(NULL) + SECONDS_A_DAY);
+  static_rule = response.mutable_static_rules()->Add();
+  static_rule->mutable_activation_time()->set_seconds(now + SECONDS_A_DAY);
   static_rule->set_rule_id("rule5");
 
   // add a static rule with activation time in the past
   insert_static_rule(1, "", "rule6");
-  static_rule     = response.mutable_static_rules()->Add();
-  activation_time = static_rule->mutable_activation_time();
-  activation_time->set_seconds(time(NULL) - SECONDS_A_DAY);
+  static_rule = response.mutable_static_rules()->Add();
+  static_rule->mutable_activation_time()->set_seconds(now - SECONDS_A_DAY);
   static_rule->set_rule_id("rule6");
 
   // expect calling activate_flows_for_rules for activating rules instantly
@@ -1493,24 +1490,9 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
                              CheckCount(2), CheckCount(2), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
-  // expect calling activate_flows_for_rules for activating a static rule later
-  // static rules: rule5
-  EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
-                             test_cfg_.common_context.msisdn(), testing::_,
-                             CheckCount(1), CheckCount(0), testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-  // expect calling activate_flows_for_rules for activating a dynamic rule later
-  // dynamic rules: rule2
-  EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
-                             test_cfg_.common_context.msisdn(), testing::_,
-                             CheckCount(0), CheckCount(1), testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+
+  // We do not expect rule5 and rule2 to be activated since they are scheduled a
+  // day away
 
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);

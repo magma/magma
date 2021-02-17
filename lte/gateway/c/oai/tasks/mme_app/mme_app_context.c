@@ -419,7 +419,7 @@ ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
 
 //------------------------------------------------------------------------------
 struct ue_mm_context_s* mme_ue_context_exists_imsi(
-    mme_ue_context_t* const mme_ue_context_p, const imsi64_t imsi) {
+    mme_ue_context_t* const mme_ue_context_p, imsi64_t imsi) {
   hashtable_rc_t h_rc       = HASH_TABLE_OK;
   uint64_t mme_ue_s1ap_id64 = 0;
 
@@ -496,7 +496,7 @@ void mme_ue_context_update_coll_keys(
     mme_ue_context_t* const mme_ue_context_p,
     ue_mm_context_t* const ue_context_p,
     const enb_s1ap_id_key_t enb_s1ap_id_key,
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id, const imsi64_t imsi,
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id, imsi64_t imsi,
     const s11_teid_t mme_teid_s11,
     const guti_t* const guti_p)  //  never NULL, if none put &ue_context_p->guti
 {
@@ -613,7 +613,7 @@ void mme_ue_context_update_coll_keys(
     h_rc = HASH_TABLE_KEY_NOT_EXISTS;
   }
 
-  if (HASH_TABLE_OK != h_rc) {
+  if ((HASH_TABLE_OK != h_rc) && (mme_teid_s11)) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, imsi,
         "Error could not update this ue context %p "
@@ -831,23 +831,7 @@ int mme_insert_ue_context(
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
-//------------------------------------------------------------------------------
-void mme_notify_ue_context_released(
-    mme_ue_context_t* const mme_ue_context_p,
-    struct ue_mm_context_s* ue_context_p) {
-  OAILOG_FUNC_IN(LOG_MME_APP);
-  if (mme_ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "Invalid MME UE context received\n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
-  if (ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
-  // TODO HERE free resources
 
-  OAILOG_FUNC_OUT(LOG_MME_APP);
-}
 //------------------------------------------------------------------------------
 void mme_remove_ue_context(
     mme_ue_context_t* const mme_ue_context_p,
@@ -872,7 +856,6 @@ void mme_remove_ue_context(
 
   // Release emm and esm context
   delete_mme_ue_state(ue_context_p->emm_context._imsi64);
-  _clear_emm_ctxt(&ue_context_p->emm_context);
   mme_app_ue_context_free_content(ue_context_p);
   // IMSI
   if (ue_context_p->emm_context._imsi64) {
@@ -888,7 +871,29 @@ void mme_remove_ue_context(
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
     }
   }
+  // filled guti
+  if ((ue_context_p->emm_context._guti.gummei.mme_code) ||
+      (ue_context_p->emm_context._guti.gummei.mme_gid) ||
+      (ue_context_p->emm_context._guti.m_tmsi) ||
+      (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit1) ||
+      (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit2) ||
+      (ue_context_p->emm_context._guti.gummei.plmn
+           .mcc_digit3)) {  // MCC 000 does not exist in ITU table
+    hash_rc = obj_hashtable_uint64_ts_remove(
+        mme_ue_context_p->guti_ue_context_htbl,
+        (const void* const) & ue_context_p->emm_context._guti,
+        sizeof(ue_context_p->emm_context._guti));
+    if (HASH_TABLE_OK != hash_rc)
+      OAILOG_ERROR(
+          LOG_MME_APP,
+          "UE Context not found!\n"
+          " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+          " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+          ", GUTI  not in GUTI collection\n",
+          ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
+  }
 
+  _clear_emm_ctxt(&ue_context_p->emm_context);
   // eNB UE S1P UE ID
   hash_rc = hashtable_uint64_ts_remove(
       mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
@@ -917,28 +922,6 @@ void mme_remove_ue_context(
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id,
           ue_context_p->mme_teid_s11);
   }
-  // filled guti
-  if ((ue_context_p->emm_context._guti.gummei.mme_code) ||
-      (ue_context_p->emm_context._guti.gummei.mme_gid) ||
-      (ue_context_p->emm_context._guti.m_tmsi) ||
-      (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit1) ||
-      (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit2) ||
-      (ue_context_p->emm_context._guti.gummei.plmn
-           .mcc_digit3)) {  // MCC 000 does not exist in ITU table
-    hash_rc = obj_hashtable_uint64_ts_remove(
-        mme_ue_context_p->guti_ue_context_htbl,
-        (const void* const) & ue_context_p->emm_context._guti,
-        sizeof(ue_context_p->emm_context._guti));
-    if (HASH_TABLE_OK != hash_rc)
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "UE Context not found!\n"
-          " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-          " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-          ", GUTI  not in GUTI collection\n",
-          ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
-  }
-
   // filled NAS UE ID/ MME UE S1AP ID
   if (INVALID_MME_UE_S1AP_ID != ue_context_p->mme_ue_s1ap_id) {
     hash_rc = hashtable_ts_remove(
@@ -1557,12 +1540,27 @@ void mme_ue_context_update_ue_sig_connection_state(
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "UE STATE - CONNECTED.\n");
+  } else if (ue_context_p->ecm_state == ECM_IDLE && new_ecm_state == ECM_IDLE) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Old UE ECM State (IDLE) is same as the new UE ECM state (IDLE)\n");
+    hash_rc = hashtable_uint64_ts_remove(
+        mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
+        (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+    if (HASH_TABLE_OK != hash_rc) {
+      OAILOG_WARNING_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "UE context enb_ue_s1ap_ue_id_key %ld "
+          "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+          ", ENB_UE_S1AP_ID_KEY could not be found",
+          ue_context_p->enb_s1ap_id_key, ue_context_p->mme_ue_s1ap_id);
+    }
+    ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
   } else {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Old UE ECM State (%s) is same as the new UE ECM state (%s)\n",
-        (ue_context_p->ecm_state == ECM_CONNECTED ? "CONNECTED" : "IDLE"),
-        (new_ecm_state == ECM_CONNECTED ? "CONNECTED" : "IDLE"));
+        "Old UE ECM State (CONNECTED) is same as the new UE ECM state "
+        "(CONNECTED)\n");
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -1881,7 +1879,7 @@ void mme_app_handle_enb_deregister_ind(
 
 //------------------------------------------------------------------------------
 void mme_app_handle_enb_reset_req(
-    const itti_s1ap_enb_initiated_reset_req_t const* enb_reset_req) {
+    const itti_s1ap_enb_initiated_reset_req_t* const enb_reset_req) {
   MessageDef* msg;
   itti_s1ap_enb_initiated_reset_ack_t* reset_ack;
 
@@ -1941,7 +1939,7 @@ void mme_app_handle_enb_reset_req(
 //------------------------------------------------------------------------------
 void mme_app_handle_s1ap_ue_context_release_complete(
     mme_app_desc_t* mme_app_desc_p,
-    const itti_s1ap_ue_context_release_complete_t const*
+    const itti_s1ap_ue_context_release_complete_t* const
         s1ap_ue_context_release_complete)
 //------------------------------------------------------------------------------
 {
@@ -1967,8 +1965,6 @@ void mme_app_handle_s1ap_ue_context_release_complete(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  mme_notify_ue_context_released(
-      &mme_app_desc_p->mme_ue_contexts, ue_context_p);
   mme_app_delete_s11_procedure_create_bearer(ue_context_p);
 
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
@@ -2108,6 +2104,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
           "IDLE. mme_ue_s1ap_id = %d, enb_ue_s1ap_id = %d Action -- Handle the "
           "message\n ",
           ue_mm_context->mme_ue_s1ap_id, ue_mm_context->enb_ue_s1ap_id);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
@@ -2176,7 +2173,9 @@ static void _mme_app_handle_s1ap_ue_context_release(
         "UE context release request received while UE is in Deregistered state "
         "Perform implicit detach for ue-id" MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context->mme_ue_s1ap_id);
-    nas_proc_implicit_detach_ue_ind(ue_mm_context->mme_ue_s1ap_id);
+    if (!ue_mm_context->emm_context.new_attach_info) {
+      nas_proc_implicit_detach_ue_ind(ue_mm_context->mme_ue_s1ap_id);
+    }
   } else {
     if (cause == S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS) {
       for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {

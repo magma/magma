@@ -12,7 +12,7 @@
 COMPOSE_PROJECT_NAME=magmad
 DOCKER_REGISTRY=magmad_
 IMAGE_VERSION=latest
-BUILD_CONTEXT=https://github.com/facebookincubator/magma.git#master
+BUILD_CONTEXT=https://github.com/magma/magma.git#master
 
 ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
 CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml

@@ -72,6 +72,7 @@
 #include "sgs_messages_types.h"
 #include "secu_defs.h"
 #include "esm_proc.h"
+#include "mme_app_pdn_context.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
@@ -883,6 +884,28 @@ void mme_app_handle_delete_session_rsp(
    */
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
+  if (ue_context_p->nb_active_pdn_contexts > 0) {
+    ue_context_p->nb_active_pdn_contexts -= 1;
+  }
+
+  if (ue_context_p->emm_context.new_attach_info) {
+    pdn_cid_t pid =
+        ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
+            ->pdn_cx_id;
+    int bearer_idx = EBI_TO_INDEX(delete_sess_resp_pP->lbi);
+    eps_bearer_release(
+        &ue_context_p->emm_context, delete_sess_resp_pP->lbi, &pid,
+        &bearer_idx);
+    if (ue_context_p->pdn_contexts[pid]) {
+      mme_app_free_pdn_context(&ue_context_p->pdn_contexts[pid]);
+    }
+    if (ue_context_p->nb_active_pdn_contexts == 0) {
+      nas_delete_all_emm_procedures(&ue_context_p->emm_context);
+      free_esm_context_content(&ue_context_p->emm_context.esm_ctx);
+      proc_new_attach_req(ue_context_p);
+    }
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
 
   /* If VoLTE is enabled and UE has sent PDN Disconnect
    * send pdn disconnect response to NAS.
@@ -907,15 +930,13 @@ void mme_app_handle_delete_session_rsp(
    * locally. This can happen during implicit detach and UE initiated detach
    * when UE sends detach req (type = switch off).
    */
-  if ((ECM_IDLE == ue_context_p->ecm_state) ||
-      (delete_sess_resp_pP->cause.cause_value == CONTEXT_NOT_FOUND)) {
+  if (((ECM_IDLE == ue_context_p->ecm_state) ||
+       (delete_sess_resp_pP->cause.cause_value == CONTEXT_NOT_FOUND)) &&
+      (ue_context_p->nb_active_pdn_contexts == 0)) {
     ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
     // Notify S1AP to release S1AP UE context locally.
     mme_app_itti_ue_context_release(
         ue_context_p, ue_context_p->ue_context_rel_cause);
-    // Free MME UE Context
-    mme_notify_ue_context_released(
-        &mme_app_desc_p->mme_ue_contexts, ue_context_p);
     // Send PUR,before removal of ue contexts
     if ((ue_context_p->send_ue_purge_request == true) &&
         (ue_context_p->hss_initiated_detach == false)) {
@@ -936,33 +957,31 @@ void mme_app_handle_delete_session_rsp(
     /* If UE has rejected activate default eps bearer request message
      * delete the pdn context
      */
-    pdn_cid_t pid =
-        ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
-            ->pdn_cx_id;
-    if (ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req) {
-      // Reset flag
-      ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = false;
-      // Free the contents of PDN session
-      _pdn_connectivity_delete(&ue_context_p->emm_context, pid);
-      // Free PDN context
-      if (ue_context_p->pdn_contexts[pid]) {
+    if (ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]) {
+      pdn_cid_t pid =
+          ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
+              ->pdn_cx_id;
+      if ((ue_context_p->pdn_contexts[pid]) &&
+          (ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req)) {
+        // Reset flag
+        ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = false;
+        // Free the contents of PDN session
+        _pdn_connectivity_delete(&ue_context_p->emm_context, pid);
+        // Free PDN context
         free_wrapper((void**) &ue_context_p->pdn_contexts[pid]);
-      }
-      // Free bearer context entry
-      for (uint8_t bid = 0; bid < BEARERS_PER_UE; bid++) {
-        if ((ue_context_p->bearer_contexts[bid]) &&
-            (ue_context_p->bearer_contexts[bid]->ebi ==
-             delete_sess_resp_pP->lbi)) {
-          free_wrapper((void**) &ue_context_p->bearer_contexts[bid]);
-          break;
+        // Free bearer context entry
+        for (uint8_t bid = 0; bid < BEARERS_PER_UE; bid++) {
+          if ((ue_context_p->bearer_contexts[bid]) &&
+              (ue_context_p->bearer_contexts[bid]->ebi ==
+               delete_sess_resp_pP->lbi)) {
+            free_wrapper((void**) &ue_context_p->bearer_contexts[bid]);
+            break;
+          }
         }
+        OAILOG_FUNC_OUT(LOG_MME_APP);
       }
-      OAILOG_FUNC_OUT(LOG_MME_APP);
     }
 #endif
-    if (ue_context_p->nb_active_pdn_contexts > 0) {
-      ue_context_p->nb_active_pdn_contexts -= 1;
-    }
     if (ue_context_p->nb_active_pdn_contexts > 0) {
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }

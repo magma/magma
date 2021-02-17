@@ -481,7 +481,7 @@ typedef struct mme_ue_context_s {
  *exists
  **/
 ue_mm_context_t* mme_ue_context_exists_imsi(
-    mme_ue_context_t* const mme_ue_context, const imsi64_t imsi);
+    mme_ue_context_t* const mme_ue_context, imsi64_t imsi);
 
 /** \brief Retrieve an UE context by selecting the provided S11 teid
  * \param teid The tunnel endpoint identifier used between MME and S-GW
@@ -547,7 +547,7 @@ void mme_ue_context_update_coll_keys(
     mme_ue_context_t* const mme_ue_context_p,
     ue_mm_context_t* const ue_context_p,
     const enb_s1ap_id_key_t enb_s1ap_id_key,
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id, const imsi64_t imsi,
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id, imsi64_t imsi,
     const s11_teid_t mme_s11_teid, const guti_t* const guti_p);
 
 /** \brief dump MME associative collections
@@ -563,15 +563,6 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p);
 int mme_insert_ue_context(
     mme_ue_context_t* const mme_ue_context,
     const struct ue_mm_context_s* const ue_context_p);
-
-/** \brief TODO WORK HERE Remove UE context unnecessary information.
- * mark it as released. It is necessary to keep track of the association
- * (s_tmsi (guti), mme_ue_s1ap_id)
- * \param ue_context_p The UE context to remove
- **/
-void mme_notify_ue_context_released(
-    mme_ue_context_t* const mme_ue_context_p,
-    struct ue_mm_context_s* ue_context_p);
 
 /** \brief Remove a UE context of the tree of known UEs.
  * \param ue_context_p The UE context to remove
@@ -628,6 +619,10 @@ int mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
 void mme_app_recover_timers_for_all_ues(void);
 
+void proc_new_attach_req(struct ue_mm_context_s* ue_context_p);
+
+int eps_bearer_release(
+    emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid, int* bidx);
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 
 /* @} */

@@ -35,11 +35,12 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {Alarm} from '@material-ui/icons';
+import {REFRESH_INTERVAL} from './context/RefreshContext';
 import {colors, typography} from '../theme/default';
 import {intersection} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
+import {useEffect, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -159,12 +160,29 @@ export default function DashboardAlertTable(props: DashboardAlertTableProps) {
   const classes = useStyles();
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
+  const [lastRefreshTime, setLastRefreshTime] = useState<string>(
+    new Date().toLocaleString(),
+  );
+
   const {isLoading, response} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdAlerts,
     {
       networkId,
     },
+    undefined,
+    lastRefreshTime,
   );
+  useEffect(() => {
+    const intervalId = setInterval(
+      () => setLastRefreshTime(new Date().toLocaleString()),
+      REFRESH_INTERVAL,
+    );
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
   if (isLoading) {
     return <LoadingFiller />;
   }
@@ -243,7 +261,7 @@ function TabPanel(props: TabPanelProps) {
     <ActionTable
       data={props.alerts}
       columns={[
-        {title: 'Date', field: 'date', type: 'datetime'},
+        {title: 'Date', field: 'date', type: 'datetime', defaultSort: 'desc'},
         {title: 'Status', field: 'status', width: 200},
         {title: 'Alert Name', field: 'alertName', width: 200},
         {title: 'Service', field: 'service', width: 200},

@@ -41,7 +41,7 @@ bool MConfigLoader::load_service_mconfig(
   }
 
   json mconfig_json;
-  mconfig_json << file;
+  file >> mconfig_json;
   file.close();
 
   // config is located at mconfig_json["configs_by_key"][service_name]

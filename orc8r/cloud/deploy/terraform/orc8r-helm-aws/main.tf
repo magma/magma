@@ -228,6 +228,9 @@ data "template_file" "orc8r_values" {
     alertmanager_url          = format("%s-alertmanager:9093", var.helm_deployment_name)
     prometheus_url            = format("%s-prometheus:9090", var.helm_deployment_name)
 
+    prometheus_configurer_version = var.prometheus_configurer_version
+    alertmanager_configurer_version = var.alertmanager_configurer_version
+
     thanos_enabled        = var.thanos_enabled
     thanos_bucket         = var.thanos_enabled ? aws_s3_bucket.thanos_object_store_bucket[0].bucket : ""
     thanos_aws_access_key = var.thanos_enabled ? aws_iam_access_key.thanos_s3_access_key[0].id : ""

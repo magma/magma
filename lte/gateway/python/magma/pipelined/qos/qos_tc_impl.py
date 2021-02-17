@@ -10,7 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import threading
 from typing import List, Optional  # noqa
 import os
 import shlex
@@ -23,6 +23,7 @@ from .utils import IdManager
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
 # LOG.setLevel(logging.DEBUG)
 
+cmd_lock = threading.RLock()
 
 # this code can run in either a docker container(CWAG) or as a native
 # python process(AG). When we are running as a root there is no need for
@@ -36,15 +37,16 @@ def argSplit(cmd: str) -> List[str]:
 
 def run_cmd(cmd_list, show_error=True) -> int:
     err = 0
-    for cmd in cmd_list:
-        LOG.debug("running %s", cmd)
-        try:
-            args = argSplit(cmd)
-            subprocess.check_call(args)
-        except subprocess.CalledProcessError as e:
-            err = e.returncode
-            if show_error:
-                LOG.error("%s error running %s ", str(e), cmd)
+    with cmd_lock:
+        for cmd in cmd_list:
+            LOG.debug("running %s", cmd)
+            try:
+                args = argSplit(cmd)
+                subprocess.check_call(args)
+            except subprocess.CalledProcessError as e:
+                err = -1
+                if show_error:
+                    LOG.error("%s error running %s ", str(e.returncode), cmd)
     return err
 
 
@@ -93,9 +95,9 @@ class TrafficClass:
         tc_cmd = tc_cmd.format(intf=intf, parent_qid=parent_qid_hex,
                                qid=qid_hex, rate=rate, maxbw=max_bw)
 
-        # delete if exists
-        TrafficClass.delete_class(intf, qid, show_error=False)
-        run_cmd([tc_cmd], show_error=show_error)
+        err = run_cmd([tc_cmd], show_error=show_error)
+        if err < 0:
+            return err
 
         # add filter
         filter_cmd = "tc filter add dev {intf} protocol ip parent 1: prio 1 "
@@ -160,7 +162,7 @@ class TrafficClass:
                 qid_list.append((qid, pqid))
 
         except subprocess.CalledProcessError as e:
-            LOG.error('failed extracting classids from tc %s', str(e))
+            LOG.error('failed extracting classids from tc %s', e)
         return qid_list
 
     @staticmethod
@@ -182,12 +184,16 @@ class TrafficClass:
         args = argSplit(tc_cmd)
         try:
             # output: class htb 1:3 parent 1:2 prio 2 rate 250Kbit ceil 500Kbit burst 1600b cburst 1600b
-            output = subprocess.check_output(args)
+            raw_output = subprocess.check_output(args)
+            output = raw_output.decode('utf-8')
             # return all config from 'rate' onwards
             config = output.split("rate")
-            return config[1]
+            try:
+                return config[1]
+            except IndexError:
+                LOG.error("could not find rate: %s", output)
         except subprocess.CalledProcessError:
-            print("Exception dumping Qos State for %s", intf)
+            LOG.error("Exception dumping Qos State for %s", tc_cmd)
 
 
 class TCManager(object):
@@ -252,9 +258,12 @@ class TCManager(object):
         LOG.debug("add QoS: %s", qos_info)
         qid = self._id_manager.allocate_idx()
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
-        TrafficClass.create_class(intf, qid, qos_info.mbr,
-                                  rate=qos_info.gbr,
-                                  parent_qid=parent)
+        err = TrafficClass.create_class(intf, qid, qos_info.mbr,
+                                        rate=qos_info.gbr,
+                                        parent_qid=parent)
+        # typecast to int to avoid MagicMock related error in unit test
+        if int(err) < 0:
+            return 0
         LOG.debug("assigned qid: %d", qid)
         return qid
 
@@ -269,6 +278,7 @@ class TCManager(object):
 
         LOG.debug("deleting qos_handle %s", qid)
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
+
         err = TrafficClass.delete_class(intf, qid)
         if err == 0:
             self._id_manager.release_idx(qid)
@@ -279,6 +289,7 @@ class TCManager(object):
     def read_all_state(self, ):
         LOG.debug("read_all_state")
         st = {}
+        apn_qid_list = []
         ul_qid_list = TrafficClass.read_all_classes(self._uplink)
         dl_qid_list = TrafficClass.read_all_classes(self._downlink)
         for (d, qid_list) in ((FlowMatch.UPLINK, ul_qid_list),
@@ -287,16 +298,16 @@ class TCManager(object):
                 qid, pqid = qid_tuple
                 if qid < self._start_idx or qid > (self._max_idx - 1):
                     continue
+                apn_qid = pqid if pqid != self._max_idx else 0
                 st[qid] = {
                     'direction': d,
-                    'ambr_qid': pqid if pqid != self._max_idx else 0,
+                    'ambr_qid': apn_qid,
                 }
+                if apn_qid != 0:
+                    apn_qid_list.append(apn_qid)
 
         self._id_manager.restore_state(st)
-        fut = self._loop.create_future()
-        LOG.debug("map -> %s", st)
-        fut.set_result(st)
-        return fut
+        return st, apn_qid_list
 
     def same_qos_config(self, d: FlowMatch.Direction,
                         qid1: int, qid2: int) -> bool:

@@ -150,7 +150,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case SCTP_DATA_CNF:
       s1ap_mme_itti_nas_downlink_cnf(
-          SCTP_DATA_CNF(received_message_p).mme_ue_s1ap_id,
+          SCTP_DATA_CNF(received_message_p).agw_ue_xap_id,
           SCTP_DATA_CNF(received_message_p).is_success);
       break;
     // SCTP layer notifies S1AP of disconnection of a peer.
@@ -408,7 +408,7 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref) {
   eNB_LIST_OUT("SCTP assoc id:     %d", enb_ref->sctp_assoc_id);
   eNB_LIST_OUT("SCTP instreams:    %d", enb_ref->instreams);
   eNB_LIST_OUT("SCTP outstreams:   %d", enb_ref->outstreams);
-  eNB_LIST_OUT("UE attache to eNB: %d", enb_ref->nb_ue_associated);
+  eNB_LIST_OUT("UEs attached to eNB: %d", enb_ref->nb_ue_associated);
   indent++;
   sctp_assoc_id_t sctp_assoc_id = enb_ref->sctp_assoc_id;
 
@@ -506,6 +506,9 @@ ue_description_t* s1ap_new_ue(
   }
   // Increment number of UE
   enb_ref->nb_ue_associated++;
+  OAILOG_DEBUG(
+      LOG_S1AP, "Num ue associated: %d on assoc id:%d",
+      enb_ref->nb_ue_associated, sctp_assoc_id);
   return ue_ref;
 }
 
@@ -552,6 +555,9 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       &imsi64);
   delete_s1ap_ue_state(imsi64);
 
+  OAILOG_DEBUG(
+      LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
+      enb_ref->nb_ue_associated, enb_ref->ue_id_coll.num_elements);
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
@@ -562,7 +568,6 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name);
       s1ap_remove_enb(state, enb_ref);
-      update_mme_app_stats_connected_enb_sub();
     }
   }
 }
@@ -576,4 +581,5 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref) {
   hashtable_uint64_ts_destroy(&enb_ref->ue_id_coll);
   hashtable_ts_free(&state->enbs, enb_ref->sctp_assoc_id);
   state->num_enbs--;
+  update_mme_app_stats_connected_enb_sub();
 }

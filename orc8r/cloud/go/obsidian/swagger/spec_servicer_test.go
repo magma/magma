@@ -21,47 +21,46 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/swagger"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	invalidPath      = "invalidPath"
-	testFile         = "test.swagger.v1.yml"
-	testFileContents = "test yaml spec"
-	tmpDir           = "/etc/magma/configs/orc8r/swagger_specs/"
-)
-
 func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
-	req := &swagger_protos.GetSpecRequest{}
+	testFile := "test_spec_servicer.swagger.v1.yml"
+	testFileContents := "test yaml spec"
+	tmpDir := "/etc/magma/configs/orc8r/swagger_specs"
+
+	os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir)
 
 	err := os.Mkdir(tmpDir, os.ModePerm)
 	assert.NoError(t, err)
-
-	defer os.RemoveAll(tmpDir)
 
 	tmpSpecPath := filepath.Join(tmpDir, testFile)
 	err = ioutil.WriteFile(tmpSpecPath, []byte(testFileContents), 0644)
 	assert.NoError(t, err)
 
 	// Success
-	servicer := swagger.NewSpecServicerFromFile("test")
+	servicer := swagger.NewSpecServicerFromFile("test_spec_servicer")
 	assert.NoError(t, err)
 
+	req := &protos.GetSpecRequest{}
 	res, err := servicer.GetSpec(context.Background(), req)
 	assert.NoError(t, err)
 
-	assert.Equal(t, res.SwaggerSpec, testFileContents)
+	assert.Equal(t, testFileContents, res.SwaggerSpec)
 }
 
 func TestSpecServicer_GetSpec(t *testing.T) {
-	req := &swagger_protos.GetSpecRequest{}
+	testFileContents := "test yaml spec"
 
 	// Success
 	servicer := swagger.NewSpecServicer(testFileContents)
+
+	req := &protos.GetSpecRequest{}
 	res, err := servicer.GetSpec(context.Background(), req)
 	assert.NoError(t, err)
 
-	assert.Equal(t, res.SwaggerSpec, testFileContents)
+	assert.Equal(t, testFileContents, res.SwaggerSpec)
 }

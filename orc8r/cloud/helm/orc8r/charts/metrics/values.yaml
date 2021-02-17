@@ -175,7 +175,7 @@ prometheusConfigurer:
 
   image:
     repository: docker.io/facebookincubator/prometheus-configurer
-    tag: 1.0.3
+    tag: 1.0.4
     pullPolicy: IfNotPresent
 
   resources: {}
@@ -214,7 +214,7 @@ alertmanagerConfigurer:
 
   image:
     repository: docker.io/facebookincubator/alertmanager-configurer
-    tag: 1.0.3
+    tag: 1.0.4
     pullPolicy: IfNotPresent
 
   resources: {}

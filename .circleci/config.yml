@@ -33,6 +33,7 @@ executors:
 
 orbs:
   artifactory: circleci/artifactory@0.0.7
+  codecov: codecov/codecov@1.1.3
 
   python:
     commands:
@@ -46,6 +47,9 @@ orbs:
           - run:
               name: Set Python version
               command: pyenv global <<parameters.python_version>>
+          - run:
+              name: Upgrade Pip
+              command: pip install --upgrade pip
 
   docker:
     commands:
@@ -237,18 +241,23 @@ commands:
           PROJECT=<< parameters.project >>
           TAG=<< parameters.tag >>
           TAG_LATEST=<< parameters.tag-latest >>
+
+          function tag_and_push {
+            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
+            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
+            docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
+          }
+
           for IMAGE in "${IMAGES_ARRAY[@]}"; do
             IMAGE_TOSEARCH=$IMAGE
             if [ ! -z $PROJECT ]; then
               IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
             fi
             IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
-            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$TAG"
+            tag_and_push "$TAG"
             if [ "$TAG_LATEST" = true ]; then
-              docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:latest"
+              tag_and_push "latest"
             fi
-            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$TAG"
-            docker push "${DOCKER_REGISTRY}/$IMAGE:$TAG"
           done
 
   magma_integ_test:
@@ -480,6 +489,7 @@ jobs:
       - magma_slack_notify
 
   # Fail if code doesn't pass formatting requirements.
+  # Upload test coverage statistics.
   cloud_lint:
     machine:
       image: ubuntu-1604:201903-01
@@ -490,12 +500,20 @@ jobs:
       - checkout
       - build/determinator:
           <<: *all_gateways_build_verify
+      - docker/install-dc
       - python/set_version
       - run:
           name: Lint cloud Go code
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
             python3 build.py --lint
+      - run:
+          name: Generate test coverage
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --coverage
+      - codecov/upload:
+          file: /home/circleci/project/orc8r/cloud/coverage/all.gocov
       - magma_slack_notify
 
   # Fail if checked-in generated code doesn't match output from
@@ -541,9 +559,6 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
             python3 build.py --all --nocache --parallel
-      - tag-push-docker:
-          project: orc8r
-          images: "nginx|controller"
       - tag-push-docker:
           project: orc8r
           images: "nginx|controller"
@@ -671,6 +686,9 @@ jobs:
         description: Images to deploy
         type: string
         default: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -692,6 +710,7 @@ jobs:
           images: <<parameters.images>>
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -974,8 +993,6 @@ jobs:
           name: Setup Environment Variables
           command: |
             echo export MAGMA_ROOT=$(pwd) >> $BASH_ENV
-            echo export AWS_ACCESS_KEY_ID="$(printenv XWF_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
-            echo export AWS_SECRET_ACCESS_KEY="$(printenv XWF_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
             echo export RUN_UID=$RANDOM >> $BASH_ENV
       - run:
           command: |
@@ -999,6 +1016,9 @@ jobs:
         description: Containers tag
         type: string
         default: ${CIRCLE_SHA1:0:8}
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -1016,6 +1036,7 @@ jobs:
           images: 'goradius'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - run:
           name: Load openvswitch kernel module for xwf integ test
           command: sudo modprobe openvswitch
@@ -1028,6 +1049,7 @@ jobs:
           images: 'xwfm-integ-tests'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - magma_slack_notify
 
 workflows:
@@ -1079,26 +1101,19 @@ workflows:
             - cwf-integ-test
       - xwfm-deploy:
           <<: *only_master
+          name: xwfm-deploy-latest
           requires:
-            - xwfm-test
             - cwag-deploy
+            - xwfm-test
+          tag-latest: true
       - cwag-deploy:
           <<: *only_master
           name: cwag-deploy-latest
           requires:
-            - xwfm-test
-            - cwag-precommit
-            - cwf-integ-test
+            - cwag-deploy
+            - xwfm-deploy-latest
           images: 'gateway_python|gateway_pipelined|gateway_go'
-          tag: 'latest'
-      - xwfm-deploy:
-          <<: *only_master
-          name: xwfm-deploy-latest
-          requires:
-            - xwfm-test
-            - cwag-precommit
-            - cwf-integ-test
-          tag: 'latest'
+          tag-latest: true
 
 
   cwf_operator:

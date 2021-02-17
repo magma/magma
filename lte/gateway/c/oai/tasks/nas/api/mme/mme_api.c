@@ -353,7 +353,7 @@ int mme_api_get_esm_config(mme_api_esm_config_t* config) {
  *  Return:    RETURNok, RETURNerror
  *
  */
-int mme_api_notify_imsi(const mme_ue_s1ap_id_t id, const imsi64_t imsi64) {
+int mme_api_notify_imsi(const mme_ue_s1ap_id_t id, imsi64_t imsi64) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t* ue_mm_context = NULL;
 

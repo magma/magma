@@ -67,7 +67,7 @@ RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     mkdir build && \
     cd build/ && \
     ../configure --disable-openssl --enable-shared --libdir=/usr/local/lib && \
-    make -j4 && \
+    make -j`nproc` && \
     make install && \
     ldconfig -v && \
     cd / && \
@@ -89,7 +89,7 @@ RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
     mkdir -p cmake/build && \
     cd cmake/build && \
     cmake -DCMAKE_BUILD_TYPE=Release ../.. && \
-    make -j4 && \
+    make -j`nproc` && \
     make install && \
     cd ../../../../.. && \
     rm -rf third_party/cares/cares && \
@@ -98,7 +98,7 @@ RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
     mkdir -p cmake/build && \
     cd cmake/build && \
     cmake -DCMAKE_BUILD_TYPE=Release ../.. && \
-    make -j4 && \
+    make -j`nproc` && \
     make install && \
     cd ../../../.. && \
     rm -rf third_party/zlib && \
@@ -107,7 +107,7 @@ RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
     git submodule update --init --recursive  && \
     ./autogen.sh  && \
     ./configure  && \
-    make -j4 && \
+    make -j`nproc` && \
     make install && \
     cd ../.. && \
     rm -rf third_party/protobuf && \
@@ -125,7 +125,7 @@ RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
         -DgRPC_SSL_PROVIDER=package \
         -DCMAKE_BUILD_TYPE=Release \
         ../.. && \
-    make -j4 && \
+    make -j`nproc` && \
     make install
 
 ##### Prometheus CPP
@@ -136,7 +136,7 @@ RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
     mkdir _build && \
     cd _build/ && \
     cmake .. && \
-    make -j4 && \
+    make -j`nproc` && \
     make install
 
 ##### Redis CPP
@@ -146,7 +146,7 @@ RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
     git submodule init && git submodule update && \
     mkdir build && cd build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
-    make -j4 && \
+    make -j`nproc` && \
     make install
 
 ##### liblfds
@@ -154,7 +154,7 @@ RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
 RUN wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
     tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
     cd liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
-    make -j4 && \
+    make -j`nproc` && \
     make ar_install
 
 ##### libgtpnl
@@ -164,7 +164,7 @@ RUN git clone https://git.osmocom.org/libgtpnl && \
     git reset --hard 345d687 && \
     autoreconf -fi && \
     ./configure && \
-    make -j10 && \
+    make -j`nproc` && \
     make install && \
     ldconfig
 
@@ -174,7 +174,7 @@ RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
     git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \
     autoreconf -iv && \    
     ./configure && \
-    make -j4 && \
+    make -j`nproc` && \
     make install && \
     ldconfig
 
@@ -184,7 +184,7 @@ RUN echo "Install fmtlib required by Folly" && \
     git clone https://github.com/fmtlib/fmt.git && cd fmt && \
     mkdir _build && cd _build && \
     cmake .. && \
-    make -j4 && \
+    make -j`nproc` && \
     make install && \
     cd / && \
     echo "Install Folly" && \
@@ -193,7 +193,7 @@ RUN echo "Install fmtlib required by Folly" && \
     mkdir _build && \
     cd _build && \
     cmake -DBUILD_SHARED_LIBS=ON -Wno-dev .. && \
-    make -j4 && \
+    make -j`nproc` && \
     make install
 
 
@@ -208,7 +208,7 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     cd build && \
     cmake ../ && \
     awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
-    make -j4 && \
+    make -j`nproc` && \
     make install
     
 ### Following  is required to build MME with OVS support
@@ -383,6 +383,7 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml 
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
+# Adding means to re-generate certificates
 WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate

@@ -513,6 +513,9 @@ class InOutController(RestartMixin, MagmaController):
     def _get_ue_specific_flow_msgs(self, _):
         return {}
 
+    def recover_state(self, _):
+        pass
+
     def finish_init(self, _):
         pass
 

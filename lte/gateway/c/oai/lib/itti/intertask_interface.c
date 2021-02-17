@@ -356,6 +356,9 @@ int itti_init(
       thread_max, messages_id_max);
   CHECK_INIT_RETURN(signal_mask());
 
+  // This assert make sure \ref ittiMsg directly following \ref ittiMsgHeader.
+  // See \ref MessageDef definition for details.
+  assert(sizeof(MessageHeader) == offsetof(MessageDef, ittiMsg));
   // Saves threads and messages max values
 
   itti_desc.task_max                = task_max;

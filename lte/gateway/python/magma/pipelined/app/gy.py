@@ -90,7 +90,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager(datapath, self.loop, self._config)
+        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
         self._qos_mgr.setup()
 
     def deactivate_rules(self, imsi, ip_addr, rule_ids):
@@ -326,3 +326,6 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
     @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
+
+    def recover_state(self, _):
+        pass

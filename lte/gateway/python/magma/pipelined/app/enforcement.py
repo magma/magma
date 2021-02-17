@@ -87,7 +87,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager(datapath, self.loop, self._config)
+        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
         self._qos_mgr.setup()
 
     def cleanup_on_disconnect(self, datapath):
@@ -321,3 +321,6 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         else:
             for rule_id in rule_ids:
                 self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
+
+    def recover_state(self, _):
+        pass

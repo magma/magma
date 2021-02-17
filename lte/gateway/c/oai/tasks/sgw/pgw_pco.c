@@ -75,6 +75,9 @@ int pgw_process_pco_request_ipcp(
   int8_t ipcp_req_identifier = 0;
   int16_t ipcp_req_length    = 0;
 
+  UNUSED(ipcp_req_code);
+  UNUSED(ipcp_req_length);
+
   uint8_t ipcp_req_option       = 0;
   int8_t ipcp_req_option_length = 0;
 

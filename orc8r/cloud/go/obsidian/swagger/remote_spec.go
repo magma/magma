@@ -24,17 +24,20 @@ import (
 	"github.com/golang/glog"
 )
 
-type remoteSpec struct {
-	// service name of the remoteSpec
+// RemoteSpec identifies a remote spec
+type RemoteSpec struct {
+	// service name of the RemoteSpec
 	// should always be lowercase to match service registry convention
 	service string
 }
 
-func NewRemoteSpec(serviceName string) remoteSpec {
-	return remoteSpec{service: strings.ToLower(serviceName)}
+// NewRemoteSpec constructs a endpoint to communicate with the spec servicer.
+func NewRemoteSpec(serviceName string) RemoteSpec {
+	return RemoteSpec{service: strings.ToLower(serviceName)}
 }
 
-func (s *remoteSpec) GetSpec() (string, error) {
+// GetSpec returns the spec associated to the service as a YAML string.
+func (s *RemoteSpec) GetSpec() (string, error) {
 	c, err := s.getClient()
 	if err != nil {
 		return "", err
@@ -48,7 +51,12 @@ func (s *remoteSpec) GetSpec() (string, error) {
 	return res.SwaggerSpec, nil
 }
 
-func (s *remoteSpec) getClient() (protos.SwaggerSpecClient, error) {
+// GetService returns the service name.
+func (s *RemoteSpec) GetService() string {
+	return s.service
+}
+
+func (s *RemoteSpec) getClient() (protos.SwaggerSpecClient, error) {
 	conn, err := registry.GetConnection(s.service)
 	if err != nil {
 		initErr := merrors.NewInitError(err, s.service)

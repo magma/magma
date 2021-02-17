@@ -91,6 +91,11 @@ def main() -> None:
         _run(['build', 'test'])
         _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make precommit'])
         _down(args)
+    elif args.coverage:
+        _run(['up', '-d', 'postgres_test'])
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make cover'])
+        _down(args)
     elif args.tests:
         _run(['up', '-d', 'postgres_test'])
         _run(['build', 'test'])
@@ -281,6 +286,11 @@ def _parse_args() -> argparse.Namespace:
         '--lint', '-l',
         action='store_true',
         help='Mount the source code and run the linter',
+    )
+    parser.add_argument(
+        '--coverage', '-o',
+        action='store_true',
+        help='Generate test coverage statistics',
     )
 
     # Build something

@@ -51,7 +51,13 @@
     dest: /etc/systemd/system/magma_dp@envoy.service
   when: full_provision
 
-- name: Copy logrotate config file
+- name: Copy syslog logrotate config file
+  copy:
+    src: logrotate_rsyslog.conf
+    dest: /etc/logrotate.d/rsyslog
+  when: full_provision
+
+- name: Copy OAI logrotate config file
   copy:
     src: logrotate_oai.conf
     dest: /etc/logrotate.d/oai
@@ -89,16 +95,6 @@
 - name: Copy Envoy configuration script
   copy: src=configure_envoy_namespace.sh dest=/usr/local/bin/configure_envoy_namespace.sh
   when: full_provision
-
-- name: Create symlink for stateless scripts
-  file: src="{{ magma_root }}/lte/gateway/deploy/roles/magma/files/config_stateless_{{ item }}.sh" path="/usr/local/bin/config_stateless_{{ item }}.sh" state=link force=yes follow=no
-  with_items:
-    - agw
-    - mobilityd
-    - mme
-    - pipelined
-    - sctpd
-    - sessiond
 
 - name: Create symlink for sctpd binary
   file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
