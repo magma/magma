@@ -641,6 +641,19 @@ describe('<AddEditGatewayButton />', () => {
     } else {
       throw 'invalid type';
     }
+    expect(queryByTestId('encryptionEdit')).toBeNull();
+    const encryptionEnabled = getByTestId('enableEncryption').firstChild;
+    if (
+      encryptionEnabled instanceof HTMLElement &&
+      encryptionEnabled.firstChild instanceof HTMLElement
+    ) {
+      fireEvent.click(encryptionEnabled.firstChild);
+    } else {
+      throw 'invalid type';
+    }
+    await wait();
+    // Encryption fields are visible if encryption is enabled
+    expect(queryByTestId('encryptionEdit')).not.toBeNull();
 
     fireEvent.click(getByText('Save And Close'));
     await wait();
@@ -669,7 +682,7 @@ describe('<AddEditGatewayButton />', () => {
           transmit_enabled: true,
         },
         he_config: {
-          enable_encryption: false,
+          enable_encryption: true,
           enable_header_enrichment: true,
           he_encoding_type: 'BASE64',
           he_encryption_algorithm: 'RC4',
