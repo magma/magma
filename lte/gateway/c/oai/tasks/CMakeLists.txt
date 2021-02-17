@@ -8,7 +8,6 @@ add_subdirectory(sgs) # TASK_SGS
 add_subdirectory(sms_orc8r) # TASK_SMS_ORC8R
 add_subdirectory(grpc_service) # TASK_GRPC_SERVICE
 add_subdirectory(ha) # TASK_HA
-add_subdirectory(n11) #LIB_N11
 
 if (EMBEDDED_SGW)
 add_subdirectory(gtpv1-u) # TASK_GTPV1U

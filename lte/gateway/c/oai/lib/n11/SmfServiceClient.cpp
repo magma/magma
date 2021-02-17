@@ -19,7 +19,7 @@ using grpc::Status;
 
 namespace {
 
-void callback_void_smf(
+void SetAmfSessionContextRpcCallback(
     grpc::Status status, magma::lte::SmContextVoid response) {}
 
 }  // namespace
@@ -38,7 +38,7 @@ AsyncSmfServiceClient::AsyncSmfServiceClient()
 
 bool AsyncSmfServiceClient::set_smf_session(
     const SetSMSessionContext& request) {
-  set_smf_session_rpc(request, callback_void_smf);
+  set_smf_session_rpc(request, SetAmfSessionContextRpcCallback);
   return true;
 }
 
