@@ -38,7 +38,6 @@ from magma.pipelined.openflow.messages import MsgChannel, MessageHub
 from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
     IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
-from magma.pipelined.rule_mappers import UsageDeltaDict
 from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 
 
