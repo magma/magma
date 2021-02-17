@@ -141,6 +141,9 @@ class TestEsmInformation(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
+        ## JUST FAILING FOR FUN
+        print("GOING TO FAIL ON PURPOSE")
+        self.assertEqual(1, 2)
 
 
 if __name__ == "__main__":

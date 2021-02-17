@@ -13,6 +13,7 @@ aliases:
         only:
           - master
           - develop
+          - s1ap-summary
   - &lte_build_verify
     paths: "orc8r lte"
   - &federated_build_verify
@@ -91,6 +92,7 @@ orbs:
                     exit 0
                   fi
                 done
+                exit 0
                 echo "No changes in [$paths]"
                 circleci step halt
 
@@ -607,8 +609,8 @@ jobs:
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
-         command: go mod download
-         workdir: ${MAGMA_ROOT}/cwf/gateway
+          command: go mod download
+          workdir: ${MAGMA_ROOT}/cwf/gateway
       - run:
           name: make feg precommit
           command: |
@@ -654,8 +656,8 @@ jobs:
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
-         command: go mod download
-         workdir: ${MAGMA_ROOT}/cwf/gateway
+          command: go mod download
+          workdir: ${MAGMA_ROOT}/cwf/gateway
       - run:
           command: |
             cd ${MAGMA_ROOT}/cwf/gateway
@@ -1155,9 +1157,9 @@ workflows:
             - nms-e2e-test
 
   docusaurus:
-   jobs:
-    - docusaurus_build_and_deploy:
-        <<: *only_master
+    jobs:
+      - docusaurus_build_and_deploy:
+          <<: *only_master
 
   fossa:
     jobs:
