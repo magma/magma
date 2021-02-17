@@ -209,6 +209,9 @@ def _run_remote_lte_integ_test(repo: str, magma_root: str):
     repo_name = _get_repo_name(repo)
     with cd(f'{repo_name}/{magma_root}/lte/gateway'):
         test_result = run('fab integ_test', timeout=120*60, warn_only=True)
+        # Transfer test summaries
+        local('sudo mkdir -p /tmp/test_results/')
+        local('sudo mv /var/tmp/test_results /tmp/test_results')
         # On failure, transfer logs from all 3 VMs and copy to the log
         # directory. This will get stored as an artifact in the CircleCI
         # config.
