@@ -90,16 +90,6 @@ typedef struct redirect_server_s {
   uint8_t redirect_server_address[16];
 } redirect_server_t;
 
-typedef struct qos_rules_s {
-  uint32_t qos_rule_identifier;
-  bool dqr;
-  uint32_t number_of_packet_filters;
-  uint32_t packet_filter_identifier[16];
-  uint32_t qos_rule_precedence;
-  bool segregation;
-  uint32_t qos_flow_identifier;
-} qos_rules_t;
-
 typedef struct itti_n11_create_pdu_session_response_s {
   // common context
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
