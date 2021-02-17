@@ -3764,9 +3764,6 @@ void mme_app_handle_e_rab_modification_ind(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  // ue_context_p =
-  // mme_ue_session_pool_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_session_pools,e_rab_modification_ind->mme_ue_s1ap_id);
-
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
       e_rab_modification_ind->mme_ue_s1ap_id);
 

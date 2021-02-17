@@ -132,9 +132,6 @@ int mme_app_run_s1ap_procedure_modify_bearer_ind(
       sizeof(proc->e_rab_not_to_be_modified_list));
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(proc->mme_ue_s1ap_id);
-  // ue_session_pool_t* ue_session_pool =
-  // mme_ue_session_pool_exists_mme_ue_s1ap_id(
-  //  &mme_app_desc.mme_ue_session_pools, proc->mme_ue_s1ap_id);
 
   if (!ue_context_p) {
     OAILOG_INFO(
@@ -183,13 +180,7 @@ int mme_app_run_s1ap_procedure_modify_bearer_ind(
           &bearer_context->enb_fteid_s1u.ipv6_address,
           &item->s1_xNB_fteid.ipv6_address, sizeof(item->s1_xNB_fteid));
     }
-    // bearer_context->bearer_state |= BEARER_STATE_ENB_CREATED;
-    // bearer_context->bearer_state |=
-    //   BEARER_STATE_MME_CREATED;  // todo: remove this flag.. unnecessary
   }
-
-  // uint8_t flags = INTERNAL_FLAG_E_RAB_MOD_IND;
-  // send_modify_bearer_req(proc->mme_ue_s1ap_id,);
   //  todo: UNLOCK_UE_SESSION_POOL;
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
