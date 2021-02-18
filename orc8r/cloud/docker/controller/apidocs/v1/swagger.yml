@@ -9728,7 +9728,6 @@ definitions:
         $ref: '#/definitions/swx'
     required:
     - s6a
-    - s8
     - hss
     - gx
     - gy
