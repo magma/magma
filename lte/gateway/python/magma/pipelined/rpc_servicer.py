@@ -100,7 +100,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         self._log_grpc_payload(request)
         ret = self._inout_app.check_setup_request_epoch(request.epoch)
-        if ret:
+        if ret is not None:
             return SetupFlowsResult(result=ret)
 
         fut = Future()
@@ -129,7 +129,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         for controller in [self._gy_app, self._enforcer_app,
                            self._enforcement_stats]:
             ret = controller.check_setup_request_epoch(request.epoch)
-            if ret:
+            if ret is not None:
                 return SetupFlowsResult(result=ret)
 
         fut = Future()
@@ -494,7 +494,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
 
         ret = self._ue_mac_app.check_setup_request_epoch(request.epoch)
-        if ret:
+        if ret is not None:
             return SetupFlowsResult(result=ret)
 
         fut = Future()
@@ -600,7 +600,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
 
         ret = self._check_quota_app.check_setup_request_epoch(request.epoch)
-        if ret:
+        if ret is not None:
             return SetupFlowsResult(result=ret)
 
         fut = Future()
