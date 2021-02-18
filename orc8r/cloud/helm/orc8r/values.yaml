@@ -235,6 +235,12 @@ dispatcher:
     labels: {}
     annotations: {}
 
+eventd:
+  service:
+    labels:
+      orc8r.io/swagger_spec: "true"
+    annotations: {}
+
 metricsd:
   service:
     labels:
