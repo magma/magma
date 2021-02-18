@@ -378,7 +378,7 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.con
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
 
 # Create running dirs
-WORKDIR /var/opt/magma/config
+WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml
 WORKDIR /usr/local/etc/redis
