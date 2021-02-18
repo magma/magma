@@ -1123,8 +1123,10 @@ int mme_app_handle_create_sess_resp(
             "Bad pdn id (%d) for bearer\n", pdn_cx_id);
         continue;
       }
-      ue_context_p->pdn_contexts[pdn_cx_id]->s_gw_teid_s11_s4 =
-          create_sess_resp_pP->s11_sgw_fteid.teid;
+      if (ue_context_p->pdn_contexts[pdn_cx_id]) {
+        ue_context_p->pdn_contexts[pdn_cx_id]->s_gw_teid_s11_s4 =
+            create_sess_resp_pP->s11_sgw_fteid.teid;
+      }
       transaction_identifier = current_bearer_p->transaction_identifier;
     }
 
