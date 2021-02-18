@@ -155,6 +155,7 @@ class QosManager(object):
             LOG.debug("Got QosManager instance")
             return QosManager.qos_mgr
         QosManager.qos_mgr = QosManager(datapath, loop, config)
+        QosManager.qos_mgr.setup()
         return QosManager.qos_mgr
 
     @staticmethod
