@@ -32,6 +32,7 @@ class IdManager(object):
         self._counter = start_idx
         self._free_idx_list = deque()
         self._lock = threading.RLock()  # re-entrant locks
+        self._restore_done = False
 
     def allocate_idx(self,) -> int:
         with self._lock:
@@ -55,6 +56,8 @@ class IdManager(object):
 
     def restore_state(self, id_set):
         with self._lock:
+            if self._restore_done:
+                return
             if not id_set:
                 return
 
@@ -62,6 +65,7 @@ class IdManager(object):
             for idx in range(self._start_idx, self._counter):
                 if idx not in id_set:
                     self._free_idx_list.append(idx)
+            self._restore_done = True
 
     def _get_free_idx(self) -> int:
         if self._free_idx_list:
