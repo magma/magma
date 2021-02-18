@@ -323,15 +323,26 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
                << ipv6_addr;
   // TODO: Activate static rules and dynamic rules separately until bug
   //  is fixed in pipelined which crashes if activated at the same time
-  auto static_req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
-      std::vector<PolicyRule>(), RequestOriginType::GX);
-  activate_flows_rpc(static_req, callback);
-
-  auto dynamic_req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, std::vector<std::string>(),
-      dynamic_rules, RequestOriginType::GX);
-  activate_flows_rpc(dynamic_req, callback);
+  if (static_rules.size() > 0) {
+    auto static_req = create_activate_req(
+        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
+        std::vector<PolicyRule>(), RequestOriginType::GX);
+    activate_flows_rpc(static_req, callback);
+  }
+  if (dynamic_rules.size() > 0) {
+    auto dynamic_req = create_activate_req(
+        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr,
+        std::vector<std::string>(), dynamic_rules, RequestOriginType::GX);
+    activate_flows_rpc(dynamic_req, callback);
+  }
+  // If they are both empty, that means this call is at the start of the
+  // session. PipelineD requires at least one call to setup things.
+  if (static_rules.size() == 0 && dynamic_rules.size() == 0) {
+    auto req = create_activate_req(
+        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
+        dynamic_rules, RequestOriginType::GX);
+    activate_flows_rpc(req, callback);
+  }
   return true;
 }
 
