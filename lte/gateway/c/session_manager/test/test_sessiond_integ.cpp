@@ -319,13 +319,6 @@ TEST_F(SessiondTest, end_to_end_success) {
         ActivateFlows(
             testing::_, CheckActivateFlows(IMSI1, 3, ipv4_addrs, ipv6_addrs),
             testing::_))
-        .Times(1);
-    // Here is the call for dynamic rules, which in this case should be empty.
-    EXPECT_CALL(
-        *pipelined_mock,
-        ActivateFlows(
-            testing::_, CheckActivateFlows(IMSI1, 0, ipv4_addrs, ipv6_addrs),
-            testing::_))
         .WillOnce(testing::DoAll(
             SetPromise(&create_promise), testing::Return(grpc::Status::OK)));
   }
@@ -359,7 +352,6 @@ TEST_F(SessiondTest, end_to_end_success) {
   create_promise.get_future().get();
 
   {
-    // 2- UpdateTunnelIds Expectations
     EXPECT_CALL(
         *pipelined_mock,
         ActivateFlows(
