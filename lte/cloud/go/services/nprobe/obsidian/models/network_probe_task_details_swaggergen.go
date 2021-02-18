@@ -40,7 +40,7 @@ type NetworkProbeTaskDetails struct {
 	// Enum: [imsi imei msisdn]
 	TargetType string `json:"target_type"`
 
-	// The timestamp in ISO 8601 format
+	// timestamp
 	// Format: date-time
 	Timestamp strfmt.DateTime `json:"timestamp,omitempty"`
 }
