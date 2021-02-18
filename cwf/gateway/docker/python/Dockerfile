@@ -149,6 +149,7 @@ RUN python3.8 -m pip install --no-cache-dir /tmp/lte
 
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
+COPY orc8r/gateway/configs/ /etc/magma/
 COPY orc8r/gateway/configs/templates /etc/magma/templates
 RUN mkdir -p /var/opt/magma/configs
 
