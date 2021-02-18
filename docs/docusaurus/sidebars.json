@@ -87,7 +87,8 @@
       "howtos/config_agw_bridged",
       "howtos/thanos",
       "howtos/call_tracing",
-      "howtos/events_monitoring"
+      "howtos/events_monitoring",
+      "howtos/header_enrichment.md"
     ],
     "Debugging Tools": [
       "debugging_tools/show_tech"
