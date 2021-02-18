@@ -85,6 +85,14 @@ services:
     port: 9091
     proxy_type: "clientcert"
 
+  eventd:
+    host: "localhost"
+    port: 9121
+    echo_port: 10121
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/swagger_spec: "true"
+
   obsidian:
     host: "localhost"
     port: 9093
