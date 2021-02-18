@@ -301,6 +301,9 @@
       "orc8r/hold_terraform_state_on_s3": {
         "title": "Hold Terraform state outside my local machine"
       },
+      "orc8r/development/orc8r_stack_on_aws": {
+        "title": "Orchestrator Stack on AWS"
+      },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"
       },

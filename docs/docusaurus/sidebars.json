@@ -75,6 +75,7 @@
           "orc8r/architecture_overview",
           "orc8r/architecture_modularity",
           "orc8r/architecture_security",
+          "orc8r/development/orc8r_stack_on_aws"
           "nms/nms_arch_overview"
         ]
       },
