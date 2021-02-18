@@ -781,15 +781,3 @@ func validateNewGatewayPools(networkID string, ids []GatewayPoolID) error {
 	}
 	return nil
 }
-
-func (m *NetworkProbeTask) FromBackendModels(ent configurator.NetworkEntity) *NetworkProbeTask {
-	m.TaskID = NetworkProbeTaskID(ent.Key)
-	m.TaskDetails = ent.Config.(*NetworkProbeTaskDetails)
-	return m
-}
-
-func (m *NetworkProbeDestination) FromBackendModels(ent configurator.NetworkEntity) *NetworkProbeDestination {
-	m.DestinationID = NetworkProbeDestinationID(ent.Key)
-	m.DestinationDetails = ent.Config.(*NetworkProbeDestinationDetails)
-	return m
-}
