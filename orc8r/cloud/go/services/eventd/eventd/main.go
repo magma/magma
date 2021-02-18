@@ -24,17 +24,15 @@ import (
 )
 
 func main() {
-	// Create the service
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, eventd.ServiceName)
 	if err != nil {
-		glog.Fatalf("Error creating service: %s", err)
+		glog.Fatalf("Error creating service: %+v", err)
 	}
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(eventd.ServiceName))
 
-	// Run service
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Error running eventd service: %s", err)
+		glog.Fatalf("Error running eventd service: %+v", err)
 	}
 }
