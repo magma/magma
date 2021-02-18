@@ -98,6 +98,6 @@
     "webpack-cli": "^3.2.3",
     "webpack-dev-middleware": "^3.7.2",
     "webpack-hot-middleware": "^2.25.0",
-    "webpack-manifest-plugin": "^2.0.4"
+    "webpack-manifest-plugin": "^3.0.0"
   }
 }
