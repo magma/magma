@@ -20,16 +20,9 @@ import (
 )
 
 var (
-	// NetworkSerdes contains the package's configurator network config serdes
-	NetworkSerdes = serde.NewRegistry(
-		configurator.NewNetworkConfigSerde(lte.CellularNetworkConfigType, &NetworkCellularConfigs{}),
-	)
 	// EntitySerdes contains the package's configurator network entity serdes
 	EntitySerdes = serde.NewRegistry(
-		configurator.NewNetworkEntityConfigSerde(lte.APNEntityType, &ApnConfiguration{}),
-		configurator.NewNetworkEntityConfigSerde(lte.APNResourceEntityType, &ApnResource{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebEntityType, &EnodebConfig{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayEntityType, &GatewayCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayPoolEntityType, &CellularGatewayPoolConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.NetworkProbeTaskEntityType, &NetworkProbeTaskDetails{}),
+		configurator.NewNetworkEntityConfigSerde(lte.NetworkProbeDestinationEntityType, &NetworkProbeDestinationDetails{}),
 	)
 )
