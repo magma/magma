@@ -58,7 +58,7 @@ module orc8r-app {
   # ...
   orc8r_chart_version   = "1.5.12"
   orc8r_tag             = "MAGMA_TAG"  # from build step, e.g. v1.4.0
-  orc8r_deployment_type = "all"        # valid options: ["fwa", "federated_fwa", "all"]
+  orc8r_deployment_type = "fwa"        # valid options: ["fwa", "federated_fwa", "all"]
 }
 ```
 
