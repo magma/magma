@@ -109,6 +109,7 @@ class TrafficClass:
 
     @staticmethod
     def init_qdisc(intf: str, show_error=False) -> int:
+        cmd_list = []
         speed = DEFAULT_INTF_SPEED
         qid_hex = hex(ROOT_QID)
         fn = "/sys/class/net/{intf}/speed".format(intf=intf)
@@ -118,15 +119,23 @@ class TrafficClass:
         except OSError:
             LOG.error('unable to read speed from %s defaulting to %s', fn, speed)
 
-        qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(intf=intf)
-        parent_q_cmd = "tc class add dev {intf} parent 1: classid 1:{root_qid} htb "
+        # qdisc does not support replace, so check it before creating the HTB qdisc.
+        qdisc_type = TrafficClass._get_qdisc_type(intf)
+        if qdisc_type != "htb":
+            qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(intf=intf)
+            cmd_list.append(qdisc_cmd)
+            LOG.info("Created root qdisc")
+
+        parent_q_cmd = "tc class replace dev {intf} parent 1: classid 1:{root_qid} htb "
         parent_q_cmd += "rate {speed}Mbit ceil {speed}Mbit"
         parent_q_cmd = parent_q_cmd.format(intf=intf, root_qid=qid_hex, speed=speed)
-        tc_cmd = "tc class add dev {intf} parent 1:{root_qid} classid 1:1 htb "
+        cmd_list.append(parent_q_cmd)
+        tc_cmd = "tc class replace dev {intf} parent 1:{root_qid} classid 1:1 htb "
         tc_cmd += "rate {rate} ceil {speed}Mbit"
         tc_cmd = tc_cmd.format(intf=intf, root_qid=qid_hex, rate=DEFAULT_RATE,
                                speed=speed)
-        return run_cmd([qdisc_cmd, parent_q_cmd, tc_cmd], show_error)
+        cmd_list.append(tc_cmd)
+        return run_cmd(cmd_list, show_error)
 
     @staticmethod
     def read_all_classes(intf: str):
@@ -192,6 +201,22 @@ class TrafficClass:
                 return config[1]
             except IndexError:
                 LOG.error("could not find rate: %s", output)
+        except subprocess.CalledProcessError:
+            LOG.error("Exception dumping Qos State for %s", tc_cmd)
+
+    @staticmethod
+    def _get_qdisc_type(intf: str) -> Optional[str]:
+        tc_cmd = "tc qdisc show dev {}".format(intf)
+        args = argSplit(tc_cmd)
+        try:
+            # output: qdisc htb 1: root refcnt 2 r2q 10 default 0 direct_packets_stat 314 direct_qlen 1000
+            raw_output = subprocess.check_output(args)
+            output = raw_output.decode('utf-8')
+            config = output.split()
+            try:
+                return config[1]
+            except IndexError:
+                LOG.error("could not qdisc type: %s", output)
         except subprocess.CalledProcessError:
             LOG.error("Exception dumping Qos State for %s", tc_cmd)
 
