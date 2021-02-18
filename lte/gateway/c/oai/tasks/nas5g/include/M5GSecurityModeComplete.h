@@ -38,16 +38,19 @@ class SecurityModeCompleteMsg {
 };
 }  // namespace magma5g
 
-/*
-   SPEC TS-24501_v150600
-   Table 8.2.26.1.1: SECURITY MODE COMPLETE message content
-
-IEI         Information Element                    Type/Reference Presence
-Format        Length
-
-       Extended protocol discriminator         Extended protocol
-discriminator 9.2         M           V             1 Security header type
-Security header type 9.3                    M           V             1/2 Spare
-half octet                        Spare half octet 9.5                        M
-V             1/2 Security mode complete message identity Message type 9.7 M V 1
-*/
+/******************************************************************************
+   SPEC TS-24501  Table 8.2.26.1.1: SECURITY MODE COMPLETE message content
+-------------------------------------------------------------------------------
+|IEI|   Information Element  |    Type/Reference      |Presence|Format|Length |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Extended protocol descr-|Extended Protocol descr-|    M   |  V   |  1    |
+|   |-iminator               |-iminator 9.2           |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Security header type    |Security header type 9.3|    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Spare half octet        |Spare half octet 9.5    |    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Security mode complete  |Message type 9.7        |    M   |  V   |  1    |
+|   |message identity        |                        |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+******************************************************************************/

@@ -43,17 +43,27 @@ class DeRegistrationRequestUEInitMsg {
 };
 }  // namespace magma5g
 
-/*
-DEREGISTRATION REQUEST UE Initiated message content
-
-IEI  Information Element             Type/Reference Presence   Format     Length
-
-     Extended protocol discriminator Extended protocol discriminator 9.2       M
-V          1 Security header type            Security header type            9.3
-M         V          1/2 Spare half octet                Spare half 9.5       M
-V          1/2 De-registration request message Message type 9.7       M V 1
-     De-registration type            De-registration type        9.11.3.20     M
-V          1/2 ngKSI                           NAS key set identifier 9.11.3.32
-M         V          1/2 5GS mobile identity             5GS mobile identity
-9.11.3.4      M         LV-E       6-n
-*/
+/******************************************************************************
+             DEREGISTRATION REQUEST UE Initiated message content
+-------------------------------------------------------------------------------
+|IEI|   Information Element  |    Type/Reference      |Presence|Format|Length |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Extended protocol descr-|Extended Protocol descr-|    M   |  V   |  1    |
+|   |-iminator               |-iminator 9.2           |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Security header type    |Security header type 9.3|    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Spare half octet        |Spare half octet 9.5    |    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |De-registration request |Message type 9.7        |    M   |  V   |  1    |
+|   |message identity        |                        |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |De-registration type    |De-registration type    |    M   |  V   |  1/2  |
+|   |                        |9.11.3.20               |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |ngKSI                   |NAS key set identifier  |    M   |  V   |  1/2  |
+|   |                        |9.11.3.32               |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |5GS mobile identity     |5GS mobile identity     |    M   |  LV-E|  6-n  |
+|   |                        |9.11.3.4                |        |      |       |
+******************************************************************************/

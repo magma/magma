@@ -47,18 +47,27 @@ class AuthenticationRequestMsg {
 };
 }  // namespace magma5g
 
-/*
-   AUTHENTICATION REQUEST message content --- TS 24.501 8.2.1.1
-
-IEI         Information Element                    Type/Reference Presence
-Format         Length
-
-       Extended protocol discriminator        Extended protocol
-discriminator 9.2         M           V             1 Security header type
-Security header type 9.3                    M           V             1/2 Spare
-half octet                       Spare half octet 9.5                        M
-V             1/2 Auth request message                   Message type 9.7 M V 1
-       Authentication parameter RAND          Authentication parameter
-RAND 9.11.3.16     M           TV            17 Authentication parameter AUTN
-Authentication parameter AUTN 9.11.3.15     M           TLV           18
- */
+/******************************************************************************
+         AUTHENTICATION REQUEST message content --- TS 24.501 8.2.1.1
+-------------------------------------------------------------------------------
+|IEI|   Information Element  |    Type/Reference      |Presence|Format|Length |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Extended protocol descr-|Extended Protocol descr-|    M   |  V   |  1    |
+|   |-iminator               |-iminator 9.2           |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Security header type    |Security header type 9.3|    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Spare half octet        |Spare half octet 9.5    |    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Authentication Request  |Message type 9.7        |    M   |  V   |  1    |
+|   |message identity        |                        |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |ABBA                    |ABBA                    |    M   |  LV  |  3-n  |
+|---|------------------------|------------------------|--------|------|-------|
+|21 |Authentication parameter|Authentication parameter|    O   |  TV  |  17   |
+|   |RAND                    |RAND 9.11.3.16          |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|20 |Authentication parameter|Authentication parameter|    O   |  TLV |  18   |
+|   |AUTN                    |AUTN 9.11.3.15          |        |      |       |
+-------------------------------------------------------------------------------
+******************************************************************************/

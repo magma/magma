@@ -37,3 +37,21 @@ class PDUSessionModificationRequestMsg {
       uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
+
+/******************************************************************************
+   TS-24.501 Table 8.3.7.1.1: PDU SESSION MODIFICATION REQUEST message content
+-------------------------------------------------------------------------------
+|IEI|   Information Element  |    Type/Reference      |Presence|Format|Length |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Extended protocol descr-|Extended Protocol descr-|    M   |  V   |  1    |
+|   |-iminator               |-iminator 9.2           |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |PDU session ID          |PDU session ID 9.4      |    M   |  V   |  1    |
+|---|------------------------|------------------------|--------|------|-------|
+|   |PTI                     |Procedure transacti     |    M   |  V   |  1    |
+|   |                        |identity 9.6            |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |PDU SESSION MODIFICATION|Message type 9.7        |    M   |  V   |  1    |
+|   |REQUEST message identity|                        |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+******************************************************************************/

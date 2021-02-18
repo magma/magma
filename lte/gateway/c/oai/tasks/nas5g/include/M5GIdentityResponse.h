@@ -38,18 +38,22 @@ class IdentityResponseMsg {
 };
 }  // namespace magma5g
 
-/*
-   SPEC TS-24501_v150600
-   Table 8.2.22.1.1: IDENTITY RESPONSE message content
-
-IEI         Information Element                    Type/Reference Presence
-Format        Length
-
-       Extended protocol discriminator        Extended protocol
-discriminator 9.2         M           V             1 Security header type
-Security header type 9.3                    M           V             1/2 Spare
-half octet                       Spare half octet 9.5                        M
-V             1/2 Identity response message identity_     Message type 9.7 M V 1
-       Mobile Identity                        5GS Mobile identity_ 9.11.3.4 M
-LV-E          3-n
-*/
+/******************************************************************************
+   SPEC TS-24501   Table 8.2.22.1.1: IDENTITY RESPONSE message content
+-------------------------------------------------------------------------------
+|IEI|   Information Element  |    Type/Reference      |Presence|Format|Length |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Extended protocol descr-|Extended Protocol descr-|    M   |  V   |  1    |
+|   |-iminator               |-iminator 9.2           |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Security header type    |Security header type 9.3|    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Spare half octet        |Spare half octet 9.5    |    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |IDENTITY RESPONSE       |Message type 9.7        |    M   |  V   |  1    |
+|   |message identity        |                        |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |5GS mobile identity     |5GS mobile identity     |    M   |  LV-E|  6-n  |
+|   |                        |9.11.3.4                |        |      |       |
+|----------------------------|------------------------|-----------------------|
+******************************************************************************/

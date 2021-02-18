@@ -36,16 +36,20 @@ class AuthenticationFailureMsg {
       AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
-/*
-   Table 8.2.9.1.1: AUTHENTICATION FAILURE message content
 
-   IEI           Information Element                            Type/Reference
-   Presence     Format     Length
-
-            Extended protocol discriminator               Extended Protocol
-   discriminator 9.2          M           V          1 Security header type
-   Security header type 9.3                     M           V          1/2 Spare
-   half octet                              Spare half octet 9.5 M           V
-   1/2 Authentication Failure  message identity      Message type 9.7 M V 1 5GMM
-   Cause                                    5GMM Cause 9.11.3.2 M           V 1
-   */
+/******************************************************************************
+       TS 24.501  Table 8.2.9.1.1: AUTHENTICATION FAILURE message content
+-------------------------------------------------------------------------------
+|IEI|   Information Element  |    Type/Reference      |Presence|Format|Length |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Extended protocol descr-|Extended Protocol descr-|    M   |  V   |  1    |
+|   |-iminator               |-iminator 9.2           |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Security header type    |Security header type 9.3|    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Spare half octet        |Spare half octet 9.5    |    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Authentication Failure  |Message type 9.7        |    M   |  V   |  1    |
+|   |message identity        |                        |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+******************************************************************************/

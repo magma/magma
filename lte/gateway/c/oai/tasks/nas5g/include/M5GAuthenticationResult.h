@@ -39,17 +39,26 @@ class AuthenticationResultMsg {
 };
 }  // namespace magma5g
 
-/*
-AUTHENTICATION RESULT message content
-
-IEI  Information Element             Type/Reference Presence   Format     Length
-
-     Extended protocol discriminator Extended protocol discriminator 9.2       M
-V          1 Security header type            Security header type            9.3
-M         V          1/2 Spare half octet                Spare half 9.5       M
-V          1/2 Authentication Result Msg       Message type 9.7       M V 1
-     ngKSI                           NAS key set identifier      9.11.3.32     M
-V          1/2 Spare half octet                Spare half 9.5       M         V
-1/2 EAP message                     EAP message 9.11.2.2                      M
-LV-E       6-1502
-*/
+/******************************************************************************
+                    AUTHENTICATION RESULT message content
+-------------------------------------------------------------------------------
+|IEI|   Information Element  |    Type/Reference      |Presence|Format|Length |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Extended protocol descr-|Extended Protocol descr-|    M   |  V   |  1    |
+|   |-iminator               |-iminator 9.2           |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Security header type    |Security header type 9.3|    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Spare half octet        |Spare half octet 9.5    |    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Authentication result   |Message type 9.7        |    M   |  V   |  1    |
+|   |message identity        |                        |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |ngKSI                   |NAS key set identifier  |    M   |  V   |  1/2  |
+|   |                        |9.11.3.32               |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Spare half octet        |Spare half octet 9.5    |    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |EAP message             |EAP message 9.11.2.2    |    M   |  LV-E| 6-1502|
+|---|------------------------|------------------------|--------|------|-------|
+******************************************************************************/

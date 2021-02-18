@@ -99,7 +99,6 @@ target_link_libraries(LIB_NAS5G
     LIB_BSTR LIB_SECU LIB_3GPP
     )
 
-# TODO leak baby leak
 target_include_directories(LIB_NAS5G PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src

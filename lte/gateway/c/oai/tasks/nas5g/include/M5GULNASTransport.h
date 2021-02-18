@@ -40,20 +40,27 @@ class ULNASTransportMsg {
 };
 }  // namespace magma5g
 
-/*
-   SPEC TS-24501_v150600
-   Table 8.2.10.1.1: UL NAS TRANSPORT message content
-
-IEI         Information Element                    Type/Reference Presence
-Format        Length
-
-       Extended protocol discriminator        Extended protocol
-discriminator 9.2         M           V             1 Security header type
-Security header type 9.3                    M           V            1/2 Spare
-half octet                       Spare half octet 9.5                        M
-V            1/2 UL NAS TRANSPORT message identity      Message type 9.7 M V 1
-       Payload container type                 Payload container type 9.11.3.40
-M           V            1/2 Spare half octet                       Spare half
-octet 9.5                        M           V            1/2 Payload container
-Payload container 9.11.3.39                 M          LV-E        3-65537
-*/
+/******************************************************************************
+   SPEC TS-24501  Table 8.2.10.1.1: UL NAS TRANSPORT message content
+-------------------------------------------------------------------------------
+|IEI|   Information Element  |    Type/Reference      |Presence|Format|Length |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Extended protocol descr-|Extended Protocol descr-|    M   |  V   |  1    |
+|   |-iminator               |-iminator 9.2           |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Security header type    |Security header type 9.3|    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Spare half octet        |Spare half octet 9.5    |    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |UL NAS TRANSPORT message|Message type 9.7        |    M   |  V   |  1    |
+|   |        identity        |                        |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Payload container type  |Payload container type  |    M   |  V   |  1/2  |
+|   |                        |9.11.3.40               |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Spare half octet        |Spare half octet 9.5    |    M   |  V   |  1/2  |
+|---|------------------------|------------------------|--------|------|-------|
+|   |Payload container       |Payload container       |    M   | LV-E |3-65537|
+|   |                        |9.11.3.39               |        |      |       |
+|---|------------------------|------------------------|--------|------|-------|
+******************************************************************************/
