@@ -42,7 +42,7 @@ from lte.protos.mconfig import mconfigs_pb2
 
 
 
-def main():
+def internal_main():
     """
     Loads the Ryu apps we want to run from the config file.
     This should exit on keyboard interrupt.
@@ -180,6 +180,25 @@ def start_check_quota_server(target, ip, port, response, exit_callback):
         args=(ip, port, response, exit_callback))
     thread.daemon = True
     thread.start()
+
+
+
+import atexit, cProfile, pstats
+atexit.register(dump_cprofile)
+
+profiler = None
+def dump_cprofile():
+    if profiler is not None:
+        with open('profile.out', 'w') as stream:
+            stats = pstats.Stats(profiler, stream=stream).sort_stats('ncalls')
+            stats.print_stats()
+
+def main():
+    global profiler
+    profiler = cProfile.Profile()
+    profiler.enable()
+    internal_main()
+    profiler.disable()
 
 
 if __name__ == "__main__":
