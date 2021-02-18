@@ -152,6 +152,9 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
   std::chrono::milliseconds retry_timeout_ms_;
+  std::chrono::milliseconds min_rpc_delta_;
+  std::chrono::milliseconds last_rpctime_pipelined_;
+
   // True if there is an ongoing attempt to setup PipelineD
   bool is_setting_up_pipelined_;
   static const std::string hex_digit_;
@@ -240,6 +243,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
           response_callback);
 
   void log_create_session(SessionConfig& cfg);
+
+  std::chrono::milliseconds get_rpc_delta();
 };
 
 }  // namespace magma

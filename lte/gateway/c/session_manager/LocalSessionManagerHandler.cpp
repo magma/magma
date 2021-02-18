@@ -37,6 +37,8 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
       current_epoch_(0),
       reported_epoch_(0),
       retry_timeout_ms_(std::chrono::milliseconds{5000}),
+      min_rpc_delta_(std::chrono::milliseconds{50}),
+      last_rpctime_pipelined_(std::chrono::milliseconds{0}),
       is_setting_up_pipelined_(false) {}
 
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
@@ -224,36 +226,39 @@ void LocalSessionManagerHandlerImpl::CreateSession(
     std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-  enforcer_->get_event_base().runInEventBaseThread(
-      [this, context, response_callback, request_cpy]() {
-        const auto& imsi       = request_cpy.common_context().sid().id();
-        const auto& session_id = id_gen_.gen_session_id(imsi);
-        SessionConfig cfg(request_cpy);
-        log_create_session(cfg);
+  enforcer_->get_event_base().runInEventBaseThread([=] {
+    enforcer_->get_event_base().timer().scheduleTimeoutFn(
+        std::move([this, context, response_callback, request_cpy]() {
+          const auto& imsi       = request_cpy.common_context().sid().id();
+          const auto& session_id = id_gen_.gen_session_id(imsi);
+          SessionConfig cfg(request_cpy);
+          log_create_session(cfg);
 
-        auto session_map     = session_store_.read_sessions({imsi});
-        const auto& rat_type = cfg.common_context.rat_type();
-        switch (rat_type) {
-          case TGPP_WLAN:
-            handle_create_session_cwf(
-                session_map, session_id, cfg, response_callback);
-            return;
-          case TGPP_LTE:
-            handle_create_session_lte(
-                session_map, session_id, cfg, response_callback);
-            return;
-          default:
-            std::ostringstream failure_stream;
-            failure_stream << "Received an invalid RAT type " << rat_type;
-            std::string failure_msg = failure_stream.str();
-            MLOG(MERROR) << failure_msg;
-            events_reporter_->session_create_failure(cfg, failure_msg);
-            send_local_create_session_response(
-                Status(grpc::FAILED_PRECONDITION, "Invalid RAT type"),
-                session_id, response_callback);
-            return;
-        }
-      });
+          auto session_map     = session_store_.read_sessions({imsi});
+          const auto& rat_type = cfg.common_context.rat_type();
+          switch (rat_type) {
+            case TGPP_WLAN:
+              handle_create_session_cwf(
+                  session_map, session_id, cfg, response_callback);
+              return;
+            case TGPP_LTE:
+              handle_create_session_lte(
+                  session_map, session_id, cfg, response_callback);
+              return;
+            default:
+              std::ostringstream failure_stream;
+              failure_stream << "Received an invalid RAT type " << rat_type;
+              std::string failure_msg = failure_stream.str();
+              MLOG(MERROR) << failure_msg;
+              events_reporter_->session_create_failure(cfg, failure_msg);
+              send_local_create_session_response(
+                  Status(grpc::FAILED_PRECONDITION, "Invalid RAT type"),
+                  session_id, response_callback);
+              return;
+          }
+        }),
+        get_rpc_delta());
+  });
 }
 
 void LocalSessionManagerHandlerImpl::send_create_session(
@@ -563,27 +568,32 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
                << " with default bearer id: " << request->bearer_id()
                << " enb_teid= " << request->enb_teid()
                << " agw_teid= " << request->agw_teid();
-  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, imsi,
-                                                    response_callback]() {
-    auto session_map = session_store_.read_sessions({imsi});
-    auto success     = enforcer_->update_tunnel_ids(session_map, request_cpy);
-    if (!success) {
-      MLOG(MDEBUG) << "Failed to UpdateTunnelIds for imsi " << imsi
-                   << " and bearer " << request_cpy.bearer_id();
-      auto err_status = Status(grpc::ABORTED, "Failed to Update tunnels Ids");
-      response_callback(err_status, UpdateTunnelIdsResponse());
-      return;
-    }
-    bool update_success =
-        session_store_.raw_write_sessions(std::move(session_map));
-    if (!update_success) {
-      MLOG(MERROR)
-          << "Failed in updating SessionStore after processing UpdateTunnelIds";
-      auto err_status = Status(grpc::ABORTED, "Failed to store tunnels Ids");
-      response_callback(err_status, UpdateTunnelIdsResponse());
-      return;
-    }
-    response_callback(Status::OK, UpdateTunnelIdsResponse());
+  enforcer_->get_event_base().runInEventBaseThread([=] {
+    enforcer_->get_event_base().timer().scheduleTimeoutFn(
+        std::move([this, request_cpy, imsi, response_callback]() {
+          auto session_map = session_store_.read_sessions({imsi});
+          auto success = enforcer_->update_tunnel_ids(session_map, request_cpy);
+          if (!success) {
+            MLOG(MDEBUG) << "Failed to UpdateTunnelIds for imsi " << imsi
+                         << " and bearer " << request_cpy.bearer_id();
+            auto err_status =
+                Status(grpc::ABORTED, "Failed to Update tunnels Ids");
+            response_callback(err_status, UpdateTunnelIdsResponse());
+            return;
+          }
+          bool update_success =
+              session_store_.raw_write_sessions(std::move(session_map));
+          if (!update_success) {
+            MLOG(MERROR) << "Failed in updating SessionStore after processing "
+                            "UpdateTunnelIds";
+            auto err_status =
+                Status(grpc::ABORTED, "Failed to store tunnels Ids");
+            response_callback(err_status, UpdateTunnelIdsResponse());
+            return;
+          }
+          response_callback(Status::OK, UpdateTunnelIdsResponse());
+        }),
+        get_rpc_delta());
   });
 }
 
@@ -631,6 +641,24 @@ void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
         ", MAC addr:" + cfg.rat_specific_context.wlan_context().mac_addr();
   }
   MLOG(MINFO) << create_message;
+}
+
+std::chrono::milliseconds LocalSessionManagerHandlerImpl::get_rpc_delta() {
+  // milliseconds ms = duration_cast< milliseconds >(
+  //  system_clock::now().time_since_epoch()
+  std::chrono::milliseconds now_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch());
+
+  std::chrono::milliseconds rpc_delta;
+  if (now_ms >= last_rpctime_pipelined_ + min_rpc_delta_) {
+    rpc_delta               = std::chrono::milliseconds{0};
+    last_rpctime_pipelined_ = now_ms;
+  } else {
+    last_rpctime_pipelined_ = last_rpctime_pipelined_ + min_rpc_delta_;
+    rpc_delta               = last_rpctime_pipelined_ - now_ms;
+  }
+  return rpc_delta;
 }
 
 }  // namespace magma
