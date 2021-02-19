@@ -2,7 +2,8 @@ add_compile_options(-std=c++11)
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
-include_directories("${PROJECT_SOURCE_DIR}/openflow/controller")
+include_directories("${PROJECT_SOURCE_DIR}/lib/openflow/controller"
+    "${PROJECT_SOURCE_DIR}/tasks/gtpv1-u")
 link_directories(/usr/src/googletest/googlemock/lib/)
 add_executable(openflow_controller_test test_openflow_controller.cpp)
 add_executable(imsi_encoder_test test_imsi_encoder.cpp)

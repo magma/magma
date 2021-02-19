@@ -172,10 +172,12 @@ format_session_manager: ## Format SessionD
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
+# To gather gcov data, first we build and gather initialized zero-count
+# baselines. Then we run tests and gather gcov deltas.
 test_oai: build_common ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
-# Catch all for c service tests
+## Catch all for c service tests
 # This works with test_dpi and test_session_manager
 test_%: stop build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
@@ -185,57 +187,6 @@ precommit_sm: format_session_manager test_session_manager
 
 # format and test c/oai
 precommit_oai: format_oai test_oai
-
-# TODO: include coverage of dpim when it is included in make build
-COV_OUTPUT_OAI = $(OAI_BUILD)/coverage.info
-COV_OUTPUT_SM = $(C_BUILD)/session_manager/coverage.info
-COV_OUTPUT_TOTAL = $(C_BUILD)/coverage.info
-# Put HTML within magma directory, so it can be accessed from outside VM
-COV_HTML_DIR_OAI = $(GATEWAY_C_DIR)/oai/code_coverage
-COV_HTML_DIR_SM = $(GATEWAY_C_DIR)/session_manager/code_coverage
-COV_HTML_DIR_TOTAL = $(MAGMA_ROOT)/c/code_coverage
-
-SLEEP_SECS = 10
-
-coverage: ## Generate full code coverage report
-	# Remove any previous gcov output files
-	rm -f `find $(OAI_BUILD) -name *.gcda`
-	rm -f `find $(C_BUILD)/session_manager -name *.gcda`
-	# Stop processes to generate gcda
-	sudo service magma@mme stop
-	sudo pkill -INT sessiond
-	# Wait for gcov output to be generated
-	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
-	sleep $(SLEEP_SECS)
-	# Capture coverage info under different directories individually
-	lcov --capture --directory $(OAI_BUILD) --output-file $(COV_OUTPUT_OAI)
-	lcov --capture --directory $(C_BUILD)/session_manager --output-file $(COV_OUTPUT_SM)
-	# Merge coverage info
-	lcov --add-tracefile $(COV_OUTPUT_OAI) --add-tracefile $(COV_OUTPUT_SM) --output-file $(COV_OUTPUT_TOTAL)
-	# Remove coverage info regarding libraries from /usr/include/
-	lcov --remove $(COV_OUTPUT_TOTAL) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_TOTAL) --quiet
-	# Generate html which shows coverage with graph
-	genhtml $(COV_OUTPUT_TOTAL) --output-directory $(COV_HTML_DIR_TOTAL)
-	@echo "Generated coverage output to $(COV_HTML_DIR_TOTAL)/index.html"
-
-coverage_oai: ## Generate code coverage report for OAI
-	rm -f `find $(OAI_BUILD) -name *.gcda`
-	sudo service magma@mme stop
-	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
-	sleep $(SLEEP_SECS)
-	lcov --capture --directory $(OAI_BUILD) --output-file $(COV_OUTPUT_OAI)
-	lcov --remove $(COV_OUTPUT_OAI) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_OAI) --quiet
-	genhtml $(COV_OUTPUT_OAI) --output-directory $(COV_HTML_DIR_OAI)
-	@echo "Generated coverage output to $(COV_HTML_DIR_OAI)/index.html"
-
-coverage_sm: ## Generate code coverage report for session manager
-	rm -f `find $(C_BUILD)/session_manager -name *.gcda`
-	sudo pkill -INT sessiond
-	sleep $(SLEEP_SECS)
-	lcov --capture --directory $(C_BUILD)/session_manager --output-file $(COV_OUTPUT_SM)
-	lcov --remove $(COV_OUTPUT_SM) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_SM) --quiet
-	genhtml $(COV_OUTPUT_SM) --output-directory $(COV_HTML_DIR_SM)
-	@echo "Generated coverage output to $(COV_HTML_DIR_SM)/index.html"
 
 code_stats: ## Generate lines-of-code statistics for magma project
 	sudo apt-get install -y cloc

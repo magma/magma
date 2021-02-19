@@ -718,6 +718,21 @@ jobs:
           version_path: versions/cwag_version
       - magma_slack_notify
 
+  mme-docker-c-test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - run:
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
+            ci_env=`bash <(curl -s https://codecov.io/env)`
+            docker run $ci_env -e CI=true -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make build_oai;make test_oai;cd /build/c;bash <(curl -s https://codecov.io/bash)"
+
   lte-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -1082,6 +1097,7 @@ workflows:
           <<: *only_master
           requires:
             - lte-integ-test
+      - mme-docker-c-test
 
   feg:
     jobs:
