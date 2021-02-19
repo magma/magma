@@ -7,12 +7,12 @@ dependencies:
   version: 1.4.21
 - name: nms
   repository: ""
-  version: 0.1.7
+  version: 0.1.8
 - name: logging
   repository: ""
   version: 0.1.10
 - name: orc8rlib
   repository: file://../orc8rlib
   version: 0.1.2
-digest: sha256:a29c44810cb86f67f4e2d264ce733d823bf2aca0a41cce6899ac3c9340cff63a
-generated: "2021-02-12T22:53:25.775236-08:00"
+digest: sha256:4e380d5be1ac80019bbf358526c8d8dd29b724b2b93a0443e0bc197f486299f2
+generated: "2021-02-18T17:03:34.608017-08:00"
