@@ -68,6 +68,8 @@ Description Contains global security definitions
 #define AUTH_KENB_SIZE AUTH_KASME_SIZE     /* eNodeB security key   */
 #define AUTH_NEXT_HOP_SIZE AUTH_KASME_SIZE /* Next Hop security parameter*/
 
+#define AUTH_KGNB_SIZE AUTH_KASME_SIZE /* gNodeB security key   */
+
 /* "Separation bit" of AMF field */
 #define AUTH_AMF_SEPARATION_BIT(a) ((a) &0x80)
 /*

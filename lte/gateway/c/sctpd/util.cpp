@@ -137,7 +137,10 @@ int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs)
     ipv4_addr = (struct sockaddr_in *) &(*addrs)[i];
 
     ipv4_addr->sin_family = AF_INET;
-    ipv4_addr->sin_port = htons(req->port());
+    if (req->port())
+	{
+    		ipv4_addr->sin_port = htons(req->port());
+	}
     if (inet_aton(req->ipv4_addrs(i).c_str(), &ipv4_addr->sin_addr) < 0) {
       return -1;
     }

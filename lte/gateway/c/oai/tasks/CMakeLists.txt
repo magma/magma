@@ -1,6 +1,9 @@
+add_subdirectory(amf) # TASK_AMF_APP
 add_subdirectory(mme_app) # TASK_MME_APP
 add_subdirectory(nas) # TASK_NAS
+add_subdirectory(nas5g) # TASK_NAS5G
 add_subdirectory(s1ap) # TASK_S1AP, LIB_S1AP
+add_subdirectory(ngap) # TASK_S1AP, LIB_S1AP
 add_subdirectory(s6a) # TASK_S6A
 add_subdirectory(sctp) # TASK_SCTP_SERVER
 add_subdirectory(service303) # TASK_SERVICE303
