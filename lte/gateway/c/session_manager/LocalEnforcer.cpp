@@ -1894,29 +1894,30 @@ void LocalEnforcer::handle_activate_ue_flows_callback(
     MLOG(MDEBUG) << "Pipelined add ue enf flow succeeded for " << imsi;
     return;
   }
-
   MLOG(MERROR) << "Could not activate rules for " << imsi
                << ", rpc failed: " << status.error_message()
-               << ", terminating session...";
-
-  SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip_addr);
-  auto session_map = session_store_.read_sessions({imsi});
-  auto session_it  = session_store_.find_session(session_map, criteria);
-  if (!session_it) {
-    MLOG(MERROR) << "Could not find session for " << imsi << " and " << ip_addr
-                 << " when trying to terminate after PipelineD GRPC failure";
-    return;
-  }
-  auto& session                = **session_it;
-  const std::string session_id = session->get_session_id();
-  auto update = SessionStore::get_default_session_update(session_map);
-  bool success =
-      find_and_terminate_session(session_map, imsi, session_id, update);
-  if (!success) {
-    MLOG(MERROR) << "Failed to start termination for " << session_id
-                 << " after PipelineD GRPC failure";
-  }
-  session_store_.update_sessions(update);
+               << ", scheduling session termination..";
+  evb_->runInEventBaseThread([this, imsi, ip_addr] {
+    SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip_addr);
+    auto session_map = session_store_.read_sessions({imsi});
+    auto session_it  = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not find session for " << imsi << " and "
+                   << ip_addr
+                   << " when trying to terminate after PipelineD GRPC failure";
+      return;
+    }
+    auto& session                = **session_it;
+    const std::string session_id = session->get_session_id();
+    auto update = SessionStore::get_default_session_update(session_map);
+    bool success =
+        find_and_terminate_session(session_map, imsi, session_id, update);
+    if (!success) {
+      MLOG(MERROR) << "Failed to start termination for " << session_id
+                   << " after PipelineD GRPC failure";
+    }
+    session_store_.update_sessions(update);
+  });
 }
 
 void LocalEnforcer::handle_add_ue_mac_flow_callback(
