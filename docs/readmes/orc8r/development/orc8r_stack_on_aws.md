@@ -21,9 +21,7 @@ These following resources are the basic infrastructure necessary to deploy Magma
 * **Database instances:** Magma needs two database instances one for Orc8r another for NMS, these instances are deployed using AWS Relational Databases Services (RDS)
 * **DNS:** Magma uses AWS Route53 service to configure external DNS to access Orc8r's UI and API resources.
 
-
-[Detailed list of configurations available for these resource](http://github.com/magma/magma/blob/master/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf). The values for these configurations can be defined/overwritten in your main.tf `orc8r` module. Some configurations do not have default values and are mandatory to be present in your main.tf. Other are already have predefined values that can be overwritten. Follows an example of some configurations:
-
+Magma provides a set of configuration parameters to control these resources, follow a short list with some configurations:
 
 |Name	|Type	|Description	|Default Value	|
 |---	|---	|---	|---	|
@@ -35,6 +33,11 @@ These following resources are the basic infrastructure necessary to deploy Magma
 |nms_db_engine_version	|Optional	|MySQL engine version for NMS DB.	|5.7	|
 |cluster_version	|Optional	|Kubernetes version for the EKS cluster.	|1.17	|
 |elasticsearch_version	|Optional	|ES version for ES domain.	|7.1	|
+
+The values for these configurations can be defined/overwritten in your main.tf `orc8r` module.
+Some configurations do not have default values and are mandatory to be present in your main.tf.
+Other already have predefined values and can be overwritten.
+See the [complete list of available configurations](http://github.com/magma/magma/blob/master/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf).
 
 ## What Magma deploys in my AWS-hosted Kubernetes?
 
@@ -53,8 +56,7 @@ Now that Kubernetes cluster is complete, is time to set up the applications insi
 * **OpenVPN:** This is an Helm chart responsible for creating a VPN server to access AGW securely.
 * **Orc8r Application:** This is the Helm chart that deploys Oc8r and NMS applications in your Kubernetes infrastructure. This chart include multiple services and pods, including prometheus, grafana, NMS, orc8r-controller and other.
 
-[Detailed list of configurations available for these resource](http://github.com/magma/magma/blob/master/orc8r/cloud/deploy/terraform/orc8r-helm-aws/variables.tf). The values of these configurations can be defined/overwritten in your main.tf `orc8r-app` module. Follows an example of some configurations:
-
+Magma provides a set of configuration parameters to control these resources, follow a short list with some configurations:
 
 |Name	|Type	|Description	|Default Value	|
 |---	|---	|---	|---	|
@@ -63,6 +65,9 @@ Now that Kubernetes cluster is complete, is time to set up the applications insi
 |orc8r_deployment_type	|Mandatory	|Type of Orc8r deployment (fixed wireless access, federated fixed wireless access, or all modules)	|-	|
 |orc8r_tag	|Mandatory	|Image tag for Orchestrator components.	|-	|
 |deploy_openvpn	|Optional	|Flag to deploy OpenVPN server into cluster. This is useful if you want to remotely access AGWs.	|FALSE	|
+
+The values of these configurations can be defined/overwritten in your main.tf `orc8r-app` module.
+See the [complete list of configurations available for these resource](http://github.com/magma/magma/blob/master/orc8r/cloud/deploy/terraform/orc8r-helm-aws/variables.tf).
 
 ## What does the Orc8r Helm chart contain?
 
@@ -91,7 +96,9 @@ Orc8r Helm chart is composed of 5 other charts:
 
 Orc8r needs certificates to assure messages traveling over the internet are encrypted and secure. Certificates are created in pairs with a public certificate (.crt or .pem) and a private key (.key). The former needs to be safely stored and kept secret, while the latter can be distributed to clients.
 
+<span style="color:red">
 **Attention:** All the certificates are created with validity time period, so make sure you know when your certificates expire and schedule a maintenance to update them.
+</span>
 
 ### Certificate Authority (and rootCA)
 
