@@ -1909,20 +1909,32 @@ void LocalEnforcer::handle_activate_ue_flows_callback(
   }
 
   MLOG(MERROR) << "Could not activate rules for " << imsi
-               << ", rpc failed: " << status.error_message() << ", retrying...";
+               << ", rpc failed: " << status.error_message()
+               << ", terminating session...";
 
-  evb_->runAfterDelay(
-      [=] {
-        pipelined_client_->activate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
-            dynamic_rules, [imsi](Status status, ActivateFlowsResult resp) {
-              if (!status.ok()) {
-                MLOG(MERROR) << "Could not activate flows for UE " << imsi
-                             << ": " << status.error_message();
-              }
-            });
-      },
-      retry_timeout_.count());
+  SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip_addr);
+  auto session_map = session_store_.read_sessions({imsi});
+  auto session_it  = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << "Could not find session for " << imsi << " and " << ip_addr
+                 << " when trying to terminate after PipelineD GRPC failure";
+    return;
+  }
+  auto& session                = **session_it;
+  const std::string session_id = session->get_session_id();
+
+  // start_session_termination
+  evb_->runInEventBaseThread([this, imsi, session_id] {
+    auto session_map = session_store_.read_sessions({imsi});
+    auto update      = SessionStore::get_default_session_update(session_map);
+    bool success =
+        find_and_terminate_session(session_map, imsi, session_id, update);
+    if (!success) {
+      MLOG(MERROR) << "Failed to start termination for " << session_id
+                   << " after PipelineD GRPC failure";
+    }
+    session_store_.update_sessions(update);
+  });
 }  // namespace magma
 
 void LocalEnforcer::handle_add_ue_mac_flow_callback(
