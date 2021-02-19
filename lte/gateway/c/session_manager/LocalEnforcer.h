@@ -651,6 +651,8 @@ class LocalEnforcer {
   void add_rules_for_unsuspended_credit(
       const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
       SessionStateUpdateCriteria& session_uc);
+
+  void cleanup_dead_sessions(std::vector<RuleRecord>& dead_sessions_to_cleanup);
 };
 
 }  // namespace magma
