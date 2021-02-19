@@ -234,14 +234,16 @@ void LocalEnforcer::aggregate_records(
   // Insert the IMSI+SessionID for sessions we received a rule record into a set
   // for easy access
   std::unordered_set<ImsiAndSessionID> sessions_with_reporting_flows;
-  for (const RuleRecord& record : records.records()) {
+  // In some failure cases, PipelineD may still hold onto flows for sessions
+  // that do not exist in SessionD. In this case, send DeactivateFlowsRequest
+  std::vector<RuleRecord> dead_sessions_to_cleanup;
+  for (const RuleRecord record : records.records()) {
     const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
     // TODO IPv6 add ipv6 to search criteria
     SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
-      MLOG(MERROR) << "Could not find session for " << imsi << " and " << ip
-                   << " during record aggregation";
+      dead_sessions_to_cleanup.push_back(record);
       continue;
     }
     auto& session          = **session_it;
@@ -260,6 +262,26 @@ void LocalEnforcer::aggregate_records(
   }
   complete_termination_for_released_sessions(
       session_map, sessions_with_reporting_flows, session_update);
+  cleanup_dead_sessions(dead_sessions_to_cleanup);
+}
+
+void LocalEnforcer::cleanup_dead_sessions(
+    std::vector<RuleRecord>& dead_sessions_to_cleanup) {
+  if (dead_sessions_to_cleanup.size() == 0) {
+    return;
+  }
+  for (const RuleRecord& record : dead_sessions_to_cleanup) {
+    MLOG(MINFO) << "Removing all flows for " << record.sid() << ", "
+                << record.ue_ipv4()
+                << " since the UE no longer exists in SessionD";
+    Teids empty_teids;  // Teids are not used in 1.4
+    pipelined_client_->deactivate_flows_for_rules_for_termination(
+        record.sid(), record.ue_ipv4(), record.ue_ipv6(), empty_teids, {}, {},
+        RequestOriginType::GX);
+    pipelined_client_->deactivate_flows_for_rules_for_termination(
+        record.sid(), record.ue_ipv4(), record.ue_ipv6(), empty_teids, {}, {},
+        RequestOriginType::GY);
+  }
 }
 
 void LocalEnforcer::complete_termination_for_released_sessions(
