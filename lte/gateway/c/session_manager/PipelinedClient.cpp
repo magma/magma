@@ -59,6 +59,8 @@ magma::DeactivateFlowsRequest create_deactivate_req(
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
   req.set_ipv6_addr(ipv6_addr);
+  req.set_downlink_tunnel(teids.enb_teid());
+  req.set_uplink_tunnel(teids.agw_teid());
   req.set_remove_default_drop_flows(remove_default_drop_rules);
   req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
