@@ -33,19 +33,20 @@ type MagmaSessionFTeids struct {
 }
 
 // buildCreateSessionRequestIE creates a slice with all the IE needed for a Create Session Request
-func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSessionRequestPgw, gtpCli *gtp.Client) ([]*ie.IE, MagmaSessionFTeids, error) {
-	// Create session needs 3 FTEIDs:
+func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSessionRequestPgw, gtpCli *gtp.Client) (MagmaSessionFTeids, []*ie.IE, error) {
+	sessionTeids := MagmaSessionFTeids{}
+	// Create session needs e FTEIDs:
 	// - FEG (S8) control plane FTEID will be built using local address and TEID handled by s8_proxy
-	// - PGW control plane FTEID will bu built using the pgwAddrs on the Request and 0 as TEID
 	// - AGW user plane FTEID, provided by the bearer in the request
 
-	// FEG control plane TEID
 	// TODO: look for a better way to find the local ip (avoid pinging on each request)
 	// (obtain the IP that is going to send the packet first)
 	ip, err := gtp.GetOutboundIP(cPgwUDPAddr)
 	if err != nil {
-		return nil, MagmaSessionFTeids{}, err
+		return sessionTeids, nil, err
 	}
+
+	// FEG control plane TEID
 	cFegFTeid := gtpCli.NewSenderFTEID(ip.String(), "")
 
 	// AGW user plane TEID (comming from request)
@@ -67,17 +68,17 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 	daylightSavingTime := uint8(req.TimeZone.DaylightSavingTime)
 
 	// TODO: set charging characteristics
-	return []*ie.IE{
+	ies := []*ie.IE{
 		ie.NewIMSI(req.GetImsi()),
 		bearer,
 		cFegFTeid,
 		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
 		getPdnType(req.PdnType),
 		getPDNAddressAllocation(req),
+		getRatType(req.RatType),
 		ie.NewMSISDN(string(req.Msisdn[:])),
 		ie.NewMobileEquipmentIdentity(req.Mei),
 		ie.NewServingNetwork(req.ServingNetwork.Mcc, req.ServingNetwork.Mnc),
-		ie.NewRATType(uint8(req.RatType)),
 		ie.NewAccessPointName(req.Apn),
 		// TODO: selection mode (hadcoded for now)
 		ie.NewSelectionMode(gtpv2.SelectionModeMSorNetworkProvidedAPNSubscribedVerified),
@@ -87,7 +88,10 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 		ie.NewAPNRestriction(gtpv2.APNRestrictionNoExistingContextsorRestriction),
 		ie.NewAggregateMaximumBitRate(uint32(req.Ambr.BrUl), uint32(req.Ambr.BrDl)),
 		ie.NewUETimeZone(offset, daylightSavingTime),
-	}, MagmaSessionFTeids{cFegFTeid, uAgwFTeid}, nil
+	}
+	sessionTeids.cFegFTeid = cFegFTeid
+	sessionTeids.uAgwFTeid = uAgwFTeid
+	return sessionTeids, ies, nil
 }
 
 // buildModifyBearerRequest creates a slice with all the IE needed for a Modify Bearer Request
@@ -102,6 +106,12 @@ func buildModifyBearerRequest(req *protos.ModifyBearerRequestPgw, bearerId uint8
 		// TODO: hardcoded indication flags
 		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 		ie.NewBearerContext(ie.NewEPSBearerID(bearerId), enbUFTeid),
+	}
+}
+
+func buildDeleteSessionRequest(session *gtpv2.Session) []*ie.IE {
+	return []*ie.IE{
+		ie.NewEPSBearerID(session.GetDefaultBearer().EBI),
 	}
 }
 
@@ -132,7 +142,7 @@ func getPdnType(pdnType protos.PDNType) *ie.IE {
 	case protos.PDNType_NonIP:
 		res = gtpv2.PDNTypeNonIP // nonIP
 	default:
-		panic(fmt.Sprintf("getPdnType %d does not exist", pdnType))
+		panic(fmt.Sprintf("PdnType %d does not exist", pdnType))
 	}
 	return ie.NewPDNType(res)
 }
@@ -174,4 +184,15 @@ func getUserLocationIndication(mcc, mnc string, uli *protos.UserLocationInformat
 		emenbi = ie.NewEMENBI(mcc, mnc, uli.EMeNbi)
 	}
 	return ie.NewUserLocationInformationStruct(cgi, sai, rai, tai, ecgi, lai, menbi, emenbi)
+}
+
+func getRatType(ratType protos.RATType) *ie.IE {
+	var rType uint8
+	switch ratType {
+	case protos.RATType_EUTRAN:
+		rType = 6
+	default:
+		panic(fmt.Sprintf("RatType %d does not exist", ratType))
+	}
+	return ie.NewRATType(rType)
 }

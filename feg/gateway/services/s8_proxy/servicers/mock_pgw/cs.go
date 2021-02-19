@@ -29,7 +29,7 @@ import (
 
 func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
-		fmt.Println("mock PGW Received a CreateSessionRequest")
+		fmt.Println("mock PGW received a CreateSessionRequest")
 
 		session := gtpv2.NewSession(sgwAddr, &gtpv2.Subscriber{Location: &gtpv2.Location{}})
 		bearer := session.GetDefaultBearer()
@@ -150,7 +150,8 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 		cIP := strings.Split(c.LocalAddr().String(), ":")[0]
 		pgwFTEIDc := c.NewSenderFTEID(cIP, "").WithInstance(1)
 		uIP := strings.Split(dummyUserPlanePgwIP, ":")[0]
-		pgwFTEIDu := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8PGWGTPU, rand.Uint32(), uIP, "")
+		randUTeid := (rand.Uint32() / 1000) * 1000 // for easy identification, this teid will always end in 000
+		pgwFTEIDu := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8PGWGTPU, randUTeid, uIP, "")
 
 		sgwTEIDc, err := session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
 

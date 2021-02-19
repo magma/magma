@@ -12,10 +12,8 @@ import (
 )
 
 const (
-	IMSI1 = "001010000000055"
-)
-
-const (
+	IMSI1          = "001010000000055"
+	BEARER         = 5
 	PGW_ADDRS      = "127.0.0.1:0"
 	S8_PROXY_ADDRS = ":0"
 )
@@ -44,9 +42,9 @@ func TestS8ProxyClient(t *testing.T) {
 			Mcc: "222",
 			Mnc: "333",
 		},
-		RatType: 0,
+		RatType: protos.RATType_EUTRAN,
 		BearerContext: &protos.BearerContext{
-			Id: 5,
+			Id: BEARER,
 			UserPlaneFteid: &protos.Fteid{
 				Ipv4Address: "127.0.0.10",
 				Ipv6Address: "",
@@ -117,8 +115,8 @@ func TestS8ProxyClient(t *testing.T) {
 
 	//------------------------
 	//---- Delete session ----
-	cdReq := &protos.DeleteSessionRequestPgw{Imsi: IMSI1}
-	_, err = s8_proxy.DeleteSession(cdReq)
+	dsReq := &protos.DeleteSessionRequestPgw{Imsi: IMSI1}
+	_, err = s8_proxy.DeleteSession(dsReq)
 	assert.NoError(t, err)
 
 	//------------------------

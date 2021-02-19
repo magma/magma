@@ -29,6 +29,7 @@ const (
 	s8proxyAddrs = ":0" // equivalent to sgwAddrs
 	pgwAddrs     = "127.0.0.1:0"
 	IMSI1        = "123456789012345"
+	BEARER       = 5
 )
 
 func TestS8Proxy(t *testing.T) {
@@ -59,15 +60,15 @@ func TestS8Proxy(t *testing.T) {
 	csReq := &protos.CreateSessionRequestPgw{
 		PgwAddrs: actualPgwAddress,
 		Imsi:     IMSI1,
-		Msisdn:   "00111",
+		Msisdn:   "300000000000003",
 		Mei:      "111",
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "222",
 			Mnc: "333",
 		},
-		RatType: 0,
+		RatType: protos.RATType_EUTRAN,
 		BearerContext: &protos.BearerContext{
-			Id: 5,
+			Id: BEARER,
 			UserPlaneFteid: &protos.Fteid{
 				Ipv4Address: "127.0.0.10",
 				Ipv6Address: "",
@@ -130,12 +131,17 @@ func TestS8Proxy(t *testing.T) {
 	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
 	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
 
-	// check Control Plane TEID
+	// check Pgw Control Plane TEID
 	session, err := s8p.gtpClient.GetSessionByIMSI(IMSI1)
 	assert.NoError(t, err)
-	sessionCteid, err := session.GetTEID(gtpv2.IFTypeS5S8PGWGTPC)
+	sessionCPteid, err := session.GetTEID(gtpv2.IFTypeS5S8PGWGTPC)
 	assert.NoError(t, err)
-	assert.Equal(t, mockPgw.LastTEIDc, sessionCteid)
+	assert.Equal(t, mockPgw.LastTEIDc, sessionCPteid)
+	assert.Equal(t, mockPgw.LastTEIDc, csRes.CPgwFteid.Teid)
+
+	// check Sgw Control Plane TEID
+	sessionCSteid, err := session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
+	assert.Equal(t, sessionCSteid, csRes.CAgwTeid)
 
 	// check received QOS
 	sentQos := csReq.BearerContext.Qos

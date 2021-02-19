@@ -52,7 +52,7 @@ func (mPgw *MockPgw) getHandleDeleteSessionRequest() gtpv2.HandlerFunc {
 			return err
 		}
 
-		fmt.Printf("Session deleted for Subscriber: %s", session.IMSI)
+		fmt.Printf("mock PWG deleted a session for Subscriber: %s\n", session.IMSI)
 		c.RemoveSession(session)
 		return nil
 	}

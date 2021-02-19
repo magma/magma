@@ -84,16 +84,23 @@ func getHandle_CreateSessionResponse() gtpv2.HandlerFunc {
 			return &gtpv2.RequiredIEMissingError{Type: ie.PDNAddressAllocation}
 		}
 
-		// control plane fteid
-		if fteidcIE := csResGtp.PGWS5S8FTEIDC; fteidcIE != nil {
-			fteidc, interfaceType, err := handleFTEID(fteidcIE)
+		// Pgw control plane fteid
+		if pgwCFteidIE := csResGtp.PGWS5S8FTEIDC; pgwCFteidIE != nil {
+			pgwCFteid, interfaceType, err := handleFTEID(pgwCFteidIE)
 			if err != nil {
-				return err
+				return fmt.Errorf("Couldn't get PGW control plane FTEID: %s ", err)
 			}
-			session.AddTEID(interfaceType, fteidc.GetTeid())
+			session.AddTEID(interfaceType, pgwCFteid.GetTeid())
+			csRes.CPgwFteid = pgwCFteid
 		} else {
 			c.RemoveSession(session)
 			return &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}
+		}
+
+		// AGW (sgw) control plane fteid
+		csRes.CAgwTeid, err = session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
+		if err != nil {
+			return fmt.Errorf("Couldn't get local (sgw) control plane TEID: %s ", err)
 		}
 
 		// TODO: handle more than one bearer

@@ -37,7 +37,7 @@ type S8Proxy struct {
 
 type S8ProxyConfig struct {
 	ClientAddr string
-	ServerAddr string //TODO: delete since server will be provided by mme
+	ServerAddr *net.UDPAddr
 }
 
 // NewS8Proxy creates an s8 proxy, but does not checks the PGW is alive
@@ -52,7 +52,7 @@ func NewS8Proxy(config *S8ProxyConfig) (*S8Proxy, error) {
 
 //NewS8ProxyWithEcho creates an s8 proxy already connected to a server (checks with echo if PGW is alive)
 func NewS8ProxyWithEcho(config *S8ProxyConfig) (*S8Proxy, error) {
-	gtpCli, err := gtp.NewConnectedAutoClient(context.Background(), config.ServerAddr, gtpv2.IFTypeS5S8SGWGTPC)
+	gtpCli, err := gtp.NewConnectedAutoClient(context.Background(), config.ServerAddr.String(), gtpv2.IFTypeS5S8SGWGTPC)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating S8_Proxy: %s", err)
 	}
@@ -71,22 +71,21 @@ func newS8ProxyImp(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
 }
 
 func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRequestPgw) (*protos.CreateSessionResponsePgw, error) {
-	// check pgw address
-	cPgwUDPAddr, err := net.ResolveUDPAddr("udp", req.PgwAddrs)
+	cPgwUDPAddr, err := s.getPgwAddress(req.PgwAddrs)
 	if err != nil {
-		err = fmt.Errorf("Create Session Request couldn't get PgwAddrs %s: %s", cPgwUDPAddr, err)
+		err = fmt.Errorf("Create Session Request failed due to missing server address: %s", err)
 		glog.Error(err)
 		return nil, err
 	}
 
 	// build csReq IE message
-	csReqIEs, sessionTeids, err := buildCreateSessionRequestIE(cPgwUDPAddr, req, s.gtpClient)
+	sessionTeids, csReqIEs, err := buildCreateSessionRequestIE(cPgwUDPAddr, req, s.gtpClient)
 	if err != nil {
 		return nil, err
 	}
 
 	// send, register and receive create session (session is created on the gtp client during this process too)
-	csRes, err := s.sendAndReceiveCreateSession(cPgwUDPAddr, csReqIEs, sessionTeids)
+	csRes, err := s.sendAndReceiveCreateSession(cPgwUDPAddr, sessionTeids, csReqIEs)
 	if err != nil {
 		err = fmt.Errorf("Create Session Request failed: %s", err)
 		glog.Error(err)
@@ -124,23 +123,21 @@ func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRe
 		return nil, err
 	}
 
-	cdRes, err := s.sendAndReceiveDeleteSession(teid, session)
+	dsReqIE := buildDeleteSessionRequest(session)
+	cdRes, err := s.sendAndReceiveDeleteSession(teid, session, dsReqIE)
 	if err != nil {
 		glog.Errorf("Couldnt delete session for IMSI %s:, %s", req.Imsi, err)
 		return nil, err
 	}
-
 	// remove session from the s8_proxy client
 	s.gtpClient.RemoveSession(session)
-
 	return cdRes, nil
 }
 
 func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*protos.EchoResponse, error) {
-	// check pgw address
-	cPgwUDPAddr, err := net.ResolveUDPAddr("udp", req.PgwAddrs)
+	cPgwUDPAddr, err := s.getPgwAddress(req.PgwAddrs)
 	if err != nil {
-		err = fmt.Errorf("SendEcho couldn't find  %s: %s", cPgwUDPAddr, err)
+		err = fmt.Errorf("SendEcho to %s failed: %s", cPgwUDPAddr, err)
 		glog.Error(err)
 		return nil, err
 	}
@@ -150,4 +147,18 @@ func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*proto
 		return nil, err
 	}
 	return &protos.EchoResponse{}, nil
+}
+
+// getPgwAddress returns an UDPAddrs if the passed string corresponds to a valid ip,
+// otherwise it uses the server address configured on s8_proxy
+func (s *S8Proxy) getPgwAddress(pgwAddrsFromRequest string) (*net.UDPAddr, error) {
+	addrs := ParseAddress(pgwAddrsFromRequest)
+	if addrs != nil {
+		// address comming from string has precednece
+		return addrs, nil
+	}
+	if s.config.ServerAddr != nil {
+		return s.config.ServerAddr, nil
+	}
+	return nil, fmt.Errorf("Neither the request nor s8_proxy has a valid server (pgw) address")
 }

@@ -37,9 +37,9 @@ const (
 // sendAndReceiveCreateSession creates a session in the gtp client, sends the create session request
 // to PGW and waits for its answers.
 // Returns a GRPC message translaged from the GTP-U create session response
-func (s *S8Proxy) sendAndReceiveCreateSession(cPgwUDPAddr *net.UDPAddr, csReqIEs []*ie.IE, sessionTeids MagmaSessionFTeids) (*protos.CreateSessionResponsePgw, error) {
-	glog.V(2).Infof("Send Create Session Request (gtp):\n%s",
-		message.NewCreateSessionRequest(0, 0, csReqIEs...).String())
+func (s *S8Proxy) sendAndReceiveCreateSession(cPgwUDPAddr *net.UDPAddr, sessionTeids MagmaSessionFTeids, csReqIEs []*ie.IE) (*protos.CreateSessionResponsePgw, error) {
+	glog.V(2).Infof("Send Create Session Request (gtp) to %s:\n%s",
+		cPgwUDPAddr.String(), message.NewCreateSessionRequest(0, 0, csReqIEs...).String())
 
 	session, seq, err := s.gtpClient.CreateSession(cPgwUDPAddr, csReqIEs...)
 	if err != nil {
@@ -71,8 +71,8 @@ func (s *S8Proxy) sendAndReceiveCreateSession(cPgwUDPAddr *net.UDPAddr, csReqIEs
 // waits for its answers.
 // Returns a GRPC message translaged from the GTP-U create session response
 func (s *S8Proxy) sendAndReceiveModifyBearer(teid uint32, session *gtpv2.Session, mbReqIE []*ie.IE) (*protos.ModifyBearerResponsePgw, error) {
-	glog.V(2).Infof("Send Modify Bearer Request (gtp):\n%s",
-		message.NewModifyBearerRequest(teid, 0, mbReqIE...).String())
+	glog.V(2).Infof("Send Modify Bearer Request (gtp) to %s:\n%s",
+		session.PeerAddr().String(), message.NewModifyBearerRequest(teid, 0, mbReqIE...).String())
 
 	seq, err := s.gtpClient.ModifyBearer(teid, session, mbReqIE...)
 	if err != nil {
@@ -93,9 +93,9 @@ func (s *S8Proxy) sendAndReceiveModifyBearer(teid uint32, session *gtpv2.Session
 // sendAndReceiveDeleteSession  sends delete session request GTP-U message to PGW and
 // waits for its answers.
 // Returns a GRPC message translaged from the GTP-U create session response
-func (s *S8Proxy) sendAndReceiveDeleteSession(teid uint32, session *gtpv2.Session) (*protos.DeleteSessionResponsePgw, error) {
-	glog.V(2).Infof("Send Delete Session Request (gtp):\n%s",
-		message.NewDeleteSessionRequest(teid, 0).String())
+func (s *S8Proxy) sendAndReceiveDeleteSession(teid uint32, session *gtpv2.Session, dsReqIEs []*ie.IE) (*protos.DeleteSessionResponsePgw, error) {
+	glog.V(2).Infof("Send Delete Session Request (gtp) to %s:\n%s",
+		session.PeerAddr().String(), message.NewDeleteSessionRequest(teid, 0).String())
 
 	seq, err := s.gtpClient.DeleteSession(teid, session)
 	if err != nil {

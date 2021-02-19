@@ -46,10 +46,13 @@ var (
 	testServerAddr string = "127.0.0.1:0"
 	pgwServerAddr  string
 
-	withecho  bool   = false
-	apn       string = "internet.com"
-	uTeid     uint
-	localPort string = "2123"
+	withecho            bool   = false
+	apn                 string = "internet.com"
+	uTeid               uint
+	localPort           string = "2123"
+	createDeleteTimeout int    = -1
+	bearerId            uint32 = 5
+	rattype             uint   = 6
 )
 
 func init() {
@@ -60,7 +63,7 @@ func init() {
 
 	// Create Session command
 	csCmd := cmdRegistry.Add(
-		"CS",
+		"cs",
 		"Create Session through S8 proxy", createSession)
 
 	csFlags := csCmd.Flags()
@@ -95,10 +98,52 @@ func init() {
 
 	csFlags.StringVar(&apn, "apn", apn,
 		"APN on the request")
+
+	csFlags.IntVar(&createDeleteTimeout, "delete", -1,
+		"Use in case you want to delete the session -delete 3 will wait 3 seconds before deletion")
+
+	csFlags.UintVar(&rattype, "rat", 6,
+		"Rat type (by default 6 which meanes EUTRAN)")
+
+	// Echo command
+	eCmd := cmdRegistry.Add(
+		"e",
+		"Send echo request through S8 proxy", sendEcho)
+
+	eFlags := eCmd.Flags()
+
+	eFlags.Usage = func() {
+		fmt.Fprintf(os.Stderr,
+			"\tUsage: %s [OPTIONS] %s [%s OPTIONS]\n", os.Args[0], eCmd.Name(), eCmd.Name())
+		eFlags.PrintDefaults()
+	}
+
+	eFlags.BoolVar(&testServer, "test", testServer,
+		fmt.Sprintf("Start local test s8 server bound to default PGW address (%s)", testServerAddr))
+
+	eFlags.StringVar(&localPort, "localport", localPort,
+		"S8 local port to run the server")
+
+	eFlags.StringVar(&pgwServerAddr, "server", pgwServerAddr,
+		"PGW IP:port to send request with format ip:port")
+
+	eFlags.BoolVar(&withecho, "withecho", withecho,
+		fmt.Sprint("Starts s8 proxy checking PGW is alive"))
+
+	eFlags.BoolVar(&useMconfig, "use_mconfig", false,
+		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
+
+	eFlags.BoolVar(&useBuiltinCli, "use_builtincli", true,
+		"Use local built in client instead of the running instance on the gateway")
+
 }
 
 func createSession(cmd *commands.Command, args []string) int {
-	f := cmd.Flags()
+	cli, f, err := initialize(cmd, args)
+	if err != nil {
+		fmt.Print(err)
+		return 1
+	}
 
 	imsi, err := parseArgs(f)
 	if err != nil {
@@ -107,65 +152,20 @@ func createSession(cmd *commands.Command, args []string) int {
 		return 1
 	}
 
-	// start and configure a test server that will act as a PGW
-	if testServer {
-		pgwServerAddr, err = startTestServer()
-		if err != nil {
-			fmt.Println(err)
-			return 1
-		}
-		// If test server is enabled, pgwServerAddr will be overwritten
-		// and S8 config too
-	}
-
-	conf := &servicers.S8ProxyConfig{
-		ClientAddr: fmt.Sprintf(":%s", localPort),
-		ServerAddr: pgwServerAddr,
-	}
-
-	var cli s8Cli
-	// Selection of builtIn Client or S8proxy running on the gateway
-	if useMconfig || useBuiltinCli {
-		// use builtin proxy (ignore loccal proxy)
-		if useMconfig {
-			conf = servicers.GetS8ProxyConfig()
-		}
-		fmt.Printf("Direct connection using built in S8 client: Client Config: %+v\n", *conf)
-		var localProxy *servicers.S8Proxy
-		if withecho {
-			fmt.Println("Send echo message on start Enabled")
-			localProxy, err = servicers.NewS8ProxyWithEcho(conf)
-		} else {
-			localProxy, err = servicers.NewS8Proxy(conf)
-		}
-		if err != nil {
-			fmt.Printf("BuiltIn S8 Proxy initialization error: %v\n", err)
-			return 5
-		}
-
-		cli = s8BuiltIn{localProxy}
-	} else {
-		// TODO: use local proxy running on the gateway
-		proxyAddr, _ = registry.GetServiceAddress(registry.S8_PROXY)
-		cli = s8CliImpl{}
-	}
-
-	// Dummy request
-
 	// Create Session Request messagea
 	_, offset := time.Now().Zone()
 	csReq := &protos.CreateSessionRequestPgw{
-		PgwAddrs: pgwServerAddr,
-		Imsi:     imsi,
-		Msisdn:   "00111",
-		Mei:      generateIMEIbasedOnIMSI(imsi),
+		//PgwAddrs: pgwServerAddr,	// this will set through config
+		Imsi:   imsi,
+		Msisdn: "00111",
+		Mei:    generateIMEIbasedOnIMSI(imsi),
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "310",
 			Mnc: "14",
 		},
-		RatType: 9,
+		RatType: protos.RATType_EUTRAN,
 		BearerContext: &protos.BearerContext{
-			Id: 5,
+			Id: bearerId,
 			UserPlaneFteid: &protos.Fteid{
 				Ipv4Address: generateRandomIPv4(),
 				Ipv6Address: "",
@@ -214,25 +214,109 @@ func createSession(cmd *commands.Command, args []string) int {
 		IndicationFlag: nil,
 		TimeZone: &protos.TimeZone{
 			DeltaSeconds:       int32(offset),
-			DaylightSavingTime: 0,
+			DaylightSavingTime: 1,
 		},
 	}
 
-	printGRPCMessage("Send: ", csReq)
+	fmt.Println("\n *** Create Session Test ***")
+	printGRPCMessage("Sending GRPC message: ", csReq)
 
 	res, err := cli.CreateSession(csReq)
 
 	if err != nil {
-		fmt.Printf("Create Session cli command failed: %s\n", err)
+		fmt.Printf("=> Create Session cli command failed: %s\n", err)
 		return 9
 	}
-	printGRPCMessage("Received: ", res)
+	printGRPCMessage("Received GRPC message: ", res)
+
+	// Delete recently created session (if enableD)
+	if createDeleteTimeout != -1 {
+		fmt.Printf("\n=> Sleeping for %ds before deleting....", createDeleteTimeout)
+		time.Sleep(time.Duration(createDeleteTimeout) * time.Second)
+		fmt.Println(" Done")
+
+		fmt.Println("\n *** Delete Session Test ***")
+		dsReq := &protos.DeleteSessionRequestPgw{Imsi: imsi}
+		printGRPCMessage("Sending GRPC message: ", dsReq)
+		dsRes, err := cli.DeleteSession(dsReq)
+		if err != nil {
+			fmt.Printf("=> Delete session failed: %s\n", err)
+			return 9
+		}
+		printGRPCMessage("Received GRPC message: ", dsRes)
+	}
+
 	return 0
+}
+
+func sendEcho(cmd *commands.Command, args []string) int {
+	cli, _, err := initialize(cmd, args)
+	if err != nil {
+		fmt.Print(err)
+		return 1
+	}
+	fmt.Printf("=> Sending Echo request to %s\n", pgwServerAddr)
+	dsReq := &protos.EchoRequest{PgwAddrs: pgwServerAddr}
+	dsRes, err := cli.SendEcho(dsReq)
+	if err != nil {
+		fmt.Printf("=> Delete session failed: %s\n", err)
+		return 9
+	}
+	printGRPCMessage("=> Received: ", dsRes)
+	return 0
+}
+
+func initialize(cmd *commands.Command, args []string) (s8Cli, *flag.FlagSet, error) {
+	f := cmd.Flags()
+	var err error
+	var cli s8Cli
+
+	// start and configure a test server that will act as a PGW
+	if testServer {
+		pgwServerAddr, err = startTestServer()
+		if err != nil {
+			return nil, nil, err
+		}
+		// If test server is enabled, pgwServerAddr will be overwritten
+		// and S8 config too
+	}
+
+	conf := &servicers.S8ProxyConfig{
+		ClientAddr: fmt.Sprintf(":%s", localPort),
+		ServerAddr: servicers.ParseAddress(pgwServerAddr),
+	}
+
+	// Selection of builtIn Client or S8proxy running on the gateway
+	if useMconfig || useBuiltinCli {
+		// use builtin proxy (ignore loccal proxy)
+		if useMconfig {
+			conf = servicers.GetS8ProxyConfig()
+		}
+		fmt.Printf("=> Direct connection using built in S8 client: Client Config: %+v\n", *conf)
+		var localProxy *servicers.S8Proxy
+		if withecho {
+			fmt.Println("=> Send echo message on start Enabled")
+			localProxy, err = servicers.NewS8ProxyWithEcho(conf)
+		} else {
+			localProxy, err = servicers.NewS8Proxy(conf)
+		}
+		if err != nil {
+			return nil, nil, fmt.Errorf("=> BuiltIn S8 Proxy initialization error: %v\n", err)
+		}
+
+		cli = s8BuiltIn{localProxy}
+	} else {
+		// TODO: use local proxy running on the gateway
+		proxyAddr, _ = registry.GetServiceAddress(registry.S8_PROXY)
+		cli = s8CliImpl{}
+	}
+
+	return cli, f, nil
 }
 
 func parseArgs(f *flag.FlagSet) (string, error) {
 	if f.NArg() < 1 {
-		fmt.Printf("IMSI not provided. Using default IMSI: %s\n", IMSI)
+		fmt.Printf("=> IMSI not provided. Using default IMSI: %s\n", IMSI)
 		return IMSI, nil
 	}
 	imsi := strings.TrimSpace(f.Arg(0))
@@ -253,7 +337,7 @@ func generateRandomIPv4() string {
 
 func validateImsi(imsi string) error {
 	if len(imsi) < 6 || len(imsi) > 15 {
-		return fmt.Errorf("The IMSI specified must be 6 - 15 digits long\n\n")
+		return fmt.Errorf("=> The IMSI specified must be 6 - 15 digits long\n\n")
 	}
 	_, err := strconv.ParseUint(imsi, 10, 64)
 	if err != nil {
@@ -304,7 +388,7 @@ func main() {
 	}
 
 	cmdName := flag.Arg(0)
-	if len(flag.Args()) < 1 || cmdName == "" || cmdName == "help" {
+	if cmdName == "" || cmdName == "help" {
 		flag.Usage()
 		os.Exit(1)
 	}

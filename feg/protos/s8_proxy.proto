@@ -13,44 +13,43 @@ limitations under the License.
 
 syntax = "proto3";
 
-import "lte/protos/oai/mme_nas_state.proto";
-
-
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
 
-
 service S8Proxy {
     rpc CreateSession (CreateSessionRequestPgw) returns(CreateSessionResponsePgw){}
-    rpc ModifyBearer (ModifyBearerRequestPgw) returns(ModifyBearerResponsePgw) {}
     rpc DeleteSession (DeleteSessionRequestPgw) returns(DeleteSessionResponsePgw) {}
     rpc SendEcho(EchoRequest) returns(EchoResponse) {}
+    // currently not used
+    rpc ModifyBearer (ModifyBearerRequestPgw) returns(ModifyBearerResponsePgw) {}
 }
 
 // 3GPP TS 29.274  (not all 3gpp create session fields are included)
 message CreateSessionRequestPgw {
-    string pgwAddrs = 1;        // Ip:port of pgw to send the request
+    string pgwAddrs = 1;        // Ip:port of pgw to send the request. If empty
+                                // s8_proxy will use value in its config
     string imsi = 2;
     string msisdn = 3;
     string mei = 4;
+
     ServingNetwork serving_network = 6;
     UserLocationInformation uli = 7;
 
-
-    uint32 rat_type = 9;
+    RATType rat_type = 9;
     PDNType pdn_type = 10;
     PdnAddressAllocation paa = 11;
 
     string apn = 14;
-    string selection_mode = 15;
-    uint32 apn_restriction = 16;
-    Ambr ambr = 17;         //Aggregate Maximum BitRate
+    Ambr ambr = 16;                       //Aggregate Maximum BitRate
+    string selection_mode = 17;
+    uint32 apn_restriction = 18;
 
-    BearerContext bearer_context = 20;  // Contains AGW TEID
+    BearerContext bearer_context = 20;   // Contains AGW user plane FTEID
+    uint32 c_agw_teid = 21;              // AGW control plane TEID
 
-    bytes indication_flag = 21;
-    string charging_characteristics = 22;
-    TimeZone time_zone = 23;
+    bytes indication_flag = 25;
+    string charging_characteristics = 27;
+    TimeZone time_zone = 29;
 }
 
 enum PDNType {
@@ -59,6 +58,10 @@ enum PDNType {
     IPV6 = 2;
     IPV4V6 = 3;
     NonIP = 5;
+}
+
+enum RATType {
+    EUTRAN = 0;
 }
 
 message UserLocationInformation {
@@ -80,18 +83,18 @@ message ServingNetwork {
 message BearerContext {
     uint32 id = 1;
     Fteid user_plane_fteid = 2;
-    QosInformation qos = 4;
-    uint32 charging_id = 5;
+    QosInformation qos = 3;
+    uint32 charging_id = 4;
 }
 
 message QosInformation {
     uint32 pci = 1;
     uint32 priority_level = 2;
-    uint32 preemption_capability = 4;
-    uint32 preemption_vulnerability = 5;
-    uint32 qci = 6;
-    Ambr gbr = 7;
-    Ambr mbr = 8;
+    uint32 preemption_capability = 3;
+    uint32 preemption_vulnerability = 4;
+    uint32 qci = 5;
+    Ambr gbr = 6;
+    Ambr mbr = 7;
 }
 
 message Ambr {
@@ -106,8 +109,8 @@ message PdnAddressAllocation{
 }
 
 message TimeZone {
-    int32 delta_seconds = 1;    // delta in seconds from UTC
-    uint32 daylight_saving_time = 2;
+    int32 delta_seconds = 1;            // delta in seconds from UTC
+    uint32 daylight_saving_time = 2;    // Set to 0 for non daylight savings
 }
 
 message Fteid {
@@ -119,24 +122,20 @@ message Fteid {
 message CreateSessionResponsePgw {
     string subscriber_ip = 3;
     uint32 apn_restriction = 4;
-    BearerContext bearer_context = 5;
+    uint32 c_agw_teid = 6;
+    Fteid c_pgw_fteid = 8;
+    BearerContext bearer_context = 10;
     //TrafficFlowTemplate saved_tft = 13;
 }
 
-message ModifyBearerRequestPgw {
-    string imsi = 1;
-    Fteid enb_fteid = 2;
-}
-
-message ModifyBearerResponsePgw {
-}
-
 message DeleteSessionRequestPgw {
-    string imsi = 1; // needed for nh in feg
+    string pgwAddrs = 1;
+    string imsi = 4;
+    uint32 bearer_id = 6;
+    uint32 c_agw_teid = 8;          // AGW control plane TEID
 }
 
 message DeleteSessionResponsePgw{
-
 }
 
 message EchoRequest{
@@ -145,5 +144,14 @@ message EchoRequest{
 }
 
 message EchoResponse{
+}
 
+// currently not used
+message ModifyBearerRequestPgw {
+    string imsi = 1;
+    Fteid enb_fteid = 2;
+}
+
+// currently not used
+message ModifyBearerResponsePgw {
 }
