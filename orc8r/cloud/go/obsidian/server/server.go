@@ -25,8 +25,10 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/obsidian/reverse_proxy"
+	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -44,8 +46,17 @@ func Start() {
 	e.Use(CollectStats)
 	e.Use(middleware.Recover())
 
-	if obsidian.CombineSpecAtRuntime {
-		e.GET(obsidian.StaticURLPrefix+"/v1/swagger.yml", handlers.GenerateCombinedSpecHandler)
+	// With this, we implicitly override the static endpoint serving a static
+	// Swagger spec with a dynamic endpoint which dynamically serves the spec.
+	// Note that this behavior is not documented in the Echo framework.
+	if obsidian.EnableDynamicSwaggerSpecs {
+		yamlCommon, err := swagger.GetCommonSpec()
+		if err != nil {
+			glog.Errorf("Error retrieving Swagger common spec: %+v", err)
+		} else {
+			handler := handlers.GetGenerateCombinedSpecHandler(yamlCommon)
+			e.GET(obsidian.StaticURLPrefix+"/v1/swagger.yml", handler)
+		}
 	}
 
 	// Serve static pages for the API docs

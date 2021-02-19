@@ -22,18 +22,14 @@ import (
 	"github.com/labstack/echo"
 )
 
-// GenerateCombinedSpecHandler is a routing handler which creates and serves the
-// combined Swagger Spec.
-func GenerateCombinedSpecHandler(c echo.Context) error {
-	yamlCommon, err := swagger.GetCommonSpec()
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusNotFound)
+// GetGenerateCombinedSpecHandler returns a routing handler which creates
+// and serves the combined Swagger Spec.
+func GetGenerateCombinedSpecHandler(yamlCommon string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		combined, err := swagger.GetCombinedSpec(yamlCommon)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		return c.String(http.StatusOK, combined)
 	}
-
-	combined, err := swagger.GetCombinedSpec(yamlCommon)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusNotFound)
-	}
-
-	return c.String(http.StatusOK, combined)
 }

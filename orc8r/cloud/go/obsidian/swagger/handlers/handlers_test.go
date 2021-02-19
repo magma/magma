@@ -14,8 +14,6 @@
 package handlers_test
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/swagger"
@@ -36,33 +34,20 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1"
 
-	specPath := "/etc/magma/configs/orc8r/swagger_specs"
-	commonSpecDir := "/etc/magma/configs/orc8r/swagger_specs/common"
-	commonSpecFilePath := "/etc/magma/configs/orc8r/swagger_specs/common/swagger-common.yml"
-
-	os.RemoveAll(specPath)
-	defer os.RemoveAll(specPath)
-
-	err := os.MkdirAll(commonSpecDir, os.ModePerm)
-	assert.NoError(t, err)
-
 	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
 	commonSpec := swagger_lib.Spec{
 		Tags: []swagger_lib.TagDefinition{commonTag},
 	}
 	yamlCommon := marshalToYAML(t, commonSpec)
 
-	err = ioutil.WriteFile(commonSpecFilePath, []byte(yamlCommon), 0644)
-	assert.NoError(t, err)
-
 	// Success with no registered servicers
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.GenerateCombinedSpecHandler,
+		Handler:        handlers.GetGenerateCombinedSpecHandler(yamlCommon),
 		ExpectedStatus: 200,
-		ExpectedResult: tests.YAMLMarshaler(yamlCommon),
+		ExpectedResult: commonSpec,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -75,7 +60,6 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	expectedSpec := swagger_lib.Spec{
 		Tags: []swagger_lib.TagDefinition{tags[0], tags[1], tags[2], commonTag},
 	}
-	expectedYaml := marshalToYAML(t, expectedSpec)
 
 	// Clean up registry
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
@@ -89,9 +73,9 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.GenerateCombinedSpecHandler,
+		Handler:        handlers.GetGenerateCombinedSpecHandler(yamlCommon),
 		ExpectedStatus: 200,
-		ExpectedResult: tests.YAMLMarshaler(expectedYaml),
+		ExpectedResult: expectedSpec,
 	}
 	tests.RunUnitTest(t, e, tc)
 }
