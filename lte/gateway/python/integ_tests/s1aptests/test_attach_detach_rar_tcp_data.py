@@ -35,8 +35,8 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_rar_tcp_data(self):
-        """ attach/detach + send ReAuth Req to session manager with a"""
-        """ single UE """
+        """ Attach/detach + send ReAuth Req to session manager with a
+        single UE """
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,

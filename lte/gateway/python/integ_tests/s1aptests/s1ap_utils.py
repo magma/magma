@@ -1417,7 +1417,6 @@ class SessionManagerUtil(object):
         """
         print("Sending session rules to session manager")
         flow_match_list = []
-        res = None
         self.get_flow_match(flow_list, flow_match_list)
 
         policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
