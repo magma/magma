@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/wmnsk/go-gtp/gtpv1"
@@ -31,7 +32,7 @@ import (
 
 const (
 	dummyUserPlanePgwIP = "10.0.0.1"
-	gtpTimeout          = 500 * time.Millisecond
+	gtpTimeout          = 5 * time.Second
 )
 
 // MockPgw is just a wrapper around gtp.Client
@@ -39,6 +40,7 @@ type MockPgw struct {
 	*gtp.Client
 	LastValues
 	CreateSessionOptions CreateSessionOptions
+	randGenMux           sync.Mutex
 }
 
 type LastValues struct {
