@@ -56,6 +56,11 @@ func Start() {
 		} else {
 			handler := handlers.GetGenerateCombinedSpecHandler(yamlCommon)
 			e.GET(obsidian.StaticURLPrefix+"/v1/swagger.yml", handler)
+
+			handler = handlers.GetGenerateSpecHandler(yamlCommon)
+			e.GET("swagger/v1/spec/:service", handler)
+
+			e.GET("swagger/v1/ui/:service", handlers.GenerateSpecUIHandler)
 		}
 	}
 

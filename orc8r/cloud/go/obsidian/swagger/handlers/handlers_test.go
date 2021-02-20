@@ -80,6 +80,10 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
+func Test_GenerateSpecHandler(t *testing.T){
+
+}
+
 func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {
 	labels := map[string]string{
 		orc8r.SwaggerSpecLabel: "true",
