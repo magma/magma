@@ -104,7 +104,7 @@ class Classifier(MagmaController):
                                port_name, error)
             return None
 
-        except Exception as e:     # pylint: disable=broad-except
+        except Exception as e:     #pylint: disable=broad-except
             self.logger.debug('Cannot get port number for %s: %s',
                                port_name, e)
             return None
