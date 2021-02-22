@@ -20,7 +20,13 @@ using grpc::Status;
 namespace {
 
 void SetAmfSessionContextRpcCallback(
-    grpc::Status status, magma::lte::SmContextVoid response) {}
+    grpc::Status status, magma::lte::SmContextVoid response) {
+  if (!status.ok()) {
+    std::cout << "AsyncSetAmfSessionContext fails with code "
+              << status.error_code() << ", msg: " << status.error_message()
+              << std::endl;
+  }
+}
 
 }  // namespace
 
@@ -52,4 +58,3 @@ void AsyncSmfServiceClient::set_smf_session_rpc(
 }
 
 }  // namespace magma5g
-
