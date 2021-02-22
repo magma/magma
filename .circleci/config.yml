@@ -1060,5 +1060,5 @@ workflows:
 
   agw:
     jobs:
-      - lte-agw-deploy:
+      - lte-agw-deploy
 
