@@ -23,8 +23,8 @@ $(PYTHON_BUILD)/setupinteg_env:
 # TODO T21489739 - Don't sleep and don't stop after a failure
 RESULTS_DIR := /var/tmp/test_results
 define execute_test
- 	echo "Running test: $(1)"
-	sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(PYTHON_BUILD)/bin/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x -s $(1) || exit 1
+	echo "Running test: $(1)"
+	timeout -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(PYTHON_BUILD)/bin/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x -s $(1) || exit 1
 	sleep 1
 endef
 

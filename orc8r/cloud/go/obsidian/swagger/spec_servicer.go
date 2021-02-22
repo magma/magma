@@ -16,6 +16,7 @@ package swagger
 import (
 	"context"
 	"io/ioutil"
+	"strings"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/lib/go/service/config"
@@ -30,6 +31,7 @@ type specServicer struct {
 // NewSpecServicerFromFile intializes a spec servicer
 // given a service name.
 func NewSpecServicerFromFile(service string) protos.SwaggerSpecServer {
+	service = strings.ToLower(service)
 	path := config.GetSpecPath(service)
 	data, err := ioutil.ReadFile(path)
 	if err != nil {

@@ -1,4 +1,5 @@
 ---
+#
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -10,8 +11,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# enable_dynamic_swagger_specs is a config in the obsidian
-# service config.
-# When true, poll and combine Swagger specs at runtime
-# When false, fall back to serving the static Swagger spec asset
-enable_dynamic_swagger_specs: true
+# log_level is set in mconfig. It can be overridden here
+print_grpc_payload: false

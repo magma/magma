@@ -116,6 +116,7 @@ qos:
  ovs_meter:
   min_idx: 2
   max_idx: 100000
+ apn_ambr_enabled: true
 
 monitored_ifaces: ['gtp_br0',
                    'gtp0',
