@@ -14,6 +14,7 @@
 package handlers_test
 
 import (
+	"net/http"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/swagger"
@@ -80,8 +81,51 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
-func Test_GenerateSpecHandler(t *testing.T){
+func Test_GenerateSpecHandlers(t *testing.T){
+	e := echo.New()
+	testURLRoot := "/magma/v1"
 
+	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
+	commonSpec := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{commonTag},
+	}
+	yamlCommon := marshalToYAML(t, commonSpec)
+
+	// Fail with invalid service name.
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Payload:        nil,
+		ParamNames: []string{"service"},
+		ParamValues: []string{"invalid_test_spec_service"},
+		Handler:        handlers.GetGenerateSpecHandler(yamlCommon),
+		ExpectedStatus: http.StatusInternalServerError,
+		ExpectedError: "Service provided is not registered.",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Success with valid service name.
+	tag := swagger_lib.TagDefinition{Name: "Tag 1"}
+	testSpec := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{tag, commonTag},
+	}
+
+	// Clean up registry
+	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
+
+	registerServicer(t, "test_spec_service1", tag)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Payload:        nil,
+		ParamNames: []string{"service"},
+		ParamValues: []string{"test_spec_service1"},
+		Handler:        handlers.GetGenerateSpecHandler(yamlCommon),
+		ExpectedStatus: 200,
+		ExpectedResult: testSpec,
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {

@@ -17,14 +17,40 @@ import (
 	"bytes"
 	"log"
 	"net/http"
+	"strings"
 	"text/template"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
+	"magma/orc8r/cloud/go/orc8r"
 	swagger_lib "magma/orc8r/cloud/go/swagger"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 )
+
+// RegisterSpecHandlers registers routes for the Swagger UI.
+func RegisterSpecHandlers(e *echo.Echo) error {
+	yamlCommon, err := swagger.GetCommonSpec()
+	if err != nil {
+		return err
+	}
+
+	handler := GetGenerateCombinedSpecHandler(yamlCommon)
+	e.GET(obsidian.StaticURLPrefix+"/v1/swagger.yml", handler)
+	e.GET("/swagger/v1/spec/", handler)
+
+	handler = GetGenerateSpecHandler(yamlCommon)
+	e.GET("/swagger/v1/spec/:service", handler)
+
+	e.GET("/swagger/v1/ui/:service", GenerateSpecUIHandler)
+	e.GET("/swagger/v1/ui/", GenerateSpecUIHandler)
+
+	// Redirect requests for apidocs/v1/ to swagger/v1/ui/
+	// e.GET("/apidocs/v1", )
+	return nil
+}
 
 // GetGenerateCombinedSpecHandler returns a routing handler which creates
 // and serves the combined Swagger Spec.
@@ -43,6 +69,16 @@ func GetGenerateCombinedSpecHandler(yamlCommon string) echo.HandlerFunc {
 func GetGenerateSpecHandler(yamlCommon string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		service := c.Param("service")
+
+		service, err := isValidService(service)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		if service == "" {
+			err := errors.New("Service provided is not registered.")
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+
 		remoteSpec := swagger.NewRemoteSpec(service)
 
 		yamlSpec, err := remoteSpec.GetSpec()
@@ -63,11 +99,25 @@ func GetGenerateSpecHandler(yamlCommon string) echo.HandlerFunc {
 }
 
 // GenerateSpecUIHandler returns a routing handler which serves
-// the UI of a service
+// the UI of a service.
 func GenerateSpecUIHandler(c echo.Context) error {
 	service := c.Param("service")
 
-	tmpl, err := template.ParseFiles("index.html")
+	service, err := isValidService(service)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	if service == "" {
+		err := errors.New("Service provided is not registered.")
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	templatePath := "/var/opt/magma/static/apidocs/v1/indexTemplated.html"
+	tmpl, err := template.New("indexTemplated.html").Funcs(template.FuncMap{
+		"enableDynamicSwaggerSpecs": func() bool {
+			return true
+		},
+	}).ParseFiles(templatePath)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -79,4 +129,21 @@ func GenerateSpecUIHandler(c echo.Context) error {
 	}
 
 	return c.HTML(http.StatusOK, tpl.String())
+}
+
+// isValidService returns if the service is a registered
+// service with a Swagger spec.
+func isValidService(service string) (string, error) {
+	services, err := registry.FindServices(orc8r.SwaggerSpecLabel)
+	if err != nil {
+		return "", err
+	}
+
+	for _, s := range services {
+		if service == s {
+			return strings.ToLower(s), nil
+		}
+	}
+
+	return "", nil
 }
