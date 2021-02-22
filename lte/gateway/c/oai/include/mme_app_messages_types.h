@@ -45,6 +45,7 @@
 #include "common_types.h"
 #include "nas/securityDef.h"
 #include "nas/as_message.h"
+#include "s1ap_messages_types.h"
 
 #define MME_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                           \
   (mSGpTR)->ittiMsg.mme_app_connection_establishment_cnf
