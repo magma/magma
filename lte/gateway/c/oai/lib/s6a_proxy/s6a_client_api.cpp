@@ -60,6 +60,7 @@ bool s6a_purge_ue(const char* imsi) {
                   << "; ErrorCode: " << response.error_code() << std::endl;
         return;
       });
+  return true;
 }
 
 static void _s6a_handle_authentication_info_ans(
