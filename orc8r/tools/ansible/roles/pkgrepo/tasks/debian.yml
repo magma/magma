@@ -23,9 +23,13 @@
   #  when: preburn
 
 - name: Add JFrog key
-  apt_key:
-    data: "{{ lookup('file', 'jfrog.pub') }}"
-    state: present
+  block:
+    - get_url:
+        src: https://facebookconnectivity.jfrog.io/artifactory/api/gpg/key/public
+        dest: /tmp/jfrog.pub
+    - apt_key:
+        data: "{{ lookup('file', '/tmp/jfrog.pub') }}"
+        state: present
 
 - name: Add JFrog repo
   apt_repository:
