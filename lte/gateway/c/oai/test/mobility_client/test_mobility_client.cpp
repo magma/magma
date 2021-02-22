@@ -68,6 +68,7 @@ int main(int argc, char** argv) {
                 "0001");
             return -1;
           }
+          return 0;
         });
 
     MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
@@ -97,6 +98,7 @@ int main(int argc, char** argv) {
                 "0002");
             return -1;
           }
+          return 0;
         });
 
     status = MobilityServiceClient::getInstance().GetIPv4AddressForSubscriber(
