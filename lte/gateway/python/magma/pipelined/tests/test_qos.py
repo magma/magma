@@ -19,9 +19,11 @@ from unittest.mock import MagicMock, call, patch
 from magma.pipelined.qos.common import QosImplType, QosManager, SubscriberState
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.qos.qos_tc_impl import TrafficClass, argSplit, run_cmd
-from magma.pipelined.qos.types import QosInfo, get_json, get_key, get_subscriber_key
+from magma.pipelined.qos.types import QosInfo, get_key_json, get_key, get_subscriber_key, \
+        get_subscriber_data, get_data, get_data_json
 from magma.pipelined.qos.utils import IdManager
 from lte.protos.policydb_pb2 import FlowMatch
+import logging
 
 class TestQosCommon(unittest.TestCase):
     def testIdManager(self):
@@ -79,7 +81,7 @@ class TestQosCommon(unittest.TestCase):
 
     def testQosKeyUtils(self):
         k = get_subscriber_key("1234", '1.1.1.1', 10, 0)
-        j = get_json(k)
+        j = get_key_json(k)
         self.assertTrue(get_key(j) == k)
 
 
@@ -102,7 +104,7 @@ class TestQosManager(unittest.TestCase):
         }
 
     def verifyTcAddQos(self, mock_get_action_inst, mock_traffic_cls, d, qid, qos_info,
-                       parent_qid=None):
+                       parent_qid=0):
         intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
         mock_get_action_inst.assert_any_call(qid)
         mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf)
@@ -178,7 +180,7 @@ get_action_instruction"
             mock_traffic_cls.read_all_classes.side_effect = lambda intf: prior_qids[intf]
 
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
-        qos_mgr._qos_store = {}
+        qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
         imsi, ip_addr, rule_num, qos_info = "1234", '1.1.1.1', 0, QosInfo(100000, 100000)
 
@@ -186,22 +188,25 @@ get_action_instruction"
         qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.UPLINK, qos_info)
         qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.DOWNLINK, qos_info)
 
-        k1 = get_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.UPLINK))
-        k2 = get_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.DOWNLINK))
+        k1 = get_key_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.UPLINK))
+        k2 = get_key_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.DOWNLINK))
         ul_exp_id = qos_mgr.impl._start_idx
         dl_exp_id = qos_mgr.impl._start_idx + 1
-        self.assertTrue(qos_mgr._qos_store[k1] == ul_exp_id)
-        self.assertTrue(qos_mgr._qos_store[k2] == dl_exp_id)
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, ul_exp_id))
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, dl_exp_id))
+        ul_qid_info = get_data_json(get_subscriber_data(ul_exp_id, 0, 0))
+        dl_qid_info = get_data_json(get_subscriber_data(dl_exp_id, 0, 0))
+
+        self.assertTrue(qos_mgr._redis_store[k1] == ul_qid_info)
+        self.assertTrue(qos_mgr._redis_store[k2] == dl_qid_info)
+        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, ul_qid_info))
+        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, dl_qid_info))
 
         # add the same subscriber and ensure that we didn't create another
         # qos config for the subscriber
         qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.UPLINK, qos_info)
         qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.DOWNLINK, qos_info)
 
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, ul_exp_id))
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, dl_exp_id))
+        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, ul_qid_info))
+        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, dl_qid_info))
 
         # verify if traffic class was invoked properly
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
@@ -239,7 +244,7 @@ get_action_instruction"
 
         # remove the subscriber qos and verify things are cleaned up
         qos_mgr.remove_subscriber_qos(imsi, rule_num)
-        self.assertTrue(len(qos_mgr._qos_store) == 0)
+        self.assertTrue(len(qos_mgr._redis_store) == 0)
         self.assertTrue(imsi not in qos_mgr._subscriber_state)
 
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
@@ -281,9 +286,14 @@ get_action_instruction"
             mock_traffic_cls.delete_class.side_effect = lambda *args: 0
 
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
-        qos_mgr._qos_store = {}
+        qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
-        rule_list1 = [("1", 0, 0), ("1", 1, 0), ("1", 2, 1), ("2", 0, 0)]
+        rule_list1 = [
+            ("1", 0, 0),
+            ("1", 1, 0),
+            ("1", 2, 1),
+            ("2", 0, 0)
+        ]
 
         rule_list2 = [
             ("2", 1, 0),
@@ -304,11 +314,11 @@ get_action_instruction"
             qos_mgr.add_subscriber_qos(imsi, '', 0, rule_num, d, qos_info)
 
             exp_id = id_list[i]
-            k = get_json(get_subscriber_key(imsi, '', rule_num, d))
+            k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
             exp_id_dict[k] = exp_id
-            # self.assertTrue(qos_mgr._qos_store[k] == exp_id)
-
-            self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (d, exp_id))
+            # self.assertTrue(qos_mgr._redis_store[k] == exp_id)
+            qid_info = get_data_json(get_subscriber_data(exp_id, 0, 0))
+            self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, qid_info))
 
             if self.config["qos"]["impl"] == QosImplType.OVS_METER:
                 self.verifyMeterAddQos(
@@ -322,11 +332,11 @@ get_action_instruction"
         # deactivate one rule
         # verify for imsi1 if rule num 0 gets cleaned up
         imsi, rule_num, d = rule_list1[0]
-        k = get_json(get_subscriber_key(imsi, '', rule_num, d))
+        k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
         exp_id = exp_id_dict[k]
 
         qos_mgr.remove_subscriber_qos(imsi, rule_num)
-        self.assertTrue(k not in qos_mgr._qos_store)
+        self.assertTrue(k not in qos_mgr._redis_store)
         self.assertTrue(not qos_mgr._subscriber_state[imsi].find_rule(rule_num))
 
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
@@ -335,11 +345,11 @@ get_action_instruction"
             self.verifyTcRemoveQos(mock_traffic_cls, d, exp_id)
 
         # deactivate same rule and check if we log properly
-        with self.assertLogs("pipelined.qos.common", level="ERROR") as cm:
+        with self.assertLogs("pipelined.qos.common", level="DEBUG") as cm:
             qos_mgr.remove_subscriber_qos(imsi, rule_num)
 
         error_msg = "unable to find rule_num 0 for imsi 1"
-        self.assertTrue(cm.output[0].endswith(error_msg))
+        self.assertTrue(cm.output[1].endswith(error_msg))
 
         # deactivate imsi
         # verify for imsi1 if rule num 1 and 2 gets cleaned up
@@ -349,9 +359,9 @@ get_action_instruction"
             if imsi != "1":
                 continue
 
-            k = get_json(get_subscriber_key(imsi, '', rule_num, d))
+            k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
             exp_id = exp_id_dict[k]
-            self.assertTrue(k not in qos_mgr._qos_store)
+            self.assertTrue(k not in qos_mgr._redis_store)
             remove_qos_args.append((d, exp_id))
 
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
@@ -362,8 +372,12 @@ get_action_instruction"
         self.assertTrue("1" not in qos_mgr._subscriber_state)
 
         # deactivate same imsi again and ensure nothing bad happens
+
+        logging.debug("removing qos")
         with self.assertLogs("pipelined.qos.common", level="DEBUG") as cm:
             qos_mgr.remove_subscriber_qos("1")
+        logging.debug("removing qos: done")
+
         error_msg = "imsi 1 not found"
         self.assertTrue(error_msg in cm.output[-1])
 
@@ -372,6 +386,7 @@ get_action_instruction"
         assert(len(qos_mgr._subscriber_state['2'].rules) == 1)
         assert(len(qos_mgr._subscriber_state['2'].rules[0]) == 1)
         existing_qid = qos_mgr._subscriber_state['2'].rules[0][0][1]
+        _, existing_qid, _, _ = get_data(existing_qid)
 
         # add second rule list and delete and verify if things work
         qos_info = QosInfo(100000, 200000)
@@ -384,9 +399,11 @@ get_action_instruction"
         for i, (imsi, rule_num, d) in enumerate(rule_list2):
             qos_mgr.add_subscriber_qos(imsi, '', 0, rule_num, d, qos_info)
             exp_id = id_list[i]
-            k = get_json(get_subscriber_key(imsi, '', rule_num, d))
-            self.assertTrue(qos_mgr._qos_store[k] == exp_id)
-            self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (d, exp_id))
+            qid_info = get_data_json(get_subscriber_data(exp_id, 0, 0))
+
+            k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
+            self.assertEqual(qos_mgr._redis_store[k], qid_info)
+            self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, qid_info))
             if self.config["qos"]["impl"] == QosImplType.OVS_METER:
                 self.verifyMeterAddQos(
                     mock_meter_get_action_inst, mock_meter_cls, d, exp_id, qos_info
@@ -413,8 +430,8 @@ get_action_instruction"
 
         # imsi2 from rule_list1 alone wasn't removed
         imsi, rule_num, d = rule_list1[3]
-        k = get_json(get_subscriber_key(imsi, '', rule_num, d))
-        self.assertTrue(not qos_mgr._qos_store)
+        k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
+        self.assertTrue(not qos_mgr._redis_store)
         self.assertTrue(not qos_mgr._subscriber_state)
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             self.verifyMeterRemoveQos(mock_meter_cls, d, existing_qid)
@@ -433,13 +450,14 @@ get_action_instruction"
         consistent"""
         loop = asyncio.new_event_loop()
         qos_mgr = QosManager(MagicMock, loop, self.config)
-        qos_mgr._qos_store = {}
+        qos_mgr._redis_store = {}
 
         def populate_db(qid_list, rule_list):
-            qos_mgr._qos_store.clear()
+            qos_mgr._redis_store.clear()
             for i, t in enumerate(rule_list):
-                k = get_json(get_subscriber_key(*t))
-                qos_mgr._qos_store[k] = qid_list[i]
+                k = get_key_json(get_subscriber_key(*t))
+                v = get_data_json(get_subscriber_data(qid_list[i], 0, 0))
+                qos_mgr._redis_store[k] = v
 
         MockSt = namedtuple("MockSt", "meter_id")
         dummy_meter_ev_body = [MockSt(11), MockSt(13), MockSt(2), MockSt(15)]
@@ -462,13 +480,17 @@ get_action_instruction"
         else:
             mock_traffic_cls.read_all_classes.side_effect = tc_read
 
+        qos_mgr._initialized = False
         qos_mgr._setupInternal()
 
-        # run async loop once to ensure ready items are cleared
-        loop._run_once()
-
         # verify that qos_handle 20 not found in system is purged from map
-        self.assertFalse([v for _, v in qos_mgr._qos_store.items() if v == 20])
+        qid_list = []
+        for _, v in qos_mgr._redis_store.items():
+            _, qid, _, _ = get_data(v)
+            qid_list.append(qid)
+
+        logging.debug("qid_list %s", qid_list)
+        self.assertNotIn(20, qid_list)
 
         # verify that unreferenced qos configs are purged from the system
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
@@ -480,11 +502,13 @@ get_action_instruction"
         imsi, rule_num, d, qos_info = "3", 0, 0, QosInfo(100000, 100000)
         qos_mgr.impl.get_action_instruction = MagicMock
         qos_mgr.add_subscriber_qos(imsi, '', 0, rule_num, d, qos_info)
-        k = get_json(get_subscriber_key(imsi, '', rule_num, d))
+        k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
 
         exp_id = 3  # since start_idx 2 is already used
-        self.assertTrue(qos_mgr._qos_store[k] == exp_id)
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (d, exp_id))
+        d3 = get_data_json(get_subscriber_data(exp_id, 0, 0))
+
+        self.assertEqual(qos_mgr._redis_store[k], d3)
+        self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, d3))
 
         # delete the restored rule - ensure that it gets cleaned properly
         purge_imsi = "1"
@@ -512,11 +536,10 @@ get_action_instruction"
         else:
             mock_traffic_cls.read_all_classes.side_effect = lambda _: []
 
+        qos_mgr._initialized = False
         qos_mgr._setupInternal()
 
-        # run async loop once to ensure ready items are cleared
-        loop._run_once()
-        self.assertTrue(not qos_mgr._qos_store)
+        self.assertTrue(not qos_mgr._redis_store)
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_not_called()
         else:
@@ -525,7 +548,7 @@ get_action_instruction"
         # case 3 - check with empty qos_map, all qos configs get purged
         mock_meter_cls.reset_mock()
         mock_traffic_cls.reset_mock()
-        qos_mgr._qos_store.clear()
+        qos_mgr._redis_store.clear()
 
         # mock future state
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
@@ -534,12 +557,10 @@ get_action_instruction"
         else:
             mock_traffic_cls.read_all_classes.side_effect = tc_read
 
+        qos_mgr._initialized = False
         qos_mgr._setupInternal()
 
-        # run async loop once to ensure ready items are cleared
-        loop._run_once()
-
-        self.assertTrue(not qos_mgr._qos_store)
+        self.assertTrue(not qos_mgr._redis_store)
         # verify that unreferenced qos configs are purged from the system
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 2)
@@ -551,6 +572,153 @@ get_action_instruction"
             mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15)
             mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13)
             mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11)
+
+    @patch("magma.pipelined.qos.qos_tc_impl.TrafficClass")
+    @patch("magma.pipelined.qos.qos_meter_impl.MeterClass")
+    def _testUncleanRestartWithApnAMBR(self, mock_meter_cls, mock_traffic_cls):
+        """This test verifies all tests cases from _testUncleanRestart for APN
+        AMBR configs.
+        """
+        loop = asyncio.new_event_loop()
+        qos_mgr = QosManager(MagicMock, loop, self.config)
+        qos_mgr._redis_store = {}
+
+        def populate_db(qid_list, old_ambr_list, old_leaf_list, rule_list):
+            qos_mgr._redis_store.clear()
+            for i, t in enumerate(rule_list):
+                k = get_key_json(get_subscriber_key(*t))
+                v = get_data_json(get_subscriber_data(qid_list[i],
+                                                      old_ambr_list[i],
+                                                      old_leaf_list[i]))
+                qos_mgr._redis_store[k] = v
+
+        MockSt = namedtuple("MockSt", "meter_id")
+        dummy_meter_ev_body = [MockSt(11), MockSt(13), MockSt(2), MockSt(15)]
+
+        def tc_read(intf):
+            if intf == self.ul_intf:
+                return [(30, 3000), (15, 1500),
+                        (300, 3000), (150, 1500),
+                        (3000, 65534), (1500, 65534)]
+            else:
+                return [(13, 1300), (11, 1100),
+                        (130, 1300), (110, 1100),
+                        (1300, 65534), (1100, 65534)]
+
+        # prepopulate qos_store
+        old_qid_list = [2, 11, 13, 30]
+        old_leaf_list = [20, 110, 130, 300]
+        old_ambr_list = [200, 1100, 1300, 3000]
+
+        old_rule_list = [("1",'1.1.1.1', 0, 0), ("1", '1.1.1.2', 1, 0),
+                        ("1", '1.1.1.3', 2, 1), ("2", '1.1.1.4', 0, 0)]
+        populate_db(old_qid_list, old_ambr_list, old_leaf_list, old_rule_list)
+
+        # mock future state
+        if self.config["qos"]["impl"] == QosImplType.OVS_METER:
+            qos_mgr.impl.handle_meter_config_stats(dummy_meter_ev_body)
+        else:
+            mock_traffic_cls.read_all_classes.side_effect = tc_read
+
+        qos_mgr._initialized = False
+        qos_mgr._setupInternal()
+
+        # verify that qos_handle 20 not found in system is purged from map
+        qid_list = []
+        for _, v in qos_mgr._redis_store.items():
+            _, qid, _, _ = get_data(v)
+            qid_list.append(qid)
+
+        logging.debug("qid_list %s", qid_list)
+        self.assertNotIn(20, qid_list)
+
+        # verify that unreferenced qos configs are purged from the system
+        if self.config["qos"]["impl"] == QosImplType.OVS_METER:
+            mock_meter_cls.del_meter.assert_called_with(MagicMock, 15)
+        else:
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1500)
+
+        # add a new rule to the qos_mgr and check if it is assigned right id
+        imsi, rule_num, d, qos_info = "3", 0, 0, QosInfo(100000, 100000)
+        qos_mgr.impl.get_action_instruction = MagicMock
+        qos_mgr.add_subscriber_qos(imsi, '', 10, rule_num, d, qos_info)
+        k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
+
+        exp_id = 3  # since start_idx 2 is already used
+        d3 = get_data_json(get_subscriber_data(exp_id+1, exp_id-1, exp_id))
+
+        self.assertEqual(qos_mgr._redis_store[k], d3)
+        self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, d3))
+
+        # delete the restored rule - ensure that it gets cleaned properly
+        purge_imsi = "1"
+        purge_rule_num = 1
+        purge_qos_handle = 2
+        qos_mgr.remove_subscriber_qos(purge_imsi, purge_rule_num)
+        self.assertTrue(purge_rule_num not in qos_mgr._subscriber_state[purge_imsi].rules)
+        if self.config["qos"]["impl"] == QosImplType.OVS_METER:
+            mock_meter_cls.del_meter.assert_called_with(MagicMock, purge_qos_handle)
+        else:
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 11)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 110)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1100)
+
+        # case 2 - check with empty qos configs, qos_map gets purged
+        mock_meter_cls.reset_mock()
+        mock_traffic_cls.reset_mock()
+        populate_db(old_qid_list, old_ambr_list, old_leaf_list, old_rule_list)
+
+        # mock future state
+        if self.config["qos"]["impl"] == QosImplType.OVS_METER:
+            MockSt = namedtuple("MockSt", "meter_id")
+            qos_mgr.impl._fut = loop.create_future()
+            qos_mgr.impl.handle_meter_config_stats([])
+        else:
+            mock_traffic_cls.read_all_classes.side_effect = lambda _: []
+
+        qos_mgr._initialized = False
+        qos_mgr._setupInternal()
+
+        self.assertTrue(not qos_mgr._redis_store)
+        if self.config["qos"]["impl"] == QosImplType.OVS_METER:
+            mock_meter_cls.del_meter.assert_not_called()
+        else:
+            mock_traffic_cls.delete_class.assert_not_called()
+
+        # case 3 - check with empty qos_map, all qos configs get purged
+        mock_meter_cls.reset_mock()
+        mock_traffic_cls.reset_mock()
+        qos_mgr._redis_store.clear()
+
+        # mock future state
+        if self.config["qos"]["impl"] == QosImplType.OVS_METER:
+            qos_mgr.impl._fut = loop.create_future()
+            qos_mgr.impl.handle_meter_config_stats(dummy_meter_ev_body)
+        else:
+            mock_traffic_cls.read_all_classes.side_effect = tc_read
+
+        logging.debug("case three")
+        qos_mgr._initialized = False
+        qos_mgr._setupInternal()
+
+        self.assertTrue(not qos_mgr._redis_store)
+        # verify that unreferenced qos configs are purged from the system
+        if self.config["qos"]["impl"] == QosImplType.OVS_METER:
+            mock_meter_cls.del_meter.assert_any_call(MagicMock, 2)
+            mock_meter_cls.del_meter.assert_any_call(MagicMock, 15)
+            mock_meter_cls.del_meter.assert_any_call(MagicMock, 13)
+            mock_meter_cls.del_meter.assert_any_call(MagicMock, 11)
+        else:
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150)
+
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 130)
+
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 110)
 
     def testSanity(self):
         for impl_type in (QosImplType.LINUX_TC, QosImplType.OVS_METER):
@@ -564,9 +732,15 @@ get_action_instruction"
 
     def testUncleanRestart(self):
         with patch.dict(self.config, {"clean_restart": False}):
-            for impl_type in (QosImplType.LINUX_TC, QosImplType.OVS_METER):
+            for impl_type in [QosImplType.LINUX_TC]:
                 self.config["qos"]["impl"] = impl_type
                 self._testUncleanRestart()
+
+    def testUncleanRestartAPN(self):
+        with patch.dict(self.config, {"clean_restart": False}):
+            for impl_type in [QosImplType.LINUX_TC]:
+                self.config["qos"]["impl"] = impl_type
+                self._testUncleanRestartWithApnAMBR()
 
     @patch("magma.pipelined.qos.qos_tc_impl.TrafficClass")
     @patch("magma.pipelined.qos.qos_tc_impl.TCManager.get_action_instruction")
@@ -584,7 +758,7 @@ get_action_instruction"
         mock_traffic_cls.read_all_classes.side_effect = lambda intf: prior_qids[intf]
 
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
-        qos_mgr._qos_store = {}
+        qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
         ambr_ul, ambr_dl = 250000, 500000
         imsi, ip_addr, rule_num, qos_info = ("1234", '1.1.1.1', 1, QosInfo(50000, 100000))
@@ -593,18 +767,20 @@ get_action_instruction"
         qos_mgr.add_subscriber_qos(imsi, ip_addr, ambr_ul, rule_num, FlowMatch.UPLINK, qos_info)
         qos_mgr.add_subscriber_qos(imsi, ip_addr, ambr_dl, rule_num, FlowMatch.DOWNLINK, qos_info)
 
-        k1 = get_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.UPLINK))
-        k2 = get_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.DOWNLINK))
+        k1 = get_key_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.UPLINK))
+        k2 = get_key_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.DOWNLINK))
 
         ambr_ul_exp_id = qos_mgr.impl._start_idx
         ul_exp_id = qos_mgr.impl._start_idx + 2
         ambr_dl_exp_id = qos_mgr.impl._start_idx + 3
         dl_exp_id = qos_mgr.impl._start_idx + 5
 
-        self.assertEqual(qos_mgr._qos_store[k1], ul_exp_id)
-        self.assertEqual(qos_mgr._qos_store[k2], dl_exp_id)
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, ul_exp_id))
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, dl_exp_id))
+        qid_info_ul = get_subscriber_data(ul_exp_id, ul_exp_id - 2, ul_exp_id - 1)
+        qid_info_dl = get_subscriber_data(dl_exp_id, dl_exp_id - 2, dl_exp_id - 1)
+        self.assertEqual(get_data(qos_mgr._redis_store[k1]), qid_info_ul)
+        self.assertEqual(get_data(qos_mgr._redis_store[k2]), qid_info_dl)
+        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, get_data_json(qid_info_ul)))
+        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, get_data_json(qid_info_dl)))
 
         self.assertEqual(len(qos_mgr._subscriber_state[imsi].sessions), 1)
         self.assertEqual(qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_dl, ambr_dl_exp_id)
@@ -617,8 +793,8 @@ get_action_instruction"
         qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.UPLINK, qos_info)
         qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.DOWNLINK, qos_info)
 
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, ul_exp_id))
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, dl_exp_id))
+        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, get_data_json(qid_info_ul)))
+        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, get_data_json(qid_info_dl)))
 
         # verify if traffic class was invoked properly
         self.verifyTcAddQos(mock_tc_get_action_inst, mock_traffic_cls, FlowMatch.UPLINK,
@@ -629,13 +805,14 @@ get_action_instruction"
 
         # remove the subscriber qos and verify things are cleaned up
         qos_mgr.remove_subscriber_qos(imsi, rule_num)
-        self.assertTrue(len(qos_mgr._qos_store) == 0)
+        self.assertTrue(len(qos_mgr._redis_store) == 0)
         self.assertTrue(imsi not in qos_mgr._subscriber_state)
 
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ambr_ul_exp_id)
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id)
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, ambr_dl_exp_id)
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, dl_exp_id)
+
 
 class TestMeters(unittest.TestCase):
     @patch("magma.pipelined.qos.qos_meter_impl.MeterClass")
@@ -763,7 +940,7 @@ class TestSubscriberState(unittest.TestCase):
         subscriber_state = SubscriberState('IMSI101', {})
         assert(subscriber_state.check_empty())
         assert(not subscriber_state.get_qos_handle(rule_num, d))
-        subscriber_state.update_rule(ip_addr, rule_num, d, qos_handle)
+        subscriber_state.update_rule(ip_addr, rule_num, d, qos_handle, 0, 0)
 
         assert(subscriber_state.find_rule(rule_num))
         session_with_rule = subscriber_state.find_session_with_rule(rule_num)
@@ -789,7 +966,7 @@ class TestSubscriberState(unittest.TestCase):
 
         session = subscriber_state.get_or_create_session(ip_addr)
         session.set_ambr(d, ambr_qos_handle, 0)
-        subscriber_state.update_rule(ip_addr, rule_num, d, qos_handle)
+        subscriber_state.update_rule(ip_addr, rule_num, d, qos_handle, 0, 0)
 
         assert(subscriber_state.find_rule(rule_num))
         session_with_rule = subscriber_state.find_session_with_rule(rule_num)
@@ -819,16 +996,16 @@ class TestSubscriberState(unittest.TestCase):
         assert(not subscriber_state.get_qos_handle(rule_num1, d1))
 
         subscriber_state.get_or_create_session(ip_addr)
-        subscriber_state.update_rule(ip_addr, rule_num1, d1, qos_handle1)
+        subscriber_state.update_rule(ip_addr, rule_num1, d1, qos_handle1, 0, 0)
 
         # add rule_num2
-        subscriber_state.update_rule(ip_addr, rule_num2, d2, qos_handle2)
+        subscriber_state.update_rule(ip_addr, rule_num2, d2, qos_handle2, 0, 0)
 
         # add rule_num3 with apn_ambr in downlink direction
         session = subscriber_state.get_or_create_session(ip_addr)
         assert(session)
         session.set_ambr(d3, ambr_qos_handle, 0)
-        subscriber_state.update_rule(ip_addr, rule_num3, d3, qos_handle3)
+        subscriber_state.update_rule(ip_addr, rule_num3, d3, qos_handle3, 0, 0)
 
         assert(len(subscriber_state.rules) == 2)
         assert(rule_num1 in subscriber_state.rules)
@@ -866,23 +1043,23 @@ class TestSubscriberState(unittest.TestCase):
         assert(not subscriber_state.get_qos_handle(rule_num1, d1))
 
         subscriber_state.get_or_create_session(ip_addr)
-        subscriber_state.update_rule(ip_addr, rule_num1, d1, qos_handle1)
+        subscriber_state.update_rule(ip_addr, rule_num1, d1, qos_handle1, 0, 0)
 
         # add rule_num2
-        subscriber_state.update_rule(ip_addr, rule_num2, d2, qos_handle2)
+        subscriber_state.update_rule(ip_addr, rule_num2, d2, qos_handle2, 0, 0)
 
         # add rule_num3 with apn_ambr in downlink direction
         session = subscriber_state.get_or_create_session(ip_addr)
         assert(session)
         session.set_ambr(d3, ambr_qos_handle, 0)
-        subscriber_state.update_rule(ip_addr, rule_num3, d3, qos_handle3)
+        subscriber_state.update_rule(ip_addr, rule_num3, d3, qos_handle3, 0, 0)
 
         # add rule_num4 with apn_ambr in uplink direction
         session = subscriber_state.get_or_create_session(new_session_ip_addr)
         assert(session)
         session.set_ambr(new_d1, new_ambr_qos_handle, 0)
         subscriber_state.update_rule(new_session_ip_addr, new_rule_num4, new_d1,
-            new_qos_handle1)
+            new_qos_handle1, 0, 0)
 
         assert(len(subscriber_state.rules) == 3)
         assert(rule_num1 in subscriber_state.rules)

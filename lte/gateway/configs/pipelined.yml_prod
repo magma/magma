@@ -65,7 +65,7 @@ meter:
   idle_timeout: 0
 
 enforcement:
-  poll_interval: 10
+  poll_interval: 2
   default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 dpi:
@@ -152,4 +152,4 @@ uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 
 he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
 
-ovs_gtp_stats_polling_interval: 60
+ovs_gtp_stats_polling_interval: 180

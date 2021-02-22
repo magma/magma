@@ -771,7 +771,7 @@ export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {
         title: '',
         panels: [
           {
-            title: 'Physical Memory Utilization Percent',
+            title: 'Physical Memory Available Percent',
             targets: [
               {
                 expr:

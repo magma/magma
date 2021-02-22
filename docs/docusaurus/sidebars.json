@@ -10,9 +10,11 @@
         "type": "subcategory",
         "label": "Deploy Orchestrator",
         "ids": [
+          "orc8r/intro",
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
-          "orc8r/deploy_install"
+          "orc8r/deploy_install",
+          "orc8r/deploy_faq"
         ]
       },
       {
@@ -47,7 +49,7 @@
           "nms/network",
           "nms/subscriber",
           "nms/traffic",
-          "nms/grafana",
+          "nms/metrics",
           "nms/alerts",
           "nms/tips_and_tricks"
         ]
@@ -77,14 +79,19 @@
       {
         "type": "subcategory",
         "label": "AGW Development",
-        "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes"]
+        "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes", "lte/eventd"]
       }
     ],
     "Feature Guides": [
       "howtos/ue_metering",
       "howtos/config_agw_bridged",
       "howtos/thanos",
-      "howtos/call_tracing"
+      "howtos/call_tracing",
+      "howtos/events_monitoring",
+      "howtos/header_enrichment.md"
+    ],
+    "Debugging Tools": [
+      "debugging_tools/show_tech"
     ],
     "Federation Gateway": [
       {

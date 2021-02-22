@@ -24,6 +24,7 @@ from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import TUN_PORT_REG
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
+TUNNEL_OAM_FLAG = 1
 
 class Classifier(MagmaController):
     """
@@ -118,6 +119,7 @@ class Classifier(MagmaController):
                            ipv4_dst=ue_ip_adr)
         actions = [parser.OFPActionSetField(tunnel_id=o_teid),
                    parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr),
+                   parser.OFPActionSetField(tun_flags=TUNNEL_OAM_FLAG),
                    parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=self.config.gtp_port)]
         if sid:
             actions.append(parser.OFPActionSetField(metadata=sid))

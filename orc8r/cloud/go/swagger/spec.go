@@ -36,3 +36,12 @@ type TagDefinition struct {
 	Description string
 	Name        string
 }
+
+// MarshalBinary marshals the spec to bytes.
+func (s Spec) MarshalBinary() ([]byte, error) {
+	yamlSpec, err := marshalToYAML(s)
+	if err != nil {
+		return nil, nil
+	}
+	return []byte(yamlSpec), nil
+}

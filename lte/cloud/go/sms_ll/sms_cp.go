@@ -94,10 +94,16 @@ func (cpm *cpMessage) unmarshalBinary(input []byte) error {
 
 	switch cpm.messageType {
 	case CpData:
+		if len(input) < 3 {
+			return smsCpError(fmt.Sprintf("message too short for message type %x", CpData))
+		}
 		cpm.length = input[2]
 		cpm.rpdu = make([]byte, len(input[3:]))
 		copy(cpm.rpdu, input[3:])
 	case CpError:
+		if len(input) < 3 {
+			return smsCpError(fmt.Sprintf("message too short for message type %x", CpError))
+		}
 		if _, ok := CpCauseStr[input[2]]; ok {
 			cpm.cause = input[2]
 		} else {

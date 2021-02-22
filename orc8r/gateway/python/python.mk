@@ -57,6 +57,8 @@ py_patches:
 	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <patches/aioeventlet.py38.patch && echo "aioeventlet was patched" ) \
 	|| ( true && echo "skipping aioeventlet patch since it was already applied")
 
+	$(VIRT_ENV_PIP_INSTALL) --force-reinstall git+https://github.com/URenko/aioh2.git
+
 swagger:: swagger_prereqs $(SWAGGER_LIST)
 swagger_prereqs:
 	test -f /usr/bin/java # Java exists
@@ -105,15 +107,19 @@ $(BIN)/grpcio-tools: install_virtualenv
 
 .test: .tests .sudo_tests
 
+RESULTS_DIR := /var/tmp/test_results
+
 .tests:
 ifdef TESTS
-	. $(PYTHON_BUILD)/bin/activate; $(BIN)/nosetests --with-coverage --cover-erase --cover-branches --cover-package=magma -s $(TESTS)
+	$(eval NAME ?= $(shell $(BIN)/python setup.py --name))
+	. $(PYTHON_BUILD)/bin/activate; $(BIN)/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/tests_$(NAME).xml --with-coverage --cover-erase --cover-branches --cover-package=magma -s $(TESTS)
 endif
 
 .sudo_tests:
 ifdef SUDO_TESTS
 ifndef SKIP_SUDO_TESTS
-	. $(PYTHON_BUILD)/bin/activate; sudo $(BIN)/nosetests --with-coverage --cover-branches --cover-package=magma -s $(SUDO_TESTS)
+	$(eval NAME ?= $(shell $(BIN)/python setup.py --name))
+	. $(PYTHON_BUILD)/bin/activate; sudo $(BIN)/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/sudo_$(NAME).xml --with-coverage --cover-branches --cover-package=magma -s $(SUDO_TESTS)
 endif
 endif
 

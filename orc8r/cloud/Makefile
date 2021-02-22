@@ -35,6 +35,9 @@ export SWAGGER_V1_ROOT
 export SWAGGER_V1_CONFIG
 export SWAGGER_V1_SPECS_DIR
 
+COVER_DIR := $(MAGMA_ROOT)/orc8r/cloud/coverage
+export COVER_DIR
+
 #############
 ## Modules ##
 #############
@@ -78,11 +81,13 @@ clean_gen: $(CLEAN_GEN_LIST)
 $(CLEAN_GEN_LIST): %_cleangen:
 	make -C $*/cloud/go clean_gen
 
-COVER_DIR := /var/tmp
-export COVER_DIR
-cover: $(COVER_LIST)
+cover: cover_pre $(COVER_LIST) cover_post
 $(COVER_LIST): %_cover:
 	make -C $*/cloud/go cover
+cover_pre:
+	mkdir -p $(COVER_DIR)
+cover_post:
+	gocovmerge $(COVER_DIR)/** > $(COVER_DIR)/all.gocov
 
 download: $(DOWNLOAD_LIST)
 $(DOWNLOAD_LIST): %_download:

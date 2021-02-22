@@ -93,3 +93,6 @@ fb
 
 # MacOS artifacts
 .DS_Store
+
+# Code coverage
+orc8r/cloud/coverage/

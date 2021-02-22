@@ -13,7 +13,7 @@ import (
 
 const (
 	sortTag         = "@timestamp"
-	defaultLogField = "message"
+	defaultLogField = "log"
 )
 
 // LogsMetricCalculation defines new metric calculation based on querying

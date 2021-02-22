@@ -67,7 +67,7 @@ meter:
   idle_timeout: 0
 
 enforcement:
-  poll_interval: 10
+  poll_interval: 2
   default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
@@ -107,7 +107,7 @@ ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 
 # QoS parameters
 qos:
- enable: false
+ enable: true
  impl: linux_tc
  max_rate: 1000000000
  linux_tc:
@@ -116,6 +116,7 @@ qos:
  ovs_meter:
   min_idx: 2
   max_idx: 100000
+ apn_ambr_enabled: true
 
 monitored_ifaces: ['gtp_br0',
                    'gtp0',
@@ -155,7 +156,7 @@ uplink_bridge: uplink_br0
 uplink_eth_port_name: uplink_p0
 uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 
-ovs_gtp_stats_polling_interval: 60
+ovs_gtp_stats_polling_interval: 180
 
 he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
 # For 5G Functionality Support flag

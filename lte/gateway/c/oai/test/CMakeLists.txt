@@ -1,6 +1,7 @@
 find_package(Check REQUIRED)
 find_package(Threads REQUIRED)
 
+include_directories("/usr/src/googletest/googlemock/include/")
 set(MME_APP_UE_CONTEXT_IMSI_SRC
     test_mme_app_ue_context.c
 )

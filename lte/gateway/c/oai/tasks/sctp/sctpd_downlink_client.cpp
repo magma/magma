@@ -113,6 +113,7 @@ int init_sctpd_downlink_client(bool force_restart) {
   auto channel =
       grpc::CreateChannel(DOWNSTREAM_SOCK, grpc::InsecureChannelCredentials());
   _client = std::make_unique<SctpdDownlinkClient>(channel, force_restart);
+  return 0;
 }
 
 // init
@@ -148,7 +149,6 @@ int sctpd_init(sctp_init_t* init) {
     }
     req.add_ipv6_addrs(ipv6_str);
   }
-
   req.set_port(init->port);
   req.set_ppid(init->ppid);
 
@@ -181,10 +181,12 @@ int sctpd_init(sctp_init_t* init) {
 }
 
 // sendDl
-int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload) {
+int sctpd_send_dl(
+    uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload) {
   SendDlReq req;
   SendDlRes res;
 
+  req.set_ppid(ppid);
   req.set_assoc_id(assoc_id);
   req.set_stream(stream);
   req.set_payload(bdata(payload), blength(payload));
