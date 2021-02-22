@@ -171,7 +171,7 @@ class MobilityServiceClient : public GRPCReceiver {
 
  private:
   MobilityServiceClient();
-  static const uint32_t RESPONSE_TIMEOUT = 30;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
   std::unique_ptr<MobilityService::Stub> stub_{};
 
   /**
