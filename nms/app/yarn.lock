@@ -1433,22 +1433,22 @@
   resolved "https://registry.yarnpkg.com/@emotion/weak-memoize/-/weak-memoize-0.2.5.tgz#8eed982e2ee6f7f4e44c253e12962980791efd46"
   integrity sha512-6U71C2Wp7r5XtFtQzYrW5iKFT67OixrSxjI4MptCHzdSVlgabczzqLe0ZSgnub/5Kp4hSbpDB1tMytZY9pwxxA==
 
-"@fbcnms/alarms@^0.1.12":
-  version "0.1.12"
-  resolved "https://registry.yarnpkg.com/@fbcnms/alarms/-/alarms-0.1.12.tgz#826928a410595a8bb1bc9d3a0e305361b2b59b77"
-  integrity sha512-+mHTo4wQonB18i4LyUIZTshGPQaOFk1yb9pSuRY5ElAynT21hKqGBSZIS5gtzp7N8U4JtczrcDV5fKixDHeHdw==
+"@fbcnms/alarms@^0.1.16":
+  version "0.1.16"
+  resolved "https://registry.yarnpkg.com/@fbcnms/alarms/-/alarms-0.1.16.tgz#6d015c175252ca79f7665fbbf6a353ca154bf915"
+  integrity sha512-UJDNNetYTF1YK9uqEdfA4YF+u2gpx35uP03ePq4G34wTvdsjrtyA2j/RFYwP2Ya43judj3k70TKzUncQucmdlw==
   dependencies:
     "@material-ui/core" "^4.0.0"
     "@material-ui/icons" "^4.0.0"
     "@material-ui/lab" "^4.0.0-alpha.30"
     "@material-ui/styles" "^4.0.0"
-    axios "^0.18.0"
+    axios "^0.21.1"
     classnames "^2.2.5"
     copy-to-clipboard "^3.0.8"
     moment "^2.24.0"
     moo "^0.5.1"
     nearley "^2.19.0"
-    notistack "^0.8.5"
+    notistack "^1.0.3"
 
 "@fbcnms/auth@^0.1.0":
   version "0.1.2"
@@ -4423,7 +4423,7 @@ cls-bluebird@^2.1.0:
     is-bluebird "^1.0.2"
     shimmer "^1.1.0"
 
-clsx@^1.0.1, clsx@^1.0.2, clsx@^1.0.4:
+clsx@^1.0.1, clsx@^1.0.2, clsx@^1.0.4, clsx@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-1.1.1.tgz#98b3134f9abbdf23b2663491ace13c5c03a73188"
   integrity sha512-6/bPho624p3S2pMyvP5kKBPXnI3ufHLObBFCfgx+LkeR5lg2XYy2hqZqUf45ypD8COn2bhgGJSUE+l5dhNBieA==
@@ -9842,15 +9842,10 @@ moment-timezone@^0.5.32:
   dependencies:
     moment ">= 2.9.0"
 
-"moment@>= 2.9.0", moment@^2.10.2:
+"moment@>= 2.9.0", moment@^2.10.2, moment@^2.24.0:
   version "2.29.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
   integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==
-
-moment@^2.24.0:
-  version "2.27.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.27.0.tgz#8bff4e3e26a236220dfe3e36de756b6ebaa0105d"
-  integrity sha512-al0MUK7cpIcglMv3YF13qSgdAIqxHTO7brRtaz3DlSULbqfazqkc5kEjNrLDOM7fsjshoFIihnU8snrP7zUvhQ==
 
 moo@^0.5.0, moo@^0.5.1:
   version "0.5.1"
@@ -10243,6 +10238,14 @@ notistack@^0.8.5:
     hoist-non-react-statics "^3.3.0"
     prop-types "^15.7.2"
     react-is "^16.8.6"
+
+notistack@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/notistack/-/notistack-1.0.3.tgz#ce86a5e8c2b192d713d655c0778347beb3ebead3"
+  integrity sha512-bRGF/eg2qNQ8BwagPLkHiqrz+W00PYtGY5Xl33I0Of1BTm7arksZO1JxssPTlti0qw127CxuWxm637ipn0eZ9g==
+  dependencies:
+    clsx "^1.1.0"
+    hoist-non-react-statics "^3.3.0"
 
 npm-bundled@^1.0.1:
   version "1.1.1"
