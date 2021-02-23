@@ -10,12 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#ifndef SGW_S8_DEFS_H_
-#define SGW_S8_DEFS_H_
+
+#pragma once
 
 #include "intertask_interface.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 
 int sgw_s8_init(void);
-#endif /* SGW_S8_DEFS_H_ */

@@ -25,7 +25,6 @@
 #define SGW_S8_TASK_C
 
 #include <stdio.h>
-
 #include "log.h"
 #include "assertions.h"
 #include "common_defs.h"
@@ -67,9 +66,16 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case MESSAGE_TEST: {
       OAI_FPRINTF_INFO("TASK_SGW_S8 received MESSAGE_TEST\n");
     } break;
+
+    case TERMINATE_MESSAGE: {
+      itti_free_msg_content(received_message_p);
+      zframe_destroy(&msg_frame);
+      sgw_s8_exit();
+    } break;
+
     default: {
       OAILOG_DEBUG(
-          LOG_S6A, "Unkwnon message ID %d: %s\n",
+          LOG_SGW_S8, "Unkwnon message ID %d: %s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }
