@@ -29,8 +29,6 @@
         dest: /tmp/jfrog.pub
     - shell: cat /tmp/jfrog.pub
       register: gpg_data
-    - debug:
-        msg: "FILE CONTENTS={{ gpg_data.stdout }}"
     - apt_key:
         data: "{{ gpg_data.stdout }}"
         state: present
