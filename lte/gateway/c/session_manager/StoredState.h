@@ -178,6 +178,20 @@ enum PolicyType {
   DYNAMIC = 2,
 };
 
+struct RuleStats {
+  uint64_t tx;
+  uint64_t rx;
+  uint64_t drop_tx;
+  uint64_t drop_rx;
+};
+
+struct Usage {
+  uint32_t rule_version;
+  std::unordered_map<int, RuleStats> stats_map;
+};
+
+typedef std::unordered_map<std::string, Usage>UsageMap;
+
 struct PolicyID {
   PolicyType policy_type;
   std::string rule_id;
@@ -235,6 +249,7 @@ struct StoredSessionState {
   google::protobuf::Timestamp revalidation_time;
   BearerIDByPolicyID bearer_id_by_policy;
   std::vector<SetGroupPDR> PdrList;
+  UsageMap rule_usage;
 };
 
 // Update Criteria

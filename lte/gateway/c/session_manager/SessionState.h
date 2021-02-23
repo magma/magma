@@ -188,8 +188,8 @@ class SessionState {
    * add_rule_usage adds used TX/RX bytes to a particular rule
    */
   void add_rule_usage(
-      const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
-      uint64_t dropped_tx, uint64_t dropped_rx,
+      const std::string& rule_id, uint64_t version, uint64_t used_tx,
+      uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -588,6 +588,8 @@ class SessionState {
   // Activation & deactivation times for each rule that is either currently
   // installed, or scheduled for installation for this session
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes_;
+
+  UsageMap rule_usage_;
 
   // map of Gx event_triggers that are pending and its status (bool)
   // If the value is true, that means an update request for that event trigger

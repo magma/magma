@@ -492,10 +492,56 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
 }
 
 void SessionState::add_rule_usage(
-    const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
-    uint64_t dropped_tx, uint64_t dropped_rx,
+    const std::string& rule_id, uint64_t version, uint64_t used_tx,
+    uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
     SessionStateUpdateCriteria& update_criteria) {
   CreditKey charging_key;
+  uint64_t delta_tx;
+  uint64_t delta_rx;
+  uint64_t delta_dropped_tx;
+  uint64_t delta_dropped_rx;
+
+  //TODO: Rework logic to work with flat rate, below is a temp hack
+  auto it = rule_usage_.find(rule_id);
+  if (it == rule_usage_.end()) {
+    //RuleStats stats {used_rx, used_rx, dropped_tx, dropped_rx};
+    Usage usage {};
+    usage.rule_version = version;
+    rule_usage_.insert(rule_id, usage);
+  }
+
+  auto stats_map = it->second.Usage.stats_map
+  auto it = stats_map.find(version);
+  if (it == stats_map.end()) {
+    RuleStats stats {used_tx, used_rx, dropped_tx, dropped_rx};
+    stats_map.insert(version, stats);
+  }
+  auto cur_version = it->second.Usage.rule_version
+  auto it = stats_map.find(cur_version);
+  RuleStats prev_usage;
+  if (it == stats_map.end()){
+       //WTF
+       if (cur_version == 0) {
+        prev_usage = RuleStats{0, 0, 0, 0};
+       } else {
+        prev_usage = RuleStats{used_tx, used_rx, dropped_tx, dropped_rx};
+       }
+  } else {
+     prev_usage = it->second;
+  }
+
+
+delta_tx = used_rx - prev_usage.rx;
+delta_rx = used_rx - prev_usage.tx;
+delta_dropped_tx = used_rx - prev_usage.dropped_tx;
+delta_dropped_rx = used_rx - prev_usage.dropped_rx;
+
+    // if prev ruleid != new
+  prev_usage.rx = used_tx;
+  prev_usage.rx = used_rx;
+  prev_usage.rx = dropped_tx;
+  prev_usage.rx = dropped_rx;
+
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, &charging_key) ||
       static_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
     MLOG(MINFO) << "Updating used charging credit for Rule=" << rule_id
