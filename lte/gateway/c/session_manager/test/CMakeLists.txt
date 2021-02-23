@@ -3,6 +3,7 @@ add_compile_options(-std=c++14)
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("/usr/src/googletest/googlemock/include/")
 
 add_library(SESSIOND_TEST_LIB
     Consts.h
@@ -13,7 +14,8 @@ add_library(SESSIOND_TEST_LIB
     SessionStateTester.h
     )
 
-target_link_libraries(SESSIOND_TEST_LIB SESSION_MANAGER gmock_main pthread rt)
+link_directories(/usr/src/googletest/googlemock/lib/)
+target_link_libraries(SESSIOND_TEST_LIB SESSION_MANAGER gmock_main gtest gtest_main gmock pthread rt)
 
 foreach (session_test session_credit local_enforcer cloud_reporter
     session_manager_handler sessiond_integ session_state
