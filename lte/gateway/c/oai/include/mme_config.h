@@ -59,6 +59,9 @@
 #define CIDR_SPLIT_LIST_COUNT 2
 #define MAX_APN_CORRECTION_MAP_LIST 10
 #define MAX_RESTRICTED_PLMN 10
+#define MAX_BLOCKED_IMEI 10
+#define MIN_LEN_IMEI 15
+#define MAX_LEN_IMEI 16
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
@@ -115,6 +118,8 @@
 #define MME_CONFIG_STRING_TAC "TAC"
 
 #define MME_CONFIG_STRING_RESTRICTED_PLMN_LIST "RESTRICTED_PLMN_LIST"
+#define MME_CONFIG_STRING_BLOCKED_IMEI_LIST "BLOCKED_IMEI_LIST"
+#define MME_CONFIG_STRING_IMEI "IMEI"
 
 #define MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"
 #define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S1_MME                            \
@@ -299,6 +304,15 @@ typedef struct restricted_plmn_s {
   plmn_t plmn[MAX_RESTRICTED_PLMN];
 } restricted_plmn_config_t;
 
+typedef struct imei_list_s {
+  uint8_t imei[17];
+} imei_list_t;
+
+typedef struct blocked_imei_s {
+  int num;
+  imei_list_t imei_list[MAX_BLOCKED_IMEI];
+} blocked_imei_config_t;
+
 typedef struct mme_config_s {
   /* Reader/writer lock for this configuration */
   pthread_rwlock_t rw_lock;
@@ -329,6 +343,8 @@ typedef struct mme_config_s {
   gummei_config_t gummei;
 
   restricted_plmn_config_t restricted_plmn;
+
+  blocked_imei_config_t blocked_imei;
 
   served_tai_t served_tai;
 

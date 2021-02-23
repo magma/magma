@@ -554,6 +554,8 @@ class SubscriberUtil(object):
         """
         self._sid_idx = 1
         self._ue_id = 1
+        self._imei_idx = 1
+        self._imei_default = 3805468432113170
         # Maintain references to UE configs to prevent GC
         self._ue_cfgs = []
 
@@ -571,11 +573,20 @@ class SubscriberUtil(object):
         print("Using subscriber IMSI %s" % sid)
         return sid
 
-    def _get_s1ap_sub(self, sid):
+    def _generate_imei(self, num_ues=1):
+        """ Generates 16 digit IMEI which includes SVN """
+        imei = str(self._imei_default + self._imei_idx)
+        self._imei_idx += 1
+        print("Using IMEI %s" % imei)
+        return imei
+
+
+    def _get_s1ap_sub(self, sid, imei):
         """
         Get the subscriber data in s1aptester format.
         Args:
             The string representation of the subscriber id
+            and imei
         """
         ue_cfg = s1ap_types.ueConfig_t()
         ue_cfg.ue_id = self._ue_id
@@ -584,8 +595,8 @@ class SubscriberUtil(object):
         # cast into a uint8.
         for i in range(0, 15):
             ue_cfg.imsi[i] = ctypes.c_ubyte(int(sid[4 + i]))
-            ue_cfg.imei[i] = ctypes.c_ubyte(int("1"))
-        ue_cfg.imei[15] = ctypes.c_ubyte(int("1"))
+        for i in range(0, len(imei)):
+            ue_cfg.imei[i] = ctypes.c_ubyte(int(imei[i]))
         ue_cfg.imsiLen = self.IMSI_LEN
         self._ue_cfgs.append(ue_cfg)
         self._ue_id += 1
@@ -598,7 +609,8 @@ class SubscriberUtil(object):
         for _ in range(num_ues):
             sid = self._gen_next_sid()
             self._subscriber_client.add_subscriber(sid)
-            subscribers.append(self._get_s1ap_sub(sid))
+            imei = self._generate_imei()
+            subscribers.append(self._get_s1ap_sub(sid, imei))
         self._subscriber_client.wait_for_changes()
         return subscribers
 

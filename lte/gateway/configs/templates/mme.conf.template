@@ -100,6 +100,18 @@ MME :
          #{ MCC="001" ; MNC="010";}
     );
 
+    # List of blocked IMEIs
+    # By default this list is empty
+    # Max number of blocked IMEI is 10
+    # Length of IMEI=15 digits, length of IMEISV=16 digits
+    BLOCKED_IMEI_LIST = (
+        # Sample IMEI without SVN i.e 15 digits
+        #{ IMEI="990004823510370"}
+        # Sample IMEI with SVN i.e 16 digits
+        { IMEI="9900048235103723"},
+        { IMEI="990004823510372"}
+    );
+
     CSFB :
     {
         NON_EPS_SERVICE_CONTROL = "{{ non_eps_service_control }}";

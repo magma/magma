@@ -308,6 +308,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   const char* csfb_mcc       = NULL;
   const char* csfb_mnc       = NULL;
   const char* lac            = NULL;
+  const char* imei_str       = NULL;
 
   config_init(&cfg);
 
@@ -902,6 +903,40 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       }
     }
 
+    // BLOCKED IMEI LIST SETTING
+    setting = config_setting_get_member(
+        setting_mme, MME_CONFIG_STRING_BLOCKED_IMEI_LIST);
+    config_pP->blocked_imei.num = 0;
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_BLOCKED_IMEI_LIST \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(LOG_MME_APP, "Number of blocked IMEIs configured =%d\n", num);
+      AssertFatal(
+          num <= MAX_BLOCKED_IMEI,
+          "Number of blocked IMEIs configured:%d exceeds number of "
+          "blocked IMEIs supported :%d \n",
+          num, MAX_BLOCKED_IMEI);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+
+        if (sub2setting != NULL) {
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_IMEI, &imei_str))) {
+            AssertFatal(
+                strlen(imei_str) == MIN_LEN_IMEI ||
+                    strlen(imei_str) == MAX_LEN_IMEI,
+                "Bad IMEI length (%ld), it must be %u digits or %u digits\n",
+                strlen(imei_str), MIN_LEN_IMEI, MAX_LEN_IMEI);
+          }
+          memcpy(
+              (char*) &config_pP->blocked_imei.imei_list[i].imei, imei_str,
+              strlen(imei_str));
+          config_pP->blocked_imei.num += 1;
+        }
+      }
+    }
+
     // NETWORK INTERFACE SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG);
@@ -1448,6 +1483,12 @@ void mme_config_display(mme_config_t* config_pP) {
           config_pP->served_tai.tac[j]);
     }
   }
+  for (j = 0; j < config_pP->blocked_imei.num; j++) {
+    OAILOG_INFO(
+        LOG_CONFIG, "- Blocked IMEI : %s\n",
+        config_pP->blocked_imei.imei_list[j].imei);
+  }
+
   OAILOG_INFO(LOG_CONFIG, "- NAS:\n");
   OAILOG_INFO(
       LOG_CONFIG,
