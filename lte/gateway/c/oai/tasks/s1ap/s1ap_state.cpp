@@ -175,6 +175,7 @@ bool get_mme_ue_ids_no_imsi(
         "%u",
         keyP, *num_ues_checked);
   }
+  return false;  // always return false to make sure it runs on all elements
 }
 
 void remove_ues_without_imsi_from_ue_id_coll() {
