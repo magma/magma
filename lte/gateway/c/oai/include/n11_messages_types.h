@@ -19,11 +19,11 @@
  */
 
 typedef enum sm_session_fsm_state_e {
-  CREATING_0,
-  CREATE_1,
-  ACTIVE_2,
-  INACTIVE_3,
-  RELEASED_4
+  CREATING,
+  CREATE,
+  ACTIVE,
+  INACTIVE,
+  RELEASED
 } sm_session_fsm_state_t;
 
 typedef enum pdu_session_type_e {
@@ -70,7 +70,7 @@ typedef enum m5g_sm_cause_e {
   M5GSM_INVALID_MANDATORY_INFORMATION                       = 31,
   M5GSM_MESSAGE_TYPE_NON_EXISTENT_OR_NOT_IMPLEMENTED        = 32,
   M5GSM_MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE = 33,
-  M5GSM_INFORMATION_ELEMENT_NON_EXISTENT_OR_NOT_IMPLEMENTED = 34,
+  M5GSM_IE_NON_EXISTENT_OR_NOT_IMPLEMENTED                  = 34,
   M5GSM_CONDITIONAL_IE_ERROR                                = 35,
   M5GSM_MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE      = 36,
   M5GSM_PROTOCOL_ERROR_UNSPECIFIED                          = 37,

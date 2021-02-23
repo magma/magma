@@ -39,9 +39,6 @@ using magma::lte::SmfPduSessionSmContext;
 namespace magma {
 using namespace lte;
 
-#define TEID_SIZE 4
-#define UPF_IPV4_ADDR_SIZE 4
-
 // SessionD to AMF server
 class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
  public:

@@ -18,6 +18,7 @@ extern "C" {
 #endif
 #include "amf_service_handler.h"
 #include "log.h"
+#include "conversions.h"
 #ifdef __cplusplus
 }
 #endif
@@ -76,7 +77,6 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
   itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
-
   itti_msg.always_on_pdu_session_indication =
       req_m5g.always_on_pdu_session_indication();
   itti_msg.allowed_ssc_mode = (ssc_mode_t) req_m5g.allowed_ssc_mode();
@@ -90,13 +90,6 @@ Status AmfServiceImpl::SetSmfSessionContext(
   inet_pton(AF_INET, ip_str, &(ip_addr.s_addr));
   ip_int = ntohl(ip_addr.s_addr);
   INT32_TO_BUFFER(ip_int, itti_msg.pdu_address.redirect_server_address);
-  // get the 4 byte UPF TEID and UPF IP message
-  memcpy(
-      itti_msg.upf_endpoint.teid, req_m5g.upf_endpoint().teid().c_str(),
-      TEID_SIZE);
-  memcpy(
-      itti_msg.upf_endpoint.end_ipv4_addr,
-      req_m5g.upf_endpoint().end_ipv4_addr().c_str(), UPF_IPV4_ADDR_SIZE);
   send_n11_create_pdu_session_resp_itti(&itti_msg);
   return Status::OK;
 }
