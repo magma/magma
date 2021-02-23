@@ -3,8 +3,6 @@
 - name: folder for dynamic inventory file
   file:
     path: "{{ dirInventory }}"
-#    owner: "{{ userBootstrap }}"
-#    group: "{{ userBootstrap }}"
     mode: '0755'
     state: directory 
 
@@ -12,6 +10,4 @@
   template:
     src: roles/aws-inventory/templates/instance_aws_ec2.yaml.j2
     dest: "{{ dirInventory }}/common_instance_aws_ec2.yaml"
-#    owner: "{{ userBootstrap }}"
-#    group: "{{ userBootstrap }}"
     mode: '0644' 
