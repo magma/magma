@@ -18,6 +18,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"time"
@@ -25,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/obsidian/reverse_proxy"
+	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
 
 	"github.com/golang/glog"
@@ -45,21 +47,33 @@ func Start() {
 	e.Use(CollectStats)
 	e.Use(middleware.Recover())
 
-	if obsidian.EnableDynamicSwaggerSpecs {
-		err := handlers.RegisterSpecHandlers(e)
-		if err != nil {
-			glog.Errorf("Error occurred while registering Swagger spec handlers %+v", err)
-		}
+	yamlCommon, err := swagger.GetCommonSpec()
+	if err != nil {
+		glog.Errorf("Error retrieving Swagger common spec %+v", err)
 	}
 
-	// Serve static pages for the API docs
-	e.Static(obsidian.StaticURLPrefix, obsidian.StaticFolder+"/apidocs")
-	e.Static(obsidian.StaticURLPrefix+"/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
+	if obsidian.EnableDynamicSwaggerSpecs {
+		handler := handlers.GetGenerateCombinedSpecHandler(yamlCommon)
+		e.GET(obsidian.StaticURLPrefix+"/spec/", handler)
+	}
+
+	tmpl, err := template.New("index.html").Funcs(template.FuncMap{
+		"enableDynamicSwaggerSpecs": func() bool {
+			return obsidian.EnableDynamicSwaggerSpecs
+		},
+	}).ParseFiles(obsidian.StaticFolder + "/swagger/v1/ui/index.html")
+	if err != nil {
+		glog.Errorf("Error retrieving Swagger UI template %+v", err)
+	}
+
+	handlers.RegisterSpecHandlers(e, yamlCommon, tmpl)
+
+	// Serve static assets for the Swagger UI
+	e.Static(obsidian.StaticURLPrefix+"/static/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
 
 	portStr := fmt.Sprintf(":%d", obsidian.Port)
 	log.Printf("Starting %s on %s", obsidian.Product, portStr)
 
-	var err error
 	if obsidian.TLS {
 		var caCerts []byte
 		caCerts, err = ioutil.ReadFile(obsidian.ClientCAPoolPath)

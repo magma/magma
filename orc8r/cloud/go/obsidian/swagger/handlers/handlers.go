@@ -15,10 +15,9 @@ package handlers
 
 import (
 	"bytes"
-	"log"
+	"html/template"
 	"net/http"
 	"strings"
-	"text/template"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
@@ -26,30 +25,22 @@ import (
 	swagger_lib "magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/lib/go/registry"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
 
 // RegisterSpecHandlers registers routes for the Swagger UI.
-func RegisterSpecHandlers(e *echo.Echo) error {
-	yamlCommon, err := swagger.GetCommonSpec()
-	if err != nil {
-		return err
-	}
+func RegisterSpecHandlers(e *echo.Echo, yamlCommon string, tmpl *template.Template) {
+	e.GET(obsidian.StaticURLPrefix+"/spec/:service", GetGenerateSpecHandler(yamlCommon))
 
-	handler := GetGenerateCombinedSpecHandler(yamlCommon)
-	e.GET(obsidian.StaticURLPrefix+"/v1/swagger.yml", handler)
-	e.GET("/swagger/v1/spec/", handler)
-
-	handler = GetGenerateSpecHandler(yamlCommon)
-	e.GET("/swagger/v1/spec/:service", handler)
-
-	e.GET("/swagger/v1/ui/:service", GenerateSpecUIHandler)
-	e.GET("/swagger/v1/ui/", GenerateSpecUIHandler)
+	e.GET(obsidian.StaticURLPrefix+"/ui/:service", GetGenerateSpecUIHandler(tmpl))
+	e.GET(obsidian.StaticURLPrefix+"/ui/", GetGenerateSpecUIHandler(tmpl))
 
 	// Redirect requests for apidocs/v1/ to swagger/v1/ui/
-	// e.GET("/apidocs/v1", )
-	return nil
+	e.GET("/apidocs/v1/", func(c echo.Context) error {
+		return c.Redirect(http.StatusMovedPermanently, obsidian.StaticURLPrefix+"/ui/")
+	})
 }
 
 // GetGenerateCombinedSpecHandler returns a routing handler which creates
@@ -74,10 +65,6 @@ func GetGenerateSpecHandler(yamlCommon string) echo.HandlerFunc {
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		if service == "" {
-			err := errors.New("Service provided is not registered.")
-			return obsidian.HttpError(err, http.StatusInternalServerError)
-		}
 
 		remoteSpec := swagger.NewRemoteSpec(service)
 
@@ -91,44 +78,32 @@ func GetGenerateSpecHandler(yamlCommon string) echo.HandlerFunc {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 		if warnings != nil {
-			log.Printf("Some Swagger spec traits were overwritten or unable to be read: %+v", warnings)
+			glog.Infof("Some Swagger spec traits were overwritten or unable to be read: %+v", warnings)
 		}
 
 		return c.String(http.StatusOK, combined)
 	}
 }
 
-// GenerateSpecUIHandler returns a routing handler which serves
+// GetGenerateSpecUIHandler returns a routing handler which serves
 // the UI of a service.
-func GenerateSpecUIHandler(c echo.Context) error {
-	service := c.Param("service")
+func GetGenerateSpecUIHandler(tmpl *template.Template) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		service := c.Param("service")
 
-	service, err := isValidService(service)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	if service == "" {
-		err := errors.New("Service provided is not registered.")
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
+		service, err := isValidService(service)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
 
-	templatePath := "/var/opt/magma/static/apidocs/v1/indexTemplated.html"
-	tmpl, err := template.New("indexTemplated.html").Funcs(template.FuncMap{
-		"enableDynamicSwaggerSpecs": func() bool {
-			return true
-		},
-	}).ParseFiles(templatePath)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
+		var tpl bytes.Buffer
+		err = tmpl.Execute(&tpl, service)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
 
-	var tpl bytes.Buffer
-	err = tmpl.Execute(&tpl, service)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return c.HTML(http.StatusOK, tpl.String())
 	}
-
-	return c.HTML(http.StatusOK, tpl.String())
 }
 
 // isValidService returns if the service is a registered
@@ -139,11 +114,16 @@ func isValidService(service string) (string, error) {
 		return "", err
 	}
 
+	// If no service is provided, default to empty string to serve combined spec
+	if service == "" {
+		return "", nil
+	}
+
 	for _, s := range services {
 		if service == s {
 			return strings.ToLower(s), nil
 		}
 	}
 
-	return "", nil
+	return "", errors.New("Service provided is not registered.")
 }

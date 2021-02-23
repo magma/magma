@@ -14,6 +14,8 @@
 package handlers_test
 
 import (
+	"bytes"
+	"html/template"
 	"net/http"
 	"testing"
 
@@ -81,7 +83,7 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
-func Test_GenerateSpecHandlers(t *testing.T){
+func Test_GenerateSpecHandler(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1"
 
@@ -96,11 +98,11 @@ func Test_GenerateSpecHandlers(t *testing.T){
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		ParamNames: []string{"service"},
-		ParamValues: []string{"invalid_test_spec_service"},
+		ParamNames:     []string{"service"},
+		ParamValues:    []string{"invalid_test_spec_service"},
 		Handler:        handlers.GetGenerateSpecHandler(yamlCommon),
 		ExpectedStatus: http.StatusInternalServerError,
-		ExpectedError: "Service provided is not registered.",
+		ExpectedError:  "Service provided is not registered.",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -119,11 +121,69 @@ func Test_GenerateSpecHandlers(t *testing.T){
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		ParamNames: []string{"service"},
-		ParamValues: []string{"test_spec_service1"},
+		ParamNames:     []string{"service"},
+		ParamValues:    []string{"test_spec_service1"},
 		Handler:        handlers.GetGenerateSpecHandler(yamlCommon),
 		ExpectedStatus: 200,
 		ExpectedResult: testSpec,
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func Test_GenerateSpecUIHandler(t *testing.T) {
+	e := echo.New()
+	testURLRoot := "/magma/v1"
+
+	tmpl, err := template.New("test_template.html").Parse(`{{.}}`)
+	assert.NoError(t, err)
+
+	// Fail with invalid service name
+	tc := tests.Test{
+		Method:                 "GET",
+		URL:                    testURLRoot,
+		Payload:                nil,
+		ParamNames:             []string{"service"},
+		ParamValues:            []string{"fake_test_service"},
+		Handler:                handlers.GetGenerateSpecUIHandler(tmpl),
+		ExpectedStatus:         500,
+		ExpectedErrorSubstring: "Service provided is not registered.",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Success with empty service name
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Payload:        nil,
+		ParamNames:     []string{"service"},
+		ParamValues:    []string{""},
+		Handler:        handlers.GetGenerateSpecUIHandler(tmpl),
+		ExpectedStatus: 200,
+		ExpectedResult: tests.StringMarshaler(""),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Success with valid service name
+	testService2 := "test_spec_service2"
+
+	// Clean up registry
+	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
+
+	registerServicer(t, testService2, swagger_lib.TagDefinition{})
+
+	var tpl bytes.Buffer
+	err = tmpl.Execute(&tpl, testService2)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Payload:        nil,
+		ParamNames:     []string{"service"},
+		ParamValues:    []string{testService2},
+		Handler:        handlers.GetGenerateSpecUIHandler(tmpl),
+		ExpectedStatus: 200,
+		ExpectedResult: tests.StringMarshaler(tpl.String()),
 	}
 	tests.RunUnitTest(t, e, tc)
 }

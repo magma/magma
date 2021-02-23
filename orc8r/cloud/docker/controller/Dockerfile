@@ -105,7 +105,8 @@ RUN mkdir -p /var/opt/magma/envdir
 # Build artifacts
 ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
 COPY --from=builder /${CNTLR_FILES}/apidocs /var/opt/magma/static/apidocs
-COPY --from=builder /${CNTLR_FILES}/apidocs/v1/indexTemplated.html /var/opt/magma/static/swagger/v1/ui/index.html
+COPY --from=builder /${CNTLR_FILES}/apidocs/v1/index.html /var/opt/magma/static/swagger/v1/ui/index.html
+COPY --from=builder /${CNTLR_FILES}/apidocs/v1/swagger.yml /var/opt/magma/static/swagger/v1/spec/swagger.yml
 COPY --from=builder /build/bin /var/opt/magma/bin
 
 # Supervisor configs
