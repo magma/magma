@@ -231,7 +231,8 @@ def stress_test_grpc(client, args):
                 sid=SIDUtils.to_pb(ue.imsi_str),
                 ip_addr=ue.ipv4_src,
                 rule_ids=[ue.rule_id],
-                request_origin=RequestOriginType(type=RequestOriginType.GX))
+                request_origin=RequestOriginType(type=RequestOriginType.GX),
+                remove_default_drop_flows=True)
             response = client.DeactivateFlows(request)
             if response.result != DeactivateFlowsResult.SUCCESS:
                 _print_rule_mod_results(response.dynamic_rule_results)
