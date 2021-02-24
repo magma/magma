@@ -31,13 +31,13 @@ from magma.mobilityd.ipv6_allocator_pool import \
     IPv6AllocatorPool
 from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.subscriberdb_client import SubscriberDBStaticIPValueError
-
+import time
 
 class StaticIPAllocationTests(unittest.TestCase):
     """
     Test class for the Mobilityd Static IP Allocator
     """
-    RECYCLING_INTERVAL_SECONDS = 1
+    RECYCLING_INTERVAL_SECONDS = 0.01
 
     def _new_ip_allocator(self, recycling_interval):
         """
@@ -98,9 +98,16 @@ class StaticIPAllocationTests(unittest.TestCase):
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
+        ip0_ipaddr = ipaddress.ip_address(assigned_ip)
         self.assertEqual(ip0, ip0_returned)
-        self.assertEqual(ip0, ipaddress.ip_address(assigned_ip))
+        self.assertEqual(ip0, ip0_ipaddr)
         self.check_type(sid, IPType.STATIC)
+        ip_block = ipaddress.ip_network(ip0_ipaddr)
+        self.assertIn(ip_block, self._allocator._store.assigned_ip_blocks)
+
+        self._allocator.release_ip_address(sid, ip0_ipaddr)
+        time.sleep(2)
+        self.assertNotIn(ip_block, self._allocator._store.assigned_ip_blocks)
 
     def test_get_ip_for_subscriber_with_different_apn(self):
         """ test get_ip_for_sid with different APN assigned ip"""
