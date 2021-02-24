@@ -157,13 +157,15 @@ def stress_test_grpc(client, args):
     delta_time = 1/args.attaches_per_sec
     print("Attach every ~{0} seconds".format(delta_time))
 
-    if args.enable_qos:
+    if args.disable_qos:
+        print("QOS Disabled")
+        apn_ambr = None
+    else:
+        print("QOS Enabled")
         apn_ambr = AggregatedMaximumBitrate(
             max_bandwidth_ul=1000000000,
             max_bandwidth_dl=1000000000,
         )
-    else:
-        apn_ambr = None
 
     def _gen_ue_set(num_of_ues):
         imsi = 123000000
@@ -316,8 +318,8 @@ def create_enforcement_parser(apps):
                         type=int, default=10)
     subcmd.add_argument('--test_iterations', help='Test duration in seconds',
                         type=int, default=5)
-    subcmd.add_argument('--enable_qos', help='If rule should include qos',
-                        type=bool, default=True)
+    subcmd.add_argument('--disable_qos', help='If we want to disable QOS',
+                        action="store_true")
     subcmd.set_defaults(func=stress_test_grpc)
 
 # -------------
