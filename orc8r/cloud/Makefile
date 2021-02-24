@@ -21,7 +21,7 @@ MAGMA_MODULES := \
 $(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
 endif
 
-SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
+SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/obsidian/swagger
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml

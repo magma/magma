@@ -14,9 +14,7 @@
 package handlers_test
 
 import (
-	"bytes"
 	"html/template"
-	"net/http"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/swagger"
@@ -30,7 +28,6 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
 )
 
 func Test_GenerateCombinedSpecHandler(t *testing.T) {
@@ -48,7 +45,7 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.GetGenerateCombinedSpecHandler(yamlCommon),
+		Handler:        handlers.GetCombinedSpecHandler(yamlCommon),
 		ExpectedStatus: 200,
 		ExpectedResult: commonSpec,
 	}
@@ -76,7 +73,7 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.GetGenerateCombinedSpecHandler(yamlCommon),
+		Handler:        handlers.GetCombinedSpecHandler(yamlCommon),
 		ExpectedStatus: 200,
 		ExpectedResult: expectedSpec,
 	}
@@ -100,15 +97,15 @@ func Test_GenerateSpecHandler(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"service"},
 		ParamValues:    []string{"invalid_test_spec_service"},
-		Handler:        handlers.GetGenerateSpecHandler(yamlCommon),
-		ExpectedStatus: http.StatusInternalServerError,
-		ExpectedError:  "Service provided is not registered.",
+		Handler:        handlers.GetSpecHandler(yamlCommon),
+		ExpectedStatus: 404,
+		ExpectedError:  "service not found",
 	}
 	tests.RunUnitTest(t, e, tc)
 
 	// Success with valid service name.
 	tag := swagger_lib.TagDefinition{Name: "Tag 1"}
-	testSpec := swagger_lib.Spec{
+	expected := swagger_lib.Spec{
 		Tags: []swagger_lib.TagDefinition{tag, commonTag},
 	}
 
@@ -123,9 +120,9 @@ func Test_GenerateSpecHandler(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"service"},
 		ParamValues:    []string{"test_spec_service1"},
-		Handler:        handlers.GetGenerateSpecHandler(yamlCommon),
+		Handler:        handlers.GetSpecHandler(yamlCommon),
 		ExpectedStatus: 200,
-		ExpectedResult: testSpec,
+		ExpectedResult: expected,
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -134,7 +131,8 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1"
 
-	tmpl, err := template.New("test_template.html").Parse(`{{.}}`)
+	tmplStr := "Test Result is "
+	tmpl, err := template.New("test_template.html").Parse(tmplStr + "{{.URL}}")
 	assert.NoError(t, err)
 
 	// Fail with invalid service name
@@ -144,22 +142,37 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 		Payload:                nil,
 		ParamNames:             []string{"service"},
 		ParamValues:            []string{"fake_test_service"},
-		Handler:                handlers.GetGenerateSpecUIHandler(tmpl),
-		ExpectedStatus:         500,
-		ExpectedErrorSubstring: "Service provided is not registered.",
+		Handler:                handlers.GetUIHandler(tmpl, true),
+		ExpectedStatus:         404,
+		ExpectedErrorSubstring: "service not found",
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Success with empty service name
+	// Success with empty service name as it should serve the static
+	// monolithic Swagger spec
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
 		ParamNames:     []string{"service"},
 		ParamValues:    []string{""},
-		Handler:        handlers.GetGenerateSpecUIHandler(tmpl),
+		Handler:        handlers.GetUIHandler(tmpl, false),
 		ExpectedStatus: 200,
-		ExpectedResult: tests.StringMarshaler(""),
+		ExpectedResult: tests.StringMarshaler(tmplStr + "swagger.yml"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Success with empty service name as it should serve the dynamic
+	// monolithic Swagger spec
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Payload:        nil,
+		ParamNames:     []string{"service"},
+		ParamValues:    []string{""},
+		Handler:        handlers.GetUIHandler(tmpl, true),
+		ExpectedStatus: 200,
+		ExpectedResult: tests.StringMarshaler(tmplStr),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -171,19 +184,15 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 
 	registerServicer(t, testService2, swagger_lib.TagDefinition{})
 
-	var tpl bytes.Buffer
-	err = tmpl.Execute(&tpl, testService2)
-	assert.NoError(t, err)
-
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
 		ParamNames:     []string{"service"},
 		ParamValues:    []string{testService2},
-		Handler:        handlers.GetGenerateSpecUIHandler(tmpl),
+		Handler:        handlers.GetUIHandler(tmpl, true),
 		ExpectedStatus: 200,
-		ExpectedResult: tests.StringMarshaler(tpl.String()),
+		ExpectedResult: tests.StringMarshaler(tmplStr + testService2),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -203,7 +212,7 @@ func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinitio
 }
 
 func marshalToYAML(t *testing.T, spec swagger_lib.Spec) string {
-	data, err := yaml.Marshal(&spec)
+	data, err := spec.MarshalBinary()
 	assert.NoError(t, err)
 	return string(data)
 }

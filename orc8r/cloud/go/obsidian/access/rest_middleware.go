@@ -50,7 +50,7 @@ func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		perms := getRequestedPermissions(req, decorate)
-		staticReadOnly := perms == accessprotos.AccessControl_READ && strings.HasPrefix(c.Path(), obsidian.StaticURLPrefix)
+		staticReadOnly := perms == accessprotos.AccessControl_READ && strings.HasPrefix(c.Path(), obsidian.StaticURLPrefixLegacy)
 		if !staticReadOnly {
 			// Get Request's Entities' Ids
 			ids := FindRequestedIdentities(c)

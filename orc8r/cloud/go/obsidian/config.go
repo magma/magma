@@ -23,6 +23,7 @@ const (
 	DefaultClientCAs             = "ca_cert.pem"
 	DefaultStaticFolder          = "/var/opt/magma/static"
 	StaticURLPrefix              = "/swagger/v1"
+	StaticURLPrefixLegacy        = "/apidocs"
 	ServiceName                  = "OBSIDIAN"
 	EnableDynamicSwaggerSpecsKey = "enable_dynamic_swagger_specs"
 )
