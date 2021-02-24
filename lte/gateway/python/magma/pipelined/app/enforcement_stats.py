@@ -85,6 +85,10 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self.last_usage_for_delta = defaultdict(RuleRecord)
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
         self._unmatched_bytes = 0  # Store bytes matched by default rule if any
+        self.enable_default_drop_flow_stats = True
+        if 'enable_default_drop_flow_stats' in kwargs['config']['enforcement']:
+            self.enable_default_drop_flow_stats = \
+                kwargs['config']['enforcement']['enable_default_drop_flow_stats']
         self._default_drop_flow_name = \
             kwargs['config']['enforcement']['default_drop_flow_name']
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
@@ -260,6 +264,9 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         return msgs
 
     def _get_default_flow_msgs_for_subscriber(self, imsi, ip_addr):
+        if not self.enable_default_drop_flow_stats:
+            return []
+
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
         match_out = _generate_rule_match(imsi, ip_addr, 0, 0,
                                               Direction.OUT)
