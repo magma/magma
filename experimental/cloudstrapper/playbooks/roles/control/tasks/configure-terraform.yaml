@@ -1,0 +1,21 @@
+---
+
+- name: create terraform artifacts directory
+  file:
+    path: "{{ dirTerraform }}"
+    state: directory
+    mode: '0755'
+
+- name: apply j2 template for terraform file
+  template:
+    src: "roles/control/templates/main.tf.j2.{{ orc8rVersion }}"
+    dest: "{{ dirTerraform }}/main.tf"
+    owner: "{{ userBootstrap }}"
+    group: "{{ userBootstrap }}"
+    mode: '0644' 
+
+- name: inside terraform home run terraform init
+  command: terraform init
+  args:
+    chdir: "{{ dirTerraform }}"
+

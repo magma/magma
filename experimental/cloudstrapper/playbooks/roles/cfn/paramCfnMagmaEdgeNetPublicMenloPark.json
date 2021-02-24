@@ -1,0 +1,42 @@
+[
+  {
+    "ParameterKey": "paramCidr",
+    "ParameterValue": "10.1.0.0/16"
+  },
+  {
+    "ParameterKey": "paramSgiCidr",
+    "ParameterValue": "10.1.4.0/24"
+  },
+  {
+    "ParameterKey": "paramEnbCidr",
+    "ParameterValue": "10.1.2.0/24"
+  },
+  {
+    "ParameterKey": "paramAvlZone",
+    "ParameterValue": "us-east-2c"
+  },
+  {
+    "ParameterKey": "paramSgiSubnetTagName",
+    "ParameterValue": "Menlo Park SGi Subnet "
+  },
+  {
+    "ParameterKey": "paramEnodebSubnetTagName",
+    "ParameterValue": "Menlo Park eNodeB Subnet "
+  },
+  {
+    "ParameterKey": "paramRouteTableTagName",
+    "ParameterValue": "Menlo Park Route Table "
+  },
+  {
+    "ParameterKey": "paramSecGroupName",
+    "ParameterValue": "Menlo Park Security Group "
+  },
+  {
+    "ParameterKey": "paramGwTagName",
+    "ParameterValue": "Menlo Park Internet Gateway "
+  },
+  {
+    "ParameterKey": "paramVpcTagName",
+    "ParameterValue": "Menlo Park VPC"
+  }
+]
