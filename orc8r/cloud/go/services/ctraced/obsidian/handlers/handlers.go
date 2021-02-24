@@ -62,7 +62,7 @@ func listCallTraces(c echo.Context) error {
 		return nerr
 	}
 
-	callTraces, err := configurator.LoadAllEntitiesOfType(
+	callTraces, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, orc8r.CallTraceEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
