@@ -19,16 +19,15 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	lte_plugin "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/subscriberdb"
 	subscriberdb_test_init "magma/lte/cloud/go/services/subscriberdb/test_init"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIndexerIP(t *testing.T) {
@@ -38,8 +37,6 @@ func TestIndexerIP(t *testing.T) {
 	var (
 		types = []string{lte.MobilitydStateType} // copied from indexer_servicer.go
 	)
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 
 	subscriberdb_test_init.StartTestService(t)
 	idx := indexer.NewRemoteIndexer(subscriberdb.ServiceName, version, types...)
@@ -57,11 +54,11 @@ func TestIndexerIP(t *testing.T) {
 	//   "ipBlock": {"netAddress": "wKiAAA==", "prefixLen": 24},
 	//   "ip": {"address": "wKiArg=="}
 	//  }
-	states := state_types.StatesByID{
-		id00: {Type: lte.MobilitydStateType, ReportedState: &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}},
-		id01: {Type: lte.MobilitydStateType, ReportedState: &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}},
-		id10: {Type: lte.MobilitydStateType, ReportedState: &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}},
-		id11: {Type: lte.MobilitydStateType, ReportedState: &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.2")}}},
+	states := state_types.SerializedStatesByID{
+		id00: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}})},
+		id01: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}})},
+		id10: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}})},
+		id11: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.2")}})},
 	}
 
 	// Index the imsi0->sid0 state, result is sid0->imsi0 reverse mapping
@@ -76,9 +73,9 @@ func TestIndexerIP(t *testing.T) {
 	assert.Equal(t, []string{"IMSI1"}, gotB)
 
 	// Correctly handle per-state errs
-	states = state_types.StatesByID{
-		id00: {Type: lte.MobilitydStateType, ReportedState: &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.3")}}},
-		id2:  {Type: lte.MobilitydStateType, ReportedState: &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "deadbeef"}}},
+	states = state_types.SerializedStatesByID{
+		id00: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.3")}})},
+		id2:  {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "deadbeef"}})},
 	}
 	errs, err = idx.Index("nid0", states)
 	assert.NoError(t, err)
@@ -86,6 +83,12 @@ func TestIndexerIP(t *testing.T) {
 	gotC, err := subscriberdb.GetIMSIsForIP("nid0", "127.0.0.3")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"IMSI0"}, gotC)
+}
+
+func serialize(t *testing.T, mobilitydState *state.ArbitraryJSON) []byte {
+	bytes, err := serde.Serialize(mobilitydState, lte.MobilitydStateType, serdes.State)
+	assert.NoError(t, err)
+	return bytes
 }
 
 func encodeIP(ip string) string {

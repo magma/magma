@@ -20,6 +20,7 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/cloud/go/serdes"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
@@ -54,11 +55,11 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
 	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	network, err := (configurator.Network{}).FromStorageProto(request.Network)
+	network, err := (configurator.Network{}).FromProto(request.Network, serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
+	graph, err := (configurator.EntityGraph{}).FromProto(request.Graph, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}

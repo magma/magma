@@ -10,6 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Include vars of all.yaml
+  include_vars:
+    file: all.yaml
+    name: all_vars
+
 - name: Copy magma service files
   copy:
     src: "systemd/magma_{{ item }}.service"
@@ -20,15 +25,18 @@
     - mobilityd
     - dnsd
     - eventd
+    - ctraced
     # Magma OAI services
     - mme
     # Magma third-party services
     - redis
     - pipelined
     - redirectd
+    - envoy_controller
     # Manhattan services
     - lighttpd
     - sessiond
+    - connectiond
   when: full_provision
 
 - name: Copy sctpd service file
@@ -37,7 +45,19 @@
     dest: /etc/systemd/system/sctpd.service
   when: full_provision
 
-- name: Copy logrotate config file
+- name: Copy envoy service file
+  copy:
+    src: systemd/magma_dp_envoy.service
+    dest: /etc/systemd/system/magma_dp@envoy.service
+  when: full_provision
+
+- name: Copy syslog logrotate config file
+  copy:
+    src: logrotate_rsyslog.conf
+    dest: /etc/logrotate.d/rsyslog
+  when: full_provision
+
+- name: Copy OAI logrotate config file
   copy:
     src: logrotate_oai.conf
     dest: /etc/logrotate.d/oai
@@ -62,20 +82,19 @@
     force: yes
     remote_src: yes
   with_items:
+    - config_stateless_agw.py
     - create_oai_certs.py
     - generate_oai_config.py
     - generate_dnsd_config.py
   when: full_provision
 
-- name: Create symlink for stateless scripts
-  file: src="{{ magma_root }}/lte/gateway/deploy/roles/magma/files/config_stateless_{{ item }}.sh" path="/usr/local/bin/config_stateless_{{ item }}.sh" state=link force=yes follow=no
-  with_items:
-    - agw
-    - mobilityd
-    - mme
-    - pipelined
-    - sctpd
-    - sessiond
+- name: Copy Envoy config
+  copy: src=envoy.yaml dest=/var/opt/magma/envoy.yaml
+  when: full_provision
+
+- name: Copy Envoy configuration script
+  copy: src=configure_envoy_namespace.sh dest=/usr/local/bin/configure_envoy_namespace.sh
+  when: full_provision
 
 - name: Create symlink for sctpd binary
   file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
@@ -89,8 +108,16 @@
   file: src='{{ c_build }}/session_manager/sessiond' path=/usr/local/bin/sessiond state=link force=yes follow=no
   when: full_provision
 
+- name: Create symlink for envoy controller binary
+  file: src='{{ go_build }}/envoy_controller' path=/usr/local/bin/envoy_controller state=link force=yes follow=no
+  when: full_provision
+
 - name: Create symlink for dpid binary
   file: src='{{ c_build }}/dpi/dpid' path=/usr/local/bin/dpid state=link force=yes follow=no
+  when: full_provision
+
+- name: Create symlink for connectiond binary
+  file: src='{{ c_build }}/connection_tracker/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for corefile collection script
@@ -124,12 +151,13 @@
   when: full_provision
 
 - name: Install OpenAirInterface (OAI) dependencies
+  retries: 5
+  when: preburn
   apt:
     state: present
     update_cache: yes
     pkg:
       - check
-      - libconfig8-dev
       - libgtest-dev
       - liblfds710
       - google-mock
@@ -142,15 +170,42 @@
       - oai-freediameter
       - prometheus-cpp-dev
       - libczmq-dev
+
+- name: Fix vport-gtp kernel module for Ubuntu Focal
+  when: ansible_distribution == "Ubuntu"
+  become: yes
+  block:
+    - shell: rmmod openvswitch
+      ignore_errors: yes
+    - shell: modprobe vport-gtp
+      ignore_errors: yes
+
+- name: Install Debian Magma gateway dev dependencies
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libconfig8-dev
+
+- name: Install Ubuntu Magma gateway dev dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libconfig-dev
 
 - name: Overwrite linux 4.9 GTP module with patched module
   apt: pkg=oai-gtp=4.9-5 state=present update_cache=yes dpkg_options=force-overwrite
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
 
-- name: Install Magma dependencies
+- name: Install common Magma dependencies
+  retries: 5
+  when: preburn
   apt:
     state: present
     update_cache: yes
@@ -158,10 +213,8 @@
       # install prometheus
       - prometheus-cpp-dev
       # install openvswitch
-      - openvswitch-datapath-module-4.9.0-9-amd64
       - openvswitch-switch
       - openvswitch-test
-      - python-openvswitch
       - magma-libfluid
       # install lxml
       - python3-lxml
@@ -173,22 +226,43 @@
       - libfolly-dev
       - libdouble-conversion-dev
       - libboost-chrono-dev
-      - nlohmann-json-dev
       - redis-server
       - python-redis
       - magma-cpp-redis
       # Time synchronization with NTP for eventd
       - ntpdate
+      # For call tracing
+      - tshark
+
+- name: Install debian Magma dependencies
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - openvswitch-datapath-module-4.9.0-9-amd64
+      - python-openvswitch
+      - nlohmann-json-dev
+
+- name: Install ubuntu Magma dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - python3-openvswitch
+      - nlohmann-json3-dev
 
 - name: Copy the gtp interface initialization definition
   copy:
     src: magma_ifaces_gtp
     dest: /etc/network/interfaces.d/gtp
-  when: full_provision
+  when: full_provision and ansible_distribution == "Debian"
 
 - name: Preload the GTP module
+  ignore_errors: yes
   modprobe:
     name: gtp
     state: present
@@ -216,12 +290,27 @@
 
 - name: Install gmock and gtest for C++ testing
   become: yes
+  ignore_errors: yes
   shell: cmake CMakeLists.txt && make && cp *.a /usr/lib
   args:
     chdir: /usr/src/{{ item }}
   with_items:
     - gtest
     - gmock
+  when: preburn
+
+- name: Download golang tar
+  get_url:
+    url: "https://storage.googleapis.com/golang/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
+    dest: "{{ all_vars.WORK_DIR }}"
+    mode: 0440
+  when: preburn
+
+- name: Extract Go tarball
+  unarchive:
+    src: "{{all_vars.WORK_DIR}}/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
+    dest: /usr/local
+    copy: no
   when: preburn
 
 - name: Install dnsmasq
@@ -243,12 +332,14 @@
   when: preburn
 
 - name: Restart networking to bring up linux bridge
+  ignore_errors: yes
   service:
     name: networking
     state: restarted
   when: full_provision
 
 - name: Bring up ovs bridge
+  ignore_errors: yes
   shell: ifup --allow=ovs {{ item }}
   with_items:
     - gtp_br0
@@ -256,6 +347,7 @@
   when: full_provision
 
 - name: Bring up interfaces
+  ignore_errors: yes
   shell: ifup {{ item }}
   with_items:
     - eth0

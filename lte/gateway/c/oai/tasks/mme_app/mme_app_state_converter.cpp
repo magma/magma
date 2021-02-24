@@ -59,7 +59,7 @@ void MmeNasStateConverter::hashtable_ts_to_proto(
       (*proto_map)[(uint32_t) keys->keys[i]] = ue_ctxt_proto;
     } else {
       OAILOG_ERROR(
-          LOG_MME_APP, "Key %u not in mme_ue_s1ap_id_ue_context_htbl",
+          LOG_MME_APP, "Key %lu not in mme_ue_s1ap_id_ue_context_htbl",
           keys->keys[i]);
     }
   }
@@ -117,6 +117,7 @@ void MmeNasStateConverter::guti_table_to_proto(
   hashtable_rc_t ht_rc =
       obj_hashtable_uint64_ts_get_keys(guti_htbl, key_array_p, &size);
   if ((!*key_array_p) || (ht_rc != HASH_TABLE_OK)) {
+    FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
     return;
   }
   for (auto i = 0; i < size; i++) {
@@ -133,10 +134,9 @@ void MmeNasStateConverter::guti_table_to_proto(
     if (ht_rc == HASH_TABLE_OK) {
       (*proto_map)[guti_str] = mme_ue_id;
     } else {
-      OAILOG_ERROR(LOG_MME_APP, "Key %s not in guti_ue_context_htbl", guti_str);
+      OAILOG_ERROR(
+          LOG_MME_APP, "Key %s not in guti_ue_context_htbl", guti_str.c_str());
     }
-    OAILOG_DEBUG(
-        LOG_MME_APP, "guti_str:%s mme_ue_id:%d\n", guti_str.c_str(), mme_ue_id);
   }
   FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
 }
@@ -189,6 +189,7 @@ void MmeNasStateConverter::proto_to_guti_table(
           "Failed to insert mme_ue_s1ap_id %u in GUTI table, error: %s\n",
           mme_ue_id, hashtable_rc_code2string(ht_rc));
     }
+    free_wrapper((void**) &guti_p);
   }
 }
 
@@ -354,6 +355,10 @@ void MmeNasStateConverter::proto_to_bearer_context_list(
       proto_to_bearer_context(
           ue_context_proto.bearer_contexts(i), eps_bearer_ctxt);
       state_ue_context->bearer_contexts[i] = eps_bearer_ctxt;
+      if (state_ue_context->bearer_contexts[i]->esm_ebr_context.args) {
+        state_ue_context->bearer_contexts[i]->esm_ebr_context.args->ctx =
+            &state_ue_context->emm_context;
+      }
     } else {
       state_ue_context->bearer_contexts[i] = nullptr;
     }
@@ -484,7 +489,6 @@ void MmeNasStateConverter::proto_to_pdn_context(
 void MmeNasStateConverter::pdn_context_list_to_proto(
     const ue_mm_context_t& state_ue_context, oai::UeContext* ue_context_proto,
     int num_active_contexts) {
-  num_active_contexts = 1;  // TODO: fix acounting of nb_active_pdn_contexts
   for (int i = 0; i < num_active_contexts; i++) {
     if (state_ue_context.pdn_contexts[i] != nullptr) {
       OAILOG_DEBUG(LOG_MME_APP, "Writing PDN context at index %d", i);
@@ -610,6 +614,8 @@ void MmeNasStateConverter::ue_context_to_proto(
   ue_context_proto->mutable_time_paging_response_timer_started()->set_seconds(
       state_ue_context->time_paging_response_timer_started);
   ue_context_proto->set_paging_retx_count(state_ue_context->paging_retx_count);
+  ue_context_proto->mutable_time_ics_rsp_timer_started()->set_seconds(
+      state_ue_context->time_ics_rsp_timer_started);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -709,6 +715,8 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   state_ue_mm_context->time_paging_response_timer_started =
       ue_context_proto.time_paging_response_timer_started().seconds();
   state_ue_mm_context->paging_retx_count = ue_context_proto.paging_retx_count();
+  state_ue_mm_context->time_ics_rsp_timer_started =
+      ue_context_proto.time_ics_rsp_timer_started().seconds();
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

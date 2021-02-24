@@ -19,7 +19,9 @@ conf_dir: "/var/opt/magma/tmp"
 cert_dir: "/usr/local/etc/oai"
 hss_ip: "192.168.60.153"
 hss_hostname: "hss"
-use_stateless: false
+use_stateless: true
+use_ha: false
+enable_gtpu_private_ip_correction: false
 enable_apn_correction: false
 apn_correction_map_list:
         - imsi_prefix: "00101"

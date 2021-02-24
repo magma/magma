@@ -1,9 +1,0 @@
-native_modules:
-  - orc8r
-  - lte
-  - feg
-  - cwf
-  - fbinternal
-  - wifi
-
-external_modules: []

@@ -23,6 +23,12 @@ SNOWFLAKE_PATH=/etc/snowflake
 CERTS_VOLUME=/var/opt/magma/certs
 CONFIGS_VOLUME=/var/opt/magma/configs
 
+{{ if .Values.feg.log_aggregation.enabled }}
+LOG_DRIVER=fluentd
+{{ else }}
+LOG_DRIVER=journald
+{{- end }}
+
 {{ if .Values.feg.env }}
 {{ .Values.feg.env }}
 {{- end }}

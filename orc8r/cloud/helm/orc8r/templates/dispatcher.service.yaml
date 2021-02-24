@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "dispatcher.service") -}}
 {{- define "dispatcher.service" -}}
 metadata:
-  name: {{ .Release.Name }}-dispatcher
+  name: orc8r-dispatcher
   labels:
     {{- with .Values.dispatcher.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: dispatcher
   ports:
     - name: grpc
       port: 9180

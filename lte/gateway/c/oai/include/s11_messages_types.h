@@ -347,6 +347,9 @@ typedef struct itti_s11_create_session_request_s {
   ///< Attach with GTP on S2b and a UE initiated Connectivity to
   ///< Additional PDN with GTP on S2b.
 
+  ///< Charging Characteristics comes from UpdateLocationAnswer via S6a
+  charging_characteristics_t charging_characteristics;
+
   // EBI Linked EPS Bearer ID             ///< This IE shall be included on
   // S4/S11 in RAU/TAU/HO
   ///< except in the Gn/Gp SGSN to MME/S4-SGSN

@@ -14,10 +14,9 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"log"
-
-	"golang.org/x/net/context"
 
 	"magma/feg/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"

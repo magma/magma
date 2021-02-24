@@ -32,10 +32,10 @@ class ClientContext;
 class Status;
 }  // namespace grpc
 
+using google::protobuf::Map;
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
-using google::protobuf::Map;
 using magma::GatewayDirectoryService;
 using magma::GatewayDirectoryServiceClient;
 using magma::UpdateRecordRequest;
@@ -69,7 +69,8 @@ bool GatewayDirectoryServiceClient::UpdateRecord(
   auto fields = request.fields();
   std::unordered_map<std::string, std::string> fields_map;
 
-  Map<std::string, std::string> proto_fields(fields_map.begin(), fields_map.end());
+  Map<std::string, std::string> proto_fields(
+      fields_map.begin(), fields_map.end());
   fields = proto_fields;
 
   // Create a raw response pointer that stores a callback to be called when the

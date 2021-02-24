@@ -19,8 +19,8 @@ locals {
     }
   }
 
-  stable_helm_repo    = "https://kubernetes-charts.storage.googleapis.com"
-  incubator_helm_repo = "http://storage.googleapis.com/kubernetes-charts-incubator"
+  stable_helm_repo    = "https://charts.helm.sh/stable"
+  incubator_helm_repo = "https://charts.helm.sh/incubator"
 }
 
 resource "kubernetes_secret" "artifactory" {

@@ -29,6 +29,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/component: prometheus
+        app: prometheus
 {{ include "selector-labels" . | indent 8 }}
     spec:
       {{- with .Values.prometheus.nodeSelector }}
@@ -61,6 +62,12 @@ spec:
           configMap:
             name: orc8r-alert-rules
         {{- end}}
+        {{ if .Values.thanos.enabled }}
+        - name: "thanos-objstore-config"
+          configMap:
+            name: thanos-objstore-config
+        {{- end}}
+
 
   {{ if .Values.prometheus.useMinikube }}
       initContainers:
@@ -93,9 +100,16 @@ spec:
           ports:
             - containerPort: 9090
           args: ['--config.file=/prometheus/prometheus.yml',
-                 '--storage.tsdb.retention.time={{ .Values.prometheus.retention.time }}',
                  '--storage.tsdb.path=/data',
-                 '--web.enable-lifecycle']
+                 '--web.enable-lifecycle',
+                 {{ if .Values.thanos.enabled }}
+                 '--storage.tsdb.min-block-duration=2h',
+                 '--storage.tsdb.max-block-duration=2h',
+                 '--storage.tsdb.retention.time={{ .Values.thanos.prometheusRetentionTime }}',
+                 {{- else }}
+                 '--storage.tsdb.retention.time={{ .Values.prometheus.retention.time }}',
+                 {{- end}}
+                ]
           livenessProbe:
             httpGet:
               path: /graph
@@ -104,6 +118,24 @@ spec:
             periodSeconds: 30
           resources:
 {{ toYaml .Values.prometheus.resources | indent 12 }}
+        {{ if .Values.thanos.enabled }}
+        - name: "thanos-sidecar"
+          image: {{ required "thanos.image.repository must be provided" .Values.thanos.image.repository }}:{{ .Values.thanos.image.tag }}
+          imagePullPolicy: {{ .Values.thanos.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: 10901
+          volumeMounts:
+            - name: "thanos-objstore-config"
+              mountPath: /etc/thanos
+              readOnly: true
+            - name: "prometheus-data"
+              mountPath: /data
+          args: ['sidecar',
+                 '--tsdb.path=/data',
+                 '--prometheus.url=http://localhost:9090', # Localhost since they run on same pod
+                 '--objstore.config-file=/etc/thanos/objstore.yaml']
+        {{- end}}
 
 ---
 apiVersion: v1

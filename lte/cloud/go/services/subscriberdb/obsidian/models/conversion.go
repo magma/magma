@@ -17,14 +17,13 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"magma/lte/cloud/go/lte"
 	policymodels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	subscriberdb_state "magma/lte/cloud/go/services/subscriberdb/state"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
@@ -59,7 +58,7 @@ func (m *MutableSubscriber) ToSubscriber() *Subscriber {
 	return sub
 }
 
-func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
+func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) {
 	if !funk.IsEmpty(states) {
 		m.Monitoring = &SubscriberStatus{}
 		m.State = &SubscriberState{}
@@ -68,12 +67,13 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
 	for stateID, stateVal := range states {
 		switch stateID.Type {
 		case orc8r.DirectoryRecordType:
-			reportedState := stateVal.ReportedState.(*directoryd.DirectoryRecord)
+			reportedState := stateVal.ReportedState.(*directoryd_types.DirectoryRecord)
 			m.State.Directory = &SubscriberDirectoryRecord{LocationHistory: reportedState.LocationHistory}
+		case lte.SubscriberStateType:
+			m.State.SubscriberState = stateVal.ReportedState.(*state.ArbitraryJSON)
 		case lte.ICMPStateType:
 			reportedState := stateVal.ReportedState.(*IcmpStatus)
-			// Reported time is unix timestamp in seconds, so divide ms by 1k
-			reportedState.LastReportedTime = int64(stateVal.TimeMs / uint64(time.Second/time.Millisecond))
+			reportedState.LastReportedTime = int64(stateVal.TimeMs)
 			m.Monitoring.Icmp = reportedState
 		case lte.SPGWStateType:
 			reportedState := stateVal.ReportedState.(*state.ArbitraryJSON)
@@ -96,8 +96,8 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
 				glog.Errorf("failed to retrieve allocated IP for state key %s: %s", stateID.DeviceID, err)
 			}
 			// State ID is the IMSI with the APN appended after a dot
-			ipAPN := strings.TrimPrefix(stateID.DeviceID, fmt.Sprintf("%s.", m.ID))
-			m.State.Mobility = append(m.State.Mobility, &SubscriberIPAllocation{Apn: ipAPN, IP: strfmt.IPv4(reportedIP)})
+			apn := strings.TrimPrefix(stateID.DeviceID, fmt.Sprintf("%s.", m.ID))
+			m.State.Mobility = append(m.State.Mobility, &SubscriberIPAllocation{Apn: apn, IP: strfmt.IPv4(reportedIP)})
 		default:
 			glog.Errorf("Loaded unrecognized subscriber state type %s", stateID.Type)
 		}
@@ -108,8 +108,6 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
 			return m.State.Mobility[i].Apn < m.State.Mobility[j].Apn
 		})
 	}
-
-	return nil
 }
 
 // IsAssignedIP returns true if the subscriber has mobility state assigning it
@@ -130,7 +128,7 @@ func (m *MutableSubscriber) ToTK() storage.TypeAndKey {
 	return storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(m.ID)}
 }
 
-func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity) (*MutableSubscriber, error) {
+func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity, policyProfileEnts configurator.NetworkEntities) (*MutableSubscriber, error) {
 	model := &MutableSubscriber{
 		ActivePoliciesByApn: policymodels.PolicyIdsByApn{},
 		ID:                  policymodels.SubscriberID(ent.Key),
@@ -152,23 +150,14 @@ func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity) (*MutableSub
 		model.ActiveApns = append(model.ActiveApns, tk.Key)
 	}
 
-	policyProfileAssocs := ent.Associations.Filter(lte.APNPolicyProfileEntityType)
-	if len(policyProfileAssocs) == 0 {
-		return model, nil
+	for _, tk := range ent.Associations.Filter(lte.PolicyRuleEntityType) {
+		model.ActivePolicies = append(model.ActivePolicies, policymodels.PolicyID(tk.Key))
 	}
 
-	// Need to load the policy profile ents to determine their edges.
-	// Configurator doesn't currently support loading a specified subgraph,
-	// so we have to load the subscriber and its policy profiles in
-	// separate calls.
-	policyProfileEnts, _, err := configurator.LoadEntities(
-		ent.NetworkID, nil, nil, nil,
-		policyProfileAssocs,
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
-	)
-	if err != nil {
-		return nil, err
+	for _, tk := range ent.Associations.Filter(lte.BaseNameEntityType) {
+		model.ActiveBaseNames = append(model.ActiveBaseNames, policymodels.BaseName(tk.Key))
 	}
+
 	// Each policy profile has 1 apn and n policy_rule
 	// Convert these assocs to a map of apn->policy_rules
 	for _, p := range policyProfileEnts {
@@ -189,6 +178,8 @@ func (m *MutableSubscriber) GetAssocs() []storage.TypeAndKey {
 	var assocs []storage.TypeAndKey
 	assocs = append(assocs, m.ActivePoliciesByApn.ToTKs(string(m.ID))...)
 	assocs = append(assocs, m.ActiveApns.ToTKs()...)
+	assocs = append(assocs, m.ActivePolicies.ToTKs()...)
+	assocs = append(assocs, m.ActiveBaseNames.ToTKs()...)
 	return assocs
 }
 

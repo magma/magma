@@ -63,7 +63,8 @@ data "aws_secretsmanager_secret_version" "root_secrets" {
   secret_id = data.aws_secretsmanager_secret.root_secrets.id
 }
 
-module orc8r {
+module "orc8r" {
+  # Change this to pull from github with a specified ref
   source = "../../../orc8r-aws"
 
   region = local.region
@@ -73,12 +74,13 @@ module orc8r {
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
 
-  vpc_name     = "orc8r"
-  cluster_name = "orc8r"
+  vpc_name        = "orc8r"
+  cluster_name    = "orc8r"
+  cluster_version = "1.17"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
-  elasticsearch_version         = "7.1"
+  elasticsearch_version         = "7.7"
   elasticsearch_instance_type   = "t2.medium.elasticsearch"
   elasticsearch_instance_count  = 2
   elasticsearch_az_count        = 2
@@ -87,7 +89,8 @@ module orc8r {
   elasticsearch_ebs_volume_type = "gp2"
 }
 
-module orc8r-app {
+module "orc8r-app" {
+  # Change this to pull from github with a specified ref
   source = "../.."
 
   region = local.region
@@ -135,9 +138,9 @@ module orc8r-app {
 
   elasticsearch_endpoint = module.orc8r.es_endpoint
 
-  orc8r_chart_version = "1.4.21"
-  orc8r_tag           = "1.1.0"
-  deploy_nms          = true
+  orc8r_deployment_type = "fwa"
+  orc8r_tag             = "1.4.0"
+  deploy_nms            = true
 }
 
 output "nameservers" {

@@ -200,7 +200,7 @@ func get_ip_address(ip string) *types.IPAddress {
 	if ip == "" {
 		return nil
 	}
-	return &types.IPAddress {
+	return &types.IPAddress{
 		Version: types.IPAddressVersionIPV4,
 		Address: ip,
 	}

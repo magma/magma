@@ -84,3 +84,15 @@ class DuplicateIPAssignmentError(Exception):
     two different APNs or overlaps in IP-POOL.
     """
     pass
+
+
+class IPNotInUseError(Exception):
+    """ Exception thrown when releasing an IP address that is not found in the
+    used list
+    """
+    pass
+
+
+class MappingNotFoundError(Exception):
+    """ Exception thrown when releasing a non-exising SID-IP mapping """
+    pass

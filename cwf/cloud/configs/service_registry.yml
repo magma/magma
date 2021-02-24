@@ -11,11 +11,6 @@
 # limitations under the License.
 
 services:
-  analytics:
-    host: "localhost"
-    port: 9200
-    proxy_type: "clientcert"
-
   cwf:
     host: "localhost"
     port: 9115
@@ -24,5 +19,7 @@ services:
     labels:
       orc8r.io/mconfig_builder: "true"
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/analytics_collector: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/cwf"

@@ -8,7 +8,9 @@ SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
 KVERS=$(uname -r)
-MAGMA_VERSION="v1.3"
+MAGMA_VERSION="${MAGMA_VERSION:-v1.3}"
+CLOUD_INSTALL="cloud"
+GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
@@ -25,13 +27,14 @@ fi
 echo "Making sure $MAGMA_USER user is sudoers"
 if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
   apt install -y sudo
+  adduser --disabled-password --gecos "" $MAGMA_USER
   adduser $MAGMA_USER sudo
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 fi
 
 echo "Need to check if both interfaces are named eth0 and eth1"
 INTERFACES=$(ip -br a)
-if [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep -q 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' /etc/default/grub; then
+if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep -q 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' /etc/default/grub); then
   # changing intefaces name
   sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
   # changing interface name
@@ -53,7 +56,7 @@ else
   done
 fi
 
-echo "Checking if the righ kernel version is installed (4.9.0-9-amd64)"
+echo "Checking if the right kernel version is installed (4.9.0-9-amd64)"
 if [ "$KVERS" != "4.9.0-9-amd64" ]; then
   # Adding the snapshot to retrieve 4.9.0-9-amd64
   if ! grep -q "deb http://snapshot.debian.org/archive/debian/20190801T025637Z" /etc/apt/sources.list; then
@@ -70,24 +73,64 @@ if [ "$KVERS" != "4.9.0-9-amd64" ]; then
   NEED_REBOOT=1
 fi
 
+# configure environment variable defaults needed for ansible
+ANSIBLE_VARS="PACKAGE_LOCATION=/tmp"
+if [ -n "${REPO_HOST}" ]; then
+    if [ -z "${REPO_PROTO}" ]; then
+        REPO_PROTO=http
+    fi
+    if [ -z "${REPO_DIST}" ]; then
+        REPO_DIST=stretch-stable
+    fi
+    if [ -z "${REPO_COMPONENT}" ]; then
+        REPO_COMPONENT=main
+    fi
+    # configure pkgrepo location
+    ANSIBLE_VARS="ovs_pkgrepo_proto=${REPO_PROTO} ovs_pkgrepo_host=${REPO_HOST} ovs_pkgrepo_path=${REPO_PATH} ${ANSIBLE_VARS}"
+
+    # configure pkgrepo distribution
+    ANSIBLE_VARS="ovs_pkgrepo_dist=${REPO_DIST} ovs_pkgrepo_component=${REPO_COMPONENT} ${ANSIBLE_VARS}"
+
+    # configure pkgrepo gpg key
+    ANSIBLE_VARS="ovs_pkgrepo_key=${REPO_KEY} ${ANSIBLE_VARS}"
+    if [ -z "${REPO_KEY_FINGERPRINT}" ]; then
+        ANSIBLE_VARS="ovs_pkgrepo_key_fingerprint=${REPO_KEY_FINGERPRINT} ${ANSIBLE_VARS}"
+    fi
+fi
+
+if [ "${REPO_PROTO}" == 'https' ]; then
+    echo "Ensure HTTPS apt transport method is installed"
+    apt install -y apt-transport-https
+fi
+
 if [ $NEED_REBOOT = 1 ]; then
   echo "Will reboot in a few seconds, loading a boot script in order to install magma"
   if [ ! -f "$AGW_SCRIPT_PATH" ]; then
-    wget --no-cache -O $AGW_SCRIPT_PATH "https://raw.githubusercontent.com/facebookincubator/magma/$MAGMA_VERSION/lte/gateway/deploy/agw_install.sh"
+      cp "$(realpath $0)" "${AGW_SCRIPT_PATH}"
   fi
-  echo "[Unit]
+  cat <<EOF > $AGW_INSTALL_CONFIG
+[Unit]
 Description=AGW Installation
 After=network-online.target
 Wants=network-online.target
 [Service]
+Environment=MAGMA_VERSION=${MAGMA_VERSION}
+Environment=GIT_URL=${GIT_URL}
+Environment=REPO_PROTO=${REPO_PROTO}
+Environment=REPO_HOST=${REPO_HOST}
+Environment=REPO_DIST=${REPO_DIST}
+Environment=REPO_COMPONENT=${REPO_COMPONENT}
+Environment=REPO_KEY=${REPO_KEY}
+Environment=REPO_KEY_FINGERPRINT=${REPO_KEY_FINGERPRINT}
 Type=oneshot
-ExecStart=/bin/sh /root/agw_install.sh
+ExecStart=/bin/bash ${AGW_SCRIPT_PATH}
 TimeoutStartSec=3800
 TimeoutSec=3600
 User=root
 Group=root
 [Install]
-WantedBy=multi-user.target" > $AGW_INSTALL_CONFIG
+WantedBy=multi-user.target
+EOF
   chmod 644 $AGW_INSTALL_CONFIG
   reboot
 fi
@@ -101,13 +144,13 @@ fi
 echo "Checking if magma has been installed"
 MAGMA_INSTALLED=$(apt-cache show magma >  /dev/null 2>&1 echo "$SUCCESS_MESSAGE")
 if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
-  echo "Magma not installed processing installation"
+  echo "Magma not installed, processing installation"
   apt-get update
   apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev
   alias python=python3
   pip3 install ansible
 
-  git clone https://github.com/facebookincubator/magma.git /home/$MAGMA_USER/magma
+  git clone "${GIT_URL}" /home/$MAGMA_USER/magma
   cd /home/$MAGMA_USER/magma
   git checkout "$MAGMA_VERSION"
 
@@ -116,16 +159,23 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   127.0.0.1 ansible_connection=local
   [ovs_deploy]
   127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
-  echo "Triggering ovs_build playbook"
-  su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_build.yml"
+  if [ -n "${FORCE_OVS_BUILD}" ]; then
+      echo "Triggering ovs_build playbook"
+      su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_build.yml"
+      ANSIBLE_VARS="${ANSIBLE_VARS} ovs_use_pkgrepo=no"
+  fi
   echo "Triggering ovs_deploy playbook"
-  su - $MAGMA_USER -c "ansible-playbook -e \"PACKAGE_LOCATION='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml --skip-tags \"skipfirstinstall\""
+  if [ $1 == "$CLOUD_INSTALL" ]; then
+      su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml --skip-tags \"skipfirstinstall\""
+      su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml"
+      service openvswitch-switch restart
+  else
+      su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml --skip-tags \"skipfirstinstall\""
+  fi
   echo "Deleting boot script if it exists"
   if [ -f "$AGW_INSTALL_CONFIG" ]; then
     rm -rf $AGW_INSTALL_CONFIG
   fi
-  echo "Removing Ansible from the machine."
-  pip3 uninstall --yes ansible
   rm -rf /home/$MAGMA_USER/build
   echo "AGW installation is done, make sure all services above are running correctly.. rebooting"
   reboot

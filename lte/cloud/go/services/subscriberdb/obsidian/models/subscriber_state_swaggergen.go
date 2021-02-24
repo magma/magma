@@ -32,6 +32,9 @@ type SubscriberState struct {
 
 	// spgw
 	Spgw UntypedMmeState `json:"spgw,omitempty"`
+
+	// subscriber state
+	SubscriberState UntypedSubscriberState `json:"subscriber_state,omitempty"`
 }
 
 // Validate validates this subscriber state

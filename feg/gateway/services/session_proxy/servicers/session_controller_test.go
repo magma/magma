@@ -22,9 +22,12 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/multiplex"
 	"magma/feg/gateway/policydb"
+	mockPolicyDB "magma/feg/gateway/policydb/mocks"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
+	mockGx "magma/feg/gateway/services/session_proxy/credit_control/gx/mocks"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
+	mockGy "magma/feg/gateway/services/session_proxy/credit_control/gy/mocks"
 	"magma/feg/gateway/services/session_proxy/servicers"
 	"magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
@@ -57,90 +60,8 @@ var (
 	initialRequestedUnits = &protos.RequestedUnits{Total: 10000, Tx: 10000, Rx: 10000}
 )
 
-// ---- MockPolicyClient ----
-type MockPolicyClient struct {
-	mock.Mock
-}
-
-func (p *MockPolicyClient) SendCreditControlRequest(
-	server *diameter.DiameterServerConfig,
-	done chan interface{},
-	request *gx.CreditControlRequest,
-) error {
-	args := p.Called(server, done, request)
-	return args.Error(0)
-}
-
-func (p *MockPolicyClient) IgnoreAnswer(request *gx.CreditControlRequest) {
-	return
-}
-
-func (p *MockPolicyClient) EnableConnections() error {
-	p.Called()
-	return nil
-}
-
-func (p *MockPolicyClient) DisableConnections(period time.Duration) {
-	p.Called(period)
-	return
-}
-
-// ---- MockCreditClient ----
-type MockCreditClient struct {
-	mock.Mock
-}
-
-func (cc *MockCreditClient) SendCreditControlRequest(
-	server *diameter.DiameterServerConfig,
-	done chan interface{},
-	request *gy.CreditControlRequest,
-) error {
-	args := cc.Called(server, done, request)
-	return args.Error(0)
-}
-
-func (cc *MockCreditClient) IgnoreAnswer(request *gy.CreditControlRequest) {
-	return
-}
-
-func (cc *MockCreditClient) EnableConnections() error {
-	cc.Called()
-	return nil
-}
-
-func (cc *MockCreditClient) DisableConnections(period time.Duration) {
-	cc.Called(period)
-	return
-}
-
-// ---- MockPolicyDBClient ----
-type MockPolicyDBClient struct {
-	mock.Mock
-}
-
-func (client *MockPolicyDBClient) GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) []policydb.ChargingKey {
-
-	args := client.Called(ruleIDs)
-	return args.Get(0).([]policydb.ChargingKey)
-}
-
-func (client *MockPolicyDBClient) GetRuleIDsForBaseNames(baseNames []string) []string {
-	args := client.Called(baseNames)
-	return args.Get(0).([]string)
-}
-
-func (client *MockPolicyDBClient) GetPolicyRuleByID(id string) (*protos.PolicyRule, error) {
-	return nil, nil
-}
-
-func (client *MockPolicyDBClient) GetOmnipresentRules() ([]string, []string) {
-	args := client.Called()
-	return args.Get(0).([]string), args.Get(1).([]string)
-}
-
 //  ---- MockMultiplexor ----
 type MockMultiplexor struct {
-	mock.Mock
 	imsiToIndex map[uint64]int
 }
 
@@ -153,28 +74,27 @@ func (mp *MockMultiplexor) GetIndex(muxCtx *multiplex.Context) (int, error) {
 }
 
 // ---- TESTS ----
-
 func TestSessionControllerInit(t *testing.T) {
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
-	standardUsageTest(t, srv, mockControlParams, mockPolicyDb, mockMux, gy.PerKeyInit)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
+	standardUsageTest(t, srv, mockControlParams, mockPolicyDBClient, mockMux, gy.PerKeyInit)
 }
 
 func TestStartSessionGxFail(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
 
-	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*mockGx.PolicyClient)
 	// Send back DIAMETER_RATING_FAILED (5031) from gx
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		done := args.Get(1).(chan interface{})
@@ -187,7 +107,7 @@ func TestStartSessionGxFail(t *testing.T) {
 	}).Once()
 	// If gx fails gy should not be used at all
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		SessionId:      genSessionID(IMSI1),
@@ -206,14 +126,14 @@ func TestStartSessionGyFail(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
-	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*mockGy.CreditClient)
 
 	// Send back DIAMETER_SUCCESS (2001) from gx
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -238,11 +158,10 @@ func TestStartSessionGyFail(t *testing.T) {
 		}
 	}).Once()
 
-	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
 	// no omnipresent rules
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
-	mockPolicyDb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
+	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
 
 	// Send back DIAMETER_RATING_FAILED (5031) from gy
 	mocksGy.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -255,7 +174,7 @@ func TestStartSessionGyFail(t *testing.T) {
 		}
 	}).Once()
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		SessionId:      genSessionID(IMSI1),
@@ -266,6 +185,7 @@ func TestStartSessionGyFail(t *testing.T) {
 			},
 		},
 	})
+	mockPolicyDBClient.AssertExpectations(t)
 	mocksGx.AssertExpectations(t)
 	assert.Error(t, err)
 }
@@ -277,18 +197,18 @@ func standardUsageTest(
 	policyDb policydb.PolicyDBClient,
 	mux multiplex.Multiplexor,
 	initMethod gy.InitMethod,
-) error {
+) {
 	ctx := context.Background()
-	mockPolicyDb := policyDb.(*MockPolicyDBClient)
+	mockPolicyDBClient := policyDb.(*mockPolicyDB.PolicyDBClient)
 
 	// Create a structure to store the pointers to the type assertions. his is needed later to
 	// be used on Enable/Disable. If it were not saved here the reference of the type to be
 	// asserted will be different than the reference of the type inside the srv
-	mocksGxs := make([]*MockPolicyClient, 0, len(controllerParams))
-	mocksGys := make([]*MockCreditClient, 0, len(controllerParams))
+	mocksGxs := make([]*mockGx.PolicyClient, 0, len(controllerParams))
+	mocksGys := make([]*mockGy.CreditClient, 0, len(controllerParams))
 	for _, cp := range controllerParams {
-		mocksGxs = append(mocksGxs, cp.PolicyClient.(*MockPolicyClient))
-		mocksGys = append(mocksGys, cp.CreditClient.(*MockCreditClient))
+		mocksGxs = append(mocksGxs, cp.PolicyClient.(*mockGx.PolicyClient))
+		mocksGys = append(mocksGys, cp.CreditClient.(*mockGy.CreditClient))
 	}
 
 	// Get the controller for this imsi
@@ -361,8 +281,8 @@ func standardUsageTest(
 	}).Once()
 
 	// send rating groups back
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
-	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
+	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{
 			policydb.ChargingKey{RatingGroup: 1},
 			policydb.ChargingKey{RatingGroup: 2},
@@ -372,7 +292,7 @@ func standardUsageTest(
 			policydb.ChargingKey{RatingGroup: 20, ServiceIdTracking: true, ServiceIdentifier: 201},
 			policydb.ChargingKey{RatingGroup: 21}}, nil).Once()
 	// no omnipresent rules
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
 
 	multiReqType := credit_control.CRTInit // type of CCR sent to get credits
 	if initMethod == gy.PerSessionInit {
@@ -403,7 +323,7 @@ func standardUsageTest(
 	})
 	mocksGx.AssertExpectations(t)
 	mocksGy.AssertExpectations(t)
-	mockPolicyDb.AssertExpectations(t)
+	mockPolicyDBClient.AssertExpectations(t)
 	assert.Equal(t, 6, len(createResponse.Credits)) // 2 static, 2 dynamic, 2 base
 	assert.Equal(t, 2, len(createResponse.DynamicRules))
 
@@ -489,8 +409,8 @@ func standardUsageTest(
 
 	// Connection Manager tests - Enable Connections
 	for i := 0; i < confNumOfServers; i++ {
-		mocksGxs[i].On("EnableConnections").Return()
-		mocksGys[i].On("EnableConnections").Return()
+		mocksGxs[i].On("EnableConnections").Return(nil)
+		mocksGys[i].On("EnableConnections").Return(nil)
 	}
 	void, err = srv.Enable(ctx, &orcprotos.Void{})
 
@@ -500,22 +420,20 @@ func standardUsageTest(
 	}
 	assert.NoError(t, err)
 	assert.Equal(t, &orcprotos.Void{}, void)
-
-	return nil
 }
 
 func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
-	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*mockGy.CreditClient)
 
 	// send static rules back
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything,
@@ -537,12 +455,11 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 			RuleInstallAVP: ruleInstalls,
 		}
 	}).Once()
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
-	//mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
-	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
+	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
+	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
 	mocksGy.On(
 		"SendCreditControlRequest",
 		mock.Anything,
@@ -551,7 +468,7 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 	).Return(nil).Run(returnDefaultGyResponse).Once()
 
 	ctx := context.Background()
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	response, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		SessionId:      genSessionID(IMSI1),
 		RequestedUnits: initialRequestedUnits,
@@ -565,7 +482,7 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 
 	mocksGx.AssertExpectations(t)
 	mocksGy.AssertExpectations(t)
-	mockPolicyDb.AssertExpectations(t)
+	mockPolicyDBClient.AssertExpectations(t)
 
 	assert.Equal(t, 6, len(response.StaticRules))
 	expectedRuleIDs := []string{"static_rule_1", "static_rule_2", "base_rule_1", "base_rule_2", "omnipresent_rule_1", "omnipresent_rule_2"}
@@ -577,19 +494,19 @@ func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*mockGy.CreditClient)
 
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
 	//mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
-	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
+	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
 	mocksGy.On(
 		"SendCreditControlRequest",
 		mock.Anything,
@@ -599,7 +516,7 @@ func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
 
 	ctx := context.Background()
 	mockControlParams[idx].Config.DisableGx = true
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	response, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		SessionId:      genSessionID(IMSI1),
 		RequestedUnits: initialRequestedUnits,
@@ -612,7 +529,7 @@ func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
 	assert.NoError(t, err)
 
 	mocksGy.AssertExpectations(t)
-	mockPolicyDb.AssertExpectations(t)
+	mockPolicyDBClient.AssertExpectations(t)
 
 	assert.Equal(t, 2, len(response.StaticRules))
 	expectedRuleIDs := []string{"omnipresent_rule_1", "omnipresent_rule_2"}
@@ -623,21 +540,28 @@ func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
 func TestSessionControllerTimeouts(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
+
+	// set small timeouts for this test to force timeout quicker
+	mockConfig[0].RequestTimeout = time.Millisecond
+	mockConfig[1].RequestTimeout = time.Millisecond
+
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 
 	idx1, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGy_1 := mockControlParams[idx1].CreditClient.(*MockCreditClient)
+	mocksGy_1 := mockControlParams[idx1].CreditClient.(*mockGy.CreditClient)
 
 	idx2, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI2))
 	assert.NoError(t, err)
-	mocksGy_2 := mockControlParams[idx2].CreditClient.(*MockCreditClient)
-
+	mocksGy_2 := mockControlParams[idx2].CreditClient.(*mockGy.CreditClient)
 	ctx := context.Background()
+
+	mocksGy_1.On("IgnoreAnswer", mock.Anything).Return()
+	mocksGy_2.On("IgnoreAnswer", mock.Anything).Return()
 
 	// depending on request number, "lose" request
 	var units uint64 = 2048
@@ -708,16 +632,16 @@ func TestSessionTermination(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI2))
 	assert.NoError(t, err)
-	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
-	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*mockGy.CreditClient)
 
 	ctx := context.Background()
 
@@ -753,11 +677,15 @@ func TestSessionTermination(t *testing.T) {
 	}).Once()
 
 	termResponse, err := srv.TerminateSession(ctx, &protos.SessionTerminateRequest{
-		Sid:       IMSI2,
 		SessionId: genSessionID(IMSI2),
 		CreditUsages: []*protos.CreditUsage{
 			createUsage(2, protos.CreditUsage_TERMINATED),
 			createUsage(1, protos.CreditUsage_TERMINATED),
+		},
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI2,
+			},
 		},
 	})
 	mocksGy.AssertExpectations(t)
@@ -771,13 +699,13 @@ func TestEventTriggerInUpdate(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*mockGx.PolicyClient)
 
 	// send static rules back
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything,
@@ -792,7 +720,7 @@ func TestEventTriggerInUpdate(t *testing.T) {
 		}
 	}).Once()
 	ctx := context.Background()
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	_, err = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
 		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{{
 			SessionId:     genSessionID(IMSI1),
@@ -804,29 +732,29 @@ func TestEventTriggerInUpdate(t *testing.T) {
 	assert.NoError(t, err)
 
 	mocksGx.AssertExpectations(t)
-	mockPolicyDb.AssertExpectations(t)
+	mockPolicyDBClient.AssertExpectations(t)
 }
 
-func testGxUsageMonitoring(t *testing.T) {
+func TestGxUsageMonitoring(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	ctx := context.Background()
 
 	// Get the controller for this imsi
 	idx_1, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx_1 := mockControlParams[idx_1].PolicyClient.(*MockPolicyClient)
-	mocksGy_1 := mockControlParams[idx_1].CreditClient.(*MockCreditClient)
+	mocksGx_1 := mockControlParams[idx_1].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy_1 := mockControlParams[idx_1].CreditClient.(*mockGy.CreditClient)
 
 	idx_2, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI2))
 	assert.NoError(t, err)
-	mocksGx_2 := mockControlParams[idx_2].PolicyClient.(*MockPolicyClient)
-	mocksGy_2 := mockControlParams[idx_2].CreditClient.(*MockCreditClient)
+	mocksGx_2 := mockControlParams[idx_2].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy_2 := mockControlParams[idx_2].CreditClient.(*mockGy.CreditClient)
 
 	// Return success for Gx Update
 	mocksGy_1.On("SendCreditControlRequest",
@@ -847,7 +775,7 @@ func testGxUsageMonitoring(t *testing.T) {
 		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(2)
 
-	updateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+	updateSessionRequest := &protos.UpdateSessionRequest{
 		Updates: []*protos.CreditUsageUpdate{
 			createUsageUpdate(IMSI1, 1, 1, protos.CreditUsage_QUOTA_EXHAUSTED),
 			createUsageUpdate(IMSI1, 2, 2, protos.CreditUsage_TERMINATED),
@@ -860,7 +788,8 @@ func testGxUsageMonitoring(t *testing.T) {
 			createUsageMonitoringRequest(IMSI2, "mkey3", 1, protos.MonitoringLevel_SESSION_LEVEL),
 			createUsageMonitoringRequest(IMSI2, "mkey4", 2, protos.MonitoringLevel_PCC_RULE_LEVEL),
 		},
-	})
+	}
+	updateResponse, _ := srv.UpdateSession(ctx, updateSessionRequest)
 
 	mocksGy_1.AssertExpectations(t)
 	mocksGx_1.AssertExpectations(t)
@@ -915,7 +844,6 @@ func testGxUsageMonitoring(t *testing.T) {
 		assert.True(t, update.Success)
 		assert.True(t, IMSI1 == update.Sid || IMSI2 == update.Sid)
 		assert.Equal(t, protos.UsageMonitoringCredit_DISABLE, update.Credit.Action)
-		assert.Nil(t, update.Credit.GrantedUnits)
 		assert.Equal(t, protos.MonitoringLevel_SESSION_LEVEL, update.Credit.Level)
 	}
 
@@ -941,7 +869,7 @@ func testGxUsageMonitoring(t *testing.T) {
 	assert.Equal(t, 2, len(ruleInstallUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleInstallUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		if IMSI1 == update.Sid {
 			assert.Equal(t, "static1", update.StaticRulesToInstall[0].RuleId)
 			assert.Equal(t, "static2", update.StaticRulesToInstall[1].RuleId)
@@ -952,7 +880,7 @@ func testGxUsageMonitoring(t *testing.T) {
 			assert.True(t, false)
 		}
 	}
-	// Test that static rule install avp in CCA-Update by rule base names gets propagated properly
+	// Test that static rule install avp in CCA-Update by rule BASE names gets propagated properly
 	mocksGx_1.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
@@ -962,8 +890,8 @@ func testGxUsageMonitoring(t *testing.T) {
 		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleInstallGxUpdateResponse([]string{}, []string{"base_30"})).Times(1)
 
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_30"}).Return([]string{"base_rule_2", "base_rule_3"})
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"base_30"}).Return([]string{"base_rule_3", "base_rule_4"})
 
 	ruleInstallUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
 		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
@@ -976,7 +904,7 @@ func testGxUsageMonitoring(t *testing.T) {
 	assert.Equal(t, 2, len(ruleInstallUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleInstallUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		if IMSI1 == update.Sid {
 			assert.Equal(t, "base_rule_1", update.StaticRulesToInstall[0].RuleId)
 			assert.Equal(t, "base_rule_2", update.StaticRulesToInstall[1].RuleId)
@@ -1010,7 +938,7 @@ func testGxUsageMonitoring(t *testing.T) {
 	assert.Equal(t, 2, len(ruleInstallUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleInstallUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		assert.True(t, (IMSI1 == update.Sid || "dyn_rule_10" == update.DynamicRulesToInstall[0].PolicyRule.Id) ||
 			(IMSI2 == update.Sid || "dyn_rule_30" == update.DynamicRulesToInstall[0].PolicyRule.Id),
 		)
@@ -1022,23 +950,25 @@ func testGxUsageMonitoring(t *testing.T) {
 		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{"rule1", "rule2"}, []string{})).Times(1)
 
-	mocksGx_1.On("SendCreditControlRequest",
+	mocksGx_2.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{"rule3", "rule4"}, []string{})).Times(1)
 
-	ruleDisableUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
-		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
-			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
-			createUsageMonitoringRequest(IMSI2, "mkey3", 1, protos.MonitoringLevel_SESSION_LEVEL),
-		},
-	})
+	usageMonitoringUpdateRequest := []*protos.UsageMonitoringUpdateRequest{
+		createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		createUsageMonitoringRequest(IMSI2, "mkey3", 1, protos.MonitoringLevel_SESSION_LEVEL),
+	}
+
+	ruleDisableUpdateResponse, _ := srv.UpdateSession(ctx,
+		&protos.UpdateSessionRequest{UsageMonitors: usageMonitoringUpdateRequest},
+	)
 	mocksGx_1.AssertExpectations(t)
 	mocksGx_2.AssertExpectations(t)
 	assert.Equal(t, 2, len(ruleDisableUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleDisableUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		if IMSI1 == update.Sid {
 			assert.Equal(t, []string{"rule1", "rule2"}, update.RulesToRemove)
 		} else if IMSI2 == update.Sid {
@@ -1058,8 +988,8 @@ func testGxUsageMonitoring(t *testing.T) {
 		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{}, []string{"base_30"})).Times(1)
 
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_30"}).Return([]string{"base_rule_3", "base_rule_4"})
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"base_30"}).Return([]string{"base_rule_3", "base_rule_4"})
 
 	ruleDisableUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
 		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
@@ -1072,8 +1002,7 @@ func testGxUsageMonitoring(t *testing.T) {
 	assert.Equal(t, 2, len(ruleDisableUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleDisableUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
-		assert.Equal(t, []string{"base_rule_1", "base_rule_2"}, update.RulesToRemove)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		if IMSI1 == update.Sid {
 			assert.Equal(t, []string{"base_rule_1", "base_rule_2"}, update.RulesToRemove)
 		} else if IMSI2 == update.Sid {
@@ -1091,22 +1020,22 @@ func TestGetHealthStatus(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	ctx := context.Background()
 
 	// Get the controller for two imsis
 	idx_1, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx_1 := mockControlParams[idx_1].PolicyClient.(*MockPolicyClient)
-	mocksGy_1 := mockControlParams[idx_1].CreditClient.(*MockCreditClient)
+	mocksGx_1 := mockControlParams[idx_1].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy_1 := mockControlParams[idx_1].CreditClient.(*mockGy.CreditClient)
 
 	idx_2, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI2))
 	assert.NoError(t, err)
-	mocksGx_2 := mockControlParams[idx_2].PolicyClient.(*MockPolicyClient)
-	mocksGy_2 := mockControlParams[idx_2].CreditClient.(*MockCreditClient)
+	mocksGx_2 := mockControlParams[idx_2].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy_2 := mockControlParams[idx_2].CreditClient.(*mockGy.CreditClient)
 
 	// Return success for Gx/Gy CCR-Update in two different servers (2 PCRFs, 2 OCSs)
 	mocksGy_1.On("SendCreditControlRequest",
@@ -1219,8 +1148,8 @@ func getMockControllerParams(mockConfig []*servicers.SessionControllerConfig) []
 	controlParams := make([]*servicers.ControllerParam, 0, NUMBER_SERVERS)
 	for i := 0; i < NUMBER_SERVERS; i++ {
 		cp := &servicers.ControllerParam{
-			&MockCreditClient{},
-			&MockPolicyClient{},
+			&mockGy.CreditClient{},
+			&mockGx.PolicyClient{},
 			mockConfig[i],
 		}
 		controlParams = append(controlParams, cp)
@@ -1242,7 +1171,7 @@ func getTestConfig() []*servicers.SessionControllerConfig {
 				Addr:     fmt.Sprintf("127.0.0.1:%s", pcrf_port),
 				Protocol: "tcp"},
 			},
-			RequestTimeout: time.Millisecond,
+			RequestTimeout: 3 * time.Second,
 		}
 		serverCfg[i] = srv
 	}
@@ -1250,16 +1179,20 @@ func getTestConfig() []*servicers.SessionControllerConfig {
 }
 
 func createUsageUpdate(
-	sid string,
+	imsi string,
 	chargingKey uint32,
 	requestNumber uint32,
 	requestType protos.CreditUsage_UpdateType,
 ) *protos.CreditUsageUpdate {
 	return &protos.CreditUsageUpdate{
 		Usage:         createUsage(chargingKey, requestType),
-		SessionId:     genSessionID(sid),
+		SessionId:     genSessionID(imsi),
 		RequestNumber: requestNumber,
-		Sid:           sid,
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: imsi,
+			},
+		},
 	}
 }
 
@@ -1279,6 +1212,7 @@ func createUsageMonitoringRequest(
 		SessionId:     genSessionID(sid),
 		RequestNumber: requestNumber,
 		Sid:           sid,
+		EventTrigger:  protos.EventTrigger_USAGE_REPORT,
 	}
 }
 
@@ -1391,9 +1325,11 @@ func returnEmptyGxUpdateResponse(args mock.Arguments) {
 	request := args.Get(2).(*gx.CreditControlRequest)
 	monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
 	for _, report := range request.UsageReports {
+		m_support_0 := gx.MonitoringSupport(0)
 		monitors = append(monitors, &gx.UsageMonitoringInfo{
 			MonitoringKey:      report.MonitoringKey,
 			GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
+			Support:            &m_support_0,
 			Level:              report.Level,
 		})
 	}
@@ -1408,13 +1344,18 @@ func returnEmptyGxUpdateResponse(args mock.Arguments) {
 func getRuleInstallGxUpdateResponse(ruleNames, baseNames []string) func(mock.Arguments) {
 	return func(args mock.Arguments) {
 		done := args.Get(1).(chan interface{})
+		octet_val_1000 := uint64(1000)
 		request := args.Get(2).(*gx.CreditControlRequest)
 		monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
 		for _, report := range request.UsageReports {
 			monitors = append(monitors, &gx.UsageMonitoringInfo{
-				MonitoringKey:      report.MonitoringKey,
-				GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
-				Level:              report.Level,
+				MonitoringKey: report.MonitoringKey,
+				GrantedServiceUnit: &credit_control.GrantedServiceUnit{
+					TotalOctets:  &octet_val_1000,
+					InputOctets:  &octet_val_1000,
+					OutputOctets: &octet_val_1000,
+				},
+				Level: report.Level,
 			})
 		}
 		done <- &gx.CreditControlAnswer{
@@ -1519,14 +1460,14 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
-	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*mockGy.CreditClient)
 	mockConfig[idx].UseGyForAuthOnly = true
 
 	activationTime := time.Unix(1, 0)
@@ -1553,10 +1494,10 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		}
 	}).Once()
 
-	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 3}}, nil).Once()
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{"omnipresent_1"}, []string{}).Once()
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{}).Return([]string{}).Once()
+	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{"omnipresent_1"}, []string{}).Once()
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{}).Return([]string{}).Once()
 
 	mocksGy.On(
 		"SendCreditControlRequest",
@@ -1565,7 +1506,7 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	ctx := context.Background()
 
 	res, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
@@ -1591,14 +1532,14 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
-	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*mockGy.CreditClient)
 	mockConfig[idx].UseGyForAuthOnly = true
 
 	// Send back DIAMETER_SUCCESS (2001) from gx
@@ -1622,11 +1563,12 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 			RuleInstallAVP: ruleInstalls,
 		}
 	}).Once()
-	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+
+	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
 	// no omnipresent rule
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
-	mockPolicyDb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
+	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocksGy.On(
@@ -1636,7 +1578,7 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		SessionId:      genSessionID(IMSI1),
@@ -1667,14 +1609,14 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
-	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*mockGy.CreditClient)
 	mockConfig[idx].UseGyForAuthOnly = true
 
 	// Send back DIAMETER_SUCCESS (2001) from gx
@@ -1696,11 +1638,12 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 			RuleInstallAVP: ruleInstalls,
 		}
 	}).Once()
-	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+
+	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
 	// no omnipresent rule
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
-	mockPolicyDb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
+	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocksGy.On(
@@ -1710,7 +1653,7 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessCreditLimitReached).Once()
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		SessionId:      genSessionID(IMSI1),
@@ -1746,14 +1689,14 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
 	// Get the controller for this imsi
 	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
-	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*mockGy.CreditClient)
 	mockConfig[idx].UseGyForAuthOnly = true
 
 	// Send back DIAMETER_SUCCESS (2001) from gx
@@ -1775,11 +1718,12 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 			RuleInstallAVP: ruleInstalls,
 		}
 	}).Once()
-	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+
+	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
 	// no omnipresent rule
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
-	mockPolicyDb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
+	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocksGy.On(
@@ -1789,7 +1733,7 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessSubscriberBarred).Once()
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		SessionId:      genSessionID(IMSI1),
@@ -1861,13 +1805,13 @@ func revalidationTimerTest(
 	numberServers int,
 ) {
 	ctx := context.Background()
-	mockPolicyDb := policyDb.(*MockPolicyDBClient)
+	mockPolicyDBClient := policyDb.(*mockPolicyDB.PolicyDBClient)
 
 	// Get the controller for this imsi
 	idx, err := mux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
 	assert.NoError(t, err)
-	mocksGx := controllerParams[idx].PolicyClient.(*MockPolicyClient)
-	mocksGy := controllerParams[idx].CreditClient.(*MockCreditClient)
+	mocksGx := controllerParams[idx].PolicyClient.(*mockGx.PolicyClient)
+	mocksGy := controllerParams[idx].CreditClient.(*mockGy.CreditClient)
 
 	mocksGx.On(
 		"SendCreditControlRequest",
@@ -1876,9 +1820,9 @@ func revalidationTimerTest(
 		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGxSuccessRevalidationTimer).Once()
 
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
-	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
+	mockPolicyDBClient.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
+	mockPolicyDBClient.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
+	mockPolicyDBClient.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
 
 	if useGyForAuthOnly {
 		mocksGy.On(
@@ -1901,7 +1845,7 @@ func revalidationTimerTest(
 
 	mocksGx.AssertExpectations(t)
 	mocksGy.AssertExpectations(t)
-	mockPolicyDb.AssertExpectations(t)
+	mockPolicyDBClient.AssertExpectations(t)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(createResponse.UsageMonitors))
 
@@ -1915,12 +1859,12 @@ func TestSessionControllerRevalidationTimerUsed(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
 
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 
-	revalidationTimerTest(t, srv, mockControlParams, mockPolicyDb, mockMux, false, NUMBER_SERVERS)
+	revalidationTimerTest(t, srv, mockControlParams, mockPolicyDBClient, mockMux, false, NUMBER_SERVERS)
 }
 
 func TestSessionControllerUseGyForAuthOnlyRevalidationTimerUsed(t *testing.T) {
@@ -1928,9 +1872,9 @@ func TestSessionControllerUseGyForAuthOnlyRevalidationTimerUsed(t *testing.T) {
 	mockConfig := getTestConfig()
 	mockConfig[0].UseGyForAuthOnly = true
 	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
+	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockMux := getMockMultiplexor(numberServers)
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDBClient, mockMux)
 
-	revalidationTimerTest(t, srv, mockControlParams, mockPolicyDb, mockMux, mockConfig[0].UseGyForAuthOnly, 1)
+	revalidationTimerTest(t, srv, mockControlParams, mockPolicyDBClient, mockMux, mockConfig[0].UseGyForAuthOnly, 1)
 }

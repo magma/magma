@@ -31,12 +31,76 @@ SessionStore::SessionStore(
       store_client_(store_client),
       metering_reporter_(std::make_shared<MeteringReporter>()) {}
 
+bool SessionStore::raw_write_sessions(SessionMap session_map) {
+  // return true;
+  return store_client_->write_sessions(std::move(session_map));
+}
+
 SessionMap SessionStore::read_sessions(const SessionRead& req) {
   return store_client_->read_sessions(req);
 }
 
 SessionMap SessionStore::read_all_sessions() {
   return store_client_->read_all_sessions();
+}
+
+void SessionStore::set_and_save_reporting_flag(
+    bool value, const UpdateSessionRequest& update_session_request,
+    SessionUpdate& session_uc) {
+  MLOG(MDEBUG) << "saving flag is_reporting = " << value << " on session store";
+  auto session_map = store_client_->read_all_sessions();
+
+  for (const CreditUsageUpdate& credit_update :
+       update_session_request.updates()) {
+    const std::string imsi       = credit_update.common_context().sid().id();
+    const std::string session_id = credit_update.session_id();
+    const CreditKey& ckey        = credit_update.usage().charging_key();
+    const std::string mkey       = credit_update.usage().monitoring_key();
+
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << session_id
+                   << " not found when setting set_and_save_reporting_flag";
+      continue;
+    }
+
+    auto& session   = **session_it;
+    auto& credit_uc = session_uc[imsi][session_id];
+
+    if (!session->set_credit_reporting(ckey, value, &credit_uc)) {
+      MLOG(MDEBUG)
+          << session_id
+          << " set_and_save_reporting_flag couldn't set reporting for ckey "
+          << ckey;
+    }
+  }
+
+  for (const UsageMonitoringUpdateRequest& monitor_update :
+       update_session_request.usage_monitors()) {
+    const std::string imsi       = monitor_update.sid();
+    const std::string session_id = monitor_update.session_id();
+    const auto mkey              = monitor_update.update().monitoring_key();
+
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << session_id
+                   << " not found when setting set_and_save_reporting_flag";
+      continue;
+    }
+    auto& session   = **session_it;
+    auto& credit_uc = session_uc[imsi][session_id];
+
+    if (!session->set_monitor_reporting(mkey, value, &credit_uc)) {
+      MLOG(MDEBUG)
+          << session_id
+          << " set_and_save_reporting_flag couldn't set monitors for mkey:"
+          << mkey;
+    }
+  }
+
+  store_client_->write_sessions(std::move(session_map));
 }
 
 void SessionStore::sync_request_numbers(const SessionUpdate& update_criteria) {
@@ -129,38 +193,83 @@ optional<SessionVector::iterator> SessionStore::find_session(
   }
   auto& sessions = sm_it->second;
   for (auto it = sessions.begin(); it != sessions.end(); ++it) {
+    const auto& context = (*it)->get_config().common_context;
     switch (criteria.search_type) {
       case IMSI_AND_SESSION_ID:
         if ((*it)->get_session_id() == criteria.secondary_key) {
           return it;
         }
         break;
+
       case IMSI_AND_APN:
-        if ((*it)->get_config().common_context.apn() ==
-            criteria.secondary_key) {
+        if (context.apn() == criteria.secondary_key) {
           return it;
         }
         break;
+
       case IMSI_AND_UE_IPV4:
-        if ((*it)->get_config().common_context.ue_ipv4() ==
-            criteria.secondary_key) {
+        if (context.ue_ipv4() == criteria.secondary_key) {
           return it;
         }
         break;
+
       case IMSI_AND_UE_IPV4_OR_IPV6:
         // cwag case (cwag doesn't store ip)
-        if ((*it)->get_config().common_context.rat_type() ==
-            RATType::TGPP_WLAN) {
+        if (context.rat_type() == RATType::TGPP_WLAN) {
           return it;
         }
-        // lte case
-        if ((*it)->get_config().common_context.ue_ipv4() ==
-                criteria.secondary_key ||
-            (*it)->get_config().common_context.ue_ipv6() ==
-                criteria.secondary_key) {
+        // other case(lte,5g)
+        if (context.ue_ipv4() == criteria.secondary_key ||
+            context.ue_ipv6() == criteria.secondary_key) {
           return it;
         }
         break;
+
+      case IMSI_AND_BEARER:
+        switch (context.rat_type()) {
+          case RATType::TGPP_LTE:
+            // lte case
+            if ((*it)->get_config()
+                        .rat_specific_context.lte_context()
+                        .bearer_id() == criteria.secondary_key_unit32 &&
+                (*it)->is_active()) {
+              return it;
+            }
+            break;
+          case RATType::TGPP_WLAN:
+            return it;
+          default:
+          case RATType::TGPP_NR:
+            MLOG(MERROR) << "Search criteria for IMSI_AND_BEARER "
+                            "not implemented for this RAT "
+                         << context.rat_type();
+            break;
+        }
+        break;  // break IMSI_AND_BEARER
+
+      case IMSI_AND_TEID:
+        switch (context.rat_type()) {
+          case RATType::TGPP_WLAN:
+            return it;
+            break;
+          case RATType::TGPP_LTE:
+            if (context.teids().enb_teid() == criteria.secondary_key_unit32 ||
+                context.teids().agw_teid() == criteria.secondary_key_unit32) {
+              return it;
+            }
+            break;
+          case RATType::TGPP_NR:
+            if ((*it)->get_local_teid() == criteria.secondary_key_unit32) {
+              return it;
+            }
+            break;
+          default:
+            MLOG(MERROR) << "Search criteria for IMSI_AND_TEID not implemented"
+                            "for this RAT "
+                         << context.rat_type();
+            break;
+        }
+        break;  // break IMSI_AND_TEID
     }
     continue;
   }

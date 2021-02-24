@@ -55,6 +55,12 @@ from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+from lte.protos.ha_service_pb2_grpc import HaServiceStub
+from lte.protos.ha_service_pb2 import (
+    StartAgwOffloadRequest,
+    EnbOffloadType,
+)
+from orc8r.protos.common_pb2 import Void
 
 DEFAULT_GRPC_TIMEOUT = 10
 
@@ -71,6 +77,10 @@ class S1ApUtil(object):
     CM_ESM_PDN_IPV4 = 0b01
     CM_ESM_PDN_IPV6 = 0b10
     CM_ESM_PDN_IPV4V6 = 0b11
+
+    PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST = 0x0001
+    PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST = 0x000C
+    PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST = 0x0003
 
     lib_name = "libtfw.so"
 
@@ -103,6 +113,8 @@ class S1ApUtil(object):
         """
         Initialize the s1aplibrary and its callbacks.
         """
+        self._imsi_idx = 1
+        self.IMSI_LEN = 15
         lib_path = os.environ["S1AP_TESTER_ROOT"]
         lib = os.path.join(lib_path, "bin", S1ApUtil.lib_name)
         os.chdir(lib_path)
@@ -151,7 +163,7 @@ class S1ApUtil(object):
         with self._cond:
             rc = self._test_api(cmd_type.value, c_req)
             if rc:
-                logging.error("Error executing command %s" % repr(cmd_type))
+                print("Error executing command %s" % repr(cmd_type))
                 return rc
         return 0
 
@@ -173,12 +185,15 @@ class S1ApUtil(object):
         # Wait until callback is invoked.
         return self._msg.get(True)
 
-    def populate_pco(self, protCfgOpts_pr, pcscf_addr_type):
+    def populate_pco(
+            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
+    ):
         """
         Populates the PCO values.
         Args:
             protCfgOpts_pr: PCO structure
             pcscf_addr_type: ipv4/ipv6/ipv4v6 flag
+            dns_ipv6_addr: True/False flag
         Returns:
             None
         """
@@ -195,30 +210,50 @@ class S1ApUtil(object):
         protCfgOpts_pr.numProtId = 0
 
         # Fill Number of container IDs and Container ID
+        idx = 0
         if pcscf_addr_type == "ipv4":
-            protCfgOpts_pr.numContId = 1
-            protCfgOpts_pr.c[0].cid = 0x000C
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            idx += 1
 
         elif pcscf_addr_type == "ipv6":
-            protCfgOpts_pr.numContId = 1
-            protCfgOpts_pr.c[0].cid = 0x0001
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            idx += 1
 
         elif pcscf_addr_type == "ipv4v6":
-            protCfgOpts_pr.numContId = 2
-            protCfgOpts_pr.c[0].cid = 0x000C
-            protCfgOpts_pr.c[1].cid = 0x0001
+            protCfgOpts_pr.numContId += 2
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            idx += 1
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            idx += 1
+
+        if dns_ipv6_addr:
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
-        self,
-        ue_id,
-        attach_type,
-        resp_type,
-        resp_msg_type,
-        sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
-        id_type=s1ap_types.TFW_MID_TYPE_IMSI,
-        eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
-        pdn_type=1,
-        pcscf_addr_type=None,
+            self,
+            ue_id,
+            attach_type,
+            resp_type,
+            resp_msg_type,
+            sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
+            id_type=s1ap_types.TFW_MID_TYPE_IMSI,
+            eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
+            pdn_type=1,
+            pcscf_addr_type=None,
+            dns_ipv6_addr=False,
     ):
         """
         Given a UE issue the attach request of specified type
@@ -247,8 +282,10 @@ class S1ApUtil(object):
         attach_req.pdnType_pr.pdn_type = pdn_type
 
         # Populate PCO only if pcscf_addr_type is set
-        if pcscf_addr_type:
-            self.populate_pco(attach_req.protCfgOpts_pr, pcscf_addr_type)
+        if pcscf_addr_type or dns_ipv6_addr:
+            self.populate_pco(
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr
+            )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
         response = self.get_response()
@@ -262,8 +299,8 @@ class S1ApUtil(object):
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
             assert (
-                context_setup.msg_type
-                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                    context_setup.msg_type
+                    == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             )
 
         logging.debug(
@@ -306,14 +343,14 @@ class S1ApUtil(object):
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
         assert (
-            self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
-            == 0
+                self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+                == 0
         )
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
             assert (
-                s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
-                == response.msg_type
+                    s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
+                    == response.msg_type
             )
 
         # Now wait for the context release response
@@ -331,43 +368,56 @@ class S1ApUtil(object):
         # Verify the total number of DL flows for this UE ip address
         num_dl_flows = 1
         for key, value in dl_flow_rules.items():
-            ipv4_src_addr = None
             tcp_src_port = 0
             ip_proto = 0
+            ue_ip6_str = None
             ue_ip_str = str(key)
+            if key.version == 6:
+                ue_ip6_str = ipaddress.ip_network(
+                    (ue_ip_str + "/64"), strict=False
+                ).with_netmask
+            ue_ip_addr = ue_ip6_str if key.version == 6 else ue_ip_str
+            dst_addr = "nw_dst" if key.version == 4 else "ipv6_dst"
+            key_to_be_matched = "ipv4_src" if key.version == 4 else "ipv6_src"
+            eth_typ = 2048 if key.version == 4 else 34525
+
             # Set to 1 for the default bearer
             total_num_dl_flows_to_be_verified = 1
             for item in value:
                 for flow in item:
-                    if flow["direction"] == "DL":
+                    if (
+                            flow["direction"] == FlowMatch.DOWNLINK
+                            and key_to_be_matched in flow
+                    ):
                         total_num_dl_flows_to_be_verified += 1
             total_dl_ovs_flows_created = get_flows(
                 self.datapath,
                 {
                     "table_id": self.SPGW_TABLE,
                     "match": {
-                        "nw_dst": ue_ip_str,
-                        "eth_type": 2048,
+                        dst_addr: ue_ip_addr,
+                        "eth_type": eth_typ,
                         "in_port": self.LOCAL_PORT,
                     },
                 },
             )
             assert (
-                len(total_dl_ovs_flows_created)
-                == total_num_dl_flows_to_be_verified
+                    len(total_dl_ovs_flows_created)
+                    == total_num_dl_flows_to_be_verified
             )
 
             # Now verify the rules for every flow
             for item in value:
                 for flow in item:
-                    if flow["direction"] == "DL":
-                        ipv4_src_addr = flow["ipv4_src"]
+                    if (
+                            flow["direction"] == FlowMatch.DOWNLINK
+                            and key_to_be_matched in flow
+                    ):
+                        ip_src_addr = flow[key_to_be_matched]
+                        ip_src = "ipv4_src" if key.version == 4 else "ipv6_src"
+                        ip_dst = "ipv4_dst" if key.version == 4 else "ipv6_dst"
                         tcp_src_port = flow["tcp_src_port"]
-                        ip_proto = (
-                            FlowMatch.IPPROTO_TCP
-                            if (flow["ip_proto"] == "TCP")
-                            else FlowMatch.IPPROTO_UDP
-                        )
+                        ip_proto = flow["ip_proto"]
                         for i in range(self.MAX_NUM_RETRIES):
                             print("Get downlink flows: attempt ", i)
                             downlink_flows = get_flows(
@@ -375,10 +425,10 @@ class S1ApUtil(object):
                                 {
                                     "table_id": self.SPGW_TABLE,
                                     "match": {
-                                        "nw_dst": ue_ip_str,
-                                        "eth_type": 2048,
+                                        ip_dst: ue_ip_addr,
+                                        "eth_type": eth_typ,
                                         "in_port": self.LOCAL_PORT,
-                                        "ipv4_src": ipv4_src_addr,
+                                        ip_src: ip_src_addr,
                                         "tcp_src": tcp_src_port,
                                         "ip_proto": ip_proto,
                                     },
@@ -390,11 +440,9 @@ class S1ApUtil(object):
                                 5
                             )  # sleep for 5 seconds before retrying
                         assert (
-                            len(downlink_flows) >= num_dl_flows
+                                len(downlink_flows) >= num_dl_flows
                         ), "Downlink flow missing for UE"
-                        assert (
-                            downlink_flows[0]["match"]["ipv4_dst"] == ue_ip_str
-                        )
+                        assert downlink_flows[0]["match"][ip_dst] == ue_ip_addr
                         actions = downlink_flows[0]["instructions"][0][
                             "actions"
                         ]
@@ -420,7 +468,9 @@ class S1ApUtil(object):
                 self.datapath,
                 {
                     "table_id": self.SPGW_TABLE,
-                    "match": {"in_port": GTP_PORT},
+                    "match": {
+                        "in_port": GTP_PORT,
+                    }
                 },
             )
             if len(uplink_flows) == num_ul_flows:
@@ -457,7 +507,7 @@ class S1ApUtil(object):
                     break
                 time.sleep(5)  # sleep for 5 seconds before retrying
             assert (
-                len(paging_flows) == num_paging_flows_to_be_verified
+                    len(paging_flows) == num_paging_flows_to_be_verified
             ), "Paging flow missing for UE"
 
             # TODO - Verify that the action is to send to controller
@@ -470,6 +520,20 @@ class S1ApUtil(object):
                 and action["port"] == controller_port
             )
             assert bool(has_tunnel_action)"""
+
+    def generate_imsi(self, prefix=None):
+        """
+        Generate imsi based on index offset and prefix
+        """
+        assert (prefix is not None), "IMSI prefix is empty"
+        idx = str(self._imsi_idx)
+        # Add 0 padding
+        padding = self.IMSI_LEN - len(idx) - len(prefix[4:])
+        imsi = prefix + "0" * padding + idx
+        assert(len(imsi[4:]) == self.IMSI_LEN), "Invalid IMSI length"
+        self._imsi_idx += 1
+        print("Using subscriber IMSI %s" % imsi)
+        return imsi
 
 
 class SubscriberUtil(object):
@@ -574,12 +638,13 @@ class MagmadUtil(object):
             "sshpass -p {password} ssh "
             "-o UserKnownHostsFile=/dev/null "
             "-o StrictHostKeyChecking=no "
+            "-o LogLevel=ERROR "
             "{user}@{host} {command}"
         )
 
     def exec_command(self, command):
         """
-        Run a command remotly on magma_dev VM.
+        Run a command remotely on magma_dev VM.
 
         Args:
             command: command (str) to be executed on remote host
@@ -598,7 +663,7 @@ class MagmadUtil(object):
 
     def exec_command_output(self, command):
         """
-        Run a command remotly on magma_dev VM.
+        Run a command remotely on magma_dev VM.
 
         Args:
             command: command (str) to be executed on remote host
@@ -625,11 +690,13 @@ class MagmadUtil(object):
             disable: Disable stateless mode, do nothing if already stateful
 
         """
-
-        config_stateless_script = "/usr/local/bin/config_stateless_agw.sh"
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        venvsudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env"
+        config_stateless_script = "/usr/local/bin/config_stateless_agw.py"
 
         ret_code = self.exec_command(
-            "sudo " + config_stateless_script + " " + cmd.name.lower()
+            magtivate_cmd + " && " + venvsudo_cmd + " python3 " +
+            config_stateless_script + " " + cmd.name.lower()
         )
 
         if ret_code == 0:
@@ -640,6 +707,19 @@ class MagmadUtil(object):
             print("AGW is in a mixed config, check gateway")
         else:
             print("Unknown command")
+
+    def corrupt_agw_state(self, key: str):
+        """
+        Corrupts data on redis of stateless AGW
+        Args:
+            key:
+
+        """
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        state_corrupt_cmd = "state_cli.py corrupt %s" % key.lower()
+
+        self.exec_command(magtivate_cmd + " && " + state_corrupt_cmd)
+        print("Corrupted %s on redis" % key)
 
     def restart_all_services(self):
         """
@@ -667,6 +747,25 @@ class MagmadUtil(object):
         """
         self._magmad_client.restart_services(services)
 
+    def enable_service(self, service):
+        """
+        Enables a magma service on magma_dev VM and starts it
+        Args:
+            service: (str) service to enable
+        """
+        self.exec_command("sudo systemctl unmask magma@{}".format(service))
+        self.exec_command("sudo systemctl start magma@{}".format(service))
+
+    def disable_service(self, service):
+        """
+        Disables a magma service on magma_dev VM, preventing from
+        starting again
+        Args:
+            service: (str) service to disable
+        """
+        self.exec_command("sudo systemctl mask magma@{}".format(service))
+        self.exec_command("sudo systemctl stop magma@{}".format(service))
+
     def update_mme_config_for_sanity(self, cmd):
         mme_config_update_script = (
             "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
@@ -682,29 +781,29 @@ class MagmadUtil(object):
             print("MME configuration is updated successfully")
         elif ret_code == 1:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: Invalid command"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: Invalid command"
             )
         elif ret_code == 2:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: MME configuration file is "
-                + "missing"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: MME configuration file is "
+                    + "missing"
             )
         elif ret_code == 3:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: MME configuration's backup file "
-                + "is missing"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: MME configuration's backup file "
+                    + "is missing"
             )
         else:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: Unknown error"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: Unknown error"
             )
 
     def config_apn_correction(self, cmd):
@@ -720,9 +819,9 @@ class MagmadUtil(object):
         """
         apn_correction_cmd = ""
         if cmd.name == MagmadUtil.apn_correction_cmds.ENABLE.name:
-            apn_correction_cmd = "sed -i \'s/correction: false/correction: true/g\' /etc/magma/mme.yml"
+            apn_correction_cmd = "sed -i \'s/enable_apn_correction: false/enable_apn_correction: true/g\' /etc/magma/mme.yml"
         else:
-            apn_correction_cmd = "sed -i \'s/correction: true/correction: false/g\' /etc/magma/mme.yml"
+            apn_correction_cmd = "sed -i \'s/enable_apn_correction: true/enable_apn_correction: false/g\' /etc/magma/mme.yml"
 
         ret_code = self.exec_command(
             "sudo " + apn_correction_cmd)
@@ -731,6 +830,58 @@ class MagmadUtil(object):
             print("APN Correction configured")
         else:
             print("APN Correction failed")
+
+    def restart_mme_and_wait(self):
+        print("Restarting mme service on gateway")
+        self.restart_services(["mme"])
+        print("Waiting for mme to restart. 20 sec")
+        time.sleep(20)
+
+    def restart_sctpd(self):
+        """
+        The Sctpd service is not managed by magmad, hence needs to be
+        restarted explicitly
+        """
+        self.exec_command(
+            "sudo service sctpd restart"
+        )
+        for j in range(30):
+            print("Waiting for", 30-j, "seconds for restart to complete")
+            time.sleep(1)
+
+    def print_redis_state(self):
+        """
+        Print the per-IMSI state in Redis data store on AGW
+        """
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        imsi_state_cmd = "state_cli.py keys IMSI*"
+        redis_imsi_keys = self.exec_command_output(
+            magtivate_cmd + " && " + imsi_state_cmd
+        )
+        keys_to_be_cleaned = []
+        for key in redis_imsi_keys.split('\n'):
+            # Ignore directoryd per-IMSI keys in this analysis as they will
+            # persist after each test
+            if "directory" not in key:
+                keys_to_be_cleaned.append(key)
+
+        mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
+        mme_nas_state = self.exec_command_output(
+            magtivate_cmd + " && " + mme_nas_state_cmd
+        )
+        num_htbl_entries = 0
+        for state in mme_nas_state.split("\n"):
+            if "nb_enb_connected" in state or "nb_ue_attached" in state:
+                keys_to_be_cleaned.append(state)
+            elif "htbl" in state:
+                num_htbl_entries += 1
+        print(
+            "Keys left in Redis (list should be empty)[\n",
+            "\n".join(keys_to_be_cleaned),
+            "\n]"
+        )
+        print("Entries left in hashtables (should be zero):", num_htbl_entries)
+
 
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """
@@ -943,6 +1094,100 @@ class SpgwUtil(object):
         )
         self._stub.CreateBearer(req)
 
+    def create_bearer_ipv4v6(
+            self, imsi, lbi, qci_val=1, ipv4=False, ipv6=False
+    ):
+        """
+        Sends a CreateBearer Request with ipv4/ipv6/ipv4v6 packet """
+        """ filters to SPGW service """
+        print("Sending CreateBearer request to spgw service")
+        flow_match_list = []
+        if ipv4:
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ip_dst=IPAddress(
+                            version=IPAddress.IPV4,
+                            address="192.168.129.42/24".encode("utf-8"),
+                        ),
+                        tcp_dst=5001,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.UPLINK,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ip_src=IPAddress(
+                            version=IPAddress.IPV4,
+                            address="192.168.129.42".encode("utf-8"),
+                        ),
+                        tcp_src=5001,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.DOWNLINK,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+
+        if ipv6:
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ip_dst=IPAddress(
+                            version=IPAddress.IPV6,
+                            address="5546:222:2259::226".encode("utf-8"),
+                        ),
+                        tcp_dst=5001,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.UPLINK,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ip_src=IPAddress(
+                            version=IPAddress.IPV6,
+                            address="fdee:0005:006c:018c::8c99".encode(
+                                "utf-8"
+                            ),
+                        ),
+                        tcp_src=5002,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.DOWNLINK,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+
+        req = CreateBearerRequest(
+            sid=SIDUtils.to_pb(imsi),
+            link_bearer_id=lbi,
+            policy_rules=[
+                PolicyRule(
+                    id="rar_rule_1",
+                    qos=FlowQos(
+                        qci=qci_val,
+                        gbr_ul=10000000,
+                        gbr_dl=10000000,
+                        max_req_bw_ul=10000000,
+                        max_req_bw_dl=10000000,
+                        arp=QosArp(
+                            priority_level=1,
+                            pre_capability=1,
+                            pre_vulnerability=0,
+                        ),
+                    ),
+                    flow_list=flow_match_list,
+                )
+            ],
+        )
+        self._stub.CreateBearer(req)
+
     def delete_bearer(self, imsi, lbi, ebi):
         """
         Sends a DeleteBearer Request to SPGW service
@@ -967,7 +1212,7 @@ class SessionManagerUtil(object):
             get_rpc_channel("sessiond")
         )
         self._abort_session_stub = AbortSessionResponderStub(
-            get_rpc_channel("sessiond")
+            get_rpc_channel("abort_session_service")
         )
         self._directorydstub = GatewayDirectoryServiceStub(
             get_rpc_channel("directoryd")
@@ -978,14 +1223,9 @@ class SessionManagerUtil(object):
         Populates flow match list
         """
         for flow in flow_list:
-            flow_direction = (
-                FlowMatch.UPLINK
-                if flow["direction"] == "UL"
-                else FlowMatch.DOWNLINK
-            )
+            flow_direction = flow["direction"]
             ip_protocol = flow["ip_proto"]
-            if ip_protocol == "TCP":
-                ip_protocol = FlowMatch.IPPROTO_TCP
+            if ip_protocol == FlowMatch.IPPROTO_TCP:
                 udp_src_port = 0
                 udp_dst_port = 0
                 tcp_src_port = (
@@ -994,8 +1234,7 @@ class SessionManagerUtil(object):
                 tcp_dst_port = (
                     int(flow["tcp_dst_port"]) if "tcp_dst_port" in flow else 0
                 )
-            elif ip_protocol == "UDP":
-                ip_protocol = FlowMatch.IPPROTO_UDP
+            elif ip_protocol == FlowMatch.IPPROTO_UDP:
                 tcp_src_port = 0
                 tcp_dst_port = 0
                 udp_src_port = (
@@ -1010,22 +1249,31 @@ class SessionManagerUtil(object):
                 tcp_src_port = 0
                 tcp_dst_port = 0
 
-            ipv4_src_addr = None
+            src_addr = None
             if flow.get("ipv4_src", None):
-                ipv4_src_addr = IPAddress(
+                src_addr = IPAddress(
                     version=IPAddress.IPV4,
                     address=flow.get("ipv4_src").encode('utf-8'))
-            ipv4_dst_addr = None
+            elif flow.get("ipv6_src", None):
+                src_addr = IPAddress(
+                    version=IPAddress.IPV6,
+                    address=flow.get("ipv6_src").encode('utf-8'))
+
+            dst_addr = None
             if flow.get("ipv4_dst", None):
-                ipv4_dst_addr = IPAddress(
+                dst_addr = IPAddress(
                     version=IPAddress.IPV4,
                     address=flow.get("ipv4_dst").encode('utf-8'))
+            elif flow.get("ipv6_dst", None):
+                dst_addr = IPAddress(
+                    version=IPAddress.IPV6,
+                    address=flow.get("ipv6_dst").encode('utf-8'))
 
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        ip_dst=ipv4_dst_addr,
-                        ip_src=ipv4_src_addr,
+                        ip_dst=dst_addr,
+                        ip_src=src_addr,
                         tcp_src=tcp_src_port,
                         tcp_dst=tcp_dst_port,
                         udp_src=udp_src_port,
@@ -1072,18 +1320,20 @@ class SessionManagerUtil(object):
         qos = QoSInformation(qci=qos["qci"])
 
         # Get sessionid
+        res = None
         req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
         try:
             res = self._directorydstub.GetDirectoryField(
                 req, DEFAULT_GRPC_TIMEOUT
             )
         except grpc.RpcError as err:
-            logging.error(
-                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
-                imsi,
-                err.code(),
-                err.details(),
+            print("error: GetDirectoryFieldRequest error for id: "
+                  "%s! [%s] %s" % (imsi, err.code(),err.details())
             )
+
+        if res == None:
+            print("error: Couldn't find sessionid. Directoryd content:")
+            self._print_directoryd_content()
 
         self._session_stub.PolicyReAuth(
             PolicyReAuthRequest(
@@ -1109,12 +1359,10 @@ class SessionManagerUtil(object):
                 req, DEFAULT_GRPC_TIMEOUT
             )
         except grpc.RpcError as err:
-            logging.error(
-                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
-                imsi,
-                err.code(),
-                err.details(),
-            )
+            print("Error: GetDirectoryFieldRequest error for id: %s! [%s] %s" %
+                  (imsi, err.code(), err.details()))
+            self._print_directoryd_content()
+
         return self._abort_session_stub.AbortSession(
             AbortSessionRequest(
                 session_id=res.value,
@@ -1122,19 +1370,50 @@ class SessionManagerUtil(object):
             )
         )
 
+    def _print_directoryd_content(self):
+        try:
+            allRecordsResponse = self._directorydstub.GetAllDirectoryRecords(Void(), DEFAULT_GRPC_TIMEOUT)
+        except grpc.RpcError as e:
+            print("error: couldnt print directoryd content. gRPC failed with %s: %s" % (e.code(), e.details()))
+            return
+        if allRecordsResponse is None:
+            print("No records were found at directoryd")
+        else:
+            for record in allRecordsResponse.records:
+                print("%s" % str(record))
+
 
 class GTPBridgeUtils:
     def __init__(self):
         self.magma_utils = MagmadUtil(None)
-        ret = self.magma_utils.exec_command_output("sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
+        ret = self.magma_utils.exec_command_output(
+            "sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
         if "false" in ret:
             self.gtp_port_name = "gtp0"
         else:
             self.gtp_port_name = "g_8d3ca8c0"
 
     def get_gtp_port_no(self) -> Optional[int]:
-        output = self.magma_utils.exec_command_output("sudo ovsdb-client dump Interface name ofport")
+        output = self.magma_utils.exec_command_output(
+            "sudo ovsdb-client dump Interface name ofport")
         for line in output.split('\n'):
             if self.gtp_port_name in line:
                 port_info = line.split()
                 return port_info[1]
+
+class HaUtil:
+    def __init__(self):
+        self._ha_stub = HaServiceStub(
+            get_rpc_channel("spgw_service")
+        )
+
+    def offload_agw(self, imsi, enbID, offloadtype=0):
+        req = StartAgwOffloadRequest(
+            enb_id = enbID,
+            enb_offload_type = offloadtype,
+            imsi = imsi,
+            )
+        try:
+            self._ha_stub.StartAgwOffload(req)
+        except grpc.RpcError as e:
+            print("gRPC failed with %s: %s" % (e.code(), e.details()))

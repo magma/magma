@@ -55,7 +55,6 @@
 /*
    Timer handlers
 */
-static void _default_eps_bearer_activate_t3485_handler(void*, imsi64_t* imsi64);
 
 /* Maximum value of the activate default EPS bearer context request
    retransmission counter */
@@ -346,6 +345,7 @@ int esm_proc_default_eps_bearer_context_reject(
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
     }
 
+#if EMBEDDED_SGW
     ue_mm_context_t* ue_context_p =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
     if (!ue_context_p) {
@@ -362,6 +362,7 @@ int esm_proc_default_eps_bearer_context_reject(
      * after receiving delete session rsp from spgw
      */
     ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = true;
+#endif
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
@@ -443,7 +444,7 @@ int esm_proc_default_eps_bearer_context_failure(
 */
 /****************************************************************************
  **                                                                        **
- ** Name:    _default_eps_bearer_activate_t3485_handler()              **
+ ** Name:    default_eps_bearer_activate_t3485_handler()              **
  **                                                                        **
  ** Description: T3485 timeout handler                                     **
  **                                                                        **
@@ -463,10 +464,8 @@ int esm_proc_default_eps_bearer_context_failure(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _default_eps_bearer_activate_t3485_handler(
-    void* args, imsi64_t* imsi64) {
+void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc;
 
   /*
    * Get retransmission timer parameters data
@@ -500,12 +499,13 @@ static void _default_eps_bearer_activate_t3485_handler(
        * activate default eps bearer req message in ICS req
        */
       if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone) {
-        rc = _default_eps_bearer_activate_in_bearer_setup_req(
+        _default_eps_bearer_activate_in_bearer_setup_req(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       } else {
-        rc = _default_eps_bearer_activate(
+        _default_eps_bearer_activate(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       }
+      bdestroy_wrapper(&b);
     } else {
       /*
        * The maximum number of activate default EPS bearer context request
@@ -517,22 +517,10 @@ static void _default_eps_bearer_activate_t3485_handler(
       /*
        * Release the default EPS bearer context and enter state INACTIVE
        */
-      rc = esm_proc_eps_bearer_context_deactivate(
+      esm_proc_eps_bearer_context_deactivate(
           esm_ebr_timer_data->ctx, true, esm_ebr_timer_data->ebi, &pid, &bidx,
           NULL);
-
-      if (rc != RETURNerror) {
-        /*
-         * Stop timer T3485
-         */
-        rc = esm_ebr_stop_timer(
-            esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi);
-      }
     }
-    if (esm_ebr_timer_data->msg) {
-      bdestroy_wrapper(&esm_ebr_timer_data->msg);
-    }
-    free_wrapper((void**) &esm_ebr_timer_data);
   }
 
   OAILOG_FUNC_OUT(LOG_NAS_ESM);
@@ -589,7 +577,7 @@ static int _default_eps_bearer_activate(
      */
     rc = esm_ebr_start_timer(
         emm_context, ebi, *msg, mme_config.nas_config.t3485_sec,
-        _default_eps_bearer_activate_t3485_handler);
+        default_eps_bearer_activate_t3485_handler);
     if (rc != RETURNerror) {
       OAILOG_DEBUG(
           LOG_NAS_ESM,
@@ -657,7 +645,7 @@ static int _default_eps_bearer_activate_in_bearer_setup_req(
      */
     rc = esm_ebr_start_timer(
         emm_context, ebi, msg_dup, mme_config.nas_config.t3485_sec,
-        _default_eps_bearer_activate_t3485_handler);
+        default_eps_bearer_activate_t3485_handler);
   }
 
   bdestroy_wrapper(&msg_dup);

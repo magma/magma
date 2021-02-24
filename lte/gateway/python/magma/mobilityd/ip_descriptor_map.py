@@ -35,39 +35,23 @@ during it's life cycle in the IP allocator:
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from collections import defaultdict
 from ipaddress import ip_address, ip_network
-from typing import List, Set
+from typing import Dict, List, Optional, Set
 
-import redis
-from magma.mobilityd import mobility_store as store
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
-from random import choice
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
 
 class IpDescriptorMap:
 
-    def __init__(self,
-                 persist_to_redis: bool = True,
-                 redis_port: int = 6379):
+    def __init__(self, ip_states: Dict[str, IPDesc]):
         """
 
         Args:
-            persist_to_redis (bool): store all state in local process if falsy,
-                else write state to Redis service
-            redis_port (int): redis server port number.
+            ip_states: Dictionary containing IPDesc keyed by current state
         """
-        if not persist_to_redis:
-            self.ip_states = defaultdict(dict)  # {state=>{ip=>ip_desc}}
-        else:
-            if not redis_port:
-                raise ValueError(
-                    'Must specify a redis_port in mobilityd config.')
-            client = redis.Redis(host='localhost', port=redis_port)
-            self.ip_states = store.defaultdict_key(
-                lambda key: store.ip_states(client, key))
+        self.ip_states = ip_states
 
     def add_ip_to_state(self, ip: ip_address, ip_desc: IPDesc,
                         state: IPState):
@@ -86,19 +70,26 @@ class IpDescriptorMap:
         ip_desc = self.ip_states[state].pop(ip.exploded, None)
         return ip_desc
 
-    def pop_ip_from_state(self, state: IPState) -> IPDesc:
+    def pop_ip_from_state(self, state: IPState) -> Optional[IPDesc]:
         """ Pop an IP from a internal dict """
         assert state in IPState, "unknown state %s" % state
 
-        ip_state_key = choice(list(self.ip_states[state].keys()))
-        ip_desc = self.ip_states[state].pop(ip_state_key)
-        return ip_desc
+        try:
+            _, ip_desc = self.ip_states[state].popitem()
+            return ip_desc
+        except KeyError:
+            return None
 
-    def get_ip_count(self, state: IPState) -> int:
-        """ Return number of IPs in a state """
+    def is_ip_state_map_empty(self, state: IPState) -> bool:
+        """
+        Args:
+            state: IP State to check for
+
+        Returns: True if IPs map is empty for a given state, else otherwise
+        """
         assert state in IPState, "unknown state %s" % state
 
-        return len(self.ip_states[state])
+        return bool(self.ip_states[state]) == False
 
     def test_ip_state(self, ip: ip_address, state: IPState) -> bool:
         """ check if IP is in state X """
@@ -132,7 +123,7 @@ class IpDescriptorMap:
         assert ip == ip_desc.ip, "Unmatching ip_desc for %s" % ip
 
         if ip_desc.state == IPState.FREE:
-            assert ip_desc.sid is None,\
+            assert ip_desc.sid is None, \
                 "Unexpected sid in a freed IPDesc {}".format(ip_desc)
         else:
             assert ip_desc.sid is not None, \

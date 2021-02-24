@@ -18,6 +18,7 @@ from unittest.mock import MagicMock
 import warnings
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import SetupUEMacRequest, UEMacFlowRequest
+from orc8r.protos.directoryd_pb2 import DirectoryRecord
 from magma.subscriberdb.sid import SIDUtils
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import global_epoch
@@ -125,20 +126,26 @@ class CWFRestartResilienceTest(unittest.TestCase):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    @unittest.mock.patch('magma.pipelined.app.arp.get_all_records',
-                         return_value=[])
-    def test_ue_mac_restart(self, _):
+    @unittest.mock.patch('magma.pipelined.app.arp.get_all_records')
+    def test_ue_mac_restart(self, directoryd_mock):
         """
         Verify that default flows are properly installed with empty setup
-
-        Verify that ue mac flows are properly restored
+        Verify that ue mac flows are properly restored, with arp recovery from
+        directoryd
         """
+
         imsi1 = 'IMSI111111111111111'
         imsi2 = 'IMSI222222222222222'
+        ip1 = '152.81.12.41'
         mac1 = '5e:cc:cc:b1:aa:aa'
         mac2 = 'b2:6a:f3:b3:2f:4c'
         ap_mac_addr1 = '11:22:33:44:55:66'
         ap_mac_addr2 = '12:12:13:24:25:26'
+
+        directoryd_mock.return_value = [
+            DirectoryRecord(id=imsi1, fields={'ipv4_addr': ip1,
+                                              'mac_addr': mac1})
+        ]
 
         fake_cwf_setup(
             ue_mac_controller=self.ue_mac_controller)

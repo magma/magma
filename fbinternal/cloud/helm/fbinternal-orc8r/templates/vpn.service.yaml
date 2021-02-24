@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "vpn.service") -}}
 {{- define "vpn.service" -}}
 metadata:
-  name: {{ .Release.Name }}-vpnservice
+  name: orc8r-vpnservice
   labels:
     {{- with .Values.vpnservice.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: vpn
   ports:
     - name: grpc
       port: 9180

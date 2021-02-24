@@ -28,6 +28,8 @@ magma-gen-meta:
       filename: msisdn_assignment_swaggergen.go
     - go-struct-name: SubscriberDirectoryRecord
       filename: subscriber_directory_record_swaggergen.go
+    - go-struct-name: UntypedSubscriberState
+      filename: untyped_subscriber_state_swaggergen.go
 
 info:
   title: LTE Subscriber Management
@@ -126,6 +128,39 @@ paths:
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_state:
+      get:
+        summary: List subscriber state in the network
+        tags:
+          - Subscribers
+        parameters:
+          - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        responses:
+          '200':
+            description: Subscriber states, keyed by subscriber ID
+            schema:
+              type: object
+              additionalProperties:
+                $ref: '#/definitions/subscriber_state'
+          default:
+            $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_state/{subscriber_id}:
+      get:
+        summary: List a subscriber's state
+        tags:
+        - Subscribers
+        parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/subscriber_id'
+        responses:
+          '200':
+            description: Subscriber state
+            schema:
+              $ref: '#/definitions/subscriber_state'
+          default:
+            $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /lte/{network_id}/msisdns:
     get:
@@ -264,14 +299,7 @@ definitions:
       config:
         $ref: '#/definitions/subscriber_config'
       active_base_names:
-        type: array
-        items:
-          $ref: './lte-policydb-swagger.yml#/definitions/base_name'
-        x-omitempty: true
-        description: 'Base names which are active for this subscriber'
-        example:
-          - 'base_name_1'
-          - 'base_name_2'
+        $ref: './lte-policydb-swagger.yml#/definitions/base_names'
       active_policies:
         $ref: './lte-policydb-swagger.yml#/definitions/policy_ids'
       active_policies_by_apn:
@@ -301,14 +329,7 @@ definitions:
       lte:
         $ref: '#/definitions/lte_subscription'
       active_base_names:
-        type: array
-        items:
-          $ref: './lte-policydb-swagger.yml#/definitions/base_name'
-        x-omitempty: true
-        description: 'Base names which are active for this subscriber'
-        example:
-          - 'base_name_1'
-          - 'base_name_2'
+        $ref: './lte-policydb-swagger.yml#/definitions/base_names'
       static_ips:
         $ref: '#/definitions/subscriber_static_ips'
       active_policies:
@@ -395,6 +416,8 @@ definitions:
     type: object
     description: EPC state for a subscriber
     properties:
+      subscriber_state:
+        $ref: '#/definitions/untyped_subscriber_state'
       s1ap:
         $ref: '#/definitions/untyped_mme_state'
       mme:
@@ -409,6 +432,10 @@ definitions:
         x-omitempty: true
       directory:
         $ref: '#/definitions/subscriber_directory_record'
+
+  untyped_subscriber_state:
+    type: object
+    description: Arbitrary untyped JSON object that represents replicated subscriber-related state
 
   untyped_mme_state:
     type: object
@@ -462,8 +489,10 @@ definitions:
         format: float
         example: 12.34
       last_reported_time:
+        description: Timestamp of last reported status for the subscriber in ms
         type: integer
         format: int64
+        example: 1605747300000
 
   apn_list:
     type: array

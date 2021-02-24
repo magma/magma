@@ -24,8 +24,8 @@
 #include "lte/protos/mobilityd.pb.h"
 
 using grpc::Status;
-using magma::lte::IPAddress;
 using magma::lte::AllocateIPAddressResponse;
+using magma::lte::IPAddress;
 using magma::lte::MobilityServiceClient;
 
 int main(int argc, char** argv) {
@@ -39,10 +39,14 @@ int main(int argc, char** argv) {
     printf("Allocating IP address...\n");
 
     MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
-        "0001", apn, [apn, &str, &tmp](const Status& status, AllocateIPAddressResponse ip_msg) {
+        "0001", apn,
+        [apn, &str, &tmp](
+            const Status& status, AllocateIPAddressResponse ip_msg) {
           struct in_addr ipv4_addr1;
           memcpy(
-              &ipv4_addr1, ip_msg.mutable_ip_addr()->mutable_address()->c_str(), sizeof(in_addr));
+              &ipv4_addr1,
+              ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
+              sizeof(in_addr));
 
           if (!status.ok()) {
             printf(
@@ -64,13 +68,18 @@ int main(int argc, char** argv) {
                 "0001");
             return -1;
           }
+          return 0;
         });
 
     MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
-        "0002", apn, [apn, &str, &tmp](const Status& status, AllocateIPAddressResponse ip_msg) {
+        "0002", apn,
+        [apn, &str, &tmp](
+            const Status& status, AllocateIPAddressResponse ip_msg) {
           struct in_addr ipv4_addr2;
           memcpy(
-              &ipv4_addr2, ip_msg.mutable_ip_addr()->mutable_address()->c_str(), sizeof(in_addr));
+              &ipv4_addr2,
+              ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
+              sizeof(in_addr));
           if (!status.ok()) {
             printf(
                 "allocate_ipv4_address error %d for sid %s for apn %s\n",
@@ -89,6 +98,7 @@ int main(int argc, char** argv) {
                 "0002");
             return -1;
           }
+          return 0;
         });
 
     status = MobilityServiceClient::getInstance().GetIPv4AddressForSubscriber(

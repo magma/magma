@@ -54,6 +54,10 @@ feg:
     tag: "latest"
     #username:
     #password:
+  log_aggregation:
+    enabled: false
+    fluentd_address: fluentd.magma.svc.cluster.local
+    fluentd_port: 24224
   proxy:
     local_port: 8443
     cloud_address: orc8r-proxy.magma.svc.cluster.local

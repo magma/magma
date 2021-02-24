@@ -17,19 +17,21 @@ package servicers
 
 import (
 	"log"
+	"sort"
 	"strconv"
 	"time"
-
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/plmn_filter"
-	"magma/feg/gateway/services/s6a_proxy/metrics"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
+	"magma/feg/gateway/services/s6a_proxy/metrics"
 )
 
 // sendAIR - sends AIR with given Session ID (sid)
@@ -49,24 +51,21 @@ func (s *s6aProxy) sendAIR(sid string, req *protos.AuthenticationInformationRequ
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(req.UserName))
 	m.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
 	m.NewAVP(avp.VisitedPLMNID, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.OctetString(req.VisitedPlmn))
-	authInfo := &diam.GroupedAVP{
-		AVP: []*diam.AVP{
-			diam.NewAVP(
-				avp.NumberOfRequestedVectors,
-				avp.Vbit|avp.Mbit,
-				diameter.Vendor3GPP,
-				datatype.Unsigned32(req.NumRequestedEutranVectors)),
-			diam.NewAVP(
-				avp.ImmediateResponsePreferred, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(irp)),
-		},
+	if req.NumRequestedEutranVectors > 0 || req.NumRequestedUtranGeranVectors == 0 {
+		m.NewAVP(
+			avp.RequestedEUTRANAuthenticationInfo,
+			avp.Vbit|avp.Mbit,
+			diameter.Vendor3GPP,
+			genAuthInfoAvp(req.NumRequestedEutranVectors, irp, req.ResyncInfo))
 	}
-	if len(req.ResyncInfo) > 0 {
-		resyncInfo := diam.NewAVP(avp.ResynchronizationInfo, avp.Vbit|avp.Mbit, diameter.Vendor3GPP,
-			datatype.OctetString(req.ResyncInfo))
-		authInfo.AddAVP(resyncInfo)
+	if req.NumRequestedUtranGeranVectors > 0 {
+		m.NewAVP(
+			avp.RequestedUTRANGERANAuthenticationInfo,
+			avp.Vbit|avp.Mbit,
+			diameter.Vendor3GPP,
+			genAuthInfoAvp(req.NumRequestedUtranGeranVectors, irp, req.UtranGeranResyncInfo))
 	}
-	m.NewAVP(avp.RequestedEUTRANAuthenticationInfo, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, authInfo)
-
+	glog.V(2).Infof("Sending S6a AIR message\n%s\n", m)
 	err = c.SendRequest(m, retryCount)
 	if err != nil {
 		err = Error(codes.DataLoss, err)
@@ -74,9 +73,30 @@ func (s *s6aProxy) sendAIR(sid string, req *protos.AuthenticationInformationRequ
 	return err
 }
 
+func genAuthInfoAvp(requestedVectorNum, irp uint32, resyncInfo []byte) *diam.GroupedAVP {
+	authInfo := &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(
+				avp.NumberOfRequestedVectors,
+				avp.Vbit|avp.Mbit,
+				diameter.Vendor3GPP,
+				datatype.Unsigned32(requestedVectorNum)),
+			diam.NewAVP(
+				avp.ImmediateResponsePreferred, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(irp)),
+		},
+	}
+	if len(resyncInfo) > 0 {
+		resyncInfo := diam.NewAVP(avp.ResynchronizationInfo, avp.Vbit|avp.Mbit, diameter.Vendor3GPP,
+			datatype.OctetString(resyncInfo))
+		authInfo.AddAVP(resyncInfo)
+	}
+	return authInfo
+}
+
 // S6a AIA
 func handleAIA(s *s6aProxy) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
+		glog.V(2).Infof("Received S6a AIA message:\n%s\n", m)
 		var aia AIA
 		err := m.Unmarshal(&aia)
 		if err != nil {
@@ -138,8 +158,11 @@ func (s *s6aProxy) AuthenticationInformationImpl(
 					metrics.S6aResultCodes.WithLabelValues(strconv.FormatUint(uint64(aia.ResultCode), 10)).Inc()
 					err = diameter.TranslateDiamResultCode(aia.ResultCode)
 					res.ErrorCode = protos.ErrorCode(aia.ExperimentalResult.ExperimentalResultCode)
-					for _, ai := range aia.AIs {
-						for _, ev := range ai.EUtranVectors {
+					if len(aia.AI.EUtranVectors) > 0 {
+						sort.Slice(aia.AI.EUtranVectors, func(i, j int) bool {
+							return aia.AI.EUtranVectors[i].ItemNumber < aia.AI.EUtranVectors[j].ItemNumber
+						})
+						for _, ev := range aia.AI.EUtranVectors {
 							res.EutranVectors = append(
 								res.EutranVectors,
 								&protos.AuthenticationInformationAnswer_EUTRANVector{
@@ -147,6 +170,34 @@ func (s *s6aProxy) AuthenticationInformationImpl(
 									Xres:  ev.XRES.Serialize(),
 									Autn:  ev.AUTN.Serialize(),
 									Kasme: ev.KASME.Serialize()})
+						}
+					}
+					if len(aia.AI.UtranVectors) > 0 {
+						sort.Slice(aia.AI.UtranVectors, func(i, j int) bool {
+							return aia.AI.UtranVectors[i].ItemNumber < aia.AI.UtranVectors[j].ItemNumber
+						})
+						for _, uv := range aia.AI.UtranVectors {
+							res.UtranVectors = append(
+								res.UtranVectors,
+								&protos.AuthenticationInformationAnswer_UTRANVector{
+									Rand:               uv.RAND.Serialize(),
+									Xres:               uv.XRES.Serialize(),
+									Autn:               uv.AUTN.Serialize(),
+									ConfidentialityKey: uv.CK.Serialize(),
+									IntegrityKey:       uv.IK.Serialize()})
+						}
+					}
+					if len(aia.AI.GeranVectors) > 0 {
+						sort.Slice(aia.AI.GeranVectors, func(i, j int) bool {
+							return aia.AI.GeranVectors[i].ItemNumber < aia.AI.GeranVectors[j].ItemNumber
+						})
+						for _, gv := range aia.AI.GeranVectors {
+							res.GeranVectors = append(
+								res.GeranVectors,
+								&protos.AuthenticationInformationAnswer_GERANVector{
+									Rand: gv.RAND.Serialize(),
+									Sres: gv.SRES.Serialize(),
+									Kc:   gv.Kc.Serialize()})
 						}
 					}
 					return res, err // the only successful "exit" is here
@@ -162,6 +213,5 @@ func (s *s6aProxy) AuthenticationInformationImpl(
 			metrics.S6aTimeouts.Inc()
 		}
 	}
-
 	return res, err
 }

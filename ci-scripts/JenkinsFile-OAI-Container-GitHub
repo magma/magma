@@ -1,0 +1,248 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this
+ * source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+
+def GIT_URL = "github.com/magma/magma"
+
+def GIT_BRANCH = "master"
+def GIT_COMMIT
+
+// Location of the executor node
+def nodeExecutor = params.nodeExecutor
+
+// lock mechanism
+def cn_ci_resource = params.MagmaDockerResources
+
+// We are using a base image to speed up CI build.
+// This base image is potentially subject to changes over time.
+def MAGMA_BASE_IMAGE_TAG = params.MagmaBaseImageTag
+
+// Name of the DsTester child pipeline
+def dsTesterPipelineName = params.dsTesterPipelineName
+// Name of the DsTester child pipeline HTML report file
+def dsTesterPipelineReport = params.dsTesterPipelineReport
+
+pipeline {
+  agent {
+    label nodeExecutor
+  }
+  parameters {
+    booleanParam(name: 'REGRESSION_TEST', defaultValue: false, description: 'Test master branch for regressions and submit a Github issue')
+  }
+  options {
+    timestamps()
+    ansiColor('xterm')
+    lock (cn_ci_resource)
+    disableConcurrentBuilds()
+  }
+  stages {
+    stage ("Verify Parameters") {
+      steps {
+        script {
+          cleanWs()
+          JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
+          JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
+
+          echo '\u2705 \u001B[32mVerify Parameters\u001B[0m'
+          try {
+            sh('docker image inspect --format=\'Size = {{.Size}} bytes\' magma-dev-mme:' + MAGMA_BASE_IMAGE_TAG)
+          } catch (Exception e) {
+            currentBuild.result = 'FAILURE'
+            echo '\u26D4 \u001B[31mBase Image does not exist\u001B[0m'
+            error "Stopping pipeline!"
+          }
+        }
+      }
+    }
+    stage ("Retrieve and Prepare Source Code") {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mRetrieve Source Code\u001B[0m'
+          def branch
+          if (params.REGRESSION_TEST) {
+            branch = 'master'
+          } else {
+            branch = sha1
+          }
+          checkout(
+            changelog: false,
+            poll: false,
+            scm: [$class: 'GitSCM',
+                  branches: [[name: "$branch"]],
+                  doGenerateSubmoduleConfigurations: false,
+                  extensions: [[$class: 'CheckoutOption', timeout: 1]],
+                  submoduleCfg: [],
+                  userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
+          )
+          sh "git clean -x -d -f > /dev/null 2>&1"
+          sh "mkdir -p archives"
+        }
+      }
+    }
+    stage ("Create Test Image") {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mBuild Target Image to Test\u001B[0m'
+          try {
+            // Checking if the CI Base image is still there.
+            // If the inspect command fails, it's not there. If it passes, let remove tag.
+            sh('docker image inspect magma-dev-mme:ci-base-image > /dev/null 2>&1')
+            sh('docker rmi magma-dev-mme:ci-base-image')
+          } catch (Exception e) {
+            echo 'No need to remove the CI base image'
+          }
+          // "ci-base-image" is the tag used in the docker file.
+          sh('docker image tag magma-dev-mme:' + MAGMA_BASE_IMAGE_TAG + ' magma-dev-mme:ci-base-image')
+
+          // Removing the .dockerignore file (troublesome for us)
+          sh('mv .dockerignore .fockerignore')
+          // Clean any residual images
+          sh('docker image prune --force')
+          try {
+            sh('docker image rm magma-mme:ci-tmp')
+          } catch (Exception e) {
+            echo 'OK if not present'
+          }
+          // Create the image to use
+          // Once again, we are not using the full dockerfile from scratch: too long.
+          sh('docker build --no-cache --target magma-mme --tag magma-mme:ci-tmp --file ci-scripts/docker/Dockerfile.mme.ci.ubuntu18 . > archives/build_magma_mme.log 2>&1')
+          sh('docker image prune --force > /dev/null 2>&1')
+          sh('docker image ls >> archives/build_magma_mme.log')
+        }
+      }
+      post {
+        success {
+          script {
+            sh 'echo "MAGMA-OAI-MME DOCKER IMAGE BUILD: OK" >> archives/build_magma_mme.log'
+          }
+        }
+        unsuccessful {
+          script {
+            sh 'echo "MAGMA-OAI-MME DOCKER IMAGE BUILD: KO" >> archives/build_magma_mme.log'
+          }
+        }
+        cleanup {
+          script {
+            if (env.ghprbPullId != null) {
+              commitID = sh returnStdout: true, script: 'git rev-parse origin/master'
+              commitID = commitID.trim()
+              sh 'python3 ./ci-scripts/generateHtmlReport-OAI-pipeline.py --mode=Build --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --git_url=' + GIT_URL + ' --git_merge_request=True --git_src_branch=' + env.ghprbSourceBranch + ' --git_src_commit=' + env.ghprbActualCommit + ' --git_target_branch=master --git_target_commit=' + commitID
+              if (fileExists('build_results_magma_oai_mme.html')) {
+                sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_LINK#' + env.ghprbPullLink + '#g" build_results_magma_oai_mme.html'
+                sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_TEMPLATE#' + env.ghprbPullTitle + '#g" build_results_magma_oai_mme.html'
+              }
+            } else {
+              commitID = sh returnStdout: true, script: 'git rev-parse HEAD'
+              commitID = commitID.trim()
+              sh 'python3 ./ci-scripts/generateHtmlReport-OAI-pipeline.py --mode=Build --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --git_url=' + GIT_URL + ' --git_src_branch=' + GIT_BRANCH + ' --git_src_commit=' + commitID
+            }
+            sh "sed -i -e 's#TEMPLATE_TIME#${JOB_TIMESTAMP}#' build_results_magma_oai_mme.html"
+            if (fileExists('build_results_magma_oai_mme.html')) {
+              archiveArtifacts artifacts: 'build_results_magma_oai_mme.html'
+            }
+          }
+        }
+      }
+    }
+    stage ("Test Image in Unified DsTester Framework") {
+      steps {
+        script {
+          localStatus = build job: dsTesterPipelineName,
+              parameters: [
+                  string(name: 'MAGMA_MME_TAG', value: 'ci-tmp')
+              ], propagate: false
+          localResult = localStatus.getResult()
+          echo "${dsTesterPipelineName} Slave Job status is ${localResult}"
+          if (localStatus.resultIsBetterOrEqualTo('SUCCESS')) {
+             echo "${dsTesterPipelineName} Slave Job is OK"
+          } else {
+             echo "${dsTesterPipelineName} Slave Job is KO"
+             error('DsTester pipeline failed')
+          }
+        }
+      }
+      post {
+        always {
+          script {
+            copyArtifacts(projectName: dsTesterPipelineName,
+                          filter: dsTesterPipelineReport,
+                          selector: lastCompleted())
+            if (fileExists(dsTesterPipelineReport)) {
+              if (env.ghprbPullId != null) {
+                commitID = sh returnStdout: true, script: 'git rev-parse origin/master'
+                commitID = commitID.trim()
+                sh 'python3 ./ci-scripts/generateHtmlReport-OAI-pipeline.py --mode=TestWithDsTest --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --git_url=' + GIT_URL + ' --git_merge_request=True --git_src_branch=' + env.ghprbSourceBranch + ' --git_src_commit=' + env.ghprbActualCommit + ' --git_target_branch=master --git_target_commit=' + commitID
+                sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_LINK#' + env.ghprbPullLink + '#g" ' + dsTesterPipelineReport
+                sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_TEMPLATE#' + env.ghprbPullTitle + '#g" ' + dsTesterPipelineReport
+              } else {
+                commitID = sh returnStdout: true, script: 'git rev-parse HEAD'
+                commitID = commitID.trim()
+                sh 'python3 ./ci-scripts/generateHtmlReport-OAI-pipeline.py --mode=TestWithDsTest --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --git_url=' + GIT_URL + ' --git_src_branch=' + GIT_BRANCH + ' --git_src_commit=' + commitID
+              }
+              sh 'sed -i -e "s#TEMPLATE_TIME#' + JOB_TIMESTAMP + '#" ' + dsTesterPipelineReport
+              archiveArtifacts artifacts: dsTesterPipelineReport
+            }
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        // Remove CI Base image tag
+        sh('docker rmi magma-dev-mme:ci-base-image')
+        // Clean any residual images
+        sh('docker image prune --force > /dev/null 2>&1')
+        try {
+          sh('docker image rm magma-mme:ci-tmp > /dev/null 2>&1')
+        } catch (Exception e) {
+          echo 'OK if not present'
+        }
+        // Zipping all archived log files
+        sh "zip -r -qq magma_logs.zip archives"
+        if (fileExists('magma_logs.zip')) {
+          archiveArtifacts artifacts: 'magma_logs.zip'
+        }
+      }
+    }
+    success {
+      script {
+        def color = "good"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
+        echo message
+      }
+    }
+    unsuccessful {
+      script {
+        def color = "danger"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
+        echo message
+      }
+    }
+  }
+}
+
+//-------------------------------------------------------------------------------
+// Abstraction function to send social media messages:
+// like on Slack or Mattermost
+def sendSocialMediaMessage(pipeChannel, pipeColor, pipeMessage) {
+    slackSend channel: pipeChannel, color: pipeColor, message: pipeMessage
+}
+

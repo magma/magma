@@ -122,7 +122,7 @@ class BridgeTools:
             subprocess.check_call(create_veth)
             logging.debug("if_up_cmd %s", create_veth)
         except subprocess.CalledProcessError as e:
-            logging.debug("Error while creating vlan pop devices: %s", e)
+            logging.debug("Error while creating veth pair: %s", e)
 
     @staticmethod
     def create_bridge(bridge_name, iface_name):
@@ -138,6 +138,8 @@ class BridgeTools:
                           "other-config:disable-in-band=true"]).wait()
         subprocess.Popen(["ovs-vsctl", "set-controller", bridge_name,
                           "tcp:127.0.0.1:6633", "tcp:127.0.0.1:6654"]).wait()
+        subprocess.Popen(["ovs-vsctl", "set-manager", bridge_name,
+                          "ptcp:6640"]).wait()
         subprocess.Popen(["ifconfig", iface_name, "192.168.1.1/24"]).wait()
 
     @staticmethod

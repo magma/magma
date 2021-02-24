@@ -28,6 +28,9 @@ type Enodeb struct {
 	// description
 	Description string `json:"description,omitempty"`
 
+	// enodeb config
+	EnodebConfig *EnodebConfig `json:"enodeb_config,omitempty"`
+
 	// name
 	// Required: true
 	// Min Length: 1
@@ -44,6 +47,10 @@ func (m *Enodeb) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateConfig(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateEnodebConfig(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -71,6 +78,24 @@ func (m *Enodeb) validateConfig(formats strfmt.Registry) error {
 		if err := m.Config.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Enodeb) validateEnodebConfig(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.EnodebConfig) { // not required
+		return nil
+	}
+
+	if m.EnodebConfig != nil {
+		if err := m.EnodebConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("enodeb_config")
 			}
 			return err
 		}

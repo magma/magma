@@ -49,6 +49,12 @@ export const colors = {
     warningAlt: '#B69900',
     warningFill: '#FFFCED',
   },
+  alerts: {
+    severe: 'E52240',
+    major: '#E36730',
+    minor: '#F5DD5A',
+    other: '#88B3F9',
+  },
   data: {
     coral: '#FF824B',
     flamePea: '#E36730',
@@ -231,6 +237,11 @@ export default createMuiTheme({
         color: colors.primary.white,
       },
     },
+    MuiAccordionSummary: {
+      content: {
+        margin: '0px',
+      },
+    },
     MuiBackdrop: {
       root: {
         backgroundColor: `rgba(50, 56, 69, 0.8)`, // colors.primary.brightGray RGB value
@@ -281,34 +292,6 @@ export default createMuiTheme({
         boxShadow: shadows.DP3,
         padding: '20px',
         zIndex: '1',
-      },
-    },
-    MuiDialogContent: {
-      root: {
-        padding: '32px',
-      },
-    },
-    MuiDialogTitle: {
-      root: {
-        backgroundColor: colors.primary.mirage,
-        padding: '16px 24px',
-        color: colors.primary.white,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-      },
-    },
-    MuiDialog: {
-      paper: {
-        backgroundColor: colors.primary.concrete,
-      },
-    },
-    MuiDialogActions: {
-      root: {
-        backgroundColor: colors.primary.white,
-        boxShadow: shadows.DP3,
-        padding: '20px',
       },
     },
     MuiDialogContent: {

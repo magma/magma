@@ -17,14 +17,14 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/lte/cloud/go/crypto"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAIR_Successful(t *testing.T) {
@@ -34,7 +34,6 @@ func TestAIR_Successful(t *testing.T) {
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 1,
 	}
-
 	aia, err := s6aProxy.AuthenticationInformation(context.Background(), air)
 	assert.NoError(t, err)
 	assert.Equal(t, protos.ErrorCode_UNDEFINED, aia.ErrorCode)
@@ -45,6 +44,47 @@ func TestAIR_Successful(t *testing.T) {
 	assert.Equal(t, crypto.XresBytes, len(vector.Xres))
 	assert.Equal(t, crypto.AutnBytes, len(vector.Autn))
 	assert.Equal(t, crypto.KasmeBytes, len(vector.Kasme))
+	assert.Equal(t, 0, len(aia.UtranVectors))
+
+	air = &protos.AuthenticationInformationRequest{
+		UserName:                      "sub1",
+		VisitedPlmn:                   []byte{0, 0, 0},
+		NumRequestedUtranGeranVectors: 1,
+	}
+	aia, err = s6aProxy.AuthenticationInformation(context.Background(), air)
+	assert.NoError(t, err)
+	assert.Equal(t, protos.ErrorCode_UNDEFINED, aia.ErrorCode)
+	assert.Equal(t, 1, len(aia.UtranVectors))
+	assert.Equal(t, 0, len(aia.EutranVectors))
+	uvector := aia.UtranVectors[0]
+	assert.Equal(t, crypto.RandChallengeBytes, len(uvector.Rand))
+	assert.Equal(t, crypto.XresBytes, len(uvector.Xres))
+	assert.Equal(t, crypto.AutnBytes, len(uvector.Autn))
+	assert.Equal(t, crypto.ConfidentialityKeyBytes, len(uvector.ConfidentialityKey))
+	assert.Equal(t, crypto.IntegrityKeyBytes, len(uvector.IntegrityKey))
+
+	air = &protos.AuthenticationInformationRequest{
+		UserName:                      "sub1",
+		VisitedPlmn:                   []byte{0, 0, 0},
+		NumRequestedEutranVectors:     1,
+		NumRequestedUtranGeranVectors: 1,
+	}
+	aia, err = s6aProxy.AuthenticationInformation(context.Background(), air)
+	assert.NoError(t, err)
+	assert.Equal(t, protos.ErrorCode_UNDEFINED, aia.ErrorCode)
+	assert.Equal(t, 1, len(aia.UtranVectors))
+	assert.Equal(t, 1, len(aia.EutranVectors))
+	vector = aia.EutranVectors[0]
+	assert.Equal(t, crypto.RandChallengeBytes, len(vector.Rand))
+	assert.Equal(t, crypto.XresBytes, len(vector.Xres))
+	assert.Equal(t, crypto.AutnBytes, len(vector.Autn))
+	assert.Equal(t, crypto.KasmeBytes, len(vector.Kasme))
+	uvector = aia.UtranVectors[0]
+	assert.Equal(t, crypto.RandChallengeBytes, len(uvector.Rand))
+	assert.Equal(t, crypto.XresBytes, len(uvector.Xres))
+	assert.Equal(t, crypto.AutnBytes, len(uvector.Autn))
+	assert.Equal(t, crypto.ConfidentialityKeyBytes, len(uvector.ConfidentialityKey))
+	assert.Equal(t, crypto.IntegrityKeyBytes, len(uvector.IntegrityKey))
 }
 
 func TestAIR_Authentication_Rejection_WithPLMNList(t *testing.T) {

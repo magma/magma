@@ -87,6 +87,22 @@ var (
 		Name: "eap_sim_peer_failures_total",
 		Help: "Total number of SIM Errors/Failures originated from peers",
 	})
+	S6aRequests = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "eap_sim_s6a_requests_total",
+		Help: "Total number of s6a Proxy RPC Requiests sent",
+	})
+	S6aFailures = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "eap_sim_s6a_failures_total",
+		Help: "Total number of s6a Proxy RPC Failures",
+	})
+	S6aULRequests = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "eap_sim_s6a_ul_requests_total",
+		Help: "Total number of s6a Proxy RPC Requiests sent",
+	})
+	S6aULFailures = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "eap_sim_s6a_ul_failures_total",
+		Help: "Total number of s6a Proxy RPC Failures",
+	})
 
 	// Latencies
 	SWxLatency = prometheus.NewSummary(prometheus.SummaryOpts{
@@ -97,6 +113,16 @@ var (
 	AuthLatency = prometheus.NewSummary(prometheus.SummaryOpts{
 		Name:       "eap_sim_auth_lat",
 		Help:       "Latency of EAP-SIM Authentication round (seconds). Only calculated for completed authentications.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	S6aLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "eap_sim_s6a_ai_lat",
+		Help:       "Latency of s6a Proxy requests (seconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	S6aULLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "eap_sim_s6a_ul_lat",
+		Help:       "Latency of s6a Proxy Update-Location requests (seconds).",
 		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
 	})
 )

@@ -20,6 +20,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
+	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
@@ -45,11 +46,11 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
 	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	network, err := (configurator.Network{}).FromStorageProto(request.Network)
+	network, err := (configurator.Network{}).FromProto(request.Network, serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
+	graph, err := (configurator.EntityGraph{}).FromProto(request.Graph, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +96,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	}
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
+	heConfig := getHEConfig(cellularGwConfig.HeConfig)
+
+	mmePoolRecord, mmeGroupID, err := getMMEPoolConfigs(network.ID, cellularGwConfig.Pooling, cellGW, graph)
+	if err != nil {
+		return nil, err
+	}
 
 	vals := map[string]proto.Message{
 		"enodebd": &lte_mconfig.EnodebD{
@@ -111,19 +118,22 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			EnbConfigsBySerial:  enbConfigsBySerial,
 		},
 		"mobilityd": &lte_mconfig.MobilityD{
-			LogLevel:        protos.LogLevel_INFO,
-			IpBlock:         gwEpc.IPBlock,
-			IpAllocatorType: getMobilityDIPAllocator(nwEpc),
-			StaticIpEnabled: getMobilityDStaticIPAllocation(nwEpc),
-			MultiApnIpAlloc: getMobilityDMultuAPNIPAlloc(nwEpc),
+			LogLevel:                 protos.LogLevel_INFO,
+			IpBlock:                  gwEpc.IPBlock,
+			IpAllocatorType:          getMobilityDIPAllocator(nwEpc),
+			Ipv6Block:                gwEpc.IPV6Block,
+			Ipv6PrefixAllocationType: gwEpc.IPV6PrefixAllocationMode,
+			StaticIpEnabled:          getMobilityDStaticIPAllocation(nwEpc),
+			MultiApnIpAlloc:          getMobilityDMultuAPNIPAlloc(nwEpc),
 		},
 		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
 			Mcc:                      nwEpc.Mcc,
 			Mnc:                      nwEpc.Mnc,
 			Tac:                      int32(nwEpc.Tac),
-			MmeCode:                  1,
-			MmeGid:                   1,
+			MmeCode:                  int32(mmePoolRecord.MmeCode),
+			MmeGid:                   int32(mmeGroupID),
+			MmeRelativeCapacity:      int32(mmePoolRecord.MmeRelativeCapacity),
 			EnableDnsCaching:         shouldEnableDNSCaching(cellularGwConfig.DNS),
 			NonEpsServiceControl:     nonEPSServiceMconfig.nonEpsServiceControl,
 			CsfbMcc:                  nonEPSServiceMconfig.csfbMcc,
@@ -134,7 +144,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			AttachedEnodebTacs:       getEnodebTacs(enbConfigsBySerial),
 			DnsPrimary:               gwEpc.DNSPrimary,
 			DnsSecondary:             gwEpc.DNSSecondary,
+			Ipv4PCscfAddress:         string(gwEpc.IPV4pCscfAddr),
+			Ipv6DnsAddress:           string(gwEpc.IPV6DNSAddr),
+			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
+			Ipv4SgwS1UAddr:           gwEpc.IPV4SgwS1uAddr,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -144,6 +158,8 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Services:                 pipelineDServices,
 			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
+			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
+			HeConfig:                 heConfig,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -240,7 +256,7 @@ var networkServicesByName = map[string]lte_mconfig.PipelineD_NetworkServices{
 
 // move this out of this package eventually
 func getPipelineDServicesConfig(networkServices []string) ([]lte_mconfig.PipelineD_NetworkServices, error) {
-	if networkServices == nil || len(networkServices) == 0 {
+	if len(networkServices) == 0 {
 		return []lte_mconfig.PipelineD_NetworkServices{
 			lte_mconfig.PipelineD_ENFORCEMENT,
 		}, nil
@@ -278,6 +294,48 @@ func getTddConfig(tddConfig *lte_models.NetworkRanConfigsTddConfig) *lte_mconfig
 	}
 }
 
+func getHEConfig(gwConfig *lte_models.GatewayHeConfig) *lte_mconfig.PipelineD_HEConfig {
+	if gwConfig == nil {
+		return &lte_mconfig.PipelineD_HEConfig{}
+	}
+
+	return &lte_mconfig.PipelineD_HEConfig{
+		EnableHeaderEnrichment: swag.BoolValue(gwConfig.EnableHeaderEnrichment),
+		EnableEncryption:       swag.BoolValue(gwConfig.EnableEncryption),
+		EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm(lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm_value[gwConfig.HeEncryptionAlgorithm]),
+		HashFunction:           lte_mconfig.PipelineD_HEConfig_HashFunction(lte_mconfig.PipelineD_HEConfig_HashFunction_value[gwConfig.HeHashFunction]),
+		EncodingType:           lte_mconfig.PipelineD_HEConfig_EncodingType(lte_mconfig.PipelineD_HEConfig_EncodingType_value[gwConfig.HeEncodingType]),
+		EncryptionKey:          gwConfig.EncryptionKey,
+		HmacKey:                gwConfig.HmacKey,
+	}
+}
+
+// getMMEPoolConfigs returns the gateway pool record and a uint32 specifying
+// the MME group ID for a given gateway. If a gateway does not exist in a pool,
+// default values are returned.
+func getMMEPoolConfigs(networkID string, poolingConfig lte_models.CellularGatewayPoolRecords, cellGateway configurator.NetworkEntity, graph configurator.EntityGraph) (*lte_models.CellularGatewayPoolRecord, uint32, error) {
+	// Currently, having multiple (mme group ID, mme code, mme relative
+	// capacity) tuples is unsupported. As such, use the first pool record
+	// to set all of these values.
+	if len(poolingConfig) == 0 {
+		return &lte_models.CellularGatewayPoolRecord{
+			MmeCode:             1,
+			MmeRelativeCapacity: 10,
+		}, 1, nil
+	}
+	pool, err := graph.GetFirstAncestorOfType(cellGateway, lte.CellularGatewayPoolEntityType)
+	if err != nil {
+		return nil, 0, err
+	}
+	poolRecord := poolingConfig[0]
+	cfg, ok := pool.Config.(*lte_models.CellularGatewayPoolConfigs)
+	if !ok {
+		err := fmt.Errorf("unable to convert gateway pool config for pool '%s'; pool has invalid config", pool.Key)
+		return nil, 0, err
+	}
+	return poolRecord, cfg.MmeGroupID, nil
+}
+
 func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*lte_mconfig.EnodebD_EnodebConfig {
 	ret := make(map[string]*lte_mconfig.EnodebD_EnodebConfig, len(enodebs))
 	for _, ent := range enodebs {
@@ -287,41 +345,54 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			glog.Errorf("enb with serial %s is missing config", serial)
 		}
 
-		cellularEnbConfig := ienbConfig.(*lte_models.EnodebConfiguration)
-		enbMconfig := &lte_mconfig.EnodebD_EnodebConfig{
-			Earfcndl:               int32(cellularEnbConfig.Earfcndl),
-			SubframeAssignment:     int32(cellularEnbConfig.SubframeAssignment),
-			SpecialSubframePattern: int32(cellularEnbConfig.SpecialSubframePattern),
-			Pci:                    int32(cellularEnbConfig.Pci),
-			TransmitEnabled:        swag.BoolValue(cellularEnbConfig.TransmitEnabled),
-			DeviceClass:            cellularEnbConfig.DeviceClass,
-			BandwidthMhz:           int32(cellularEnbConfig.BandwidthMhz),
-			Tac:                    int32(cellularEnbConfig.Tac),
-			CellId:                 int32(swag.Uint32Value(cellularEnbConfig.CellID)),
-		}
+		enodebConfig := ienbConfig.(*lte_models.EnodebConfig)
+		enbMconfig := &lte_mconfig.EnodebD_EnodebConfig{}
 
-		// override zero values with network/gateway configs
-		if enbMconfig.Earfcndl == 0 {
-			enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
-		}
-		if enbMconfig.SubframeAssignment == 0 {
-			if nwConfig.Ran.TddConfig != nil {
-				enbMconfig.SubframeAssignment = int32(nwConfig.Ran.TddConfig.SubframeAssignment)
+		if enodebConfig.ConfigType == "MANAGED" {
+			cellularEnbConfig := enodebConfig.ManagedConfig
+			enbMconfig.Earfcndl = int32(cellularEnbConfig.Earfcndl)
+			enbMconfig.SubframeAssignment = int32(cellularEnbConfig.SubframeAssignment)
+			enbMconfig.SpecialSubframePattern = int32(cellularEnbConfig.SpecialSubframePattern)
+			enbMconfig.Pci = int32(cellularEnbConfig.Pci)
+			enbMconfig.TransmitEnabled = swag.BoolValue(cellularEnbConfig.TransmitEnabled)
+			enbMconfig.DeviceClass = cellularEnbConfig.DeviceClass
+			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
+			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
+			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
+
+			// override zero values with network/gateway configs
+			if enbMconfig.Earfcndl == 0 {
+				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
 			}
-		}
-		if enbMconfig.SpecialSubframePattern == 0 {
-			if nwConfig.Ran.TddConfig != nil {
-				enbMconfig.SpecialSubframePattern = int32(nwConfig.Ran.TddConfig.SpecialSubframePattern)
+			if enbMconfig.SubframeAssignment == 0 {
+				if nwConfig.Ran.TddConfig != nil {
+					enbMconfig.SubframeAssignment = int32(nwConfig.Ran.TddConfig.SubframeAssignment)
+				}
 			}
-		}
-		if enbMconfig.Pci == 0 {
-			enbMconfig.Pci = int32(gwConfig.Ran.Pci)
-		}
-		if enbMconfig.BandwidthMhz == 0 {
-			enbMconfig.BandwidthMhz = int32(nwConfig.Ran.BandwidthMhz)
-		}
-		if enbMconfig.Tac == 0 {
-			enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+			if enbMconfig.SpecialSubframePattern == 0 {
+				if nwConfig.Ran.TddConfig != nil {
+					enbMconfig.SpecialSubframePattern = int32(nwConfig.Ran.TddConfig.SpecialSubframePattern)
+				}
+			}
+			if enbMconfig.Pci == 0 {
+				enbMconfig.Pci = int32(gwConfig.Ran.Pci)
+			}
+			if enbMconfig.BandwidthMhz == 0 {
+				enbMconfig.BandwidthMhz = int32(nwConfig.Ran.BandwidthMhz)
+			}
+			if enbMconfig.Tac == 0 {
+				enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+			}
+
+		} else if enodebConfig.ConfigType == "UNMANAGED" {
+			cellularEnbConfig := enodebConfig.UnmanagedConfig
+			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
+			enbMconfig.Tac = int32(swag.Uint32Value(cellularEnbConfig.Tac))
+			enbMconfig.IpAddress = string(*cellularEnbConfig.IPAddress)
+
+			if enbMconfig.Tac == 0 {
+				enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+			}
 		}
 
 		ret[serial] = enbMconfig
@@ -410,9 +481,7 @@ func getGatewayDnsRecords(dns *lte_models.GatewayDNSConfigs) []*lte_mconfig.Gate
 		recordProto.ARecord = funk.Map(record.ARecord, func(a strfmt.IPv4) string { return string(a) }).([]string)
 		recordProto.AaaaRecord = funk.Map(record.AaaaRecord, func(a strfmt.IPv6) string { return string(a) }).([]string)
 		recordProto.CnameRecord = make([]string, 0, len(record.CnameRecord))
-		for _, cRecord := range record.CnameRecord {
-			recordProto.CnameRecord = append(recordProto.CnameRecord, cRecord)
-		}
+		recordProto.CnameRecord = append(recordProto.CnameRecord, record.CnameRecord...)
 		ret = append(ret, recordProto)
 	}
 	return ret

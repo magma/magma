@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "wifi.service") -}}
 {{- define "wifi.service" -}}
 metadata:
-  name: {{ .Release.Name }}-wifi
+  name: orc8r-wifi
   labels:
     {{- with .Values.wifi.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: wifi
   ports:
     - name: grpc
       port: 9180

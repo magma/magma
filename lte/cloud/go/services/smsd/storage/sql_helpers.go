@@ -260,6 +260,10 @@ func loadPksByRefs(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string,
 		}
 		ret[imsiAndRef{imsi: imsi, ref: byte(ref)}] = pk
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
+	}
 	return ret, nil
 }
 

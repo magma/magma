@@ -9,3 +9,47 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+analytics:
+  minUserThreshold: 100
+  metrics:
+    active_users_over_time:
+      export: true
+      register: false
+      enforceMinUserThreshold: true
+      labels:
+        class: "engagement"
+
+    user_throughput:
+      export: true
+      register: false
+      enforceMinUserThreshold: true
+      labels:
+        class: "qos"
+
+    user_consumption:
+      export: true
+      register: false
+      enforceMinUserThreshold: true
+      labels:
+        class: "qos"
+
+    user_consumption_hourly:
+      export: true
+      register: false
+      enforceMinUserThreshold: true
+      labels:
+        class: "qos"
+
+    throughput_per_ap:
+      export: true
+      register: false
+      labels:
+        class: "network"
+
+    authentications_over_time:
+      export: true
+      register: false
+      enforceMinUserThreshold: true
+      labels:
+        class: "network"
+

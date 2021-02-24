@@ -42,7 +42,9 @@ from typing import List
 import aioeventlet
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
+from lte.protos.session_manager_pb2_grpc import (
+    LocalSessionManagerStub,
+    SetInterfaceForUserPlaneStub)
 from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.access_control import AccessControlController
@@ -50,6 +52,8 @@ from magma.pipelined.app.conntrack import ConntrackController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
+from magma.pipelined.app.ipv6_solicitation import \
+    IPV6SolicitationController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.enforcement import EnforcementController
@@ -63,15 +67,20 @@ from magma.pipelined.app.xwf_passthru import XWFPassthruController
 from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.uplink_bridge import UplinkBridgeController
+from magma.pipelined.app.ng_services import NGServiceController
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
+from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
+from magma.pipelined.tunnel_id_store import TunnelToTunnelMapper
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from ryu.base.app_manager import AppManager
 
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
+from magma.pipelined.app.classifier import Classifier
+from magma.pipelined.app.he import HeaderEnrichmentController, PROXY_TABLE
 
 # Type is either Physical or Logical, highest order_priority is at zero
 App = namedtuple('App', ['name', 'module', 'type', 'order_priority'])
@@ -95,7 +104,7 @@ class TableNumException(Exception):
     pass
 
 
-class TableRange():
+class TableRange:
     """
     Used to generalize different table ranges.
     """
@@ -133,6 +142,7 @@ class _TableManager:
     main and scratch tables.
     """
 
+    GTP_TABLE_NUM = 0
     INGRESS_TABLE_NUM = 1
     PHYSICAL_TO_LOGICAL_TABLE_NUM = 10
     EGRESS_TABLE_NUM = 20
@@ -144,6 +154,8 @@ class _TableManager:
 
     def __init__(self):
         self._table_ranges = {
+            ControllerType.SPECIAL:  TableRange(self.GTP_TABLE_NUM,
+                                                self.GTP_TABLE_NUM + 1),
             ControllerType.PHYSICAL: TableRange(self.INGRESS_TABLE_NUM + 1,
                                                 self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
             ControllerType.LOGICAL:
@@ -231,7 +243,7 @@ class _TableManager:
         resp = OrderedDict(sorted(self._tables_by_app.items(),
                                   key=lambda kv: (kv[1].main_table, kv[0])))
         # Include table 0 when it is managed by the EPC, for completeness.
-        if not any(table in ['ue_mac', 'xwf_passthru'] for table in self._tables_by_app):
+        if not any(table in ['ue_mac', 'xwf_passthru', 'classifier'] for table in self._tables_by_app):
             resp['mme'] = Tables(main_table=0, type=None)
             resp.move_to_end('mme', last=False)
         return resp
@@ -254,6 +266,7 @@ class ServiceManager:
     UE_MAC_ADDRESS_SERVICE_NAME = 'ue_mac'
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
+    ipv6_solicitation_SERVICE_NAME = 'ipv6_solicitation'
     TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
     VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
     IPFIX_SERVICE_NAME = 'ipfix'
@@ -265,6 +278,9 @@ class ServiceManager:
     LI_MIRROR_SERVICE_NAME = 'li_mirror'
     XWF_PASSTHRU_NAME = 'xwf_passthru'
     UPLINK_BRIDGE_NAME = 'uplink_bridge'
+    CLASSIFIER_NAME = 'classifier'
+    HE_CONTROLLER_NAME = 'proxy'
+    NG_SERVICE_CONTROLLER_NAME = 'ng_services'
 
     INTERNAL_APP_SET_TABLE_NUM = 201
     INTERNAL_IMSI_SET_TABLE_NUM = 202
@@ -316,6 +332,19 @@ class ServiceManager:
                 module=AccessControlController.__module__,
                 type=AccessControlController.APP_TYPE,
                 order_priority=400),
+        ],
+        HE_CONTROLLER_NAME: [
+            App(name=HeaderEnrichmentController.APP_NAME,
+                module=HeaderEnrichmentController.__module__,
+                type=HeaderEnrichmentController.APP_TYPE,
+                order_priority=401),
+        ],
+
+        ipv6_solicitation_SERVICE_NAME: [
+            App(name=IPV6SolicitationController.APP_NAME,
+                module=IPV6SolicitationController.__module__,
+                type=IPV6SolicitationController.APP_TYPE,
+                order_priority=210),
         ],
         TUNNEL_LEARN_SERVICE_NAME: [
             App(name=TunnelLearnController.APP_NAME,
@@ -377,7 +406,19 @@ class ServiceManager:
                 type=UplinkBridgeController.APP_TYPE,
                 order_priority=0),
         ],
-
+        CLASSIFIER_NAME: [
+            App(name=Classifier.APP_NAME,
+                module=Classifier.__module__,
+                type=Classifier.APP_TYPE,
+                order_priority=0),
+        ],
+        # 5G Related services
+        NG_SERVICE_CONTROLLER_NAME: [
+            App(name=NGServiceController.APP_NAME,
+                module=NGServiceController.__module__,
+                type=None,
+                order_priority=0),
+        ],
     }
 
     # Some apps do not use a table, so they need to be excluded from table
@@ -386,10 +427,16 @@ class ServiceManager:
         RYU_REST_APP_NAME,
         StartupFlows.APP_NAME,
         UplinkBridgeController.APP_NAME,
+        NGServiceController.APP_NAME,
     ]
 
     def __init__(self, magma_service: MagmaService):
         self._magma_service = magma_service
+        if '5G_feature_set' not in magma_service.config:
+            self._5G_flag_enable = False
+        else:
+          ng_flag = magma_service.config.get('5G_feature_set')
+          self._5G_flag_enable = ng_flag['enable']
         # inout is a mandatory app and it occupies:
         #   table 1(for ingress)
         #   table 10(for middle)
@@ -402,6 +449,8 @@ class ServiceManager:
 
         self.rule_id_mapper = RuleIDToNumMapper()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
+        self.interface_to_prefix_mapper = InterfaceIDToPrefixMapper()
+        self.tunnel_id_mapper = TunnelToTunnelMapper()
 
         apps = self._get_static_apps()
         apps.extend(self._get_dynamic_apps())
@@ -416,6 +465,10 @@ class ServiceManager:
             if app.name in [self.UE_MAC_ADDRESS_SERVICE_NAME, self.XWF_PASSTHRU_NAME]:
                 self._table_manager.register_apps_for_table0_service([app])
                 continue
+            if self._5G_flag_enable:
+                if app.name in [self.CLASSIFIER_NAME]:
+                    self._table_manager.register_apps_for_table0_service([app])
+                    continue
             self._table_manager.register_apps_for_service([app])
 
     def _get_static_apps(self):
@@ -429,6 +482,10 @@ class ServiceManager:
         if setup_type == 'LTE':
             static_services.append(self.__class__.UPLINK_BRIDGE_NAME)
             logging.info("added uplink bridge controller")
+        if self._5G_flag_enable:
+            static_services.append(self.__class__.CLASSIFIER_NAME)
+            static_services.append(self.__class__.NG_SERVICE_CONTROLLER_NAME)
+            logging.info("added classifier and ng service controller")
 
         static_apps = \
             [app for service in static_services for app in
@@ -474,6 +531,8 @@ class ServiceManager:
             self.rule_id_mapper._rule_nums_by_rule = {}
             self.rule_id_mapper._rules_by_rule_num = {}
             self.session_rule_version_mapper._version_by_imsi_and_rule = {}
+            self.interface_to_prefix_mapper._prefix_by_interface = {}
+            self.tunnel_id_mapper._tunnel_map = {}
 
         manager = AppManager.get_instance()
         manager.load_apps([app.module for app in self._apps])
@@ -481,6 +540,8 @@ class ServiceManager:
         contexts['rule_id_mapper'] = self.rule_id_mapper
         contexts[
             'session_rule_version_mapper'] = self.session_rule_version_mapper
+        contexts['interface_to_prefix_mapper'] = self.interface_to_prefix_mapper
+        contexts['tunnel_id_mapper'] = self.tunnel_id_mapper
         contexts['app_futures'] = {app.name: Future() for app in self._apps}
         contexts['internal_ip_allocator'] = \
             InternalIPAllocator(self._magma_service.config)
@@ -497,6 +558,10 @@ class ServiceManager:
             'mobilityd': MobilityServiceStub(mobilityd_chan),
             'sessiond': LocalSessionManagerStub(sessiond_chan),
         }
+
+        if self._5G_flag_enable:
+            contexts['rpc_stubs'].update({'sessiond_setinterface': \
+                                            SetInterfaceForUserPlaneStub(sessiond_chan)})
 
         # Instantiate and schedule apps
         for app in manager.instantiate_apps(**contexts):

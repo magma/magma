@@ -28,6 +28,11 @@ class IPType(Enum):
     DHCP = 3
 
 
+class IPv6SessionAllocType(str, Enum):
+    RANDOM = "RANDOM"
+    HASH = "HASH"
+
+
 class IPDesc:
     """
     IP descriptor.

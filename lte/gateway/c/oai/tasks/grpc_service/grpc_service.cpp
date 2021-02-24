@@ -22,28 +22,38 @@
 
 #include "CSFBGatewayServiceImpl.h"
 #include "SMSOrc8rGatewayServiceImpl.h"
+#include "S1apServiceImpl.h"
 #include "S6aGatewayImpl.h"
 #include "S6aServiceImpl.h"
 #include "SpgwServiceImpl.h"
+#include "AmfServiceImpl.h"
+#include "HaServiceImpl.h"
 
 extern "C" {
 #include "log.h"
+#include "mme_config.h"
 }
 
 using grpc::InsecureServerCredentials;
 using grpc::Server;
 using grpc::ServerBuilder;
+using magma::AmfServiceImpl;
 using magma::CSFBGatewayServiceImpl;
-using magma::SMSOrc8rGatewayServiceImpl;
+using magma::HaServiceImpl;
+using magma::S1apServiceImpl;
 using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
+using magma::SMSOrc8rGatewayServiceImpl;
 using magma::SpgwServiceImpl;
 
 static SpgwServiceImpl spgw_service;
+static AmfServiceImpl amf_service;
 static S6aServiceImpl s6a_service;
 static S6aGatewayImpl s6a_proxy;
 static CSFBGatewayServiceImpl sgs_service;
 static SMSOrc8rGatewayServiceImpl sms_orc8r_service;
+static S1apServiceImpl s1ap_service;
+static HaServiceImpl ha_service;
 static std::unique_ptr<Server> server;
 
 // TODO Candidate: GRPC service may be evolved into a
@@ -58,10 +68,22 @@ void start_grpc_service(bstring server_address) {
 #if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
   builder.RegisterService(&spgw_service);
 #endif
-  builder.RegisterService(&s6a_proxy);
+  builder.RegisterService(&amf_service);
   builder.RegisterService(&s6a_service);
-  builder.RegisterService(&sgs_service);
-  builder.RegisterService(&sms_orc8r_service);
+  // Start the SGS service only if non_eps_service_control is not set to OFF
+  char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
+  if (!strcmp(non_eps_service_control, "CSFB_SMS") ||
+      !strcmp(non_eps_service_control, "SMS")) {
+    builder.RegisterService(&sgs_service);
+  }
+  // Start the SMS service only if non_eps_service_control is set to SMS_ORC8R
+  if (!strcmp(non_eps_service_control, "SMS_ORC8R")) {
+    builder.RegisterService(&sms_orc8r_service);
+  }
+  builder.RegisterService(&s1ap_service);
+  if (mme_config.use_ha) {
+    builder.RegisterService(&ha_service);
+  }
   server = builder.BuildAndStart();
 }
 

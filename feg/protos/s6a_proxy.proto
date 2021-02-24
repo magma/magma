@@ -115,7 +115,7 @@ message AuthenticationInformationAnswer {
         bytes integrity_key   = 5;
     }
     // 3GPP TS 29.272, 7.3.20 GERAN-Vector
-    message GRANVector {
+    message GERANVector {
         bytes rand = 1;
         bytes sres = 2;
         bytes Kc   = 3;
@@ -125,7 +125,7 @@ message AuthenticationInformationAnswer {
     // Authentication vectors matching the requested number
     repeated EUTRANVector eutran_vectors = 2;
     repeated UTRANVector  utran_vectors = 3;
-    repeated GRANVector   gran_vectors = 4;
+    repeated GERANVector  geran_vectors = 4;
 }
 
 // Update Location Request (Section 7.2.3)
@@ -154,6 +154,8 @@ message UpdateLocationAnswer {
     bool all_apns_included = 4;
     // APN configurations
     repeated APNConfiguration apn = 5;
+    // Charging characteristics for subscriber that can be overridden by per-APN values
+    string default_charging_characteristics = 6;
 
     bytes msisdn = 7;
 
@@ -165,6 +167,8 @@ message UpdateLocationAnswer {
     }
 
     NetworkAccessMode network_access_mode = 8;
+
+    repeated string regional_subscription_zone_code = 9;
 
     message APNConfiguration {
         // APN identifier
@@ -184,6 +188,8 @@ message UpdateLocationAnswer {
         }
 
         PDNType pdn = 5;
+
+        string charging_characteristics = 6;
 
         // For details about values see 29.212
         message QoSProfile {

@@ -76,7 +76,7 @@ var defaultConfig = Config{
 	},
 	Swx: &SwxConfig{
 		Servers: []*DiamClientConfig{
-			&DiamClientConfig{
+			{
 				Protocol:         "sctp",
 				Retransmits:      3,
 				WatchdogInterval: 1,

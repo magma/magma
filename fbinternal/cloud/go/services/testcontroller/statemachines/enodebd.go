@@ -28,6 +28,7 @@ import (
 	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/fbinternal/cloud/go/services/testcontroller/utils"
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/serdes"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
@@ -119,9 +120,9 @@ func (m *MagmadClient) GenerateTraffic(networkId string, gatewayId string, ssid 
 	stringVal := fmt.Sprintf("-c 'python3 /usr/local/bin/traffic_cli.py gen_traffic %s %s http://www.google.com'", ssid, pw)
 	params := &structpb.Struct{
 		Fields: map[string]*structpb.Value{
-			"shell_params": &structpb.Value{Kind: &structpb.Value_ListValue{
+			"shell_params": {Kind: &structpb.Value_ListValue{
 				ListValue: &structpb.ListValue{
-					Values: []*structpb.Value{&structpb.Value{Kind: &structpb.Value_StringValue{StringValue: stringVal}}},
+					Values: []*structpb.Value{{Kind: &structpb.Value_StringValue{StringValue: stringVal}}},
 				},
 			}},
 		},
@@ -137,7 +138,7 @@ func (m *MagmadClient) GenerateTraffic(networkId string, gatewayId string, ssid 
 func (m *MagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSerial string) (*protos.GenericCommandResponse, error) {
 	params := &structpb.Struct{
 		Fields: map[string]*structpb.Value{
-			"shell_params": &structpb.Value{Kind: &structpb.Value_StringValue{StringValue: enodebSerial}},
+			"shell_params": {Kind: &structpb.Value_StringValue{StringValue: enodebSerial}},
 		},
 	}
 	rebootEndCmd := &protos.GenericCommandParams{
@@ -149,13 +150,13 @@ func (m *MagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSe
 }
 
 func getEnodebStatus(networkID string, enodebSN string) (*ltemodels.EnodebState, error) {
-	st, err := state.GetState(networkID, lte.EnodebStateType, enodebSN)
+	st, err := state.GetState(networkID, lte.EnodebStateType, enodebSN, serdes.State)
 	if err != nil {
 		return nil, err
 	}
 	enodebState := st.ReportedState.(*ltemodels.EnodebState)
 	enodebState.TimeReported = st.TimeMs
-	ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{})
+	ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err == nil {
 		enodebState.ReportingGatewayID = ent.Key
 	}
@@ -371,7 +372,7 @@ func makeSubscriberStateHandler(desiredState string, successState string) handle
 func subscriberState(desiredState string, successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
 	pretext := fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "SUCCEEDED")
 	fallback := "Subscriber state notification"
-	cfg, err := configurator.LoadEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID)
+	cfg, err := configurator.LoadEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, serdes.Entity)
 	if err != nil {
 		pretext = fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "FAILED")
 		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
@@ -384,10 +385,10 @@ func subscriberState(desiredState string, successState string, machine *enodebdE
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
 	newConfig.Lte.State = desiredState
-	err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, newConfig)
+	err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, newConfig, serdes.Entity)
 	if err != nil {
 		// Restore subscriber to original config before erroring out
-		err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, cfg)
+		err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, cfg, serdes.Entity)
 		if err != nil {
 			glog.Error(err)
 		}
@@ -408,11 +409,15 @@ func makeConfigEnodebStateHandler(stateNumber int, successState string) handlerF
 func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
 	pretext := fmt.Sprintf(reconfigPretextFmt, *config.EnodebSN, "SUCCEEDED")
 	fallback := "Reconfig enodeb notification"
-	_, err := configurator.UpdateEntity(*config.NetworkID, configurator.EntityUpdateCriteria{
-		Type:      lte.CellularEnodebEntityType,
-		Key:       *config.EnodebSN,
-		NewConfig: config.EnodebConfig,
-	})
+	_, err := configurator.UpdateEntity(
+		*config.NetworkID,
+		configurator.EntityUpdateCriteria{
+			Type:      lte.CellularEnodebEntityType,
+			Key:       *config.EnodebSN,
+			NewConfig: config.EnodebConfig,
+		},
+		serdes.Entity,
+	)
 
 	if err != nil {
 		if stateNumber >= maxConfigStateCount {
@@ -586,11 +591,15 @@ func checkForUpgrade(machine *enodebdE2ETestStateMachine, config *models.Enodebd
 	// Update the tier config
 	newTierCfg := tierCfg
 	newTierCfg.Version = models2.TierVersion(repoVersion)
-	_, err = configurator.UpdateEntity(*config.NetworkID, configurator.EntityUpdateCriteria{
-		Key:       *config.AgwConfig.TargetTier,
-		Type:      orc8r.UpgradeTierEntityType,
-		NewConfig: newTierCfg,
-	})
+	_, err = configurator.UpdateEntity(
+		*config.NetworkID,
+		configurator.EntityUpdateCriteria{
+			Key:       *config.AgwConfig.TargetTier,
+			Type:      orc8r.UpgradeTierEntityType,
+			NewConfig: newTierCfg,
+		},
+		serdes.Entity,
+	)
 	if err != nil {
 		return checkForUpgradeState, 20 * time.Minute, errors.Wrap(err, "error updating target tier")
 	}
@@ -689,7 +698,11 @@ func getLatestRepoMagmaVersion(client HttpClient, url string, releaseChannel str
 }
 
 func getTargetTierConfig(config *models.EnodebdTestConfig) (*models2.Tier, error) {
-	tierEnt, err := configurator.LoadEntity(*config.NetworkID, orc8r.UpgradeTierEntityType, *config.AgwConfig.TargetTier, configurator.EntityLoadCriteria{LoadConfig: true})
+	tierEnt, err := configurator.LoadEntity(
+		*config.NetworkID, orc8r.UpgradeTierEntityType, *config.AgwConfig.TargetTier,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load target upgrade tier")
 	}

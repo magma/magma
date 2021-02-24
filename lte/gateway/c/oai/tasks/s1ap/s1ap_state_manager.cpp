@@ -128,6 +128,7 @@ int S1apStateManager::read_ue_state_from_db() {
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
 
   for (const auto& key : keys) {
+    OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     UeDescription ue_proto = UeDescription();
     ue_description_t* ue_context =
         (ue_description_t*) calloc(1, sizeof(ue_description_t));
@@ -137,9 +138,25 @@ int S1apStateManager::read_ue_state_from_db() {
 
     S1apStateConverter::proto_to_ue(ue_proto, ue_context);
 
-    hashtable_ts_insert(
+    hashtable_rc_t h_rc = hashtable_ts_insert(
         state_ue_ht, ue_context->comp_s1ap_id, (void*) ue_context);
-    OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
+    if (HASH_TABLE_OK != h_rc) {
+      OAILOG_ERROR(
+          log_task,
+          "Failed to insert UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
+          ", ENB UE S1AP Id: " ENB_UE_S1AP_ID_FMT
+          ", MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " (Error Code: %s)\n",
+          ue_context->comp_s1ap_id, ue_context->enb_ue_s1ap_id,
+          ue_context->mme_ue_s1ap_id, hashtable_rc_code2string(h_rc));
+    } else {
+      OAILOG_DEBUG(
+          log_task,
+          "Inserted UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
+          ", ENB UE S1AP Id: " ENB_UE_S1AP_ID_FMT
+          ", MME UE S1AP Id: " MME_UE_S1AP_ID_FMT,
+          ue_context->comp_s1ap_id, ue_context->enb_ue_s1ap_id,
+          ue_context->mme_ue_s1ap_id);
+    }
   }
   return RETURNok;
 }
@@ -150,7 +167,7 @@ void S1apStateManager::create_s1ap_imsi_map() {
   s1ap_imsi_map_->mme_ue_id_imsi_htbl =
       hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
 
-  if(persist_state_enabled) {
+  if (persist_state_enabled) {
     oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
     redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
 
@@ -165,12 +182,6 @@ void S1apStateManager::clear_s1ap_imsi_map() {
   hashtable_uint64_ts_destroy(s1ap_imsi_map_->mme_ue_id_imsi_htbl);
 
   free_wrapper((void**) &s1ap_imsi_map_);
-
-  if(persist_state_enabled) {
-    std::vector<std::string> keys_to_del;
-    keys_to_del.emplace_back(S1AP_IMSI_MAP_TABLE_NAME);
-    redis_client->clear_keys(keys_to_del);
-  }
 }
 
 s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {
@@ -178,7 +189,7 @@ s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {
 }
 
 void S1apStateManager::write_s1ap_imsi_map_to_db() {
-  if(!persist_state_enabled) {
+  if (!persist_state_enabled) {
     return;
   }
   oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();

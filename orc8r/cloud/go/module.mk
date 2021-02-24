@@ -10,41 +10,45 @@
 # limitations under the License.
 #
 SHELL := /bin/bash
-.PHONY: build clean clean_gen download fmt gen lint plugin test tidy vet migration_plugin
+.PHONY: build clean clean_gen download fmt gen lint test tidy vet migration_plugin
 
-build:: plugin
+build::
 	go install ./...
 
 clean::
 	go clean ./...
 
 clean_gen:
-	find . -name "*.pb.go" | xargs --no-run-if-empty rm
-	find . -name "*_swaggergen.go" | xargs --no-run-if-empty rm
+	for f in $$(find . -name '*.pb.go' ! -path '*/migrations/*') ; do rm $$f ; done
+	for f in $$(find . -name '*_swaggergen.go' ! -path '*/migrations/*') ; do rm $$f ; done
 
 download:
 	go mod download
 
 fmt::
-	go fmt ./...
+	gofmt -s -w .
 
 gen::
 	go generate ./...
 
 
-# The sed expression replaces '/' with '_' and gets rid of any './ in the path
-# For v1, we prepend the module name to the filename as well
+# swagger.v1.yml files are expected to be arranged one-per-service, at the
+# following location
 #
-# So for e.g., a swagger file under orc8r/cloud/go/pluginimpl/swagger/swagger.v1.yml
-# will end up as orc8r_pluginimpl_swagger_swagger.v1.yml
+#	MODULE/cloud/go/services/SERVICE/obsidian/models/swagger.v1.yml
+#
+# copy_swagger_files copies Swagger files to the tmp directory under the name
+#
+#	SERVICE.swagger.v1.yml
+#
+# For example
+#	- Before: lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml
+#	- After: configs/orc8r/swagger_specs/policydb.swagger.v1.yml
 copy_swagger_files:
-	find . -name "swagger.v1.yml" | xargs -I% --no-run-if-empty bash -c 'cp % $${SWAGGER_V1_TEMP_GEN}/$$(echo % | sed "s#/#_#g; s/\._//g" | xargs -I @ echo "$$(basename $$(realpath $$(pwd)/../..))_@")'
+	for f in $$(find . -name swagger.v1.yml) ; do cp $$f $${SWAGGER_V1_SPECS_DIR}/$$(echo $$f | sed -r 's/.*\/services\/([^\/]*)\/obsidian\/models\/(swagger\.v1\.yml)/\1.\2/g') ; done
 
 lint:
-	golint ./...
-
-plugin::
-	go build -buildmode=plugin -o $(PLUGIN_DIR)/$(PLUGIN_NAME).so .
+	golangci-lint run
 
 test::
 	go test ./...
@@ -59,13 +63,17 @@ $(TOOL_DEPS): %:
 vet::
 	go vet -composites=false ./...
 
-COVER_FILE=$(COVER_DIR)/$(PLUGIN_NAME).gocov
-cover:
-	go test ./... -coverprofile $(COVER_FILE);
-	# Don't measure coverage for protos and tools
-	sed -i '/\.pb\.go/d; /.*\/tools\/.*/d; /.*_swaggergen\.go/d' $(COVER_FILE);
-	go tool cover -func=$(COVER_FILE)
-
+ifndef COVER_DIR
+COVER_DIR := $(MAGMA_ROOT)/orc8r/cloud/coverage
+export COVER_DIR
+endif
+COVER_FILE=$(COVER_DIR)/$(MODULE_NAME).gocov
+cover: tools cover_pre
+	go-acc ./... --covermode count --output $(COVER_FILE)
+	# Don't measure coverage for tools and generated files
+	awk '!/\.pb\.go|_swaggergen\.go|\/mocks\/|\/tools\/|\/blobstore\/ent\//' $(COVER_FILE) > $(COVER_FILE).tmp && mv $(COVER_FILE).tmp $(COVER_FILE)
+cover_pre:
+	mkdir -p $(COVER_DIR)
 
 # for configurator data migration
 migration_plugin:

@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "streamer.service") -}}
 {{- define "streamer.service" -}}
 metadata:
-  name: {{ .Release.Name }}-streamer
+  name: orc8r-streamer
   labels:
     {{- with .Values.streamer.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: streamer
   ports:
     - name: grpc
       port: 9180

@@ -64,12 +64,10 @@ class SpgwStateConverter : StateConverter {
       const oai::SpgwState& proto, spgw_state_t* spgw_state);
 
   static void ue_to_proto(
-      const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
-      oai::S11BearerContext* ue_proto);
+      const spgw_ue_context_t* ue_state, oai::SpgwUeContext* ue_proto);
 
   static void proto_to_ue(
-      const oai::S11BearerContext& spgw_bearer_proto,
-      s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state);
+      const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p);
 
  private:
   SpgwStateConverter();
@@ -164,7 +162,7 @@ class SpgwStateConverter : StateConverter {
    */
   static void proto_to_sgw_pending_procedures(
       const oai::SgwEpsBearerContextInfo& proto,
-      sgw_eps_bearer_context_information_t::pending_procedures_s* procedures);
+      sgw_eps_bearer_context_information_t::pending_procedures_s** procedures);
 
   /**
    * Inserts new procedure struct to eps bearer pending procedures list
@@ -262,31 +260,6 @@ class SpgwStateConverter : StateConverter {
   static void proto_to_packet_filter(
       const oai::PacketFilter& packet_filter_proto,
       packet_filter_t* packet_filter);
-
-  /**
-   * Converts pcc_rules hashtable to proto
-   * @param state_map
-   * @param proto_map
-   */
-  static void pcc_rule_ht_to_proto(
-      hash_table_ts_t* state_map,
-      google::protobuf::Map<unsigned int, oai::PccRule>* proto_map);
-
-  /**
-   * Converts pcc rule object to proto, memory is owned by the caller
-   * @param pcc_rule_state
-   * @param proto
-   */
-  static void pcc_rule_to_proto(
-      const pcc_rule_t* pcc_rule_state, oai::PccRule* proto);
-
-  /**
-   * Converts proto to pcc rule object to proto
-   * @param proto
-   * @param pcc_rule_state
-   */
-  static void proto_to_pcc_rule(
-      const oai::PccRule& proto, pcc_rule_t* pcc_rule_state);
 };
 }  // namespace lte
 }  // namespace magma

@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esmData.h
+Source      esm_data.h
 
 Version     0.1
 
@@ -98,7 +98,8 @@ typedef struct esm_ebr_context_s {
   bitrate_t mbr_ul;
   traffic_flow_template_t* tft;
   protocol_configuration_options_t* pco;
-  struct nas_timer_s timer; /* Retransmission timer         */
+  struct nas_timer_s timer;   /* Retransmission timer         */
+  esm_ebr_timer_data_t* args; /* Retransmission timer parameters */
 } esm_ebr_context_t;
 
 typedef struct esm_ebr_data_s {
@@ -173,8 +174,6 @@ struct esm_proc_data_s;
  */
 typedef struct esm_context_s {
   int n_active_ebrs; /* Total number of active EPS bearer contexts   */
-  int n_active_pdns; /* Number of active PDN connections     */
-  int n_pdns;
   bool is_emergency; /* Indicates whether a PDN connection for emergency bearer
                         services is established       */
   struct esm_proc_data_s* esm_proc_data;

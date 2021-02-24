@@ -23,6 +23,7 @@
 extern "C" {
 #include "log.h"
 #include "spgw_config.h"
+#include "common_defs.h"
 }
 
 static const int OFP_LOCAL   = 65534;
@@ -67,13 +68,15 @@ int start_of_controller(bool persist_state) {
   ctrl.register_for_event(&gtp_app, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
   ctrl.start();
   OAILOG_INFO(LOG_GTPV1U, "Started openflow controller\n");
-  return 0;
+#define CONNECTION_WAIT_TIME 300
+  OAILOG_FUNC_RETURN(
+      LOG_GTPV1U, ctrl.is_controller_connected_to_switch(CONNECTION_WAIT_TIME));
 }
 
 int stop_of_controller(void) {
   ctrl.stop();
   OAILOG_INFO(LOG_GTPV1U, "Stopped openflow controller\n");
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 /**
@@ -83,79 +86,82 @@ int stop_of_controller(void) {
 static void* external_event_callback(std::shared_ptr<void> data) {
   auto external_event = std::static_pointer_cast<openflow::ExternalEvent>(data);
   ctrl.dispatch_event(*external_event);
+  return NULL;
 }
 
 int openflow_controller_add_gtp_tunnel(
-    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
-    const char* imsi, struct ipv4flow_dl* flow_dl,
-    uint32_t flow_precedence_dl, uint32_t gtp_portno) {
+    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
+    uint32_t i_tei, uint32_t o_tei, const char* imsi,
+    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl,
+    uint32_t gtp_portno) {
   if (flow_dl) {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
-        ue, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl,
+        ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl,
         gtp_portno);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   } else {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
-        ue, vlan, enb, i_tei, o_tei, imsi, gtp_portno);
+        ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, gtp_portno);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   }
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_del_gtp_tunnel(
-    struct in_addr ue, uint32_t i_tei, struct ipv4flow_dl* flow_dl,
-    uint32_t gtp_portno) {
+    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
+    struct ip_flow_dl* flow_dl, uint32_t gtp_portno) {
   if (flow_dl) {
-    auto del_tunnel =
-        std::make_shared<openflow::DeleteGTPTunnelEvent>(ue, i_tei, flow_dl,
-                                                         gtp_portno);
+    auto del_tunnel = std::make_shared<openflow::DeleteGTPTunnelEvent>(
+        ue, ue_ipv6, i_tei, flow_dl, gtp_portno);
     ctrl.inject_external_event(del_tunnel, external_event_callback);
   } else {
-    auto del_tunnel =
-        std::make_shared<openflow::DeleteGTPTunnelEvent>(ue, i_tei, gtp_portno);
+    auto del_tunnel = std::make_shared<openflow::DeleteGTPTunnelEvent>(
+        ue, ue_ipv6, i_tei, gtp_portno);
     ctrl.inject_external_event(del_tunnel, external_event_callback);
   }
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_discard_data_on_tunnel(
-    struct in_addr ue, uint32_t i_tei, struct ipv4flow_dl* flow_dl) {
+    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
+    struct ip_flow_dl* flow_dl) {
   if (flow_dl) {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
-        ue, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL, flow_dl, false);
+        ue, ue_ipv6, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL, flow_dl,
+        false);
     ctrl.inject_external_event(gtp_tunnel, external_event_callback);
   } else {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
-        ue, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL);
+        ue, ue_ipv6, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL);
     ctrl.inject_external_event(gtp_tunnel, external_event_callback);
   }
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_forward_data_on_tunnel(
-    struct in_addr ue, uint32_t i_tei, struct ipv4flow_dl* flow_dl,
-    uint32_t flow_precedence_dl) {
+    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
+    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl) {
   if (flow_dl) {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
-        ue, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL, flow_dl,
+        ue, ue_ipv6, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL, flow_dl,
         flow_precedence_dl);
     ctrl.inject_external_event(gtp_tunnel, external_event_callback);
   } else {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
-        ue, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
+        ue, ue_ipv6, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
     ctrl.inject_external_event(gtp_tunnel, external_event_callback);
   }
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_add_paging_rule(struct in_addr ue_ip) {
   auto paging_event = std::make_shared<openflow::AddPagingRuleEvent>(ue_ip);
   ctrl.inject_external_event(paging_event, external_event_callback);
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_delete_paging_rule(struct in_addr ue_ip) {
   auto paging_event = std::make_shared<openflow::DeletePagingRuleEvent>(ue_ip);
   ctrl.inject_external_event(paging_event, external_event_callback);
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }

@@ -19,11 +19,9 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -39,6 +37,12 @@ const (
 	testAgHwId = "Test-AGW-Hw-Id"
 )
 
+var (
+	stateSerdes = serde.NewRegistry(
+		state.NewStateSerde("test-serde", &Name{}),
+	)
+)
+
 func init() {
 	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
@@ -48,10 +52,6 @@ func TestStateService(t *testing.T) {
 	device_test_init.StartTestService(t)
 	// Set up test networkID, hwID, and encode into context
 	state_test_init.StartTestService(t)
-	err := serde.RegisterSerdes(
-		state.NewStateSerde("test-serde", &Name{}),
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
-	assert.NoError(t, err)
 
 	networkID := "state_service_test_network"
 	configurator_test.RegisterNetwork(t, networkID, "State Service Test")
@@ -68,14 +68,15 @@ func TestStateService(t *testing.T) {
 	bundle2 := makeVersionedStateBundle("test-serde", "key2", value2, 12)
 
 	// Check contract for empty network
-	states, err := state.GetStates(networkID, []state_types.ID{bundle0.ID})
+	states, err := state.GetStates(networkID, state_types.IDs{bundle0.ID}, stateSerdes)
 	assert.NoError(t, err)
 	assert.Empty(t, states)
 
 	// Report and read back
-	_, err = reportStates(ctx, bundle0, bundle1)
+	repRes, err := reportStates(ctx, bundle0, bundle1)
 	assert.NoError(t, err)
-	states, err = state.GetStates(networkID, []state_types.ID{bundle0.ID, bundle1.ID})
+	assert.Empty(t, repRes.UnreportedStates)
+	states, err = state.GetStates(networkID, state_types.IDs{bundle0.ID, bundle1.ID}, stateSerdes)
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle0, bundle1)
 	assert.Equal(t, uint64(0), states[bundle0.ID].Version)
@@ -83,9 +84,10 @@ func TestStateService(t *testing.T) {
 
 	// Update states, ensuring version is set properly
 	bundle1.state.Version = 15
-	_, err = reportStates(ctx, bundle0, bundle1)
+	repRes, err = reportStates(ctx, bundle0, bundle1)
 	assert.NoError(t, err)
-	states, err = state.GetStates(networkID, []state_types.ID{bundle0.ID, bundle1.ID})
+	assert.Empty(t, repRes.UnreportedStates)
+	states, err = state.GetStates(networkID, state_types.IDs{bundle0.ID, bundle1.ID}, stateSerdes)
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle0, bundle1)
 	assert.Equal(t, uint64(1), states[bundle0.ID].Version)
@@ -102,35 +104,37 @@ func TestStateService(t *testing.T) {
 	assert.Equal(t, uint64(15), res.GetUnsyncedStates()[0].Version)
 
 	// Report a state with fields the corresponding serde does not expect
-	_, err = reportStates(ctx, bundle2)
+	repRes, err = reportStates(ctx, bundle2)
 	assert.NoError(t, err)
-	states, err = state.GetStates(networkID, []state_types.ID{bundle2.ID})
+	assert.Empty(t, repRes.UnreportedStates)
+	states, err = state.GetStates(networkID, state_types.IDs{bundle2.ID}, stateSerdes)
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle2)
 	assert.Equal(t, uint64(12), states[bundle2.ID].Version)
 
 	// Delete and read back
-	err = state.DeleteStates(networkID, []state_types.ID{bundle0.ID, bundle2.ID})
+	err = state.DeleteStates(networkID, state_types.IDs{bundle0.ID, bundle2.ID})
 	assert.NoError(t, err)
-	states, err = state.GetStates(networkID, []state_types.ID{bundle0.ID, bundle1.ID, bundle2.ID})
+	states, err = state.GetStates(networkID, state_types.IDs{bundle0.ID, bundle1.ID, bundle2.ID}, stateSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(states))
 	testGetStatesResponse(t, states, bundle1)
 
-	// Send a valid state and a state with no corresponding serde
+	// Send a valid and invalid state
+	// key0: added here
+	// key1: overwritten with invalid
+	// key2: added with no serde
+	// => should only receive key0
 	unserializableBundle := makeStateBundle("nonexistent-serde", "key3", value0)
 	invalidBundle := makeStateBundle("test-serde", "key1", Name{Name: "BADNAME"})
-	resp, err := reportStates(ctx, bundle0, unserializableBundle, invalidBundle)
+	repRes, err = reportStates(ctx, bundle0, unserializableBundle, invalidBundle)
 	assert.NoError(t, err)
-	assert.Equal(t, "nonexistent-serde", resp.UnreportedStates[0].Type)
-	assert.Equal(t, "No Serde found for type nonexistent-serde", resp.UnreportedStates[0].Error)
-	assert.Equal(t, "test-serde", resp.UnreportedStates[1].Type)
-	assert.Equal(t, "this name: BADNAME is not allowed", resp.UnreportedStates[1].Error)
-	// Valid state should still be reported
-	states, err = state.GetStates(networkID, []state_types.ID{bundle0.ID, bundle1.ID, bundle2.ID})
+	assert.Empty(t, repRes.UnreportedStates) // validity is checked by the consumer
+	// Only valid state should be accessible
+	states, err = state.GetStates(networkID, state_types.IDs{bundle0.ID, bundle1.ID, bundle2.ID, unserializableBundle.ID}, stateSerdes)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(states))
-	testGetStatesResponse(t, states, bundle0, bundle1)
+	assert.Equal(t, 1, len(states))
+	testGetStatesResponse(t, states, bundle0)
 }
 
 type stateBundle struct {
@@ -211,7 +215,7 @@ func syncStates(ctx context.Context, bundles ...stateBundle) (*protos.SyncStates
 func testGetStatesResponse(t *testing.T, states map[state_types.ID]state_types.State, bundles ...stateBundle) {
 	for _, bundle := range bundles {
 		value := states[bundle.ID]
-		iState, err := serde.Deserialize(state.SerdeDomain, bundle.ID.Type, bundle.state.Value)
+		iState, err := serde.Deserialize(bundle.state.Value, bundle.ID.Type, stateSerdes)
 		assert.NoError(t, err)
 		assert.Equal(t, iState, value.ReportedState)
 	}

@@ -58,6 +58,7 @@ void LocalSessionManagerAsyncService::init_call_data() {
   new EndSessionCallData(cq_.get(), *this, *handler_);
   new BindPolicy2BearerCallData(cq_.get(), *this, *handler_);
   new SetSessionRulesCallData(cq_.get(), *this, *handler_);
+  new UpdateTunnelIdsCallData(cq_.get(), *this, *handler_);
 }
 
 /*Landing object invocation object call for 5G*/

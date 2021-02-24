@@ -64,7 +64,7 @@ def main():
         exit(1)
 
     # Execute the subcommand function
-    args.func(args, SMSOrc8rGatewayServiceStub, 'sms_orc8r_gw_mme_service')
+    args.func(args, SMSOrc8rGatewayServiceStub, 'sms_mme_service')
 
 
 if __name__ == "__main__":

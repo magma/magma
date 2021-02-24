@@ -35,7 +35,7 @@ services:
   sessiond:
     ip_address: 127.0.0.1
     port: 50065
-  abort_session:
+  abort_session_service:
     ip_address: 127.0.0.1
     port: 50065
   test_service:
@@ -59,10 +59,19 @@ services:
   sms_mme_service:
     ip_address: 127.0.0.1
     port: 50073
+  s1ap_service:
+    ip_address: 127.0.0.1
+    port: 50073
   s6a_service:
     ip_address: 127.0.0.1
     port: 50073
   spgw_service:
+    ip_address: 127.0.0.1
+    port: 50073
+  amf_service:
+    ip_address: 127.0.0.1
+    port: 50073
+  ha_service:
     ip_address: 127.0.0.1
     port: 50073
   state:
@@ -80,3 +89,15 @@ services:
   smsd:
     ip_address: 127.0.0.1
     port: 50078
+  ctraced:
+    ip_address: 127.0.0.1
+    port: 50079
+  health:
+    ip_address: 127.0.0.1
+    port: 50080
+  envoy_controller:
+    ip_address: 127.0.0.1
+    port: 50081
+  connectiond:
+    ip_address: 127.0.0.1
+    port: 50082

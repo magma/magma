@@ -253,7 +253,7 @@ func (m *FederatedNetworkConfigs) ToUpdateCriteria(network configurator.Network)
 }
 
 func (m *GatewayFederationConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	federationConfig, err := configurator.LoadEntityConfig(networkID, feg.FegGatewayType, gatewayID)
+	federationConfig, err := configurator.LoadEntityConfig(networkID, feg.FegGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}

@@ -19,8 +19,6 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -43,9 +41,8 @@ type (
 )
 
 func Test_GetPartialReadNetworkHandler(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
-	serde.RegisterSerdes(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
+	networkSerdes := serde.NewRegistry(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
 
@@ -56,12 +53,12 @@ func Test_GetPartialReadNetworkHandler(t *testing.T) {
 		Name:        "Test Network 1",
 		Description: "Test Network 1",
 	}
-	assert.NoError(t, configurator.CreateNetwork(network))
+	assert.NoError(t, configurator.CreateNetwork(network, networkSerdes))
 
 	networkURL := fmt.Sprintf("%s/%s", testURLRoot, networkID)
 
 	// Test 404
-	getFullConfig := handlers.GetPartialReadNetworkHandler(networkURL, &TestFeature1{})
+	getFullConfig := handlers.GetPartialReadNetworkHandler(networkURL, &TestFeature1{}, networkSerdes)
 	getFeatures := tests.Test{
 		Method:         "GET",
 		URL:            networkURL,
@@ -74,7 +71,7 @@ func Test_GetPartialReadNetworkHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, getFeatures)
 
-	getPartialConfig := handlers.GetPartialReadNetworkHandler(networkURL, &ID{})
+	getPartialConfig := handlers.GetPartialReadNetworkHandler(networkURL, &ID{}, networkSerdes)
 	getName := tests.Test{
 		Method:         "GET",
 		URL:            networkURL,
@@ -94,10 +91,10 @@ func Test_GetPartialReadNetworkHandler(t *testing.T) {
 			"test": &TestFeature1{ID: &ID{Name: "hello!"}, Desc: "goodbye!"},
 		},
 	}
-	assert.NoError(t, configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update}))
+	assert.NoError(t, configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update}, networkSerdes))
 
 	// happy full case
-	getFullConfig = handlers.GetPartialReadNetworkHandler(networkURL, &TestFeature1{})
+	getFullConfig = handlers.GetPartialReadNetworkHandler(networkURL, &TestFeature1{}, networkSerdes)
 	getFeatures = tests.Test{
 		Method:         "GET",
 		URL:            networkURL,
@@ -111,7 +108,7 @@ func Test_GetPartialReadNetworkHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, getFeatures)
 
 	// happy partial case
-	getPartialConfig = handlers.GetPartialReadNetworkHandler(networkURL, &ID{})
+	getPartialConfig = handlers.GetPartialReadNetworkHandler(networkURL, &ID{}, networkSerdes)
 	getName = tests.Test{
 		Method:         "GET",
 		URL:            networkURL,
@@ -126,8 +123,7 @@ func Test_GetPartialReadNetworkHandler(t *testing.T) {
 }
 
 func TestGetUpdateNetworkConfigHandler(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	serde.RegisterSerdes(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
+	networkSerdes := serde.NewRegistry(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -141,12 +137,12 @@ func TestGetUpdateNetworkConfigHandler(t *testing.T) {
 		Description: "Test Network 1",
 		Configs:     map[string]interface{}{"test": &TestFeature1{ID: &ID{Name: "hello!"}, Desc: "goodbye!"}},
 	}
-	assert.NoError(t, configurator.CreateNetwork(network))
+	assert.NoError(t, configurator.CreateNetwork(network, networkSerdes))
 
 	networkURL := fmt.Sprintf("%s/%s", testURLRoot, networkID)
 
-	updateConfigsFull := handlers.GetPartialUpdateNetworkHandler(networkURL, &TestFeature1{})
-	updateConfigsPartial := handlers.GetPartialUpdateNetworkHandler(networkURL, &ID{})
+	updateConfigsFull := handlers.GetPartialUpdateNetworkHandler(networkURL, &TestFeature1{}, networkSerdes)
+	updateConfigsPartial := handlers.GetPartialUpdateNetworkHandler(networkURL, &ID{}, networkSerdes)
 
 	// name is empty
 	badConfig := &TestFeature1{ID: &ID{Name: ""}, Desc: "goodbye!"}
@@ -188,7 +184,7 @@ func TestGetUpdateNetworkConfigHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, updateFullConfig)
 
-	config, err := configurator.LoadNetworkConfig(networkID, "test")
+	config, err := configurator.LoadNetworkConfig(networkID, "test", networkSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedConfig, config)
 
@@ -205,14 +201,13 @@ func TestGetUpdateNetworkConfigHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, updateFullConfig)
 
-	config, err = configurator.LoadNetworkConfig(networkID, "test")
+	config, err = configurator.LoadNetworkConfig(networkID, "test", networkSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedConfig, config)
 }
 
 func TestGetDeleteNetworkConfigHandler(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	serde.RegisterSerdes(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
+	networkSerdes := serde.NewRegistry(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -226,11 +221,11 @@ func TestGetDeleteNetworkConfigHandler(t *testing.T) {
 		Description: "Test Network 1",
 		Configs:     map[string]interface{}{"test": &TestFeature1{ID: &ID{Name: "hello!"}, Desc: "goodbye!"}},
 	}
-	assert.NoError(t, configurator.CreateNetwork(network))
+	assert.NoError(t, configurator.CreateNetwork(network, networkSerdes))
 
 	networkURL := fmt.Sprintf("%s/%s", testURLRoot, networkID)
 
-	deleteHandler := handlers.GetPartialDeleteNetworkHandler(networkURL, "test")
+	deleteHandler := handlers.GetPartialDeleteNetworkHandler(networkURL, "test", networkSerdes)
 	deleteTestConfig := tests.Test{
 		Method:         "DELETE",
 		URL:            networkURL,
@@ -241,8 +236,8 @@ func TestGetDeleteNetworkConfigHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, deleteTestConfig)
 
-	_, err := configurator.LoadNetworkConfig(networkID, "test")
-	assert.EqualError(t, errors.ErrNotFound, err.Error())
+	_, err := configurator.LoadNetworkConfig(networkID, "test", networkSerdes)
+	assert.EqualError(t, err, errors.ErrNotFound.Error())
 }
 
 func (m *ID) Validate(_ strfmt.Registry) error {

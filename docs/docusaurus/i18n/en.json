@@ -42,6 +42,9 @@
       "feg/deploy_intro": {
         "title": "Introduction"
       },
+      "feg/federated_FWA_setup_guide": {
+        "title": "Federated-FWA Setup Guide"
+      },
       "feg/legacy/docker_setup": {
         "title": "FeG Docker Setup"
       },
@@ -52,15 +55,14 @@
         "title": "Federated Gateway (FeG)",
         "sidebar_label": "Overview"
       },
-      "howtos/configurations": {
-        "title": "Configurations in Magma",
-        "sidebar_label": "Configurations"
-      },
-      "howtos/docusaurus": {
-        "title": "Docusaurus"
-      },
       "howtos/readme_package": {
         "title": "Packaging"
+      },
+      "howtos/config_agw_bridged": {
+        "title": "AGW Bridged Mode"
+      },
+      "howtos/ue_metering": {
+        "title": "UE Usage Metering"
       },
       "lte/config_agw": {
         "title": "AGW Configuration",
@@ -118,11 +120,11 @@
       "lte/tr069": {
         "title": "Adding TR-069 support for an eNodeB"
       },
-      "lte/config_agw_bridged": {
-        "title": "Magma Bridge mode setup."
-      },
       "lte/agw_120_upgrade": {
         "title": "Upgrading from 1.1"
+      },
+      "lte/agw_130_upgrade": {
+        "title": "Upgrading from 1.2"
       },
       "lte/agw_110_upgrade": {
         "title": "Upgrading from 1.0"
@@ -169,6 +171,9 @@
       "orc8r/deploy_intro": {
         "title": "Introduction"
       },
+      "orc8r/development/minikube_deployment": {
+        "title": "Deploy on Minikube"
+      },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"
       },
@@ -193,14 +198,17 @@
         "title": "Testing in Orchestrator",
         "sidebar_label": "Testing"
       },
-      "orc8r/ue_metering": {
-        "title": "UE Usage Metering"
-      },
       "orc8r/upgrade_1_1": {
         "title": "Upgrade to v1.1"
       },
       "orc8r/upgrade_1_2": {
         "title": "Upgrade to v1.2"
+      },
+      "orc8r/upgrade_1_3": {
+        "title": "Upgrade to v1.3"
+      },
+      "orc8r/upgrade_intro": {
+        "title": "Introduction"
       },
       "proposals/p001_vpn_config_from_api": {
         "title": "Configurable VPN from Orchestrator API"
@@ -211,14 +219,14 @@
       "proposals/p003_qos_enforcement": {
         "title": "QoS Policy Configuration"
       },
-      "symphony/building_the_symphony_agent": {
-        "title": "Building the Symphony Agent"
+      "proposals/p004_fua_restrict_feature": {
+        "title": "Service Restriction Feature"
       },
-      "symphony/symphony_download_requirements": {
-        "title": "Download Requirements"
+      "proposals/p005_call_tracing": {
+        "title": "Call Tracing Feature"
       },
-      "symphony/quick_start": {
-        "title": "Symphony Agent Quick Start"
+      "proposals/p007_header_enrichment": {
+        "title": "Header Enrichment"
       },
       "version-1.0.0/basics/version-1.0.0-introduction": {
         "title": "Introduction"
@@ -547,6 +555,133 @@
       },
       "version-1.1.0/orc8r/version-1.1.0-deploy_upgrade": {
         "title": "Upgrading from 1.0"
+      },
+      "version-1.2.0/basics/version-1.2.0-prerequisites": {
+        "title": "Prerequisites"
+      },
+      "version-1.2.0/basics/version-1.2.0-quick_start_guide": {
+        "title": "Quick Start Guide"
+      },
+      "version-1.2.0/howtos/version-1.2.0-config_agw_bridged": {
+        "title": "AGW Bridged Mode"
+      },
+      "version-1.2.0/howtos/version-1.2.0-ue_metering": {
+        "title": "UE Usage Metering"
+      },
+      "version-1.2.0/lte/version-1.2.0-config_agw": {
+        "title": "AGW Configuration",
+        "sidebar_label": "AGW Configuration"
+      },
+      "version-1.2.0/lte/version-1.2.0-config_apn": {
+        "title": "APN Configuration"
+      },
+      "version-1.2.0/lte/version-1.2.0-openvswitch": {
+        "title": "Magma Datapath"
+      },
+      "version-1.2.0/lte/version-1.2.0-dev_notes": {
+        "title": "Developer Notes for Access Gateway"
+      },
+      "version-1.2.0/lte/version-1.2.0-enodebd": {
+        "title": "eNodeB Configuration"
+      },
+      "version-1.2.0/lte/version-1.2.0-pipelined": {
+        "title": "Pipelined"
+      },
+      "version-1.2.0/lte/version-1.2.0-readme_agw": {
+        "title": "AGW Services/Sub-Components",
+        "sidebar_label": "Services/Sub-Components"
+      },
+      "version-1.2.0/lte/version-1.2.0-setup_deb": {
+        "title": "AGW Setup (Bare Metal)",
+        "sidebar_label": "Setup (Bare Metal)"
+      },
+      "version-1.2.0/lte/version-1.2.0-agw_120_upgrade": {
+        "title": "Upgrading from 1.1"
+      },
+      "version-1.2.0/nms/version-1.2.0-nms_dashboard": {
+        "title": "NMS Dashboard"
+      },
+      "version-1.2.0/nms/version-1.2.0-nms_developer": {
+        "title": "Quick-Start Guide to NMS Development"
+      },
+      "version-1.2.0/nms/version-1.2.0-nms_equipment": {
+        "title": "NMS Equipment"
+      },
+      "version-1.2.0/nms/version-1.2.0-nms_network": {
+        "title": "NMS Network"
+      },
+      "version-1.2.0/nms/version-1.2.0-nms_organizations": {
+        "title": "Multitenancy (Organizations)"
+      },
+      "version-1.2.0/nms/version-1.2.0-nms_overview": {
+        "title": "NMS Overview"
+      },
+      "version-1.2.0/nms/version-1.2.0-nms_subscriber": {
+        "title": "NMS Subscriber"
+      },
+      "version-1.2.0/nms/version-1.2.0-nms_traffic": {
+        "title": "NMS Traffic"
+      },
+      "version-1.2.0/nms/version-1.2.0-nms_how_to_guide": {
+        "title": "NMS How To Guide"
+      },
+      "version-1.2.0/orc8r/version-1.2.0-deploy_build": {
+        "title": "Build Orchestrator"
+      },
+      "version-1.2.0/orc8r/version-1.2.0-deploy_install": {
+        "title": "Install Orchestrator"
+      },
+      "version-1.2.0/orc8r/version-1.2.0-deploy_intro": {
+        "title": "Introduction"
+      },
+      "version-1.2.0/orc8r/version-1.2.0-ue_metering": {
+        "title": "UE Usage Metering"
+      },
+      "version-1.2.0/orc8r/version-1.2.0-upgrade_1_1": {
+        "title": "Upgrade to v1.1"
+      },
+      "version-1.2.0/orc8r/version-1.2.0-upgrade_1_2": {
+        "title": "Upgrade to v1.2"
+      },
+      "version-1.2.0/proposals/version-1.2.0-p001_vpn_config_from_api": {
+        "title": "Configurable VPN from Orchestrator API"
+      },
+      "version-1.2.0/proposals/version-1.2.0-p002_scaled_prometheus_pipeline": {
+        "title": "Scaled Prometheus Pipeline"
+      },
+      "version-1.2.0/proposals/version-1.2.0-p003_qos_enforcement": {
+        "title": "QoS Policy Configuration"
+      },
+      "version-1.3.0/basics/version-1.3.0-quick_start_guide": {
+        "title": "Quick Start Guide"
+      },
+      "version-1.3.0/feg/version-1.3.0-federated_FWA_setup_guide": {
+        "title": "Federated-FWA Setup Guide"
+      },
+      "version-1.3.0/howtos/version-1.3.0-config_agw_bridged": {
+        "title": "AGW Bridged Mode"
+      },
+      "version-1.3.0/lte/version-1.3.0-setup_deb": {
+        "title": "AGW Setup (Bare Metal)",
+        "sidebar_label": "Setup (Bare Metal)"
+      },
+      "version-1.3.0/lte/version-1.3.0-agw_130_upgrade": {
+        "title": "Upgrading from 1.2"
+      },
+      "version-1.3.0/orc8r/version-1.3.0-deploy_build": {
+        "title": "Build Orchestrator"
+      },
+      "version-1.3.0/orc8r/version-1.3.0-deploy_install": {
+        "title": "Install Orchestrator"
+      },
+      "version-1.3.0/orc8r/version-1.3.0-upgrade_1_3": {
+        "title": "Upgrade to v1.3"
+      },
+      "version-1.3.0/orc8r/version-1.3.0-upgrade_intro": {
+        "title": "Orchestrator Upgrades: Introduction"
+      },
+      "version-1.3.0/proposals/version-1.3.0-p004_fua_restrict_feature": {
+        "title": "Service Restriction Feature"
       }
     },
     "links": {
@@ -559,6 +694,7 @@
       "Orchestrator": "Orchestrator",
       "NMS User Guide": "NMS User Guide",
       "Access Gateway": "Access Gateway",
+      "Feature Guides": "Feature Guides",
       "Federation Gateway": "Federation Gateway",
       "FAQ": "FAQ",
       "Proposals": "Proposals",

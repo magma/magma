@@ -26,12 +26,8 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
@@ -76,6 +72,7 @@ func TestHealthServer_GetHealth(t *testing.T) {
 	unhealthyReq := test_utils.GetUnhealthyRequest()
 
 	marshaledUnhealthyStats, err := protos.Marshal(unhealthyReq.HealthStats)
+	assert.NoError(t, err)
 	unhealthyBlob := blobstore.Blob{
 		Value: marshaledUnhealthyStats,
 	}
@@ -103,7 +100,6 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 	assert.NoError(t, err)
 
 	test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 	test_utils.RegisterGateway(t, test_utils.TestFegNetwork, test_utils.TestFegHwId1, test_utils.TestFegLogicalId1)
 
 	// Use Healthy Request metrics
@@ -117,9 +113,9 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 		Key:  test_utils.TestFegNetwork,
 	}
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(2)
-	store.On("CreateOrUpdate", test_utils.TestFegNetwork, []blobstore.Blob{healthBlob}).Return(nil).Once()
+	store.On("CreateOrUpdate", test_utils.TestFegNetwork, blobstore.Blobs{healthBlob}).Return(nil).Once()
 	store.On("GetExistingKeys", []string{test_utils.TestFegNetwork}, mock.AnythingOfType("SearchFilter")).Return([]string{}, nil)
-	store.On("CreateOrUpdate", test_utils.TestFegNetwork, []blobstore.Blob{clusterBlob}).Return(nil).Once()
+	store.On("CreateOrUpdate", test_utils.TestFegNetwork, blobstore.Blobs{clusterBlob}).Return(nil).Once()
 	store.On("Get", test_utils.TestFegNetwork, clusterTK).Return(clusterBlob, nil).Once()
 	store.On("Commit").Return(nil).Times(2)
 
@@ -133,8 +129,8 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 	unhealthyBlob, err := fegstorage.HealthToBlob(test_utils.TestFegLogicalId1, unhealthyRequest.GetHealthStats())
 	assert.NoError(t, err)
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(2)
-	store.On("CreateOrUpdate", test_utils.TestFegNetwork, []blobstore.Blob{unhealthyBlob}).Return(nil)
-	store.On("CreateOrUpdate", test_utils.TestFegNetwork, []blobstore.Blob{clusterBlob}).Return(nil)
+	store.On("CreateOrUpdate", test_utils.TestFegNetwork, blobstore.Blobs{unhealthyBlob}).Return(nil)
+	store.On("CreateOrUpdate", test_utils.TestFegNetwork, blobstore.Blobs{clusterBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{test_utils.TestFegNetwork}, mock.Anything).Return([]string{test_utils.TestFegNetwork}, nil)
 	store.On("Get", test_utils.TestFegNetwork, clusterTK).Return(clusterBlob, nil).Once()
 	store.On("Commit").Return(nil).Times(2)
@@ -176,7 +172,7 @@ func TestHealthServer_UpdateHealth_DualFeg_HealthyActive(t *testing.T) {
 		Key:  gwId2,
 	}
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(3)
-	store.On("CreateOrUpdate", testNetworkID, []blobstore.Blob{healthBlob}).Return(nil)
+	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{healthBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK2).Return(healthBlob2, nil)
@@ -190,7 +186,7 @@ func TestHealthServer_UpdateHealth_DualFeg_HealthyActive(t *testing.T) {
 	// Update test servicer to simulate like this request is coming from standby feg
 	service.Feg1 = false
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(3)
-	store.On("CreateOrUpdate", testNetworkID, []blobstore.Blob{healthBlob2}).Return(nil)
+	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{healthBlob2}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK).Return(healthBlob, nil)
@@ -236,11 +232,11 @@ func TestNewHealthServer_UpdateHealth_FailoverFromActive(t *testing.T) {
 	assert.NoError(t, err)
 
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(4)
-	store.On("CreateOrUpdate", testNetworkID, []blobstore.Blob{unhealthyBlob}).Return(nil)
+	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{unhealthyBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK2).Return(healthyBlob, nil)
-	store.On("CreateOrUpdate", testNetworkID, []blobstore.Blob{updatedClusterBlob}).Return(nil)
+	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{updatedClusterBlob}).Return(nil)
 	store.On("Commit").Return(nil).Times(4)
 
 	res, err := service.UpdateHealth(context.Background(), unhealthyRequest)
@@ -285,11 +281,11 @@ func TestNewHealthServer_UpdateHealth_FailoverFromStandby(t *testing.T) {
 	assert.NoError(t, err)
 
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(4)
-	store.On("CreateOrUpdate", testNetworkID, []blobstore.Blob{healthyBlob}).Return(nil)
+	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{healthyBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK).Return(unhealthyBlob, nil)
-	store.On("CreateOrUpdate", testNetworkID, []blobstore.Blob{updatedClusterBlob}).Return(nil)
+	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{updatedClusterBlob}).Return(nil)
 	store.On("Commit").Return(nil).Times(4)
 
 	res, err := service.UpdateHealth(context.Background(), healthyRequest)
@@ -312,7 +308,9 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 	// Simulate that both the active and standby are unhealthy
 	unhealthyRequest := test_utils.GetUnhealthyRequest()
 	unhealthyBlob, err := fegstorage.HealthToBlob(gwId, unhealthyRequest.HealthStats)
+	assert.NoError(t, err)
 	unhealthyBlob2, err := fegstorage.HealthToBlob(gwId2, unhealthyRequest.HealthStats)
+	assert.NoError(t, err)
 	clusterBlob, err := fegstorage.ClusterToBlob(testNetworkID, gwId)
 	assert.NoError(t, err)
 	clusterTK := storage.TypeAndKey{
@@ -328,7 +326,7 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 		Key:  gwId2,
 	}
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(3)
-	store.On("CreateOrUpdate", testNetworkID, []blobstore.Blob{unhealthyBlob}).Return(nil)
+	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{unhealthyBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK2).Return(unhealthyBlob, nil)
@@ -343,7 +341,7 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 	service.Feg1 = false
 
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(3)
-	store.On("CreateOrUpdate", testNetworkID, []blobstore.Blob{unhealthyBlob2}).Return(nil)
+	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{unhealthyBlob2}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK).Return(unhealthyBlob, nil)
@@ -357,7 +355,6 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 
 func registerTwoFegs(t *testing.T) (string, string, string) {
 	test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 	test_utils.RegisterGateway(
 		t,
 		test_utils.TestFegNetwork,

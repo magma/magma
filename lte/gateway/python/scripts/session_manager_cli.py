@@ -216,7 +216,7 @@ def send_policy_rar(client, args):
 
 @grpc_wrapper
 def send_abort_session(client, args):
-    abort_session_chan = ServiceRegistry.get_rpc_channel("abort_session", ServiceRegistry.LOCAL)
+    abort_session_chan = ServiceRegistry.get_rpc_channel("abort_session_service", ServiceRegistry.LOCAL)
     abort_session_client = AbortSessionResponderStub(abort_session_chan)
 
     asr = AbortSessionRequest(
@@ -279,7 +279,7 @@ def create_parser():
 
     # ASR
     abort_session_parser = subparsers.add_parser(
-        "abort_session",
+        "abort_session_service",
         help="Send an AbortSessionRequest to SessionD service",
     )
     abort_session_parser.add_argument("session_id", help="e.g., 001010000088888")

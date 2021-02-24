@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"magma/lte/cloud/go/serdes"
 	lte_handlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
@@ -59,7 +60,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ratingGroupsManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteRatingGroup},
 	}
 
-	ret = append(ret, handlers.GetPartialEntityHandlers(qosProfileManagePath, "profile_id", &policydb_models.PolicyQosProfile{})...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(qosProfileManagePath, "profile_id", &policydb_models.PolicyQosProfile{}, serdes.Entity)...)
 
 	return ret
 }

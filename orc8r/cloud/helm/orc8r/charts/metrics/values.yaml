@@ -6,15 +6,78 @@ metrics:
   # alertmanager, and configmanager pods
   volumes:
     prometheusData:
-      volumeSpec: {}
+      volumeSpec:
+        {}
         # hostPath:
         #   path: /prometheusData
         #   type: DirectoryOrCreate
     prometheusConfig:
-      volumeSpec: {}
+      volumeSpec:
+        {}
         # hostPath:
         #   path: /configs/prometheus
         #   type: DirectoryOrCreate
+
+thanos:
+  enabled: false
+
+  image:
+    repository: docker.io/thanosio/thanos
+    tag: v0.15.0
+    pullPolicy: IfNotPresent
+
+  prometheusRetentionTime: 6h
+
+  query:
+    storeDNSDiscovery: true
+    sidecarDNSDiscovery: true
+    logLevel: debug
+
+  # Use thanosRule.enabled for rule configurations since we are using a custom deployment
+  # instead of the third-party helm chart. Use thanos.rule for all other configs
+  # since those have the helm chart defaults. Thanos rule component must be deployed
+  # as part of prometheus-configurer deployment since configurer manages the shared
+  # config files
+  thanosRule:
+    enabled: true
+
+  rule:
+    enabled: false
+    alertmanagers:
+      - orc8r-alertmanager:9093
+    queryDNSDiscovery: true
+    ruleFile: "/etc/rules/alert_rules/*"
+
+  compact:
+    retentionResolutionRaw: 30d
+    retentionResolution5m: 120d
+    retentionResolution1h: 1y
+
+  bucket:
+    enabled: false
+
+  sidecar:
+    selector:
+      app.kubernetes.io/component: prometheus
+
+  objstore:
+    type: S3
+    config:
+      bucket: ""
+      endpoint: ""
+      region: ""
+      access_key: ""
+      secret_key: ""
+      insecure: false
+      signature_version2: false
+      put_user_metadata: {}
+      http_config:
+        idle_conn_timeout: 0s
+        response_header_timeout: 0s
+        insecure_skip_verify: false
+      trace:
+        enable: false
+      part_size: 0
 
 prometheus:
   # Enable/Disable chart
@@ -112,7 +175,7 @@ prometheusConfigurer:
 
   image:
     repository: docker.io/facebookincubator/prometheus-configurer
-    tag: 1.0.0
+    tag: 1.0.4
     pullPolicy: IfNotPresent
 
   resources: {}
@@ -151,7 +214,7 @@ alertmanagerConfigurer:
 
   image:
     repository: docker.io/facebookincubator/alertmanager-configurer
-    tag: 1.0.0
+    tag: 1.0.4
     pullPolicy: IfNotPresent
 
   resources: {}
@@ -181,6 +244,9 @@ prometheusCache:
       - name: prometheus-cache
         port: 9091
         targetPort: 9091
+      - name: prometheus-cache-grpc
+        port: 9092
+        targetPort: 9092
 
   image:
     repository: docker.io/facebookincubator/prometheus-edge-hub
@@ -211,58 +277,6 @@ prometheusCache:
   tolerations: []
 
   # Assign prometheusCache to run on specific nodes
-  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  affinity: {}
-
-grafana:
-  # Enable/Disable chart
-  create: true
-  # Service configuration.
-  service:
-    annotations: {}
-    labels: {}
-    type: ClusterIP
-    ports:
-      - name: grafana
-        port: 3000
-        targetPort: 3000
-
-  environment:
-    prometheusHost: "orc8r-prometheus"
-    prometheusPort: "9090"
-
-  volumes:
-    # Default volume configurations for grafana data.
-    grafanaData:
-      volumeSpec:
-        emptyDir: {}
-
-  image:
-    repository: grafana/grafana
-    tag: 6.6.2
-    pullPolicy: IfNotPresent
-
-  # Number of metrics replicas desired
-  replicas: 1
-
-  # Resource limits & requests
-  resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-  # Define which Nodes the Pods are scheduled on.
-  # ref: https://kubernetes.io/docs/user-guide/node-selection/
-  nodeSelector: {}
-
-  # Tolerations for use with node taints
-  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-  tolerations: []
-
-  # Assign grafana to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 

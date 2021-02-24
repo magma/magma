@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 
-//go:generate bash -c "protoc -I . -I /usr/include --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
 package storage
 
 import (

@@ -44,15 +44,15 @@ type Network struct {
 	Version uint64
 }
 
-// ToStorageProto converts a Network struct to its proto representation.
-func (n Network) ToStorageProto() (*storage.Network, error) {
+// ToProto converts a Network struct to its proto representation.
+func (n Network) ToProto(serdes serde.Registry) (*storage.Network, error) {
 	ret := &storage.Network{
 		ID:          n.ID,
 		Type:        n.Type,
 		Name:        n.Name,
 		Description: n.Description,
 	}
-	bConfigs, err := marshalConfigs(n.Configs, NetworkConfigSerdeDomain)
+	bConfigs, err := marshalConfigs(n.Configs, serdes)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error serializing network %s", n.ID)
 	}
@@ -60,9 +60,9 @@ func (n Network) ToStorageProto() (*storage.Network, error) {
 	return ret, nil
 }
 
-// FromStorageProto converts a Network proto to it's internal go struct format.
-func (n Network) FromStorageProto(protoNet *storage.Network) (Network, error) {
-	iConfigs, err := unmarshalConfigs(protoNet.Configs, NetworkConfigSerdeDomain)
+// FromProto converts a Network proto to it's internal go struct format.
+func (n Network) FromProto(protoNet *storage.Network, serdes serde.Registry) (Network, error) {
+	iConfigs, err := unmarshalConfigs(protoNet.Configs, serdes)
 	if err != nil {
 		return n, errors.Wrapf(err, "error deserializing network %s", protoNet.ID)
 	}
@@ -98,8 +98,8 @@ type NetworkUpdateCriteria struct {
 	ConfigsToDelete []string
 }
 
-func (nuc NetworkUpdateCriteria) toStorageProto() (*storage.NetworkUpdateCriteria, error) {
-	bConfigs, err := marshalConfigs(nuc.ConfigsToAddOrUpdate, NetworkConfigSerdeDomain)
+func (nuc NetworkUpdateCriteria) toProto(serdes serde.Registry) (*storage.NetworkUpdateCriteria, error) {
+	bConfigs, err := marshalConfigs(nuc.ConfigsToAddOrUpdate, serdes)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal update")
 	}
@@ -119,11 +119,12 @@ func (nuc NetworkUpdateCriteria) toStorageProto() (*storage.NetworkUpdateCriteri
 	return ret, nil
 }
 
-// NetworkEntity is the storage representation of a logical component of a
-// network. Networks are partitioned into DAGs of entities.
+// NetworkEntity is a logical component of a network.
+// Networks are partitioned into DAGs of entities. Read-only fields will be
+// ignored if provided to write APIs.
 type NetworkEntity struct {
-	// Network that the entity belongs to. This is a READ-ONLY field and will
-	// be ignored if provided to write APIs.
+	// Network the entity belongs to.
+	// Read-only.
 	NetworkID string
 
 	// (Type, Key) forms a unique identifier for the network entity within its
@@ -131,35 +132,37 @@ type NetworkEntity struct {
 	Type string
 	Key  string
 
+	// Config value for the entity, deserialized.
+	Config interface{}
+	// isSerialized is true iff Config was set by this pkg and the contents
+	// were not deserialized from byte array.
+	isSerialized bool
+
+	// Name and Description are metadata annotations for human consumption.
 	Name        string
 	Description string
 
-	// PhysicalID will be non-empty if the entity corresponds to a physical
-	// asset.
+	// PhysicalID is non-empty when the entity corresponds to a physical asset.
 	PhysicalID string
 
-	Config interface{}
-
 	// GraphID is a mostly-internal field to designate the DAG that this
-	// network entity belongs to. This field is system-generated and will be
-	// ignored if set during entity creation.
+	// network entity belongs to.
+	// Read-only.
 	GraphID string
 
 	// Associations are the directed edges originating from this entity.
 	Associations storage2.TKs
 
 	// ParentAssociations are the directed edges ending at this entity.
-	// This is a read-only field and will be ignored if set during entity
-	// creation.
+	// Read-only.
 	ParentAssociations storage2.TKs
 
-	// Note that we are not exposing permissions in the client API at this
-	// time
-
+	// Version of the entity.
+	// Read-only.
 	Version uint64
 }
 
-func (ent NetworkEntity) toStorageProto() (*storage.NetworkEntity, error) {
+func (ent NetworkEntity) toProto(serdes serde.Registry) (*storage.NetworkEntity, error) {
 	ret := &storage.NetworkEntity{
 		// NetworkID is a read-only field so we won't fill it in
 		Type:        ent.Type,
@@ -175,7 +178,7 @@ func (ent NetworkEntity) toStorageProto() (*storage.NetworkEntity, error) {
 	}
 
 	if ent.Config != nil {
-		bConfigs, err := serde.Serialize(NetworkEntitySerdeDomain, ent.Type, ent.Config)
+		bConfigs, err := serde.Serialize(ent.Config, ent.Type, serdes)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to serialize entity %s", ent.GetTypeAndKey())
 		}
@@ -185,27 +188,62 @@ func (ent NetworkEntity) toStorageProto() (*storage.NetworkEntity, error) {
 	return ret, nil
 }
 
-func (ent NetworkEntity) fromStorageProto(protoEnt *storage.NetworkEntity) (NetworkEntity, error) {
-	ent.NetworkID = protoEnt.NetworkID
-	ent.Type = protoEnt.Type
-	ent.Key = protoEnt.Key
-	ent.Name = protoEnt.Name
-	ent.Description = protoEnt.Description
-	ent.PhysicalID = protoEnt.PhysicalID
-	ent.GraphID = protoEnt.GraphID
-	ent.Associations = entIDsToTKs(protoEnt.Associations)
-	ent.ParentAssociations = entIDsToTKs(protoEnt.ParentAssociations)
-	ent.Version = protoEnt.Version
+func (ent NetworkEntity) fromProto(p *storage.NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
+	e := ent.fromProtoSerialized(p)
 
-	if !funk.IsEmpty(protoEnt.Config) {
-		iConfig, err := serde.Deserialize(NetworkEntitySerdeDomain, ent.Type, protoEnt.Config)
+	if len(p.Config) != 0 {
+		iConfig, err := serde.Deserialize(p.Config, e.Type, serdes)
 		if err != nil {
 			return ent, errors.Wrapf(err, "failed to deserialize entity %s", ent.GetTypeAndKey())
 		}
-		ent.Config = iConfig
+		e.Config = iConfig
+		e.isSerialized = false
 	}
 
-	return ent, nil
+	return e, nil
+}
+
+// fromProtoSerialized is the same as fromProto, except it leaves the entity's
+// config as serialized bytes.
+func (ent NetworkEntity) fromProtoSerialized(p *storage.NetworkEntity) NetworkEntity {
+	e := NetworkEntity{
+		NetworkID:          p.NetworkID,
+		Type:               p.Type,
+		Key:                p.Key,
+		Name:               p.Name,
+		Description:        p.Description,
+		PhysicalID:         p.PhysicalID,
+		GraphID:            p.GraphID,
+		Associations:       entIDsToTKs(p.Associations),
+		ParentAssociations: entIDsToTKs(p.ParentAssociations),
+		Version:            p.Version,
+	}
+	if len(p.Config) != 0 {
+		e.Config = p.Config
+		e.isSerialized = true
+	}
+	return e
+}
+
+// fromProtoWithDefault tries to return fromProto, defaulting to
+// fromProtoSerialized when it encounters an error.
+func (ent NetworkEntity) fromProtoWithDefault(p *storage.NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
+	// Default to returning serialized when no serde found
+	if !serde.HasSerde(serdes, p.Type) {
+		return ent.fromProtoSerialized(p), nil
+	}
+
+	e, err := ent.fromProto(p, serdes)
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+	return e, nil
+}
+
+// IsSerialized returns true iff this package created the ent and its state
+// was not deserialized.
+func (ent NetworkEntity) IsSerialized() bool {
+	return ent.isSerialized
 }
 
 func (ent NetworkEntity) GetTypeAndKey() storage2.TypeAndKey {
@@ -224,6 +262,18 @@ func (ne NetworkEntities) MakeByTK() NetworkEntitiesByTK {
 	return ret
 }
 
+// MakeByParentTK returns the network entities, keyed by the TK of their parent
+// associations, once per parent association.
+func (ne NetworkEntities) MakeByParentTK() map[storage2.TypeAndKey]NetworkEntities {
+	ret := map[storage2.TypeAndKey]NetworkEntities{}
+	for _, ent := range ne {
+		for _, parentTK := range ent.ParentAssociations {
+			ret[parentTK] = append(ret[parentTK], ent)
+		}
+	}
+	return ret
+}
+
 func (ne NetworkEntities) GetFirst(typ string) (NetworkEntity, error) {
 	for _, e := range ne {
 		if e.Type == typ {
@@ -231,6 +281,26 @@ func (ne NetworkEntities) GetFirst(typ string) (NetworkEntity, error) {
 		}
 	}
 	return NetworkEntity{}, fmt.Errorf("no network entity of type %s found in %v", typ, ne)
+}
+
+func (ne NetworkEntities) fromProtos(protos []*storage.NetworkEntity, serdes serde.Registry) (NetworkEntities, error) {
+	var ents NetworkEntities
+	for _, p := range protos {
+		ent, err := (&NetworkEntity{}).fromProto(p, serdes)
+		if err != nil {
+			return nil, err
+		}
+		ents = append(ents, ent)
+	}
+	return ents, nil
+}
+
+func (ne NetworkEntities) fromProtosSerialized(protos []*storage.NetworkEntity) NetworkEntities {
+	var ents NetworkEntities
+	for _, p := range protos {
+		ents = append(ents, (&NetworkEntity{}).fromProtoSerialized(p))
+	}
+	return ents
 }
 
 type NetworkEntitiesByTK map[storage2.TypeAndKey]NetworkEntity
@@ -282,11 +352,11 @@ type EntityGraph struct {
 	reverseEdgesByTK map[storage2.TypeAndKey][]storage2.TypeAndKey
 }
 
-// FromStorageProto converts a proto EntityGraph to it's go struct format.
-func (eg EntityGraph) FromStorageProto(protoGraph *storage.EntityGraph) (EntityGraph, error) {
+// FromProto converts a proto EntityGraph to its native counterpart.
+func (eg EntityGraph) FromProto(protoGraph *storage.EntityGraph, serdes serde.Registry) (EntityGraph, error) {
 	eg.Entities = make([]NetworkEntity, 0, len(protoGraph.Entities))
 	for _, protoEnt := range protoGraph.Entities {
-		ent, err := (NetworkEntity{}).fromStorageProto(protoEnt)
+		ent, err := (NetworkEntity{}).fromProtoWithDefault(protoEnt, serdes)
 		if err != nil {
 			return eg, errors.Wrapf(err, "failed to deserialize entity %s", protoEnt.GetTypeAndKey())
 		}
@@ -297,16 +367,16 @@ func (eg EntityGraph) FromStorageProto(protoGraph *storage.EntityGraph) (EntityG
 
 	eg.Edges = make([]GraphEdge, 0, len(protoGraph.Edges))
 	for _, protoEdge := range protoGraph.Edges {
-		eg.Edges = append(eg.Edges, (GraphEdge{}).fromStorageProto(protoEdge))
+		eg.Edges = append(eg.Edges, (GraphEdge{}).fromProto(protoEdge))
 	}
 	return eg, nil
 }
 
-// ToStorageProto converts an EntityGraph struct to it's proto representation.
-func (eg EntityGraph) ToStorageProto() (*storage.EntityGraph, error) {
+// ToProto converts an EntityGraph struct to it's proto representation.
+func (eg EntityGraph) ToProto(serdes serde.Registry) (*storage.EntityGraph, error) {
 	protoGraph := &storage.EntityGraph{}
 	for _, ent := range eg.Entities {
-		protoEnt, err := ent.toStorageProto()
+		protoEnt, err := ent.toProto(serdes)
 		if err != nil {
 			return protoGraph, errors.Wrapf(err, "failed to convert entity %s to storage proto", ent.GetTypeAndKey())
 		}
@@ -315,7 +385,7 @@ func (eg EntityGraph) ToStorageProto() (*storage.EntityGraph, error) {
 	protoGraph.RootEntities = tksToEntIDs(eg.RootEntities)
 
 	for _, edge := range eg.Edges {
-		protoGraph.Edges = append(protoGraph.Edges, edge.toStorageProto())
+		protoGraph.Edges = append(protoGraph.Edges, edge.toProto())
 	}
 	return protoGraph, nil
 }
@@ -325,13 +395,13 @@ type GraphEdge struct {
 	To   storage2.TypeAndKey
 }
 
-func (ge GraphEdge) fromStorageProto(protoEdge *storage.GraphEdge) GraphEdge {
+func (ge GraphEdge) fromProto(protoEdge *storage.GraphEdge) GraphEdge {
 	ge.From = protoEdge.From.ToTypeAndKey()
 	ge.To = protoEdge.To.ToTypeAndKey()
 	return ge
 }
 
-func (ge GraphEdge) toStorageProto() *storage.GraphEdge {
+func (ge GraphEdge) toProto() *storage.GraphEdge {
 	protoTo := (&storage.EntityID{}).FromTypeAndKey(ge.To)
 	protoFrom := (&storage.EntityID{}).FromTypeAndKey(ge.From)
 	return &storage.GraphEdge{
@@ -371,7 +441,7 @@ type EntityLoadCriteria struct {
 	LoadAssocsFromThis bool
 }
 
-func (elc EntityLoadCriteria) toStorageProto() *storage.EntityLoadCriteria {
+func (elc EntityLoadCriteria) toProto() *storage.EntityLoadCriteria {
 	return &storage.EntityLoadCriteria{
 		LoadMetadata:       elc.LoadMetadata,
 		LoadConfig:         elc.LoadConfig,
@@ -434,7 +504,7 @@ type EntityUpdateCriteria struct {
 	AssociationsToDelete []storage2.TypeAndKey
 }
 
-func (euc EntityUpdateCriteria) toStorageProto() (*storage.EntityUpdateCriteria, error) {
+func (euc EntityUpdateCriteria) toProto(serdes serde.Registry) (*storage.EntityUpdateCriteria, error) {
 	ret := &storage.EntityUpdateCriteria{
 		Type:                 euc.Type,
 		Key:                  euc.Key,
@@ -447,13 +517,18 @@ func (euc EntityUpdateCriteria) toStorageProto() (*storage.EntityUpdateCriteria,
 	}
 
 	if euc.AssociationsToSet != nil {
+		// AssociationsToSet overrides AssociationsToAdd, so this check
+		// prevents accidentally mixing the two fields
+		if len(euc.AssociationsToAdd) != 0 {
+			return nil, errors.New("cannot both add and set associations in the same EntityUpdateCriteria")
+		}
 		ret.AssociationsToSet = &storage.EntityAssociationsToSet{
 			AssociationsToSet: tksToEntIDs(euc.AssociationsToSet),
 		}
 	}
 
 	if euc.NewConfig != nil {
-		bConfig, err := serde.Serialize(NetworkEntitySerdeDomain, euc.Type, euc.NewConfig)
+		bConfig, err := serde.Serialize(euc.NewConfig, euc.Type, serdes)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to serialize update %s", euc.GetTypeAndKey())
 		}
@@ -472,14 +547,14 @@ func (euc EntityUpdateCriteria) GetTypeAndKey() storage2.TypeAndKey {
 
 func (euc EntityUpdateCriteria) isEntityWriteOperation() {}
 
-func marshalConfigs(configs map[string]interface{}, domain string) (map[string][]byte, error) {
+func marshalConfigs(configs map[string]interface{}, serdes serde.Registry) (map[string][]byte, error) {
 	ret := map[string][]byte{}
 	for configType, iConfig := range configs {
 		if iConfig == nil {
 			continue
 		}
 
-		sConfig, err := serde.Serialize(domain, configType, iConfig)
+		sConfig, err := serde.Serialize(iConfig, configType, serdes)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to serialize config %s", configType)
 		}
@@ -488,14 +563,19 @@ func marshalConfigs(configs map[string]interface{}, domain string) (map[string][
 	return ret, nil
 }
 
-func unmarshalConfigs(configs map[string][]byte, domain string) (map[string]interface{}, error) {
+func unmarshalConfigs(configs map[string][]byte, serdes serde.Registry) (map[string]interface{}, error) {
 	ret := map[string]interface{}{}
-	for configType, sConfig := range configs {
-		iConfig, err := serde.Deserialize(domain, configType, sConfig)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to deserialize config %s", configType)
+	for typ, config := range configs {
+		// Skip unrecognized network config types, since one network can hold
+		// configs from multiple network types
+		if !serde.HasSerde(serdes, typ) {
+			continue
 		}
-		ret[configType] = iConfig
+		iConfig, err := serde.Deserialize(config, typ, serdes)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to deserialize network config %s", typ)
+		}
+		ret[typ] = iConfig
 	}
 	return ret, nil
 }

@@ -15,9 +15,6 @@ limitations under the License.
 package registry
 
 import (
-	"os"
-	"strings"
-
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -140,16 +137,4 @@ func GetConnection(service string) (*grpc.ClientConn, error) {
 
 func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	return globalRegistry.GetConnectionImpl(ctx, service, opts...)
-}
-
-// ListControllerServices list all services that should run on a controller instances
-// This is a comma separated list in an env var named CONTROLLER_SERVICES. This
-// will be used for metricsd on controller to determine
-// what services to pull metrics from.
-func ListControllerServices() []string {
-	controllerServices, ok := os.LookupEnv("CONTROLLER_SERVICES")
-	if !ok {
-		return make([]string, 0)
-	}
-	return strings.Split(controllerServices, ",")
 }

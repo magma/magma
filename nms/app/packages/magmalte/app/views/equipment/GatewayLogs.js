@@ -44,10 +44,17 @@ import {useRouter} from '@fbcnms/ui/hooks';
 const MAX_PAGE_ROW_COUNT = 10000;
 const EXPORT_DELIMITER = ',';
 const LOG_COLUMNS = [
-  {title: 'Date', field: 'date', type: 'datetime', width: 200},
+  {
+    title: 'Date',
+    field: 'date',
+    type: 'datetime',
+    width: 200,
+    filtering: false,
+  },
   {title: 'Service', field: 'service', width: 200},
-  {title: 'Type', field: 'logType', width: 200},
-  {title: 'Output', field: 'output'},
+  {title: 'Tag', field: 'tag', width: 200},
+  {title: 'Type', field: 'logType', width: 200, filtering: false},
+  {title: 'Output', field: 'output', filtering: false},
 ];
 
 const useStyles = makeStyles(theme => ({
@@ -77,15 +84,41 @@ const getLogType = (msg: string): string => {
   return 'debug';
 };
 
+function buildQueryFilters(q: ActionQuery, gatewayId: string) {
+  const logQuery = {
+    simpleQuery: q.search ?? '',
+    fields: undefined,
+    filters: undefined,
+  };
+  const filters = [`gateway_id:${gatewayId}`];
+  if (q.search === '' && q.filters.length === 1) {
+    // for this case we can do a regex search
+    logQuery.simpleQuery = q.filters[0].value;
+    logQuery.fields = q.filters[0].column.field === 'service' ? 'ident' : 'tag';
+  } else if (q.filters.length > 0) {
+    q.filters.forEach((filter, _) => {
+      switch (filter.column.field) {
+        case 'service':
+          filters.push(`ident:${filter.value}`);
+          break;
+        case 'tag':
+          filters.push(`tag:${filter.value}`);
+          break;
+      }
+    });
+  }
+  logQuery.filters = filters.join(',');
+  return logQuery;
+}
+
 async function searchLogs(networkId, gatewayId, from, size, start, end, q) {
   const logs = await MagmaV1API.getNetworksByNetworkIdLogsSearch({
     networkId: networkId,
-    filters: `gateway_id:${gatewayId}`,
     from: from.toString(),
     size: size.toString(),
-    simpleQuery: q.search ?? '',
     start: start.toISOString(),
     end: end.toISOString(),
+    ...buildQueryFilters(q, gatewayId),
   });
 
   return logs.filter(Boolean).map(elastic_hit => {
@@ -94,7 +127,8 @@ async function searchLogs(networkId, gatewayId, from, size, start, end, q) {
     const msg = src['message'];
     return {
       date: date,
-      service: src['ident'] ?? src['tag'] ?? '-',
+      service: src['ident'] ?? '-',
+      tag: src['tag'] ?? '-',
       logType: getLogType(msg ?? ''),
       output: msg,
     };
@@ -142,8 +176,7 @@ function handleLogQuery(networkId, gatewayId, from, size, start, end, q) {
         networkId: networkId,
         start: start.toISOString(),
         end: end.toISOString(),
-        filters: `gateway_id:${gatewayId}`,
-        simpleQuery: q.search,
+        ...buildQueryFilters(q, gatewayId),
       });
 
       const searchReq = searchLogs(
@@ -188,7 +221,7 @@ export default function GatewayLogs() {
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
   const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
     isAutoRefreshing,
-    10000,
+    30000,
     () => {
       tableRef.current && tableRef.current.onQueryChange();
     },
@@ -308,6 +341,7 @@ export default function GatewayLogs() {
             }}
             columns={LOG_COLUMNS}
             options={{
+              filtering: true,
               actionsColumnIndex: -1,
               pageSize: 10,
               pageSizeOptions: [10, 20],

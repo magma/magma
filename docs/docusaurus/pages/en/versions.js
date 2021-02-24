@@ -49,14 +49,14 @@ function Versions(props) {
                   </a>
                 </td>
                 <td>
-                  <a href={`${repoUrl}/releases/tag/v1.1.0`}>Release Notes</a>
+                  <a href={`${repoUrl}/releases/tag/v${latestVersion}`}>Release Notes</a>
                 </td>
               </tr>
             </tbody>
           </table>
           <p>
-            1.1.0 is a new feature release. See the linked release notes for
-            the new features introduced in this release.
+            {latestVersion} is a new feature release. See the linked release
+            notes for the new features introduced in this release.
           </p>
           <h3 id="rc">Pre-release versions</h3>
           <table className="versions">

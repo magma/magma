@@ -40,16 +40,27 @@ enum SessionSearchCriteriaType {
   IMSI_AND_SESSION_ID      = 1,
   IMSI_AND_UE_IPV4         = 2,
   IMSI_AND_UE_IPV4_OR_IPV6 = 3,
+  IMSI_AND_BEARER          = 4,
+  IMSI_AND_TEID            = 5,
 };
 
 struct SessionSearchCriteria {
   std::string imsi;
   SessionSearchCriteriaType search_type;
   std::string secondary_key;
+  uint32_t secondary_key_unit32;
+
   SessionSearchCriteria(
       const std::string p_imsi, SessionSearchCriteriaType p_type,
       const std::string p_secondary_key)
       : imsi(p_imsi), search_type(p_type), secondary_key(p_secondary_key) {}
+
+  SessionSearchCriteria(
+      const std::string p_imsi, SessionSearchCriteriaType p_type,
+      const uint32_t secondary_key_unit32)
+      : imsi(p_imsi),
+        search_type(p_type),
+        secondary_key_unit32(secondary_key_unit32) {}
 };
 
 /**
@@ -74,6 +85,14 @@ class SessionStore {
   SessionStore(
       std::shared_ptr<StaticRuleStore> rule_store,
       std::shared_ptr<RedisStoreClient> store_client);
+
+  /**
+   * Writes the session map directly to the store. Note that the existing map
+   * will be overwriten
+   * @param session_map
+   * @return
+   */
+  bool raw_write_sessions(SessionMap session_map);
 
   /**
    * Read the last written values for the requested sessions through the
@@ -102,6 +121,19 @@ class SessionStore {
    * @param update_criteria
    */
   void sync_request_numbers(const SessionUpdate& update_criteria);
+
+  /**
+   * Goes over all the RG keys and monitoring keys on the UpdateSessionRequest
+   * object, and updates is_reporting flab with the value. This function it is
+   * used to mark a specific key is currently waiting to get an answer back
+   * from the core
+   * @param value
+   * @param update_session_request
+   * @param session_uc
+   */
+  void set_and_save_reporting_flag(
+      bool value, const UpdateSessionRequest& update_session_request,
+      SessionUpdate& session_uc);
 
   /**
    * Read the last written values for the requested sessions through the

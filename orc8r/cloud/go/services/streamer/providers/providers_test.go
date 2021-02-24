@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/configurator/mconfig/mocks"
@@ -32,8 +33,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -52,9 +53,9 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	mockBuilder.On("Build", mock.Anything, mock.Anything, "gw1").Return(marshaledConfigs, nil)
 	configurator_test_init.StartNewTestBuilder(t, mockBuilder)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "gw1", PhysicalID: "hw1"})
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "gw1", PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	conn, err := registry.GetConnection(streamer.ServiceName)

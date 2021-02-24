@@ -133,7 +133,6 @@ export function NetworkEditDialog(props: DialogProps) {
   }, [open, editProps, ctx.state]);
 
   const onClose = () => {
-    setTabPos(0);
     props.onClose();
   };
 

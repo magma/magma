@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "feg_relay.service") -}}
 {{- define "feg_relay.service" -}}
 metadata:
-  name: {{ .Release.Name }}-feg-relay
+  name: orc8r-feg-relay
   labels:
     {{- with .Values.feg_relay.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: feg-relay
   ports:
     - name: grpc
       port: 9180

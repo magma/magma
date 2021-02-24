@@ -16,7 +16,6 @@ PROTO_LIST:=orc8r_protos lte_protos feg_protos
 MANDATORY_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_detach.py \
 s1aptests/test_gateway_metrics_attach_detach.py \
-s1aptests/test_attach_detach_multi_ue.py \
 s1aptests/test_attach_detach_looped.py  \
 s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_combined_eps_imsi.py \
@@ -54,7 +53,6 @@ s1aptests/test_attach_detach_security_algo_eea2_eia2.py \
 s1aptests/test_attach_detach_emm_status.py \
 s1aptests/test_attach_detach_enb_rlf_initial_ue_msg.py \
 s1aptests/test_attach_detach_ICS_Failure.py \
-s1aptests/test_attach_detach_ps_service_not_available.py \
 s1aptests/test_attach_missing_imsi.py \
 s1aptests/test_duplicate_attach.py \
 s1aptests/test_enb_partial_reset_con_dereg.py \
@@ -70,6 +68,7 @@ s1aptests/test_sctp_shutdown_after_auth_req.py \
 s1aptests/test_sctp_shutdown_after_identity_req.py \
 s1aptests/test_sctp_shutdown_after_smc.py \
 s1aptests/test_sctp_shutdown_after_multi_ue_attach.py \
+s1aptests/test_attach_detach_multi_ue.py \
 s1aptests/test_attach_detach_dedicated.py \
 s1aptests/test_attach_detach_dedicated_qci_0.py \
 s1aptests/test_attach_detach_dedicated_multi_ue.py \
@@ -102,6 +101,19 @@ s1aptests/test_attach_detach_nw_triggered_delete_last_pdn.py \
 s1aptests/test_different_enb_s1ap_id_same_ue.py \
 s1aptests/test_attach_detach_with_pcscf_address.py \
 s1aptests/test_attach_detach_secondary_pdn_with_pcscf_address.py \
+s1aptests/test_secondary_pdn_reject_multiple_sessions_not_allowed_per_apn.py \
+s1aptests/test_secondary_pdn_reject_unknown_pdn_type.py \
+s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej.py \
+s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \
+s1aptests/test_ics_timer_expiry_ue_registered.py \
+s1aptests/test_ics_timer_expiry_ue_unregistered.py \
+s1aptests/test_attach_service_with_multi_pdns_and_bearers.py \
+s1aptests/test_attach_service_with_multi_pdns_and_bearers_looped.py \
+s1aptests/test_attach_service_with_multi_pdns_and_bearers_multi_ue.py \
+s1aptests/test_attach_service_with_multi_pdns_and_bearers_failure.py \
+s1aptests/test_dedicated_bearer_activation_idle_mode.py \
+s1aptests/test_dedicated_bearer_activation_idle_mode_multi_ue.py \
+s1aptests/test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py \
 s1aptests/test_multi_enb_multi_ue.py \
 s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
@@ -115,19 +127,29 @@ s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
+s1aptests/test_attach_service_with_multi_pdns_and_bearers_mt_data.py \
 s1aptests/test_attach_asr.py \
+s1aptests/test_attach_detach_with_sctpd_restart.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
+s1aptests/test_attach_nw_initiated_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
+s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
-s1aptests/test_attach_detach_attach_ul_tcp_data.py \
+s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
+
+# Enable these tests once the CI job time-out has increased
+# s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
+# s1aptests/test_implicit_detach_timer_with_mme_restart.py \
+# s1aptests/test_ics_timer_expiry_with_mme_restart.py \
 
 # These test cases pass without memory leaks, but needs DL-route in TRF server
 # sudo /sbin/route add -net 192.168.128.0 gw 192.168.60.142
@@ -137,6 +159,7 @@ s1aptests/test_restore_mme_config_after_sanity.py
 # s1aptests/test_attach_detach_attach_dl_tcp_data.py
 
 # TODO flaky tests we should look at
+# s1aptests/test_attach_detach_ps_service_not_available.py \
 # s1aptests/test_enb_complete_reset.py \
 # s1aptests/test_attach_detach_multi_ue_looped.py \
 

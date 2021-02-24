@@ -69,7 +69,7 @@ func WriteErrResponse(w http.ResponseWriter, err *HTTPGrpcError) {
 // grpc-message has to be percent-encoded, though space can be kept.
 // If the grpc-message is not properly encoded, the whole message will show up
 // as an empty string in the application layer on the client side.
-// i.e. without encoding,  errMsg "Failed gwId: 123" will be ""
+// I.e., without encoding, errMsg "Failed gwId: 123" will be ""
 // because ':' has to be replaced with '%3A'
 // read here for more info on how grpc encodes on http/2:
 // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md

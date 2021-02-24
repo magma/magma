@@ -14,6 +14,8 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
+import type {EnodebInfo} from '../../components/lte/EnodebUtils';
+import type {network_ran_configs} from '@fbcnms/magma-api';
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import Button from '@material-ui/core/Button';
@@ -93,6 +95,12 @@ export function EnodebJsonConfig() {
 export default function EnodebConfig() {
   const classes = useStyles();
   const {history, relativeUrl} = useRouter();
+  const ctx = useContext(EnodebContext);
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const lteRanConfigs = ctx.lteRanConfigs;
+  const enbManaged = enbInfo.enb.enodeb_config?.config_type === 'MANAGED';
 
   function editJSON() {
     return (
@@ -144,37 +152,44 @@ export default function EnodebConfig() {
 
         <Grid item xs={12} md={6}>
           <CardTitleRow label="RAN" filter={editRAN} />
-          <EnodebRanConfig />
+          {enbManaged ? (
+            <EnodebManagedRanConfig
+              enbInfo={enbInfo}
+              lteRanConfigs={lteRanConfigs}
+            />
+          ) : (
+            <EnodebUnmanagedRanConfig enbInfo={enbInfo} />
+          )}
         </Grid>
       </Grid>
     </div>
   );
 }
 
-function EnodebRanConfig() {
-  const ctx = useContext(EnodebContext);
-  const {match} = useRouter();
-  const enodebSerial: string = nullthrows(match.params.enodebSerial);
-  const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const lteRanConfigs = ctx.lteRanConfigs;
-
-  const data: DataRows[] = [
+function EnodebManagedRanConfig({
+  enbInfo,
+  lteRanConfigs,
+}: {
+  enbInfo: EnodebInfo,
+  lteRanConfigs?: network_ran_configs,
+}) {
+  const managedConfig: DataRows[] = [
+    [
+      {
+        category: 'eNodeB Externally Managed',
+        value: 'False',
+      },
+    ],
     [
       {
         category: 'Bandwidth',
-        value: enbInfo.enb.config.bandwidth_mhz ?? '-',
+        value: enbInfo.enb.enodeb_config?.managed_config?.bandwidth_mhz ?? '-',
       },
     ],
     [
       {
         category: 'Cell ID',
-        value: enbInfo.enb.config.cell_id ?? '-',
-      },
-    ],
-    [
-      {
-        category: 'Description',
-        value: enbInfo.enb.description ?? '-',
+        value: enbInfo.enb.enodeb_config?.managed_config?.cell_id ?? '-',
       },
     ],
     [
@@ -187,15 +202,19 @@ function EnodebRanConfig() {
           : '-',
         collapse: lteRanConfigs?.tdd_config ? (
           <EnodeConfigTdd
-            earfcndl={enbInfo.enb.config.earfcndl ?? 0}
+            earfcndl={enbInfo.enb.enodeb_config?.managed_config?.earfcndl ?? 0}
             specialSubframePattern={
-              enbInfo.enb.config.special_subframe_pattern ?? 0
+              enbInfo.enb.enodeb_config?.managed_config
+                ?.special_subframe_pattern ?? 0
             }
-            subframeAssignment={enbInfo.enb.config.subframe_assignment ?? 0}
+            subframeAssignment={
+              enbInfo.enb.enodeb_config?.managed_config?.subframe_assignment ??
+              0
+            }
           />
         ) : lteRanConfigs?.fdd_config ? (
           <EnodeConfigFdd
-            earfcndl={enbInfo.enb.config.earfcndl ?? 0}
+            earfcndl={enbInfo.enb.enodeb_config?.managed_config?.earfcndl ?? 0}
             earfcnul={lteRanConfigs.fdd_config.earfcnul}
           />
         ) : (
@@ -206,24 +225,55 @@ function EnodebRanConfig() {
     [
       {
         category: 'PCI',
-        value: enbInfo.enb.config.pci ?? '-',
+        value: enbInfo.enb.enodeb_config?.managed_config?.pci ?? '-',
       },
     ],
     [
       {
         category: 'TAC',
-        value: enbInfo.enb.config.tac ?? '-',
+        value: enbInfo.enb.enodeb_config?.managed_config?.tac ?? '-',
       },
     ],
     [
       {
         category: 'Transmit',
-        value: enbInfo.enb.config.transmit_enabled ? 'Enabled' : 'Disabled',
+        value: enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled
+          ? 'Enabled'
+          : 'Disabled',
       },
     ],
   ];
+  return <DataGrid data={managedConfig} testID="ran" />;
+}
 
-  return <DataGrid data={data} testID="ran" />;
+function EnodebUnmanagedRanConfig({enbInfo}: {enbInfo: EnodebInfo}) {
+  const unmanagedConfig: DataRows[] = [
+    [
+      {
+        category: 'eNodeB Externally Managed',
+        value: 'True',
+      },
+    ],
+    [
+      {
+        category: 'Cell ID',
+        value: enbInfo.enb.enodeb_config?.unmanaged_config?.cell_id ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'TAC',
+        value: enbInfo.enb.enodeb_config?.unmanaged_config?.tac ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'IP Address',
+        value: enbInfo.enb.enodeb_config?.unmanaged_config?.ip_address ?? '-',
+      },
+    ],
+  ];
+  return <DataGrid data={unmanagedConfig} testID="ran" />;
 }
 
 function EnodebInfoConfig() {

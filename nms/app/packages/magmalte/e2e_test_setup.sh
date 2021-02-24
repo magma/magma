@@ -36,6 +36,7 @@ docker-compose exec magmalte yarn createOrganization magma-test nms test,test_fe
 
 # run the end to end test
 cd ../../
+set +e
 yarn test:e2e
 exit_code=$?
 

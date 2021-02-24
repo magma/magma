@@ -20,8 +20,8 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.3.0 # magma version number
-SCTPD_MIN_VERSION=1.0.2 # earliest version of sctpd with which this version is compatible
+VERSION=1.5.0 # magma version number
+SCTPD_MIN_VERSION=1.5.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -94,10 +94,10 @@ MAGMA_DEPS=(
     "lighttpd >= 1.4.45"
     "libxslt1.1"
     "nghttp2-proxy >= 1.18.1"
-    "python3-protobuf >= 3.0.0"
+    "python3-protobuf >= 3.14.0"
     "redis-server >= 3.2.0"
     "sudo"
-    "dnsmasq >= 2.72"
+    "dnsmasq >= 2.7"
     "net-tools" # for ifconfig
     "python3-pip"
     "python3-apt" # The version in pypi is abandoned and broken on stretch
@@ -114,13 +114,17 @@ MAGMA_DEPS=(
     "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
     "python3-scapy >= 2.4.3-4"
+    "tshark" # required for call tracing
+    "libtins-dev" # required for Connection tracker
+    "libmnl-dev" # required for Connection tracker
+    "getenvoy-envoy" # for envoy dep
     )
 
 # OAI runtime dependencies
 OAI_DEPS=(
     "libasan3"
     "libconfig9"
-    "oai-asn1c >= 0~20160721+c3~r43c4a295"
+    "oai-asn1c"
     "oai-freediameter >= 1.2.0-1"
     "oai-gnutls >= 3.1.23"
     "oai-nettle >= 1.0.1"
@@ -160,7 +164,12 @@ RELEASE_DIR=${MAGMA_ROOT}/lte/gateway/release
 POSTINST=${RELEASE_DIR}/magma-postinst
 
 # python environment
-PY_VERSION=python3.5
+# python3.5 on stretch, python3.8 on focal
+if grep -q stretch /etc/os-release; then
+    PY_VERSION=python3.5
+else
+    PY_VERSION=python3.8
+fi
 PY_PKG_LOC=dist-packages
 PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
@@ -212,11 +221,17 @@ fi
 cd "${MAGMA_ROOT}/lte/gateway"
 OAI_BUILD="${C_BUILD}/oai"
 SESSIOND_BUILD="${C_BUILD}/session_manager"
+CONNECTIOND_BUILD="${C_BUILD}/connection_tracker"
 SCTPD_BUILD="${C_BUILD}/sctpd"
 
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
+make build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
+
+# Build Magma Envoy Controller service
+cd "${MAGMA_ROOT}/feg/gateway"
+make install_envoy_controller
 
 # Next, gather up the python files and put them into a build path.
 #
@@ -317,28 +332,36 @@ ${LTE_PY_DEPS} \
 ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
+${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
+${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
 $(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
 $(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
 $(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
 $(glob_files "${SERVICE_DIR}/magma@mme.service" /etc/systemd/system/magma@mme.service) \
 $(glob_files "${SERVICE_DIR}/magma@sessiond.service" /etc/systemd/system/magma@sessiond.service) \
+$(glob_files "${SERVICE_DIR}/magma@connectiond.service" /etc/systemd/system/magma@connectiond.service) \
 $(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
 $(glob_files "${SERVICE_DIR}/magma@pipelined.service" /etc/systemd/system/magma@pipelined.service) \
+$(glob_files "${SERVICE_DIR}/magma_dp@envoy.service" /etc/systemd/system/magma_dp@envoy.service) \
+$(glob_files "${SERVICE_DIR}/magma@envoy_controller.service" /etc/systemd/system/magma@envoy_controller.service) \
 $(glob_files "${SERVICE_DIR}/magma@redirectd.service" /etc/systemd/system/magma@redirectd.service) \
 $(glob_files "${SERVICE_DIR}/magma@dnsd.service" /etc/systemd/system/magma@dnsd.service) \
 $(glob_files "${SERVICE_DIR}/magma@lighttpd.service" /etc/systemd/system/magma@lighttpd.service) \
 $(glob_files "${SERVICE_DIR}/magma@redis.service" /etc/systemd/system/magma@redis.service) \
 $(glob_files "${SERVICE_DIR}/magma@td-agent-bit.service" /etc/systemd/system/magma@td-agent-bit.service) \
 ${CERT_FILE}=/var/opt/magma/certs/rootCA.pem \
-$(glob_files "${MAGMA_ROOT}/lte/gateway/configs/!(control_proxy.yml|pipelined.yml|sessiond.yml)" /etc/magma/) \
+$(glob_files "${MAGMA_ROOT}/lte/gateway/configs/!(control_proxy.yml|pipelined.yml|sessiond.yml|connectiond.yml)" /etc/magma/) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/pipelined.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/sessiond.yml_prod" /etc/magma/sessiond.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/templates/*" /etc/magma/templates/) \
 $(glob_files "${MAGMA_ROOT}/orc8r/gateway/configs/templates/*" /etc/magma/templates/) \
 ${CONTROL_PROXY_FILE}=/etc/magma/ \
 $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.conf) \
+$(glob_files "${ANSIBLE_FILES}/configure_envoy_namespace.sh" /usr/local/bin/ ) \
+$(glob_files "${ANSIBLE_FILES}/envoy.yaml" /var/opt/magma/ ) \
 $(glob_files "${ANSIBLE_FILES}/logrotate_oai.conf" /etc/logrotate.d/oai) \
+$(glob_files "${ANSIBLE_FILES}/logrotate_rsyslog.conf" /etc/logrotate.d/rsyslog) \
 $(glob_files "${ANSIBLE_FILES}/local-cdn/*" /var/www/local-cdn/) \
 ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
@@ -350,7 +373,7 @@ ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
-$(glob_files "${ANSIBLE_FILES}/config_stateless_*.sh" /usr/local/bin/)"
+" # Leave this quote on a new line to mark end of BUILDCMD
 
 eval "$BUILDCMD"
 

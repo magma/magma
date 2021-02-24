@@ -21,15 +21,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/s6a_proxy/servicers/test"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 const TEST_LOOPS = 33
@@ -55,7 +56,7 @@ func TestS6aProxyService(t *testing.T) {
 
 	config := generateS6aProxyConfig()
 
-	addr := startTestServer(t, config)
+	addr := startTestServer(t, config, false)
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
@@ -105,6 +106,10 @@ func TestS6aProxyService(t *testing.T) {
 		t.Logf("GRPC ULA: %#+v", *ulResp)
 		if ulResp.ErrorCode != protos.ErrorCode_UNDEFINED {
 			t.Errorf("Unexpected ULA Error Code: %d", ulResp.ErrorCode)
+		}
+		if len(ulResp.RegionalSubscriptionZoneCode) != 2 ||
+			(ulResp.RegionalSubscriptionZoneCode[0] != "112233" || ulResp.RegionalSubscriptionZoneCode[1]!= "445566") {
+			t.Errorf("There should be 2 Regional Subscription Zone Codes : %+v", ulResp.RegionalSubscriptionZoneCode)
 		}
 
 		puReq := &protos.PurgeUERequest{
@@ -186,10 +191,8 @@ func TestS6aProxyService(t *testing.T) {
 }
 
 func TestS6aProxyServiceWitPLMNlist(t *testing.T) {
-
 	config := generateS6aProxyConfigWithPLMNs()
-
-	addr := startTestServer(t, config)
+	addr := startTestServer(t, config, false)
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
@@ -254,6 +257,64 @@ func TestS6aProxyServiceWitPLMNlist(t *testing.T) {
 	}
 }
 
+func TestS6aProxyWithHSS_AIA(t *testing.T) {
+	config := generateS6aProxyConfig()
+	addr := startTestServer(t, config, true)
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("GRPC connect error: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	c := protos.NewS6AProxyClient(conn)
+	req := &protos.AuthenticationInformationRequest{
+		UserName:                   test.TEST_IMSI,
+		VisitedPlmn:                []byte(test.TEST_PLMN_ID),
+		NumRequestedEutranVectors:  3,
+		ImmediateResponsePreferred: true,
+	}
+	complChan := make(chan error, 1)
+	go func() {
+		t.Logf("TestS6aProxyWithHSS_AIA - AIA RPC Req: %s", req.String())
+		r, err := c.AuthenticationInformation(context.Background(), req)
+		if err != nil {
+			t.Fatalf("TestS6aProxyWithHSS_AIA - GRPC AIR Error: %v", err)
+			complChan <- err
+			return
+		}
+		t.Logf("GRPC AIA Resp: %#+v", *r)
+		if r.ErrorCode != protos.ErrorCode_UNDEFINED {
+			t.Errorf("Unexpected AIA with PLMN IMSI1 Error Code: %d", r.ErrorCode)
+		}
+		assert.Len(t, r.EutranVectors, 3)
+		assert.Equal(t,
+			[]byte("\x15\x9a\xbf\x21\xca\xe2\xbf\x0a\xdb\xcb\xf1\x47\xef\x87\x74\x9d"),
+			r.EutranVectors[0].Rand)
+		assert.Equal(t,
+			[]byte("\x63\x82\xb8\x54\x48\x59\x80\x00\xf5\xaf\x37\xa5\xe9\x6d\x76\x58"),
+			r.EutranVectors[1].Autn)
+		assert.Equal(t,
+			[]byte("\x74\x60\x79\x2b\x8d\x5e\xb1\x62\xfd\x88\x28\xc2\x1a\x3b\xa0\xc5"+
+				"\x6e\x06\xed\xbf\x5b\x20\x54\x72\x50\x06\x36\xc5\xfa\xd9\x0b\x84"),
+			r.EutranVectors[2].Kasme)
+		// End
+		complChan <- nil
+	}()
+
+	select {
+	case err := <-complChan:
+		if err != nil {
+			t.Fatal(err)
+			return
+		}
+	case <-time.After(time.Second * 2):
+		t.Fatal("TestS6aProxyWithHSS_AIA Timed out")
+		return
+	}
+}
+
 func generateS6aProxyConfig() *servicers.S6aProxyConfig {
 
 	diamAddr := fmt.Sprintf("127.0.0.1:%d", 29000+rand.Intn(1900))
@@ -290,10 +351,10 @@ func generateS6aProxyConfigWithPLMNs() *servicers.S6aProxyConfig {
 	}
 }
 
-func startTestServer(t *testing.T, config *servicers.S6aProxyConfig) string {
+func startTestServer(t *testing.T, config *servicers.S6aProxyConfig, useStaticResp bool) string {
 	// ---- CORE 3gpp ----
 	// create the mockHSS server/servers (depending on the config)
-	err := test.StartTestS6aServer(TCPorSCTP, config.ServerCfg.Addr)
+	err := test.StartTestS6aServer(TCPorSCTP, config.ServerCfg.Addr, useStaticResp)
 	if err != nil {
 		t.Fatal(err)
 	}

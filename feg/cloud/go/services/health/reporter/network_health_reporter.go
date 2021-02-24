@@ -18,6 +18,7 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/health"
 	"magma/feg/cloud/go/services/health/metrics"
 	"magma/feg/cloud/go/services/health/servicers"
@@ -32,7 +33,7 @@ type NetworkHealthStatusReporter struct {
 }
 
 func (reporter *NetworkHealthStatusReporter) ReportHealthStatus(dur time.Duration) {
-	for _ = range time.Tick(dur) {
+	for range time.Tick(dur) {
 		err := reporter.reportHealthStatus()
 		if err != nil {
 			glog.Errorf("err in reportHealthStatus: %v\n", err)
@@ -46,12 +47,16 @@ func (reporter *NetworkHealthStatusReporter) reportHealthStatus() error {
 		return err
 	}
 	for _, networkID := range networks {
-		config, err := configurator.LoadNetworkConfig(networkID, feg.FegNetworkType)
+		config, err := configurator.LoadNetworkConfig(networkID, feg.FegNetworkType, serdes.Network)
 		// Consider a FeG network to be only those that have FeG Network configs defined
 		if err != nil || config == nil {
 			continue
 		}
-		gateways, _, err := configurator.LoadEntities(networkID, swag.String(orc8r.MagmadGatewayType), nil, nil, nil, configurator.EntityLoadCriteria{})
+		gateways, _, err := configurator.LoadEntities(
+			networkID, swag.String(orc8r.MagmadGatewayType), nil, nil, nil,
+			configurator.EntityLoadCriteria{},
+			serdes.Entity,
+		)
 		if err != nil {
 			glog.Errorf("error getting gateways for network %v: %v\n", networkID, err)
 			continue

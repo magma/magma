@@ -53,6 +53,7 @@
 #include "s11_ie_formatter.h"
 #include "sgw_ie_defs.h"
 #include "gtpv2c_ie_formatter.h"
+#include "ie_to_bytes.h"
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_msisdn_ie_get(
@@ -1632,12 +1633,8 @@ int gtpv2c_uli_ie_set(nw_gtpv2c_msg_handle_t* msg, const Uli_t* uli) {
     length += 7;
   }
   if (ULI_TAI & uli->present) {
-    current[0] = (uli->s.tai.mcc_digit2 << 4) | (uli->s.tai.mcc_digit1);
-    current[1] = (uli->s.tai.mnc_digit3 << 4) | (uli->s.tai.mcc_digit3);
-    current[2] = (uli->s.tai.mnc_digit2 << 4) | (uli->s.tai.mnc_digit1);
-    current[3] = (uint8_t)((uli->s.tai.tac & 0xFF00) >> 8);
-    current[4] = (uint8_t)(uli->s.tai.tac & 0x00FF);
-    current    = &current[5];
+    tai_to_bytes(&uli->s.tai, (char*) current);
+    current = &current[5];
     length += 5;
   }
   if (ULI_ECGI & uli->present) {

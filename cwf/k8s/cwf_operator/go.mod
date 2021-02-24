@@ -29,8 +29,6 @@ module magma/cwf/k8s/cwf_operator
 go 1.13
 
 require (
-	github.com/bshuster-repo/logrus-logstash-hook v1.0.0 // indirect
-	github.com/bugsnag/bugsnag-go v1.5.3 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-logr/glogr v0.1.0
@@ -39,11 +37,8 @@ require (
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.4.0
-	github.com/yvasiyarov/gorelic v0.0.7 // indirect
-	github.com/yvasiyarov/newrelic_platform_go v0.0.0-20160601141957-9c099fbc30e9 // indirect
-	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975 // indirect
-	google.golang.org/grpc v1.27.1
+	github.com/stretchr/testify v1.5.1
+	google.golang.org/grpc v1.31.0
 	helm.sh/helm/v3 v3.1.2 // indirect
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2

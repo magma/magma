@@ -25,7 +25,7 @@ from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
-    Direction, SCRATCH_REGS, REG_ZERO_VAL, RULE_VERSION_REG
+    Direction, SCRATCH_REGS, REG_ZERO_VAL, RULE_VERSION_REG, RULE_NUM_REG
 from magma.redirectd.redirect_store import RedirectDict
 
 from ryu.lib.packet import ether_types
@@ -54,11 +54,12 @@ class RedirectionManager:
         ['imsi', 'ip_addr', 'rule', 'rule_num', 'rule_version', 'priority'],
     )
 
-    def __init__(self, bridge_ip, logger, main_tbl_num, next_table,
+    def __init__(self, bridge_ip, logger, main_tbl_num, stats_table, next_table,
                  scratch_table_num, session_rule_version_mapper):
         self._bridge_ip = bridge_ip
         self.logger = logger
         self.main_tbl_num = main_tbl_num
+        self.stats_table = stats_table
         self.next_table = next_table
         self._scratch_tbl_num = scratch_table_num
         self._redirect_dict = RedirectDict()
@@ -283,7 +284,7 @@ class RedirectionManager:
         flows.add_resubmit_next_service_flow(
             datapath, self.main_tbl_num, match, action, priority=priority,
             cookie=rule_num, hard_timeout=rule.hard_timeout,
-            resubmit_table=self.next_table)
+            copy_table=self.stats_table, resubmit_table=self.next_table)
 
     def setup_cwf_redirect(self, datapath, loop, redirect_request):
         """
@@ -572,7 +573,8 @@ class RedirectionManager:
             flows.add_resubmit_next_service_flow(
                 datapath, self.main_tbl_num, match, actions,
                 priority=priority + 1, cookie=rule_num,
-                hard_timeout=rule.hard_timeout, resubmit_table=self.next_table)
+                hard_timeout=rule.hard_timeout,
+                copy_table=self.stats_table, resubmit_table=self.next_table)
 
     def _install_dns_flows(self, datapath, imsi, rule, rule_num, rule_version,
                            priority):
@@ -612,7 +614,7 @@ class RedirectionManager:
             flows.add_resubmit_next_service_flow(
                 datapath, self.main_tbl_num, match, actions, priority=priority,
                 cookie=rule_num, hard_timeout=rule.hard_timeout,
-                resubmit_table=self.next_table)
+                copy_table=self.stats_table, resubmit_table=self.next_table)
 
     def _save_redirect_entry(self, ip_addr, redirect_info):
         """
@@ -651,6 +653,6 @@ class RedirectionManager:
 
     def _load_rule_actions(self, parser, rule_num, rule_version):
         return [
-            parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+            parser.NXActionRegLoad2(dst=RULE_NUM_REG, value=rule_num),
             parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=rule_version),
         ]

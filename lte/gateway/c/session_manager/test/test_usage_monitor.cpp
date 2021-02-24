@@ -56,7 +56,7 @@ TEST_F(SessionStateTest, test_remove_monitor) {
           .credit.buckets[ALLOWED_TOTAL],
       1000);
 
-  session_state->add_rule_usage("rule1", 1000, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1000, 0, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 1000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 0);
 
@@ -66,7 +66,7 @@ TEST_F(SessionStateTest, test_remove_monitor) {
   update_criteria = get_default_update_criteria();
 
   // add usage to trigger the quota exhaustion
-  session_state->add_rule_usage("rule1", 1, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 0, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 1001);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 0);
   EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].report_last_credit);

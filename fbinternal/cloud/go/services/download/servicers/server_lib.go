@@ -124,7 +124,7 @@ func Run() {
 			glog.Fatalf("tcpListener.Accept err: %v", err)
 		}
 		server.ServeConn(conn, &http2.ServeConnOpts{
-			Handler: http.HandlerFunc(RootHandler(config)),
+			Handler: RootHandler(config),
 		})
 	}
 }

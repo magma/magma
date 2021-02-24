@@ -243,10 +243,17 @@ export function NetworkRanEdit(props: EditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
+        <Button
+          data-testid="ranCancelButton"
+          onClick={props.onClose}
+          skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          data-testid="ranSaveButton"
+          onClick={onSave}
+          variant="contained"
+          color="primary">
           {props.saveButtonTitle}
         </Button>
       </DialogActions>

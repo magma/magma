@@ -9,3 +9,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# enable_dynamic_swagger_specs is a config in the obsidian
+# service config.
+# When true, poll and combine Swagger specs at runtime
+# When false, fall back to serving the static Swagger spec asset
+enable_dynamic_swagger_specs: true

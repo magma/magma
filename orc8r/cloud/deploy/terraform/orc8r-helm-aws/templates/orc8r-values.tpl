@@ -59,6 +59,8 @@ controller:
       host: ${orc8r_db_host}
       port: ${orc8r_db_port}
       user: ${orc8r_db_user}
+    service_registry:
+      mode: "k8s"
 
 metrics:
   imagePullSecrets:
@@ -87,21 +89,21 @@ metrics:
     create: true
     image:
       repository: docker.io/facebookincubator/prometheus-configurer
-      tag: 1.0.0
+      tag: ${prometheus_configurer_version}
     prometheusURL: ${prometheus_url}
 
   alertmanagerConfigurer:
     create: true
     image:
       repository: docker.io/facebookincubator/alertmanager-configurer
-      tag: 1.0.0
+      tag: ${alertmanager_configurer_version}
     alertmanagerURL: ${alertmanager_url}
 
   prometheusCache:
     create: true
     image:
       repository: docker.io/facebookincubator/prometheus-edge-hub
-      tag: 1.0.0
+      tag: 1.1.0
     limit: 500000
   grafana:
     create: false
@@ -125,6 +127,40 @@ metrics:
         persistentVolumeClaim:
           claimName: ${grafana_pvc_grafanaData}
 
+  thanos:
+    enabled: ${thanos_enabled}
+
+    compact:
+      nodeSelector:
+        ${thanos_compact_selector}
+
+    store:
+      nodeSelector:
+        ${thanos_store_selector}
+
+    query:
+      nodeSelector:
+        ${thanos_query_selector}
+
+    objstore:
+      type: S3
+      config:
+        bucket: ${thanos_bucket}
+        endpoint: s3.${region}.amazonaws.com
+        region: ${region}
+        access_key: ${thanos_aws_access_key}
+        secret_key: ${thanos_aws_secret_key}
+        insecure: false
+        signature_version2: false
+        put_user_metadata: {}
+        http_config:
+          idle_conn_timeout: 0s
+          response_header_timeout: 0s
+          insecure_skip_verify: false
+        trace:
+          enable: false
+        part_size: 0
+
 nms:
   enabled: ${deploy_nms}
 
@@ -143,6 +179,7 @@ nms:
 
     env:
       api_host: ${api_hostname}
+      mysql_db: ${nms_db_name}
       mysql_host: ${nms_db_host}
       mysql_user: ${nms_db_user}
       grafana_address: ${user_grafana_hostname}

@@ -1407,8 +1407,9 @@
   "policies" : {
     "test1": {
       "flow_list": [],
-      "id": "test",
-      "priority": 10,
+      "id": "test1",
+      "priority": 1,
+      "ratingGroup": 1,
       "redirect": {
         "address_type": "IPv4",
         "server_address": "http://localhost:8080",
@@ -1417,8 +1418,9 @@
     },
     "test2": {
       "flow_list": [],
-      "id": "test",
-      "priority": 10,
+      "id": "test2",
+      "priority": 2,
+      "ratingGroup": 2,
       "redirect": {
         "address_type": "IPv4",
         "server_address": "http://localhost:8080",
@@ -1441,36 +1443,6 @@
         }
       },
       "apn_name": "internet"
-    },
-    "magma.ipv4": {
-      "apn_configuration": {
-        "ambr": {
-          "max_bandwidth_dl": 200000000,
-          "max_bandwidth_ul": 100000000
-        },
-        "qos_profile": {
-          "class_id": 9,
-          "preemption_capability": false,
-          "preemption_vulnerability": false,
-          "priority_level": 15
-        }
-      },
-      "apn_name": "magma.ipv4"
-    },
-    "oai.ipv4": {
-      "apn_configuration": {
-        "ambr": {
-          "max_bandwidth_dl": 200000000,
-          "max_bandwidth_ul": 100000000
-        },
-        "qos_profile": {
-          "class_id": 9,
-          "preemption_capability": true,
-          "preemption_vulnerability": false,
-          "priority_level": 15
-        }
-      },
-      "apn_name": "oai.ipv4"
     }
   },
   "networksFull": {
@@ -1734,8 +1706,9 @@
   },
   "subscribers": {
     "IMSI001010002220018": {
+        "name": "IMSI001010002220018",
         "active_apns": [
-          "oai.ipv4"
+          "internet"
         ],
         "config": {
           "lte": {
@@ -1753,19 +1726,11 @@
           "sub_profile": "default"
         }
       },
-      "IMSI001010002220019": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220019",
+    "IMSI001010002220019": {
+      "active_apns": [
+        "internet"
+      ],
+      "config": {
         "lte": {
           "auth_algo": "MILENAGE",
           "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
@@ -1773,1615 +1738,268 @@
           "sub_profile": "default"
         }
       },
-      "IMSI001010002220020": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220020",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220021": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220021",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220022": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220022",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220023": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220023",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220024": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220024",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        },
-        "monitoring": {},
-        "state": {
-          "mme": {
-            "accessRestrictionData": 32,
-            "apnConfig": {
-              "apnConfigs": [
-                {
-                  "ambr": {
-                    "brDl": "200000000",
-                    "brUl": "100000000"
-                  },
-                  "serviceSelection": "b2FpLmlwdjQ=",
-                  "subscribedQos": {
-                    "priorityLevel": 15,
-                    "qci": 9
-                  }
-                }
-              ]
-            },
-            "bearerContexts": [
-              {
-                "ebi": 5,
-                "enbFteidS1u": {},
-                "esmEbrContext": {
-                  "status": 1,
-                  "timer": {
-                    "id": "18446744073709551615"
-                  }
-                },
-                "pGwFteidS5S8Up": {},
-                "priorityLevel": 15,
-                "qci": 9,
-                "sGwFteidS1u": {
-                  "interfaceType": 1,
-                  "ipv4Address": 16908298,
-                  "teid": 6
-                },
-                "transactionIdentifier": 44,
-                "validity": "VALID"
-              },
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {}
-            ],
-            "eUtranCgi": {
-              "cellId": 168,
-              "enbId": 542090
-            },
-            "ecmState": 1,
-            "emmContext": {
-              "NonCurrentSecurity": {
-                "dlCount": {},
-                "eksi": 7,
-                "kenbUlCount": {},
-                "knasEnc": "AAAAAAAAAAAAAAAAAAAAAA==",
-                "knasInt": "AAAAAAAAAAAAAAAAAAAAAA==",
-                "nextHop": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-                "selectedAlgos": {},
-                "ulCount": {}
-              },
-              "emmCause": 4294967295,
-              "emmFsmState": 2,
-              "esmCtx": {
-                "esmProcData": {
-                  "apn": "oai.ipv4",
-                  "bearerQos": {
-                    "gbr": {},
-                    "mbr": {},
-                    "pl": 15,
-                    "qci": 9
-                  },
-                  "pco": {
-                    "numProtocolOrContainerId": 4,
-                    "protoOrContainerId": [
-                      {
-                        "contents": "AQAAEIEGAAAAAIMGAAAAAA==",
-                        "id": 32801,
-                        "length": 16
-                      },
-                      {
-                        "id": 10
-                      },
-                      {
-                        "id": 13
-                      },
-                      {
-                        "id": 16
-                      }
-                    ]
-                  },
-                  "pdnType": 1,
-                  "pti": 44,
-                  "requestType": 1
-                },
-                "nActiveEbrs": 1,
-                "nPdns": 1,
-                "t3489": {
-                  "id": "18446744073709551615",
-                  "sec": "4"
-                }
-              },
-              "guti": {
-                "mTmsi": 296960,
-                "mmeCode": 1,
-                "mmeGid": 1
-              },
-              "imei": {
-                "value": "AAAAAAAAAAA="
-              },
-              "imeisv": {
-                "value": "hleZAwBQNgAA"
-              },
-              "imsi": {
-                "numDigits": 15,
-                "value": "ABAQAAAAAk8="
-              },
-              "imsi64": "1010000000024",
-              "isAttached": true,
-              "isDynamic": true,
-              "isGutiBasedAttach": true,
-              "lvrTai": {
-                "mccMnc": "MDAxMDE/4Nw6ODl/",
-                "tac": 1
-              },
-              "memberPresentMask": 67112437,
-              "memberValidMask": 67112309,
-              "numAttachRequest": 1,
-              "oldGuti": {
-                "mTmsi": 4294967295
-              },
-              "originatingTai": {
-                "mccMnc": "MDAxMDE/4Nw6ODl/",
-                "tac": 1
-              },
-              "security": {
-                "directionEncode": 1,
-                "dlCount": {
-                  "seqNum": 3
-                },
-                "kenbUlCount": {
-                  "seqNum": 14
-                },
-                "knasEnc": "zlDbCKeTZNS7Of0uh7/GyA==",
-                "knasInt": "4ZOuF4/mfSMfFSXNrFP9Uw==",
-                "nextHop": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-                "scType": 2,
-                "selectedAlgos": {
-                  "integrity": 2
-                },
-                "ulCount": {
-                  "seqNum": 14
-                }
-              },
-              "taiList": {
-                "numberoflists": 1
-              },
-              "ueNetworkCapability": {
-                "eea": 224,
-                "eia": 96
-              },
-              "vector": [
-                {
-                  "autn": "yCBYXl7JgAD3vAQU/b8e2g==",
-                  "kasme": "P9BDRHGGxM9KYs2gX+b+EOh3u/MyUXBPJmKA7FKF4L4=",
-                  "rand": "aNkCdv3WL1+vA9OS+9eWTQ==",
-                  "xres": "aiTff1J7Shw="
-                }
-              ]
-            },
-            "enbS1apIdKey": "2328261640060950",
-            "enbUeS1apId": 22,
-            "implicitDetachTimer": {
-              "id": "18446744073709551615",
-              "sec": "3480"
-            },
-            "initialContextSetupRspTimer": {
-              "id": "18446744073709551615",
-              "sec": "2"
-            },
-            "lai": "AAAAAAA=",
-            "mmState": 1,
-            "mmeTeidS11": 296960,
-            "mmeUeS1apId": 9,
-            "mobileReachabilityTimer": {
-              "id": "18446744073709551615",
-              "sec": "3480"
-            },
-            "pagingResponseTimer": {
-              "id": "18446744073709551615",
-              "sec": "4"
-            },
-            "pdnContexts": [
-              {
-                "apnSubscribed": "oai.ipv4",
-                "bearerContexts": [
-                  0,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295
-                ],
-                "defaultBearerQosProfile": {
-                  "priorityLevel": 15,
-                  "qci": 9
-                },
-                "defaultEbi": 5,
-                "esmData": {
-                  "nBearers": 1,
-                  "pti": 44
-                },
-                "isActive": true,
-                "pGwAddressS5S8Cp": "\u0000\u0000\u0000\u0000",
-                "pGwApnAmbr": {},
-                "paa": "AAAAAA==",
-                "pco": {
-                  "numProtocolOrContainerId": 4,
-                  "protoOrContainerId": [
-                    {
-                      "contents": "AQAAEIEGAAAAAIMGAAAAAA==",
-                      "id": 32801,
-                      "length": 16
-                    },
-                    {
-                      "id": 10
-                    },
-                    {
-                      "id": 13
-                    },
-                    {
-                      "id": 16
-                    }
-                  ]
-                },
-                "pdnType": 1,
-                "sGwAddressS11S4": "\u0000\u0000\u0000\u0000",
-                "sGwTeidS11S4": 6,
-                "subscribedApnAmbr": {}
-              }
-            ],
-            "ppf": true,
-            "rauTauTimer": 10,
-            "relCause": 3,
-            "sctpAssocIdKey": 6,
-            "sendUePurgeRequest": true,
-            "sgsContext": {},
-            "subscribedUeAmbr": {
-              "brDl": "200000000",
-              "brUl": "100000000"
-            },
-            "subscriptionKnown": true,
-            "timeMobileReachabilityTimerStarted": "1970-01-01T00:00:00Z",
-            "ueContextModificationTimer": {
-              "id": "18446744073709551615",
-              "sec": "2"
-            },
-            "ueRadioCapability": "AJgBAQxb4BgalIEDgf+DdiaAAg0A",
-            "ulrResponseTimer": {
-              "id": "18446744073709551615",
-              "sec": "3"
-            },
-            "usedAmbr": {},
-            "usedUeAmbr": {}
-          },
-          "mobility": [
-            {
-              "apn": "oai.ipv4",
-              "ip": "192.168.128.149"
-            }
-          ],
-          "s1ap": {
-            "enbUeS1apId": 22,
-            "mmeUeS1apId": 9,
-            "s1UeState": 1,
-            "s1apUeContextRelTimer": {
-              "id": -1,
-              "sec": 1
-            },
-            "sctpAssocId": 6,
-            "sctpStreamRecv": 2,
-            "sctpStreamSend": 2
-          },
-          "spgw": {
-            "pgwEpsBearerContext": {
-              "imsi": "MDAxMDEwMDAwMDAwMDI0",
-              "imsiUnauthIndicator": 1
-            },
-            "sgwEpsBearerContext": {
-              "imsi": "MDAxMDEwMDAwMDAwMDI0",
-              "imsi64": "1010000000024",
-              "imsiUnauthIndicator": 1,
-              "lastKnownCellId": {},
-              "mmeIpAddressS11": "fw==",
-              "mmeTeidS11": 296960,
-              "pdnConnection": {
-                "apnInUse": "oai.ipv4",
-                "defaultBearer": 5,
-                "epsBearerList": [
-                  {
-                    "enbIpAddressS1u": "Cg==",
-                    "enbTeidS1u": 16782088,
-                    "epsBearerId": 5,
-                    "epsBearerQos": {
-                      "gbr": {},
-                      "mbr": {},
-                      "pl": 15,
-                      "qci": 9
-                    },
-                    "numSdf": 1,
-                    "paa": "wKiAEg==",
-                    "sdfIds": [
-                      31,
-                      0,
-                      0,
-                      0
-                    ],
-                    "sgwTeidS1uS12S4Up": 6,
-                    "tft": {
-                      "packetFilterList": {},
-                      "parametersList": {}
-                    }
-                  },
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {}
-                ]
-              },
-              "savedMessage": {
-                "ambr": {
-                  "brDl": "200000000",
-                  "brUl": "100000000"
-                },
-                "apn": "b2FpLmlwdjQ=",
-                "bearerContextsToBeCreated": [
-                  {
-                    "bearerLevelQos": {
-                      "gbr": {},
-                      "mbr": {},
-                      "pl": 15,
-                      "qci": 9
-                    },
-                    "epsBearerId": 5,
-                    "tft": {
-                      "packetFilterList": {},
-                      "parametersList": {}
-                    }
-                  }
-                ],
-                "imsi": "MDAxMDEwMDAwMDAwMDI0",
-                "pco": {
-                  "numProtocolOrContainerId": 4,
-                  "pcoProtocol": [
-                    {
-                      "contents": "AQ==",
-                      "id": 32801,
-                      "length": 16
-                    },
-                    {},
-                    {},
-                    {}
-                  ]
-                },
-                "ratType": 1004,
-                "senderFteidForCp": {
-                  "interfaceType": 10,
-                  "ipv4Address": 16777343,
-                  "teid": 296960
-                },
-                "servingNetwork": {
-                  "mcc": "AAAB",
-                  "mnc": "AAEP"
-                },
-                "ueTimeZone": {}
-              },
-              "sgwTeidS11S4": 6
-            }
-          }
-        }
-      },
-      "IMSI001010002220047": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220047",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220068": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220068",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220069": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220069",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220070": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220070",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220071": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220071",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220073": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220073",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220079": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220079",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220080": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220080",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220082": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220082",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220083": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220083",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220091": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220091",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220093": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220093",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220095": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220095",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220096": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220096",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220097": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220097",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220098": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220098",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220099": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220099",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        },
-        "monitoring": {},
-        "state": {
-          "directory": {
-            "location_history": [
-              "477fa55a-2fd0-4588-a8bb-b322a9f56064"
-            ]
-          },
-          "mme": {
-            "accessRestrictionData": 32,
-            "apnConfig": {
-              "apnConfigs": [
-                {
-                  "ambr": {
-                    "brDl": "200000000",
-                    "brUl": "100000000"
-                  },
-                  "serviceSelection": "b2FpLmlwdjQ=",
-                  "subscribedQos": {
-                    "priorityLevel": 15,
-                    "qci": 9
-                  }
-                }
-              ]
-            },
-            "bearerContexts": [
-              {
-                "ebi": 5,
-                "enbFteidS1u": {},
-                "esmEbrContext": {
-                  "status": 1,
-                  "timer": {
-                    "id": "18446744073709551615"
-                  }
-                },
-                "pGwFteidS5S8Up": {},
-                "priorityLevel": 15,
-                "qci": 9,
-                "sGwFteidS1u": {
-                  "interfaceType": 1,
-                  "ipv4Address": 16908298,
-                  "teid": 4
-                },
-                "transactionIdentifier": 22,
-                "validity": "VALID"
-              },
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {}
-            ],
-            "eUtranCgi": {
-              "cellId": 168,
-              "enbId": 542090
-            },
-            "ecmState": 1,
-            "emmContext": {
-              "NonCurrentSecurity": {
-                "dlCount": {},
-                "eksi": 7,
-                "kenbUlCount": {},
-                "knasEnc": "AAAAAAAAAAAAAAAAAAAAAA==",
-                "knasInt": "AAAAAAAAAAAAAAAAAAAAAA==",
-                "nextHop": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-                "selectedAlgos": {},
-                "ulCount": {}
-              },
-              "emmCause": 4294967295,
-              "emmFsmState": 2,
-              "esmCtx": {
-                "esmProcData": {
-                  "apn": "oai.ipv4",
-                  "bearerQos": {
-                    "gbr": {},
-                    "mbr": {},
-                    "pl": 15,
-                    "qci": 9
-                  },
-                  "pco": {
-                    "numProtocolOrContainerId": 4,
-                    "protoOrContainerId": [
-                      {
-                        "contents": "AQAAEIEGAAAAAIMGAAAAAA==",
-                        "id": 32801,
-                        "length": 16
-                      },
-                      {
-                        "id": 10
-                      },
-                      {
-                        "id": 13
-                      },
-                      {
-                        "id": 16
-                      }
-                    ]
-                  },
-                  "pdnType": 1,
-                  "pti": 22,
-                  "requestType": 1
-                },
-                "nActiveEbrs": 1,
-                "nPdns": 1,
-                "t3489": {
-                  "id": "18446744073709551615",
-                  "sec": "4"
-                }
-              },
-              "guti": {
-                "mTmsi": 302080,
-                "mmeCode": 1,
-                "mmeGid": 1
-              },
-              "imei": {
-                "value": "AAAAAAAAAAA="
-              },
-              "imeisv": {
-                "value": "hgUkAwCIYwAA"
-              },
-              "imsi": {
-                "numDigits": 15,
-                "value": "ABAQAAAACZ8="
-              },
-              "imsi64": "1010000000099",
-              "isAttached": true,
-              "isDynamic": true,
-              "ksi": 7,
-              "lvrTai": {
-                "mccMnc": "MDAwMDAw4Nw6ODl/"
-              },
-              "memberPresentMask": 67112373,
-              "memberValidMask": 67112245,
-              "numAttachRequest": 1,
-              "oldGuti": {
-                "mTmsi": 4294967295
-              },
-              "originatingTai": {
-                "mccMnc": "MDAxMDE/4Nw6ODl/",
-                "tac": 1
-              },
-              "security": {
-                "directionEncode": 1,
-                "dlCount": {
-                  "seqNum": 3
-                },
-                "kenbUlCount": {},
-                "knasEnc": "K8UJ+ssY12Mpv4ti3tnJ+Q==",
-                "knasInt": "d00W5erhyj9evajlXinTpw==",
-                "nextHop": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-                "scType": 2,
-                "selectedAlgos": {
-                  "integrity": 2
-                },
-                "ulCount": {
-                  "seqNum": 1
-                }
-              },
-              "taiList": {
-                "numberoflists": 1
-              },
-              "ueNetworkCapability": {
-                "eea": 224,
-                "eia": 96
-              },
-              "vector": [
-                {
-                  "autn": "FugXHVq/gADoilCdaCRtgQ==",
-                  "kasme": "HXou23yZg13x5lR6XJwSZubBjA6S/hOviBZxkH7fetA=",
-                  "rand": "iru21KYZP36Rj3iHZ+ThPQ==",
-                  "xres": "RSHDrfgKzOE="
-                }
-              ]
-            },
-            "enbS1apIdKey": "2328261640060934",
-            "enbUeS1apId": 6,
-            "implicitDetachTimer": {
-              "id": "18446744073709551615",
-              "sec": "3480"
-            },
-            "initialContextSetupRspTimer": {
-              "id": "18446744073709551615",
-              "sec": "2"
-            },
-            "lai": "AAAAAAA=",
-            "mmState": 1,
-            "mmeTeidS11": 302080,
-            "mmeUeS1apId": 6,
-            "mobileReachabilityTimer": {
-              "id": "18446744073709551615",
-              "sec": "3480"
-            },
-            "pagingResponseTimer": {
-              "id": "18446744073709551615",
-              "sec": "4"
-            },
-            "pdnContexts": [
-              {
-                "apnSubscribed": "oai.ipv4",
-                "bearerContexts": [
-                  0,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295,
-                  4294967295
-                ],
-                "defaultBearerQosProfile": {
-                  "priorityLevel": 15,
-                  "qci": 9
-                },
-                "defaultEbi": 5,
-                "esmData": {
-                  "nBearers": 1,
-                  "pti": 22
-                },
-                "isActive": true,
-                "pGwAddressS5S8Cp": "\u0000\u0000\u0000\u0000",
-                "pGwApnAmbr": {},
-                "paa": "AAAAAA==",
-                "pco": {
-                  "numProtocolOrContainerId": 4,
-                  "protoOrContainerId": [
-                    {
-                      "contents": "AQAAEIEGAAAAAIMGAAAAAA==",
-                      "id": 32801,
-                      "length": 16
-                    },
-                    {
-                      "id": 10
-                    },
-                    {
-                      "id": 13
-                    },
-                    {
-                      "id": 16
-                    }
-                  ]
-                },
-                "pdnType": 1,
-                "sGwAddressS11S4": "\u0000\u0000\u0000\u0000",
-                "sGwTeidS11S4": 4,
-                "subscribedApnAmbr": {}
-              }
-            ],
-            "ppf": true,
-            "rauTauTimer": 10,
-            "sctpAssocIdKey": 6,
-            "sendUePurgeRequest": true,
-            "sgsContext": {},
-            "subscribedUeAmbr": {
-              "brDl": "200000000",
-              "brUl": "100000000"
-            },
-            "subscriptionKnown": true,
-            "timeMobileReachabilityTimerStarted": "1970-01-01T00:00:00Z",
-            "ueContextModificationTimer": {
-              "id": "18446744073709551615",
-              "sec": "2"
-            },
-            "ueRadioCapability": "AJgBAQxb4BAalIEDgf+DdiaAAA0A",
-            "ulrResponseTimer": {
-              "id": "18446744073709551615",
-              "sec": "3"
-            },
-            "usedAmbr": {},
-            "usedUeAmbr": {}
-          },
-          "mobility": [
-            {
-              "apn": "oai.ipv4",
-              "ip": "192.168.128.125"
-            }
-          ],
-          "s1ap": {
-            "enbUeS1apId": 6,
-            "mmeUeS1apId": 6,
-            "s1UeState": 3,
-            "s1apUeContextRelTimer": {
-              "id": -1,
-              "sec": 1
-            },
-            "sctpAssocId": 6,
-            "sctpStreamRecv": 2,
-            "sctpStreamSend": 2
-          },
-          "spgw": {
-            "pgwEpsBearerContext": {
-              "imsi": "MDAxMDEwMDAwMDAwMDk5",
-              "imsiUnauthIndicator": 1
-            },
-            "sgwEpsBearerContext": {
-              "imsi": "MDAxMDEwMDAwMDAwMDk5",
-              "imsi64": "1010000000099",
-              "imsiUnauthIndicator": 1,
-              "lastKnownCellId": {},
-              "mmeIpAddressS11": "fw==",
-              "mmeTeidS11": 302080,
-              "pdnConnection": {
-                "apnInUse": "oai.ipv4",
-                "defaultBearer": 5,
-                "epsBearerList": [
-                  {
-                    "enbIpAddressS1u": "Cg==",
-                    "enbTeidS1u": 16778248,
-                    "epsBearerId": 5,
-                    "epsBearerQos": {
-                      "gbr": {},
-                      "mbr": {},
-                      "pl": 15,
-                      "qci": 9
-                    },
-                    "numSdf": 1,
-                    "paa": "wKiAhQ==",
-                    "sdfIds": [
-                      31,
-                      0,
-                      0,
-                      0
-                    ],
-                    "sgwTeidS1uS12S4Up": 4,
-                    "tft": {
-                      "packetFilterList": {},
-                      "parametersList": {}
-                    }
-                  },
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {}
-                ]
-              },
-              "savedMessage": {
-                "ambr": {
-                  "brDl": "200000000",
-                  "brUl": "100000000"
-                },
-                "apn": "b2FpLmlwdjQ=",
-                "bearerContextsToBeCreated": [
-                  {
-                    "bearerLevelQos": {
-                      "gbr": {},
-                      "mbr": {},
-                      "pl": 15,
-                      "qci": 9
-                    },
-                    "epsBearerId": 5,
-                    "tft": {
-                      "packetFilterList": {},
-                      "parametersList": {}
-                    }
-                  }
-                ],
-                "imsi": "MDAxMDEwMDAwMDAwMDk5",
-                "pco": {
-                  "numProtocolOrContainerId": 4,
-                  "pcoProtocol": [
-                    {
-                      "contents": "AQ==",
-                      "id": 32801,
-                      "length": 16
-                    },
-                    {},
-                    {},
-                    {}
-                  ]
-                },
-                "ratType": 1004,
-                "senderFteidForCp": {
-                  "interfaceType": 10,
-                  "ipv4Address": 16777343,
-                  "teid": 302080
-                },
-                "servingNetwork": {
-                  "mcc": "AAAB",
-                  "mnc": "AAEP"
-                },
-                "ueTimeZone": {}
-              },
-              "sgwTeidS11S4": 4
-            }
-          }
-        }
-      },
-      "IMSI001010002220100": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220100",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220102": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220102",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220103": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220103",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220104": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220104",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220122": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220122",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220123": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220123",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220125": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220125",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220126": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220126",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220127": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220127",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220128": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220128",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220129": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220129",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI001010002220203": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI001010002220203",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI002011234565733": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "YiYZQlR0Ly1nFFFTYC98Pg==",
-            "auth_opc": "kG+8AJYqqF2D9sJCcoUJ5w==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI002011234565733",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "YiYZQlR0Ly1nFFFTYC98Pg==",
-          "auth_opc": "kG+8AJYqqF2D9sJCcoUJ5w==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI208950000000011": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI208950000000011",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI208950000000017": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI208950000000017",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI208950000000018": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI208950000000018",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI722070000000001": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI722070000000001",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
-      },
-      "IMSI722070171001002": {
-        "active_apns": [
-          "oai.ipv4"
-        ],
-        "config": {
-          "lte": {
-            "auth_algo": "MILENAGE",
-            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-            "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-            "state": "ACTIVE",
-            "sub_profile": "default"
-          }
-        },
-        "id": "IMSI722070171001002",
-        "lte": {
-          "auth_algo": "MILENAGE",
-          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
-          "auth_opc": "jie2rw5pLnUPMmZ6OxRgXQ==",
-          "state": "ACTIVE",
-          "sub_profile": "default"
-        }
+      "id": "IMSI001010002220019",
+      "lte": {
+        "auth_algo": "MILENAGE",
+        "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+        "state": "ACTIVE",
+        "sub_profile": "default"
       }
+    },
+    "IMSI001010002220020": {
+      "active_apns": [
+        "internet"
+      ],
+      "config": {
+        "lte": {
+          "auth_algo": "MILENAGE",
+          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+          "state": "ACTIVE",
+          "sub_profile": "default"
+        }
+      },
+      "id": "IMSI001010002220020",
+      "lte": {
+        "auth_algo": "MILENAGE",
+        "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+        "state": "ACTIVE",
+        "sub_profile": "default"
+      }
+    },
+    "IMSI001010002220021": {
+      "active_apns": [
+        "internet"
+      ],
+      "config": {
+        "lte": {
+          "auth_algo": "MILENAGE",
+          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+          "state": "ACTIVE",
+          "sub_profile": "default"
+        }
+      },
+      "id": "IMSI001010002220021",
+      "lte": {
+        "auth_algo": "MILENAGE",
+        "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+        "state": "ACTIVE",
+        "sub_profile": "default"
+      }
+    }
+  },
+  "subscriber_state":{
+    "IMSI001010002220018": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220018-internet",
+                "priority":2,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_ACTIVE",
+            "session_id": "IMSI001010002220018-871689",
+            "active_duration_sec": 116,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "1607415561",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    },
+    "IMSI001010002220019": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220019-internet",
+                "priority":2,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_TERMINATED",
+            "session_id": "IMSI001010002220019-871689",
+            "active_duration_sec": 128,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "11",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    },
+    "IMSI001010002220020": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220021-internet",
+                "priority":1,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_TERMINATING",
+            "session_id": "IMSI001010002220021-00000",
+            "active_duration_sec": 1,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "1607415287",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    },
+    "IMSI001010002220021": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220021-internet",
+                "priority":2,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_ACTIVE",
+            "session_id": "IMSI001010002220021-871689",
+            "active_duration_sec": 116528,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "1607415281",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    }
   },
   "tiers": [
     "beta"

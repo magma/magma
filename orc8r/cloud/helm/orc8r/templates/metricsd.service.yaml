@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "metricsd.service") -}}
 {{- define "metricsd.service" -}}
 metadata:
-  name: {{ .Release.Name }}-metricsd
+  name: orc8r-metricsd
   labels:
     {{- with .Values.metricsd.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,11 +24,13 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: metricsd
   ports:
     - name: grpc
       port: 9180
       targetPort: 9084
     - name: http
       port: 8080
-      targetPort: 10984
+      targetPort: 10084
 {{- end -}}

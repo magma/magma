@@ -63,6 +63,22 @@ type ApnConfiguration struct {
 	QosProfile *QosProfile `json:"qos_profile"`
 }
 
+func (m *ApnConfiguration) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+func (m *ApnConfiguration) UnmarshalBinary(b []byte) error {
+	var res ApnConfiguration
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
 func (m *ApnConfiguration) MustMarshalBinary() []byte {
 	if m == nil {
 		return nil

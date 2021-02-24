@@ -3,11 +3,13 @@ allow-ovs gtp_br0
 iface gtp_br0 inet static
     address 192.168.128.1
     netmask 255.255.255.0
+    pre-up ip link add proxy_port type veth peer name proxy_port_ns || true
+    pre-up ip link set proxy_port up || true
     up sysctl net.ipv4.ip_forward=1
     up iptables -t mangle -A FORWARD -i gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
     up iptables -t mangle -A FORWARD -o gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
     ovs_type OVSBridge
-    ovs_ports gtp0 mtr0 ipfix0 patch-up
+    ovs_ports gtp0 mtr0 ipfix0 patch-up proxy_port
 
 # Add GTP vport to gtp_br0 as port 32768
 allow-gtp_br0 gtp0
@@ -39,6 +41,11 @@ iface patch-up inet manual
     ovs_type OVSPatchPort
     ovs_patch_peer patch-agw
     ovs_extra set interface ${IFACE} ofport_request=2
+
+allow-gtp_br0 proxy_port
+iface proxy_port inet manual
+    ovs_bridge gtp_br0
+    ovs_type OVSPort
 
 allow-ovs uplink_br0
 iface uplink_br0 inet manual

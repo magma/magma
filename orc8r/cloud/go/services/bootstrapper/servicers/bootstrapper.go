@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
@@ -175,7 +176,7 @@ func (srv *BootstrapperServer) verifyChallenge(challenge []byte) error {
 	randLen := ChallengeLength - TimeLength - srv.signatureLength()
 	timeBytes := challenge[randLen : randLen+TimeLength]
 	issueTime := time.Unix(int64(binary.BigEndian.Uint64(timeBytes)), 0)
-	expireTime := issueTime.Add(time.Duration(ChallengeExpireTime))
+	expireTime := issueTime.Add(ChallengeExpireTime)
 	now := time.Now().UTC()
 	if issueTime.After(now) {
 		return fmt.Errorf("Challenge is not valid yet")
@@ -261,11 +262,11 @@ func verifySoftwareECDSASHA256(resp *protos.Response, key []byte) error {
 
 func getChallengeKey(hwID string) (protos.ChallengeKey_KeyType, []byte, error) {
 	var empty protos.ChallengeKey_KeyType
-	entity, err := configurator.LoadEntityForPhysicalID(hwID, configurator.EntityLoadCriteria{})
+	entity, err := configurator.LoadEntityForPhysicalID(hwID, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Gateway with hwid %s is not registered: %s", hwID, err))
 	}
-	iRecord, err := device.GetDevice(entity.NetworkID, orc8r.AccessGatewayRecordType, hwID)
+	iRecord, err := device.GetDevice(entity.NetworkID, orc8r.AccessGatewayRecordType, hwID, serdes.Device)
 	if err != nil {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record: %s", err))
 	}

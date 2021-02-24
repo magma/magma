@@ -56,8 +56,13 @@ message S6aConfig {
 }
 
 message VirtualApnRule {
+    // apn_filter is a Regex to match APN values
     string apn_filter = 1;
+    // apn_overwrite is the new APN to overwrite with when filters match
     string apn_overwrite = 2;
+    // charging_characteristics_filter is a Regex to match
+    // ChargingCharacteristics values
+    string charging_characteristics_filter = 3;
 }
 
 message GxConfig {
@@ -124,6 +129,8 @@ message EapAkaConfig {
     }
     Timeouts timeout = 2;
     repeated string PlmnIds = 3;
+    bool UseS6a = 4;
+    int32 MncLen = 5;
 }
 
 // EapProviderTimeouts is a generic EAP provider timeout config for all new providers
@@ -140,6 +147,8 @@ message EapSimConfig {
     orc8r.LogLevel log_level = 1;
     EapProviderTimeouts timeout = 2;
     repeated string PlmnIds = 3;
+    bool UseS6a = 4;
+    int32 MncLen = 5;
 }
 
 message AAAConfig {
@@ -223,3 +232,12 @@ message CsfbConfig {
     SCTPClientConfig client = 2;
 }
 
+message EnvoyControllerConfig {
+    orc8r.LogLevel log_level = 1;
+}
+
+message S8Config {
+    orc8r.LogLevel log_level = 1;
+    string local_address = 2;
+    string pgw_address = 3;
+}

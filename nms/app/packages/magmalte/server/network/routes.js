@@ -149,6 +149,7 @@ router.post(
             dns: DEFAULT_DNS_CONFIG,
             federation: {feg_network_id: data.fegNetworkID},
             carrier_wifi: {
+              is_xwfm_variant: true,
               aaa_server: {
                 accounting_enabled: true,
                 create_session_on_auth: true,

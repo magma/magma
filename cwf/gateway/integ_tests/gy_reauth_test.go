@@ -17,7 +17,6 @@ package integration
 
 import (
 	"fmt"
-	"math"
 	"testing"
 	"time"
 
@@ -80,6 +79,9 @@ func TestGyReAuth(t *testing.T) {
 	assert.NoError(t, err)
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-ocs1", "static-pass-all-ocs2"), time.Minute, 2*time.Second)
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
@@ -88,15 +90,9 @@ func TestGyReAuth(t *testing.T) {
 		Bitrate: &wrappers.StringValue{Value: "1M"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow is installed and traffic is less than the quota
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"]
-	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
-	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-	assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 300*KiloBytes), time.Minute, 2*time.Second)
 
 	// Top UP extra credits (2.5M total)
 	err = setCreditOnOCS(
@@ -111,31 +107,12 @@ func TestGyReAuth(t *testing.T) {
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(imsi, ratingGroup)
-	tr.WaitForReAuthToProcess()
-
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
-
-	// Generate over 1M of data to check that initial quota was updated
-	req = &cwfprotos.GenTrafficRequest{Imsi: imsi,
-		Volume: &wrappers.StringValue{Value: "1M"},
-	}
-	_, err = tr.GenULTraffic(req)
-	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
-
-	// Check that initial quota was exceeded
-	recordsBySubID, err = tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record = recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"]
-	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
-	assert.True(t, record.BytesTx > uint64(400*KiloBytes+Buffer), fmt.Sprintf("did not pass data over initial quota %v", record))
-	assert.True(t, record.BytesTx <= uint64(math.Round(2.4*MegaBytes+Buffer)), fmt.Sprintf("policy usage: %v", record))
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

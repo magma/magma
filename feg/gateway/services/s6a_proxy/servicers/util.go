@@ -16,10 +16,9 @@ limitations under the License.
 package servicers
 
 import (
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
-
-	"github.com/fiorix/go-diameter/v4/diam"
 )
 
 func (s *s6aProxy) addDiamOriginAVPs(m *diam.Message) {

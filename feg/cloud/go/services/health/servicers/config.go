@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -36,7 +37,7 @@ func GetHealthConfigForNetwork(networkID string) *healthConfig {
 		memAvailableThreshold: defaultMemAvailableThreshold,
 		staleUpdateThreshold:  defaultStaleUpdateThreshold,
 	}
-	config, err := configurator.GetNetworkConfigsByType(networkID, feg.FegNetworkType)
+	config, err := configurator.LoadNetworkConfig(networkID, feg.FegNetworkType, serdes.Network)
 	if err != nil {
 		glog.V(2).Infof("Using default health configuration for network %s; %s", networkID, err)
 		return defaultConfig

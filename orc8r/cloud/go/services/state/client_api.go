@@ -16,6 +16,7 @@ package state
 import (
 	"context"
 
+	"magma/orc8r/cloud/go/serde"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -36,36 +37,25 @@ func GetStateClient() (protos.StateServiceClient, error) {
 	return protos.NewStateServiceClient(conn), nil
 }
 
-// GetState returns the state specified by the networkID, typeVal, and hwID
-func GetState(networkID string, typeVal string, hwID string) (state_types.State, error) {
-	client, err := GetStateClient()
+// GetState returns the state specified by the networkID, typeVal, and hwID.
+func GetState(networkID string, typ string, hwID string, serdes serde.Registry) (state_types.State, error) {
+	id := state_types.ID{Type: typ, DeviceID: hwID}
+
+	states, err := GetStates(networkID, state_types.IDs{id}, serdes)
 	if err != nil {
 		return state_types.State{}, err
 	}
 
-	stateID := &protos.StateID{
-		Type:     typeVal,
-		DeviceID: hwID,
-	}
-
-	res, err := client.GetStates(
-		context.Background(),
-		&protos.GetStatesRequest{
-			NetworkID: networkID,
-			Ids:       []*protos.StateID{stateID},
-		},
-	)
-	if err != nil {
-		return state_types.State{}, err
-	}
-	if len(res.States) == 0 {
+	st, ok := states[id]
+	if !ok {
 		return state_types.State{}, merrors.ErrNotFound
 	}
-	return state_types.MakeState(res.States[0])
+	return st, nil
 }
 
-// GetStates returns a map of states specified by the networkID and a list of type and key
-func GetStates(networkID string, stateIDs []state_types.ID) (state_types.StatesByID, error) {
+// GetStates returns a map of states specified by the networkID and a list of
+// type and key.
+func GetStates(networkID string, stateIDs state_types.IDs, serdes serde.Registry) (state_types.StatesByID, error) {
 	if len(stateIDs) == 0 {
 		return state_types.StatesByID{}, nil
 	}
@@ -84,7 +74,7 @@ func GetStates(networkID string, stateIDs []state_types.ID) (state_types.StatesB
 	if err != nil {
 		return nil, err
 	}
-	return state_types.MakeStatesByID(res.States)
+	return state_types.MakeStatesByID(res.States, serdes)
 }
 
 // SearchStates returns all states matching the filter arguments.
@@ -93,7 +83,7 @@ func GetStates(networkID string, stateIDs []state_types.ID) (state_types.StatesB
 // If keyPrefix is defined (non-nil and non-empty), it will take precedence
 // the keyFilter argument.
 // e.g.: ["t1", "t2"], ["k1", "k2"] => (t1 OR t2) AND (k1 OR k2)
-func SearchStates(networkID string, typeFilter []string, keyFilter []string, keyPrefix *string) (state_types.StatesByID, error) {
+func SearchStates(networkID string, typeFilter []string, keyFilter []string, keyPrefix *string, serdes serde.Registry) (state_types.StatesByID, error) {
 	client, err := GetStateClient()
 	if err != nil {
 		return nil, err
@@ -113,12 +103,12 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string, key
 	if err != nil {
 		return nil, err
 	}
-	return state_types.MakeStatesByID(res.States)
+	return state_types.MakeStatesByID(res.States, serdes)
 }
 
 // DeleteStates deletes states specified by the networkID and a list of
 // type and key.
-func DeleteStates(networkID string, stateIDs []state_types.ID) error {
+func DeleteStates(networkID string, stateIDs state_types.IDs) error {
 	client, err := GetStateClient()
 	if err != nil {
 		return err
@@ -133,7 +123,31 @@ func DeleteStates(networkID string, stateIDs []state_types.ID) error {
 	return err
 }
 
-func makeProtoIDs(stateIDs []state_types.ID) []*protos.StateID {
+// GetSerializedStates returns a map of states specified by the networkID and
+// a list of type and key.
+func GetSerializedStates(networkID string, stateIDs state_types.IDs) (state_types.SerializedStatesByID, error) {
+	if len(stateIDs) == 0 {
+		return state_types.SerializedStatesByID{}, nil
+	}
+
+	client, err := GetStateClient()
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := client.GetStates(
+		context.Background(), &protos.GetStatesRequest{
+			NetworkID: networkID,
+			Ids:       makeProtoIDs(stateIDs),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return state_types.MakeSerializedStatesByID(res.States)
+}
+
+func makeProtoIDs(stateIDs state_types.IDs) []*protos.StateID {
 	var ids []*protos.StateID
 	for _, st := range stateIDs {
 		ids = append(ids, &protos.StateID{Type: st.Type, DeviceID: st.DeviceID})

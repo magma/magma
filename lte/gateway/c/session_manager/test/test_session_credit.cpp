@@ -381,7 +381,6 @@ TEST(test_is_quota_exhausted_tx_only, test_session_credit) {
 // Assert that receiving an invalid GSU does not change the way we track
 // credits. If we request an additional quota and receive an empty GSU, the
 // quota should still be exhausted.
-
 TEST(test_is_quota_exhausted_after_empty_grant, test_session_credit) {
   SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
@@ -403,6 +402,35 @@ TEST(test_is_quota_exhausted_after_empty_grant, test_session_credit) {
   // assert uc grant_tracking type has not changed
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+}
+
+TEST(test_get_credit_summary, test_session_credit) {
+  SessionCredit credit;
+  SessionCreditUpdateCriteria uc{};
+  auto summary = credit.get_credit_summary();
+  EXPECT_EQ(summary.usage.bytes_tx, 0);
+  EXPECT_EQ(summary.usage.bytes_rx, 0);
+  EXPECT_EQ(summary.time_of_first_usage, 0);
+  EXPECT_EQ(summary.time_of_last_usage, 0);
+
+  // Expect first_usage > 0 && first_usage == last_usage
+  credit.add_used_credit(64, 32, uc);
+  summary = credit.get_credit_summary();
+  EXPECT_EQ(summary.usage.bytes_tx, 64);
+  EXPECT_EQ(summary.usage.bytes_rx, 32);
+  EXPECT_NE(summary.time_of_first_usage, 0);
+  auto time_of_first_usage = summary.time_of_first_usage;
+  EXPECT_EQ(summary.time_of_last_usage, time_of_first_usage);
+
+  sleep(1);
+  // Expect first_usage > 0 && first_usage < last_usage
+  credit.add_used_credit(64, 32, uc);
+  summary = credit.get_credit_summary();
+  EXPECT_EQ(summary.usage.bytes_tx, 128);
+  EXPECT_EQ(summary.usage.bytes_rx, 64);
+  EXPECT_EQ(summary.time_of_first_usage, time_of_first_usage);
+  EXPECT_NE(summary.time_of_last_usage, time_of_first_usage);
+  EXPECT_GT(summary.time_of_last_usage, summary.time_of_first_usage);
 }
 
 int main(int argc, char** argv) {

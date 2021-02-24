@@ -16,31 +16,19 @@
 
 import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 
-import AppBar from '@material-ui/core/AppBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import AssessmentIcon from '@material-ui/icons/Assessment';
+import ExploreIcon from '@material-ui/icons/Explore';
+import Explorer from '../../views/metrics/Explorer';
 import GatewayMetrics from '@fbcnms/ui/insights/GatewayMetrics';
 import Grafana from '../Grafana';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import TopBar from '../../components/TopBar';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {colors} from '../../theme/default';
-import {findIndex} from 'lodash';
-import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
-
-const useStyles = makeStyles(_ => ({
-  bar: {
-    backgroundColor: colors.primary.brightGray,
-  },
-  tabs: {
-    flex: 1,
-    color: colors.primary.white,
-  },
-}));
 
 const CONFIGS: Array<MetricGraphConfig> = [
   {
@@ -65,7 +53,7 @@ const CONFIGS: Array<MetricGraphConfig> = [
     customQueryConfigs: [
       {
         resolveQuery: gw =>
-          `pdcp_user_plane_bytes_dl{gatewayID="${gw}", service="enodebd"}/1000`,
+          `gtp_port_user_plane_dl_bytes{gatewayID="${gw}", service="pipelined"}/1000`,
       },
     ],
     basicQueryConfigs: [],
@@ -76,7 +64,7 @@ const CONFIGS: Array<MetricGraphConfig> = [
     customQueryConfigs: [
       {
         resolveQuery: gw =>
-          `pdcp_user_plane_bytes_ul{gatewayID="${gw}", service="enodebd"}/1000`,
+          `gtp_port_user_plane_ul_bytes{gatewayID="${gw}", service="pipelined"}/1000`,
       },
     ],
     basicQueryConfigs: [],
@@ -250,8 +238,7 @@ export default function () {
     return <GatewayMetricsGraphs />;
   }
 
-  const classes = useStyles();
-  const {match, relativePath, relativeUrl, location} = useRouter();
+  const {relativePath, relativeUrl} = useRouter();
 
   const grafanaEnabled =
     useContext(AppContext).isFeatureEnabled('grafana_metrics') &&
@@ -262,37 +249,40 @@ export default function () {
     tabNames.push('grafana');
   }
 
-  const currentTab = findIndex(tabNames, route =>
-    location.pathname.startsWith(match.url + '/' + route),
-  );
+  let tabList = [];
+  if (!grafanaEnabled) {
+    tabList = [
+      {
+        component: {NestedRouteLink},
+        label: 'Gateways',
+        to: '/gateways',
+      },
+      {
+        component: {NestedRouteLink},
+        label: 'Internal',
+        to: '/internal',
+      },
+    ];
+  } else {
+    tabList = [
+      {
+        icon: AssessmentIcon,
+        component: {NestedRouteLink},
+        label: 'Grafana',
+        to: '/grafana',
+      },
+      {
+        icon: ExploreIcon,
+        component: {NestedRouteLink},
+        label: 'Explorer',
+        to: '/explorer',
+      },
+    ];
+  }
 
   return (
     <>
-      <AppBar position="static" color="default" className={classes.bar}>
-        <Tabs
-          value={currentTab !== -1 ? currentTab : 0}
-          indicatorColor="primary"
-          textColor="inherit"
-          className={classes.tabs}>
-          {!grafanaEnabled ? (
-            <>
-              <Tab
-                component={NestedRouteLink}
-                label="Gateways"
-                to="/gateways"
-              />
-              <Tab component={NestedRouteLink} label="Network" to="/network" />
-              <Tab
-                component={NestedRouteLink}
-                label="Internal"
-                to="/internal"
-              />
-            </>
-          ) : (
-            <Tab component={NestedRouteLink} label="Grafana" to="/grafana" />
-          )}
-        </Tabs>
-      </AppBar>
+      <TopBar header={'Metrics'} tabs={tabList} />
       <Switch>
         {!grafanaEnabled ? (
           <>
@@ -313,6 +303,7 @@ export default function () {
               path={relativePath('/grafana')}
               component={GrafanaDashboard}
             />
+            <Route path={relativePath('/explorer')} component={Explorer} />
             <Redirect to={relativeUrl('/grafana')} />
           </>
         )}

@@ -40,12 +40,7 @@ typedef struct partial_tai_list_s {
     tai_t tai_many_plmn[TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI];
     tai_t tai_one_plmn_consecutive_tacs;
     struct {
-      uint8_t mcc_digit2 : 4;
-      uint8_t mcc_digit1 : 4;
-      uint8_t mnc_digit3 : 4;
-      uint8_t mcc_digit3 : 4;
-      uint8_t mnc_digit2 : 4;
-      uint8_t mnc_digit1 : 4;
+      plmn_t plmn;
       tac_t tac[TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI];
     } tai_one_plmn_non_consecutive_tacs;
   } u;

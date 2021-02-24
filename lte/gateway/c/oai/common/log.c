@@ -88,6 +88,7 @@
   "%06" PRIu64 " %s %08lX %-*.*s %-*.*s %-*.*s:%04u   [%lu]%*s"
 
 #define LOG_MAGMA_REPO_ROOT "/oai/"
+#define MAX_TIME_STR_LEN 32
 //-------------------------------
 
 typedef unsigned long log_message_number_t;
@@ -305,9 +306,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       log_exit();
     } break;
 
-    default: {
-    } break;
-  }
+    default: { } break; }
 
   zframe_destroy(&msg_frame);
   return 0;
@@ -561,11 +560,15 @@ static void log_get_elapsed_time_since_start(struct timeval * const elapsed_time
 }
 #endif
 //------------------------------------------------------------------------------
-static char* log_get_readable_cur_time(time_t* cur_time) {
+static void log_get_readable_cur_time(time_t* cur_time, char* time_str) {
   // get the current local time
-  *cur_time = time(NULL);
+  time(cur_time);
+  struct tm* cur_local_time;
+  cur_local_time = localtime(cur_time);
   // get the current local time in readable string format
-  return (strtok(ctime(cur_time), "\n"));
+  strftime(
+      time_str, MAX_TIME_STR_LEN, "%a %b %d %H:%M:%S %Y",
+      (const struct tm*) cur_local_time);
 }
 
 //------------------------------------------------------------------------------
@@ -1478,11 +1481,12 @@ int append_log_ctx_info(
     const log_thread_ctxt_t* thread_ctxt, time_t* cur_time,
     const char* short_source_fileP) {
   int rv;
+  char time_str[MAX_TIME_STR_LEN];
+  log_get_readable_cur_time(cur_time, time_str);
   rv = bformata(
       bstr, LOG_CTXT_INFO_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
+      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
@@ -1498,11 +1502,12 @@ int append_log_ctx_info_prefix_id(
     size_t filename_length, const log_thread_ctxt_t* thread_ctxt,
     time_t* cur_time, const char* short_source_fileP) {
   int rv;
+  char time_str[MAX_TIME_STR_LEN];
+  log_get_readable_cur_time(cur_time, time_str);
   rv = bformata(
       bstr, LOG_CTXT_INFO_ID_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
+      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
@@ -1533,9 +1538,9 @@ const char* const get_short_file_name(const char* const source_file_nameP) {
 
 char* bytes_to_hex(char* byte_array, int length, char* hex_array) {
   int i;
-  for(i = 0; i < length; i++){
-    sprintf(hex_array+i*3, " %02x", (unsigned char)byte_array[i]);
+  for (i = 0; i < length; i++) {
+    sprintf(hex_array + i * 3, " %02x", (unsigned char) byte_array[i]);
   }
-  hex_array[3*length+1] = '\0';
+  hex_array[3 * length + 1] = '\0';
   return hex_array;
 }

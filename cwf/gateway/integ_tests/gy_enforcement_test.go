@@ -1,4 +1,4 @@
-// +build all gy
+// build all gy
 
 /*
  * Copyright 2020 The Magma Authors.
@@ -31,7 +31,6 @@ import (
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
@@ -71,6 +70,36 @@ func ocsTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig)
 	return tr, ruleManager, ues[0]
 }
 
+func ocsTestSetupSingleRule(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
+	tr := NewTestRunner(t)
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+
+	ues, err := tr.ConfigUEs(1)
+	assert.NoError(t, err)
+	setNewOCSConfig(
+		&fegprotos.OCSConfig{
+			MaxUsageOctets: &fegprotos.Octets{TotalOctets: GyMaxUsageBytes},
+			MaxUsageTime:   GyMaxUsageTime,
+			ValidityTime:   GyValidityTime,
+			UseMockDriver:  true,
+		},
+	)
+
+	ue := ues[0]
+
+	// set a pass all rule to be installed by ocs with a rating group 1
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-ocs1", "", 1, models.PolicyRuleConfigTrackingTypeONLYOCS, 10)
+	assert.NoError(t, err)
+
+	tr.WaitForPoliciesToSync()
+
+	// PCRF Setup: apply a dynamic rule that points to the static rules above
+	err = ruleManager.AddRulesToPCRF(ue.Imsi, []string{"static-pass-all-ocs1"}, nil)
+	assert.NoError(t, err)
+	return tr, ruleManager, ues[0]
+}
+
 func provisionRestrictRules(t *testing.T, tr *TestRunner, ruleManager *RuleManager) {
 	// Set a block all rule to be installed by the final unit action
 	err := ruleManager.AddStaticRuleToDB(
@@ -87,19 +116,6 @@ func provisionRestrictRules(t *testing.T, tr *TestRunner, ruleManager *RuleManag
 	tr.WaitForPoliciesToSync()
 }
 
-func verifyPolicyUsage(t *testing.T, tr *TestRunner, imsi, rule string, minBytes, maxBytes int) {
-	// Check that UE mac flow was not removed and no extra data hit gx rules
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi][rule]
-	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
-	if record != nil {
-		// We should not be seeing > 6M data here
-		assert.True(t, record.BytesTx > uint64(minBytes+Buffer), fmt.Sprintf("%s did pass data while restricted", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(maxBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
-	}
-}
-
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
 //   respond with a quota grant of 4M.
 //   Generate traffic and assert the CCR-I is received.
@@ -111,8 +127,8 @@ func verifyPolicyUsage(t *testing.T, tr *TestRunner, imsi, rule string, minBytes
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
 func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionWithCRRU...")
-
 	tr, ruleManager, ue := ocsTestSetup(t)
+	imsi := ue.GetImsi()
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -128,74 +144,68 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    diam.Success,
 	}
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
-	finalUnitIndication := fegprotos.FinalUnitIndication{
-		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
-	}
 	finalQuotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
 			TotalOctets: 3 * MegaBytes,
 		},
-		IsFinalCredit:       true,
-		FinalUnitIndication: &finalUnitIndication,
-		ResultCode:          2001,
+		IsFinalCredit: true,
+		FinalUnitIndication: &fegprotos.FinalUnitIndication{
+			FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
+		},
+		ResultCode: 2001,
 	}
-	updateRequest1 := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE)
+	updateRequest1 := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE)
 	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(finalQuotaGrant)
 	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1}
 
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, updateAnswer1))
-	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	tr.AuthenticateAndAssertSuccess(imsi)
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
 
 	// we need to generate over 80% of the quota to trigger a CCR update
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("4.5M")}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "4.5M"},
+		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Timeout: 60,
+	}
 	_, err := tr.GenULTraffic(req)
-	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
-
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
-	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", ue.GetImsi()))
-	if record != nil {
-		// We should not be seeing > 1024k data here
-		assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(math.Round(5*MegaBytes+Buffer)), fmt.Sprintf("policy usage: %v", record))
-	}
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 3*MegaBytes), time.Minute, 2*time.Second)
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the OCS
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// When we use up all of the quota, we expect a termination request to go up.
-	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
+	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// We need to generate over 100% of the quota to trigger a session termination
-	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("10M")}}
-	_, err = tr.GenULTraffic(req)
-	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi:   imsi,
+		Volume: &wrappers.StringValue{Value: "10M"},
+	}
+	// This could error out if the session terminates during traffic generation
+	tr.GenULTraffic(req)
 
-	// Wait for flow deletion due to quota exhaustion
-	tr.WaitForEnforcementStatsToSync()
-
-	// Check that UE mac flow is removed
-	recordsBySubID, err = tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record = recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
-	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
+	// Wait for flow deletion due to quota exhaustion -> termination
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()
@@ -205,6 +215,7 @@ func TestGyCreditValidityTime(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditValidityTime...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
+	imsi := ue.GetImsi()
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -220,7 +231,7 @@ func TestGyCreditValidityTime(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    2001,
 	}
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
@@ -230,8 +241,10 @@ func TestGyCreditValidityTime(t *testing.T) {
 		UsedServiceUnit: &fegprotos.Octets{TotalOctets: 500 * KiloBytes},
 		UpdateType:      int32(lteprotos.CreditUsage_VALIDITY_TIMER_EXPIRED),
 	}
-	updateRequest1 := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE).
-		SetMSCC(mscc).SetMSCCDelta(250 * KiloBytes)
+	// accept 1k - 999k
+	// TODO Would be good to add asserting on less than, greater than, etc.
+	updateRequest1 := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE).
+		SetMSCC(mscc).SetMSCCDelta(499 * KiloBytes)
 	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1}
@@ -239,17 +252,23 @@ func TestGyCreditValidityTime(t *testing.T) {
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, updateAnswer1))
 
-	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	tr.AuthenticateAndAssertSuccess(imsi)
 	// Generate some traffic but not enough to trigger a quota update request
 	// We want the update type to be VALIDITY TIMER EXPIRED
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "500K"},
+		Bitrate: &wrappers.StringValue{Value: "10M"},
+		Timeout: 60,
+	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
 	time.Sleep(time.Second * 5)
 	tr.AssertAllGyExpectationsMetNoError()
-	tr.DisconnectAndAssertSuccess(ue.GetImsi())
+	tr.DisconnectAndAssertSuccess(imsi)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
@@ -262,6 +281,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionWithoutCRRU...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
+	imsi := ue.GetImsi()
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -281,7 +301,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 		FinalUnitIndication: &finalUnitIndication,
 		ResultCode:          2001,
 	}
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
@@ -290,42 +310,43 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, defaultUpdateAnswer))
-	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	tr.AuthenticateAndAssertSuccess(imsi)
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
+	fmt.Println("CCR-I exchanged installed static-pass-all-ocs2")
 
 	// Assert that a CCR-I was sent to OCS
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
-	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
+	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// we need to generate over 100% of the quota to trigger a session termination
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
-	_, err := tr.GenULTraffic(req)
-	assert.NoError(t, err)
-	time.Sleep(5 * time.Second)
-	tr.WaitForEnforcementStatsToSync()
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "10M"},
+		Timeout: 60,
+	}
+	// This could error out if the session terminates during traffic generation
+	tr.GenULTraffic(req)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()
-
-	// Check that enforcement stat flow is removed
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
-	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", ue.GetImsi()))
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
 //   NOT respond with any answer.
-// - Asset that authentication fails and that no rules were insalled
+// - Asset that authentication fails and that no rules were installed
 func TestGyLinksFailureOCStoFEG(t *testing.T) {
 	fmt.Println("\nRunning TestGyLinksFailureOCStoFEG...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
+	imsi := ue.GetImsi()
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -333,7 +354,7 @@ func TestGyLinksFailureOCStoFEG(t *testing.T) {
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(0).SetLinkFailure(true)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
@@ -364,12 +385,14 @@ func TestGyLinksFailureOCStoFEG(t *testing.T) {
 // - Assert that CCR-U was is generated
 // - Generate 2M traffic and assert that UE flows are NOT deleted and data was passed.
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
-// NOTE : the test is only verifying that session was not terminated. Improvment is needed to validate
-//   that ovs rule is well added and traffic is being redirected.
+// NOTE : the test is only verifying that session was not terminated.
+//        Improvement is needed to validate that ovs rule is well added and
+//        traffic is being redirected.
 func TestGyCreditExhaustionRedirect(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionRedirect...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
+	imsi := ue.GetImsi()
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -377,24 +400,22 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	redirectSrv := fegprotos.RedirectServer{
-		RedirectServerAddress: "2.2.2.2",
-	}
-	finalUnitIndication := fegprotos.FinalUnitIndication{
-		FinalUnitAction: fegprotos.FinalUnitAction_Redirect,
-		RedirectServer:  &redirectSrv,
-	}
 	quotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
 			TotalOctets: 4 * MegaBytes,
 		},
-		IsFinalCredit:       true,
-		FinalUnitIndication: &finalUnitIndication,
-		ResultCode:          2001,
+		IsFinalCredit: true,
+		FinalUnitIndication: &fegprotos.FinalUnitIndication{
+			FinalUnitAction: fegprotos.FinalUnitAction_Redirect,
+			RedirectServer: &fegprotos.RedirectServer{
+				RedirectServerAddress: "2.2.2.2",
+			},
+		},
+		ResultCode: diameter.SuccessCode,
 	}
 
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).
 		SetQuotaGrant(quotaGrant)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
@@ -404,7 +425,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 		UpdateType:  int32(gy.FORCED_REAUTHORISATION),
 	}
 	// We expect an update request with some usage update after reauth
-	updateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE).
+	updateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetMSCC(expectedMSCC)
 	updateAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).
@@ -413,83 +434,79 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, updateAnswer))
-	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	tr.AuthenticateAndAssertSuccess(imsi)
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
 
-	// Update directoryd record to include client IP
-	err := updateDirectorydRecord("IMSI"+ue.GetImsi(), "ipv4_addr", TrafficCltIP)
-	assert.NoError(t, err)
 
 	// we need to generate over 100% of the quota to trigger a session redirection
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
-	_, err = tr.GenULTraffic(req)
-	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
-
-	// Check that UE mac flow was not removed and data was passed
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
-	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
-	if record != nil {
-		// We should not be seeing > 4M data here
-		assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:   imsi,
+		Volume: &wrappers.StringValue{Value: "10M"},
+		//Bitrate: &wrappers.StringValue{Value: "100M"},
+		Timeout: 60,
 	}
 
+	 //time.Sleep(500 * time.Microsecond)
+	_, err := tr.GenULTraffic(req)
+	assert.NoError(t, err)
+
+	// Check that enforcement stats flow was not removed and data was passed
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 3*MegaBytes), time.Minute, 2*time.Second)
 	// Wait for service deactivation
-	time.Sleep(3 * time.Second)
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "redirect"), time.Minute, 2*time.Second)
 
 	// Send ReAuth Request to update quota
-	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
-	tr.WaitForReAuthToProcess()
+	raa, err := sendChargingReAuthRequest(imsi, 1)
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// we need to generate more traffic
-	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "2M"}}
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "2M"},
+		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Timeout: 60,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and data was passed
-	recordsBySubID, err = tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record = recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
-	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
-	if record != nil {
-		// We should not be seeing > 6M data here
-		assert.True(t, record.BytesTx > uint64(6), fmt.Sprintf("%s did not pass any data", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(7*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
-	}
+	// Check that enforcement stats flow was not removed and data was passed
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 1*MegaBytes), time.Minute, 2*time.Second)
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
-	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
+	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// trigger disconnection
-	tr.DisconnectAndAssertSuccess(ue.GetImsi())
-	tr.WaitForEnforcementStatsToSync()
+	tr.DisconnectAndAssertSuccess(imsi)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
 	tr.AssertAllGyExpectationsMetNoError()
 
 }
+
 
 func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditUpdateFail...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
+	imsi := ue.GetImsi()
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -505,42 +522,38 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    diam.Success,
 	}
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// Return a permanent failure on Update
-	updateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE)
+	updateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE)
 	// The CCR/A-U exchange fails
 	updateAnswer := protos.NewGyCCAnswer(diam.UnableToComply).
 		SetQuotaGrant(&fegprotos.QuotaGrant{ResultCode: diam.AuthorizationRejected})
 	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
 	// The failure above in CCR/A-U should trigger a termination
-	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
+	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 
 	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation, terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
-	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	tr.AuthenticateAndAssertSuccess(imsi)
 	// Trigger a ReAuth to force an update request
-	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
-	tr.WaitForReAuthToProcess()
+	raa, err := sendChargingReAuthRequest(imsi, 1)
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Wait for a termination to propagate
-	time.Sleep(5 * time.Second)
-	tr.WaitForEnforcementStatsToSync()
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that a CCR-I/U/T was sent to OCS
 	tr.AssertAllGyExpectationsMetNoError()
-
-	tr.AssertPolicyEnforcementRecordIsNil(ue.GetImsi())
 }
 
 // This test verifies the abort session request
@@ -600,20 +613,17 @@ func TestGyAbortSessionRequest(t *testing.T) {
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: "4.5M"}}
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "4.5M"},
+		Bitrate: &wrappers.StringValue{Value: "40M"},
+		Timeout: 60,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow is installed and traffic is less than the quota
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"]
-	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
-	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-	assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
-
+	// Check that enforcement stats flow is installed and traffic is less than the quota
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 3*MegaBytes), time.Minute, 2*time.Second)
 	asa, err := sendChargingAbortSession(
 		&fegProtos.AbortSessionRequest{
 			Imsi: imsi,
@@ -630,18 +640,7 @@ func TestGyAbortSessionRequest(t *testing.T) {
 	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
 
 	// check if all session related info is cleaned up
-	checkSessionAborted := func() bool {
-		recordsBySubID, err = tr.GetPolicyUsage()
-		assert.NoError(t, err)
-		return recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"] == nil
-	}
-	assert.Eventually(t, checkSessionAborted, 2*time.Minute, 5*time.Second,
-		"request not terminated as expected")
-
-	// trigger disconnection
-	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
@@ -658,8 +657,131 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionRestrict...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
+	imsi := ue.GetImsi()
 	defer func() {
 		// clear hss, ocs, and pcrf
+		assert.NoError(t, clearOCSMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	provisionRestrictRules(t, tr, ruleManager)
+
+	quotaGrant := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 4 * MegaBytes,
+		},
+		IsFinalCredit: true,
+		FinalUnitIndication: &fegprotos.FinalUnitIndication{
+			FinalUnitAction: fegprotos.FinalUnitAction_Restrict,
+			RestrictRules:   []string{"restrict-pass-user", "restrict-deny-all"},
+		},
+		ResultCode: 2001,
+	}
+
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
+	initAnswer := protos.NewGyCCAnswer(diam.Success).
+		SetQuotaGrant(quotaGrant)
+	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	expectedMSCC := &protos.MultipleServicesCreditControl{
+		RatingGroup: 1,
+		UpdateType:  int32(gy.FORCED_REAUTHORISATION),
+	}
+	// We expect an update request with some usage update after reauth
+	updateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE).
+		SetMSCC(expectedMSCC)
+	updateAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).
+		Return(updateAnswer)
+	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation}
+
+	// On unexpected requests, just return the default update answer
+	assert.NoError(t, setOCSExpectations(expectations, updateAnswer))
+	tr.AuthenticateAndAssertSuccess(imsi)
+
+	// we need to generate over 100% of the quota to trigger a session redirection
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "5M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
+		Timeout: 60,
+	}
+	_, err := tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
+	// Wait for service deactivation
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "restrict-pass-user"), time.Minute, 2*time.Second)
+
+	// we need to generate more traffic and validate it goes through restrict rule
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "2M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
+		Timeout: 60,
+	}
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Check that the og stats flow was not removed and flow data hit restrict rule
+	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 1, 6*MegaBytes+Buffer)
+	// Check that data went through the restrict rule
+	tr.AssertPolicyUsage(imsi, "restrict-pass-user", 1, 3*MegaBytes+Buffer)
+
+	// Send ReAuth Request to update quota
+	raa, err := sendChargingReAuthRequest(imsi, 1)
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
+	// Check ReAuth success
+	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+
+	// Assert that a CCR-I and CCR-U were sent to the OCS
+	tr.AssertAllGyExpectationsMetNoError()
+
+	// Wait for service activation : restrict rule is removed
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "restrict-pass-user"), time.Minute, 2*time.Second)
+
+	// we need to generate more traffic to hit restrict rule
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "2M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
+		Timeout: 60,
+	}
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Check that og stats flow has seen more data than before
+	// The enforcement stats record is not cumulative at this point since
+	// the rule is installed again. Assert that it is above 1.
+	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 1, 3*MegaBytes+Buffer)
+
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(imsi)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
+}
+
+// - Send a CCA-I with valid credit for a RG but with 4012 error code (transient)
+// - Assert that UE flows for that RG are deleted
+// - Generate an additional 2M traffic and assert that only Gy flows matched.
+// - Assert that Redirect flows are installed
+// - Send a Charging ReAuth request to top up quota and assert that the
+//   response is successful
+// - Assert that CCR-U was is generated
+// - Generate 2M traffic and assert that UE flows are reinstalled for RG
+//   and traffic goes through them.
+func TestGyCreditTransientErrorRestrict(t *testing.T) {
+	fmt.Println("\nRunning TestGyCreditTransientErrorRestrict...")
+
+	tr, ruleManager, ue := ocsTestSetupSingleRule(t)
+	imsi := ue.GetImsi()
+	defer func() {
+		// clear hss, ocs, and pcrf
+		assert.NoError(t, clearPCRFMockDriver())
 		assert.NoError(t, clearOCSMockDriver())
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
@@ -671,104 +793,112 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 		FinalUnitAction: fegprotos.FinalUnitAction_Restrict,
 		RestrictRules:   []string{"restrict-pass-user", "restrict-deny-all"},
 	}
-	quotaGrant := &fegprotos.QuotaGrant{
+	quotaGrant_Init := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
-			TotalOctets: 4 * MegaBytes,
+			TotalOctets: 0 * MegaBytes,
 		},
 		IsFinalCredit:       true,
 		FinalUnitIndication: &finalUnitIndication,
-		ResultCode:          2001,
+		ResultCode:          diameter.DiameterCreditLimitReached,
 	}
 
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	// CCR-I
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).
-		SetQuotaGrant(quotaGrant)
+		SetQuotaGrant(quotaGrant_Init)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
-	expectedMSCC := &protos.MultipleServicesCreditControl{
+	// reauth
+	expectedMSCC_forReauth := &protos.MultipleServicesCreditControl{
 		RatingGroup: 1,
 		UpdateType:  int32(gy.FORCED_REAUTHORISATION),
 	}
-	// We expect an update request with some usage update after reauth
-	updateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE).
-		SetMSCC(expectedMSCC)
-	updateAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).
-		Return(updateAnswer)
-	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation}
+	reauthRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE).
+		SetMSCC(expectedMSCC_forReauth)
 
-	// On unexpected requests, just return the default update answer
-	assert.NoError(t, setOCSExpectations(expectations, updateAnswer))
-	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	quotaGrant_Reauth := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 10 * MegaBytes,
+		},
+		IsFinalCredit:       true,
+		FinalUnitIndication: &finalUnitIndication,
+		ResultCode:          diam.Success,
+	}
 
-	// Update directoryd record to include client IP
-	err := updateDirectorydRecord("IMSI"+ue.GetImsi(), "ipv4_addr", TrafficCltIP)
-	assert.NoError(t, err)
+	reauthAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant_Reauth)
+	reauthExpectation := protos.NewGyCreditControlExpectation().Expect(reauthRequest).
+		Return(reauthAnswer)
 
-	// we need to generate over 100% of the quota to trigger a session redirection
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
-	_, err = tr.GenULTraffic(req)
+	expectations := []*protos.GyCreditControlExpectation{initExpectation, reauthExpectation}
+	assert.NoError(t, setOCSExpectations(expectations, nil))
+	tr.AuthenticateAndAssertSuccess(imsi)
+
+	// by this point we should be already restricted since credit was suspended
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "restrict-pass-user"), time.Minute, 2*time.Second)
+
+	// we need to generate traffic and validate it goes through restrict rule
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "2M"},
+		Timeout: 20,
+	}
+	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and data was passed
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", 0, 5*MegaBytes)
-
-	// Wait for service deactivation
-	time.Sleep(3 * time.Second)
-
-	// we need to generate more traffic to hit restrict rule
-	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "2M"}}
-	_, err = tr.GenULTraffic(req)
-	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
-
-	// Check that UE mac flow was not removed and flow data hit restrict rule
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "restrict-pass-user", 0, 2*MegaBytes)
+	// Check that enforcement stats flow was not removed and flow data hit restrict rule
+	tr.AssertPolicyUsage(imsi, "restrict-pass-user", uint64(math.Round(1.5*MegaBytes)), 3*MegaBytes+Buffer)
+	// check static rule is gone
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs1"), time.Minute, 2*time.Second)
 
 	// Send ReAuth Request to update quota
-	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
-	tr.WaitForReAuthToProcess()
+	raa, err := sendChargingReAuthRequestEntireSession(imsi)
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
-	// Assert that a CCR-I and CCR-U were sent to the OCS
+	// Assert that a CCR-I and reauth were sent
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// Wait for service activation
-	time.Sleep(3 * time.Second)
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "restrict-pass-user"), time.Minute, 2*time.Second)
 
-	// we need to generate more traffic to hit restrict rule
-	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "2M"}}
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "2M"},
+		Timeout: 20,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and data passed
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", 0, 2*MegaBytes)
+	// TODO: uncomment once we fix passing the ip to pipelined for cwf
+	// Check that enforcement stats flow was not removed and data passed
+	//tr.AssertPolicyUsage(imsi, "static-pass-all-ocs1", uint64(math.Round(1.5*MegaBytes)), 3*MegaBytes+Buffer)
+	//assert.Nil(t, policyUsage["IMSI"+imsi]["restrict-pass-user"], fmt.Sprintf("Policy usage restrict-pass-user for imsi: %v was NOT removed", imsi))
 
-	// Wait for service deactivation
-	time.Sleep(3 * time.Second)
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(imsi)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
-//   respond with a quota grant of 4M.
-//   Generate traffic and assert the CCR-I is received.
+//   respond with a quota grant of 4M with two rules.
+// - Generate traffic and assert the CCR-I is received.
 // - Set an expectation for a CCR-U with >80% of data usage to be sent up to
 // 	 OCS, to which it will response with an ERROR CODE
-// - Generate traffic over 80% and under 100% to make sure sessiond triggers an update but that
-//   we don't go over 100% and cause a termination due to quota exhaustion instead of due to
-//   ERROR CODE
-// - Assert that UE flows are deleted.
-// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
-func TestGyWithErrorCode(t *testing.T) {
-	fmt.Println("\nRunning TestGyWithErrorCode...")
+// - Send an CCA-U with a 4012 code transient failure which should trigger suspend that credit
+// - Assert that UE flows for one rule are delete.
+// - Assert that UE flows for the other rule are still valid
+func TestGyWithTransientErrorCode(t *testing.T) {
+	fmt.Println("\nRunning TestGyWithTransientErrorCode...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
+	imsi := ue.GetImsi()
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -785,39 +915,119 @@ func TestGyWithErrorCode(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    diam.Success,
 	}
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
+	// grant with DiameterCreditLimitReached
+	quotaGrantCreditLimitReached := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 0 * MegaBytes,
+		},
+		IsFinalCredit: false,
+		ResultCode:    diameter.DiameterCreditLimitReached,
+	}
+
 	// CCR-U  with ERROR CODE 4012 (DiameterCreditLimitReached)
-	updateRequest1 := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE)
-	updateAnswer1 := protos.NewGyCCAnswer(diameter.DiameterCreditLimitReached)
+	updateRequest1 := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE)
+	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrantCreditLimitReached)
+	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
+
+	// Load expectations into OCS
+	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1}
+	assert.NoError(t, setOCSExpectations(expectations, nil)) // We only expect one single CCR-U to be sent
+	tr.AuthenticateAndAssertSuccess(imsi)
+
+	// we need to generate over 80% but less than 100%  trigger a CCR update without triggering termination
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:   imsi,
+		Volume: &wrappers.StringValue{Value: "4.6M"},
+	}
+	_, err := tr.GenULTraffic(req)
+	assert.NoError(t, err)
+
+	fmt.Println("RG 1 should now be suspended")
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
+
+	// Assert that we saw a Terminate request
+	tr.AssertAllGyExpectationsMetNoError()
+
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(imsi)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
+}
+
+// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//   respond with a quota grant of 4M.
+//   Generate traffic and assert the CCR-I is received.
+// - Generate traffic over 80% and under 100% not to trigger termination
+// - Send an CCA-U with a 5xxx code which should trigger termination
+// - Assert that UE flows are deleted.
+// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+func TestGyWithPermanentErrorCode(t *testing.T) {
+	fmt.Println("\nRunning TestGyWithPermanentErrorCode...")
+
+	tr, ruleManager, ue := ocsTestSetup(t)
+	imsi := ue.GetImsi()
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearOCSMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	// CCR-I
+	quotaGrant := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 5 * MegaBytes,
+		},
+		IsFinalCredit: false,
+		ResultCode:    diam.Success,
+	}
+	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
+	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	// grant with any 5xxx error (permanent error)
+	quotaGrantCreditLimitReached := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 0 * MegaBytes,
+		},
+		IsFinalCredit: false,
+		ResultCode:    diameter.DiameterRatingFailed,
+	}
+
+	// CCR-U  with ERROR CODE 4012 (DiameterCreditLimitReached)
+	updateRequest1 := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE)
+	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrantCreditLimitReached)
 	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 
 	// CCR-T
-	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
+	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 
 	// Load expectations into OCS
 	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1, terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil)) // We only expect one single CCR-U to be sent
-	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	tr.AuthenticateAndAssertSuccess(imsi)
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-ocs2"),
+		10*time.Second, 2*time.Second)
 
 	// we need to generate over 80% but less than 100%  trigger a CCR update without triggering termination
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("4.6M")}}
-	_, err := tr.GenULTraffic(req)
-	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:   imsi,
+		Volume: &wrappers.StringValue{Value: "10M"},
+	}
+	tr.GenULTraffic(req)
 
-	// Wait for flow deletion due to quota exhaustion
-	tr.WaitForEnforcementStatsToSync()
-
-	// Check that UE mac flow is removed
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
-	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
+	// Check that enforcement stats flow is removed
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()

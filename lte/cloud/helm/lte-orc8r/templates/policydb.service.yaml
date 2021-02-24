@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "policydb.service") -}}
 {{- define "policydb.service" -}}
 metadata:
-  name: {{ .Release.Name }}-policydb
+  name: orc8r-policydb
   labels:
     {{- with .Values.policydb.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: policydb
   ports:
     - name: grpc
       port: 9180

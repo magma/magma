@@ -35,7 +35,7 @@ class SessionStateTest : public ::testing::Test {
     rule_store    = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
         "imsi", "session", test_sstate_cfg, *rule_store, tgpp_ctx,
-        pdp_start_time);
+        pdp_start_time, CreateSessionResponse{});
     update_criteria = get_default_update_criteria();
   }
   enum RuleType {
@@ -57,10 +57,7 @@ class SessionStateTest : public ::testing::Test {
       std::time_t activation_time, std::time_t deactivation_time) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);
-    RuleLifetime lifetime{
-        .activation_time   = activation_time,
-        .deactivation_time = deactivation_time,
-    };
+    RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
       case STATIC:
         // insert into list of existing rules
@@ -80,10 +77,7 @@ class SessionStateTest : public ::testing::Test {
       std::time_t activation_time, std::time_t deactivation_time) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);
-    RuleLifetime lifetime{
-        .activation_time   = activation_time,
-        .deactivation_time = deactivation_time,
-    };
+    RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
       case STATIC:
         // insert into list of existing rules
@@ -175,10 +169,7 @@ class SessionStateTest : public ::testing::Test {
       std::time_t activation_time, std::time_t deactivation_time) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);
-    RuleLifetime lifetime{
-        .activation_time   = activation_time,
-        .deactivation_time = deactivation_time,
-    };
+    RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
       case STATIC:
         rule_store->insert_rule(rule);

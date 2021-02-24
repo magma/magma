@@ -17,6 +17,7 @@ import (
 	"context"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/subscriberdb"
 	subscriberdb_protos "magma/lte/cloud/go/services/subscriberdb/protos"
 	subscriberdb_state "magma/lte/cloud/go/services/subscriberdb/state"
@@ -71,11 +72,14 @@ func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetInd
 }
 
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
-	states, err := state_types.MakeStatesByID(req.States)
+	states, err := state_types.MakeStatesByID(req.States, serdes.State)
 	if err != nil {
 		return nil, err
 	}
 	stErrs, err := indexImpl(req.NetworkId, states)
+	if err != nil {
+		return nil, err
+	}
 	res := &protos.IndexResponse{StateErrors: state_types.MakeProtoStateErrors(stErrs)}
 	return res, nil
 }

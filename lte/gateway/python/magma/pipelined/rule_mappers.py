@@ -190,3 +190,23 @@ class RuleVersionDict(RedisHashDict):
     def __missing__(self, key):
         """Instead of throwing a key error, return None when key not found"""
         return None
+
+
+class UsageDeltaDict(RedisHashDict):
+    """
+    UsageDeltaDict uses the RedisHashDict collection to store a mapping of
+    subscriber+rule_id+ip to rule usage.
+    Setting and deleting items in the dictionary syncs with Redis automatically
+    """
+    _DICT_HASH = "pipelined:last_usage_delta"
+
+    def __init__(self):
+        client = get_default_client()
+        super().__init__(
+            client,
+            self._DICT_HASH,
+            get_json_serializer(), get_json_deserializer())
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return None when key not found"""
+        return None

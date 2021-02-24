@@ -19,20 +19,17 @@ import (
 	"time"
 
 	"magma/feg/cloud/go/feg"
-	plugin2 "magma/feg/cloud/go/plugin"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/handlers"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	healthTestInit "magma/feg/cloud/go/services/health/test_init"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/lte/cloud/go/lte"
-	plugin3 "magma/lte/cloud/go/plugin"
 	models3 "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
@@ -48,8 +45,6 @@ import (
 )
 
 func TestFederationNetworks(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	testHealthServicer, err := healthTestInit.StartTestService(t)
@@ -173,7 +168,7 @@ func TestFederationNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true)
+	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -209,6 +204,7 @@ func TestFederationNetworks(t *testing.T) {
 		[]configurator.NetworkEntity{
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -260,8 +256,6 @@ func TestFederationNetworks(t *testing.T) {
 }
 
 func TestFederationGateways(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 	configuratorTestInit.StartTestService(t)
@@ -287,6 +281,7 @@ func TestFederationGateways(t *testing.T) {
 		[]configurator.NetworkEntity{
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -452,6 +447,7 @@ func TestFederationGateways(t *testing.T) {
 		ExpectedStatus: 200,
 		ExpectedResult: expectedRes,
 	}
+	tests.RunUnitTest(t, e, tc)
 
 	// Test DeleteGateway
 	tc = tests.Test{
@@ -470,14 +466,12 @@ func TestFederationGateways(t *testing.T) {
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 404,
-		ExpectedError:  "Not found",
+		ExpectedError:  "Not Found",
 	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestFederatedLteNetworks(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin3.LteOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
@@ -600,7 +594,7 @@ func TestFederatedLteNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true)
+	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -684,6 +678,7 @@ func seedFederationNetworks(t *testing.T) {
 				Configs:     map[string]interface{}{},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 }
@@ -719,6 +714,7 @@ func seedFederatedLteNetworks(t *testing.T) {
 				Configs:     map[string]interface{}{},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 }

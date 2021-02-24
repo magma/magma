@@ -23,6 +23,8 @@
 #include "GRPCReceiver.h"
 #include "SessionState.h"
 
+#define M5G_MIN_TEID (UINT32_MAX / 2)
+
 using grpc::Status;
 
 namespace magma {
@@ -69,6 +71,20 @@ class PipelinedClient {
   virtual bool deactivate_all_flows(const std::string& imsi) = 0;
 
   /**
+   * Deactivate all flows for the specified rules plus any drop default rule
+   * added by pipelined
+   * @param imsi - UE to delete flows for
+   * @param rule_ids - rules to deactivate
+   * @return true if the operation was successful
+   */
+  virtual bool deactivate_flows_for_rules_for_termination(
+      const std::string& imsi, const std::string& ip_addr,
+      const std::string& ipv6_addr, const Teids teids,
+      const std::vector<std::string>& rule_ids,
+      const std::vector<PolicyRule>& dynamic_rules,
+      const RequestOriginType_OriginType origin_type) = 0;
+
+  /**
    * Deactivate all flows for the specified rules
    * @param imsi - UE to delete flows for
    * @param rule_ids - rules to deactivate
@@ -76,7 +92,8 @@ class PipelinedClient {
    */
   virtual bool deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
+      const std::string& ipv6_addr, const Teids teids,
+      const std::vector<std::string>& rule_ids,
       const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type) = 0;
 
@@ -85,8 +102,8 @@ class PipelinedClient {
    */
   virtual bool activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
-      const optional<AggregatedMaximumBitrate>& ambr,
+      const std::string& ipv6_addr, const Teids teids,
+      const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules,
       std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
@@ -127,8 +144,8 @@ class PipelinedClient {
    */
   virtual bool add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
-      const std::vector<std::string>& static_rules,
+      const std::string& ipv6_addr, const Teids teids,
+      const std::string& msisdn, const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules) = 0;
 
   /**
@@ -136,7 +153,10 @@ class PipelinedClient {
    */
   virtual bool set_upf_session(
       const SessionState::SessionInfo info,
-      std::function<void(Status status, UpfRes)> callback) = 0;
+      std::function<void(Status status, UPFSessionContextState)> callback) = 0;
+
+  virtual uint32_t get_next_teid()    = 0;
+  virtual uint32_t get_current_teid() = 0;
 };
 
 /**
@@ -183,6 +203,20 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool deactivate_all_flows(const std::string& imsi);
 
   /**
+   * Deactivate all flows related to a specific charging key plus any default
+   * rule installed by pipelined. Used for session termination.
+   * @param imsi - UE to delete flows for
+   * @param charging_key - key to deactivate
+   * @return true if the operation was successful
+   */
+  bool deactivate_flows_for_rules_for_termination(
+      const std::string& imsi, const std::string& ip_addr,
+      const std::string& ipv6_addr, const Teids teids,
+      const std::vector<std::string>& rule_ids,
+      const std::vector<PolicyRule>& dynamic_rules,
+      const RequestOriginType_OriginType origin_type);
+
+  /**
    * Deactivate all flows related to a specific charging key
    * @param imsi - UE to delete flows for
    * @param charging_key - key to deactivate
@@ -190,17 +224,25 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    */
   bool deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
+      const std::string& ipv6_addr, const Teids teids,
+      const std::vector<std::string>& rule_ids,
       const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type);
+
+  /**
+   * Deactivate all flows included on the request
+   * @param request
+   * @return true if the operation was successful
+   */
+  bool deactivate_flows(DeactivateFlowsRequest& request);
 
   /**
    * Activate all rules for the specified rules, using a normal vector
    */
   bool activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
-      const optional<AggregatedMaximumBitrate>& ambr,
+      const std::string& ipv6_addr, const Teids teids,
+      const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules,
       std::function<void(Status status, ActivateFlowsResult)> callback);
@@ -234,23 +276,31 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   bool add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
-      const std::vector<std::string>& static_rules,
+      const std::string& ipv6_addr, const Teids teids,
+      const std::string& msisdn, const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules);
 
   bool set_upf_session(
       const SessionState::SessionInfo info,
-      std::function<void(Status status, UpfRes)> callback);
+      std::function<void(Status status, UPFSessionContextState)> callback);
 
   void handle_add_ue_mac_callback(
       const magma::UEMacFlowRequest req, const int retries, Status status,
       FlowResponse resp);
 
+  uint32_t get_next_teid();
+  uint32_t get_current_teid();
+
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
   std::unique_ptr<Pipelined::Stub> stub_;
+  uint32_t teid;
 
  private:
+  void setup_default_controllers_rpc(
+      const SetupDefaultRequest& request,
+      std::function<void(Status, SetupFlowsResult)> callback);
+
   void setup_policy_rpc(
       const SetupPolicyRequest& request,
       std::function<void(Status, SetupFlowsResult)> callback);
@@ -284,7 +334,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       std::function<void(Status, FlowResponse)> callback);
 
   void set_upf_session_rpc(
-      const SessionSet& request, std::function<void(Status, UpfRes)> callback);
+      const SessionSet& request,
+      std::function<void(Status, UPFSessionContextState)> callback);
 };
 
 }  // namespace magma

@@ -28,6 +28,10 @@ type MutableCwfHaPair struct {
 	// gateway id 2
 	// Required: true
 	GatewayID2 string `json:"gateway_id_2"`
+
+	// ha pair id
+	// Required: true
+	HaPairID string `json:"ha_pair_id"`
 }
 
 // Validate validates this mutable cwf ha pair
@@ -43,6 +47,10 @@ func (m *MutableCwfHaPair) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateGatewayID2(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHaPairID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -82,6 +90,15 @@ func (m *MutableCwfHaPair) validateGatewayID1(formats strfmt.Registry) error {
 func (m *MutableCwfHaPair) validateGatewayID2(formats strfmt.Registry) error {
 
 	if err := validate.RequiredString("gateway_id_2", "body", string(m.GatewayID2)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCwfHaPair) validateHaPairID(formats strfmt.Registry) error {
+
+	if err := validate.RequiredString("ha_pair_id", "body", string(m.HaPairID)); err != nil {
 		return err
 	}
 

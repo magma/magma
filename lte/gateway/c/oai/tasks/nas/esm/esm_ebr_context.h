@@ -38,6 +38,7 @@ Description Defines functions used to handle EPS bearer contexts.
 
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "3gpp_29.274.h"
 #include "common_types.h"
 #include "emm_data.h"
 #include "esm_data.h"
@@ -73,4 +74,9 @@ ebi_t esm_ebr_context_release(
 
 void free_esm_ebr_context(esm_ebr_context_t* ctx);
 
+void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64);
+
+void dedicated_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64);
+
+void eps_bearer_deactivate_t3495_handler(void*, imsi64_t* imsi64);
 #endif /* ESM_EBR_CONTEXT_SEEN */

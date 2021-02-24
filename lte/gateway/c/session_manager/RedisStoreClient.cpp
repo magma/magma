@@ -137,18 +137,26 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
   }
   client_->watch(keys);
 
-  // Now set the MULTI command.
+  // Set MULTI command.
   // Subsequent commands end up being queued for atomic execution with EXEC.
   // Together with WATCH, if one of the keys we intend to set are modified, then
   // the entire EXEC does not execute.
   client_->multi();
 
-  // And now we queue up HSET commands after we've set up some sort of safety
+  // Queue up HSET commands after we've set up some sort of safety
   // guarantees.
+  std::vector<std::string> keys_to_delete;
   for (auto& it : session_map) {
+    if (it.second.empty()) {
+      // if session is empty we shouldn't write back this subs anymore
+      keys_to_delete.push_back(it.first);
+      continue;
+    }
     client_->hset(redis_table_, it.first, serialize_session_vec(it.second));
   }
-
+  if (!keys_to_delete.empty()) {
+    client_->hdel(redis_table_, keys_to_delete);
+  }
   auto exec_future = client_->exec();
   client_->sync_commit();
 

@@ -71,6 +71,7 @@ meter:
 
 enforcement:
   poll_interval: 1
+  default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
@@ -125,7 +126,7 @@ monitored_ifaces: ['cwag_br0',
                   ]
 
 # Whether pipelined should cleanup flows on restarts
-clean_restart: true
+clean_restart: false
 
 # Information for cwf check quota servers
 quota_check_ip: '192.0.0.1'
@@ -137,7 +138,10 @@ li_local_iface: li_port
 li_mirror_all: false
 #li_dst_iface: eth4
 
-redis_enabled: false
+redis_enabled: true
+
+# Logs grpc payload content
+magma_print_grpc_payload: true
 
 # Configuration for IPFIX sampling
 ipfix:

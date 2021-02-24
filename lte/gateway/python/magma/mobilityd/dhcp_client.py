@@ -54,6 +54,7 @@ class DHCPClient:
         """
         self._sniffer = AsyncSniffer(iface=iface,
                                      filter="udp and (port 67 or 68)",
+                                     store=False,
                                      prn=self._rx_dhcp_pkt)
 
         self.dhcp_client_state = dhcp_store  # mac => DHCP_State
@@ -170,6 +171,7 @@ class DHCPClient:
 
         dhcp_desc = self.dhcp_client_state[key]
         self.send_dhcp_packet(mac, dhcp_desc.vlan, DHCPState.RELEASE, dhcp_desc)
+        del self.dhcp_client_state[key]
 
     def _monitor_dhcp_state(self):
         """
@@ -226,6 +228,10 @@ class DHCPClient:
         with self._dhcp_notify:
             if mac_addr_key in self.dhcp_client_state:
                 state_requested = self.dhcp_client_state[mac_addr_key].state_requested
+                if BOOTP not in packet or packet[BOOTP].yiaddr is None:
+                    LOG.error("no ip offered")
+                    return
+
                 ip_offered = packet[BOOTP].yiaddr
                 subnet_mask = self._get_option(packet, "subnet_mask")
                 if subnet_mask is not None:
@@ -233,11 +239,17 @@ class DHCPClient:
                 else:
                     ip_subnet = IPv4Network(ip_offered + "/" + "32", strict=False)
 
+                dhcp_server_ip = None
+                if IP in packet:
+                    dhcp_server_ip = packet[IP].src
+
                 dhcp_router_opt = self._get_option(packet, "router")
                 if dhcp_router_opt is not None:
                     router_ip_addr = ip_address(dhcp_router_opt)
                 else:
-                    router_ip_addr = None
+                    # use DHCP as upstream router in case of missing Open 3.
+                    router_ip_addr = dhcp_server_ip
+                self.dhcp_gw_info.update_ip(router_ip_addr, vlan)
 
                 lease_expiration_time = self._get_option(packet, "lease_time")
                 dhcp_state = DHCPDescriptor(mac=mac_addr,
@@ -246,15 +258,13 @@ class DHCPClient:
                                              vlan=vlan,
                                              state_requested=state_requested,
                                              subnet=str(ip_subnet),
-                                             server_ip=packet[IP].src,
+                                             server_ip=dhcp_server_ip,
                                              router_ip=router_ip_addr,
                                              lease_expiration_time=lease_expiration_time,
                                              xid=packet[BOOTP].xid)
                 LOG.info("Record DHCP for: %s state: %s", mac_addr_key, dhcp_state)
 
                 self.dhcp_client_state[mac_addr_key] = dhcp_state
-
-                self.dhcp_gw_info.update_ip(router_ip_addr, vlan)
                 self._dhcp_notify.notifyAll()
 
                 if state == DHCPState.OFFER:

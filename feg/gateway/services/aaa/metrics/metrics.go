@@ -25,7 +25,7 @@ var (
 			Help: "EAP Auth responses processed, partitioned by authenticator's EapMsgCode code, " +
 				"supplicant's EAP method & APN (Called Station ID). Attach failures will have code: Failure",
 		},
-		[]string{"code", "method", "apn"},
+		[]string{"code", "method", "apn", "imsi"},
 	)
 
 	// Sessions

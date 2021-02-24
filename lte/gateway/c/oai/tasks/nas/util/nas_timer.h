@@ -51,7 +51,7 @@ Description Timer utilities
 
 /* Timer structure */
 typedef struct nas_timer_s {
-  long int id; /* The timer identifier                 */
+  long int id;  /* The timer identifier                 */
   uint32_t sec; /* The timer interval value in seconds  */
 } nas_timer_t;
 
@@ -76,7 +76,7 @@ void nas_timer_cleanup(void);
 long int nas_timer_start(
     uint32_t sec, uint32_t usec, nas_timer_callback_t nas_timer_callback,
     void* nas_timer_callback_args);
-long int nas_timer_stop(long int timer_id, void **nas_timer_callback_arg);
+long int nas_timer_stop(long int timer_id, void** nas_timer_callback_arg);
 void mme_app_nas_timer_handle_signal_expiry(
     long timer_id, nas_itti_timer_arg_t* nas_itti_timer_arg, imsi64_t* imsi64);
 

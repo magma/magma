@@ -174,14 +174,15 @@ func (m *PolicyRule) GetAssocs() storage.TKs {
 
 func (m *PolicyRule) getConfig() *PolicyRuleConfig {
 	return &PolicyRuleConfig{
-		FlowList:       m.FlowList,
-		MonitoringKey:  m.MonitoringKey,
-		Priority:       m.Priority,
-		RatingGroup:    m.RatingGroup,
-		Redirect:       m.Redirect,
-		TrackingType:   m.TrackingType,
-		AppName:        m.AppName,
-		AppServiceType: m.AppServiceType,
+		FlowList:                m.FlowList,
+		MonitoringKey:           m.MonitoringKey,
+		Priority:                m.Priority,
+		RatingGroup:             m.RatingGroup,
+		Redirect:                m.Redirect,
+		TrackingType:            m.TrackingType,
+		AppName:                 m.AppName,
+		AppServiceType:          m.AppServiceType,
+		HeaderEnrichmentTargets: m.HeaderEnrichmentTargets,
 	}
 }
 
@@ -203,6 +204,7 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	m.TrackingType = cfg.TrackingType
 	m.AppName = cfg.AppName
 	m.AppServiceType = cfg.AppServiceType
+	m.HeaderEnrichmentTargets = cfg.HeaderEnrichmentTargets
 	return m
 }
 
@@ -280,6 +282,9 @@ func (m *PolicyRuleConfig) ToProto(id string, qos *protos.FlowQos) *protos.Polic
 			flowList = append(flowList, flow.ToProto())
 		}
 		rule.FlowList = flowList
+	}
+	if len(m.HeaderEnrichmentTargets) != 0 {
+		rule.He = &protos.HeaderEnrichment{Urls: m.HeaderEnrichmentTargets}
 	}
 	return rule
 }
@@ -392,7 +397,7 @@ func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network)
 }
 
 func (m *PolicyQosProfile) FromBackendModels(networkID string, key string) error {
-	config, err := configurator.LoadEntityConfig(networkID, lte.PolicyQoSProfileEntityType, key)
+	config, err := configurator.LoadEntityConfig(networkID, lte.PolicyQoSProfileEntityType, key, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -457,4 +462,20 @@ func (m *PolicyQosProfile) ToProto() *protos.FlowQos {
 		proto.Arp = arp
 	}
 	return proto
+}
+
+func (m PolicyIds) ToTKs() []storage.TypeAndKey {
+	var tks []storage.TypeAndKey
+	for _, policyID := range m {
+		tks = append(tks, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: string(policyID)})
+	}
+	return tks
+}
+
+func (m BaseNames) ToTKs() []storage.TypeAndKey {
+	var tks []storage.TypeAndKey
+	for _, baseName := range m {
+		tks = append(tks, storage.TypeAndKey{Type: lte.BaseNameEntityType, Key: string(baseName)})
+	}
+	return tks
 }

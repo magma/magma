@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -66,7 +67,7 @@ type baseOrchestratorBuilder struct{}
 
 func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (mconfig.ConfigsByKey, error) {
 	networkID := network.ID
-	nativeGraph, err := (configurator.EntityGraph{}).FromStorageProto(graph)
+	nativeGraph, err := (configurator.EntityGraph{}).FromProto(graph, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}

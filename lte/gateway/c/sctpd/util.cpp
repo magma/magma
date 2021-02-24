@@ -54,8 +54,11 @@ int create_sctp_sock(const InitReq &req)
 
   if (convert_addrs(&req, &addrs, &num_addrs) < 0) goto fail;
 
-  if (sctp_bindx(sd, addrs, num_addrs, SCTP_BINDX_ADD_ADDR) < 0) {
-    MLOG_perror("sctp_bindx");
+  if (sctp_bindx(sd, addrs, num_addrs, SCTP_BINDX_ADD_ADDR)) {
+    MLOG_perror("sctp_bindx ADD error");
+    if (sctp_bindx(sd, addrs, num_addrs, SCTP_BINDX_REM_ADDR)) {
+      MLOG_perror("sctp_bindx REM error");
+    }
     goto fail;
   }
 
@@ -152,6 +155,35 @@ int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs)
     }
   }
 
+  return 0;
+}
+
+int pull_peer_ipaddr(const int sd, const uint32_t assoc_id, std::string& ran_cp_ipaddr) {
+  int n_remote_addr             = -1;
+  struct sockaddr* remote_addrs = NULL;
+  n_remote_addr = sctp_getpaddrs(sd, assoc_id, &remote_addrs);
+
+  // Since socket is opened as AF_INET6, remote address comes as IPv6 formatted
+  // for both IPv4 and IPv6 end points
+  const uint8_t *remote_addr_ipv6_bytes =
+          ((const struct sockaddr_in6*) &remote_addrs[0])->sin6_addr.s6_addr;
+  const char* fromaddr = NULL;
+  if (n_remote_addr >= 1) {
+    // Picking the first address only.
+    // Check if remote_addrs[0] is IPv6 formatted IPv4 address
+    if (IN6_IS_ADDR_V4MAPPED(
+            &((struct sockaddr_in6*) &remote_addrs[0])->sin6_addr)) {
+      // First 12 bytes are ::FFFF for IPv4-mapped-IPv6
+      fromaddr = (const char *) remote_addr_ipv6_bytes + 12;
+      ran_cp_ipaddr = std::string(fromaddr, 4);
+    } else {
+      fromaddr = (const char *) remote_addr_ipv6_bytes;
+      ran_cp_ipaddr = std::string(fromaddr, 16);
+    }
+  }
+
+
+  sctp_freepaddrs(remote_addrs);
   return 0;
 }
 

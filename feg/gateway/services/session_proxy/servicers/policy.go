@@ -63,6 +63,7 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 			request.Imei = lteContext.GetImei()
 			request.PlmnID = lteContext.GetPlmnId()
 			request.UserLocation = lteContext.GetUserLocation()
+			request.ChargingCharacteristics = lteContext.GetChargingCharacteristics()
 			if lteContext.GetQosInfo() != nil {
 				request.Qos = (&gx.QosRequestInfo{}).FromProtos(lteContext.GetQosInfo())
 			}
@@ -99,16 +100,18 @@ func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.S
 	for _, update := range pRequest.MonitorUsages {
 		reports = append(reports, (&gx.UsageReport{}).FromUsageMonitorUpdate(update))
 	}
+	common := pRequest.GetCommonContext()
 	request := &gx.CreditControlRequest{
-		SessionID:     pRequest.SessionId,
-		Type:          credit_control.CRTTerminate,
-		IMSI:          credit_control.RemoveIMSIPrefix(pRequest.Sid),
-		RequestNumber: pRequest.RequestNumber,
-		IPAddr:        pRequest.UeIpv4,
-		UsageReports:  reports,
-		RATType:       gx.GetRATType(pRequest.RatType),
-		IPCANType:     gx.GetIPCANType(pRequest.RatType),
-		TgppCtx:       pRequest.GetTgppCtx(),
+		SessionID:               pRequest.SessionId,
+		Type:                    credit_control.CRTTerminate,
+		IMSI:                    credit_control.RemoveIMSIPrefix(common.GetSid().GetId()),
+		RequestNumber:           pRequest.RequestNumber,
+		IPAddr:                  common.GetUeIpv4(),
+		UsageReports:            reports,
+		RATType:                 gx.GetRATType(common.GetRatType()),
+		IPCANType:               gx.GetIPCANType(common.GetRatType()),
+		TgppCtx:                 pRequest.GetTgppCtx(),
+		ChargingCharacteristics: pRequest.ChargingCharacteristics,
 	}
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }

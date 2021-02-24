@@ -16,7 +16,6 @@
 package integration
 
 import (
-	"encoding/json"
 	"fmt"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
@@ -47,21 +46,14 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 	}
 	// Wait for the traffic to go through
 	time.Sleep(6 * time.Second)
-	if resp != nil {
-		var perfResp map[string]interface{}
-		json.Unmarshal([]byte(resp.Output), &perfResp)
-		respEndRecd := perfResp["end"].(map[string]interface{})
-		respEndRcvMap := respEndRecd["sum_received"].(map[string]interface{})
-		b := respEndRcvMap["bits_per_second"].(float64)
-
-		errRate := math.Abs((b-expRate)/expRate) * 100
-		fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", b, errRate)
-		if (b > expRate) && (errRate > ErrMargin) {
-			fmt.Printf("recd bps %f exp bps %f\n", b, expRate)
-			// dump pipelined service state
-			dumpPipelinedState(tr)
-			assert.Fail(t, "error greater than acceptable margin")
-		}
+	bitsPerSecond := resp.GetEndOutput().GetSumReceived().GetBitsPerSecond()
+	errRate := math.Abs((bitsPerSecond-expRate)/expRate) * 100
+	fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", bitsPerSecond, errRate)
+	if (bitsPerSecond > expRate) && (errRate > ErrMargin) {
+		fmt.Printf("recd bps %f exp bps %f\n", bitsPerSecond, expRate)
+		// dump pipelined service state
+		dumpPipelinedState(tr)
+		assert.Fail(t, "error greater than acceptable margin")
 	}
 }
 
@@ -131,8 +123,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
@@ -196,30 +187,21 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 		protos.NewGxCCAnswer(diam.Success)))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), time.Minute, 2*time.Second)
+
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:        imsi,
 		ReverseMode: true,
 		Volume:      &wrappers.StringValue{Value: *swag.String("5M")},
 		Timeout:     60,
 	}
-
-	// wait for rule to be installed
-	waitForRuleToBeInstalled := func() bool {
-		return checkIfRuleInstalled(tr, ruleKey)
-	}
-	assert.Eventually(t, waitForRuleToBeInstalled, time.Minute, 2*time.Second)
-
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 
 	// Assert that enforcement_stats rules are properly installed and the right
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi][ruleKey]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), 2*time.Minute, 2*time.Second)
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 //TestGxQosDowngradeWithCCAUpdate
@@ -337,8 +319,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(6 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()
@@ -415,10 +396,8 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	tr.WaitForReAuthToProcess()
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	_, err = tr.GenULTraffic(req)
@@ -437,6 +416,5 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

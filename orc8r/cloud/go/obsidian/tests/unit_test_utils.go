@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -82,7 +83,7 @@ func RunUnitTest(t *testing.T, e *echo.Echo, test Test) {
 		}
 	} else if test.ExpectedErrorSubstring != "" {
 		if handlerErr == nil {
-			assert.Fail(t, "error was nil but was expecting %s", test.ExpectedErrorSubstring)
+			assert.Fail(t, "unexpected nil error", "error was nil but was expecting %s", test.ExpectedErrorSubstring)
 		} else {
 			assert.Contains(t, handlerErr.Error(), test.ExpectedErrorSubstring)
 		}
@@ -90,8 +91,19 @@ func RunUnitTest(t *testing.T, e *echo.Echo, test Test) {
 		if assert.NoError(t, handlerErr) && test.ExpectedResult != nil {
 			expectedBytes, err := test.ExpectedResult.MarshalBinary()
 			if assert.NoError(t, err) {
-				// Convert to string for more readable assert failure messages
-				assert.Equal(t, string(expectedBytes), string(recorder.Body.Bytes()))
+				// Convert to string for more readable assert failure messages.
+				//
+				// json.Marshal returns the serialized value as-is, without
+				// appending a newline.
+				//
+				// The echo.Context's JSON method uses a json.Encoder to encode
+				// its object. The json.Encoder object always appends a newline
+				// to the end of the serialized value.
+				//
+				// To handle this mismatch, trim a newline from both values.
+				expected := strings.TrimSuffix(string(expectedBytes), "\n")
+				actual := strings.TrimSuffix(recorder.Body.String(), "\n")
+				assert.Equal(t, expected, actual)
 			}
 		}
 	}
@@ -120,4 +132,16 @@ type jsonMarshaler struct {
 
 func (j *jsonMarshaler) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(j.v)
+}
+
+func ByteIdentityMarshaler(v []byte) encoding.BinaryMarshaler {
+	return &byteIdentityMarshaler{v: v}
+}
+
+type byteIdentityMarshaler struct {
+	v []byte
+}
+
+func (j *byteIdentityMarshaler) MarshalBinary() (data []byte, err error) {
+	return j.v, nil
 }

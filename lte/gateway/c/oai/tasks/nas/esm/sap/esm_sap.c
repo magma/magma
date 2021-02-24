@@ -496,6 +496,25 @@ static int _esm_sap_recv(
           is_discarded = true;
         } else {
           increment_counter("ue_pdn_connection", 1, 1, "result", "failure");
+          esm_send_pdn_connectivity_reject(
+              pti, &esm_msg.pdn_connectivity_reject, esm_cause);
+          uint8_t emm_cn_sap_buffer[EMM_CN_SAP_BUFFER_SIZE];
+          int size = esm_msg_encode(
+              &esm_msg, emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
+
+          if (size > 0) {
+            nas_emm_attach_proc_t* attach_proc =
+                get_nas_specific_procedure_attach(emm_context);
+            if (attach_proc) {
+              // Setup the ESM message container
+              if (attach_proc->esm_msg_out) {
+                bdestroy_wrapper(&(attach_proc->esm_msg_out));
+              }
+              attach_proc->esm_msg_out = blk2bstr(emm_cn_sap_buffer, size);
+              attach_proc->emm_cause   = EMM_CAUSE_ESM_FAILURE;
+            }
+            OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+          }
         }
 
         break;
@@ -604,6 +623,9 @@ static int _esm_sap_recv(
         esm_cause = esm_recv_pdn_connectivity_request(
             emm_context, pti, ebi, &esm_msg.pdn_connectivity_request, &ebi,
             is_standalone);
+
+        clear_protocol_configuration_options(
+            &esm_msg.pdn_connectivity_request.protocolconfigurationoptions);
 
         if (esm_cause != ESM_CAUSE_SUCCESS) {
           /*

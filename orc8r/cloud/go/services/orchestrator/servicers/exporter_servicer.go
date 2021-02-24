@@ -27,7 +27,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 
 	"github.com/golang/glog"
-	"github.com/prometheus/client_model/go"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 )
 
@@ -36,8 +36,8 @@ const (
 )
 
 var (
-	prometheusNameRegex = regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$")
-	nonPromoChars       = regexp.MustCompile("[^a-zA-Z\\d_]")
+	prometheusNameRegex = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+	nonPromoChars       = regexp.MustCompile(`[^a-zA-Z\d_]`)
 )
 
 type PushExporterServicer struct {
@@ -63,7 +63,21 @@ func (s *PushExporterServicer) Submit(ctx context.Context, req *protos.SubmitMet
 	s.Lock()
 	defer s.Unlock()
 
-	for _, metricAndContext := range req.GetMetrics() {
+	processedMetrics := processMetrics(req.GetMetrics())
+	for _, family := range processedMetrics {
+		familyName := family.GetName()
+		if baseFamily, ok := s.FamiliesByName[familyName]; ok {
+			addMetricsToFamily(baseFamily, family)
+		} else {
+			s.FamiliesByName[familyName] = family
+		}
+	}
+	return &protos.SubmitMetricsResponse{}, nil
+}
+
+func processMetrics(metrics []*protos.ContextualizedMetric) []*io_prometheus_client.MetricFamily {
+	processedMetrics := make([]*io_prometheus_client.MetricFamily, 0)
+	for _, metricAndContext := range metrics {
 		// Don't register family if it has 0 metrics. Would cause prometheus scrape
 		// to fail.
 		if len(metricAndContext.Family.Metric) == 0 {
@@ -87,14 +101,10 @@ func (s *PushExporterServicer) Submit(ctx context.Context, req *protos.SubmitMet
 					metric.TimestampMs = &timeStamp
 				}
 			}
-			if baseFamily, ok := s.FamiliesByName[familyName]; ok {
-				addMetricsToFamily(baseFamily, fam)
-			} else {
-				s.FamiliesByName[familyName] = fam
-			}
+			processedMetrics = append(processedMetrics, fam)
 		}
 	}
-	return &protos.SubmitMetricsResponse{}, nil
+	return processedMetrics
 }
 
 func (s *PushExporterServicer) exportEvery() {

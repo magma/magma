@@ -72,12 +72,12 @@ async function getDatasets(props: DatasetFetchProps) {
 
   const queries = [
     {
-      q: `sum(increase(ue_traffic{IMSI="${subscriberId}",direction="down"}[${step}]))`,
+      q: `sum(increase(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
       color: colors.secondary.dodgerBlue,
       label: 'download',
     },
     {
-      q: `sum(increase(ue_traffic{IMSI="${subscriberId}",direction="up"}[${step}]))`,
+      q: `sum(increase(ue_reported_usage{IMSI="${subscriberId}",direction="up"}[${step}]))`,
       color: colors.data.flamePea,
       label: 'upload',
     },
@@ -156,7 +156,7 @@ function SubscriberDataKPI() {
           const result = await MagmaV1API.getNetworksByNetworkIdPrometheusQuery(
             {
               networkId,
-              query: `sum(increase(ue_traffic{IMSI="${subscriberId}",direction="down"}[${step}]))`,
+              query: `sum(increase(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
             },
           );
           const [value, unit] = getLabelUnit(getPromValue(result));

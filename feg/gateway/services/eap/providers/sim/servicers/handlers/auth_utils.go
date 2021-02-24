@@ -16,11 +16,13 @@ package handlers
 import (
 	"time"
 
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	swx_protos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
+	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/sim"
 	"magma/feg/gateway/services/eap/providers/sim/metrics"
 	"magma/feg/gateway/services/eap/providers/sim/servicers"
@@ -60,86 +62,107 @@ func init() {
 
 type umtsVector struct{ rand, autn, xres, ck, ik []byte }
 
-func createChallengeRequest(
-	lockedCtx *servicers.UserCtx,
-	identifier uint8,
-	nonce, versionList, selectedVersion []byte) (eap.Packet, error) {
+type tgppAuthResult struct {
+	rand, Kc, sres [sim.GsmTripletsNumber][]byte
+	sid            string
+	profile        *swx_protos.AuthenticationAnswer_UserProfile
+}
 
+func getSwxVectors(_ *servicers.EapSimSrv, imsi string) (*tgppAuthResult, error) {
 	var (
-		err  error
-		ans  *swx_protos.AuthenticationAnswer
-		rand [sim.GsmTripletsNumber][]byte
-		Kc   [sim.GsmTripletsNumber][]byte
-		sres [sim.GsmTripletsNumber][]byte
+		err error
+		ans *swx_protos.AuthenticationAnswer
+		res tgppAuthResult
 	)
-	metrics.SwxRequests.Inc()
-	swxStartTime := time.Now()
-	vectors := make([]*umtsVector, sim.GsmTripletsNumber)
-
-	lockedCtx.Profile = nil
 	for vlen := 0; vlen < sim.GsmTripletsNumber; {
+		metrics.SwxRequests.Inc()
+		swxStartTime := time.Now()
 		swxReq := &swx_protos.AuthenticationRequest{
-			UserName:             string(lockedCtx.Imsi),
+			UserName:             imsi,
 			SipNumAuthVectors:    sim.GsmTripletsNumber - uint32(vlen),
 			AuthenticationScheme: swx_protos.AuthenticationScheme_EAP_AKA, // we are getting UMTS vectors, so - use AKA
-			RetrieveUserProfile:  lockedCtx.Profile == nil,
+			RetrieveUserProfile:  res.profile == nil,
 		}
 		ans, err = swx_proxy.Authenticate(swxReq)
-
 		metrics.SWxLatency.Observe(time.Since(swxStartTime).Seconds())
-
 		if err != nil {
 			metrics.SwxFailures.Inc()
 			errCode := codes.Internal
 			if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
 				errCode = se.GRPCStatus().Code()
 			}
-			return sim.EapErrorResPacket(identifier, sim.NOTIFICATION_FAILURE, errCode, err.Error())
+			return nil, status.Errorf(errCode, "%v; IMSI: %s", err, imsi)
 		}
 		if ans == nil {
-			return sim.EapErrorResPacket(
-				identifier, sim.NOTIFICATION_FAILURE, codes.Internal, "Error: Nil SWx Response")
+			return nil, status.Error(codes.Internal, "Error: Nil SWx Response")
 		}
 		if len(ans.SipAuthVectors) == 0 {
-			return sim.EapErrorResPacket(
-				identifier, sim.NOTIFICATION_FAILURE, codes.Internal, "Error: Missing/empty SWx Auth Vector: %+v", *ans)
+			return nil, status.Errorf(codes.Internal, "Error: Missing/empty SWx Auth Vector: %+v", *ans)
 		}
 		for _, v := range ans.GetSipAuthVectors() {
 			ra := v.GetRandAutn()
-			if len(ra) < sim.RandAutnLen {
-				return sim.EapErrorResPacket(
-					identifier,
-					sim.NOTIFICATION_FAILURE,
-					codes.Internal,
-					"Invalid SWx RandAutn len (%d, expected: %d) in Response: %+v",
-					len(ra), sim.RandAutnLen, *ans)
+			if len(ra) < sim.RAND_LEN {
+				return nil, status.Errorf(codes.Internal,
+					"Invalid SWx RandAutn len (%d, expected: %d) in Response: %+v", len(ra), sim.RandAutnLen, *ans)
 			}
-			vectors[vlen] = &umtsVector{
-				rand: ra[:sim.RAND_LEN],
-				autn: ra[sim.RAND_LEN:sim.RandAutnLen],
-				xres: v.GetXres(),
-				ck:   v.GetConfidentialityKey(),
-				ik:   v.GetIntegrityKey()}
+			res.rand[vlen] = ra[:sim.RAND_LEN]
+			res.Kc[vlen], res.sres[vlen] = sim.GsmFromUmts1(v.GetConfidentialityKey(), v.GetIntegrityKey(), v.GetXres())
 			vlen++
 			if vlen >= sim.GsmTripletsNumber {
 				break
 			}
 		}
 		if swxReq.RetrieveUserProfile {
-			lockedCtx.Profile = ans.GetUserProfile()
+			res.profile = ans.GetUserProfile()
 		}
 	}
-	for i, v := range vectors {
-		rand[i] = v.rand
-		Kc[i], sres[i] = sim.GsmFromUmts1(v.ck, v.ik, v.xres)
+	res.sid = ans.GetSessionId()
+	return &res, nil
+}
+
+func createChallengeRequest(
+	s *servicers.EapSimSrv,
+	lockedCtx *servicers.UserCtx,
+	identifier uint8,
+	nonce, versionList, selectedVersion []byte) (eap.Packet, error) {
+
+	var (
+		err     error
+		authRes *tgppAuthResult
+	)
+	if s.UseS6a() {
+		authRes, err = getS6aVectors(s, string(lockedCtx.Imsi))
+	} else {
+		authRes, err = getSwxVectors(s, string(lockedCtx.Imsi))
+	}
+	if err != nil {
+		if err == EUTRANOnlyVectorsErr {
+			// User may only have EUTRAN Vectors (4G) try to steer UE toward EAP-AKA auth instead
+			glog.Warningf("EUTRAN only Vectors for IMSI: %s, will try EAP-AKA ID Request", lockedCtx.Imsi)
+			lockedCtx.SetState(sim.StateRedirected)
+			return aka.NewIdentityReq(identifier+1, aka.AT_PERMANENT_ID_REQ), nil
+		}
+		var (
+			code codes.Code
+			msg  string
+		)
+		if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
+			code = se.GRPCStatus().Code()
+			msg = se.GRPCStatus().Message()
+		} else {
+			code = codes.Internal
+			msg = err.Error()
+		}
+		glog.Errorf("SIM RPC [%s] %s", code, msg)
+		return sim.NewSIMNotificationReq(identifier, sim.NOTIFICATION_FAILURE), nil
 	}
 	identifier++
-	lockedCtx.AuthSessionId = ans.GetSessionId()
+	lockedCtx.AuthSessionId = authRes.sid
 	lockedCtx.Identifier = identifier
-	lockedCtx.Rand = rand[:]
-	lockedCtx.Sres = sres[:]
+	lockedCtx.Rand = authRes.rand[:]
+	lockedCtx.Sres = authRes.sres[:]
 	_, lockedCtx.K_aut, lockedCtx.MSK, _ =
-		sim.MakeKeys([]byte(lockedCtx.Identity), nonce, versionList, selectedVersion, Kc[:])
+		sim.MakeKeys([]byte(lockedCtx.Identity), nonce, versionList, selectedVersion, authRes.Kc[:])
 
 	// Clone EAP Challenge packet
 	p := eap.Packet(make([]byte, challengeReqTemplateLen))
@@ -148,7 +171,7 @@ func createChallengeRequest(
 	p[eap.EapMsgIdentifier] = identifier
 	// Set AT_RAND
 	for i, offset := 0, atRandOffset; i < sim.GsmTripletsNumber; i, offset = i+1, offset+sim.RAND_LEN {
-		copy(p[offset:], rand[i])
+		copy(p[offset:], authRes.rand[i])
 	}
 	// Calculate AT_MAC
 	mac := sim.GenMac(p, nonce, lockedCtx.K_aut)

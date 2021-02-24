@@ -32,7 +32,8 @@ var (
 	// configDir is where the per-service configuration files are stored
 	configDir         = "/etc/magma/configs"
 	oldConfigDir      = "/etc/magma"
-	configOverrideDir = "/var/opt/magma/configs/"
+	configOverrideDir = "/var/opt/magma/configs"
+	specDir           = "/etc/magma/configs/orc8r/swagger_specs"
 	cfgDirMu          sync.RWMutex
 )
 
@@ -155,6 +156,13 @@ func SetConfigDirectories(main, legacy, overwrite string) {
 	cfgDirMu.Lock()
 	configDir, oldConfigDir, configOverrideDir = main, legacy, overwrite
 	cfgDirMu.Unlock()
+}
+
+// GetSpecPath returns the filepath on the production image
+// that contains the service's Swagger spec
+func GetSpecPath(service string) string {
+	specPath := filepath.Join(specDir, fmt.Sprintf("%s.swagger.v1.yml", service))
+	return specPath
 }
 
 func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {

@@ -346,6 +346,36 @@ class BindPolicy2BearerCallData
 };
 
 /**
+ * Class to handle UpdateTunnelIds requests
+ */
+
+class UpdateTunnelIdsCallData
+    : public AsyncGRPCRequest<
+          LocalSessionManager::AsyncService, UpdateTunnelIdsRequest,
+          UpdateTunnelIdsResponse> {
+ public:
+  UpdateTunnelIdsCallData(
+      ServerCompletionQueue* cq, LocalSessionManager::AsyncService& service,
+      LocalSessionManagerHandler& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestUpdateTunnelIds(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
+
+ protected:
+  void clone() override {
+    new UpdateTunnelIdsCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.UpdateTunnelIds(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  LocalSessionManagerHandler& handler_;
+};
+
+/**
  * Class to handle SetSessionRules requests
  */
 class SetSessionRulesCallData

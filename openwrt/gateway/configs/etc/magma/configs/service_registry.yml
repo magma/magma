@@ -21,3 +21,9 @@ services:
   aaa_server:
     ip_address: 127.0.0.1
     port: 9109
+  abort_session_service:
+    ip_address: 127.0.0.1
+    port: 9109
+  s6a_service:
+    ip_address: 127.0.0.1
+    port: 9109

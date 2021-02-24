@@ -25,8 +25,35 @@ namespace sctpd {
 
 SctpdDownlinkImpl::SctpdDownlinkImpl(SctpEventHandler &uplink_handler):
   _uplink_handler(uplink_handler),
-  _sctp_connection(nullptr)
+  _sctp_4G_connection(nullptr),
+  _sctp_5G_connection(nullptr)
 {
+}
+
+Status SctpdDownlinkImpl::create_sctp_connection(
+  std::unique_ptr<SctpConnection>& sctp_connection,
+  const InitReq *req,
+InitRes *res)
+{
+  if (sctp_connection != nullptr && !req->force_restart()) {
+	MLOG(MERROR) << "SctpdDownlinkImpl::Init reusing existing connection";
+	res->set_result(InitRes::INIT_OK);
+	return Status::OK;
+  }
+  if (sctp_connection != nullptr) {
+	MLOG(MINFO)<< "SctpdDownlinkImpl::Init cleaning up sctp_desc and listener";
+	auto conn = std::move(sctp_connection);
+	conn->Close();
+  }
+  MLOG(MINFO) << "SctpdDownlinkImpl::Init creating new socket and listener";
+  try {
+	sctp_connection = std::make_unique<SctpConnection>(*req, _uplink_handler);
+  } catch (...) {
+	res->set_result(InitRes::INIT_FAIL);
+	return Status::OK;
+  }
+  sctp_connection->Start();
+  return Status::OK;
 }
 
 Status SctpdDownlinkImpl::Init(
@@ -34,35 +61,21 @@ Status SctpdDownlinkImpl::Init(
   const InitReq *req,
   InitRes *res)
 {
-  MLOG(MDEBUG) << "SctpdDownlinkImpl::Init starting";
+  MLOG(MINFO) << "SctpdDownlinkImpl::req->ppid()=" << std::to_string(req->ppid());
+  MLOG(MINFO) << "SctpdDownlinkImpl::req->port()=" << std::to_string(req->port());
 
-  if (_sctp_connection != nullptr && !req->force_restart()) {
-    MLOG(MINFO) << "SctpdDownlinkImpl::Init reusing existing connection";
-    res->set_result(InitRes::INIT_OK);
-    return Status::OK;
-  }
+ Status rc;
 
-  if (_sctp_connection != nullptr) {
-    MLOG(MDEBUG)
-      << "SctpdDownlinkImpl::Init cleaning up sctp_desc and listener";
+  if (req->ppid() == S1AP) {
+	rc = create_sctp_connection(_sctp_4G_connection, req, res);
 
-    auto conn = std::move(_sctp_connection);
-    conn->Close();
-  }
+}
+  else if (req->ppid() == NGAP) {
+	rc = create_sctp_connection(_sctp_5G_connection, req, res);
 
-  MLOG(MDEBUG) << "SctpdDownlinkImpl::Init creating new socket and listener";
-
-  try {
-    _sctp_connection = std::make_unique<SctpConnection>(*req, _uplink_handler);
-  } catch (...) {
-    res->set_result(InitRes::INIT_FAIL);
-    return Status::OK;
-  }
-
-  _sctp_connection->Start();
-
-  res->set_result(InitRes::INIT_OK);
-  return Status::OK;
+}
+	res->set_result(InitRes::INIT_OK);
+	return Status::OK;
 }
 
 Status SctpdDownlinkImpl::SendDl(
@@ -73,7 +86,11 @@ Status SctpdDownlinkImpl::SendDl(
   MLOG(MDEBUG) << "SctpdDownlinkImpl::SendDl starting";
 
   try {
-    _sctp_connection->Send(req->assoc_id(), req->stream(), req->payload());
+	  if (req->ppid() == S1AP )
+		  _sctp_4G_connection->Send(req->assoc_id(), req->stream(), req->payload());
+	  else
+		  _sctp_5G_connection->Send(req->assoc_id(), req->stream(), req->payload());
+
   } catch (...) {
     res->set_result(SendDlRes::SEND_DL_FAIL);
     return Status::OK;
@@ -85,9 +102,12 @@ Status SctpdDownlinkImpl::SendDl(
 
 void SctpdDownlinkImpl::stop()
 {
-  if (_sctp_connection != nullptr) {
-    _sctp_connection->Close();
-  }
+	if (_sctp_4G_connection != nullptr) {
+		 _sctp_4G_connection->Close();
+	}
+	if (_sctp_5G_connection != nullptr) {
+		 _sctp_5G_connection->Close();
+	}
 }
 
 } // namespace sctpd

@@ -57,7 +57,7 @@
    "relayEnabled": true,
    "gxGyRelayEnabled": true,
    "walletExhaustDetection": {
-    "terminateOnExhaust": true
+    "terminateOnExhaust": false
    }
   },
   "aaa_server": {

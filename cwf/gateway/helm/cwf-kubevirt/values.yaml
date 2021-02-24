@@ -52,11 +52,17 @@ secret:
 ## Key Values for docker inside VM ( CWF services )
 cwf:
   type: cwag
+  gateway_ha:
+    enabled: false
   image:
     docker_registry: docker.io/cwf_
     tag: "latest"
     #username:
     #password:
+  log_aggregation:
+    enabled: false
+    fluentd_address: fluentd.magma.svc.cluster.local
+    fluentd_port: 24224
   proxy:
     local_port: 8443
     cloud_address: orc8r-proxy.magma.svc.cluster.local

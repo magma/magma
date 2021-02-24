@@ -39,7 +39,8 @@ namespace magma {
 using namespace lte;
 using namespace orc8r;
 
-class SMSOrc8rGatewayServiceImpl final : public SMSOrc8rGatewayService::Service {
+class SMSOrc8rGatewayServiceImpl final
+    : public SMSOrc8rGatewayService::Service {
  public:
   SMSOrc8rGatewayServiceImpl();
 
@@ -55,7 +56,6 @@ class SMSOrc8rGatewayServiceImpl final : public SMSOrc8rGatewayService::Service 
   grpc::Status SMODownlink(
       ServerContext* context, const SMODownlinkUnitdata* request,
       Void* response) override;
-
 };
 
 }  // namespace magma

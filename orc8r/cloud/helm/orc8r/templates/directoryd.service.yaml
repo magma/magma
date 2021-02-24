@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "directoryd.service") -}}
 {{- define "directoryd.service" -}}
 metadata:
-  name: {{ .Release.Name }}-directoryd
+  name: orc8r-directoryd
   labels:
     {{- with .Values.directoryd.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: directoryd
   ports:
     - name: grpc
       port: 9180

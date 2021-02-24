@@ -269,6 +269,7 @@ static MessageDef* itti_alloc_new_message_sized(
   new_msg->ittiMsgHeader.messageId    = message_id;
   new_msg->ittiMsgHeader.originTaskId = origin_task_id;
   new_msg->ittiMsgHeader.ittiMsgSize  = size;
+  new_msg->ittiMsgHeader.imsi         = 0;
 
   return new_msg;
 }
@@ -355,6 +356,9 @@ int itti_init(
       thread_max, messages_id_max);
   CHECK_INIT_RETURN(signal_mask());
 
+  // This assert make sure \ref ittiMsg directly following \ref ittiMsgHeader.
+  // See \ref MessageDef definition for details.
+  assert(sizeof(MessageHeader) == offsetof(MessageDef, ittiMsg));
   // Saves threads and messages max values
 
   itti_desc.task_max                = task_max;

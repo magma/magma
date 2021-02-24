@@ -52,7 +52,7 @@ Here, we'll be building the Orchestrator docker containers.
 
 ```bash
 HOST [magma]$ cd orc8r/cloud/docker
-HOST [magma/orc8r/cloud/docker]$ ./build.py -a
+HOST [magma/orc8r/cloud/docker]$ ./build.py --all
 ```
 
 This will build all the docker images for Orchestrator. The `vagrant up` from
@@ -91,7 +91,7 @@ development stack.
 To start Orchestrator (without metrics) is as simple as:
 
 ```bash
-HOST [magma/orc8r/cloud/docker]$ ./run.sh
+HOST [magma/orc8r/cloud/docker]$ ./run.py
 
 Creating orc8r_postgres_1 ... done
 Creating orc8r_test_1     ... done
@@ -106,13 +106,12 @@ Creating orc8r_controller_1 ... done
 If you want to run everything, including metrics, run:
 
 ```bash
-HOST [magma/orc8r/cloud/docker]$ ./run.sh -all
+HOST [magma/orc8r/cloud/docker]$ ./run.py --metrics
 
 Creating orc8r_alertmanager_1     ... done
 Creating orc8r_maria_1            ... done
 Creating elasticsearch            ... done
 Creating orc8r_postgres_1         ... done
-Creating orc8r_grafana_1          ... done
 Creating orc8r_config-manager_1   ... done
 Creating orc8r_test_1             ... done
 Creating orc8r_prometheus-cache_1 ... done

@@ -47,8 +47,8 @@ export async function SetApnState(props: Props) {
       apnName: key,
     });
     if (apn) {
-      const newPolicies = {...apns, [key]: apn};
-      setApns(newPolicies);
+      const newApns = {...apns, [key]: apn};
+      setApns(newApns);
     }
   } else {
     await MagmaV1API.deleteLteByNetworkIdApnsByApnName({

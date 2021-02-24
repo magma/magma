@@ -64,7 +64,9 @@ const mockGw0: lte_gateway = {
   cellular: {
     epc: {
       ip_block: '192.168.0.1/24',
-      nat_enabled: true,
+      nat_enabled: false,
+      sgi_management_iface_static_ip: '1.1.1.1/24',
+      sgi_management_iface_vlan: '100',
     },
     ran: {
       pci: 620,
@@ -187,13 +189,13 @@ describe('<Gateway />', () => {
     expect(rowItems[1]).toHaveTextContent('test_gateway0');
     expect(rowItems[1]).toHaveTextContent('0');
     expect(rowItems[1]).toHaveTextContent('Bad');
-    expect(rowItems[1]).toHaveTextContent(new Date(0).toLocaleDateString());
+    expect(rowItems[1]).toHaveTextContent('-');
 
     expect(rowItems[2]).toHaveTextContent('test_gw1');
     expect(rowItems[2]).toHaveTextContent('test_gateway1');
     expect(rowItems[2]).toHaveTextContent('2');
     expect(rowItems[2]).toHaveTextContent('Bad');
-    expect(rowItems[2]).toHaveTextContent(new Date(0).toLocaleDateString());
+    expect(rowItems[2]).toHaveTextContent('-');
 
     expect(rowItems[3]).toHaveTextContent('test_gw2');
     expect(rowItems[3]).toHaveTextContent('test_gateway2');

@@ -117,20 +117,20 @@ export const CWFAccessPointDBData = (
         title: 'Message Stats',
         panels: [
           {
-            title: 'Accounting Stops',
+            title: 'Accounting Stops (Rate)',
             targets: [
               {
-                expr: 'sum(accounting_stop{apn=~"$apn"}) by (apn)',
+                expr: 'sum(rate(accounting_stop{apn=~"$apn"}[5m])) by (apn)',
                 legendFormat: '{{apn}}',
               },
             ],
             description: 'Radius accounting stops received from AP/WLC',
           },
           {
-            title: 'Authorization',
+            title: 'Authorization (Rate)',
             targets: [
               {
-                expr: 'sum(eap_auth{apn=~"$apn"}) by (code, apn)',
+                expr: 'sum(rate(eap_auth{apn=~"$apn"}[5m])) by (code, apn)',
                 legendFormat: '{{apn}}-{{code}}',
               },
             ],
@@ -206,20 +206,20 @@ export const CWFAccessPointDBData = (
             description: 'Number of active user sessions in the network',
           },
           {
-            title: 'Session Stop',
+            title: 'Session Stop (Rate)',
             targets: [
               {
-                expr: 'sum(session_stop{apn=~"$apn"}) by (apn)',
+                expr: 'sum(rate(session_stop{apn=~"$apn"}[5m])) by (apn)',
                 legendFormat: '{{apn}}',
               },
             ],
-            description: 'Number of sessions removed for any reason',
+            description: 'Rate of number of sessions removed for any reason',
           },
           {
-            title: 'Session Timeout',
+            title: 'Session Timeout (Rate)',
             targets: [
               {
-                expr: 'sum(session_timeouts{apn=~"$apn"}) by (apn)',
+                expr: 'sum(rate(session_timeouts{apn=~"$apn"}[5m])) by (apn)',
                 legendFormat: '{{apn}}',
               },
             ],
@@ -227,14 +227,15 @@ export const CWFAccessPointDBData = (
               'Subset of session_stop. Count of any session that times out from aaa server',
           },
           {
-            title: 'Session Terminate',
+            title: 'Session Terminate (Rate)',
             targets: [
               {
-                expr: 'sum(session_manager_terminate{apn=~"$apn"}) by (apn)',
+                expr:
+                  'sum(rate(session_manager_terminate{apn=~"$apn"}[5m])) by (apn)',
                 legendFormat: '{{apn}}',
               },
             ],
-            description: 'Session terminations initiated by sessiond',
+            description: 'Session terminations rate initiated by sessiond',
           },
         ],
       },
@@ -252,11 +253,11 @@ export const CWFNetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
         title: 'Message Stats',
         panels: [
           {
-            title: 'Authorization',
+            title: 'Authorization (Rate)',
             targets: [
               {
                 expr:
-                  'sum(eap_auth{networkID=~"$networkID"}) by (code, networkID)',
+                  'sum(rate(eap_auth{networkID=~"$networkID"}[5m])) by (code, networkID)',
                 legendFormat: '{{networkID}}-{{code}}',
               },
             ],
@@ -264,11 +265,11 @@ export const CWFNetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
               'EAP Authorization responses, partitioned by response type (Failure, Success) where request is the sum of success and failures',
           },
           {
-            title: 'Accounting Stops',
+            title: 'Accounting Stops (Rate)',
             targets: [
               {
                 expr:
-                  'sum(accounting_stop{networkID=~"$networkID"}) by (networkID)',
+                  'sum(rate(accounting_stop{networkID=~"$networkID"}[5m])) by (networkID)',
                 legendFormat: '{{networkID}}',
               },
             ],
@@ -355,29 +356,29 @@ export const CWFNetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
             targets: [
               {
                 expr:
-                  'sum(active_sessions{networkID=~"$networkID"}) by (networkID)',
-                legendFormat: '{{networkID}}',
+                  'sum(active_sessions{networkID=~"$networkID"}) by (networkID, apn)',
+                legendFormat: '{{networkID}}-{{apn}}',
               },
             ],
             description: 'Number of active user sessions in the network',
           },
           {
-            title: 'Session Stop',
+            title: 'Session Stop (Rate)',
             targets: [
               {
                 expr:
-                  'sum(session_stop{networkID=~"$networkID"}) by (networkID)',
+                  'sum(rate(session_stop{networkID=~"$networkID"}[5m])) by (networkID)',
                 legendFormat: '{{networkID}}',
               },
             ],
             description: 'Number of sessions removed for any reason',
           },
           {
-            title: 'Session Timeouts',
+            title: 'Session Timeouts (Rate)',
             targets: [
               {
                 expr:
-                  'sum(session_timeouts{networkID=~"$networkID"}) by (networkID)',
+                  'sum(rate(session_timeouts{networkID=~"$networkID"}[5m])) by (networkID)',
                 legendFormat: '{{networkID}}',
               },
             ],
@@ -385,11 +386,11 @@ export const CWFNetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
               'Subset of session_stop. Count of any session that times out from aaa server',
           },
           {
-            title: 'Session Terminate',
+            title: 'Session Terminate (Rate)',
             targets: [
               {
                 expr:
-                  'sum(session_manager_terminate{networkID=~"$networkID"}) by (networkID)',
+                  'sum(rate(session_manager_terminate{networkID=~"$networkID"}[5m])) by (networkID)',
                 legendFormat: '{{networkID}}',
               },
             ],

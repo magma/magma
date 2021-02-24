@@ -95,6 +95,8 @@ first-come-first-served basis.
 
 ### DHCP
 
+NOTE: This feature requires installed `libpcap`.
+
 To enable this feature, set `ip_allocation_mode` to `DHCP_BROADCAST`.
 
 ```
@@ -210,14 +212,15 @@ In NATed mode this sets this IP address to SGi interface.
 This sets IP address on SGi eth port in NATed mode. In bridged mode
 this IP is set to Bridge interface.
 
-There is orc8r API to assign static IP for each AGW.
+There is orc8r API to assign static IP and default Gateway for each AGW.
 
 ```
 API: /lte/{network_id}/gateways/{gateway_id}/cellular
 {
   "epc": {
     ...
-    "sgi_management_iface_static_ip": "1.1.1.1/24"
+    "sgi_management_iface_static_ip": "1.1.1.2/24",
+    "sgi_management_iface_gw": "1.1.1.1"
     ...
   },
 ```
@@ -230,7 +233,7 @@ API: /lte/{network_id}/gateways/{gateway_id}/cellular
 {
   "epc": {
     ...
-    "sgi_management_iface_vlan": 100
+    "sgi_management_iface_vlan": "100"
     ...
   },
 ```

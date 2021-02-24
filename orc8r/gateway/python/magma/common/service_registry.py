@@ -19,7 +19,7 @@ import os
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.service_configs import load_service_config
 
-
+GRPC_KEEPALIVE_MS = 30 * 1000
 class ServiceRegistry:
     """
     ServiceRegistry provides the framework to discover services.
@@ -143,6 +143,10 @@ class ServiceRegistry:
             if channel is not None:
                 return channel
 
+        if grpc_options is None:
+            grpc_options = [
+                ("grpc.keepalive_time_ms", GRPC_KEEPALIVE_MS),
+            ]
         # We need to figure out the ip and port to connnect, if we need to use
         # SSL and the authority to use.
         if destination == ServiceRegistry.LOCAL:

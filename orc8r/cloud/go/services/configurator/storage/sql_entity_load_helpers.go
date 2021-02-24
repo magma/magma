@@ -23,7 +23,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -35,19 +34,19 @@ func (store *sqlConfiguratorStorage) loadFromEntitiesTable(networkID string, fil
 	selectBuilder := store.getLoadEntitiesSelectBuilder(networkID, filter, criteria)
 	rows, err := selectBuilder.RunWith(store.tx).Query()
 	if err != nil {
-		return entsByPk, errors.Wrap(err, "error querying for entities")
+		return nil, errors.Wrap(err, "error querying for entities")
 	}
-	defer func() {
-		if err := rows.Close(); err != nil {
-			glog.Errorf("error closing *Rows in LoadEntities: %s", err)
-		}
-	}()
+	defer sqorc.CloseRowsLogOnError(rows, "loadFromEntitiesTable")
 
 	for rows.Next() {
 		err = scanNextEntityRow(rows, criteria, entsByPk)
 		if err != nil {
-			return entsByPk, err
+			return nil, err
 		}
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
 	}
 	return entsByPk, nil
 }
@@ -272,6 +271,10 @@ func (store *sqlConfiguratorStorage) loadFromAssocsTable(filter EntityLoadFilter
 		allPks[fromPk] = struct{}{}
 		allPks[toPk] = struct{}{}
 	}
+	err = assocRows.Err()
+	if err != nil {
+		return ret, []string{}, errors.Wrap(err, "sql rows err")
+	}
 
 	allPksList := funk.Keys(allPks).([]string)
 	sort.Strings(allPksList)
@@ -310,6 +313,10 @@ func (store *sqlConfiguratorStorage) loadEntityTypeAndKeys(pks []string, loadedE
 			return ret, errors.Wrap(err, "failed to scan entity ID")
 		}
 		ret[pk] = storage.TypeAndKey{Type: t, Key: k}
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
 	}
 
 	return ret, nil

@@ -47,7 +47,7 @@ int decode_tracking_area_update_accept(
   /*
    * Decoding optional fields
    */
-  while (len - decoded > 0) {
+  while (len > decoded) {
     uint8_t ieiDecoded = *(buffer + decoded);
 
     /*

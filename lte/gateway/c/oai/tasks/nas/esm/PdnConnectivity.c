@@ -349,7 +349,7 @@ static int _pdn_connectivity_create(
       /*
        * Increment the number of PDN connections
        */
-      ue_mm_context->emm_context.esm_ctx.n_pdns += 1;
+      ue_mm_context->nb_active_pdn_contexts += 1;
       /*
        * Set the procedure transaction identity
        */
@@ -398,6 +398,7 @@ static int _pdn_connectivity_create(
                          &pdn_context->paa.ipv6_address),
                 "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
             break;
+          // TODO Handle static IPv4v6 addr allocation
           case IPv4_AND_v6:
             AssertFatal(0, "TODO\n");
             break;
@@ -525,9 +526,6 @@ proc_tid_t _pdn_connectivity_delete(
         LOG_NAS_ESM, "ESM-PROC  - PDN connection identifier is not valid\n");
   }
   if (pti != ESM_PT_UNASSIGNED) {
-    // Decrement the number of PDN connections
-    ue_mm_context->emm_context.esm_ctx.n_pdns -= 1;
-
     // Release allocated PDN connection data
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_in_use);
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_oi_replacement);

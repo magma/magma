@@ -38,11 +38,11 @@ Description Implements the API used by the NAS layer running in the MME
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "TrackingAreaIdentity.h"
 #include "TrackingAreaIdentityList.h"
 #include "3gpp_23.003.h"
 #include "common_types.h"
 #include "3gpp_36.401.h"
-#include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
 #include "mme_config.h"
 

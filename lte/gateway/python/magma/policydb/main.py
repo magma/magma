@@ -27,8 +27,7 @@ from magma.policydb.rule_map_store import RuleAssignmentsDict
 from magma.policydb.servicers.policy_servicer import PolicyRpcServicer
 from magma.policydb.servicers.session_servicer import SessionRpcServicer
 from .streamer_callback import ApnRuleMappingsStreamerCallback,\
-    PolicyDBStreamerCallback, RuleMappingsStreamerCallback,\
-    RatingGroupsStreamerCallback
+    PolicyDBStreamerCallback, RatingGroupsStreamerCallback
 
 
 def main():
@@ -66,12 +65,6 @@ def main():
                 'apn_rule_mappings': ApnRuleMappingsStreamerCallback(
                     session_mgr_stub,
                     basenames_dict,
-                    apn_rules_dict,
-                ),
-                'rule_mappings': RuleMappingsStreamerCallback(
-                    reauth_handler,
-                    basenames_dict,
-                    assignments_dict,
                     apn_rules_dict,
                 ),
                 'rating_groups': RatingGroupsStreamerCallback(

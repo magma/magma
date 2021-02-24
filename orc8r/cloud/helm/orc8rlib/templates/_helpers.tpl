@@ -21,7 +21,7 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 {{- end -}}
 
 {{/* Generate selector labels */}}
-{{/* TODO: Add back instance, name labels after the controller is split */}}
 {{- define "default-selector-labels" -}}
-app.kubernetes.io/component: controller
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}

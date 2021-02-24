@@ -25,6 +25,8 @@ data:
 {{ tuple "bin/_control_proxy.yml.tpl" . | include "template" | indent 4 }}
   redis.yml: |
 {{ tuple "bin/_redis.yml.tpl" . | include "template" | indent 4 }}
+  sessiond.yml: |
+{{ tuple "bin/_sessiond.yml.tpl" . | include "template" | indent 4 }}
   bootstrap.sh: |
 {{ tuple "bin/_bootstrap.sh.tpl" . | include "template" | indent 4 }}
   install_gateway.sh: |

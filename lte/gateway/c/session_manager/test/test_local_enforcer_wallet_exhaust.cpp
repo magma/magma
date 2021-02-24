@@ -38,6 +38,8 @@ using ::testing::Test;
 
 namespace magma {
 
+Teids teids0;
+
 class LocalEnforcerTest : public ::testing::Test {
  protected:
   void SetUpWithMConfig(magma::mconfig::SessionD mconfig) {
@@ -56,8 +58,10 @@ class LocalEnforcerTest : public ::testing::Test {
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map = SessionMap{};
+    teids0.set_agw_teid(0);
+    teids0.set_enb_teid(0);
     cwf_session_config.common_context =
-        build_common_context(IMSI1, "", "", "", "", TGPP_WLAN);
+        build_common_context(IMSI1, "", "", teids0, "", "", TGPP_WLAN);
   }
 
   virtual void SetUp() {}
@@ -122,8 +126,10 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_VALID_QUOTA)));
-  local_enforcer->init_session_credit(
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   bool success =
@@ -188,8 +194,10 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_VALID_QUOTA)))
       .Times(1)
       .WillOnce(testing::Return(true));
-  local_enforcer->init_session_credit(
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
@@ -209,8 +217,10 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_NO_QUOTA)))
       .Times(1)
       .WillOnce(testing::Return(true));
-  local_enforcer->init_session_credit(
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
@@ -222,8 +232,10 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
   CreateSessionResponse response;
   create_session_create_response(
       IMSI1, SESSION_ID_1, "m1", static_rules, &response);
-  local_enforcer->init_session_credit(
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 
   // send a policy reauth request with rule removals for "static_1" to indicate
   // total monitoring quota exhaustion
@@ -256,8 +268,10 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   CreateSessionResponse response;
   create_session_create_response(
       IMSI1, SESSION_ID_1, "m1", static_rules, &response);
-  local_enforcer->init_session_credit(
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 
   // remove only static_2, should not change anything in terms of quota since
   // static_1 is still active

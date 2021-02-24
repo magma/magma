@@ -15,6 +15,8 @@ limitations under the License.
 package servicers
 
 import (
+	"os"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -72,6 +74,8 @@ type EapAkaSrv struct {
 	plmnFilter plmn_filter.PlmnIdVals
 
 	timeouts touts
+	useS6a   bool
+	mncLen   int32
 }
 
 var defaultTimeouts = touts{
@@ -119,6 +123,7 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 		sessions:   map[string]*SessionCtx{},
 		plmnFilter: plmn_filter.PlmnIdVals{},
 		timeouts:   defaultTimeouts,
+		mncLen:     3,
 	}
 	if config != nil {
 		if config.Timeout != nil {
@@ -137,6 +142,18 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 			}
 		}
 		service.plmnFilter = plmn_filter.GetPlmnVals(config.PlmnIds, "EAP-AKA")
+		service.useS6a = config.GetUseS6A()
+		if mncLn := config.GetMncLen(); mncLn >= 2 && mncLn <= 3 {
+			service.mncLen = mncLn
+		}
+	}
+	if useS6aStr, isset := os.LookupEnv("USE_S6A_BASED_AUTH"); isset {
+		service.useS6a, _ = strconv.ParseBool(useS6aStr)
+	}
+	if service.useS6a {
+		glog.Info("EAP-AKA: Using S6a Auth Vectors")
+	} else {
+		glog.Info("EAP-AKA: Using SWx Auth Vectors")
 	}
 	return service, nil
 }
@@ -188,6 +205,7 @@ func (lockedCtx *UserCtx) Lifetime() float64 {
 func (s *EapAkaSrv) InitSession(sessionId string, imsi aka.IMSI) (lockedUserContext *UserCtx) {
 	var (
 		oldSessionTimer *time.Timer
+		oldSessionState aka.AkaState
 	)
 	// create new session with long session wide timeout
 	t := time.Now()
@@ -204,12 +222,17 @@ func (s *EapAkaSrv) InitSession(sessionId string, imsi aka.IMSI) (lockedUserCont
 	s.rwl.Lock()
 	if oldSession, ok := s.sessions[sessionId]; ok && oldSession != nil {
 		oldSessionTimer, oldSession.CleanupTimer = oldSession.CleanupTimer, nil
+		oldSessionState = oldSession.state
 	}
 	s.sessions[sessionId] = newSession
 	s.rwl.Unlock()
 
 	if oldSessionTimer != nil {
 		oldSessionTimer.Stop()
+		// Copy Redirected state to a new session to avoid auth thrashing between EAP methods
+		if oldSessionState == aka.StateRedirected {
+			newSession.state = aka.StateRedirected
+		}
 	}
 	return uc
 }
@@ -412,4 +435,17 @@ func (s *EapAkaSrv) ResetSessionTimeout(sessionId string, newTimeout time.Durati
 	if oldTimer != nil {
 		oldTimer.Stop()
 	}
+}
+
+func (s *EapAkaSrv) UseS6a() bool {
+	if s != nil {
+		return s.useS6a
+	}
+	return false
+}
+func (s *EapAkaSrv) MncLen() int {
+	if s != nil {
+		return int(s.mncLen)
+	}
+	return 3
 }

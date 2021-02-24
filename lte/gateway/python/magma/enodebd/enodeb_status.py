@@ -17,6 +17,7 @@ from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
 import os
 from lte.protos.enodebd_pb2 import SingleEnodebStatus
+from lte.protos.mconfig import mconfigs_pb2
 from magma.common import serialization_utils
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -27,6 +28,8 @@ from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_manager import \
     StateMachineManager
+from magma.enodebd.s1ap_client import get_all_enb_state
+from magma.enodebd.device_config.configuration_util import find_enb_by_cell_id
 from orc8r.protos.service303_pb2 import State
 
 # There are 2 levels of caching for GPS coordinates from the enodeB: module
@@ -57,7 +60,8 @@ EnodebStatus = NamedTuple('EnodebStatus',
                            ('gps_connected', bool),
                            ('ptp_connected', bool),
                            ('mme_connected', bool),
-                           ('fsm_state', str)])
+                           ('fsm_state', str),
+                           ('cell_id', int)])
 
 # TODO: Remove after checkins support multiple eNB status
 MagmaOldEnodebdStatus = namedtuple('MagmaOldEnodebdStatus',
@@ -240,6 +244,8 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
         - mme_connected
         - gps_latitude
         - gps_longitude
+        - ip_address
+        - cell_id
 
     The set of keys returned will depend on the connection status of the
     enodeb. A missing key indicates that the value is unknown.
@@ -260,9 +266,13 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
     try:
         enb_serial = \
             enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
+        enb_cell_id = int(
+            enodeb.device_cfg.get_parameter(ParameterName.CELL_ID))
         rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
     except (KeyError, ConfigurationError):
         rf_tx_desired = False
+        enb_cell_id = 0
+
     mme_connected = _parse_param_as_bool(enodeb, ParameterName.MME_STATUS)
     gps_connected = _get_gps_status_as_bool(enodeb)
     try:
@@ -280,7 +290,8 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
                         gps_connected=gps_connected,
                         ptp_connected=ptp_connected,
                         mme_connected=mme_connected,
-                        fsm_state=enodeb.get_state())
+                        fsm_state=enodeb.get_state(),
+                        cell_id=enb_cell_id)
 
 
 def get_single_enb_status(
@@ -321,22 +332,80 @@ def get_single_enb_status(
     return enb_status
 
 
-def get_operational_states(
-        enb_acs_manager: StateMachineManager,
-) -> List[State]:
+def get_operational_states(enb_acs_manager: StateMachineManager,
+                           mconfig: mconfigs_pb2.EnodebD) -> List[State]:
     """
     Returns: A list of State with EnodebStatus encoded as JSON
     """
     states = []
+    configured_serial_ids = []
     enb_status_by_serial = get_all_enb_status(enb_acs_manager)
+
+    # Get S1 connected eNBs
+    enb_statuses = get_all_enb_state()
+
     for serial_id in enb_status_by_serial:
-        serialized = json.dumps(enb_status_by_serial[serial_id]._asdict())
+        enb_status_dict = enb_status_by_serial[serial_id]._asdict()
+
+        # Add IP address to state
+        enb_status_dict['ip_address'] = enb_acs_manager.get_ip_of_serial(
+            serial_id)
+
+        # Add num of UEs connected
+        num_ue_connected = enb_statuses.get(enb_status_dict['cell_id'], 0)
+        enb_status_dict['ues_connected'] = num_ue_connected
+
+        serialized = json.dumps(enb_status_dict)
         state = State(
             type="single_enodeb",
             deviceID=serial_id,
             value=serialized.encode('utf-8')
         )
+        configured_serial_ids.append(serial_id)
         states.append(state)
+
+    # Get state for externally configured enodebs
+    s1_states = get_enb_s1_connected_states(enb_statuses,
+                                            configured_serial_ids,
+                                            mconfig)
+    states.extend(s1_states)
+
+    return states
+
+
+def get_enb_s1_connected_states(enb_s1_state_map, configured_serial_ids,
+                                mconfig) -> List[State]:
+    states = []
+    for enb_id in enb_s1_state_map:
+        enb = find_enb_by_cell_id(mconfig, enb_id)
+        if enb and enb.serial_num not in configured_serial_ids:
+            status = EnodebStatus(enodeb_configured=False,
+                                  gps_latitude='N/A',
+                                  gps_longitude='N/A',
+                                  enodeb_connected=True,
+                                  opstate_enabled=False,
+                                  rf_tx_on=False,
+                                  rf_tx_desired=False,
+                                  gps_connected=False,
+                                  ptp_connected=False,
+                                  mme_connected=True,
+                                  fsm_state='N/A',
+                                  cell_id=enb_id)
+            status_dict = status._asdict()
+
+            # Add IP address to state
+            status_dict['ip_address'] = enb.config.ip_address
+
+            # Add num of UEs connected to state, use cellID from mconfig
+            status_dict['ues_connected'] = enb_s1_state_map.get(enb_id, 0)
+
+            serialized = json.dumps(status_dict)
+            state = State(
+                type="single_enodeb",
+                deviceID=enb.serial_num,
+                value=serialized.encode('utf-8')
+            )
+            states.append(state)
     return states
 
 

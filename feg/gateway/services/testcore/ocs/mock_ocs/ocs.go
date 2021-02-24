@@ -283,7 +283,7 @@ func (srv *OCSDiamServer) ReAuth(
 	}
 	done := make(chan *gy.ChargingReAuthAnswer)
 	srv.mux.Handle(diam.RAA, handleRAA(done))
-	err := sendRAR(account.CurrentState, &target.RatingGroup, srv.mux.Settings())
+	err := sendRAR(account.CurrentState, target.RatingGroup, srv.mux.Settings())
 	if err != nil {
 		glog.Errorf("Error sending RaR for target IMSI=%v, RG=%v: %v", target.GetImsi(), target.GetRatingGroup(), err)
 		return nil, err
@@ -344,7 +344,7 @@ func (srv *OCSDiamServer) AbortSession(
 	}
 }
 
-func sendRAR(state *SubscriberSessionState, ratingGroup *uint32, cfg *sm.Settings) error {
+func sendRAR(state *SubscriberSessionState, ratingGroup uint32, cfg *sm.Settings) error {
 	meta, ok := smpeer.FromContext(state.Connection.Context())
 	if !ok {
 		return fmt.Errorf("peer metadata unavailable")
@@ -355,8 +355,8 @@ func sendRAR(state *SubscriberSessionState, ratingGroup *uint32, cfg *sm.Setting
 	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, cfg.OriginRealm)
 	m.NewAVP(avp.DestinationRealm, avp.Mbit, 0, meta.OriginRealm)
 	m.NewAVP(avp.DestinationHost, avp.Mbit, 0, meta.OriginHost)
-	if ratingGroup != nil {
-		m.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(*ratingGroup))
+	if ratingGroup != 0 {
+		m.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(ratingGroup))
 	}
 	glog.V(2).Infof("Sending RAR to %s\n%s", state.Connection.RemoteAddr(), m)
 	_, err := m.WriteTo(state.Connection)

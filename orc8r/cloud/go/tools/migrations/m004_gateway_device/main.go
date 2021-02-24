@@ -138,7 +138,8 @@ func main() {
 		}
 
 		newVal := &gatewayDevice{HardwareID: oldVal.HwID.ID, Key: oldVal.Key}
-		newBytes, err := json.Marshal(newVal)
+		var newBytes []byte
+		newBytes, err = json.Marshal(newVal)
 		if err != nil {
 			err = errors.Wrapf(err, "could not remarshal migrated gateway device for (%s, %s)", nid, k)
 		}

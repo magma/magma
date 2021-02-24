@@ -493,7 +493,7 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
             targets: [
               {
                 expr:
-                  'rate(pdcp_user_plane_bytes_dl{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])',
+                  'rate(gtp_port_user_plane_dl_bytes{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])',
                 legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
@@ -504,7 +504,7 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
             targets: [
               {
                 expr:
-                  'rate(pdcp_user_plane_bytes_ul{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])',
+                  'rate(gtp_port_user_plane_ul_bytes{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])',
                 legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
@@ -771,7 +771,7 @@ export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {
         title: '',
         panels: [
           {
-            title: 'Physical Memory Utilization Percent',
+            title: 'Physical Memory Available Percent',
             targets: [
               {
                 expr:

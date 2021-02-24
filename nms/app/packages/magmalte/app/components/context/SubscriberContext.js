@@ -18,6 +18,7 @@ import type {
   mutable_subscriber,
   subscriber,
   subscriber_id,
+  subscriber_state,
 } from '@fbcnms/magma-api';
 
 import React from 'react';
@@ -31,7 +32,15 @@ export type SubscriberContextType = {
   state: {[string]: subscriber},
   metrics?: {[string]: Metrics},
   gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
-  setState?: (key: string, val?: mutable_subscriber) => Promise<void>,
+  sessionState: {[string]: subscriber_state},
+  setState?: (
+    key: string,
+    val?: mutable_subscriber,
+    newState?: {
+      state: {[string]: subscriber},
+      sessionState: {[string]: subscriber_state},
+    },
+  ) => Promise<void>,
 };
 
 export default React.createContext<SubscriberContextType>({});

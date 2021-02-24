@@ -40,7 +40,7 @@ interface_group = r"(?P<Interface>\w+)"
 remote_ip_group = r"(?P<remote_ip>.*)"
 rx_bytes_group = r"(?P<rx_bytes>\d+)"
 tx_bytes_group = r"(?P<tx_bytes>\d+)"
-stats_re_str = r'"{}"(.*)(remote_ip="{}"(.*))?rx_bytes={}.+tx_bytes={}'
+stats_re_str = r'"{}"(.*)(remote_ip="{}")(.*)?rx_bytes={}.+tx_bytes={}'
 
 interface_tx_rx_stats_re = re.compile(
     stats_re_str.format(interface_group, remote_ip_group, rx_bytes_group,
@@ -80,11 +80,10 @@ class GTPStatsCollector(Job):
         for r in list(dump_stats_results)[0].out:
             if GTP_IP_INTERFACE_PREFIX in r.Interface or \
                     r.Interface == GTP_INTERFACE_PREFIX:
-                logging.info(r.Interface)
-                GTP_PORT_USER_PLANE_DL_BYTES.labels(r.remote_ip).inc(
-                    float(r.rx_bytes))
-                GTP_PORT_USER_PLANE_UL_BYTES.labels(r.remote_ip).inc(
+                GTP_PORT_USER_PLANE_DL_BYTES.labels(r.remote_ip).set(
                     float(r.tx_bytes))
+                GTP_PORT_USER_PLANE_UL_BYTES.labels(r.remote_ip).set(
+                    float(r.rx_bytes))
 
 
 def _get_ovsdb_dump_params(params: OVSDBDumpCommandParams) -> List[str]:

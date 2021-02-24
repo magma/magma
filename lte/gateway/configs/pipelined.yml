@@ -34,6 +34,7 @@ setup_type: LTE
 static_services: [
   'arpd',
   'access_control',
+  'proxy',
   'ryu_rest_service',
   'startup_flows',
 #  'packet_tracer',
@@ -67,6 +68,7 @@ meter:
 
 enforcement:
   poll_interval: 2
+  default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
@@ -100,6 +102,8 @@ enodeb_iface: eth1
 bridge_name: gtp_br0
 # Bridge ip comes from magma_ifaces_gtp
 bridge_ip_address: 192.168.128.1
+# For ipv6 router solicitation app
+ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 
 # QoS parameters
 qos:
@@ -112,6 +116,7 @@ qos:
  ovs_meter:
   min_idx: 2
   max_idx: 100000
+ apn_ambr_enabled: true
 
 monitored_ifaces: ['gtp_br0',
                    'gtp0',
@@ -119,12 +124,13 @@ monitored_ifaces: ['gtp_br0',
                   ]
 
 # Whether pipelined should cleanup flows on restarts
-clean_restart: true
+clean_restart: false
+redis_enabled: true
 
-redis_enabled: false
+# Logs grpc payload content
+magma_print_grpc_payload: false
 
-# MTR iface IP
-mtr_ip: 10.0.2.10
+# MTR iface
 mtr_interface: mtr0
 
 ###############
@@ -136,6 +142,10 @@ ovs_gtp_port_number: 32768
 # Internal port for monitoring service
 ovs_mtr_port_number: 15577
 
+# Internal port for processing internal sampling packets
+ovs_internal_sampling_port_number: 15578
+# # Table to forward packets from the internal sampling port
+ovs_internal_sampling_fwd_tbl_number: 201
 # Be careful changing these default values
 # enable_nat: True
 non_nat_gw_probe_frequency: 20
@@ -146,4 +156,14 @@ uplink_bridge: uplink_br0
 uplink_eth_port_name: uplink_p0
 uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 
-ovs_gtp_stats_polling_interval: 60
+ovs_gtp_stats_polling_interval: 180
+
+he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
+
+# Make as a True when gnb ip will support for uplink 
+ovs_multi_tunnel: False
+
+# For 5G Functionality Support flag
+5G_feature_set:
+ enable: False
+ node_identifier: 192.168.200.1

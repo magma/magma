@@ -193,6 +193,9 @@ static void _esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
 
     *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
     if (esm_ebr_timer_data->count < ESM_INFORMATION_COUNTER_MAX) {
+      // Unset the timer id maintained in the esm_ctx, as the timer is no
+      // longer valid.
+      esm_ebr_timer_data->ctx->esm_ctx.T3489.id = NAS_TIMER_INACTIVE_ID;
       /*
        * Re-send deactivate EPS bearer context request message to the UE
        */
@@ -228,19 +231,21 @@ static void _esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _esm_information()                                  **
+ ** Name:    _esm_information()                                            **
  **                                                                        **
  ** Description: Sends DEACTIVATE EPS BEREAR CONTEXT REQUEST message and   **
- **      starts timer T3489                                        **
+ **      starts timer T3489.                                               **
+ **      Function also clearns out any existing T3489 timers referenced    **
+ **      by the esm_ctx datastructure.                                     **
  **                                                                        **
- ** Inputs:  ue_id:      UE local identifier                        **
- **      ebi:       EPS bearer identity                        **
- **      msg:       Encoded ESM message to be sent             **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE local identifier                               **
+ **      ebi:       EPS bearer identity                                    **
+ **      msg:       Encoded ESM message to be sent                         **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    T3489                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    T3489                                                  **
  **                                                                        **
  ***************************************************************************/
 static int _esm_information(

@@ -17,6 +17,7 @@
 #include "EnumToString.h"
 #include "SessionCredit.h"
 #include "magma_logging.h"
+#include "Utilities.h"
 
 namespace magma {
 
@@ -36,7 +37,9 @@ SessionCredit::SessionCredit(
       reporting_(false),
       credit_limit_type_(credit_limit_type),
       grant_tracking_type_(TRACKING_UNSET),
-      report_last_credit_(false) {}
+      report_last_credit_(false),
+      time_of_first_usage_(0),
+      time_of_last_usage_(0) {}
 
 SessionCredit::SessionCredit(const StoredSessionCredit& marshaled) {
   reporting_              = marshaled.reporting;
@@ -44,6 +47,8 @@ SessionCredit::SessionCredit(const StoredSessionCredit& marshaled) {
   grant_tracking_type_    = marshaled.grant_tracking_type;
   received_granted_units_ = marshaled.received_granted_units;
   report_last_credit_     = marshaled.report_last_credit;
+  time_of_first_usage_    = marshaled.time_of_first_usage;
+  time_of_last_usage_     = marshaled.time_of_last_usage;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
@@ -60,6 +65,8 @@ StoredSessionCredit SessionCredit::marshal() {
   marshaled.grant_tracking_type    = grant_tracking_type_;
   marshaled.received_granted_units = received_granted_units_;
   marshaled.report_last_credit     = report_last_credit_;
+  marshaled.time_of_first_usage    = time_of_first_usage_;
+  marshaled.time_of_last_usage     = time_of_last_usage_;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket             = static_cast<Bucket>(bucket_int);
@@ -74,6 +81,8 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   uc.grant_tracking_type    = grant_tracking_type_;
   uc.received_granted_units = received_granted_units_;
   uc.report_last_credit     = report_last_credit_;
+  uc.time_of_first_usage    = time_of_first_usage_;
+  uc.time_of_last_usage     = time_of_last_usage_;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket            = static_cast<Bucket>(bucket_int);
@@ -83,13 +92,28 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
 }
 
 void SessionCredit::add_used_credit(
-    uint64_t used_tx, uint64_t used_rx, SessionCreditUpdateCriteria& uc) {
-  buckets_[USED_TX] += used_tx;
-  buckets_[USED_RX] += used_rx;
-  uc.bucket_deltas[USED_TX] += used_tx;
-  uc.bucket_deltas[USED_RX] += used_rx;
+    uint64_t used_tx, uint64_t used_rx,
+    SessionCreditUpdateCriteria& credit_uc) {
+  if (used_tx > 0 || used_rx > 0) {
+    buckets_[USED_TX] += used_tx;
+    buckets_[USED_RX] += used_rx;
+    credit_uc.bucket_deltas[USED_TX] += used_tx;
+    credit_uc.bucket_deltas[USED_RX] += used_rx;
+    update_usage_timestamps(credit_uc);
+  }
 
   log_quota_and_usage();
+}
+
+void SessionCredit::update_usage_timestamps(
+    SessionCreditUpdateCriteria& credit_uc) {
+  auto now = magma::get_time_in_sec_since_epoch();
+  if (time_of_first_usage_ == 0) {
+    time_of_first_usage_          = now;
+    credit_uc.time_of_first_usage = now;
+  }
+  time_of_last_usage_          = now;
+  credit_uc.time_of_last_usage = now;
 }
 
 void SessionCredit::reset_reporting_credit(SessionCreditUpdateCriteria* uc) {
@@ -104,6 +128,8 @@ void SessionCredit::reset_reporting_credit(SessionCreditUpdateCriteria* uc) {
 void SessionCredit::mark_failure(
     uint32_t code, SessionCreditUpdateCriteria* uc) {
   if (DiameterCodeHandler::is_transient_failure(code)) {
+    MLOG(MDEBUG) << "Found transient failure code in mark_failure. Resetting "
+                    "'REPORTING' values";
     buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
     buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
     if (uc != NULL) {
@@ -115,7 +141,7 @@ void SessionCredit::mark_failure(
 }
 
 // receive_credit will add received grant to current credits. Note that if
-// there is overuseage, the extra amount will be added to the counters by
+// there is over-usage, the extra amount will be added to the counters by
 // calculate_delta_allowed_floor and calculate_delta_allowed
 void SessionCredit::receive_credit(
     const GrantedUnits& gsu, SessionCreditUpdateCriteria* uc) {
@@ -294,6 +320,18 @@ SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
   update_criteria.reporting = true;
   log_usage_report(usage);
   return usage;
+}
+
+SessionCredit::Summary SessionCredit::get_credit_summary() {
+  return SessionCredit::Summary{
+      .usage =
+          SessionCredit::Usage{
+              .bytes_tx = buckets_[USED_TX],
+              .bytes_rx = buckets_[USED_RX],
+          },
+      .time_of_first_usage = time_of_first_usage_,
+      .time_of_last_usage  = time_of_last_usage_,
+  };
 }
 
 SessionCredit::Usage SessionCredit::get_usage_for_reporting(
@@ -482,8 +520,28 @@ void SessionCredit::set_report_last_credit(
   uc.report_last_credit = report_last_credit;
 }
 
+void SessionCredit::set_reporting(bool reporting) {
+  reporting_ = reporting;
+}
+
 bool SessionCredit::is_report_last_credit() {
   return report_last_credit_;
+}
+
+void SessionCredit::merge(SessionCreditUpdateCriteria& credit_uc) {
+  grant_tracking_type_    = credit_uc.grant_tracking_type;
+  received_granted_units_ = credit_uc.received_granted_units;
+  report_last_credit_     = credit_uc.report_last_credit;
+  time_of_first_usage_    = credit_uc.time_of_first_usage;
+  time_of_last_usage_     = credit_uc.time_of_last_usage;
+  // DO NOT UPDATE reporting_. (done by LocalSessionManagerHandler)
+
+  // add credit
+  for (int i = USED_TX; i != MAX_VALUES; i++) {
+    Bucket bucket = static_cast<Bucket>(i);
+    auto credit   = credit_uc.bucket_deltas.find(bucket)->second;
+    buckets_[bucket] += credit;
+  }
 }
 
 void SessionCredit::add_credit(

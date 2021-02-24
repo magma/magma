@@ -19,6 +19,10 @@ import "lte/protos/mobilityd.proto";
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
+message HeaderEnrichment{
+  repeated string urls = 1;
+}
+
 // --------------------------------------------------------------------------
 // Policy flow rules
 //
@@ -84,6 +88,7 @@ message PolicyRule{
     VIDEO = 3;
   }
   AppServiceType app_service_type = 14; // optional
+  HeaderEnrichment he = 15;
 }
 
 message ServiceIdentifier {

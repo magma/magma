@@ -19,9 +19,11 @@ from orc8r.protos.mconfig import mconfigs_pb2
 def main():
     """ main() for Directoryd """
     service = MagmaService('directoryd', mconfigs_pb2.DirectoryD())
+    service_config = service.config
 
     # Add servicer to the server
-    gateway_directory_servicer = GatewayDirectoryServiceRpcServicer()
+    gateway_directory_servicer = GatewayDirectoryServiceRpcServicer(
+        service_config.get('print_grpc_payload', False))
     gateway_directory_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop

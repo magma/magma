@@ -163,6 +163,7 @@ describe('<NetworkDashboard />', () => {
         ptp_connected: true,
         rf_tx_desired: true,
         rf_tx_on: true,
+        ip_address: '192.168.1.254',
       },
     },
   };
@@ -281,6 +282,10 @@ describe('<NetworkDashboard />', () => {
     };
     const policyCtx = {
       state: policies,
+      qosProfiles: {},
+      ratingGroups: {},
+      setRatingGroups: async () => {},
+      setQosProfiles: async () => {},
       setState: async () => {},
     };
     const enodebCtx = {
@@ -297,6 +302,7 @@ describe('<NetworkDashboard />', () => {
     const subscriberCtx = {
       state: subscribers,
       gwSubscriberMap: {},
+      sessionState: {},
     };
 
     const networkCtx = {

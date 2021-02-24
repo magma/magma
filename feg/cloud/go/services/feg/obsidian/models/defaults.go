@@ -23,6 +23,7 @@ func NewDefaultNetworkFederationConfigs() *NetworkFederationConfigs {
 		Health:           newDefaultHealth(),
 		Hss:              newDefaultHss(),
 		S6a:              newDefaultS6a(),
+		S8:               newDefaultS8(),
 		ServedNetworkIds: newDefaultServedNetworkIds(),
 		Swx:              newDefaultSwx(),
 		Csfb:             newDefaultCsfb(),
@@ -49,6 +50,7 @@ func NewDefaultGatewayFederationConfig() *GatewayFederationConfigs {
 		Health:           newDefaultHealth(),
 		Hss:              newDefaultHss(),
 		S6a:              newDefaultS6a(),
+		S8:               newDefaultS8(),
 		ServedNetworkIds: newDefaultServedNetworkIds(),
 		Swx:              newDefaultSwx(),
 		Csfb:             newDefaultCsfb(),
@@ -79,6 +81,7 @@ func newDefaultEapAka() *EapAka {
 			SessionAuthenticatedMs: 5000,
 			SessionMs:              43200000,
 		},
+		MncLen: 3,
 	}
 }
 
@@ -91,6 +94,7 @@ func newDefaultEapSim() *EapSim {
 			SessionAuthenticatedMs: 5000,
 			SessionMs:              43200000,
 		},
+		MncLen: 3,
 	}
 }
 
@@ -178,6 +182,13 @@ func newDefaultS6a() *S6a {
 	return &S6a{
 		Server:  newDefaultDiameterClientConfigs(),
 		PlmnIds: []string{"123456"},
+	}
+}
+
+func newDefaultS8() *S8 {
+	return &S8{
+		LocalAddress: "10.0.0.1",
+		PgwAddress:   "10.0.0.2",
 	}
 }
 

@@ -12,8 +12,6 @@ magma-gen-meta:
   temp-gen-filename: cwf-swagger.yml
   output-dir: cwf/cloud/go/services/cwf/obsidian
   types:
-    - go-struct-name: FegNetworkID
-      filename: feg_network_id_swaggergen.go
     - go-struct-name: CwfNetwork
       filename: cwf_network_swaggergen.go
     - go-struct-name: CwfGateway
@@ -271,7 +269,7 @@ paths:
           description: Carrier Wifi HA gateway pair
           required: true
           schema:
-            $ref: '#/definitions/cwf_ha_pair'
+            $ref: '#/definitions/mutable_cwf_ha_pair'
       responses:
         '201':
           description: Success
@@ -526,7 +524,7 @@ paths:
         - Carrier Wifi Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: '#/parameters/subscriber_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/subscriber_id'
       responses:
         '200':
           description: The directory record of a subscriber
@@ -849,13 +847,6 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
 parameters:
-  subscriber_id:
-    description: Subscriber ID
-    in: path
-    name: subscriber_id
-    required: true
-    type: string
-
   ha_pair_id:
     description: HA Gateway Pair ID
     in: path
@@ -982,6 +973,10 @@ definitions:
         $ref: './feg-swagger.yml#/definitions/aaa_server'
       li_ues:
         $ref: '#/definitions/li_ues'
+      is_xwfm_variant:
+        type: boolean
+        example: false
+
   allowed_gre_peer:
     type: object
     required:
@@ -1096,6 +1091,17 @@ definitions:
         format: uint32
         example: 3
 
+  carrier_wifi_ha_pair_state:
+    type: object
+    description: Full state object of an ha pair
+    properties:
+        ha_pair_status:
+          $ref: '#/definitions/carrier_wifi_ha_pair_status'
+        gateway1_health:
+          $ref: '#/definitions/carrier_wifi_gateway_health_status'
+        gateway2_health:
+          $ref: '#/definitions/carrier_wifi_gateway_health_status'
+
   carrier_wifi_ha_pair_status:
     description: Status of a Carrier Wifi HA pair status
     type: object
@@ -1147,15 +1153,22 @@ definitions:
         example: "gateway2"
       config:
         $ref: "#/definitions/cwf_ha_pair_configs"
+      state:
+        $ref: "#/definitions/carrier_wifi_ha_pair_state"
 
   mutable_cwf_ha_pair:
    description: HA Gateway pair with read-only fields omitted
    type: object
    required:
+     - ha_pair_id
      - gateway_id_1
      - gateway_id_2
      - config
    properties:
+     ha_pair_id:
+       type: string
+       x-nullable: false
+       example: "pair1"
      gateway_id_1:
        type: string
        x-nullable: false

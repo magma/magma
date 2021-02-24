@@ -1,0 +1,47 @@
+/*
+ Copyright 2020 The Magma Authors.
+
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
+package protos
+
+import (
+	"github.com/pkg/errors"
+)
+
+func (m *GetEnodebStateRequest) Validate() error {
+	if m.NetworkId == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	if m.GatewayId == "" {
+		return errors.New("gateway ID cannot be empty")
+	}
+	if m.EnodebSn == "" {
+		return errors.New("enodeb SN cannot be empty")
+	}
+	return nil
+}
+
+func (m *SetEnodebStateRequest) Validate() error {
+	if m.NetworkId == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	if m.GatewayId == "" {
+		return errors.New("gateway ID cannot be empty")
+	}
+	if m.EnodebSn == "" {
+		return errors.New("enodeb SN cannot be empty")
+	}
+	if len(m.SerializedState) == 0 {
+		return errors.New("serialized enodeb state cannot be empty")
+	}
+	return nil
+}

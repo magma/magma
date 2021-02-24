@@ -280,7 +280,7 @@ func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
 			ue, err := createUeConfig(imsi, 0, configMap)
 			if err != nil {
 				glog.Error(err)
-				continue
+				return nil, err
 			}
 			ues = append(ues, ue)
 		}

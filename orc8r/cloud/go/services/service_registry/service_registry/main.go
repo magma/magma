@@ -28,6 +28,13 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+const (
+	defaultK8sQPS   = 50
+	defaultK8sBurst = 50
+
+	pollFrequencyConfigKey = "poll_frequency"
+)
+
 func main() {
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, registry.ServiceRegistryServiceName)
 	if err != nil {
@@ -53,7 +60,7 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Error creating kubernetes clientset: %s", err)
 		}
-		servicer, err := servicers.NewKubernetesServiceRegistryServicer(clientset.CoreV1())
+		servicer, err := servicers.NewKubernetesServiceRegistryServicer(clientset.CoreV1(), srv.Config.MustGetString(pollFrequencyConfigKey), nil)
 		if err != nil {
 			glog.Fatal(err)
 		}

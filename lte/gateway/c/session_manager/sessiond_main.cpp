@@ -25,6 +25,7 @@
 #include "PolicyLoader.h"
 #include "MConfigLoader.h"
 #include "magma_logging.h"
+#include "OperationalStatesHandler.h"
 #include "SessionCredit.h"
 #include "SessionStore.h"
 #include "GrpcMagmaUtils.h"
@@ -245,7 +246,6 @@ int main(int argc, char* argv[]) {
       spgw_client->rpc_response_loop();
     });
     aaa_client                      = nullptr;
-    amf_srv_client                  = nullptr;
   }
 
   // Setup SessionReporter which talks to the policy component
@@ -307,12 +307,24 @@ int main(int argc, char* argv[]) {
   server.AddServiceToServer(&proxy_service);
   MLOG(MINFO) << "Add proxyservice";
 
+  // Register state polling callback
+  server.SetOperationalStatesCallback([evb, session_store]() {
+    std::promise<magma::OpState> result;
+    std::future<magma::OpState> future = result.get_future();
+    evb->runInEventBaseThread([session_store, &result, &future]() {
+      result.set_value(magma::get_operational_states(session_store));
+    });
+    return future.get();
+  });
+
   magma::AmfPduSessionSmContextAsyncService* conv_set_message_service = nullptr;
   if (converged_access) {
     // Initialize the main thread of session management by folly event to handle
     // logical component of 5G of SessionD
-    auto conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
-        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig);
+    extern std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
+    conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
+        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig,
+        config["session_force_termination_timeout_ms"].as<long>());
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(

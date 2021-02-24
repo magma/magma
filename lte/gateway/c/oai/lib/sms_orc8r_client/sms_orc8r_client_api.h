@@ -19,7 +19,6 @@
 
 #include <gmp.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

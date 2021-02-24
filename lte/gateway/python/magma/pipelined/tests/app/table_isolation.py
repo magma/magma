@@ -14,7 +14,9 @@ limitations under the License.
 import abc
 import copy
 
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import DIRECTION_REG, Direction, \
     IMSI_REG
@@ -161,21 +163,27 @@ class RyuForwardFlowArgsBuilder():
         uplink = copy.deepcopy(self._request)
         downlink = copy.deepcopy(self._request)
 
-        uplink["match"].update({"ipv4_src": self._ip})
         uplink["instructions"].append({
             "type": "APPLY_ACTIONS",
             "actions": self._reg_sets + [self._ulink_action]
         })
-        downlink["match"].update({"ipv4_dst": self._ip})
         downlink["instructions"].append({
             "type": "APPLY_ACTIONS",
             "actions": self._reg_sets + [self._dlink_action]
         })
-        return [uplink, downlink]
 
-    def set_eth_type_ip(self):
-        self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IP}
-        return self
+        ip_addr = convert_ip_str_to_ip_proto(self._ip)
+        if ip_addr.version == IPAddress.IPV4:
+            uplink["match"].update(
+                {"ipv4_src": self._ip})
+            downlink["match"].update(
+                {"ipv4_dst": self._ip})
+        else:
+            uplink["match"].update(
+                {"ipv6_src": self._ip})
+            downlink["match"].update(
+                {"ipv6_dst": self._ip})
+        return [uplink, downlink]
 
     def set_eth_type_arp(self):
         self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_ARP}
@@ -183,7 +191,10 @@ class RyuForwardFlowArgsBuilder():
 
     def _set_subscriber_match(self, sub_info):
         """ Sets up match/action for subscriber flows """
-        self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IP}
+        if sub_info.ip.count(":") >= 2:
+            self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IPV6}
+        else:
+            self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IP}
         return self.set_ip(sub_info.ip) \
             .set_reg_value(IMSI_REG, encode_imsi(sub_info.imsi))
 

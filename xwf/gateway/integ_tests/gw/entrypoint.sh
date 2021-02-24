@@ -1,14 +1,20 @@
 #!/bin/bash
 
 echo "get controller ip"
-[[ -z "${CTRL_IP}" ]] && CtrlIP="$(getent hosts ofproxy | awk '{ print $1 }')" || CtrlIP="${CTRL_IP}"
+if [[ ! -z ${CTRL_IP} ]]
+then
+  CtrlIP="${CTRL_IP}"
+  echo "set ctrl to given IP ${CtrlIP}"
+elif [[ ! -z ${CTRL_HOST} ]]
+then
+  CtrlIP="$(getent hosts ${CTRL_HOST} | awk '{ print $1 }')"
+  echo "set ctrl host name ${CTRL_HOST} and IP ${CtrlIP}"
+else
+  echo "no ctrl IP or port provided, using partner ctrl and not local docker setup"
+fi
 
 echo "Running in $CONNECTION_MODE"
 CONNECTION_MODE=${CONNECTION_MODE:=tcp}
-if [ "$CONNECTION_MODE" == "ssl" ]
-then
-  CtrlIP="$(getent hosts tls-termination | awk '{ print $1 }')" || CtrlIP="${CTRL_IP}"
-fi
 
 echo "start ovs-ctl"
 /usr/share/openvswitch/scripts/ovs-ctl start --system-id=random --no-ovs-vswitchd
@@ -32,7 +38,7 @@ ret=1
 counter=0
 until [[ ${ret} -eq 0 || ${counter} -gt 10  ]]; do
     echo "performing curl"
-    result=$( curl -X POST "https://graph.expresswifi.com/openflow/configxwfm?access_token=${ACCESSTOKEN}" )
+    result=$( curl -k -X POST "https://graph.expresswifi.com/openflow/configxwfm?access_token=${ACCESSTOKEN}" )
     echo $result | grep -q  configxwfm
     ret=$?
     echo "Counter: $counter -> $ret"
@@ -42,7 +48,12 @@ done
 
 echo "$result" | jq -r .configxwfm > /etc/xwfwhoami
 echo "run XWF ansible"
-ANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP} connection_mode=$CONNECTION_MODE" \
+if [[ ! -z "${CtrlIP}" ]]
+then
+  CTLR="xwf_ctrl_ip=${CtrlIP}"
+  echo "adding option ${CTLR}"
+fi
+ANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook -e "$CTLR connection_mode=$CONNECTION_MODE" \
 xwf/gateway/deploy/xwf.yml -i "localhost," --skip-tags "install,install_docker,no_ci" -c local -v
 
 echo "run DNS server"

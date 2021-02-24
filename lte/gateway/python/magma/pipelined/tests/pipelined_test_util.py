@@ -229,13 +229,21 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
 def setup_controller(controller, setup_req, sleep_time: float = 1,
                      retries: int = 5):
     for _ in range(0, retries):
-        if controller.is_ready_for_restart_recovery(
-                setup_req.epoch) == SetupFlowsResult.SUCCESS:
+        ret = controller.check_setup_request_epoch(setup_req.epoch)
+        if ret == SetupFlowsResult.SUCCESS:
+            return ret
+        else:
             res = controller.handle_restart(setup_req.requests)
             if res.result == SetupFlowsResult.SUCCESS:
                 return SetupFlowsResult.SUCCESS
         hub.sleep(sleep_time)
     return res.result
+
+
+def fake_inout_setup(inout_controller):
+    TestCase().assertEqual(setup_controller(
+        inout_controller, SetupPolicyRequest(requests=[], epoch=global_epoch)),
+        SetupFlowsResult.SUCCESS)
 
 
 def fake_controller_setup(enf_controller=None,
@@ -263,6 +271,7 @@ def fake_controller_setup(enf_controller=None,
         TestCase().assertEqual(enf_controller._clean_restart, True)
         if enf_stats_controller:
             TestCase().assertEqual(enf_stats_controller._clean_restart, True)
+    enf_controller.init_finished = False
     TestCase().assertEqual(setup_controller(
         enf_controller, setup_flows_request),
         SetupFlowsResult.SUCCESS)
@@ -364,7 +373,8 @@ def create_service_manager(services: List[int],
     if static_services is None:
         static_services = []
     magma_service.config = {
-        'static_services': static_services
+        'static_services': static_services,
+        '5G_feature_set': {'enable': False}
     }
     service_manager = ServiceManager(magma_service)
 
@@ -372,6 +382,8 @@ def create_service_manager(services: List[int],
     service_manager.rule_id_mapper._rule_nums_by_rule = {}
     service_manager.rule_id_mapper._rules_by_rule_num = {}
     service_manager.session_rule_version_mapper._version_by_imsi_and_rule = {}
+    service_manager.interface_to_prefix_mapper._prefix_by_interface = {}
+    service_manager.tunnel_id_mapper._tunnel_map = {}
 
     return service_manager
 
@@ -603,3 +615,14 @@ def get_iface_ipv4(iface: str) -> List[str]:
         ip_addr_list.append(ip_rec['addr'])
 
     return ip_addr_list
+
+
+def get_iface_gw_ipv4(iface: str) -> List[str]:
+    gateways = netifaces.gateways()
+    gateway_ip_addr_list = []
+    for gw_ip, gw_iface, _ in gateways[netifaces.AF_INET]:
+        if gw_iface != iface:
+            continue
+        gateway_ip_addr_list.append(gw_ip)
+
+    return gateway_ip_addr_list

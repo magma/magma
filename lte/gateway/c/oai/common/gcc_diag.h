@@ -40,10 +40,8 @@
   OAI_GCC_DIAG_PRAGMA(ignored x)
 #define OAI_GCC_DIAG_ON(x) OAI_GCC_DIAG_PRAGMA(pop)
 #else
-#define OAI_GCC_DIAG_OFF(x)                                                    \
-  OAI_GCC_DIAG_PRAGMA(ignored x)
-#define OAI_GCC_DIAG_ON(x)                                                     \
-  OAI_GCC_DIAG_PRAGMA(warning x)
+#define OAI_GCC_DIAG_OFF(x) OAI_GCC_DIAG_PRAGMA(ignored x)
+#define OAI_GCC_DIAG_ON(x) OAI_GCC_DIAG_PRAGMA(warning x)
 #endif
 #else
 #define OAI_GCC_DIAG_OFF(x)

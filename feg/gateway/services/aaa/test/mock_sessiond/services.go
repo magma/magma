@@ -20,11 +20,10 @@ import (
 
 	"golang.org/x/net/context"
 
-	"magma/lte/cloud/go/protos"
-	orc8rProtos "magma/orc8r/lib/go/protos"
-
 	"magma/feg/gateway/registry"
+	"magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/test_utils"
+	orc8rProtos "magma/orc8r/lib/go/protos"
 )
 
 // MockSessionManager test sessiond  implementation
@@ -81,6 +80,13 @@ func (c *MockSessionManager) SetSessionRules(ctx context.Context, in *protos.Ses
 		return nil, fmt.Errorf("SetSessionRules returnErrors enabled")
 	}
 	return &orc8rProtos.Void{}, nil
+}
+
+func (c *MockSessionManager) UpdateTunnelIds(ctx context.Context, in *protos.UpdateTunnelIdsRequest) (*protos.UpdateTunnelIdsResponse, error) {
+	if c.returnErrors {
+		return nil, fmt.Errorf("UpdateTunnelIds returnErrors enabled")
+	}
+	return &protos.UpdateTunnelIdsResponse{}, nil
 }
 
 func (c *MockSessionManager) ReturnErrors(enable bool) {

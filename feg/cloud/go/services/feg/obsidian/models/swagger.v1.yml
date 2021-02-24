@@ -865,6 +865,21 @@ definitions:
         example: false
     x-go-custom-tag: 'magma_alt_name:"HSS"'
 
+  s8:
+    type: object
+    description: s8 configuration
+    properties:
+      local_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+      pgw_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+
   gx:
     type: object
     description: gx configuration
@@ -966,6 +981,17 @@ definitions:
           maxLength: 6
           pattern: '^(\d{5,6})$'
           example: '123456'
+      use_s6a:
+        type: boolean
+        x-nullable: false
+        default: false
+        example: false
+      mnc_len:
+        type: integer
+        format: int32
+        x-nullable: false
+        default: 3
+        example: 3
 
   eap_sim:
     type: object
@@ -981,6 +1007,17 @@ definitions:
           maxLength: 6
           pattern: '^(\d{5,6})$'
           example: '123456'
+      use_s6a:
+        type: boolean
+        x-nullable: false
+        default: false
+        example: false
+      mnc_len:
+        type: integer
+        format: int32
+        x-nullable: false
+        default: 3
+        example: 3
 
   radius_config:
     type: object
@@ -1048,6 +1085,18 @@ definitions:
     type: array
     description: served network IDs
     items:
+      type: string
+
+  served_nh_ids:
+    type: array
+    description: served neutral host IDs
+    items:
+      type: string
+
+  nh_routes:
+    type: object
+    description: neutral host PLMN ID to serving FeG network routes
+    additionalProperties:
       type: string
 
   health:
@@ -1128,6 +1177,8 @@ definitions:
     properties:
       s6a:
         $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
       hss:
         $ref: '#/definitions/hss'
       gx:
@@ -1148,6 +1199,10 @@ definitions:
         $ref: '#/definitions/health'
       csfb:
         $ref: '#/definitions/csfb'
+      served_nh_ids:
+        $ref: '#/definitions/served_nh_ids'
+      nh_routes:
+        $ref: '#/definitions/nh_routes'
 
   eap_aka_timeouts:
     type: object
@@ -1341,6 +1396,11 @@ definitions:
         type: string
         example: ".*\\.magma.*"
         x-nullable: false
+      charging_characteristics_filter:
+        description: Regex to match ChargingCharacteristics values
+        type: string
+        example: "12"
+        x-nullable: false
       apn_overwrite:
         description: New APN to overwrite when filter matches
         type: string
@@ -1425,6 +1485,7 @@ definitions:
     minLength: 1
     required:
       - s6a
+      - s8
       - hss
       - gx
       - gy
@@ -1436,6 +1497,8 @@ definitions:
     properties:
       s6a:
         $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
       hss:
         $ref: '#/definitions/hss'
       gx:
@@ -1456,6 +1519,10 @@ definitions:
         $ref: '#/definitions/health'
       csfb:
         $ref: '#/definitions/csfb'
+      served_nh_ids:
+        $ref: '#/definitions/served_nh_ids'
+      nh_routes:
+        $ref: '#/definitions/nh_routes'
 
   federated_network_configs:
     description: Configs for networks that are federated

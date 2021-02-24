@@ -143,6 +143,14 @@ typedef struct volte_params_s {
       voice_domain_preference_and_ue_usage_setting;
 } volte_params_t;
 
+struct emm_attach_request_ies_s;
+typedef struct new_attach_info_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id; /* mme_ue_s1ap_id for which Attach Request
+                                      is received */
+  bool
+      is_mm_ctx_new; /* Attach request is received in S1ap initial UE message */
+  struct emm_attach_request_ies_s* ies;
+} new_attach_info_t;
 /*
  * Structure of the EMM context established by the network for a particular UE
  * ---------------------------------------------------------------------------
@@ -361,6 +369,7 @@ typedef struct emm_context_s {
    *if this flag is set after receving service req, send detach
    */
   bool nw_init_bearer_deactv;
+  new_attach_info_t* new_attach_info;
 } emm_context_t;
 
 /*
@@ -384,6 +393,13 @@ typedef struct emm_data_s {
   // TODO LG REMOVE obj_hash_table_uint64_t     *ctx_coll_guti;  // key is guti,
   // data is emm ue id (unsigned int)
 } emm_data_t;
+
+typedef struct {
+  unsigned int ue_id;
+#define DETACH_REQ_COUNTER_MAX 5
+  unsigned int retransmission_count;
+  uint8_t detach_type;
+} nw_detach_data_t;
 
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t* const ctxt)
     __attribute__((nonnull));
@@ -422,11 +438,10 @@ void emm_ctx_set_valid_old_guti(emm_context_t* const ctxt, guti_t* guti)
 
 void emm_ctx_clear_imsi(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_imsi(
-    emm_context_t* const ctxt, imsi_t* imsi, const imsi64_t imsi64)
+void emm_ctx_set_imsi(emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_valid_imsi(
-    emm_context_t* const ctxt, imsi_t* imsi, const imsi64_t imsi64)
+    emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64)
     __attribute__((nonnull)) __attribute__((flatten));
 
 void emm_ctx_clear_imei(emm_context_t* const ctxt) __attribute__((nonnull))
@@ -553,6 +568,10 @@ void emm_context_dump(
     const struct emm_context_s* const elm_pP, const uint8_t indent_spaces,
     bstring bstr_dump) __attribute__((nonnull));
 
+/*
+ *  Detach Proc: Timer handler
+ */
+void detach_t3422_handler(void*, imsi64_t* imsi64);
 /****************************************************************************/
 /********************  G L O B A L    V A R I A B L E S  ********************/
 /****************************************************************************/

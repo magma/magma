@@ -273,6 +273,13 @@ func (m *GatewayEpcConfigs) ValidateModel() error {
 			return errors.New("Only IPv4 is supported currently for DNS")
 		}
 	}
+
+	if m.IPV6DNSAddr != "" {
+		ip := net.ParseIP(string(m.IPV6DNSAddr))
+		if ip == nil {
+			return errors.New("Invalid IPV6 DNS address")
+		}
+	}
 	return nil
 }
 
@@ -293,10 +300,10 @@ func (m *GatewayNonEpsConfigs) ValidateModel() error {
 	if err := validate.Required("arfcn_2g", "body", m.Arfcn2g); err != nil {
 		res = append(res, err)
 	}
-	if err := validate.RequiredString("csfb_mcc", "body", string(m.CsfbMcc)); err != nil {
+	if err := validate.RequiredString("csfb_mcc", "body", m.CsfbMcc); err != nil {
 		res = append(res, err)
 	}
-	if err := validate.RequiredString("csfb_mnc", "body", string(m.CsfbMnc)); err != nil {
+	if err := validate.RequiredString("csfb_mnc", "body", m.CsfbMnc); err != nil {
 		res = append(res, err)
 	}
 	if err := validate.Required("csfb_rat", "body", m.CsfbRat); err != nil {
@@ -324,12 +331,53 @@ func (m *EnodebSerials) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *Enodeb) ValidateModel() error {
+func (m *GatewayHeConfig) ValidateModel() error {
 	return m.Validate(strfmt.Default)
+}
+
+func (m *Enodeb) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	if m.EnodebConfig != nil {
+		if err := m.EnodebConfig.validateEnodebConfig(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (m *EnodebConfiguration) ValidateModel() error {
 	return m.Validate(strfmt.Default)
+}
+
+func (m *UnmanagedEnodebConfiguration) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *EnodebConfig) validateEnodebConfig() error {
+	managedConfigSet := m.ManagedConfig != nil
+	unmanagedConfigSet := m.UnmanagedConfig != nil
+
+	if managedConfigSet && unmanagedConfigSet {
+		return errors.New("only one of the eNodeb config types can be set")
+	}
+
+	if managedConfigSet {
+		if m.ConfigType != ManagedConfigType {
+			return errors.New("invalid type set for managed config")
+		}
+
+	}
+	if unmanagedConfigSet {
+		if m.ConfigType != UnmanagedConfigType {
+			return errors.New("invalid type set for unmanaged config")
+		}
+	}
+
+	return nil
 }
 
 func (m *EnodebState) ValidateModel() error {
@@ -338,4 +386,53 @@ func (m *EnodebState) ValidateModel() error {
 
 func (m *Apn) ValidateModel() error {
 	return m.Validate(strfmt.Default)
+}
+
+func (m *CellularGatewayPool) ValidateModel() error {
+	err := m.Validate(strfmt.Default)
+	if err != nil {
+		return err
+	}
+	return m.Config.ValidateModel()
+}
+
+func (m *CellularGatewayPoolConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *MutableCellularGatewayPool) ValidateModel() error {
+	err := m.Validate(strfmt.Default)
+	if err != nil {
+		return err
+	}
+	return m.Config.ValidateModel()
+}
+
+func (m *CellularGatewayPoolRecords) ValidateModel() error {
+	err := m.Validate(strfmt.Default)
+	if err != nil {
+		return err
+	}
+	uniquePool := make(map[GatewayPoolID]bool, len(*m))
+	for _, record := range *m {
+		if !uniquePool[record.GatewayPoolID] {
+			uniquePool[record.GatewayPoolID] = true
+		} else {
+			return fmt.Errorf("All pool records must have unique pool IDs")
+		}
+	}
+	if len(*m) == 0 {
+		return nil
+	}
+	relCapacity := (*m)[0].MmeRelativeCapacity
+	mmeCode := (*m)[0].MmeCode
+	for _, record := range *m {
+		if record.MmeRelativeCapacity != relCapacity {
+			return fmt.Errorf("Setting different MME relative capacities for the same gateway is currently unsupported")
+		}
+		if record.MmeCode != mmeCode {
+			return fmt.Errorf("Setting different MME codes for the same gateway is currently unsupported")
+		}
+	}
+	return nil
 }

@@ -22,10 +22,11 @@ limitations under the License.
 		- HWID -> gateway status blob
 
 	Since state values are stored as arbitrary serialized blobs, the state
-	service has no semantic understanding of stored values. This means searching
-	over stored values would otherwise require an O(n) operation.
+	service has no semantic understanding of stored values. This means
+	searching over stored values would otherwise require an O(n) operation.
 	Examples
-		- Find IMSI with given IP -- must load all directory records into memory
+		- Find IMSI with given IP -- must load all directory records into
+		  memory
 		- Find all gateways that haven't checked in recently -- must load all
 		  gateway statuses into memory
 
@@ -44,7 +45,7 @@ limitations under the License.
 			- Secondary state: checkin time -> HWID (stored in e.g. metricsd)
 		- List all gateways with multiple kernel versions installed
 			- Primary state: HWID -> gateway status
-			-  Secondary state: list of gateways (stored in e.g. bootstrapper)
+			- Secondary state: list of gateways (stored in e.g. bootstrapper)
 
 	State indexers
 
@@ -57,7 +58,7 @@ limitations under the License.
 	servicer.
 
 	Indexers provide two additional pieces of metadata -- version and types.
-		- version: positive integer indicating when the indexer requires reindexing
+		- version: positive integer indicating when indexer requires reindexing
 		- types: list of state types the indexer subscribes to
 	These metadata are indicated by K8s annotations
 		- orc8r.io/state_indexer_version -- positive integer
@@ -81,8 +82,8 @@ limitations under the License.
 	To create a custom indexer, attach an IndexerServer to a new or existing
 	Orchestrator service.
 
-	A service can only attach a single indexer. However, that indexer can choose
-	to multiplex its functionality over any desired number of "logical"
+	A service can only attach a single indexer. However, that indexer can
+	choose to multiplex its functionality over any desired number of "logical"
 	indexers.
 
 	See the orchestrator service for an example custom indexer.
@@ -109,7 +110,7 @@ limitations under the License.
 	operations.
 
 	There is a trivial but existent race condition during the reindex process.
-	Since the index and reindex operations but use the Index gRPC method,
+	Since the index and reindex operations both use the Index gRPC method,
 	and the index and reindex operations operate in parallel, it's possible for
 	an indexer to receive an outdated piece of state from the reindexer.
 	However, this requires

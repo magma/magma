@@ -75,10 +75,14 @@ class SetMessageManagerHandler : public SetMessageManager {
    */
   void send_create_session(
       SessionMap& session_map, const std::string& imsi,
-      const std::string& session_ctx_id, const SessionConfig& cfg);
+      const std::string& session_ctx_id, const SessionConfig& cfg,
+      const std::string& dnn);
   /*initialize the session message from proto message*/
   SessionConfig m5g_build_session_config(const SetSMSessionContext& request);
 
-};  // of class SetMessageManagerHandlerImpl
+  /*Release request message handling*/
+  void initiate_release_session(
+      SessionMap& session_map, const std::string& dnn, const std::string& imsi);
+};  // end of class SetMessageManagerHandlerImpl
 
 }  // end namespace magma

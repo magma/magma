@@ -10,7 +10,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
 RUNNING_TAG=$(docker ps --filter name=magmad --format "{{.Image}}" | cut -d ":" -f 2)
 
 source /var/opt/magma/docker/.env
@@ -20,17 +19,30 @@ if [ "$RUNNING_TAG" == "$IMAGE_VERSION" ]; then
   exit
 fi
 
+if pidof -o %PPID -x $0 >/dev/null; then
+  echo "Upgrade process already running"
+  exit
+fi
+
 # Otherwise recreate containers with the new image
 cd /var/opt/magma/docker || exit
+
+# Pull all images
+/usr/local/bin/docker-compose pull
 
 # Stop all containers
 # NOTE: add docker restart to work around GoRadius failures to stop
 /usr/local/bin/docker-compose down ||
-  systemctl restart docker.socket docker.service &&
-  docker stop $(docker ps -a -q)
+  systemctl restart docker.socket docker.service
+
+CONTAINERS=$(docker ps -a -q)
+[[ -z "$CONTAINERS" ]] || docker stop $CONTAINERS
 
 # Bring containers up
 /usr/local/bin/docker-compose up -d
 
 # Remove all stopped containers and dangling images
 docker system prune -af
+
+# update image version in xwfmwhoami
+sed -i "s/image_.*/image_version: $IMAGE_VERSION/g" /etc/xwfwhoami

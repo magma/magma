@@ -58,6 +58,7 @@
 #define MIN_MNC_LENGTH 2
 #define CIDR_SPLIT_LIST_COUNT 2
 #define MAX_APN_CORRECTION_MAP_LIST 10
+#define MAX_RESTRICTED_PLMN 10
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
@@ -113,11 +114,12 @@
 #define MME_CONFIG_STRING_MNC "MNC"
 #define MME_CONFIG_STRING_TAC "TAC"
 
+#define MME_CONFIG_STRING_RESTRICTED_PLMN_LIST "RESTRICTED_PLMN_LIST"
+
 #define MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"
 #define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S1_MME                            \
   "MME_INTERFACE_NAME_FOR_S1_MME"
-#define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S1_MME                              \
-  "MME_IPV4_ADDRESS_FOR_S1_MME"
+#define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S1_MME "MME_IPV4_ADDRESS_FOR_S1_MME"
 #define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S11_MME                           \
   "MME_INTERFACE_NAME_FOR_S11_MME"
 #define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S11_MME                             \
@@ -149,10 +151,8 @@
   "DISABLE_ESM_INFORMATION_PROCEDURE"
 #define MME_CONFIG_STRING_NAS_FORCE_PUSH_DEDICATED_BEARER                      \
   "FORCE_PUSH_DEDICATED_BEARER"
-#define MME_CONFIG_STRING_NAS_ENABLE_APN_CORRECTION                            \
-  "ENABLE_APN_CORRECTION"
-#define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_LIST                          \
-  "APN_CORRECTION_MAP_LIST"
+#define MME_CONFIG_STRING_NAS_ENABLE_APN_CORRECTION "ENABLE_APN_CORRECTION"
+#define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_LIST "APN_CORRECTION_MAP_LIST"
 #define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_IMSI_PREFIX                   \
   "APN_CORRECTION_MAP_IMSI_PREFIX"
 #define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_APN_OVERRIDE                  \
@@ -181,6 +181,12 @@
 #define MME_CONFIG_STRING_CSFB_MCC "CSFB_MCC"
 #define MME_CONFIG_STRING_CSFB_MNC "CSFB_MNC"
 #define MME_CONFIG_STRING_LAC "LAC"
+
+// HA
+#define MME_CONFIG_STRING_USE_HA "USE_HA"
+// Cloud Instances may utilize this to reach RAN behind NAT
+#define MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION                    \
+  "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
 
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
@@ -288,6 +294,11 @@ typedef struct gummei_config_s {
   gummei_t gummei[MAX_GUMMEI];
 } gummei_config_t;
 
+typedef struct restricted_plmn_s {
+  int num;
+  plmn_t plmn[MAX_RESTRICTED_PLMN];
+} restricted_plmn_config_t;
+
 typedef struct mme_config_s {
   /* Reader/writer lock for this configuration */
   pthread_rwlock_t rw_lock;
@@ -317,6 +328,8 @@ typedef struct mme_config_s {
 
   gummei_config_t gummei;
 
+  restricted_plmn_config_t restricted_plmn;
+
   served_tai_t served_tai;
 
   service303_data_t service303_config;
@@ -334,6 +347,8 @@ typedef struct mme_config_s {
   lai_t lai;
 
   bool use_stateless;
+  bool use_ha;
+  bool enable_gtpu_private_ip_correction;
 } mme_config_t;
 
 extern mme_config_t mme_config;

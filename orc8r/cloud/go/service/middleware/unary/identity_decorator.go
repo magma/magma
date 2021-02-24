@@ -15,12 +15,12 @@
 package unary
 
 import (
-	"log"
 	"net"
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -28,6 +28,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 	unarylib "magma/orc8r/lib/go/service/middleware/unary"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
@@ -101,7 +102,7 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 
 	ctxMetadata, ok := metadata.FromIncomingContext(ctx)
 	if !ok || ctxMetadata == nil {
-		log.Printf(ERROR_MSG_NO_METADATA)
+		glog.Info(ERROR_MSG_NO_METADATA)
 		// Metadata should always be present for GRPC client calls
 		// If we want to enable ANY calls from local clients, we need to
 		// change the return statement to:
@@ -116,8 +117,8 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 	if snok { // there is a certificate serial number (CSN) list in CTX
 		if len(snlist) != 1 {
 			// there can be only one CSN, error out if not
-			log.Printf("Multiple CSNs found in metadata: %+v", ctxMetadata)
-			err = status.Error(codes.Unauthenticated, "Invalid SCN List")
+			glog.Infof("Multiple CSNs found in metadata: %+v", ctxMetadata)
+			err = status.Error(codes.Unauthenticated, "Multiple CSNs present")
 		} else {
 			// One CSN is found, find Identity associated with it
 			var gwIdentity *protos.Identity
@@ -140,7 +141,7 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 			// CN header is present while SN header is missing - possible
 			// security hack, either both or neither of the headers should be
 			// set
-			log.Printf("CCN is present without SCN in metadata: %+v", ctxMetadata)
+			glog.Infof("CCN is present without SCN in metadata: %+v", ctxMetadata)
 			err = status.Error(
 				codes.Unauthenticated, "Inconsistent Request Signature")
 		}
@@ -172,7 +173,7 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 			} else {
 				rpc = "Undefined"
 			}
-			log.Printf(
+			glog.Infof(
 				"Empty CTX Metadata from non-local %s client: %v", rpc, err)
 		}
 	}
@@ -199,7 +200,7 @@ func findGatewayIdentity(serialNumber string, md metadata.MD) (*protos.Identity,
 	expSeconds := expiration.Unix()
 	// Check if it's Gateway identity
 	if gwIdentity == nil {
-		log.Printf(
+		glog.Infof(
 			"Identity (%s) of Cert SN %s from metadata %+v is not a Gateway",
 			id.HashString(), serialNumber, md)
 
@@ -209,9 +210,9 @@ func findGatewayIdentity(serialNumber string, md metadata.MD) (*protos.Identity,
 	// At this point we should have a valid GW Identity with HardwareId, so
 	// the Gateway is authenticated. Now we'll try to find GW Network & Logical
 	// ID & add them to the GW Identity
-	entity, err := configurator.LoadEntityForPhysicalID(gwIdentity.HardwareId, configurator.EntityLoadCriteria{})
+	entity, err := configurator.LoadEntityForPhysicalID(gwIdentity.HardwareId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
-		log.Printf(
+		glog.Infof(
 			"Unregistered Gateway Id: %s for Cert SN: %s; err: %s; metadata: %+v",
 			gwIdentity.HardwareId, serialNumber, err, md)
 	}
@@ -234,13 +235,13 @@ func getCertifierIinfo(serialNumber string, md metadata.MD) (*certprotos.Certifi
 	// & error out if SN is not found or expired
 	certInfo, err := certifier.GetCertificateIdentity(serialNumber)
 	if err != nil {
-		log.Printf(
+		glog.Infof(
 			"Lookup error '%s' for Cert SN: %s, metadata: %+v",
 			err, serialNumber, md)
 		return nil, status.Error(codes.PermissionDenied, ERROR_MSG_UNKNOWN_CERT)
 	}
 	if certInfo == nil {
-		log.Printf(
+		glog.Infof(
 			"Missing Certificate Info for Cert SN: %s, metadata: %+v",
 			serialNumber, md)
 		return nil, status.Error(codes.PermissionDenied, ERROR_MSG_INVALID_CERT)
@@ -248,14 +249,14 @@ func getCertifierIinfo(serialNumber string, md metadata.MD) (*certprotos.Certifi
 	// Check if certificate time is not expired/not active yet
 	err = certifier.VerifyDateRange(certInfo)
 	if err != nil {
-		log.Printf(
+		glog.Infof(
 			"Certificate Validation Error '%s' for Cert SN: %s, metadata: %+v",
 			err, serialNumber, md)
 
 		return nil, status.Error(codes.PermissionDenied, ERROR_MSG_EXPIRED_CERT)
 	}
 	if certInfo.Id == nil {
-		log.Printf(
+		glog.Infof(
 			"Missing Gateway ID for Cert SN: %s, metadata: %+v",
 			serialNumber,
 			md)

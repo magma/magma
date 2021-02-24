@@ -18,25 +18,21 @@ import (
 	"time"
 
 	"magma/cwf/cloud/go/cwf"
-	plugin2 "magma/cwf/cloud/go/plugin"
+	"magma/cwf/cloud/go/serdes"
 	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
 	models2 "magma/cwf/cloud/go/services/cwf/obsidian/models"
 	"magma/feg/cloud/go/feg"
-	plugin3 "magma/feg/cloud/go/plugin"
 	models3 "magma/feg/cloud/go/services/feg/obsidian/models"
-	plugin4 "magma/lte/cloud/go/plugin"
 	"magma/orc8r/cloud/go/clock"
 	models5 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
@@ -51,10 +47,6 @@ import (
 )
 
 func TestCwfNetworks(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin4.LteOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin3.FegOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -189,7 +181,7 @@ func TestCwfNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true)
+	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -241,7 +233,7 @@ func TestCwfNetworks(t *testing.T) {
 	seedCwfTier(t, "n1")
 	seedCwfGateway(t, "g1", "hw1")
 
-	reqRecord := &directoryd.DirectoryRecord{
+	reqRecord := &directorydTypes.DirectoryRecord{
 		LocationHistory: []string{"hw1"},
 		Identifiers: map[string]interface{}{
 			"mac_addr":  "aa:aa:aa:aa:aa:aa",
@@ -325,8 +317,6 @@ func TestCwfNetworks(t *testing.T) {
 }
 
 func TestCwfGateways(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 	test_init.StartTestService(t)
@@ -668,13 +658,12 @@ func TestCwfGateways(t *testing.T) {
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 404,
-		ExpectedError:  "Not found",
+		ExpectedError:  "Not Found",
 	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestCwfHaPairs(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 	test_init.StartTestService(t)
@@ -703,7 +692,7 @@ func TestCwfHaPairs(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listHaPairs,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(make(map[string]*models2.CwfHaPair, 0)),
+		ExpectedResult: tests.JSONMarshaler(map[string]*models2.CwfHaPair{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -714,6 +703,7 @@ func TestCwfHaPairs(t *testing.T) {
 		Config: &models2.CwfHaPairConfigs{
 			TransportVirtualIP: "10.10.10.11/24",
 		},
+		State: &models2.CarrierWifiHaPairState{},
 	}
 	// Create HA Pair
 	tc = tests.Test{
@@ -728,6 +718,28 @@ func TestCwfHaPairs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Report pair status
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	haPairReq := &models2.CarrierWifiHaPairStatus{
+		ActiveGateway: "g1",
+	}
+	reportHaPairStatus(t, ctx, "pair1", haPairReq)
+	healthyStatus := &models2.CarrierWifiGatewayHealthStatus{
+		Status:      "HEALTHY",
+		Description: "OK",
+	}
+	reportGatewayHealthStatus(t, ctx, "g1", healthyStatus)
+	unhealthyStatus := &models2.CarrierWifiGatewayHealthStatus{
+		Status:      "UNHEALTHY",
+		Description: "Services 'foo' is unhealthy",
+	}
+	reportGatewayHealthStatus(t, ctx, "g2", unhealthyStatus)
+
+	cwfHaPair.State = &models2.CarrierWifiHaPairState{
+		HaPairStatus:   haPairReq,
+		Gateway1Health: healthyStatus,
+		Gateway2Health: unhealthyStatus,
+	}
 	// Get HA Pair
 	tc = tests.Test{
 		Method:         "GET",
@@ -768,8 +780,8 @@ func TestCwfHaPairs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	haPairReq := &models2.CarrierWifiHaPairStatus{
+	ctx = test_utils.GetContextWithCertificate(t, "hw1")
+	haPairReq = &models2.CarrierWifiHaPairStatus{
 		ActiveGateway: "g1",
 	}
 	reportHaPairStatus(t, ctx, "pair1", haPairReq)
@@ -832,6 +844,7 @@ func seedCwfNetworks(t *testing.T) {
 				},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 	_, err = configurator.CreateNetworks(
@@ -865,15 +878,16 @@ func seedCwfNetworks(t *testing.T) {
 				Configs:     map[string]interface{}{},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 }
 
-func reportSubscriberDirectoryRecord(t *testing.T, ctx context.Context, id string, req *directoryd.DirectoryRecord) {
+func reportSubscriberDirectoryRecord(t *testing.T, ctx context.Context, id string, req *directorydTypes.DirectoryRecord) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(state.SerdeDomain, orc8r.DirectoryRecordType, req)
+	serializedRecord, err := serde.Serialize(req, orc8r.DirectoryRecordType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -894,7 +908,7 @@ func reportHaPairStatus(t *testing.T, ctx context.Context, pairID string, req *m
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(state.SerdeDomain, cwf.CwfHAPairStatusType, req)
+	serializedRecord, err := serde.Serialize(req, cwf.CwfHAPairStatusType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -915,7 +929,7 @@ func reportGatewayHealthStatus(t *testing.T, ctx context.Context, gatewayID stri
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(state.SerdeDomain, cwf.CwfGatewayHealthType, req)
+	serializedRecord, err := serde.Serialize(req, cwf.CwfGatewayHealthType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -983,6 +997,7 @@ func seedCwfTier(t *testing.T, networkID string) {
 		[]configurator.NetworkEntity{
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 }

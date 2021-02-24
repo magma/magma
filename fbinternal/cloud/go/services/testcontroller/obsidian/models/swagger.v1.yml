@@ -398,7 +398,7 @@ definitions:
         minLength: 1
       enodeb_config:
         description: Config will be used to reconfigure enodeb
-        $ref: './lte-swagger.yml#/definitions/enodeb_configuration'
+        $ref: './lte-swagger.yml#/definitions/enodeb_config'
       ssid:
         description: SSID the enodeb will connect to
         type: string
@@ -523,3 +523,18 @@ definitions:
         type: string
         minLength: 1
         example: 'abcdefg'
+
+  latest_script_execution:
+    type: object
+    required:
+      - timestamp
+      - version
+    properties:
+      timestamp:
+        description: Timestamp of latest script execution
+        type: integer
+        x-nullable: false
+      version:
+        description: Magma version of latest script execution
+        type: string
+        x-nullable: false

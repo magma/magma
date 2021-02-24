@@ -85,6 +85,7 @@ WORKDIR $MAGMA_ROOT/feg/gateway
 RUN go mod download; exit 0
 # Install protoc-gen-go
 RUN go install github.com/golang/protobuf/protoc-gen-go; exit 0
+RUN go get -u github.com/vektra/mockery/v2/.../; exit 0
 
 # Symlink python scripts.
 RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py

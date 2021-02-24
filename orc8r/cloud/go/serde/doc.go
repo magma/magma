@@ -11,9 +11,14 @@
  * limitations under the License.
  */
 
-// Package serde contains the definition of a SERializer-DEserializer concept.
-// This package also includes a global registry of serdes for applications to
-// delegate implementation-agnostic serialization and deserialization to.
-// Serdes are one of the primary plugin interfaces exposed by orc8r to extend
-// services with domain-specific data models and logic.
+/*
+	Package serde contains the definition of a SERializer-DEserializer concept.
+
+	This package provides the functionality to define per-domain serde
+	registries, where each serde defines the encodings for a particular type
+	of object. This allows applications to inject domain-specific data models
+	and logic into the core orc8r services.
+
+	See related: builtin "encoding" package.
+*/
 package serde
