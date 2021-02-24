@@ -2377,7 +2377,8 @@ static bool mme_app_recover_timers_for_ue(
   }
 
   if (ue_mm_context_pP->emm_context._emm_fsm_state != EMM_REGISTERED) {
-    (*mme_id_list)[(*num_unreg_ues)++] = keyP;
+    (*mme_id_list)[*num_unreg_ues] = keyP;
+    ++(*num_unreg_ues);
     OAILOG_DEBUG(LOG_MME_APP, "Added %u unreg UEs", *num_unreg_ues);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
