@@ -1,8 +1,8 @@
 ---
 
-- include: py-packages.yml
+- include: py-packages.yaml
   tags: py
-- include: build-tools-packages.yml
+- include: build-tools-packages.yaml
   tags: tools
 - include: magma-repo.yaml
   tags: setupMagma

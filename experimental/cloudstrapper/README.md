@@ -57,11 +57,11 @@
   - devops-provision: Setup instance using default security group, Bootkey and Ubuntu 
   - Command:
     ```
-    ansible-playbook devops-provision.yaml -e "dirInventory=<directory>" 
+    ansible-playbook devops-provision.yaml -e "dirLocalInventory=<directory>" 
     ```
   - Example:
     ```
-    ansible-playbook devops-provision.yaml -e "dirInventory=~/magma-experimental/files
+    ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files
     ```
   - Result: Base instance for Devops provisioned
 
@@ -72,18 +72,18 @@
     ```
     Example:
     ```
-    ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags usingGitSshKey,buildMagma,pubMagma,helm
+    ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm
     ```
   - Result: Base instance configured using packages and latest Mantle source 
 
   - devops-init: Snapshot instance  
     Command:
     ```
-    ansible-playbook devops-init.yaml  -e "dirInventory=<directory>"
+    ansible-playbook devops-init.yaml  -e "dirLocalInventory=<directory>"
     ```
     Example:
     ```
-    ansible-playbook devops-init.yaml  -e "dirInventory=~/magma-experimental/files" 
+    ansible-playbook devops-init.yaml  -e "dirLocalInventory=~/magma-experimental/files" 
     ```
   - Result: imgMagmaCloudstrap AMI created
 
