@@ -88,7 +88,7 @@ class IPAllocatorStaticWrapper(IPAllocator):
             self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
                                                           IPState.FREE)
             ip_block_network = ip_network(ip_desc.ip_block)
-            if ip_block_network in self._assigned_ip_blocks:
+            if ip_block_network in self._store.assigned_ip_blocks:
                 self._store.assigned_ip_blocks.remove(ip_block_network)
         else:
             self._ip_allocator.release_ip(ip_desc)
