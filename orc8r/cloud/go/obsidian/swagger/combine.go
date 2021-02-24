@@ -58,9 +58,9 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 	return combined, nil
 }
 
-// GetCombinedSpecFromService polls a service for its spec and combines
-// it with the common spec to return a combined spec.
-func GetCombinedSpecFromService(yamlCommon string, service string) (string, error) {
+// GetServiceSpec polls a service for its spec and combines it with the
+// common spec to return a combined spec.
+func GetServiceSpec(yamlCommon string, service string) (string, error) {
 	remoteSpec := NewRemoteSpec(service)
 	yamlSpec, err := remoteSpec.GetSpec()
 	if err != nil {

@@ -109,11 +109,11 @@ func Test_GetCombinedSpecFromService(t *testing.T) {
 	yamlCommon := marshalToYAML(t, commonSpec)
 
 	// Fail with empty service
-	_, err := swagger.GetCombinedSpecFromService(yamlCommon, "")
+	_, err := swagger.GetServiceSpec(yamlCommon, "")
 	assert.Error(t, err)
 
 	// Fail with invalid service
-	_, err = swagger.GetCombinedSpecFromService(yamlCommon, "invalid_test_spec_service")
+	_, err = swagger.GetServiceSpec(yamlCommon, "invalid_test_spec_service")
 	assert.Error(t, err)
 
 	// Success with valid service
@@ -129,7 +129,7 @@ func Test_GetCombinedSpecFromService(t *testing.T) {
 
 	registerServicer(t, "test_spec_service", tag)
 
-	combined, err := swagger.GetCombinedSpecFromService(yamlCommon, testService)
+	combined, err := swagger.GetServiceSpec(yamlCommon, testService)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedYaml, combined)
 }

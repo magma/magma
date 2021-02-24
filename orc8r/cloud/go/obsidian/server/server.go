@@ -47,7 +47,9 @@ func Start() {
 
 	err := handlers.RegisterSwaggerHandlers(e)
 	if err != nil {
-		glog.Errorf("error occurred while registering Swagger handlers %+v", err)
+		// Swallow RegisterHandlerError because the obsidian service should
+		// continue to run even if Swagger handlers aren't registered.
+		glog.Errorf("Error registering Swagger handlers %+v", err)
 	}
 
 	// Serve static assets for the Swagger UI

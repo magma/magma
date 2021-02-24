@@ -29,6 +29,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// UIInfo contains the templating variables injected into the Swagger
+// UI template.
+type UIInfo struct {
+	// URL of the underlying Swagger spec
+	URL string
+}
+
 // RegisterSwaggerHandlers registers routes for Swagger specs and
 // the Swagger UI.
 func RegisterSwaggerHandlers(e *echo.Echo) error {
@@ -36,27 +43,27 @@ func RegisterSwaggerHandlers(e *echo.Echo) error {
 		RedirectCode: http.StatusMovedPermanently,
 	})
 
-	err := registerSwaggerSpecHandlers(e, trailSlashMiddleware)
+	err := registerSpecHandlers(e, trailSlashMiddleware)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return err
 	}
 
-	err = registerSwaggerUIHandlers(e, trailSlashMiddleware)
+	err = registerUIHandlers(e, trailSlashMiddleware)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return err
 	}
 
 	// Redirect requests for apidocs/v1/ to swagger/v1/ui/
 	e.GET(obsidian.StaticURLPrefixLegacy+"/v1", nil, trailSlashMiddleware)
 	e.GET(obsidian.StaticURLPrefixLegacy+"/v1/", func(c echo.Context) error {
-		return c.Redirect(http.StatusMovedPermanently, obsidian.StaticURLPrefix+"/ui/")
+		return c.Redirect(http.StatusMovedPermanently, obsidian.StaticURLPrefix+"/v1/ui/")
 	})
 
 	return nil
 }
 
-// GetCombinedSpecHandler returns a routing handler which creates
-// and serves the combined Swagger Spec.
+// GetCombinedSpecHandler returns a routing handler which creates and serves
+// the combined Swagger Spec.
 func GetCombinedSpecHandler(yamlCommon string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		combined, err := swagger.GetCombinedSpec(yamlCommon)
@@ -67,13 +74,11 @@ func GetCombinedSpecHandler(yamlCommon string) echo.HandlerFunc {
 	}
 }
 
-// GetSpecHandler returns a routing handler which creates and
-// serves the raw YAML spec of a singular service.
+// GetSpecHandler returns a routing handler which creates and serves the
+// raw YAML spec of a particular service.
 func GetSpecHandler(yamlCommon string) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestedService := c.Param("service")
-
-		service, ok, err := getServiceName(requestedService)
+		service, ok, err := getServiceName(c.Param("service"))
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -81,7 +86,7 @@ func GetSpecHandler(yamlCommon string) echo.HandlerFunc {
 			return obsidian.HttpError(errors.New("service not found"), http.StatusNotFound)
 		}
 
-		combined, err := swagger.GetCombinedSpecFromService(yamlCommon, service)
+		combined, err := swagger.GetServiceSpec(yamlCommon, service)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -90,19 +95,10 @@ func GetSpecHandler(yamlCommon string) echo.HandlerFunc {
 	}
 }
 
-// SpecInfo defines the URL to be injected into
-// the Swagger UI template.
-type SpecInfo struct {
-	URL string
-}
-
-// GetUIHandler returns a routing handler which serves
-// the UI of a service.
-func GetUIHandler(tmpl *template.Template, enableDynamicSwaggerSpecs bool) echo.HandlerFunc {
+// GetUIHandler returns a routing handler which serves the UI of a service.
+func GetUIHandler(tmpl *template.Template) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestedService := c.Param("service")
-
-		service, ok, err := getServiceName(requestedService)
+		service, ok, err := getServiceName(c.Param("service"))
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -110,13 +106,8 @@ func GetUIHandler(tmpl *template.Template, enableDynamicSwaggerSpecs bool) echo.
 			return obsidian.HttpError(errors.New("service not found"), http.StatusNotFound)
 		}
 
-		// If runtime Swagger spec is off, serve static spec
-		if service == "" && !enableDynamicSwaggerSpecs {
-			service = "swagger.yml"
-		}
-
 		var buf bytes.Buffer
-		err = tmpl.Execute(&buf, SpecInfo{URL: service})
+		err = tmpl.Execute(&buf, UIInfo{URL: obsidian.StaticURLPrefix + "/v1/spec/" + service})
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -125,41 +116,49 @@ func GetUIHandler(tmpl *template.Template, enableDynamicSwaggerSpecs bool) echo.
 	}
 }
 
-// registerSwaggerSpecHandlers registers routes for Swagger Specs.
-func registerSwaggerSpecHandlers(e *echo.Echo, trailSlashMiddleware echo.MiddlewareFunc) error {
+// registerSpecHandlers registers routes for Swagger specs.
+func registerSpecHandlers(e *echo.Echo, trailSlashMiddleware echo.MiddlewareFunc) error {
 	yamlCommon, err := swagger.GetCommonSpec()
 	if err != nil {
 		return err
 	}
 
-	e.GET(obsidian.StaticURLPrefix+"/spec", nil, trailSlashMiddleware)
-	e.GET(obsidian.StaticURLPrefix+"/spec/", GetCombinedSpecHandler(yamlCommon))
-	e.GET(obsidian.StaticURLPrefix+"/spec/:service", GetSpecHandler(yamlCommon))
+	if obsidian.EnableDynamicSwaggerSpecs {
+		e.GET(obsidian.StaticURLPrefix+"/v1/spec/", GetCombinedSpecHandler(yamlCommon))
+	} else {
+		// If dynamic Swagger spec is off, serve static spec
+		route := obsidian.StaticURLPrefix + "/v1/spec/"
+		file := obsidian.StaticFolder + obsidian.StaticURLPrefix + "/v1/spec/swagger.yml"
+		e.File(route, file)
+	}
+	e.GET(obsidian.StaticURLPrefix+"/v1/spec", nil, trailSlashMiddleware)
+
+	e.GET(obsidian.StaticURLPrefix+"/v1/spec/:service", GetSpecHandler(yamlCommon))
 
 	return nil
 }
 
-// registerSwaggerUIHandlers registers routes for the Swagger UI.
-func registerSwaggerUIHandlers(e *echo.Echo, trailSlashMiddleware echo.MiddlewareFunc) error {
+// registerUIHandlers registers routes for the Swagger UI.
+func registerUIHandlers(e *echo.Echo, trailSlashMiddleware echo.MiddlewareFunc) error {
 	tmpl, err := template.ParseFiles(obsidian.StaticFolder + "/swagger/v1/ui/index.html")
 	if err != nil {
 		return errors.Wrap(err, "retrieve Swagger template")
 	}
 
-	e.GET(obsidian.StaticURLPrefix+"/ui", nil, trailSlashMiddleware)
-	e.GET(obsidian.StaticURLPrefix+"/ui/", GetUIHandler(tmpl, obsidian.EnableDynamicSwaggerSpecs))
-	e.GET(obsidian.StaticURLPrefix+"/ui/:service", GetUIHandler(tmpl, obsidian.EnableDynamicSwaggerSpecs))
+	e.GET(obsidian.StaticURLPrefix+"/v1/ui/", GetUIHandler(tmpl))
+	e.GET(obsidian.StaticURLPrefix+"/v1/ui", nil, trailSlashMiddleware)
+
+	e.GET(obsidian.StaticURLPrefix+"/v1/ui/:service", GetUIHandler(tmpl))
 
 	return nil
 }
 
-// getServiceName returns if the service is a registered
-// service with a Swagger spec.
+// getServiceName returns if the service is registered with a Swagger spec.
 func getServiceName(service string) (string, bool, error) {
-	// If no service is provided, default to empty string to serve combined spec.
+	// If no service is provided, default to empty string to serve combined spec
 	if service == "" {
 		// Explicitly not returning user-generated string as a
-		// defense-in-depth measure against XSS attacks.
+		// defense-in-depth measure against XSS attacks
 		return "", true, nil
 	}
 
@@ -170,7 +169,7 @@ func getServiceName(service string) (string, bool, error) {
 
 	for _, s := range services {
 		// Explicitly not returning user-generated string as a
-		// defense-in-depth measure against XSS attacks.
+		// defense-in-depth measure against XSS attacks
 		if service == s {
 			return strings.ToLower(s), true, nil
 		}

@@ -131,8 +131,7 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1"
 
-	tmplStr := "Test Result is "
-	tmpl, err := template.New("test_template.html").Parse(tmplStr + "{{.URL}}")
+	tmpl, err := template.New("test_template.html").Parse("swagger_spec_url: {{.URL}}")
 	assert.NoError(t, err)
 
 	// Fail with invalid service name
@@ -142,13 +141,13 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 		Payload:                nil,
 		ParamNames:             []string{"service"},
 		ParamValues:            []string{"fake_test_service"},
-		Handler:                handlers.GetUIHandler(tmpl, true),
+		Handler:                handlers.GetUIHandler(tmpl),
 		ExpectedStatus:         404,
 		ExpectedErrorSubstring: "service not found",
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Success with empty service name as it should serve the static
+	// Success with empty service name as it should serve the
 	// monolithic Swagger spec
 	tc = tests.Test{
 		Method:         "GET",
@@ -156,43 +155,28 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"service"},
 		ParamValues:    []string{""},
-		Handler:        handlers.GetUIHandler(tmpl, false),
+		Handler:        handlers.GetUIHandler(tmpl),
 		ExpectedStatus: 200,
-		ExpectedResult: tests.StringMarshaler(tmplStr + "swagger.yml"),
-	}
-	tests.RunUnitTest(t, e, tc)
-
-	// Success with empty service name as it should serve the dynamic
-	// monolithic Swagger spec
-	tc = tests.Test{
-		Method:         "GET",
-		URL:            testURLRoot,
-		Payload:        nil,
-		ParamNames:     []string{"service"},
-		ParamValues:    []string{""},
-		Handler:        handlers.GetUIHandler(tmpl, true),
-		ExpectedStatus: 200,
-		ExpectedResult: tests.StringMarshaler(tmplStr),
+		ExpectedResult: tests.StringMarshaler("swagger_spec_url: /swagger/v1/spec/"),
 	}
 	tests.RunUnitTest(t, e, tc)
 
 	// Success with valid service name
-	testService2 := "test_spec_service2"
 
 	// Clean up registry
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
 
-	registerServicer(t, testService2, swagger_lib.TagDefinition{})
+	registerServicer(t, "test_spec_service2", swagger_lib.TagDefinition{})
 
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
 		ParamNames:     []string{"service"},
-		ParamValues:    []string{testService2},
-		Handler:        handlers.GetUIHandler(tmpl, true),
+		ParamValues:    []string{"test_spec_service2"},
+		Handler:        handlers.GetUIHandler(tmpl),
 		ExpectedStatus: 200,
-		ExpectedResult: tests.StringMarshaler(tmplStr + testService2),
+		ExpectedResult: tests.StringMarshaler("swagger_spec_url: /swagger/v1/spec/test_spec_service2"),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
