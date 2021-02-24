@@ -66,6 +66,7 @@
 #include "3gpp_36.401.h"
 #include "NasSecurityAlgorithms.h"
 #include "emm_asDef.h"
+#include "emm_cause.h"
 #include "emm_cnDef.h"
 #include "emm_fsm.h"
 #include "emm_regDef.h"
@@ -75,6 +76,7 @@
 #include "nas/securityDef.h"
 #include "security_types.h"
 #include "mme_app_defs.h"
+#include "conversions.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -373,6 +375,31 @@ int emm_proc_security_mode_control(
 
 /****************************************************************************
  **                                                                        **
+ ** Name:    validate_imei()                                               **
+ **                                                                        **
+ ** Description: Check if the received imei/imeisv matches with the        **
+ **              blocked imei list                                         **
+ **                                                                        **
+ ** Inputs:  imei/imeisv string : imei/imeisv received in security mode    **
+ **                               complete/attach req                      **
+ ** Outputs:                                                               **
+ **      Return:    EMM cause                                              **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int validate_imei(char* imei) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  for (uint8_t itr = 0; itr < mme_config.blocked_imei.num; itr++) {
+    if (!memcmp(
+            imei, mme_config.blocked_imei.imei_list[itr].imei, strlen(imei))) {
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_IMEI_NOT_ACCEPTED);
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
+}
+
+/****************************************************************************
+ **                                                                        **
  ** Name:    emm_proc_security_mode_complete()                         **
  **                                                                        **
  ** Description: Performs the security mode control completion procedure   **
@@ -445,6 +472,24 @@ int emm_proc_security_mode_complete(
       imeisv.u.num.svn2   = imeisvmob->svn2;
       imeisv.u.num.parity = imeisvmob->oddeven;
       emm_ctx_set_valid_imeisv(emm_ctx, &imeisv);
+      // Convert to string
+      char imeisv_str[MAX_IMEISV_SIZE + 1] = {0};
+      IMEISV_TO_STRING(&imeisv, imeisv_str, MAX_IMEISV_SIZE + 1);
+      OAILOG_ERROR(
+          LOG_NAS_EMM,
+          "EMM-PROC  - String imeisv "
+          "%s\n",
+          imeisv_str);
+      int emm_cause = validate_imei(imeisv_str);
+      if (emm_cause != EMM_CAUSE_SUCCESS) {
+        OAILOG_ERROR(
+            LOG_NAS_EMM,
+            "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
+            " , emm_cause =(%d)\n",
+            ue_id, emm_cause);
+        rc = emm_proc_attach_reject(ue_id, emm_cause);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+      }
     }
 
     /*

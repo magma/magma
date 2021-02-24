@@ -87,6 +87,26 @@ function configure_restricted_plmn {
     "$mme_config_file"
 }
 
+function configure_blocked_imei {
+  # Remove default blocked imei from MME configuration file
+  sed -i -e '/BLOCKED_IMEI_LIST/{n;d}' \
+    "$mme_config_file"
+
+  # Configure blocked imei/s in MME configuration file
+  blocked_imei_config=(
+    '{ IMEI= "3805468432113171"}'
+  )
+  blocked_imei_cmd_str=""
+  for config in "${blocked_imei_config[@]}"
+  do
+    blocked_imei_cmd_str="$blocked_imei_cmd_str\ \ \ \ \ \ \ \ $config,\n"
+  done
+  blocked_imei_cmd_str=${blocked_imei_cmd_str::-3}
+
+  sed -i -e "/BLOCKED_IMEI_LIST/a $blocked_imei_cmd_str" \
+    "$mme_config_file"
+}
+
 function restore_mme_config {
   # Restore the MME configuration from the backup configuration file and
   # delete the backup configuration file, so that MME will use latest
@@ -108,6 +128,7 @@ if [[ $1 == "modify" ]]; then
   configure_multiple_plmn_tac
   reduce_mobile_reachability_timer_value
   configure_restricted_plmn
+  configure_blocked_imei
 elif [[ $1 == "restore" ]]; then
   # Restore the MME configuration file from the backup config file
   restore_mme_config
