@@ -168,7 +168,8 @@ bool get_mme_ue_ids_no_imsi(
   hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
   hashtable_ts_get(s1ap_ue_state, (const hash_key_t) dataP, (void**) &ue_ref_p);
   if (!ue_ref_p) {
-    *mme_id_list[(*num_ues_checked)++] = keyP;
+    (*mme_id_list)[*num_ues_checked] = keyP;
+    ++(*num_ues_checked);
     OAILOG_DEBUG(
         LOG_S1AP,
         "Adding mme_ue_s1ap_id %lu to eNB clean up list with num_ues_checked "
