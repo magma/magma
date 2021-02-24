@@ -395,6 +395,10 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             return
 
     def deactivate_default_flow(self, imsi, ip_addr):
+        if self._datapath is None:
+            self.logger.error('Datapath not initialized')
+            return
+
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
         match_out = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.OUT)
 
