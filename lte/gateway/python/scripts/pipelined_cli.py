@@ -45,6 +45,9 @@ from lte.protos.pipelined_pb2 import (
     RequestOriginType,
     DeactivateFlowsResult,
 )
+from lte.protos.subscriberdb_pb2 import (
+    AggregatedMaximumBitrate,
+)
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
 
@@ -154,6 +157,14 @@ def stress_test_grpc(client, args):
     delta_time = 1/args.attaches_per_sec
     print("Attach every ~{0} seconds".format(delta_time))
 
+    if args.enable_qos:
+        apn_ambr = AggregatedMaximumBitrate(
+            max_bandwidth_ul=1000000000,
+            max_bandwidth_dl=1000000000,
+        )
+    else:
+        apn_ambr = None
+
     def _gen_ue_set(num_of_ues):
         imsi = 123000000
         ue_set = set()
@@ -189,7 +200,9 @@ def stress_test_grpc(client, args):
                             direction=FlowMatch.DOWNLINK)),
                     ],
                 )],
-                request_origin=RequestOriginType(type=RequestOriginType.GX))
+                request_origin=RequestOriginType(type=RequestOriginType.GX),
+                apn_ambr=apn_ambr,
+            )
             response = client.ActivateFlows(request)
             if any(r.result != RuleModResult.SUCCESS for
                    r in response.dynamic_rule_results):
@@ -303,6 +316,8 @@ def create_enforcement_parser(apps):
                         type=int, default=10)
     subcmd.add_argument('--test_iterations', help='Test duration in seconds',
                         type=int, default=5)
+    subcmd.add_argument('--enable_qos', help='If rule should include qos',
+                        type=bool, default=True)
     subcmd.set_defaults(func=stress_test_grpc)
 
 # -------------
