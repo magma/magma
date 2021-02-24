@@ -2303,16 +2303,33 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
 void mme_app_recover_timers_for_all_ues(void) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   hash_table_ts_t* mme_state_imsi_ht = get_mme_ue_state();
+  uint32_t num_unreg_ues             = 0;
+  hash_key_t* mme_ue_id_unreg_list;
+  mme_ue_id_unreg_list =
+      (hash_key_t*) calloc(mme_state_imsi_ht->num_elements, sizeof(hash_key_t));
   hashtable_ts_apply_callback_on_elements(
-      mme_state_imsi_ht, mme_app_recover_timers_for_ue, NULL, NULL);
+      mme_state_imsi_ht, mme_app_recover_timers_for_ue, &num_unreg_ues,
+      (void**) &mme_ue_id_unreg_list);
+
+  // Handle timer for unregistered UEs here as it will modify the hashtable
+  // entries
+  struct ue_mm_context_s* ue_context_p = NULL;
+  for (uint32_t i = 0; i < num_unreg_ues; i++) {
+    ue_context_p =
+        mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_id_unreg_list[i]);
+    mme_app_handle_timer_for_unregistered_ue(ue_context_p);
+  }
+
+  free(mme_ue_id_unreg_list);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 static bool mme_app_recover_timers_for_ue(
-    const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
-    void** unused_result_pP) {
+    const hash_key_t keyP, void* const ue_context_pP, void* param_pP,
+    void** result_pP) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-
+  uint32_t* num_unreg_ues  = (uint32_t*) param_pP;
+  hash_key_t** mme_id_list = (hash_key_t**) result_pP;
   struct ue_mm_context_s* const ue_mm_context_pP =
       (struct ue_mm_context_s*) ue_context_pP;
 
@@ -2360,7 +2377,8 @@ static bool mme_app_recover_timers_for_ue(
   }
 
   if (ue_mm_context_pP->emm_context._emm_fsm_state != EMM_REGISTERED) {
-    mme_app_handle_timer_for_unregistered_ue(ue_mm_context_pP);
+    (*mme_id_list)[(*num_unreg_ues)++] = keyP;
+    OAILOG_DEBUG(LOG_MME_APP, "Added %u unreg UEs", *num_unreg_ues);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
 }

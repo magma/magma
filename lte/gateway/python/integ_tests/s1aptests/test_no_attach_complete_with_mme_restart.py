@@ -93,6 +93,7 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
         )
+
         print(
             "************************* Restarting MME service on", "gateway",
         )
@@ -104,6 +105,14 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
 
         # Receive NW initiated detach request
         response = self._s1ap_wrapper.s1_util.get_response()
+
+        while response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND:
+            print (
+                    "Received Attach Accept retransmission from before restart",
+                    "Ignoring..."
+                  )
+            response = self._s1ap_wrapper.s1_util.get_response()
+
         self.assertEqual(
             response.msg_type,
             s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
