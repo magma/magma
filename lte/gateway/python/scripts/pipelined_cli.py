@@ -152,6 +152,7 @@ def get_policy_usage(client, _):
 
 @grpc_wrapper
 def stress_test_grpc(client, args):
+    print("WARNING: DO NOT USE ON PRODUCTION SETUPS")
     UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
                                    'rule_id'])
     delta_time = 1/args.attaches_per_sec
@@ -218,8 +219,7 @@ def stress_test_grpc(client, args):
         duration = (datetime.now() - timestamp).total_seconds()
         print("Finished {0} attaches in {1} seconds".format(len(ue_dict),
                                                             duration))
-        print("Actual attach rate = {0} UEs per sec",
-              round(len(ue_dict)/duration))
+        print("Actual attach rate = {0} UEs per sec".format(round(len(ue_dict)/duration)))
 
         time.sleep(args.time_between_detach)
 
