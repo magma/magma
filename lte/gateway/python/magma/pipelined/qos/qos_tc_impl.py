@@ -34,6 +34,29 @@ def argSplit(cmd: str) -> List[str]:
     args.extend(shlex.split(cmd))
     return args
 
+from subprocess import PIPE, Popen
+from threading  import Thread
+
+class PopenThread(Thread):
+    def __init__(self, cmd_list, callback):
+        Thread.__init__(self)
+        self.cmd_list = cmd_list
+        self.callback = callback
+
+    def run(self):
+        success = True
+        for cmd in self.cmd_list:
+            args = argSplit(cmd)
+            p = Popen(args)
+            if p.wait() != 0:
+                success = False
+        if success:
+            if self.callback:
+                self.callback()
+
+
+def run_async_cmd_with_callback(cmd_list, callback) -> int:
+    PopenThread(cmd_list, callback).start()
 
 def run_cmd(cmd_list, show_error=True) -> int:
     err = 0
@@ -63,7 +86,7 @@ class TrafficClass:
     """
 
     @staticmethod
-    def delete_class(intf: str, qid: int, show_error=True) -> int:
+    def delete_class(intf: str, qid: int, show_error=True,  cb=None) -> int:
         qid_hex = hex(qid)
         # delete filter if this is a leaf class
         filter_cmd = "tc filter del dev {intf} protocol ip parent 1: prio 1 "
@@ -71,7 +94,7 @@ class TrafficClass:
         filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
         tc_cmd = "tc class del dev {intf} classid 1:{qid}".format(intf=intf,
                                                                   qid=qid_hex)
-        return run_cmd([filter_cmd, tc_cmd], show_error)
+        return run_async_cmd_with_callback([filter_cmd, tc_cmd], cb)
 
     @staticmethod
     def create_class(intf: str, qid: int, max_bw: int, rate=None,
@@ -305,11 +328,11 @@ class TCManager(object):
         LOG.debug("deleting qos_handle %s", qid)
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
 
-        err = TrafficClass.delete_class(intf, qid)
-        if err == 0:
-            self._id_manager.release_idx(qid)
-        else:
-            LOG.error('error deleting class %d, not releasing idx', qid)
+        err = TrafficClass.delete_class(intf, qid, cb=self._id_manager.release_idx(qid))
+        # if err == 0:
+        #
+        # else:
+        #     LOG.error('error deleting class %d, not releasing idx', qid)
         return
 
     def read_all_state(self, ):
