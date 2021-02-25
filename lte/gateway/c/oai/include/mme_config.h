@@ -71,6 +71,7 @@
 #define MME_CONFIG_STRING_STATISTIC_TIMER "MME_STATISTIC_TIMER"
 
 #define MME_CONFIG_STRING_USE_STATELESS "USE_STATELESS"
+#define MME_CONFIG_STRING_ENABLE_CONVERGED_CORE "ENABLE_CONVERGED_CORE"
 #define MME_CONFIG_STRING_FULL_NETWORK_NAME "FULL_NETWORK_NAME"
 #define MME_CONFIG_STRING_SHORT_NETWORK_NAME "SHORT_NETWORK_NAME"
 #define MME_CONFIG_STRING_DAYLIGHT_SAVING_TIME "DAYLIGHT_SAVING_TIME"
@@ -349,6 +350,7 @@ typedef struct mme_config_s {
   bool use_stateless;
   bool use_ha;
   bool enable_gtpu_private_ip_correction;
+  bool enable_converged_core;
 } mme_config_t;
 
 extern mme_config_t mme_config;
