@@ -54,16 +54,6 @@
 #include "timer_messages_types.h"
 #include "ngap_amf.h"
 
-#if NGAP_DEBUG_LIST
-#define gNB_LIST_OUT(x, args...)                                               \
-  (LOG_NGAP, "[gNB]%*s" x "\n", 4 * indent, "", ##args)
-#define UE_LIST_OUT(x, args...)                                                \
-  OAILOG_DEBUG(LOG_NGAP, "[UE] %*s" x "\n", 4 * indent, "", ##args)
-#else
-#define gNB_LIST_OUT(x, args...)
-#define UE_LIST_OUT(x, args...)
-#endif
-
 amf_config_t amf_config;
 task_zmq_ctx_t ngap_task_zmq_ctx;
 
@@ -140,9 +130,9 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
 
   if (ngap_send_init_sctp() < 0) {
     OAILOG_ERROR(LOG_NGAP, "Error while sending SCTP_INIT_MSG to SCTP \n");
-  } else
+  } else {
     OAILOG_INFO(LOG_NGAP, " sending SCTP_INIT_MSG to SCTP \n");
-
+  }
   zloop_start(ngap_task_zmq_ctx.event_loop);
   ngap_amf_exit();
   return NULL;
