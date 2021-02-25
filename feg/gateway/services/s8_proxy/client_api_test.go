@@ -73,9 +73,8 @@ func TestS8ProxyClient(t *testing.T) {
 			Ipv6Prefix:  0,
 		},
 
-		Apn:            "internet.com",
-		SelectionMode:  "",
-		ApnRestriction: 0,
+		Apn:           "internet.com",
+		SelectionMode: "",
 		Ambr: &protos.Ambr{
 			BrUl: 999,
 			BrDl: 888,

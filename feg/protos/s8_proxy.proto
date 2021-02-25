@@ -41,8 +41,7 @@ message CreateSessionRequestPgw {
 
     string apn = 14;
     Ambr ambr = 16;                       //Aggregate Maximum BitRate
-    string selection_mode = 17;
-    uint32 apn_restriction = 18;
+    string selection_mode = 17;             // TODO: ENUM
 
     BearerContext bearer_context = 20;   // Contains AGW user plane FTEID
     uint32 c_agw_teid = 21;              // AGW control plane TEID
@@ -76,8 +75,8 @@ message UserLocationInformation {
 }
 
 message ServingNetwork {
-    string mcc = 1;
-    string mnc = 2;
+    string mcc = 1;             //TODO: change to bytes
+    string mnc = 2;             //TODO: change to bytes
 }
 
 message BearerContext {
@@ -122,7 +121,7 @@ message Fteid {
 message CreateSessionResponsePgw {
     string subscriber_ip = 3;
     uint32 apn_restriction = 4;
-    uint32 c_agw_teid = 6;
+    uint32 c_agw_teid = 6;              // TODO: delete
     Fteid c_pgw_fteid = 8;
     BearerContext bearer_context = 10;
     //TrafficFlowTemplate saved_tft = 13;

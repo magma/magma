@@ -194,9 +194,8 @@ func createSession(cmd *commands.Command, args []string) int {
 			Ipv6Prefix:  0,
 		},
 
-		Apn:            apn,
-		SelectionMode:  "",
-		ApnRestriction: 0,
+		Apn:           apn,
+		SelectionMode: "",
 		Ambr: &protos.Ambr{
 			BrUl: 999,
 			BrDl: 888,

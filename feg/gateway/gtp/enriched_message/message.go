@@ -25,16 +25,19 @@ import (
 type MessageWithGrpc struct {
 	message.Message               // GTP
 	grpcMessage     proto.Message // GRPC
+	err             error
 }
 
-func NewMessageWithGrpc(gtpMessage message.Message, grpcMessage proto.Message) *MessageWithGrpc {
+// NewMessageWithGrpc returns a full valid MessageWithGrpc which include all parameters
+func NewMessageWithGrpc(gtpMessage message.Message, grpcMessage proto.Message, err error) *MessageWithGrpc {
 	return &MessageWithGrpc{
 		Message:     gtpMessage,
 		grpcMessage: grpcMessage,
+		err:         err,
 	}
 }
 
-func (m *MessageWithGrpc) GetGrpcMessage() proto.Message {
+func (m MessageWithGrpc) GetGrpcMessage() proto.Message {
 	return m.grpcMessage
 }
 
@@ -46,6 +49,10 @@ func ExtractGrpcMessageFromGtpMessage(incomingMsg message.Message) (proto.Messag
 		withGrpc = m
 	default:
 		return nil, fmt.Errorf("incomming message it is not MessageWithGrpc type %+v", incomingMsg)
+	}
+	// if the mess
+	if withGrpc.err != nil {
+		return nil, withGrpc.err
 	}
 	grpcMessage := withGrpc.GetGrpcMessage()
 	return grpcMessage, nil

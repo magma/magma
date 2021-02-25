@@ -36,12 +36,20 @@ const (
 type MockPgw struct {
 	*gtp.Client
 	LastValues
+	CreateSessionOptions CreateSessionOptions
 }
 
 type LastValues struct {
 	LastTEIDu uint32
 	LastTEIDc uint32
 	LastQos   *protos.QosInformation
+}
+
+// CreateSessionOptions to control Create Session Response values to produce errors
+type CreateSessionOptions struct {
+	SgwTeidc  uint32
+	PgwFTEIDc uint32
+	PgwFTEIDu uint32
 }
 
 func NewStarted(ctx context.Context, pgwAddrsStr string) (*MockPgw, error) {
@@ -54,28 +62,10 @@ func NewStarted(ctx context.Context, pgwAddrsStr string) (*MockPgw, error) {
 }
 
 func New() *MockPgw {
-	return &MockPgw{}
+	return &MockPgw{CreateSessionOptions: CreateSessionOptions{}}
 }
 
 func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
-	/*
-		pgwAddrs, err := net.ResolveUDPAddr("udp", pgwAddrsStr)
-		if err != nil {
-			return fmt.Errorf("Failed to get mock PGW IP: %s", err)
-		}
-
-		sgwAddrs, err := net.ResolveUDPAddr("udp", sgwAddrStr)
-		if err != nil {
-			return fmt.Errorf("Failed to get SGW IP: %s", err)
-		}
-
-		// start listening on the specified IP:Port.
-		mPgw.Client, err = gtp.NewRunningClient(ctx, pgwAddrs, sgwAddrs, gtpv2.IFTypeS5S8PGWGTPC)
-		if err != nil {
-			return fmt.Errorf("Failed to get SGW IP: %s", err)
-		}
-	*/
-
 	var err error
 	mPgw.Client, err = gtp.NewRunningClient(ctx, pgwAddrsStr, gtpv2.IFTypeS5S8PGWGTPC)
 	if err != nil {
@@ -87,9 +77,16 @@ func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 		message.MsgTypeCreateSessionRequest:       mPgw.getHandleCreateSessionRequest(),
 		message.MsgTypeModifyAccessBearersRequest: mPgw.getHandleModifyBearerRequest(),
 		message.MsgTypeDeleteSessionRequest:       mPgw.getHandleDeleteSessionRequest(),
-		//message.MsgTypeEchoRequest: mPgw.getHandleEchoRequest(),
+		//message.MsgTypeEchoRequest: mPgw.getHandleEchoRequest(), // ONLY FOR DEBUGGING PURPOSES
 	})
 	return nil
+}
+
+func (mPgw *MockPgw) SetCreateSessionWithErrorCause() {
+	mPgw.AddHandlers(map[uint8]gtpv2.HandlerFunc{
+		message.MsgTypeCreateSessionRequest: mPgw.getHandleCreateSessionRequestWithServiceDenied(),
+	})
+
 }
 
 // ONLY FOR DEBUGGING PURPOSES

@@ -17,15 +17,12 @@ package servicers
 
 import (
 	"fmt"
-	"github.com/golang/glog"
 	"net"
-	"time"
 
-	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp/enriched_message"
 
+	proto "github.com/golang/protobuf/proto"
 	"github.com/wmnsk/go-gtp/gtpv2"
-	"github.com/wmnsk/go-gtp/gtpv2/ie"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
 )
 
@@ -42,177 +39,31 @@ func addS8GtpHandlers(s8p *S8Proxy) {
 
 func getHandle_CreateSessionResponse() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
-		csResGtp := msg.(*message.CreateSessionResponse)
-		csRes := &protos.CreateSessionResponsePgw{}
-		glog.V(2).Infof("Received Create Session Response (gtp):\n%s", csResGtp.String())
-
 		session, err := c.GetSessionByTEID(msg.TEID(), senderAddr)
 		if err != nil {
-			return fmt.Errorf("couldn't find session with TEID %d: %s", msg.TEID(), err)
-		}
-
-		// check Cause value first.
-		if causeIE := csResGtp.Cause; causeIE != nil {
-			cause, err := causeIE.Cause()
-			if err != nil {
-				return fmt.Errorf("Couldn't check cause of csRes: %s", err)
-			}
-			if cause != gtpv2.CauseRequestAccepted {
-				c.RemoveSession(session)
-				return &gtpv2.CauseNotOKError{
-					MsgType: csResGtp.MessageTypeName(),
-					Cause:   cause,
-					Msg:     fmt.Sprintf("subscriber: %s", session.IMSI),
-				}
-			}
-		} else {
-			c.RemoveSession(session)
-			return &gtpv2.RequiredIEMissingError{
-				Type: ie.Cause,
-			}
-		}
-
-		// get values sent by pgw
-		if paaIE := csResGtp.PAA; paaIE != nil {
-			ip, err := paaIE.IPAddress()
-			if err != nil {
-				return err
-			}
-			csRes.SubscriberIp = ip
-		} else {
-			c.RemoveSession(session)
-			return &gtpv2.RequiredIEMissingError{Type: ie.PDNAddressAllocation}
-		}
-
-		// Pgw control plane fteid
-		if pgwCFteidIE := csResGtp.PGWS5S8FTEIDC; pgwCFteidIE != nil {
-			pgwCFteid, interfaceType, err := handleFTEID(pgwCFteidIE)
-			if err != nil {
-				return fmt.Errorf("Couldn't get PGW control plane FTEID: %s ", err)
-			}
-			session.AddTEID(interfaceType, pgwCFteid.GetTeid())
-			csRes.CPgwFteid = pgwCFteid
-		} else {
-			c.RemoveSession(session)
-			return &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}
-		}
-
-		// AGW (sgw) control plane fteid
-		csRes.CAgwTeid, err = session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
-		if err != nil {
-			return fmt.Errorf("Couldn't get local (sgw) control plane TEID: %s ", err)
-		}
-
-		// TODO: handle more than one bearer
-		if brCtxIE := csResGtp.BearerContextsCreated; brCtxIE != nil {
-			bearerCtx := &protos.BearerContext{}
-			for _, childIE := range brCtxIE.ChildIEs {
-				switch childIE.Type {
-				case ie.Cause:
-					cause, err := childIE.Cause()
-					if err != nil {
-						return err
-					}
-					if cause != gtpv2.CauseRequestAccepted {
-						c.RemoveSession(session)
-						return &gtpv2.CauseNotOKError{
-							MsgType: csResGtp.MessageTypeName(),
-							Cause:   cause,
-							Msg:     fmt.Sprintf("subscriber: %s", session.IMSI),
-						}
-					}
-				case ie.EPSBearerID:
-					ebi, err := childIE.EPSBearerID()
-					if err != nil {
-						return err
-					}
-					if ebi != session.GetDefaultBearer().EBI {
-						return fmt.Errorf("Create Session Response bearer id different than "+
-							"default bearer id (%d != %d)", ebi, session.GetDefaultBearer().EBI)
-					}
-					bearerCtx.Id = uint32(ebi)
-				case ie.FullyQualifiedTEID:
-					uFteid, typeIf, err := handleFTEID(childIE)
-					if err != nil {
-						return err
-					}
-					bearerCtx.UserPlaneFteid = uFteid
-					// save uFteid in session and default bearer
-					session.AddTEID(typeIf, uFteid.GetTeid())
-					session.GetDefaultBearer().SetOutgoingTEID(uFteid.GetTeid())
-				case ie.ChargingID:
-					bearerCtx.ChargingId, err = childIE.ChargingID()
-					if err != nil {
-						return err
-					}
-					session.GetDefaultBearer().ChargingID = bearerCtx.ChargingId
-				}
-			}
-			csRes.BearerContext = bearerCtx
-		} else {
-			c.RemoveSession(session)
-			return &gtpv2.RequiredIEMissingError{Type: ie.BearerContext}
-		}
-
-		if err := session.Activate(); err != nil {
-			c.RemoveSession(session)
-			return fmt.Errorf("couldn't activate the session with IMSI %s: %s", session.IMSI, err)
-		}
-		// TODO: validate message before passing
-		enrichedMsg := enriched_message.NewMessageWithGrpc(msg, csRes)
-
-		// pass message to same session
-		if err := gtpv2.PassMessageTo(session, enrichedMsg, 5*time.Second); err != nil {
+			err = fmt.Errorf("couldn't find session with TEID %d: %s", msg.TEID(), err)
 			return err
 		}
-		return nil
+		csRes, err := parseCreateSessionResponse(session, msg)
+		return passMessage(session, msg, csRes, err)
+	}
+}
+
+func getHandle_DeleteSessionResponse() gtpv2.HandlerFunc {
+	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
+		session, err := c.GetSessionByTEID(msg.TEID(), senderAddr)
+		if err != nil {
+			err = fmt.Errorf("couldn't find session with TEID %d: %s", msg.TEID(), err)
+			return err
+		}
+		csRes, err := parseDelteSessionResponse(session, msg)
+		return passMessage(session, msg, csRes, err)
 	}
 }
 
 // TODO
 func getHandle_ModifyBearerRequest() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
-		return nil
-	}
-}
-
-func getHandle_DeleteSessionResponse() gtpv2.HandlerFunc {
-	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
-		cdResGtp := msg.(*message.DeleteSessionResponse)
-		cdRes := &protos.DeleteSessionResponsePgw{}
-		glog.V(2).Infof("Received Delete Session Response (gtp):\n%s", cdResGtp.String())
-
-		session, err := c.GetSessionByTEID(msg.TEID(), senderAddr)
-		if err != nil {
-			return fmt.Errorf("couldn't find session with TEID %d: %s", msg.TEID(), err)
-		}
-
-		// check Cause value first.
-		if causeIE := cdResGtp.Cause; causeIE != nil {
-			cause, err := causeIE.Cause()
-			if err != nil {
-				return fmt.Errorf("Couldn't check cause of delete session response: %s", err)
-			}
-			if cause != gtpv2.CauseRequestAccepted {
-				return &gtpv2.CauseNotOKError{
-					MsgType: cdResGtp.MessageTypeName(),
-					Cause:   cause,
-					Msg:     fmt.Sprintf("Delete Session Response not accepted"),
-				}
-			}
-		} else {
-			return &gtpv2.RequiredIEMissingError{
-				Type: ie.Cause,
-			}
-		}
-
-		// TODO: validate message before passing
-		enrichedMsg := enriched_message.NewMessageWithGrpc(msg, cdRes)
-
-		// pass message to same session
-		if err := gtpv2.PassMessageTo(session, enrichedMsg, 5*time.Second); err != nil {
-			return err
-		}
 		return nil
 	}
 }
@@ -225,7 +76,7 @@ func getHandle_DeleteBearerRequest() gtpv2.HandlerFunc {
 }
 
 // getHandle_EchoResponse handles echo request received in S8_proxy. This is a special handler
-// hat does not use gtpv2.PassMessageTo. It instead uses S8proxy echoChannel to pass the error if any
+// that does not use gtpv2.PassMessageTo. It instead uses S8proxy echoChannel to pass the error if any
 func getHandle_EchoResponse(echoCh chan error) gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
 		if _, ok := msg.(*message.EchoResponse); !ok {
@@ -238,34 +89,12 @@ func getHandle_EchoResponse(echoCh chan error) gtpv2.HandlerFunc {
 	}
 }
 
-func handleFTEID(fteidIE *ie.IE) (*protos.Fteid, uint8, error) {
-	interfaceType, err := fteidIE.InterfaceType()
-	if err != nil {
-		return nil, interfaceType, err
+// passMessage will send a valid message to the caller.
+func passMessage(session *gtpv2.Session, gtpMessage message.Message, grpcMessage proto.Message, err error) error {
+	enrichedMsg := enriched_message.NewMessageWithGrpc(gtpMessage, grpcMessage, err)
+	// pass message to same session
+	if err := gtpv2.PassMessageTo(session, enrichedMsg, GtpTimeout); err != nil {
+		return err
 	}
-	teid, err := fteidIE.TEID()
-	if err != nil {
-		return nil, interfaceType, err
-	}
-
-	fteid := &protos.Fteid{Teid: teid}
-
-	if !fteidIE.HasIPv4() && !fteidIE.HasIPv6() {
-		return nil, interfaceType, fmt.Errorf("Error: fteid %+v has no ips", fteidIE.String())
-	}
-	if fteidIE.HasIPv4() {
-		ipv4, err := fteidIE.IPv4()
-		if err != nil {
-			return nil, interfaceType, err
-		}
-		fteid.Ipv4Address = ipv4.String()
-	}
-	if fteidIE.HasIPv6() {
-		ipv6, err := fteidIE.IPv6()
-		if err != nil {
-			return nil, interfaceType, err
-		}
-		fteid.Ipv6Address = ipv6.String()
-	}
-	return fteid, interfaceType, nil
+	return nil
 }

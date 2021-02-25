@@ -72,6 +72,8 @@ func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8
 	if err != nil {
 		return nil, err
 	}
+	c.WaitUntilClientIsReady(0)
+	c.DisableValidation()
 	return c, nil
 }
 
@@ -102,15 +104,17 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to GTP-C %s server: %s", remoteAddr.String(), err)
 	}
+	c.DisableValidation()
 	return c, nil
 }
 
 // NewClient creates basic configuration structure for a GTP-C client. It does
 // not starts any connection or server.
 func newClient(localAddr *net.UDPAddr, connType uint8) *Client {
-	return &Client{
+	cli := &Client{
 		connType: connType,
 	}
+	return cli
 }
 
 // Enable just creates the object connection enabling messages to be sent
@@ -133,7 +137,6 @@ func (c *Client) run(ctx context.Context) error {
 		}
 	}()
 	//TODO: remove this wait once there is a way to check when the listener is ready
-	c.WaitUntilClientIsReady(0)
 	return nil
 }
 
@@ -168,7 +171,14 @@ func GetOutboundIP(testIp *net.UDPAddr) (net.IP, error) {
 // the GTP-C client too early. Since go-gtp doesn't offer any visibuility on the readines of the connection
 // we use LocalAddrs as indicator
 func (c *Client) WaitUntilClientIsReady(count int) {
+
+	// TODO: only use those 3 waits for debugging
+	time.Sleep(time.Millisecond * 20)
+	time.Sleep(time.Millisecond * 20)
+	time.Sleep(time.Millisecond * 20)
+
 	defer func() {
+
 		if count > 50 {
 			time.Sleep(time.Millisecond * 20)
 		}

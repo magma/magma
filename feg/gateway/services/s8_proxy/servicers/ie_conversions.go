@@ -47,12 +47,12 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 	}
 
 	// FEG control plane TEID
-	cFegFTeid := gtpCli.NewSenderFTEID(ip.String(), "")
+	cFegFTeid := gtpCli.NewSenderFTEID(ip.String(), "").WithInstance(0)
 
 	// AGW user plane TEID (comming from request)
 	uAgwFTeidReq := req.BearerContext.GetUserPlaneFteid()
 	uAgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU,
-		uAgwFTeidReq.Teid, uAgwFTeidReq.Ipv4Address, uAgwFTeidReq.Ipv6Address)
+		uAgwFTeidReq.Teid, uAgwFTeidReq.Ipv4Address, uAgwFTeidReq.Ipv6Address).WithInstance(2)
 
 	// Qos
 	qos := req.BearerContext.GetQos()
@@ -67,7 +67,6 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 	offset := time.Duration(req.TimeZone.DeltaSeconds) * time.Second
 	daylightSavingTime := uint8(req.TimeZone.DaylightSavingTime)
 
-	// TODO: set charging characteristics
 	ies := []*ie.IE{
 		ie.NewIMSI(req.GetImsi()),
 		bearer,
@@ -80,14 +79,14 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 		ie.NewMobileEquipmentIdentity(req.Mei),
 		ie.NewServingNetwork(req.ServingNetwork.Mcc, req.ServingNetwork.Mnc),
 		ie.NewAccessPointName(req.Apn),
-		// TODO: selection mode (hadcoded for now)
-		ie.NewSelectionMode(gtpv2.SelectionModeMSorNetworkProvidedAPNSubscribedVerified),
-		// TODO: hardcoded indication flags
-		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
-		// TODO: Hardcoded apn restriction
-		ie.NewAPNRestriction(gtpv2.APNRestrictionNoExistingContextsorRestriction),
 		ie.NewAggregateMaximumBitRate(uint32(req.Ambr.BrUl), uint32(req.Ambr.BrDl)),
 		ie.NewUETimeZone(offset, daylightSavingTime),
+
+		// TODO: Hardcoded values
+		ie.NewSelectionMode(gtpv2.SelectionModeMSorNetworkProvidedAPNSubscribedVerified),
+		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+		ie.NewAPNRestriction(gtpv2.APNRestrictionNoExistingContextsorRestriction),
+		// TODO: set charging characteristics
 	}
 	sessionTeids.cFegFTeid = cFegFTeid
 	sessionTeids.uAgwFTeid = uAgwFTeid

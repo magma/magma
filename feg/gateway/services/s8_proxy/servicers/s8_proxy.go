@@ -17,12 +17,17 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/wmnsk/go-gtp/gtpv2"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
+)
+
+var (
+	GtpTimeout = 5 * time.Second // can be modified using S8ProxyConfig
 )
 
 type echoResponse struct {
@@ -36,6 +41,7 @@ type S8Proxy struct {
 }
 
 type S8ProxyConfig struct {
+	GtpTimeout time.Duration
 	ClientAddr string
 	ServerAddr *net.UDPAddr
 }
@@ -61,6 +67,12 @@ func NewS8ProxyWithEcho(config *S8ProxyConfig) (*S8Proxy, error) {
 
 func newS8ProxyImp(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
 	// TODO: validate config
+
+	// Modify gtp timeout variable in case it is included in config
+	if config.GtpTimeout != 0 {
+		GtpTimeout = config.GtpTimeout
+	}
+
 	s8p := &S8Proxy{
 		config:      config,
 		gtpClient:   cli,
@@ -118,6 +130,7 @@ func (s *S8Proxy) ModifyBearer(ctx context.Context, req *protos.ModifyBearerRequ
 }
 
 func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
+	// TODO make this stateless once MME has all the requiered information
 	session, teid, err := s.gtpClient.GetSessionAndCTeidByIMSI(req.Imsi)
 	if err != nil {
 		return nil, err
@@ -141,7 +154,6 @@ func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*proto
 		glog.Error(err)
 		return nil, err
 	}
-
 	err = s.sendAndReceiveEchoRequest(cPgwUDPAddr)
 	if err != nil {
 		return nil, err

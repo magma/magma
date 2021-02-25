@@ -30,10 +30,6 @@ import (
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
 )
 
-const (
-	GtpTimeout = 5 * time.Second
-)
-
 // sendAndReceiveCreateSession creates a session in the gtp client, sends the create session request
 // to PGW and waits for its answers.
 // Returns a GRPC message translaged from the GTP-U create session response
@@ -97,7 +93,7 @@ func (s *S8Proxy) sendAndReceiveDeleteSession(teid uint32, session *gtpv2.Sessio
 	glog.V(2).Infof("Send Delete Session Request (gtp) to %s:\n%s",
 		session.PeerAddr().String(), message.NewDeleteSessionRequest(teid, 0).String())
 
-	seq, err := s.gtpClient.DeleteSession(teid, session)
+	seq, err := s.gtpClient.DeleteSession(teid, session, dsReqIEs...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,6 +118,15 @@ func (s *S8Proxy) sendAndReceiveEchoRequest(cPgwUDPAddr *net.UDPAddr) error {
 	return waitEchoResponse(s.echoChannel)
 }
 
+func waitEchoResponse(ch chan error) error {
+	select {
+	case res := <-ch:
+		return res
+	case <-time.After(GtpTimeout):
+		return fmt.Errorf("waitEchoResponse timeout")
+	}
+}
+
 // waitMessageAndExtractGrpc blocks for GTP response with that specific sequence number
 // It times out after GtpTimeout seconds
 func waitMessageAndExtractGrpc(session *gtpv2.Session, sequence uint32) (proto.Message, error) {
@@ -131,14 +136,4 @@ func waitMessageAndExtractGrpc(session *gtpv2.Session, sequence uint32) (proto.M
 		return nil, err
 	}
 	return enriched_message.ExtractGrpcMessageFromGtpMessage(incomingMsg)
-}
-
-func waitEchoResponse(ch chan error) error {
-	select {
-	case res := <-ch:
-		return res
-	case <-time.After(GtpTimeout):
-		return fmt.Errorf("waitEchoResponse timeout")
-	}
-
 }
