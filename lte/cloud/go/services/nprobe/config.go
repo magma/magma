@@ -41,6 +41,9 @@ type Config struct {
 	ExporterKeyFile         string `yaml:"exporterKeyFile"`
 	ExporterCrtFile         string `yaml:"exporterCrtFile"`
 	SkipVerifyServer        bool   `yaml:"skipVerifyServer"`
+
+	// Encoding config
+	OperatorID string `yaml:"operatorID"`
 }
 
 // GetServiceConfig parses nprobe service config and returns Config

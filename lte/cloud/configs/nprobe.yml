@@ -20,3 +20,4 @@ exporterKeyFile: "/var/opt/magma/certs/client.key"
 exporterCrtFile: "/var/opt/magma/certs/client.crt"
 skipVerifyServer: True
 
+operatorID: 9999

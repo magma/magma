@@ -20,6 +20,7 @@ import (
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/nprobe"
 	"magma/lte/cloud/go/services/nprobe/collector"
+	"magma/lte/cloud/go/services/nprobe/encoding"
 	"magma/lte/cloud/go/services/nprobe/exporter"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -35,6 +36,7 @@ const LteNetwork = "lte"
 type NetworkProbeManager struct {
 	Collector               *collector.EventsCollector
 	Exporter                *exporter.RecordExporter
+	OperatorID              string
 	MaxEventsCollectRetries uint32
 	MaxRecordsExportRetries uint32
 }
@@ -87,13 +89,31 @@ func (im *NetworkProbeManager) CollectAndProcessEvents() error {
 		}
 
 		for _, task := range tasks {
-			// TBD
-			// Encode IRIs records
-			// Export IRIs records to LIMS
-			_, err := im.Collector.GetMultiStreamsEvents(networkID, "", []string{task.TaskDetails.TargetID})
+			events, err := im.Collector.GetMultiStreamsEvents(networkID, "", []string{task.TaskDetails.TargetID})
 			if err != nil {
 				fmt.Printf("Error while retrieving events for subscriber %v: %s\n", task.TaskDetails.TargetID, err)
 				return err
+			}
+
+			// XID will be retrieved from Task
+			xID := "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+			for _, event := range events {
+				encoder, err := encoding.MakeField(event, nprobe.IRIRecord, task.TaskDetails.CorrelationID, im.OperatorID, xID)
+				if err != nil {
+					glog.Errorf("error building record for event [%s - %s]: %s", event.Timestamp, event.EventType, err)
+					continue
+				}
+
+				record, err := encoder.Encode()
+				if err != nil {
+					glog.Errorf("error encoding record [%v]: %s", encoder, err)
+					continue
+				}
+				err = im.Exporter.SendRecord(record, im.MaxRecordsExportRetries)
+				if err != nil {
+					glog.Errorf("Error exporting record for event [%s - %s]: %s", event.Timestamp, event.EventType, err)
+					continue
+				}
 			}
 		}
 	}

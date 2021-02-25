@@ -24,6 +24,10 @@ const (
 
 	// ExporterTlsTimeout tls session timeout in milliseconds
 	ExporterTlsTimeout = 1000
+
+	// Record types
+	IRIRecord    = "IRIRecord"
+	NProbeRecord = "NProbeRecord"
 )
 
 // GetESStreams returns the list of Intercepted streams
