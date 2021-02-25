@@ -2497,6 +2497,24 @@ paths:
       summary: Retrieve gateway pool from LTE network
       tags:
       - LTE Networks
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_pool_id'
+      - description: LTE HA gateway pool
+        in: body
+        name: HA Gateway Pool
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_cellular_gateway_pool'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update gateway pool in LTE network
+      tags:
+      - LTE Networks
   /lte/{network_id}/gateways:
     get:
       parameters:
