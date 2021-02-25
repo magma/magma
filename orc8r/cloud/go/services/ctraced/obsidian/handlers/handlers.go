@@ -256,7 +256,9 @@ func getNetworkIDAndCallTraceID(c echo.Context) (string, string, *echo.HTTPError
 
 func buildStartTraceRequest(cfg *models.CallTraceConfig) (*protos.StartTraceRequest, error) {
 	req := &protos.StartTraceRequest{
-		TraceType: protos.StartTraceRequest_ALL,
+		TraceType:      protos.StartTraceRequest_ALL,
+		CaptureFilters: cfg.CaptureFilters,
+		DisplayFilters: cfg.DisplayFilters,
 	}
 	return req, nil
 }
