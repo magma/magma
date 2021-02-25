@@ -61,7 +61,9 @@ class AsyncPopenThread(Thread):
 
 
 def run_async_cmd_with_callback(cmd_list, callback_success, callback_failure):
-    AsyncPopenThread(cmd_list, callback_success, callback_failure).start()
+    thread = AsyncPopenThread(cmd_list, callback_success, callback_failure)
+    thread.setDaemon(True)
+    thread.start()
 
 
 def run_cmd(cmd_list, show_error=True) -> int:
