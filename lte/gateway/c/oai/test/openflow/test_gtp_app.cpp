@@ -16,7 +16,6 @@
  */
 #include <string.h>
 #include <gtest/gtest.h>
-#include <fluid/of10msg.hh>
 #include <fluid/of13msg.hh>
 #include "GTPApplication.h"
 #include "openflow_mocks.h"

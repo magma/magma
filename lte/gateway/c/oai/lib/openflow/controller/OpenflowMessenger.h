@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include <fluid/of10msg.hh>
 #include <fluid/of13msg.hh>
 #include <fluid/OFServer.hh>
 
