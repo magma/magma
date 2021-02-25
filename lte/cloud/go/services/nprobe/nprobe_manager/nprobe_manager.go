@@ -20,6 +20,7 @@ import (
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/nprobe"
 	"magma/lte/cloud/go/services/nprobe/collector"
+	"magma/lte/cloud/go/services/nprobe/exporter"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -33,6 +34,7 @@ const LteNetwork = "lte"
 // them to LIMS.
 type NetworkProbeManager struct {
 	Collector               *collector.EventsCollector
+	Exporter                *exporter.RecordExporter
 	MaxEventsCollectRetries uint32
 	MaxRecordsExportRetries uint32
 }
@@ -40,10 +42,12 @@ type NetworkProbeManager struct {
 // NewNetworkProbeManager creates and returns a new interceptManager
 func NewNetworkProbeManager(
 	collector *collector.EventsCollector,
+	exporter *exporter.RecordExporter,
 	config nprobe.Config,
 ) *NetworkProbeManager {
 	return &NetworkProbeManager{
 		Collector:               collector,
+		Exporter:                exporter,
 		MaxEventsCollectRetries: config.MaxEventsCollectRetries,
 		MaxRecordsExportRetries: config.MaxRecordsExportRetries,
 	}

@@ -21,6 +21,9 @@ const (
 	SessionTerminated    = "session_terminated"
 	SessionCreateFailure = "session_create_failure"
 	S1SetupSuccess       = "s1_setup_success"
+
+	// ExporterTlsTimeout tls session timeout in milliseconds
+	ExporterTlsTimeout = 1000
 )
 
 // GetESStreams returns the list of Intercepted streams

@@ -14,3 +14,9 @@ updateIntervalSecs: 60
 maxEventsCollectRetries: 10
 maxRecordsExportRetries: 10
 
+deliveryFunctionAddress: "127.0.0.1:5555"
+exporterRootCA: "/var/opt/magma/certs/ca.crt"
+exporterKeyFile: "/var/opt/magma/certs/client.key"
+exporterCrtFile: "/var/opt/magma/certs/client.crt"
+skipVerifyServer: True
+

@@ -20,6 +20,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/nprobe"
 	"magma/lte/cloud/go/services/nprobe/collector"
+	"magma/lte/cloud/go/services/nprobe/exporter"
 	manager "magma/lte/cloud/go/services/nprobe/nprobe_manager"
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
 
@@ -52,7 +53,22 @@ func main() {
 		glog.Fatalf("Failed to create new EventsCollector: %v", err)
 	}
 
-	networkProbeManager := manager.NewNetworkProbeManager(eventsCollector, serviceConfig)
+	tlsConfig, err := exporter.NewTlsConfig(
+		serviceConfig.ExporterCrtFile,
+		serviceConfig.ExporterKeyFile,
+		serviceConfig.ExporterRootCA,
+		serviceConfig.SkipVerifyServer,
+	)
+	if err != nil {
+		glog.Errorf("Failed to create new TlsConfig: %v", err)
+	}
+
+	recordExporter, err := exporter.NewRecordExporter(serviceConfig.DeliveryFunctionAddress, tlsConfig)
+	if err != nil {
+		glog.Errorf("Failed to create new RecordExporter: %v", err)
+	}
+
+	networkProbeManager := manager.NewNetworkProbeManager(eventsCollector, recordExporter, serviceConfig)
 	// Run LI service in Loop
 	go func() {
 		for {
