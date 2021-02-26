@@ -46,6 +46,7 @@ S-GW :
       UPLINK_PORT_NUM                      = {{ ovs_uplink_port_number }};
       UPLINK_MAC                           = "{{ ovs_uplink_mac }}";
       MULTI_TUNNEL                         = "{{ ovs_multi_tunnel }}";
+      PIPELINED_CONFIG_ENABLED             = "{{ pipelined_config_enabled }}";
     };
 };
 

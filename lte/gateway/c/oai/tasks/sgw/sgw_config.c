@@ -312,6 +312,7 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
     libconfig_int uplink_port_num               = 0;
     char* multi_tunnel                          = NULL;
     char* uplink_mac                            = NULL;
+    char* pipelined_config_enabled              = NULL;
     if (config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_BRIDGE_NAME,
             (const char**) &ovs_bridge_name) &&
@@ -333,7 +334,10 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
             &internal_sampling_fwd_tbl_num) &&
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_MULTI_TUNNEL,
-            (const char**) &multi_tunnel)) {
+            (const char**) &multi_tunnel) &&
+        config_setting_lookup_string(
+            ovs_settings, SGW_CONFIG_STRING_OVS_PIPELINED_CONFIG_ENABLED,
+            (const char**) &pipelined_config_enabled)) {
       config_pP->ovs_config.bridge_name  = bfromcstr(ovs_bridge_name);
       config_pP->ovs_config.gtp_port_num = gtp_port_num;
       config_pP->ovs_config.mtr_port_num = mtr_port_num;
@@ -343,6 +347,16 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
           internal_sampling_fwd_tbl_num;
       config_pP->ovs_config.uplink_port_num = uplink_port_num;
       config_pP->ovs_config.uplink_mac      = bfromcstr(uplink_mac);
+
+      if (strcasecmp(pipelined_config_enabled, "false") == 0) {
+        config_pP->ovs_config.pipelined_config_enabled = false;
+      } else {
+        config_pP->ovs_config.pipelined_config_enabled = true;
+      }
+      OAILOG_INFO(
+          LOG_SPGW_APP, "Pipelined config enable: %s\n",
+          pipelined_config_enabled);
+
       if (strcasecmp(multi_tunnel, "false") == 0) {
         config_pP->ovs_config.multi_tunnel = false;
       } else {

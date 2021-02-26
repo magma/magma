@@ -1,6 +1,7 @@
 
 set (GTPV1U_SRC
     gtpv1u_task.c
+    gtp_tunnel_upf.c
 )
 
 if (ENABLE_OPENFLOW)  # Use openflow
