@@ -1,0 +1,221 @@
+################################################################
+# Builder Image (can also be used as developer's image)
+################################################################
+FROM ubuntu:focal as magma-mme-builder
+
+ARG GIT_PROXY
+ARG FEATURES=mme_oai
+ENV MAGMA_ROOT=/magma
+ENV BUILD_TYPE=Debug
+ENV C_BUILD=/build/c
+ENV TZ=Europe/Paris
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN mkdir -p $C_BUILD
+
+RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg wget software-properties-common autoconf automake \
+    libtool curl make g++ unzip git build-essential autoconf libtool pkg-config \
+    gcc-9 g++-9 apt-transport-https ca-certificates apt-utils vim redis-server tzdata \
+    libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev clang-format-11 && \
+    echo \"Configure C/C++ compiler v6.5 as primary\" && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 30 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 30 && \
+    echo \"Add lcov for gcov code coverage analysis\" && \
+    apt-get -y install lcov && \
+    echo \"Add ruby packages for install of fpm\" && \
+    apt-get -y install ruby ruby-dev rubygems build-essential && \
+    echo \"Add fpm to re-use Magma build_libfluid.sh which outputs fpm\" && \
+    gem install fpm && \
+    echo \"Add required package repository for CMake\" && \
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
+    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
+    echo \"Add required package repository for Prometheus\" && \
+    wget -qO- https://repos.influxdata.com/influxdb.key | apt-key add - && \
+    ln -s /usr/bin/clang-format-7 /usr/bin/clang-format && \
+    source /etc/lsb-release && \
+    echo \"deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable\" | tee /etc/apt/sources.list.d/influxdb.list"]
+
+RUN echo "Install 3rd party dependencies" && \
+    # Had to add repository for support of CMake required libssl 1.0 (20.04 has newer libssl and fails CMake deps)
+    apt-add-repository 'deb http://security.ubuntu.com/ubuntu xenial-security main' && \
+    apt-get update && \
+    echo "Install CMake" && \
+    apt-get -y install cmake && \
+    echo "Install FMT lib requirements" && \
+    apt-get -y install libunwind8-dev libelf-dev libdwarf-dev bzip2 && \
+    echo "Install Folly requirements" && \
+    apt-get -y install libboost-all-dev libevent-dev libdouble-conversion-dev \
+    libgoogle-glog-dev libgflags-dev libiberty-dev liblz4-dev liblzma-dev \
+    libsnappy-dev binutils-dev libjemalloc-dev libssl-dev pkg-config libunwind-dev && \
+    echo "Install check for test support" && \
+    apt-get -y install check && \
+    echo "Install gtest for test support" && \
+    apt-get -y install libgtest-dev && \
+    echo "Install FreeDiameter requirements" && \
+    apt-get -y install libsctp1 libsctp-dev libgcrypt-dev \
+    bison flex libidn11-dev && \
+    echo "Install libgtpnl requirements" && \
+    apt-get -y install libmnl-dev && \
+    echo "Install Nettle requirements" && \
+    apt-get install -y libgoogle-glog-dev libconfig-dev libxml2-dev \
+    libyaml-cpp-dev nlohmann-json3-dev && \
+    echo "Install Prometheus requirements" && \
+    apt-get -y install telegraf && \
+    echo "Install ZeroMQ" && \
+    apt-get install -y libczmq-dev && \
+    ln -s /usr/bin/python2.7 /usr/local/bin/python && \
+    # TODO(fixup this include in source code @ MConfigLoader.cpp)
+    ln -s /usr/include/nlohmann/json.hpp /usr/include/json.hpp
+
+RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
+
+##### NETTLE and GNUTLS
+# TODO Upgrade these - requires us to update our use of libnettle due to API migration.
+#  see https://gist.github.com/electronjoe/a899e4bfbc2904cb353444386296c38e
+# Note the CFLAGS define below due to glibc deprecation of critical flag,
+#  see https://github.com/rdslw/openwrt/blob/e5d47f32131849a69a9267de51a30d6be1f0d0ac/tools/bison/patches/110-glibc-change-work-around.patch
+RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
+    tar -xf nettle-2.5.tar.gz && \
+    cd nettle-2.5 && \
+    mkdir build && \
+    cd build/ && \
+    ../configure --disable-openssl --enable-shared --libdir=/usr/local/lib && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig -v && \
+    cd / && \
+    wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    tar xf gnutls-3.1.23.tar.xz && \
+    cd gnutls-3.1.23 && \
+    mkdir build && cd build && \
+    CFLAGS=-D_IO_ftrylockfile ../configure --with-libnettle-prefix=/usr/local && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig -v && \
+    cd / && \
+    rm -rf nettle* && \
+    rm -rf gnutls*
+
+##### GRPC and it's dependencies
+RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
+    cd grpc && \
+    mkdir -p cmake/build && \
+    cd cmake/build && \
+    cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON ../.. && \
+    make -j`nproc` && \
+    make install && \
+    cd / && \
+    rm -rf grpc
+
+##### Prometheus CPP
+RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
+    cd prometheus-cpp && \
+    git checkout d8326b2bba945a435f299e7526c403d7a1f68c1f && \
+    git submodule init && git submodule update && \
+    mkdir _build && \
+    cd _build/ && \
+    cmake .. && \
+    make -j`nproc` && \
+    make install && \
+    rm -rf /prometheus-cpp
+
+##### Redis CPP
+RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
+    cd cpp_redis && \
+    git checkout bbe38a7f83de943ffcc90271092d689ae02b3489 && \
+    git submodule init && git submodule update && \
+    mkdir build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    make -j`nproc` && \
+    make install && \
+    rm -rf /cpp_redis
+
+##### liblfds
+# https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
+RUN wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
+    tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
+    cd liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
+    make -j`nproc` && \
+    make ar_install && \
+    rm -rf liblfds
+
+##### libgtpnl
+# review https://github.com/OPENAIRINTERFACE/openair-cn/blob/master/build/tools/build_helper.gtpnl
+RUN git clone https://git.osmocom.org/libgtpnl && \
+    cd libgtpnl && \
+    git reset --hard 345d687 && \
+    autoreconf -fi && \
+    ./configure && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig && \
+    rm -rf libgtpnl
+
+#####  asn1c
+RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
+    cd asn1c && \
+    git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \
+    autoreconf -iv && \
+    ./configure && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig
+
+
+## Install Fmt (Folly Dep)
+RUN git clone https://github.com/fmtlib/fmt.git && cd fmt && \
+    mkdir _build && cd _build && \
+    cmake -DBUILD_SHARED_LIBS=ON .. && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && \
+    rm -rf fmt
+
+##### Facebook Folly C++ lib
+# Note: "Because folly does not provide any ABI compatibility guarantees from
+#        commit to commit, we generally recommend building folly as a static library."
+# Here we checkout the hash for v2021.02.22.00 (arbitrary recent version)
+RUN git clone https://github.com/facebook/folly && cd folly && \
+    git checkout tags/v2021.02.15.00 && \
+    mkdir _build && cd _build && \
+    cmake -DBUILD_SHARED_LIBS=ON .. && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && \
+    rm -rf folly
+    
+##### Build and install libgtest and gmock
+RUN cd /usr/src/googletest && \
+    mkdir build && \
+    cd build && \
+    cmake -DBUILD_SHARED_LIBS=ON .. && \
+    echo "Build gtest and gmock" && \
+    make && \
+    echo "Install gtest and gmock" && \
+    make install && \
+    ldconfig -v
+
+# Add Converged MME sources to the container
+# Must be done prior to FreeDiameter build as we need the patches from Magma repo
+COPY ./ $MAGMA_ROOT
+
+##### FreeDiameter
+RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
+    cd freediameter && \
+    patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch && \
+    mkdir build && \
+    cd build && \
+    cmake ../ && \
+    awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
+    make -j`nproc` && \
+    make install && \
+    rm -rf freediameter
+
+##### libfluid is requird to build MME with OVS support
+RUN cd /magma/third_party/build/bin && \
+    ./libfluid_build.sh && \
+    find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
+    rm -rf /tmp/*
