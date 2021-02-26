@@ -63,19 +63,24 @@ class TrafficClass:
     """
 
     @staticmethod
-    def delete_class(intf: str, qid: int, show_error=True) -> int:
+    def delete_class(intf: str, qid: int, skip_filter=False) -> int:
         qid_hex = hex(qid)
         # delete filter if this is a leaf class
-        filter_cmd = "tc filter del dev {intf} protocol ip parent 1: prio 1 "
-        filter_cmd += "handle {qid} fw flowid 1:{qid}"
-        filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
-        tc_cmd = "tc class del dev {intf} classid 1:{qid}".format(intf=intf,
-                                                                  qid=qid_hex)
-        return run_cmd([filter_cmd, tc_cmd], show_error)
+        cmd_list = []
+
+        if not skip_filter:
+            filter_cmd = "tc filter del dev {intf} protocol ip parent 1: prio 1 "
+            filter_cmd += "handle {qid} fw flowid 1:{qid}"
+            filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
+            cmd_list.append(filter_cmd)
+
+        cmd_list.append("tc class del dev {intf} classid 1:{qid}".format(intf=intf,
+                                                                  qid=qid_hex))
+        return run_cmd(cmd_list, True)
 
     @staticmethod
     def create_class(intf: str, qid: int, max_bw: int, rate=None,
-                     parent_qid=None, show_error=True) -> int:
+                     parent_qid=None, show_error=True, skip_filter=False) -> int:
         if not rate:
             rate = DEFAULT_RATE
 
@@ -96,7 +101,7 @@ class TrafficClass:
                                qid=qid_hex, rate=rate, maxbw=max_bw)
 
         err = run_cmd([tc_cmd], show_error=show_error)
-        if err < 0:
+        if err < 0 or skip_filter:
             return err
 
         # add filter
@@ -260,10 +265,10 @@ class TCManager(object):
                 (qid, pqid) = qid_tuple
                 if self._start_idx <= qid < (self._max_idx - 1):
                     LOG.info("Attemting to delete class idx %d", qid)
-                    TrafficClass.delete_class(intf, qid, show_error=False)
+                    TrafficClass.delete_class(intf, qid)
                 if self._start_idx <= pqid < (self._max_idx - 1):
                     LOG.info("Attemting to delete parent class idx %d", pqid)
-                    TrafficClass.delete_class(intf, pqid, show_error=False)
+                    TrafficClass.delete_class(intf, pqid)
 
     def setup(self, ):
         # initialize new qdisc
@@ -280,13 +285,14 @@ class TCManager(object):
         return parser.OFPActionSetField(pkt_mark=qid), None
 
     def add_qos(self, d: FlowMatch.Direction, qos_info: QosInfo,
-                parent=None) -> int:
+                parent=None, skip_filter=False) -> int:
         LOG.debug("add QoS: %s", qos_info)
         qid = self._id_manager.allocate_idx()
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
         err = TrafficClass.create_class(intf, qid, qos_info.mbr,
                                         rate=qos_info.gbr,
-                                        parent_qid=parent)
+                                        parent_qid=parent,
+                                        skip_filter=skip_filter)
         # typecast to int to avoid MagicMock related error in unit test
         if int(err) < 0:
             return 0
@@ -294,7 +300,7 @@ class TCManager(object):
         return qid
 
     def remove_qos(self, qid: int, d: FlowMatch.Direction,
-                   recovery_mode=False):
+                   recovery_mode=False, skip_filter=False):
         if not self._initialized and not recovery_mode:
             return
 
@@ -302,10 +308,10 @@ class TCManager(object):
             LOG.error("invalid qid %d, removal failed", qid)
             return
 
-        LOG.debug("deleting qos_handle %s", qid)
+        LOG.debug("deleting qos_handle %s, skip_filter %s", qid, skip_filter)
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
 
-        err = TrafficClass.delete_class(intf, qid)
+        err = TrafficClass.delete_class(intf, qid, skip_filter)
         if err == 0:
             self._id_manager.release_idx(qid)
         else:
