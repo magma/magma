@@ -29,9 +29,9 @@ import (
 )
 
 func Test_GetCommonSpec(t *testing.T) {
-	specPath := "/etc/magma/configs/orc8r/swagger_specs"
-	commonSpecDir := "/etc/magma/configs/orc8r/swagger_specs/common"
-	commonSpecFilePath := "/etc/magma/configs/orc8r/swagger_specs/common/swagger-common.yml"
+	specPath := "/etc/magma/swagger/specs"
+	commonSpecDir := "/etc/magma/swagger/specs/common"
+	commonSpecFilePath := "/etc/magma/swagger/specs/common/swagger-common.yml"
 
 	os.RemoveAll(specPath)
 	defer os.RemoveAll(specPath)

@@ -108,6 +108,9 @@ COPY --from=builder /${SWAGGER_FILES}/v1/index.html /var/opt/magma/static/swagge
 COPY --from=builder /${SWAGGER_FILES}/v1/swagger.yml /var/opt/magma/static/swagger/v1/spec/swagger.yml
 COPY --from=builder /build/bin /var/opt/magma/bin
 
+## Swagger specs
+COPY --from=builder src/magma/orc8r/swagger /etc/magma/swagger
+
 # Supervisor configs
 ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
 COPY ${CNTLR_FILES}/supervisord.conf /etc/supervisor/conf.d/supervisord.conf

@@ -33,7 +33,7 @@ var (
 	configDir         = "/etc/magma/configs"
 	oldConfigDir      = "/etc/magma"
 	configOverrideDir = "/var/opt/magma/configs"
-	specDir           = "/etc/magma/configs/orc8r/swagger_specs"
+	specDir           = "/etc/magma/swagger/specs"
 	cfgDirMu          sync.RWMutex
 )
 
