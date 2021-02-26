@@ -11,6 +11,7 @@
 
 #pragma once
 #include <sstream>
+#include "M5gNasMessage.h"
 #include "M5GExtendedProtocolDiscriminator.h"
 #include "M5GPDUSessionIdentity.h"
 #include "M5GPTI.h"

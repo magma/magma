@@ -30,10 +30,8 @@ class SmfMsgHeader {
   uint8_t message_type;
 };
 
-// Smf NAS Msg Class
-class SmfMsg {
- public:
-  SmfMsgHeader header;
+// Smf NAS messages
+union SMsg_u {
   PDUSessionEstablishmentRequestMsg pdu_session_estab_request;
   PDUSessionEstablishmentAcceptMsg pdu_session_estab_accept;
   PDUSessionEstablishmentRejectMsg pdu_session_estab_reject;
@@ -41,6 +39,15 @@ class SmfMsg {
   PDUSessionReleaseRejectMsg pdu_session_release_reject;
   PDUSessionModificationRequestMsg pdu_session_modif_request;
   PDUSessionModificationRejectMsg pdu_session_modif_reject;
+  SMsg_u();
+  ~SMsg_u();
+};
+
+// Smf NAS Msg Class
+class SmfMsg {
+ public:
+  SmfMsgHeader header;
+  SMsg_u msg;
 
   SmfMsg();
   ~SmfMsg();

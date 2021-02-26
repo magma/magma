@@ -39,10 +39,7 @@ class AmfMsgHeader {
   uint8_t message_type;
 };
 
-// Amf NAS Msg Class
-class AmfMsg {
- public:
-  AmfMsgHeader header;
+  union MMsg_u {
   RegistrationRequestMsg reg_request;
   RegistrationAcceptMsg reg_accept;
   RegistrationCompleteMsg reg_complete;
@@ -60,6 +57,15 @@ class AmfMsg {
   DeRegistrationAcceptUEInitMsg de_reg_accept;
   ULNASTransportMsg ul_nas_transport;
   DLNASTransportMsg dl_nas_transport;
+  MMsg_u();
+  ~MMsg_u();
+  };
+
+// Amf NAS Msg Class
+class AmfMsg {
+ public:
+  AmfMsgHeader header;
+  MMsg_u msg; 
 
   AmfMsg();
   ~AmfMsg();

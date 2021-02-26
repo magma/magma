@@ -14,7 +14,6 @@
 #include <cstdint>
 #include <cstring>
 #include "M5GPayloadContainer.h"
-#include "SmfMessage.h"
 #include "M5GCommonDefs.h"
 
 using namespace std;

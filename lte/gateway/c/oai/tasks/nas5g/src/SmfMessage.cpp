@@ -17,6 +17,8 @@
 
 using namespace std;
 namespace magma5g {
+	SMsg_u::SMsg_u(){};
+	SMsg_u::~SMsg_u(){};
 SmfMsg::SmfMsg(){};
 SmfMsg::~SmfMsg(){};
 
@@ -39,7 +41,7 @@ int SmfMsg::SmfMsgDecodeHeaderMsg(
                  << hex << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty" << endl;
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
 
   if (hdr->extended_protocol_discriminator != M5G_SESSION_MANAGEMENT_MESSAGES) {
@@ -68,7 +70,7 @@ int SmfMsg::SmfMsgEncodeHeaderMsg(
                  << hex << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty ";
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
   if ((unsigned char) hdr->extended_protocol_discriminator !=
       M5G_SESSION_MANAGEMENT_MESSAGES) {
@@ -86,31 +88,31 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   MLOG(MDEBUG) << "SmfMsgDecodeMsg:" << endl;
   if (len <= 0 || buffer == NULL) {
     MLOG(MERROR) << "Error : Buffer is Empty" << endl;
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
 
   header_result = msg->SmfMsgDecodeHeaderMsg(&msg->header, buffer, len);
   if (header_result <= 0) {
     MLOG(MERROR) << "   Error : Header Decoding Failed" << std::dec
-                 << RETURN_ERROR;
-    return (RETURN_ERROR);
+                 << RETURNerror;
+    return (RETURNerror);
   }
 
   switch ((unsigned char) msg->header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_REQUEST:
-      decode_result = msg->pdu_session_estab_request
+      decode_result = msg->msg.pdu_session_estab_request
                           .DecodePDUSessionEstablishmentRequestMsg(
-                              &msg->pdu_session_estab_request, buffer, len);
+                              &msg->msg.pdu_session_estab_request, buffer, len);
       break;
     case PDU_SESSION_RELEASE_REQUEST:
       decode_result =
-          msg->pdu_session_release_request.DecodePDUSessionReleaseRequestMsg(
-              &msg->pdu_session_release_request, buffer, len);
+          msg->msg.pdu_session_release_request.DecodePDUSessionReleaseRequestMsg(
+              &msg->msg.pdu_session_release_request, buffer, len);
       break;
     case PDU_SESSION_MODIFICATION_REQUEST:
       decode_result =
-          msg->pdu_session_modif_request.DecodePDUSessionModificationRequestMsg(
-              &msg->pdu_session_modif_request, buffer, len);
+          msg->msg.pdu_session_modif_request.DecodePDUSessionModificationRequestMsg(
+              &msg->msg.pdu_session_modif_request, buffer, len);
       break;
     default:
       decode_result = TLV_WRONG_MESSAGE_TYPE;
@@ -126,14 +128,14 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   MLOG(MDEBUG) << " SmfMsgEncodeMsg : " << endl;
   if (len <= 0 || buffer == NULL) {
     MLOG(MERROR) << "Error : Buffer is Empty";
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
 
   header_result = msg->SmfMsgEncodeHeaderMsg(&msg->header, buffer, len);
   if (header_result <= 0) {
     MLOG(MERROR) << "   Error : Header Encoding Failed" << std::dec
-                 << RETURN_ERROR;
-    return (RETURN_ERROR);
+                 << RETURNerror;
+    return (RETURNerror);
   }
 
   buffer        = buffer + header_result;
@@ -142,23 +144,23 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
   switch ((unsigned char) msg->header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_ACCEPT:
       encode_result =
-          msg->pdu_session_estab_accept.EncodePDUSessionEstablishmentAcceptMsg(
-              &msg->pdu_session_estab_accept, buffer, len);
+          msg->msg.pdu_session_estab_accept.EncodePDUSessionEstablishmentAcceptMsg(
+              &msg->msg.pdu_session_estab_accept, buffer, len);
       break;
     case PDU_SESSION_ESTABLISHMENT_REJECT:
       encode_result =
-          msg->pdu_session_estab_reject.EncodePDUSessionEstablishmentRejectMsg(
-              &msg->pdu_session_estab_reject, buffer, len);
+          msg->msg.pdu_session_estab_reject.EncodePDUSessionEstablishmentRejectMsg(
+              &msg->msg.pdu_session_estab_reject, buffer, len);
       break;
     case PDU_SESSION_MODIFICATION_REJECT:
       encode_result =
-          msg->pdu_session_modif_reject.EncodePDUSessionModificationRejectMsg(
-              &msg->pdu_session_modif_reject, buffer, len);
+          msg->msg.pdu_session_modif_reject.EncodePDUSessionModificationRejectMsg(
+              &msg->msg.pdu_session_modif_reject, buffer, len);
       break;
     case PDU_SESSION_RELEASE_REJECT:
       encode_result =
-          msg->pdu_session_release_reject.EncodePDUSessionReleaseRejectMsg(
-              &msg->pdu_session_release_reject, buffer, len);
+          msg->msg.pdu_session_release_reject.EncodePDUSessionReleaseRejectMsg(
+              &msg->msg.pdu_session_release_reject, buffer, len);
       break;
     default:
       encode_result = TLV_WRONG_MESSAGE_TYPE;

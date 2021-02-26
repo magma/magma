@@ -29,12 +29,12 @@ int AmfMsg::M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
     header_result = msg->AmfMsgDecodeHeaderMsg(&msg->header, buffer, len);
     if (header_result <= 0) {
       MLOG(MERROR) << "   Error : Header Decoding Failed" << std::dec
-                   << RETURN_ERROR;
-      return (RETURN_ERROR);
+                   << RETURNerror;
+      return (RETURNerror);
     }
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty";
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
   MLOG(MDEBUG) << "   epd = 0x" << hex
                << int(msg->header.extended_protocol_discriminator) << "\n"
@@ -45,7 +45,7 @@ int AmfMsg::M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
   decode_result = msg->AmfMsgDecodeMsg(msg, buffer, len);
   if (decode_result <= 0) {
     MLOG(MERROR) << "decode result error ";
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
   return (header_result + decode_result);
 }
@@ -61,17 +61,17 @@ int AmfMsg::M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
     if (header_result <= 0) {
       MLOG(MERROR)
           << "In M5gNasMessageEncodeMsg AmfMsgEncodeHeaderMsg ret error: "
-          << std::dec << RETURN_ERROR;
-      return (RETURN_ERROR);
+          << std::dec << RETURNerror;
+      return (RETURNerror);
     }
   } else {
     MLOG(MERROR) << "Error : Buffer is empty " << endl;
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
   encode_result = msg->AmfMsgEncodeMsg(msg, buffer, len);
   if (encode_result <= 0) {
     MLOG(MERROR) << "Error : Encoding AMF Message Failed" << endl;
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
   return (header_result + encode_result);
 }
@@ -92,7 +92,7 @@ int AmfMsg::AmfMsgDecodeHeaderMsg(
                  << " hdr type = 0x" << hex << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty" << endl;
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
 
   if (hdr->extended_protocol_discriminator !=
@@ -119,7 +119,7 @@ int AmfMsg::AmfMsgEncodeHeaderMsg(
                  << "hdr type = 0x" << hex << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty ";
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
   if ((unsigned char) hdr->extended_protocol_discriminator !=
       M5G_MOBILITY_MANAGEMENT_MESSAGES) {
@@ -136,73 +136,73 @@ int AmfMsg::AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
   MLOG(MDEBUG) << "AmfMsgDecodeMsg:" << endl;
   if (len <= 0 || buffer == NULL) {
     MLOG(MERROR) << "Error : Buffer is Empty" << endl;
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
   MLOG(MDEBUG) << "msg type = 0x" << hex << int(msg->header.message_type);
   switch ((unsigned char) msg->header.message_type) {
     case REG_REQUEST:
-      decode_result = msg->reg_request.DecodeRegistrationRequestMsg(
-          &msg->reg_request, buffer, len);
+      decode_result = msg->msg.reg_request.DecodeRegistrationRequestMsg(
+          &msg->msg.reg_request, buffer, len);
       break;
     case REG_ACCEPT:
-      decode_result = msg->reg_accept.DecodeRegistrationAcceptMsg(
-          &msg->reg_accept, buffer, len);
+      decode_result = msg->msg.reg_accept.DecodeRegistrationAcceptMsg(
+          &msg->msg.reg_accept, buffer, len);
       break;
     case REG_COMPLETE:
-      decode_result = msg->reg_complete.DecodeRegistrationCompleteMsg(
-          &msg->reg_complete, buffer, len);
+      decode_result = msg->msg.reg_complete.DecodeRegistrationCompleteMsg(
+          &msg->msg.reg_complete, buffer, len);
       break;
     case REG_REJECT:
-      decode_result = msg->reg_reject.DecodeRegistrationRejectMsg(
-          &msg->reg_reject, buffer, len);
+      decode_result = msg->msg.reg_reject.DecodeRegistrationRejectMsg(
+          &msg->msg.reg_reject, buffer, len);
       break;
     case M5G_IDENTITY_REQUEST:
-      decode_result = msg->identity_request.DecodeIdentityRequestMsg(
-          &msg->identity_request, buffer, len);
+      decode_result = msg->msg.identity_request.DecodeIdentityRequestMsg(
+          &msg->msg.identity_request, buffer, len);
       break;
     case M5G_IDENTITY_RESPONSE:
-      decode_result = msg->identity_response.DecodeIdentityResponseMsg(
-          &msg->identity_response, buffer, len);
+      decode_result = msg->msg.identity_response.DecodeIdentityResponseMsg(
+          &msg->msg.identity_response, buffer, len);
       break;
     case AUTH_REQUEST:
-      decode_result = msg->auth_request.DecodeAuthenticationRequestMsg(
-          &msg->auth_request, buffer, len);
+      decode_result = msg->msg.auth_request.DecodeAuthenticationRequestMsg(
+          &msg->msg.auth_request, buffer, len);
       break;
     case AUTH_RESPONSE:
-      decode_result = msg->auth_response.DecodeAuthenticationResponseMsg(
-          &msg->auth_response, buffer, len);
+      decode_result = msg->msg.auth_response.DecodeAuthenticationResponseMsg(
+          &msg->msg.auth_response, buffer, len);
       break;
     case AUTH_REJECT:
-      decode_result = msg->auth_reject.DecodeAuthenticationRejectMsg(
-          &msg->auth_reject, buffer, len);
+      decode_result = msg->msg.auth_reject.DecodeAuthenticationRejectMsg(
+          &msg->msg.auth_reject, buffer, len);
       break;
     case AUTH_FAILURE:
-      decode_result = msg->auth_failure.DecodeAuthenticationFailureMsg(
-          &msg->auth_failure, buffer, len);
+      decode_result = msg->msg.auth_failure.DecodeAuthenticationFailureMsg(
+          &msg->msg.auth_failure, buffer, len);
       break;
     case SEC_MODE_COMMAND:
-      decode_result = msg->sec_mode_command.DecodeSecurityModeCommandMsg(
-          &msg->sec_mode_command, buffer, len);
+      decode_result = msg->msg.sec_mode_command.DecodeSecurityModeCommandMsg(
+          &msg->msg.sec_mode_command, buffer, len);
       break;
     case SEC_MODE_COMPLETE:
-      decode_result = msg->sec_mode_complete.DecodeSecurityModeCompleteMsg(
-          &msg->sec_mode_complete, buffer, len);
+      decode_result = msg->msg.sec_mode_complete.DecodeSecurityModeCompleteMsg(
+          &msg->msg.sec_mode_complete, buffer, len);
       break;
     case SEC_MODE_REJECT:
-      decode_result = msg->sec_mode_reject.DecodeSecurityModeRejectMsg(
-          &msg->sec_mode_reject, buffer, len);
+      decode_result = msg->msg.sec_mode_reject.DecodeSecurityModeRejectMsg(
+          &msg->msg.sec_mode_reject, buffer, len);
       break;
     case DE_REG_REQUEST_UE_ORIGIN:
-      decode_result = msg->de_reg_request.DecodeDeRegistrationRequestUEInitMsg(
-          &msg->de_reg_request, buffer, len);
+      decode_result = msg->msg.de_reg_request.DecodeDeRegistrationRequestUEInitMsg(
+          &msg->msg.de_reg_request, buffer, len);
       break;
     case DE_REG_ACCEPT_UE_ORIGIN:
-      decode_result = msg->de_reg_accept.DecodeDeRegistrationAcceptUEInitMsg(
-          &msg->de_reg_accept, buffer, len);
+      decode_result = msg->msg.de_reg_accept.DecodeDeRegistrationAcceptUEInitMsg(
+          &msg->msg.de_reg_accept, buffer, len);
       break;
     case ULNASTRANSPORT:
-      decode_result = msg->ul_nas_transport.DecodeULNASTransportMsg(
-          &msg->ul_nas_transport, buffer, len);
+      decode_result = msg->msg.ul_nas_transport.DecodeULNASTransportMsg(
+          &msg->msg.ul_nas_transport, buffer, len);
       break;
     default:
       decode_result = TLV_WRONG_MESSAGE_TYPE;
@@ -217,68 +217,68 @@ int AmfMsg::AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
   MLOG(MDEBUG) << " AmfMsgEncodeMsg : " << endl;
   if (len <= 0 || buffer == NULL) {
     MLOG(MERROR) << "Error : Buffer is Empty";
-    return (RETURN_ERROR);
+    return (RETURNerror);
   }
   switch ((unsigned char) msg->header.message_type) {
     case REG_REQUEST:
-      encode_result = msg->reg_request.EncodeRegistrationRequestMsg(
-          &msg->reg_request, buffer, len);
+      encode_result = msg->msg.reg_request.EncodeRegistrationRequestMsg(
+          &msg->msg.reg_request, buffer, len);
       break;
     case REG_ACCEPT:
-      encode_result = msg->reg_accept.EncodeRegistrationAcceptMsg(
-          &msg->reg_accept, buffer, len);
+      encode_result = msg->msg.reg_accept.EncodeRegistrationAcceptMsg(
+          &msg->msg.reg_accept, buffer, len);
       break;
     case REG_COMPLETE:
-      encode_result = msg->reg_complete.EncodeRegistrationCompleteMsg(
-          &msg->reg_complete, buffer, len);
+      encode_result = msg->msg.reg_complete.EncodeRegistrationCompleteMsg(
+          &msg->msg.reg_complete, buffer, len);
       break;
     case REG_REJECT:
-      encode_result = msg->reg_reject.EncodeRegistrationRejectMsg(
-          &msg->reg_reject, buffer, len);
+      encode_result = msg->msg.reg_reject.EncodeRegistrationRejectMsg(
+          &msg->msg.reg_reject, buffer, len);
       break;
     case M5G_IDENTITY_REQUEST:
-      encode_result = msg->identity_request.EncodeIdentityRequestMsg(
-          &msg->identity_request, buffer, len);
+      encode_result = msg->msg.identity_request.EncodeIdentityRequestMsg(
+          &msg->msg.identity_request, buffer, len);
       break;
     case M5G_IDENTITY_RESPONSE:
-      encode_result = msg->identity_response.EncodeIdentityResponseMsg(
-          &msg->identity_response, buffer, len);
+      encode_result = msg->msg.identity_response.EncodeIdentityResponseMsg(
+          &msg->msg.identity_response, buffer, len);
       break;
     case AUTH_REQUEST:
-      encode_result = msg->auth_request.EncodeAuthenticationRequestMsg(
-          &msg->auth_request, buffer, len);
+      encode_result = msg->msg.auth_request.EncodeAuthenticationRequestMsg(
+          &msg->msg.auth_request, buffer, len);
       break;
     case AUTH_RESPONSE:
-      encode_result = msg->auth_response.EncodeAuthenticationResponseMsg(
-          &msg->auth_response, buffer, len);
+      encode_result = msg->msg.auth_response.EncodeAuthenticationResponseMsg(
+          &msg->msg.auth_response, buffer, len);
       break;
     case AUTH_REJECT:
-      encode_result = msg->auth_reject.EncodeAuthenticationRejectMsg(
-          &msg->auth_reject, buffer, len);
+      encode_result = msg->msg.auth_reject.EncodeAuthenticationRejectMsg(
+          &msg->msg.auth_reject, buffer, len);
       break;
     case AUTH_FAILURE:
-      encode_result = msg->auth_failure.EncodeAuthenticationFailureMsg(
-          &msg->auth_failure, buffer, len);
+      encode_result = msg->msg.auth_failure.EncodeAuthenticationFailureMsg(
+          &msg->msg.auth_failure, buffer, len);
       break;
     case SEC_MODE_COMMAND:
-      encode_result = msg->sec_mode_command.EncodeSecurityModeCommandMsg(
-          &msg->sec_mode_command, buffer, len);
+      encode_result = msg->msg.sec_mode_command.EncodeSecurityModeCommandMsg(
+          &msg->msg.sec_mode_command, buffer, len);
       break;
     case SEC_MODE_COMPLETE:
-      encode_result = msg->sec_mode_complete.EncodeSecurityModeCompleteMsg(
-          &msg->sec_mode_complete, buffer, len);
+      encode_result = msg->msg.sec_mode_complete.EncodeSecurityModeCompleteMsg(
+          &msg->msg.sec_mode_complete, buffer, len);
       break;
     case SEC_MODE_REJECT:
-      encode_result = msg->sec_mode_reject.EncodeSecurityModeRejectMsg(
-          &msg->sec_mode_reject, buffer, len);
+      encode_result = msg->msg.sec_mode_reject.EncodeSecurityModeRejectMsg(
+          &msg->msg.sec_mode_reject, buffer, len);
       break;
     case DE_REG_ACCEPT_UE_ORIGIN:
-      encode_result = msg->de_reg_accept.EncodeDeRegistrationAcceptUEInitMsg(
-          &msg->de_reg_accept, buffer, len);
+      encode_result = msg->msg.de_reg_accept.EncodeDeRegistrationAcceptUEInitMsg(
+          &msg->msg.de_reg_accept, buffer, len);
       break;
     case DLNASTRANSPORT:
-      encode_result = msg->dl_nas_transport.EncodeDLNASTransportMsg(
-          &msg->dl_nas_transport, buffer, len);
+      encode_result = msg->msg.dl_nas_transport.EncodeDLNASTransportMsg(
+          &msg->msg.dl_nas_transport, buffer, len);
       break;
     default:
       encode_result = TLV_WRONG_MESSAGE_TYPE;

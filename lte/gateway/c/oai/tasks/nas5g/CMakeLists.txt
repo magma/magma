@@ -1,19 +1,4 @@
-set(NGAP_C_DIR ${PROJECT_BINARY_DIR}/ngap/r15.8)
-
-# compile the needed protos
-set(NAS_STATE_CPP_PROTOS nas_state spgw_state common_types std_3gpp_types)
-list(APPEND PROTO_SRCS "")
-list(APPEND PROTO_HDRS "")
-
-set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
-generate_cpp_protos("${NAS_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
-
-message("Proto_srcs are ${PROTO_SRCS}")
-
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${LTE_OUT_DIR})
-include_directories("${NGAP_C_DIR}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -90,8 +75,6 @@ set(libnas_ies_OBJS
 add_library(LIB_NAS5G
     ${libnas_src_OBJS}
     ${libnas_ies_OBJS}
-    ${PROTO_SRCS}
-    ${PROTO_HDRS}
     )
 
 target_link_libraries(LIB_NAS5G
@@ -107,6 +90,3 @@ target_include_directories(LIB_NAS5G PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/ies
     ${CMAKE_CURRENT_SOURCE_DIR}/test
 )
-
-add_subdirectory(test)
-
