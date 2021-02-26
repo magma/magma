@@ -1,0 +1,19 @@
+---
+- name: install packages
+  apt:
+    name: "{{ pkgGateway }}"
+    state: present
+  become: yes
+
+- name: create magma directory
+  file:
+    path: "{{ dirSourceLocal }}"
+    state: directory
+    mode: '0775'
+
+- name: download github repo
+  git:
+    repo: "{{ magmaRepo }}"
+    dest: "{{ dirSourceLocal }}"
+    version: "{{ magmaVersion }}"
+

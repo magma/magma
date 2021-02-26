@@ -321,7 +321,7 @@ function SubscriberInternal(props: WithAlert) {
                         width: 175,
                       },
                       {title: 'Active APNs', field: 'activeApns'},
-                      {title: 'IP Address', field: 'ipAddress'},
+                      {title: 'Session IP Address', field: 'ipAddress'},
                     ]
               }
               handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}

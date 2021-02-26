@@ -40,6 +40,9 @@
 #ifndef FILE_GX_MESSAGES_TYPES_SEEN
 #define FILE_GX_MESSAGES_TYPES_SEEN
 
+#include "3gpp_24.007.h"
+#include "3gpp_29.274.h"
+
 #define GX_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                            \
   (mSGpTR)->ittiMsg.gx_nw_init_actv_bearer_request
 #define GX_NW_INITIATED_DEACTIVATE_BEARER_REQ(mSGpTR)                          \

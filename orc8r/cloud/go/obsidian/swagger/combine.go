@@ -58,6 +58,26 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 	return combined, nil
 }
 
+// GetServiceSpec polls a service for its spec and combines it with the
+// common spec to return a combined spec.
+func GetServiceSpec(yamlCommon string, service string) (string, error) {
+	remoteSpec := NewRemoteSpec(service)
+	yamlSpec, err := remoteSpec.GetSpec()
+	if err != nil {
+		return "", err
+	}
+
+	combined, warnings, err := swagger_lib.Combine(yamlCommon, []string{yamlSpec})
+	if err != nil {
+		return "", err
+	}
+	if warnings != nil {
+		glog.Infof("Some Swagger spec traits were overwritten or unable to be read: %+v", warnings)
+	}
+
+	return combined, nil
+}
+
 // GetCommonSpec returns the Swagger common spec as a YAML string.
 func GetCommonSpec() (string, error) {
 	data, err := ioutil.ReadFile(commonSpecPath)

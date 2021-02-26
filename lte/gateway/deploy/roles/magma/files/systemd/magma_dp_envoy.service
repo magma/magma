@@ -11,6 +11,7 @@
 #
 [Unit]
 Description=Magma envoy service
+PartOf=magma@pipelined.service
 After=magma@envoy_controller.service
 
 [Service]

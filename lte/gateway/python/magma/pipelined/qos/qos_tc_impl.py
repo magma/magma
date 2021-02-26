@@ -169,6 +169,7 @@ class TrafficClass:
                 pqid_str = tok[4].split(':')[1]
                 pqid = int(pqid_str, 16)
                 qid_list.append((qid, pqid))
+                LOG.debug("TC-dump: %s qid %d pqid %d", ln, qid, pqid)
 
         except subprocess.CalledProcessError as e:
             LOG.error('failed extracting classids from tc %s', e)
@@ -273,7 +274,7 @@ class TCManager(object):
         # return an action and an instruction corresponding to this qid
         if qid < self._start_idx or qid > (self._max_idx - 1):
             LOG.error("invalid qid %d, no action/inst returned", qid)
-            return
+            return None, None
 
         parser = self._datapath.ofproto_parser
         return parser.OFPActionSetField(pkt_mark=qid), None
@@ -314,7 +315,7 @@ class TCManager(object):
     def read_all_state(self, ):
         LOG.debug("read_all_state")
         st = {}
-        apn_qid_list = []
+        apn_qid_list = set()
         ul_qid_list = TrafficClass.read_all_classes(self._uplink)
         dl_qid_list = TrafficClass.read_all_classes(self._downlink)
         for (d, qid_list) in ((FlowMatch.UPLINK, ul_qid_list),
@@ -322,6 +323,7 @@ class TCManager(object):
             for qid_tuple in qid_list:
                 qid, pqid = qid_tuple
                 if qid < self._start_idx or qid > (self._max_idx - 1):
+                    LOG.debug("qid %d out of range: (%d - %d)", qid, self._start_idx, self._max_idx)
                     continue
                 apn_qid = pqid if pqid != self._max_idx else 0
                 st[qid] = {
@@ -329,7 +331,7 @@ class TCManager(object):
                     'ambr_qid': apn_qid,
                 }
                 if apn_qid != 0:
-                    apn_qid_list.append(apn_qid)
+                    apn_qid_list.add(apn_qid)
 
         self._id_manager.restore_state(st)
         return st, apn_qid_list

@@ -283,6 +283,12 @@ int s1ap_mme_handle_uplink_nas_transport(
   mme_ue_s1ap_id = (mme_ue_s1ap_id_t) ie->value.choice.MME_UE_S1AP_ID;
 
   enb_ref = s1ap_state_get_enb(state, assoc_id);
+  if (enb_ref == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP, "No eNB reference exists for association id %d\n", assoc_id);
+    return RETURNerror;
+  }
+
   if (mme_ue_s1ap_id == INVALID_MME_UE_S1AP_ID) {
     OAILOG_WARNING(
         LOG_S1AP,
