@@ -26,7 +26,7 @@ SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
 SWAGGER_V1_CONFIG := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/goswagger-config.yml
-SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/swagger/specs
+SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/swagger/specs
 SWAGGER_V1_COMMON_DIR := common
 
 export SWAGGER_ROOT
