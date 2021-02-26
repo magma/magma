@@ -28,7 +28,6 @@ get_proto_serializer();
 /**
  * Deserialize a string into a protobuf message
  */
-std::function<bool(const std::string&, Message&)>
-get_proto_deserializer();
+std::function<bool(const std::string&, Message&)> get_proto_deserializer();
 
-}
+}  // namespace magma

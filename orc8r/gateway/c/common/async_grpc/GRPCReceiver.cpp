@@ -36,4 +36,4 @@ void GRPCReceiver::stop() {
   queue_.Shutdown();
 }
 
-}
+}  // namespace magma
