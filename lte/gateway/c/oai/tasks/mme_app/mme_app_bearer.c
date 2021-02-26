@@ -1250,8 +1250,9 @@ int mme_app_handle_create_sess_resp(
 
 error_handling_csr_failure:
   increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "failure");
-  bearer_id = create_sess_resp_pP->bearer_contexts_created.bearer_contexts[0]
-                  .eps_bearer_id /* - 5 */;
+  bearer_id =
+      create_sess_resp_pP->bearer_contexts_marked_for_removal.bearer_contexts[0]
+          .eps_bearer_id;
   current_bearer_p = mme_app_get_bearer_context(ue_context_p, bearer_id);
   if (current_bearer_p) {
     transaction_identifier = current_bearer_p->transaction_identifier;
