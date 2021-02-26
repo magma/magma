@@ -1484,7 +1484,7 @@ void mme_config_display(mme_config_t* config_pP) {
     }
   }
   for (j = 0; j < config_pP->blocked_imei.num; j++) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
         LOG_CONFIG, "- Blocked IMEI : %s\n",
         config_pP->blocked_imei.imei_list[j].imei);
   }

@@ -305,7 +305,7 @@ typedef struct restricted_plmn_s {
 } restricted_plmn_config_t;
 
 typedef struct imei_list_s {
-  uint8_t imei[17];
+  uint8_t imei[MAX_LEN_IMEI + 1];
 } imei_list_t;
 
 typedef struct blocked_imei_s {

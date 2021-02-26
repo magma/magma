@@ -475,7 +475,7 @@ int emm_proc_security_mode_complete(
       // Convert to string
       char imeisv_str[MAX_IMEISV_SIZE + 1] = {0};
       IMEISV_TO_STRING(&imeisv, imeisv_str, MAX_IMEISV_SIZE + 1);
-      OAILOG_ERROR(
+      OAILOG_DEBUG(
           LOG_NAS_EMM,
           "EMM-PROC  - String imeisv "
           "%s\n",

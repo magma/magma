@@ -92,15 +92,6 @@ MME :
          {% endfor %}
     );
 
-    CSFB :
-    {
-        NON_EPS_SERVICE_CONTROL = "{{ non_eps_service_control }}";
-        CSFB_MCC = "{{ csfb_mcc }}";
-        CSFB_MNC = "{{ csfb_mnc }}";
-        LAC = "{{ lac }}";
-    };
-
-
     # List of restricted PLMNs
     # By default this list is empty
     # Max number of restricted plmn is 10
@@ -121,6 +112,14 @@ MME :
         # complete message
         #{ IMEI="9900048235103723"}
     );
+
+    CSFB :
+    {
+        NON_EPS_SERVICE_CONTROL = "{{ non_eps_service_control }}";
+        CSFB_MCC = "{{ csfb_mcc }}";
+        CSFB_MNC = "{{ csfb_mnc }}";
+        LAC = "{{ lac }}";
+    };
 
     NAS :
     {
@@ -254,8 +253,8 @@ MME :
         SPGW_APP_LOG_LEVEL = "{{ oai_log_level }}";
         UDP_LOG_LEVEL      = "{{ oai_log_level }}";
         S1AP_LOG_LEVEL     = "{{ oai_log_level }}";
-        NAS_LOG_LEVEL      = "DEBUG";
-        MME_APP_LOG_LEVEL  = "DEBUG";
+        NAS_LOG_LEVEL      = "{{ oai_log_level }}";
+        MME_APP_LOG_LEVEL  = "{{ oai_log_level }}";
         GTPV2C_LOG_LEVEL   = "{{ oai_log_level }}";
         S11_LOG_LEVEL      = "{{ oai_log_level }}";
         S6A_LOG_LEVEL      = "{{ oai_log_level }}";
