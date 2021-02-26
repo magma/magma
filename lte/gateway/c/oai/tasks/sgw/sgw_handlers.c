@@ -1437,9 +1437,14 @@ void handle_s5_create_session_response(
   memset(
       create_session_response_p, 0, sizeof(itti_s11_create_session_response_t));
   create_session_response_p->cause.cause_value = cause;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+  create_session_response_p->bearer_contexts_marked_for_removal
+      .bearer_contexts[0]
       .cause.cause_value = cause;
-  create_session_response_p->bearer_contexts_created.num_bearer_context += 1;
+  create_session_response_p->bearer_contexts_marked_for_removal
+      .num_bearer_context += 1;
+  create_session_response_p->bearer_contexts_marked_for_removal
+      .bearer_contexts[0]
+      .eps_bearer_id = session_resp.eps_bearer_id;
   create_session_response_p->teid =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_teid_S11;
   create_session_response_p->trxn =
