@@ -80,6 +80,7 @@
 #define LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH 5
 #define LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH 6
 #define LOG_FUNC_INDENT_SPACES 3
+#define LOG_INDENT_MAX 30
 #define LOG_LEVEL_NAME_MAX_LENGTH 10
 
 #define LOG_CTXT_INFO_FMT                                                      \
@@ -1222,9 +1223,14 @@ void log_func(
         thread_ctxt, OAILOG_LEVEL_TRACE, protoP, source_fileP, line_numP,
         "Entering %s()\n", functionP);
     thread_ctxt->indent += LOG_FUNC_INDENT_SPACES;
+    if (thread_ctxt->indent > LOG_INDENT_MAX) {
+      thread_ctxt->indent = LOG_INDENT_MAX;
+    }
   } else {
     thread_ctxt->indent -= LOG_FUNC_INDENT_SPACES;
-    if (thread_ctxt->indent < 0) thread_ctxt->indent = 0;
+    if (thread_ctxt->indent < 0) {
+      thread_ctxt->indent = 0;
+    }
     log_message(
         thread_ctxt, OAILOG_LEVEL_TRACE, protoP, source_fileP, line_numP,
         "Leaving %s()\n", functionP);
