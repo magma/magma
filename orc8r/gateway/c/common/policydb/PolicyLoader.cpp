@@ -17,25 +17,21 @@
 #include "magma_logging.h"
 
 namespace magma {
+using namespace cpp_redis;
 
-bool try_redis_connect(cpp_redis::client& client)
-{
+bool try_redis_connect(cpp_redis::client& client) {
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
-  auto port = config["port"].as<uint32_t>();
-  auto addr = config["bind"].as<std::string>();
+  auto port   = config["port"].as<uint32_t>();
+  auto addr   = config["bind"].as<std::string>();
   try {
     client.connect(
-      addr,
-      port,
-      [](
-        const std::string& host,
-        std::size_t port,
-        cpp_redis::client::connect_state status) {
-        if (status == cpp_redis::client::connect_state::dropped) {
-          MLOG(MERROR) << "Client disconnected from " << host << ":" << port;
-        }
-      });
+        addr, port,
+        [](const std::string& host, std::size_t port, connect_state status) {
+          if (status == connect_state::dropped) {
+            MLOG(MERROR) << "Client disconnected from " << host << ":" << port;
+          }
+        });
     return client.is_connected();
   } catch (const cpp_redis::redis_error& e) {
     MLOG(MERROR) << "Could not connect to redis: " << e.what();

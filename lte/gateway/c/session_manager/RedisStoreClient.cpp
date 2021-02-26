@@ -17,12 +17,14 @@
 
 namespace magma {
 namespace lte {
+using namespace cpp_redis;
 
 RedisStoreClient::RedisStoreClient(
     std::shared_ptr<cpp_redis::client> client, const std::string& redis_table,
     std::shared_ptr<StaticRuleStore> rule_store)
     : client_(client), redis_table_(redis_table), rule_store_(rule_store) {}
 
+// TODO de-duplicate logic between this and PolicyLoader.cpp
 bool RedisStoreClient::try_redis_connect() {
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
@@ -31,9 +33,8 @@ bool RedisStoreClient::try_redis_connect() {
   try {
     client_->connect(
         addr, port,
-        [](const std::string& host, std::size_t port,
-           cpp_redis::client::connect_state status) {
-          if (status == cpp_redis::client::connect_state::dropped) {
+        [](const std::string& host, std::size_t port, connect_state status) {
+          if (status == connect_state::dropped) {
             MLOG(MERROR) << "Client disconnected from " << host << ":" << port;
           }
         });
