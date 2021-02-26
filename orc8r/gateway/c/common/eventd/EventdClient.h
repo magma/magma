@@ -30,10 +30,10 @@ namespace magma {
  */
 class AsyncEventdClient : public GRPCReceiver {
  public:
-  AsyncEventdClient(AsyncEventdClient const &) = delete;
-  void operator=(AsyncEventdClient const &) = delete;
+  AsyncEventdClient(AsyncEventdClient const&) = delete;
+  void operator=(AsyncEventdClient const&) = delete;
 
-  static AsyncEventdClient &getInstance();
+  static AsyncEventdClient& getInstance();
 
   // Logs an event
   void log_event(
