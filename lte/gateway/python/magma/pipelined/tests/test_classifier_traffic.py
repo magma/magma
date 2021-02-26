@@ -91,6 +91,7 @@ class GTPTrafficTest(unittest.TestCase):
                 'ovs_internal_sampling_port_number': 15578,
                 'ovs_internal_sampling_fwd_tbl_number': 201,
                 'clean_restart': True,
+                'ovs_multi_tunnel': False,
             },
             mconfig=PipelineD(
                 ue_ip_block="192.168.128.0/24",

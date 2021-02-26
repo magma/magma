@@ -26,7 +26,6 @@ import (
 	"magma/orc8r/lib/go/registry"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
 )
 
 func Test_GetCommonSpec(t *testing.T) {
@@ -104,6 +103,37 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 	assert.Equal(t, expectedYaml, combined)
 }
 
+func Test_GetCombinedSpecFromService(t *testing.T) {
+	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
+	commonSpec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{commonTag}}
+	yamlCommon := marshalToYAML(t, commonSpec)
+
+	// Fail with empty service
+	_, err := swagger.GetServiceSpec(yamlCommon, "")
+	assert.Error(t, err)
+
+	// Fail with invalid service
+	_, err = swagger.GetServiceSpec(yamlCommon, "invalid_test_spec_service")
+	assert.Error(t, err)
+
+	// Success with valid service
+	tag := swagger_lib.TagDefinition{Name: "Tag 1"}
+	testService := "test_spec_service"
+	expected := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{tag, commonTag},
+	}
+	expectedYaml := marshalToYAML(t, expected)
+
+	// Clean up registry
+	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
+
+	registerServicer(t, "test_spec_service", tag)
+
+	combined, err := swagger.GetServiceSpec(yamlCommon, testService)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedYaml, combined)
+}
+
 func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {
 	labels := map[string]string{
 		orc8r.SwaggerSpecLabel: "true",
@@ -120,7 +150,7 @@ func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinitio
 
 // marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
 func marshalToYAML(t *testing.T, spec swagger_lib.Spec) string {
-	data, err := yaml.Marshal(&spec)
+	data, err := spec.MarshalBinary()
 	assert.NoError(t, err)
 	return string(data)
 }

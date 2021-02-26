@@ -6974,6 +6974,16 @@ definitions:
   call_trace_config:
     description: Call Trace spec
     properties:
+      capture_filters:
+        description: |
+          Capture filter options for TShark as it would be typed out in shell. Only applies if trace_type is GATEWAY_CUSTOM.
+        example: tcp and port 80
+        type: string
+      display_filters:
+        description: |
+          Display filter options for TShark as it would be typed out in shell. Only applies if trace_type is GATEWAY_CUSTOM.
+        example: ip.addr == 10.0.0.1
+        type: string
       gateway_id:
         description: ID of gateway to run call tracing on
         example: gateway_1
@@ -6987,6 +6997,9 @@ definitions:
         type: string
         x-nullable: false
       trace_type:
+        description: |
+          Trace Type:
+           * GATEWAY - Call trace for a gateway
         enum:
         - GATEWAY
         type: string

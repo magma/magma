@@ -81,6 +81,10 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
 
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
+        while response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value:
+            print("Received SMC retx from previous run... Ignoring")
+            response = self._s1ap_wrapper.s1_util.get_response()
+
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )

@@ -278,6 +278,7 @@ hashtable_rc_t hashtable_uint64_destroy(hash_table_uint64_t* hashtblP) {
 
   free_wrapper((void**) &hashtblP->nodes);
   bdestroy_wrapper(&hashtblP->name);
+  hashtblP->size = 0;
   if (hashtblP->is_allocated_by_malloc) {
     free_wrapper((void**) &hashtblP);
   }
@@ -316,6 +317,7 @@ hashtable_rc_t hashtable_uint64_ts_destroy(hash_table_uint64_ts_t* hashtblP) {
   free_wrapper((void**) &hashtblP->nodes);
   bdestroy_wrapper(&hashtblP->name);
   free_wrapper((void**) &hashtblP->lock_nodes);
+  hashtblP->size = 0;
   if (hashtblP->is_allocated_by_malloc) {
     free_wrapper((void**) &hashtblP);
   }
