@@ -82,12 +82,7 @@ void mme_app_resume_timer(
 }
 //------------------------------------------------------------------------------
 bool mme_app_get_timer_arg(int timer_id, timer_arg_t* arg) {
-  std::pair<magma::lte::TimerArgType, bool> p =
-      magma::lte::MmeUeContext::Instance().GetTimerArg(timer_id);
-  if (p.second) {
-    *arg = p.first;
-  }
-  return p.second;
+  return magma::lte::MmeUeContext::Instance().GetTimerArg(timer_id, arg);
 }
 
 namespace magma {
@@ -99,11 +94,7 @@ int MmeUeContext::StartTimer(
   int timer_id = -1;
   if ((timer_id = start_timer(
            &mme_app_task_zmq_ctx, msec, repeat, handler, nullptr)) != -1) {
-    auto p = mme_app_timers.insert(std::pair<int, uint32_t>(timer_id, arg));
-    if (not p.second) {
-      stop_timer(&mme_app_task_zmq_ctx, timer_id);
-      timer_id = -1;
-    }
+    mme_app_timers.insert(std::pair<int, uint32_t>(timer_id, arg));
   }
   return timer_id;
 }
@@ -113,13 +104,12 @@ void MmeUeContext::StopTimer(int timer_id) {
   mme_app_timers.erase(timer_id);
 }
 //------------------------------------------------------------------------------
-std::pair<TimerArgType, bool>
- MmeUeContext::GetTimerArg(int timer_id) const {
+bool MmeUeContext::GetTimerArg(const int timer_id, TimerArgType* arg) const {
   try {
-    TimerArgType arg = mme_app_timers.at(timer_id);
-    return std::pair<TimerArgType, bool>(arg, true);
+    *arg = mme_app_timers.at(timer_id);
+    return true;
   } catch (std::out_of_range& e) {
-    return std::pair<TimerArgType, bool>(0, false);
+    return false;
   }
 }
 

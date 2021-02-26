@@ -49,7 +49,7 @@ class MmeUeContext {
       TimerArgType id);
   void StopTimer(int timer_id);
 
-  std::pair<TimerArgType, bool> GetTimerArg(int timer_id) const;
+  bool GetTimerArg(const int timer_id, TimerArgType* arg) const;
 };
 
 }  // namespace lte
