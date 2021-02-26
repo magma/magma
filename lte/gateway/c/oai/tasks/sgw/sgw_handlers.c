@@ -1420,6 +1420,8 @@ void handle_s5_create_session_response(
     }
   } else if (session_resp.failure_cause == PCEF_FAILURE) {
     cause = SERVICE_DENIED;
+  } else if (session_resp.failure_cause == IP_ALLOCATION_FAILURE) {
+    cause = SYSTEM_FAILURE;
   }
   // Send Create Session Response with Nack
   message_p =
