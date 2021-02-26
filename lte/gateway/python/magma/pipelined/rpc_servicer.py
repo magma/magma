@@ -16,6 +16,7 @@ import queue
 from concurrent.futures import Future
 from itertools import chain
 from typing import List, Tuple
+from collections import OrderedDict
 
 import grpc
 from lte.protos import pipelined_pb2_grpc
@@ -31,7 +32,12 @@ from lte.protos.pipelined_pb2 import (
     SetupQuotaRequest,
     ActivateFlowsRequest,
     AllTableAssignments,
-    TableAssignment)
+    TableAssignment,
+    SessionSet,
+    PdrState,
+    UPFSessionContextState,
+    OffendingIE,
+    CauseIE)
 from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
@@ -50,6 +56,9 @@ from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
 )
+from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
+from magma.pipelined.app.ng_services import NGServiceController
 
 grpc_msg_queue = queue.Queue()
 
@@ -667,6 +676,66 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if not self._print_grpc_payload:
             return
         logging.info(log_msg)
+
+    def SetSMFSessions(self, request, context):
+        """
+        Setup the 5G Session flows for the subscriber
+        """
+        #if 5G Services are not enabled return UNAVAILABLE
+        if not self._service_manager.is_ng_app_enabled(
+                NGServiceController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return UPFSessionContextState()
+
+        fut = Future()
+        self._log_grpc_payload(request)
+        self._loop.call_soon_threadsafe(\
+                      self.ng_update_session_flows, request, fut)
+
+        return fut.result()
+
+    def ng_update_session_flows(self, request: SessionSet,
+                                fut: 'Future(UPFSessionContextState)') -> UPFSessionContextState:
+        """
+        Install PDR, FAR and QER flows for the 5G Session send by SMF
+        """
+        logging.debug('Update 5G Session Flow for SessionID:%s, SessionVersion:%d',
+                      request.subscriber_id, request.session_version)
+
+        # Convert message containing PDR to Named Tuple Rules.
+        process_pdr_rules = OrderedDict()
+        response = self._ng_servicer_app.ng_session_message_handler(request, process_pdr_rules)
+
+        # Failure in message processing return failure
+        if response.cause_info.cause_ie == CauseIE.REQUEST_ACCEPTED:
+            for _, pdr_entries in process_pdr_rules.items():
+                # Create the Tunnel
+                ret = self._ng_tunnel_update(pdr_entries, request.subscriber_id)
+                if ret == False:
+                    offending_ie = OffendingIE(identifier=pdr_entries.pdr_id,
+                                               version=pdr_entries.pdr_version)
+
+                    #Session information is filled already
+                    response.cause_info.cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
+                    response.failure_rule_id.pdr.extend([offending_ie])
+                    break
+
+        fut.set_result(response)
+
+    def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
+        if pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+            ret = self._classifier_app.add_tunnel_flows(\
+                           pdr_entry.precedence, pdr_entry.local_f_teid,\
+                           pdr_entry.far_action.o_teid, pdr_entry.ue_ip_addr,\
+                           pdr_entry.far_action.gnb_ip_addr, encode_imsi(subscriber_id))
+
+        elif pdr_entry.pdr_state in \
+             [PdrState.Value('REMOVE'), PdrState.Value('IDLE')]:
+            ret = self._classifier_app.delete_tunnel_flows(\
+                           pdr_entry.local_f_teid, pdr_entry.ue_ip_addr)
+
+        return ret
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
