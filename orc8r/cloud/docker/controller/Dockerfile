@@ -106,6 +106,7 @@ RUN mkdir -p /var/opt/magma/envdir
 ARG SWAGGER_FILES=src/magma/orc8r/cloud/go/obsidian/swagger
 COPY --from=builder /${SWAGGER_FILES}/v1/index.html /var/opt/magma/static/swagger/v1/ui/index.html
 COPY --from=builder /${SWAGGER_FILES}/v1/swagger.yml /var/opt/magma/static/swagger/v1/spec/swagger.yml
+COPY --from=builder src/magma/orc8r/cloud/swagger /etc/magma/swagger
 COPY --from=builder /build/bin /var/opt/magma/bin
 
 # Supervisor configs

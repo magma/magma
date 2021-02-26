@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	commonSpecPath = "/etc/magma/configs/orc8r/swagger_specs/common/swagger-common.yml"
+	commonSpecPath = "/etc/magma/swagger/specs/common/swagger-common.yml"
 )
 
 // GetCombinedSpec polls every servicer registered with
