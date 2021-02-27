@@ -18,7 +18,7 @@ and `control_proxy` services to point toward the appropriate Orchestrator.
 A sample configuration is provided below. The `bootstrap_address`,
 `bootstrap_port`, `controller_address`, and `controller_port` are the
 parameters that will likely need to be modified.
- 
+
 ```
 #
 # Copyright 2020 The Magma Authors.
@@ -132,14 +132,14 @@ This will output a hardware ID and a challenge key. This information must be
 registered with the Orchestrator. At this time, NMS support for FeG
 registration is still in-progress.
 
-To register the FeG, go to the Orchestrator's APIdocs in your browser. 
-**Note: It is highly encouraged to use V1 of the apidocs**
-(i.e. https://controller.url.sample:9443/apidocs/v1/).
+To register the FeG, go to the Orchestrator's Swagger UI in your browser.
+**Note: It is highly encouraged to use V1 of the Swagger UI**
+(i.e. https://controller.url.sample:9443/swagger/v1/ui).
 
 Now, create a Federation Network. This is found at `/feg` under the
 **Federation Networks** section. Then register the gateway under the
-**Federation Gateway** section at `/feg/{network_id}/gateways` using the 
-network ID of the Federation Network and the hardware ID and challenge key 
+**Federation Gateway** section at `/feg/{network_id}/gateways` using the
+network ID of the Federation Network and the hardware ID and challenge key
 from the previous step.
 
 To verify that the gateway was correctly registered, run:
