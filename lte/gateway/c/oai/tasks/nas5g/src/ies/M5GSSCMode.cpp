@@ -26,7 +26,7 @@ int SSCModeMsg::DecodeSSCModeMsg(
     SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  //CHECKING IEI
+  // CHECKING IEI
   if (iei > 0) {
     ssc_mode->iei = (*buffer & 0xf0) >> 4;
     CHECK_IEI_ENCODER((unsigned char) iei, ssc_mode->iei);
@@ -46,7 +46,7 @@ int SSCModeMsg::EncodeSSCModeMsg(
     SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
-  //CHECKING IEI
+  // CHECKING IEI
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char) iei, ssc_mode->iei);
     *buffer = 0x00 | (ssc_mode->iei & 0x0f) << 4;

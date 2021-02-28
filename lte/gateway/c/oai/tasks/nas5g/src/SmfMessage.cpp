@@ -17,8 +17,8 @@
 
 using namespace std;
 namespace magma5g {
-	SMsg_u::SMsg_u(){};
-	SMsg_u::~SMsg_u(){};
+SMsg_u::SMsg_u(){};
+SMsg_u::~SMsg_u(){};
 SmfMsg::SmfMsg(){};
 SmfMsg::~SmfMsg(){};
 
@@ -106,13 +106,14 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
       break;
     case PDU_SESSION_RELEASE_REQUEST:
       decode_result =
-          msg->msg.pdu_session_release_request.DecodePDUSessionReleaseRequestMsg(
-              &msg->msg.pdu_session_release_request, buffer, len);
+          msg->msg.pdu_session_release_request
+              .DecodePDUSessionReleaseRequestMsg(
+                  &msg->msg.pdu_session_release_request, buffer, len);
       break;
     case PDU_SESSION_MODIFICATION_REQUEST:
-      decode_result =
-          msg->msg.pdu_session_modif_request.DecodePDUSessionModificationRequestMsg(
-              &msg->msg.pdu_session_modif_request, buffer, len);
+      decode_result = msg->msg.pdu_session_modif_request
+                          .DecodePDUSessionModificationRequestMsg(
+                              &msg->msg.pdu_session_modif_request, buffer, len);
       break;
     default:
       decode_result = TLV_WRONG_MESSAGE_TYPE;
@@ -143,19 +144,19 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
 
   switch ((unsigned char) msg->header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_ACCEPT:
-      encode_result =
-          msg->msg.pdu_session_estab_accept.EncodePDUSessionEstablishmentAcceptMsg(
-              &msg->msg.pdu_session_estab_accept, buffer, len);
+      encode_result = msg->msg.pdu_session_estab_accept
+                          .EncodePDUSessionEstablishmentAcceptMsg(
+                              &msg->msg.pdu_session_estab_accept, buffer, len);
       break;
     case PDU_SESSION_ESTABLISHMENT_REJECT:
-      encode_result =
-          msg->msg.pdu_session_estab_reject.EncodePDUSessionEstablishmentRejectMsg(
-              &msg->msg.pdu_session_estab_reject, buffer, len);
+      encode_result = msg->msg.pdu_session_estab_reject
+                          .EncodePDUSessionEstablishmentRejectMsg(
+                              &msg->msg.pdu_session_estab_reject, buffer, len);
       break;
     case PDU_SESSION_MODIFICATION_REJECT:
-      encode_result =
-          msg->msg.pdu_session_modif_reject.EncodePDUSessionModificationRejectMsg(
-              &msg->msg.pdu_session_modif_reject, buffer, len);
+      encode_result = msg->msg.pdu_session_modif_reject
+                          .EncodePDUSessionModificationRejectMsg(
+                              &msg->msg.pdu_session_modif_reject, buffer, len);
       break;
     case PDU_SESSION_RELEASE_REJECT:
       encode_result =

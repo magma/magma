@@ -33,7 +33,7 @@ int PDUAddressMsg::EncodePDUAddressMsg(
     PDUAddressMsg* pdu_address, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
-  //CHECKING IEI
+  // CHECKING IEI
   if (iei > 0) {
     pdu_address->iei = (*buffer + encoded);
     CHECK_IEI_DECODER(iei, (unsigned char) pdu_address->iei);

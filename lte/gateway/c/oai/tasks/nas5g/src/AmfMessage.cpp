@@ -78,7 +78,7 @@ int AmfMsg::M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
 
 // Decode AMF Message Header
 int AmfMsg::AmfMsgDecodeHeaderMsg(
-    AmfMsgHeader* hdr, uint8_t* buffer, uint32_t len) {
+    AmfMsgHeader_s* hdr, uint8_t* buffer, uint32_t len) {
   int size = 0;
 
   MLOG(MDEBUG) << "AmfMsgDecodeHeaderMsg:" << endl;
@@ -105,7 +105,7 @@ int AmfMsg::AmfMsgDecodeHeaderMsg(
 
 // Encode AMF Message Header
 int AmfMsg::AmfMsgEncodeHeaderMsg(
-    AmfMsgHeader* hdr, uint8_t* buffer, uint32_t len) {
+    AmfMsgHeader_s* hdr, uint8_t* buffer, uint32_t len) {
   int size = 0;
 
   MLOG(MDEBUG) << "AmfMsgEncodeHeaderMsg:";
@@ -193,12 +193,14 @@ int AmfMsg::AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
           &msg->msg.sec_mode_reject, buffer, len);
       break;
     case DE_REG_REQUEST_UE_ORIGIN:
-      decode_result = msg->msg.de_reg_request.DecodeDeRegistrationRequestUEInitMsg(
-          &msg->msg.de_reg_request, buffer, len);
+      decode_result =
+          msg->msg.de_reg_request.DecodeDeRegistrationRequestUEInitMsg(
+              &msg->msg.de_reg_request, buffer, len);
       break;
     case DE_REG_ACCEPT_UE_ORIGIN:
-      decode_result = msg->msg.de_reg_accept.DecodeDeRegistrationAcceptUEInitMsg(
-          &msg->msg.de_reg_accept, buffer, len);
+      decode_result =
+          msg->msg.de_reg_accept.DecodeDeRegistrationAcceptUEInitMsg(
+              &msg->msg.de_reg_accept, buffer, len);
       break;
     case ULNASTRANSPORT:
       decode_result = msg->msg.ul_nas_transport.DecodeULNASTransportMsg(
@@ -273,8 +275,9 @@ int AmfMsg::AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
           &msg->msg.sec_mode_reject, buffer, len);
       break;
     case DE_REG_ACCEPT_UE_ORIGIN:
-      encode_result = msg->msg.de_reg_accept.EncodeDeRegistrationAcceptUEInitMsg(
-          &msg->msg.de_reg_accept, buffer, len);
+      encode_result =
+          msg->msg.de_reg_accept.EncodeDeRegistrationAcceptUEInitMsg(
+              &msg->msg.de_reg_accept, buffer, len);
       break;
     case DLNASTRANSPORT:
       encode_result = msg->msg.dl_nas_transport.EncodeDLNASTransportMsg(

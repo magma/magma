@@ -27,7 +27,7 @@ int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
-  //CHECKING IEI
+  // CHECKING IEI
   if (iei > 0) {
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
   }

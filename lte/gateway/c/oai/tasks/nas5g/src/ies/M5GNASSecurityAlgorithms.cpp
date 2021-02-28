@@ -25,7 +25,7 @@ int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
     uint32_t len) {
   uint8_t decoded = 0;
 
-  // Checking IEI 
+  // Checking IEI
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
     decoded++;

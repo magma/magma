@@ -31,15 +31,14 @@
 
 using namespace std;
 namespace magma5g {
-// Amf NAS Msg Header Class
-class AmfMsgHeader {
- public:
+// Amf NAS Msg Header
+struct AmfMsgHeader_s {
   uint8_t extended_protocol_discriminator;
   uint8_t sec_header_type;
   uint8_t message_type;
 };
 
-  union MMsg_u {
+union MMsg_u {
   RegistrationRequestMsg reg_request;
   RegistrationAcceptMsg reg_accept;
   RegistrationCompleteMsg reg_complete;
@@ -59,22 +58,22 @@ class AmfMsgHeader {
   DLNASTransportMsg dl_nas_transport;
   MMsg_u();
   ~MMsg_u();
-  };
+};
 
 // Amf NAS Msg Class
 class AmfMsg {
  public:
-  AmfMsgHeader header;
-  MMsg_u msg; 
+  AmfMsgHeader_s header;
+  MMsg_u msg;
 
   AmfMsg();
   ~AmfMsg();
   int M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
   int M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
   int AmfMsgDecodeHeaderMsg(
-      AmfMsgHeader* header, uint8_t* buffer, uint32_t len);
+      AmfMsgHeader_s* header, uint8_t* buffer, uint32_t len);
   int AmfMsgEncodeHeaderMsg(
-      AmfMsgHeader* header, uint8_t* buffer, uint32_t len);
+      AmfMsgHeader_s* header, uint8_t* buffer, uint32_t len);
   int AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
   int AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
 };
