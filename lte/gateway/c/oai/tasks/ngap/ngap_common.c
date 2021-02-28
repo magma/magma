@@ -12,9 +12,7 @@
  */
 /****************************************************************************
   Source      ngap_common.c
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
   Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
@@ -50,7 +48,6 @@ ssize_t ngap_generate_initiating_message(
   pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode = procedureCode;
   pdu.choice.initiatingMessage.criticality   = criticality;
-  // ANY_fromType_aper(&(pdu.choice.initiatingMessage.value), td, sptr);
 
   if (asn1_xer_print) {
     xer_fprint(stdout, &asn_DEF_Ngap_PDUSessionType, (void*) &pdu);

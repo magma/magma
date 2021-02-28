@@ -12,17 +12,13 @@
  */
 /****************************************************************************
   Source      ngap_amf_itti_messaging.h
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
   Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
 
 *****************************************************************************/
-
-#ifndef FILE_NGAP_AMF_ITTI_MESSAGING_SEEN
-#define FILE_NGAP_AMF_ITTI_MESSAGING_SEEN
+#pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -71,4 +67,3 @@ void ngap_amf_itti_nas_non_delivery_ind(
     const size_t nas_msg_length, const Ngap_Cause_t* const cause,
     const imsi64_t imsi64);
 
-#endif /* FILE_NGAP_AMF_ITTI_MESSAGING_SEEN */

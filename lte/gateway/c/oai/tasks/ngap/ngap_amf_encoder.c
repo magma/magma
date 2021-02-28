@@ -12,9 +12,7 @@
  */
 /****************************************************************************
   Source      ngap_amf_encoder.c
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
   Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
@@ -86,7 +84,6 @@ static inline int ngap_amf_encode_initiating(
     case Ngap_ProcedureCode_id_DownlinkNASTransport:
     case Ngap_ProcedureCode_id_InitialContextSetup:
     case Ngap_ProcedureCode_id_UEContextRelease:
-    case Ngap_ProcedureCode_id_HandoverResourceAllocation:
     case Ngap_ProcedureCode_id_Paging:
       break;
 
@@ -115,9 +112,6 @@ static inline int ngap_amf_encode_successfull_outcome(
 
   switch (pdu->choice.successfulOutcome.procedureCode) {
     case Ngap_ProcedureCode_id_NGSetup:
-    case Ngap_ProcedureCode_id_PathSwitchRequest:
-    case Ngap_ProcedureCode_id_HandoverPreparation:
-    case Ngap_ProcedureCode_id_HandoverCancel:
       break;
 
     default:
@@ -147,8 +141,6 @@ static inline int ngap_amf_encode_unsuccessfull_outcome(
 
   switch (pdu->choice.unsuccessfulOutcome.procedureCode) {
     case Ngap_ProcedureCode_id_NGSetup:
-    case Ngap_ProcedureCode_id_PathSwitchRequest:
-    case Ngap_ProcedureCode_id_HandoverPreparation:
       break;
 
     default:

@@ -12,17 +12,14 @@
  */
 /****************************************************************************
   Source      ngap_amf_decoder.h
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
   Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
 
 *****************************************************************************/
+#pragma once
 
-#ifndef FILE_NGAP_AMF_DECODER_SEEN
-#define FILE_NGAP_AMF_DECODER_SEEN
 #include "bstrlib.h"
 #include "ngap_common.h"
 #include "intertask_interface_types.h"
@@ -30,8 +27,3 @@
 int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw)
     __attribute__((warn_unused_result));
 
-// int ngap_amf_decode_pdu(ngap_message *message,  const bstring const raw,
-// MessagesIds *messages_id); int ngap_free_amf_decode_pdu(ngap_message
-// *message, MessagesIds messages_id);
-
-#endif /* FILE_NGAP_AMF_DECODER_SEEN */

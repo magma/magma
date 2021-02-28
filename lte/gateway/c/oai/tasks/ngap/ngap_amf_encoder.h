@@ -12,22 +12,18 @@
  */
 /****************************************************************************
   Source      ngap_amf_encoder.h
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
   Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
 
 *****************************************************************************/
+#pragma once
 
 #include <stdint.h>
 #include "Ngap_NGAP-PDU.h"
-#ifndef FILE_NGAP_AMF_ENCODER_SEEN
-#define FILE_NGAP_AMF_ENCODER_SEEN
 
 int ngap_amf_encode_pdu(
     Ngap_NGAP_PDU_t* message, uint8_t** buffer, uint32_t* len)
     __attribute__((warn_unused_result));
 
-#endif /* FILE_NGAP_AMF_ENCODER_SEEN */

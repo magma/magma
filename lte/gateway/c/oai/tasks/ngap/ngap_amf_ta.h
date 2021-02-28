@@ -12,17 +12,13 @@
  */
 /****************************************************************************
   Source      ngap_amf_ta.h
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
   Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
 
 *****************************************************************************/
-
-#ifndef FILE_NGAP_AMF_TA_SEEN
-#define FILE_NGAP_AMF_TA_SEEN
+#pragma once
 
 #include "Ngap_SupportedTAList.h"
 #include "TrackingAreaIdentity.h"
@@ -42,4 +38,3 @@ int ngap_paging_compare_ta_lists(
     m5g_supported_ta_list_t* enb_ta_list, const paging_tai_list_t* p_tai_list,
     uint8_t p_tai_list_count);
 
-#endif /* FILE_NGAP_AMF_TA_SEEN */

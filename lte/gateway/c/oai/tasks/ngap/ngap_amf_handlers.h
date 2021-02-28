@@ -12,17 +12,14 @@
  */
 /****************************************************************************
   Source      ngap_amf_handlers.h
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
   Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages Handlers
 
 *****************************************************************************/
+#pragma once
 
-#ifndef FILE_NGAP_MME_HANDLERS_SEEN
-#define FILE_NGAP_MME_HANDLERS_SEEN
 #include <stdbool.h>
 
 #include "ngap_amf.h"
@@ -148,4 +145,3 @@ int ngap_handle_path_switch_req_failure(
     const itti_ngap_path_switch_request_failure_t* path_switch_req_failure_p,
     imsi64_t imsi64);
 
-#endif /* FILE_NGAP_MME_HANDLERS_SEEN */

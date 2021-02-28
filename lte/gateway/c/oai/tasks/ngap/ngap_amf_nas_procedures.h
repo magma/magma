@@ -12,17 +12,13 @@
  */
 /****************************************************************************
   Source      ngap_amf_nas_procedures.h
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
   Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
 
 *****************************************************************************/
-
-#ifndef FILE_NGAP_AMF_NAS_PROCEDURES_SEEN
-#define FILE_NGAP_AMF_NAS_PROCEDURES_SEEN
+#pragma once
 
 #include "common_defs.h"
 #include "3gpp_38.401.h"
@@ -65,4 +61,3 @@ int ngap_generate_downlink_nas_transport(
 void ngap_handle_amf_ue_id_notification(
     ngap_state_t* state,
     const itti_amf_app_ngap_amf_ue_id_notification_t* const notification_p);
-#endif /* FILE_NGAP_AMF_NAS_PROCEDURES_SEEN */

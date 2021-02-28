@@ -1,3 +1,24 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/****************************************************************************
+  Source      ngap_common.h
+  Date        2020/07/28
+  Author      Ashish Prajapati
+  Subsystem   Access and Mobility Management Function
+  Description Defines NG Application Protocol Messages
+
+*****************************************************************************/
+
 #include <stdint.h>
 #include <sys/types.h>
 
@@ -9,8 +30,7 @@ struct ngap_message_s;
 #include "config.h"
 #endif
 
-#ifndef FILE_NGAP_COMMON_SEEN
-#define FILE_NGAP_COMMON_SEEN
+#pragma once
 
 #include "bstrlib.h"
 
@@ -778,4 +798,3 @@ ssize_t ngap_generate_unsuccessfull_outcome(
  **/
 void ngap_handle_criticality(Ngap_Criticality_t criticality);
 
-#endif /* FILE_NGAP_COMMON_SEEN */

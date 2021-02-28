@@ -12,9 +12,7 @@
  */
 /****************************************************************************
   Source      ngap_amf_itti_messaging.c
-  Version     0.1
   Date        2020/07/28
-  Product     NGAP stack
   Subsystem   Access and Mobility Management Function
   Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
@@ -111,7 +109,7 @@ static int ngap_amf_non_delivery_cause_2_nas_data_rej_cause(
         case Ngap_CauseRadioNetwork_successful_handover:
         case Ngap_CauseRadioNetwork_ho_failure_in_target_5GC_ngran_node_or_target_system:
         case Ngap_CauseRadioNetwork_ho_target_not_allowed:
-        case Ngap_CauseRadioNetwork_handover_desirable_for_radio_reason:  /// ?
+        case Ngap_CauseRadioNetwork_handover_desirable_for_radio_reason:  
         case Ngap_CauseRadioNetwork_time_critical_handover:
         case Ngap_CauseRadioNetwork_resource_optimisation_handover:
         case Ngap_CauseRadioNetwork_ng_intra_system_handover_triggered:
@@ -148,10 +146,6 @@ void ngap_amf_itti_ngap_initial_ue_message(
   // InitialUEMessage_IEs_t *initialUEMessage_IEs = NULL;
 
   OAILOG_FUNC_IN(LOG_NGAP);
-  /*
-  AssertFatal(
-    (nas_msg_length < 1000), "Bad length for NAS message %lu", nas_msg_length);
-  */
   message_p = itti_alloc_new_message(TASK_NGAP, NGAP_INITIAL_UE_MESSAGE);
 
   if (message_p == NULL) {
@@ -247,43 +241,3 @@ void ngap_amf_itti_nas_non_delivery_ind(
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
-//------------------------------------------------------------------------------
-#if 0
-Info: Later to do
-int ngap_amf_itti_ngap_path_switch_request(
-    const sctp_assoc_id_t assoc_id, const uint32_t enb_id,
-    const enb_ue_ngap_id_t enb_ue_ngap_id,
-    const e_rab_to_be_switched_in_downlink_list_t const*
-        e_rab_to_be_switched_dl_list,
-    const amf_ue_ngap_id_t amf_ue_ngap_id, const ecgi_t const* ecgi,
-    const tai_t const* tai, const uint16_t encryption_algorithm_capabilities,
-    const uint16_t integrity_algorithm_capabilities, const imsi64_t imsi64) {
-  MessageDef* message_p = NULL;
-  message_p = itti_alloc_new_message(TASK_NGAP, NGAP_PATH_SWITCH_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(LOG_NGAP, imsi64, "itti_alloc_new_message Failed");
-    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
-  }
-  NGAP_PATH_SWITCH_REQUEST(message_p).sctp_assoc_id  = assoc_id;
-  NGAP_PATH_SWITCH_REQUEST(message_p).enb_id         = enb_id;
-  NGAP_PATH_SWITCH_REQUEST(message_p).enb_ue_ngap_id = enb_ue_ngap_id;
-  NGAP_PATH_SWITCH_REQUEST(message_p).e_rab_to_be_switched_dl_list =
-      *e_rab_to_be_switched_dl_list;
-  NGAP_PATH_SWITCH_REQUEST(message_p).amf_ue_ngap_id = amf_ue_ngap_id;
-  NGAP_PATH_SWITCH_REQUEST(message_p).tai            = *tai;
-  NGAP_PATH_SWITCH_REQUEST(message_p).ecgi           = *ecgi;
-  NGAP_PATH_SWITCH_REQUEST(message_p).encryption_algorithm_capabilities =
-      encryption_algorithm_capabilities;
-  NGAP_PATH_SWITCH_REQUEST(message_p).integrity_algorithm_capabilities =
-      integrity_algorithm_capabilities;
-
-  OAILOG_DEBUG_UE(
-      LOG_NGAP, imsi64,
-      "sending Path Switch Request to AMF_APP for source amf_ue_ngap_id %d\n",
-      amf_ue_ngap_id);
-
-  message_p->ittiMsgHeader.imsi = imsi64;
-  send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
-  OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
-}
-#endif
