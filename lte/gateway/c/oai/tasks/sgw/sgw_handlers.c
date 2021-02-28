@@ -524,6 +524,8 @@ static void sgw_add_gtp_tunnel(
 
   int vlan    = eps_bearer_ctxt_p->paa.vlan;
   Imsi_t imsi = new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
+  char* apn = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+                  .pdn_connection.apn_in_use;
   char ip6_str[INET6_ADDRSTRLEN];
 
   if (ue_ipv6) {
@@ -563,7 +565,7 @@ static void sgw_add_gtp_tunnel(
       rv = gtpv1u_add_tunnel(
           ue_ipv4, ue_ipv6, vlan, enb,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-          eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE);
+          eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE, apn);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
@@ -594,7 +596,8 @@ static void sgw_add_gtp_tunnel(
             eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->enb_teid_S1u, imsi, &dlflow,
             eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
-                .eval_precedence);
+                .eval_precedence,
+            apn);
 
         if (rv < 0) {
           OAILOG_ERROR_UE(
@@ -947,6 +950,7 @@ int sgw_handle_modify_bearer_request(
 
   s_plus_p_gw_eps_bearer_context_information_t* bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(modify_bearer_pP->teid);
+
   if (bearer_ctxt_info_p) {
     bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection
         .default_bearer =
@@ -2185,6 +2189,9 @@ static void add_tunnel_helper(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64) {
   uint32_t rc        = RETURNerror;
   struct in_addr enb = {.s_addr = 0};
+  char* apn          = (char*) spgw_context->sgw_eps_bearer_context_information
+                  .pdn_connection.apn_in_use;
+
   enb.s_addr =
       eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
   struct in_addr ue_ipv4   = {.s_addr = 0};
@@ -2211,7 +2218,8 @@ static void add_tunnel_helper(
         eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
         eps_bearer_ctxt_entry_p->enb_teid_S1u, imsi, &dlflow,
         eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
-            .eval_precedence);
+            .eval_precedence,
+        apn);
 
     if (rc != RETURNok) {
       OAILOG_ERROR_UE(

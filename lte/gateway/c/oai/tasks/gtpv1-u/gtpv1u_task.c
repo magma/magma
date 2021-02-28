@@ -168,7 +168,7 @@ int gtpv1u_init(
 int gtpv1u_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
     uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-    uint32_t flow_precedence_dl) {
+    uint32_t flow_precedence_dl, char* apn) {
   OAILOG_DEBUG(LOG_GTPV1U, "Add tunnel ue %s", inet_ntoa(ue));
 
   if (spgw_config.pgw_config.enable_nat) {
@@ -197,7 +197,8 @@ int gtpv1u_add_tunnel(
   }
 
   return gtp_tunnel_ops->add_tunnel(
-      ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl);
+      ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl,
+      apn);
 }
 
 int gtpv1u_add_s8_tunnel(

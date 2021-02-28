@@ -15,6 +15,7 @@ import ipaddress
 import socket
 from collections import namedtuple
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
+from typing import NamedTuple
 
 from .base import MagmaController
 from magma.pipelined.openflow import flows
@@ -27,9 +28,30 @@ from magma.pipelined.openflow.registers import TUN_PORT_REG
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.policy_converters import get_ue_ip_match_args, get_eth_type
 from magma.pipelined.openflow.registers import Direction
+from lte.protos.pipelined_pb2 import (
+    UESessionSet,
+    UESessionContextResponse,
+    CauseIE,
+    IPFlowDL,
+)
+from magma.pipelined.imsi import encode_imsi
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
+
+UESessionEntry = NamedTuple(
+                 'UESessionEntry',
+                 [('sid', int),
+                  ('precedence', int),
+                  ('ue_ipv4_address', str),
+                  ('ue_ipv6_address', str),
+                  ('enb_ip_address', str),
+                  ('apn', str),
+                  ('vlan', int),
+                  ('in_teid', int),
+                  ('out_teid', int),
+                  ('ue_session_state', int),
+                  ('ip_flow_dl', IPFlowDL)])
 
 class Classifier(MagmaController):
     """
@@ -375,4 +397,52 @@ class Classifier(MagmaController):
 
             flows.delete_flow(self._datapath, self.tbl_num, match,
                               priority=priority + 1)
+
+
+    def process_pg_tunnel_request(self, tunnel_msg: UESessionSet) -> UESessionContextResponse:
+
+        cause_ie = CauseIE.REQUEST_ACCEPTED
+        result=True
+
+        ue_session_entry = create_ue_session_entry(tunnel_msg)
+        self.logger.info(ue_session_entry)
+
+        if result == False:
+            cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
+
+        return (UESessionContextResponse(ue_ipv4_address=tunnel_msg.ue_ipv4_address,
+                           ue_ipv6_address=tunnel_msg.ue_ipv6_address,
+                           operation_type=ue_session_entry.ue_session_state,
+                           cause_info=CauseIE(cause_ie=cause_ie)))
+
+
+#Utility function
+def create_ue_session_entry(tunnel_msg:UESessionSet) ->  UESessionSet :
+    sid = 0
+    ue_ipv4_address = None
+    ue_ipv6_address = None
+    enb_ipv4_address = None
+    apn = None
+
+    if tunnel_msg.subscriber_id.id:
+        sid = encode_imsi(tunnel_msg.subscriber_id.id)
+
+    if len(tunnel_msg.ue_ipv4_address.address):
+        ue_ipv4_address = ipaddress.ip_address(tunnel_msg.ue_ipv4_address.address)
+
+    if len(tunnel_msg.ue_ipv6_address.address):
+        ue_ipv6_address = ipaddress.ip_address(tunnel_msg.ue_ipv6_address.address)
+
+    if len(tunnel_msg.enb_ip_address.address):
+        enb_ipv4_address = ipaddress.ip_address(tunnel_msg.enb_ip_address.address)
+
+    if len(tunnel_msg.apn):
+        apn = tunnel_msg.apn
+
+    return (UESessionEntry(sid=sid, precedence=tunnel_msg.precedence, ue_ipv4_address=ue_ipv4_address,
+                           ue_ipv6_address=ue_ipv6_address, enb_ip_address=enb_ipv4_address,
+                           apn=apn, vlan=tunnel_msg.vlan, in_teid=tunnel_msg.in_teid,
+                           out_teid=tunnel_msg.out_teid,
+                           ue_session_state=tunnel_msg.ue_session_state.ue_config_state,
+                           ip_flow_dl=tunnel_msg.ip_flow_dl))
 

@@ -28,6 +28,7 @@
 #include "ControllerMain.h"
 #include "3gpp_23.003.h"
 #include "spgw_config.h"
+#include "gtp_tunnel_upf.h"
 
 extern struct gtp_tunnel_ops gtp_tunnel_ops;
 
@@ -250,7 +251,7 @@ int openflow_reset(void) {
 int openflow_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
     uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-    uint32_t flow_precedence_dl) {
+    uint32_t flow_precedence_dl, char* apn) {
   uint32_t gtp_portno = find_gtp_port_no(enb);
 
   return openflow_controller_add_gtp_tunnel(
@@ -380,9 +381,30 @@ static const struct gtp_tunnel_ops openflow_ops = {
     .get_dev_name           = openflow_get_dev_name,
 };
 
+static const struct gtp_tunnel_ops upf_openflow_ops = {
+    .init                   = openflow_init,
+    .uninit                 = openflow_uninit,
+    .reset                  = openflow_reset,
+    .add_tunnel             = upf_add_tunnel,
+    .del_tunnel             = upf_del_tunnel,
+    .discard_data_on_tunnel = upf_discard_data_on_tunnel,
+    .forward_data_on_tunnel = upf_forward_data_on_tunnel,
+    .add_paging_rule        = upf_add_paging_rule,
+    .delete_paging_rule     = upf_delete_paging_rule,
+    .send_end_marker        = openflow_send_end_marker,
+    .get_dev_name           = openflow_get_dev_name,
+};
+
 const struct gtp_tunnel_ops* gtp_tunnel_ops_init_openflow(void) {
   if (spgw_config.sgw_config.ovs_config.multi_tunnel) {
     openflow_multi_tunnel_init();
+  }
+
+  // If pipeline config is enabled initialize userplane ops
+  if (spgw_config.sgw_config.ovs_config.pipelined_managed_tbl0) {
+    OAILOG_INFO(LOG_GTPV1U, "Using upf classifier for gtp apps");
+
+    return &upf_openflow_ops;
   }
 
   return &openflow_ops;

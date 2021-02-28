@@ -39,7 +39,9 @@ from lte.protos.pipelined_pb2 import (
     UPFSessionContextState,
     OffendingIE,
     VersionedPolicy,
-    CauseIE)
+    CauseIE,
+    UESessionSet,
+    UESessionContextResponse)
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from lte.protos.session_manager_pb2 import RuleRecordTable
@@ -61,6 +63,7 @@ from magma.pipelined.metrics import (
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.app.ng_services import NGServiceController
+from magma.pipelined.app.classifier import Classifier
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 15
@@ -446,6 +449,34 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             logging.error("GetPolicyUsage processing timed out")
             return RuleRecordTable()
 
+
+    # -------------------------
+    # GRPC messages from MME
+    #--------------------------
+    def UpdateUEState(self, request, context):
+        logging.info("==== Message from MME ====")
+        logging.info(request)
+
+        if not self._service_manager.is_app_enabled(
+              Classifier.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        fut = Future()
+        self._loop.call_soon_threadsafe(\
+                      self._setup_pg_tunnel_update, request, fut)
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("UpdateUEState processing timed out")
+            return UESessionContextResponse(operation_type=request.ue_session_state.ue_config_state,
+                                            cause_info=CauseIE(cause_ie=CauseIE.REQUEST_REJECTED_NO_REASON))
+
+    def _setup_pg_tunnel_update(self, request: UESessionSet, fut: 'Future(UESessionContextResponse)'):
+        res = self._classifier_app.process_pg_tunnel_request(request)
+        fut.set_result(res)
+
     # --------------------------
     # IPFIX App
     # --------------------------
@@ -743,7 +774,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         try:
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
-            logging.error("SetupQuotaFlows processing timed out")
+            logging.error("SetSMFSessions processing timed out")
             return UPFSessionContextState()
 
     def ng_update_session_flows(self, request: SessionSet,
@@ -779,7 +810,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             ret = self._classifier_app.add_tunnel_flows(\
                            pdr_entry.precedence, pdr_entry.local_f_teid,\
                            pdr_entry.far_action.o_teid, pdr_entry.ue_ip_addr,\
-                           pdr_entry.far_action.gnb_ip_addr, encode_imsi(subscriber_id))
+                           pdr_entry.far_action.gnb_ip_addr, encode_imsi(subscriber_id), True)
 
         elif pdr_entry.pdr_state in \
              [PdrState.Value('REMOVE'), PdrState.Value('IDLE')]:
