@@ -41,3 +41,6 @@ ovs_multi_tunnel: true
 
 # Non-NAT specific config
 ovs_uplink_port_number: 2
+
+# Flag to control ovs table=0 using pipelined
+pipelined_managed_tbl0: false

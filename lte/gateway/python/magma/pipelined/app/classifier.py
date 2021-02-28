@@ -14,13 +14,22 @@ import ipaddress
 import socket
 import subprocess
 from collections import namedtuple
+from typing import NamedTuple
 
 from lte.protos.mobilityd_pb2 import IPAddress
-from lte.protos.pipelined_pb2 import IPFlowDL, PdrState, UESessionState
+from lte.protos.pipelined_pb2 import (
+    CauseIE,
+    IPFlowDL,
+    PdrState,
+    UESessionContextResponse,
+    UESessionSet,
+    UESessionState,
+)
 from lte.protos.session_manager_pb2 import UPFPagingInfo
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.openflow import flows, messages
+from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import TUN_PORT_REG, Direction
 from magma.pipelined.policy_converters import (get_eth_type,
@@ -35,6 +44,24 @@ from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
+
+UESessionEntry = NamedTuple(
+    'UESessionEntry',
+    [
+        ('sid', int),
+        ('precedence', int),
+        ('ue_ipv4_address', str),
+        ('ue_ipv6_address', str),
+        ('enb_ip_address', str),
+        ('apn', str),
+        ('vlan', int),
+        ('in_teid', int),
+        ('out_teid', int),
+        ('ue_session_state', int),
+        ('ip_flow_dl', IPFlowDL),
+    ],
+)
+
 
 class Classifier(MagmaController):
     """
@@ -67,6 +94,15 @@ class Classifier(MagmaController):
         if self.config.multi_tunnel_flag:
             self._ovs_multi_tunnel_init()
         self.paging_flag = 0
+
+        self.mme_fsm = {
+            UESessionState.ACTIVE: self._upf_add_tunnel,
+            UESessionState.UNREGISTERED: self._upf_del_tunnel,
+            UESessionState.SUSPENDED_DATA: self._upf_discard_data_on_tunnel,
+            UESessionState.RESUME_DATA: self._upf_forward_data_on_tunnel,
+            UESessionState.INSTALL_IDLE: self._upf_add_paging_rule,
+            UESessionState.UNINSTALL_IDLE: self._upf_delete_paging_rule,
+        }
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -586,3 +622,147 @@ class Classifier(MagmaController):
                                        ue_ip_addr, ip_flow_dl)
 
         return True
+
+    def _upf_add_tunnel(self, ue_session_entry):
+        self.logger.info(
+            "add tunnel with UE %s",
+            ue_session_entry.ue_ipv4_address.address.decode('utf8'),
+        )
+
+        return True
+
+    def _upf_del_tunnel(self, ue_session_entry):
+        self.logger.info(
+            "del tunnel with UE %s",
+            ue_session_entry.ue_ipv4_address.address.decode('utf8'),
+        )
+
+        return True
+
+    def _upf_discard_data_on_tunnel(self, ue_session_entry):
+        self.logger.info(
+            "discard tunnel with UE %s",
+            ue_session_entry.ue_ipv4_address.address.decode('utf8'),
+        )
+
+        return True
+
+    def _upf_forward_data_on_tunnel(self, ue_session_entry):
+        self.logger.info(
+            "forward tunnel with UE %s",
+            ue_session_entry.ue_ipv4_address.address.decode('utf8'),
+        )
+
+        return True
+
+    def _upf_add_paging_rule(self, ue_session_entry):
+        self.logger.info(
+            "add paging rule with UE %s",
+            ue_session_entry.ue_ipv4_address.address.decode('utf8'),
+        )
+
+        return True
+
+    def _upf_delete_paging_rule(self, ue_session_entry):
+        self.logger.info(
+            "del paging rule with UE %s",
+            ue_session_entry.ue_ipv4_address.address.decode('utf8'),
+        )
+
+        return True
+
+    def process_mme_tunnel_request(
+            self, tunnel_msg: UESessionSet,
+    ) -> UESessionContextResponse:
+        """Do process the mme tunnel message and send response
+
+        Entry point to MME session creation in UPF
+
+        Args:
+            tunnel_msg: Tunnel Creation/Modification/Deletion message
+
+        Returns:
+               UESessionContextResponse: Tunnel ops result
+        """
+        cause_ie = CauseIE.REQUEST_ACCEPTED
+        result = True
+
+        ue_session_entry = create_ue_session_entry(tunnel_msg)
+
+        # Call the mme state machine
+        session_state = ue_session_entry.ue_session_state
+        self.logger.debug("UE State = %d\n", session_state)
+
+        result = self.mme_fsm[session_state](ue_session_entry)
+
+        if result is False:
+            cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
+
+        return (
+            UESessionContextResponse(
+                ue_ipv4_address=tunnel_msg.ue_ipv4_address,
+                ue_ipv6_address=tunnel_msg.ue_ipv6_address,
+                operation_type=ue_session_entry.ue_session_state,
+                cause_info=CauseIE(cause_ie=cause_ie),
+            )
+        )
+
+
+# Utility function
+def create_ue_session_entry(tunnel_msg: UESessionSet) -> UESessionSet:
+    """Do create named tuple from input message
+
+    Args:
+        tunnel_msg: Message from MME
+
+    Returns:
+           UESessionSet
+    """
+    sid = 0
+    ue_ipv4_address = None
+    ue_ipv6_address = None
+    enb_ipv4_address = None
+    apn = None
+
+    if tunnel_msg.subscriber_id.id:
+        sid = encode_imsi(tunnel_msg.subscriber_id.id)
+
+    if tunnel_msg.ue_ipv4_address.address:
+        addr_str = socket.inet_ntop(
+            socket.AF_INET,
+            tunnel_msg.ue_ipv4_address.address,
+        )
+        ue_ipv4_address = IPAddress(
+            version=tunnel_msg.ue_ipv4_address.version,
+            address=addr_str.encode('utf8'),
+        )
+
+    if tunnel_msg.ue_ipv6_address.address:
+        addr_str = socket.inet_ntop(
+            socket.AF_INET6,
+            tunnel_msg.ue_ipv6_address.address,
+        )
+        ue_ipv6_address = IPAddress(
+            version=tunnel_msg.ue_ipv6_address.version,
+            address=addr_str.encode('utf8'),
+        )
+
+    if tunnel_msg.enb_ip_address.address:
+        enb_ipv4_address = ipaddress.ip_address(
+            tunnel_msg.enb_ip_address.address,
+        )
+
+    if tunnel_msg.apn:
+        apn = tunnel_msg.apn
+
+    return (
+        UESessionEntry(
+            sid=sid, precedence=tunnel_msg.precedence,
+            ue_ipv4_address=ue_ipv4_address,
+            ue_ipv6_address=ue_ipv6_address, enb_ip_address=enb_ipv4_address,
+            apn=apn, vlan=tunnel_msg.vlan, in_teid=tunnel_msg.in_teid,
+            out_teid=tunnel_msg.out_teid,
+            ue_session_state=tunnel_msg.ue_session_state.ue_config_state,
+            ip_flow_dl=tunnel_msg.ip_flow_dl,
+        )
+    )

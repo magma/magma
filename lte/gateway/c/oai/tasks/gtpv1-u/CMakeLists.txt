@@ -4,7 +4,7 @@ set (GTPV1U_SRC
 )
 
 if (ENABLE_OPENFLOW)  # Use openflow
-  set (GTPV1U_SRC ${GTPV1U_SRC} gtp_tunnel_openflow.c)
+  set (GTPV1U_SRC ${GTPV1U_SRC} gtp_tunnel_openflow.c gtp_tunnel_upf.c)
 else ()  # Use libgtpnl
   pkg_search_module(GTPNL libgtpnl REQUIRED)
   include_directories(${GTPNL_INCLUDE_DIRS})
@@ -19,6 +19,6 @@ target_include_directories(TASK_GTPV1U PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(TASK_GTPV1U
   COMMON
-  LIB_BSTR LIB_HASHTABLE LIB_OPENFLOW_CONTROLLER LIB_MOBILITY_CLIENT
+  LIB_BSTR LIB_HASHTABLE LIB_OPENFLOW_CONTROLLER LIB_MOBILITY_CLIENT LIB_PIPELINED_CLIENT
   TASK_NAS TASK_MME_APP TASK_SERVICE303 TASK_SGW TASK_SGW_S8
 )
