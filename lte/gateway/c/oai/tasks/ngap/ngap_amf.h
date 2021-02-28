@@ -58,4 +58,3 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref);
  * \param gnb_ref gNB structure reference to remove
  **/
 void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref);
-

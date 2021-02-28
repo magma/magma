@@ -58,7 +58,7 @@ int ngap_amf_itti_send_sctp_request(
   SCTP_DATA_REQ(message_p).assoc_id       = assoc_id;
   SCTP_DATA_REQ(message_p).stream         = stream;
   SCTP_DATA_REQ(message_p).amf_ue_ngap_id = ue_id;
-  SCTP_DATA_REQ(message_p).ppid = NGAP_SCTP_PPID;
+  SCTP_DATA_REQ(message_p).ppid           = NGAP_SCTP_PPID;
   return send_msg_to_task(&ngap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 //------------------------------------------------------------------------------
