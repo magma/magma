@@ -13,12 +13,19 @@
     dest: /etc/hosts
     mode: '0644'
 
-- name: install the fb yum repo file
-  template:
-    src: xwf-s3.repo.j2
-    dest: /etc/yum.repos.d/xwf-s3.repo
-    mode: '0440'
+- name: install the cob yum repo using bootstrapper  script
+  shell: |
+   curl -L "https://www.facebook.com/xwf/bootstrap/?access_token={{ AAA_ACCESS_TOKEN|replace('\n', '')|trim }}&entity=xwf.{{ partner }}.qa.radius.999" > /tmp/cob_test.sh
 
+- name: delete the unwanted lines from bootstrapper
+  shell: sed -i -e '85,$d' /tmp/cob_test.sh
+
+- name: run the bootstrappper script to install yum cob files
+  script: /tmp/cob_test.sh
+
+- name: remove the bootstrapper script
+  shell: rm /tmp/cob_test.sh
+ 
 - name: install the fbstatsd package
   yum:
    name: "{{ item }}"
