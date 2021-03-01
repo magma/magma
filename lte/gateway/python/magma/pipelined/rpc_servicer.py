@@ -27,6 +27,7 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsResult,
     FlowResponse,
     RuleModResult,
+    RuleRecordTable,
     SetupUEMacRequest,
     SetupPolicyRequest,
     SetupQuotaRequest,
@@ -115,7 +116,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_default_controllers, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=CALL_TIMEOUT)
+        except TimeoutError:
+            logging.error("SetupDefaultControllers processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_default_controllers(self, fut: 'Future(SetupFlowsResult)'):
         res = self._inout_app.handle_restart(None)
@@ -144,7 +149,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=CALL_TIMEOUT)
+        except TimeoutError:
+            logging.error("SetupPolicyFlows processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_flows(self, request: SetupPolicyRequest,
                      fut: 'Future[List[SetupFlowsResult]]'
@@ -173,7 +182,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()  # type: Future[ActivateFlowsResult]
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         try:
-            return fut.result(CALL_TIMEOUT)
+            return fut.result(timeout=CALL_TIMEOUT)
         except TimeoutError:
             logging.error("ActivateFlows request processing timed out")
             return ActivateFlowsResult()
@@ -423,7 +432,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(
             self._enforcement_stats.get_policy_usage, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=CALL_TIMEOUT)
+        except TimeoutError:
+            logging.error("GetPolicyUsage processing timed out")
+            return RuleRecordTable()
 
     # --------------------------
     # IPFIX App
@@ -514,7 +527,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_ue_mac,
                                         request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=CALL_TIMEOUT)
+        except TimeoutError:
+            logging.error("SetupUEMacFlows processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_ue_mac(self, request: SetupUEMacRequest,
                       fut: 'Future(SetupFlowsResult)'
@@ -550,7 +567,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._add_ue_mac_flow, request, fut)
 
-        return fut.result()
+        try:
+            return fut.result(timeout=CALL_TIMEOUT)
+        except TimeoutError:
+            logging.error("AddUEMacFlow processing timed out")
+            return FlowResponse()
 
     def _add_ue_mac_flow(self, request, fut: 'Future(FlowResponse)'):
         res = self._ue_mac_app.add_ue_mac_flow(request.sid.id, request.mac_addr)
@@ -620,7 +641,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_quota,
                                         request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=CALL_TIMEOUT)
+        except TimeoutError:
+            logging.error("SetupQuotaFlows processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_quota(self, request: SetupQuotaRequest,
                      fut: 'Future(SetupFlowsResult)'
