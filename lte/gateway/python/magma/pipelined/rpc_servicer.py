@@ -62,7 +62,7 @@ from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.app.ng_services import NGServiceController
 
 grpc_msg_queue = queue.Queue()
-CALL_TIMEOUT = 5
+DEFAULT_CALL_TIMEOUT = 10
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -90,6 +90,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._ng_servicer_app = ng_servicer_app
         self._service_manager = service_manager
 
+        self._call_timeout = service_config.get('call_timeout',
+                                                DEFAULT_CALL_TIMEOUT)
         self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
@@ -117,7 +119,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_default_controllers, fut)
         try:
-            return fut.result(timeout=CALL_TIMEOUT)
+            return fut.result(timeout=self._call_timeout)
         except TimeoutError:
             logging.error("SetupDefaultControllers processing timed out")
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
@@ -150,7 +152,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
         try:
-            return fut.result(timeout=CALL_TIMEOUT)
+            return fut.result(timeout=self._call_timeout)
         except TimeoutError:
             logging.error("SetupPolicyFlows processing timed out")
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
@@ -182,7 +184,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()  # type: Future[ActivateFlowsResult]
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         try:
-            return fut.result(timeout=CALL_TIMEOUT)
+            return fut.result(timeout=self._call_timeout)
         except TimeoutError:
             logging.error("ActivateFlows request processing timed out")
             return ActivateFlowsResult()
@@ -433,7 +435,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._loop.call_soon_threadsafe(
             self._enforcement_stats.get_policy_usage, fut)
         try:
-            return fut.result(timeout=CALL_TIMEOUT)
+            return fut.result(timeout=self._call_timeout)
         except TimeoutError:
             logging.error("GetPolicyUsage processing timed out")
             return RuleRecordTable()
@@ -528,7 +530,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._loop.call_soon_threadsafe(self._setup_ue_mac,
                                         request, fut)
         try:
-            return fut.result(timeout=CALL_TIMEOUT)
+            return fut.result(timeout=self._call_timeout)
         except TimeoutError:
             logging.error("SetupUEMacFlows processing timed out")
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
@@ -568,7 +570,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._loop.call_soon_threadsafe(self._add_ue_mac_flow, request, fut)
 
         try:
-            return fut.result(timeout=CALL_TIMEOUT)
+            return fut.result(timeout=self._call_timeout)
         except TimeoutError:
             logging.error("AddUEMacFlow processing timed out")
             return FlowResponse()
@@ -642,7 +644,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._loop.call_soon_threadsafe(self._setup_quota,
                                         request, fut)
         try:
-            return fut.result(timeout=CALL_TIMEOUT)
+            return fut.result(timeout=self._call_timeout)
         except TimeoutError:
             logging.error("SetupQuotaFlows processing timed out")
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
