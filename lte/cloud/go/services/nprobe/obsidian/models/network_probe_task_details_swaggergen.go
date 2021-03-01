@@ -20,12 +20,16 @@ import (
 type NetworkProbeTaskDetails struct {
 
 	// correlation id
-	CorrelationID string `json:"correlation_id,omitempty"`
+	CorrelationID int64 `json:"correlation_id,omitempty"`
 
 	// delivery type
 	// Required: true
 	// Enum: [all events_only]
 	DeliveryType string `json:"delivery_type"`
+
+	// the duration in seconds after which the task will expire.
+	// Minimum: 0
+	Duration *int64 `json:"duration,omitempty"`
 
 	// target id
 	// Required: true
@@ -36,7 +40,7 @@ type NetworkProbeTaskDetails struct {
 	// Enum: [imsi imei msisdn]
 	TargetType string `json:"target_type"`
 
-	// timestamp
+	// The timestamp in ISO 8601 format
 	// Format: date-time
 	Timestamp strfmt.DateTime `json:"timestamp,omitempty"`
 }
@@ -46,6 +50,10 @@ func (m *NetworkProbeTaskDetails) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateDeliveryType(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateDuration(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -104,6 +112,19 @@ func (m *NetworkProbeTaskDetails) validateDeliveryType(formats strfmt.Registry) 
 
 	// value enum
 	if err := m.validateDeliveryTypeEnum("delivery_type", "body", m.DeliveryType); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkProbeTaskDetails) validateDuration(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Duration) { // not required
+		return nil
+	}
+
+	if err := validate.MinimumInt("duration", "body", int64(*m.Duration), 0, false); err != nil {
 		return err
 	}
 

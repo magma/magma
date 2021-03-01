@@ -14,7 +14,10 @@
 package handlers
 
 import (
+	"fmt"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
@@ -26,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
+	strfmt "github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -255,6 +259,16 @@ func createNetworkProbeTask(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
+	// generate random correlation ID if not provided
+	if payload.TaskDetails.CorrelationID == 0 {
+		payload.TaskDetails.CorrelationID = rand.Int63()
+	}
+
+	if time.Time(payload.TaskDetails.Timestamp).IsZero() {
+		payload.TaskDetails.Timestamp = strfmt.DateTime(time.Now().UTC())
+	}
+
+	fmt.Printf("Payload %v\n", payload.TaskDetails)
 	_, err2 := configurator.CreateEntity(
 		networkID,
 		configurator.NetworkEntity{
