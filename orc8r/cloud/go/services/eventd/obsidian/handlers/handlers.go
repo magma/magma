@@ -22,7 +22,10 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/orc8r"
+	logH "magma/orc8r/cloud/go/services/eventd/log/handlers"
 	"magma/orc8r/cloud/go/services/eventd/obsidian/models"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/glog"
@@ -53,7 +56,44 @@ const (
 	elasticFilterHardwareID = "hw_id" + dotKeyword
 	elasticFilterEventTag   = "event_tag" + dotKeyword // We use event_tag as fluentd uses the "tag" field
 	elasticFilterTimestamp  = "@timestamp"
+
+	ManageNetworkPath  = obsidian.V1Root + "networks" + obsidian.UrlSep + ":network_id"
+	LogSearchQueryPath = ManageNetworkPath + obsidian.UrlSep + "logs" + obsidian.UrlSep + "search"
+	LogCountQueryPath  = ManageNetworkPath + obsidian.UrlSep + "logs" + obsidian.UrlSep + "count"
 )
+
+// GetObsidianHandlers returns all the obsidian handlers for eventd.
+func GetObsidianHandlers() []obsidian.Handler {
+	var ret []obsidian.Handler
+
+	// Elastic
+	elasticConfig, err := config.GetServiceConfig(orc8r.ModuleName, "elastic")
+	if err != nil {
+		ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+		ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+		ret = append(ret, obsidian.Handler{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+	} else {
+		elasticHost := elasticConfig.MustGetString("elasticHost")
+		elasticPort := elasticConfig.MustGetInt("elasticPort")
+
+		client, err := elastic.NewSimpleClient(elastic.SetURL(fmt.Sprintf("http://%s:%d", elasticHost, elasticPort)))
+		if err != nil {
+			ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+			ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+			ret = append(ret, obsidian.Handler{Path: EventsRootPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+			ret = append(ret, obsidian.Handler{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+			ret = append(ret, obsidian.Handler{Path: EventsCountPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+		} else {
+			ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetQueryLogHandler(client)})
+			ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetCountLogHandler(client)})
+			ret = append(ret, obsidian.Handler{Path: EventsRootPath, Methods: obsidian.GET, HandlerFunc: GetMultiStreamEventsHandler(client)})
+			ret = append(ret, obsidian.Handler{Path: EventsCountPath, Methods: obsidian.GET, HandlerFunc: GetEventCountHandler(client)})
+			ret = append(ret, obsidian.Handler{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: GetEventsHandler(client)})
+		}
+	}
+
+	return ret
+}
 
 // GetEventsHandler returns a Handler that uses the provided elastic client
 func GetEventsHandler(client *elastic.Client) func(c echo.Context) error {
@@ -253,6 +293,12 @@ const (
 	pathParamEnd         = "end"
 )
 
+func getInitErrorHandler(err error) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return obsidian.HttpError(fmt.Errorf("initialization Error: %v", err), 500)
+	}
+}
+
 func getMultiStreamQueryParameters(c echo.Context) (multiStreamEventQueryParams, error) {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
@@ -328,8 +374,6 @@ func (m multiStreamEventQueryParams) toElasticBoolQuery() *elastic.BoolQuery {
 	return ret
 }
 
-const urlListDelimiter = ","
-
 func getIntegerParam(c echo.Context, param string) (int, error) {
 	if valStr := c.QueryParam(param); valStr != "" {
 		return strconv.Atoi(valStr)
@@ -338,6 +382,7 @@ func getIntegerParam(c echo.Context, param string) (int, error) {
 }
 
 func getStringListParam(c echo.Context, param string) []string {
+	urlListDelimiter := ","
 	if valStr := c.QueryParam(param); valStr != "" {
 		return strings.Split(valStr, urlListDelimiter)
 	}
