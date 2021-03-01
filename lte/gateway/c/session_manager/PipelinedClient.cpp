@@ -201,13 +201,30 @@ namespace magma {
 
 AsyncPipelinedClient::AsyncPipelinedClient(
     std::shared_ptr<grpc::Channel> channel)
-    : stub_(Pipelined::NewStub(channel)) {
+    : stub_(Pipelined::NewStub(channel)), ongoing_request_count_(0) {
   teid = M5G_MIN_TEID;
 }
 
 AsyncPipelinedClient::AsyncPipelinedClient()
     : AsyncPipelinedClient(ServiceRegistrySingleton::Instance()->GetGrpcChannel(
           "pipelined", ServiceRegistrySingleton::LOCAL)) {}
+
+inline std::ostream& operator<<(
+    std::ostream& s, const PendingActivationRequest& pending_req) {
+  const ActivateFlowsRequest& req = pending_req.request;
+  std::string rule_ids            = "{ ";
+  for (const auto& rule_id : req.rule_ids()) {
+    rule_ids += rule_id + " ";
+  }
+  for (const auto& rule : req.dynamic_rules()) {
+    rule_ids += rule.id() + " ";
+  }
+  rule_ids += "}";
+
+  s << req.sid().id() << " with rules " << rule_ids << " expiring at "
+    << pending_req.expiry_time;
+  return s;
+}
 
 bool AsyncPipelinedClient::setup_cwf(
     const std::vector<SessionState::SessionInfo>& infos,
@@ -431,7 +448,7 @@ void AsyncPipelinedClient::set_upf_session_rpc(
     const SessionSet& request,
     std::function<void(Status, UPFSessionContextState)> callback) {
   auto local_resp = new AsyncLocalResponse<UPFSessionContextState>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SEC);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(
       stub_->AsyncSetSMFSessions(local_resp->get_context(), request, &queue_)));
@@ -441,7 +458,7 @@ void AsyncPipelinedClient::setup_default_controllers_rpc(
     const SetupDefaultRequest& request,
     std::function<void(Status, SetupFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SEC);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(stub_->AsyncSetupDefaultControllers(
       local_resp->get_context(), request, &queue_)));
@@ -451,7 +468,7 @@ void AsyncPipelinedClient::setup_policy_rpc(
     const SetupPolicyRequest& request,
     std::function<void(Status, SetupFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SEC);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(stub_->AsyncSetupPolicyFlows(
       local_resp->get_context(), request, &queue_)));
@@ -461,7 +478,7 @@ void AsyncPipelinedClient::setup_ue_mac_rpc(
     const SetupUEMacRequest& request,
     std::function<void(Status, SetupFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SEC);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(stub_->AsyncSetupUEMacFlows(
       local_resp->get_context(), request, &queue_)));
@@ -471,17 +488,140 @@ void AsyncPipelinedClient::deactivate_flows_rpc(
     const DeactivateFlowsRequest& request,
     std::function<void(Status, DeactivateFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<DeactivateFlowsResult>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SEC);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(stub_->AsyncDeactivateFlows(
       local_resp->get_context(), request, &queue_)));
 }
 
+void AsyncPipelinedClient::set_rate_limiting_config(const YAML::Node& config) {
+  // default values
+  ENABLE_RATE_LIMITING = false;
+  MAX_ACTIVE_REQS      = 10;
+  MAX_QUEUE_LENGTH     = 20;
+
+  if (config["enable_pipelined_client_rate_limiting"].IsDefined()) {
+    ENABLE_RATE_LIMITING =
+        config["enable_pipelined_client_rate_limiting"].as<bool>();
+    if (config["rate_limiting_max_active_requests"].IsDefined()) {
+      MAX_ACTIVE_REQS =
+          config["rate_limiting_max_active_requests"].as<uint32_t>();
+    }
+    if (config["rate_limiting_max_queue_length"].IsDefined()) {
+      MAX_QUEUE_LENGTH =
+          config["rate_limiting_max_queue_length"].as<uint32_t>();
+    }
+  }
+}
+
+void AsyncPipelinedClient::pop_and_send_pending_request() {
+  bool found_request = false;
+  PendingActivationRequest pending_req;
+  {  // critical section
+    std::unique_lock<std::mutex> lock(queue_lock_);
+    if (!pending_reqs_.empty()) {
+      pending_req = pending_reqs_.front();
+      pending_reqs_.pop();
+      found_request = true;
+    }
+  }  // end of critical section
+  if (found_request) {
+    MLOG(MINFO) << "Sending a previously pending request: " << pending_req;
+    send_activate_flows_rpc(
+        pending_req.request, std::move(pending_req.callback_fn),
+        // the GRPC timeout here should be the remaining time since the request
+        // was created
+        pending_req.expiry_time - std::time(nullptr));
+  }
+}
+
+std::vector<PendingActivationRequest>
+AsyncPipelinedClient::get_pending_requests_to_cancel() {
+  std::vector<PendingActivationRequest> requests_to_cancel;
+  std::time_t now = std::time(nullptr);
+  // Pop items of the queue until
+  // 1. The queue has only elements with expiry_time > now
+  // 2. The queue has less than or equal to MAX_QUEUE_LENGTH elements
+  while ((!pending_reqs_.empty() && pending_reqs_.front().expiry_time <= now) ||
+         pending_reqs_.size() > MAX_QUEUE_LENGTH) {
+    requests_to_cancel.push_back(pending_reqs_.front());
+    pending_reqs_.pop();
+  }
+  return requests_to_cancel;
+}
+
+void AsyncPipelinedClient::cancel_requests(
+    const std::vector<PendingActivationRequest>& requests_to_cancel) {
+  grpc::Status cancelled_status = Status::CANCELLED;
+  ActivateFlowsResult empty_response;
+  for (auto& pending_req : requests_to_cancel) {
+    MLOG(MINFO) << "Cancelling: " << pending_req;
+    pending_req.callback_fn(cancelled_status, empty_response);
+  }
+}
+
+void AsyncPipelinedClient::activate_flows_rpc_with_rate_limiting(
+    const ActivateFlowsRequest& request,
+    std::function<void(Status, ActivateFlowsResult)> callback) {
+  bool send_request_now = false;
+  std::vector<PendingActivationRequest> requests_to_cancel;
+  MLOG(MINFO) << "Ongoing ActivateFlowsRequests: " << ongoing_request_count_
+              << ", Queueing ActivateFlowsRequests: " << pending_reqs_.size();
+  {  // critical section
+    std::unique_lock<std::mutex> lock(queue_lock_);
+    requests_to_cancel = get_pending_requests_to_cancel();
+
+    send_request_now = ongoing_request_count_ < MAX_ACTIVE_REQS;
+    if (send_request_now) {
+      ongoing_request_count_++;
+    } else {
+      auto pending_req = PendingActivationRequest(
+          request, callback, std::time(nullptr) + RESPONSE_TIMEOUT_SEC);
+      MLOG(MINFO) << "Pushing a new pending request to queue: " << pending_req;
+      pending_reqs_.push(pending_req);
+    }
+  }  // end of critical section
+
+  if (send_request_now) {
+    send_activate_flows_rpc(
+        request,
+        [this, original_cb = std::move(callback)](
+            Status status, ActivateFlowsResult result) {
+          // this cb function is called when receiving the response
+          ongoing_request_count_--;
+          original_cb(status, result);
+
+          // Clean up the queue before sending a request
+          std::vector<PendingActivationRequest> requests_to_cancel;
+          {  // critical section
+            std::unique_lock<std::mutex> lock(queue_lock_);
+            requests_to_cancel = get_pending_requests_to_cancel();
+          }  // end of critical section
+          cancel_requests(requests_to_cancel);
+
+          pop_and_send_pending_request();
+        },
+        RESPONSE_TIMEOUT_SEC);
+  }
+  cancel_requests(requests_to_cancel);
+}
+
 void AsyncPipelinedClient::activate_flows_rpc(
     const ActivateFlowsRequest& request,
     std::function<void(Status, ActivateFlowsResult)> callback) {
-  auto local_resp = new AsyncLocalResponse<ActivateFlowsResult>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  if (!ENABLE_RATE_LIMITING) {
+    send_activate_flows_rpc(request, callback, RESPONSE_TIMEOUT_SEC);
+    return;
+  }
+  activate_flows_rpc_with_rate_limiting(request, callback);
+}
+
+void AsyncPipelinedClient::send_activate_flows_rpc(
+    const ActivateFlowsRequest& request,
+    std::function<void(Status, ActivateFlowsResult)> callback,
+    const uint32_t timeout) {
+  auto local_resp =
+      new AsyncLocalResponse<ActivateFlowsResult>(callback, timeout);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(
       stub_->AsyncActivateFlows(local_resp->get_context(), request, &queue_)));
@@ -491,7 +631,7 @@ void AsyncPipelinedClient::add_ue_mac_flow_rpc(
     const UEMacFlowRequest& request,
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SEC);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(
       stub_->AsyncAddUEMacFlow(local_resp->get_context(), request, &queue_)));
@@ -501,7 +641,7 @@ void AsyncPipelinedClient::update_ipfix_flow_rpc(
     const UEMacFlowRequest& request,
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SEC);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(stub_->AsyncUpdateIPFIXFlow(
       local_resp->get_context(), request, &queue_)));
@@ -511,7 +651,7 @@ void AsyncPipelinedClient::delete_ue_mac_flow_rpc(
     const UEMacFlowRequest& request,
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SEC);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(stub_->AsyncDeleteUEMacFlow(
       local_resp->get_context(), request, &queue_)));
@@ -521,7 +661,7 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
     const UpdateSubscriberQuotaStateRequest& request,
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SEC);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(
       std::move(stub_->AsyncUpdateSubscriberQuotaState(

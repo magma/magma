@@ -200,6 +200,7 @@ int main(int argc, char* argv[]) {
   });
 
   auto pipelined_client = std::make_shared<magma::AsyncPipelinedClient>();
+  pipelined_client->set_rate_limiting_config(config);
   std::thread pipelined_response_handling_thread([&]() {
     MLOG(MINFO) << "Started PipelineD response thread";
     pipelined_client->rpc_response_loop();
