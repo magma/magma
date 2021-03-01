@@ -20,34 +20,29 @@ import (
 
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
+	"github.com/wmnsk/go-gtp/gtpv2/message"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
 )
 
-// MagmaSessionFTeids contains the user and control plane FTEIDs of a connection on
-// the Magma side
-type MagmaSessionFTeids struct {
-	cFegFTeid *ie.IE
-	uAgwFTeid *ie.IE
-}
-
 // buildCreateSessionRequestIE creates a slice with all the IE needed for a Create Session Request
-func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSessionRequestPgw, gtpCli *gtp.Client) (MagmaSessionFTeids, []*ie.IE, error) {
-	sessionTeids := MagmaSessionFTeids{}
+func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSessionRequestPgw) (message.Message, error) {
 	// Create session needs e FTEIDs:
 	// - FEG (S8) control plane FTEID will be built using local address and TEID handled by s8_proxy
 	// - AGW user plane FTEID, provided by the bearer in the request
 
 	// TODO: look for a better way to find the local ip (avoid pinging on each request)
 	// (obtain the IP that is going to send the packet first)
-	ip, err := gtp.GetOutboundIP(cPgwUDPAddr)
+	ip, err := gtp.GetLocalOutboundIP(cPgwUDPAddr)
 	if err != nil {
-		return sessionTeids, nil, err
+		return nil, err
 	}
 
 	// FEG control plane TEID
-	cFegFTeid := gtpCli.NewSenderFTEID(ip.String(), "").WithInstance(0)
+	//cFegFTeid := gtpCli.NewSenderFTEID(ip.String(), "").WithInstance(0)
+	cFegFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPC,
+		req.CAgwTeid, ip.String(), "").WithInstance(0)
 
 	// AGW user plane TEID (comming from request)
 	uAgwFTeidReq := req.BearerContext.GetUserPlaneFteid()
@@ -75,6 +70,7 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 		getPdnType(req.PdnType),
 		getPDNAddressAllocation(req),
 		getRatType(req.RatType),
+		getSelectionModeType(req.SelectionMode),
 		ie.NewMSISDN(string(req.Msisdn[:])),
 		ie.NewMobileEquipmentIdentity(req.Mei),
 		ie.NewServingNetwork(req.ServingNetwork.Mcc, req.ServingNetwork.Mnc),
@@ -83,35 +79,21 @@ func buildCreateSessionRequestIE(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSes
 		ie.NewUETimeZone(offset, daylightSavingTime),
 
 		// TODO: Hardcoded values
-		ie.NewSelectionMode(gtpv2.SelectionModeMSorNetworkProvidedAPNSubscribedVerified),
 		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 		ie.NewAPNRestriction(gtpv2.APNRestrictionNoExistingContextsorRestriction),
 		// TODO: set charging characteristics
 	}
-	sessionTeids.cFegFTeid = cFegFTeid
-	sessionTeids.uAgwFTeid = uAgwFTeid
-	return sessionTeids, ies, nil
+
+	msg := message.NewCreateSessionRequest(0, 0, ies...)
+
+	return msg, nil
 }
 
-// buildModifyBearerRequest creates a slice with all the IE needed for a Modify Bearer Request
-func buildModifyBearerRequest(req *protos.ModifyBearerRequestPgw, bearerId uint8) []*ie.IE {
-
-	// User Plane enb TEID will be given by MME
-	enbUFteidReq := req.GetEnbFteid()
-	enbUFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS1UeNodeBGTPU,
-		enbUFteidReq.Teid, enbUFteidReq.Ipv6Address, enbUFteidReq.Ipv6Address)
-
-	return []*ie.IE{
-		// TODO: hardcoded indication flags
-		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
-		ie.NewBearerContext(ie.NewEPSBearerID(bearerId), enbUFTeid),
+func buildDeleteSessionRequestMsg(req *protos.DeleteSessionRequestPgw) message.Message {
+	ies := []*ie.IE{
+		ie.NewEPSBearerID(uint8(req.BearerId)),
 	}
-}
-
-func buildDeleteSessionRequest(session *gtpv2.Session) []*ie.IE {
-	return []*ie.IE{
-		ie.NewEPSBearerID(session.GetDefaultBearer().EBI),
-	}
+	return message.NewDeleteSessionRequest(req.CPgwFteid.Teid, 0, ies...)
 }
 
 func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
@@ -194,4 +176,19 @@ func getRatType(ratType protos.RATType) *ie.IE {
 		panic(fmt.Sprintf("RatType %d does not exist", ratType))
 	}
 	return ie.NewRATType(rType)
+}
+
+func getSelectionModeType(selMode protos.SelectionModeType) *ie.IE {
+	var rType uint8
+	switch selMode {
+	case protos.SelectionModeType_APN_provided_subscription_verified:
+		rType = gtpv2.SelectionModeMSorNetworkProvidedAPNSubscribedVerified
+	case protos.SelectionModeType_ms_APN_subscription_not_verified:
+		rType = gtpv2.SelectionModeMSProvidedAPNSubscriptionNotVerified
+	case protos.SelectionModeType_network_APN_subscription_not_verified:
+		rType = gtpv2.SelectionModeNetworkProvidedAPNSubscriptionNotVerified
+	default:
+		panic(fmt.Sprintf("RatType %d does not exist", selMode))
+	}
+	return ie.NewSelectionMode(rType)
 }

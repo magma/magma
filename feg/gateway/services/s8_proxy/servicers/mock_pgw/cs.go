@@ -333,7 +333,7 @@ func createQosIE(qp *gtpv2.QoSProfile) *ie.IE {
 
 }
 
-func (mPgw *MockPgw) getHandleCreateSessionRequestWithServiceDenied() gtpv2.HandlerFunc {
+func (mPgw *MockPgw) getHandleCreateSessionRequestWithDeniedService() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
 		fmt.Println("mock PGW received a CreateSessionRequest, but returning ERROR")
 		csReqFromSGW := msg.(*message.CreateSessionRequest)

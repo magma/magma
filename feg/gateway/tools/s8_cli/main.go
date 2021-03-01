@@ -48,11 +48,12 @@ var (
 
 	withecho            bool   = false
 	apn                 string = "internet.com"
-	uTeid               uint
+	AGWTeidU            uint
 	localPort           string = "2123"
 	createDeleteTimeout int    = -1
 	bearerId            uint32 = 5
 	rattype             uint   = 6
+	AGWTeidC            uint
 )
 
 func init() {
@@ -93,8 +94,11 @@ func init() {
 		"Use local built in client instead of the running instance on the gateway")
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	csFlags.UintVar(&uTeid, "teid", uint(rand.Uint32()),
-		"User Plane Teid on the magmaa side. Default is random")
+	csFlags.UintVar(&AGWTeidU, "uteid", uint(rand.Uint32()),
+		"User Plane Teid on the magma side. Default is random")
+
+	csFlags.UintVar(&AGWTeidC, "cteid", uint(rand.Uint32()),
+		"Control Plane Teid on the magma side. Default is random")
 
 	csFlags.StringVar(&apn, "apn", apn,
 		"APN on the request")
@@ -156,9 +160,10 @@ func createSession(cmd *commands.Command, args []string) int {
 	_, offset := time.Now().Zone()
 	csReq := &protos.CreateSessionRequestPgw{
 		//PgwAddrs: pgwServerAddr,	// this will set through config
-		Imsi:   imsi,
-		Msisdn: "00111",
-		Mei:    generateIMEIbasedOnIMSI(imsi),
+		Imsi:     imsi,
+		Msisdn:   "00111",
+		Mei:      generateIMEIbasedOnIMSI(imsi),
+		CAgwTeid: uint32(AGWTeidC),
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "310",
 			Mnc: "14",
@@ -169,7 +174,7 @@ func createSession(cmd *commands.Command, args []string) int {
 			UserPlaneFteid: &protos.Fteid{
 				Ipv4Address: generateRandomIPv4(),
 				Ipv6Address: "",
-				Teid:        uint32(uTeid),
+				Teid:        uint32(AGWTeidU),
 			},
 			Qos: &protos.QosInformation{
 				Pci:                     0,
@@ -195,7 +200,7 @@ func createSession(cmd *commands.Command, args []string) int {
 		},
 
 		Apn:           apn,
-		SelectionMode: "",
+		SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
 		Ambr: &protos.Ambr{
 			BrUl: 999,
 			BrDl: 888,
@@ -220,13 +225,13 @@ func createSession(cmd *commands.Command, args []string) int {
 	fmt.Println("\n *** Create Session Test ***")
 	printGRPCMessage("Sending GRPC message: ", csReq)
 
-	res, err := cli.CreateSession(csReq)
+	csRes, err := cli.CreateSession(csReq)
 
 	if err != nil {
 		fmt.Printf("=> Create Session cli command failed: %s\n", err)
 		return 9
 	}
-	printGRPCMessage("Received GRPC message: ", res)
+	printGRPCMessage("Received GRPC message: ", csRes)
 
 	// Delete recently created session (if enableD)
 	if createDeleteTimeout != -1 {
@@ -235,7 +240,12 @@ func createSession(cmd *commands.Command, args []string) int {
 		fmt.Println(" Done")
 
 		fmt.Println("\n *** Delete Session Test ***")
-		dsReq := &protos.DeleteSessionRequestPgw{Imsi: imsi}
+		dsReq := &protos.DeleteSessionRequestPgw{
+			Imsi:      imsi,
+			BearerId:  bearerId,
+			CAgwTeid:  uint32(AGWTeidC),
+			CPgwFteid: csRes.CPgwFteid,
+		}
 		printGRPCMessage("Sending GRPC message: ", dsReq)
 		dsRes, err := cli.DeleteSession(dsReq)
 		if err != nil {

@@ -25,7 +25,7 @@ import (
 // parseCreateSessionResponse parses a gtp message into a CreateSessionResponsePgw. In case
 // the message is proper it also returns the session. In case it there is an error it returns
 // the cause of error
-func parseCreateSessionResponse(session *gtpv2.Session, msg message.Message) (csRes *protos.CreateSessionResponsePgw, err error) {
+func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessionResponsePgw, err error) {
 	csResGtp := msg.(*message.CreateSessionResponse)
 	glog.V(2).Infof("Received Create Session Response (gtp):\n%s", csResGtp.String())
 
@@ -41,14 +41,12 @@ func parseCreateSessionResponse(session *gtpv2.Session, msg message.Message) (cs
 			err = &gtpv2.CauseNotOKError{
 				MsgType: csResGtp.MessageTypeName(),
 				Cause:   cause,
-				Msg:     fmt.Sprintf("subscriber: %s", session.IMSI),
+				Msg:     fmt.Sprintf("Not accepted"),
 			}
 			return
 		}
 	} else {
-		err = &gtpv2.RequiredIEMissingError{
-			Type: ie.Cause,
-		}
+		err = &gtpv2.RequiredIEMissingError{Type: ie.Cause}
 		return
 	}
 
@@ -67,22 +65,15 @@ func parseCreateSessionResponse(session *gtpv2.Session, msg message.Message) (cs
 
 	// Pgw control plane fteid
 	if pgwCFteidIE := csResGtp.PGWS5S8FTEIDC; pgwCFteidIE != nil {
-		pgwCFteid, interfaceType, err2 := handleFTEID(pgwCFteidIE)
+		pgwCFteid, _, err2 := handleFTEID(pgwCFteidIE)
 		if err2 != nil {
 			err = fmt.Errorf("Couldn't get PGW control plane FTEID: %s ", err2)
 			return
 		}
-		session.AddTEID(interfaceType, pgwCFteid.GetTeid())
+		//session.AddTEID(interfaceType, pgwCFteid.GetTeid())
 		csRes.CPgwFteid = pgwCFteid
 	} else {
 		err = &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}
-		return
-	}
-
-	// AGW (sgw) control plane fteid
-	csRes.CAgwTeid, err = session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
-	if err != nil {
-		err = fmt.Errorf("Couldn't get local (sgw) control plane TEID: %s ", err)
 		return
 	}
 
@@ -101,7 +92,7 @@ func parseCreateSessionResponse(session *gtpv2.Session, msg message.Message) (cs
 					err = &gtpv2.CauseNotOKError{
 						MsgType: csResGtp.MessageTypeName(),
 						Cause:   cause,
-						Msg:     fmt.Sprintf("subscriber: %s", session.IMSI),
+						//Msg:     fmt.Sprintf("subscriber: %s", session.IMSI),
 					}
 					return
 				}
@@ -111,28 +102,19 @@ func parseCreateSessionResponse(session *gtpv2.Session, msg message.Message) (cs
 					err = err2
 					return
 				}
-				if ebi != session.GetDefaultBearer().EBI {
-					err = fmt.Errorf("Create Session Response bearer id different than "+
-						"default bearer id (%d != %d)", ebi, session.GetDefaultBearer().EBI)
-					return
-				}
 				bearerCtx.Id = uint32(ebi)
 			case ie.FullyQualifiedTEID:
-				uFteid, typeIf, err2 := handleFTEID(childIE)
+				uFteid, _, err2 := handleFTEID(childIE)
 				if err2 != nil {
 					err = err2
 					return
 				}
 				bearerCtx.UserPlaneFteid = uFteid
-				// save uFteid in session and default bearer
-				session.AddTEID(typeIf, uFteid.GetTeid())
-				session.GetDefaultBearer().SetOutgoingTEID(uFteid.GetTeid())
 			case ie.ChargingID:
 				bearerCtx.ChargingId, err = childIE.ChargingID()
 				if err != nil {
 					return
 				}
-				session.GetDefaultBearer().ChargingID = bearerCtx.ChargingId
 			}
 		}
 		csRes.BearerContext = bearerCtx
@@ -140,24 +122,18 @@ func parseCreateSessionResponse(session *gtpv2.Session, msg message.Message) (cs
 		err = &gtpv2.RequiredIEMissingError{Type: ie.BearerContext}
 		return
 	}
-
-	if err2 := session.Activate(); err != nil {
-		err = fmt.Errorf("couldn't activate the session with IMSI %s: %s", session.IMSI, err2)
-		return
-	}
-	// TODO: validate message before passing
 	return csRes, nil
 }
 
 // parseDelteSessionResponse parses a gtp message into a DeleteSessionResponsePgw. In case
 // the message is proper it also returns the session. In case it there is an error it returns
 // the cause of error
-func parseDelteSessionResponse(session *gtpv2.Session, msg message.Message) (
-	cdRes *protos.DeleteSessionResponsePgw, err error) {
+func parseDelteSessionResponse(msg message.Message) (
+	dsRes *protos.DeleteSessionResponsePgw, err error) {
 	cdResGtp := msg.(*message.DeleteSessionResponse)
 	glog.V(2).Infof("Received Delete Session Response (gtp):\n%s", cdResGtp.String())
 
-	cdRes = &protos.DeleteSessionResponsePgw{}
+	dsRes = &protos.DeleteSessionResponsePgw{}
 	// check Cause value first.
 	if causeIE := cdResGtp.Cause; causeIE != nil {
 		cause, err2 := causeIE.Cause()
@@ -179,7 +155,7 @@ func parseDelteSessionResponse(session *gtpv2.Session, msg message.Message) (
 		}
 		return
 	}
-	return cdRes, nil
+	return dsRes, nil
 }
 
 // handleFTEID converts FTEID IE format into Proto format returning also the type of interface

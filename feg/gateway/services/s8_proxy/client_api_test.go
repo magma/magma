@@ -16,6 +16,7 @@ const (
 	BEARER         = 5
 	PGW_ADDRS      = "127.0.0.1:0"
 	S8_PROXY_ADDRS = ":0"
+	AGWTeidC       = 10
 )
 
 func TestS8ProxyClient(t *testing.T) {
@@ -38,6 +39,7 @@ func TestS8ProxyClient(t *testing.T) {
 		Imsi:     IMSI1,
 		Msisdn:   "00111",
 		Mei:      "111",
+		CAgwTeid: AGWTeidC,
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "222",
 			Mnc: "333",
@@ -74,7 +76,7 @@ func TestS8ProxyClient(t *testing.T) {
 		},
 
 		Apn:           "internet.com",
-		SelectionMode: "",
+		SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
 		Ambr: &protos.Ambr{
 			BrUl: 999,
 			BrDl: 888,
@@ -114,7 +116,13 @@ func TestS8ProxyClient(t *testing.T) {
 
 	//------------------------
 	//---- Delete session ----
-	dsReq := &protos.DeleteSessionRequestPgw{Imsi: IMSI1}
+	dsReq := &protos.DeleteSessionRequestPgw{
+		PgwAddrs:  actualPgwAddress,
+		Imsi:      IMSI1,
+		BearerId:  BEARER,
+		CAgwTeid:  AGWTeidC,
+		CPgwFteid: csRes.CPgwFteid,
+	}
 	_, err = s8_proxy.DeleteSession(dsReq)
 	assert.NoError(t, err)
 

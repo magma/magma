@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/wmnsk/go-gtp/gtpv1"
 
@@ -30,6 +31,7 @@ import (
 
 const (
 	dummyUserPlanePgwIP = "10.0.0.1"
+	gtpTimeout          = 500 * time.Millisecond
 )
 
 // MockPgw is just a wrapper around gtp.Client
@@ -67,7 +69,7 @@ func New() *MockPgw {
 
 func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 	var err error
-	mPgw.Client, err = gtp.NewRunningClient(ctx, pgwAddrsStr, gtpv2.IFTypeS5S8PGWGTPC)
+	mPgw.Client, err = gtp.NewRunningClient(ctx, pgwAddrsStr, gtpv2.IFTypeS5S8PGWGTPC, gtpTimeout)
 	if err != nil {
 		return fmt.Errorf("Failed to get SGW IP: %s", err)
 	}
@@ -84,7 +86,7 @@ func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 
 func (mPgw *MockPgw) SetCreateSessionWithErrorCause() {
 	mPgw.AddHandlers(map[uint8]gtpv2.HandlerFunc{
-		message.MsgTypeCreateSessionRequest: mPgw.getHandleCreateSessionRequestWithServiceDenied(),
+		message.MsgTypeCreateSessionRequest: mPgw.getHandleCreateSessionRequestWithDeniedService(),
 	})
 
 }

@@ -32,6 +32,7 @@ func (mPgw *MockPgw) getHandleDeleteSessionRequest() gtpv2.HandlerFunc {
 		dsReqFromSGW := msg.(*message.DeleteSessionRequest)
 
 		session, err := c.GetSessionByTEID(dsReqFromSGW.TEID(), sgwAddr)
+		mPgw.LastTEIDc = dsReqFromSGW.TEID()
 		if err != nil {
 			return fmt.Errorf("PGW can't find session for PGWC teid %d, %s\n ",
 				dsReqFromSGW.TEID(), err)

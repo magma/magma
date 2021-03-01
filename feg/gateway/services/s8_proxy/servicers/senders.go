@@ -18,44 +18,50 @@ package servicers
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/proto"
-	"github.com/wmnsk/go-gtp/gtpv2"
-	"github.com/wmnsk/go-gtp/gtpv2/message"
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/gtp/enriched_message"
 	"net"
 	"time"
 
+	"magma/feg/cloud/go/protos"
+
 	"github.com/golang/glog"
-	"github.com/wmnsk/go-gtp/gtpv2/ie"
+	"github.com/wmnsk/go-gtp/gtpv2/message"
 )
 
 // sendAndReceiveCreateSession creates a session in the gtp client, sends the create session request
 // to PGW and waits for its answers.
 // Returns a GRPC message translaged from the GTP-U create session response
-func (s *S8Proxy) sendAndReceiveCreateSession(cPgwUDPAddr *net.UDPAddr, sessionTeids MagmaSessionFTeids, csReqIEs []*ie.IE) (*protos.CreateSessionResponsePgw, error) {
+func (s *S8Proxy) sendAndReceiveCreateSession(
+	csReq *protos.CreateSessionRequestPgw,
+	cPgwUDPAddr *net.UDPAddr,
+	csReqMsg message.Message) (*protos.CreateSessionResponsePgw, error) {
 	glog.V(2).Infof("Send Create Session Request (gtp) to %s:\n%s",
-		cPgwUDPAddr.String(), message.NewCreateSessionRequest(0, 0, csReqIEs...).String())
+		cPgwUDPAddr.String(), csReq.String())
 
-	session, seq, err := s.gtpClient.CreateSession(cPgwUDPAddr, csReqIEs...)
+	grpcMessage, err := s.gtpClient.SendMessageAndExtractGrpc(csReq.Imsi, csReq.CAgwTeid, cPgwUDPAddr, csReqMsg)
+	/*
+		session, seq, err := s.gtpClient.CreateSession(cPgwUDPAddr, csReqIEs...)
+
+
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to send create session at %s: %s", cPgwUDPAddr.String(), err)
+		}
+
+		// add TEID to session and register session
+		session.AddTEID(sessionTeids.uAgwFTeid.MustInterfaceType(), sessionTeids.uAgwFTeid.MustTEID())
+		s.gtpClient.RegisterSession(sessionTeids.cFegFTeid.MustTEID(), session)
+
+		grpcMessage, err := waitMessageAndExtractGrpc(session, seq)
+	*/
 	if err != nil {
-		return nil, fmt.Errorf("failed to send create session at %s: %s", cPgwUDPAddr.String(), err)
-	}
-
-	// add TEID to session and register session
-	session.AddTEID(sessionTeids.uAgwFTeid.MustInterfaceType(), sessionTeids.uAgwFTeid.MustTEID())
-	s.gtpClient.RegisterSession(sessionTeids.cFegFTeid.MustTEID(), session)
-
-	grpcMessage, err := waitMessageAndExtractGrpc(session, seq)
-	if err != nil {
-		s.gtpClient.RemoveSession(session)
 		return nil, fmt.Errorf("no response message to CreateSessionRequest: %s", err)
 	}
 
 	// check if message is proper
 	csRes, ok := grpcMessage.(*protos.CreateSessionResponsePgw)
 	if !ok {
-		s.gtpClient.RemoveSession(session)
+		s.gtpClient.RemoveSessionByIMSI(csReq.Imsi)
+		//s.gtpClient.RemoveSession(session)
 		return nil, fmt.Errorf("Wrong response type (no CreateSessionResponse), maybe received out of order response message: %s", err)
 	}
 	// TODO : Delete
@@ -63,41 +69,21 @@ func (s *S8Proxy) sendAndReceiveCreateSession(cPgwUDPAddr *net.UDPAddr, sessionT
 	return csRes, nil
 }
 
-// sendAndReceiveModifyBearer  sends modify bearer request GTP-U message to PGW and
-// waits for its answers.
-// Returns a GRPC message translaged from the GTP-U create session response
-func (s *S8Proxy) sendAndReceiveModifyBearer(teid uint32, session *gtpv2.Session, mbReqIE []*ie.IE) (*protos.ModifyBearerResponsePgw, error) {
-	glog.V(2).Infof("Send Modify Bearer Request (gtp) to %s:\n%s",
-		session.PeerAddr().String(), message.NewModifyBearerRequest(teid, 0, mbReqIE...).String())
-
-	seq, err := s.gtpClient.ModifyBearer(teid, session, mbReqIE...)
-	if err != nil {
-		return nil, err
-	}
-	grpcMessage, err := waitMessageAndExtractGrpc(session, seq)
-	if err != nil {
-		return nil, fmt.Errorf("no response message to ModifyBearerRequest: %s", err)
-	}
-	mbRes, ok := grpcMessage.(*protos.ModifyBearerResponsePgw)
-	if !ok {
-		return nil, fmt.Errorf("Wrong response type (no ModifyBearerResponse), maybe received out of order response message: %s", err)
-	}
-	glog.V(2).Infof("Modify Bearer Response (grpc):\n%s", mbRes.String())
-	return mbRes, err
-}
-
 // sendAndReceiveDeleteSession  sends delete session request GTP-U message to PGW and
 // waits for its answers.
 // Returns a GRPC message translaged from the GTP-U create session response
-func (s *S8Proxy) sendAndReceiveDeleteSession(teid uint32, session *gtpv2.Session, dsReqIEs []*ie.IE) (*protos.DeleteSessionResponsePgw, error) {
-	glog.V(2).Infof("Send Delete Session Request (gtp) to %s:\n%s",
-		session.PeerAddr().String(), message.NewDeleteSessionRequest(teid, 0).String())
+func (s *S8Proxy) sendAndReceiveDeleteSession(req *protos.DeleteSessionRequestPgw,
+	cPgwUDPAddr *net.UDPAddr,
+	dsReqMsg message.Message) (*protos.DeleteSessionResponsePgw, error) {
 
-	seq, err := s.gtpClient.DeleteSession(teid, session, dsReqIEs...)
-	if err != nil {
-		return nil, err
-	}
-	grpcMessage, err := waitMessageAndExtractGrpc(session, seq)
+	//seq, err := s.gtpClient.DeleteSession(teid, session, dsReqIEs...)
+	glog.V(2).Infof("Send Delete Session Request (gtp) to %s:\n%s", cPgwUDPAddr,
+		dsReqMsg)
+	grpcMessage, err := s.gtpClient.SendMessageAndExtractGrpc(req.Imsi, req.CAgwTeid, cPgwUDPAddr, dsReqMsg)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//grpcMessage, err := waitMessageAndExtractGrpc(session, seq)
 	if err != nil {
 		return nil, fmt.Errorf("no response message to DeleteSessionRequest: %s", err)
 	}
@@ -110,30 +96,14 @@ func (s *S8Proxy) sendAndReceiveDeleteSession(teid uint32, session *gtpv2.Sessio
 }
 
 func (s *S8Proxy) sendAndReceiveEchoRequest(cPgwUDPAddr *net.UDPAddr) error {
-	c := s.gtpClient.Conn
-	_, err := c.EchoRequest(cPgwUDPAddr)
+	_, err := s.gtpClient.Conn.EchoRequest(cPgwUDPAddr)
 	if err != nil {
 		return err
 	}
-	return waitEchoResponse(s.echoChannel)
-}
-
-func waitEchoResponse(ch chan error) error {
 	select {
-	case res := <-ch:
+	case res := <-s.echoChannel:
 		return res
-	case <-time.After(GtpTimeout):
+	case <-time.After(s.gtpClient.GtpTimeout):
 		return fmt.Errorf("waitEchoResponse timeout")
 	}
-}
-
-// waitMessageAndExtractGrpc blocks for GTP response with that specific sequence number
-// It times out after GtpTimeout seconds
-func waitMessageAndExtractGrpc(session *gtpv2.Session, sequence uint32) (proto.Message, error) {
-	// Receive Create Session Response
-	incomingMsg, err := session.WaitMessage(sequence, GtpTimeout)
-	if err != nil {
-		return nil, err
-	}
-	return enriched_message.ExtractGrpcMessageFromGtpMessage(incomingMsg)
 }

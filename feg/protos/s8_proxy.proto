@@ -20,8 +20,6 @@ service S8Proxy {
     rpc CreateSession (CreateSessionRequestPgw) returns(CreateSessionResponsePgw){}
     rpc DeleteSession (DeleteSessionRequestPgw) returns(DeleteSessionResponsePgw) {}
     rpc SendEcho(EchoRequest) returns(EchoResponse) {}
-    // currently not used
-    rpc ModifyBearer (ModifyBearerRequestPgw) returns(ModifyBearerResponsePgw) {}
 }
 
 // 3GPP TS 29.274  (not all 3gpp create session fields are included)
@@ -40,8 +38,8 @@ message CreateSessionRequestPgw {
     PdnAddressAllocation paa = 11;
 
     string apn = 14;
-    Ambr ambr = 16;                       //Aggregate Maximum BitRate
-    string selection_mode = 17;             // TODO: ENUM
+    Ambr ambr = 16;                      //Aggregate Maximum BitRate
+    SelectionModeType selection_mode = 17;
 
     BearerContext bearer_context = 20;   // Contains AGW user plane FTEID
     uint32 c_agw_teid = 21;              // AGW control plane TEID
@@ -61,6 +59,12 @@ enum PDNType {
 
 enum RATType {
     EUTRAN = 0;
+}
+
+enum SelectionModeType{
+    APN_provided_subscription_verified = 0;
+    ms_APN_subscription_not_verified = 1;
+    network_APN_subscription_not_verified = 2;
 }
 
 message UserLocationInformation {
@@ -132,6 +136,7 @@ message DeleteSessionRequestPgw {
     string imsi = 4;
     uint32 bearer_id = 6;
     uint32 c_agw_teid = 8;          // AGW control plane TEID
+    Fteid c_pgw_fteid = 9;
 }
 
 message DeleteSessionResponsePgw{
@@ -143,14 +148,4 @@ message EchoRequest{
 }
 
 message EchoResponse{
-}
-
-// currently not used
-message ModifyBearerRequestPgw {
-    string imsi = 1;
-    Fteid enb_fteid = 2;
-}
-
-// currently not used
-message ModifyBearerResponsePgw {
 }

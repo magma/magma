@@ -29,13 +29,17 @@ import (
 )
 
 const (
+	DefaultGtpTimeout     = 3 * time.Second
+	SGWControlPlaneIfType = gtpv2.IFTypeS5S8SGWGTPC
+
 	ANY_IP         = "0.0.0.0"
 	GTPC_AUTO_PORT = 0 // if set to 0, port is set automatically
 )
 
 type Client struct {
 	*gtpv2.Conn
-	connType uint8
+	connType   uint8
+	GtpTimeout time.Duration
 }
 
 // NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incomming calls
@@ -44,7 +48,7 @@ type Client struct {
 // 	- In case ip is not provided ( :port, or 0.0.0.0:port) it uses any interface
 // 	- In case port is set to 0 it uses a random port ( 0.0.0.0:0, or 10.0.0.1:0)
 // If you need to check server availability before any connection, use NewConnectedClient
-func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8) (*Client, error) {
+func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8, gtpTimeout time.Duration) (*Client, error) {
 	if localIpAndPort == "" {
 		localIpAndPort = fmt.Sprintf("%s:%d", ANY_IP, GTPC_AUTO_PORT)
 	}
@@ -66,7 +70,7 @@ func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8
 	}
 
 	localAddr := &net.UDPAddr{IP: ipAddr, Port: port, Zone: ""}
-	c := newClient(localAddr, connType)
+	c := newClient(localAddr, connType, gtpTimeout)
 	c.enable(localAddr)
 	err = c.run(ctx)
 	if err != nil {
@@ -81,25 +85,25 @@ func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8
 // be used to reach the remote IP.
 // It checks if remote end is alive using echo.
 // It runs the GTP-C server to serve incoming calls and responses.
-func NewConnectedAutoClient(ctx context.Context, remoteIPAndPortStr string, connType uint8) (*Client, error) {
+func NewConnectedAutoClient(ctx context.Context, remoteIPAndPortStr string, connType uint8, gtpTimeout time.Duration) (*Client, error) {
 	remoteAddr, err := net.ResolveUDPAddr("udp", remoteIPAndPortStr)
 	if err != nil {
 		return nil, fmt.Errorf("could not resolve remote address %s: %s", remoteIPAndPortStr, err)
 	}
-	localAddrIp, err := GetOutboundIP(remoteAddr)
+	localAddrIp, err := GetLocalOutboundIP(remoteAddr)
 	if err != nil {
 		return nil, fmt.Errorf("could not find local address automatically:  %s", err)
 	}
 	localAddr := &net.UDPAddr{IP: localAddrIp, Port: GTPC_AUTO_PORT, Zone: ""}
 
-	return NewConnectedClient(ctx, localAddr, remoteAddr, connType)
+	return NewConnectedClient(ctx, localAddr, remoteAddr, connType, gtpTimeout)
 }
 
 // NewConnectedClient creates a GTP-C client and checks with an echo if remote Addrs is
 // available. It also runs the GTP-C server waiting for incoming calls
-func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr, connType uint8) (*Client, error) {
+func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr, connType uint8, gtpTimeout time.Duration) (*Client, error) {
 	var err error
-	c := newClient(localAddr, connType)
+	c := newClient(localAddr, connType, gtpTimeout)
 	c.Conn, err = gtpv2.Dial(ctx, localAddr, remoteAddr, connType, 0)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to GTP-C %s server: %s", remoteAddr.String(), err)
@@ -110,9 +114,10 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 
 // NewClient creates basic configuration structure for a GTP-C client. It does
 // not starts any connection or server.
-func newClient(localAddr *net.UDPAddr, connType uint8) *Client {
+func newClient(localAddr *net.UDPAddr, connType uint8, gtpTimeout time.Duration) *Client {
 	cli := &Client{
-		connType: connType,
+		connType:   connType,
+		GtpTimeout: configOrDefaultTimeout(gtpTimeout),
 	}
 	return cli
 }
@@ -140,22 +145,8 @@ func (c *Client) run(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) GetSessionAndCTeidByIMSI(imsi string) (*gtpv2.Session, uint32, error) {
-	session, err := c.GetSessionByIMSI(imsi)
-	if err != nil {
-		glog.Errorf("Couldnt delete session. Couldnt find a session for IMSI %s:, %s", imsi, err)
-		return nil, 0, err
-	}
-	teid, err := session.GetTEID(gtpv2.IFTypeS5S8PGWGTPC)
-	if err != nil {
-		glog.Errorf("Couldnt delete session. Couldnt find control TEID for IMSI %s:, %s", imsi, err)
-		return nil, 0, err
-	}
-	return session, teid, nil
-}
-
 // Get preferred outbound ip of this machine
-func GetOutboundIP(testIp *net.UDPAddr) (net.IP, error) {
+func GetLocalOutboundIP(testIp *net.UDPAddr) (net.IP, error) {
 	connection, err := net.Dial("udp", testIp.String())
 	if err != nil {
 		return nil, err
@@ -164,6 +155,14 @@ func GetOutboundIP(testIp *net.UDPAddr) (net.IP, error) {
 	defer connection.Close()
 	localAddr := connection.LocalAddr().(*net.UDPAddr)
 	return localAddr.IP, nil
+}
+
+// configOrDefaultTimeout sets a default timeout if config timeout is 0
+func configOrDefaultTimeout(configTimeout time.Duration) time.Duration {
+	if configTimeout == 0 {
+		return DefaultGtpTimeout
+	}
+	return configTimeout
 }
 
 //TODO: remove this once we find a way to safely wait for initialization of the service
