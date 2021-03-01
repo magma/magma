@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"magma/orc8r/cloud/go/swagger"
+	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
 
 	"github.com/hashicorp/go-multierror"

@@ -11,7 +11,7 @@
  limitations under the License.
 */
 
-package swagger
+package mswagger
 
 import (
 	"magma/orc8r/cloud/go/orc8r"

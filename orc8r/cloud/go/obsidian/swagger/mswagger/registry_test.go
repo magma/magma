@@ -11,12 +11,12 @@
  limitations under the License.
 */
 
-package swagger_test
+package mswagger_test
 
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/swagger"
+	"magma/orc8r/cloud/go/obsidian/swagger/mswagger"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
@@ -26,7 +26,7 @@ import (
 
 func TestRegistry_GetSpecServicers(t *testing.T) {
 	// Success with no registered servicers
-	servicers, err := swagger.GetSpecServicers()
+	servicers, err := mswagger.GetSpecServicers()
 	assert.NoError(t, err)
 
 	assert.Empty(t, servicers)
@@ -45,7 +45,7 @@ func TestRegistry_GetSpecServicers(t *testing.T) {
 		go srv.RunTest(lis)
 	}
 
-	servicers, err = swagger.GetSpecServicers()
+	servicers, err = mswagger.GetSpecServicers()
 	assert.NoError(t, err)
 
 	var actual []string

@@ -11,7 +11,7 @@
  limitations under the License.
 */
 
-package swagger_test
+package mswagger_test
 
 import (
 	"context"
@@ -20,8 +20,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/swagger"
-	"magma/orc8r/cloud/go/obsidian/swagger/protos"
+	"magma/orc8r/cloud/go/obsidian/swagger/mswagger"
+	"magma/orc8r/cloud/go/obsidian/swagger/mswagger/protos"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -42,7 +42,7 @@ func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Success
-	servicer := swagger.NewSpecServicerFromFile("test_spec_servicer")
+	servicer := mswagger.NewSpecServicerFromFile("test_spec_servicer")
 	assert.NoError(t, err)
 
 	req := &protos.GetSpecRequest{}
@@ -56,7 +56,7 @@ func TestSpecServicer_GetSpec(t *testing.T) {
 	testFileContents := "test yaml spec"
 
 	// Success
-	servicer := swagger.NewSpecServicer(testFileContents)
+	servicer := mswagger.NewSpecServicer(testFileContents)
 
 	req := &protos.GetSpecRequest{}
 	res, err := servicer.GetSpec(context.Background(), req)

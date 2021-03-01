@@ -14,11 +14,11 @@ limitations under the License.
 package main
 
 import (
+	"magma/orc8r/cloud/go/obsidian/swagger/mswagger"
 	"time"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/mswagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -50,7 +50,7 @@ func main() {
 	controllerServicer := servicers.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(metricsd.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, mswagger.NewSpecServicerFromFile(metricsd.ServiceName))
 
 	// Initialize gatherers
 	additionalCollectors := []collection.MetricCollector{
