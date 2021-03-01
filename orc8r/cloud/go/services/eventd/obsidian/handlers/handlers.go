@@ -69,27 +69,22 @@ func GetObsidianHandlers() []obsidian.Handler {
 	// Elastic
 	elasticConfig, err := config.GetServiceConfig(orc8r.ModuleName, "elastic")
 	if err != nil {
-		ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
-		ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
-		ret = append(ret, obsidian.Handler{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
-	} else {
-		elasticHost := elasticConfig.MustGetString("elasticHost")
-		elasticPort := elasticConfig.MustGetInt("elasticPort")
+		ret = append(ret, setInitErrorHandlers(err)...)
+		return ret
+	}
 
-		client, err := elastic.NewSimpleClient(elastic.SetURL(fmt.Sprintf("http://%s:%d", elasticHost, elasticPort)))
-		if err != nil {
-			ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
-			ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
-			ret = append(ret, obsidian.Handler{Path: EventsRootPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
-			ret = append(ret, obsidian.Handler{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
-			ret = append(ret, obsidian.Handler{Path: EventsCountPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
-		} else {
-			ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetQueryLogHandler(client)})
-			ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetCountLogHandler(client)})
-			ret = append(ret, obsidian.Handler{Path: EventsRootPath, Methods: obsidian.GET, HandlerFunc: GetMultiStreamEventsHandler(client)})
-			ret = append(ret, obsidian.Handler{Path: EventsCountPath, Methods: obsidian.GET, HandlerFunc: GetEventCountHandler(client)})
-			ret = append(ret, obsidian.Handler{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: GetEventsHandler(client)})
-		}
+	elasticHost := elasticConfig.MustGetString("elasticHost")
+	elasticPort := elasticConfig.MustGetInt("elasticPort")
+
+	client, err := elastic.NewSimpleClient(elastic.SetURL(fmt.Sprintf("http://%s:%d", elasticHost, elasticPort)))
+	if err != nil {
+		ret = append(ret, setInitErrorHandlers(err)...)
+	} else {
+		ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetQueryLogHandler(client)})
+		ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetCountLogHandler(client)})
+		ret = append(ret, obsidian.Handler{Path: EventsRootPath, Methods: obsidian.GET, HandlerFunc: GetMultiStreamEventsHandler(client)})
+		ret = append(ret, obsidian.Handler{Path: EventsCountPath, Methods: obsidian.GET, HandlerFunc: GetEventCountHandler(client)})
+		ret = append(ret, obsidian.Handler{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: GetEventsHandler(client)})
 	}
 
 	return ret
@@ -167,6 +162,21 @@ func EventsHandler(c echo.Context, client *elastic.Client) error {
 		Sort(elasticFilterTimestamp, false).
 		Query(elasticQuery)
 	return doSearch(c, search)
+}
+
+func setInitErrorHandlers(err error) []obsidian.Handler {
+	return []obsidian.Handler{
+		{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+		{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+		{Path: EventsRootPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+		{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+		{Path: EventsCountPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+	}
+}
+func getInitErrorHandler(err error) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return obsidian.HttpError(fmt.Errorf("initialization Error: %v", err), http.StatusInternalServerError)
+	}
 }
 
 func doSearch(c echo.Context, search *elastic.SearchService) error {
@@ -293,12 +303,6 @@ const (
 	pathParamEnd         = "end"
 )
 
-func getInitErrorHandler(err error) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		return obsidian.HttpError(fmt.Errorf("initialization Error: %v", err), 500)
-	}
-}
-
 func getMultiStreamQueryParameters(c echo.Context) (multiStreamEventQueryParams, error) {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
@@ -374,6 +378,8 @@ func (m multiStreamEventQueryParams) toElasticBoolQuery() *elastic.BoolQuery {
 	return ret
 }
 
+const urlListDelimiter = ","
+
 func getIntegerParam(c echo.Context, param string) (int, error) {
 	if valStr := c.QueryParam(param); valStr != "" {
 		return strconv.Atoi(valStr)
@@ -382,7 +388,6 @@ func getIntegerParam(c echo.Context, param string) (int, error) {
 }
 
 func getStringListParam(c echo.Context, param string) []string {
-	urlListDelimiter := ","
 	if valStr := c.QueryParam(param); valStr != "" {
 		return strings.Split(valStr, urlListDelimiter)
 	}
