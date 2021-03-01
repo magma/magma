@@ -13,7 +13,7 @@ limitations under the License.
 import os
 import logging
 import queue
-from concurrent.futures import Future
+from concurrent.futures import Future, TimeoutError
 from itertools import chain
 from typing import List, Tuple
 from collections import OrderedDict
@@ -27,7 +27,6 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsResult,
     FlowResponse,
     RuleModResult,
-    RuleRecordTable,
     SetupUEMacRequest,
     SetupPolicyRequest,
     SetupQuotaRequest,
@@ -42,6 +41,7 @@ from lte.protos.pipelined_pb2 import (
 from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
+from lte.protos.session_manager_pb2 import RuleRecordTable
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
