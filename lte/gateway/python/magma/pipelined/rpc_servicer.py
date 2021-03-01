@@ -61,6 +61,7 @@ from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.app.ng_services import NGServiceController
 
 grpc_msg_queue = queue.Queue()
+CALL_TIMEOUT = 5
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -171,7 +172,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()  # type: Future[ActivateFlowsResult]
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
-        return fut.result()
+        try:
+            return fut.result(CALL_TIMEOUT)
+        except TimeoutError:
+            logging.error("ActivateFlows request processing timed out")
+            return ActivateFlowsResult()
 
     def _update_ipv6_prefix_store(self, ipv6_addr: bytes):
         ipv6_str = ipv6_addr.decode('utf-8')
