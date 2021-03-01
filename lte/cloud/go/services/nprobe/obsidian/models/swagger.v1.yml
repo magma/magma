@@ -243,13 +243,20 @@ definitions:
           - 'events_only'
         example: 'events_only'
       correlation_id:
-        type: string
-        x-nullable: false
-        example: '06AAADFD0A40400D'
+        type: integer
+        format: int64
+        example: 605394647632969700
+      duration:
+        type: integer
+        default: 0
+        minimum: 0
+        example: 300
+        description: the duration in seconds after which the task will expire.
       timestamp:
         type: string
         format: date-time
-        x-nullable: false
+        example: 2020-03-11T00:36:59.65Z
+        description: The timestamp in ISO 8601 format
 
   network_probe_destination:
     description: Network Probe Destination

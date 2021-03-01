@@ -15,6 +15,7 @@ package handlers_test
 
 import (
 	"testing"
+	"time"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
@@ -25,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -49,7 +51,8 @@ func TestCreateNetworkProbeTask(t *testing.T) {
 			TargetID:      "test",
 			TargetType:    "imsi",
 			DeliveryType:  "all",
-			CorrelationID: "0123456789ABCDEF",
+			CorrelationID: 8674665223082154000,
+			Timestamp:     strfmt.DateTime(time.Now().UTC()),
 		},
 	}
 
@@ -73,7 +76,15 @@ func TestCreateNetworkProbeTask(t *testing.T) {
 		Config:    payload.TaskDetails,
 		GraphID:   "2",
 	}
-	assert.Equal(t, expected, actual)
+
+	expected_task := expected.Config.(*models.NetworkProbeTaskDetails)
+	actual_task := actual.Config.(*models.NetworkProbeTaskDetails)
+
+	assert.Equal(t, expected_task.TargetID, actual_task.TargetID)
+	assert.Equal(t, expected_task.TargetType, actual_task.TargetType)
+	assert.Equal(t, expected_task.DeliveryType, actual_task.DeliveryType)
+	assert.Equal(t, expected_task.CorrelationID, actual_task.CorrelationID)
+	assert.Equal(t, expected_task.Timestamp.String(), actual_task.Timestamp.String())
 }
 
 func TestListNetworkProbeTasks(t *testing.T) {
@@ -107,7 +118,7 @@ func TestListNetworkProbeTasks(t *testing.T) {
 					TargetID:      "IMSI1234",
 					TargetType:    "imsi",
 					DeliveryType:  "events_only",
-					CorrelationID: "0123456789ABCDEF",
+					CorrelationID: 8674665223082154000,
 				},
 			},
 			{
@@ -117,7 +128,7 @@ func TestListNetworkProbeTasks(t *testing.T) {
 					TargetID:      "IMSI1235",
 					TargetType:    "imsi",
 					DeliveryType:  "all",
-					CorrelationID: "0123456789ABCDFF",
+					CorrelationID: 8674665223082154099,
 				},
 			},
 		},
@@ -139,7 +150,7 @@ func TestListNetworkProbeTasks(t *testing.T) {
 					TargetID:      "IMSI1234",
 					TargetType:    "imsi",
 					DeliveryType:  "events_only",
-					CorrelationID: "0123456789ABCDEF",
+					CorrelationID: 8674665223082154000,
 				},
 			},
 			"IMSI1235": {
@@ -148,7 +159,7 @@ func TestListNetworkProbeTasks(t *testing.T) {
 					TargetID:      "IMSI1235",
 					TargetType:    "imsi",
 					DeliveryType:  "all",
-					CorrelationID: "0123456789ABCDFF",
+					CorrelationID: 8674665223082154099,
 				},
 			},
 		}),
@@ -186,7 +197,7 @@ func TestGetNetworkProbeTask(t *testing.T) {
 				TargetID:      "IMSI1234",
 				TargetType:    "imsi",
 				DeliveryType:  "events_only",
-				CorrelationID: "0123456789ABCDEF",
+				CorrelationID: 8674665223082154000,
 			},
 		},
 		serdes.Entity,
@@ -206,7 +217,7 @@ func TestGetNetworkProbeTask(t *testing.T) {
 				TargetID:      "IMSI1234",
 				TargetType:    "imsi",
 				DeliveryType:  "events_only",
-				CorrelationID: "0123456789ABCDEF",
+				CorrelationID: 8674665223082154000,
 			},
 		},
 	}
@@ -230,7 +241,7 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 			TargetID:      "IMSI1234",
 			TargetType:    "imsi",
 			DeliveryType:  "events_only",
-			CorrelationID: "0123456789ABCDEF",
+			CorrelationID: 8674665223082154000,
 		},
 	}
 
@@ -256,7 +267,7 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 				TargetID:      "IMSI1234",
 				TargetType:    "imsi",
 				DeliveryType:  "events_only",
-				CorrelationID: "0123456789ABCDEF",
+				CorrelationID: 8674665223082154000,
 			},
 		},
 		serdes.Entity,
@@ -307,7 +318,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 					TargetID:      "IMSI1234",
 					TargetType:    "imsi",
 					DeliveryType:  "events_only",
-					CorrelationID: "0123456789ABCDEF",
+					CorrelationID: 8674665223082154000,
 				},
 			},
 			{
@@ -317,7 +328,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 					TargetID:      "IMSI1235",
 					TargetType:    "imsi",
 					DeliveryType:  "all",
-					CorrelationID: "0123456789ABCDFF",
+					CorrelationID: 8674665223082154099,
 				},
 			},
 		},
@@ -346,7 +357,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 			TargetID:      "IMSI1235",
 			TargetType:    "imsi",
 			DeliveryType:  "all",
-			CorrelationID: "0123456789ABCDFF",
+			CorrelationID: 8674665223082154099,
 		},
 		GraphID: "4",
 		Version: 0,
