@@ -104,37 +104,38 @@ class TestQosManager(unittest.TestCase):
         }
 
     def verifyTcAddQos(self, mock_get_action_inst, mock_traffic_cls, d, qid, qos_info,
-                       parent_qid=0):
+                       parent_qid=0, skip_filter=False):
         intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
         mock_get_action_inst.assert_any_call(qid)
         mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf)
         mock_traffic_cls.init_qdisc.assert_any_call(self.dl_intf)
         mock_traffic_cls.create_class.assert_any_call(intf, qid, qos_info.mbr,
-            rate=qos_info.gbr, parent_qid=parent_qid)
+            rate=qos_info.gbr, parent_qid=parent_qid, skip_filter=skip_filter)
 
     def verifyTcCleanRestart(self, prior_qids, mock_traffic_cls):
         for qid_tuple in prior_qids[self.ul_intf]:
             qid, _ = qid_tuple
             mock_traffic_cls.delete_class.assert_any_call(
-                self.ul_intf, qid, show_error=False)
+                self.ul_intf, qid)
 
         for qid_tuple in prior_qids[self.dl_intf]:
             qid, _ = qid_tuple
             mock_traffic_cls.delete_class.assert_any_call(
-                self.dl_intf, qid, show_error=False)
+                self.dl_intf, qid)
 
-    def verifyTcRemoveQos(self, mock_traffic_cls, d, qid, show_error=True):
+    def verifyTcRemoveQos(self, mock_traffic_cls, d, qid, skip_filter=False):
         intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
-        if not show_error:
-            mock_traffic_cls.delete_class.assert_any_call(intf, qid, show_error=False)
+
+        if skip_filter:
+            mock_traffic_cls.delete_class.assert_any_call(intf, qid, True)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(intf, qid)
+            mock_traffic_cls.delete_class.assert_any_call(intf, qid, False)
 
     def verifyTcRemoveQosBulk(self, mock_traffic_cls, argList):
         call_arg_list = []
         for d, qid in argList:
             intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
-            call_arg_list.append(call(intf, qid))
+            call_arg_list.append(call(intf, qid, False))
         mock_traffic_cls.delete_class.assert_has_calls(call_arg_list)
 
     def verifyMeterAddQos(
@@ -251,8 +252,8 @@ get_action_instruction"
             self.verifyMeterRemoveQos(mock_meter_cls, FlowMatch.UPLINK, ul_exp_id)
             self.verifyMeterRemoveQos(mock_meter_cls, FlowMatch.DOWNLINK, dl_exp_id)
         else:
-            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id, show_error=False)
-            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, dl_exp_id, show_error=False)
+            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id)
+            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, dl_exp_id)
 
     @patch("magma.pipelined.qos.qos_tc_impl.TrafficClass")
     @patch("magma.pipelined.qos.qos_meter_impl.MeterClass")
@@ -279,7 +280,6 @@ get_action_instruction"
         and ensure that code doesn't behave incorrectly when same items are
         deleted multiple times
         - Finally we delete everything and verify if that behavior is right"""
-
 
         if self.config["qos"]["impl"] == QosImplType.LINUX_TC:
             mock_traffic_cls.read_all_classes.side_effect = lambda intf: []
@@ -496,7 +496,7 @@ get_action_instruction"
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_called_with(MagicMock, 15)
         else:
-            mock_traffic_cls.delete_class.assert_called_with(self.ul_intf, 15)
+            mock_traffic_cls.delete_class.assert_called_with(self.ul_intf, 15, False)
 
         # add a new rule to the qos_mgr and check if it is assigned right id
         imsi, rule_num, d, qos_info = "3", 0, 0, QosInfo(100000, 100000)
@@ -520,7 +520,7 @@ get_action_instruction"
             mock_meter_cls.del_meter.assert_called_with(MagicMock, purge_qos_handle)
         else:
             mock_traffic_cls.delete_class.assert_called_with(
-                self.ul_intf, purge_qos_handle
+                self.ul_intf, purge_qos_handle, False
             )
 
         # case 2 - check with empty qos configs, qos_map gets purged
@@ -568,10 +568,10 @@ get_action_instruction"
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 13)
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 11)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 2)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 2, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11, False)
 
     @patch("magma.pipelined.qos.qos_tc_impl.TrafficClass")
     @patch("magma.pipelined.qos.qos_meter_impl.MeterClass")
@@ -636,9 +636,9 @@ get_action_instruction"
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_called_with(MagicMock, 15)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1500)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1500, True)
 
         # add a new rule to the qos_mgr and check if it is assigned right id
         imsi, rule_num, d, qos_info = "3", 0, 0, QosInfo(100000, 100000)
@@ -661,9 +661,9 @@ get_action_instruction"
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_called_with(MagicMock, purge_qos_handle)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 11)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 110)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1100)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 11, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 110, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1100, True)
 
         # case 2 - check with empty qos configs, qos_map gets purged
         mock_meter_cls.reset_mock()
@@ -711,14 +711,14 @@ get_action_instruction"
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 13)
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 11)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150, False)
 
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 130)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 130, False)
 
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 110)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 110, False)
 
     def testSanity(self):
         for impl_type in (QosImplType.LINUX_TC, QosImplType.OVS_METER):
@@ -808,9 +808,9 @@ get_action_instruction"
         self.assertTrue(len(qos_mgr._redis_store) == 0)
         self.assertTrue(imsi not in qos_mgr._subscriber_state)
 
-        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ambr_ul_exp_id)
+        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ambr_ul_exp_id, True)
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id)
-        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, ambr_dl_exp_id)
+        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, ambr_dl_exp_id, True)
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, dl_exp_id)
 
 
