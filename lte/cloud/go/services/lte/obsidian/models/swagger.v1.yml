@@ -1793,6 +1793,18 @@ definitions:
                 example:
                   1: ['192.168.0.0/16']
                   2: ['172.10.0.0/16', '172.20.0.0/16']
+      restricted_plmns:
+        type: array
+        description: 'List of PLMN IDs restricted in the network'
+        items:
+          $ref: '#/definitions/plmn_config'
+        x-omitempty: true
+
+      service_area_maps:
+        type: object
+        description: 'Mapping service areas to tacs in the network'
+        additionalProperties:
+          $ref: '#/definitions/tac_list'
 
   lte_gateway:
     type: object
@@ -2492,3 +2504,39 @@ definitions:
         maximum: 255
         example: 10
         default: 10
+
+
+  tac_list:
+    type: array
+    items:
+      $ref: '#/definitions/tac'
+    x-omitempty: true
+    description: 'List of tac ids'
+    example:
+      - 1
+
+  tac:
+    type: integer
+    format: uint32
+    minimum: 1
+    maximum: 65535
+    example: 1
+    x-nullable: false
+
+  plmn_config:
+    description: Record in a gateway pool
+    type: object
+    required:
+      - mcc
+      - mnc
+    properties:
+      mcc:
+        type: string
+        pattern: '^(\d{3})$'
+        example: '001'
+        x-nullable: false
+      mnc:
+        type: string
+        pattern: '^(\d{2,3})$'
+        example: '01'
+        x-nullable: false
