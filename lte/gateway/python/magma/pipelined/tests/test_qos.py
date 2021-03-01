@@ -851,10 +851,9 @@ class TestTrafficClass(unittest.TestCase):
             raise subprocess.CalledProcessError(returncode=1, cmd="tc")
 
         mock_check_call.side_effect = dummy_check_call
-        with self.assertLogs("pipelined.qos.qos_tc_impl", level="ERROR") as cm:
+        with self.assertLogs("pipelined.qos.tc_cmd", level="ERROR") as cm:
             TrafficClass.init_qdisc("eth0", show_error=True)
-        self.assertTrue("error running tc qdisc add dev" in cm.output[0])
-
+        self.assertTrue("error: 1 running: tc qdisc add dev eth" in cm.output[0])
 
     def testSanityTrafficClass(self, ):
         intf = 'eth0'

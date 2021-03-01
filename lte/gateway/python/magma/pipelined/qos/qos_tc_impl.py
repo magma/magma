@@ -10,45 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import threading
-from typing import List, Optional  # noqa
-import os
-import shlex
+from typing import Optional  # noqa
 import subprocess
 import logging
 from lte.protos.policydb_pb2 import FlowMatch
 from .types import QosInfo
 from .utils import IdManager
+from .tc_ops_cmd import run_cmd, TcOpsCmd, argSplit
 
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
 # LOG.setLevel(logging.DEBUG)
-
-cmd_lock = threading.RLock()
-
-# this code can run in either a docker container(CWAG) or as a native
-# python process(AG). When we are running as a root there is no need for
-# using sudo. (related to task T63499189 where tc commands failed since
-# sudo wasn't available in the docker container)
-def argSplit(cmd: str) -> List[str]:
-    args = [] if os.geteuid() == 0 else ["sudo"]
-    args.extend(shlex.split(cmd))
-    return args
-
-
-def run_cmd(cmd_list, show_error=True) -> int:
-    err = 0
-    with cmd_lock:
-        for cmd in cmd_list:
-            LOG.debug("running %s", cmd)
-            try:
-                args = argSplit(cmd)
-                subprocess.check_call(args)
-            except subprocess.CalledProcessError as e:
-                err = -1
-                if show_error:
-                    LOG.error("%s error running %s ", str(e.returncode), cmd)
-    return err
-
 
 # TODO - replace this implementation with pyroute2 tc
 ROOT_QID = 65534
@@ -61,26 +32,20 @@ class TrafficClass:
     Creates/Deletes queues in linux. Using Qdiscs for flow based
     rate limiting(traffic shaping) of user traffic.
     """
+    tc_cmd = TcOpsCmd()
 
     @staticmethod
     def delete_class(intf: str, qid: int, skip_filter=False) -> int:
         qid_hex = hex(qid)
-        # delete filter if this is a leaf class
-        cmd_list = []
 
         if not skip_filter:
-            filter_cmd = "tc filter del dev {intf} protocol ip parent 1: prio 1 "
-            filter_cmd += "handle {qid} fw flowid 1:{qid}"
-            filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
-            cmd_list.append(filter_cmd)
+            TrafficClass.tc_cmd.del_filter(intf, qid_hex, qid_hex)
 
-        cmd_list.append("tc class del dev {intf} classid 1:{qid}".format(intf=intf,
-                                                                  qid=qid_hex))
-        return run_cmd(cmd_list, True)
+        return TrafficClass.tc_cmd.del_htb(intf, qid_hex)
 
     @staticmethod
     def create_class(intf: str, qid: int, max_bw: int, rate=None,
-                     parent_qid=None, show_error=True, skip_filter=False) -> int:
+                     parent_qid=None, skip_filter=False) -> int:
         if not rate:
             rate = DEFAULT_RATE
 
@@ -94,23 +59,13 @@ class TrafficClass:
             parent_qid = ROOT_QID
 
         qid_hex = hex(qid)
-        parent_qid_hex = hex(parent_qid)
-        tc_cmd = "tc class add dev {intf} parent 1:{parent_qid} "
-        tc_cmd += "classid 1:{qid} htb rate {rate} ceil {maxbw} prio 2"
-        tc_cmd = tc_cmd.format(intf=intf, parent_qid=parent_qid_hex,
-                               qid=qid_hex, rate=rate, maxbw=max_bw)
-
-        err = run_cmd([tc_cmd], show_error=show_error)
+        parent_qid_hex = '1:' + hex(parent_qid)
+        err = TrafficClass.tc_cmd.create_htb(intf, qid_hex, max_bw, rate, parent_qid_hex)
         if err < 0 or skip_filter:
             return err
 
         # add filter
-        filter_cmd = "tc filter add dev {intf} protocol ip parent 1: prio 1 "
-        filter_cmd += "handle {qid} fw flowid 1:{qid}"
-        filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
-
-        # add qdisc and filter
-        return run_cmd([filter_cmd], show_error)
+        return TrafficClass.tc_cmd.create_filter(intf, qid_hex, qid_hex)
 
     @staticmethod
     def init_qdisc(intf: str, show_error=False) -> int:
