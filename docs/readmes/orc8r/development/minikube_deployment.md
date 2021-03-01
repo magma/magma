@@ -139,7 +139,7 @@ Create an admin user:
 
 ```
 kubectl exec -it -n magma \
-    $(kubectl get pod -n magma -l app.kubernetes.io/component=controller -o jsonpath="{.items[0].metadata.name}") -- \
+    $(kubectl get pod -n magma -l app.kubernetes.io/component=orchestrator -o jsonpath="{.items[0].metadata.name}") -- \
     /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
 
