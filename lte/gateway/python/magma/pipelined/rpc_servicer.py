@@ -62,7 +62,7 @@ from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.app.ng_services import NGServiceController
 
 grpc_msg_queue = queue.Queue()
-DEFAULT_CALL_TIMEOUT = 10
+DEFAULT_CALL_TIMEOUT = 15
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -724,8 +724,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._log_grpc_payload(request)
         self._loop.call_soon_threadsafe(\
                       self.ng_update_session_flows, request, fut)
-
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except TimeoutError:
+            logging.error("SetupQuotaFlows processing timed out")
+            return UPFSessionContextState()
 
     def ng_update_session_flows(self, request: SessionSet,
                                 fut: 'Future(UPFSessionContextState)') -> UPFSessionContextState:
