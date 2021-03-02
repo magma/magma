@@ -100,6 +100,12 @@ int send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message);
 
+/** \brief Receive a message from zsock
+ \param reader Pointer to ZMQ socket
+ @returns Pointer to the message read (caller to free)
+ **/
+MessageDef* receive_msg(zsock_t* reader);
+
 /** \brief Start timer on the ZMQ loop
  \param task_zmq_ctx_p Pointer to task ZMQ context
  \param msec Timer duration in millisecond

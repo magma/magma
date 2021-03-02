@@ -17,7 +17,8 @@
 
 #include <stdint.h>
 #include <string.h>
-#include <math.h>  // double ceil(double x);
+#include <math.h>    // double ceil(double x);
+#include <stdlib.h>  // malloc, free
 
 #include "secu_defs.h"
 #include "conversions.h"
@@ -117,12 +118,13 @@ int nas_stream_encrypt_eia1(
   uint64_t c;
   uint64_t M_D_2;
   int rem_bits;
-  uint32_t mask = 0;
-  uint32_t* message;
+  uint32_t mask     = 0;
+  uint32_t* message = (uint32_t*) malloc(
+      sizeof(uint32_t) * ((stream_cipher->blength >> 5) + 1));
 
-  message =
-      (uint32_t*)
-          stream_cipher->message; /* To operate 32 bit message internally. */
+  /* copy message to avoid memory alignment issues */
+  memcpy(message, stream_cipher->message, ceil(stream_cipher->blength / 8.0));
+
   /*
    * Load the Integrity Key for SNOW3G initialization as in section 4.4.
    */
@@ -228,5 +230,6 @@ int nas_stream_encrypt_eia1(
   // printf ("MAC_I:%16X\n",MAC_I);
   MAC_I = hton_int32(MAC_I);
   memcpy((void*) out, &MAC_I, 4);
+  free(message);
   return 0;
 }
