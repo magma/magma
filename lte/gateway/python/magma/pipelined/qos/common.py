@@ -324,7 +324,8 @@ class QosManager(object):
                             LOG.debug("removing apn qos_handle %d", qos_handle)
                             self.impl.remove_qos(qos_handle,
                                                  cur_qos_state[qos_handle]['direction'],
-                                                 recovery_mode=True)
+                                                 recovery_mode=True,
+                                                 skip_filter=True)
                 final_qos_state, _ = self.impl.read_all_state()
                 LOG.info("final_qos_state -> %s", json.dumps(final_qos_state, indent=1))
                 LOG.info("final_redis state -> %s", self._redis_store)
@@ -384,7 +385,7 @@ class QosManager(object):
             LOG.debug("existing root rec: ambr_qos_handle_root %d", ambr_qos_handle_root)
 
             if not ambr_qos_handle_root:
-                ambr_qos_handle_root = self.impl.add_qos(direction, QosInfo(gbr=None, mbr=apn_ambr))
+                ambr_qos_handle_root = self.impl.add_qos(direction, QosInfo(gbr=None, mbr=apn_ambr), skip_filter=True)
                 if not ambr_qos_handle_root:
                     LOG.error('Failed adding root ambr qos mbr %u direction %d',
                               apn_ambr, direction)
@@ -407,7 +408,7 @@ class QosManager(object):
                 else:
                     LOG.error('Failed adding leaf ambr qos mbr %u direction %d',
                               apn_ambr, direction)
-                    self.impl.remove_qos(ambr_qos_handle_root, direction)
+                    self.impl.remove_qos(ambr_qos_handle_root, direction, skip_filter=True)
                     return None, None
             qos_handle = ambr_qos_handle_leaf
 
@@ -479,7 +480,7 @@ class QosManager(object):
                 ambr_qos_handle = session.get_ambr(d)
                 if ambr_qos_handle:
                     LOG.debug("removing root ambr qos handle %d direction %d", ambr_qos_handle, d)
-                    self.impl.remove_qos(ambr_qos_handle, d)
+                    self.impl.remove_qos(ambr_qos_handle, d, skip_filter=True)
             LOG.debug("purging session %s %s ", imsi, session.ip_addr)
             subscriber_state.remove_session(session.ip_addr)
 

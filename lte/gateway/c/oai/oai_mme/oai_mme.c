@@ -127,6 +127,7 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
+  CHECK_INIT_RETURN(sgw_s8_init());
 #else
   CHECK_INIT_RETURN(udp_init());
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
@@ -134,7 +135,6 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
   CHECK_INIT_RETURN(s6a_init(&mme_config));
 
-  CHECK_INIT_RETURN(sgw_s8_init());
   // Create SGS Task only if non_eps_service_control is not set to OFF
   char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
   if (!(strcmp(non_eps_service_control, "SMS")) ||

@@ -66,5 +66,5 @@ void set_gauge(const char* name, double value, size_t n_labels, ...);
 void observe_histogram(
     const char* name, double observation, size_t n_labels, ...);
 
-} // namespace service303
-} // namespace magma
+}  // namespace service303
+}  // namespace magma

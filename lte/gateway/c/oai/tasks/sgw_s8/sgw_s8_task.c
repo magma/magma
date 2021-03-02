@@ -63,10 +63,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case MESSAGE_TEST: {
-      OAI_FPRINTF_INFO("TASK_SGW_S8 received MESSAGE_TEST\n");
-    } break;
-
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
       zframe_destroy(&msg_frame);

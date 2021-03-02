@@ -134,6 +134,18 @@ func (j *jsonMarshaler) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(j.v)
 }
 
+func StringMarshaler(s string) encoding.BinaryMarshaler {
+	return &stringMarshaler{s}
+}
+
+type stringMarshaler struct {
+	s string
+}
+
+func (m *stringMarshaler) MarshalBinary() (data []byte, err error) {
+	return []byte(m.s), nil
+}
+
 func ByteIdentityMarshaler(v []byte) encoding.BinaryMarshaler {
 	return &byteIdentityMarshaler{v: v}
 }

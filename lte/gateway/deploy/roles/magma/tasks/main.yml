@@ -71,6 +71,18 @@
   copy: src=99-magma.conf dest=/etc/sysctl.d/99-magma.conf
   when: full_provision
 
+- name: Add the sysctl config from the step before
+  become: yes
+  command: 'sysctl -p /etc/sysctl.d/99-magma.conf'
+  when: full_provision
+
+- name: Set core ulimit to unlimited
+  pam_limits:
+    domain: '*'
+    limit_item: core
+    limit_type: '-'
+    value: unlimited
+
 - name: Create the /var/core directory
   file: path=/var/core state=directory
   when: full_provision

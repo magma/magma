@@ -14,7 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <json.hpp> // JSON library
+#include <json.hpp>  // JSON library
 #include <google/protobuf/message.h>
 #include <google/protobuf/util/json_util.h>
 
@@ -31,8 +31,7 @@ static bool check_file_exists(const std::string filename) {
 }
 
 bool MConfigLoader::load_service_mconfig(
-    const std::string& service_name,
-    google::protobuf::Message* message) {
+    const std::string& service_name, google::protobuf::Message* message) {
   std::ifstream file;
   get_mconfig_file(&file);
   if (!file.is_open()) {
@@ -60,11 +59,11 @@ bool MConfigLoader::load_service_mconfig(
     MLOG(MERROR) << "Couldn't find " << service_name << " config";
     return false;
   }
-  service_it->erase("@type"); // @type param makes parsing fail
+  service_it->erase("@type");  // @type param makes parsing fail
 
   // Parse to message and return
-  auto status = google::protobuf::util::JsonStringToMessage(
-    service_it->dump(), message);
+  auto status =
+      google::protobuf::util::JsonStringToMessage(service_it->dump(), message);
   if (!status.ok()) {
     MLOG(MERROR) << "Couldn't parse " << service_name << " config";
   }
@@ -81,10 +80,10 @@ void MConfigLoader::get_mconfig_file(std::ifstream* file) {
   if (cfg_dir == nullptr) {
     cfg_dir = MConfigLoader::CONFIG_DIR;
   }
-  auto file_path = std::string(cfg_dir) + "/"
-    + std::string(MConfigLoader::MCONFIG_FILE_NAME);
+  auto file_path = std::string(cfg_dir) + "/" +
+                   std::string(MConfigLoader::MCONFIG_FILE_NAME);
   file->open(file_path.c_str());
   return;
 }
 
-}
+}  // namespace magma

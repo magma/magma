@@ -1,0 +1,71 @@
+---
+
+- name: install all dependencies
+  apt:
+    name: "{{ allDeps }}"
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: prepare docker
+  script: 01-docker.bash
+
+- name: install docker 
+  apt:
+    name: "{{ dockerPackages }}"
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: install docker compose
+  script: 02-docker-compose.bash
+
+- name: install aws components 
+  script: 05-aws-tools.bash
+
+- name: add k8s key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+  become: yes
+
+- name: add k8s repo
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: kubernetes.list
+  become: yes
+
+- name: add helm key
+  apt_key:
+    url: https://baltocdn.com/helm/signing.asc
+    state: present
+  become: yes
+
+- name: add helm repo
+  apt_repository:
+    repo: deb https://baltocdn.com/helm/stable/debian/ all main
+    state: present
+    filename: helm.list
+  become: yes
+
+- name: add terraform key
+  apt_key:
+    url: https://apt.releases.hashicorp.com/gpg
+    state: present
+  become: yes
+
+- name: add terraform repo
+  apt_repository:
+    repo: deb [arch=amd64] https://apt.releases.hashicorp.com bionic main
+    state: present
+    filename: terraform.list
+  become: yes
+
+- name: install terraform, kubectl and helm
+  apt:
+    name: "{{ k8sPackages }}"
+    state: present
+    update_cache: yes
+  become: yes
+

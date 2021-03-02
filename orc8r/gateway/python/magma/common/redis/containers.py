@@ -222,7 +222,12 @@ class RedisFlatDict(MutableMapping[str, T]):
                 split_key = deserialized_key.split(":", 1)
             except AttributeError:
                 split_key = k.split(":", 1)
-            if self.is_garbage(split_key[0]):
+            # There could be a delete key in between KEYS and GET, so ignore
+            # invalid values for now
+            try:
+                if self.is_garbage(split_key[0]):
+                    continue
+            except KeyError:
                 continue
             yield split_key[0]
 
@@ -351,7 +356,12 @@ class RedisFlatDict(MutableMapping[str, T]):
                 split_key = deserialized_key.split(":", 1)
             except AttributeError:
                 split_key = k.split(":", 1)
-            if not self.is_garbage(split_key[0]):
+            # There could be a delete key in between KEYS and GET, so ignore
+            # invalid values for now
+            try:
+                if not self.is_garbage(split_key[0]):
+                    continue
+            except KeyError:
                 continue
             garbage_keys.append(split_key[0])
         return garbage_keys

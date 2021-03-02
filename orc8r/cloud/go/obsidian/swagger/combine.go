@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	commonSpecPath = "/etc/magma/configs/orc8r/swagger_specs/common/swagger-common.yml"
+	commonSpecPath = "/etc/magma/swagger/specs/common/swagger-common.yml"
 )
 
 // GetCombinedSpec polls every servicer registered with
@@ -48,6 +48,26 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 	}
 
 	combined, warnings, err := swagger_lib.Combine(yamlCommon, yamlSpecs)
+	if err != nil {
+		return "", err
+	}
+	if warnings != nil {
+		glog.Infof("Some Swagger spec traits were overwritten or unable to be read: %+v", warnings)
+	}
+
+	return combined, nil
+}
+
+// GetServiceSpec polls a service for its spec and combines it with the
+// common spec to return a combined spec.
+func GetServiceSpec(yamlCommon string, service string) (string, error) {
+	remoteSpec := NewRemoteSpec(service)
+	yamlSpec, err := remoteSpec.GetSpec()
+	if err != nil {
+		return "", err
+	}
+
+	combined, warnings, err := swagger_lib.Combine(yamlCommon, []string{yamlSpec})
 	if err != nil {
 		return "", err
 	}
