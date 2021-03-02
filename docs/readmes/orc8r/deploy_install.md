@@ -325,7 +325,7 @@ will rightfully complain. Either ignore the browser warnings at your own risk
 ](https://stackoverflow.com/questions/7580508/getting-chrome-to-accept-self-signed-localhost-certificate).
 
 For interacting with the Orchestrator REST API, a good starting point is the
-Swagger UI available at `https://api.yoursubdomain.yourdomain.com/swagger/v1/ui`.
+Swagger UI available at `https://api.yoursubdomain.yourdomain.com/swagger/v1/ui/`.
 
 If desired, you can also visit the AWS endpoints directly. The relevant
 services are `nginx-proxy` for NMS and `orc8r-nginx-proxy` for Orchestrator
