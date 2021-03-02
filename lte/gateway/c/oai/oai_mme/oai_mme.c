@@ -43,6 +43,7 @@
 #include "sgs_defs.h"
 #include "sms_orc8r_defs.h"
 #include "ha_defs.h"
+#include "sgw_s8_defs.h"
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
@@ -126,6 +127,7 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
+  CHECK_INIT_RETURN(sgw_s8_init());
 #else
   CHECK_INIT_RETURN(udp_init());
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));

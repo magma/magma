@@ -456,8 +456,8 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   init_task_context(
       TASK_MME_APP,
       (task_id_t[]){TASK_SPGW_APP, TASK_SGS, TASK_SMS_ORC8R, TASK_S11, TASK_S6A,
-                    TASK_S1AP, TASK_SERVICE303, TASK_HA},
-      8, handle_message, &mme_app_task_zmq_ctx);
+                    TASK_S1AP, TASK_SERVICE303, TASK_HA, TASK_SGW_S8},
+      9, handle_message, &mme_app_task_zmq_ctx);
 
   // Service started, but not healthy yet
   send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, false);
