@@ -62,9 +62,10 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
             'stream_name': request.stream_name,
             'event_type': request.event_type,
             'event_tag': request.tag,
-            'value': request.value,
             'retry_on_failure': self._needs_retries(request.event_type),
         }
+        values_dict = json.loads(request.value)
+        value.update(values_dict)
         try:
             with closing(socket.create_connection(
                     ('localhost', self._fluent_bit_port),
