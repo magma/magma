@@ -10,14 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from copy import deepcopy
-import redis
-from redis.lock import Lock
-import redis_lock
-import redis_collections
 from typing import Any, Iterator, List, MutableMapping, Optional, TypeVar
-from magma.common.redis.serializers import RedisSerde
+
+import redis
+import redis_collections
+import redis_lock
+from copy import deepcopy
 from orc8r.protos.redis_pb2 import RedisState
+from redis.lock import Lock
+
+from magma.common.redis.serializers import RedisSerde
 
 # NOTE: these containers replace the serialization methods exposed by
 # the redis-collection objects. Although the methods are hinted to be
@@ -25,6 +27,7 @@ from orc8r.protos.redis_pb2 import RedisState
 # docs: http://redis-collections.readthedocs.io/en/stable/usage-notes.html
 
 T = TypeVar('T')
+
 
 class RedisList(redis_collections.List):
     """
@@ -125,9 +128,9 @@ class RedisHashDict(redis_collections.DefaultDict):
         return serialized.decode('utf-8')  # Redis returns bytes
 
     def __init__(
-        self, client, key, serialize, deserialize,
-        default_factory=None,
-        writeback=False,
+            self, client, key, serialize, deserialize,
+            default_factory=None,
+            writeback=False,
     ):
         """
         Initialize instance.
@@ -198,44 +201,62 @@ class RedisFlatDict(MutableMapping[str, T]):
     dict stores key directly (i.e. without a hashmap).
     """
 
-    def __init__(self, client: redis.Redis, serde: RedisSerde[T]):
+    def __init__(self, client: redis.Redis, serde: RedisSerde[T],
+                 writeback: bool = False):
         """
         Args:
             client (redis.Redis): Redis client object
             serde (): RedisSerde for de/serializing the object stored
+            writeback (bool): if writeback is set to true, dict maintains a
+            local cache of values.
         """
         super().__init__()
+        self._writeback = writeback
         self.redis = client
         self.serde = serde
         self.redis_type = serde.redis_type
+        self.cache = {}
 
     def __len__(self) -> int:
         """Return the number of items in the dictionary."""
+        if self._writeback:
+            return len(self.cache)
+
         return len(self.keys())
 
     def __iter__(self) -> Iterator[str]:
         """Return an iterator over the keys of the dictionary."""
         type_pattern = "*:" + self.redis_type
-        for k in self.redis.keys(pattern=type_pattern):
-            try:
-                deserialized_key = k.decode('utf-8')
-                split_key = deserialized_key.split(":", 1)
-            except AttributeError:
-                split_key = k.split(":", 1)
-            # There could be a delete key in between KEYS and GET, so ignore
-            # invalid values for now
-            try:
-                if self.is_garbage(split_key[0]):
+
+        if self._writeback:
+            for k in self.cache:
+                split_key, _ = k.split(":", 1)
+                yield split_key
+        else:
+            for k in self.redis.keys(pattern=type_pattern):
+                try:
+                    deserialized_key = k.decode('utf-8')
+                    split_key = deserialized_key.split(":", 1)
+                except AttributeError:
+                    split_key = k.split(":", 1)
+                # There could be a delete key in between KEYS and GET, so ignore
+                # invalid values for now
+                try:
+                    if self.is_garbage(split_key[0]):
+                        continue
+                except KeyError:
                     continue
-            except KeyError:
-                continue
-            yield split_key[0]
+                yield split_key[0]
 
     def __contains__(self, key: str) -> bool:
         """Return ``True`` if *key* is present and not garbage,
         else ``False``.
         """
         composite_key = self._make_composite_key(key)
+
+        if self._writeback:
+            return composite_key in self.cache
+
         return bool(self.redis.exists(composite_key)) and \
                not self.is_garbage(key)
 
@@ -247,6 +268,10 @@ class RedisFlatDict(MutableMapping[str, T]):
         if ':' in key:
             raise ValueError("Key %s cannot contain ':' char" % key)
         composite_key = self._make_composite_key(key)
+
+        if self._writeback:
+            return self.cache[composite_key]
+
         serialized_value = self.redis.get(composite_key)
         if serialized_value is None:
             raise KeyError(composite_key)
@@ -265,6 +290,8 @@ class RedisFlatDict(MutableMapping[str, T]):
         version = self.get_version(key)
         serialized_value = self.serde.serialize(value, version + 1)
         composite_key = self._make_composite_key(key)
+        if self._writeback:
+            self.cache[composite_key] = value
         return self.redis.set(composite_key, serialized_value)
 
     def __delitem__(self, key: str) -> int:
@@ -274,6 +301,8 @@ class RedisFlatDict(MutableMapping[str, T]):
         if ':' in key:
             raise ValueError("Key %s cannot contain ':' char" % key)
         composite_key = self._make_composite_key(key)
+        if self._writeback:
+            del self.cache[composite_key]
         deleted_count = self.redis.delete(composite_key)
         if not deleted_count:
             raise KeyError(composite_key)
@@ -293,6 +322,8 @@ class RedisFlatDict(MutableMapping[str, T]):
         Clear all keys in the dictionary. Objects are immediately deleted
         (i.e. not garbage collected)
         """
+        if self._writeback:
+            self.cache.clear()
         for key in self.keys():
             composite_key = self._make_composite_key(key)
             self.redis.delete(composite_key)
@@ -314,6 +345,9 @@ class RedisFlatDict(MutableMapping[str, T]):
         """Return a copy of the dictionary's list of keys
         Note: for redis *key:type* key is returned
         """
+        if self._writeback:
+            return list(self.cache.keys())
+
         return list(self.__iter__())
 
     def mark_as_garbage(self, key: str) -> Any:

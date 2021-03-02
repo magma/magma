@@ -51,13 +51,11 @@ from typing import List, Optional, Tuple
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
 
-from magma.mobilityd.ip_descriptor import IPState, IPType
+from magma.mobilityd.ip_descriptor import IPState
 from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
-
 from .ip_allocator_base import DuplicateIPAssignmentError, IPAllocator, \
     IPNotInUseError, \
     MappingNotFoundError
-
 from .mobility_store import MobilityStore
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
@@ -333,21 +331,19 @@ class IPAddressManager:
 
     def get_ip_for_sid(self, sid: str) -> Optional[ip_address]:
         """ if ip is mapped to sid, return it, else return None """
-        with self._lock:
-            if sid in self._store.sid_ips_map:
-                if not self._store.sid_ips_map[sid]:
-                    raise AssertionError("Unexpected internal state")
-                else:
-                    return self._store.sid_ips_map[sid].ip
-            return None
+        if sid in self._store.sid_ips_map:
+            if not self._store.sid_ips_map[sid]:
+                raise AssertionError("Unexpected internal state")
+            else:
+                return self._store.sid_ips_map[sid].ip
+        return None
 
     def get_sid_for_ip(self, requested_ip: ip_address) -> Optional[str]:
         """ If ip is associated with an sid, return the sid, else None """
-        with self._lock:
-            for sid, ip_desc in self._store.sid_ips_map.items():
-                if requested_ip == ip_desc.ip:
-                    return sid
-            return None
+        for sid, ip_desc in self._store.sid_ips_map.items():
+            if requested_ip == ip_desc.ip:
+                return sid
+        return None
 
     def is_ip_in_state(self, ip_addr: ip_address, state: IPState):
         """
