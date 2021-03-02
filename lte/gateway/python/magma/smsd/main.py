@@ -12,12 +12,10 @@ limitations under the License.
 """
 
 from magma.common.service import MagmaService
-from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.sms_orc8r_pb2_grpc import SMSOrc8rServiceStub, SMSOrc8rGatewayServiceStub, SmsDStub
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 from .relay import SmsRelay
-
 
 def main():
     """ main() for smsd """
@@ -41,7 +39,6 @@ def main():
     service.run()
     # Cleanup the service
     service.close()
-
 
 if __name__ == "__main__":
     main()
