@@ -12,8 +12,9 @@ limitations under the License.
 """
 import os
 import logging
+import concurrent.futures
 import queue
-from concurrent.futures import Future, TimeoutError
+from concurrent.futures import Future
 from itertools import chain
 from typing import List, Tuple
 from collections import OrderedDict
@@ -120,7 +121,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._loop.call_soon_threadsafe(self._setup_default_controllers, fut)
         try:
             return fut.result(timeout=self._call_timeout)
-        except TimeoutError:
+        except concurrent.futures.TimeoutError:
             logging.error("SetupDefaultControllers processing timed out")
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
@@ -153,7 +154,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
         try:
             return fut.result(timeout=self._call_timeout)
-        except TimeoutError:
+        except concurrent.futures.TimeoutError:
             logging.error("SetupPolicyFlows processing timed out")
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
@@ -185,7 +186,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         try:
             return fut.result(timeout=self._call_timeout)
-        except TimeoutError:
+        except concurrent.futures.TimeoutError:
             logging.error("ActivateFlows request processing timed out")
             return ActivateFlowsResult()
 
@@ -436,7 +437,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._enforcement_stats.get_policy_usage, fut)
         try:
             return fut.result(timeout=self._call_timeout)
-        except TimeoutError:
+        except concurrent.futures.TimeoutError:
             logging.error("GetPolicyUsage processing timed out")
             return RuleRecordTable()
 
@@ -531,7 +532,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                         request, fut)
         try:
             return fut.result(timeout=self._call_timeout)
-        except TimeoutError:
+        except concurrent.futures.TimeoutError:
             logging.error("SetupUEMacFlows processing timed out")
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
@@ -571,7 +572,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         try:
             return fut.result(timeout=self._call_timeout)
-        except TimeoutError:
+        except concurrent.futures.TimeoutError:
             logging.error("AddUEMacFlow processing timed out")
             return FlowResponse()
 
@@ -645,7 +646,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                         request, fut)
         try:
             return fut.result(timeout=self._call_timeout)
-        except TimeoutError:
+        except concurrent.futures.TimeoutError:
             logging.error("SetupQuotaFlows processing timed out")
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
@@ -726,7 +727,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                       self.ng_update_session_flows, request, fut)
         try:
             return fut.result(timeout=self._call_timeout)
-        except TimeoutError:
+        except concurrent.futures.TimeoutError:
             logging.error("SetupQuotaFlows processing timed out")
             return UPFSessionContextState()
 
