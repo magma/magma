@@ -61,6 +61,16 @@ Example event data:
 As can be seen with this example, `value` holds the event specific data.
 An event must be defined before they can be send to `eventd` service.
 
+### FluentBit Configuration
+FluentBit natively supports ways to filter/modify streams of logs via a 
+FluentBit config file. Ours is generated from the template in 
+`/var/opt/magma/templates/td-agent-bit.conf.template`. 
+The FluentBit docs provide an in-depth summary for each input/filter/output 
+plugins. In short, each input stream specifies a tag with which FluentBit 
+directs the logs. 
+![FluentBit flow](assets/lte/fluentbit_config.png?raw=true "FluentBit flow") 
+
+
 ### Dependencies
 
 - [Fluentd](https://www.fluentd.org/) is run on the orc8r for event aggregation, and moves them to elasticsearch
