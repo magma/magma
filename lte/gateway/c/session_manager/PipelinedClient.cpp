@@ -210,18 +210,28 @@ AsyncPipelinedClient::AsyncPipelinedClient()
           "pipelined", ServiceRegistrySingleton::LOCAL)) {}
 
 inline std::ostream& operator<<(
-    std::ostream& s, const PendingActivationRequest& pending_req) {
-  const ActivateFlowsRequest& req = pending_req.request;
-  std::string rule_ids            = "{ ";
-  for (const auto& rule_id : req.rule_ids()) {
-    rule_ids += rule_id + " ";
-  }
-  for (const auto& rule : req.dynamic_rules()) {
-    rule_ids += rule.id() + " ";
+    std::ostream& s, const PendingRequest& pending_req) {
+  std::string sid;
+  std::string rule_ids = "{ ";
+  switch (pending_req.request_type) {
+    case ACTIVATE: {
+      const ActivateFlowsRequest& req = pending_req.activate_req.request;
+      sid                             = req.sid().id();
+      std::string rule_ids            = "{ ";
+      for (const auto& rule_id : req.rule_ids()) {
+        rule_ids += rule_id + " ";
+      }
+      for (const auto& rule : req.dynamic_rules()) {
+        rule_ids += rule.id() + " ";
+      }
+      break;
+    }
+    case DEACTIVATE:
+      break;
   }
   rule_ids += "}";
 
-  s << req.sid().id() << " with rules " << rule_ids << " expiring at "
+  s << sid << " with rules " << rule_ids << " expiring at "
     << pending_req.expiry_time;
   return s;
 }
@@ -516,7 +526,7 @@ void AsyncPipelinedClient::set_rate_limiting_config(const YAML::Node& config) {
 
 void AsyncPipelinedClient::pop_and_send_pending_request() {
   bool found_request = false;
-  PendingActivationRequest pending_req;
+  PendingRequest pending_req;
   {  // critical section
     std::unique_lock<std::mutex> lock(queue_lock_);
     if (!pending_reqs_.empty()) {
@@ -527,17 +537,24 @@ void AsyncPipelinedClient::pop_and_send_pending_request() {
   }  // end of critical section
   if (found_request) {
     MLOG(MINFO) << "Sending a previously pending request: " << pending_req;
-    send_activate_flows_rpc(
-        pending_req.request, std::move(pending_req.callback_fn),
-        // the GRPC timeout here should be the remaining time since the request
-        // was created
-        pending_req.expiry_time - std::time(nullptr));
+    // the GRPC timeout here should be the remaining time since the request
+    // was created
+    auto timeout = pending_req.expiry_time - std::time(nullptr);
+    switch (pending_req.request_type) {
+      case ACTIVATE:
+        send_activate_flows_rpc(
+            pending_req.activate_req.request,
+            pending_req.activate_req.callback_fn, timeout);
+        return;
+      case DEACTIVATE:
+        return;
+    }
   }
 }
 
-std::vector<PendingActivationRequest>
+std::vector<PendingRequest>
 AsyncPipelinedClient::get_pending_requests_to_cancel() {
-  std::vector<PendingActivationRequest> requests_to_cancel;
+  std::vector<PendingRequest> requests_to_cancel;
   std::time_t now = std::time(nullptr);
   // Pop items of the queue until
   // 1. The queue has only elements with expiry_time > now
@@ -551,22 +568,22 @@ AsyncPipelinedClient::get_pending_requests_to_cancel() {
 }
 
 void AsyncPipelinedClient::cancel_requests(
-    const std::vector<PendingActivationRequest>& requests_to_cancel) {
+    const std::vector<PendingRequest>& requests_to_cancel) {
   grpc::Status cancelled_status = Status::CANCELLED;
   ActivateFlowsResult empty_response;
-  for (auto& pending_req : requests_to_cancel) {
-    MLOG(MINFO) << "Cancelling: " << pending_req;
-    pending_req.callback_fn(cancelled_status, empty_response);
+  for (auto& pending : requests_to_cancel) {
+    MLOG(MINFO) << "Cancelling: " << pending;
+    pending.activate_req.callback_fn(cancelled_status, empty_response);
   }
 }
 
-void AsyncPipelinedClient::activate_flows_rpc_with_rate_limiting(
-    const ActivateFlowsRequest& request,
+void AsyncPipelinedClient::send_rpc_with_rate_limiting(
+    const PendingRequest& pending_req,
     std::function<void(Status, ActivateFlowsResult)> callback) {
   bool send_request_now = false;
-  std::vector<PendingActivationRequest> requests_to_cancel;
-  MLOG(MINFO) << "Ongoing ActivateFlowsRequests: " << ongoing_request_count_
-              << ", Queueing ActivateFlowsRequests: " << pending_reqs_.size();
+  std::vector<PendingRequest> requests_to_cancel;
+  MLOG(MINFO) << "Ongoing FlowsRequests: " << ongoing_request_count_
+              << ", Queueing FlowsRequests: " << pending_reqs_.size();
   {  // critical section
     std::unique_lock<std::mutex> lock(queue_lock_);
     requests_to_cancel = get_pending_requests_to_cancel();
@@ -575,8 +592,6 @@ void AsyncPipelinedClient::activate_flows_rpc_with_rate_limiting(
     if (send_request_now) {
       ongoing_request_count_++;
     } else {
-      auto pending_req = PendingActivationRequest(
-          request, callback, std::time(nullptr) + RESPONSE_TIMEOUT_SEC);
       MLOG(MINFO) << "Pushing a new pending request to queue: " << pending_req;
       pending_reqs_.push(pending_req);
     }
@@ -584,15 +599,14 @@ void AsyncPipelinedClient::activate_flows_rpc_with_rate_limiting(
 
   if (send_request_now) {
     send_activate_flows_rpc(
-        request,
-        [this, original_cb = std::move(callback)](
-            Status status, ActivateFlowsResult result) {
+        pending_req.activate_req.request,
+        [this, callback](Status status, ActivateFlowsResult result) {
           // this cb function is called when receiving the response
           ongoing_request_count_--;
-          original_cb(status, result);
+          callback(status, result);
 
           // Clean up the queue before sending a request
-          std::vector<PendingActivationRequest> requests_to_cancel;
+          std::vector<PendingRequest> requests_to_cancel;
           {  // critical section
             std::unique_lock<std::mutex> lock(queue_lock_);
             requests_to_cancel = get_pending_requests_to_cancel();
@@ -613,7 +627,10 @@ void AsyncPipelinedClient::activate_flows_rpc(
     send_activate_flows_rpc(request, callback, RESPONSE_TIMEOUT_SEC);
     return;
   }
-  activate_flows_rpc_with_rate_limiting(request, callback);
+  send_rpc_with_rate_limiting(
+      PendingRequest(
+          request, callback, std::time(nullptr) + RESPONSE_TIMEOUT_SEC),
+      callback);
 }
 
 void AsyncPipelinedClient::send_activate_flows_rpc(
@@ -625,6 +642,17 @@ void AsyncPipelinedClient::send_activate_flows_rpc(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(
       stub_->AsyncActivateFlows(local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::send_deactivate_flows_rpc(
+    const DeactivateFlowsRequest& request,
+    std::function<void(Status, DeactivateFlowsResult)> callback,
+    const uint32_t timeout) {
+  auto local_resp =
+      new AsyncLocalResponse<DeactivateFlowsResult>(callback, timeout);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  local_resp->set_response_reader(std::move(stub_->AsyncDeactivateFlows(
+      local_resp->get_context(), request, &queue_)));
 }
 
 void AsyncPipelinedClient::add_ue_mac_flow_rpc(

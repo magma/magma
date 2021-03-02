@@ -33,15 +33,47 @@ namespace magma {
 using namespace lte;
 using std::experimental::optional;
 
-struct PendingActivationRequest {
+enum PipelineDRequestType {
+  ACTIVATE   = 0,
+  DEACTIVATE = 1,
+};
+
+struct PendingActivateRequest {
   ActivateFlowsRequest request;
   std::function<void(Status, ActivateFlowsResult)> callback_fn;
+  PendingActivateRequest() {}
+  PendingActivateRequest(
+      ActivateFlowsRequest req,
+      std::function<void(Status, ActivateFlowsResult)> cb)
+      : request(req), callback_fn(cb) {}
+};
+
+struct PendingDeactivateRequest {
+  DeactivateFlowsRequest request;
+  std::function<void(Status, DeactivateFlowsResult)> callback_fn;
+  PendingDeactivateRequest() {}
+  PendingDeactivateRequest(
+      DeactivateFlowsRequest req,
+      std::function<void(Status, DeactivateFlowsResult)> cb)
+      : request(req), callback_fn(cb) {}
+};
+
+struct PendingRequest {
+  // TODO maybe use a union?
+  PendingActivateRequest activate_req;
+  PendingDeactivateRequest deactivate_req;
+  PipelineDRequestType request_type;
   std::time_t expiry_time;
-  PendingActivationRequest() {}
-  PendingActivationRequest(
+
+  PendingRequest() {}
+  PendingRequest(
       ActivateFlowsRequest req,
       std::function<void(Status, ActivateFlowsResult)> cb, std::time_t time)
-      : request(req), callback_fn(cb), expiry_time(time) {}
+      : activate_req(req, cb), request_type(ACTIVATE), expiry_time(time) {}
+  PendingRequest(
+      DeactivateFlowsRequest req,
+      std::function<void(Status, DeactivateFlowsResult)> cb, std::time_t time)
+      : deactivate_req(req, cb), request_type(DEACTIVATE), expiry_time(time) {}
 };
 
 /**
@@ -315,7 +347,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool ENABLE_RATE_LIMITING;
   uint32_t MAX_ACTIVE_REQS;
   uint32_t MAX_QUEUE_LENGTH;
-  std::queue<PendingActivationRequest> pending_reqs_;
+  std::queue<PendingRequest> pending_reqs_;
   std::atomic<uint32_t> ongoing_request_count_;
   std::mutex queue_lock_;
 
@@ -335,6 +367,11 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void deactivate_flows_rpc(
       const DeactivateFlowsRequest& request,
       std::function<void(Status, DeactivateFlowsResult)> callback);
+
+  void send_deactivate_flows_rpc(
+      const DeactivateFlowsRequest& request,
+      std::function<void(Status, DeactivateFlowsResult)> callback,
+      const uint32_t timeout);
 
   void activate_flows_rpc(
       const ActivateFlowsRequest& request,
@@ -366,19 +403,19 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       std::function<void(Status, UPFSessionContextState)> callback);
 
   /**
-   * activate_flows_rpc_with_rate_limiting handles the ActivateFlows GRPC call
-   * but with rate-limiting mechanism.
+   * send_rpc_with_rate_limiting handles the GRPC call with rate-limiting
+   * mechanism.
    * This mode only allows for MAX_ACTIVE_REQS ongoing requests at a time.
    * All new requests when there are max number of ongoing requests will be
    * pushed onto a queue.
    * The queue at any time will only contain up to MAX_QUEUE_LENGTH pending
    * requests. Additionally, the queue removes any pending request past its
    * expiry time every time the queue is accessed.
-   * @param request
+   * @param pending_req
    * @param callback
    */
-  void activate_flows_rpc_with_rate_limiting(
-      const ActivateFlowsRequest& request,
+  void send_rpc_with_rate_limiting(
+      const PendingRequest& pending_req,
       std::function<void(Status, ActivateFlowsResult)> callback);
 
   /**
@@ -401,16 +438,15 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * 2. The queue has max MAX_QUEUE_LENGTH elements
    * @return a vector of pending requests that should be cancelled
    */
-  std::vector<PendingActivationRequest> get_pending_requests_to_cancel();
+  std::vector<PendingRequest> get_pending_requests_to_cancel();
 
   /**
-   * Cancel the list of PendingActivationRequest by faking a GRPC timeout
+   * Cancel the list of PendingRequest by faking a GRPC timeout
    * (Status::CANCELLED).
    * @param requests_to_cancel: vector of pending requests that should be
    * cancelled
    */
-  void cancel_requests(
-      const std::vector<PendingActivationRequest>& requests_to_cancel);
+  void cancel_requests(const std::vector<PendingRequest>& requests_to_cancel);
 };
 
 }  // namespace magma
