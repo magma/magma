@@ -38,7 +38,7 @@
 #define FILE_3GPP_23_003_SEEN
 
 #include <stdint.h>
-
+#include "amf_config.h"
 //==============================================================================
 // 12  Identification of PLMN, RNC, Service Area, CN domain and Shared Network
 // Area
@@ -198,16 +198,21 @@ typedef uint16_t
     amf_gid_t; /*!< \brief  AMF Group ID shall be of 16 bits length. */
 typedef uint8_t
     amf_code_t; /*!< \brief  AMF Code shall be of 8 bits length.      */
-typedef uint8_t amf_Pointer_t;  // 9.3.3.19 AMF Pointer is used to identify one
-                                // or more AMF(s) within the AMF Set.
+// typedef uint8_t amf_Pointer_t;  // 9.3.3.19 AMF Pointer is used to identify
+// one
+// or more AMF(s) within the AMF Set.
 /*! \struct  guamfi_t
  * \brief Structure containing the Globally Unique AMF Identity.
  */
 typedef struct guamfi_s {
-  plmn_t plmn;         /*!< \brief  GUAMFI               */
-  amf_gid_t amf_gid;   /*!< \brief  AMF group identifier */
-  amf_code_t amf_code; /*!< \brief  AMF code             */
-  amf_Pointer_t amf_Pointer;
+  plmn_t plmn;              /*!< \brief  GUAMFI               */
+  amf_gid_t amf_gid;        /*!< \brief  AMF group identifier */
+  amf_code_t amf_code;      /*!< \brief  AMF code             */
+  uint8_t amf_region_id;    /*!< \brief  AMF group identifier */
+  uint16_t amf_set_id : 10; /*!< \brief  AMF code             */
+  uint16_t amf_Pointer : 6;
+
+  // amf_Pointer_t amf_Pointer;
 } guamfi_t;
 typedef struct guti_m5_s {
   guamfi_t guamfi; /*!< \brief  Globally Unique AMF Identity             */

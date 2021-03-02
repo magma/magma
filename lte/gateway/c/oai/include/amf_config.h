@@ -79,7 +79,7 @@ typedef struct amf_config_s {
 } amf_config_t;
 
 extern amf_config_t amf_config;
-
+extern amf_config_t* amf_config_aA;
 int amf_config_find_mnc_length(
     const char mcc_digit1P, const char mcc_digit2P, const char mcc_digit3P,
     const char mnc_digit1P, const char mnc_digit2P, const char mnc_digit3P);

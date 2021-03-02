@@ -107,10 +107,16 @@
 #define MME_CONFIG_STRING_S1AP_OUTCOME_TIMER "S1AP_OUTCOME_TIMER"
 #define MME_CONFIG_STRING_S1AP_PORT "S1AP_PORT"
 
+#define MME_CONFIG_STRING_GUMMEI_LIST "GUAMFI_LIST"
+
+#define MME_CONFIG_STRING_AMF_REGION_ID "AMF_REGION_ID"
+#define MME_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
+#define MME_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
 #define MME_CONFIG_STRING_GUMMEI_LIST "GUMMEI_LIST"
 #define MME_CONFIG_STRING_MME_CODE "MME_CODE"
 #define MME_CONFIG_STRING_MME_GID "MME_GID"
 #define MME_CONFIG_STRING_TAI_LIST "TAI_LIST"
+#define MME_CONFIG_STRING_TAC_LIST "TAC_LIST"
 #define MME_CONFIG_STRING_MCC "MCC"
 #define MME_CONFIG_STRING_MNC "MNC"
 #define MME_CONFIG_STRING_TAC "TAC"
@@ -360,8 +366,9 @@ int mme_config_find_mnc_length(
     const char mnc_digit1P, const char mnc_digit2P, const char mnc_digit3P);
 
 void mme_config_init(mme_config_t*);
-int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
-int mme_config_parse_file(mme_config_t*);
+int mme_config_parse_opt_line(
+    int argc, char* argv[], mme_config_t* mme_config, amf_config_t* amf_config);
+int mme_config_parse_file(mme_config_t*, amf_config_t*);
 void mme_config_display(mme_config_t*);
 
 void mme_config_exit(void);

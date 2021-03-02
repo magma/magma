@@ -34,7 +34,7 @@
 #include "amf_config.h"
 #include "shared_ts_log.h"
 #include "common_defs.h"
-
+#include "amf_config.h"
 #include "intertask_interface_init.h"
 #include "sctp_primitives_server.h"
 #include "s1ap_mme.h"
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
    */
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(mme_config_embedded_spgw_parse_opt_line(
-      argc, argv, &mme_config, &spgw_config));
+      argc, argv, &mme_config, &amf_config, &spgw_config));
 #else
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
 #endif
@@ -134,9 +134,9 @@ int main(int argc, char* argv[]) {
 #endif
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
 
-if (mme_config.enable_converged_core) {
-  CHECK_INIT_RETURN(ngap_amf_init(&amf_config));
-}
+  if (mme_config.enable_converged_core) {
+    CHECK_INIT_RETURN(ngap_amf_init(&amf_config));
+  }
   CHECK_INIT_RETURN(s6a_init(&mme_config));
 
   // Create SGS Task only if non_eps_service_control is not set to OFF
