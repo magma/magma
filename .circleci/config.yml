@@ -731,7 +731,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             ci_env=`bash <(curl -s https://codecov.io/env)`
-            docker run $ci_env -e CI=true -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make build_oai;make test_oai;cd /build/c;bash <(curl -s https://codecov.io/bash)"
+            docker run $ci_env -e CI=true -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make build_oai;make test_oai;lcov --initial --directory /build/c -c --output-file initial.info;bash <(curl -s https://codecov.io/bash)"
 
   lte-test:
     machine:
