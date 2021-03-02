@@ -43,7 +43,6 @@
 #include "sgs_defs.h"
 #include "sms_orc8r_defs.h"
 #include "ha_defs.h"
-#include "sgw_s8_defs.h"
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
@@ -54,6 +53,7 @@
 #include "mme_app_embedded_spgw.h"
 #include "spgw_config.h"
 #include "sgw_defs.h"
+#include "sgw_s8_defs.h"
 #endif
 #include "udp_primitives_server.h"
 #include "s11_mme.h"
