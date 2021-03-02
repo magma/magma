@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -98,7 +99,7 @@ type ConfiguratorStorage interface {
 func RollbackLogOnError(store ConfiguratorStorage) {
 	err := store.Rollback()
 	if err != nil {
-		glog.Errorf("error while rolling back tx: %s", err)
+		glog.Errorf("Error while rolling back tx: %+v", errors.WithStack(err))
 	}
 }
 
@@ -107,7 +108,7 @@ func RollbackLogOnError(store ConfiguratorStorage) {
 func CommitLogOnError(store ConfiguratorStorage) {
 	err := store.Commit()
 	if err != nil {
-		glog.Errorf("error while committing tx: %s", err)
+		glog.Errorf("Error while committing tx: %+v", errors.WithStack(err))
 	}
 }
 
