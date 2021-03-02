@@ -79,13 +79,14 @@ func GetObsidianHandlers() []obsidian.Handler {
 	client, err := elastic.NewSimpleClient(elastic.SetURL(fmt.Sprintf("http://%s:%d", elasticHost, elasticPort)))
 	if err != nil {
 		ret = append(ret, setInitErrorHandlers(err)...)
-	} else {
-		ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetQueryLogHandler(client)})
-		ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetCountLogHandler(client)})
-		ret = append(ret, obsidian.Handler{Path: EventsRootPath, Methods: obsidian.GET, HandlerFunc: GetMultiStreamEventsHandler(client)})
-		ret = append(ret, obsidian.Handler{Path: EventsCountPath, Methods: obsidian.GET, HandlerFunc: GetEventCountHandler(client)})
-		ret = append(ret, obsidian.Handler{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: GetEventsHandler(client)})
+		return ret
 	}
+
+	ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetQueryLogHandler(client)})
+	ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: logH.GetCountLogHandler(client)})
+	ret = append(ret, obsidian.Handler{Path: EventsRootPath, Methods: obsidian.GET, HandlerFunc: GetMultiStreamEventsHandler(client)})
+	ret = append(ret, obsidian.Handler{Path: EventsCountPath, Methods: obsidian.GET, HandlerFunc: GetEventCountHandler(client)})
+	ret = append(ret, obsidian.Handler{Path: EventsPath, Methods: obsidian.GET, HandlerFunc: GetEventsHandler(client)})
 
 	return ret
 }
