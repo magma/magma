@@ -38,8 +38,5 @@ class TestRestoreMMEConfigAfterSanity(unittest.TestCase):
             MagmadUtil.config_update_cmds.RESTORE
         )
 
-        print("Enabling magma@health service")
-        self._magmad_util.enable_service("health")
-
 if __name__ == "__main__":
     unittest.main()
