@@ -1,8 +1,9 @@
 ---
-id: magma_faq
+id: faq_magma
 title: Frequently Asked Questions
 hide_title: true
 ---
+
 # Frequently Asked Questions
 This section lists some of the commonly asked questions related to Magma operation.
 
@@ -99,7 +100,7 @@ This section lists some of the commonly asked questions related to Magma operati
   - Then click on API trigger action button e.g. **GET**, **PUT**, **DELETE** etc.
   - Click on **Try it out** button on right hand side.
   - Put in the required inputs and click **Execute**.
-  
+
 ### How can I check the services running in Orchestrator?
   - List the running pods with `kubectl -norc8r get pods`
   - Grab the name of orc8r-controller pods, they are in the format `orc8r-controller-xxxxxxxxxx-yyyyy`

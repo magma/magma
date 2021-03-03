@@ -657,6 +657,9 @@ int log_init(
   snprintf(
       &g_oai_log.log_proto2str[LOG_S6A][0], LOG_MAX_PROTO_NAME_LENGTH, "S6A");
   snprintf(
+      &g_oai_log.log_proto2str[LOG_SGW_S8][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "SGW_S8");
+  snprintf(
       &g_oai_log.log_proto2str[LOG_SECU][0], LOG_MAX_PROTO_NAME_LENGTH, "SECU");
   snprintf(
       &g_oai_log.log_proto2str[LOG_UTIL][0], LOG_MAX_PROTO_NAME_LENGTH, "UTIL");

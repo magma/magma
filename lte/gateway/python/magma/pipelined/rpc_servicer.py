@@ -12,6 +12,7 @@ limitations under the License.
 """
 import os
 import logging
+import concurrent.futures
 import queue
 from concurrent.futures import Future
 from itertools import chain
@@ -41,6 +42,7 @@ from lte.protos.pipelined_pb2 import (
 from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
+from lte.protos.session_manager_pb2 import RuleRecordTable
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
@@ -61,6 +63,7 @@ from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.app.ng_services import NGServiceController
 
 grpc_msg_queue = queue.Queue()
+DEFAULT_CALL_TIMEOUT = 15
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -88,6 +91,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._ng_servicer_app = ng_servicer_app
         self._service_manager = service_manager
 
+        self._call_timeout = service_config.get('call_timeout',
+                                                DEFAULT_CALL_TIMEOUT)
         self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
@@ -114,7 +119,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_default_controllers, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupDefaultControllers processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_default_controllers(self, fut: 'Future(SetupFlowsResult)'):
         res = self._inout_app.handle_restart(None)
@@ -143,7 +152,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupPolicyFlows processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_flows(self, request: SetupPolicyRequest,
                      fut: 'Future[List[SetupFlowsResult]]'
@@ -171,7 +184,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()  # type: Future[ActivateFlowsResult]
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("ActivateFlows request processing timed out")
+            return ActivateFlowsResult()
 
     def _update_ipv6_prefix_store(self, ipv6_addr: bytes):
         ipv6_str = ipv6_addr.decode('utf-8')
@@ -418,7 +435,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(
             self._enforcement_stats.get_policy_usage, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("GetPolicyUsage processing timed out")
+            return RuleRecordTable()
 
     # --------------------------
     # IPFIX App
@@ -509,7 +530,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_ue_mac,
                                         request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupUEMacFlows processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_ue_mac(self, request: SetupUEMacRequest,
                       fut: 'Future(SetupFlowsResult)'
@@ -545,7 +570,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._add_ue_mac_flow, request, fut)
 
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("AddUEMacFlow processing timed out")
+            return FlowResponse()
 
     def _add_ue_mac_flow(self, request, fut: 'Future(FlowResponse)'):
         res = self._ue_mac_app.add_ue_mac_flow(request.sid.id, request.mac_addr)
@@ -615,7 +644,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_quota,
                                         request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupQuotaFlows processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_quota(self, request: SetupQuotaRequest,
                      fut: 'Future(SetupFlowsResult)'
@@ -692,8 +725,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._log_grpc_payload(request)
         self._loop.call_soon_threadsafe(\
                       self.ng_update_session_flows, request, fut)
-
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupQuotaFlows processing timed out")
+            return UPFSessionContextState()
 
     def ng_update_session_flows(self, request: SessionSet,
                                 fut: 'Future(UPFSessionContextState)') -> UPFSessionContextState:
