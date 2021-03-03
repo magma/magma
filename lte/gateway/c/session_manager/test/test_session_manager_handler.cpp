@@ -26,6 +26,7 @@
 #include "ServiceRegistrySingleton.h"
 #include "SessionState.h"
 #include "SessionStore.h"
+#include "MeteringReporter.h"
 #include "SessiondMocks.h"
 #include "StoredState.h"
 #include "magma_logging.h"
@@ -42,9 +43,10 @@ class SessionManagerHandlerTest : public ::testing::Test {
   virtual void SetUp() {
     monitoring_key = "mk1";
 
-    reporter               = std::make_shared<MockSessionReporter>();
-    rule_store             = std::make_shared<StaticRuleStore>();
-    session_store          = std::make_shared<SessionStore>(rule_store);
+    reporter      = std::make_shared<MockSessionReporter>();
+    rule_store    = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(
+        rule_store, std::make_shared<MeteringReporter>());
     pipelined_client       = std::make_shared<MockPipelinedClient>();
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
     auto spgw_client       = std::make_shared<MockSpgwServiceClient>();
