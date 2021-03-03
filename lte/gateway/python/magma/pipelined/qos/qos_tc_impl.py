@@ -17,6 +17,7 @@ from lte.protos.policydb_pb2 import FlowMatch
 from .types import QosInfo
 from .utils import IdManager
 from .tc_ops_cmd import run_cmd, TcOpsCmd, argSplit
+from .tc_ops_pyroute2 import TcOpsPyRoute2
 
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
 # LOG.setLevel(logging.DEBUG)
@@ -32,16 +33,16 @@ class TrafficClass:
     Creates/Deletes queues in linux. Using Qdiscs for flow based
     rate limiting(traffic shaping) of user traffic.
     """
-    tc_cmd = TcOpsCmd()
+    tc_ops = None
 
     @staticmethod
     def delete_class(intf: str, qid: int, skip_filter=False) -> int:
         qid_hex = hex(qid)
 
         if not skip_filter:
-            TrafficClass.tc_cmd.del_filter(intf, qid_hex, qid_hex)
+            TrafficClass.tc_ops.del_filter(intf, qid_hex, qid_hex)
 
-        return TrafficClass.tc_cmd.del_htb(intf, qid_hex)
+        return TrafficClass.tc_ops.del_htb(intf, qid_hex)
 
     @staticmethod
     def create_class(intf: str, qid: int, max_bw: int, rate=None,
@@ -60,15 +61,22 @@ class TrafficClass:
 
         qid_hex = hex(qid)
         parent_qid_hex = '1:' + hex(parent_qid)
-        err = TrafficClass.tc_cmd.create_htb(intf, qid_hex, max_bw, rate, parent_qid_hex)
+        err = TrafficClass.tc_ops.create_htb(intf, qid_hex, max_bw, rate, parent_qid_hex)
         if err < 0 or skip_filter:
             return err
 
         # add filter
-        return TrafficClass.tc_cmd.create_filter(intf, qid_hex, qid_hex)
+        return TrafficClass.tc_ops.create_filter(intf, qid_hex, qid_hex)
 
     @staticmethod
-    def init_qdisc(intf: str, show_error=False) -> int:
+    def init_qdisc(intf: str, show_error=False, enable_pyroute2=False) -> int:
+        # TODO: Convert this class into an object.
+        if TrafficClass.tc_ops is None:
+            if enable_pyroute2:
+                TrafficClass.tc_ops = TcOpsPyRoute2()
+            else:
+                TrafficClass.tc_ops = TcOpsCmd()
+
         cmd_list = []
         speed = DEFAULT_INTF_SPEED
         qid_hex = hex(ROOT_QID)
@@ -203,6 +211,7 @@ class TCManager(object):
         self._uplink = config['nat_iface']
         self._downlink = config['enodeb_iface']
         self._max_rate = config["qos"]["max_rate"]
+        self._enable_pyroute2 = config["qos"].get('enable_pyroute2', False)
         self._start_idx, self._max_idx = (config['qos']['linux_tc']['min_idx'],
                                           config['qos']['linux_tc']['max_idx'])
         self._id_manager = IdManager(self._start_idx, self._max_idx)
@@ -227,8 +236,8 @@ class TCManager(object):
 
     def setup(self, ):
         # initialize new qdisc
-        TrafficClass.init_qdisc(self._uplink)
-        TrafficClass.init_qdisc(self._downlink)
+        TrafficClass.init_qdisc(self._uplink, enable_pyroute2=self._enable_pyroute2)
+        TrafficClass.init_qdisc(self._downlink, enable_pyroute2=self._enable_pyroute2)
 
     def get_action_instruction(self, qid: int):
         # return an action and an instruction corresponding to this qid
