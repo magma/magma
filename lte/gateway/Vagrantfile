@@ -55,7 +55,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.connect_via_ssh = false
       domain.username = $user
       domain.storage_pool_name = "default"
-      domain.nic_model_type = "virtio"
+      domain.nic_model_type = "e1000"
       domain.management_network_name = "magma-mgmt-net"
       domain.management_network_address = "172.17.2.0/24"
       domain.nested = true
@@ -138,7 +138,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.connect_via_ssh = false
       domain.username = $user
       domain.storage_pool_name = "default"
-      domain.nic_model_type = "virtio"
+      domain.nic_model_type = "e1000"
       domain.management_network_name = "magma-mgmt-net"
       domain.management_network_address = "172.17.2.0/24"
       domain.nested = true
@@ -191,7 +191,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.connect_via_ssh = false
       domain.username = $user
       domain.storage_pool_name = "default"
-      domain.nic_model_type = "virtio"
+      domain.nic_model_type = "e1000"
       domain.management_network_name = "magma-mgmt-net"
       domain.management_network_address = "172.17.2.0/24"
       domain.nested = true
