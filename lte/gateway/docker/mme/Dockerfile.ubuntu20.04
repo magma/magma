@@ -24,6 +24,7 @@ RUN echo "Install general purpouse packages" && \
         automake \
         build-essential \
         ca-certificates \
+        clang-11 \
         clang-format-11 \
         clang-tidy-11 \
         curl \
@@ -35,6 +36,7 @@ RUN echo "Install general purpouse packages" && \
         gnupg \
         golang \
         libgmp3-dev \
+        libpcap-dev \
         libssl-dev \
         libtool \
         make \
@@ -51,7 +53,10 @@ RUN echo "Install general purpouse packages" && \
         unzip \
         vim \
         wget && \
-        gem install fpm
+        gem install fpm && \
+        update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
+        update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
+        update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
@@ -223,6 +228,7 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
     make -j`nproc` && \
     make install && \
+    cd / && \
     rm -rf freediameter
 
 ##### libfluid is requird to build MME with OVS support
@@ -230,3 +236,14 @@ RUN cd /magma/third_party/build/bin && \
     ./libfluid_build.sh && \
     find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
     rm -rf /tmp/*
+
+#### libtins is required to build the connection_tracker
+RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
+    cd libtins && \
+    mkdir build && \
+    cd build && \
+    cmake ../ -DLIBTINS_ENABLE_CXX11=1 && \
+    make -j`nproc` && \
+    make install && \
+    cd / && \
+    rm -rf libtins
