@@ -79,7 +79,7 @@ class IPDescDict(RedisFlatDict):
                            serialize_utils.serialize_ip_desc,
                            serialize_utils.deserialize_ip_desc,
                            )
-        super().__init__(client, serde, writeback=True)
+        super().__init__(client, serde, writethrough=True)
 
 
 def ip_states(client, key):

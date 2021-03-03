@@ -129,8 +129,7 @@ class RedisHashDict(redis_collections.DefaultDict):
 
     def __init__(
             self, client, key, serialize, deserialize,
-            default_factory=None,
-            writeback=False,
+            default_factory=None, writeback=False,
     ):
         """
         Initialize instance.
@@ -142,6 +141,8 @@ class RedisHashDict(redis_collections.DefaultDict):
                 function called to serialize a value
             deserialize (function (bytes) -> any):
                 function called to deserialize a value
+            default_factory: function that provides default value for a
+                non-existent key
             writeback (bool): if writeback is set to true, dict maintains a
                 local cache of values and the `sync` method can be called to
                 store these values. NOTE: only use this option if syncing
@@ -202,16 +203,16 @@ class RedisFlatDict(MutableMapping[str, T]):
     """
 
     def __init__(self, client: redis.Redis, serde: RedisSerde[T],
-                 writeback: bool = False):
+                 writethrough: bool = False):
         """
         Args:
             client (redis.Redis): Redis client object
             serde (): RedisSerde for de/serializing the object stored
-            writeback (bool): if writeback is set to true, dict maintains a
-            local cache of values.
+            writethrough (bool): if writethrough is set to true,
+            RedisFlatDict maintains a local write-through cache of values.
         """
         super().__init__()
-        self._writeback = writeback
+        self._writethrough = writethrough
         self.redis = client
         self.serde = serde
         self.redis_type = serde.redis_type
@@ -219,7 +220,7 @@ class RedisFlatDict(MutableMapping[str, T]):
 
     def __len__(self) -> int:
         """Return the number of items in the dictionary."""
-        if self._writeback:
+        if self._writethrough:
             return len(self.cache)
 
         return len(self.keys())
@@ -228,7 +229,7 @@ class RedisFlatDict(MutableMapping[str, T]):
         """Return an iterator over the keys of the dictionary."""
         type_pattern = "*:" + self.redis_type
 
-        if self._writeback:
+        if self._writethrough:
             for k in self.cache:
                 split_key, _ = k.split(":", 1)
                 yield split_key
@@ -254,7 +255,7 @@ class RedisFlatDict(MutableMapping[str, T]):
         """
         composite_key = self._make_composite_key(key)
 
-        if self._writeback:
+        if self._writethrough:
             return composite_key in self.cache
 
         return bool(self.redis.exists(composite_key)) and \
@@ -269,8 +270,10 @@ class RedisFlatDict(MutableMapping[str, T]):
             raise ValueError("Key %s cannot contain ':' char" % key)
         composite_key = self._make_composite_key(key)
 
-        if self._writeback:
-            return self.cache[composite_key]
+        if self._writethrough:
+            cached_value = self.cache.get(composite_key)
+            if cached_value:
+                return cached_value
 
         serialized_value = self.redis.get(composite_key)
         if serialized_value is None:
@@ -290,7 +293,7 @@ class RedisFlatDict(MutableMapping[str, T]):
         version = self.get_version(key)
         serialized_value = self.serde.serialize(value, version + 1)
         composite_key = self._make_composite_key(key)
-        if self._writeback:
+        if self._writethrough:
             self.cache[composite_key] = value
         return self.redis.set(composite_key, serialized_value)
 
@@ -301,7 +304,7 @@ class RedisFlatDict(MutableMapping[str, T]):
         if ':' in key:
             raise ValueError("Key %s cannot contain ':' char" % key)
         composite_key = self._make_composite_key(key)
-        if self._writeback:
+        if self._writethrough:
             del self.cache[composite_key]
         deleted_count = self.redis.delete(composite_key)
         if not deleted_count:
@@ -322,7 +325,7 @@ class RedisFlatDict(MutableMapping[str, T]):
         Clear all keys in the dictionary. Objects are immediately deleted
         (i.e. not garbage collected)
         """
-        if self._writeback:
+        if self._writethrough:
             self.cache.clear()
         for key in self.keys():
             composite_key = self._make_composite_key(key)
@@ -345,7 +348,7 @@ class RedisFlatDict(MutableMapping[str, T]):
         """Return a copy of the dictionary's list of keys
         Note: for redis *key:type* key is returned
         """
-        if self._writeback:
+        if self._writethrough:
             return list(self.cache.keys())
 
         return list(self.__iter__())

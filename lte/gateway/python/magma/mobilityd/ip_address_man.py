@@ -331,12 +331,10 @@ class IPAddressManager:
 
     def get_ip_for_sid(self, sid: str) -> Optional[ip_address]:
         """ if ip is mapped to sid, return it, else return None """
-        if sid in self._store.sid_ips_map:
-            if not self._store.sid_ips_map[sid]:
-                raise AssertionError("Unexpected internal state")
-            else:
-                return self._store.sid_ips_map[sid].ip
-        return None
+        if not self._store.sid_ips_map.get(sid, None):
+            return None
+        else:
+            return self._store.sid_ips_map[sid].ip
 
     def get_sid_for_ip(self, requested_ip: ip_address) -> Optional[str]:
         """ If ip is associated with an sid, return the sid, else None """
