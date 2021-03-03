@@ -16,10 +16,10 @@ package swagger
 import (
 	"io/ioutil"
 
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
+
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-
-	"magma/orc8r/cloud/go/obsidian/swagger/mswagger"
 )
 
 var (
@@ -29,7 +29,7 @@ var (
 // GetCombinedSpec polls every servicer registered with
 // a Swagger spec and merges them together to return a combined spec.
 func GetCombinedSpec(yamlCommon string) (string, error) {
-	servicers, err := mswagger.GetSpecServicers()
+	servicers, err := GetSpecServicers()
 	if err != nil {
 		return "", err
 	}
@@ -47,7 +47,7 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 		}
 	}
 
-	combined, warnings, err := Combine(yamlCommon, yamlSpecs)
+	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)
 	if err != nil {
 		return "", err
 	}
@@ -61,13 +61,13 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 // GetServiceSpec polls a service for its spec and combines it with the
 // common spec to return a combined spec.
 func GetServiceSpec(yamlCommon string, service string) (string, error) {
-	remoteSpec := mswagger.NewRemoteSpec(service)
+	remoteSpec := NewRemoteSpec(service)
 	yamlSpec, err := remoteSpec.GetSpec()
 	if err != nil {
 		return "", err
 	}
 
-	combined, warnings, err := Combine(yamlCommon, []string{yamlSpec})
+	combined, warnings, err := spec.Combine(yamlCommon, []string{yamlSpec})
 	if err != nil {
 		return "", err
 	}

@@ -19,8 +19,8 @@ import (
 	"magma/fbinternal/cloud/go/fbinternal"
 	fbinternal_service "magma/fbinternal/cloud/go/services/fbinternal"
 	"magma/fbinternal/cloud/go/services/fbinternal/servicers"
-	"magma/orc8r/cloud/go/obsidian/swagger/mswagger"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/mswagger/protos"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/definitions"
@@ -56,7 +56,7 @@ func main() {
 	)
 	protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, mswagger.NewSpecServicerFromFile(fbinternal_service.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(fbinternal_service.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/swagger"
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
 
 	"github.com/hashicorp/go-multierror"
@@ -53,7 +53,7 @@ func TestCombine(t *testing.T) {
 	yamlCommon, yamlSpecs, err := combine.Load(commonFilepath, specsDir)
 	assert.NoError(t, err)
 
-	combined, warnings, err := swagger.Combine(yamlCommon, yamlSpecs)
+	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)
 	assert.NoError(t, err)
 
 	assert.Error(t, warnings)

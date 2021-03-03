@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/swagger"
+	"magma/orc8r/cloud/go/swagger"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"

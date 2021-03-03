@@ -19,10 +19,10 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
-	"magma/orc8r/cloud/go/obsidian/swagger/mswagger"
-	"magma/orc8r/cloud/go/obsidian/swagger/mswagger/protos"
+	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
+	swagger_lib "magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
 
@@ -34,9 +34,9 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1"
 
-	commonTag := swagger.TagDefinition{Name: "Tag Common"}
-	commonSpec := swagger.Spec{
-		Tags: []swagger.TagDefinition{commonTag},
+	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
+	commonSpec := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{commonTag},
 	}
 	yamlCommon := marshalToYAML(t, commonSpec)
 
@@ -51,14 +51,14 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	tags := []swagger.TagDefinition{
+	tags := []swagger_lib.TagDefinition{
 		{Name: "Tag 1"},
 		{Name: "Tag 2"},
 		{Name: "Tag 3"},
 	}
 	services := []string{"test_spec_service1", "test_spec_service2", "test_spec_service3"}
-	expectedSpec := swagger.Spec{
-		Tags: []swagger.TagDefinition{tags[0], tags[1], tags[2], commonTag},
+	expectedSpec := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{tags[0], tags[1], tags[2], commonTag},
 	}
 
 	// Clean up registry
@@ -84,9 +84,9 @@ func Test_GenerateSpecHandler(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1"
 
-	commonTag := swagger.TagDefinition{Name: "Tag Common"}
-	commonSpec := swagger.Spec{
-		Tags: []swagger.TagDefinition{commonTag},
+	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
+	commonSpec := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{commonTag},
 	}
 	yamlCommon := marshalToYAML(t, commonSpec)
 
@@ -104,9 +104,9 @@ func Test_GenerateSpecHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Success with valid service name.
-	tag := swagger.TagDefinition{Name: "Tag 1"}
-	expected := swagger.Spec{
-		Tags: []swagger.TagDefinition{tag, commonTag},
+	tag := swagger_lib.TagDefinition{Name: "Tag 1"}
+	expected := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{tag, commonTag},
 	}
 
 	// Clean up registry
@@ -166,7 +166,7 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 	// Clean up registry
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
 
-	registerServicer(t, "test_spec_service2", swagger.TagDefinition{})
+	registerServicer(t, "test_spec_service2", swagger_lib.TagDefinition{})
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -181,21 +181,21 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
-func registerServicer(t *testing.T, service string, tag swagger.TagDefinition) {
+func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {
 	labels := map[string]string{
 		orc8r.SwaggerSpecLabel: "true",
 	}
 
 	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
-	spec := swagger.Spec{Tags: []swagger.TagDefinition{tag}}
+	spec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{tag}}
 
 	yamlSpec := marshalToYAML(t, spec)
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, mswagger.NewSpecServicer(yamlSpec))
+	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer(yamlSpec))
 
 	go srv.RunTest(lis)
 }
 
-func marshalToYAML(t *testing.T, spec swagger.Spec) string {
+func marshalToYAML(t *testing.T, spec swagger_lib.Spec) string {
 	data, err := spec.MarshalBinary()
 	assert.NoError(t, err)
 	return string(data)

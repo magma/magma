@@ -11,7 +11,7 @@
  limitations under the License.
 */
 
-package mswagger
+package swagger
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/swagger/mswagger/protos"
+	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 
 	"github.com/golang/glog"
 )

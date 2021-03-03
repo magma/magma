@@ -11,13 +11,13 @@
  limitations under the License.
 */
 
-package mswagger
+package swagger
 
 import (
 	"context"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/swagger/mswagger/protos"
+	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
 

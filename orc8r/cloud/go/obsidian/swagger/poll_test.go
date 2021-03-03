@@ -19,9 +19,9 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/swagger"
-	"magma/orc8r/cloud/go/obsidian/swagger/mswagger"
-	"magma/orc8r/cloud/go/obsidian/swagger/mswagger/protos"
+	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
+	swagger_lib "magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
 
@@ -39,8 +39,8 @@ func Test_GetCommonSpec(t *testing.T) {
 	err := os.MkdirAll(commonSpecDir, os.ModePerm)
 	assert.NoError(t, err)
 
-	commonSpec := swagger.Spec{
-		Tags: []swagger.TagDefinition{{Name: "Tag Common"}},
+	commonSpec := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{{Name: "Tag Common"}},
 	}
 	yamlCommon := marshalToYAML(t, commonSpec)
 
@@ -53,13 +53,13 @@ func Test_GetCommonSpec(t *testing.T) {
 }
 
 func Test_GetCombinedSwaggerSpecs(t *testing.T) {
-	commonTag := swagger.TagDefinition{Name: "Tag Common"}
-	commonSpec := swagger.Spec{Tags: []swagger.TagDefinition{commonTag}}
+	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
+	commonSpec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{commonTag}}
 	yamlCommon := marshalToYAML(t, commonSpec)
 
 	// Success with no registered servicers
-	expectedSpec := swagger.Spec{
-		Tags: []swagger.TagDefinition{commonTag},
+	expectedSpec := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{commonTag},
 	}
 	expectedYaml := marshalToYAML(t, expectedSpec)
 
@@ -69,15 +69,15 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 	assert.Equal(t, expectedYaml, combined)
 
 	// Success with registered servicers
-	tags := []swagger.TagDefinition{
+	tags := []swagger_lib.TagDefinition{
 		{Name: "Tag 1"},
 		{Name: "Tag 2"},
 		{Name: "Tag 3"},
 	}
 	services := []string{"test_spec_service1", "test_spec_service2", "test_spec_service3"}
 
-	expectedSpec = swagger.Spec{
-		Tags: []swagger.TagDefinition{tags[0], tags[1], tags[2], commonTag},
+	expectedSpec = swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{tags[0], tags[1], tags[2], commonTag},
 	}
 	expectedYaml = marshalToYAML(t, expectedSpec)
 
@@ -104,8 +104,8 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 }
 
 func Test_GetCombinedSpecFromService(t *testing.T) {
-	commonTag := swagger.TagDefinition{Name: "Tag Common"}
-	commonSpec := swagger.Spec{Tags: []swagger.TagDefinition{commonTag}}
+	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
+	commonSpec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{commonTag}}
 	yamlCommon := marshalToYAML(t, commonSpec)
 
 	// Fail with empty service
@@ -117,10 +117,10 @@ func Test_GetCombinedSpecFromService(t *testing.T) {
 	assert.Error(t, err)
 
 	// Success with valid service
-	tag := swagger.TagDefinition{Name: "Tag 1"}
+	tag := swagger_lib.TagDefinition{Name: "Tag 1"}
 	testService := "test_spec_service"
-	expected := swagger.Spec{
-		Tags: []swagger.TagDefinition{tag, commonTag},
+	expected := swagger_lib.Spec{
+		Tags: []swagger_lib.TagDefinition{tag, commonTag},
 	}
 	expectedYaml := marshalToYAML(t, expected)
 
@@ -134,22 +134,22 @@ func Test_GetCombinedSpecFromService(t *testing.T) {
 	assert.Equal(t, expectedYaml, combined)
 }
 
-func registerServicer(t *testing.T, service string, tag swagger.TagDefinition) {
+func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {
 	labels := map[string]string{
 		orc8r.SwaggerSpecLabel: "true",
 	}
 
 	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
-	spec := swagger.Spec{Tags: []swagger.TagDefinition{tag}}
+	spec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{tag}}
 
 	yamlSpec := marshalToYAML(t, spec)
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, mswagger.NewSpecServicer(yamlSpec))
+	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer(yamlSpec))
 
 	go srv.RunTest(lis)
 }
 
 // marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
-func marshalToYAML(t *testing.T, spec swagger.Spec) string {
+func marshalToYAML(t *testing.T, spec swagger_lib.Spec) string {
 	data, err := spec.MarshalBinary()
 	assert.NoError(t, err)
 	return string(data)
