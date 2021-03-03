@@ -392,6 +392,13 @@ message EsmEbrContext {
   uint32 detach_type = 3;
 }
 
+// Re-transmitted Attach Req info
+message NewAttachInfo {
+  uint32 mme_ue_s1ap_id = 1;
+  bool is_mm_ctx_new = 2;
+  AttachRequestIes ies = 3;
+}
+
 // emm_context_t
 message EmmContext {
   uint64 imsi64 = 1; //imsi64_t
@@ -436,5 +443,6 @@ message EmmContext {
 
   UeNetworkCapability ue_network_capability = 65;
   NwDetachData nw_detach_data = 66;
+  NewAttachInfo new_attach_info = 67;
   // TODO: add remaining emm_context elements
   }

@@ -58,6 +58,7 @@
 #define MIN_MNC_LENGTH 2
 #define CIDR_SPLIT_LIST_COUNT 2
 #define MAX_APN_CORRECTION_MAP_LIST 10
+#define MAX_RESTRICTED_PLMN 10
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
@@ -112,6 +113,8 @@
 #define MME_CONFIG_STRING_MCC "MCC"
 #define MME_CONFIG_STRING_MNC "MNC"
 #define MME_CONFIG_STRING_TAC "TAC"
+
+#define MME_CONFIG_STRING_RESTRICTED_PLMN_LIST "RESTRICTED_PLMN_LIST"
 
 #define MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"
 #define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S1_MME                            \
@@ -291,6 +294,11 @@ typedef struct gummei_config_s {
   gummei_t gummei[MAX_GUMMEI];
 } gummei_config_t;
 
+typedef struct restricted_plmn_s {
+  int num;
+  plmn_t plmn[MAX_RESTRICTED_PLMN];
+} restricted_plmn_config_t;
+
 typedef struct mme_config_s {
   /* Reader/writer lock for this configuration */
   pthread_rwlock_t rw_lock;
@@ -319,6 +327,8 @@ typedef struct mme_config_s {
   eps_network_feature_config_t eps_network_feature_support;
 
   gummei_config_t gummei;
+
+  restricted_plmn_config_t restricted_plmn;
 
   served_tai_t served_tai;
 

@@ -38,7 +38,6 @@ require (
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975 // indirect
 	google.golang.org/grpc v1.31.0
 	helm.sh/helm/v3 v3.1.2 // indirect
 	k8s.io/api v0.17.2

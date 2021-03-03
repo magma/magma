@@ -18,6 +18,10 @@ The set of subprojects is determined by the `MAGMA_MODULES` environment
 variable, which is defined during the container image build process. The
 default subprojects include `orc8r`, `lte`, `feg`, etc.
 
+By default, all subprojects are included in the build. If desired, you can
+use e.g. `build.py --deployment orc8r` to build a deployment-specific set of
+subprojects. This can reduce build time by up to 50%.
+
 ## Run tests on the host
 
 The normal way to run Orchestrator unit tests is `build.py --tests`. This

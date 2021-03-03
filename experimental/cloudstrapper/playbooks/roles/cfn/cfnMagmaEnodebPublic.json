@@ -1,0 +1,60 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+      "paramImageBase": {
+        "Type": "AWS::EC2::Image::Id",
+	"Description": "Base Image Id",
+	"Default": "ami-0a91cd140a1fc148a"
+      },
+      "paramSubnetSgi": {
+        "Type": "String",
+	"Description": "SGi Subnet",
+	"Default": "subnet-0203ca4c94d36bbf1"
+      },
+      "paramAzHome": {
+        "Type": "AWS::EC2::AvailabilityZone::Name",
+	"Description": "Base Availability Zone",
+	"Default": "us-east-2c"
+      },
+      "paramSecGroup": {
+        "Type": "String",
+	"Description": "Security Group Name",
+	"Default":"sg-070fa87221a1bc6fb"
+      },
+      "paramSshKey": {
+        "Type": "AWS::EC2::KeyPair::KeyName",
+	"Description": "Keypair",
+	"Default": "keyMagmaAnsibleProto"
+      },
+      "paramAgwTagName": {
+        "Type": "String",
+	"Description": "Tag Name",
+	"Default":"MenloPark AGW 1"
+      }
+    },
+    "Resources": {
+        "GatewayA": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": { "Ref": "paramImageBase" },
+                "InstanceType": "t2.micro",
+                "KeyName": { "Ref": "paramSshKey" },
+		"AvailabilityZone":{ "Ref": "paramAzHome" },
+		"NetworkInterfaces": [
+		  {
+                    "AssociatePublicIpAddress" : "true",  
+		    "DeleteOnTermination": "true",
+		    "Description": "SGi interface",
+		    "DeviceIndex": "0",
+		    "GroupSet": [ { "Ref": "paramSecGroup" } ],
+		    "SubnetId":{ "Ref": "paramSubnetSgi" }
+		   }
+                ],	
+		"Tags": [ 
+			{ "Key": "Name", "Value": { "Ref": "paramAgwTagName"} },
+			{ "Key": "Purpose","Value":"EC2 instance of AGW" }
+			]
+            }
+        }
+    }
+}

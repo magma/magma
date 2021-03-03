@@ -15,10 +15,14 @@ limitations under the License.
 
 import argparse
 import errno
-from pprint import pprint
+import time
+import random
 import subprocess
+from datetime import datetime
+from collections import namedtuple
+from pprint import pprint
 
-from magma.common.rpc_utils import grpc_wrapper
+from magma.common.rpc_utils import grpc_wrapper, grpc_async_wrapper
 from lte.protos.pipelined_pb2 import (
     SubscriberQuotaUpdate,
     UpdateSubscriberQuotaStateRequest,
@@ -39,10 +43,30 @@ from lte.protos.pipelined_pb2 import (
     RuleModResult,
     UEMacFlowRequest,
     RequestOriginType,
+    DeactivateFlowsResult,
 )
+from lte.protos.subscriberdb_pb2 import (
+    AggregatedMaximumBitrate,
+)
+from magma.pipelined.tests.app.ng_set_session_msg import (
+    CreateSessionUtil)
+
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
 
+@grpc_wrapper
+def set_smf_session(client, args):
+
+    cls_sess = CreateSessionUtil(args.subscriber_id, args.session_id, args.version)
+
+    cls_sess.CreateSession(args.subscriber_id, args.pdr_state, args.in_teid, args.out_teid,
+                           args.ue_ip_addr, args.gnb_ip_addr,
+                           args.del_rule_id, args.add_rule_id, args.ipv4_dst,
+                           args.allow, args.priority)
+
+    print (cls_sess._set_session)
+    response = client.SetSMFSessions(cls_sess._set_session)
+    print (response)
 
 # --------------------------
 # Enforcement App
@@ -71,6 +95,7 @@ def deactivate_flows(client, args):
 
 @grpc_wrapper
 def activate_dynamic_rule(client, args):
+
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
@@ -142,6 +167,137 @@ def get_policy_usage(client, _):
     pprint(rule_table)
 
 
+@grpc_wrapper
+def stress_test_grpc(client, args):
+    print("WARNING: DO NOT USE ON PRODUCTION SETUPS")
+    UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
+                                   'rule_id'])
+    delta_time = 1/args.attaches_per_sec
+    print("Attach every ~{0} seconds".format(delta_time))
+
+    if args.disable_qos:
+        print("QOS Disabled")
+        apn_ambr = None
+    else:
+        print("QOS Enabled")
+        apn_ambr = AggregatedMaximumBitrate(
+            max_bandwidth_ul=1000000000,
+            max_bandwidth_dl=1000000000,
+        )
+
+    def _gen_ue_set(num_of_ues):
+        imsi = 123000000
+        ue_set = set()
+        for _ in range(0, num_of_ues):
+            imsi_str = "IMSI" + str(imsi)
+            ipv4_src = ".".join(str(random.randint(0, 255)) for _ in range(4))
+            ipv4_dst = ".".join(str(random.randint(0, 255)) for _ in range(4))
+            rule_id = "allow." + imsi_str
+            ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, rule_id))
+            imsi = imsi + 1
+        return ue_set
+
+    for i in range (0, args.test_iterations):
+        print("Starting iteration {0} of attach/detach requests".format(i))
+        ue_dict = _gen_ue_set(args.num_of_ues)
+        print("Starting attaches")
+
+        timestamp = datetime.now()
+        for ue in ue_dict:
+            grpc_start_timestamp = datetime.now()
+            request = ActivateFlowsRequest(
+                sid=SIDUtils.to_pb(ue.imsi_str),
+                ip_addr=ue.ipv4_src,
+                dynamic_rules=[PolicyRule(
+                    id=ue.rule_id,
+                    priority=10,
+                    flow_list=[
+                        FlowDescription(match=FlowMatch(
+                            ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
+                            direction=FlowMatch.UPLINK)),
+                        FlowDescription(match=FlowMatch(
+                            ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
+                            direction=FlowMatch.DOWNLINK)),
+                    ],
+                )],
+                request_origin=RequestOriginType(type=RequestOriginType.GX),
+                apn_ambr=apn_ambr,
+            )
+            response = client.ActivateFlows(request)
+            if any(r.result != RuleModResult.SUCCESS for
+                   r in response.dynamic_rule_results):
+                _print_rule_mod_results(response.dynamic_rule_results)
+
+            grpc_end_timestamp = datetime.now()
+            call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
+            if call_duration < delta_time:
+                time.sleep(delta_time - call_duration)
+
+        duration = (datetime.now() - timestamp).total_seconds()
+        print("Finished {0} attaches in {1} seconds".format(len(ue_dict),
+                                                            duration))
+        print("Actual attach rate = {0} UEs per sec".format(round(len(ue_dict)/duration)))
+
+        time.sleep(args.time_between_detach)
+
+        print("Starting detaches")
+        timestamp = datetime.now()
+        for ue in ue_dict:
+            grpc_start_timestamp = datetime.now()
+            request = DeactivateFlowsRequest(
+                sid=SIDUtils.to_pb(ue.imsi_str),
+                ip_addr=ue.ipv4_src,
+                rule_ids=[ue.rule_id],
+                request_origin=RequestOriginType(type=RequestOriginType.GX),
+                remove_default_drop_flows=True)
+            response = client.DeactivateFlows(request)
+            if response.result != DeactivateFlowsResult.SUCCESS:
+                _print_rule_mod_results(response.dynamic_rule_results)
+
+            grpc_end_timestamp = datetime.now()
+            call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
+            if call_duration < delta_time:
+                time.sleep(delta_time - call_duration)
+
+        duration = (datetime.now() - timestamp).total_seconds()
+        print("Finished {0} detaches in {1} seconds".format(len(ue_dict),
+                                                            duration))
+        print("Actual detach rate = {0} UEs per sec",
+              round(len(ue_dict)/duration))
+
+def create_ng_services_parser(apps):
+    """
+    Creates the argparse subparser for the ng_services app
+    """
+    app = apps.add_parser('ng_services')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    subcmd = subparsers.add_parser('set_smf_session',
+                                   help='SMF set Session Emulator')
+    subcmd.add_argument('--subscriber_id', help='Subscriber Identity', default='IMSI12345')
+    subcmd.add_argument('--session_id', help='Session Identity', type=int, default=100)
+    subcmd.add_argument('--version', help='Session Version', type=int, default=2)
+    subcmd.add_argument('--pdr_state', help='ADD / IDLE / REMOVE the PDR',
+                        default="ADD")
+    subcmd.add_argument('--in_teid', help='Match incoming teid from access',
+                         type=int, default=0)
+    subcmd.add_argument('--out_teid', help='Put outgoing teid towards access',
+                         type=int, default=0)
+    subcmd.add_argument('--ue_ip_addr', help='UE IP address ',
+                         default='')
+    subcmd.add_argument('--gnb_ip_addr', help='IP address of GNB Node',
+                         default='')
+    subcmd.add_argument('--del_rule_id', help='rule id to add', default='')
+    subcmd.add_argument('--add_rule_id', help='rule id to add', default='')
+    subcmd.add_argument('--ipv4_dst', help='ipv4 dst for rule', default='')
+    subcmd.add_argument('--allow', help='YES/NO for allow and deny', default='YES')
+    subcmd.add_argument('--priority', help='priority for rule',
+                        type=int, default=0)
+    subcmd.add_argument('--hard_timeout', help='hard timeout for rule',
+                        type=int, default=0)
+
+    subcmd.set_defaults(func=set_smf_session)
+
 def create_enforcement_parser(apps):
     """
     Creates the argparse subparser for the enforcement app
@@ -200,6 +356,21 @@ def create_enforcement_parser(apps):
                                    help='Get policy usage stats')
     subcmd.set_defaults(func=get_policy_usage)
 
+    subcmd = subparsers.add_parser('stress_test_grpc',
+        help='Sends a set of Activate grpc requests, followed by Deactivates')
+    subcmd.add_argument('--attaches_per_sec',
+                        help='Number of grpc Attach requests per second',
+                        type=int, default=10)
+    subcmd.add_argument('--num_of_ues', help='Number of total UEs to atach',
+                        type=int, default=600)
+    subcmd.add_argument('--time_between_detach',
+                        help='Time between attaches and detaches in seconds',
+                        type=int, default=10)
+    subcmd.add_argument('--test_iterations', help='Test duration in seconds',
+                        type=int, default=5)
+    subcmd.add_argument('--disable_qos', help='If we want to disable QOS',
+                        action="store_true")
+    subcmd.set_defaults(func=stress_test_grpc)
 
 # -------------
 # UE MAC APP
@@ -398,6 +569,7 @@ def create_parser():
         description='Management CLI for pipelined',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     apps = parser.add_subparsers(title='apps', dest='cmd')
+    create_ng_services_parser(apps)
     create_enforcement_parser(apps)
     create_ue_mac_parser(apps)
     create_check_flows_parser(apps)

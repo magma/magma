@@ -227,6 +227,10 @@ class _TableManager:
         return app_name in self._tables_by_app or \
             app_name == InOutController.APP_NAME
 
+    def is_ng_app_enabled(self, app_name: str) -> bool:
+        return app_name in self._tables_by_app or \
+            app_name == NGServiceController.APP_NAME
+
     def allocate_scratch_tables(self, app_name: str, count: int) -> \
             List[int]:
 
@@ -437,6 +441,7 @@ class ServiceManager:
         else:
           ng_flag = magma_service.config.get('5G_feature_set')
           self._5G_flag_enable = ng_flag['enable']
+
         # inout is a mandatory app and it occupies:
         #   table 1(for ingress)
         #   table 10(for middle)
@@ -608,6 +613,18 @@ class ServiceManager:
             Whether or not the app is enabled
         """
         return self._table_manager.is_app_enabled(app_name)
+
+    def is_ng_app_enabled(self, app_name: str) -> bool:
+        """
+        Args:
+             app_name: Name of the app
+        Returns:
+            Whether or not the app is enabled
+        """
+        if  self._5G_flag_enable == False:
+            return False
+
+        return self._table_manager.is_ng_app_enabled(app_name)
 
     def allocate_scratch_tables(self, app_name: str, count: int) -> List[int]:
         """

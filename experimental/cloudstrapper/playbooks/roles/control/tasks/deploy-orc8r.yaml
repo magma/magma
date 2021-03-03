@@ -1,0 +1,28 @@
+---
+
+
+
+- name: inside terraform home run terraform apply for orc8r
+  command: terraform apply -target=module.orc8r -auto-approve
+  args:
+    chdir: "{{ dirTerraform }}"
+  tags: tfFlow
+
+- name: inside terraform home run terraform apply for secrets
+  command: terraform apply -target=module.orc8r-app.null_resource.orc8r_seed_secrets -auto-approve
+  args:
+    chdir: "{{ dirTerraform }}"
+  tags: firstSecret, tfFlow
+
+  #- name: inside terraform home run terraform apply for secrets with taint
+  #command: terraform taint module.orc8r-app.null_resource.orc8r_seed_secrets
+  #args:
+  # chdir: "/home/{{ userBootstrap }}/terraform"
+  #tags: secondSecret, tfFlow
+
+- name: inside terraform home run final terraform apply
+  command: terraform apply -auto-approve
+  args:
+    chdir: "{{ dirTerraform }}"
+  tags: tfFlow
+
