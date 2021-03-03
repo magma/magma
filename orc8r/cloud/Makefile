@@ -21,12 +21,12 @@ MAGMA_MODULES := \
 $(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
 endif
 
-SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
+SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/obsidian/swagger
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
-SWAGGER_V1_CONFIG := $(SWAGGER_ROOT)/v1/goswagger-config.yml
-SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/configs/swagger_specs
+SWAGGER_V1_CONFIG := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/goswagger-config.yml
+SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/swagger/specs
 SWAGGER_V1_COMMON_DIR := common
 
 export SWAGGER_ROOT
@@ -34,6 +34,9 @@ export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
 export SWAGGER_V1_CONFIG
 export SWAGGER_V1_SPECS_DIR
+
+COVER_DIR := $(MAGMA_ROOT)/orc8r/cloud/coverage
+export COVER_DIR
 
 #############
 ## Modules ##
@@ -78,11 +81,13 @@ clean_gen: $(CLEAN_GEN_LIST)
 $(CLEAN_GEN_LIST): %_cleangen:
 	make -C $*/cloud/go clean_gen
 
-COVER_DIR := /var/tmp
-export COVER_DIR
-cover: $(COVER_LIST)
+cover: cover_pre $(COVER_LIST) cover_post
 $(COVER_LIST): %_cover:
 	make -C $*/cloud/go cover
+cover_pre:
+	mkdir -p $(COVER_DIR)
+cover_post:
+	gocovmerge $(COVER_DIR)/** > $(COVER_DIR)/all.gocov
 
 download: $(DOWNLOAD_LIST)
 $(DOWNLOAD_LIST): %_download:

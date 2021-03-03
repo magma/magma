@@ -30,19 +30,6 @@
     dest: /var/opt/magma/docker/.env
     mode: 0400
 
-- name: create fluentbit logs directory
-  file:
-    path: "/var/log/fluentbit-logs/"
-    state: directory
-    mode: '0700'
-
-- name: place clean_fluentbit_logs cron file
-  copy:
-   src: clean_fluentbit_logs
-   dest: /etc/cron.d/clean_fluentbit_logs
-   mode: '0644'
-
-
 - name: Clone the git repo
   git:
    repo: "https://github.com/magma/magma.git"

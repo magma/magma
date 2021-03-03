@@ -45,14 +45,15 @@ int log_event(const Event& event) {
     if (status.ok()) {
       std::cout << "[DEBUG] Success logging event: " << event.event_type()
                 << std::endl;
-    } else if (
-        status.error_code() == DEADLINE_EXCEEDED ||
-        status.error_code() == UNAVAILABLE) {
-      return 0;  // Suppress error logs if eventd is unavailable
-    } else {
-      std::cout << "[ERROR] Failed to log event: " << event.event_type()
-                << "; Status: " << status.error_message() << std::endl;
+      return 0;
     }
+    if (status.error_code() == DEADLINE_EXCEEDED ||
+        status.error_code() == UNAVAILABLE) {
+      return 0;  // Suppress error logs if EventD is unavailable
+    }
+    std::cout << "[ERROR] Failed to log event: " << event.event_type()
+              << "; Status: " << status.error_message() << std::endl;
+    return int(status.error_code());
   });
   return 0;
 }

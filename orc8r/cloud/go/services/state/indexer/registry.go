@@ -79,11 +79,11 @@ func getIndexer(serviceName string) (Indexer, error) {
 	if err != nil {
 		return nil, err
 	}
-	versionInt, err := strconv.Atoi(versionVal)
+	versionInt, err := strconv.ParseInt(versionVal, 10, 64)
 	if err != nil {
 		return nil, errors.Wrapf(err, "convert indexer version %v to int for service %s", versionVal, serviceName)
 	}
-	version, err := NewIndexerVersion(int64(versionInt))
+	version, err := NewIndexerVersion(versionInt)
 	if err != nil {
 		return nil, err
 	}

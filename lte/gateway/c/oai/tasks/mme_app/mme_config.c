@@ -830,6 +830,78 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         }
       }
     }
+
+    // RESTRICTED PLMN SETTING
+    setting = config_setting_get_member(
+        setting_mme, MME_CONFIG_STRING_RESTRICTED_PLMN_LIST);
+    config_pP->restricted_plmn.num = 0;
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_RESTRICTED_PLMN_LIST \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(
+          LOG_MME_APP, "Number of restricted PLMNs configured =%d\n", num);
+      AssertFatal(
+          num <= MAX_RESTRICTED_PLMN,
+          "Number of restricted PLMNs configured:%d exceeds number of "
+          "restricted PLMNs supported :%d \n",
+          num, MAX_RESTRICTED_PLMN);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+
+        if (sub2setting != NULL) {
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
+            AssertFatal(
+                strlen(mcc) == MAX_MCC_LENGTH,
+                "Bad MCC length (%ld), it must be %u digit ex: 001\n",
+                strlen(mcc), MAX_MCC_LENGTH);
+            // NULL terminated string
+            AssertFatal(
+                mcc[0] >= '0' && mcc[0] <= '9',
+                "MCC[0] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit1 = mcc[0] - '0';
+            AssertFatal(
+                mcc[1] >= '0' && mcc[1] <= '9',
+                "MCC[1] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit2 = mcc[1] - '0';
+            AssertFatal(
+                mcc[2] >= '0' && mcc[2] <= '9',
+                "MCC[2] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit3 = mcc[2] - '0';
+          }
+
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
+            AssertFatal(
+                (strlen(mnc) == MIN_MNC_LENGTH) ||
+                    (strlen(mnc) == MAX_MNC_LENGTH),
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
+                "123\n",
+                strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
+            // NULL terminated string
+            AssertFatal(
+                mnc[0] >= '0' && mnc[0] <= '9',
+                "MNC[0] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mnc_digit1 = mnc[0] - '0';
+            AssertFatal(
+                mnc[1] >= '0' && mnc[1] <= '9',
+                "MNC[1] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mnc_digit2 = mnc[1] - '0';
+            if (3 == strlen(mnc)) {
+              AssertFatal(
+                  mnc[2] >= '0' && mnc[2] <= '9',
+                  "MNC[2] is not a decimal digit\n");
+              config_pP->restricted_plmn.plmn[i].mnc_digit3 = mnc[2] - '0';
+            } else {
+              config_pP->restricted_plmn.plmn[i].mnc_digit3 = 0x0F;
+            }
+          }
+          config_pP->restricted_plmn.num += 1;
+        }
+      }
+    }
+
     // NETWORK INTERFACE SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG);

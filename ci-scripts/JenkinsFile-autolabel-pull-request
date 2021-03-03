@@ -46,6 +46,7 @@ pipeline {
     stage ("Retrieve and Prepare Source Code") {
       steps {
         script {
+            cleanWs()
             checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: 'master', name: '${sha1}']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
             GIT_COMMIT = sh returnStdout: true, script: 'git log -1 --pretty="%H"'
         }

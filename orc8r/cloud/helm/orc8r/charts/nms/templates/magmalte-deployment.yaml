@@ -62,7 +62,7 @@ spec:
           args:
             - yarn
             - run
-            - start:dev
+            - start:prod
           env:
             - name: API_CERT_FILENAME
               value: /run/secrets/admin_operator.pem

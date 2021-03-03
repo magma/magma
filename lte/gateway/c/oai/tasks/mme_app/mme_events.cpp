@@ -45,7 +45,7 @@ constexpr char DETACH_SUCCESS[]   = "detach_success";
 constexpr char S1_SETUP_SUCCESS[] = "s1_setup_success";
 }  // namespace
 
-int event_client_init(void) {
+void event_client_init(void) {
   init_eventd_client();
 }
 
@@ -67,8 +67,7 @@ static int report_event(
   std::string event_value_string = folly::toJson(event_value);
   event_request.set_value(event_value_string);
   event_request.set_tag(event_tag);
-  int rc = log_event(event_request);
-  return rc;
+  return log_event(event_request);
 }
 
 int attach_success_event(imsi64_t imsi64) {

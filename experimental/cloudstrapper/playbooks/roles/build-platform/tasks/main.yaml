@@ -1,0 +1,19 @@
+---
+
+- include: py-packages.yaml
+  tags: py
+- include: build-tools-packages.yaml
+  tags: tools
+- include: magma-repo.yaml
+  tags: setupMagma
+#TODO: Do we need to sleep here? Random failures which go away on a re-run
+- include: build-magma.yaml
+  tags: buildMagma
+- include: publish-magma.yaml
+  tags: pubMagma
+- include: publish-helm-v13.yaml
+  tags: helm
+  when: buildMagmaVersion == "v1.3"
+- include: publish-helm-v14.yaml
+  tags: helm
+  when: buildMagmaVersion == "v1.4"

@@ -40,7 +40,7 @@ typedef struct s5_create_session_request_s {
   ebi_t eps_bearer_id;
 } s5_create_session_request_t;
 
-enum s5_failure_cause { S5_OK = 0, PCEF_FAILURE };
+enum s5_failure_cause { S5_OK = 0, PCEF_FAILURE, IP_ALLOCATION_FAILURE };
 
 typedef struct s5_create_session_response_s {
   teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier

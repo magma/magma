@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Set up Express Wi-FI Magma  Gateway for production
+- name: Upgrade Express Wi-FI Magma  Gateway for production
   hosts: localhost
   become: yes
   roles:
@@ -21,6 +21,7 @@
          - fbstatsd
     - role: dhcpd
       when: uplink_if is none
+    - role: docker_ce_update
     - role: containers
     - role: exporter
     - role: fbstatsd

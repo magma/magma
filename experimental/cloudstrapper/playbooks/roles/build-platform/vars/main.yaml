@@ -1,0 +1,59 @@
+---
+
+allDeps: 
+  - apt-transport-https 
+  - ca-certificates
+  - curl 
+  - gnupg-agent 
+  - software-properties-common
+  - gnupg2 
+dockerPackages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - python3-docker
+pyenvDeps:
+  - build-essential 
+  - libssl-dev
+  - zlib1g-dev
+  - libbz2-dev
+  - libreadline-dev
+  - libsqlite3-dev
+  - wget
+  - curl
+  - llvm
+  - libncurses5-dev
+  - libncursesw5-dev
+  - xz-utils 
+  - tk-dev
+  - libffi-dev
+  - liblzma-dev
+  - python-openssl
+  - git
+  - python3-pip
+  - awscli
+pipPackages:
+  - ansible
+  - fabric3
+  - jsonpickle
+  - requests
+  - PyYAML
+  - boto3
+k8sPackages:
+  - kubectl
+  - helm
+  - terraform
+
+usrName: ubuntu
+usrHome: "{{ dirHome }}"
+usrProfile: "{{ dirHome }}/.bashrc"
+binPyenv: "{{ dirHome }}/pyenv.run"
+pyenvVersion: 3.7.3
+magmaRootDir: "{{ dirExpHome }}/magma"
+magmaBuildDir: "{{ magmaRootDir }}/orc8r/cloud/docker"
+magmaNmsDir: "{{ magmaRootDir }}/nms/app/packages/magmalte"
+magmaPublishTag: latest
+dirShim: "{{ usrHome }}/.pyenv/shims/"
+usrProfile: "{{ dirHome }}/.profile"
+buildDockerLabel: latest
+magmaHelmDir: ~/magma-charts
