@@ -80,6 +80,14 @@ typedef struct mme_sgw_tunnel_s {
   uint32_t remote_teid;  ///< Remote tunnel endpoint Identifier
 } mme_sgw_tunnel_t;
 
+// AGW-wide state for SGW task
+typedef struct sgw_state_s {
+  teid_t tunnel_id;
+  teid_t gtpv1u_teid;
+  struct in_addr sgw_ip_address_S1u_S12_S4_up;
+  hash_table_ts_t* imsi_ue_context_htbl;
+} sgw_state_t;
+
 // AGW-wide state for SPGW task
 typedef struct spgw_state_s {
   STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;

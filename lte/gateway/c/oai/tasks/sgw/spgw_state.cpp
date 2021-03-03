@@ -77,7 +77,7 @@ void delete_spgw_ue_state(imsi64_t imsi64) {
   SpgwStateManager::getInstance().clear_ue_state_db(imsi_str);
 }
 
-void sgw_free_s11_bearer_context_information(
+void spgw_free_s11_bearer_context_information(
     s_plus_p_gw_eps_bearer_context_information_t** context_p) {
   if (*context_p) {
     sgw_free_pdn_connection(
