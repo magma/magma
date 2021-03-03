@@ -1,19 +1,15 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
- */
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
 extern "C" {
 #include <dynamic_memory_check.h>
@@ -58,17 +54,14 @@ void SgwStateManager::create_state() {
   bstring b   = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
   state_ue_ht = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      /*Rashmi TODO (void (*)(void**)) sgw_free_s11_bearer_context_information
-       */
-      nullptr, b);
+      (void (*)(void**)) sgw_free_s11_bearer_context_information, b);
 
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->ipv4.S1u_S12_S4_up.s_addr;
 
   state_cache_p->imsi_ue_context_htbl = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      /* Rashmi TODO (void (*)(void**)) spgw_free_ue_context*/ nullptr,
-      nullptr);
+      (void (*)(void**)) spgw_free_ue_context, nullptr);
 
   state_cache_p->tunnel_id = 0;
 
