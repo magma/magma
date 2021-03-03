@@ -15,43 +15,18 @@
  *      contact@openairinterface.org
  */
 
-/*! \file spgw_config.h
+/*! \file sgw_s11_handlers.h
  * \brief
- * \author Lionel Gauthier
- * \company Eurecom
- * \email: lionel.gauthier@eurecom.fr
+ * \author
+ * \company
+ * \email
  */
 
-#ifndef FILE_SPGW_CONFIG_SEEN
-#define FILE_SPGW_CONFIG_SEEN
+#pragma once
+#include "common_types.h"
+#include "s11_messages_types.h"
+#include "intertask_interface.h"
 
-#include "sgw_config.h"
-#include "pgw_config.h"
-#include "service303.h"
-#include "bstrlib.h"
-
-#define MAGMA_CONFIG_STRING "MAGMA"
-#define SPGW_CONFIG_STRING_SERVICE303_CONFIG "SERVICE303"
-#define SPGW_CONFIG_STRING_SERVICE303_CONF_SERVER_ADDRESS "SERVER_ADDRESS"
-
-typedef struct spgw_config_s {
-  sgw_config_t sgw_config;
-  pgw_config_t pgw_config;
-  service303_data_t service303_config;
-  bstring config_file;
-} spgw_config_t;
-
-#ifndef SGW
-extern spgw_config_t spgw_config;
-extern sgw_config_t sgw_config;
-#endif
-
-void spgw_config_init(spgw_config_t*);
-
-int spgw_config_parse_file(spgw_config_t*);
-
-void spgw_config_display(spgw_config_t*);
-
-void free_spgw_config(spgw_config_t* spgw_config_p);
-
-#endif /* FILE_SPGW_CONFIG_SEEN */
+int sgw_s8_handle_s11_create_session_request(
+    const itti_s11_create_session_request_t* const session_req_p,
+    imsi64_t imsi64);

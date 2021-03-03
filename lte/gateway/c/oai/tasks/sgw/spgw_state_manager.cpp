@@ -55,7 +55,7 @@ void SpgwStateManager::create_state() {
   bstring b   = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
   state_ue_ht = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**)) sgw_free_s11_bearer_context_information, b);
+      (void (*)(void**)) spgw_free_s11_bearer_context_information, b);
 
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr;

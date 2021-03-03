@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
-  CHECK_INIT_RETURN(sgw_s8_init());
+  CHECK_INIT_RETURN(sgw_s8_init(&sgw_config));
 #else
   CHECK_INIT_RETURN(udp_init());
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
