@@ -138,7 +138,7 @@ export default function ProfileEditDialog(props: Props) {
               className={classes.input}
               fullWidth={true}
               data-testid="profileID"
-              placeholder="Eg. profile_id"
+              placeholder="test_profile"
               value={profile.id}
               onChange={({target}) => handleProfileChange('id', target.value)}
             />
@@ -156,14 +156,14 @@ export default function ProfileEditDialog(props: Props) {
               }
             />
           </AltFormField>
-          <AltFormField label={'Max Bandwidth Downlink'} disableGutters>
+          <AltFormField label={'Max Bandwidth Downlink(bps)'} disableGutters>
             <OutlinedInput
               className={classes.input}
               type="number"
               fullWidth={true}
               min={0}
               data-testid="maxReqBwDl"
-              placeholder="9"
+              placeholder="1000"
               value={profile.max_req_bw_dl}
               onChange={({target}) =>
                 handleProfileChange(
@@ -173,13 +173,13 @@ export default function ProfileEditDialog(props: Props) {
               }
             />
           </AltFormField>
-          <AltFormField label={'Max Bandwidth Uplink'} disableGutters>
+          <AltFormField label={'Max Bandwidth Uplink(bps)'} disableGutters>
             <OutlinedInput
               className={classes.input}
               type="number"
               fullWidth={true}
               data-testid="maxReqBwUl"
-              placeholder="9"
+              placeholder="1000"
               value={profile.max_req_bw_ul}
               onChange={({target}) =>
                 handleProfileChange(

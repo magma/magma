@@ -1,0 +1,18 @@
+[
+  {
+    "ParameterKey":"paramGatewayInstance",
+    "ParameterValue": "i-03761bc149fea1d0d"
+  }, 
+  {
+    "ParameterKey":"paramNicTagName",
+    "ParameterValue": "MenloParkAgwDebNic2  "
+  }, 
+  {
+    "ParameterKey":"paramSgSgi",
+    "ParameterValue": "sg-006e465a1fe96dcbe"
+  }, 
+  {
+    "ParameterKey":"paramSubnetEnb",
+    "ParameterValue": "subnet-04148600b79378ad9"
+  }
+]

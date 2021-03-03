@@ -39,6 +39,7 @@ Description Defines the EPS Session Management procedures executed at
 #include "common_defs.h"
 #include "nas/networkDef.h"
 #include "EsmCause.h"
+#include "emm_data.h"
 #include "NasRequestType.h"
 
 /****************************************************************************/

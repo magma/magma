@@ -18,15 +18,13 @@ from __future__ import unicode_literals
 
 import ipaddress
 import unittest
+import fakeredis
 
-from magma.common.redis.client import get_default_client
-from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.mobilityd.ip_descriptor import IPDesc
 from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
 from magma.mobilityd.ip_address_man import IPNotInUseError
 
 from magma.mobilityd.mobility_store import MobilityStore
-from unittest import mock
 
 
 class TestIPV6Allocator(unittest.TestCase):
@@ -34,12 +32,11 @@ class TestIPV6Allocator(unittest.TestCase):
     Test class for the Mobilityd IPv6 Allocator
     """
 
-    @mock.patch("redis.Redis", MockRedis)
     def _new_ip_allocator(self, block):
         """
         Creates and sets up an IPAllocator with the given IPv6 block.
         """
-        store = MobilityStore(get_default_client(), False, 3980)
+        store = MobilityStore(fakeredis.FakeStrictRedis(), False, 3980)
         allocator = IPv6AllocatorPool(store, 'RANDOM')
         allocator.add_ip_block(block)
         return allocator

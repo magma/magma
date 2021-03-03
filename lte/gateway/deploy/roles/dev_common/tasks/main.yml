@@ -308,3 +308,8 @@
   become: yes
   command: "update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-7 1000"
   when: preburn
+
+- file:
+    path: /var/tmp/test_results
+    state: directory
+    mode: 0777

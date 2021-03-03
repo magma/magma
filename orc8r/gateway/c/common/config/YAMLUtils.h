@@ -21,16 +21,14 @@ namespace magma {
  * YAMLUtils defines new utilities that the yaml-cpp library doesn't expose
  */
 class YAMLUtils final {
-public:
-
+ public:
   /**
    * merge_nodes combines two YAML files together. override_node will
    * override any parameters it defines, and keep any existing parameters in
    * default_node that it doesn't define
    */
   static YAML::Node merge_nodes(
-    const YAML::Node& default_node,
-    const YAML::Node& override_node);
+      const YAML::Node& default_node, const YAML::Node& override_node);
 };
 
-}
+}  // namespace magma

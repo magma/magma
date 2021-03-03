@@ -63,19 +63,18 @@ func validateLogVerbosityArgs(cmd *cobra.Command, args []string) error {
 }
 
 func logVerbosityCmd(cmd *cobra.Command, args []string) {
-	verb, err := strconv.Atoi(args[0])
+	verbosity, err := strconv.ParseInt(args[0], 10, 32)
 	if err != nil {
-		glog.Error(err)
-		os.Exit(1)
+		glog.Fatal(err)
 	}
-	err = setLogVerbosity(args[1], verb)
+	err = setLogVerbosity(args[1], int32(verbosity))
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)
 	}
 }
 
-func setLogVerbosity(service string, verbosity int) error {
+func setLogVerbosity(service string, verbosity int32) error {
 	err := setLogVerbosityOrGwLogVerbosity(service, verbosity)
 	if err != nil {
 		return fmt.Errorf("Failed to SetLogVerbosity for %s: %s", service, err)
@@ -83,10 +82,10 @@ func setLogVerbosity(service string, verbosity int) error {
 	return nil
 }
 
-func setLogVerbosityOrGwLogVerbosity(service string, verbosity int) error {
+func setLogVerbosityOrGwLogVerbosity(service string, verbosity int32) error {
 	if isGatewayServiceQuery {
-		return service303.GWService303SetLogVerbosity(gateway_registry.GwServiceType(service), hardwareID, &protos.LogVerbosity{Verbosity: int32(verbosity)})
+		return service303.GWService303SetLogVerbosity(gateway_registry.GwServiceType(service), hardwareID, &protos.LogVerbosity{Verbosity: verbosity})
 	} else {
-		return client.Service303SetLogVerbosity(service, &protos.LogVerbosity{Verbosity: int32(verbosity)})
+		return client.Service303SetLogVerbosity(service, &protos.LogVerbosity{Verbosity: verbosity})
 	}
 }

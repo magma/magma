@@ -19,8 +19,8 @@
 
 - name: Add JFrog key
   block:
-    - copy:
-        src: jfrog.pub
+    - get_url:
+        url: https://facebookconnectivity.jfrog.io/artifactory/api/gpg/key/public
         dest: /tmp/jfrog.pub
     - rpm_key:
         key: /tmp/jfrog.pub

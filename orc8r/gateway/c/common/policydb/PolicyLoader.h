@@ -21,22 +21,22 @@ using namespace lte;
  * PolicyLoader is used to sync policies with Redis every so often
  */
 class PolicyLoader {
-public:
-
+ public:
   /**
    * start_loop is the main function to call to initiate a load loop. Based on
    * the given loop interval length, this function will load the policies from
    * redis, and call the processor callback.
    */
   void start_loop(
-    std::function<void(std::vector<PolicyRule>)> processor,
-    uint32_t loop_interval_seconds);
+      std::function<void(std::vector<PolicyRule>)> processor,
+      uint32_t loop_interval_seconds);
 
   /**
    * Stop the config loop on the next loop
    */
   void stop();
-private:
+
+ private:
   std::atomic<bool> is_running_;
 };
-}
+}  // namespace magma
