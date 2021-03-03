@@ -3785,7 +3785,6 @@ void mme_app_handle_e_rab_modification_ind(
        i < e_rab_modification_ind->e_rab_to_be_modified_list.no_of_items; i++) {
     e_rab_id_t e_rab_id =
         e_rab_modification_ind->e_rab_to_be_modified_list.item[i].e_rab_id;
-    // bearer_context_new_t* bearer_context = NULL;
 
     bearer_context_t* bearer_context =
         mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);

@@ -180,7 +180,9 @@ typedef struct ue_network_capability_s {
 #define UE_NETWORK_CAPABILITY_UIA7 0b00000001
   uint8_t uia : 7;
   /* Bits 8 to 6 of octet 7 are spare and shall be coded as zero */
-  uint8_t spare : 3;
+  uint8_t prosedd : 1;
+  uint8_t prose : 1;
+  uint8_t h245ash : 1;
   /* eNodeB-based access class control for CSFB capability */
 #define UE_NETWORK_CAPABILITY_CSFB 1
   uint8_t csfb : 1;
@@ -199,6 +201,9 @@ typedef struct ue_network_capability_s {
 
   /* Bits 8 to 6 of octet 7 are spare and shall be coded as zero */
   /* S1-U data transfer enabled */
+  uint8_t epco : 1;
+  uint8_t hccpciot : 1;
+  uint8_t erwfopdn : 1;
 #define UE_NETWORK_CAPABILITY_S1UDATA 1
   uint8_t s1udata : 1;
   /* User plane CIoT EPS Optimization */
@@ -216,6 +221,9 @@ typedef struct ue_network_capability_s {
 
   /* Bits 8 to 6 of octet 7 are spare and shall be coded as zero */
   /* DCNR notification flag */
+  uint8_t bearer : 1;
+  uint8_t sgc : 1;
+  uint8_t n1mod : 1;
 #define UE_NETWORK_CAPABILITY_DCNR 1
   uint8_t dcnr : 1;
   /* Control Plane data backoff support*/
@@ -232,7 +240,7 @@ typedef struct ue_network_capability_s {
   uint8_t multipledrb : 1;
 
   bool umts_present;
-  bool misc_present;
+  uint32_t length;
 } ue_network_capability_t;
 
 // 9.9.3.36 UE security capability

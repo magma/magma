@@ -134,7 +134,7 @@ extern s6a_fd_cnf_t s6a_fd_cnf;
 #define ULR_NODE_TYPE_IND (1U << 4)
 #define ULR_INITIAL_ATTACH_IND (1U << 5)
 #define ULR_PS_LCS_SUPPORTED_BY_UE (1U << 6)
-#define ULR_DUAL_REGIS_5G_IND (1U << 7)
+#define ULR_DUAL_REGIS_5G_IND (1U << 8)
 
 #define ULA_SEPARATION_IND (1U)
 

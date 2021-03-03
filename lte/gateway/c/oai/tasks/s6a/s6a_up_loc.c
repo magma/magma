@@ -298,13 +298,6 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
     FLAGS_SET(value.u32, ULR_SKIP_SUBSCRIBER_DATA);
   }
 
-  /*
-   * Set the 5g-nr flag as dual registration indicator
-   */
-  if (ulr_pP->dual_regis_5g_ind) {
-    FLAGS_SET(value.u32, ULR_DUAL_REGIS_5G_IND);
-  }
-
   if (ulr_pP->initial_attach) {
     FLAGS_SET(value.u32, ULR_INITIAL_ATTACH_IND);
   }
