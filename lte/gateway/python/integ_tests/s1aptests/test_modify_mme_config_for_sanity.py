@@ -37,8 +37,5 @@ class TestModifyMMEConfigForSanity(unittest.TestCase):
         print("Restarting services to apply configuration change")
         self._magmad_util.restart_all_services()
 
-        print("Stopping and disabling magma@health service")
-        self._magmad_util.disable_service("health")
-
 if __name__ == "__main__":
     unittest.main()
