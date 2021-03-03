@@ -581,7 +581,7 @@ typedef struct as_message_s {
     rab_release_req_t rab_release_req;
     rab_release_ind_t rab_release_ind;
     deactivate_bearer_context_req_t deactivate_bearer_context_req;
-  } __attribute__((__packed__)) msg;
+  } msg;
 } as_message_t;
 
 /****************************************************************************/

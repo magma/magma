@@ -1061,9 +1061,10 @@ int sgw_handle_delete_session_request(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   delete_session_resp_p = &message_p->ittiMsg.s11_delete_session_response;
-  OAILOG_WARNING_UE(
+  OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
-      "Delete session handler needs to be completed...\n");
+      "Handle delete session request for sgw_s11_teid " TEID_FMT "\n",
+      delete_session_req_pP->teid);
 
   if (delete_session_req_pP->indication_flags.oi) {
     OAILOG_DEBUG_UE(
@@ -1419,6 +1420,8 @@ void handle_s5_create_session_response(
     }
   } else if (session_resp.failure_cause == PCEF_FAILURE) {
     cause = SERVICE_DENIED;
+  } else if (session_resp.failure_cause == IP_ALLOCATION_FAILURE) {
+    cause = SYSTEM_FAILURE;
   }
   // Send Create Session Response with Nack
   message_p =
@@ -1434,9 +1437,14 @@ void handle_s5_create_session_response(
   memset(
       create_session_response_p, 0, sizeof(itti_s11_create_session_response_t));
   create_session_response_p->cause.cause_value = cause;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+  create_session_response_p->bearer_contexts_marked_for_removal
+      .bearer_contexts[0]
       .cause.cause_value = cause;
-  create_session_response_p->bearer_contexts_created.num_bearer_context += 1;
+  create_session_response_p->bearer_contexts_marked_for_removal
+      .num_bearer_context += 1;
+  create_session_response_p->bearer_contexts_marked_for_removal
+      .bearer_contexts[0]
+      .eps_bearer_id = session_resp.eps_bearer_id;
   create_session_response_p->teid =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_teid_S11;
   create_session_response_p->trxn =
@@ -1956,10 +1964,11 @@ static void _generate_dl_flow(
     if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
       struct in_addr remoteaddr = {.s_addr = 0};
-      remoteaddr.s_addr = (packet_filter->ipv4remoteaddr[0].addr << 24) +
-                          (packet_filter->ipv4remoteaddr[1].addr << 16) +
-                          (packet_filter->ipv4remoteaddr[2].addr << 8) +
-                          packet_filter->ipv4remoteaddr[3].addr;
+      remoteaddr.s_addr =
+          (((uint32_t) packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[3].addr));
       dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
       dlflow->set_params |= SRC_IPV4;
       dlflow->dst_ip.s_addr = ipv4_s_addr;
@@ -1982,10 +1991,11 @@ static void _generate_dl_flow(
     if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
       struct in_addr remoteaddr = {.s_addr = 0};
-      remoteaddr.s_addr = (packet_filter->ipv4remoteaddr[0].addr << 24) +
-                          (packet_filter->ipv4remoteaddr[1].addr << 16) +
-                          (packet_filter->ipv4remoteaddr[2].addr << 8) +
-                          packet_filter->ipv4remoteaddr[3].addr;
+      remoteaddr.s_addr =
+          (((uint32_t) packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[3].addr));
       dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
       dlflow->set_params |= SRC_IPV4;
     }

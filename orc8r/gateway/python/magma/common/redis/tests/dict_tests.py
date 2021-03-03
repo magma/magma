@@ -10,23 +10,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisHashDict, RedisFlatDict
-from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.common.redis.serializers import get_proto_deserializer, \
     get_proto_serializer, RedisSerde
 from orc8r.protos.service303_pb2 import LogVerbosity
-from unittest import TestCase, main, mock
+from unittest import TestCase, main
+import fakeredis
 
 
 class RedisDictTests(TestCase):
     """
     Tests for the RedisHashDict and RedisFlatDict containers
     """
-    @mock.patch("redis.Redis", MockRedis)
     def setUp(self):
-        client = get_default_client()
+        client = fakeredis.FakeStrictRedis()
         # Use arbitrary orc8r proto to test with
         self._hash_dict = RedisHashDict(
             client,
@@ -39,7 +36,6 @@ class RedisDictTests(TestCase):
                            get_proto_deserializer(LogVerbosity))
         self._flat_dict = RedisFlatDict(client, serde)
 
-    @mock.patch("redis.Redis", MockRedis)
     def test_hash_insert(self):
         expected = LogVerbosity(verbosity=0)
         expected2 = LogVerbosity(verbosity=1)
@@ -58,12 +54,10 @@ class RedisDictTests(TestCase):
         self.assertEqual(2, version2)
         self.assertEqual(expected2, actual2)
 
-    @mock.patch("redis.Redis", MockRedis)
     def test_missing_version(self):
         missing_version = self._hash_dict.get_version("key2")
         self.assertEqual(0, missing_version)
 
-    @mock.patch("redis.Redis", MockRedis)
     def test_hash_delete(self):
         expected = LogVerbosity(verbosity=2)
         self._hash_dict['key3'] = expected
@@ -74,7 +68,6 @@ class RedisDictTests(TestCase):
         self._hash_dict.pop('key3')
         self.assertRaises(KeyError, self._hash_dict.__getitem__, 'key3')
 
-    @mock.patch("redis.Redis", MockRedis)
     def test_flat_insert(self):
         expected = LogVerbosity(verbosity=5)
         expected2 = LogVerbosity(verbosity=1)
@@ -95,12 +88,10 @@ class RedisDictTests(TestCase):
         self.assertEqual(expected2, actual2)
         self.assertEqual(expected2, actual3)
 
-    @mock.patch("redis.Redis", MockRedis)
     def test_flat_missing_version(self):
         missing_version = self._flat_dict.get_version("key2")
         self.assertEqual(0, missing_version)
 
-    @mock.patch("redis.Redis", MockRedis)
     def test_flat_bad_key(self):
         expected = LogVerbosity(verbosity=2)
         self.assertRaises(ValueError, self._flat_dict.__setitem__,
@@ -110,7 +101,6 @@ class RedisDictTests(TestCase):
         self.assertRaises(ValueError, self._flat_dict.__delitem__,
                           'bad:key')
 
-    @mock.patch("redis.Redis", MockRedis)
     def test_flat_delete(self):
         expected = LogVerbosity(verbosity=2)
         self._flat_dict['key3'] = expected
@@ -123,7 +113,6 @@ class RedisDictTests(TestCase):
                           'key3')
         self.assertEqual(None, self._flat_dict.get('key3'))
 
-    @mock.patch("redis.Redis", MockRedis)
     def test_flat_clear(self):
         expected = LogVerbosity(verbosity=2)
         self._flat_dict['key3'] = expected
@@ -134,7 +123,6 @@ class RedisDictTests(TestCase):
         self._flat_dict.clear()
         self.assertEqual(0, len(self._flat_dict.keys()))
 
-    @mock.patch("redis.Redis", MockRedis)
     def test_flat_garbage_methods(self):
         expected = LogVerbosity(verbosity=2)
         expected2 = LogVerbosity(verbosity=3)

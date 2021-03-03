@@ -15,10 +15,12 @@ package swagger
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
+	"path/filepath"
+	"strings"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
-	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -30,7 +32,8 @@ type specServicer struct {
 // NewSpecServicerFromFile intializes a spec servicer
 // given a service name.
 func NewSpecServicerFromFile(service string) protos.SwaggerSpecServer {
-	path := config.GetSpecPath(service)
+	service = strings.ToLower(service)
+	path := getSpecPath(service)
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		// Swallowing ReadFile error because the service should
@@ -48,4 +51,12 @@ func NewSpecServicer(spec string) protos.SwaggerSpecServer {
 
 func (s *specServicer) GetSpec(ctx context.Context, request *protos.GetSpecRequest) (*protos.GetSpecResponse, error) {
 	return &protos.GetSpecResponse{SwaggerSpec: s.spec}, nil
+}
+
+// getSpecPath returns the filepath on the production image
+// that contains the service's Swagger spec
+func getSpecPath(service string) string {
+	specDir := "/etc/magma/swagger/specs"
+	specPath := filepath.Join(specDir, fmt.Sprintf("%s.swagger.v1.yml", service))
+	return specPath
 }

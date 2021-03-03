@@ -95,6 +95,8 @@ first-come-first-served basis.
 
 ### DHCP
 
+NOTE: This feature requires installed `libpcap`.
+
 To enable this feature, set `ip_allocation_mode` to `DHCP_BROADCAST`.
 
 ```

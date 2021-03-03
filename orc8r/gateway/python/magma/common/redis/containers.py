@@ -13,9 +13,9 @@ limitations under the License.
 from copy import deepcopy
 import redis
 from redis.lock import Lock
+import redis_lock
 import redis_collections
 from typing import Any, Iterator, List, MutableMapping, Optional, TypeVar
-
 from magma.common.redis.serializers import RedisSerde
 from orc8r.protos.redis_pb2 import RedisState
 
@@ -222,7 +222,12 @@ class RedisFlatDict(MutableMapping[str, T]):
                 split_key = deserialized_key.split(":", 1)
             except AttributeError:
                 split_key = k.split(":", 1)
-            if self.is_garbage(split_key[0]):
+            # There could be a delete key in between KEYS and GET, so ignore
+            # invalid values for now
+            try:
+                if self.is_garbage(split_key[0]):
+                    continue
+            except KeyError:
                 continue
             yield split_key[0]
 
@@ -351,7 +356,12 @@ class RedisFlatDict(MutableMapping[str, T]):
                 split_key = deserialized_key.split(":", 1)
             except AttributeError:
                 split_key = k.split(":", 1)
-            if not self.is_garbage(split_key[0]):
+            # There could be a delete key in between KEYS and GET, so ignore
+            # invalid values for now
+            try:
+                if not self.is_garbage(split_key[0]):
+                    continue
+            except KeyError:
                 continue
             garbage_keys.append(split_key[0])
         return garbage_keys
@@ -367,8 +377,13 @@ class RedisFlatDict(MutableMapping[str, T]):
 
     def lock(self, key: str) -> Lock:
         """Lock the dictionary for key *key*"""
-        lock_key = self._make_composite_key(key) + ":lock"
-        return self.redis.lock(lock_key)
+        return redis_lock.Lock(
+            self.redis,
+            name=self._make_composite_key(key) + ":lock",
+            expire=60,
+            auto_renewal=True,
+            strict=False,
+        )
 
     def _make_composite_key(self, key):
         return key + ":" + self.redis_type

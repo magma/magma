@@ -38,6 +38,7 @@ Description Defines functions used to handle EPS bearer contexts.
 
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "3gpp_29.274.h"
 #include "common_types.h"
 #include "emm_data.h"
 #include "esm_data.h"

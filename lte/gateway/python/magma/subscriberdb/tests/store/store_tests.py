@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import tempfile
 import unittest
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
@@ -20,15 +21,18 @@ from magma.subscriberdb.store.sqlite import SqliteStore
 
 from magma.subscriberdb.sid import SIDUtils
 
-
 class StoreTests(unittest.TestCase):
     """
     Test class for subscriber storage
     """
 
     def setUp(self):
-        # Create an in-memory sqlite3 database for testing
-        self._store = SqliteStore("file::memory:")
+        # Create sqlite3 database for testing
+        self._tmpfile = tempfile.TemporaryDirectory()
+        self._store = SqliteStore(self._tmpfile.name +'/')
+
+    def tearDown(self):
+        self._tmpfile.cleanup()
 
     def _add_subscriber(self, sid):
         sub = SubscriberData(sid=SIDUtils.to_pb(sid))

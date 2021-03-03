@@ -68,6 +68,14 @@ generate_cpp_protos("${HASRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
 generate_grpc_protos("${HASRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
+# AMF
+set(AMFSRV_M5G_CPP_PROTOS subscriberdb session_manager)
+set(AMFSRV_M5G_GRPC_PROTOS session_manager)
+generate_cpp_protos("${AMFSRV_M5G_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${AMFSRV_M5G_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(TASK_GRPC_SERVICE
@@ -79,7 +87,9 @@ add_library(TASK_GRPC_SERVICE
     SMSOrc8rGatewayServiceImpl.cpp
     S1apServiceImpl.cpp
     HaServiceImpl.cpp
+    AmfServiceImpl.cpp 
     spgw_service_handler.c
+    amf_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp
     ${PROTO_SRCS}

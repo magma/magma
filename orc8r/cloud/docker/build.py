@@ -42,16 +42,16 @@ MODULES = [
 
 DEPLOYMENT_TO_MODULES = {
     'all': MODULES,
-    'orc8r': [],
-    'orc8r-f': ['fbinternal'],
-    'fwa': ['lte'],
-    'fwa-f': ['lte', 'fbinternal'],
-    'ffwa': ['lte', 'feg'],
-    'ffwa-f': ['lte', 'feg', 'fbinternal'],
-    'cwf': ['lte', 'feg', 'cwf'],
-    'cwf-f': ['lte', 'feg', 'cwf', 'fbinternal'],
-    'wifi': ['wifi'],
-    'wifi-f': ['wifi', 'fbinternal'],
+    'orc8r': ['orc8r'],
+    'orc8r-f': ['orc8r', 'fbinternal'],
+    'fwa': ['orc8r', 'lte'],
+    'fwa-f': ['orc8r', 'lte', 'fbinternal'],
+    'ffwa': ['orc8r', 'lte', 'feg'],
+    'ffwa-f': ['orc8r', 'lte', 'feg', 'fbinternal'],
+    'cwf': ['orc8r', 'lte', 'feg', 'cwf'],
+    'cwf-f': ['orc8r', 'lte', 'feg', 'cwf', 'fbinternal'],
+    'wifi': ['orc8r', 'wifi'],
+    'wifi-f': ['orc8r', 'wifi', 'fbinternal'],
 }
 
 DEPLOYMENTS = DEPLOYMENT_TO_MODULES.keys()
@@ -90,6 +90,11 @@ def main() -> None:
     elif args.precommit:
         _run(['build', 'test'])
         _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make precommit'])
+        _down(args)
+    elif args.coverage:
+        _run(['up', '-d', 'postgres_test'])
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make cover'])
         _down(args)
     elif args.tests:
         _run(['up', '-d', 'postgres_test'])
@@ -281,6 +286,11 @@ def _parse_args() -> argparse.Namespace:
         '--lint', '-l',
         action='store_true',
         help='Mount the source code and run the linter',
+    )
+    parser.add_argument(
+        '--coverage', '-o',
+        action='store_true',
+        help='Generate test coverage statistics',
     )
 
     # Build something

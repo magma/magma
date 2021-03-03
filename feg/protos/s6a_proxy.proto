@@ -168,6 +168,8 @@ message UpdateLocationAnswer {
 
     NetworkAccessMode network_access_mode = 8;
 
+    repeated bytes regional_subscription_zone_code = 9;
+
     message APNConfiguration {
         // APN identifier
         uint32 context_id = 1;
