@@ -62,7 +62,7 @@ const (
 	nonCleanRestartYaml = "clean_restart: false"
 )
 
-//TestQosEnforcementRestart
+//testQosEnforcementRestart
 // This test verifies the QOS configuration(uplink) present in the rules
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-ULQos) with QOS config setting with
@@ -166,6 +166,7 @@ func restartPipelined(t *testing.T, tr *TestRunner) {
 }
 
 func TestQosRestartMeterClean(t *testing.T) {
+	t.Skip()
 	fmt.Println("\nRunning TestQosRestartMeterClean...")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
@@ -182,6 +183,7 @@ func TestQosRestartMeterClean(t *testing.T) {
 }
 
 func TestQosRestartMeterNonClean(t *testing.T) {
+	t.Skip()
 	fmt.Println("\nRunning TestQosRestartMeterNonClean...")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
