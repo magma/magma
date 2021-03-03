@@ -172,21 +172,32 @@ format_session_manager: ## Format SessionD
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
-# To gather gcov data, first we build and gather initialized zero-count
-# baselines. Then we run tests and gather gcov deltas.
+#  test c/oai and generate coverage data
 test_oai: build_common ## Run all OAI-specific tests
+	rm -f `find $(OAI_BUILD) -name *.gcda` # Clean up any prior coverage data
 	$(call run_ctest, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
+	lcov --capture --directory $(C_BUILD) --output-file test_oai.info
 
 ## Catch all for c service tests
 # This works with test_dpi and test_session_manager
-test_%: stop build_common
+test_%: build_common
+	rm -f `find $(OAI_BUILD) -name *.gcda` # Clean up any prior coverage data
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+	lcov --capture --directory $(C_BUILD) --output-file $(test_$*).info
 
 # format and test c/session_manager
 precommit_sm: format_session_manager test_session_manager
 
 # format and test c/oai
 precommit_oai: format_oai test_oai
+
+base_coverage: build_oai build_session_manager build_connection_tracker ## Generate complete code coverage information
+	lcov --initial --directory $(C_BUILD) -c --output-file base.info
+
+# Combine results of sub-coverages
+coverage: base_coverage test_oai test_session_manager
+	lcov -a base.info -a test_oai.info -a test_session_manager.info -o coverage.info
+	rm base.info test_oai.info test_session_manager.info
 
 code_stats: ## Generate lines-of-code statistics for magma project
 	sudo apt-get install -y cloc
