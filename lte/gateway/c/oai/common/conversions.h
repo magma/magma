@@ -134,7 +134,9 @@
 /* Convert an array of char containing vALUE to x */
 #define BUFFER_TO_INT32(buf, x)                                                \
   do {                                                                         \
-    x = ((buf)[0] << 24) | ((buf)[1] << 16) | ((buf)[2] << 8) | ((buf)[3]);    \
+    x = (int32_t)(                                                             \
+        ((uint32_t)((buf)[0]) << 24) | ((uint32_t)((buf)[1]) << 16) |          \
+        ((uint32_t)((buf)[2]) << 8) | ((uint32_t)((buf)[3])));                 \
   } while (0)
 
 /* Convert an integer on 32 bits to an octet string from aSN1c tool */

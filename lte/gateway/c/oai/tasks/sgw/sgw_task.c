@@ -54,9 +54,7 @@ task_zmq_ctx_t spgw_app_task_zmq_ctx;
 extern __pid_t g_pid;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   imsi64_t imsi64          = itti_get_associated_imsi(received_message_p);
   spgw_state_t* spgw_state = get_spgw_state(false);
@@ -165,7 +163,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       spgw_app_exit();
     } break;
 
@@ -180,7 +178,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   put_spgw_ue_state(spgw_state, imsi64);
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
