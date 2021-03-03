@@ -1,0 +1,29 @@
+
+#------------------
+#Default variables
+#Do not need to be changed
+#Caution before you change
+#------------------
+
+secgroupDefault: secgroupMagmaProto
+bucketDefault: bucket-mantle-canada
+keyBoot: keyMagmaBoot
+keyHost: keyMagmaHost
+
+devOpsCloudstrapper: ec2MagmaDevopsCloudstrapper
+primaryCloudstrapper: ec2MagmaCloudstrapper
+devOpsAmi: imgCloudstrapperBase
+
+userBootstrap: ubuntu
+userMagma: "{{ userBootstrap }}"
+userAgw: admin
+
+#Directories
+dirHome: "/home/{{ userBootstrap }}"
+dirExpHome: "{{ dirHome }}/magma-experimental"
+dirPyenv: "{{ dirHome }}/.pyenv/shims"
+
+dirSourceLocal: "{{ dirExpHome }}/magma"
+dirSecretsLocal: "{{ dirExpHome }}/{{ orc8rClusterName }}/secrets/certs"
+dirInventory: "{{ dirExpHome }}/files"
+

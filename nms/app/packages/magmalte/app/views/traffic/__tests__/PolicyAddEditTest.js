@@ -255,6 +255,7 @@ describe('<TrafficDashboard />', () => {
     expect(queryByTestId('flowEdit')).toBeNull();
     expect(queryByTestId('redirectEdit')).toBeNull();
     expect(queryByTestId('trackingEdit')).toBeNull();
+    expect(queryByTestId('headerEnrichmentEdit')).toBeNull();
     expect(queryByTestId('appEdit')).toBeNull();
 
     const policyID = getByTestId('policyID').firstChild;
@@ -518,6 +519,7 @@ describe('<TrafficDashboard />', () => {
     expect(queryByTestId('flowEdit')).not.toBeNull();
     expect(queryByTestId('redirectEdit')).toBeNull();
     expect(queryByTestId('trackingEdit')).toBeNull();
+    expect(queryByTestId('headerEnrichmentEdit')).toBeNull();
     expect(queryByTestId('appEdit')).toBeNull();
 
     fireEvent.click(getByTestId('addFlowButton'));
@@ -571,6 +573,7 @@ describe('<TrafficDashboard />', () => {
     expect(queryByTestId('infoEdit')).toBeNull();
     expect(queryByTestId('flowEdit')).toBeNull();
     expect(queryByTestId('redirectEdit')).toBeNull();
+    expect(queryByTestId('headerEnrichmentEdit')).toBeNull();
 
     const ratingGroup = getByTestId('ratingGroup').firstChild;
 
@@ -599,6 +602,7 @@ describe('<TrafficDashboard />', () => {
     expect(queryByTestId('infoEdit')).toBeNull();
     expect(queryByTestId('flowEdit')).toBeNull();
     expect(queryByTestId('redirectEdit')).not.toBeNull();
+    expect(queryByTestId('headerEnrichmentEdit')).toBeNull();
 
     const serverAddress = getByTestId('serverAddress').firstChild;
 
@@ -621,6 +625,38 @@ describe('<TrafficDashboard />', () => {
       networkId,
       ruleId: 'test_policy_0',
       policyRule: newRule,
+    });
+
+    // verify if we transition to header enrichment tab
+    expect(queryByTestId('trackingEdit')).toBeNull();
+    expect(queryByTestId('infoEdit')).toBeNull();
+    expect(queryByTestId('flowEdit')).toBeNull();
+    expect(queryByTestId('redirectEdit')).toBeNull();
+    expect(queryByTestId('headerEnrichmentEdit')).not.toBeNull();
+
+    const url = getByTestId('newUrl').firstChild;
+
+    if (url instanceof HTMLInputElement) {
+      fireEvent.change(url, {target: {value: 'http://example.com'}});
+    } else {
+      throw 'invalid type';
+    }
+    fireEvent.click(getByTestId('addUrlButton'));
+    await wait();
+
+    fireEvent.click(getByText('Save And Continue'));
+
+    await wait();
+
+    expect(
+      MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+    ).toHaveBeenCalledWith({
+      networkId,
+      ruleId: 'test_policy_0',
+      policyRule: {
+        ...newRule,
+        header_enrichment_targets: ['http://example.com'],
+      },
     });
   });
 
@@ -651,6 +687,7 @@ describe('<TrafficDashboard />', () => {
     expect(queryByTestId('flowEdit')).toBeNull();
     expect(queryByTestId('redirectEdit')).toBeNull();
     expect(queryByTestId('trackingEdit')).toBeNull();
+    expect(queryByTestId('headerEnrichmentEdit')).toBeNull();
     expect(queryByTestId('appEdit')).toBeNull();
 
     const prio = getByTestId('policyPriority').firstChild;

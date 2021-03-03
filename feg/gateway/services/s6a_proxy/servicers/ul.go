@@ -119,7 +119,10 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 					res.AllApnsIncluded =
 						ula.SubscriptionData.APNConfigurationProfile.AllAPNConfigurationsIncludedIndicator == 0
 					res.NetworkAccessMode = protos.UpdateLocationAnswer_NetworkAccessMode(ula.SubscriptionData.NetworkAccessMode)
-
+					res.RegionalSubscriptionZoneCode = make([][]byte, len(ula.SubscriptionData.RegionalSubscriptionZoneCode))
+					for i, code := range ula.SubscriptionData.RegionalSubscriptionZoneCode {
+						res.RegionalSubscriptionZoneCode[i] = code.Serialize()
+					}
 					for _, apnCfg := range ula.SubscriptionData.APNConfigurationProfile.APNConfigs {
 						res.Apn = append(
 							res.Apn,

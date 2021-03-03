@@ -158,7 +158,7 @@ controller:
       user: postgres
       pass: postgres
     service_registry:
-      mode: "yaml"
+      mode: "k8s"
 
   podAnnotations: {}
 
@@ -233,6 +233,12 @@ directoryd:
 dispatcher:
   service:
     labels: {}
+    annotations: {}
+
+eventd:
+  service:
+    labels:
+      orc8r.io/swagger_spec: "true"
     annotations: {}
 
 metricsd:

@@ -27,6 +27,7 @@
         path: /tmp/jfrog.pub
         state: absent
 
+# TODO: change repo_gpgcheck to 1 once we get the pgp working
 - name: Add JFrog repo
   copy:
     dest: /etc/yum.repos.d/magma-jfrog.repo
@@ -37,4 +38,4 @@
       gpgcheck=0
       enabled=1
       gpgkey=https://facebookconnectivity.jfrog.io/artifactory/{{ repo }}/{{ distribution }}/$releasever/repodata/repomd.xml.key
-      repo_gpgcheck=1
+      repo_gpgcheck=0

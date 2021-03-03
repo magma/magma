@@ -103,13 +103,14 @@ int pgw_handle_allocate_ipv4_address(
           pcef_create_session(
               spgw_state, subscriber_id, ip_str, NULL, &session_data, sgi_resp,
               session_req, new_bearer_ctxt_info_p);
-          OAILOG_FUNC_OUT(LOG_PGW_APP);
+        } else {
+          // If we are here then the IP address allocation has failed
+          s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
+          s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
+          s5_response.failure_cause = IP_ALLOCATION_FAILURE;
+          handle_s5_create_session_response(
+              spgw_state, new_bearer_ctxt_info_p, s5_response);
         }
-
-        s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
-        s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
-        handle_s5_create_session_response(
-            spgw_state, new_bearer_ctxt_info_p, s5_response);
         OAILOG_FUNC_OUT(LOG_PGW_APP);
       });
   return 0;
@@ -233,12 +234,14 @@ int pgw_handle_allocate_ipv6_address(
           pcef_create_session(
               spgw_state, subscriber_id, NULL, ip6_str, &session_data, sgi_resp,
               session_req, new_bearer_ctxt_info_p);
-          OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
+        } else {
+          // If we are here then the IP address allocation has failed
+          s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
+          s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
+          s5_response.failure_cause = IP_ALLOCATION_FAILURE;
+          handle_s5_create_session_response(
+              spgw_state, new_bearer_ctxt_info_p, s5_response);
         }
-        s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
-        s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
-        handle_s5_create_session_response(
-            spgw_state, new_bearer_ctxt_info_p, s5_response);
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
       });
   return 0;
@@ -348,13 +351,14 @@ int pgw_handle_allocate_ipv4v6_address(
               sgi_resp, session_req, new_bearer_ctxt_info_p);
           s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
           s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
-          OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
+        } else {
+          // If we are here then the IP address allocation has failed
+          s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
+          s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
+          s5_response.failure_cause = IP_ALLOCATION_FAILURE;
+          handle_s5_create_session_response(
+              spgw_state, new_bearer_ctxt_info_p, s5_response);
         }
-        // If status != SGI_STATUS_OK
-        s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
-        s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
-        handle_s5_create_session_response(
-            spgw_state, new_bearer_ctxt_info_p, s5_response);
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
       });
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);

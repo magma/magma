@@ -14,6 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
+import type {EditProps} from './GatewayDetailConfigEdit';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
@@ -94,7 +95,6 @@ export default function GatewayConfig() {
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
-
   function ConfigFilter() {
     return (
       <Button
@@ -107,51 +107,9 @@ export default function GatewayConfig() {
     );
   }
 
-  function editGateway() {
+  function editFilter(editTab: EditProps) {
     return (
-      <AddEditGatewayButton
-        title={'Edit'}
-        isLink={true}
-        editProps={{
-          editTable: 'info',
-        }}
-      />
-    );
-  }
-
-  function editDynamicServices() {
-    return (
-      <AddEditGatewayButton
-        title={'Edit'}
-        isLink={true}
-        editProps={{
-          editTable: 'aggregation',
-        }}
-      />
-    );
-  }
-
-  function editEPC() {
-    return (
-      <AddEditGatewayButton
-        title={'Edit'}
-        isLink={true}
-        editProps={{
-          editTable: 'epc',
-        }}
-      />
-    );
-  }
-
-  function editRan() {
-    return (
-      <AddEditGatewayButton
-        title={'Edit'}
-        isLink={true}
-        editProps={{
-          editTable: 'ran',
-        }}
-      />
+      <AddEditGatewayButton title={'Edit'} isLink={true} editProps={editTab} />
     );
   }
 
@@ -170,27 +128,54 @@ export default function GatewayConfig() {
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleRow label="Gateway" filter={editGateway} />
+                  <CardTitleRow
+                    label="Gateway"
+                    filter={() => editFilter({editTable: 'info'})}
+                  />
                   <GatewayInfoConfig gwInfo={gwInfo} />
                 </Grid>
+
                 <Grid item xs={12}>
                   <CardTitleRow
                     label="Dynamic Services"
-                    filter={editDynamicServices}
+                    filter={() => editFilter({editTable: 'aggregation'})}
                   />
                   <GatewayDynamicServices gwInfo={gwInfo} />
                 </Grid>
+
+                {Object.keys(gwInfo.apn_resources || {}).length > 0 && (
+                  <Grid item xs={12}>
+                    <CardTitleRow
+                      label="Apn Resources"
+                      filter={() => editFilter({editTable: 'apnResources'})}
+                    />
+                    <ApnResourcesTable gwInfo={gwInfo} />
+                  </Grid>
+                )}
               </Grid>
             </Grid>
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleRow label="EPC" filter={editEPC} />
+                  <CardTitleRow
+                    label="EPC"
+                    filter={() => editFilter({editTable: 'epc'})}
+                  />
                   <GatewayEPC gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleRow label="Ran" filter={editRan} />
+                  <CardTitleRow
+                    label="Ran"
+                    filter={() => editFilter({editTable: 'ran'})}
+                  />
                   <GatewayRAN gwInfo={gwInfo} />
+                </Grid>
+                <Grid item xs={12}>
+                  <CardTitleRow
+                    label="Header Enrichment"
+                    filter={() => editFilter({editTable: 'headerEnrichment'})}
+                  />
+                  <GatewayHE gwInfo={gwInfo} />
                 </Grid>
               </Grid>
             </Grid>
@@ -390,4 +375,86 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
   ];
 
   return <DataGrid data={ran} />;
+}
+
+function ApnResourcesTable({gwInfo}: {gwInfo: lte_gateway}) {
+  const apnResources = gwInfo.apn_resources || {};
+  type ApnResourcesRowType = {
+    name: string,
+    id: string,
+    vlanId: number | string,
+  };
+  const apnResourcesRows: Array<ApnResourcesRowType> = Object.keys(
+    apnResources,
+  ).map((apn: string) => {
+    const apnRow = apnResources[apn];
+    return {
+      name: apn,
+      id: apnRow.id,
+      vlanId: apnRow.vlan_id ?? '-',
+    };
+  });
+
+  return (
+    <ActionTable
+      title=""
+      data={apnResourcesRows}
+      columns={[
+        {title: 'Name', field: 'name'},
+        {title: 'Resource ID', field: 'id'},
+        {title: 'VLAN ID', field: 'vlanId'},
+      ]}
+      options={{
+        actionsColumnIndex: -1,
+        pageSizeOptions: [5],
+        toolbar: false,
+      }}
+    />
+  );
+}
+
+function GatewayHE({gwInfo}: {gwInfo: lte_gateway}) {
+  const heEnabled =
+    gwInfo.cellular.he_config?.enable_header_enrichment ?? false;
+  const encryptionEnabled =
+    gwInfo.cellular.he_config?.enable_encryption ?? false;
+  const EncryptionDetail = () => {
+    const encryptionConfig: DataRows[] = [
+      [
+        {
+          category: 'Encryption Key',
+          value: gwInfo.cellular.he_config?.encryption_key || '',
+          obscure: true,
+        },
+        {
+          category: 'Encoding Type',
+          value: gwInfo.cellular.he_config?.he_encoding_type || '',
+        },
+      ],
+      [
+        {
+          category: 'Encryption Algorithm',
+          value: gwInfo.cellular.he_config?.he_encryption_algorithm || '',
+        },
+        {
+          category: 'Hash Function',
+          value: gwInfo.cellular.he_config?.he_hash_function || '',
+        },
+      ],
+    ];
+    return <DataGrid data={encryptionConfig} />;
+  };
+
+  const heConfig: DataRows[] = [
+    [
+      {
+        statusCircle: true,
+        status: heEnabled,
+        category: 'Header Enrichment',
+        value: heEnabled ? 'Enabled' : 'Disabled',
+        collapse: encryptionEnabled ? <EncryptionDetail /> : <></>,
+      },
+    ],
+  ];
+  return <DataGrid data={heConfig} />;
 }

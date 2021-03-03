@@ -109,6 +109,7 @@ ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 qos:
  enable: true
  impl: linux_tc
+ enable_pyroute2: true
  max_rate: 1000000000
  linux_tc:
   min_idx: 2
@@ -116,6 +117,7 @@ qos:
  ovs_meter:
   min_idx: 2
   max_idx: 100000
+ apn_ambr_enabled: true
 
 monitored_ifaces: ['gtp_br0',
                    'gtp0',
@@ -155,9 +157,13 @@ uplink_bridge: uplink_br0
 uplink_eth_port_name: uplink_p0
 uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 
-ovs_gtp_stats_polling_interval: 60
+ovs_gtp_stats_polling_interval: 180
 
 he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
+
+# Make as a True when gnb ip will support for uplink 
+ovs_multi_tunnel: False
+
 # For 5G Functionality Support flag
 5G_feature_set:
  enable: False

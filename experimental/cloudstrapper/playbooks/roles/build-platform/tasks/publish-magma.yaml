@@ -1,0 +1,41 @@
+---
+
+- name: install docker-py
+  command: "{{ dirShim }}/pip3 install pip install docker-py"
+  tags: tryMagma
+
+- name: login to docker
+  docker_login:
+    username: "{{ dockerUser }}"
+    password: "{{ dockerPassword }}"
+  tags: pushMagma
+
+- name: add tag to local image
+  docker_image:
+    name: "orc8r_{{ item }}:{{ buildDockerLabel }}"
+    repository: "{{ dockerUser }}/{{ item }}:{{ buildOrc8rLabel }}" 
+    force_tag: yes
+    source: local
+  tags: tryMagma
+  with_items:
+    - controller
+    - nginx
+
+- name: add tag to local image
+  docker_image:
+    name: "{{ item }}_{{ item }}:{{ buildDockerLabel }}"
+    repository: "{{ dockerUser }}/{{ item }}:{{ buildOrc8rLabel }}"
+    force_tag: yes
+    source: local
+  tags: tryMagma 
+  with_items:
+    - magmalte
+
+- name: push all images
+  command: docker push "{{ dockerUser }}/{{ item }}:{{ buildOrc8rLabel }}"
+  with_items:
+    - controller
+    - nginx
+    - magmalte
+  tags: pushMagma
+

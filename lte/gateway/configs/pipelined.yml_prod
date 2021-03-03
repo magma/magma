@@ -105,8 +105,9 @@ ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 
 # QoS parameters
 qos:
- enable: false
+ enable: true
  impl: linux_tc
+ enable_pyroute2: True
  max_rate: 1000000000
  linux_tc:
   min_idx: 2
@@ -152,4 +153,4 @@ uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 
 he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
 
-ovs_gtp_stats_polling_interval: 60
+ovs_gtp_stats_polling_interval: 180

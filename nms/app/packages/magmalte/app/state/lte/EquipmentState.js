@@ -17,6 +17,7 @@ import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {EnodebState} from '../../components/context/EnodebContext';
 import type {
   enodeb_serials,
+  gateway_cellular_configs,
   gateway_dns_configs,
   gateway_epc_configs,
   gateway_id,
@@ -130,11 +131,11 @@ export async function FetchEnodebs(props: FetchProps) {
             enodebSerial: id,
           },
         );
-        const newEnb = {[id]: {enb_state: newEnbSt || {}, enb: enb}};
+        const newEnb = {[id]: {enb_state: newEnbSt, enb: enb}};
         return newEnb;
       }
     } catch (e) {
-      return {[id]: {enb_state: {} || {}, enb: enb}};
+      return {[id]: {enb_state: {}, enb: enb}};
     }
   } else {
     enb = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
@@ -318,6 +319,7 @@ export type UpdateGatewayProps = {
   epcConfigs?: gateway_epc_configs,
   ranConfigs?: gateway_ran_configs,
   dnsConfig?: gateway_dns_configs,
+  cellularConfigs?: gateway_cellular_configs,
   enbs?: enodeb_serials,
   networkId: network_id,
   setLteGateways: ({[string]: lte_gateway}) => void,
@@ -377,6 +379,16 @@ export async function UpdateGateway(props: UpdateGatewayProps) {
         networkId,
         gatewayId: gatewayId,
         config: props.dnsConfig,
+      }),
+    );
+  }
+
+  if (props.cellularConfigs) {
+    requests.push(
+      MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellular({
+        networkId,
+        gatewayId: gatewayId,
+        config: props.cellularConfigs,
       }),
     );
   }

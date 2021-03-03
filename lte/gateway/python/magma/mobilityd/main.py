@@ -125,7 +125,8 @@ def main():
     ip_address_man = IPAddressManager(ipv4_allocator, ipv6_allocator, store)
 
     # Add all servicers to the server
-    mobility_service_servicer = MobilityServiceRpcServicer(ip_address_man)
+    mobility_service_servicer = MobilityServiceRpcServicer(
+        ip_address_man, config.get('print_grpc_payload', False))
     mobility_service_servicer.add_to_server(service.rpc_server)
 
     # Load IPv4 and IPv6 blocks from the configurable mconfig file

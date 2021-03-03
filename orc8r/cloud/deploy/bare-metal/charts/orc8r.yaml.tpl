@@ -14,6 +14,8 @@ controller:
       pass: ${orc8r_db_pass}
       port: 3306
       user: ${orc8r_db_user}
+  service:
+    portEnd: 9121
 
 imagePullSecrets:
 - name: artifactory

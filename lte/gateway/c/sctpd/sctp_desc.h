@@ -31,9 +31,9 @@ class SctpDesc {
   SctpDesc(int sd);
 
   // Add assocation, assoc, to the list of assocations - keyed by assoc_id
-  void addAssoc(const SctpAssoc &assoc);
+  void addAssoc(const SctpAssoc& assoc);
   // Get association keyed by assoc_id, throw std::out_of_range otherwise
-  SctpAssoc &getAssoc(uint32_t assoc_id);
+  SctpAssoc& getAssoc(uint32_t assoc_id);
   // Remove assoc keyed by assoc_id from assoc list, returns 0/-1 on ok/fail
   int delAssoc(uint32_t assoc_id);
 
@@ -55,5 +55,5 @@ class SctpDesc {
   int _sd;
 };
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma
