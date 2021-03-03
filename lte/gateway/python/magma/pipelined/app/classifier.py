@@ -24,6 +24,7 @@ from ryu.lib.packet import ether_types
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import TUN_PORT_REG
+from lte.protos.mobilityd_pb2 import IPAddress
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
@@ -161,7 +162,7 @@ class Classifier(MagmaController):
 
 
     def add_tunnel_flows(self, precedence:int, i_teid:int,
-                         o_teid:int, ue_ip_adr:str,
+                         o_teid:int, ue_ip_adr:IPAddress,
                          enodeb_ip_addr:str, sid:int = None) -> bool:
 
         parser = self._datapath.ofproto_parser
@@ -188,11 +189,18 @@ class Classifier(MagmaController):
         # Install Downlink Tunnel
         actions = []
         if ue_ip_adr:
+            # Add flow for LOCAL port
+            if ue_ip_adr.version == IPAddress.IPV6:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                   in_port=self._uplink_port,
+                                   ipv6_dst=ipaddress.IPv6Address(ue_ip_adr.address.decode('utf-8')))
+            else:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                   in_port=self._uplink_port,
+                                   ipv4_dst=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
+
             if o_teid and enodeb_ip_addr:
 
-                # Add flow for LOCAL port
-                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,in_port=self._uplink_port,
-                                   ipv4_dst=ue_ip_adr)
                 actions = [parser.OFPActionSetField(tunnel_id=o_teid),
                            parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr),
                            parser.OFPActionSetField(tun_flags=TUNNEL_OAM_FLAG),
@@ -204,16 +212,23 @@ class Classifier(MagmaController):
                                priority=priority, goto_table=self.next_table)
 
             # Add flow for mtr port
-            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                               in_port=self.config.mtr_port,
-                               ipv4_dst=ue_ip_adr)
+            if ue_ip_adr.version == IPAddress.IPV6:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                   in_port=self.config.mtr_port,
+                                   ipv6_dst=ipaddress.IPv6Address(ue_ip_adr.address.decode('utf-8')))
+            else:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                   in_port=self.config.mtr_port,
+                                   ipv4_dst=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
             flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
                            priority=priority, goto_table=self.next_table)
        
             # Add ARP flow for LOCAL port
-            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
-                               in_port=self._uplink_port, arp_tpa=ue_ip_adr)
+            if ue_ip_adr.version == IPAddress.IPV4:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+                                   in_port=self._uplink_port,
+                                   arp_tpa=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
             actions = []
             if sid:
                 actions = [parser.OFPActionSetField(metadata=sid)]
@@ -222,16 +237,17 @@ class Classifier(MagmaController):
                            priority=priority, goto_table=self.next_table)
 
             # Add ARP flow for mtr port
-            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
-                               in_port=self.config.mtr_port,
-                               arp_tpa=ue_ip_adr)
+            if ue_ip_adr.version == IPAddress.IPV4:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+                                   in_port=self.config.mtr_port,
+                                   arp_tpa=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
             flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
                            priority=priority, goto_table=self.next_table)
 
         return True
 
-    def delete_tunnel_flows(self, i_teid:int, ue_ip_adr:str,
+    def delete_tunnel_flows(self, i_teid:int, ue_ip_adr:IPAddress,
                                  enodeb_ip_addr:str = None) -> bool:
 
         # Delete flow for gtp port
@@ -247,26 +263,42 @@ class Classifier(MagmaController):
 
         # Delete flow for LOCAL port
         if ue_ip_adr:
-            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                               in_port=self._uplink_port, ipv4_dst=ue_ip_adr)
+            if ue_ip_adr.version == IPAddress.IPV6:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                   in_port=self._uplink_port,
+                                   ipv6_dst=ipaddress.IPv6Address(ue_ip_adr.address.decode('utf-8')))
+            else:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                   in_port=self._uplink_port,
+                                   ipv4_dst=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
             flows.delete_flow(self._datapath, self.tbl_num, match)
 
             # Delete flow for mtr port
-            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                               in_port=self.config.mtr_port,ipv4_dst=ue_ip_adr)
+            if ue_ip_adr.version == IPAddress.IPV6:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                   in_port=self.config.mtr_port,
+                                   ipv6_dst=ipaddress.IPv6Address(ue_ip_adr.address.decode('utf-8')))
+            else:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                   in_port=self.config.mtr_port,
+                                   ipv4_dst=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
             flows.delete_flow(self._datapath, self.tbl_num, match)
 
             # Delete ARP flow for LOCAL port
-            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
-                              in_port=self._uplink_port, arp_tpa=ue_ip_adr)
+            if ue_ip_adr.version == IPAddress.IPV4:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+                                   in_port=self._uplink_port,
+                                   arp_tpa=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
             flows.delete_flow(self._datapath, self.tbl_num, match)
 
             # Delete ARP flow for mtr port
-            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
-                               in_port=self.config.mtr_port, arp_tpa=ue_ip_adr)
+            if ue_ip_adr.version == IPAddress.IPV4:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+                                   in_port=self.config.mtr_port,
+                                   arp_tpa=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
             flows.delete_flow(self._datapath, self.tbl_num, match)
 
@@ -274,7 +306,7 @@ class Classifier(MagmaController):
 
 
     def _discard_tunnel_flows(self, precedence:int, i_teid:int,
-                              ue_ip_adr:str):
+                              ue_ip_adr:IPAddress):
         priority = Utils.get_of_priority(precedence)
         # discard uplink Tunnel
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
@@ -283,21 +315,33 @@ class Classifier(MagmaController):
                        priority=priority + 1)
 
         # discard downlink Tunnel for LOCAL port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           in_port=self._uplink_port, ipv4_dst=ue_ip_adr)
+        if ue_ip_adr.version == IPAddress.IPV6:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                               in_port=self._uplink_port,
+                               ipv6_dst=ipaddress.IPv6Address(ue_ip_adr.address.decode('utf-8')))
+        else:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                               in_port=self._uplink_port,
+                               ipv4_dst=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
         flows.add_flow(self._datapath, self.tbl_num, match,
                        priority=priority + 1)
 
         # discard downlink Tunnel for mtr port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           in_port=self.config.mtr_port,ipv4_dst=ue_ip_adr)
- 
+        if ue_ip_adr.version == IPAddress.IPV6:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                in_port=self.config.mtr_port,
+                                ipv6_dst=ipaddress.IPv6Address(ue_ip_adr.address.decode('utf-8')))
+        else:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                               in_port=self.config.mtr_port,
+                               ipv4_dst=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
+
         flows.add_flow(self._datapath, self.tbl_num, match,
                        priority=priority + 1)
 
     def _resume_tunnel_flows(self, precedence:int, i_teid:int,
-                             ue_ip_adr:str):
+                             ue_ip_adr:IPAddress):
 
         priority = Utils.get_of_priority(precedence)
         # Forward flow for gtp port
@@ -307,15 +351,27 @@ class Classifier(MagmaController):
                           priority=priority + 1)
 
         # Forward flow for LOCAL port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           in_port=self._uplink_port,ipv4_dst=ue_ip_adr)
+        if ue_ip_adr.version == IPAddress.IPV6:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                               in_port=self._uplink_port,
+                               ipv6_dst=ipaddress.IPv6Address(ue_ip_adr.address.decode('utf-8')))
+        else:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                in_port=self._uplink_port,
+                                ipv4_dst=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
         flows.delete_flow(self._datapath, self.tbl_num, match,
                           priority=priority +1)
 
         # Forward flow for mtr port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           in_port=self.config.mtr_port,ipv4_dst=ue_ip_adr)
+        if ue_ip_adr.version == IPAddress.IPV6:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                in_port=self.config.mtr_port,
+                                ipv6_dst=ipaddress.IPv6Address(ue_ip_adr.address.decode('utf-8')))
+        else:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                               in_port=self.config.mtr_port,
+                               ipv4_dst=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
         flows.delete_flow(self._datapath, self.tbl_num, match,
                           priority=priority + 1)
