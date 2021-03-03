@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+#include <sstream>
 #include "EnumToString.h"
 
 namespace magma {
