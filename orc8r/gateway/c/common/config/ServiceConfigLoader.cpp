@@ -14,7 +14,6 @@
 #include <string>
 #include <iostream>
 
-
 #include "ServiceConfigLoader.h"
 #include "YAMLUtils.h"
 #include "magma_logging.h"
@@ -22,8 +21,8 @@
 namespace magma {
 
 YAML::Node ServiceConfigLoader::load_service_config(
-    const std::string& service_name){
-  auto file_path = std::string(CONFIG_DIR) + service_name + ".yml";
+    const std::string& service_name) {
+  auto file_path         = std::string(CONFIG_DIR) + service_name + ".yml";
   YAML::Node base_config = YAML::LoadFile(file_path);
 
   // Try to override original file, if an override exists
@@ -36,4 +35,4 @@ YAML::Node ServiceConfigLoader::load_service_config(
   return base_config;
 }
 
-}
+}  // namespace magma

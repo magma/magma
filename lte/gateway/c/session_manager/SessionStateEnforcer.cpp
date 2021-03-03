@@ -36,10 +36,10 @@
 std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
 namespace magma {
 void call_back_upf(grpc::Status, magma::UPFSessionContextState response) {
-  std::string imsi             = response.session_snaphot().subscriber_id();
-  uint32_t version             = response.session_snaphot().session_version();
-  uint32_t fteid               = response.session_snaphot().local_f_teid();
-  const std::string session_id = response.session_snaphot().subscriber_id();
+  std::string imsi             = response.session_snapshot().subscriber_id();
+  uint32_t version             = response.session_snapshot().session_version();
+  uint32_t fteid               = response.session_snapshot().local_f_teid();
+  const std::string session_id = response.session_snapshot().subscriber_id();
   MLOG(MINFO) << " Async Response received from UPF: imsi " << imsi
               << " local fteid : " << fteid;
   conv_session_enforcer->get_event_base().runInEventBaseThread(

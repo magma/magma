@@ -1,6 +1,6 @@
 # magmad service
 
-[![facebookincubator](https://circleci.com/gh/facebookincubator/magma.svg?style=shield)](https://circleci.com/gh/facebookincubator/magma)
+[![magma](https://circleci.com/gh/magma/magma.svg?style=shield)](https://circleci.com/gh/magma/magma)
 
 **magmad** service is a core part of [magma](https://magma.github.io/magma) gateway platform, it is required on every gateway and facilitates the following gateway functionality:
 

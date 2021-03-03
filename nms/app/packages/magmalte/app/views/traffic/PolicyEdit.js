@@ -27,6 +27,7 @@ import LteNetworkContext from '../../components/context/LteNetworkContext';
 import PolicyAppEdit from './PolicyApp';
 import PolicyContext from '../../components/context/PolicyContext';
 import PolicyFlowsEdit from './PolicyFlows';
+import PolicyHeaderEnrichmentEdit from './PolicyHeaderEnrichment';
 import PolicyInfoEdit from './PolicyInfo';
 import PolicyRedirectEdit from './PolicyRedirect';
 import PolicyTrackingEdit from './PolicyTracking';
@@ -39,7 +40,19 @@ import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-
+const DEFAULT_POLICY_RULE = {
+  qos_profile: undefined,
+  id: '',
+  priority: 1,
+  flow_list: [],
+  rating_group: 0,
+  redirect_information: {},
+  monitoring_key: '',
+  app_name: undefined,
+  app_service_type: undefined,
+  assigned_subscribers: undefined,
+  header_enrichment_targets: undefined,
+};
 const useStyles = makeStyles(() => ({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
@@ -70,42 +83,22 @@ export default function PolicyRuleEditDialog(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
 
-  const [rule, setRule] = useState(
-    props.rule || {
-      qos_profile: undefined,
-      id: '',
-      priority: 1,
-      flow_list: [],
-      rating_group: 0,
-      redirect_information: {},
-      monitoring_key: '',
-      app_name: undefined,
-      app_service_type: undefined,
-      assigned_subscribers: undefined,
-    },
-  );
+  const [rule, setRule] = useState(props.rule || DEFAULT_POLICY_RULE);
 
   useEffect(() => {
-    setRule(
-      props.rule || {
-        qos_profile: undefined,
-        id: '',
-        priority: 1,
-        flow_list: [],
-        rating_group: 0,
-        redirect_information: {},
-        monitoring_key: '',
-        app_name: undefined,
-        app_service_type: undefined,
-        assigned_subscribers: undefined,
-      },
-    );
+    setRule(props.rule || DEFAULT_POLICY_RULE);
     setError('');
     setTabPos(0);
     setIsNetworkWide(false);
   }, [props.open, props.rule]);
 
-  const tabList = ['Policy', 'Flows', 'Tracking', 'Redirect'];
+  const tabList = [
+    'Policy',
+    'Flows',
+    'Tracking',
+    'Redirect',
+    'Header Enrichment',
+  ];
   if (lteNetwork?.cellular?.epc?.network_services?.includes('dpi')) {
     tabList.push('App');
   }
@@ -144,7 +137,6 @@ export default function PolicyRuleEditDialog(props: Props) {
   };
 
   const onClose = () => {
-    setTabPos(0);
     props.onClose();
   };
 
@@ -195,7 +187,8 @@ export default function PolicyRuleEditDialog(props: Props) {
           {tabPos === 1 && <PolicyFlowsEdit {...editProps} />}
           {tabPos === 2 && <PolicyTrackingEdit {...editProps} />}
           {tabPos === 3 && <PolicyRedirectEdit {...editProps} />}
-          {tabPos === 4 && <PolicyAppEdit {...editProps} />}
+          {tabPos === 4 && <PolicyHeaderEnrichmentEdit {...editProps} />}
+          {tabPos === 5 && <PolicyAppEdit {...editProps} />}
         </List>
       </DialogContent>
       <DialogActions>

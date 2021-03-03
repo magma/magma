@@ -44,6 +44,7 @@ message SendDlReq {
     uint32 assoc_id = 1; // association ID of eNB
     uint32 stream = 2; // stream id within association
     bytes payload = 3; // data to be sent
+    uint32  ppid = 4;
 }
 
 // SendDlRes - response with status of downlink packet send
@@ -61,6 +62,7 @@ message SendUlReq {
     uint32 assoc_id = 1; // association ID of eNB
     uint32 stream = 2; // stream id within association
     bytes payload = 3; // data to be sent
+    uint32  ppid = 4;
 }
 
 // SendUlRes - response for SendUlReq, present for forwards compat
@@ -73,6 +75,7 @@ message NewAssocReq {
     uint32 instreams = 2; // number of instreams for eNB
     uint32 outstreams = 3; // number of outstreams for eNB
     bytes ran_cp_ipaddr = 4; // sctp ran end point IP address
+    uint32  ppid = 5;
 }
 
 // NewAssocRes - response for NewAssocReq, present for forwards compat
@@ -83,6 +86,7 @@ message NewAssocRes {
 message CloseAssocReq {
     uint32 assoc_id = 1; // association ID of eNB
     bool is_reset = 2; // whether the request represents a reset or shutdown
+    uint32  ppid = 3;
 }
 
 // CloseAssocRes - response for CloseAssocReq, present for forwards compat

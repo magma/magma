@@ -683,6 +683,16 @@ func (m *MutableCellularGatewayPool) ToEntity() configurator.NetworkEntity {
 	return ent
 }
 
+func (m *MutableCellularGatewayPool) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	update := configurator.EntityUpdateCriteria{
+		Type:      lte.CellularGatewayPoolEntityType,
+		Key:       string(m.GatewayPoolID),
+		NewName:   &m.GatewayPoolName,
+		NewConfig: m.Config,
+	}
+	return update
+}
+
 func (m *CellularGatewayPoolRecords) FromBackendModels(networkID string, gatewayID string) error {
 	cellularConfig := &GatewayCellularConfigs{}
 	err := cellularConfig.FromBackendModels(networkID, gatewayID)

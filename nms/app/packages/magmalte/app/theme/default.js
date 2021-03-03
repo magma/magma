@@ -310,34 +310,6 @@ export default createMuiTheme({
         width: '100%',
       },
     },
-    MuiDialog: {
-      paper: {
-        backgroundColor: colors.primary.concrete,
-      },
-    },
-    MuiDialogActions: {
-      root: {
-        backgroundColor: colors.primary.white,
-        boxShadow: shadows.DP3,
-        padding: '20px',
-      },
-    },
-    MuiDialogContent: {
-      root: {
-        padding: '32px',
-      },
-    },
-    MuiDialogTitle: {
-      root: {
-        backgroundColor: colors.primary.mirage,
-        padding: '16px 24px',
-        color: colors.primary.white,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-      },
-    },
     MuiFormControl: {
       marginDense: {
         marginTop: '0px',

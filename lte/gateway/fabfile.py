@@ -51,6 +51,7 @@ ORC8R_AGW_PYTHON_ROOT = "$MAGMA_ROOT/orc8r/gateway/python"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests"
 DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 DEFAULT_PROXY = "$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
+TEST_SUMMARY_GLOB = "/var/tmp/test_results/*.xml"
 
 # Look for keys as specified in our ~/.ssh/config
 env.use_ssh_config = True
@@ -260,6 +261,18 @@ def run_integ_tests():
     gateway_ip = '192.168.60.142'
     execute(_run_integ_tests, gateway_ip)
 
+def get_test_summaries(
+        gateway_host=None,
+        test_host=None,
+        dst_path="/tmp"):
+    local('mkdir -p ' + dst_path)
+    _switch_to_vm(gateway_host, "magma", "magma_dev.yml", False)
+    with settings(warn_only=True):
+        get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
+    _switch_to_vm(test_host, "magma_test", "magma_test.yml", False)
+    with settings(warn_only=True):
+        get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
+
 
 def get_test_logs(gateway_host=None,
                   test_host=None,
@@ -348,7 +361,7 @@ def get_test_logs(gateway_host=None,
 def _dist_upgrade():
     """ Upgrades OS packages on dev box """
     run('sudo apt-get update')
-    run('sudo apt-get -y dist-upgrade')
+    run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade')
 
 
 def _build_magma():
@@ -453,3 +466,10 @@ def _run_integ_tests(gateway_ip='192.168.60.142'):
           ' export GATEWAY_IP=%s;'
           ' make integ_test\''
           % (key, host, port, gateway_ip))
+
+
+def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
+    if not addr:
+        vagrant_setup(host_name, destroy_vm)
+    else:
+        ansible_setup(addr, host_name, ansible_file)

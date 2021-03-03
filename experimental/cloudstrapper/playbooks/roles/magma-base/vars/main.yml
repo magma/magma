@@ -1,0 +1,16 @@
+---
+magmaVersion: "{{ orc8rVersion }}"
+magmaRepo: https://github.com/magma/magma.git
+pkgGateway:
+  - sudo
+  - curl
+  - make
+  - virtualenv
+  - zip
+  - rsync
+  - git
+  - software-properties-common
+  - python3-pip
+  - python-dev
+  - ansible
+
