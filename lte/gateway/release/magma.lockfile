@@ -198,6 +198,12 @@
       "sysdep": "python3-pymemoize",
       "version": "1.0.2"
     },
+    "pyroute2": {
+      "root": true,
+      "source": "apt",
+      "sysdep": "python3-pyroute2",
+      "version": "0.3.16"
+    },
     "pystemd": {
       "root": true,
       "source": "pypi",
