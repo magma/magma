@@ -170,7 +170,7 @@ message UpdateLocationAnswer {
 
     NetworkAccessMode network_access_mode = 8;
 
-    repeated string regional_subscription_zone_code = 9;
+    repeated bytes regional_subscription_zone_code = 9;
 
     message APNConfiguration {
         // APN identifier

@@ -59,6 +59,8 @@ func main() {
 		log.Fatalf("Error creating service: %s", err)
 	}
 
+	obsidian.EnableDynamicSwaggerSpecs = srv.Config.MustGetBool(obsidian.EnableDynamicSwaggerSpecsKey)
+
 	if obsidian.Port == -1 {
 		obsidian.Port = obsidian.DefaultPort
 		if obsidian.TLS {

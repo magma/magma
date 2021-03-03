@@ -1,0 +1,45 @@
+---
+
+- name: install pyenv dependencies
+  apt:
+    name: "{{ pyenvDeps }}"
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: download pyenv
+  get_url:
+    url: https://pyenv.run
+    dest: "{{ binPyenv }}"
+
+- name: remove pyenv
+  file:
+    path: "{{ usrHome }}/.pyenv"
+    state: absent
+
+- name: install pyenv
+  command: /usr/bin/bash "{{ binPyenv }}"
+
+- name: update bash profile
+  lineinfile:
+    path: "{{ usrProfile }}"
+    regexp: '^if command -v pyenv 1'
+    line: "{{ item }}"
+  with_items:
+    - "export PATH={{ usrHome }}/.pyenv/bin:$PATH"
+    - 'if command -v pyenv 1>/dev/null 2>&1; then  eval "$(pyenv init -)"; fi'
+
+- name: Source bash profile.
+  shell: . "{{ usrProfile }}"
+
+- name: install and apply pyenv
+  command: "{{ item }}"
+  with_items:
+    - "{{ usrHome }}/.pyenv/bin/pyenv install {{ pyenvVersion }}"
+    - "{{ usrHome }}/.pyenv/bin/pyenv global {{ pyenvVersion }}"
+  
+- name: install pip packages
+  pip:
+    name: "{{ item }}"
+  loop: "{{ pipPackages }}"
+

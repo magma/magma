@@ -37,6 +37,8 @@
 #ifndef FILE_3GPP_23_003_SEEN
 #define FILE_3GPP_23_003_SEEN
 
+#include <stdint.h>
+
 //==============================================================================
 // 12  Identification of PLMN, RNC, Service Area, CN domain and Shared Network
 // Area

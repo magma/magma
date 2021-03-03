@@ -36,6 +36,7 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_sgs_fsm.h"
 #include "emm_proc.h"
+#include <czmq.h>
 
 #define INVALID_BEARER_INDEX -1
 #define IPV6_ADDRESS_SIZE 16
@@ -156,8 +157,8 @@ void mme_app_handle_mobile_reachability_timer_expiry(
 
 void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64);
 
-void mme_app_handle_initial_context_setup_rsp_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_initial_context_setup_rsp_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
 void mme_app_handle_ue_context_modification_timer_expiry(
     void* args, imsi64_t* imsi64);

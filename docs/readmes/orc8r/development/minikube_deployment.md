@@ -28,7 +28,7 @@ Setup minikube with the following command to give it enough resources and seed t
 metrics config files:
 
 ```
-$ minikube start --memory=8192 --cpus=8 --kubernetes-version=v1.14.1 --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
+$ minikube start --memory=8192 --cpus=8 --kubernetes-version=v1.18.0 --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
 ```
 
 > Note: This has been tested on MacOS. There are a lot of things that can go wrong
@@ -43,7 +43,7 @@ $ helm install \
     --create-namespace \
     --namespace magma \
     --set postgresqlPassword=postgres,postgresqlDatabase=magma,fullnameOverride=postgresql \
-    stable/postgresql
+    bitnami/postgresql
 ```
 
 Mysql is a requirement to run the NMS (you can skip this step if you don't want the NMS)
@@ -55,7 +55,7 @@ $ helm install mysql \
     stable/mysql
 ```
 
-> Note: You may need to run `helm repo add stable https://kubernetes-charts.storage.googleapis.com/` if the chart is not found
+> Note: You may need to run `helm repo add bitnami https://charts.bitnami.com/bitnami` if the chart is not found
 
 ### Generate Secrets
 
@@ -100,7 +100,7 @@ helm template orc8r-secrets charts/secrets \
 
 ### Create Values File
 
-A minimum values file that can be used to deploy orc8r is at `${MAGMA_ROOT}/cloud/helm/orc8r/helm/examples/minikube_values.yml`.
+A minimum values file that can be used to deploy orc8r is at `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/examples/minikube_values.yml`.
 Use that file and make sure to replace `<DOCKER_REGISTRY>` with your registry and `<TAG>` with your tag.
 
 Save this file wherever you want.
@@ -108,8 +108,8 @@ Save this file wherever you want.
 ### Install with Helm
 
 ```
-$ helm dep update
 $ cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
+$ helm dep update
 $ helm install orc8r --namespace magma . --values=<path-to-values-file>
 ```
 

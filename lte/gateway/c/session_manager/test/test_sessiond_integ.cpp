@@ -355,15 +355,6 @@ TEST_F(SessiondTest, end_to_end_success) {
             CheckActivateFlowsForTunnIds(
                 IMSI1, ipv4_addrs, ipv6_addrs, enb_teid, agw_teid, 3),
             testing::_))
-        .Times(1);
-    // Here is the call for dynamic rules, which in this case should be empty.
-    EXPECT_CALL(
-        *pipelined_mock,
-        ActivateFlows(
-            testing::_,
-            CheckActivateFlowsForTunnIds(
-                IMSI1, ipv4_addrs, ipv6_addrs, enb_teid, agw_teid, 0),
-            testing::_))
         .WillOnce(testing::DoAll(
             SetPromise(&tunnel_promise), testing::Return(grpc::Status::OK)));
   }

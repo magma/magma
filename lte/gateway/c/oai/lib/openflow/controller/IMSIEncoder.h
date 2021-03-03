@@ -16,6 +16,7 @@
  */
 
 #include <stdint.h>
+#include <string>
 
 namespace openflow {
 

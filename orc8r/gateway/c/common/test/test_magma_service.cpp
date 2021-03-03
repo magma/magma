@@ -16,12 +16,13 @@
 
 using ::testing::Test;
 
-namespace magma { namespace service303 {
+namespace magma {
+namespace service303 {
 
-const std::string MAGMA_SERVICE_NAME = "test_service";
+const std::string MAGMA_SERVICE_NAME    = "test_service";
 const std::string MAGMA_SERVICE_VERSION = "0.0.0";
-const std::string META_KEY = "key";
-const std::string META_VALUE = "value";
+const std::string META_KEY              = "key";
+const std::string META_VALUE            = "value";
 
 TEST(test_magma_service, test_GetServiceInfo) {
   MagmaService magma_service(MAGMA_SERVICE_NAME, MAGMA_SERVICE_VERSION);
@@ -50,7 +51,7 @@ TEST(test_magma_service, test_GetServiceInfo) {
 }
 
 ServiceInfoMeta test_callback() {
-  return ServiceInfoMeta {{META_KEY, META_VALUE}};
+  return ServiceInfoMeta{{META_KEY, META_VALUE}};
 }
 
 TEST(test_magma_service, test_GetServiceInfo_with_callback) {
@@ -110,9 +111,10 @@ TEST(test_magma_service, test_ReloadServiceConfig) {
   EXPECT_EQ(response.result(), ReloadConfigResponse::RELOAD_UNSUPPORTED);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
 
-}}
+}  // namespace service303
+}  // namespace magma

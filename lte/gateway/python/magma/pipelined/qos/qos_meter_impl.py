@@ -57,7 +57,7 @@ class MeterManager(object):
         ofproto = self._datapath.ofproto
         return None, parser.OFPInstructionMeter(meter_id, ofproto.OFPIT_METER)
 
-    def add_qos(self, _, qos_info: QosInfo, parent=None) -> int:
+    def add_qos(self, _, qos_info: QosInfo, parent=None, __=False) -> int:
         if self._qos_impl_broken:
             raise RuntimeError(BROKEN_KERN_ERROR_MSG)
 
@@ -72,7 +72,7 @@ class MeterManager(object):
         LOG.debug("Adding meter_id %d", meter_id)
         return meter_id
 
-    def remove_qos(self, meter_id: int, d, recovery_mode=False):
+    def remove_qos(self, meter_id: int, d, recovery_mode=False, _=False):
         LOG.debug("Removing meter %d d %d recovery_mode %s", meter_id,
                   d, recovery_mode)
         if meter_id < self._start_idx or meter_id > (self._max_idx - 1):

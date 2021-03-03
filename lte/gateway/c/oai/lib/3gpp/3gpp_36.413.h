@@ -40,6 +40,7 @@
 
 #include "3gpp_24.007.h"
 #include "3gpp_29.274.h"
+#include "common_types.h"
 
 // 9.2.1.60 Allocation and Retention Priority
 // This IE specifies the relative importance compared to other E-RABs for

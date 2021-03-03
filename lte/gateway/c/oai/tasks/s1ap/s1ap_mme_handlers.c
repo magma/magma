@@ -2220,7 +2220,6 @@ bool s1ap_send_enb_deregistered_ind(
     *resultP = arg->message_p;
   } else {
     OAILOG_TRACE(LOG_S1AP, "No valid UE provided in callback: %p\n", ue_ref_p);
-    AssertFatal(0, "No valid UE while creating S1AP_ENB_DEREGISTERED_IND");
   }
   return false;
 }

@@ -86,6 +86,8 @@ class BridgeTools:
         if ip is not None:
             subprocess.Popen(["ifconfig", iface_name, ip]).wait()
 
+        subprocess.Popen(["ifconfig", iface_name, "up"]).wait()
+
     @staticmethod
     def add_ovs_port(bridge_name: str, iface_name: str, ofp_port: str):
         """
@@ -138,6 +140,8 @@ class BridgeTools:
                           "other-config:disable-in-band=true"]).wait()
         subprocess.Popen(["ovs-vsctl", "set-controller", bridge_name,
                           "tcp:127.0.0.1:6633", "tcp:127.0.0.1:6654"]).wait()
+        subprocess.Popen(["ovs-vsctl", "set-manager", bridge_name,
+                          "ptcp:6640"]).wait()
         subprocess.Popen(["ifconfig", iface_name, "192.168.1.1/24"]).wait()
 
     @staticmethod
