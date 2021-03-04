@@ -40,9 +40,10 @@ namespace magma {
 class LocalEnforcerTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
-    reporter             = std::make_shared<MockSessionReporter>();
-    rule_store           = std::make_shared<StaticRuleStore>();
-    session_store        = std::make_shared<SessionStore>(rule_store);
+    reporter      = std::make_shared<MockSessionReporter>();
+    rule_store    = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(
+        rule_store, std::make_shared<MeteringReporter>());
     pipelined_client     = std::make_shared<MockPipelinedClient>();
     directoryd_client    = std::make_shared<MockDirectorydClient>();
     spgw_client          = std::make_shared<MockSpgwServiceClient>();

@@ -132,7 +132,8 @@ void set_consts(const YAML::Node& config) {
 
 magma::SessionStore* create_session_store(
     const YAML::Node& config,
-    std::shared_ptr<magma::StaticRuleStore> rule_store) {
+    std::shared_ptr<magma::StaticRuleStore> rule_store,
+    std::shared_ptr<magma::MeteringReporter> metering_reporter) {
   bool is_stateless = config["support_stateless"].IsDefined() &&
                       config["support_stateless"].as<bool>();
   if (is_stateless) {
@@ -146,10 +147,10 @@ magma::SessionStore* create_session_store(
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     } while (!connected);
     MLOG(MINFO) << "Successfully connected to Redis";
-    return new magma::SessionStore(rule_store, store_client);
+    return new magma::SessionStore(rule_store, metering_reporter, store_client);
   } else {
     MLOG(MINFO) << "Session store in memory";
-    return new magma::SessionStore(rule_store);
+    return new magma::SessionStore(rule_store, metering_reporter);
   }
 }
 
@@ -262,7 +263,12 @@ int main(int argc, char* argv[]) {
   });
 
   // Case on stateless config, setup the appropriate store client
-  magma::SessionStore* session_store = create_session_store(config, rule_store);
+  auto metering_reporter = std::make_shared<magma::MeteringReporter>();
+  magma::SessionStore* session_store =
+      create_session_store(config, rule_store, metering_reporter);
+  // service restart clears the UE metering metrics, so we need to offset
+  // metering_reporter with existing usage
+  session_store->initialize_metering_counter();
 
   // Some setup work for the SessionCredit class
   set_consts(config);

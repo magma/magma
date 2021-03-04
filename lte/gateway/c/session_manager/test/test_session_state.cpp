@@ -591,7 +591,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
 TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_no_key) {
   insert_rule(0, "", "rule1", STATIC, 0, 0);
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
-  SessionState::TotalCreditUsage actual =
+  SessionCredit::TotalCreditUsage actual =
       session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 0);
   EXPECT_EQ(actual.monitoring_rx, 0);
@@ -603,7 +603,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_single_key) {
   insert_rule(1, "", "rule1", STATIC, 0, 0);
   receive_credit_from_ocs(1, 3000);
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
-  SessionState::TotalCreditUsage actual =
+  SessionCredit::TotalCreditUsage actual =
       session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 0);
   EXPECT_EQ(actual.monitoring_rx, 0);
@@ -616,7 +616,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_multiple_key) {
   receive_credit_from_ocs(1, 3000);
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
-  SessionState::TotalCreditUsage actual =
+  SessionCredit::TotalCreditUsage actual =
       session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 2000);
   EXPECT_EQ(actual.monitoring_rx, 1000);
@@ -633,7 +633,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_multiple_rule_shared_key) {
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
   session_state->add_rule_usage("rule1", 1000, 10, update_criteria);
   session_state->add_rule_usage("rule2", 500, 5, update_criteria);
-  SessionState::TotalCreditUsage actual =
+  SessionCredit::TotalCreditUsage actual =
       session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 1500);
   EXPECT_EQ(actual.monitoring_rx, 15);

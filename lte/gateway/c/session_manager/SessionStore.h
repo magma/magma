@@ -69,10 +69,13 @@ class SessionStore {
  public:
   static SessionUpdate get_default_session_update(SessionMap& session_map);
 
-  SessionStore(std::shared_ptr<StaticRuleStore> rule_store);
+  SessionStore(
+      std::shared_ptr<StaticRuleStore> rule_store,
+      std::shared_ptr<magma::MeteringReporter> metering_reporter);
 
   SessionStore(
       std::shared_ptr<StaticRuleStore> rule_store,
+      std::shared_ptr<magma::MeteringReporter> metering_reporter,
       std::shared_ptr<RedisStoreClient> store_client);
 
   /**
@@ -167,6 +170,13 @@ class SessionStore {
    */
   optional<SessionVector::iterator> find_session(
       SessionMap& session_map, SessionSearchCriteria criteria);
+
+  // TODO move this logic outside of this class into MeteringReporter
+  /**
+   * This function loops through all sessions and propagates the total usage to
+   * metering_reporter
+   */
+  void initialize_metering_counter();
 
  private:
   std::shared_ptr<StaticRuleStore> rule_store_;

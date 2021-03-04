@@ -234,7 +234,7 @@ class SessionState {
    * rules (static and dynamic)
    * Should be called after can_complete_termination.
    */
-  TotalCreditUsage get_total_credit_usage();
+  SessionCredit::TotalCreditUsage get_total_credit_usage();
 
   std::string get_session_id() const;
 

@@ -19,17 +19,20 @@
 namespace magma {
 namespace lte {
 
-SessionStore::SessionStore(std::shared_ptr<StaticRuleStore> rule_store)
+SessionStore::SessionStore(
+    std::shared_ptr<StaticRuleStore> rule_store,
+    std::shared_ptr<magma::MeteringReporter> metering_reporter)
     : rule_store_(rule_store),
       store_client_(std::make_shared<MemoryStoreClient>(rule_store)),
-      metering_reporter_(std::make_shared<MeteringReporter>()) {}
+      metering_reporter_(metering_reporter) {}
 
 SessionStore::SessionStore(
     std::shared_ptr<StaticRuleStore> rule_store,
+    std::shared_ptr<magma::MeteringReporter> metering_reporter,
     std::shared_ptr<RedisStoreClient> store_client)
     : rule_store_(rule_store),
       store_client_(store_client),
-      metering_reporter_(std::make_shared<MeteringReporter>()) {}
+      metering_reporter_(metering_reporter) {}
 
 SessionMap SessionStore::read_sessions(const SessionRead& req) {
   return store_client_->read_sessions(req);
@@ -165,6 +168,8 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
         if (!(*it2)->apply_update_criteria(update)) {
           return false;
         }
+        // TODO pull the metering logic out of SessionStore. SessionStore should
+        // only handle logic relating to storage/search.
         metering_reporter_->report_usage(imsi, session_id, update);
 
         if (update.is_session_ended) {
@@ -178,6 +183,24 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
     }
   }
   return store_client_->write_sessions(std::move(session_map));
+}
+
+void SessionStore::initialize_metering_counter() {
+  auto session_map = store_client_->read_all_sessions();
+  for (auto& sessions_by_imsi : session_map) {
+    const std::string imsi = sessions_by_imsi.first;
+    for (auto& session : sessions_by_imsi.second) {
+      const std::string session_id = session->get_session_id();
+      auto total_usage             = session->get_total_credit_usage();
+      MLOG(MDEBUG) << "Initializing metering metrics on startup for "
+                   << session_id
+                   << ", monitoring: {tx=" << total_usage.monitoring_tx
+                   << ", rx=" << total_usage.monitoring_rx
+                   << "}, charging: {tx=" << total_usage.charging_tx
+                   << ", rx=" << total_usage.charging_rx << "}";
+      metering_reporter_->initialize_usage(imsi, session_id, total_usage);
+    }
+  }
 }
 
 optional<SessionVector::iterator> SessionStore::find_session(
