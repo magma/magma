@@ -10137,7 +10137,7 @@ definitions:
     properties:
       correlation_id:
         example: 605394647632969700
-        format: int64
+        format: uint64
         type: integer
       delivery_type:
         enum:

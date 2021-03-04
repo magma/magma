@@ -244,7 +244,7 @@ definitions:
         example: 'events_only'
       correlation_id:
         type: integer
-        format: int64
+        format: uint64
         example: 605394647632969700
       duration:
         type: integer
