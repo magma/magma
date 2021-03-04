@@ -14,7 +14,6 @@
 package handlers
 
 import (
-	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -261,14 +260,13 @@ func createNetworkProbeTask(c echo.Context) error {
 
 	// generate random correlation ID if not provided
 	if payload.TaskDetails.CorrelationID == 0 {
-		payload.TaskDetails.CorrelationID = rand.Int63()
+		payload.TaskDetails.CorrelationID = rand.Uint64()
 	}
 
 	if time.Time(payload.TaskDetails.Timestamp).IsZero() {
 		payload.TaskDetails.Timestamp = strfmt.DateTime(time.Now().UTC())
 	}
 
-	fmt.Printf("Payload %v\n", payload.TaskDetails)
 	_, err2 := configurator.CreateEntity(
 		networkID,
 		configurator.NetworkEntity{

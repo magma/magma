@@ -20,7 +20,7 @@ import (
 type NetworkProbeTaskDetails struct {
 
 	// correlation id
-	CorrelationID int64 `json:"correlation_id,omitempty"`
+	CorrelationID uint64 `json:"correlation_id,omitempty"`
 
 	// delivery type
 	// Required: true
