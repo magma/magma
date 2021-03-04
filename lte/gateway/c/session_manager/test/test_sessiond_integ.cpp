@@ -58,7 +58,8 @@ class SessiondTest : public ::testing::Test {
     spgw_client       = std::make_shared<AsyncSpgwServiceClient>(test_channel);
     events_reporter   = std::make_shared<MockEventsReporter>();
     auto rule_store   = std::make_shared<StaticRuleStore>();
-    session_store     = std::make_shared<SessionStore>(rule_store);
+    session_store     = std::make_shared<SessionStore>(
+        rule_store, std::make_shared<MeteringReporter>());
     insert_static_rule(rule_store, 1, "rule1");
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");

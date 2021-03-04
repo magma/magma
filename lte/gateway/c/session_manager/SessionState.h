@@ -129,13 +129,6 @@ class SessionState {
 
   magma::lte::Fsm_state_FsmState get_proto_fsm_state();
 
-  struct TotalCreditUsage {
-    uint64_t monitoring_tx;
-    uint64_t monitoring_rx;
-    uint64_t charging_tx;
-    uint64_t charging_rx;
-  };
-
  public:
   SessionState(
       const std::string& imsi, const std::string& session_id,
@@ -254,7 +247,7 @@ class SessionState {
    * rules (static and dynamic)
    * Should be called after complete_termination.
    */
-  TotalCreditUsage get_total_credit_usage();
+  SessionCredit::TotalCreditUsage get_total_credit_usage();
 
   ChargingCreditSummaries get_charging_credit_summaries();
 

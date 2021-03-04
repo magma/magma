@@ -53,6 +53,13 @@ void MeteringReporter::report_usage(
   report_download(imsi, session_id, total_rx);
 }
 
+void MeteringReporter::initialize_usage(
+    const std::string& imsi, const std::string& session_id,
+    SessionCredit::TotalCreditUsage usage) {
+  report_upload(imsi, session_id, usage.monitoring_tx + usage.charging_tx);
+  report_download(imsi, session_id, usage.monitoring_rx + usage.charging_rx);
+}
+
 void MeteringReporter::report_upload(
     const std::string& imsi, const std::string& session_id,
     double unreported_usage_bytes) {
