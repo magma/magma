@@ -67,6 +67,7 @@ typedef struct task_zmq_ctx_s {
   zloop_t* event_loop;
   zsock_t* pull_sock;
   zsock_t* push_socks[TASK_MAX];
+  pthread_mutex_t send_mutex;
 } task_zmq_ctx_t;
 
 typedef struct message_info_s {
