@@ -19,8 +19,8 @@ import "time"
 type NProbeMessage struct {
 	Timestamp        time.Time
 	XID              string
+	CorrelationID    int64
 	MatchedTarget    string
-	CorrelationID    string
 	PayloadDirection uint16
 	EventType        string
 }

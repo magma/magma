@@ -89,16 +89,14 @@ func (im *NetworkProbeManager) CollectAndProcessEvents() error {
 		}
 
 		for _, task := range tasks {
-			events, err := im.Collector.GetMultiStreamsEvents(networkID, "", []string{task.TaskDetails.TargetID})
+			events, err := im.Collector.GetMultiStreamsEvents(networkID, task.TaskDetails.Timestamp.String(), []string{task.TaskDetails.TargetID})
 			if err != nil {
 				fmt.Printf("Error while retrieving events for subscriber %v: %s\n", task.TaskDetails.TargetID, err)
 				return err
 			}
 
-			// XID will be retrieved from Task
-			xID := "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
 			for _, event := range events {
-				encoder, err := encoding.MakeField(event, nprobe.IRIRecord, task.TaskDetails.CorrelationID, im.OperatorID, xID)
+				encoder, err := encoding.MakeField(event, nprobe.IRIRecord, string(task.TaskID), im.OperatorID, task.TaskDetails.CorrelationID)
 				if err != nil {
 					glog.Errorf("error building record for event [%s - %s]: %s", event.Timestamp, event.EventType, err)
 					continue

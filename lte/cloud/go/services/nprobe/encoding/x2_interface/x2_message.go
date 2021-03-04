@@ -62,13 +62,13 @@ func encodePdnAddressAllocation(eventData map[string]interface{}) []byte {
 	return allocatedIP
 }
 
-func constructNetworkIdentifier(ipAddr, operatorID []byte) NetworkIdentifier {
+func constructNetworkIdentifier(ipAddr, operatorID string) NetworkIdentifier {
 	return NetworkIdentifier{
-		OperatorIdentifier: operatorID,
+		OperatorIdentifier: []byte(operatorID),
 		NetworkElementIdentifier: NetworkElementIdentifier{
 			IPAddress: IPAddress{
 				IPType:  IPV6Type,
-				IPValue: IPValue{IPBinaryAddress: ipAddr},
+				IPValue: IPValue{IPBinaryAddress: []byte(ipAddr)},
 			},
 		},
 	}
@@ -141,7 +141,7 @@ func processEventSpecificData(event models.Event) (
 	}
 }
 
-func buildAsn1EpsIRIContent(event models.Event, correlationID, operatorID []byte) ([]byte, error) {
+func buildAsn1EpsIRIContent(event models.Event, operatorID string, correlationID int64) ([]byte, error) {
 	eventData := event.Value.(map[string]interface{})
 	specificData, params := processEventSpecificData(event)
 	if params.eventID == UnsupportedEvent {
@@ -153,14 +153,17 @@ func buildAsn1EpsIRIContent(event models.Event, correlationID, operatorID []byte
 		return []byte{}, fmt.Errorf("Failed to parse timestamp %s.", event.Timestamp)
 	}
 
+	corrID := make([]byte, 8)
+	binary.BigEndian.PutUint64(corrID, uint64(correlationID))
+
 	content := EpsIRIContent{
 		Hi2epsDomainID:        GetOID(),
 		TimeStamp:             *timestamp,
 		Initiator:             InitiatorNotAvailable,
 		PartyInformation:      constructPartyInformation(eventData),
-		EPSCorrelationNumber:  correlationID,
+		EPSCorrelationNumber:  corrID,
 		EPSEvent:              params.eventID,
-		NetworkIdentifier:     constructNetworkIdentifier([]byte(params.originIP), operatorID),
+		NetworkIdentifier:     constructNetworkIdentifier(params.originIP, operatorID),
 		EPSSpecificParameters: specificData,
 	}
 
@@ -177,13 +180,13 @@ func buildEpsIRIConditionalAttributes() ([]ConditionalAttribute, error) {
 	return []ConditionalAttribute{}, nil
 }
 
-func ConstructEpsIRIMessage(event models.Event, correlationID, operatorID []byte, xID string) (EpsIRIMessage, error) {
+func ConstructEpsIRIMessage(event models.Event, operatorID, xID string, correlationID int64) (EpsIRIMessage, error) {
 	uuid, err := uuid.FromString(xID)
 	if err != nil {
 		glog.Errorf("Failed to parse xID - type 4 %s\n", xID)
 
 	}
-	content, err := buildAsn1EpsIRIContent(event, correlationID, operatorID)
+	content, err := buildAsn1EpsIRIContent(event, operatorID, correlationID)
 	if err != nil {
 		glog.Errorf("Failed to build IRI Content for this event %s\n", event.EventType)
 		return EpsIRIMessage{}, err
@@ -201,7 +204,7 @@ func ConstructEpsIRIMessage(event models.Event, correlationID, operatorID []byte
 		PayloadLength:         uint32(len(content)),
 		PayloadDirection:      X2PayloadDirectionUnkown,
 		XID:                   uuid,
-		CorrelationID:         binary.BigEndian.Uint64(correlationID),
+		CorrelationID:         uint64(correlationID),
 		ConditionalAttrFields: attrs,
 		Payload:               content,
 	}

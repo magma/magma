@@ -33,17 +33,17 @@ type Encoder interface {
 	Encode() ([]byte, error)
 }
 
-func MakeField(event models.Event, format string, correlationID, opID, xID string) (Encoder, error) {
+func MakeField(event models.Event, format string, opID, xID string, correlationID int64) (Encoder, error) {
 	switch format {
 	case nprobe.IRIRecord:
-		record, err := x2_interface.ConstructEpsIRIMessage(event, []byte(correlationID), []byte(opID), xID)
+		record, err := x2_interface.ConstructEpsIRIMessage(event, opID, xID, correlationID)
 		if err != nil {
 			glog.Errorf("Failed to construct IRI record %v\n", event)
 			return &X2Encoder{}, err
 		}
 		return &X2Encoder{record: record}, nil
 	case nprobe.NProbeRecord:
-		record, err := np_interface.ConstructNProbeRecord(event, correlationID, xID)
+		record, err := np_interface.ConstructNProbeRecord(event, xID, correlationID)
 		if err != nil {
 			glog.Errorf("Failed to construct NProbe record %v\n", event)
 			return &NProbeEncoder{}, err
