@@ -1964,10 +1964,11 @@ static void _generate_dl_flow(
     if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
       struct in_addr remoteaddr = {.s_addr = 0};
-      remoteaddr.s_addr = (packet_filter->ipv4remoteaddr[0].addr << 24) +
-                          (packet_filter->ipv4remoteaddr[1].addr << 16) +
-                          (packet_filter->ipv4remoteaddr[2].addr << 8) +
-                          packet_filter->ipv4remoteaddr[3].addr;
+      remoteaddr.s_addr =
+          (((uint32_t) packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[3].addr));
       dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
       dlflow->set_params |= SRC_IPV4;
       dlflow->dst_ip.s_addr = ipv4_s_addr;
@@ -1990,10 +1991,11 @@ static void _generate_dl_flow(
     if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
       struct in_addr remoteaddr = {.s_addr = 0};
-      remoteaddr.s_addr = (packet_filter->ipv4remoteaddr[0].addr << 24) +
-                          (packet_filter->ipv4remoteaddr[1].addr << 16) +
-                          (packet_filter->ipv4remoteaddr[2].addr << 8) +
-                          packet_filter->ipv4remoteaddr[3].addr;
+      remoteaddr.s_addr =
+          (((uint32_t) packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[3].addr));
       dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
       dlflow->set_params |= SRC_IPV4;
     }

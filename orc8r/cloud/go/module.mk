@@ -50,6 +50,9 @@ copy_swagger_files:
 lint:
 	golangci-lint run
 
+swagger_tools:
+	go install magma/orc8r/cloud/go/tools/combine_swagger
+
 test::
 	go test ./...
 

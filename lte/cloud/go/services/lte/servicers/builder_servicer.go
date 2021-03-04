@@ -149,6 +149,8 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 			Ipv4SgwS1UAddr:           gwEpc.IPV4SgwS1uAddr,
+			RestrictedPlmns:          getRestrictedPlmns(nwEpc.RestrictedPlmns),
+			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -492,4 +494,24 @@ func shouldEnableDNSCaching(dns *lte_models.GatewayDNSConfigs) bool {
 		return false
 	}
 	return swag.BoolValue(dns.EnableCaching)
+}
+
+func getRestrictedPlmns(plmns []*lte_models.PlmnConfig) []*lte_mconfig.MME_PlmnConfig {
+	ret := make([]*lte_mconfig.MME_PlmnConfig, len(plmns))
+	for idx, plmn := range plmns {
+		ret[idx] = &lte_mconfig.MME_PlmnConfig{Mcc: plmn.Mcc, Mnc: plmn.Mnc}
+	}
+	return ret
+}
+
+func getServiceAreaMaps(serviceAreaMaps map[string]lte_models.TacList) map[string]*lte_mconfig.MME_TacList {
+	ret := make(map[string]*lte_mconfig.MME_TacList)
+	for k, v := range serviceAreaMaps {
+		tacList := &lte_mconfig.MME_TacList{}
+		for _, tac := range v {
+			tacList.Tac = append(tacList.Tac, uint32(tac))
+		}
+		ret[k] = tacList
+	}
+	return ret
 }

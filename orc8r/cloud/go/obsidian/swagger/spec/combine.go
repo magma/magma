@@ -11,11 +11,13 @@
  limitations under the License.
 */
 
-package swagger
+package spec
 
 import (
 	"regexp"
 	"sort"
+
+	"magma/orc8r/cloud/go/swagger"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -48,8 +50,8 @@ func Combine(yamlCommon string, yamlSpecs []string) (string, error, error) {
 	return out, warnings.ErrorOrNil(), nil
 }
 
-func combine(common Spec, specs []Spec) (Spec, error) {
-	var tags [][]TagDefinition
+func combine(common swagger.Spec, specs []swagger.Spec) (swagger.Spec, error) {
+	var tags [][]swagger.TagDefinition
 	var paths []map[string]interface{}
 	var responses []map[string]interface{}
 	var parameters []map[string]interface{}
@@ -65,7 +67,7 @@ func combine(common Spec, specs []Spec) (Spec, error) {
 
 	errs := &multierror.Error{}
 
-	combined := Spec{
+	combined := swagger.Spec{
 		Swagger:  common.Swagger,
 		Info:     common.Info,
 		BasePath: common.BasePath,
@@ -86,7 +88,7 @@ func combine(common Spec, specs []Spec) (Spec, error) {
 // unmarshalToSwagger converts a list of specs and a common spec
 // from YAML format to Swagger structs.
 // Returned error is a list of errors from incompatible swagger specs.
-func unmarshalToSwagger(yamlCommon string, yamlSpecs []string) (Spec, []Spec, error) {
+func unmarshalToSwagger(yamlCommon string, yamlSpecs []string) (swagger.Spec, []swagger.Spec, error) {
 	errs := &multierror.Error{}
 
 	editedYAMLSpecs := makeAllYAMLReferencesLocal(yamlSpecs)
@@ -94,7 +96,7 @@ func unmarshalToSwagger(yamlCommon string, yamlSpecs []string) (Spec, []Spec, er
 
 	common, err := unmarshalFromYAML(yamlCommon)
 	if err != nil {
-		return Spec{}, nil, err
+		return swagger.Spec{}, nil, err
 	}
 
 	return common, specs, errs.ErrorOrNil()
@@ -102,8 +104,8 @@ func unmarshalToSwagger(yamlCommon string, yamlSpecs []string) (Spec, []Spec, er
 
 // unmarshalManyFromYAML maps the passed strings to their respective
 // Swagger specs.
-func unmarshalManyFromYAML(yamlSpecs []string, errs error) []Spec {
-	var specs []Spec
+func unmarshalManyFromYAML(yamlSpecs []string, errs error) []swagger.Spec {
+	var specs []swagger.Spec
 	for _, yamlSpec := range yamlSpecs {
 		s, err := unmarshalFromYAML(yamlSpec)
 		if err != nil {
@@ -116,17 +118,17 @@ func unmarshalManyFromYAML(yamlSpecs []string, errs error) []Spec {
 }
 
 // unmarshalFromYAML unmarshals the passed string to a Swagger spec.
-func unmarshalFromYAML(yamlSpec string) (Spec, error) {
-	spec := Spec{}
+func unmarshalFromYAML(yamlSpec string) (swagger.Spec, error) {
+	spec := swagger.Spec{}
 	err := yaml.Unmarshal([]byte(yamlSpec), &spec)
 	if err != nil {
-		return Spec{}, err
+		return swagger.Spec{}, err
 	}
 	return spec, nil
 }
 
 // marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
-func marshalToYAML(spec Spec) (string, error) {
+func marshalToYAML(spec swagger.Spec) (string, error) {
 	d, err := yaml.Marshal(&spec)
 	if err != nil {
 		return "", err
@@ -160,16 +162,16 @@ func combineSubSpec(common map[string]interface{}, others []map[string]interface
 	return combinedSpec
 }
 
-func combineTags(common []TagDefinition, others [][]TagDefinition, errs error) []TagDefinition {
+func combineTags(common []swagger.TagDefinition, others [][]swagger.TagDefinition, errs error) []swagger.TagDefinition {
 	combinedTagsByName := map[string]string{}
 	for _, tags := range others {
 		mergeTags(combinedTagsByName, tags, errs)
 	}
 	mergeTags(combinedTagsByName, common, errs) // prefer common tags
 
-	var uniq []TagDefinition
+	var uniq []swagger.TagDefinition
 	for name := range combinedTagsByName {
-		t := TagDefinition{Name: name, Description: combinedTagsByName[name]}
+		t := swagger.TagDefinition{Name: name, Description: combinedTagsByName[name]}
 		uniq = append(uniq, t)
 	}
 	sort.Slice(uniq, func(i, j int) bool { return uniq[i].Name < uniq[j].Name })
@@ -187,7 +189,7 @@ func merge(a, b map[string]interface{}, fieldName string, errs error) {
 }
 
 // mergeTags merges b's contents into a, recording merge warnings to errs.
-func mergeTags(a map[string]string, b []TagDefinition, errs error) {
+func mergeTags(a map[string]string, b []swagger.TagDefinition, errs error) {
 	for _, tag := range b {
 		if _, ok := a[tag.Name]; ok {
 			multierror.Append(errs, errors.Errorf("overwriting tag '%s'", tag.Name))
