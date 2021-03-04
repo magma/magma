@@ -66,6 +66,9 @@ class GTPApplicationTest : public ::testing::Test {
         new OpenflowController("127.0.0.1", 6666, 2, false, messenger));
     controller->register_for_event(gtp_app, openflow::EVENT_ADD_GTP_TUNNEL);
     controller->register_for_event(gtp_app, openflow::EVENT_DELETE_GTP_TUNNEL);
+    controller->register_for_event(gtp_app, openflow::EVENT_ADD_GTP_S8_TUNNEL);
+    controller->register_for_event(
+        gtp_app, openflow::EVENT_DELETE_GTP_S8_TUNNEL);
   }
 
   virtual void TearDown() {
@@ -883,6 +886,117 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlowIpv6) {
                           CheckEthType(0x0806), CheckArpTpa(ue_ip),
                           CheckCommandType(of13::OFPFC_DELETE)),
                       _))
+      .Times(1);
+
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x0806),
+              CheckArpTpa(ue_ip), CheckCommandType(of13::OFPFC_DELETE)),
+          _))
+      .Times(1);
+
+  controller->dispatch_event(del_tunnel);
+}
+
+/*
+ * Test that tunnel flows are added when an add S8 tunnel event is sent.
+ * This only tests the flow matchers for now, because it is not easy to verify
+ * the actions with the libfluid framework
+ */
+TEST_F(GTPApplicationTest, TestAddTunnelS8) {
+  struct in_addr ue_ip;
+  ue_ip.s_addr = inet_addr("0.0.0.1");
+  struct in_addr enb_ip;
+  enb_ip.s_addr = inet_addr("0.0.0.2");
+  struct in_addr pgw_ip;
+  enb_ip.s_addr    = inet_addr("0.0.0.22");
+  uint32_t in_tei  = 1;
+  uint32_t out_tei = 2;
+  char imsi[]      = "001010000000013";
+  int vlan         = 0;
+  int enb_port     = 100;
+  int pgw_port     = 200;
+
+  AddGTPTunnelEvent add_tunnel(
+      ue_ip, NULL, vlan, enb_ip, pgw_ip, in_tei, out_tei, imsi, enb_port,
+      pgw_port);
+  // Uplink
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(enb_port), CheckTunnelId(in_tei),
+              CheckCommandType(of13::OFPFC_ADD)),
+          _))
+      .Times(1);
+  // downlink
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(pgw_port), CheckEthType(0x0800),
+              CheckIPv4Dst(ue_ip), CheckCommandType(of13::OFPFC_ADD)),
+          _))
+      .Times(1);
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x0800),
+              CheckIPv4Dst(ue_ip), CheckCommandType(of13::OFPFC_ADD)),
+          _))
+      .Times(1);
+
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x0806),
+              CheckArpTpa(ue_ip), CheckCommandType(of13::OFPFC_ADD)),
+          _))
+      .Times(1);
+
+  controller->dispatch_event(add_tunnel);
+}
+
+/*
+ * Test that tunnel flows are deleted when a delete S8 tunnel event is sent
+ */
+TEST_F(GTPApplicationTest, TestDeleteTunnelS8) {
+  struct in_addr ue_ip;
+  ue_ip.s_addr    = inet_addr("0.0.0.1");
+  uint32_t in_tei = 1;
+  int enb_port    = 100;
+  int pgw_port    = 200;
+
+  DeleteGTPTunnelEvent del_tunnel(ue_ip, NULL, in_tei, enb_port, pgw_port);
+  // Uplink
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(enb_port), CheckTunnelId(in_tei),
+              CheckCommandType(of13::OFPFC_DELETE)),
+          _))
+      .Times(1);
+  // downlink
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(pgw_port), CheckEthType(0x0800),
+              CheckIPv4Dst(ue_ip), CheckCommandType(of13::OFPFC_DELETE)),
+          _))
+      .Times(1);
+  EXPECT_CALL(
+      *messenger,
+      send_of_msg(
+          AllOf(
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x0800),
+              CheckIPv4Dst(ue_ip), CheckCommandType(of13::OFPFC_DELETE)),
+          _))
       .Times(1);
 
   EXPECT_CALL(
