@@ -129,9 +129,12 @@ int send_msg_to_task(
       message, sizeof(MessageHeader) + message->ittiMsgHeader.ittiMsgSize);
   assert(frame);
 
+  // Protect against multiple threads using this context
+  pthread_mutex_lock(&task_zmq_ctx_p->send_mutex);
   int rc =
       zframe_send(&frame, task_zmq_ctx_p->push_socks[destination_task_id], 0);
   assert(rc == 0);
+  pthread_mutex_unlock(&task_zmq_ctx_p->send_mutex);
 
   free(message);
   return 0;
@@ -181,6 +184,8 @@ void init_task_context(
 
   task_zmq_ctx_p->event_loop = zloop_new();
   assert(task_zmq_ctx_p->event_loop);
+
+  pthread_mutex_init(&task_zmq_ctx_p->send_mutex, NULL);
 
   for (int i = 0; i < remote_tasks_count; i++) {
     task_zmq_ctx_p->push_socks[remote_task_ids[i]] =
