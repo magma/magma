@@ -108,7 +108,7 @@ $ mkdir -p charts<span class="hljs-regexp">/secrets/</span>.secrets/certs
 $ cp -r ..<span class="hljs-regexp">/../</span>..<span class="hljs-regexp">/../</span>.cache<span class="hljs-regexp">/test_certs/</span>* charts<span class="hljs-regexp">/secrets/</span>.secrets<span class="hljs-regexp">/certs/</span>.
 </code></pre>
 <p>Create the kubernetes secrets</p>
-<pre><code class="hljs">helm template orc8r-secrets charts/secrets \
+<pre><code class="hljs">helm template orc8r charts/secrets \
     --namespace magma \
     --<span class="hljs-keyword">set</span>-string <span class="hljs-comment">secret.certs.enabled=true \</span>
     --<span class="hljs-keyword">set</span>-file <span class="hljs-comment">secret.certs.files.</span><span class="hljs-comment">"rootCA\.pem"</span><span class="hljs-comment">=charts</span>/secrets/<span class="hljs-comment">.secrets</span>/certs/<span class="hljs-comment">rootCA.pem \</span>
