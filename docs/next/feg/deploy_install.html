@@ -167,9 +167,8 @@ INSTALL_HOST [/var/opt/magma/docker]$ docker-compose exec magmad /usr/local/bin/
 <p>This will output a hardware ID and a challenge key. This information must be
 registered with the Orchestrator. At this time, NMS support for FeG
 registration is still in-progress.</p>
-<p>To register the FeG, go to the Orchestrator's APIdocs in your browser.
-<strong>Note: It is highly encouraged to use V1 of the apidocs</strong>
-(i.e. <a href="https://controller.url.sample:9443/apidocs/v1/">https://controller.url.sample:9443/apidocs/v1/</a>).</p>
+<p>To register the FeG, go to the Orchestrator's Swagger UI in your browser.
+(i.e. <a href="https://controller.url.sample:9443/swagger/v1/ui/">https://controller.url.sample:9443/swagger/v1/ui/</a>).</p>
 <p>Now, create a Federation Network. This is found at <code>/feg</code> under the
 <strong>Federation Networks</strong> section. Then register the gateway under the
 <strong>Federation Gateway</strong> section at <code>/feg/{network_id}/gateways</code> using the
