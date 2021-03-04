@@ -46,7 +46,7 @@
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
 extern int check_plmn_restriction(imsi_t imsi);
-
+extern int validate_imei(char* imei);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
@@ -110,8 +110,9 @@ int emm_proc_identification(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
-  if ((emm_context) && ((EMM_DEREGISTERED == emm_context->_emm_fsm_state) ||
-                        (EMM_REGISTERED == emm_context->_emm_fsm_state))) {
+  if ((emm_context) &&
+      ((EMM_DEREGISTERED == emm_context->_emm_fsm_state) ||
+       (EMM_REGISTERED == emm_context->_emm_fsm_state))) {
     REQUIREMENT_3GPP_24_301(R10_5_4_4_1);
     mme_ue_s1ap_id_t ue_id =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
@@ -244,9 +245,26 @@ int emm_proc_identification_complete(
          */
         emm_ctx_set_valid_imei(emm_ctx, imei);
       } else if (imeisv) {
-        /*
-         * Update the IMEISV
-         */
+        // Validate IMEISV
+        // Convert to string
+        char imeisv_str[MAX_IMEISV_SIZE + 1] = {0};
+        IMEISV_TO_STRING(imeisv, imeisv_str, MAX_IMEISV_SIZE + 1);
+        OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "EMM-PROC  - String imeisv "
+            "%s\n",
+            imeisv_str);
+        int emm_cause = validate_imei(imeisv_str);
+        if (emm_cause != EMM_CAUSE_SUCCESS) {
+          OAILOG_ERROR(
+              LOG_NAS_EMM,
+              "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
+              " , emm_cause =(%d)\n",
+              ue_id, emm_cause);
+          rc = emm_proc_attach_reject(ue_id, emm_cause);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+        }
+        // Update the IMEISV
         emm_ctx_set_valid_imeisv(emm_ctx, imeisv);
       } else if (tmsi) {
         /*

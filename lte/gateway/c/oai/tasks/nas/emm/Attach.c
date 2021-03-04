@@ -138,7 +138,8 @@ static int _emm_attach_success_authentication_cb(emm_context_t* emm_context);
 static int _emm_attach_failure_authentication_cb(emm_context_t* emm_context);
 static int _emm_attach_success_security_cb(emm_context_t* emm_context);
 static int _emm_attach_failure_security_cb(emm_context_t* emm_context);
-
+static int _emm_attach_identification_after_smc_success_cb(
+    emm_context_t* emm_context);
 /*
    Abnormal case attach procedures
 */
@@ -1299,6 +1300,40 @@ static int _emm_attach_success_security_cb(emm_context_t* emm_context) {
   int rc = RETURNerror;
 
   OAILOG_INFO(LOG_NAS_EMM, "ATTACH - Security procedure success!\n");
+  nas_emm_attach_proc_t* attach_proc =
+      get_nas_specific_procedure_attach(emm_context);
+  if (!attach_proc) {
+    OAILOG_INFO_UE(
+        LOG_NAS_EMM, emm_context->_imsi64,
+        "EMM-PROC  - attach_proc is NULL for \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+  }
+
+  if (emm_context->initiate_identity_after_smc) {
+    emm_context->initiate_identity_after_smc = false;
+    OAILOG_INFO_UE(
+        LOG_NAS_EMM, emm_context->_imsi64, "Trigger identity procedure\n");
+    rc = emm_proc_identification(
+        emm_context, (nas_emm_proc_t*) attach_proc, IDENTITY_TYPE_2_IMEISV,
+        _emm_attach_identification_after_smc_success_cb,
+        _emm_attach_failure_identification_cb);
+
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  rc = _emm_attach(emm_context);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+//------------------------------------------------------------------------------
+static int _emm_attach_identification_after_smc_success_cb(
+    emm_context_t* emm_context) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNerror;
+
+  OAILOG_INFO(
+      LOG_NAS_EMM,
+      "ATTACH - Identity procedure after smc procedure success!\n");
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
 

@@ -437,6 +437,14 @@ int emm_proc_security_mode_complete(
   ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
+    if (!emm_ctx) {
+      OAILOG_ERROR(
+          LOG_NAS_EMM,
+          "EMM-PROC  - emm context is NULL for (ue_id=" MME_UE_S1AP_ID_FMT
+          ")\n",
+          ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+    }
   } else {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
@@ -452,7 +460,14 @@ int emm_proc_security_mode_complete(
     void* timer_callback_arg = NULL;
     nas_stop_T3460(ue_id, &smc_proc->T3460, timer_callback_arg);
 
-    if (imeisvmob) {
+    /* If MME requested for imeisv in security mode cmd
+     * and UE did not include the same in security mode complete,
+     * set initiate_identity_after_smc flag to send identity request
+     * with identity type set to imeisv
+     */
+    if (smc_proc->imeisv_request && !imeisvmob) {
+      emm_ctx->initiate_identity_after_smc = true;
+    } else if (smc_proc->imeisv_request && imeisvmob) {
       imeisv_t imeisv     = {0};
       imeisv.u.num.tac1   = imeisvmob->tac1;
       imeisv.u.num.tac2   = imeisvmob->tac2;
@@ -471,7 +486,6 @@ int emm_proc_security_mode_complete(
       imeisv.u.num.svn1   = imeisvmob->svn1;
       imeisv.u.num.svn2   = imeisvmob->svn2;
       imeisv.u.num.parity = imeisvmob->oddeven;
-      emm_ctx_set_valid_imeisv(emm_ctx, &imeisv);
       // Convert to string
       char imeisv_str[MAX_IMEISV_SIZE + 1] = {0};
       IMEISV_TO_STRING(&imeisv, imeisv_str, MAX_IMEISV_SIZE + 1);
@@ -490,6 +504,7 @@ int emm_proc_security_mode_complete(
         rc = emm_proc_attach_reject(ue_id, emm_cause);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
       }
+      emm_ctx_set_valid_imeisv(emm_ctx, &imeisv);
     }
 
     /*

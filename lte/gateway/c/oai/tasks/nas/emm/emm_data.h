@@ -370,6 +370,7 @@ typedef struct emm_context_s {
    */
   bool nw_init_bearer_deactv;
   new_attach_info_t* new_attach_info;
+  bool initiate_identity_after_smc;
 } emm_context_t;
 
 /*
