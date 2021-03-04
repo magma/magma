@@ -185,6 +185,50 @@ func TestBuilder_Build(t *testing.T) {
 	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+
+	// verify restricted plmns
+	setEpcNetworkRestrictedPlmns(&nw, []*lte_models.PlmnConfig{
+		{
+			Mcc: "100",
+			Mnc: "010",
+		},
+		{
+			Mcc: "110",
+			Mnc: "210",
+		},
+	})
+	mmeVals := expected["mme"].(*lte_mconfig.MME)
+	mmeVals.RestrictedPlmns = []*lte_mconfig.MME_PlmnConfig{
+		{
+			Mcc: "100",
+			Mnc: "010",
+		},
+		{
+			Mcc: "110",
+			Mnc: "210",
+		},
+	}
+
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	//verify service area map
+	setEpcNetworkServiceAreaMap(&nw, map[string]lte_models.TacList{
+		"001": []lte_models.Tac{111, 112},
+		"002": []lte_models.Tac{211, 122},
+	})
+	mmeVals.ServiceAreaMaps = map[string]*lte_mconfig.MME_TacList{
+		"001": {
+			Tac: []uint32{111, 112},
+		},
+		"002": {
+			Tac: []uint32{211, 122},
+		},
+	}
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
 }
 
 func TestBuilder_Build_NonNat(t *testing.T) {
@@ -1077,5 +1121,19 @@ func setEPCNetworkIPAllocator(nw *configurator.Network, mode string, static_ip b
 		EnableMultiApnIPAllocation: multi_apn,
 	}
 
+	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
+}
+
+func setEpcNetworkRestrictedPlmns(nw *configurator.Network, restrictedPlmns []*lte_models.PlmnConfig) {
+	inwConfig := nw.Configs[lte.CellularNetworkConfigType]
+	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
+	cellularNwConfig.Epc.RestrictedPlmns = restrictedPlmns
+	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
+}
+
+func setEpcNetworkServiceAreaMap(nw *configurator.Network, serviceAreaMaps map[string]lte_models.TacList) {
+	inwConfig := nw.Configs[lte.CellularNetworkConfigType]
+	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
+	cellularNwConfig.Epc.ServiceAreaMaps = serviceAreaMaps
 	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
 }

@@ -116,6 +116,9 @@ void mme_app_send_delete_session_request(
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  OAILOG_INFO(
+      LOG_MME_APP, "Send Delete session Req for teid " TEID_FMT "\n",
+      ue_context_p->mme_teid_s11);
   increment_counter("mme_spgw_delete_session_req", 1, NO_LABELS);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -146,14 +149,18 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
       OAILOG_ERROR(LOG_MME_APP, "Failed to fetch mme_app_desc_p \n");
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
+
+    if (ue_context_p->emm_context.new_attach_info) {
+      nas_delete_all_emm_procedures(&ue_context_p->emm_context);
+      free_esm_context_content(&ue_context_p->emm_context.esm_ctx);
+      proc_new_attach_req(ue_context_p);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
     if (ECM_IDLE == ue_context_p->ecm_state) {
       ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
       // Notify S1AP to release S1AP UE context locally.
       mme_app_itti_ue_context_release(
           ue_context_p, ue_context_p->ue_context_rel_cause);
-      // Free MME UE Context
-      mme_notify_ue_context_released(
-          &mme_app_desc_p->mme_ue_contexts, ue_context_p);
       // Send PUR,before removal of ue contexts
       if ((ue_context_p->send_ue_purge_request == true) &&
           (ue_context_p->hss_initiated_detach == false)) {
@@ -168,12 +175,6 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
       mme_app_itti_ue_context_release(
           ue_context_p, ue_context_p->ue_context_rel_cause);
       if (ue_context_p->ue_context_rel_cause == S1AP_SCTP_SHUTDOWN_OR_RESET) {
-        // Just cleanup the MME APP state associated with s1.
-        mme_ue_context_update_ue_sig_connection_state(
-            &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
-        // Free MME UE Context
-        mme_notify_ue_context_released(
-            &mme_app_desc_p->mme_ue_contexts, ue_context_p);
         // Send PUR,before removal of ue contexts
         if ((ue_context_p->send_ue_purge_request == true) &&
             (ue_context_p->hss_initiated_detach == false)) {

@@ -20,13 +20,11 @@ namespace sctpd {
 
 using grpc::ClientContext;
 
-SctpdUplinkClient::SctpdUplinkClient(std::shared_ptr<Channel> channel)
-{
+SctpdUplinkClient::SctpdUplinkClient(std::shared_ptr<Channel> channel) {
   _stub = SctpdUplink::NewStub(channel);
 }
 
-int SctpdUplinkClient::sendUl(const SendUlReq &req, SendUlRes *res)
-{
+int SctpdUplinkClient::sendUl(const SendUlReq& req, SendUlRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -41,8 +39,7 @@ int SctpdUplinkClient::sendUl(const SendUlReq &req, SendUlRes *res)
   return status.ok() ? 0 : -1;
 }
 
-int SctpdUplinkClient::newAssoc(const NewAssocReq &req, NewAssocRes *res)
-{
+int SctpdUplinkClient::newAssoc(const NewAssocReq& req, NewAssocRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -57,8 +54,8 @@ int SctpdUplinkClient::newAssoc(const NewAssocReq &req, NewAssocRes *res)
   return status.ok() ? 0 : -1;
 }
 
-int SctpdUplinkClient::closeAssoc(const CloseAssocReq &req, CloseAssocRes *res)
-{
+int SctpdUplinkClient::closeAssoc(
+    const CloseAssocReq& req, CloseAssocRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -73,5 +70,5 @@ int SctpdUplinkClient::closeAssoc(const CloseAssocReq &req, CloseAssocRes *res)
   return status.ok() ? 0 : -1;
 }
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

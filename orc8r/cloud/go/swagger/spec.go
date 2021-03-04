@@ -13,6 +13,8 @@
 
 package swagger
 
+import "gopkg.in/yaml.v2"
+
 // Spec is the Go struct version of a OAI/Swagger 2.0 YAML spec file.
 type Spec struct {
 	Swagger string
@@ -35,4 +37,22 @@ type Spec struct {
 type TagDefinition struct {
 	Description string
 	Name        string
+}
+
+// MarshalBinary marshals the spec to bytes.
+func (s Spec) MarshalBinary() ([]byte, error) {
+	yamlSpec, err := marshalToYAML(s)
+	if err != nil {
+		return nil, nil
+	}
+	return []byte(yamlSpec), nil
+}
+
+// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
+func marshalToYAML(spec Spec) (string, error) {
+	d, err := yaml.Marshal(&spec)
+	if err != nil {
+		return "", err
+	}
+	return string(d), nil
 }

@@ -165,7 +165,11 @@ POSTINST=${RELEASE_DIR}/magma-postinst
 
 # python environment
 # python3.5 on stretch, python3.8 on focal
-PY_VERSION=python3
+if grep -q stretch /etc/os-release; then
+    PY_VERSION=python3.5
+else
+    PY_VERSION=python3.8
+fi
 PY_PKG_LOC=dist-packages
 PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
@@ -354,7 +358,10 @@ $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/templates/*" /etc/magma/template
 $(glob_files "${MAGMA_ROOT}/orc8r/gateway/configs/templates/*" /etc/magma/templates/) \
 ${CONTROL_PROXY_FILE}=/etc/magma/ \
 $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.conf) \
+$(glob_files "${ANSIBLE_FILES}/configure_envoy_namespace.sh" /usr/local/bin/ ) \
+$(glob_files "${ANSIBLE_FILES}/envoy.yaml" /var/opt/magma/ ) \
 $(glob_files "${ANSIBLE_FILES}/logrotate_oai.conf" /etc/logrotate.d/oai) \
+$(glob_files "${ANSIBLE_FILES}/logrotate_rsyslog.conf" /etc/logrotate.d/rsyslog) \
 $(glob_files "${ANSIBLE_FILES}/local-cdn/*" /var/www/local-cdn/) \
 ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
@@ -366,7 +373,7 @@ ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
-$(glob_files "${ANSIBLE_FILES}/config_stateless_*.sh" /usr/local/bin/)"
+" # Leave this quote on a new line to mark end of BUILDCMD
 
 eval "$BUILDCMD"
 

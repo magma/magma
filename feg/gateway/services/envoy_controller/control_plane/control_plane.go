@@ -197,8 +197,6 @@ func GetControllerClient() *ControllerClient {
 	go RunManagementServer(ctx, srv, port)
 	go RunManagementGateway(ctx, srv, gatewayPort)
 
-	<-signal
-
 	cb.Report()
 
 	return &cli

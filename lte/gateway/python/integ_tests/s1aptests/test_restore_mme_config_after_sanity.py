@@ -38,6 +38,5 @@ class TestRestoreMMEConfigAfterSanity(unittest.TestCase):
             MagmadUtil.config_update_cmds.RESTORE
         )
 
-
 if __name__ == "__main__":
     unittest.main()

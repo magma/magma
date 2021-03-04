@@ -187,3 +187,64 @@ export const DynamicServices = Object.freeze({
   EVENTD: 'eventd',
   TD_AGENT_BIT: 'td-agent-bit',
 });
+
+export const DEFAULT_GATEWAY_CONFIG = {
+  apn_resources: {},
+  cellular: {
+    epc: {
+      ip_block: '192.168.128.0/24',
+      nat_enabled: true,
+      dns_primary: '',
+      dns_secondary: '',
+      sgi_management_iface_gw: '',
+      sgi_management_iface_static_ip: '',
+      sgi_management_iface_vlan: '',
+    },
+    ran: {
+      pci: 260,
+      transmit_enabled: true,
+    },
+  },
+  connected_enodeb_serials: [],
+  description: '',
+  device: {
+    hardware_id: '',
+    key: {
+      key: '',
+      key_type: 'SOFTWARE_ECDSA_SHA256',
+    },
+  },
+  id: '',
+  magmad: {
+    autoupgrade_enabled: true,
+    autoupgrade_poll_interval: 60,
+    checkin_interval: 60,
+    checkin_timeout: 30,
+    dynamic_services: [DynamicServices.EVENTD, DynamicServices.TD_AGENT_BIT],
+  },
+  name: '',
+  status: {
+    platform_info: {
+      packages: [
+        {
+          version: '',
+        },
+      ],
+    },
+  },
+  tier: 'default',
+};
+export const DEFAULT_DNS_CONFIG = {
+  dhcp_server_enabled: false,
+  enable_caching: false,
+  local_ttl: 0,
+  records: [],
+};
+export const DEFAULT_HE_CONFIG = {
+  enable_encryption: false,
+  encryption_key: '',
+  enable_header_enrichment: false,
+  he_encoding_type: 'BASE64',
+  he_encryption_algorithm: 'RC4',
+  he_hash_function: 'MD5',
+};

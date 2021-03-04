@@ -50,6 +50,9 @@ copy_swagger_files:
 lint:
 	golangci-lint run
 
+swagger_tools:
+	go install magma/orc8r/cloud/go/tools/combine_swagger
+
 test::
 	go test ./...
 
@@ -63,13 +66,17 @@ $(TOOL_DEPS): %:
 vet::
 	go vet -composites=false ./...
 
-COVER_FILE=$(COVER_DIR)/$(PLUGIN_NAME).gocov
-cover:
-	go test ./... -coverprofile $(COVER_FILE);
-	# Don't measure coverage for protos and tools
-	sed -i '/\.pb\.go/d; /.*\/tools\/.*/d; /.*_swaggergen\.go/d' $(COVER_FILE);
-	go tool cover -func=$(COVER_FILE)
-
+ifndef COVER_DIR
+COVER_DIR := $(MAGMA_ROOT)/orc8r/cloud/coverage
+export COVER_DIR
+endif
+COVER_FILE=$(COVER_DIR)/$(MODULE_NAME).gocov
+cover: tools cover_pre
+	go-acc ./... --covermode count --output $(COVER_FILE)
+	# Don't measure coverage for tools and generated files
+	awk '!/\.pb\.go|_swaggergen\.go|\/mocks\/|\/tools\/|\/blobstore\/ent\//' $(COVER_FILE) > $(COVER_FILE).tmp && mv $(COVER_FILE).tmp $(COVER_FILE)
+cover_pre:
+	mkdir -p $(COVER_DIR)
 
 # for configurator data migration
 migration_plugin:

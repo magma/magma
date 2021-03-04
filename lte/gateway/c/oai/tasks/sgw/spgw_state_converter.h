@@ -260,31 +260,6 @@ class SpgwStateConverter : StateConverter {
   static void proto_to_packet_filter(
       const oai::PacketFilter& packet_filter_proto,
       packet_filter_t* packet_filter);
-
-  /**
-   * Converts pcc_rules hashtable to proto
-   * @param state_map
-   * @param proto_map
-   */
-  static void pcc_rule_ht_to_proto(
-      hash_table_ts_t* state_map,
-      google::protobuf::Map<unsigned int, oai::PccRule>* proto_map);
-
-  /**
-   * Converts pcc rule object to proto, memory is owned by the caller
-   * @param pcc_rule_state
-   * @param proto
-   */
-  static void pcc_rule_to_proto(
-      const pcc_rule_t* pcc_rule_state, oai::PccRule* proto);
-
-  /**
-   * Converts proto to pcc rule object to proto
-   * @param proto
-   * @param pcc_rule_state
-   */
-  static void proto_to_pcc_rule(
-      const oai::PccRule& proto, pcc_rule_t* pcc_rule_state);
 };
 }  // namespace lte
 }  // namespace magma
