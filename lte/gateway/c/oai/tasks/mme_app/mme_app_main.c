@@ -139,9 +139,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
           update_mme_app_stats_s1u_bearer_add();
-          mme_app_handle_modify_bearer_rsp(
-              &received_message_p->ittiMsg.s11_modify_bearer_response,
-              ue_context_p);
         } else if (ue_context_p->path_switch_req) {
           mme_app_handle_path_switch_req_ack(
               &received_message_p->ittiMsg.s11_modify_bearer_response,

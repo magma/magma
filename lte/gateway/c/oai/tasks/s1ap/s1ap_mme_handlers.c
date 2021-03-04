@@ -3324,7 +3324,6 @@ int s1ap_mme_handle_erab_modification_indication(
     }
   }
   rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
-  // rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 

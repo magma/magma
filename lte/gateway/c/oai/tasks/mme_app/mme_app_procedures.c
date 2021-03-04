@@ -139,14 +139,7 @@ int mme_app_run_s1ap_procedure_modify_bearer_ind(
         proc->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  // todo: LOCK_UE_SESSION_POOL
-  // todo: checking on procedures of the function..
-  // mme_app_is_ue_context_clean(ue_context)?!?
   /** Get the PDN Context. */
-  // TODO sort by pdn_context if different SGWs (not the case now)
-  // pdn_context_t* registered_pdn_ctx =
-  //  RB_MIN(PdnContexts, &ue_context_p->pdn_contexts);
-
   for (int nb_bearer = 0;
        nb_bearer < proc->e_rab_to_be_modified_list.no_of_items; nb_bearer++) {
     e_rab_to_be_modified_bearer_mod_ind_t* item =
@@ -163,7 +156,6 @@ int mme_app_run_s1ap_procedure_modify_bearer_ind(
       continue;
     }
     /** Set all bearers, not in the failed list, to inactive. */
-    // bearer_context->bearer_state &= (~BEARER_STATE_ACTIVE);
     /** Update the FTEID of the bearer context and uncheck the established
      * state. */
     bearer_context->enb_fteid_s1u.teid           = item->s1_xNB_fteid.teid;
@@ -181,7 +173,6 @@ int mme_app_run_s1ap_procedure_modify_bearer_ind(
           &item->s1_xNB_fteid.ipv6_address, sizeof(item->s1_xNB_fteid));
     }
   }
-  //  todo: UNLOCK_UE_SESSION_POOL;
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 

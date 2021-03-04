@@ -14,6 +14,7 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#pragma once
 
 #ifndef UE_ADDITIONAL_SECURITY_CAPABILITY_SEEN
 #define UE_ADDITIONAL_SECURITY_CAPABILITY_SEEN

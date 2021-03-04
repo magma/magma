@@ -199,7 +199,7 @@ typedef struct ue_network_capability_s {
 #define UE_NETWORK_CAPABILITY_NF 1
   uint8_t nf : 1;
 
-  /* Bits 8 to 6 of octet 7 are spare and shall be coded as zero */
+  /* Bits 8 to 6 of octet 8 are spare and shall be coded as zero */
   /* S1-U data transfer enabled */
   uint8_t epco : 1;
   uint8_t hccpciot : 1;
@@ -219,11 +219,12 @@ typedef struct ue_network_capability_s {
 #define UE_NETWORK_CAPABILITY_PROSEDC 1
   uint8_t prosedc : 1;
 
-  /* Bits 8 to 6 of octet 7 are spare and shall be coded as zero */
-  /* DCNR notification flag */
+  /* Bits 8 to 6 of octet 9 are spare and shall be coded as zero */
+
   uint8_t bearer : 1;
   uint8_t sgc : 1;
   uint8_t n1mod : 1;
+  /* DCNR notification flag */
 #define UE_NETWORK_CAPABILITY_DCNR 1
   uint8_t dcnr : 1;
   /* Control Plane data backoff support*/

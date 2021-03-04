@@ -431,10 +431,7 @@ void mme_app_send_s1ap_e_rab_modification_confirm(
   s1ap_e_rab_modification_cnf_p->e_rab_failed_to_modify_list.no_of_items =
       proc->e_rab_failed_to_be_modified_list.no_of_items;
 
-  // MSC_LOG_TX_MESSAGE(MSC_MMEAPP_MME, MSC_NAS_MME, NULL, 0,"MME_APP Sending
-  // S1AP E_RAB_MODIFICATION_CONFIRM");
   /** Sending a message to S1AP. */
-  // itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

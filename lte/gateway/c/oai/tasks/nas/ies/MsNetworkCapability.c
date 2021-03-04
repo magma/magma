@@ -133,36 +133,32 @@ int encode_ms_network_capability(
   lenPtr = (buffer + encoded);
   encoded++;
 
-  *(buffer + encoded) =
-      ((msnetworkcapability->gea1 & 0x1) << 7) |  // spare coded as zero
-      ((msnetworkcapability->smdc & 0x1) << 6) |
-      ((msnetworkcapability->smgc & 0x1) << 5) |
-      ((msnetworkcapability->ucs2 & 0x1) << 4) |
-      ((msnetworkcapability->sssi & 0x3) << 2) |
-      ((msnetworkcapability->solsa & 0x1) << 1) |
-      (msnetworkcapability->revli & 0x1);
+  *(buffer + encoded) = ((msnetworkcapability->gea1 & 0x1) << 7) |
+                        ((msnetworkcapability->smdc & 0x1) << 6) |
+                        ((msnetworkcapability->smgc & 0x1) << 5) |
+                        ((msnetworkcapability->ucs2 & 0x1) << 4) |
+                        ((msnetworkcapability->sssi & 0x3) << 2) |
+                        ((msnetworkcapability->solsa & 0x1) << 1) |
+                        (msnetworkcapability->revli & 0x1);
+  encoded++;
+
+  *(buffer + encoded) = ((msnetworkcapability->pfc & 0x1) << 7) |
+                        ((msnetworkcapability->egea & 0x3F) << 1) |
+                        (msnetworkcapability->lcs & 0x1);
+  encoded++;
+
+  *(buffer + encoded) = ((msnetworkcapability->ps_ho_utran & 0x1) << 7) |
+                        ((msnetworkcapability->ps_ho_eutran & 0x1) << 6) |
+                        ((msnetworkcapability->emm_cpc & 0x1) << 5) |
+                        ((msnetworkcapability->isr & 0x1) << 4) |
+                        ((msnetworkcapability->srvcc & 0x1) << 3) |
+                        ((msnetworkcapability->epc_cap & 0x1) << 2) |
+                        ((msnetworkcapability->nf_cap & 0x1) << 1) |
+                        (msnetworkcapability->geran_ns & 0x1);
   encoded++;
 
   *(buffer + encoded) =
-      ((msnetworkcapability->pfc & 0x1) << 7) |  // spare coded as zero
-      ((msnetworkcapability->egea & 0x3F) << 1) |
-      (msnetworkcapability->lcs & 0x1);
-  encoded++;
-
-  *(buffer + encoded) =
-      ((msnetworkcapability->ps_ho_utran & 0x1) << 7) |  // spare coded as zero
-      ((msnetworkcapability->ps_ho_eutran & 0x1) << 6) |
-      ((msnetworkcapability->emm_cpc & 0x1) << 5) |
-      ((msnetworkcapability->isr & 0x1) << 4) |
-      ((msnetworkcapability->srvcc & 0x1) << 3) |
-      ((msnetworkcapability->epc_cap & 0x1) << 2) |
-      ((msnetworkcapability->nf_cap & 0x1) << 1) |
-      (msnetworkcapability->geran_ns & 0x1);
-  encoded++;
-
-  *(buffer + encoded) =
-      ((msnetworkcapability->up_integ_prot_support & 0x1)
-       << 7) |  // spare coded as zero
+      ((msnetworkcapability->up_integ_prot_support & 0x1) << 7) |
       ((msnetworkcapability->gia4 & 0x1) << 6) |
       ((msnetworkcapability->gia5 & 0x1) << 5) |
       ((msnetworkcapability->gia6 & 0x1) << 4) |

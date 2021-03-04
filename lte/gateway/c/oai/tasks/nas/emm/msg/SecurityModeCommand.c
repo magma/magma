@@ -127,9 +127,9 @@ int decode_security_mode_command(
                  &security_mode_command
                       ->replayedueadditionalsecuritycapabilities,
                  SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
+                 buffer + decoded, len - decoded)) <= 0) {
           return decoded_result;
-
+        }
         decoded += decoded_result;
         /*
          * Set corresponding mask to 1 in presencemask
@@ -230,12 +230,12 @@ int encode_security_mode_command(
     if ((encode_result = encode_ue_additional_security_capability(
              &security_mode_command->replayedueadditionalsecuritycapabilities,
              SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
-
   return encoded;
 }

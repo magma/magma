@@ -3301,7 +3301,7 @@ void mme_app_handle_path_switch_request(
              mme_app_get_bearer_context(ue_context_p, bearer_id)) == NULL) {
       OAILOG_ERROR_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Bearer Contex for bearer_id %d does not exist for ue_id %d\n",
+          "Bearer Context for bearer_id %d does not exist for ue_id %d\n",
           bearer_id, ue_context_p->mme_ue_s1ap_id);
     } else {
       s11_modify_bearer_request->bearer_contexts_to_be_modified
@@ -3729,7 +3729,6 @@ void mme_app_handle_e_rab_modification_ind(
     const itti_s1ap_e_rab_modification_ind_t* const e_rab_modification_ind) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s* ue_context_p = NULL;
-  bearer_context_t* current_bearer_p   = NULL;
   pdn_cid_t cid                        = 0;
   int idx                              = 0;
   pdn_context_t* pdn_context           = NULL;
@@ -3782,6 +3781,7 @@ void mme_app_handle_e_rab_modification_ind(
       ue_context_p->ue_context_rel_cause = S1AP_RADIO_UNKNOWN_E_RAB_ID;
       mme_app_itti_ue_context_release(
           ue_context_p, ue_context_p->ue_context_rel_cause);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     /*
      * If the E-RAB MODIFICATION INDICATION message contains several E-RAB ID
@@ -3802,11 +3802,10 @@ void mme_app_handle_e_rab_modification_ind(
   for (int i = 0;
        i < e_rab_modification_ind->e_rab_not_to_be_modified_list.no_of_items;
        i++) {
-    bearer_context_new_t* bearer_context = NULL;
-    mme_app_get_bearer_context(
-        ue_context_p,
-        e_rab_modification_ind->e_rab_not_to_be_modified_list.item[i].e_rab_id);
-    if (!bearer_context) {
+    if (!mme_app_get_bearer_context(
+            ue_context_p,
+            e_rab_modification_ind->e_rab_not_to_be_modified_list.item[i]
+                .e_rab_id)) {
       OAILOG_NOTICE(
           LOG_MME_APP,
           "S1AP E-RAB_MODIFICATION_IND no e-rab %d not to be modified for "
@@ -3857,48 +3856,34 @@ void mme_app_handle_e_rab_modification_ind(
        idx++) {
     e_rab_id_t bearer_id =
         e_rab_modification_ind->e_rab_to_be_modified_list.item[idx].e_rab_id;
-    if ((current_bearer_p =
-             mme_app_get_bearer_context(ue_context_p, bearer_id)) == NULL) {
-      // useless, already tested few lines above
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Bearer Contex for bearer_id %d does not exist for ue_id %d\n",
-          bearer_id, ue_context_p->mme_ue_s1ap_id);
-    } else {
-      s11_modify_bearer_request->bearer_contexts_to_be_modified
-          .bearer_contexts[idx]
-          .eps_bearer_id =
-          e_rab_modification_ind->e_rab_to_be_modified_list.item[idx].e_rab_id;
-      s11_modify_bearer_request->bearer_contexts_to_be_modified
-          .bearer_contexts[idx]
-          .s1_eNB_fteid.teid =
-          e_rab_modification_ind->e_rab_to_be_modified_list.item[idx]
-              .s1_xNB_fteid.teid;
 
-      memcpy(
-          &s11_modify_bearer_request->bearer_contexts_to_be_modified
-               .bearer_contexts[idx]
-               .s1_eNB_fteid,
-          &e_rab_modification_ind->e_rab_to_be_modified_list.item[idx]
-               .s1_xNB_fteid,
-          sizeof(s11_modify_bearer_request->bearer_contexts_to_be_modified
-                     .bearer_contexts[idx]
-                     .s1_eNB_fteid));
-      s11_modify_bearer_request->bearer_contexts_to_be_modified
-          .bearer_contexts[idx]
-          .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
-      s11_modify_bearer_request->bearer_contexts_to_be_modified
-          .num_bearer_context++;
+    s11_modify_bearer_request->bearer_contexts_to_be_modified
+        .bearer_contexts[idx]
+        .eps_bearer_id =
+        e_rab_modification_ind->e_rab_to_be_modified_list.item[idx].e_rab_id;
 
-      OAILOG_DEBUG_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Build MBR for ue_id %d\t bearer_id %d\t enb_teid %u\t sgw_teid %u\n",
-          ue_context_p->mme_ue_s1ap_id, bearer_id,
-          s11_modify_bearer_request->bearer_contexts_to_be_modified
-              .bearer_contexts[idx]
-              .s1_eNB_fteid.teid,
-          current_bearer_p->s_gw_fteid_s1u.teid);
-    }
+    memcpy(
+        &s11_modify_bearer_request->bearer_contexts_to_be_modified
+             .bearer_contexts[idx]
+             .s1_eNB_fteid,
+        &e_rab_modification_ind->e_rab_to_be_modified_list.item[idx]
+             .s1_xNB_fteid,
+        sizeof(s11_modify_bearer_request->bearer_contexts_to_be_modified
+                   .bearer_contexts[idx]
+                   .s1_eNB_fteid));
+    s11_modify_bearer_request->bearer_contexts_to_be_modified
+        .bearer_contexts[idx]
+        .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
+    s11_modify_bearer_request->bearer_contexts_to_be_modified
+        .num_bearer_context++;
+
+    OAILOG_DEBUG_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Build MBR for ue_id %d\t bearer_id %d\t enb_teid %u\n",
+        ue_context_p->mme_ue_s1ap_id, bearer_id,
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
+            .bearer_contexts[idx]
+            .s1_eNB_fteid.teid);
 
     if (!idx) {
       cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(bearer_id)]->pdn_cx_id;
@@ -3914,48 +3899,34 @@ void mme_app_handle_e_rab_modification_ind(
        idx++) {
     e_rab_id_t bearer_id =
         e_rab_modification_ind->e_rab_to_be_modified_list.item[idx].e_rab_id;
-    if ((current_bearer_p =
-             mme_app_get_bearer_context(ue_context_p, bearer_id)) == NULL) {
-      // useless, already tested few lines above
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Bearer Contex for bearer_id %d does not exist for ue_id %d\n",
-          bearer_id, ue_context_p->mme_ue_s1ap_id);
-    } else {
-      s11_modify_bearer_request->bearer_contexts_to_be_modified
-          .bearer_contexts[idx]
-          .eps_bearer_id =
-          e_rab_modification_ind->e_rab_to_be_modified_list.item[idx].e_rab_id;
-      s11_modify_bearer_request->bearer_contexts_to_be_modified
-          .bearer_contexts[idx]
-          .s1_eNB_fteid.teid =
-          e_rab_modification_ind->e_rab_to_be_modified_list.item[idx]
-              .s1_xNB_fteid.teid;
 
-      memcpy(
-          &s11_modify_bearer_request->bearer_contexts_to_be_modified
-               .bearer_contexts[idx]
-               .s1_eNB_fteid,
-          &e_rab_modification_ind->e_rab_to_be_modified_list.item[idx]
-               .s1_xNB_fteid,
-          sizeof(s11_modify_bearer_request->bearer_contexts_to_be_modified
-                     .bearer_contexts[idx]
-                     .s1_eNB_fteid));
-      s11_modify_bearer_request->bearer_contexts_to_be_modified
-          .bearer_contexts[idx]
-          .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
-      s11_modify_bearer_request->bearer_contexts_to_be_modified
-          .num_bearer_context++;
+    s11_modify_bearer_request->bearer_contexts_to_be_modified
+        .bearer_contexts[idx]
+        .eps_bearer_id =
+        e_rab_modification_ind->e_rab_to_be_modified_list.item[idx].e_rab_id;
 
-      OAILOG_DEBUG_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Build MBR for ue_id %d\t bearer_id %d\t enb_teid %u\t sgw_teid %u\n",
-          ue_context_p->mme_ue_s1ap_id, bearer_id,
-          s11_modify_bearer_request->bearer_contexts_to_be_modified
-              .bearer_contexts[idx]
-              .s1_eNB_fteid.teid,
-          current_bearer_p->s_gw_fteid_s1u.teid);
-    }
+    memcpy(
+        &s11_modify_bearer_request->bearer_contexts_to_be_modified
+             .bearer_contexts[idx]
+             .s1_eNB_fteid,
+        &e_rab_modification_ind->e_rab_to_be_modified_list.item[idx]
+             .s1_xNB_fteid,
+        sizeof(s11_modify_bearer_request->bearer_contexts_to_be_modified
+                   .bearer_contexts[idx]
+                   .s1_eNB_fteid));
+    s11_modify_bearer_request->bearer_contexts_to_be_modified
+        .bearer_contexts[idx]
+        .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
+    s11_modify_bearer_request->bearer_contexts_to_be_modified
+        .num_bearer_context++;
+
+    OAILOG_DEBUG_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Build MBR for ue_id %d\t bearer_id %d\t enb_teid %u\n",
+        ue_context_p->mme_ue_s1ap_id, bearer_id,
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
+            .bearer_contexts[idx]
+            .s1_eNB_fteid.teid);
 
     if (!idx) {
       cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(bearer_id)]->pdn_cx_id;
