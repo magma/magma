@@ -325,8 +325,7 @@ void clean_stale_enb_state(
   enb_description_t* stale_enb_association = NULL;
 
   hashtable_ts_apply_callback_on_elements(
-      (hash_table_ts_t* const) & state->enbs,
-      get_stale_enb_connection_with_enb_id, new_enb_association,
+      &state->enbs, get_stale_enb_connection_with_enb_id, new_enb_association,
       (void**) &stale_enb_association);
   if (stale_enb_association == NULL) {
     // No stale eNB connection found;

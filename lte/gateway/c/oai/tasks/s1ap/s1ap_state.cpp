@@ -188,7 +188,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
 
   hashtable_rc_t ht_rc;
   hash_key_t* mme_ue_id_no_imsi_list;
-  uint32_t num_ues_checked = 0;
+  uint32_t num_ues_checked;
 
   // get each eNB in s1ap_state
   for (uint32_t i = 0; i < ht_keys->num_keys; i++) {
@@ -206,6 +206,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
 
     // for each ue comp_s1ap_id in eNB->ue_id_coll, check if it has an S1ap
     // ue_context, if not delete it
+    num_ues_checked        = 0;
     mme_ue_id_no_imsi_list = (hash_key_t*) calloc(
         enb_association_p->ue_id_coll.num_elements, sizeof(hash_key_t));
     hashtable_uint64_ts_apply_callback_on_elements(
