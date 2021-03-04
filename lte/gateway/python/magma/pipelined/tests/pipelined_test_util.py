@@ -277,6 +277,7 @@ def fake_controller_setup(enf_controller=None,
         SetupFlowsResult.SUCCESS)
     if enf_stats_controller:
         enf_stats_controller.init_finished = False
+        enf_stats_controller.cleanup_state()
         TestCase().assertEqual(setup_controller(
             enf_stats_controller, setup_flows_request),
             SetupFlowsResult.SUCCESS)
