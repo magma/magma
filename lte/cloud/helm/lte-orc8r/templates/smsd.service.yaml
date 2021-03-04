@@ -11,17 +11,17 @@
 # limitations under the License.
 */}}
 
-  {{- include "orc8rlib.service" (list . "smsd.service") -}}
-  {{- define "smsd.service" -}}
+{{- include "orc8rlib.service" (list . "smsd.service") -}}
+{{- define "smsd.service" -}}
 metadata:
   name: orc8r-smsd
   labels:
-  {{- with .Values.smsd.service.labels }}
-  {{ toYaml . | indent 4}}
-  {{- end}}
+    {{- with .Values.smsd.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
   {{- with .Values.smsd.service.annotations }}
   annotations:
-  {{ toYaml . | indent 4}}
+{{ toYaml . | indent 4}}
   {{- end }}
 spec:
   selector:
@@ -33,4 +33,4 @@ spec:
     - name: http
       port: 8080
       targetPort:  10086
-  {{- end -}}
+{{- end -}}
