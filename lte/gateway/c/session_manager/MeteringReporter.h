@@ -13,6 +13,7 @@
 #pragma once
 
 #include "StoredState.h"
+#include "SessionCredit.h"
 
 namespace magma {
 namespace lte {
@@ -28,6 +29,16 @@ class MeteringReporter {
   void report_usage(
       const std::string& imsi, const std::string& session_id,
       SessionStateUpdateCriteria& update_criteria);
+
+  /**
+   * Reports the usage as described in TotalCreditUsage
+   * This function is intended to be used on service restart to offset the
+   * counter value. TotalCreditUsage contains the cumulative usage since the
+   * start, not a delta value.
+   */
+  void initialize_usage(
+      const std::string& imsi, const std::string& session_id,
+      SessionCredit::TotalCreditUsage usage);
 
  private:
   /**

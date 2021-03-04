@@ -764,7 +764,7 @@ ChargingCreditSummaries SessionState::get_charging_credit_summaries() {
   return charging_credit_summaries;
 }
 
-SessionState::TotalCreditUsage SessionState::get_total_credit_usage() {
+SessionCredit::TotalCreditUsage SessionState::get_total_credit_usage() {
   // Collate unique charging/monitoring keys used by rules
   std::unordered_set<CreditKey, decltype(&ccHash), decltype(&ccEqual)>
       used_charging_keys(4, ccHash, ccEqual);
@@ -787,14 +787,17 @@ SessionState::TotalCreditUsage SessionState::get_total_credit_usage() {
       bool should_track_monitoring_key =
           rules.get_monitoring_key_for_rule_id(rule_id, &monitoring_key);
 
-      if (should_track_charging_key) used_charging_keys.insert(charging_key);
-      if (should_track_monitoring_key)
+      if (should_track_charging_key) {
+        used_charging_keys.insert(charging_key);
+      }
+      if (should_track_monitoring_key) {
         used_monitoring_keys.insert(monitoring_key);
+      }
     }
   }
 
   // Sum up usage
-  TotalCreditUsage usage{
+  SessionCredit::TotalCreditUsage usage{
       .monitoring_tx = 0,
       .monitoring_rx = 0,
       .charging_tx   = 0,
