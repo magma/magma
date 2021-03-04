@@ -652,6 +652,8 @@ static int _emm_tracking_area_update_accept(
       emm_sap.u.emm_as.u.establish.equivalent_plmns      = NULL;
       emm_sap.u.emm_as.u.establish.emergency_number_list = NULL;
 
+      emm_sap.u.emm_as.u.establish.eps_network_feature_support =
+          calloc(1, sizeof(eps_network_feature_support_t));
       emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
           _emm_data.conf.eps_network_feature_support[0];
       emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
@@ -748,6 +750,8 @@ static int _emm_tracking_area_update_accept(
             tau_proc->ies->eps_bearer_context_status;
       }
 
+      emm_sap.u.emm_as.u.establish.eps_network_feature_support =
+          calloc(1, sizeof(eps_network_feature_support_t));
       emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
           _emm_data.conf.eps_network_feature_support[0];
       emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
