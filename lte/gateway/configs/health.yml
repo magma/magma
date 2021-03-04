@@ -22,6 +22,6 @@ state_recovery:
 
   # Number of restarts of services_check that triggers recovery process
   restart_threshold: 2
-  interval_check_mins: 1
+  interval_check_mins: 3
   # Destination path to save redis RDB temp snapshots
   snapshots_dir: /tmp/redis_snapshots

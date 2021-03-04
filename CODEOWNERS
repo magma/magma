@@ -20,7 +20,7 @@ openwrt/ @emakeev @uri200
 # More specific mappings for lte/gateway will override this top-level one
 lte/gateway @ardzoht @pshelar
 lte/gateway/c/session_manager @themarwhal @uri200
-lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo
+lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo @ardzoht
 lte/gateway/c/sctpd @ssanadhya @ulaskozat
 lte/gateway/c/connection_tracker @koolzz
 lte/gateway/docker @rdefosse @tmdzk

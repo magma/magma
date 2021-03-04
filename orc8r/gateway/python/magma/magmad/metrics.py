@@ -58,7 +58,7 @@ UNATTENDED_UPGRADE_STATUS = Gauge('unattended_upgrade_status',
                                   '1 for active, 0 for inactive')
 
 
-SERVICE_RESTART_STATUS = Gauge('service_restart_status',
+SERVICE_RESTART_STATUS = Counter('service_restart_status',
                                'Count of service restarts',
                                ['service_name', 'status'])
 

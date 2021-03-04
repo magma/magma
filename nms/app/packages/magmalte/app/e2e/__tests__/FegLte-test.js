@@ -41,6 +41,7 @@ afterEach(() => {
 describe('Admin component', () => {
   test('verifying addition of feg_lte networks', async () => {
     const page = await browser.newPage();
+    await page.setViewport({width: 1280, height: 1024});
     try {
       await page.goto('https://magma-test.localhost/');
       await page.waitForXPath(`//span[text()='Dashboard']`, {

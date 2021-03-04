@@ -100,7 +100,7 @@ export default function PolicyTrackingEdit(props: Props) {
         <TypedSelect
           className={props.inputClass}
           input={<OutlinedInput />}
-          value={props.policyRule?.tracking_type ?? 'Only OCS'}
+          value={props.policyRule?.tracking_type ?? 'ONLY_OCS'}
           items={{
             ONLY_OCS: 'Only OCS',
             ONLY_PCRF: 'Only PCRF',

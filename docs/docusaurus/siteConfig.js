@@ -120,6 +120,12 @@ const siteConfig = {
   // You may provide arbitrary config keys to be used as needed by your
   // template. For example, if you need your repo's URL...
   //   repoUrl: 'https://github.com/facebook/test-site',
+
+ // Enable Algolia DocSearch Functionality within Docusaurus 
+ algolia: {
+   apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+   indexName: 'magma', 
+  },
 };
 
 module.exports = siteConfig;

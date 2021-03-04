@@ -86,6 +86,7 @@ int stop_of_controller(void) {
 static void* external_event_callback(std::shared_ptr<void> data) {
   auto external_event = std::static_pointer_cast<openflow::ExternalEvent>(data);
   ctrl.dispatch_event(*external_event);
+  return NULL;
 }
 
 int openflow_controller_add_gtp_tunnel(

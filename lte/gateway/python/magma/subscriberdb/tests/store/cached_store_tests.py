@@ -12,7 +12,7 @@ limitations under the License.
 """
 
 # pylint: disable=protected-access
-
+import tempfile
 import unittest
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
@@ -23,7 +23,6 @@ from magma.subscriberdb.store.sqlite import SqliteStore
 
 from magma.subscriberdb.sid import SIDUtils
 
-
 class StoreTests(unittest.TestCase):
     """
     Test class for the CachedStore subscriber storage
@@ -31,8 +30,12 @@ class StoreTests(unittest.TestCase):
 
     def setUp(self):
         cache_size = 3
-        sqlite = SqliteStore("file::memory:")
+        self._tmpfile = tempfile.TemporaryDirectory()
+        sqlite = SqliteStore(self._tmpfile.name +'/')
         self._store = CachedStore(sqlite, cache_size)
+
+    def tearDown(self):
+        self._tmpfile.cleanup()
 
     def _add_subscriber(self, sid):
         sub = SubscriberData(sid=SIDUtils.to_pb(sid))

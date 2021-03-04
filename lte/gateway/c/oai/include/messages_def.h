@@ -46,3 +46,4 @@
 #include "async_system_messages_def.h"
 #include "udp_messages_def.h"
 #include "ha_messages_def.h"
+#include "n11_messages_def.h"

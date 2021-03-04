@@ -33,6 +33,7 @@ executors:
 
 orbs:
   artifactory: circleci/artifactory@0.0.7
+  codecov: codecov/codecov@1.1.3
 
   python:
     commands:
@@ -46,6 +47,9 @@ orbs:
           - run:
               name: Set Python version
               command: pyenv global <<parameters.python_version>>
+          - run:
+              name: Upgrade Pip
+              command: pip install --upgrade pip
 
   docker:
     commands:
@@ -485,6 +489,7 @@ jobs:
       - magma_slack_notify
 
   # Fail if code doesn't pass formatting requirements.
+  # Upload test coverage statistics.
   cloud_lint:
     machine:
       image: ubuntu-1604:201903-01
@@ -495,12 +500,20 @@ jobs:
       - checkout
       - build/determinator:
           <<: *all_gateways_build_verify
+      - docker/install-dc
       - python/set_version
       - run:
           name: Lint cloud Go code
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
             python3 build.py --lint
+      - run:
+          name: Generate test coverage
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --coverage
+      - codecov/upload:
+          file: /home/circleci/project/orc8r/cloud/coverage/all.gocov
       - magma_slack_notify
 
   # Fail if checked-in generated code doesn't match output from
@@ -720,6 +733,7 @@ jobs:
       - checkout
       - build/determinator:
           <<: *lte_build_verify
+      - run: mkdir -p /var/tmp/test_results
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
       - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
@@ -735,6 +749,8 @@ jobs:
             mkdir ${CODEGEN_ROOT}
             wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
             make -C $MAGMA_ROOT/lte/gateway/python test_all
+      - store_test_results:
+          path: /var/tmp/test_results
       - magma_slack_notify
 
   lte-integ-test:
@@ -980,8 +996,6 @@ jobs:
           name: Setup Environment Variables
           command: |
             echo export MAGMA_ROOT=$(pwd) >> $BASH_ENV
-            echo export AWS_ACCESS_KEY_ID="$(printenv XWF_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
-            echo export AWS_SECRET_ACCESS_KEY="$(printenv XWF_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
             echo export RUN_UID=$RANDOM >> $BASH_ENV
       - run:
           command: |
@@ -1090,25 +1104,18 @@ workflows:
             - cwf-integ-test
       - xwfm-deploy:
           <<: *only_master
+          name: xwfm-deploy-latest
           requires:
-            - xwfm-test
             - cwag-deploy
+            - xwfm-test
+          tag-latest: true
       - cwag-deploy:
           <<: *only_master
           name: cwag-deploy-latest
           requires:
-            - xwfm-test
-            - cwag-precommit
-            - cwf-integ-test
+            - cwag-deploy
+            - xwfm-deploy-latest
           images: 'gateway_python|gateway_pipelined|gateway_go'
-          tag-latest: true
-      - xwfm-deploy:
-          <<: *only_master
-          name: xwfm-deploy-latest
-          requires:
-            - xwfm-test
-            - cwag-precommit
-            - cwf-integ-test
           tag-latest: true
 
 

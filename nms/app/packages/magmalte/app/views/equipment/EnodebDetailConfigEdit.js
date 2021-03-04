@@ -47,7 +47,7 @@ import EnodeConfigEditTdd from './EnodebDetailConfigTdd';
 import {AltFormField} from '../../components/FormField';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -160,10 +160,13 @@ function EnodeEditDialog(props: DialogProps) {
 
   const onClose = () => {
     // clear existing state
-    setEnb({});
-    setTabPos(0);
     props.onClose();
   };
+
+  useEffect(() => {
+    setTabPos(editProps ? EditTableType[editProps.editTable] : 0);
+    setEnb({});
+  }, [editProps, open]);
 
   return (
     <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">

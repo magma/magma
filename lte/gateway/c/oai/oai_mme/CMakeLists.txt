@@ -45,7 +45,7 @@ target_link_libraries(mme
         LIB_HASHTABLE LIB_S6A_PROXY
         TASK_S1AP TASK_SCTP_SERVER TASK_SGS TASK_SMS_ORC8R
         TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE TASK_NAS TASK_HA
-        ${ITTI_LIB} ${GCOV_LIB}
+         ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls ${SERVICE303_LIB}
@@ -56,7 +56,7 @@ if ( NOT EMBEDDED_SGW )
  target_link_libraries(mme
   LIB_GTPV2C TASK_UDP)
 else ( EMBEDDED_SGW )
-target_link_libraries(mme TASK_SGW)
+target_link_libraries(mme TASK_SGW TASK_SGW_S8)
 endif ( NOT EMBEDDED_SGW )
 
 if ( NOT S6A_OVER_GRPC )
