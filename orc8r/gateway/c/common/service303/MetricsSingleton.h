@@ -46,6 +46,7 @@ class MetricsSingleton {
  public:
   static MetricsSingleton& Instance();
   static void flush();  // destroy instance
+  void RemoveCounter(const char* name, size_t label_count, va_list& args);
   void IncrementCounter(
       const char* name, double increment, size_t label_count, va_list& args);
   void IncrementGauge(
