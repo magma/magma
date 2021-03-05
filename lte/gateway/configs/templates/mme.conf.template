@@ -121,6 +121,7 @@ MME :
         LAC = "{{ lac }}";
     };
 
+
     NAS :
     {
         # 3GPP TS 33.401 section 7.2.4.3 Procedures for NAS algorithm selection
