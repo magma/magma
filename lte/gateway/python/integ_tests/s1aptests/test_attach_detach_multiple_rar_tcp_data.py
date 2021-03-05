@@ -180,7 +180,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 "********************** Sending RAR for IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
-            self._sessionManager_util.create_ReAuthRequest(
+            self._sessionManager_util.send_ReAuthRequest(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 policy_id1,
                 flow_list1,
@@ -208,7 +208,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
 
-            self._sessionManager_util.create_ReAuthRequest(
+            self._sessionManager_util.send_ReAuthRequest(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 policy_id2,
                 flow_list2,
@@ -295,10 +295,11 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 has_tunnel_action, "Downlink flow missing set tunnel action"
             )
 
-            print("Sleeping for 5 seconds")
-            time.sleep(5)
             with self._s1ap_wrapper.configUplinkTest(req, duration=1) as test:
                 test.verify()
+
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
 
             print(
                 "********************** Deleting dedicated bearer for IMSI",
