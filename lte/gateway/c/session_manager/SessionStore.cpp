@@ -173,15 +173,20 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
         if (!(*it2)->apply_update_criteria(update)) {
           return false;
         }
-        // TODO pull the metering logic out of SessionStore. SessionStore should
-        // only handle logic relating to storage/search.
-        metering_reporter_->report_usage(imsi, session_id, update);
-
         if (update.is_session_ended) {
           // TODO: Instead of deleting from session_map, mark as ended and
           //       no longer mark on read
           it2 = it.second.erase(it2);
           continue;
+        } else {
+          // Only report_usage if the session is still active, since we want to
+          // remove the counter when the session is terminated. This logic *may*
+          // lead to the metric missing the last few bytes used by the session
+          // before termination. But since the counter has to get deleted, this
+          // is inevitable with our current approach.
+          // TODO pull the metering logic out of SessionStore. SessionStore
+          // should only handle logic relating to storage/search.
+          metering_reporter_->report_usage(imsi, session_id, update);
         }
       }
       ++it2;
