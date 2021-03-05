@@ -56,7 +56,7 @@ sctp_config_t sctp_conf;
 task_zmq_ctx_t sctp_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p    = receive_msg(reader);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SCTP_INIT_MSG: {

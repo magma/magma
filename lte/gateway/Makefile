@@ -127,16 +127,16 @@ endef
 build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
-build_common: ## Build shared libraries
+build_common: format_common ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
 build_oai: format_oai build_common ## Build OAI
 	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
-build_sctpd: build_common ## Build SCTPD
+build_sctpd: format_sctpd build_common ## Build SCTPD
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
-build_session_manager: build_common ## Build session manager
+build_session_manager: format_session_manager build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
 # Catch all for c services that don't have custom flags
@@ -147,12 +147,12 @@ build_%:
 scan_oai: ## Scan OAI
 	$(call run_scanbuild, $(C_BUILD)/scan/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
-format_oai: ## Format OAI
-	find $(GATEWAY_C_DIR)/oai \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+format_common:
+	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 
-format_session_manager: ## Format SessionD
-	find $(GATEWAY_C_DIR)/session_manager \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+format_%: ## Format service in magma/lte/gateway/c/
+	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 
 test_python: stop ## Run all Python-specific tests

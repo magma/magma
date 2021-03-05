@@ -37,7 +37,7 @@ namespace sctpd {
                  << "): " << status.error_message();                           \
   } while (0)
 
-int create_sctp_sock(const InitReq &req);
+int create_sctp_sock(const InitReq& req);
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

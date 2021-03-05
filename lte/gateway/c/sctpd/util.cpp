@@ -23,19 +23,15 @@ namespace sctpd {
 
 // Set up basic sctp options of socket "sd"
 int set_sctp_opts(
-  const int sd,
-  const uint16_t instreams,
-  const uint16_t outstreams,
-  const uint16_t max_attempts,
-  const uint16_t init_timeout);
+    const int sd, const uint16_t instreams, const uint16_t outstreams,
+    const uint16_t max_attempts, const uint16_t init_timeout);
 
 // Convert address specified in InitReq into struct sockaddr for sctp setup
-int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs);
+int convert_addrs(const InitReq* req, struct sockaddr** addrs, int* num_addrs);
 
-int create_sctp_sock(const InitReq &req)
-{
+int create_sctp_sock(const InitReq& req) {
   int num_addrs;
-  struct sockaddr *addrs;
+  struct sockaddr* addrs;
   int sd;
 
   if (!req.use_ipv4() && !req.use_ipv6()) return -1;
@@ -75,16 +71,12 @@ fail:
 }
 
 int set_sctp_opts(
-  const int sd,
-  const uint16_t instreams,
-  const uint16_t outstreams,
-  const uint16_t max_attempts,
-  const uint16_t init_timeout)
-{
+    const int sd, const uint16_t instreams, const uint16_t outstreams,
+    const uint16_t max_attempts, const uint16_t init_timeout) {
   struct sctp_initmsg init;
-  init.sinit_num_ostreams = outstreams;
-  init.sinit_max_instreams = instreams;
-  init.sinit_max_attempts = max_attempts;
+  init.sinit_num_ostreams   = outstreams;
+  init.sinit_max_instreams  = instreams;
+  init.sinit_max_attempts   = max_attempts;
   init.sinit_max_init_timeo = init_timeout;
 
   if (setsockopt(sd, IPPROTO_SCTP, SCTP_INITMSG, &init, sizeof(init)) < 0) {
@@ -95,19 +87,18 @@ int set_sctp_opts(
   int on = 1;
 
   struct linger sctp_linger;
-  sctp_linger.l_onoff = on;
+  sctp_linger.l_onoff  = on;
   sctp_linger.l_linger = 0;  // send an ABORT
-  if (
-    setsockopt(sd, SOL_SOCKET, SO_LINGER, &sctp_linger, sizeof(sctp_linger)) < 0
-    ) {
+  if (setsockopt(sd, SOL_SOCKET, SO_LINGER, &sctp_linger, sizeof(sctp_linger)) <
+      0) {
     MLOG_perror("setsockopt linger");
     return -1;
   }
 
   struct sctp_event_subscribe event;
   event.sctp_association_event = on;
-  event.sctp_shutdown_event = on;
-  event.sctp_data_io_event = on;
+  event.sctp_shutdown_event    = on;
+  event.sctp_data_io_event     = on;
 
   if (setsockopt(sd, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(event)) < 0) {
     MLOG_perror("setsockopt");
@@ -117,37 +108,35 @@ int set_sctp_opts(
   return 0;
 }
 
-int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs)
-{
+int convert_addrs(const InitReq* req, struct sockaddr** addrs, int* num_addrs) {
   int i;
-  struct sockaddr_in *ipv4_addr;
-  struct sockaddr_in6 *ipv6_addr;
+  struct sockaddr_in* ipv4_addr;
+  struct sockaddr_in6* ipv6_addr;
 
   auto num_ipv4_addrs = req->ipv4_addrs_size();
   auto num_ipv6_addrs = req->ipv6_addrs_size();
-  *num_addrs = num_ipv4_addrs + num_ipv6_addrs;
+  *num_addrs          = num_ipv4_addrs + num_ipv6_addrs;
 
-  *addrs = (struct sockaddr *) calloc(*num_addrs, sizeof(struct sockaddr *));
+  *addrs = (struct sockaddr*) calloc(*num_addrs, sizeof(struct sockaddr*));
   if (*addrs == NULL) return -1;
 
   for (i = 0; i < num_ipv4_addrs; i++) {
-    ipv4_addr = (struct sockaddr_in *) &(*addrs)[i];
+    ipv4_addr = (struct sockaddr_in*) &(*addrs)[i];
 
     ipv4_addr->sin_family = AF_INET;
-    ipv4_addr->sin_port = htons(req->port());
+    ipv4_addr->sin_port   = htons(req->port());
     if (inet_aton(req->ipv4_addrs(i).c_str(), &ipv4_addr->sin_addr) < 0) {
       return -1;
     }
   }
 
   for (i = 0; i < num_ipv6_addrs; i++) {
-    ipv6_addr = (struct sockaddr_in6 *) &(*addrs)[i + num_ipv4_addrs];
+    ipv6_addr = (struct sockaddr_in6*) &(*addrs)[i + num_ipv4_addrs];
 
     ipv6_addr->sin6_family = AF_INET6;
-    ipv6_addr->sin6_port = htons(req->port());
-    if (
-      inet_pton(AF_INET6, req->ipv6_addrs(i).c_str(), &ipv6_addr->sin6_addr) <
-      0) {
+    ipv6_addr->sin6_port   = htons(req->port());
+    if (inet_pton(AF_INET6, req->ipv6_addrs(i).c_str(), &ipv6_addr->sin6_addr) <
+        0) {
       return -1;
     }
   }
@@ -155,5 +144,5 @@ int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs)
   return 0;
 }
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

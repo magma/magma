@@ -56,5 +56,5 @@ void observe_histogram(
   va_end(ap);
 }
 
-} // namespace service303
-} // namespace magma
+}  // namespace service303
+}  // namespace magma

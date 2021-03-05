@@ -23,17 +23,11 @@
 namespace magma {
 namespace sctpd {
 
-SctpdDownlinkImpl::SctpdDownlinkImpl(SctpEventHandler &uplink_handler):
-  _uplink_handler(uplink_handler),
-  _sctp_connection(nullptr)
-{
-}
+SctpdDownlinkImpl::SctpdDownlinkImpl(SctpEventHandler& uplink_handler)
+    : _uplink_handler(uplink_handler), _sctp_connection(nullptr) {}
 
 Status SctpdDownlinkImpl::Init(
-  ServerContext *context,
-  const InitReq *req,
-  InitRes *res)
-{
+    ServerContext* context, const InitReq* req, InitRes* res) {
   MLOG(MDEBUG) << "SctpdDownlinkImpl::Init starting";
 
   if (_sctp_connection != nullptr && !req->force_restart()) {
@@ -44,7 +38,7 @@ Status SctpdDownlinkImpl::Init(
 
   if (_sctp_connection != nullptr) {
     MLOG(MDEBUG)
-      << "SctpdDownlinkImpl::Init cleaning up sctp_desc and listener";
+        << "SctpdDownlinkImpl::Init cleaning up sctp_desc and listener";
 
     auto conn = std::move(_sctp_connection);
     conn->Close();
@@ -66,10 +60,7 @@ Status SctpdDownlinkImpl::Init(
 }
 
 Status SctpdDownlinkImpl::SendDl(
-  ServerContext *context,
-  const SendDlReq *req,
-  SendDlRes *res)
-{
+    ServerContext* context, const SendDlReq* req, SendDlRes* res) {
   MLOG(MDEBUG) << "SctpdDownlinkImpl::SendDl starting";
 
   try {
@@ -83,12 +74,11 @@ Status SctpdDownlinkImpl::SendDl(
   return Status::OK;
 }
 
-void SctpdDownlinkImpl::stop()
-{
+void SctpdDownlinkImpl::stop() {
   if (_sctp_connection != nullptr) {
     _sctp_connection->Close();
   }
 }
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma
