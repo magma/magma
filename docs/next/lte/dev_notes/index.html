@@ -158,8 +158,9 @@ GRPC printing. You will see the content of GRPC on the same log mentioned in
 the section previous (<code>/var/log/syslog</code>). By default, it is disabled.</p>
 <p>Note GRPC printing is independent of the <code>log_level</code>. So you can enabled GRPC
 printing even that your level is set as <code>INFO</code>.</p>
-<p>To enable GRPC logging for <code>pipelined</code>, <code>directoryd</code> or <code>subcriberdb</code> you can
-modify this line on the <code>/etc/magma/&lt;service_name&gt;.yml</code> config file:</p>
+<p>To enable GRPC logging for <code>pipelined</code>, <code>mobilityd</code>, <code>directoryd</code> or
+<code>subcriberdb</code> you can modify this line on the <code>/etc/magma/&lt;service_name&gt;.yml</code>
+config file:</p>
 <pre><code class="hljs css language-yaml"><span class="hljs-attr">print_grpc_payload:</span> <span class="hljs-literal">true</span>
 </code></pre>
 <p>To enable this on sessiond you will have to create an environment variable</p>
