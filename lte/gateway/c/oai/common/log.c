@@ -1403,6 +1403,10 @@ void log_message_int(
 error_event:
   if (!(g_oai_log.is_async)) {
     LOG_FREE_ITEM(sync_context_p);
+  } else if (async_context_p == NULL) {
+    // To guard against mutation of is_async during post-init
+    // runtime, though this should not be mutated.
+    return;
   } else {
     LOG_FREE_ITEM_ASYNC(*async_context_p);
   }
@@ -1477,7 +1481,9 @@ void log_message_int_prefix_id(
 error_event:
   if (!(g_oai_log.is_async)) {
     LOG_FREE_ITEM(sync_context_p);
-  } else {
+  } else if (async_context_p == NULL) {
+      return;
+  } else {  
     LOG_FREE_ITEM_ASYNC(*async_context_p);
   }
 }
