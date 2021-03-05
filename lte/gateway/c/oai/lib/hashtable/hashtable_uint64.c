@@ -433,7 +433,7 @@ hashtable_key_array_t* hashtable_uint64_ts_get_keys(
     return NULL;
   }
   ka       = calloc(1, sizeof(hashtable_key_array_t));
-  ka->keys = calloc(hashtblP->num_elements, sizeof(hash_key_t*));
+  ka->keys = calloc(hashtblP->num_elements, sizeof(hash_key_t));
 
   while ((ka->num_keys < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
@@ -463,7 +463,7 @@ hashtable_uint64_element_array_t* hashtable_uint64_ts_get_elements(
   }
 
   ea           = calloc(1, sizeof(hashtable_uint64_element_array_t));
-  ea->elements = calloc(hashtblP->num_elements, sizeof(uint64_t*));
+  ea->elements = calloc(hashtblP->num_elements, sizeof(uint64_t));
 
   while ((ea->num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
