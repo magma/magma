@@ -26,6 +26,13 @@ terraform {
     dynamodb_table = "my-dynamodb-table"
     region         = "us-west-2"
   }
+
+  required_providers {
+    postgresql = {
+      source = "cyrilgdn/postgresql"
+      version = "1.11.2"
+    }
+  }
 }
 
 provider "aws" {

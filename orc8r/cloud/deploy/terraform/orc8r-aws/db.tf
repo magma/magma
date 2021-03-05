@@ -32,6 +32,33 @@ resource "aws_db_instance" "default" {
   final_snapshot_identifier = "foo"
 }
 
+# Configure the MySQL provider based on the outcome of
+# creating the aws_db_instance.
+provider "postgresql" {
+  endpoint = "${aws_db_instance.default.endpoint}"
+
+  username = "${aws_db_instance.default.username}"
+  password = "${aws_db_instance.default.password}"
+
+  vpc_security_group_ids = "${aws_db_instance.default.vpc_security_group_ids}"
+
+  db_subnet_group_name = "${aws_db_instance.default.db_subnet_group_name}"
+
+  skip_final_snapshot = "${aws_db_instance.default.skip_final_snapshot}"
+}
+
+resource "postgresql_database" "nms" {
+  allocated_storage = var.nms_db_storage_gb
+
+  name     = var.nms_db_name
+
+  # we only need this as a placeholder value for `terraform destroy` to work,
+  # this won't actually create a final snapshot on destroy
+  final_snapshot_identifier = "nms-bar"
+
+  count = "${var.nms_using_postgres == true ? 1 : 0}"
+}
+
 resource "aws_db_instance" "nms" {
   identifier        = var.nms_db_identifier
   allocated_storage = var.nms_db_storage_gb
@@ -51,4 +78,6 @@ resource "aws_db_instance" "nms" {
   # we only need this as a placeholder value for `terraform destroy` to work,
   # this won't actually create a final snapshot on destroy
   final_snapshot_identifier = "nms-foo"
+
+  count = "${var.nms_using_mariadb == true ? 1 : 0}"
 }

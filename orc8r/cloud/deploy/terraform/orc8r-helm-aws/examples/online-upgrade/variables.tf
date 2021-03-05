@@ -230,6 +230,19 @@ variable "deploy_nms" {
   default     = true
 }
 
+variable "nms_using_mariadb" {
+  description = "Whether NMS is using MariaDB."
+  type        = bool
+  default     = true
+}
+
+variable "nms_using_postgres" {
+  description = "Whether NMS is using Postgres."
+  type        = bool
+  default     = false
+}
+
+
 variable "worker_node_policy_suffix" {
   description = "The name suffix of the custom IAM node policy from the v1.0 Terraform root module. This policy name will begin with magma_eks_worker_node_policy."
   type        = string

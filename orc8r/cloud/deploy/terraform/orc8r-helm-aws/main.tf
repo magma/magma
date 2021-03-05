@@ -212,6 +212,8 @@ data "template_file" "orc8r_values" {
     nms_db_name = var.nms_db_name
     nms_db_host = var.nms_db_host
     nms_db_user = var.nms_db_user
+    nms_using_mariadb = var.nms_using_mariadb
+    nms_using_postgres = var.nms_using_postgres
 
     metrics_pvc_promcfg  = kubernetes_persistent_volume_claim.storage["promcfg"].metadata.0.name
     metrics_pvc_promdata = kubernetes_persistent_volume_claim.storage["promdata"].metadata.0.name

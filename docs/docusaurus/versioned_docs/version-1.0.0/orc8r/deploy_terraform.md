@@ -44,6 +44,8 @@ keypair that you imported or created in the above step:
 $ cat vars.tfvars
 db_password = "foobar"
 nms_db_password = "foobar"
+nms_using_mariadb = true
+nms_using_postgres = false
 key_name = "my_key"
 ```
 

@@ -123,7 +123,7 @@ module orc8r-app {
   orc8r_db_user = module.orc8r.orc8r_db_user
   orc8r_db_pass = module.orc8r.orc8r_db_pass
 
-  nms_db_host = module.orc8r.nms_db_host
+  nms_db_host = var.nms_using_postgres == true ? module.orc8r.orc8r_db_host : module.orc8r.nms_db_host
   nms_db_name = module.orc8r.nms_db_name
   nms_db_user = module.orc8r.nms_db_user
   nms_db_pass = module.orc8r.nms_db_pass

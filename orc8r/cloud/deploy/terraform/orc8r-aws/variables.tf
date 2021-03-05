@@ -284,6 +284,18 @@ variable "nms_db_engine_version" {
   default     = "5.7"
 }
 
+variable "nms_using_mariadb" {
+  description = "Whether NMS is using MariaDB."
+  type        = bool
+  default     = true
+}
+
+variable "nms_using_postgres" {
+  description = "Whether NMS is using Postgres."
+  type        = bool
+  default     = false
+}
+
 ##############################################################################
 # Secretmanager configuration
 ##############################################################################

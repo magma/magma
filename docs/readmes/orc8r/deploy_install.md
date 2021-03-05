@@ -126,6 +126,8 @@ new `main.tf` file. Follow the example Terraform root module at
 override the following parameters
 
 - `nms_db_password` must be at least 8 characters
+- `nms_using_mariadb` true/false, for migration off mariadb
+- `nms_using_postgres` true/false, for migration to postgres with orc8r
 - `orc8r_db_password` must be at least 8 characters
 - `orc8r_domain_name` your registered domain name
 - `docker_registry` registry containing desired Orchestrator containers
