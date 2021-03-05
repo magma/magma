@@ -12,6 +12,7 @@ limitations under the License.
 """
 import subprocess
 import ipaddress
+import socket
 from collections import namedtuple
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
@@ -87,7 +88,7 @@ class Classifier(MagmaController):
             self.ovs_gtp_type = "gtp"
 
     def _ip_addr_to_gtp_port_name(self, enodeb_ip_addr:str):
-        ip_no = hex(int(ipaddress.ip_address(enodeb_ip_addr)))
+        ip_no = hex(socket.htonl(int(ipaddress.ip_address(enodeb_ip_addr))))
         buf = "g_{}".format(ip_no[2:])
         return buf
 
@@ -97,7 +98,7 @@ class Classifier(MagmaController):
             return None
 
         try:
-            return ovs.get_ofport(port_name)
+            port_no = ovs.get_ofport(port_name)
 
         except AssertionError as error:
             self.logger.debug('Cannot get port number for %s: %s',
@@ -108,6 +109,8 @@ class Classifier(MagmaController):
             self.logger.debug('Cannot get port number for %s: %s',
                                port_name, e)
             return None
+
+        return port_no
 
     def _add_gtp_port(self, gnb_ip):
         if not self.config.multi_tunnel_flag:

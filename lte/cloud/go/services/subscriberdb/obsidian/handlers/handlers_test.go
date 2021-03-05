@@ -1359,7 +1359,7 @@ func TestDeleteSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadAllEntitiesOfType(
+	actual, _, err := configurator.LoadAllEntitiesOfType(
 		"n1", lte.SubscriberEntityType,
 		configurator.EntityLoadCriteria{},
 		serdes.Entity,

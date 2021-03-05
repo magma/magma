@@ -113,7 +113,8 @@ setup(
         'h2>=3.2.0',
         'hpack>=3.0',
         'freezegun>=0.3.15',
-        'pycryptodome>=3.9.9'
+        'pycryptodome>=3.9.9',
+        'pyroute2'
     ],
     extras_require={
         'dev': [

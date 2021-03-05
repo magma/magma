@@ -617,6 +617,7 @@ class MagmadUtil(object):
     stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
+    health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -766,6 +767,23 @@ class MagmadUtil(object):
         self.exec_command("sudo systemctl mask magma@{}".format(service))
         self.exec_command("sudo systemctl stop magma@{}".format(service))
 
+    def is_service_enabled(self, service) -> bool:
+        """
+        Checks if a magma service on magma_dev VM is enabled
+        Args:
+            service: (str) service to disable
+        """
+        is_enabled_service_cmd = "systemctl is-enabled magma@" + service
+        try:
+            result_str = self.exec_command_output(is_enabled_service_cmd)
+        except subprocess.CalledProcessError as e:
+            # if service is disabled / masked, is-enabled will return
+            # non-zero exit status
+            result_str = e.output
+        if result_str in ("masked", "disabled"):
+            return False
+        return True
+
     def update_mme_config_for_sanity(self, cmd):
         mme_config_update_script = (
             "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
@@ -830,6 +848,22 @@ class MagmadUtil(object):
             print("APN Correction configured")
         else:
             print("APN Correction failed")
+
+    def config_health_service(self, cmd: health_service_cmds):
+        """
+        Configure magma@health service on access gateway
+        Args:
+            cmd: Enable / Disable cmd to configure service
+        """
+        magma_health_service_name = "health"
+        if cmd.name == MagmadUtil.health_service_cmds.DISABLE.name:
+            if self.is_service_enabled(magma_health_service_name):
+                self.disable_service(magma_health_service_name)
+            print("Health service is disabled")
+        elif cmd.name == MagmadUtil.health_service_cmds.ENABLE.name:
+            if not self.is_service_enabled(magma_health_service_name):
+                self.enable_service("health")
+            print("Health service is enabled")
 
     def restart_mme_and_wait(self):
         print("Restarting mme service on gateway")

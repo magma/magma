@@ -23,7 +23,8 @@ class TestAttachDetachWithCorruptStatelessMME(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
+            health_service=MagmadUtil.stateless_cmds.ENABLE)
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()

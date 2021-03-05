@@ -509,11 +509,11 @@ func loadAllSubscribers(networkID string) (map[string]*subscribermodels.Subscrib
 }
 
 func loadAllMutableSubscribers(networkID string) (map[string]*subscribermodels.MutableSubscriber, error) {
-	ents, err := configurator.LoadAllEntitiesOfType(networkID, lte.SubscriberEntityType, subscriberLoadCriteria, serdes.Entity)
+	ents, _, err := configurator.LoadAllEntitiesOfType(networkID, lte.SubscriberEntityType, subscriberLoadCriteria, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
-	profileEnts, err := configurator.LoadAllEntitiesOfType(
+	profileEnts, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, lte.APNPolicyProfileEntityType,
 		apnPolicyProfileLoadCriteria,
 		serdes.Entity,

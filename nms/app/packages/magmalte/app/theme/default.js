@@ -297,6 +297,7 @@ export default createMuiTheme({
     MuiDialogContent: {
       root: {
         padding: '32px',
+        minHeight: '480px',
       },
     },
     MuiDialogTitle: {

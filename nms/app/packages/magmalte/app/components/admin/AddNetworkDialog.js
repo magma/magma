@@ -94,7 +94,7 @@ export default function NetworkDialog(props: Props) {
       <DialogContent>
         {error && <FormLabel error>{error}</FormLabel>}
         <TextField
-          name="name"
+          name="networkId"
           label="Network ID"
           className={classes.input}
           value={networkID}

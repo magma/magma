@@ -1,7 +1,6 @@
 MODULE_NAME=orc8r
 PLUGIN_NAME=orc8r
 TOOL_DEPS:= \
-	magma/orc8r/cloud/go/tools/combine_swagger \
 	magma/orc8r/cloud/go/tools/swaggergen \
 	github.com/facebookincubator/ent/cmd/entc \
 	github.com/go-swagger/go-swagger/cmd/swagger \

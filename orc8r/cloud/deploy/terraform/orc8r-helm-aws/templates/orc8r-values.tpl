@@ -115,17 +115,21 @@ metrics:
     create: ${create_usergrafana}
     volumes:
       datasources:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaDatasources}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaDatasources}
       dashboardproviders:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaProviders}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaProviders}
       dashboards:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaDashboards}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaDashboards}
       grafanaData:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaData}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaData}
 
   thanos:
     enabled: ${thanos_enabled}
