@@ -534,6 +534,11 @@ class SessionState {
   bool should_rule_be_active(const std::string& rule_id, std::time_t time);
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
 
+  /**
+   * Clear all per-session metrics
+   */
+  void clear_session_metrics();
+
  private:
   std::string imsi_;
   std::string session_id_;
@@ -738,17 +743,12 @@ class SessionState {
 
   /**
    * Increments data usage values for session
+   * @param usage_label either UE_DROPPED_LABEL / UE_USED_LABEL
    * @param bytes_tx
    * @param bytes_rx
    */
-  void update_used_data_metrics(uint64_t bytes_tx, uint64_t bytes_rx);
-
-  /**
-   * Increments data usage values for session
-   * @param dropped_tx
-   * @param dropped_rx
-   */
-  void update_dropped_data_metrics(uint64_t dropped_tx, uint64_t dropped_rx);
+  void update_data_metrics(
+      const char* counter_name, uint64_t bytes_tx, uint64_t bytes_rx);
 };
 
 }  // namespace magma
