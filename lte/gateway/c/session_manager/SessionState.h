@@ -493,6 +493,11 @@ class SessionState {
       const PolicyBearerBindingRequest& request,
       SessionStateUpdateCriteria& uc);
 
+  /**
+   * Clear all per-session metrics
+   */
+  void clear_session_metrics();
+
  private:
   std::string imsi_;
   std::string session_id_;
@@ -703,7 +708,7 @@ class SessionState {
    * @param bytes_tx
    * @param bytes_rx
    */
-  void update_data_usage_metrics(uint64_t bytes_tx, uint64_t bytes_rx);
+  void update_data_metrics(uint64_t bytes_tx, uint64_t bytes_rx);
 };
 
 }  // namespace magma

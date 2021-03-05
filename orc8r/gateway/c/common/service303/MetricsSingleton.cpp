@@ -47,6 +47,13 @@ void MetricsSingleton::args_to_map(
   }
 }
 
+void MetricsSingleton::RemoveCounter(
+    const char* name, size_t label_count, va_list& args) {
+  std::map<std::string, std::string> labels;
+  args_to_map(labels, label_count, args);
+  counters_.Remove(name, labels);
+}
+
 void MetricsSingleton::IncrementCounter(
     const char* name, double increment, size_t label_count, va_list& args) {
   std::map<std::string, std::string> labels;
