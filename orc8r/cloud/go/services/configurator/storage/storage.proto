@@ -208,11 +208,27 @@ message EntityLoadCriteria {
     bool load_assocs_from_this = 4;
 
     bool load_permissions = 5;
+
+    // The following parameters allow for pagination of entity loads.
+
+    // page_size is the maximum number of entities returned per load.
+    uint32 page_size = 6;
+    // page_token is a serialized entity page token for paginated loads.
+    string page_token = 7;
 }
 
 message EntityLoadResult {
     repeated NetworkEntity entities = 1;
     repeated EntityID entities_not_found = 2;
+    // next_page_token is a serialized entity page token for paginated loads.
+    string next_page_token = 3;
+}
+
+// EntityPageToken is an opaque token provided to load the next page of
+// entities.
+message EntityPageToken {
+  // last_included_entity is the key of the last returned entity in the page.
+  string last_included_entity = 1;
 }
 
 // EntityUpdateCriteria specifies a patch operation on a network entity.
