@@ -84,6 +84,7 @@ helm template orc8r charts/secrets \
     --namespace magma \
     --set-string secret.certs.enabled=true \
     --set-file secret.certs.files."rootCA\.pem"=charts/secrets/.secrets/certs/rootCA.pem \
+    --set-file secret.certs.files."bootstrapper\.key"=charts/secrets/.secrets/certs/bootstrapper.key \
     --set-file secret.certs.files."controller\.crt"=charts/secrets/.secrets/certs/controller.crt \
     --set-file secret.certs.files."controller\.key"=charts/secrets/.secrets/certs/controller.key \
     --set-file secret.certs.files."admin_operator\.pem"=charts/secrets/.secrets/certs/admin_operator.pem \
