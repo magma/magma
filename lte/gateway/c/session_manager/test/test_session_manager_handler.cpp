@@ -32,11 +32,20 @@
 #include "magma_logging.h"
 
 using ::testing::Test;
+#define DEFAULT_PIPELINED_EPOCH 1
 
 namespace magma {
 
 Teids teids0;
 Teids teids1;
+
+ACTION_P(CallSetupCallback, result) {
+  auto cb =
+      static_cast<std::function<void(Status status, SetupFlowsResult)>>(arg2);
+  SetupFlowsResult setup_result;
+  setup_result.set_result(result);
+  cb(grpc::Status::OK, setup_result);
+}
 
 class SessionManagerHandlerTest : public ::testing::Test {
  protected:
@@ -88,6 +97,26 @@ class SessionManagerHandlerTest : public ::testing::Test {
     rule_store->insert_rule(rule);
   }
 
+  // This function should always be called at the beginning of the test to
+  // prevent unexpected SessionD <-> PipelineD syncing logic mid-test.
+  void send_empty_table_and_wait_for_setup(SetupFlowsResult_Result res) {
+    RuleRecordTable empty_table;
+    // epoch indicates the last PipelineD service start time
+    empty_table.set_epoch(DEFAULT_PIPELINED_EPOCH);
+    grpc::ServerContext context;
+    session_manager->ReportRuleStats(
+        &context, &empty_table,
+        [this](grpc::Status status, Void response_out) {});
+
+    EXPECT_CALL(
+        *pipelined_client, setup_lte(testing::_, testing::_, testing::_))
+        .Times(1)
+        .WillOnce(
+            testing::DoAll(CallSetupCallback(res), testing::Return(true)));
+    evb->loopOnce();
+    evb->loopOnce();
+  }
+
  protected:
   std::string monitoring_key;
 
@@ -104,6 +133,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
 };
 
 TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
+  send_empty_table_and_wait_for_setup(SetupFlowsResult_Result_SUCCESS);
   // 1) Insert the entry for a rule
   insert_static_rule(rule_store, monitoring_key, 1, "rule1");
   std::vector<std::string> static_rules{"rule1"};
@@ -175,6 +205,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
 }
 
 TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
+  send_empty_table_and_wait_for_setup(SetupFlowsResult_Result_SUCCESS);
   // 1) Insert the entry for a rule
   insert_static_rule(rule_store, monitoring_key, 1, "rule1");
   std::vector<std::string> static_rules{"rule1"};
@@ -276,6 +307,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
 }
 
 TEST_F(SessionManagerHandlerTest, test_create_session) {
+  send_empty_table_and_wait_for_setup(SetupFlowsResult_Result_SUCCESS);
   // 1) Create the session
   LocalCreateSessionRequest request;
 
@@ -319,6 +351,27 @@ TEST_F(SessionManagerHandlerTest, test_create_session) {
   // Run session creation in the EventBase loop
   evb->loopOnce();
   evb->loopOnce();
+  evb->loopOnce();
+}
+
+TEST_F(SessionManagerHandlerTest, test_create_session_pipelined_unavailable) {
+  send_empty_table_and_wait_for_setup(SetupFlowsResult_Result_FAILURE);
+  // 1) Create the session
+  LocalCreateSessionRequest request;
+
+  grpc::ServerContext server_context;
+  request.mutable_common_context()->mutable_sid()->set_id(IMSI1);
+  request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
+  request.mutable_common_context()->set_msisdn(MSISDN);
+
+  // create session and expect one call
+  session_manager->CreateSession(
+      &server_context, &request,
+      [this](grpc::Status status, LocalCreateSessionResponse response_out) {
+        EXPECT_FALSE(status.ok());
+      });
+
+  // Run session creation in the EventBase loop
   evb->loopOnce();
 }
 
