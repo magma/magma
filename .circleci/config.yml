@@ -32,6 +32,22 @@ executors:
 orbs:
   artifactory: circleci/artifactory@0.0.7
 
+  python:
+    commands:
+      set_version:
+        parameters:
+          python_version:
+            description: Valid Python version to set
+            type: string
+            default: "3.7.0"
+        steps:
+          - run:
+              name: Set Python version
+              command: pyenv global <<parameters.python_version>>
+          - run:
+              name: Upgrade Pip
+              command: pip install --upgrade pip
+
   docker:
     commands:
       install-dc:
@@ -266,9 +282,7 @@ commands:
             echo export AWS_DEFAULT_REGION="us-east-1" >> $BASH_ENV
             echo export AWS_ACCESS_KEY_ID="$(printenv MAGMA_DEPLOY_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
             echo export AWS_SECRET_ACCESS_KEY="$(printenv MAGMA_DEPLOY_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
-      - run:
-          name: Select python 3.7.0
-          command: pyenv global 3.7.0
+      - python/set_version
       - run:
           name: Install python prerequisites
           command: pip3 install fabric3 jsonpickle requests PyYAML awscli
