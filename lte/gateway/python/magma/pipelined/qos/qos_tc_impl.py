@@ -10,45 +10,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import threading
-from typing import List, Optional  # noqa
-import os
-import shlex
+from typing import Optional  # noqa
 import subprocess
 import logging
 from lte.protos.policydb_pb2 import FlowMatch
 from .types import QosInfo
 from .utils import IdManager
+from .tc_ops_cmd import run_cmd, TcOpsCmd, argSplit
+from .tc_ops_pyroute2 import TcOpsPyRoute2
 
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
 # LOG.setLevel(logging.DEBUG)
-
-cmd_lock = threading.RLock()
-
-# this code can run in either a docker container(CWAG) or as a native
-# python process(AG). When we are running as a root there is no need for
-# using sudo. (related to task T63499189 where tc commands failed since
-# sudo wasn't available in the docker container)
-def argSplit(cmd: str) -> List[str]:
-    args = [] if os.geteuid() == 0 else ["sudo"]
-    args.extend(shlex.split(cmd))
-    return args
-
-
-def run_cmd(cmd_list, show_error=True) -> int:
-    err = 0
-    with cmd_lock:
-        for cmd in cmd_list:
-            LOG.debug("running %s", cmd)
-            try:
-                args = argSplit(cmd)
-                subprocess.check_call(args)
-            except subprocess.CalledProcessError as e:
-                err = -1
-                if show_error:
-                    LOG.error("%s error running %s ", str(e.returncode), cmd)
-    return err
-
 
 # TODO - replace this implementation with pyroute2 tc
 ROOT_QID = 65534
@@ -61,21 +33,20 @@ class TrafficClass:
     Creates/Deletes queues in linux. Using Qdiscs for flow based
     rate limiting(traffic shaping) of user traffic.
     """
+    tc_ops = None
 
     @staticmethod
-    def delete_class(intf: str, qid: int, show_error=True) -> int:
+    def delete_class(intf: str, qid: int, skip_filter=False) -> int:
         qid_hex = hex(qid)
-        # delete filter if this is a leaf class
-        filter_cmd = "tc filter del dev {intf} protocol ip parent 1: prio 1 "
-        filter_cmd += "handle {qid} fw flowid 1:{qid}"
-        filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
-        tc_cmd = "tc class del dev {intf} classid 1:{qid}".format(intf=intf,
-                                                                  qid=qid_hex)
-        return run_cmd([filter_cmd, tc_cmd], show_error)
+
+        if not skip_filter:
+            TrafficClass.tc_ops.del_filter(intf, qid_hex, qid_hex)
+
+        return TrafficClass.tc_ops.del_htb(intf, qid_hex)
 
     @staticmethod
     def create_class(intf: str, qid: int, max_bw: int, rate=None,
-                     parent_qid=None, show_error=True) -> int:
+                     parent_qid=None, skip_filter=False) -> int:
         if not rate:
             rate = DEFAULT_RATE
 
@@ -89,26 +60,23 @@ class TrafficClass:
             parent_qid = ROOT_QID
 
         qid_hex = hex(qid)
-        parent_qid_hex = hex(parent_qid)
-        tc_cmd = "tc class add dev {intf} parent 1:{parent_qid} "
-        tc_cmd += "classid 1:{qid} htb rate {rate} ceil {maxbw} prio 2"
-        tc_cmd = tc_cmd.format(intf=intf, parent_qid=parent_qid_hex,
-                               qid=qid_hex, rate=rate, maxbw=max_bw)
-
-        err = run_cmd([tc_cmd], show_error=show_error)
-        if err < 0:
+        parent_qid_hex = '1:' + hex(parent_qid)
+        err = TrafficClass.tc_ops.create_htb(intf, qid_hex, max_bw, rate, parent_qid_hex)
+        if err < 0 or skip_filter:
             return err
 
         # add filter
-        filter_cmd = "tc filter add dev {intf} protocol ip parent 1: prio 1 "
-        filter_cmd += "handle {qid} fw flowid 1:{qid}"
-        filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
-
-        # add qdisc and filter
-        return run_cmd([filter_cmd], show_error)
+        return TrafficClass.tc_ops.create_filter(intf, qid_hex, qid_hex)
 
     @staticmethod
-    def init_qdisc(intf: str, show_error=False) -> int:
+    def init_qdisc(intf: str, show_error=False, enable_pyroute2=False) -> int:
+        # TODO: Convert this class into an object.
+        if TrafficClass.tc_ops is None:
+            if enable_pyroute2:
+                TrafficClass.tc_ops = TcOpsPyRoute2()
+            else:
+                TrafficClass.tc_ops = TcOpsCmd()
+
         cmd_list = []
         speed = DEFAULT_INTF_SPEED
         qid_hex = hex(ROOT_QID)
@@ -243,6 +211,7 @@ class TCManager(object):
         self._uplink = config['nat_iface']
         self._downlink = config['enodeb_iface']
         self._max_rate = config["qos"]["max_rate"]
+        self._enable_pyroute2 = config["qos"].get('enable_pyroute2', False)
         self._start_idx, self._max_idx = (config['qos']['linux_tc']['min_idx'],
                                           config['qos']['linux_tc']['max_idx'])
         self._id_manager = IdManager(self._start_idx, self._max_idx)
@@ -260,15 +229,15 @@ class TCManager(object):
                 (qid, pqid) = qid_tuple
                 if self._start_idx <= qid < (self._max_idx - 1):
                     LOG.info("Attemting to delete class idx %d", qid)
-                    TrafficClass.delete_class(intf, qid, show_error=False)
+                    TrafficClass.delete_class(intf, qid)
                 if self._start_idx <= pqid < (self._max_idx - 1):
                     LOG.info("Attemting to delete parent class idx %d", pqid)
-                    TrafficClass.delete_class(intf, pqid, show_error=False)
+                    TrafficClass.delete_class(intf, pqid)
 
     def setup(self, ):
         # initialize new qdisc
-        TrafficClass.init_qdisc(self._uplink)
-        TrafficClass.init_qdisc(self._downlink)
+        TrafficClass.init_qdisc(self._uplink, enable_pyroute2=self._enable_pyroute2)
+        TrafficClass.init_qdisc(self._downlink, enable_pyroute2=self._enable_pyroute2)
 
     def get_action_instruction(self, qid: int):
         # return an action and an instruction corresponding to this qid
@@ -280,13 +249,14 @@ class TCManager(object):
         return parser.OFPActionSetField(pkt_mark=qid), None
 
     def add_qos(self, d: FlowMatch.Direction, qos_info: QosInfo,
-                parent=None) -> int:
+                parent=None, skip_filter=False) -> int:
         LOG.debug("add QoS: %s", qos_info)
         qid = self._id_manager.allocate_idx()
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
         err = TrafficClass.create_class(intf, qid, qos_info.mbr,
                                         rate=qos_info.gbr,
-                                        parent_qid=parent)
+                                        parent_qid=parent,
+                                        skip_filter=skip_filter)
         # typecast to int to avoid MagicMock related error in unit test
         if int(err) < 0:
             return 0
@@ -294,7 +264,7 @@ class TCManager(object):
         return qid
 
     def remove_qos(self, qid: int, d: FlowMatch.Direction,
-                   recovery_mode=False):
+                   recovery_mode=False, skip_filter=False):
         if not self._initialized and not recovery_mode:
             return
 
@@ -302,10 +272,10 @@ class TCManager(object):
             LOG.error("invalid qid %d, removal failed", qid)
             return
 
-        LOG.debug("deleting qos_handle %s", qid)
+        LOG.debug("deleting qos_handle %s, skip_filter %s", qid, skip_filter)
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
 
-        err = TrafficClass.delete_class(intf, qid)
+        err = TrafficClass.delete_class(intf, qid, skip_filter)
         if err == 0:
             self._id_manager.release_idx(qid)
         else:

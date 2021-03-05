@@ -48,9 +48,25 @@ from lte.protos.pipelined_pb2 import (
 from lte.protos.subscriberdb_pb2 import (
     AggregatedMaximumBitrate,
 )
+from magma.pipelined.tests.app.ng_set_session_msg import (
+    CreateSessionUtil)
+
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
 
+@grpc_wrapper
+def set_smf_session(client, args):
+
+    cls_sess = CreateSessionUtil(args.subscriber_id, args.session_id, args.version)
+
+    cls_sess.CreateSession(args.subscriber_id, args.pdr_state, args.in_teid, args.out_teid,
+                           args.ue_ip_addr, args.gnb_ip_addr,
+                           args.del_rule_id, args.add_rule_id, args.ipv4_dst,
+                           args.allow, args.priority)
+
+    print (cls_sess._set_session)
+    response = client.SetSMFSessions(cls_sess._set_session)
+    print (response)
 
 # --------------------------
 # Enforcement App
@@ -79,6 +95,7 @@ def deactivate_flows(client, args):
 
 @grpc_wrapper
 def activate_dynamic_rule(client, args):
+
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
@@ -248,6 +265,38 @@ def stress_test_grpc(client, args):
         print("Actual detach rate = {0} UEs per sec",
               round(len(ue_dict)/duration))
 
+def create_ng_services_parser(apps):
+    """
+    Creates the argparse subparser for the ng_services app
+    """
+    app = apps.add_parser('ng_services')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    subcmd = subparsers.add_parser('set_smf_session',
+                                   help='SMF set Session Emulator')
+    subcmd.add_argument('--subscriber_id', help='Subscriber Identity', default='IMSI12345')
+    subcmd.add_argument('--session_id', help='Session Identity', type=int, default=100)
+    subcmd.add_argument('--version', help='Session Version', type=int, default=2)
+    subcmd.add_argument('--pdr_state', help='ADD / IDLE / REMOVE the PDR',
+                        default="ADD")
+    subcmd.add_argument('--in_teid', help='Match incoming teid from access',
+                         type=int, default=0)
+    subcmd.add_argument('--out_teid', help='Put outgoing teid towards access',
+                         type=int, default=0)
+    subcmd.add_argument('--ue_ip_addr', help='UE IP address ',
+                         default='')
+    subcmd.add_argument('--gnb_ip_addr', help='IP address of GNB Node',
+                         default='')
+    subcmd.add_argument('--del_rule_id', help='rule id to add', default='')
+    subcmd.add_argument('--add_rule_id', help='rule id to add', default='')
+    subcmd.add_argument('--ipv4_dst', help='ipv4 dst for rule', default='')
+    subcmd.add_argument('--allow', help='YES/NO for allow and deny', default='YES')
+    subcmd.add_argument('--priority', help='priority for rule',
+                        type=int, default=0)
+    subcmd.add_argument('--hard_timeout', help='hard timeout for rule',
+                        type=int, default=0)
+
+    subcmd.set_defaults(func=set_smf_session)
 
 def create_enforcement_parser(apps):
     """
@@ -520,6 +569,7 @@ def create_parser():
         description='Management CLI for pipelined',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     apps = parser.add_subparsers(title='apps', dest='cmd')
+    create_ng_services_parser(apps)
     create_enforcement_parser(apps)
     create_ue_mac_parser(apps)
     create_check_flows_parser(apps)

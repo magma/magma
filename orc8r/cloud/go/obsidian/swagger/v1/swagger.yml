@@ -2497,6 +2497,24 @@ paths:
       summary: Retrieve gateway pool from LTE network
       tags:
       - LTE Networks
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_pool_id'
+      - description: LTE HA gateway pool
+        in: body
+        name: HA Gateway Pool
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_cellular_gateway_pool'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update gateway pool in LTE network
+      tags:
+      - LTE Networks
   /lte/{network_id}/gateways:
     get:
       parameters:
@@ -9658,6 +9676,17 @@ definitions:
           type: string
         type: array
         x-omitempty: true
+      restricted_plmns:
+        description: List of PLMN IDs restricted in the network
+        items:
+          $ref: '#/definitions/plmn_config'
+        type: array
+        x-omitempty: true
+      service_area_maps:
+        additionalProperties:
+          $ref: '#/definitions/tac_list'
+        description: Mapping service areas to tacs in the network
+        type: object
       sub_profiles:
         additionalProperties:
           properties:
@@ -10062,6 +10091,23 @@ definitions:
         example: 10.0.0.1
         type: string
         x-go-custom-tag: magma_alt_name:"VpnIp"
+    type: object
+  plmn_config:
+    description: Record in a gateway pool
+    properties:
+      mcc:
+        example: "001"
+        pattern: ^(\d{3})$
+        type: string
+        x-nullable: false
+      mnc:
+        example: "01"
+        pattern: ^(\d{2,3})$
+        type: string
+        x-nullable: false
+    required:
+    - mcc
+    - mnc
     type: object
   policy_id:
     example: All ICMP
@@ -11007,6 +11053,21 @@ definitions:
         format: uint64
         type: integer
     type: object
+  tac:
+    example: 1
+    format: uint32
+    maximum: 65535
+    minimum: 1
+    type: integer
+    x-nullable: false
+  tac_list:
+    description: List of tac ids
+    example:
+    - 1
+    items:
+      $ref: '#/definitions/tac'
+    type: array
+    x-omitempty: true
   tail_logs_request:
     properties:
       service:

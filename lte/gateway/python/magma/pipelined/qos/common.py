@@ -23,6 +23,7 @@ from magma.pipelined.qos.types import QosInfo, get_key_json, get_key, get_subscr
 from magma.pipelined.qos.utils import QosStore
 from magma.configuration.service_configs import load_service_config
 import traceback
+import threading
 
 LOG = logging.getLogger("pipelined.qos.common")
 # LOG.setLevel(logging.DEBUG)
@@ -156,7 +157,10 @@ class SubscriberState(object):
 
 
 class QosManager(object):
+    # TODO: convert QosManager to singleton class.
     qos_mgr = None
+    # protect QoS object create and delete across all QoSManager Objects.
+    lock = threading.Lock()
 
     @staticmethod
     def get_qos_manager(datapath, loop, config):
@@ -231,15 +235,16 @@ class QosManager(object):
         self._redis_conn_retry_secs = 1
 
     def setup(self):
-        if not self._qos_enabled:
-            return
+        with QosManager.lock:
+            if not self._qos_enabled:
+                return
 
-        if self._is_redis_available():
-            return self._setupInternal()
-        else:
-            LOG.info("failed to connect to redis..retrying in %d secs",
-                     self._redis_conn_retry_secs)
-            self._loop.call_later(self._redis_conn_retry_secs, self.setup)
+            if self._is_redis_available():
+                return self._setupInternal()
+            else:
+                LOG.info("failed to connect to redis..retrying in %d secs",
+                         self._redis_conn_retry_secs)
+                self._loop.call_later(self._redis_conn_retry_secs, self.setup)
 
     def _setupInternal(self):
         if self._initialized:
@@ -294,7 +299,7 @@ class QosManager(object):
 
                     _, imsi, ip_addr, rule_num, direction = get_key(rule)
 
-                    subscriber = self.get_or_create_subscriber(imsi)
+                    subscriber = self._get_or_create_subscriber(imsi)
                     subscriber.update_rule(ip_addr, rule_num, direction, qid, ambr, leaf)
                     session = subscriber.get_or_create_session(ip_addr)
                     session.set_ambr(direction, ambr, leaf)
@@ -324,7 +329,8 @@ class QosManager(object):
                             LOG.debug("removing apn qos_handle %d", qos_handle)
                             self.impl.remove_qos(qos_handle,
                                                  cur_qos_state[qos_handle]['direction'],
-                                                 recovery_mode=True)
+                                                 recovery_mode=True,
+                                                 skip_filter=True)
                 final_qos_state, _ = self.impl.read_all_state()
                 LOG.info("final_qos_state -> %s", json.dumps(final_qos_state, indent=1))
                 LOG.info("final_redis state -> %s", self._redis_store)
@@ -336,7 +342,7 @@ class QosManager(object):
 
             self._initialized = True
 
-    def get_or_create_subscriber(self, imsi):
+    def _get_or_create_subscriber(self, imsi):
         subscriber_state = self._subscriber_state.get(imsi)
         if not subscriber_state:
             subscriber_state = SubscriberState(imsi, self._redis_store)
@@ -352,138 +358,152 @@ class QosManager(object):
             direction: FlowMatch.Direction,
             qos_info: QosInfo,
     ):
-        if not self._qos_enabled or not self._initialized:
-            LOG.debug("add_subscriber_qos: not enabled or initialized")
-            return None, None
-
-        LOG.debug("adding qos for imsi %s rule_num %d direction %d apn_ambr %d, qos_info %s",
-                  imsi, rule_num, direction, apn_ambr, qos_info)
-
-        imsi = normalize_imsi(imsi)
-
-        # ip_addr identifies a specific subscriber session, each subscriber session
-        # must be associated with a default bearer and can be associated with dedicated
-        # bearers. APN AMBR specifies the aggregate max bit rate for a specific
-        # subscriber across all the bearers. Queues for dedicated bearers will be
-        # children of default bearer Queues. In case the dedicated bearers exceed the
-        # rate, then they borrow from the default bearer queue
-        subscriber_state = self.get_or_create_subscriber(imsi)
-
-        qos_handle = subscriber_state.get_qos_handle(rule_num, direction)
-        if qos_handle:
-            LOG.debug("qos exists for imsi %s rule_num %d direction %d",
-                      imsi, rule_num, direction)
-
-            return self.impl.get_action_instruction(qos_handle)
-
-        ambr_qos_handle_root = 0
-        ambr_qos_handle_leaf = 0
-        if self._apn_ambr_enabled and apn_ambr > 0:
-            session = subscriber_state.get_or_create_session(ip_addr)
-            ambr_qos_handle_root = session.get_ambr(direction)
-            LOG.debug("existing root rec: ambr_qos_handle_root %d", ambr_qos_handle_root)
-
-            if not ambr_qos_handle_root:
-                ambr_qos_handle_root = self.impl.add_qos(direction, QosInfo(gbr=None, mbr=apn_ambr))
-                if not ambr_qos_handle_root:
-                    LOG.error('Failed adding root ambr qos mbr %u direction %d',
-                              apn_ambr, direction)
-                    return None, None
-                else:
-                    LOG.debug('Added root ambr qos mbr %u direction %d qos_handle %d ',
-                              apn_ambr, direction, ambr_qos_handle_root)
-
-            ambr_qos_handle_leaf = session.get_ambr_leaf(direction)
-            LOG.debug("existing leaf rec: ambr_qos_handle_leaf %d", ambr_qos_handle_leaf)
-
-            if not ambr_qos_handle_leaf:
-                ambr_qos_handle_leaf = self.impl.add_qos(direction,
-                                                         QosInfo(gbr=None, mbr=apn_ambr),
-                                                         parent=ambr_qos_handle_root)
-                if ambr_qos_handle_leaf:
-                    session.set_ambr(direction, ambr_qos_handle_root, ambr_qos_handle_leaf)
-                    LOG.debug('Added ambr qos mbr %u direction %d qos_handle %d/%d ',
-                              apn_ambr, direction, ambr_qos_handle_root, ambr_qos_handle_leaf)
-                else:
-                    LOG.error('Failed adding leaf ambr qos mbr %u direction %d',
-                              apn_ambr, direction)
-                    self.impl.remove_qos(ambr_qos_handle_root, direction)
-                    return None, None
-            qos_handle = ambr_qos_handle_leaf
-
-        if qos_info:
-            qos_handle = self.impl.add_qos(direction, qos_info, parent=ambr_qos_handle_root)
-            LOG.debug("Added ded brr handle: %d", qos_handle)
-            if qos_handle:
-                LOG.debug('Adding qos %s direction %d qos_handle %d ',
-                          qos_info, direction, qos_handle)
-            else:
-                LOG.error('Failed adding qos %s direction %d', qos_info, direction)
+        with QosManager.lock:
+            if not self._qos_enabled or not self._initialized:
+                LOG.debug("add_subscriber_qos: not enabled or initialized")
                 return None, None
 
-        if qos_handle:
-            subscriber_state.update_rule(ip_addr, rule_num, direction,
-                                         qos_handle, ambr_qos_handle_root, ambr_qos_handle_leaf)
-            return self.impl.get_action_instruction(qos_handle)
-        return None, None
+            LOG.debug("adding qos for imsi %s rule_num %d direction %d apn_ambr %d, qos_info %s",
+                      imsi, rule_num, direction, apn_ambr, qos_info)
 
-    def remove_subscriber_qos(self, imsi: str = "", rule_num: int = -1):
-        if not self._qos_enabled or not self._initialized:
-            LOG.debug("remove_subscriber_qos: not enabled or initialized")
-            return
+            imsi = normalize_imsi(imsi)
 
-        LOG.debug("removing Qos for imsi %s rule_num %d", imsi, rule_num)
-        if not imsi:
-            LOG.error('imsi %s invalid, failed removing', imsi)
-            return
+            # ip_addr identifies a specific subscriber session, each subscriber session
+            # must be associated with a default bearer and can be associated with dedicated
+            # bearers. APN AMBR specifies the aggregate max bit rate for a specific
+            # subscriber across all the bearers. Queues for dedicated bearers will be
+            # children of default bearer Queues. In case the dedicated bearers exceed the
+            # rate, then they borrow from the default bearer queue
+            subscriber_state = self._get_or_create_subscriber(imsi)
 
-        imsi = normalize_imsi(imsi)
-        subscriber_state = self._subscriber_state.get(imsi)
-        if not subscriber_state:
-            LOG.debug('imsi %s not found, nothing to remove ', imsi)
-            return
+            qos_handle = subscriber_state.get_qos_handle(rule_num, direction)
+            if qos_handle:
+                LOG.debug("qos exists for imsi %s rule_num %d direction %d",
+                          imsi, rule_num, direction)
 
-        to_be_deleted_rules = set()
-        if rule_num == -1:
-            # deleting all rules for the subscriber
-            rules = subscriber_state.get_all_rules()
-            for (rule_num, rule) in rules.items():
-                session_with_rule = subscriber_state.find_session_with_rule(rule_num)
-                for (d, qos_data) in rule:
-                    _, qid, _, leaf = get_data(qos_data)
-                    if session_with_rule.get_ambr(d) != qid:
-                        self.impl.remove_qos(qid, d)
-                to_be_deleted_rules.add(rule_num)
-        else:
-            rule = subscriber_state.find_rule(rule_num)
-            if rule:
-                session_with_rule = subscriber_state.find_session_with_rule(rule_num)
-                for (d, qos_data) in rule:
-                    _, qid, _, leaf = get_data(qos_data)
-                    if session_with_rule.get_ambr(d) != qid:
-                        self.impl.remove_qos(qid, d)
-                        if leaf and leaf != qid:
-                            self.impl.remove_qos(leaf, d)
+                return self.impl.get_action_instruction(qos_handle)
 
-                LOG.debug("removing rule %s %s ", imsi, rule_num)
-                to_be_deleted_rules.add(rule_num)
+            ambr_qos_handle_root = 0
+            ambr_qos_handle_leaf = 0
+            if self._apn_ambr_enabled and apn_ambr > 0:
+                session = subscriber_state.get_or_create_session(ip_addr)
+                ambr_qos_handle_root = session.get_ambr(direction)
+                LOG.debug("existing root rec: ambr_qos_handle_root %d", ambr_qos_handle_root)
+
+                if not ambr_qos_handle_root:
+                    ambr_qos_handle_root = self.impl.add_qos(direction, QosInfo(gbr=None, mbr=apn_ambr), skip_filter=True)
+                    if not ambr_qos_handle_root:
+                        LOG.error('Failed adding root ambr qos mbr %u direction %d',
+                                  apn_ambr, direction)
+                        return None, None
+                    else:
+                        LOG.debug('Added root ambr qos mbr %u direction %d qos_handle %d ',
+                                  apn_ambr, direction, ambr_qos_handle_root)
+
+                ambr_qos_handle_leaf = session.get_ambr_leaf(direction)
+                LOG.debug("existing leaf rec: ambr_qos_handle_leaf %d", ambr_qos_handle_leaf)
+
+                if not ambr_qos_handle_leaf:
+                    ambr_qos_handle_leaf = self.impl.add_qos(direction,
+                                                             QosInfo(gbr=None, mbr=apn_ambr),
+                                                             parent=ambr_qos_handle_root)
+                    if ambr_qos_handle_leaf:
+                        session.set_ambr(direction, ambr_qos_handle_root, ambr_qos_handle_leaf)
+                        LOG.debug('Added ambr qos mbr %u direction %d qos_handle %d/%d ',
+                                  apn_ambr, direction, ambr_qos_handle_root, ambr_qos_handle_leaf)
+                    else:
+                        LOG.error('Failed adding leaf ambr qos mbr %u direction %d',
+                                  apn_ambr, direction)
+                        self.impl.remove_qos(ambr_qos_handle_root, direction, skip_filter=True)
+                        return None, None
+                qos_handle = ambr_qos_handle_leaf
+
+            if qos_info:
+                qos_handle = self.impl.add_qos(direction, qos_info, parent=ambr_qos_handle_root)
+                LOG.debug("Added ded brr handle: %d", qos_handle)
+                if qos_handle:
+                    LOG.debug('Adding qos %s direction %d qos_handle %d ',
+                              qos_info, direction, qos_handle)
+                else:
+                    LOG.error('Failed adding qos %s direction %d', qos_info, direction)
+                    return None, None
+
+            if qos_handle:
+                subscriber_state.update_rule(ip_addr, rule_num, direction,
+                                             qos_handle, ambr_qos_handle_root, ambr_qos_handle_leaf)
+                return self.impl.get_action_instruction(qos_handle)
+            return None, None
+
+    def remove_subscriber_qos(self, imsi: str = "", del_rule_num: int = -1):
+        with QosManager.lock:
+            if not self._qos_enabled or not self._initialized:
+                LOG.debug("remove_subscriber_qos: not enabled or initialized")
+                return
+
+            LOG.debug("removing Qos for imsi %s del_rule_num %d", imsi, del_rule_num)
+            if not imsi:
+                LOG.error('imsi %s invalid, failed removing', imsi)
+                return
+
+            imsi = normalize_imsi(imsi)
+            subscriber_state = self._subscriber_state.get(imsi)
+            if not subscriber_state:
+                LOG.debug('imsi %s not found, nothing to remove ', imsi)
+                return
+
+            to_be_deleted_rules = set()
+            qid_to_remove = {}
+            qid_in_use = set()
+            if del_rule_num == -1:
+                # deleting all rules for the subscriber
+                rules = subscriber_state.get_all_rules()
+                for (rule_num, rule) in rules.items():
+                    for (d, qos_data) in rule:
+                        _, qid, ambr, leaf = get_data(qos_data)
+                        if ambr != qid:
+                            qid_to_remove[qid] = d
+                            if leaf and leaf != qid:
+                                qid_to_remove[leaf] = d
+
+                    to_be_deleted_rules.add(rule_num)
             else:
-                LOG.debug("unable to find rule_num %d for imsi %s", rule_num, imsi)
+                rule = subscriber_state.find_rule(del_rule_num)
+                if rule:
+                    rules = subscriber_state.get_all_rules()
+                    for (rule_num, rule) in rules.items():
+                        for (d, qos_data) in rule:
+                            _, qid, ambr, leaf = get_data(qos_data)
+                            if rule_num == del_rule_num:
+                                if ambr != qid:
+                                    qid_to_remove[qid] = d
+                                    if leaf and leaf != qid:
+                                        qid_to_remove[leaf] = d
+                            else:
+                                qid_in_use.add(qid)
 
-        for rule_num in to_be_deleted_rules:
-            subscriber_state.remove_rule(rule_num)
+                    LOG.debug("removing rule %s %s ", imsi, del_rule_num)
+                    to_be_deleted_rules.add(del_rule_num)
+                else:
+                    LOG.debug("unable to find rule_num %d for imsi %s", del_rule_num, imsi)
 
-        # purge sessions with no rules
-        for session in subscriber_state.get_all_empty_sessions():
-            for d in (FlowMatch.UPLINK, FlowMatch.DOWNLINK):
-                ambr_qos_handle = session.get_ambr(d)
-                if ambr_qos_handle:
-                    LOG.debug("removing root ambr qos handle %d direction %d", ambr_qos_handle, d)
-                    self.impl.remove_qos(ambr_qos_handle, d)
-            LOG.debug("purging session %s %s ", imsi, session.ip_addr)
-            subscriber_state.remove_session(session.ip_addr)
+            for (qid, d) in qid_to_remove.items():
+                if qid not in qid_in_use:
+                    self.impl.remove_qos(qid, d)
 
-        # purge subscriber state with no rules
-        if subscriber_state.check_empty():
-            LOG.debug("purging subscriber state for %s, empty rules and sessions", imsi)
-            del self._subscriber_state[imsi]
+            for rule_num in to_be_deleted_rules:
+                subscriber_state.remove_rule(rule_num)
+
+            # purge sessions with no rules
+            for session in subscriber_state.get_all_empty_sessions():
+                for d in (FlowMatch.UPLINK, FlowMatch.DOWNLINK):
+                    ambr_qos_handle = session.get_ambr(d)
+                    if ambr_qos_handle:
+                        LOG.debug("removing root ambr qos handle %d direction %d", ambr_qos_handle, d)
+                        self.impl.remove_qos(ambr_qos_handle, d, skip_filter=True)
+                LOG.debug("purging session %s %s ", imsi, session.ip_addr)
+                subscriber_state.remove_session(session.ip_addr)
+
+            # purge subscriber state with no rules
+            if subscriber_state.check_empty():
+                LOG.debug("purging subscriber state for %s, empty rules and sessions", imsi)
+                del self._subscriber_state[imsi]
