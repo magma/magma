@@ -17,7 +17,9 @@ that the Federation Gateway will connect to.
 and `control_proxy` services to point toward the appropriate Orchestrator.
 A sample configuration is provided below. The `bootstrap_address`,
 `bootstrap_port`, `controller_address`, and `controller_port` are the
-parameters that will likely need to be modified.
+parameters that will likely need to be modified (check
+  `/magma/feg/gateway/configs/control_proxy.yml` for the most recent
+  format)
 
 ```
 #
@@ -61,7 +63,8 @@ allow_http_proxy: True
 
 * `.env` - This file provides any deployment specific environment variables used
 in the `docker-compose.yml` of the Federation Gateway. A sample configuration
-is provided below:
+is provided below (please check `magma/feg/gateway/docker/.env` for the most
+  recent format):
 
 ```
 # Copyright 2020 The Magma Authors.
@@ -84,6 +87,8 @@ IMAGE_VERSION=latest
 ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
 CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml
 SNOWFLAKE_PATH=/etc/snowflake
+CONFIGS_DEFAULT_VOLUME=/etc/magma
+CONFIGS_TEMPLATES_PATH=/etc/magma/templates
 
 CERTS_VOLUME=/var/opt/magma/certs
 CONFIGS_VOLUME=/var/opt/magma/configs
