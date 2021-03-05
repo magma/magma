@@ -26,9 +26,7 @@ using namespace fluid_msg;
 
 namespace openflow {
 
-static struct in_addr INADDR_ZERO {
-  .s_addr = 0
-};
+static struct in_addr INADDR_ZERO { .s_addr = 0 };
 
 enum ControllerEventType {
   EVENT_PACKET_IN,
@@ -174,34 +172,29 @@ class UeNetworkInfo {
  */
 class AddGTPTunnelEvent : public ExternalEvent {
  public:
-   AddGTPTunnelEvent(
+  AddGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-      const struct in_addr enb_ip,
-      const uint32_t in_tei, const uint32_t out_tei,
-      const char* imsi,
+      const struct in_addr enb_ip, const uint32_t in_tei,
+      const uint32_t out_tei, const char* imsi,
       const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence,
       uint32_t enb_gtp_port);
 
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
-      const struct in_addr enb_ip,
-      const uint32_t in_tei, const uint32_t out_tei,
-      const char* imsi,
-      uint32_t enb_gtp_port);
+      const struct in_addr enb_ip, const uint32_t in_tei,
+      const uint32_t out_tei, const char* imsi, uint32_t enb_gtp_port);
 
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
       const struct in_addr enb_ip, const struct in_addr pgw_ip,
-      const uint32_t in_tei, const uint32_t out_tei,
-      const char* imsi,
+      const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
       const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence,
       uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
 
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
       const struct in_addr enb_ip, const struct in_addr pgw_ip,
-      const uint32_t in_tei, const uint32_t out_tei,
-      const char* imsi,
+      const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
       uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
 
   const struct UeNetworkInfo& get_ue_info() const;
@@ -239,14 +232,13 @@ class AddGTPTunnelEvent : public ExternalEvent {
  */
 class DeleteGTPTunnelEvent : public ExternalEvent {
  public:
-   DeleteGTPTunnelEvent(
+  DeleteGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
       const uint32_t in_tei, const struct ip_flow_dl* dl_flow,
       uint32_t enb_gtp_port);
   DeleteGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
-      const uint32_t in_tei,
-      uint32_t enb_gtp_port);
+      const uint32_t in_tei, uint32_t enb_gtp_port);
 
   DeleteGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
@@ -254,8 +246,7 @@ class DeleteGTPTunnelEvent : public ExternalEvent {
       uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
   DeleteGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
-      const uint32_t in_tei,
-      uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
+      const uint32_t in_tei, uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
@@ -272,7 +263,7 @@ class DeleteGTPTunnelEvent : public ExternalEvent {
   const bool dl_flow_valid_;
   const uint32_t enb_gtp_port_;
   const uint32_t pgw_gtp_port_;
-  };
+};
 
 /*
  * Event triggered by SPGW to either Discard/Forward DL data on GTP tunnel
