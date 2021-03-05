@@ -50,7 +50,7 @@ Mysql is a requirement to run the NMS (you can skip this step if you don't want 
 
 ```
 $ helm install mysql \
-  --namespace magma
+  --namespace magma \
   --set mysqlRootPassword=password,mysqlUser=magma,mysqlPassword=password,mysqlDatabase=magma \
     stable/mysql
 ```
