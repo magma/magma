@@ -110,9 +110,8 @@ int emm_proc_identification(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
-  if ((emm_context) &&
-      ((EMM_DEREGISTERED == emm_context->_emm_fsm_state) ||
-       (EMM_REGISTERED == emm_context->_emm_fsm_state))) {
+  if ((emm_context) && ((EMM_DEREGISTERED == emm_context->_emm_fsm_state) ||
+                        (EMM_REGISTERED == emm_context->_emm_fsm_state))) {
     REQUIREMENT_3GPP_24_301(R10_5_4_4_1);
     mme_ue_s1ap_id_t ue_id =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)

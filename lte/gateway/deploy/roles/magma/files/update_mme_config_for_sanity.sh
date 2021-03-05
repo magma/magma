@@ -88,13 +88,13 @@ function configure_restricted_plmn {
 }
 
 function configure_blocked_imei {
-  # Remove default blocked imei from MME configuration file
+  # Remove default blocked imei(s) from MME configuration file
   sed -i -e '/BLOCKED_IMEI_LIST/{n;d}' \
     "$mme_config_file"
 
-  # Configure blocked imei/s in MME configuration file
+  # Configure blocked imei(s) in MME configuration file
   blocked_imei_config=(
-    '{ IMEI= "9900048235103723"}'
+    '{ IMEI= "9900048235103723" }'
   )
   blocked_imei_cmd_str=""
   for config in "${blocked_imei_config[@]}"

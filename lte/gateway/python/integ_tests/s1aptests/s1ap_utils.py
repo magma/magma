@@ -543,6 +543,7 @@ class SubscriberUtil(object):
 
     SID_PREFIX = "IMSI00101"
     IMSI_LEN = 15
+    MAX_IMEI_LEN = 16
 
     def __init__(self, subscriber_client):
         """
@@ -576,6 +577,7 @@ class SubscriberUtil(object):
     def _generate_imei(self, num_ues=1):
         """ Generates 16 digit IMEI which includes SVN """
         imei = str(self._imei_default + self._imei_idx)
+        assert(len(imei) <= self.MAX_IMEI_LEN), "Invalid IMEI length"
         self._imei_idx += 1
         print("Using IMEI %s" % imei)
         return imei
