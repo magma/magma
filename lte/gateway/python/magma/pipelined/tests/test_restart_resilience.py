@@ -297,6 +297,7 @@ class RestartResilienceTest(unittest.TestCase):
         The controller is then restarted with the same SetupFlowsRequest,
             - assert flows keep their packet counts
         """
+        self.enforcement_stats_controller._report_usage.reset_mock()
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
@@ -381,6 +382,8 @@ class RestartResilienceTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name[1]].sid, imsi)
         self.assertEqual(stats[enf_stat_name[1]].rule_id, "rx_match")
         self.assertEqual(stats[enf_stat_name[1]].bytes_tx, 0)
+        self.assertEqual(stats[enf_stat_name[1]].bytes_rx, 5120)
+
 
         # downlink packets will discount ethernet header by default
         # so, only count the IP portion
@@ -389,7 +392,7 @@ class RestartResilienceTest(unittest.TestCase):
 
         # NOTE this value is 8 because the EnforcementStatsController rule
         # reporting doesn't reset on clearing flows(lingers from old tests)
-        self.assertEqual(len(stats), 8)
+        self.assertEqual(len(stats), 3)
 
         setup_flows_request = SetupFlowsRequest(
             requests=[
@@ -414,9 +417,6 @@ class RestartResilienceTest(unittest.TestCase):
 
         with snapshot_verifier:
             pass
-
-        self.assertEqual(stats[enf_stat_name[0]].bytes_tx,
-                         num_pkts_tx_match * len(packet1))
 
     def test_url_redirect(self):
         """

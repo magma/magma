@@ -176,11 +176,27 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, "fooboo", entities[1].Name)
 
 	// LoadAllPerType
-	entities, err = configurator.LoadAllEntitiesOfType(networkID1, "foo", fullEntityLoad, entitySerdes)
+	entities, _, err = configurator.LoadAllEntitiesOfType(networkID1, "foo", fullEntityLoad, entitySerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
 	assert.Equal(t, "foobar", entities[0].Name)
 	assert.Equal(t, "fooboo", entities[1].Name)
+
+	// Load paginated entities
+	paginatedEntityLoad := fullEntityLoad
+	paginatedEntityLoad.PageSize = 1
+	paginatedEntities, nextPageToken, err := configurator.LoadAllEntitiesOfType(networkID1, "foo", paginatedEntityLoad, entitySerdes)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(paginatedEntities))
+	assert.Equal(t, "foobar", paginatedEntities[0].Name)
+	assert.Equal(t, "CgNiYXI=", nextPageToken)
+
+	paginatedEntityLoad.PageToken = nextPageToken
+	paginatedEntities, nextPageToken, err = configurator.LoadAllEntitiesOfType(networkID1, "foo", paginatedEntityLoad, entitySerdes)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(paginatedEntities))
+	assert.Equal(t, "fooboo", paginatedEntities[0].Name)
+	assert.Equal(t, "CgNib28=", nextPageToken)
 
 	// Update, Load add an association from foobar to fooboo
 	newPhysID := "4321"

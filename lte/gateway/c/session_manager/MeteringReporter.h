@@ -42,20 +42,6 @@ class MeteringReporter {
 
  private:
   /**
-   * Report upload traffic usage for a session
-   */
-  void report_upload(
-      const std::string& imsi, const std::string& session_id,
-      double unreported_usage_bytes);
-
-  /**
-   * Report download traffic usage for a session
-   */
-  void report_download(
-      const std::string& imsi, const std::string& session_id,
-      double unreported_usage_bytes);
-
-  /**
    * Report traffic usage for a session
    */
   void report_traffic(

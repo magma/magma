@@ -72,6 +72,10 @@ type ConfiguratorStorage interface {
 	// LoadEntities returns a set of entities corresponding to the provided
 	// load criteria. Any entities which aren't found are excluded from the
 	// returned value.
+
+	// Loads can be paginated by specifying a page size and token in the entity
+	// load criteria. To exhaustively read all pages, clients must continue
+	// querying until an empty page token is received in the load result.
 	LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error)
 
 	// CreateEntity creates a new entity. The created entity is returned

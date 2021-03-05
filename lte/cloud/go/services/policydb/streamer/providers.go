@@ -45,7 +45,7 @@ func (p *RatingGroupsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) 
 		return nil, err
 	}
 
-	ratingGroupEnts, err := configurator.LoadAllEntitiesOfType(
+	ratingGroupEnts, _, err := configurator.LoadAllEntitiesOfType(
 		gwEnt.NetworkID, lte.RatingGroupEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -99,7 +99,7 @@ func (p *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*
 		return nil, err
 	}
 
-	rules, err := configurator.LoadAllEntitiesOfType(
+	rules, _, err := configurator.LoadAllEntitiesOfType(
 		gw.NetworkID, lte.PolicyRuleEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -122,7 +122,7 @@ func (p *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*
 // loadQosProfiles returns all policy_qos_profile ents, keyed by the key of
 // their parent policy rule ent, once for each parent.
 func loadQosProfiles(networkID string) (map[string]configurator.NetworkEntity, error) {
-	profiles, err := configurator.LoadAllEntitiesOfType(
+	profiles, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, lte.PolicyQoSProfileEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true},
 		serdes.Entity,
@@ -180,7 +180,7 @@ func (p *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]
 		return nil, err
 	}
 
-	bnEnts, err := configurator.LoadAllEntitiesOfType(
+	bnEnts, _, err := configurator.LoadAllEntitiesOfType(
 		gwEnt.NetworkID, lte.BaseNameEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
 		serdes.Entity,
@@ -229,7 +229,7 @@ func (p *ApnRuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.An
 	}
 
 	loadCrit := configurator.EntityLoadCriteria{LoadAssocsFromThis: true}
-	subEnts, err := configurator.LoadAllEntitiesOfType(gwEnt.NetworkID, lte.SubscriberEntityType, loadCrit, serdes.Entity)
+	subEnts, _, err := configurator.LoadAllEntitiesOfType(gwEnt.NetworkID, lte.SubscriberEntityType, loadCrit, serdes.Entity)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load subscribers")
 	}
