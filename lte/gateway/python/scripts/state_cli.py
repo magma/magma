@@ -12,24 +12,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import fire
+import ast
 import json
+from json.decoder import JSONDecodeError
+from typing import Union
+
+import fire
 import jsonpickle
 import random
-import ast
-from typing import Union
+from lte.protos.keyval_pb2 import IPDesc
+from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
+from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
+from lte.protos.oai.spgw_state_pb2 import SpgwState, SpgwUeContext
+from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule
 
 from magma.common.redis.client import get_default_client
 from magma.common.redis.serializers import get_json_deserializer, \
     get_proto_deserializer
 from magma.mobilityd.serialize_utils import deserialize_ip_block, \
     deserialize_ip_desc
-
-from lte.protos.keyval_pb2 import IPDesc
-from lte.protos.policydb_pb2 import PolicyRule, InstalledPolicies
-from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
-from lte.protos.oai.spgw_state_pb2 import SpgwState, S11BearerContext
-from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
 
 NO_DESERIAL_MSG = "No deserializer exists for type '{}'"
 
@@ -95,7 +96,7 @@ class StateCLI(object):
         'spgw_state': SpgwState,
         's1ap_state': S1apState,
         'mme': UeContext,
-        'spgw': S11BearerContext,
+        'spgw': SpgwUeContext,
         's1ap': UeDescription,
         'mobilityd_ipdesc_record': IPDesc,
         'rules': PolicyRule,
@@ -145,7 +146,7 @@ class StateCLI(object):
             # Try parsing as json first, if there's decoding error, parse proto
             try:
                 self._parse_state_json(value)
-            except UnicodeDecodeError:
+            except (UnicodeDecodeError, JSONDecodeError):
                 self._parse_state_proto(key_type, value)
 
     def corrupt(self, key):
