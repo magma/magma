@@ -81,10 +81,16 @@ esac
 
 # Default options
 BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
-ARCH=amd64
-PKGFMT=deb
-PKGNAME=magma
-SCTPD_PKGNAME=magma-sctpd
+if [[ -z "${ARCH}" ]]; then
+    ARCH=amd64
+fi
+if [[ -z "${PKGFMT}" ]]; then
+    PKGFMT=deb
+fi
+if [[ -z "${PKGNAME}" ]]; then
+    PKGNAME=magma
+fi
+SCTPD_PKGNAME=$PKGNAME-sctpd
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
@@ -142,7 +148,7 @@ OVS_DEPS=(
     "openvswitch-switch >= 2.8.10"
     "openvswitch-common >= 2.8.10"
     "python-openvswitch >= 2.8.10"
-    "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
+    "openvswitch-datapath-module-4.9.0-9-${ARCH} >= 2.8.10"
     )
 
 # generate string for FPM
@@ -283,7 +289,9 @@ if [ -f ${BUILD_PATH} ]; then
   rm ${BUILD_PATH}
 fi
 
-SERVICE_DIR="/etc/systemd/system/"
+if [[ -z "${SERVICE_DIR}" ]]; then
+   SERVICE_DIR="/etc/systemd/system/"
+fi
 ANSIBLE_FILES="${MAGMA_ROOT}/lte/gateway/deploy/roles/magma/files"
 
 SCTPD_VERSION_FILE=$(mktemp)
@@ -335,21 +343,21 @@ ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
 ${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
 ${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
-$(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
-$(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
-$(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
-$(glob_files "${SERVICE_DIR}/magma@mme.service" /etc/systemd/system/magma@mme.service) \
-$(glob_files "${SERVICE_DIR}/magma@sessiond.service" /etc/systemd/system/magma@sessiond.service) \
-$(glob_files "${SERVICE_DIR}/magma@connectiond.service" /etc/systemd/system/magma@connectiond.service) \
-$(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
-$(glob_files "${SERVICE_DIR}/magma@pipelined.service" /etc/systemd/system/magma@pipelined.service) \
-$(glob_files "${SERVICE_DIR}/magma_dp@envoy.service" /etc/systemd/system/magma_dp@envoy.service) \
-$(glob_files "${SERVICE_DIR}/magma@envoy_controller.service" /etc/systemd/system/magma@envoy_controller.service) \
-$(glob_files "${SERVICE_DIR}/magma@redirectd.service" /etc/systemd/system/magma@redirectd.service) \
-$(glob_files "${SERVICE_DIR}/magma@dnsd.service" /etc/systemd/system/magma@dnsd.service) \
-$(glob_files "${SERVICE_DIR}/magma@lighttpd.service" /etc/systemd/system/magma@lighttpd.service) \
-$(glob_files "${SERVICE_DIR}/magma@redis.service" /etc/systemd/system/magma@redis.service) \
-$(glob_files "${SERVICE_DIR}/magma@td-agent-bit.service" /etc/systemd/system/magma@td-agent-bit.service) \
+$(glob_files "${SERVICE_DIR}/magma.service" /etc/systemd/system/magma@.service) \
+$(glob_files "${SERVICE_DIR}/magma_control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
+$(glob_files "${SERVICE_DIR}/magma_magmad.service" /etc/systemd/system/magma@magmad.service) \
+$(glob_files "${SERVICE_DIR}/magma_mme.service" /etc/systemd/system/magma@mme.service) \
+$(glob_files "${SERVICE_DIR}/magma_sessiond.service" /etc/systemd/system/magma@sessiond.service) \
+$(glob_files "${SERVICE_DIR}/magma_connectiond.service" /etc/systemd/system/magma@connectiond.service) \
+$(glob_files "${SERVICE_DIR}/magma_mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
+$(glob_files "${SERVICE_DIR}/magma_pipelined.service" /etc/systemd/system/magma@pipelined.service) \
+$(glob_files "${SERVICE_DIR}/magma_dp_envoy.service" /etc/systemd/system/magma_dp@envoy.service) \
+$(glob_files "${SERVICE_DIR}/magma_envoy_controller.service" /etc/systemd/system/magma@envoy_controller.service) \
+$(glob_files "${SERVICE_DIR}/magma_redirectd.service" /etc/systemd/system/magma@redirectd.service) \
+$(glob_files "${SERVICE_DIR}/magma_dnsd.service" /etc/systemd/system/magma@dnsd.service) \
+$(glob_files "${SERVICE_DIR}/magma_lighttpd.service" /etc/systemd/system/magma@lighttpd.service) \
+$(glob_files "${SERVICE_DIR}/magma_redis.service" /etc/systemd/system/magma@redis.service) \
+$(glob_files "${SERVICE_DIR}/magma_td-agent-bit.service" /etc/systemd/system/magma@td-agent-bit.service) \
 ${CERT_FILE}=/var/opt/magma/certs/rootCA.pem \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/!(control_proxy.yml|pipelined.yml|sessiond.yml|connectiond.yml)" /etc/magma/) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/pipelined.yml) \
@@ -381,7 +389,9 @@ cd "${MAGMA_ROOT}"
 OVS_DIFF_LINES=$(git diff master -- third_party/gtp_ovs/ lte/gateway/release/build-ovs.sh | wc -l | tr -dc 0-9)
 
 # if env var FORCE_OVS_BUILD is non-empty or there is are changes to openvswitch-related files build openvswitch
-if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
-    cd "${PWD}"
-    "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
+if [[ x"${DOCKER_BUILD}" == "x" ]]; then
+   if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
+       cd "${PWD}"
+       "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
+   fi
 fi
