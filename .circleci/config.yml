@@ -1017,6 +1017,7 @@ workflows:
 
   agw:
     jobs:
+      - lte-integ-test
       - agw-hold:
           type: approval
       - lte-agw-deploy:
