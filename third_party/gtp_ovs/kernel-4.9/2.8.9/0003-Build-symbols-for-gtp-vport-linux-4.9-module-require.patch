@@ -20,7 +20,7 @@ index c847d2853..90ecce19b 100755
  
 +
 +	# make GTP flow based kernel patch
-+	cd flow-based-gtp-linux-v4.9 && $(MAKE) build
++	cd flow-based-gtp-linux-v4.9 && $(MAKE) build ARCH=$(ARCH) KVERS=$(KVERS) LDFLAGS=""
 +	cp flow-based-gtp-linux-v4.9/Module.symvers debian/$(PACKAGE_DKMS)/usr/src/$(PACKAGE)-$(DEB_VERSION_UPSTREAM)/datapath/linux
 +
  	# Prepare dkms.conf from the dkms.conf.in template
@@ -34,7 +34,7 @@ index b0c6cdcee..c0b29af86 100755
  	dh_testroot
  	dh_clean -k
  	tar xzf openvswitch.tar.gz
-+	cd flow-based-gtp-linux-v4.9 && $(MAKE) package
++	cd flow-based-gtp-linux-v4.9 && $(MAKE) package ARCH=$(ARCH) KVERS=$(KVERS)
 +	mv flow-based-gtp-linux-v4.9/*.deb $(DEB_DESTDIR)
 +	cp flow-based-gtp-linux-v4.9/Module.symvers openvswitch/datapath/linux
  	cd openvswitch && ./configure --with-linux=$(KSRC) $(DATAPATH_CONFIGURE_OPTS)

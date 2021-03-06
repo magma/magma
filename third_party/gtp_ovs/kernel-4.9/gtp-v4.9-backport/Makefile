@@ -2,7 +2,6 @@ PKGNAME=oai-gtp
 VERSION=4.9
 ITERATION=9
 
-ARCH=amd64
 PKGFMT=deb
 WORK_DIR=/tmp/build-${PKGNAME}
 PKGFILE=${PKGNAME}_${VERSION}-${ITERATION}_${ARCH}.${PKGFMT}
@@ -15,10 +14,10 @@ OUTPUT_PATH=${OUTPUT_DIR}/${PKGFILE}
 obj-m += gtp.o
 
 build:
-	make -C /lib/modules/`uname -r`/build M=$(PWD) modules
+	make -C /lib/modules/$(KVERS)/build M=$(PWD) modules
 
 modules_install: build
-	make -C /lib/modules/`uname -r`/build M=$(PWD) modules_install
+	make -C /lib/modules/$(KVERS)/build M=$(PWD) modules_install
 	mkdir -p ${DEPMOD_CONFIG_DIR}
 	echo "override gtp.ko * extra" >> ${DEPMOD_CONFIG_FILE}
 	echo "override gtp.ko * weak-updates" >> ${DEPMOD_CONFIG_FILE}
@@ -27,7 +26,7 @@ modules_install: build
 package: build 
 	rm -rf ${WORK_DIR}
 	mkdir ${WORK_DIR}
-	make INSTALL_MOD_PATH=${WORK_DIR} -C /lib/modules/`uname -r`/build M=$(PWD) modules_install
+	make INSTALL_MOD_PATH=${WORK_DIR} -C /lib/modules/$(KVERS)/build M=$(PWD) modules_install
 	fpm \
 	    -f \
 	    -s dir \
@@ -45,4 +44,4 @@ package: build
 	    -C ${WORK_DIR}
 
 clean:
-	make -C /lib/modules/`uname -r`/build M=$(PWD) clean
+	make -C /lib/modules/$(KVERS)/build M=$(PWD) clean
