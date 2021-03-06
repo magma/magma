@@ -181,8 +181,8 @@ enum PolicyType {
 struct RuleStats {
   uint64_t tx;
   uint64_t rx;
-  uint64_t drop_tx;
-  uint64_t drop_rx;
+  uint64_t dropped_tx;
+  uint64_t dropped_rx;
 };
 
 struct Usage {

@@ -502,21 +502,21 @@ void SessionState::add_rule_usage(
   uint64_t delta_dropped_rx;
 
   //TODO: Rework logic to work with flat rate, below is a temp hack
-  auto it = rule_usage_.find(rule_id);
-  if (it == rule_usage_.end()) {
+  auto usage = rule_usage_.find(rule_id);
+  if (usage == rule_usage_.end()) {
     //RuleStats stats {used_rx, used_rx, dropped_tx, dropped_rx};
     Usage usage {};
     usage.rule_version = version;
-    rule_usage_.insert(rule_id, usage);
+    rule_usage_[rule_id] = usage;
   }
 
-  auto stats_map = it->second.Usage.stats_map
-  auto it = stats_map.find(version);
-  if (it == stats_map.end()) {
+  auto stats_map = usage->second.stats_map;
+  auto reported_version = stats_map.find(version);
+  if (reported_version == stats_map.end()) {
     RuleStats stats {used_tx, used_rx, dropped_tx, dropped_rx};
-    stats_map.insert(version, stats);
+    stats_map[version] = stats;
   }
-  auto cur_version = it->second.Usage.rule_version
+  auto cur_version = reported_version->first;
   auto it = stats_map.find(cur_version);
   RuleStats prev_usage;
   if (it == stats_map.end()){
@@ -550,7 +550,7 @@ delta_dropped_rx = used_rx - prev_usage.dropped_rx;
     auto it = credit_map_.find(charging_key);
     if (it != credit_map_.end()) {
       auto credit_uc = get_credit_uc(charging_key, update_criteria);
-      it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+      it->second->credit.add_used_credit(delta_tx, delta_rx, *credit_uc);
       if (it->second->should_deactivate_service()) {
         it->second->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
       }
@@ -564,7 +564,7 @@ delta_dropped_rx = used_rx - prev_usage.dropped_rx;
       static_rules_.get_monitoring_key_for_rule_id(rule_id, &monitoring_key)) {
     MLOG(MINFO) << "Updating used monitoring credit for Rule=" << rule_id
                 << " Monitoring Key=" << monitoring_key;
-    add_to_monitor(monitoring_key, used_tx, used_rx, update_criteria);
+    add_to_monitor(monitoring_key, delta_tx, delta_rx, update_criteria);
   }
   if (session_level_key_ != "" && monitoring_key != session_level_key_) {
     // Update session level key if its different
@@ -573,7 +573,7 @@ delta_dropped_rx = used_rx - prev_usage.dropped_rx;
   if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
     update_used_data_metrics(used_tx, used_rx);
   }
-  update_dropped_data_metrics(dropped_tx, dropped_rx);
+  update_dropped_data_metrics(delta_dropped_tx, delta_dropped_rx);
 }
 
 void SessionState::apply_session_rule_set(

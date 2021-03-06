@@ -260,7 +260,7 @@ TEST_F(SessionStateTest, test_add_rule_usage) {
           .credit.buckets[ALLOWED_TOTAL],
       3000);
 
-  session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 2000);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
@@ -271,7 +271,8 @@ TEST_F(SessionStateTest, test_add_rule_usage) {
   EXPECT_EQ(
       update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_RX], 1000);
 
-  session_state->add_rule_usage("dyn_rule1", 4000, 2000, 0, 0, update_criteria);
+  session_state->add_rule_usage("dyn_rule1", 1, 4000, 2000, 0, 0,
+    update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(2, USED_TX), 4000);
   EXPECT_EQ(session_state->get_charging_credit(2, USED_RX), 2000);
   EXPECT_EQ(session_state->get_monitor("m2", USED_TX), 4000);
@@ -327,7 +328,8 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
           .credit.buckets[ALLOWED_TOTAL],
       3000);
 
-  session_state->add_rule_usage("dyn_rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("dyn_rule1", 1, 2000, 1000, 0, 0,
+    update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 1000);
 
@@ -336,13 +338,15 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
   EXPECT_EQ(
       update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_RX], 1000);
 
-  session_state->add_rule_usage("dyn_rule2", 4000, 2000, 0, 0, update_criteria);
+  session_state->add_rule_usage("dyn_rule2", 1, 4000, 2000, 0, 0,
+    update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(2, USED_TX), 4000);
   EXPECT_EQ(session_state->get_charging_credit(2, USED_RX), 2000);
   EXPECT_EQ(
       update_criteria.charging_credit_map[CreditKey(2)].bucket_deltas[USED_TX],
       4000);
-  session_state->add_rule_usage("dyn_rule3", 5000, 3000, 0, 0, update_criteria);
+  session_state->add_rule_usage("dyn_rule3", 1, 5000, 3000, 0, 0,
+    update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(3, USED_TX), 5000);
   EXPECT_EQ(session_state->get_charging_credit(3, USED_RX), 3000);
   EXPECT_EQ(
@@ -372,7 +376,7 @@ TEST_F(SessionStateTest, test_session_level_key) {
   EXPECT_EQ(update_criteria.updated_session_level_key, "m1");
 
   // add usage to go over quota
-  session_state->add_rule_usage("rule1", 5000, 2000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 5000, 2000, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 5000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 2000);
   EXPECT_EQ(
@@ -396,7 +400,7 @@ TEST_F(SessionStateTest, test_session_level_key) {
   receive_credit_from_pcrf("m1", 0, MonitoringLevel::SESSION_LEVEL);
 
   // add usage to go over quota
-  session_state->add_rule_usage("rule1", 1001, 1, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 1001, 1, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 6001);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 2001);
   EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].report_last_credit);
@@ -433,7 +437,7 @@ TEST_F(SessionStateTest, test_reauth_key) {
 
   receive_credit_from_ocs(1, 1500);
 
-  session_state->add_rule_usage("rule1", 1000, 500, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 1000, 500, 0, 0, update_criteria);
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -460,7 +464,7 @@ TEST_F(SessionStateTest, test_reauth_key) {
   reauth_res = session_state->reauth_key(1, uc);
   EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
 
-  session_state->add_rule_usage("rule1", 2, 1, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2, 1, 0, 0, update_criteria);
   UpdateSessionRequest reauth_update;
   session_state->get_updates(reauth_update, &actions, update_criteria);
   EXPECT_EQ(reauth_update.updates_size(), 1);
@@ -520,8 +524,8 @@ TEST_F(SessionStateTest, test_reauth_all) {
   receive_credit_from_ocs(1, 1024);
   receive_credit_from_ocs(2, 1024);
 
-  session_state->add_rule_usage("rule1", 10, 20, 0, 0, update_criteria);
-  session_state->add_rule_usage("dyn_rule1", 30, 40, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 10, 20, 0, 0, update_criteria);
+  session_state->add_rule_usage("dyn_rule1", 1, 30, 40, 0, 0, update_criteria);
   // If any charging key isn't reporting, an update is needed
   auto uc         = get_default_update_criteria();
   auto reauth_res = session_state->reauth_all(uc);
@@ -560,7 +564,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
   receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
   receive_credit_from_ocs(1, 1024);
   insert_rule(1, "m1", "rule1", STATIC, 0, 0);
-  session_state->add_rule_usage("rule1", 1024, 0, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 1024, 0, 0, 0, update_criteria);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
 
   EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 1024);
@@ -590,7 +594,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
 
 TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_no_key) {
   insert_rule(0, "", "rule1", STATIC, 0, 0);
-  session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
   SessionState::TotalCreditUsage actual =
       session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 0);
@@ -602,7 +606,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_no_key) {
 TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_single_key) {
   insert_rule(1, "", "rule1", STATIC, 0, 0);
   receive_credit_from_ocs(1, 3000);
-  session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
   SessionState::TotalCreditUsage actual =
       session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 0);
@@ -615,7 +619,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_multiple_key) {
   insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   receive_credit_from_ocs(1, 3000);
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
-  session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
   SessionState::TotalCreditUsage actual =
       session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 2000);
@@ -631,8 +635,8 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_multiple_rule_shared_key) {
   insert_rule(0, "m1", "rule2", DYNAMIC, 0, 0);
   receive_credit_from_ocs(1, 3000);
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
-  session_state->add_rule_usage("rule1", 1000, 10, 0, 0, update_criteria);
-  session_state->add_rule_usage("rule2", 500, 5, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 1000, 10, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule2", 1, 500, 5, 0, 0, update_criteria);
   SessionState::TotalCreditUsage actual =
       session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 1500);
@@ -788,7 +792,7 @@ TEST_F(SessionStateTest, test_zero_gsu_credit_grant) {
   EXPECT_EQ(u_credit.credit.buckets[ALLOWED_RX], 0);
 
   // Report some rule usage, and ensure the final action gets triggered
-  session_state->add_rule_usage("rule1", 100, 100, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 100, 100, 0, 0, update_criteria);
   auto credit_uc = update_criteria.charging_credit_map[1];
   EXPECT_EQ(credit_uc.service_state, SERVICE_NEEDS_DEACTIVATION);
 }
@@ -834,11 +838,11 @@ TEST_F(SessionStateTest, test_multiple_final_action_empty_grant) {
       2000);
 
   // add usage for 2 times to go over quota
-  session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 2000);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1000);
 
-  session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 4000);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 2000);
 
@@ -894,7 +898,7 @@ TEST_F(SessionStateTest, test_multiple_final_action_empty_grant) {
       0);
 
   // force to check for the state (no traffic sent)
-  session_state->add_rule_usage("rule1", 0, 0, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 0, 0, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 4000);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 2000);
   EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
@@ -1011,7 +1015,7 @@ TEST_F(SessionStateTest, test_monitor_cycle) {
   // reset update_criteria (before any add_rule_usage)
   // update_criteria = get_default_update_criteria();
   // add usage for 2 times to go over quota
-  session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 1000);
   EXPECT_FALSE(update_criteria.monitor_credit_map["m1"].report_last_credit);
@@ -1022,7 +1026,7 @@ TEST_F(SessionStateTest, test_monitor_cycle) {
   receive_credit_from_pcrf("m1", 0, 100, 200, MonitoringLevel::PCC_RULE_LEVEL);
   // reset update_criteria (before any add_rule_usage)
   // update_criteria = get_default_update_criteria();
-  session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 4000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 2000);
   EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].report_last_credit);
@@ -1063,11 +1067,11 @@ TEST_F(SessionStateTest, test_get_charging_credit_summaries) {
           .credit.buckets[ALLOWED_TOTAL],
       3000);
 
-  session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 2000);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1000);
 
-  session_state->add_rule_usage("dyn_rule1", 4000, 2000, 0, 0, update_criteria);
+  session_state->add_rule_usage("dyn_rule1", 1, 4000, 2000, 0, 0, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(2, USED_TX), 4000);
   EXPECT_EQ(session_state->get_charging_credit(2, USED_RX), 2000);
 
