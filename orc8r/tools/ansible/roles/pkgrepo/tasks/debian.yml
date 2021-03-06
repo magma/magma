@@ -16,7 +16,11 @@
   apt_key:
     url: http://packages.magma.etagecom.io/pubkey.gpg
     state: present
-    id: 2E97854368E14ED8FB6F80903E838E02450E78EA
+
+- name: Clean artifact path
+  file:
+    state: absent
+    path: "/etc/apt/sources.list.d/magma_jfrog_io_magma_list_dev.list"
 
 - name: Add apt-transport-https
   apt: pkg=apt-transport-https state=present update_cache=yes
