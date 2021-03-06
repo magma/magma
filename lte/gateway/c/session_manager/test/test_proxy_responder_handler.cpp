@@ -49,9 +49,10 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     monitoring_key = "mk1";
     rule_id        = "test_rule_1";
 
-    reporter               = std::make_shared<MockSessionReporter>();
-    auto rule_store        = std::make_shared<StaticRuleStore>();
-    session_store          = std::make_shared<SessionStore>(rule_store);
+    reporter        = std::make_shared<MockSessionReporter>();
+    auto rule_store = std::make_shared<StaticRuleStore>();
+    session_store   = std::make_shared<SessionStore>(
+        rule_store, std::make_shared<MeteringReporter>());
     pipelined_client       = std::make_shared<MockPipelinedClient>();
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
     auto spgw_client       = std::make_shared<MockSpgwServiceClient>();

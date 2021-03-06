@@ -56,9 +56,7 @@ sctp_config_t sctp_conf;
 task_zmq_ctx_t sctp_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SCTP_INIT_MSG: {
@@ -100,7 +98,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       sctp_exit();
     } break;
 
@@ -112,7 +110,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 

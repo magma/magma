@@ -42,6 +42,44 @@ using ::testing::Return;
 using ::testing::Test;
 
 namespace magma {
+ACTION_P2(SetEndPromise, promise_p, status) {
+  promise_p->set_value();
+  return status;
+}
+
+ACTION_P(SetPromise, promise_p) {
+  promise_p->set_value();
+}
+
+// Take the SessionID from the request as it is generated internally
+ACTION_P2(SetCreateSessionResponse, first_quota, second_quota) {
+  auto req  = static_cast<const CreateSessionRequest*>(arg1);
+  auto res  = static_cast<CreateSessionResponse*>(arg2);
+  auto imsi = req->common_context().sid().id();
+  res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
+  res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule2");
+  res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule3");
+  create_credit_update_response(
+      imsi, req->session_id(), 1, first_quota, res->mutable_credits()->Add());
+  create_credit_update_response(
+      imsi, req->session_id(), 2, second_quota, res->mutable_credits()->Add());
+}
+// Take the SessionID from the request as it is generated internally
+ACTION_P(SetUpdateSessionResponse, quota) {
+  auto req        = static_cast<const UpdateSessionRequest*>(arg1)->updates(0);
+  auto res        = static_cast<UpdateSessionResponse*>(arg2);
+  auto imsi       = req.common_context().sid().id();
+  auto session_id = req.session_id();
+  create_credit_update_response(
+      imsi, session_id, 1, quota, res->mutable_responses()->Add());
+}
+
+ACTION(SetSessionTerminateResponse) {
+  auto req = static_cast<const SessionTerminateRequest*>(arg1);
+  auto res = static_cast<SessionTerminateResponse*>(arg2);
+  res->set_sid(req->common_context().sid().id());
+  res->set_session_id(req->session_id());
+}
 
 class SessiondTest : public ::testing::Test {
  protected:
@@ -58,7 +96,8 @@ class SessiondTest : public ::testing::Test {
     spgw_client       = std::make_shared<AsyncSpgwServiceClient>(test_channel);
     events_reporter   = std::make_shared<MockEventsReporter>();
     auto rule_store   = std::make_shared<StaticRuleStore>();
-    session_store     = std::make_shared<SessionStore>(rule_store);
+    session_store     = std::make_shared<SessionStore>(
+        rule_store, std::make_shared<MeteringReporter>());
     insert_static_rule(rule_store, 1, "rule1");
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
@@ -190,6 +229,21 @@ class SessiondTest : public ::testing::Test {
     stub->ReportRuleStats(&context, empty_table, &void_resp);
   }
 
+  void wait_for_setup_calls() {
+    std::promise<void> setup_promise1, setup_promise2;
+    EXPECT_CALL(
+        *pipelined_mock,
+        SetupDefaultControllers(testing::_, testing::_, testing::_))
+        .WillOnce(testing::DoAll(
+            SetPromise(&setup_promise2), testing::Return(grpc::Status::OK)));
+    EXPECT_CALL(
+        *pipelined_mock, SetupPolicyFlows(testing::_, testing::_, testing::_))
+        .WillOnce(testing::DoAll(
+            SetPromise(&setup_promise1), testing::Return(grpc::Status::OK)));
+    setup_promise1.get_future().get();
+    setup_promise2.get_future().get();
+  }
+
   void send_update_pipelined_table(
       std::unique_ptr<LocalSessionManager::Stub>& stub, RuleRecordTable table) {
     grpc::ClientContext context;
@@ -217,45 +271,6 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<SessionStore> session_store;
   SessionMap session_map;
 };
-
-ACTION_P2(SetEndPromise, promise_p, status) {
-  promise_p->set_value();
-  return status;
-}
-
-ACTION_P(SetPromise, promise_p) {
-  promise_p->set_value();
-}
-
-// Take the SessionID from the request as it is generated internally
-ACTION_P2(SetCreateSessionResponse, first_quota, second_quota) {
-  auto req  = static_cast<const CreateSessionRequest*>(arg1);
-  auto res  = static_cast<CreateSessionResponse*>(arg2);
-  auto imsi = req->common_context().sid().id();
-  res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule2");
-  res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule3");
-  create_credit_update_response(
-      imsi, req->session_id(), 1, first_quota, res->mutable_credits()->Add());
-  create_credit_update_response(
-      imsi, req->session_id(), 2, second_quota, res->mutable_credits()->Add());
-}
-// Take the SessionID from the request as it is generated internally
-ACTION_P(SetUpdateSessionResponse, quota) {
-  auto req        = static_cast<const UpdateSessionRequest*>(arg1)->updates(0);
-  auto res        = static_cast<UpdateSessionResponse*>(arg2);
-  auto imsi       = req.common_context().sid().id();
-  auto session_id = req.session_id();
-  create_credit_update_response(
-      imsi, session_id, 1, quota, res->mutable_responses()->Add());
-}
-
-ACTION(SetSessionTerminateResponse) {
-  auto req = static_cast<const SessionTerminateRequest*>(arg1);
-  auto res = static_cast<SessionTerminateResponse*>(arg2);
-  res->set_sid(req->common_context().sid().id());
-  res->set_session_id(req->session_id());
-}
 
 /**
  * End to end test.
@@ -292,6 +307,7 @@ TEST_F(SessiondTest, end_to_end_success) {
   // Setup the SessionD/PipelineD epoch value by sending an empty record. This
   // will prevent SessionD thinking that PipelineD has restarted mid-test.
   send_empty_pipelined_table(stub);
+  wait_for_setup_calls();
 
   {
     // 1- CreateSession Expectations
@@ -323,8 +339,6 @@ TEST_F(SessiondTest, end_to_end_success) {
             SetPromise(&create_promise), testing::Return(grpc::Status::OK)));
   }
 
-  // send_empty_pipelined_table(stub);
-
   // 1- CreateSession Trigger
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
@@ -350,7 +364,6 @@ TEST_F(SessiondTest, end_to_end_success) {
   // and the call to PipelineD, ActivateFlows(), is assumed in this test
   // to happened before the ReportRuleStats().
   create_promise.get_future().get();
-
   {
     EXPECT_CALL(
         *pipelined_mock,
@@ -377,7 +390,6 @@ TEST_F(SessiondTest, end_to_end_success) {
 
   // Wait until the ActivateFlows call from UpdateTunnelIds has completed
   tunnel_promise.get_future().get();
-
   {
     InSequence s;
     // 3 - PipelineD update + UpdateSession Expectations
@@ -468,6 +480,7 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   // Setup the SessionD/PipelineD epoch value by sending an empty record. This
   // will prevent SessionD thinking that PipelineD has restarted mid-test.
   send_empty_pipelined_table(stub);
+  wait_for_setup_calls();
 
   {
     // Expect create session with IMSI1

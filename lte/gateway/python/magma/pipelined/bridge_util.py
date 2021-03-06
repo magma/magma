@@ -86,6 +86,8 @@ class BridgeTools:
         if ip is not None:
             subprocess.Popen(["ifconfig", iface_name, ip]).wait()
 
+        subprocess.Popen(["ifconfig", iface_name, "up"]).wait()
+
     @staticmethod
     def add_ovs_port(bridge_name: str, iface_name: str, ofp_port: str):
         """

@@ -42,12 +42,15 @@ namespace magma {
 class MockPipelined final : public Pipelined::Service {
  public:
   MockPipelined() : Pipelined::Service() {
-    ON_CALL(*this, AddRule(_, _, _)).WillByDefault(Return(Status::OK));
     ON_CALL(*this, ActivateFlows(_, _, _)).WillByDefault(Return(Status::OK));
     ON_CALL(*this, DeactivateFlows(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, SetupPolicyFlows(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, SetupDefaultControllers(_, _, _))
+        .WillByDefault(Return(Status::OK));
+    ON_CALL(*this, SetupUEMacFlows(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, SetupQuotaFlows(_, _, _)).WillByDefault(Return(Status::OK));
   }
 
-  MOCK_METHOD3(AddRule, Status(grpc::ServerContext*, const PolicyRule*, Void*));
   MOCK_METHOD3(
       ActivateFlows, Status(
                          grpc::ServerContext*, const ActivateFlowsRequest*,
@@ -56,6 +59,22 @@ class MockPipelined final : public Pipelined::Service {
       DeactivateFlows, Status(
                            grpc::ServerContext*, const DeactivateFlowsRequest*,
                            DeactivateFlowsResult*));
+  MOCK_METHOD3(
+      SetupPolicyFlows,
+      Status(
+          grpc::ServerContext*, const SetupPolicyRequest*, SetupFlowsResult*));
+  MOCK_METHOD3(
+      SetupDefaultControllers,
+      Status(
+          grpc::ServerContext*, const SetupDefaultRequest*, SetupFlowsResult*));
+  MOCK_METHOD3(
+      SetupUEMacFlows,
+      Status(
+          grpc::ServerContext*, const SetupUEMacRequest*, SetupFlowsResult*));
+  MOCK_METHOD3(
+      SetupQuotaFlows,
+      Status(
+          grpc::ServerContext*, const SetupQuotaRequest*, SetupFlowsResult*));
 };
 
 class MockPipelinedClient : public PipelinedClient {

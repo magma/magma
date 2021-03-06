@@ -133,7 +133,7 @@ int sctpd_init(sctp_init_t* init) {
 
   for (i = 0; i < init->nb_ipv4_addr; i++) {
     auto ipv4_addr = init->ipv4_address[i];
-    if (inet_ntop(AF_INET, &ipv4_addr, ipv4_str, INET_ADDRSTRLEN) < 0) {
+    if (inet_ntop(AF_INET, &ipv4_addr, ipv4_str, INET_ADDRSTRLEN) == nullptr) {
       Fatal("failed to convert ipv4 addr\n");
       return -1;
     }
@@ -142,7 +142,8 @@ int sctpd_init(sctp_init_t* init) {
 
   for (i = 0; i < init->nb_ipv6_addr; i++) {
     auto ipv6_addr = init->ipv6_address[i];
-    if (inet_ntop(AF_INET6, &ipv6_addr, ipv6_str, INET6_ADDRSTRLEN) < 0) {
+    if (inet_ntop(AF_INET6, &ipv6_addr, ipv6_str, INET6_ADDRSTRLEN) ==
+        nullptr) {
       Fatal("failed to convert ipv6 addr\n");
       return -1;
     }

@@ -39,9 +39,7 @@ static void sms_orc8r_exit(void);
 task_zmq_ctx_t sms_orc8r_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SGSAP_UPLINK_UNITDATA: {
@@ -57,7 +55,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case TERMINATE_MESSAGE: {
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       sms_orc8r_exit();
     } break;
 
@@ -68,7 +66,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
