@@ -53,6 +53,18 @@ VLAN_FIX="3cf2b424bb"
 # be sure to increment this to enable upgrade from package repo when rebuilding identical upstream versions
 LOCAL_REV=1
 
+if [[ -z "${ARCH}" ]]; then
+     ARCH=amd64
+fi
+if [[ -z "${KVERS}" ]]; then
+     KVERS="4.9.0-9-$ARCH"
+fi
+if [ "$ARCH" == "amd64" ]; then
+     KARCH="x86"
+else
+     KARCH="aarch64"
+fi
+
 # The resulting package is placed in $OUTPUT_DIR
 # or in the cwd.
 if [ -z "$1" ]; then
@@ -76,7 +88,7 @@ sudo apt-get update
 # install build time dependency
 sudo apt-get install  ${BUILD_DEPS} -y
 # make surew correct linux headers are installed
-sudo apt-get -y install "linux-headers-$(uname -r)"
+sudo apt-get -y install "linux-headers-$KVERS"
 # Install fpm
 sudo gem install fpm
 
@@ -110,15 +122,14 @@ EOF
 
 ./boot.sh
 # Building OVS user packages
-opts="--with-linux=/lib/modules/$(uname -r)/build"
+opts="--with-linux=/lib/modules/$KVERS/build KARCH=$KARCH"
 deb_opts="nocheck parallel=$(nproc)"
 fakeroot make -f debian/rules DATAPATH_CONFIGURE_OPTS="$opts" DEB_BUILD_OPTIONS="$deb_opts" binary
 
 ## Building OVS datapath kernel module package
 cd ${WORK_DIR}/ovs
 sudo mkdir -p /usr/src/linux
-kvers=$(uname -r)
-ksrc="/lib/modules/$kvers/build"
-sudo make -f debian/rules.modules KSRC="$ksrc" KVERS="$kvers" binary-modules
+ksrc="/lib/modules/$KVERS/build"
+sudo -E make -f debian/rules.modules KSRC="$ksrc" KVERS="$KVERS" binary-modules
 
 cp /usr/src/*.deb ${WORK_DIR}/*.deb ${OUTPUT_DIR}
