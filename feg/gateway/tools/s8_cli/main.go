@@ -172,7 +172,7 @@ func createSession(cmd *commands.Command, args []string) int {
 		BearerContext: &protos.BearerContext{
 			Id: bearerId,
 			UserPlaneFteid: &protos.Fteid{
-				Ipv4Address: generateRandomIPv4(),
+				Ipv4Address: "11.11.11.11",
 				Ipv6Address: "",
 				Teid:        uint32(AGWTeidU),
 			},
