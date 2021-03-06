@@ -5,17 +5,21 @@
 
 set -e
 
-outdir=/tmp/magma_protos
+outdir=/tmp/magma_protos/
 
-magma=~/fbsource/fbcode/magma
+magma=${MAGMA_ROOT-~/magma}
+echo $magma
 include=/usr/local/include
 
 ignore=( -not -path '*/migrations/*' )
 
-pushd "$magma"
-find -L . -name '*.proto' "${ignore[@]}" | cpio -pdm --insecure "$outdir"
+pushd ${magma}
+find -L . -name '*.proto' "${ignore[@]}" | cpio -pdm --insecure ${outdir}
 popd
 
-pushd "$include"
-find -L . -name '*.proto' "${ignore[@]}" | cpio -pdm --insecure "$outdir"
+pushd ${include}
+find -L . -name '*.proto' "${ignore[@]}" | cpio -pdm --insecure ${outdir}
 popd
+
+echo
+echo copied protos to ${outdir}
