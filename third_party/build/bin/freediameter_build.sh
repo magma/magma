@@ -16,7 +16,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
 GIT_URL=https://github.com/lionelgo/opencord.org.freeDiameter.git
 GIT_COMMIT=13b0e7de0d66906d50e074a339f890d6e59813ad
-PKGVERSION=1.2.0
+PKGVERSION=1.2.0 
 ITERATION=1
 VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=oai-freediameter
