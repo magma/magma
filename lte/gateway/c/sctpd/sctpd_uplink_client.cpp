@@ -46,6 +46,9 @@ int SctpdUplinkClient::newAssoc(const NewAssocReq& req, NewAssocRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
+  auto deadline = std::chrono::system_clock::now() +
+                  std::chrono::milliseconds(1000 * RESPONSE_TIMEOUT);
+  context.set_deadline(deadline);
 
   auto status = _stub->NewAssoc(&context, req, res);
 
@@ -62,7 +65,7 @@ int SctpdUplinkClient::closeAssoc(
   assert(res != nullptr);
 
   ClientContext context;
-
+  // Not putting a timeout event for closeAssoc events
   auto status = _stub->CloseAssoc(&context, req, res);
 
   if (!status.ok()) {

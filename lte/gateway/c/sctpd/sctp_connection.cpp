@@ -267,7 +267,7 @@ SctpStatus SctpConnection::HandleComUp(
   pull_peer_ipaddr(sd, change->sac_assoc_id, ran_cp_ipaddr);
 
   if (_handler.HandleNewAssoc(
-          change->sac_assoc_id, change->sac_inbound_streams,
+          assoc.ppid, change->sac_assoc_id, change->sac_inbound_streams,
           change->sac_outbound_streams, ran_cp_ipaddr) < 0) {
     _sctp_desc.delAssoc(assoc.assoc_id);
     return SctpStatus::NEW_ASSOC_NOTIF_FAILED;
