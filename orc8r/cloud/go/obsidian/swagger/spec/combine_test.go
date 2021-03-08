@@ -11,7 +11,7 @@
  limitations under the License.
 */
 
-package swagger_test
+package spec_test
 
 import (
 	"io/ioutil"
@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/swagger"
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
@@ -49,7 +49,7 @@ func TestCombine(t *testing.T) {
 	yamlCommon, yamlSpecs, err := load(commonFilepath, specsDir)
 	assert.NoError(t, err)
 
-	combined, warnings, err := swagger.Combine(yamlCommon, yamlSpecs)
+	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)
 	assert.NoError(t, err)
 
 	assert.Error(t, warnings)

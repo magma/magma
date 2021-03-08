@@ -35,6 +35,14 @@ class SessionCredit {
     uint64_t time_of_last_usage;
   };
 
+  // TODO refactor to use the Usage struct above
+  struct TotalCreditUsage {
+    uint64_t monitoring_tx;
+    uint64_t monitoring_rx;
+    uint64_t charging_tx;
+    uint64_t charging_rx;
+  };
+
   SessionCredit();
 
   SessionCredit(ServiceState start_state);

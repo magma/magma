@@ -55,6 +55,15 @@ class MetricsRegistry {
       const std::string& name, const std::map<std::string, std::string>& labels,
       Args&&... args);
 
+  /**
+   * Remove a metric instance specified by name/labels
+   * @param name
+   * @param labels
+   */
+  void Remove(
+      const std::string& name,
+      const std::map<std::string, std::string>& labels);
+
   const std::size_t SizeFamilies() { return families_.size(); }
 
   const std::size_t SizeMetrics() { return metrics_.size(); }
@@ -113,6 +122,28 @@ T& MetricsRegistry<T, MetricFamilyFactory>::Get(
     metrics_.insert({{metric_hash, metric}});
   }
   return *metric;
+}
+
+template<typename T, typename MetricFamilyFactory>
+void MetricsRegistry<T, MetricFamilyFactory>::Remove(
+    const std::string& name, const std::map<std::string, std::string>& labels) {
+  Family<T>* family;
+  size_t name_hash = std::hash<std::string>{}(name);
+  auto family_it   = families_.find(name_hash);
+  if (family_it == families_.end()) {
+    return;
+  }
+  family = family_it->second;
+
+  T* metric;
+  size_t metric_hash = hash_name_and_labels(name, labels);
+  auto metric_it     = metrics_.find(metric_hash);
+  if (metric_it == metrics_.end()) {
+    return;
+  }
+  metric = metric_it->second;
+  family->Remove(metric);
+  metrics_.erase(metric_hash);
 }
 
 template<typename T, typename MetricFamilyFactory>

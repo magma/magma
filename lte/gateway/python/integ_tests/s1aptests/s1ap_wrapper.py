@@ -58,6 +58,7 @@ class TestWrapper(object):
         self,
         stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
+        health_service=MagmadUtil.health_service_cmds.DISABLE,
     ):
         """
         Initialize the various classes required by the tests and setup.
@@ -85,6 +86,7 @@ class TestWrapper(object):
         self._magmad_util = MagmadUtil(magmad_client)
         self._magmad_util.config_stateless(stateless_mode)
         self._magmad_util.config_apn_correction(apn_correction)
+        self._magmad_util.config_health_service(health_service)
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()
         if not self.wait_gateway_healthy:

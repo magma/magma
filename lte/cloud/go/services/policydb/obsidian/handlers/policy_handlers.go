@@ -46,7 +46,7 @@ func ListBaseNames(c echo.Context) error {
 
 	view := c.QueryParam("view")
 	if strings.ToLower(view) == "full" {
-		baseNames, err := configurator.LoadAllEntitiesOfType(
+		baseNames, _, err := configurator.LoadAllEntitiesOfType(
 			networkID, lte.BaseNameEntityType,
 			configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true},
 			serdes.Entity,
@@ -221,7 +221,7 @@ func ListRules(c echo.Context) error {
 
 	view := c.QueryParam("view")
 	if strings.ToLower(view) == "full" {
-		rules, err := configurator.LoadAllEntitiesOfType(
+		rules, _, err := configurator.LoadAllEntitiesOfType(
 			networkID, lte.PolicyRuleEntityType,
 			configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
 			serdes.Entity,
@@ -409,7 +409,7 @@ func getQoSProfiles(c echo.Context) error {
 		return nerr
 	}
 
-	profiles, err := configurator.LoadAllEntitiesOfType(
+	profiles, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, lte.PolicyQoSProfileEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,

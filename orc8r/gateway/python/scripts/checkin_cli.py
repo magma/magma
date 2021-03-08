@@ -60,7 +60,7 @@ def main():
               correct hardware id and key to allow bootstrap.
                 1. Run show_gateway_info.py.
                 2. Go to cloud swagger
-                   (EG. https://127.0.0.1:9443/apidocs/v1/#/).
+                   (EG. https://127.0.0.1:9443/swagger/v1/ui/).
                 3. POST to add a new gateway. Fill JSON with corresponding
                    values from step 1.
             """,
@@ -76,7 +76,7 @@ def main():
             - Verify state service is running on cloud VM.
             - Double check the gateway has been registered with the cloud. You
               can check by going to cloud swagger,
-              (EG. https://127.0.0.1:9443/apidocs/v1/#/), and query the list
+              (EG. https://127.0.0.1:9443/swagger/v1/ui/), and query the list
               gateways endpoint.
             - Check logs for more information (sudo tail -f /var/log/syslog).
             """,
