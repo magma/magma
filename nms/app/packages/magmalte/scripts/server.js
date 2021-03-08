@@ -23,12 +23,14 @@ if (!process.env.NODE_ENV) {
 
 import app from '../server/app';
 import logging from '@fbcnms/logging';
+import {runDataMigration} from './runDataMigration';
 import {runMigrations} from './runMigrations';
 
 const logger = logging.getLogger(module);
 const port = parseInt(process.env.PORT || 80);
 
 (async function main() {
+  await runDataMigration();
   await runMigrations();
   app.listen(port, '', err => {
     if (err) {

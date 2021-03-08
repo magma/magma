@@ -1562,6 +1562,13 @@
   dependencies:
     sequelize "^5.8.5"
 
+"@fbcnms/sequelize-models@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.2.tgz#edfa3ab06f84789ea40eb299a67f2a60abff4747"
+  integrity sha512-iCB868/+8sB5qbdOdMKwKXtd1+LYvQCy2bAe6jLgShD8CWn56x+m2nmUzRrlwFCelmRfuuOZOhNL145VcbjODg==
+  dependencies:
+    sequelize "^5.8.5"
+
 "@fbcnms/strings@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@fbcnms/strings/-/strings-0.1.0.tgz#50dae22b4cb7cb7d1a30c013d0b40c96b741a1f1"

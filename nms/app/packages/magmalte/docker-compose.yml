@@ -53,6 +53,13 @@ services:
       MYSQL_PASS: password
       MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
       MYSQL_DIALECT: postgres
+      # Specify these to migrate data from the source db to the current one.
+      #MYSQL_SRC_HOST: mariadb
+      #MYSQL_SRC_PORT: 3306
+      #MYSQL_SRC_DB: nms
+      #MYSQL_SRC_USER: nms
+      #MYSQL_SRC_PASS: password
+      #MYSQL_SRC_DIALECT: mariadb
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_DOWNLOAD: "true"
     healthcheck:
