@@ -182,6 +182,19 @@ pipeline {
         }
       }
       post {
+        unsuccessful {
+          script {
+            // In case of failure during DsTester pipeline
+            // Retrieve the logs so developer does not need to look for them
+            copyArtifacts(projectName: dsTesterPipelineName,
+                          filter: 'fed_docker_logs.zip',
+                          elector: lastCompleted())
+            if (fileExists('fed_docker_logs.zip')) {
+              sh "mv fed_docker_logs.zip ds_tester_fed_docker_logs.zip"
+              archiveArtifacts artifacts: 'ds_tester_fed_docker_logs.zip'
+            }
+          }
+        }
         always {
           script {
             copyArtifacts(projectName: dsTesterPipelineName,
