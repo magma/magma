@@ -16,7 +16,7 @@ package swagger
 import (
 	"io/ioutil"
 
-	swagger_lib "magma/orc8r/cloud/go/swagger"
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -47,7 +47,7 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 		}
 	}
 
-	combined, warnings, err := swagger_lib.Combine(yamlCommon, yamlSpecs)
+	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)
 	if err != nil {
 		return "", err
 	}
@@ -67,7 +67,7 @@ func GetServiceSpec(yamlCommon string, service string) (string, error) {
 		return "", err
 	}
 
-	combined, warnings, err := swagger_lib.Combine(yamlCommon, []string{yamlSpec})
+	combined, warnings, err := spec.Combine(yamlCommon, []string{yamlSpec})
 	if err != nil {
 		return "", err
 	}

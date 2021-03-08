@@ -305,6 +305,16 @@ message MME {
     // SGW S1U endpoint on AGW
     string ipv4_sgw_s1u_addr = 31;
 
+    message PlmnConfig {
+        string mcc = 1;
+        string mnc = 2;
+    }
+    repeated PlmnConfig restricted_plmns = 32;
+
+    message TacList {
+        repeated uint32 tac = 1;
+    }
+    map<string, TacList> service_area_maps = 33;
 }
 
 

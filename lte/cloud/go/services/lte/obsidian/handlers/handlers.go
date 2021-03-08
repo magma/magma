@@ -300,7 +300,7 @@ func listEnodebs(c echo.Context) error {
 		return nerr
 	}
 
-	ents, err := configurator.LoadAllEntitiesOfType(
+	ents, _, err := configurator.LoadAllEntitiesOfType(
 		nid, lte.CellularEnodebEntityType,
 		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
 		serdes.Entity,
@@ -492,7 +492,7 @@ func listApns(c echo.Context) error {
 		return nerr
 	}
 
-	ents, err := configurator.LoadAllEntitiesOfType(
+	ents, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, lte.APNEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -754,7 +754,7 @@ func listGatewayPoolsHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	gatewayPoolEnts, err := configurator.LoadAllEntitiesOfType(nid, lte.CellularGatewayPoolEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	gatewayPoolEnts, _, err := configurator.LoadAllEntitiesOfType(nid, lte.CellularGatewayPoolEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

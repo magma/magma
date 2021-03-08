@@ -131,7 +131,7 @@ void GTPApplication::add_uplink_tunnel_flow(
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod uplink_fm =
       messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
-  add_uplink_match(uplink_fm, ev.get_gtp_portno(), ev.get_in_tei());
+  add_uplink_match(uplink_fm, ev.get_enb_gtp_portno(), ev.get_in_tei());
 
   // Set eth src and dst
   of13::ApplyActions apply_ul_inst;
@@ -176,7 +176,7 @@ void GTPApplication::delete_uplink_tunnel_flow(
   uplink_fm.out_port(of13::OFPP_ANY);
   uplink_fm.out_group(of13::OFPG_ANY);
 
-  add_uplink_match(uplink_fm, ev.get_gtp_portno(), ev.get_in_tei());
+  add_uplink_match(uplink_fm, ev.get_enb_gtp_portno(), ev.get_in_tei());
 
   messenger.send_of_msg(uplink_fm, ev.get_connection());
 }
@@ -329,7 +329,7 @@ void GTPApplication::add_downlink_tunnel_flow_action(
       new of13::TunnelIPv4Dst(ev.get_enb_ip().s_addr));
   apply_dl_inst.add_action(set_tunnel_dst);
 
-  int gtp_port = ev.get_gtp_portno();
+  int gtp_port = ev.get_enb_gtp_portno();
   if (gtp_port == 0) {
     gtp_port = GTPApplication::gtp0_port_num_;
   }

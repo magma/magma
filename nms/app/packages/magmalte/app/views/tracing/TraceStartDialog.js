@@ -27,6 +27,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import TraceContext from '../../components/context/TraceContext';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
+import Typography from '@material-ui/core/Typography';
 
 import {AltFormField} from '../../components/FormField';
 import {colors, typography} from '../../theme/default';
@@ -40,6 +41,8 @@ const DEFAULT_TRACE_CONFIG: call_trace_config = {
   timeout: 300,
   trace_id: '',
   trace_type: 'GATEWAY',
+  capture_filters: '',
+  display_filters: '',
 };
 
 const useStyles = makeStyles(_ => ({
@@ -61,6 +64,7 @@ const useStyles = makeStyles(_ => ({
       background: colors.primary.mirage,
     },
   },
+  addSubscriberDialog: {},
 }));
 
 export default function CreateTraceButton() {
@@ -107,7 +111,7 @@ type Props = {
 };
 
 function CreateTraceDetails(props: Props) {
-  //   const classes = useStyles();
+  const classes = useStyles();
   const ctx = useContext(TraceContext);
   const [error, setError] = useState('');
   const [traceCfg, setTraceCfg] = useState<call_trace_config>({
@@ -132,7 +136,7 @@ function CreateTraceDetails(props: Props) {
   return (
     <>
       <DialogContent>
-        <List>
+        <List className={classes.addSubscriberDialog}>
           {error !== '' && (
             <AltFormField label={''}>
               <FormLabel data-testid="configEditError" error>
@@ -170,6 +174,7 @@ function CreateTraceDetails(props: Props) {
           </Grid>
           <AltFormField label={'Trace Type'}>
             <TypedSelect
+              disabled={true}
               input={<OutlinedInput />}
               value={traceCfg.trace_type}
               fullWidth={true}
@@ -191,6 +196,83 @@ function CreateTraceDetails(props: Props) {
                 setTraceCfg({...traceCfg, gateway_id: target.value});
               }}
             />
+          </AltFormField>
+          <AltFormField label={'TShark Custom Capture Filters'}>
+            <OutlinedInput
+              data-testid="capture-filters"
+              placeholder="tcp and (port 80 or port 8080)"
+              fullWidth={true}
+              value={traceCfg.capture_filters}
+              onChange={({target}) => {
+                setTraceCfg({
+                  ...traceCfg,
+                  capture_filters: target.value,
+                });
+              }}
+            />
+          </AltFormField>
+          <AltFormField label={'TShark Custom Display Filters'}>
+            <OutlinedInput
+              data-testid="display-filters"
+              placeholder="http"
+              fullWidth={true}
+              value={traceCfg.display_filters}
+              onChange={({target}) => {
+                setTraceCfg({
+                  ...traceCfg,
+                  display_filters: target.value,
+                });
+              }}
+            />
+          </AltFormField>
+          <AltFormField label={'Example Preset Filters'}>
+            <Grid container>
+              <Grid item xs={12} sm={4}>
+                <Button
+                  onClick={() => {
+                    setTraceCfg({
+                      ...traceCfg,
+                      capture_filters: 'tcp and port 80',
+                      display_filters: 'http',
+                    });
+                  }}
+                  className={classes.appBarBtn}>
+                  {'HTTP Messages'}
+                </Button>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Button
+                  onClick={() => {
+                    setTraceCfg({
+                      ...traceCfg,
+                      capture_filters: '',
+                      display_filters: 'dns',
+                    });
+                  }}
+                  className={classes.appBarBtn}>
+                  {'DNS Messages'}
+                </Button>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Button
+                  onClick={() => {
+                    setTraceCfg({
+                      ...traceCfg,
+                      capture_filters: '',
+                      display_filters: 'ip.src==192.168.0.0/16',
+                    });
+                  }}
+                  className={classes.appBarBtn}>
+                  {'Limit IP Src'}
+                </Button>
+              </Grid>
+            </Grid>
+          </AltFormField>
+          <AltFormField label={'TShark Command'}>
+            <Typography component="div" variant="caption">
+              {'tshark -ni any -a filesize:4000 ' +
+                (traceCfg.capture_filters || '')}
+            </Typography>
           </AltFormField>
         </List>
       </DialogContent>

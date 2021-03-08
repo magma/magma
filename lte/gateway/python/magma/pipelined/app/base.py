@@ -137,6 +137,12 @@ class MagmaController(app_manager.RyuApp):
 
         return None
 
+    def is_controller_ready(self):
+        """
+        Check if the controller is setup & ready to process requests
+        """
+        return self._datapath and self.init_finished
+
     def initialize_on_connect(self, datapath):
         """
         Initialize the app on the datapath connect event.
