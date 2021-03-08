@@ -65,7 +65,9 @@ that the Federation Gateway will connect to.</p></li>
 and <code>control_proxy</code> services to point toward the appropriate Orchestrator.
 A sample configuration is provided below. The <code>bootstrap_address</code>,
 <code>bootstrap_port</code>, <code>controller_address</code>, and <code>controller_port</code> are the
-parameters that will likely need to be modified.</p></li>
+parameters that will likely need to be modified (check
+<code>/magma/feg/gateway/configs/control_proxy.yml</code> for the most recent
+format)</p></li>
 </ul>
 <pre><code class="hljs"><span class="hljs-comment">#</span>
 <span class="hljs-comment"># Copyright 2020 The Magma Authors.</span>
@@ -108,7 +110,8 @@ parameters that will likely need to be modified.</p></li>
 <ul>
 <li><code>.env</code> - This file provides any deployment specific environment variables used
 in the <code>docker-compose.yml</code> of the Federation Gateway. A sample configuration
-is provided below:</li>
+is provided below (please check <code>magma/feg/gateway/docker/.env</code> for the most
+recent format):</li>
 </ul>
 <pre><code class="hljs"><span class="hljs-comment"># Copyright 2020 The Magma Authors.</span>
 
@@ -130,6 +133,8 @@ is provided below:</li>
 <span class="hljs-attr">ROOTCA_PATH</span>=/var/opt/magma/certs/rootCA.pem
 <span class="hljs-attr">CONTROL_PROXY_PATH</span>=/etc/magma/control_proxy.yml
 <span class="hljs-attr">SNOWFLAKE_PATH</span>=/etc/snowflake
+<span class="hljs-attr">CONFIGS_DEFAULT_VOLUME</span>=/etc/magma
+<span class="hljs-attr">CONFIGS_TEMPLATES_PATH</span>=/etc/magma/templates
 
 <span class="hljs-attr">CERTS_VOLUME</span>=/var/opt/magma/certs
 <span class="hljs-attr">CONFIGS_VOLUME</span>=/var/opt/magma/configs
