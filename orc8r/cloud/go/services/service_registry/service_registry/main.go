@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/lib/go/registry"
 
 	"github.com/docker/docker/client"
+	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -36,6 +37,12 @@ const (
 )
 
 func main() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://f6a54d1a20134c258b1e0b227d4d0982@o529355.ingest.sentry.io/5667116",
+	})
+	if err != nil {
+		glog.Fatalf("sentry.Init: %s", err)
+	}
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, registry.ServiceRegistryServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating service registry service %s", err)

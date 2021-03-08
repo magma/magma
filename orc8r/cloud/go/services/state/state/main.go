@@ -32,6 +32,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/service/config"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
 )
 
@@ -39,6 +40,12 @@ import (
 const gatewayStatusReportInterval = time.Second * 60
 
 func main() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://f6a54d1a20134c258b1e0b227d4d0982@o529355.ingest.sentry.io/5667116",
+	})
+	if err != nil {
+		glog.Fatalf("sentry.Init: %s", err)
+	}
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, state.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating state service %v", err)

@@ -27,6 +27,8 @@ import (
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
+
+	"github.com/getsentry/sentry-go"
 )
 
 const (
@@ -34,6 +36,12 @@ const (
 )
 
 func main() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://f6a54d1a20134c258b1e0b227d4d0982@o529355.ingest.sentry.io/5667116",
+	})
+	if err != nil {
+		glog.Fatalf("sentry.Init: %s", err)
+	}
 	// Set MaxConnectionAge to infinity so Sync RPC stream doesn't restart
 	var keepaliveParams = platform_service.GetDefaultKeepaliveParameters()
 	keepaliveParams.MaxConnectionAge = 0

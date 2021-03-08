@@ -22,10 +22,17 @@ import (
 	"magma/orc8r/cloud/go/services/eventd"
 	"magma/orc8r/cloud/go/services/eventd/obsidian/handlers"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
 )
 
 func main() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://f6a54d1a20134c258b1e0b227d4d0982@o529355.ingest.sentry.io/5667116",
+	})
+	if err != nil {
+		glog.Fatalf("sentry.Init: %s", err)
+	}
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, eventd.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating service: %+v", err)

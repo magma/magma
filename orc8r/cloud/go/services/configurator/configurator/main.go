@@ -27,7 +27,9 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
+	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
 )
 
@@ -35,7 +37,25 @@ const (
 	maxEntityLoadSizeConfigKey = "maxEntityLoadSize"
 )
 
+func bar() int {
+	var luckyNumber []int
+	return luckyNumber[42]
+}
+
+func foo() int {
+	return bar()
+}
+
 func main() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://f6a54d1a20134c258b1e0b227d4d0982@o529355.ingest.sentry.io/5667116",
+	})
+	if err != nil {
+		glog.Fatalf("sentry.Init: %s", err)
+	}
+	defer sentry.Flush(2 * time.Second)
+	defer sentry.Recover()
+	foo()
 	// Create the service
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, configurator.ServiceName)
 	if err != nil {

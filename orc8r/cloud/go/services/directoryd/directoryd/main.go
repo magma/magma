@@ -42,10 +42,17 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
 )
 
 func main() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://f6a54d1a20134c258b1e0b227d4d0982@o529355.ingest.sentry.io/5667116",
+	})
+	if err != nil {
+		glog.Fatalf("sentry.Init: %s", err)
+	}
 	// Create service
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, directoryd.ServiceName)
 	if err != nil {

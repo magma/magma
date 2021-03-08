@@ -20,10 +20,17 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/servicers"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
 )
 
 func main() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://f6a54d1a20134c258b1e0b227d4d0982@o529355.ingest.sentry.io/5667116",
+	})
+	if err != nil {
+		glog.Fatalf("sentry.Init: %s", err)
+	}
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, streamer.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating streamer service: %s", err)

@@ -30,6 +30,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 )
@@ -45,6 +46,12 @@ var (
 )
 
 func main() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://f6a54d1a20134c258b1e0b227d4d0982@o529355.ingest.sentry.io/5667116",
+	})
+	if err != nil {
+		glog.Fatalf("sentry.Init: %s", err)
+	}
 	// Create the service, flag will be parsed inside this function
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, certifier.ServiceName)
 	if err != nil {
