@@ -98,11 +98,11 @@ $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
 	if [ -d $*/lib/go ] ; then make -C $*/lib/go fmt ; fi
 
-gen: tools swagger $(GEN_LIST)
+gen: tools $(GEN_LIST)
 $(GEN_LIST): %_gen:
 	make -C $*/cloud/go gen
 
-fullgen: clean_gen gen tidy
+fullgen: clean_gen gen swagger tidy
 
 lint: lint_tools $(LINT_LIST)
 $(LINT_LIST): %_lint:
@@ -131,7 +131,7 @@ lint_tools:
 ## Swagger/API docs ##
 ######################
 
-swagger: tools swagger_directories $(SWAGGER_LIST)
+swagger: swagger_directories $(SWAGGER_LIST)
 	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_SPECS_DIR)/$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON)
 	combine_swagger --in=$(SWAGGER_V1_SPECS_DIR) --common=$(SWAGGER_V1_SPECS_DIR)/$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
 	swagger validate $(SWAGGER_V1_YML)
@@ -141,7 +141,7 @@ swagger_directories:
 	mkdir -p $(SWAGGER_V1_SPECS_DIR)/$(SWAGGER_V1_COMMON_DIR)
 
 $(SWAGGER_LIST): %_swagger:
-	make -C $*/cloud/go copy_swagger_files
+	make -C $*/cloud/go swagger_tools copy_swagger_files
 
 ##########
 ## Misc ##

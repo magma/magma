@@ -49,20 +49,17 @@ void MeteringReporter::report_usage(
     total_rx += (double) credit_update.bucket_deltas[USED_RX];
   }
 
-  report_upload(imsi, session_id, total_tx);
-  report_download(imsi, session_id, total_rx);
+  report_traffic(imsi, session_id, DIRECTION_UP, total_tx);
+  report_traffic(imsi, session_id, DIRECTION_DOWN, total_rx);
 }
 
-void MeteringReporter::report_upload(
+void MeteringReporter::initialize_usage(
     const std::string& imsi, const std::string& session_id,
-    double unreported_usage_bytes) {
-  report_traffic(imsi, session_id, DIRECTION_UP, unreported_usage_bytes);
-}
-
-void MeteringReporter::report_download(
-    const std::string& imsi, const std::string& session_id,
-    double unreported_usage_bytes) {
-  report_traffic(imsi, session_id, DIRECTION_DOWN, unreported_usage_bytes);
+    SessionCredit::TotalCreditUsage usage) {
+  auto tx = usage.monitoring_tx + usage.charging_tx;
+  auto rx = usage.monitoring_rx + usage.charging_rx;
+  report_traffic(imsi, session_id, DIRECTION_UP, tx);
+  report_traffic(imsi, session_id, DIRECTION_DOWN, rx);
 }
 
 void MeteringReporter::report_traffic(
