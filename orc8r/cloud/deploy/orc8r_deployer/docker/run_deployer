@@ -1,0 +1,73 @@
+#!/bin/bash
+
+Print_Help()
+{
+   echo "./run_deployer runs the orc8r deployer container"
+   echo "orc8r deployer contains scripts which enable user to configure, run prechecks"
+   echo "install, upgrade, verify and cleanup an orc8r deployment"
+   echo
+   echo "Syntax: run_deployer [-d|-r|-b|-h]"
+   echo "options:"
+   echo "-h     Print this Help"
+   echo "-d  deployment dir containing configs and secrets"
+   echo "-r  magma root directory"
+   echo "-b  build the deployer container"
+   echo "note: -deploy_root is mandatory"
+   echo "example: ./run_deployer -deploy_root /tmp/orc8r_14_deployment"
+   echo
+}
+
+if (( $# < 2 )); then
+    # TODO: print usage
+    Print_Help
+    exit 1
+fi
+
+DOCKER_BUILD=false
+while [ -n "$1" ]; do # while loop starts
+	case "$1" in
+	-d)
+        DEPLOY_WORKDIR="$2"
+        shift
+        ;;
+	-r)
+        MAGMA_ROOT="$2"
+        shift
+        ;;
+    -b)
+        DOCKER_BUILD=true
+        shift
+        ;;
+    -h)
+        Print_Help
+        exit;;
+
+	*) echo "Option $1 not recognized" ;;
+	esac
+    shift
+done
+
+if [[ ! -d $DEPLOY_WORKDIR ]]
+then
+    echo "Error ${DEPLOY_WORKDIR} not a directory."
+    exit
+fi
+
+MAGMA_ROOT=${PWD/\/orc8r\/cloud\/deploy\/orc8r_deployer\/docker}
+echo "MAGMA ROOT $MAGMA_ROOT"
+
+if $DOCKER_BUILD; then
+docker build --pull -t ksubraveti/orc8r_deployer:latest .
+fi
+
+# copy terraform files to the deployment directory
+if [ ! -f "${DEPLOY_WORKDIR}/vars.tf" ]; then
+    cp root/tf/vars.tf ${DEPLOY_WORKDIR}
+fi
+if [[ $? -eq 0 ]]; then
+docker run -it \
+    -v "${DEPLOY_WORKDIR}":/root/project \
+    -v "${MAGMA_ROOT}":/root/magma \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --rm ksubraveti/orc8r_deployer:latest bash
+fi
