@@ -10019,6 +10019,14 @@ definitions:
     example: xxxx-yyyy-zzzz
     type: string
     x-nullable: false
+  network_probe_state:
+    description: A NProbe state
+    properties:
+      last_exported:
+        description: Time at which the last record was exported in ms
+        format: int64
+        type: integer
+    type: object
   network_probe_task:
     description: Network Probe Task
     properties:

@@ -17,7 +17,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
-	"fmt"
 
 	"magma/lte/cloud/go/services/nprobe"
 	"magma/lte/cloud/go/services/nprobe/encoding/np_interface"
@@ -31,26 +30,6 @@ import (
 type Encoder interface {
 	// Encode encodes this element by writing Len() bytes to dst.
 	Encode() ([]byte, error)
-}
-
-func MakeField(event models.Event, format string, opID, xID string, correlationID int64) (Encoder, error) {
-	switch format {
-	case nprobe.IRIRecord:
-		record, err := x2_interface.ConstructEpsIRIMessage(event, opID, xID, correlationID)
-		if err != nil {
-			glog.Errorf("Failed to construct IRI record %v\n", event)
-			return &X2Encoder{}, err
-		}
-		return &X2Encoder{record: record}, nil
-	case nprobe.NProbeRecord:
-		record, err := np_interface.ConstructNProbeRecord(event, xID, correlationID)
-		if err != nil {
-			glog.Errorf("Failed to construct NProbe record %v\n", event)
-			return &NProbeEncoder{}, err
-		}
-		return &NProbeEncoder{record: record}, nil
-	}
-	return nil, fmt.Errorf("Unsupported encoding format %s", format)
 }
 
 // X2Encoder represents an encoder for Json format used by Lawful Interception
@@ -75,4 +54,25 @@ type NProbeEncoder struct {
 
 func (e *NProbeEncoder) Encode() ([]byte, error) {
 	return json.Marshal(e.record)
+}
+
+func MakeRecord(event *models.Event, format string, opID, xID string, correlationID uint64) ([]byte, error) {
+	var encoder Encoder
+	switch format {
+	case nprobe.IRIRecord:
+		record, err := x2_interface.ConstructEpsIRIMessage(event, opID, xID, correlationID)
+		if err != nil {
+			glog.Errorf("Failed to construct IRI record %v\n", event)
+			return []byte{}, err
+		}
+		encoder = &X2Encoder{record: record}
+	case nprobe.NProbeRecord:
+		record, err := np_interface.ConstructNProbeRecord(event, opID, xID, correlationID)
+		if err != nil {
+			glog.Errorf("Failed to construct NProbe record %v\n", event)
+			return []byte{}, err
+		}
+		encoder = &NProbeEncoder{record: record}
+	}
+	return encoder.Encode()
 }

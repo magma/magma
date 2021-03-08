@@ -11,7 +11,7 @@
 # limitations under the License.
 
 updateIntervalSecs: 60
-maxEventsCollectRetries: 10
+backoffIntervalSecs: 360
 maxRecordsExportRetries: 10
 
 deliveryFunctionAddress: "127.0.0.1:5555"

@@ -299,3 +299,12 @@ definitions:
         type: string
         x-nullable: false
         example: '127.0.0.1:4040'
+
+  network_probe_state:
+    type: object
+    description: A NProbe state
+    properties:
+      last_exported:
+        type: integer
+        format: int64
+        description: Time at which the last record was exported in ms

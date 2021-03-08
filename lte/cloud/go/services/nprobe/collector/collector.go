@@ -16,6 +16,7 @@ package collector
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"magma/lte/cloud/go/services/nprobe"
 	"magma/orc8r/cloud/go/orc8r"
@@ -46,11 +47,11 @@ const (
 
 // multi-stream query parameters
 type multiStreamEventQueryParams struct {
+	timestamp int64
 	networkID string
 	streams   []string
 	events    []string
 	tags      []string
-	timestamp string
 }
 
 func getElasticClient() (*elastic.Client, error) {
@@ -71,7 +72,7 @@ func getElasticClient() (*elastic.Client, error) {
 
 // getMultiStreamsQueryParameters takes a networkID, timestamp and list of tags
 // and return a multi streams query parameters
-func getMultiStreamsQueryParameters(networkID, timestamp string, tags []string) multiStreamEventQueryParams {
+func getMultiStreamsQueryParameters(networkID string, timestamp int64, tags []string) multiStreamEventQueryParams {
 	return multiStreamEventQueryParams{
 		networkID: networkID,
 		streams:   nprobe.GetESStreams(),
@@ -100,7 +101,7 @@ func NewEventsCollector() (*EventsCollector, error) {
 
 // GetMultiStreamsEvents queries elastic search with a multi stream event
 // query and returns a list of event
-func (e *EventsCollector) GetMultiStreamsEvents(networkID, timestamp string, tags []string) ([]models.Event, error) {
+func (e *EventsCollector) GetMultiStreamsEvents(networkID string, timestamp int64, tags []string) ([]models.Event, error) {
 	glog.V(3).Info("Collecting events for subscribers ", tags)
 
 	queryParams := getMultiStreamsQueryParameters(networkID, timestamp, tags)
@@ -148,9 +149,9 @@ func (m multiStreamEventQueryParams) toElasticBoolQuery() *elastic.BoolQuery {
 	if !funk.IsEmpty(m.tags) {
 		ret.Filter(elastic.NewTermsQuery(elasticFilterEventTag, stringsToInterfaces(m.tags)...))
 	}
-	if m.timestamp != "" {
-		timeRangeQuery := elastic.NewRangeQuery(sortTag).Format("strict_date_optional_time_nanos")
-		timeRangeQuery.Gt(m.timestamp)
+	if m.timestamp > 0 {
+		timeRangeQuery := elastic.NewRangeQuery(sortTag).Format("epoch_millis")
+		timeRangeQuery.Gt(strconv.FormatInt(m.timestamp, 10))
 		ret.Must(timeRangeQuery)
 	}
 	return ret

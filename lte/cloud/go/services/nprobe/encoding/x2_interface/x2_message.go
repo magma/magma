@@ -112,7 +112,7 @@ func getBearerDeactivationParams(eventData map[string]interface{}) EPSSpecificPa
 	}
 }
 
-func processEventSpecificData(event models.Event) (
+func processEventSpecificData(event *models.Event) (
 	EPSSpecificParameters,
 	EventAdditionalParams,
 ) {
@@ -141,7 +141,7 @@ func processEventSpecificData(event models.Event) (
 	}
 }
 
-func buildAsn1EpsIRIContent(event models.Event, operatorID string, correlationID int64) ([]byte, error) {
+func buildAsn1EpsIRIContent(event *models.Event, operatorID string, correlationID uint64) ([]byte, error) {
 	eventData := event.Value.(map[string]interface{})
 	specificData, params := processEventSpecificData(event)
 	if params.eventID == UnsupportedEvent {
@@ -154,7 +154,7 @@ func buildAsn1EpsIRIContent(event models.Event, operatorID string, correlationID
 	}
 
 	corrID := make([]byte, 8)
-	binary.BigEndian.PutUint64(corrID, uint64(correlationID))
+	binary.BigEndian.PutUint64(corrID, correlationID)
 
 	content := EpsIRIContent{
 		Hi2epsDomainID:        GetOID(),
@@ -180,7 +180,7 @@ func buildEpsIRIConditionalAttributes() ([]ConditionalAttribute, error) {
 	return []ConditionalAttribute{}, nil
 }
 
-func ConstructEpsIRIMessage(event models.Event, operatorID, xID string, correlationID int64) (EpsIRIMessage, error) {
+func ConstructEpsIRIMessage(event *models.Event, operatorID, xID string, correlationID uint64) (EpsIRIMessage, error) {
 	uuid, err := uuid.FromString(xID)
 	if err != nil {
 		glog.Errorf("Failed to parse xID - type 4 %s\n", xID)
@@ -204,7 +204,7 @@ func ConstructEpsIRIMessage(event models.Event, operatorID, xID string, correlat
 		PayloadLength:         uint32(len(content)),
 		PayloadDirection:      X2PayloadDirectionUnkown,
 		XID:                   uuid,
-		CorrelationID:         uint64(correlationID),
+		CorrelationID:         correlationID,
 		ConditionalAttrFields: attrs,
 		Payload:               content,
 	}

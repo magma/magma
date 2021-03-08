@@ -29,7 +29,7 @@ func TestMultiStreamsQuery(t *testing.T) {
 		Filter(elastic.NewTermsQuery("event_type.keyword", stringsToInterfaces(nprobe.GetESEventTypes())...)).
 		Filter(elastic.NewTermsQuery("event_tag.keyword", "001010000000001"))
 
-	params := getMultiStreamsQueryParameters("test", "", []string{"001010000000001"})
+	params := getMultiStreamsQueryParameters("test", 0, []string{"001010000000001"})
 	query := params.toElasticBoolQuery()
 
 	assert.Equal(t, expectedQuery, query)

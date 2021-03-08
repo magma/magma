@@ -23,8 +23,8 @@ import (
 const (
 	// DefaultUpdateIntervalSecs is the default periodic time between runs in seconds
 	DefaultUpdateIntervalSecs = 60
-	// DefaultMaxEventsCollectRetries is the default maximum retries when collecting events
-	DefaultMaxEventsCollectRetries = 10
+	// DefaultBackOffIntervalSecs is the default backoff time when remote server is not available
+	DefaultBackOffIntervalSecs = 360
 	// DefaultMaxRecordsExportRetries is the default maximum retries when exporting records
 	DefaultMaxRecordsExportRetries = 10
 )
@@ -32,7 +32,7 @@ const (
 // Config represents the configuration provided to nprobe service
 type Config struct {
 	UpdateIntervalSecs      uint   `yaml:"updateIntervalSecs"`
-	MaxEventsCollectRetries uint32 `yaml:"maxEventsCollectRetries"`
+	BackOffIntervalSecs     uint   `yaml:"backoffIntervalSecs"`
 	MaxRecordsExportRetries uint32 `yaml:"maxRecordsExportRetries"`
 
 	// Exporter config
@@ -56,8 +56,8 @@ func GetServiceConfig() Config {
 	if serviceConfig.UpdateIntervalSecs == 0 {
 		serviceConfig.UpdateIntervalSecs = DefaultUpdateIntervalSecs
 	}
-	if serviceConfig.MaxEventsCollectRetries == 0 {
-		serviceConfig.MaxEventsCollectRetries = DefaultMaxEventsCollectRetries
+	if serviceConfig.BackOffIntervalSecs == 0 {
+		serviceConfig.BackOffIntervalSecs = DefaultBackOffIntervalSecs
 	}
 	if serviceConfig.MaxRecordsExportRetries == 0 {
 		serviceConfig.MaxRecordsExportRetries = DefaultMaxRecordsExportRetries
