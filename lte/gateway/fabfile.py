@@ -256,12 +256,20 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 def run_integ_tests(tests=None):
     """
     Function is required to run tests only in pre-configured Jenkins env.
-    To Run:
-    make integ_test TESTS=s1aptests/test_attach_detach.py
     
-    We need to run this command as:
-    fab run_integ_tests:tests=s1aptests/test_attach_detach.py
-
+    In case of no tests specified with command executed like follows:
+    $ fab run_integ_tests
+    
+    default tests set will be executed as a result of the execution of following
+    command in test machine:
+    $ make integ_test 
+    
+    In case of selecting specific test like follows:
+    $ fab run_integ_tests:tests=s1aptests/test_attach_detach.py
+    
+    The specific test will be executed as a result of the execution of following
+    command in test machine:
+    $ make integ_test TESTS=s1aptests/test_attach_detach.py
     """
     test_host = vagrant_setup("magma_test", destroy_vm=False)
     gateway_ip = '192.168.60.142'
@@ -474,17 +482,11 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
           ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
           ' source ~/build/python/bin/activate;'
           ' export GATEWAY_IP=%s;'
-<<<<<<< HEAD
-          ' make integ_test\''
-          % (key, host, port, gateway_ip))
-
+          ' make integ_test %s\''
+          % (key, host, port, gateway_ip, tests))
 
 def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
     if not addr:
         vagrant_setup(host_name, destroy_vm)
     else:
         ansible_setup(addr, host_name, ansible_file)
-=======
-          ' make integ_test %s\''
-          % (key, host, port, gateway_ip, tests))
->>>>>>> add ability to run specific tests using fabric script. Update magma_integration_tests pipeline
