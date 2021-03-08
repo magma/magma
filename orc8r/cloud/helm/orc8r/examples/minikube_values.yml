@@ -2,13 +2,13 @@
 # Make sure to replace <DOCKER_REGISTRY> and <TAG> with your specific values.
 
 imagePullSecrets:
-  - name: orc8r-secrets-secrets-registry
+  - name: orc8r-secrets-registry
 
 secret:
   configs:
-    orc8r: orc8r-secrets-secrets-configs-orc8r
-  envdir: orc8r-secrets-secrets-envdir
-  certs: orc8r-secrets-secrets-certs
+    orc8r: orc8r-secrets-configs-orc8r
+  envdir: orc8r-secrets-envdir
+  certs: orc8r-secrets-certs
 
 controller:
   tolerations: []
@@ -36,9 +36,9 @@ controller:
 ## NMS
 nms:
   secret:
-    certs: orc8r-secrets-secrets-certs
+    certs: orc8r-secrets-certs
   imagePullSecrets:
-    - name: orc8r-secrets-secrets-registry
+    - name: orc8r-secrets-registry
   pod:
     replicas:
       nginx:
@@ -84,7 +84,7 @@ nms:
 metrics:
   enabled: true
   imagePullSecrets:
-    - name: orc8r-secrets-secrets-registry
+    - name: orc8r-secrets-registry
 
   metrics:
     volumes:
@@ -125,7 +125,7 @@ logging:
   enabled: false
 nginx:
   secret:
-    certs: orc8r-secrets-secrets-certs
+    certs: orc8r-secrets-certs
   create: true
   replicas: 1
   podDisruptionBudget:

@@ -320,7 +320,7 @@ func listHAPairsHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	haPairEnts, err := configurator.LoadAllEntitiesOfType(nid, cwf.CwfHAPairType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	haPairEnts, _, err := configurator.LoadAllEntitiesOfType(nid, cwf.CwfHAPairType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

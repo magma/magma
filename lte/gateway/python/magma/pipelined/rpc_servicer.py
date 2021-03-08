@@ -182,6 +182,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
+        for controller in [self._gy_app, self._enforcer_app,
+                           self._enforcement_stats]:
+            if not controller.is_controller_ready():
+                context.set_code(grpc.StatusCode.UNAVAILABLE)
+                context.set_details('Enforcement service not initialized!')
+                return ActivateFlowsResult()
+
         fut = Future()  # type: Future[ActivateFlowsResult]
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         try:
@@ -370,6 +377,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
+
+        for controller in [self._gy_app, self._enforcer_app,
+                           self._enforcement_stats]:
+            if not controller.is_controller_ready():
+                context.set_code(grpc.StatusCode.UNAVAILABLE)
+                context.set_details('Enforcement service not initialized!')
+                return ActivateFlowsResult()
 
         self._loop.call_soon_threadsafe(self._deactivate_flows, request)
         return DeactivateFlowsResult()
@@ -561,6 +575,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
+        if not self._ue_mac_app.is_controller_ready():
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('UE MAC service not initialized!')
+            return FlowResponse()
+
         # 12 hex characters + 5 colons
         if len(request.mac_addr) != 17:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
@@ -591,6 +610,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
+
+        if not self._ue_mac_app.is_controller_ready():
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('UE MAC service not initialized!')
+            return FlowResponse()
 
         # 12 hex characters + 5 colons
         if len(request.mac_addr) != 17:
@@ -666,6 +690,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
+
+        if not self._check_quota_app.is_controller_ready():
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Check Quota service not initialized!')
+            return FlowResponse()
 
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(

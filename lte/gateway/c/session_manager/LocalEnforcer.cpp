@@ -1215,6 +1215,9 @@ void LocalEnforcer::complete_termination(
   reporter_->report_terminate_session(termination_req, logging_cb);
   events_reporter_->session_terminated(imsi, session);
 
+  // clear all metrics associated with this session
+  session->clear_session_metrics();
+
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;
   session_map[imsi].erase(*session_it);

@@ -28,7 +28,7 @@ import (
 	"flag"
 	"fmt"
 
-	"magma/orc8r/cloud/go/swagger"
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
 
 	"github.com/golang/glog"
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	fmt.Printf("Combining specs together...\n\n")
-	combined, warnings, err := swagger.Combine(yamlCommon, yamlSpecs)
+	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)
 	if err != nil {
 		glog.Fatal(err)
 	}
