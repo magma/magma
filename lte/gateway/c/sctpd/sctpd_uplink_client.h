@@ -40,6 +40,8 @@ class SctpdUplinkClient {
  private:
   // Stub used for client to communicate with server
   std::unique_ptr<SctpdUplink::Stub> _stub;
+  // GRPC call timeout
+  static const uint32_t RESPONSE_TIMEOUT = 2;  // seconds
 };
 
 }  // namespace sctpd
