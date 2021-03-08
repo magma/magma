@@ -218,7 +218,7 @@ class TestDedicatedBearerActivationIdleModeMultiUe(unittest.TestCase):
                 "********************** Sending 1st RAR for IMSI",
                 "".join([str(i) for i in imsi]),
             )
-            self._sessionManager_util.create_ReAuthRequest(
+            self._sessionManager_util.send_ReAuthRequest(
                 "IMSI" + "".join([str(i) for i in imsi]),
                 policy_id1,
                 flow_list1,
@@ -230,7 +230,7 @@ class TestDedicatedBearerActivationIdleModeMultiUe(unittest.TestCase):
                 "********************** Sending 2nd RAR for IMSI",
                 "".join([str(i) for i in imsi]),
             )
-            self._sessionManager_util.create_ReAuthRequest(
+            self._sessionManager_util.send_ReAuthRequest(
                 "IMSI" + "".join([str(i) for i in imsi]),
                 policy_id2,
                 flow_list2,

@@ -39,6 +39,9 @@ from lte.protos.session_manager_pb2 import (
     DynamicRuleInstall,
     PolicyReAuthRequest,
     QoSInformation,
+    RuleSet,
+    RulesPerSubscriber,
+    SessionRules,
 )
 from lte.protos.abort_session_pb2 import (
     AbortSessionRequest,
@@ -50,8 +53,11 @@ from lte.protos.spgw_service_pb2 import (
 )
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
-from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
 from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
+from lte.protos.session_manager_pb2_grpc import (
+    LocalSessionManagerStub,
+    SessionProxyResponderStub,
+)
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
@@ -617,6 +623,7 @@ class MagmadUtil(object):
     stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
+    health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -766,6 +773,23 @@ class MagmadUtil(object):
         self.exec_command("sudo systemctl mask magma@{}".format(service))
         self.exec_command("sudo systemctl stop magma@{}".format(service))
 
+    def is_service_enabled(self, service) -> bool:
+        """
+        Checks if a magma service on magma_dev VM is enabled
+        Args:
+            service: (str) service to disable
+        """
+        is_enabled_service_cmd = "systemctl is-enabled magma@" + service
+        try:
+            result_str = self.exec_command_output(is_enabled_service_cmd)
+        except subprocess.CalledProcessError as e:
+            # if service is disabled / masked, is-enabled will return
+            # non-zero exit status
+            result_str = e.output
+        if result_str in ("masked", "disabled"):
+            return False
+        return True
+
     def update_mme_config_for_sanity(self, cmd):
         mme_config_update_script = (
             "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
@@ -830,6 +854,22 @@ class MagmadUtil(object):
             print("APN Correction configured")
         else:
             print("APN Correction failed")
+
+    def config_health_service(self, cmd: health_service_cmds):
+        """
+        Configure magma@health service on access gateway
+        Args:
+            cmd: Enable / Disable cmd to configure service
+        """
+        magma_health_service_name = "health"
+        if cmd.name == MagmadUtil.health_service_cmds.DISABLE.name:
+            if self.is_service_enabled(magma_health_service_name):
+                self.disable_service(magma_health_service_name)
+            print("Health service is disabled")
+        elif cmd.name == MagmadUtil.health_service_cmds.ENABLE.name:
+            if not self.is_service_enabled(magma_health_service_name):
+                self.enable_service("health")
+            print("Health service is enabled")
 
     def restart_mme_and_wait(self):
         print("Restarting mme service on gateway")
@@ -952,7 +992,7 @@ class SpgwUtil(object):
         """
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
-    def create_bearer(self, imsi, lbi, qci_val=1):
+    def create_bearer(self, imsi, lbi, qci_val=1, rule_id='1'):
         """
         Sends a CreateBearer Request to SPGW service
         """
@@ -962,7 +1002,7 @@ class SpgwUtil(object):
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
-                    id="rar_rule_1",
+                    id="rar_rule_"+rule_id,
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,
@@ -1198,6 +1238,16 @@ class SpgwUtil(object):
         )
         self._stub.DeleteBearer(req)
 
+    def delete_bearers(self, imsi, lbi, ebi):
+        """
+        Sends a DeleteBearer Request to SPGW service
+        """
+        print("Sending DeleteBearer request to spgw service")
+        req = DeleteBearerRequest(
+            sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=ebi
+        )
+        self._stub.DeleteBearer(req)
+
 
 class SessionManagerUtil(object):
     """
@@ -1208,7 +1258,7 @@ class SessionManagerUtil(object):
         """
         Initialize sessionManager util.
         """
-        self._session_stub = SessionProxyResponderStub(
+        self._session_proxy_stub = SessionProxyResponderStub(
             get_rpc_channel("sessiond")
         )
         self._abort_session_stub = AbortSessionResponderStub(
@@ -1216,6 +1266,9 @@ class SessionManagerUtil(object):
         )
         self._directorydstub = GatewayDirectoryServiceStub(
             get_rpc_channel("directoryd")
+        )
+        self._local_session_manager_stub = LocalSessionManagerStub(
+            get_rpc_channel("sessiond")
         )
 
     def get_flow_match(self, flow_list, flow_match_list):
@@ -1285,7 +1338,38 @@ class SessionManagerUtil(object):
                 )
             )
 
-    def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
+    def get_policy_rule(self, policy_id, qos=None, flow_match_list=None):
+        if qos is not None:
+            policy_qos = FlowQos(
+                qci=qos["qci"],
+                max_req_bw_ul=qos["max_req_bw_ul"],
+                max_req_bw_dl=qos["max_req_bw_dl"],
+                gbr_ul=qos["gbr_ul"],
+                gbr_dl=qos["gbr_dl"],
+                arp=QosArp(
+                    priority_level=qos["arp_prio"],
+                    pre_capability=qos["pre_cap"],
+                    pre_vulnerability=qos["pre_vul"],
+                ),
+            )
+            priority = qos["priority"]
+        else:
+            policy_qos = None
+            priority = 2
+
+        policy_rule = PolicyRule(
+            id=policy_id,
+            priority=priority,
+            flow_list=flow_match_list,
+            tracking_type=PolicyRule.NO_TRACKING,
+            rating_group=1,
+            monitoring_key=None,
+            qos=policy_qos,
+        )
+
+        return policy_rule
+
+    def send_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
         """
         Sends Policy RAR message to session manager
         """
@@ -1294,28 +1378,7 @@ class SessionManagerUtil(object):
         res = None
         self.get_flow_match(flow_list, flow_match_list)
 
-        policy_qos = FlowQos(
-            qci=qos["qci"],
-            max_req_bw_ul=qos["max_req_bw_ul"],
-            max_req_bw_dl=qos["max_req_bw_dl"],
-            gbr_ul=qos["gbr_ul"],
-            gbr_dl=qos["gbr_dl"],
-            arp=QosArp(
-                priority_level=qos["arp_prio"],
-                pre_capability=qos["pre_cap"],
-                pre_vulnerability=qos["pre_vul"],
-            ),
-        )
-
-        policy_rule = PolicyRule(
-            id=policy_id,
-            priority=qos["priority"],
-            flow_list=flow_match_list,
-            tracking_type=PolicyRule.NO_TRACKING,
-            rating_group=1,
-            monitoring_key=None,
-            qos=policy_qos,
-        )
+        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
 
         qos = QoSInformation(qci=qos["qci"])
 
@@ -1335,7 +1398,7 @@ class SessionManagerUtil(object):
             print("error: Couldn't find sessionid. Directoryd content:")
             self._print_directoryd_content()
 
-        self._session_stub.PolicyReAuth(
+        self._session_proxy_stub.PolicyReAuth(
             PolicyReAuthRequest(
                 session_id=res.value,
                 imsi=imsi,
@@ -1382,6 +1445,50 @@ class SessionManagerUtil(object):
             for record in allRecordsResponse.records:
                 print("%s" % str(record))
 
+    def send_SetSessionRules(self, imsi, policy_id, flow_list, qos):
+        """
+        Sends Policy SetSessionRules message to session manager
+        """
+        print("Sending session rules to session manager")
+        flow_match_list = []
+        self.get_flow_match(flow_list, flow_match_list)
+
+        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
+
+        ulFlow1 = {
+            "ip_proto": FlowMatch.IPPROTO_IP,
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+        dlFlow1 = {
+            "ip_proto": FlowMatch.IPPROTO_IP,
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+        default_flow_rules = [ulFlow1, dlFlow1]
+        default_flow_match_list = []
+        self.get_flow_match(default_flow_rules, default_flow_match_list)
+        default_policy_rule = self.get_policy_rule(
+            "allow_list_" + imsi, None, default_flow_match_list)
+
+        rule_set = RuleSet(
+            apply_subscriber_wide = True,
+            apn = "",
+            static_rules = [],
+            dynamic_rules = [
+                DynamicRuleInstall(policy_rule=policy_rule),
+                DynamicRuleInstall(policy_rule=default_policy_rule)
+            ],
+        )
+
+        self._local_session_manager_stub.SetSessionRules(
+            SessionRules(
+                rules_per_subscriber = [
+                    RulesPerSubscriber(
+                        imsi = imsi,
+                        rule_set = [rule_set],
+                    )
+                ]
+            )
+        )
 
 class GTPBridgeUtils:
     def __init__(self):

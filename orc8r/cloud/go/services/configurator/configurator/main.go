@@ -31,6 +31,10 @@ import (
 	"github.com/golang/glog"
 )
 
+const (
+	maxEntityLoadSizeConfigKey = "maxEntityLoadSize"
+)
+
 func main() {
 	// Create the service
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, configurator.ServiceName)
@@ -41,8 +45,11 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
-
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &storage2.UUIDGenerator{}, sqorc.GetSqlBuilder())
+	maxEntityLoadSize, err := srv.Config.GetInt(maxEntityLoadSizeConfigKey)
+	if err != nil {
+		glog.Fatalf("Failed to load '%s' from config: %s", maxEntityLoadSizeConfigKey, err)
+	}
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &storage2.UUIDGenerator{}, sqorc.GetSqlBuilder(), uint32(maxEntityLoadSize))
 	err = factory.InitializeServiceStorage()
 	if err != nil {
 		glog.Fatalf("Failed to initialize configurator database: %s", err)
