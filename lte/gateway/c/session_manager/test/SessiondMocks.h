@@ -85,8 +85,7 @@ class MockPipelinedClient : public PipelinedClient {
     ON_CALL(*this, setup_lte(_, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _, _, _, _, _))
         .WillByDefault(Return(true));
-    ON_CALL(
-        *this, deactivate_flows_for_rules_for_termination(_, _, _, _, _, _, _))
+    ON_CALL(*this, deactivate_all_flows_for_termination(_, _, _, _))
         .WillByDefault(Return(true));
     ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _, _, _, _, _))
         .WillByDefault(Return(true));
@@ -130,14 +129,11 @@ class MockPipelinedClient : public PipelinedClient {
           const std::vector<std::string>& rule_ids,
           const std::vector<PolicyRule>& dynamic_rules,
           const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD7(
-      deactivate_flows_for_rules_for_termination,
+  MOCK_METHOD4(
+      deactivate_all_flows_for_termination,
       bool(
           const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr, const Teids teids,
-          const std::vector<std::string>& rule_ids,
-          const std::vector<PolicyRule>& dynamic_rules,
-          const RequestOriginType_OriginType origin_type));
+          const std::string& ipv6_addr, const Teids teids));
   MOCK_METHOD9(
       activate_flows_for_rules,
       bool(

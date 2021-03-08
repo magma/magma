@@ -581,10 +581,8 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
 
   // expect all rules attached to this session should be removed
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules_for_termination(
-          IMSI1, testing::_, testing::_, testing::_,
-          std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
+      *pipelined_client, deactivate_all_flows_for_termination(
+                             IMSI1, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(
@@ -875,9 +873,8 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             testing::_, testing::_, testing::_, testing::_,
-                             testing::_, testing::_, testing::_))
+      *pipelined_client, deactivate_all_flows_for_termination(
+                             IMSI1, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // Since this is a termination triggered by SessionD/Core (quota exhaustion
@@ -931,9 +928,8 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             testing::_, testing::_, testing::_, testing::_,
-                             testing::_, testing::_, testing::_))
+      *pipelined_client, deactivate_all_flows_for_termination(
+                             IMSI1, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1420,9 +1416,8 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             testing::_, testing::_, testing::_, testing::_,
-                             CheckCount(2), CheckCount(1), testing::_))
+      *pipelined_client, deactivate_all_flows_for_termination(
+                             IMSI1, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -2000,9 +1995,8 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   std::unordered_set<std::string> rule_ids({"rule1", "rule2"});
   // Expect NO call to PipelineD for rule1
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             IMSI1, testing::_, testing::_, testing::_,
-                             CheckSubset(rule_ids), CheckCount(0), testing::_))
+      *pipelined_client, deactivate_all_flows_for_termination(
+                             IMSI1, testing::_, testing::_, testing::_))
       .Times(0);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_success1, update);
@@ -2014,7 +2008,7 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
       create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule3", 0);
   EXPECT_CALL(
       *pipelined_client,
-      deactivate_flows_for_rules_for_termination(
+      deactivate_flows_for_rules(
           IMSI1, testing::_, testing::_, testing::_,
           std::vector<std::string>{"rule3"}, CheckCount(0), testing::_))
       .Times(1);
@@ -2715,17 +2709,8 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
       session_map, IMSI1, SESSION_ID_1, credit_key, true);
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
-                             std::vector<std::string>{"static_1"},
-                             CheckCount(0), RequestOriginType::GX))
-      .WillOnce(testing::Return(true));
-  EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules_for_termination(
-          IMSI1, ip_addr, ipv6_addr, CheckTeids(teids), CheckCount(0),
-          CheckCount(1), RequestOriginType::GY))
-      .Times(1)
+      *pipelined_client, deactivate_all_flows_for_termination(
+                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids)))
       .WillOnce(testing::Return(true));
   local_enforcer->handle_termination_from_access(
       session_map, IMSI1, APN1, update);
@@ -2996,9 +2981,8 @@ TEST_F(LocalEnforcerTest, test_dead_session_in_usage_report) {
   // no sessions exist at this point
   // We expect to empty calls for both Gx + Gy
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             IMSI1, IP1, testing::_, testing::_, CheckCount(0),
-                             CheckCount(0), RequestOriginType::WILDCARD))
+      *pipelined_client,
+      deactivate_all_flows_for_termination(IMSI1, IP1, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 

@@ -254,20 +254,16 @@ bool AsyncPipelinedClient::set_upf_session(
   return true;
 }
 
-bool AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
+bool AsyncPipelinedClient::deactivate_all_flows_for_termination(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids,
-    const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules,
-    const RequestOriginType_OriginType origin_type) {
-  MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
-               << dynamic_rules.size()
-               << " dynamic rules and default drop flows for " << imsi
-               << ", type=" << request_origin_type_to_str(origin_type)
-               << ", ipv4=" << ip_addr << ", ipv6=" << ipv6_addr;
+    const std::string& ipv6_addr, const Teids teids) {
+  MLOG(MDEBUG) << "Deactivating all static rules and dynamic rules and "
+                  "default drop flows for "
+               << imsi << ", type=WILDCARD, ipv4=" << ip_addr
+               << ", ipv6=" << ipv6_addr;
 
   auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, teids, rule_ids, dynamic_rules, origin_type,
+      imsi, ip_addr, ipv6_addr, teids, {}, {}, RequestOriginType::WILDCARD,
       true);
   return deactivate_flows(req);
 }

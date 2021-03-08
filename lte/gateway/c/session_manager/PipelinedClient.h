@@ -67,15 +67,11 @@ class PipelinedClient {
    * Deactivate all flows for the specified rules plus any drop default rule
    * added by pipelined
    * @param imsi - UE to delete flows for
-   * @param rule_ids - rules to deactivate
    * @return true if the operation was successful
    */
-  virtual bool deactivate_flows_for_rules_for_termination(
+  virtual bool deactivate_all_flows_for_termination(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
-      const std::vector<PolicyRule>& dynamic_rules,
-      const RequestOriginType_OriginType origin_type) = 0;
+      const std::string& ipv6_addr, const Teids teids) = 0;
 
   /**
    * Deactivate all flows for the specified rules
@@ -195,12 +191,9 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * @param charging_key - key to deactivate
    * @return true if the operation was successful
    */
-  bool deactivate_flows_for_rules_for_termination(
+  bool deactivate_all_flows_for_termination(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
-      const std::vector<PolicyRule>& dynamic_rules,
-      const RequestOriginType_OriginType origin_type);
+      const std::string& ipv6_addr, const Teids teids);
 
   /**
    * Deactivate all flows related to a specific charging key

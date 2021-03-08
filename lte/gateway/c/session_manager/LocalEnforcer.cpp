@@ -275,9 +275,8 @@ void LocalEnforcer::cleanup_dead_sessions(
   Teids empty_teids;
   for (const RuleRecord& record : dead_sessions_to_cleanup) {
     // TODO insert TunnelIDs once we migrate from IP->Teid
-    pipelined_client_->deactivate_flows_for_rules_for_termination(
-        record.sid(), record.ue_ipv4(), record.ue_ipv6(), empty_teids, {}, {},
-        RequestOriginType::WILDCARD);
+    pipelined_client_->deactivate_all_flows_for_termination(
+        record.sid(), record.ue_ipv4(), record.ue_ipv6(), empty_teids);
   }
 }
 
@@ -435,6 +434,8 @@ void LocalEnforcer::remove_all_rules_for_termination(
   SessionState::SessionInfo info;
   session->get_session_info(info);
 
+  // Remove all rules from SessionState
+  // TODO pull this functionality into SessionState class
   for (const std::string& static_rule : info.static_rules) {
     uc.static_rules_to_uninstall.insert(static_rule);
   }
@@ -445,19 +446,11 @@ void LocalEnforcer::remove_all_rules_for_termination(
     uc.gy_dynamic_rules_to_uninstall.insert(gy_dynamic_rule.id());
   }
 
-  const auto ip_addr   = session->get_config().common_context.ue_ipv4();
-  const auto ipv6_addr = session->get_config().common_context.ue_ipv6();
-  const Teids teids    = session->get_config().common_context.teids();
-  pipelined_client_->deactivate_flows_for_rules_for_termination(
-      imsi, ip_addr, ipv6_addr, teids, info.static_rules, info.dynamic_rules,
-      RequestOriginType::GX);
-
-  auto gy_rules = session->get_all_final_unit_rules();
-  if (!gy_rules.static_rules.empty() || !gy_rules.dynamic_rules.empty()) {
-    pipelined_client_->deactivate_flows_for_rules_for_termination(
-        imsi, ip_addr, ipv6_addr, teids, gy_rules.static_rules,
-        gy_rules.dynamic_rules, RequestOriginType::GY);
-  }
+  const std::string ip_addr   = session->get_config().common_context.ue_ipv4();
+  const std::string ipv6_addr = session->get_config().common_context.ue_ipv6();
+  const Teids teids           = session->get_config().common_context.teids();
+  pipelined_client_->deactivate_all_flows_for_termination(
+      imsi, ip_addr, ipv6_addr, teids);
 }
 
 void LocalEnforcer::notify_termination_to_access_service(
@@ -2139,7 +2132,7 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
       dynamic_rule_to_remove.push_back(rule);
     }
   }
-  pipelined_client_->deactivate_flows_for_rules_for_termination(
+  pipelined_client_->deactivate_flows_for_rules(
       imsi, session.get_config().common_context.ue_ipv4(),
       session.get_config().common_context.ue_ipv6(),
       session.get_config().common_context.teids(), static_rule_to_remove,
