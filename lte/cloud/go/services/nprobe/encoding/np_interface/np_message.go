@@ -21,7 +21,7 @@ import (
 	"github.com/golang/glog"
 )
 
-func ConstructNProbeRecord(event *models.Event, opID, xID string, correlationID uint64) (NProbeMessage, error) {
+func MakeRecord(event *models.Event, opID, xID string, correlationID uint64) (NProbeMessage, error) {
 	generalizedTime, err := time.Parse(time.RFC3339Nano, event.Timestamp)
 	if err != nil {
 		glog.Errorf("Failed to parse timestamp %s.", event.Timestamp)

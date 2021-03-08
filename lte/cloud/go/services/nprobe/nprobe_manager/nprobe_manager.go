@@ -105,12 +105,8 @@ func (im *NProbeManager) updateTimeOfLastExportedRecord(networkID, targetID, tim
 	return nil
 }
 
-func (im *NProbeManager) collectEvents(
-	networkID string,
-	targetID string,
-	startTime int64,
-) ([]eventd_models.Event, error) {
-	tags := []string{targetID}
+func (im *NProbeManager) collectEvents(networkID, targetID string, startTime int64) ([]eventd_models.Event, error) {
+	tags := []string{targetID, targetID[4:]}
 	events, err := im.Collector.GetMultiStreamsEvents(networkID, startTime, tags)
 	if err != nil {
 		return []eventd_models.Event{}, err
@@ -127,8 +123,7 @@ func (im *NProbeManager) processEvents(
 	var err error
 	timestamp := ""
 	for _, event := range events {
-		record, err := encoding.MakeRecord(&event, nprobe.IRIRecord,
-			im.OperatorID, string(task.TaskID), task.TaskDetails.CorrelationID)
+		record, err := encoding.MakeRecord(&event, nprobe.IRIRecord, im.OperatorID, task)
 		if err != nil {
 			glog.Errorf("Failed to build record for event %s: %s\n", event, err)
 			continue

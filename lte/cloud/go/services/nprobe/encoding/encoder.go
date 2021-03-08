@@ -14,14 +14,13 @@ limitations under the License.
 package encoding
 
 import (
-	"bytes"
-	"encoding/gob"
 	"encoding/json"
 
 	"magma/lte/cloud/go/services/nprobe"
 	"magma/lte/cloud/go/services/nprobe/encoding/np_interface"
 	"magma/lte/cloud/go/services/nprobe/encoding/x2_interface"
-	"magma/orc8r/cloud/go/services/eventd/obsidian/models"
+	"magma/lte/cloud/go/services/nprobe/obsidian/models"
+	eventd_models "magma/orc8r/cloud/go/services/eventd/obsidian/models"
 
 	"github.com/golang/glog"
 )
@@ -34,17 +33,13 @@ type Encoder interface {
 
 // X2Encoder represents an encoder for Json format used by Lawful Interception
 type X2Encoder struct {
-	record x2_interface.EpsIRIMessage
+	record x2_interface.EpsIRIRecord
 }
 
 func (e *X2Encoder) Encode() ([]byte, error) {
-	buf := bytes.Buffer{}
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(e.record)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	msg := e.record.Header.Serialize()
+	msg = append(msg, e.record.Payload...)
+	return msg, nil
 }
 
 // NProbeEncoder represents an encoder for Json format used by Network Probe
@@ -56,18 +51,18 @@ func (e *NProbeEncoder) Encode() ([]byte, error) {
 	return json.Marshal(e.record)
 }
 
-func MakeRecord(event *models.Event, format string, opID, xID string, correlationID uint64) ([]byte, error) {
+func MakeRecord(event *eventd_models.Event, format, operatorID string, task *models.NetworkProbeTask) ([]byte, error) {
 	var encoder Encoder
 	switch format {
 	case nprobe.IRIRecord:
-		record, err := x2_interface.ConstructEpsIRIMessage(event, opID, xID, correlationID)
+		record, err := x2_interface.MakeRecord(event, operatorID, task)
 		if err != nil {
 			glog.Errorf("Failed to construct IRI record %v\n", event)
 			return []byte{}, err
 		}
 		encoder = &X2Encoder{record: record}
 	case nprobe.NProbeRecord:
-		record, err := np_interface.ConstructNProbeRecord(event, opID, xID, correlationID)
+		record, err := np_interface.MakeRecord(event, operatorID, string(task.TaskID), task.TaskDetails.CorrelationID)
 		if err != nil {
 			glog.Errorf("Failed to construct NProbe record %v\n", event)
 			return []byte{}, err

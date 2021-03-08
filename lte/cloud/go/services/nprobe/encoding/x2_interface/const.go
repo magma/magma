@@ -16,6 +16,9 @@ package x2_interface
 import "encoding/asn1"
 
 const (
+	// FixHeaderLength X2 header fix length
+	FixHeaderLength uint32 = 40
+
 	// X2 header values
 	X2HeaderVersion       uint16 = 2
 	X2HeaderPduType       uint16 = 1  // X2 PDU

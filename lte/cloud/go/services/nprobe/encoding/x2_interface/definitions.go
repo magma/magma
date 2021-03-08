@@ -16,8 +16,6 @@ package x2_interface
 import (
 	"encoding/asn1"
 	"time"
-
-	"github.com/gofrs/uuid"
 )
 
 // ETSI TS 133 108 R16 [B9] ASN.1 OID
@@ -31,27 +29,7 @@ type EventAdditionalParams struct {
 	originIP string
 }
 
-type ConditionalAttribute struct {
-	Tag   uint16
-	Len   uint16
-	Value []byte
-}
-
-// EpsIRIMessage represents an X2 IRI record
-type EpsIRIMessage struct {
-	Version               uint16
-	PduType               uint16
-	HeaderLength          uint32
-	PayloadLength         uint32
-	PayloadFormat         uint16
-	PayloadDirection      uint16
-	XID                   uuid.UUID
-	CorrelationID         uint64
-	ConditionalAttrFields []ConditionalAttribute
-	Payload               []byte
-}
-
-// ASN.1 Payload structures
+// ASN.1 Payload struct
 type EpsIRIContent IRIParameter
 
 type IRIParameter struct {
