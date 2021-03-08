@@ -1,0 +1,15 @@
+- name: check if required infra variables are set
+  ansible.builtin.command: "orcl configure check -c infra"
+  register: result
+  failed_when: result.rc != 0
+  tags: install_precheck
+
+- name: Open configuration file
+  shell: "cat {{config_dir}}/infra.tfvars.json"
+  register: result
+  tags: install_precheck
+
+- name: Set Infra Configs
+  set_fact:
+    infra_configs: "{{ result.stdout | from_json }}"
+  tags: install_precheck

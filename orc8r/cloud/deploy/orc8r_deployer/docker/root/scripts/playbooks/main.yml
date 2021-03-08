@@ -1,0 +1,16 @@
+# top level playbook
+
+- name: Infra
+  import_playbook: infra.yml
+  tags:
+    - infra
+
+- name: Platform
+  import_playbook: platform.yml
+  tags:
+    - platform
+
+- name: Service
+  import_playbook: service.yml
+  tags:
+    - service
