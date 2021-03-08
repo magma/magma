@@ -10,9 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <chrono>
 
 #include "sctpd_uplink_client.h"
-
 #include "util.h"
 
 namespace magma {
@@ -28,6 +28,9 @@ int SctpdUplinkClient::sendUl(const SendUlReq& req, SendUlRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
+  auto deadline = std::chrono::system_clock::now() +
+                  std::chrono::milliseconds(1000 * RESPONSE_TIMEOUT);
+  context.set_deadline(deadline);
 
   auto status = _stub->SendUl(&context, req, res);
 
@@ -43,6 +46,9 @@ int SctpdUplinkClient::newAssoc(const NewAssocReq& req, NewAssocRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
+  auto deadline = std::chrono::system_clock::now() +
+                  std::chrono::milliseconds(1000 * RESPONSE_TIMEOUT);
+  context.set_deadline(deadline);
 
   auto status = _stub->NewAssoc(&context, req, res);
 
@@ -59,7 +65,7 @@ int SctpdUplinkClient::closeAssoc(
   assert(res != nullptr);
 
   ClientContext context;
-
+  // Not putting a timeout event for closeAssoc events
   auto status = _stub->CloseAssoc(&context, req, res);
 
   if (!status.ok()) {

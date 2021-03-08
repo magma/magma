@@ -29,16 +29,17 @@ namespace sctpd {
 
 // Describes status of Sctp event (up or down stream)
 enum class SctpStatus {
-  OK,          // Sctp event was ok
-  FAILURE,     // General failure - nonfatal
-  DISCONNECT,  // Sctp assoc disconnected
+  OK,                      // Sctp event was ok
+  FAILURE,                 // General failure - nonfatal
+  DISCONNECT,              // Sctp assoc disconnected
+  NEW_ASSOC_NOTIF_FAILED,  // GRPC call for new assoc notification failed
 };
 
 // Interface for upstream Sctp event handling
 class SctpEventHandler {
  public:
   // Specification for NewAssoc handler function
-  virtual void HandleNewAssoc(
+  virtual int HandleNewAssoc(
       uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
       std::string& ran_cp_ipaddr) = 0;
 
