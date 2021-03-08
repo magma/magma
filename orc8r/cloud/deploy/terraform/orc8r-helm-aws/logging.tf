@@ -18,7 +18,7 @@ locals {
 resource "helm_release" "fluentd" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 
-  name       = "fluentd"
+  name       = var.external_dns_deployment_name
   namespace  = kubernetes_namespace.orc8r.metadata[0].name
   repository = local.stable_helm_repo
   chart      = "fluentd"
@@ -130,7 +130,7 @@ resource "helm_release" "fluentd" {
 resource "helm_release" "elasticsearch_curator" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 
-  name       = "elasticsearch-curator"
+  name       = var.elasticsearch_curator_name
   repository = local.stable_helm_repo
   chart      = "elasticsearch-curator"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
