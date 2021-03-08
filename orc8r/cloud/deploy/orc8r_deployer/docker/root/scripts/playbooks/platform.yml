@@ -1,0 +1,7 @@
+# check log manager is cleaned up
+# check elastic search instances are removed
+# check RDS instances are cleaned up
+- hosts: localhost
+  roles:
+    - platform
+    - platform/cloudwatch

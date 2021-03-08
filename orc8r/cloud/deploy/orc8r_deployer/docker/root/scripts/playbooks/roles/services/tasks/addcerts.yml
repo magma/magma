@@ -1,0 +1,39 @@
+---
+- name: check if required infra variables are set
+  ansible.builtin.command: "orcl configure check -c infra"
+  register: result
+  failed_when: result.rc != 0
+
+- name: Open configuration file
+  shell: "cat {{ config_dir }}/infra.tfvars.json"
+  register: result
+
+- name: Set Infra Configs
+  set_fact:
+    infra_configs: "{{ result.stdout | from_json }}"
+
+- name: Create certs directory
+  file:
+    name: "{{ secret_dir }}"
+    state: directory
+    mode: '0775'
+
+- name: Generate self-signed certs
+  command: "{{ magma_root }}/orc8r/cloud/deploy/scripts/self_sign_certs.sh {{ infra_configs.orc8r_domain_name }}"
+  args:
+    chdir: "{{ secret_dir }}"
+  tags: self_signed
+
+- name: Generate application certs
+  command: "{{ magma_root }}/orc8r/cloud/deploy/scripts/create_application_certs.sh {{ infra_configs.orc8r_domain_name }}"
+  args:
+    chdir: "{{ secret_dir }}"
+
+- name: Generate admin operator certs as pfx bundle
+  openssl_pkcs12:
+    action: export
+    path: "{{ secret_dir }}/admin_operator.pfx"
+    friendly_name: orc8rpfx
+    privatekey_path: "{{ secret_dir }}/admin_operator.key.pem"
+    certificate_path: "{{ secret_dir }}/admin_operator.pem"
+    state: present

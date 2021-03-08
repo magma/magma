@@ -1,0 +1,6 @@
+- name: check if required platform variables are set
+  ansible.builtin.command: "orcl configure check -c platform"
+  register: result
+  failed_when: result.rc != 0
+  tags: install_precheck
+

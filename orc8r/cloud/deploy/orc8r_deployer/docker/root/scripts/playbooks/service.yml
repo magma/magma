@@ -1,0 +1,8 @@
+# check if we have all the secrets necessary in the seed directory
+- hosts: localhost
+  roles:
+    - services
+    - services/docker
+    - services/helm
+  vars_files:
+    - roles/services/vars/all.yml
