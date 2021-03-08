@@ -261,8 +261,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   grpc::ServerContext create_context;
   EXPECT_CALL(
       *pipelined_client, deactivate_all_flows_for_termination(IMSI1, _, _, _))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+      .Times(1);
   proxy_responder->AbortSession(
       &create_context, &request,
       [this](grpc::Status status, AbortSessionResult response_out) {});

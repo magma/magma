@@ -111,8 +111,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     EXPECT_CALL(
         *pipelined_client, setup_lte(testing::_, testing::_, testing::_))
         .Times(1)
-        .WillOnce(
-            testing::DoAll(CallSetupCallback(res), testing::Return(true)));
+        .WillOnce(CallSetupCallback(res));
     evb->loopOnce();
     evb->loopOnce();
   }
