@@ -394,19 +394,27 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         CWF won't have an ip_addr passed
         """
-        if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
-            ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
-            if request.request_origin.type == RequestOriginType.GX:
-                self._deactivate_flows_gx(request, ipv4)
-            else:
-                self._deactivate_flows_gy(request, ipv4)
-        if request.ipv6_addr:
-            ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
-            self._update_ipv6_prefix_store(request.ipv6_addr)
-            if request.request_origin.type == RequestOriginType.GX:
-                self._deactivate_flows_gx(request, ipv6)
-            else:
-                self._deactivate_flows_gy(request, ipv6)
+        def _get_ip() -> str:
+            if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
+                return convert_ipv4_str_to_ip_proto(request.ip_addr)
+            elif request.ipv6_addr:
+                self._update_ipv6_prefix_store(request.ipv6_addr)
+                return convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
+
+        def _should_remove_from_gy() -> bool:
+            return request.request_origin.type == RequestOriginType.GY or \
+                   request.request_origin.type == RequestOriginType.WILDCARD
+
+        def _should_remove_from_gx() -> bool:
+            return request.request_origin.type == RequestOriginType.GX or \
+                   request.request_origin.type == RequestOriginType.WILDCARD
+
+        ip_addr = _get_ip()
+        if ip_addr is not None:
+            if _should_remove_from_gx():
+                self._deactivate_flows_gx(request, ip_addr)
+            if _should_remove_from_gy():
+                self._deactivate_flows_gy(request, ip_addr)
 
     def _deactivate_flows_gx(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GX flows for %s', request.sid.id)
