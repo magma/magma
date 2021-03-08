@@ -39,4 +39,7 @@ std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state);
 std::string service_action_type_to_str(ServiceActionType action);
 
 std::string event_trigger_to_str(EventTrigger event_trigger);
+
+std::string request_origin_type_to_str(
+    RequestOriginType_OriginType request_type);
 }  // namespace magma
