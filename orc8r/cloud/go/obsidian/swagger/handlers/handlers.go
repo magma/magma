@@ -35,6 +35,7 @@ import (
 type UIInfo struct {
 	// URL of the underlying Swagger spec
 	URL      string
+	// Services list
 	Services []string
 }
 

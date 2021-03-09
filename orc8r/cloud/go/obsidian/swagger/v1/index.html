@@ -36,7 +36,7 @@
 
 <!-- Side navigation -->
 <div class="sidenav">
-  <a id = "home" href="./"> Home </a>
+  <a id = "home" class="selected" href="./"> Home </a>
 
   {{ range $idx, $val := .Services}}
   <a href="{{$val}}"> {{ $val }} </a>
@@ -103,6 +103,19 @@ window.onload = function() {
   window.ui = ui
 }
 </script>
+
+<script>
+  let sideBarItems = document.getElementById("home").parentNode.childNodes
+  sideBarItems.forEach((e) => {
+    if(e.href === window.location.href) {
+      e.classList.add("selected")
+    }
+    else if (e.nodeName === "A") {
+      e.classList.remove("selected")
+    }
+  })
+</script>
+
 </body>
 
 </html>
