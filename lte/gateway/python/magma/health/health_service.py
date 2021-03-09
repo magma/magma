@@ -88,8 +88,8 @@ class AGWHealth:
 
         mme_log_path = '/var/log/mme.log'
         health_summary = AGWHealthSummary(
-            hss_relay_enabled=config['hssRelayEnabled'],
-            nb_enbs_connected=status.meta['n_enodeb_connected'],
+            hss_relay_enabled=config.get('hssRelayEnabled', False),
+            nb_enbs_connected=status.meta.get('n_enodeb_connected', 0),
             allocated_ips=self.get_allocated_ips(),
             subscriber_table=self.get_subscriber_table(),
             core_dumps=self.get_core_dumps(),
