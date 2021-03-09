@@ -27,7 +27,7 @@ class SctpdEventHandler : public SctpEventHandler {
   explicit SctpdEventHandler(SctpdUplinkClient& client);
 
   // Relay new assocation to MME/AMF over GRPC
-  void HandleNewAssoc(
+  int HandleNewAssoc(
       uint32_t ppid, uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
       std::string& ran_cp_ipaddr) override;
 
