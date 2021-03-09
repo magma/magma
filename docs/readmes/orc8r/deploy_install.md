@@ -53,7 +53,8 @@ in one file
 3. The root CA certificate which verifies your SSL certificate
 
 If you aren't worried about a browser warning, you can generate self-signed
-versions of these certs
+versions of these certs. Though please note that using trusted certs in
+production deployments is encouraged
 
 ```bash
 ${MAGMA_ROOT}/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com

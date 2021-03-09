@@ -42,8 +42,8 @@
         "ids": [
           "orc8r/dev_security",
           "orc8r/dev_indexers",
-          "orc8r/dev_testing_tips",
-          "orc8r/dev_minikube_deployment",
+          "orc8r/dev_testing",
+          "orc8r/dev_minikube",
           "orc8r/dev_dependencies"
         ]
       }
@@ -91,7 +91,12 @@
       {
         "type": "subcategory",
         "label": "AGW Development",
-        "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes", "lte/eventd"]
+        "ids": [
+          "lte/tr069",
+          "lte/s1ap_tests",
+          "lte/dev_notes",
+          "lte/eventd"
+        ]
       }
     ],
     "Feature Guides": [
@@ -117,7 +122,14 @@
         ]
       }
     ],
-    "FAQ": ["faq/faq_magma"],
+    "FAQ": [
+      "faq/faq_magma"
+    ],
+    "Contributing": [
+      "contributing/contribute_onboarding",
+      "contributing/contribute_workflow",
+      "contributing/contribute_conventions"
+    ],
     "Proposals": [
       "proposals/p001_vpn_config_from_api",
       "proposals/p002_scaled_prometheus_pipeline",
