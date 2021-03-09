@@ -175,7 +175,7 @@ void mme_app_ue_sgs_context_free_content(
   }
   // Stop SGS EPS Detach indication timer if running
   if (sgs_context_p->ts8_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-   if (timer_remove(sgs_context_p->ts8_timer.id, (void**) &timer_argP)) {
+    if (timer_remove(sgs_context_p->ts8_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
           LOG_MME_APP, imsi,
           "Failed to stop SGS EPS Detach Indication"
