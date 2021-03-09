@@ -21,6 +21,17 @@
 #include <conversions.h>
 #include <common_defs.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "common_defs.h"
+#include "log.h"
+
+#ifdef __cplusplus
+}
+#endif
+
 #include "pcef_handlers.h"
 #include "PCEFClient.h"
 #include "MobilityClientAPI.h"
@@ -28,41 +39,11 @@
 #include "lte/protos/session_manager.pb.h"
 #include "spgw_types.h"
 
-extern "C" {}
+extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 #define ULI_DATA_SIZE 13
 
 static char _convert_digit_to_char(char digit);
-
-static void create_session_response(
-    spgw_state_t* state, const std::string& imsi, const std::string& apn,
-    s5_create_session_request_t session_request, const grpc::Status& status,
-    s_plus_p_gw_eps_bearer_context_information_t* ctx_p) {
-  s5_create_session_response_t s5_response = {0};
-  s5_response.context_teid                 = session_request.context_teid;
-  s5_response.eps_bearer_id                = session_request.eps_bearer_id;
-  s5_response.status                       = session_request.status;
-  s5_response.failure_cause                = S5_OK;
-
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctx_p =
-      ctx_p->sgw_eps_bearer_context_information.pdn_connection
-          .sgw_eps_bearers_array[EBI_TO_INDEX(s5_response.eps_bearer_id)];
-
-  if (!status.ok()) {
-    if ((eps_bearer_ctx_p->paa.pdn_type == IPv4) ||
-        (eps_bearer_ctx_p->paa.pdn_type == IPv4_AND_v6)) {
-      release_ipv4_address(
-          imsi.c_str(), apn.c_str(), &eps_bearer_ctx_p->paa.ipv4_address);
-    }
-    if ((eps_bearer_ctx_p->paa.pdn_type == IPv6) ||
-        (eps_bearer_ctx_p->paa.pdn_type == IPv4_AND_v6)) {
-      release_ipv6_address(
-          imsi.c_str(), apn.c_str(), &eps_bearer_ctx_p->paa.ipv6_address);
-    }
-    s5_response.failure_cause = PCEF_FAILURE;
-  }
-  handle_s5_create_session_response(state, ctx_p, s5_response);
-}
 
 // TODO Clean up pcef_create_session_data structure to include
 // imsi/ip/bearer_id etc.
@@ -115,11 +96,46 @@ static void pcef_fill_create_session_req(
   lte_context->mutable_qos_info()->CopyFrom(qos_info);
 }
 
+/**
+ * Send an ITTI message from GRPC service task to SPGW task when the
+ * PCEFClient receives the response for the aynchronous Create Sesssion RPC
+ */
+int send_itti_pcef_create_session_response(
+    const std::string& imsi, s5_create_session_request_t session_request,
+    const grpc::Status& status) {
+  MessageDef* message_p = nullptr;
+
+  message_p =
+      itti_alloc_new_message(TASK_GRPC_SERVICE, PCEF_CREATE_SESSION_RESPONSE);
+
+  if (!message_p) {
+    OAILOG_ERROR(
+        LOG_UTIL, "Message PCEF Create Session Response allocation failed\n");
+    return RETURNerror;
+  }
+
+  itti_pcef_create_session_response_t* pcef_create_session_resp_p = nullptr;
+  pcef_create_session_resp_p = &message_p->ittiMsg.pcef_create_session_response;
+
+  pcef_create_session_resp_p->rpc_status = PCEF_STATUS_OK;
+  if (!status.ok()) {
+    pcef_create_session_resp_p->rpc_status = PCEF_STATUS_FAILED;
+  }
+
+  pcef_create_session_resp_p->teid          = session_request.context_teid;
+  pcef_create_session_resp_p->eps_bearer_id = session_request.eps_bearer_id;
+  pcef_create_session_resp_p->sgi_status    = session_request.status;
+
+  IMSI_STRING_TO_IMSI64(imsi.c_str(), &message_p->ittiMsgHeader.imsi);
+
+  OAILOG_DEBUG(LOG_UTIL, "Sending PCEF create session response to SPGW task");
+  return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
+}
+
 void pcef_create_session(
-    spgw_state_t* state, const char* imsi, const char* ip4, const char* ip6,
+    const char* imsi, const char* ip4, const char* ip6,
     const pcef_create_session_data* session_data,
-    s5_create_session_request_t session_request,
-    s_plus_p_gw_eps_bearer_context_information_t* ctx_p) {
+    s5_create_session_request_t session_request) {
   auto imsi_str = std::string(imsi);
   std::string ip4_str, ip6_str;
 
@@ -138,11 +154,11 @@ void pcef_create_session(
   auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
-      sreq, [imsi_str, apn, session_request, ctx_p, state](
+      sreq, [imsi_str, session_request](
                 const grpc::Status& status,
                 const magma::LocalCreateSessionResponse& response) {
-        create_session_response(
-            state, imsi_str, apn, session_request, status, ctx_p);
+        send_itti_pcef_create_session_response(
+            imsi_str, session_request, status);
       });
 }
 
