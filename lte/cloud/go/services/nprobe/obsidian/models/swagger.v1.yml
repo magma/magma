@@ -308,3 +308,7 @@ definitions:
         type: integer
         format: int64
         description: Time at which the last record was exported in ms
+      sequence_number:
+        type: integer
+        format: uint64
+        description: Sequence number incremented by 1 for each exported record

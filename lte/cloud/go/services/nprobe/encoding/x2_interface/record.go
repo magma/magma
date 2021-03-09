@@ -32,7 +32,7 @@ type EpsIRIRecord struct {
 }
 
 // MakeRecord build a EpsIRIRecord record
-func MakeRecord(event *eventd_models.Event, operatorID string, task *models.NetworkProbeTask) (EpsIRIRecord, error) {
+func MakeRecord(event *eventd_models.Event, operatorID string, task *models.NetworkProbeTask, seqNbr uint64) (EpsIRIRecord, error) {
 	// build payload content
 	details := task.TaskDetails
 	payload, err := makePayload(event, operatorID, details.CorrelationID)
@@ -42,7 +42,7 @@ func MakeRecord(event *eventd_models.Event, operatorID string, task *models.Netw
 	}
 
 	// build record header
-	header, err := makeHeader(event, string(task.TaskID), details.TargetID, details.CorrelationID, uint32(len(payload)))
+	header, err := makeHeader(event, string(task.TaskID), details.TargetID, details.CorrelationID, seqNbr, uint32(len(payload)))
 	if err != nil {
 		glog.Errorf("Failed to build IRI header\n")
 		return EpsIRIRecord{}, err
@@ -50,7 +50,7 @@ func MakeRecord(event *eventd_models.Event, operatorID string, task *models.Netw
 	return EpsIRIRecord{Header: header, Payload: payload}, nil
 }
 
-func makeHeader(event *eventd_models.Event, xID, targetID string, correlationID uint64, pLen uint32) (EpsIRIHeader, error) {
+func makeHeader(event *eventd_models.Event, xID, targetID string, correlationID, seqNbr uint64, pLen uint32) (EpsIRIHeader, error) {
 	uuid, err := uuid.FromString(xID)
 	if err != nil {
 		glog.Errorf("Failed to parse xID - type 4 %s\n", xID)
@@ -63,16 +63,21 @@ func makeHeader(event *eventd_models.Event, xID, targetID string, correlationID 
 		return EpsIRIHeader{}, err
 	}
 
-	attrs, aLen := addConditionalAttributes(targetID, event.StreamName, bTime)
+	attrs, aLen := addConditionalAttributes(targetID, event.StreamName, bTime, seqNbr)
 	header := makeEpsIRIHeader(uuid, attrs, correlationID, aLen+FixHeaderLength, pLen)
 	return header, nil
 }
 
-func addConditionalAttributes(targetID, networkFunc string, bTime []byte) ([]ConditionalAttribute, uint32) {
+func addConditionalAttributes(targetID, networkFunc string, bTime []byte, seqNbr uint64) ([]ConditionalAttribute, uint32) {
+
+	bSeqNumber := make([]byte, 8)
+	binary.BigEndian.PutUint64(bSeqNumber, seqNbr)
+
 	attrs := []ConditionalAttribute{}
 	attrs = append(attrs, makeStrConditionalAttribute(targetID, X2AttrIDTargetID))
 	attrs = append(attrs, makeStrConditionalAttribute(networkFunc, X2AttrIDNetworkFunc))
 	attrs = append(attrs, makeBinConditionalAttribute(bTime, X2AttrIDTimestamp))
+	attrs = append(attrs, makeBinConditionalAttribute(bSeqNumber, X2AttrIDSeqNumber))
 
 	aLen := uint32(0)
 	for _, attr := range attrs {

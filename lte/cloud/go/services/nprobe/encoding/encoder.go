@@ -51,11 +51,11 @@ func (e *NProbeEncoder) Encode() ([]byte, error) {
 	return json.Marshal(e.record)
 }
 
-func MakeRecord(event *eventd_models.Event, format, operatorID string, task *models.NetworkProbeTask) ([]byte, error) {
+func MakeRecord(event *eventd_models.Event, format, operatorID string, task *models.NetworkProbeTask, seqNbr uint64) ([]byte, error) {
 	var encoder Encoder
 	switch format {
 	case nprobe.IRIRecord:
-		record, err := x2_interface.MakeRecord(event, operatorID, task)
+		record, err := x2_interface.MakeRecord(event, operatorID, task, seqNbr)
 		if err != nil {
 			glog.Errorf("Failed to construct IRI record %v\n", event)
 			return []byte{}, err

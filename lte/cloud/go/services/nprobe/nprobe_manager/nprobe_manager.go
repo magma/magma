@@ -28,7 +28,6 @@ import (
 
 	"magma/orc8r/cloud/go/services/configurator"
 
-	"github.com/go-openapi/strfmt"
 	"github.com/golang/glog"
 )
 
@@ -77,26 +76,27 @@ func getNetworkProbeTasks(networkID string) (map[string]*models.NetworkProbeTask
 	return ret, nil
 }
 
-func (im *NProbeManager) getTimeOfLastExportedRecord(networkID, targetID string, timestamp strfmt.DateTime) (int64, error) {
-	state, err := im.StateStore.GetNProbeState(networkID, targetID)
+func (im *NProbeManager) getRecordState(networkID string, task *models.NetworkProbeTask) (int64, uint64, error) {
+	state, err := im.StateStore.GetNProbeState(networkID, string(task.TaskDetails.TargetID))
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	if state == nil || state.LastExported == 0 {
-		return time.Time(timestamp).UnixNano() / int64(time.Millisecond), nil
+		return time.Time(task.TaskDetails.Timestamp).UnixNano() / int64(time.Millisecond), 0, nil
 	}
-	return state.LastExported, nil
+	return state.LastExported, state.SequenceNumber, nil
 }
 
-func (im *NProbeManager) updateTimeOfLastExportedRecord(networkID, targetID, timestamp string) error {
+func (im *NProbeManager) updateRecordState(networkID, targetID, timestamp string, seqNbr uint64) error {
 	ptime, err := time.Parse(time.RFC3339, timestamp)
 	if err != nil {
 		glog.Errorf("Failed to parse timestamp %s for targetID %s: %s\n", timestamp, targetID, err)
 		return err
 	}
 	state := &models.NetworkProbeState{
-		LastExported: ptime.UnixNano() / int64(time.Millisecond),
+		LastExported:   ptime.UnixNano() / int64(time.Millisecond),
+		SequenceNumber: seqNbr,
 	}
 	err = im.StateStore.SetNProbeState(networkID, targetID, state)
 	if err != nil {
@@ -118,12 +118,13 @@ func (im *NProbeManager) processEvents(
 	networkID string,
 	task *models.NetworkProbeTask,
 	events []eventd_models.Event,
+	seqNbr uint64,
 ) error {
 
 	var err error
 	timestamp := ""
 	for _, event := range events {
-		record, err := encoding.MakeRecord(&event, nprobe.IRIRecord, im.OperatorID, task)
+		record, err := encoding.MakeRecord(&event, nprobe.IRIRecord, im.OperatorID, task, seqNbr)
 		if err != nil {
 			glog.Errorf("Failed to build record for event %s: %s\n", event, err)
 			continue
@@ -133,11 +134,12 @@ func (im *NProbeManager) processEvents(
 			glog.Errorf("Failed to export record for targetID %s: %s\n", task.TaskDetails.TargetID, err)
 			break
 		}
+		seqNbr++
 		timestamp = event.Timestamp
 	}
 
 	if timestamp != "" {
-		err = im.updateTimeOfLastExportedRecord(networkID, task.TaskDetails.TargetID, timestamp)
+		err = im.updateRecordState(networkID, task.TaskDetails.TargetID, timestamp, seqNbr)
 		if err != nil {
 			glog.Errorf("Failed to update state for targetID %s: %s\n", task.TaskDetails.TargetID, err)
 			return err
@@ -164,22 +166,22 @@ func (im *NProbeManager) CollectAndProcessEvents() error {
 		}
 
 		for _, task := range tasks {
-			details := task.TaskDetails
-			timeSinceReported, err := im.getTimeOfLastExportedRecord(networkID, details.TargetID, details.Timestamp)
+			targetID := task.TaskDetails.TargetID
+			timeSinceReported, seqNumber, err := im.getRecordState(networkID, task)
 			if err != nil {
-				glog.Errorf("Failed to retrieve state for targetID %s: %s\n", details.TargetID, err)
+				glog.Errorf("Failed to retrieve state for targetID %s: %s\n", targetID, err)
 				continue
 			}
 
-			events, err := im.collectEvents(networkID, details.TargetID, timeSinceReported)
+			events, err := im.collectEvents(networkID, targetID, timeSinceReported)
 			if err != nil {
-				glog.Errorf("Failed to collect events for targetID %s: %s\n", details.TargetID, err)
+				glog.Errorf("Failed to collect events for targetID %s: %s\n", targetID, err)
 				continue
 			}
 
-			err = im.processEvents(networkID, task, events)
+			err = im.processEvents(networkID, task, events, seqNumber)
 			if err != nil {
-				glog.Errorf("Failed to process events for targetID %s: %s\n", details.TargetID, err)
+				glog.Errorf("Failed to process events for targetID %s: %s\n", targetID, err)
 				return err
 			}
 		}

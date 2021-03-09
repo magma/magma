@@ -17,6 +17,9 @@ type NetworkProbeState struct {
 
 	// Time at which the last record was exported in ms
 	LastExported int64 `json:"last_exported,omitempty"`
+
+	// Sequence number incremented by 1 for each exported record
+	SequenceNumber uint64 `json:"sequence_number,omitempty"`
 }
 
 // Validate validates this network probe state
