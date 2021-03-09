@@ -340,7 +340,7 @@ commands:
     parameters:
       channel:
         type: string
-        default: "${DEFAULT_SLACK_CHANNEL}"
+        default: "#ci"
     steps:
       - run:
           command: |
@@ -355,10 +355,7 @@ commands:
       - run:
           name: Send message to Slack
           command: |
-            if [ "$SLACK_BUILD_STATUS" != "fail" ] || [ "$CIRCLE_BRANCH" != "master" ]; then
-              echo "This command will only execute on failure on master."
-              exit 0
-            fi
+
 
             author=$(git show -s --format='%an')
             email=$(git show -s --format='%ae')
@@ -392,7 +389,7 @@ commands:
             EOF
             )
             echo $slack_data
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
           when: always
 
   persist-githash-version:
@@ -464,7 +461,7 @@ commands:
             }
             EOF
             )
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
   ### CLOUD
@@ -926,6 +923,14 @@ jobs:
           version_path: versions/nms_version
       - magma_slack_notify
 
+  ping:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run: "exit 1"
+      - magma_slack_notify
+
   ### FOSSA
 
   fossa-analyze:
@@ -1055,111 +1060,114 @@ jobs:
           tag-latest: <<parameters.tag-latest>>
       - magma_slack_notify
 
+
 workflows:
   version: 2
-
-  cloud:
+  tim:
     jobs:
-      - insync-checkin
-      - cloud_lint
-      - cloud-test
-      - orc8r-build:
-          requires:
-            - insync-checkin
-            - cloud_lint
-            - cloud-test
-
-  lib_gateway:
-    jobs:
-      - orc8r-gateway-test
-
-  agw:
-    jobs:
-      - lte-test
-      - lte-integ-test:
-          <<: *master_and_develop
-      - lte-agw-deploy:
-          <<: *only_master
-          requires:
-            - lte-integ-test
-
-  feg:
-    jobs:
-      - feg-precommit
-      - feg-build:
-          requires:
-            - feg-precommit
-
-  cwag:
-    jobs:
-      - cwag-precommit
-      - cwf-integ-test:
-          <<: *master_and_develop
-      - xwfm-test:
-          <<: *master_and_develop
-      - cwag-deploy:
-          <<: *only_master
-          requires:
-            - cwag-precommit
-            - cwf-integ-test
-      - xwfm-deploy:
-          <<: *only_master
-          name: xwfm-deploy-latest
-          requires:
-            - cwag-deploy
-            - xwfm-test
-          tag-latest: true
-      - cwag-deploy:
-          <<: *only_master
-          name: cwag-deploy-latest
-          requires:
-            - cwag-deploy
-            - xwfm-deploy-latest
-          images: 'gateway_python|gateway_pipelined|gateway_go'
-          tag-latest: true
-
-
-  cwf_operator:
-    jobs:
-      - cwf-operator-precommit
-      - cwf-operator-build:
-          requires:
-            - cwf-operator-precommit
-
-  hourly_xwfm:
-    triggers:
-      - schedule:
-          cron: "0 * * * *"
-          <<: *only_master
-    jobs:
-      - xwfm-test:
-          notify_magma_ci: false
-
-  nms:
-    jobs:
-      - nms-flow-test
-      - eslint
-      - nms-yarn-test:
-          requires:
-            - nms-flow-test
-      - nms-e2e-test:
-          requires:
-            - nms-flow-test
-            - eslint
-            - nms-yarn-test
-      - nms-build:
-          requires:
-            - nms-flow-test
-            - eslint
-            - nms-yarn-test
-            - nms-e2e-test
-
-  docusaurus:
-   jobs:
-    - docusaurus_build_and_deploy:
-        <<: *only_master
-
-  fossa:
-    jobs:
-      - fossa-analyze:
-          <<: *only_master
+      - ping
+  # cloud:
+  #   jobs:
+  #     - insync-checkin
+  #     - cloud_lint
+  #     - cloud-test
+  #     - orc8r-build:
+  #         requires:
+  #           - insync-checkin
+  #           - cloud_lint
+  #           - cloud-test
+  #
+  # lib_gateway:
+  #   jobs:
+  #     - orc8r-gateway-test
+  #
+  # agw:
+  #   jobs:
+  #     - lte-test
+  #     - lte-integ-test:
+  #         <<: *master_and_develop
+  #     - lte-agw-deploy:
+  #         <<: *only_master
+  #         requires:
+  #           - lte-integ-test
+  #
+  # feg:
+  #   jobs:
+  #     - feg-precommit
+  #     - feg-build:
+  #         requires:
+  #           - feg-precommit
+  #
+  # cwag:
+  #   jobs:
+  #     - cwag-precommit
+  #     - cwf-integ-test:
+  #         <<: *master_and_develop
+  #     - xwfm-test:
+  #         <<: *master_and_develop
+  #     - cwag-deploy:
+  #         <<: *only_master
+  #         requires:
+  #           - cwag-precommit
+  #           - cwf-integ-test
+  #     - xwfm-deploy:
+  #         <<: *only_master
+  #         name: xwfm-deploy-latest
+  #         requires:
+  #           - cwag-deploy
+  #           - xwfm-test
+  #         tag-latest: true
+  #     - cwag-deploy:
+  #         <<: *only_master
+  #         name: cwag-deploy-latest
+  #         requires:
+  #           - cwag-deploy
+  #           - xwfm-deploy-latest
+  #         images: 'gateway_python|gateway_pipelined|gateway_go'
+  #         tag-latest: true
+  #
+  #
+  # cwf_operator:
+  #   jobs:
+  #     - cwf-operator-precommit
+  #     - cwf-operator-build:
+  #         requires:
+  #           - cwf-operator-precommit
+  #
+  # hourly_xwfm:
+  #   triggers:
+  #     - schedule:
+  #         cron: "0 * * * *"
+  #         <<: *only_master
+  #   jobs:
+  #     - xwfm-test:
+  #         notify_magma_ci: false
+  #
+  # nms:
+  #   jobs:
+  #     - nms-flow-test
+  #     - eslint
+  #     - nms-yarn-test:
+  #         requires:
+  #           - nms-flow-test
+  #     - nms-e2e-test:
+  #         requires:
+  #           - nms-flow-test
+  #           - eslint
+  #           - nms-yarn-test
+  #     - nms-build:
+  #         requires:
+  #           - nms-flow-test
+  #           - eslint
+  #           - nms-yarn-test
+  #           - nms-e2e-test
+  #
+  # docusaurus:
+  #  jobs:
+  #   - docusaurus_build_and_deploy:
+  #       <<: *only_master
+  #
+  # fossa:
+  #   jobs:
+  #     - fossa-analyze:
+  #         <<: *only_master
