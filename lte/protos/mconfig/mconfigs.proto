@@ -315,8 +315,26 @@ message MME {
         repeated uint32 tac = 1;
     }
     map<string, TacList> service_area_maps = 33;
+
+    FederatedModeMap federated_mode_map = 34;
 }
 
+message FederatedModeMap {
+    bool enabled = 1;
+    repeated ModeMapItem mapping = 2;
+}
+
+message ModeMapItem {
+    enum FederatedMode {
+        SPGW_SUBSCRIBER = 0;           // default mode is HSS + spgw_task
+        LOCAL_SUBSCRIBER = 1;          // will use subscriberDb + policydb
+        S8_SUBSCRIBER = 2;             // will use HSS (feg) + s8_task
+    }
+    FederatedMode mode = 1;
+    string plmn = 2;
+    string imsi_range = 3;
+    string apn = 4;
+}
 
 //------------------------------------------------------------------------------
 // SubscriberDB configs
