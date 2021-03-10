@@ -30,15 +30,20 @@
 #include "DiameterCodes.h"
 
 namespace {
-const char* LABEL_IMSI      = "IMSI";
-const char* LABEL_APN       = "apn";
-const char* LABEL_MSISDN    = "msisdn";
-const char* LABEL_DIRECTION = "direction";
-const char* DIRECTION_UP    = "up";
-const char* DIRECTION_DOWN  = "down";
+const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
+const char* UE_DROPPED_COUNTER_NAME = "ue_dropped_usage";
+const char* UE_USED_COUNTER_NAME    = "ue_reported_usage";
+const char* LABEL_IMSI              = "IMSI";
+const char* LABEL_APN               = "apn";
+const char* LABEL_MSISDN            = "msisdn";
+const char* LABEL_DIRECTION         = "direction";
+const char* DIRECTION_UP            = "up";
+const char* DIRECTION_DOWN          = "down";
+const char* LABEL_SESSION_ID        = "session_id";
 }  // namespace
 
 using magma::service303::increment_counter;
+using magma::service303::remove_counter;
 
 namespace magma {
 
@@ -525,9 +530,9 @@ void SessionState::add_rule_usage(
     add_to_monitor(session_level_key_, used_tx, used_rx, update_criteria);
   }
   if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
-    update_used_data_metrics(used_tx, used_rx);
+    update_data_metrics(UE_USED_COUNTER_NAME, used_tx, used_rx);
   }
-  update_dropped_data_metrics(dropped_tx, dropped_rx);
+  update_data_metrics(UE_DROPPED_COUNTER_NAME, dropped_tx, dropped_rx);
 }
 
 void SessionState::apply_session_rule_set(
@@ -764,7 +769,7 @@ ChargingCreditSummaries SessionState::get_charging_credit_summaries() {
   return charging_credit_summaries;
 }
 
-SessionState::TotalCreditUsage SessionState::get_total_credit_usage() {
+SessionCredit::TotalCreditUsage SessionState::get_total_credit_usage() {
   // Collate unique charging/monitoring keys used by rules
   std::unordered_set<CreditKey, decltype(&ccHash), decltype(&ccEqual)>
       used_charging_keys(4, ccHash, ccEqual);
@@ -787,14 +792,17 @@ SessionState::TotalCreditUsage SessionState::get_total_credit_usage() {
       bool should_track_monitoring_key =
           rules.get_monitoring_key_for_rule_id(rule_id, &monitoring_key);
 
-      if (should_track_charging_key) used_charging_keys.insert(charging_key);
-      if (should_track_monitoring_key)
+      if (should_track_charging_key) {
+        used_charging_keys.insert(charging_key);
+      }
+      if (should_track_monitoring_key) {
         used_monitoring_keys.insert(monitoring_key);
+      }
     }
   }
 
   // Sum up usage
-  TotalCreditUsage usage{
+  SessionCredit::TotalCreditUsage usage{
       .monitoring_tx = 0,
       .monitoring_rx = 0,
       .charging_tx   = 0,
@@ -2114,34 +2122,46 @@ optional<RuleSetToApply> RuleSetBySubscriber::get_combined_rule_set_for_apn(
   return {};
 }
 
-void SessionState::update_used_data_metrics(
-    uint64_t bytes_tx, uint64_t bytes_rx) {
+void SessionState::update_data_metrics(
+    const char* counter_name, uint64_t bytes_tx, uint64_t bytes_rx) {
   const auto sid    = get_config().common_context.sid().id();
   const auto msisdn = get_config().common_context.msisdn();
   const auto apn    = get_config().common_context.apn();
   increment_counter(
-      "ue_reported_usage", bytes_tx, size_t(4), LABEL_IMSI, sid.c_str(),
-      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
-      DIRECTION_UP);
+      counter_name, bytes_tx, size_t(4), LABEL_IMSI, sid.c_str(), LABEL_APN,
+      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION, DIRECTION_UP);
   increment_counter(
-      "ue_reported_usage", bytes_rx, size_t(4), LABEL_IMSI, sid.c_str(),
-      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      counter_name, bytes_rx, size_t(4), LABEL_IMSI, sid.c_str(), LABEL_APN,
+      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
       DIRECTION_DOWN);
 }
 
-void SessionState::update_dropped_data_metrics(
-    uint64_t dropped_tx, uint64_t dropped_rx) {
-  const auto sid    = get_config().common_context.sid().id();
+void SessionState::clear_session_metrics() {
+  const auto imsi   = get_config().common_context.sid().id();
   const auto msisdn = get_config().common_context.msisdn();
   const auto apn    = get_config().common_context.apn();
-  increment_counter(
-      "ue_dropped_usage", dropped_tx, size_t(4), LABEL_IMSI, sid.c_str(),
-      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
-      DIRECTION_UP);
-  increment_counter(
-      "ue_dropped_usage", dropped_rx, size_t(4), LABEL_IMSI, sid.c_str(),
-      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+  remove_counter(
+      UE_USED_COUNTER_NAME, size_t(4), LABEL_IMSI, imsi.c_str(), LABEL_APN,
+      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION, DIRECTION_UP);
+  remove_counter(
+      UE_USED_COUNTER_NAME, size_t(4), LABEL_IMSI, imsi.c_str(), LABEL_APN,
+      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
       DIRECTION_DOWN);
+
+  remove_counter(
+      UE_DROPPED_COUNTER_NAME, size_t(4), LABEL_IMSI, imsi.c_str(), LABEL_APN,
+      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION, DIRECTION_UP);
+  remove_counter(
+      UE_DROPPED_COUNTER_NAME, size_t(4), LABEL_IMSI, imsi.c_str(), LABEL_APN,
+      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      DIRECTION_DOWN);
+
+  remove_counter(
+      UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi.c_str(),
+      LABEL_SESSION_ID, session_id_.c_str(), LABEL_DIRECTION, DIRECTION_UP);
+  remove_counter(
+      UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi.c_str(),
+      LABEL_SESSION_ID, session_id_.c_str(), LABEL_DIRECTION, DIRECTION_DOWN);
 }
 
 CreateSessionResponse SessionState::get_create_session_response() {

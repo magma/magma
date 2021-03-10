@@ -14,5 +14,5 @@ dependencies:
 - name: orc8rlib
   repository: file://../orc8rlib
   version: 0.1.2
-digest: sha256:2cc15507df1e81fdd345dd88d25fae40aac58f9a4d2b9aa813d2f52e80785969
-generated: "2021-03-03T10:38:07.173141-08:00"
+digest: sha256:38e12c451064f92f3770ae38fe4b83da62c9e83158842f47a8391db304974df1
+generated: "2021-03-03T14:51:58.288878-08:00"

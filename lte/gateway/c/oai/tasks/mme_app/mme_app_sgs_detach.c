@@ -50,6 +50,7 @@
 #include "mme_app_sgs_fsm.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
+#include "mme_app_timer.h"
 
 /**
  * Function to send a SGS EPS detach indication to SGSAP in either the initial
@@ -120,14 +121,10 @@ static void mme_app_send_sgs_eps_detach_indication(
     }
   } else {
     // Start SGS EPS Detach indication timer
-    timer_callback_fun.nas_timer_callback =
-        mme_app_handle_sgs_eps_detach_timer_expiry;
-
-    if (timer_setup(
-            ue_context_p->sgs_context->ts8_timer.sec, 0, TASK_MME_APP,
-            INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_fun,
-            sizeof(timer_callback_fun),
-            &(ue_context_p->sgs_context->ts8_timer.id)) < 0) {
+    if ((ue_context_p->sgs_context->ts8_timer.id = mme_app_start_timer(
+             ue_context_p->sgs_context->ts8_timer.sec * 1000, TIMER_REPEAT_ONCE,
+             mme_app_handle_sgs_eps_detach_timer_expiry,
+             ue_context_p->mme_ue_s1ap_id)) == -1) {
       OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to start SGS EPS Detach indication timer for "
@@ -145,19 +142,7 @@ static void mme_app_send_sgs_eps_detach_indication(
     // Stop  and reset SGS Location Update Request timer if running
     if (ue_context_p->sgs_context->ts6_1_timer.id !=
         MME_APP_TIMER_INACTIVE_ID) {
-      nas_itti_timer_arg_t* timer_argP = NULL;
-      if (timer_remove(
-              ue_context_p->sgs_context->ts6_1_timer.id,
-              (void**) &timer_argP)) {
-        OAILOG_ERROR(
-            LOG_MME_APP,
-            "Failed to stop SGS Location Update Request timer for "
-            "ue_id " MME_UE_S1AP_ID_FMT "\n",
-            ue_context_p->mme_ue_s1ap_id);
-      }
-      if (timer_argP) {
-        free_wrapper((void**) &timer_argP);
-      }
+      mme_app_stop_timer(ue_context_p->sgs_context->ts6_1_timer.id);
       ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
     }
   }
@@ -168,9 +153,15 @@ static void mme_app_send_sgs_eps_detach_indication(
 }
 
 // handle the SGS EPS detach timer expiry
-void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64) {
+int mme_app_handle_sgs_eps_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs eps detach timer");
   if (ue_context_p == NULL) {
@@ -178,7 +169,7 @@ void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64) {
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
@@ -186,9 +177,9 @@ void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64) {
         "SGS EPS Detach Timer expired but no assoicated SGS context for UE "
         "id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  *imsi64 = ue_context_p->emm_context._imsi64;
+
   /*
    * Increment the retransmission counter
    */
@@ -218,7 +209,7 @@ void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64) {
         "Ts8 timer expired after max tetransmission");
   }
 
-  OAILOG_FUNC_OUT(LOG_MME_APP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 // handle the SGS Implicit EPS detach timer expiry
@@ -358,18 +349,7 @@ void mme_app_send_sgs_imsi_detach_indication(
     // Stop and reset SGS Location Update Request timer if running
     if (ue_context_p->sgs_context->ts6_1_timer.id !=
         MME_APP_TIMER_INACTIVE_ID) {
-      nas_itti_timer_arg_t* timer_argP = NULL;
-      if (timer_remove(
-              ue_context_p->sgs_context->ts6_1_timer.id,
-              (void**) &timer_argP)) {
-        OAILOG_ERROR(
-            LOG_MME_APP,
-            "Failed to stop SGS Location Update Request timer for UE id %d \n",
-            ue_context_p->mme_ue_s1ap_id);
-      }
-      if (timer_argP) {
-        free_wrapper((void**) &timer_argP);
-      }
+      mme_app_stop_timer(ue_context_p->sgs_context->ts6_1_timer.id);
       ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
     }
   }
@@ -618,24 +598,15 @@ int mme_app_handle_sgs_eps_detach_ack(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ue_context_p->sgs_context) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
     // Stop SGS EPS Detach timer, after recieving the SGS EPS Detach Ack,if
     // running
     if (ue_context_p->sgs_context->ts8_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(
-              ue_context_p->sgs_context->ts8_timer.id, (void**) &timer_argP)) {
-        OAILOG_ERROR(
-            LOG_MME_APP,
-            "Failed to stop SGS EPS Detach Indication timer for UE id %d \n",
-            ue_context_p->mme_ue_s1ap_id);
-      }
-      if (timer_argP) {
-        free_wrapper((void**) &timer_argP);
-      }
+      mme_app_stop_timer(ue_context_p->sgs_context->ts8_timer.id);
       ue_context_p->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
       OAILOG_INFO(LOG_MME_APP, "Stopped Ts8 timer \n");
     } else if (
         ue_context_p->sgs_context->ts13_timer.id != MME_APP_TIMER_INACTIVE_ID) {
+      nas_itti_timer_arg_t* timer_argP = NULL;
       if (timer_remove(
               ue_context_p->sgs_context->ts13_timer.id, (void**) &timer_argP)) {
         OAILOG_ERROR(
