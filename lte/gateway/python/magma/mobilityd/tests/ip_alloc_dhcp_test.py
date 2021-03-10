@@ -16,7 +16,6 @@ import os
 import subprocess
 import sys
 import threading
-import unittest
 import unittest.mock
 
 from ipaddress import ip_network
@@ -29,7 +28,6 @@ from magma.pipelined.bridge_util import BridgeTools
 from magma.mobilityd.ip_descriptor import IPDesc, IPType, IPState
 
 from magma.mobilityd.mac import create_mac_from_sid
-from magma.mobilityd.dhcp_desc import DHCPState
 
 from magma.mobilityd.ipv6_allocator_pool import \
     IPv6AllocatorPool

@@ -1262,6 +1262,7 @@ int s1ap_mme_generate_ue_context_release_command(
     case S1AP_INVALID_MME_UE_S1AP_ID:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_unknown_mme_ue_s1ap_id;
+      break;
     case S1AP_NAS_MME_OFFLOADING:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;

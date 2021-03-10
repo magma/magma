@@ -15,8 +15,6 @@
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
 
-using grpc::Status;
-
 namespace magma {
 
 template<typename KeyType, typename hash, typename equal>
