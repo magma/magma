@@ -320,7 +320,7 @@ message MME {
 }
 
 message FederatedModeMap {
-    bool enabled = 1;
+    bool disabled = 1;
     repeated ModeMapItem mapping = 2;
 }
 

@@ -7974,10 +7974,10 @@ definitions:
   federated_mode_map:
     description: Mapping for PLMN, imsi ranges, vs its gateway mode
     properties:
-      enabled:
-        default: false
-        description: If Enabled is false, mapping will not be applied
-        example: false
+      disabled:
+        default: true
+        description: If Disabled is True mapping will not be applied
+        example: true
         type: boolean
         x-nullable: false
       mapping:

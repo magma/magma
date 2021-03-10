@@ -18,8 +18,8 @@ import (
 // swagger:model federatedModeMap
 type FederatedModeMap struct {
 
-	// If Enabled is false, mapping will not be applied
-	Enabled bool `json:"enabled,omitempty"`
+	// If Disabled is True mapping will not be applied
+	Disabled bool `json:"disabled,omitempty"`
 
 	// mapping
 	Mapping []*ModeMapItem `json:"mapping"`
