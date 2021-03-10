@@ -1,8 +1,8 @@
 ---
-name: Bug report
-about: Report a bug
+name: "\U0001F41E  Bug report"
+about: Report a bug or known issue
 title: ''
-labels: ''
+labels: 'type: bug'
 assignees: ''
 
 ---
