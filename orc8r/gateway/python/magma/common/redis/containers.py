@@ -217,6 +217,8 @@ class RedisFlatDict(MutableMapping[str, T]):
         self.serde = serde
         self.redis_type = serde.redis_type
         self.cache = {}
+        if self._writethrough:
+            self._sync_cache()
 
     def __len__(self) -> int:
         """Return the number of items in the dictionary."""
@@ -227,7 +229,7 @@ class RedisFlatDict(MutableMapping[str, T]):
 
     def __iter__(self) -> Iterator[str]:
         """Return an iterator over the keys of the dictionary."""
-        type_pattern = "*:" + self.redis_type
+        type_pattern = self._get_redis_type_pattern()
 
         if self._writethrough:
             for k in self.cache:
@@ -386,7 +388,7 @@ class RedisFlatDict(MutableMapping[str, T]):
         Note: for redis *key:type* key is returned
         """
         garbage_keys = []
-        type_pattern = "*:" + self.redis_type
+        type_pattern = self._get_redis_type_pattern()
         for k in self.redis.keys(pattern=type_pattern):
             try:
                 deserialized_key = k.decode('utf-8')
@@ -421,6 +423,20 @@ class RedisFlatDict(MutableMapping[str, T]):
             auto_renewal=True,
             strict=False,
         )
+
+    def _sync_cache(self):
+        """
+        Syncs write-through cache with redis data on store.
+        """
+        type_pattern = self._get_redis_type_pattern()
+        for k in self.redis.keys(pattern=type_pattern):
+            composite_key = k.decode('utf-8')
+            serialized_value = self.redis.get(composite_key)
+            value = self.serde.deserialize(serialized_value)
+            self.cache[composite_key] = value
+
+    def _get_redis_type_pattern(self):
+        return "*:" + self.redis_type
 
     def _make_composite_key(self, key):
         return key + ":" + self.redis_type

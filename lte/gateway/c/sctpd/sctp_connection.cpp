@@ -145,11 +145,16 @@ void SctpConnection::Listen() {
 
         auto status = HandleClientSock(client_sd);
 
-        if (status == SctpStatus::DISCONNECT) {
+        if ((status == SctpStatus::DISCONNECT) ||
+            (status == SctpStatus::NEW_ASSOC_NOTIF_FAILED)) {
           if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_sd, nullptr) < 0) {
             MLOG_perror("epoll_ctl");
             std::terminate();
           }
+        }
+
+        if (status == SctpStatus::NEW_ASSOC_NOTIF_FAILED) {
+          shutdown(client_sd, 0);
         }
       }
     }
@@ -261,9 +266,12 @@ SctpStatus SctpConnection::HandleComUp(
   std::string ran_cp_ipaddr;
   pull_peer_ipaddr(sd, change->sac_assoc_id, ran_cp_ipaddr);
 
-  _handler.HandleNewAssoc(
-      assoc.ppid, change->sac_assoc_id, change->sac_inbound_streams,
-      change->sac_outbound_streams, ran_cp_ipaddr);
+  if (_handler.HandleNewAssoc(
+          assoc.ppid, change->sac_assoc_id, change->sac_inbound_streams,
+          change->sac_outbound_streams, ran_cp_ipaddr) < 0) {
+    _sctp_desc.delAssoc(assoc.assoc_id);
+    return SctpStatus::NEW_ASSOC_NOTIF_FAILED;
+  }
 
   return SctpStatus::OK;
 }

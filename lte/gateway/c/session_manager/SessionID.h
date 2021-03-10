@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <random>
+
 class SessionIDGenerator {
  public:
   SessionIDGenerator();
@@ -28,4 +30,8 @@ class SessionIDGenerator {
    */
   bool get_imsi_from_session_id(
       const std::string& session_id, std::string& imsi_out);
+
+ private:
+  std::mt19937 rgen_;
+  std::uniform_int_distribution<int> idist_;
 };
