@@ -19,10 +19,10 @@ using prometheus::BuildGauge;
 using prometheus::BuildHistogram;
 using prometheus::Registry;
 
-MetricsSingleton* MetricsSingleton::instance_ = NULL;
+MetricsSingleton* MetricsSingleton::instance_ = nullptr;
 
 MetricsSingleton& MetricsSingleton::Instance() {
-  if (instance_ == NULL) {
+  if (instance_ == nullptr) {
     instance_ = new MetricsSingleton();
   }
   return *instance_;
