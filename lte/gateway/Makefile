@@ -74,7 +74,7 @@ build: build_python build_common build_oai build_sctpd build_session_manager bui
 
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
-test: test_python test_common test_oai test_session_manager ## Run all tests
+test: test_python test_common test_oai test_sctpd test_session_manager ## Run all tests
 
 clean: clean_python clean_envoy_controller ## Clean all builds
 	rm -rf $(C_BUILD)
@@ -132,6 +132,14 @@ $(call run_cmake, $(1), $(2), $(3) $(TEST_FLAG))
 cd $(1) && ctest --output-on-failure
 endef
 
+format_common:
+	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
+format_%: ## Format service in magma/lte/gateway/c/
+	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
 build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
@@ -160,14 +168,6 @@ build_%:
 
 scan_oai: ## Scan OAI
 	$(call run_scanbuild, $(C_BUILD)/scan/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
-
-format_common:
-	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
-
-format_%: ## Format service in magma/lte/gateway/c/
-	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
 
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
