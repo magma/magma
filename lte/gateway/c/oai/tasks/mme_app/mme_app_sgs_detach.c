@@ -209,7 +209,7 @@ int mme_app_handle_sgs_eps_detach_timer_expiry(
         "Ts8 timer expired after max tetransmission");
   }
 
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 // handle the SGS Implicit EPS detach timer expiry

@@ -43,7 +43,7 @@ describe('Admin component', () => {
     const page = await browser.newPage();
     await page.setViewport({width: 1280, height: 1024});
     try {
-      await page.goto('https://magma-test.localhost/');
+      await page.goto('https://magma-test.localhost/nms');
       await page.waitForXPath(`//span[text()='Dashboard']`, {
         timeout: 15000,
       });
@@ -89,7 +89,7 @@ describe('NMS', () => {
     const page = await browser.newPage();
     try {
       // test_feg_lte_network is mocked out
-      await page.goto('https://magma-test.localhost/');
+      await page.goto('https://magma-test.localhost/nms');
       await page.waitForXPath(`//span[text()='Dashboard']`, {
         timeout: 15000,
       });
