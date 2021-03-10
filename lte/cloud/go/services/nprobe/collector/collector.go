@@ -109,7 +109,7 @@ func (e *EventsCollector) GetMultiStreamsEvents(networkID string, timestamp int6
 	search := e.ElasticClient.Search().
 		Index("").
 		Size(defaultQuerySize).
-		Sort(elasticFilterTimestamp, false).
+		Sort(elasticFilterTimestamp, true).
 		Query(elasticQuery)
 
 	result, err := search.Do(context.Background())

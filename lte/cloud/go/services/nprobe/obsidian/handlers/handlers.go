@@ -21,6 +21,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
+	"magma/lte/cloud/go/services/nprobe"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -101,11 +102,16 @@ func getNetworkProbeTask(c echo.Context) error {
 }
 
 func deleteNetworkProbeTask(c echo.Context) error {
-	ent, networkID, _, err := getNetworkProbeEntityAndIDs(c, lte.NetworkProbeTaskEntityType)
+	ent, networkID, taskID, err := getNetworkProbeEntityAndIDs(c, lte.NetworkProbeTaskEntityType)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	err = nprobe.DeleteNProbeState(networkID, taskID)
+	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
@@ -265,6 +271,11 @@ func createNetworkProbeTask(c echo.Context) error {
 
 	if time.Time(payload.TaskDetails.Timestamp).IsZero() {
 		payload.TaskDetails.Timestamp = strfmt.DateTime(time.Now().UTC())
+	}
+
+	err := nprobe.SetNProbeState(networkID, string(payload.TaskID), payload.TaskDetails.TargetID, 0, uint64(0))
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	_, err2 := configurator.CreateEntity(

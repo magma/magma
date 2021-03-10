@@ -23,9 +23,9 @@ import (
 	"magma/lte/cloud/go/services/nprobe/encoding"
 	"magma/lte/cloud/go/services/nprobe/exporter"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
+	"magma/lte/cloud/go/services/nprobe/protos"
 	"magma/lte/cloud/go/services/nprobe/storage"
 	eventd_models "magma/orc8r/cloud/go/services/eventd/obsidian/models"
-
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/glog"
@@ -39,7 +39,7 @@ const LteNetwork = "lte"
 type NProbeManager struct {
 	Exporter                *exporter.RecordExporter
 	Collector               *collector.EventsCollector
-	StateStore              storage.NProbeStateLookup
+	StateStore              storage.NProbeStateService
 	OperatorID              string
 	MaxRecordsExportRetries uint32
 }
@@ -48,7 +48,7 @@ type NProbeManager struct {
 func NewNProbeManager(
 	collector *collector.EventsCollector,
 	exporter *exporter.RecordExporter,
-	stateStore storage.NProbeStateLookup,
+	stateStore storage.NProbeStateService,
 	config nprobe.Config,
 ) *NProbeManager {
 	return &NProbeManager{
@@ -77,7 +77,7 @@ func getNetworkProbeTasks(networkID string) (map[string]*models.NetworkProbeTask
 }
 
 func (im *NProbeManager) getRecordState(networkID string, task *models.NetworkProbeTask) (int64, uint64, error) {
-	state, err := im.StateStore.GetNProbeState(networkID, string(task.TaskDetails.TargetID))
+	state, err := im.StateStore.GetNProbeState(networkID, string(task.TaskID))
 	if err != nil {
 		return 0, 0, err
 	}
@@ -88,17 +88,17 @@ func (im *NProbeManager) getRecordState(networkID string, task *models.NetworkPr
 	return state.LastExported, state.SequenceNumber, nil
 }
 
-func (im *NProbeManager) updateRecordState(networkID, targetID, timestamp string, seqNbr uint64) error {
+func (im *NProbeManager) updateRecordState(networkID, taskID, targetID, timestamp string, seqNbr uint64) error {
 	ptime, err := time.Parse(time.RFC3339, timestamp)
 	if err != nil {
-		glog.Errorf("Failed to parse timestamp %s for targetID %s: %s\n", timestamp, targetID, err)
+		glog.Errorf("Failed to parse timestamp %s for targetID %s: %s\n", timestamp, taskID, err)
 		return err
 	}
-	state := &models.NetworkProbeState{
+	state := &protos.NProbeState{
 		LastExported:   ptime.UnixNano() / int64(time.Millisecond),
 		SequenceNumber: seqNbr,
 	}
-	err = im.StateStore.SetNProbeState(networkID, targetID, state)
+	err = im.StateStore.SetNProbeState(networkID, taskID, targetID, state)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (im *NProbeManager) processEvents(
 	}
 
 	if timestamp != "" {
-		err = im.updateRecordState(networkID, task.TaskDetails.TargetID, timestamp, seqNbr)
+		err = im.updateRecordState(networkID, string(task.TaskID), task.TaskDetails.TargetID, timestamp, seqNbr)
 		if err != nil {
 			glog.Errorf("Failed to update state for targetID %s: %s\n", task.TaskDetails.TargetID, err)
 			return err

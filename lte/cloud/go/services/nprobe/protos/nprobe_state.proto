@@ -1,0 +1,72 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+package magma.lte.nprobe;
+
+option go_package = "protos";
+
+// NProbeStateService provides methods for managing nprobe task states
+service NProbeStateService {
+  // GetNProbeState returns a state for a specific targetID and networkID.
+  rpc GetNProbeState (GetNProbeStateRequest) returns (GetNProbeStateResponse) {}
+
+  // SetNProbeState updates a state for a specific targetID and networkID.
+  rpc SetNProbeState (SetNProbeStateRequest) returns (SetNProbeStateResponse) {}
+
+  // DeleteNProbeState removes a state for a specific targetID and networkID.
+  rpc DeleteNProbeState (DeleteNProbeStateRequest) returns (DeleteNProbeStateResponse) {}
+}
+
+message GetNProbeStateRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // task_id of the subscriber
+  string task_id = 2;
+}
+
+message GetNProbeStateResponse {
+  // timestamp of last exported record for a subscriber
+  int64 last_exported = 1;
+  // sequence number of next exported record for a subscriber
+  uint64 sequence_number = 2;
+}
+
+message SetNProbeStateRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // task_id of the subscriber
+  string task_id = 2;
+  // target_id of the subscriber
+  string target_id = 3;
+  // nprobe_state of the task
+  NProbeState nprobe_state = 4;
+}
+
+message SetNProbeStateResponse {}
+
+message DeleteNProbeStateRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // task_id of the nprobe state to delete
+  string task_id = 2;
+}
+
+message DeleteNProbeStateResponse {}
+
+message NProbeState {
+  // timestamp of last exported record for a subscriber
+  int64 last_exported = 1;
+  // sequence number of next exported record for a subscriber
+  uint64 sequence_number = 2;
+}
