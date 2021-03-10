@@ -15,14 +15,17 @@ package storage
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"sort"
 	"strings"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/util"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -30,8 +33,13 @@ import (
 func (store *sqlConfiguratorStorage) loadFromEntitiesTable(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (map[string]*NetworkEntity, error) {
 	// Pointer values because we're modifying entities in-place with ACLs (LEFT JOIN)
 	entsByPk := map[string]*NetworkEntity{}
-
-	selectBuilder := store.getLoadEntitiesSelectBuilder(networkID, filter, criteria)
+	if err := validatePaginatedLoadParameters(filter, criteria); err != nil {
+		return nil, err
+	}
+	selectBuilder, err := store.getLoadEntitiesSelectBuilder(networkID, filter, criteria)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := selectBuilder.RunWith(store.tx).Query()
 	if err != nil {
 		return nil, errors.Wrap(err, "error querying for entities")
@@ -51,14 +59,20 @@ func (store *sqlConfiguratorStorage) loadFromEntitiesTable(networkID string, fil
 	return entsByPk, nil
 }
 
-func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) sq.SelectBuilder {
+func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (sq.SelectBuilder, error) {
 	// SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, graph.graph_id, ent.name, ent.description, ent.config,
 	// [[ acl.id, acl.scope, acl.permission, acl.type, acl.id_filter, acl.version ]]
 	// FROM cfg_entities AS ent
 	// [[ LEFT JOIN cfg_acls AS acl ON acl.entity_pk = ent.pk ]]
 	// [[ WHERE (ent.network_id = $1 AND ent.key = $2 AND ent.type = $3) OR (ent.network_id ...) ... ]]
+	// [[ ORDER BY ent.key ASC LIMIT page_size ]]
 	selectBuilder := store.builder.Select(getLoadEntitiesColumns(criteria)...).
 		From(fmt.Sprintf("%s AS ent", entityTable))
+	pageSize := store.getEntityLoadPageSize(criteria)
+	pageToken, err := deserializePageToken(criteria.PageToken)
+	if err != nil {
+		return selectBuilder, err
+	}
 	if criteria.LoadPermissions {
 		selectBuilder = selectBuilder.LeftJoin(fmt.Sprintf("%s AS acl ON acl.%s = ent.%s", entityAclTable, aclEntCol, entPkCol))
 	}
@@ -73,25 +87,26 @@ func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID stri
 				sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): id.Type},
 			})
 		})
-		selectBuilder = selectBuilder.Where(orClause)
-	} else {
-		if filter.PhysicalID != nil {
-			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entPidCol): filter.PhysicalID.Value})
-		} else if filter.GraphID != nil {
-			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entGidCol): filter.GraphID.Value})
-		} else {
-			andClause := sq.And{sq.Eq{fmt.Sprintf("ent.%s", entNidCol): networkID}}
-			if filter.KeyFilter != nil {
-				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): filter.KeyFilter.Value})
-			}
-			if filter.TypeFilter != nil {
-				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): filter.TypeFilter.Value})
-			}
-			selectBuilder = selectBuilder.Where(andClause)
-		}
+		return selectBuilder.Where(orClause), nil
 	}
-
-	return selectBuilder
+	if filter.PhysicalID != nil {
+		return selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entPidCol): filter.PhysicalID.Value}), nil
+	} else if filter.GraphID != nil {
+		return selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entGidCol): filter.GraphID.Value}), nil
+	} else {
+		andClause := sq.And{sq.Eq{fmt.Sprintf("ent.%s", entNidCol): networkID}}
+		if filter.KeyFilter != nil {
+			andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): filter.KeyFilter.Value})
+		}
+		if filter.TypeFilter != nil {
+			andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): filter.TypeFilter.Value})
+		}
+		if criteria.PageToken != "" {
+			andClause = append(andClause, sq.Gt{fmt.Sprintf("ent.%s", entKeyCol): pageToken.LastIncludedEntity})
+		}
+		selectBuilder = selectBuilder.Where(andClause).OrderBy(fmt.Sprintf("ent.%s ASC", entKeyCol)).Limit(uint64(pageSize))
+	}
+	return selectBuilder, nil
 }
 
 func getLoadEntitiesColumns(criteria EntityLoadCriteria) []string {
@@ -322,6 +337,16 @@ func (store *sqlConfiguratorStorage) loadEntityTypeAndKeys(pks []string, loadedE
 	return ret, nil
 }
 
+// getEntityLoadPageSize returns the maximum number of entities to return based
+// on the EntityLoadCriteria specified. A page size of 0 will default to the
+// maximum load size.
+func (store *sqlConfiguratorStorage) getEntityLoadPageSize(loadCriteria EntityLoadCriteria) int {
+	if loadCriteria.PageSize == 0 {
+		return int(store.maxEntityLoadSize)
+	}
+	return util.MinInt(int(loadCriteria.PageSize), int(store.maxEntityLoadSize))
+}
+
 // entsByPkOut is an output parameter but will also be returned
 func updateEntitiesWithAssocs(entsByPkOut map[string]*NetworkEntity, assocs []loadedAssoc, entTksByPk map[string]storage.TypeAndKey, loadCriteria EntityLoadCriteria) (map[string]*NetworkEntity, []*GraphEdge, error) {
 	retEdges := make([]*GraphEdge, 0, len(assocs))
@@ -389,4 +414,42 @@ func calculateEntitiesNotFound(entsByPk map[string]*NetworkEntity, requestedIDs 
 		}
 	}
 	return ret
+}
+
+func getNextPageToken(entities []*NetworkEntity) (string, error) {
+	lastEntity := entities[len(entities)-1]
+	nextPageToken := &EntityPageToken{LastIncludedEntity: lastEntity.Key}
+	return serializePageToken(nextPageToken)
+}
+
+func serializePageToken(token *EntityPageToken) (string, error) {
+	marshalledToken, err := proto.Marshal(token)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(marshalledToken), nil
+}
+
+func deserializePageToken(encodedToken string) (*EntityPageToken, error) {
+	marshalledToken, err := base64.StdEncoding.DecodeString(encodedToken)
+	if err != nil {
+		return nil, err
+	}
+	token := &EntityPageToken{}
+	err = proto.Unmarshal(marshalledToken, token)
+	if err != nil {
+		return nil, err
+	}
+	return token, err
+}
+
+func validatePaginatedLoadParameters(filter EntityLoadFilter, criteria EntityLoadCriteria) error {
+	err := fmt.Errorf("paginated loads cannot be used on multi-type queries")
+	if criteria.PageSize != 0 && filter.TypeFilter == nil {
+		return err
+	}
+	if criteria.PageToken != "" && filter.TypeFilter == nil {
+		return err
+	}
+	return nil
 }

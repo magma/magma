@@ -8,9 +8,16 @@
     "Orchestrator": [
       {
         "type": "subcategory",
+        "label": "Architecture",
+        "ids": [
+          "orc8r/architecture_overview",
+          "orc8r/architecture_modularity"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Deploy Orchestrator",
         "ids": [
-          "orc8r/intro",
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
           "orc8r/deploy_install",
@@ -114,7 +121,8 @@
       "proposals/p004_fua-restrict-feature",
       "proposals/p005_call_tracing",
       "proposals/p007_header_enrichment",
-      "proposals/p008_apn_correction"
+      "proposals/p008_apn_correction",
+      "proposals/p009_nms_mariadb_migration"
     ]
   }
 }

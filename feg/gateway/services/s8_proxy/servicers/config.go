@@ -14,7 +14,10 @@ limitations under the License.
 package servicers
 
 import (
+	"net"
 	"os"
+	"strconv"
+	"strings"
 
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
 	"magma/gateway/mconfig"
@@ -33,17 +36,43 @@ func GetS8ProxyConfig() *S8ProxyConfig {
 	configPtr := &mcfgprotos.S8Config{}
 	err := mconfig.GetServiceConfigs(S8ProxyServiceName, configPtr)
 	if err != nil {
-		glog.V(2).Infof("%s Managed Configs Load Error: %v\nUsing EnvVars", S8ProxyServiceName, err)
+		glog.V(2).Infof("%s Managed Configs Load Error: %v Using EnvVars", S8ProxyServiceName, err)
 		return &S8ProxyConfig{
 			ClientAddr: os.Getenv(ClientAddrEnv),
-			ServerAddr: os.Getenv(ServerAddrEnv),
+			ServerAddr: ParseAddress(os.Getenv(ServerAddrEnv)),
 		}
 	}
-
-	glog.V(2).Infof("Loaded %s configs: %+v", S8ProxyConfig{}, *configPtr)
-
+	glog.V(2).Infof("Loaded %+v configs: %+v", S8ProxyConfig{}, *configPtr)
 	return &S8ProxyConfig{
 		ClientAddr: configPtr.LocalAddress,
-		ServerAddr: configPtr.PgwAddress,
+		ServerAddr: ParseAddress(configPtr.PgwAddress),
 	}
+}
+
+//parseAddress will parse an ip:port address. If parse fails it will just return nil
+func ParseAddress(ipAndPort string) *net.UDPAddr {
+	if ipAndPort == "" {
+		return nil
+	}
+	splitted := strings.Split(ipAndPort, ":")
+	if len(splitted) != 2 {
+		glog.Warningf("Malformed address. It must be formatted as IP:Port, but %s was received", ipAndPort)
+		return nil
+	}
+	ip := splitted[0]
+	if ip == "" {
+		glog.Warningf("Empty IP during parsing address on config file: %s", ipAndPort)
+		return nil
+	}
+	port, err := strconv.Atoi(splitted[1])
+	if err != nil {
+		glog.Warningf("Malformed PORT during parsing address on config file: %s", ipAndPort)
+		return nil
+	}
+	ipAddr := net.ParseIP(ip)
+	if ipAddr == nil {
+		glog.Warningf("Malformed IP during parsing address on config file: %s", ipAndPort)
+		return nil
+	}
+	return &net.UDPAddr{IP: ipAddr, Port: port, Zone: ""}
 }

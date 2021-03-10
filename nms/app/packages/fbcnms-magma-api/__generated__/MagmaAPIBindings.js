@@ -134,6 +134,8 @@ export type call_trace = {
     state ? : call_trace_state,
 };
 export type call_trace_config = {
+    capture_filters ? : string,
+    display_filters ? : string,
     gateway_id ? : string,
     timeout ? : number,
     trace_id: string,

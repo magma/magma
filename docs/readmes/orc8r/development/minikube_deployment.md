@@ -50,7 +50,7 @@ Mysql is a requirement to run the NMS (you can skip this step if you don't want 
 
 ```
 $ helm install mysql \
-  --namespace magma
+  --namespace magma \
   --set mysqlRootPassword=password,mysqlUser=magma,mysqlPassword=password,mysqlDatabase=magma \
     stable/mysql
 ```
@@ -80,10 +80,11 @@ $ cp -r ../../../../.cache/test_certs/* charts/secrets/.secrets/certs/.
 Create the kubernetes secrets
 
 ```
-helm template orc8r-secrets charts/secrets \
+helm template orc8r charts/secrets \
     --namespace magma \
     --set-string secret.certs.enabled=true \
     --set-file secret.certs.files."rootCA\.pem"=charts/secrets/.secrets/certs/rootCA.pem \
+    --set-file secret.certs.files."bootstrapper\.key"=charts/secrets/.secrets/certs/bootstrapper.key \
     --set-file secret.certs.files."controller\.crt"=charts/secrets/.secrets/certs/controller.crt \
     --set-file secret.certs.files."controller\.key"=charts/secrets/.secrets/certs/controller.key \
     --set-file secret.certs.files."admin_operator\.pem"=charts/secrets/.secrets/certs/admin_operator.pem \

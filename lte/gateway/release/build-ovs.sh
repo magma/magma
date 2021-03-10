@@ -40,7 +40,7 @@
 
 set -e
 WORK_DIR=/tmp/build-ovs
-OVS_VERSION_SHORT="2.8.9"
+OVS_VERSION_SHORT="2.8.10"
 OVS_VERSION="v${OVS_VERSION_SHORT}"
 MAGMA_ROOT="$(realpath "$(dirname $0)"/../../../)"
 GTP_PATCH_PATH="${MAGMA_ROOT}/third_party/gtp_ovs/kernel-4.9"

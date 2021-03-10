@@ -29,13 +29,17 @@ import (
 	"magma/orc8r/cloud/go/test_utils"
 )
 
+const (
+	testServiceMaxLoadSize = 10
+)
+
 func StartTestService(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:?_foreign_keys=1")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
 	idGenerator := sequentialIDGenerator{nextID: 1}
-	storageFactory := storage.NewSQLConfiguratorStorageFactory(db, &idGenerator, sqorc.GetSqlBuilder())
+	storageFactory := storage.NewSQLConfiguratorStorageFactory(db, &idGenerator, sqorc.GetSqlBuilder(), testServiceMaxLoadSize)
 	err = storageFactory.InitializeServiceStorage()
 	if err != nil {
 		t.Fatalf("Could not initialize storage: %s", err)
