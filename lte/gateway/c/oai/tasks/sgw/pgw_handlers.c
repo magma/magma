@@ -160,7 +160,8 @@ void handle_s5_create_session_request(
   apn = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
             .pdn_connection.apn_in_use;
 
-  switch (sgi_create_endpoint_resp.paa.pdn_type) {
+  switch (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+              .saved_message.pdn_type) {
     case IPv4:
       // Use NAS by default if no preference is set.
       //
@@ -184,8 +185,7 @@ void handle_s5_create_session_request(
       // implement different logic between the PDN types.
       if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
         pgw_handle_allocate_ipv4_address(
-            imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4", spgw_state,
-            new_bearer_ctxt_info_p, s5_response);
+            imsi, apn, &inaddr, "ipv4", context_teid, eps_bearer_id);
       }
       break;
 
@@ -214,10 +214,9 @@ void _spgw_handle_s5_response_with_error(
     teid_t context_teid, ebi_t eps_bearer_id,
     itti_sgi_create_end_point_response_t* sgi_create_endpoint_resp,
     s5_create_session_response_t* s5_response) {
-  s5_response->context_teid             = context_teid;
-  s5_response->eps_bearer_id            = eps_bearer_id;
-  s5_response->sgi_create_endpoint_resp = (*sgi_create_endpoint_resp);
-  s5_response->failure_cause            = S5_OK;
+  s5_response->context_teid  = context_teid;
+  s5_response->eps_bearer_id = eps_bearer_id;
+  s5_response->failure_cause = S5_OK;
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP,
