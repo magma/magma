@@ -22,4 +22,9 @@ const (
 	DHCPPassthroughAllocationMode = "DHCP_PASSTHROUGH"
 	// DHCPBroadcastAllocationMode DHCP Broadcast IP allocation mode
 	DHCPBroadcastAllocationMode = "DHCP_BROADCAST"
+
+	// ManagedConfigType Configuration type for managed radios
+	ManagedConfigType = "MANAGED"
+	// UnmanagedConfigType Configuration type for externally managed radios
+	UnmanagedConfigType = "UNMANAGED"
 )

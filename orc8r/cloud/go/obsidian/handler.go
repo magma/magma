@@ -15,15 +15,15 @@ package obsidian
 
 import (
 	"crypto/x509"
-	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
 	"magma/orc8r/lib/go/util"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
 
@@ -171,14 +171,28 @@ func AttachHandlers(e *echo.Echo, handlers []Handler, m ...echo.MiddlewareFunc) 
 	}
 }
 
+// HttpError wraps the passed error as an HTTP error.
+// Code is optional, defaulting to http.StatusInternalServerError (500).
 func HttpError(err error, code ...int) *echo.HTTPError {
-	var status = http.StatusInternalServerError
-	if len(code) > 0 && code[0] >= http.StatusContinue &&
-		code[0] <= http.StatusNetworkAuthenticationRequired {
+	status := http.StatusInternalServerError
+	if len(code) > 0 && isValidResponseCode(code[0]) {
 		status = code[0]
 	}
-	log.Printf("REST HTTP Error: %s, Status: %d", err, status)
+	// TODO(hcgatewood): we should be handling REST error logging and metrics via middleware
+	if isServerErrCode(status) {
+		glog.Infof("REST HTTP Error: %s, Status: %d", err, status)
+	} else {
+		glog.V(1).Infof("REST HTTP Error: %s, Status: %d", err, status)
+	}
 	return echo.NewHTTPError(status, grpc.ErrorDesc(err))
+}
+
+func isServerErrCode(code int) bool {
+	return code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired
+}
+
+func isValidResponseCode(code int) bool {
+	return code >= http.StatusContinue && code <= http.StatusNetworkAuthenticationRequired
 }
 
 func CheckWildcardNetworkAccess(c echo.Context) *echo.HTTPError {
@@ -192,8 +206,8 @@ func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
 
 	cert := getCert(c)
 	if cert == nil {
-		log.Printf(fmt.Sprintf("Client Certificate With valid SANs is required for network: %s", networkId))
-		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("Client Certificate With valid SANs is required for network: %s", networkId))
+		err := errors.Errorf("Client certificate with valid SANs is required for network: %s", networkId)
+		return HttpError(err, http.StatusForbidden)
 	}
 
 	if cert.Subject.CommonName == wildcard ||
@@ -208,11 +222,8 @@ func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
 			return nil
 		}
 	}
-	log.Printf(
-		"Client Cert %s is not authorized for network: %s",
-		util.FormatPkixSubject(&cert.Subject), networkId)
-	return echo.NewHTTPError(http.StatusForbidden,
-		"Client Certificate is not authorized")
+	glog.Infof("Client cert %s is not authorized for network: %+v", util.FormatPkixSubject(&cert.Subject), networkId)
+	return echo.NewHTTPError(http.StatusForbidden, "Client certificate is not authorized")
 }
 
 func GetNetworkId(c echo.Context) (string, *echo.HTTPError) {
@@ -235,8 +246,8 @@ func GetTenantID(c echo.Context) (int64, *echo.HTTPError) {
 	return intTenantID, CheckTenantAccess(c)
 }
 
-// CheckTenantAccess checks that the context has network wildcard access
-// i.e. is admin
+// CheckTenantAccess checks that the context has network wildcard access,
+// i.e., is admin
 func CheckTenantAccess(c echo.Context) *echo.HTTPError {
 	if !TLS {
 		return nil
@@ -244,8 +255,8 @@ func CheckTenantAccess(c echo.Context) *echo.HTTPError {
 
 	cert := getCert(c)
 	if cert == nil {
-		log.Printf("Client Certificate With valid SANs is required for tenant access")
-		return echo.NewHTTPError(http.StatusForbidden, "Client Certificate With valid SANs is required for tenant access")
+		err := errors.New("Client certificate with valid SANs is required for tenant access")
+		return HttpError(err, http.StatusForbidden)
 	}
 
 	if cert.Subject.CommonName == wildcard || cert.Subject.CommonName == networkWildcard {
@@ -256,10 +267,8 @@ func CheckTenantAccess(c echo.Context) *echo.HTTPError {
 			return nil
 		}
 	}
-	log.Printf(
-		"Client Cert %s does not have wildcard access", util.FormatPkixSubject(&cert.Subject))
-	return echo.NewHTTPError(http.StatusForbidden,
-		"Client Certificate is not authorized")
+	glog.Infof("Client cert %s does not have wildcard access", util.FormatPkixSubject(&cert.Subject))
+	return echo.NewHTTPError(http.StatusForbidden, "Client certificate is not authorized")
 }
 
 func getCert(c echo.Context) *x509.Certificate {

@@ -81,7 +81,7 @@ func NewCentralSessionController(
 // CreateSession begins a UE session by requesting rules from PCEF
 // and credit from OCS (if RatingGroup is present) and returning them.
 func (srv *CentralSessionController) CreateSession(
-	ctx context.Context,
+	_ context.Context,
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")
@@ -107,10 +107,10 @@ func (srv *CentralSessionController) CreateSession(
 	chargingKeys := srv.getChargingKeysFromRuleInstalls(staticRuleInstalls, dynamicRuleInstalls)
 	eventTriggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
 	gxOriginHost, gyOriginHost := gxCCAInit.OriginHost, ""
-	credits := []*protos.CreditUpdateResponse{}
 
+	credits := []*protos.CreditUpdateResponse{}
 	// Gy
-	if !srv.cfg.DisableGy {
+	if srv.cfg.DisableGy == false {
 		if srv.cfg.UseGyForAuthOnly {
 			return srv.handleUseGyForAuthOnly(
 				imsi, request, staticRuleInstalls, dynamicRuleInstalls, gxCCAInit)
@@ -304,7 +304,7 @@ func (srv *CentralSessionController) TerminateSession(
 	// in the event of any errors on Gx or Gy, the session should regardless be
 	// terminated, so there are no errors sent back
 	return &protos.SessionTerminateResponse{
-		Sid:       request.Sid,
+		Sid:       request.GetCommonContext().GetSid().GetId(),
 		SessionId: request.SessionId,
 	}, nil
 }
@@ -318,8 +318,12 @@ func (srv *CentralSessionController) Disable(
 	if req == nil {
 		return nil, fmt.Errorf("Nil Disable Request")
 	}
-	srv.policyClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
-	srv.creditClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
+	if srv.cfg.DisableGx == false {
+		srv.policyClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
+	}
+	if srv.cfg.DisableGy == false {
+		srv.creditClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
+	}
 	return &orcprotos.Void{}, nil
 }
 
@@ -331,13 +335,17 @@ func (srv *CentralSessionController) Enable(
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
 	multiError := errors.NewMulti()
-	err := srv.policyClient.EnableConnections()
-	if err != nil {
-		multiError.Add(fmt.Errorf("An error occurred while enabling connections; policyClient err: %s", err))
+	if srv.cfg.DisableGx == false {
+		err := srv.policyClient.EnableConnections()
+		if err != nil {
+			multiError.Add(fmt.Errorf("An error occurred while enabling connections; policyClient err: %s", err))
+		}
 	}
-	err = srv.creditClient.EnableConnections()
-	if err != nil {
-		multiError.Add(fmt.Errorf("An error occurred while enabling connections; creditClient err: %s", err))
+	if srv.cfg.DisableGy == false {
+		err := srv.creditClient.EnableConnections()
+		if err != nil {
+			multiError.Add(fmt.Errorf("An error occurred while enabling connections; creditClient err: %s", err))
+		}
 	}
 	return &orcprotos.Void{}, multiError.AsError()
 }
@@ -390,17 +398,19 @@ func (srv *CentralSessionController) GetHealthStatus(
 }
 
 func (srv *CentralSessionController) getHealthStatusForGxRequests(failures, total int64) *fegprotos.HealthStatus {
-	gxExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
-		float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
-	if gxExceedsThreshold {
-		unhealthyMsg := fmt.Sprintf("Metric Gx Request Failure Ratio >= threshold %f; %d / %d",
-			srv.healthTracker.RequestFailureThreshold,
-			failures,
-			total,
-		)
-		return &fegprotos.HealthStatus{
-			Health:        fegprotos.HealthStatus_UNHEALTHY,
-			HealthMessage: unhealthyMsg,
+	if srv.cfg.DisableGx == false {
+		gxExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
+			float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
+		if gxExceedsThreshold {
+			unhealthyMsg := fmt.Sprintf("Metric Gx Request Failure Ratio >= threshold %f; %d / %d",
+				srv.healthTracker.RequestFailureThreshold,
+				failures,
+				total,
+			)
+			return &fegprotos.HealthStatus{
+				Health:        fegprotos.HealthStatus_UNHEALTHY,
+				HealthMessage: unhealthyMsg,
+			}
 		}
 	}
 	return &fegprotos.HealthStatus{
@@ -410,17 +420,19 @@ func (srv *CentralSessionController) getHealthStatusForGxRequests(failures, tota
 }
 
 func (srv *CentralSessionController) getHealthStatusForGyRequests(failures, total int64) *fegprotos.HealthStatus {
-	gyExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
-		float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
-	if gyExceedsThreshold {
-		unhealthyMsg := fmt.Sprintf("Metric Gy Request Failure Ratio >= threshold %f; %d / %d",
-			srv.healthTracker.RequestFailureThreshold,
-			failures,
-			total,
-		)
-		return &fegprotos.HealthStatus{
-			Health:        fegprotos.HealthStatus_UNHEALTHY,
-			HealthMessage: unhealthyMsg,
+	if srv.cfg.DisableGy == false {
+		gyExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
+			float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
+		if gyExceedsThreshold {
+			unhealthyMsg := fmt.Sprintf("Metric Gy Request Failure Ratio >= threshold %f; %d / %d",
+				srv.healthTracker.RequestFailureThreshold,
+				failures,
+				total,
+			)
+			return &fegprotos.HealthStatus{
+				Health:        fegprotos.HealthStatus_UNHEALTHY,
+				HealthMessage: unhealthyMsg,
+			}
 		}
 	}
 	return &fegprotos.HealthStatus{
@@ -447,6 +459,7 @@ func injectOmnipresentRules(srv *CentralSessionController, gxCCAInit *gx.CreditC
 	}
 	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
 	if len(omnipresentRuleIDs) > 0 || len(omnipresentBaseNames) > 0 {
+		glog.V(2).Infof("Adding omnipresent rules %v and omnipresent rule base %v", omnipresentRuleIDs, omnipresentBaseNames)
 		omniRuleInstallAVPRuleInstallAVP := &gx.RuleInstallAVP{
 			RuleNames:            omnipresentRuleIDs,
 			RuleBaseNames:        omnipresentBaseNames,

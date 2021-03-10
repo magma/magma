@@ -21,6 +21,7 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/serdes"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
@@ -46,6 +47,7 @@ func GetHealthyRequest() *protos.HealthRequest {
 	serviceStatsMap := make(map[string]*protos.ServiceHealthStats)
 	serviceStatsMap["SWX_PROXY"] = &serviceStats
 	serviceStatsMap["SESSION_PROXY"] = &serviceStats
+	serviceStatsMap["S6A_PROXY"] = &serviceStats
 
 	healthStats1 := &protos.HealthStats{
 		SystemStatus: &protos.SystemHealthStats{
@@ -99,10 +101,13 @@ func GetUnhealthyRequest() *protos.HealthRequest {
 }
 
 func RegisterNetwork(t *testing.T, networkID string) {
-	err := configurator.CreateNetwork(configurator.Network{
-		ID:   TestFegNetwork,
-		Type: feg.FegNetworkType,
-	})
+	err := configurator.CreateNetwork(
+		configurator.Network{
+			ID:   TestFegNetwork,
+			Type: feg.FegNetworkType,
+		},
+		serdes.Network,
+	)
 	assert.NoError(t, err)
 }
 

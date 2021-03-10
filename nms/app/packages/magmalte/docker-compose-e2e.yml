@@ -1,0 +1,84 @@
+# Provides all dependent services
+
+version: '3.6'
+
+services:
+  postgres:
+    image: postgres:9.5
+    volumes:
+      - nms-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: nms
+      POSTGRES_USER: nms
+      POSTGRES_PASSWORD: password
+
+  nginx-proxy:
+    image: nginx
+    ports:
+      - "443:443"
+    volumes:
+      - ./docker/docker_ssl_proxy:/etc/nginx/conf.d
+    depends_on:
+      - magmalte
+
+  mock_server:
+    build:
+      context: ../..
+      dockerfile: packages/magmalte/mock/Dockerfile
+    command: "yarn run mockserver"
+    ports:
+      - "3001:3001"
+    environment:
+      API_CERT_FILENAME: /run/secrets/api_cert
+      API_PRIVATE_KEY_FILENAME: /run/secrets/api_key
+      PUPPETEER_SKIP_DOWNLOAD: "true"
+    secrets:
+      - api_cert
+      - api_key
+
+  magmalte:
+    build:
+      context: ../..
+      dockerfile: packages/magmalte/Dockerfile
+    command: "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 -- yarn run start:dev"
+    volumes:
+      - ../../packages/fbcnms-magma-api:/usr/src/packages/fbcnms-magma-api
+      - ../../packages/magmalte/app:/usr/src/packages/magmalte/app
+      - ../../packages/magmalte/scripts:/usr/src/packages/magmalte/scripts
+      - ../../packages/magmalte/server:/usr/src/packages/magmalte/server
+    depends_on:
+      - postgres
+    networks:
+      - default
+    ports:
+      - "8081:8081"
+    environment:
+      API_CERT_FILENAME: /run/secrets/api_cert
+      API_PRIVATE_KEY_FILENAME: /run/secrets/api_key
+      API_HOST: ${API_HOST:-nginx:9443}
+      PORT: 8081
+      HOST: 0.0.0.0
+      MYSQL_HOST: postgres
+      MYSQL_PORT: 5432
+      MYSQL_DB: nms
+      MYSQL_USER: nms
+      MYSQL_PASS: password
+      MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
+      MYSQL_DIALECT: postgres
+      # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+      PUPPETEER_SKIP_DOWNLOAD: "true"
+    healthcheck:
+      test: curl -If localhost:8081/healthz
+    restart: on-failure
+    secrets:
+      - api_cert
+      - api_key
+
+secrets:
+  api_cert:
+    file: ${API_CERT_FILENAME:-../../../../.cache/test_certs/admin_operator.pem}
+  api_key:
+    file: ${API_PRIVATE_KEY_FILENAME:-../../../../.cache/test_certs/admin_operator.key.pem}
+
+volumes:
+  nms-db:

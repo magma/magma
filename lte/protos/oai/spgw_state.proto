@@ -87,6 +87,8 @@ message CreateSessionMessage {
     uint32 peer_ip = 21;
 
     TimeZone ue_time_zone = 22;
+
+    string charging_characteristics = 23; // Taken from S6A UpdateLocationAnswer
 }
 
 // bearer_context_to_be_created_t
@@ -134,6 +136,8 @@ message SgwEpsBearerContext {
 
     uint32 num_sdf = 25;
     repeated uint32 sdf_ids = 26;
+
+    string policy_rule_name = 27;
 }
 
 // traffic_flow_template
@@ -174,6 +178,10 @@ message SgwBearerQos {
     Ambr mbr = 11;
 }
 
+message SpgwUeContext {
+  repeated S11BearerContext s11_bearer_context = 1;
+}
+
 // s_plus_p_gw_eps_bearer_context_information
 message S11BearerContext {
     SgwEpsBearerContextInfo sgw_eps_bearer_context = 1;
@@ -190,30 +198,11 @@ message GTPV1uData {
     uint32 fd1u = 5;
 }
 
-// sdf_template_t
-message SdfTemplate {
-    uint32 number_of_packet_filters = 1;
-    repeated PacketFilter sdf_filter = 2;
-}
-
-// pcc_rule
-message PccRule {
-    string name = 1;
-    bool is_activated = 2;
-    uint32 sdf_id = 3;
-    SgwBearerQos bearer_qos = 4;
-    uint32 precedence = 5;
-
-    SdfTemplate sdf_template = 10;
-}
-
 message SpgwState {
     uint32 last_tunnel_id = 1;
     uint32 gtpv1u_teid = 2;
-    map<uint32, PccRule> deactivated_predefined_pcc_rules = 3;
-    map<uint32, PccRule> predefined_pcc_rules = 4;
+
     repeated uint64 ipv4_list_free = 5;
     repeated uint64 ipv4_list_allocated = 6;
     GTPV1uData gtpv1u_data = 7;
 }
-

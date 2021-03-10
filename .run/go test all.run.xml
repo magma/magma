@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="go test all" type="Multirun" factoryName="Multirun" singleton="false" separateTabs="true" reuseTabsWithFailures="false" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="true" delayTime="4.0">
+    <runConfiguration name="go test orc8r" type="Go Test" />
+    <runConfiguration name="go test orc8r/lib" type="Go Test" />
+    <runConfiguration name="go test lte" type="Go Test" />
+    <runConfiguration name="go test feg" type="Go Test" />
+    <runConfiguration name="go test cwf" type="Go Test" />
+    <runConfiguration name="go test fbinternal" type="Go Test" />
+    <runConfiguration name="go test wifi" type="Go Test" />
+    <method v="2" />
+  </configuration>
+</component>

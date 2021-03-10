@@ -74,3 +74,27 @@ func validateUEOpc(opc []byte) error {
 	}
 	return nil
 }
+
+// validateUEMSISDN ensures that a UE data is valid for HssLess authentication.
+func validateUEMSISDN(msisdn string) error {
+	isOnlyDigits, err := regexp.MatchString(`^[0-9]*$`, msisdn)
+	if err != nil || !isOnlyDigits {
+		return errors.New("Invalid Argument: MSISDN must only be digits")
+	}
+	return nil
+}
+
+// validateUEDataForHssLess ensures that a UE data proto is not nil and that it contains
+// a valid MSISDN.
+func validateUEDataForHssLess(ue *protos.UEConfig) error {
+	if ue == nil {
+		return errors.New("Invalid Argument: UE data cannot be nil")
+	}
+	/*Validate MSISDN */
+	errMSISDN := validateUEMSISDN(ue.GetHsslessCfg().GetMsisdn())
+	if errMSISDN != nil {
+		return errMSISDN
+	}
+
+	return nil
+}

@@ -33,6 +33,7 @@ export default function FddConfig(props: Props) {
         <AltFormField label={'EARFCNDL'}>
           <OutlinedInput
             fullWidth={true}
+            placeholder="Enter EARFCNDL"
             data-testid="earfcndl"
             type="number"
             value={props.lteRanConfigs.fdd_config?.earfcndl}
@@ -53,6 +54,7 @@ export default function FddConfig(props: Props) {
         <AltFormField label={'EARFCNUL'}>
           <OutlinedInput
             fullWidth={true}
+            placeholder="Enter EARFCNUL"
             type="number"
             data-testid="earfcnul"
             value={props.lteRanConfigs.fdd_config?.earfcnul}

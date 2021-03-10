@@ -33,8 +33,6 @@
 #include "s1ap_messages_types.h"
 #include "s1ap_state.h"
 
-struct s1ap_message_s;
-
 /** \brief Handle an Initial UE message.
  * \param assocId lower layer assoc id (SCTP)
  * \param stream SCTP stream on which data had been received
@@ -43,7 +41,7 @@ struct s1ap_message_s;
  **/
 int s1ap_mme_handle_initial_ue_message(
     s1ap_state_t* state, const sctp_assoc_id_t assocId,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
 /** \brief Handle an Uplink NAS transport message.
  * Process the RRC transparent container and forward it to NAS entity.
@@ -54,7 +52,7 @@ int s1ap_mme_handle_initial_ue_message(
  **/
 int s1ap_mme_handle_uplink_nas_transport(
     s1ap_state_t* state, const sctp_assoc_id_t assocId,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
 /** \brief Handle a NAS non delivery indication message from eNB
  * \param assocId lower layer assoc id (SCTP)
@@ -64,7 +62,7 @@ int s1ap_mme_handle_uplink_nas_transport(
  **/
 int s1ap_mme_handle_nas_non_delivery(
     s1ap_state_t* state, const sctp_assoc_id_t assocId,
-    const sctp_stream_id_t stream, struct s1ap_message_s* message);
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
 void s1ap_handle_conn_est_cnf(
     s1ap_state_t* state,

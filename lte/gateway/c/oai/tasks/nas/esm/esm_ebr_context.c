@@ -297,14 +297,7 @@ ebi_t esm_ebr_context_release(
             "ESM-PROC  - PDN connection identifier %d "
             "is not valid\n",
             *pid);
-      } /*else if
-      (!ue_mm_context->active_pdn_contexts[*pid]->esm_data.is_active) {
-        OAILOG_WARNING (LOG_NAS_ESM , "ESM-PROC  - PDN connection %d is not
-      active\n", *pid); } else if (esm_ctx->pdn[*pid].data == NULL) {
-        OAILOG_ERROR(LOG_NAS_ESM , "ESM-PROC  - PDN connection %d has not been "
-      "allocated\n", *pid);
-      } */
-      else {
+      } else {
         if (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid]) {
           pdn   = &ue_mm_context->pdn_contexts[*pid]->esm_data;
           ebi   = ue_mm_context->bearer_contexts[*bid]->ebi;

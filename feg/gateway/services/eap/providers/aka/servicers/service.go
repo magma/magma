@@ -15,6 +15,8 @@ limitations under the License.
 package servicers
 
 import (
+	"os"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -23,6 +25,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/metrics"
 )
@@ -68,9 +71,11 @@ type EapAkaSrv struct {
 	sessions map[string]*SessionCtx
 
 	// PLMN IDs map, if not empty -> serve only IMSIs with specified PLMN IDs - Read Only
-	plmnIds map[string]plmnIdVal
+	plmnFilter plmn_filter.PlmnIdVals
 
 	timeouts touts
+	useS6a   bool
+	mncLen   int32
 }
 
 var defaultTimeouts = touts{
@@ -115,9 +120,10 @@ func (s *EapAkaSrv) SetSessionAuthenticatedTimeout(tout time.Duration) {
 // NewEapAkaService creates new Aka Service 'object'
 func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 	service := &EapAkaSrv{
-		sessions: map[string]*SessionCtx{},
-		plmnIds:  map[string]plmnIdVal{},
-		timeouts: defaultTimeouts,
+		sessions:   map[string]*SessionCtx{},
+		plmnFilter: plmn_filter.PlmnIdVals{},
+		timeouts:   defaultTimeouts,
+		mncLen:     3,
 	}
 	if config != nil {
 		if config.Timeout != nil {
@@ -135,18 +141,19 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 					time.Millisecond * time.Duration(config.Timeout.SessionAuthenticatedMs))
 			}
 		}
-		for _, plmnid := range config.PlmnIds {
-			l := len(plmnid)
-			switch l {
-			case 5:
-				service.plmnIds[plmnid] = plmnIdVal{l5: true}
-			case 6:
-				plmnid5 := plmnid[:5]
-				val, _ := service.plmnIds[plmnid5]
-				val.b6 = plmnid[5]
-				service.plmnIds[plmnid5] = val
-			}
+		service.plmnFilter = plmn_filter.GetPlmnVals(config.PlmnIds, "EAP-AKA")
+		service.useS6a = config.GetUseS6A()
+		if mncLn := config.GetMncLen(); mncLn >= 2 && mncLn <= 3 {
+			service.mncLen = mncLn
 		}
+	}
+	if useS6aStr, isset := os.LookupEnv("USE_S6A_BASED_AUTH"); isset {
+		service.useS6a, _ = strconv.ParseBool(useS6aStr)
+	}
+	if service.useS6a {
+		glog.Info("EAP-AKA: Using S6a Auth Vectors")
+	} else {
+		glog.Info("EAP-AKA: Using SWx Auth Vectors")
 	}
 	return service, nil
 }
@@ -154,13 +161,7 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 // CheckPlmnId returns true either if there is no PLMN ID filters (allowlist) configured or
 // one the configured PLMN IDs matches passed IMSI
 func (s *EapAkaSrv) CheckPlmnId(imsi aka.IMSI) bool {
-	if len(s.plmnIds) == 0 {
-		return true
-	}
-	if val, ok := s.plmnIds[string(imsi)[:5]]; ok && (val.l5 || (len(imsi) > 5 && val.b6 == imsi[6])) {
-		return true
-	}
-	return false
+	return s == nil || s.plmnFilter.Check(string(imsi))
 }
 
 // Unlock - unlocks the CTX
@@ -204,6 +205,7 @@ func (lockedCtx *UserCtx) Lifetime() float64 {
 func (s *EapAkaSrv) InitSession(sessionId string, imsi aka.IMSI) (lockedUserContext *UserCtx) {
 	var (
 		oldSessionTimer *time.Timer
+		oldSessionState aka.AkaState
 	)
 	// create new session with long session wide timeout
 	t := time.Now()
@@ -220,12 +222,17 @@ func (s *EapAkaSrv) InitSession(sessionId string, imsi aka.IMSI) (lockedUserCont
 	s.rwl.Lock()
 	if oldSession, ok := s.sessions[sessionId]; ok && oldSession != nil {
 		oldSessionTimer, oldSession.CleanupTimer = oldSession.CleanupTimer, nil
+		oldSessionState = oldSession.state
 	}
 	s.sessions[sessionId] = newSession
 	s.rwl.Unlock()
 
 	if oldSessionTimer != nil {
 		oldSessionTimer.Stop()
+		// Copy Redirected state to a new session to avoid auth thrashing between EAP methods
+		if oldSessionState == aka.StateRedirected {
+			newSession.state = aka.StateRedirected
+		}
 	}
 	return uc
 }
@@ -428,4 +435,17 @@ func (s *EapAkaSrv) ResetSessionTimeout(sessionId string, newTimeout time.Durati
 	if oldTimer != nil {
 		oldTimer.Stop()
 	}
+}
+
+func (s *EapAkaSrv) UseS6a() bool {
+	if s != nil {
+		return s.useS6a
+	}
+	return false
+}
+func (s *EapAkaSrv) MncLen() int {
+	if s != nil {
+		return int(s.mncLen)
+	}
+	return 3
 }

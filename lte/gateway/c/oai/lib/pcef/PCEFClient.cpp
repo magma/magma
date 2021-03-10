@@ -89,4 +89,26 @@ void PCEFClient::end_session(
   local_response->set_response_reader(std::move(response_reader));
 }
 
+void PCEFClient::bind_policy2bearer(
+    const PolicyBearerBindingRequest& request,
+    std::function<void(Status, PolicyBearerBindingResponse)> callback) {
+  PCEFClient& client  = get_instance();
+  auto local_response = new AsyncLocalResponse<PolicyBearerBindingResponse>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  auto response_reader = client.stub_->AsyncBindPolicy2Bearer(
+      local_response->get_context(), request, &client.queue_);
+  local_response->set_response_reader(std::move(response_reader));
+}
+
+void PCEFClient::update_teids(
+    const UpdateTunnelIdsRequest& request,
+    std::function<void(Status, UpdateTunnelIdsResponse)> callback) {
+  PCEFClient& client  = get_instance();
+  auto local_response = new AsyncLocalResponse<UpdateTunnelIdsResponse>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  auto response_reader = client.stub_->AsyncUpdateTunnelIds(
+      local_response->get_context(), request, &client.queue_);
+  local_response->set_response_reader(std::move(response_reader));
+}
+
 }  // namespace magma

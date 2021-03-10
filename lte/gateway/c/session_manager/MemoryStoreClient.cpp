@@ -26,7 +26,7 @@ SessionMap MemoryStoreClient::read_sessions(
     std::set<std::string> subscriber_ids) {
   auto session_map = SessionMap{};
   for (const auto& subscriber_id : subscriber_ids) {
-    auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+    auto sessions = SessionVector{};
     if (session_map_.find(subscriber_id) != session_map_.end()) {
       for (auto& stored_session : session_map_[subscriber_id]) {
         auto session = SessionState::unmarshal(stored_session, *rule_store_);
@@ -41,7 +41,7 @@ SessionMap MemoryStoreClient::read_sessions(
 SessionMap MemoryStoreClient::read_all_sessions() {
   auto session_map = SessionMap{};
   for (auto& it : session_map_) {
-    auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+    auto sessions = SessionVector{};
     for (auto& stored_session : it.second) {
       auto session = SessionState::unmarshal(stored_session, *rule_store_);
       sessions.push_back(std::move(session));
@@ -57,6 +57,11 @@ bool MemoryStoreClient::write_sessions(SessionMap session_map) {
     for (auto const& session : it.second) {
       auto stored_session = session->marshal();
       sessions.push_back(stored_session);
+    }
+    if (sessions.empty()) {
+      // if session is empty that means subs should be deleted from the map
+      session_map_.erase(it.first);
+      continue;
     }
     session_map_[it.first] = std::move(sessions);
   }

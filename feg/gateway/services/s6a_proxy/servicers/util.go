@@ -16,15 +16,14 @@ limitations under the License.
 package servicers
 
 import (
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
-
-	"github.com/fiorix/go-diameter/v4/diam"
 )
 
 func (s *s6aProxy) addDiamOriginAVPs(m *diam.Message) {
-	m.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.clientCfg.Host))
-	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.clientCfg.Realm))
+	m.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Host))
+	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Realm))
 	if s.originStateID != 0 {
 		m.NewAVP(avp.OriginStateID, avp.Mbit, 0, datatype.Unsigned32(s.originStateID))
 	}

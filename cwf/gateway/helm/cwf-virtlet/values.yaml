@@ -1,0 +1,151 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Default values for cwf.
+# This is a YAML-formatted file.
+# Declare name/value pairs to be passed into your templates.
+# name: value
+
+release_group: null
+
+# Reference to one or more secrets to be used when pulling images
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# - name: orc8r-secrets-registry
+
+# secrets sub-chart configuration.
+secrets:
+  create: false
+
+# Define which secrets should be mounted by pods.
+secret:
+  certs: orc8r-secrets-certs
+#  gwinfo: cwf-secrets-gwinfo
+#  dpi_licence: cwf-secrets-dpi
+
+## Key Values for docker inside VM
+cwf:
+  type: cwag
+  gateway_ha:
+    enabled: false
+  image:
+    docker_registry: ""
+    tag: "latest"
+    #username:
+    #password:
+  log_aggregation:
+    enabled: false
+    fluentd_address: fluentd.magma.svc.cluster.local
+    fluentd_port: 24224
+  proxy:
+    local_port: 8443
+    cloud_address: orc8r-proxy.magma.svc.cluster.local
+    cloud_port: 9443
+    bootstrap_address: bootstrap-legacy.magma.svc.cluster.local
+    bootstrap_port: 443
+  redis:
+    port: 6380
+    bind: 127.0.0.1
+  repo:
+    url: https://github.com/magma/magma.git
+    branch: master
+#  dpi:
+#    dpi_license_name: cwftest.bin
+#  env: |
+#    INGRESS_PORT=eth1
+#    UPLINK_PORTS=eth2 eth3
+#    LI_PORT=eth4
+
+
+## Key Values for VM running using virtlet runtime
+image:
+  repository: virtlet.cloud/cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+labels:
+  node_selector_key: extraRuntime
+  node_selector_value: virtlet
+
+pod:
+  replicas:
+    server: 1
+  resources:
+    enabled: true
+    server:
+      requests:
+        memory: "2048Mi"
+        cpu: "1000m"
+      limits:
+        memory: "4096Mi"
+        cpu: "4000m"
+
+service:
+  type: LoadBalancer
+  ports:
+    local:
+      port: 8443
+      targetport: 8443
+      nodePort: ""
+    cloud:
+      port: 9443
+      targetport: 9443
+      nodePort: ""
+    bootstrap:
+      port: 9444
+      targetport: 9444
+      nodePort: ""
+    ssh:
+      port: 22
+      targetport: 22
+      nodePort: ""
+    radiusaccount:
+      port: 1812
+      targetport: 1812
+      nodePort: ""
+    radiusauth:
+      port: 1813
+      targetport: 1813
+      nodePort: ""
+    health:
+      port: 9107
+      target: 9107
+      nodePort: ""
+tolerations: []
+
+affinity: {}
+
+virtlet:
+  vcpuCount: 4
+  rootVolumeSize: 20Gi
+  diskDriver: virtio
+  sshKeys: |
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCaJEcFDXEK2ZbX0ZLS1EIYFZRbDAc
+  ssh_pwauth: True
+  user:
+    users:
+    - name: testuser
+      gecos: User
+      primary-group: testuser
+      groups: users
+      lock_passwd: false
+      shell: /bin/bash
+      # the password is "testuser"
+      passwd: "$6$rounds=4096$wPs4Hz4tfs$a8ssMnlvH.3GX88yxXKF2cKMlVULsnydoOKgkuStTErTq2dzKZiIx9R/pPWWh5JLxzoZEx7lsSX5T2jW5WISi1"
+      sudo: ALL=(ALL) NOPASSWD:ALL
+
+manifests:
+  deployment: true
+  service: true
+  configmap_env: true
+  rbac: true

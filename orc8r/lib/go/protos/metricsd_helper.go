@@ -26,10 +26,9 @@ import (
 // GetEnumNameIfPossible tries to convert a string enum value to the associated
 // enum name. If toConvert doesn't match up with any mapping in protoEnumMapping
 // then this function just returns the original toConvert string.
-func GetEnumNameIfPossible(toConvert string,
-	protoEnumMapping map[int32]string) string {
-	enumVal, err := strconv.Atoi(toConvert)
+func GetEnumNameIfPossible(toConvert string, protoEnumMapping map[int32]string) string {
 	nameStr := ""
+	enumVal, err := strconv.ParseInt(toConvert, 10, 32)
 	if err == nil {
 		nameStr = proto.EnumName(protoEnumMapping, int32(enumVal))
 	} else {

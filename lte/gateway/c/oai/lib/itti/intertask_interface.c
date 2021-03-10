@@ -129,12 +129,28 @@ int send_msg_to_task(
       message, sizeof(MessageHeader) + message->ittiMsgHeader.ittiMsgSize);
   assert(frame);
 
+  // Protect against multiple threads using this context
+  pthread_mutex_lock(&task_zmq_ctx_p->send_mutex);
   int rc =
       zframe_send(&frame, task_zmq_ctx_p->push_socks[destination_task_id], 0);
   assert(rc == 0);
+  pthread_mutex_unlock(&task_zmq_ctx_p->send_mutex);
 
   free(message);
   return 0;
+}
+
+MessageDef* receive_msg(zsock_t* reader) {
+  zframe_t* msg_frame = zframe_recv(reader);
+  assert(msg_frame);
+
+  // Copy message to avoid memory alignment problems
+  MessageDef* msg = (MessageDef*) malloc(zframe_size(msg_frame));
+  AssertFatal(msg != NULL, "Message memory allocation failed!\n");
+  memcpy(msg, zframe_data(msg_frame), zframe_size(msg_frame));
+
+  zframe_destroy(&msg_frame);
+  return msg;
 }
 
 void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message) {
@@ -181,6 +197,8 @@ void init_task_context(
 
   task_zmq_ctx_p->event_loop = zloop_new();
   assert(task_zmq_ctx_p->event_loop);
+
+  pthread_mutex_init(&task_zmq_ctx_p->send_mutex, NULL);
 
   for (int i = 0; i < remote_tasks_count; i++) {
     task_zmq_ctx_p->push_socks[remote_task_ids[i]] =
@@ -269,6 +287,7 @@ static MessageDef* itti_alloc_new_message_sized(
   new_msg->ittiMsgHeader.messageId    = message_id;
   new_msg->ittiMsgHeader.originTaskId = origin_task_id;
   new_msg->ittiMsgHeader.ittiMsgSize  = size;
+  new_msg->ittiMsgHeader.imsi         = 0;
 
   return new_msg;
 }
@@ -355,6 +374,9 @@ int itti_init(
       thread_max, messages_id_max);
   CHECK_INIT_RETURN(signal_mask());
 
+  // This assert make sure \ref ittiMsg directly following \ref ittiMsgHeader.
+  // See \ref MessageDef definition for details.
+  assert(sizeof(MessageHeader) == offsetof(MessageDef, ittiMsg));
   // Saves threads and messages max values
 
   itti_desc.task_max                = task_max;

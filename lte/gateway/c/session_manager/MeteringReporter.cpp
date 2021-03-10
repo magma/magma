@@ -13,6 +13,9 @@
 
 #include "MagmaService.h"
 #include "MeteringReporter.h"
+#include "MetricsHelpers.h"
+
+using magma::service303::increment_counter;
 
 namespace magma {
 namespace lte {
@@ -46,20 +49,17 @@ void MeteringReporter::report_usage(
     total_rx += (double) credit_update.bucket_deltas[USED_RX];
   }
 
-  report_upload(imsi, session_id, total_tx);
-  report_download(imsi, session_id, total_rx);
+  report_traffic(imsi, session_id, DIRECTION_UP, total_tx);
+  report_traffic(imsi, session_id, DIRECTION_DOWN, total_rx);
 }
 
-void MeteringReporter::report_upload(
+void MeteringReporter::initialize_usage(
     const std::string& imsi, const std::string& session_id,
-    double unreported_usage_bytes) {
-  report_traffic(imsi, session_id, DIRECTION_UP, unreported_usage_bytes);
-}
-
-void MeteringReporter::report_download(
-    const std::string& imsi, const std::string& session_id,
-    double unreported_usage_bytes) {
-  report_traffic(imsi, session_id, DIRECTION_DOWN, unreported_usage_bytes);
+    SessionCredit::TotalCreditUsage usage) {
+  auto tx = usage.monitoring_tx + usage.charging_tx;
+  auto rx = usage.monitoring_rx + usage.charging_rx;
+  report_traffic(imsi, session_id, DIRECTION_UP, tx);
+  report_traffic(imsi, session_id, DIRECTION_DOWN, rx);
 }
 
 void MeteringReporter::report_traffic(
@@ -69,14 +69,6 @@ void MeteringReporter::report_traffic(
       COUNTER_NAME, unreported_usage_bytes, size_t(3), LABEL_IMSI, imsi.c_str(),
       LABEL_SESSION_ID, session_id.c_str(), LABEL_DIRECTION,
       traffic_direction.c_str());
-}
-
-void MeteringReporter::increment_counter(
-    const char* name, double increment, size_t n_labels, ...) {
-  va_list ap;
-  va_start(ap, n_labels);
-  MetricsSingleton::Instance().IncrementCounter(name, increment, n_labels, ap);
-  va_end(ap);
 }
 
 }  // namespace lte

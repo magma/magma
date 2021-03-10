@@ -88,7 +88,7 @@ func init() {
 // either loaded from preexisting environment variables or specified through command line
 // flags.
 // Example usage:
-//   gx_client_cli --imsi=001010000000001 --sid="1234" commands="I"
+//   gx_client_cli --imsi=001010000000001 --sid="1234" --commands="I"
 func main() {
 	flag.Parse()
 

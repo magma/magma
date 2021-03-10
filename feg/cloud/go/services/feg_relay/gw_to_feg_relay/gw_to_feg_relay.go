@@ -11,10 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// h2c server serving requests from FeG to AG.
+// gw_to_feg_relay is h2c & GRPC server serving requests from AGWs to FeG
 package gw_to_feg_relay
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -22,7 +23,12 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+
 	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/http2"
@@ -31,11 +37,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -72,9 +73,7 @@ func (server *GatewayToFeGServer) Serve(listener net.Listener) {
 	server.H2CServer.Serve(listener, server.useDispatcherHandler)
 }
 
-func (server *GatewayToFeGServer) useDispatcherHandler(
-	responseWriter http.ResponseWriter, req *http.Request,
-) {
+func (server *GatewayToFeGServer) useDispatcherHandler(responseWriter http.ResponseWriter, req *http.Request) {
 	// check calling gateway's identity through certifier
 	gw, err := getGatewayIdentity(req.Header)
 	if err != nil || gw == nil {
@@ -132,7 +131,6 @@ func (server *GatewayToFeGServer) useDispatcherHandler(
 		glog.Errorf(respErr.Error())
 		http2.WriteErrResponse(responseWriter, respErr)
 	}
-	return
 }
 
 func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *http2.HTTPGrpcError) {
@@ -154,7 +152,7 @@ func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *htt
 }
 
 func getFeGHwIdForNetwork(agNwID string) (string, error) {
-	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType)
+	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType, serdes.Network)
 	if err != nil {
 		return "", fmt.Errorf("could not load federated network configs for access network %s: %s", agNwID, err)
 	}
@@ -165,7 +163,7 @@ func getFeGHwIdForNetwork(agNwID string) (string, error) {
 	if federatedConfig.FegNetworkID == nil || *federatedConfig.FegNetworkID == "" {
 		return "", fmt.Errorf("FegNetworkID is empty in network config of network: %s", agNwID)
 	}
-	fegCfg, err := configurator.LoadNetworkConfig(*federatedConfig.FegNetworkID, feg.FegNetworkType)
+	fegCfg, err := configurator.LoadNetworkConfig(*federatedConfig.FegNetworkID, feg.FegNetworkType, serdes.Network)
 	if err != nil || fegCfg == nil {
 		return "", fmt.Errorf("unable to retrieve config for federation network: %s", *federatedConfig.FegNetworkID)
 	}
@@ -211,13 +209,13 @@ func getGatewayIdentity(headers http.Header) (*protos.Identity_Gateway, error) {
 	}
 	md := map[string]string{}
 	snKeys := headers[ClientCertSnKeyHttpHeader]
-	if snKeys != nil && len(snKeys) == 1 {
+	if len(snKeys) == 1 {
 		md[ClientCertSnKeyHttpHeader] = snKeys[0]
 	} else {
 		return nil, fmt.Errorf("no client cert header present to determine gateway identity")
 	}
 	cnKeys := headers[ClientCertCnKeyHttpHeader]
-	if cnKeys != nil && len(cnKeys) == 1 {
+	if len(cnKeys) == 1 {
 		md[ClientCertCnKeyHttpHeader] = cnKeys[0]
 	}
 	ctx := metadata.NewIncomingContext(context.Background(), metadata.New(md))
@@ -230,14 +228,14 @@ func getGatewayIdentity(headers http.Header) (*protos.Identity_Gateway, error) {
 }
 
 func processResponse(w http.ResponseWriter, resp *http.Response) *http2.HTTPGrpcError {
-	glog.V(5).Infof("response header: %v\n response trailer "+
-		"before reading body: %v\n response statusCode: %v\n",
-		resp.Header, resp.Trailer, resp.StatusCode)
 	if resp == nil {
 		errMsg := "nil http response"
-		return http2.NewHTTPGrpcError(errMsg,
-			int(codes.Internal), http.StatusInternalServerError)
+		return http2.NewHTTPGrpcError(errMsg, int(codes.Internal), http.StatusInternalServerError)
 	}
+	glog.V(5).Infof(
+		"response header: %v\n response trailer before reading body: %v\n response statusCode: %v\n",
+		resp.Header, resp.Trailer, resp.StatusCode,
+	)
 	writeHeadersToResponseWriter(resp.Header, w)
 	payload, err := getRespPayload(resp.Body)
 	if err != nil || payload == nil {

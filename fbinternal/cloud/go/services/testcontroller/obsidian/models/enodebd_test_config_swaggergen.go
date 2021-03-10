@@ -29,7 +29,7 @@ type EnodebdTestConfig struct {
 
 	// enodeb config
 	// Required: true
-	EnodebConfig *models2.EnodebConfiguration `json:"enodeb_config"`
+	EnodebConfig *models2.EnodebConfig `json:"enodeb_config"`
 
 	// Network for the test case
 	// Required: true

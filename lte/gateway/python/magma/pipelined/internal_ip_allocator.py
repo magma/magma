@@ -40,7 +40,7 @@ class InternalIPAllocator:
     def next_ip(self):
         with self._lock:
             ip = next(self.internal_ip_iterator, None)
-            while str(ip) in self._invalid_ips:
+            while ip is None or str(ip) in self._invalid_ips:
                 ip = next(self.internal_ip_iterator, None)
                 if ip is None:
                     self.internal_ip_iterator = self.internal_ip_network.hosts()

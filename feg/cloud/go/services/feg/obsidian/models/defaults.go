@@ -17,11 +17,13 @@ func NewDefaultNetworkFederationConfigs() *NetworkFederationConfigs {
 	return &NetworkFederationConfigs{
 		AaaServer:        newDefaultAaaServer(),
 		EapAka:           newDefaultEapAka(),
+		EapSim:           newDefaultEapSim(),
 		Gx:               newDefaultGx(),
 		Gy:               newDefaultGy(),
 		Health:           newDefaultHealth(),
 		Hss:              newDefaultHss(),
 		S6a:              newDefaultS6a(),
+		S8:               newDefaultS8(),
 		ServedNetworkIds: newDefaultServedNetworkIds(),
 		Swx:              newDefaultSwx(),
 		Csfb:             newDefaultCsfb(),
@@ -33,7 +35,7 @@ func NewDefaultModifiedNetworkFederationConfigs() *NetworkFederationConfigs {
 	configs.AaaServer = &AaaServer{
 		AccountingEnabled:    true,
 		CreateSessionOnAuth:  true,
-		IDLESessionTimeoutMs: 11600000,
+		IdleSessionTimeoutMs: 11600000,
 	}
 	return configs
 }
@@ -42,11 +44,13 @@ func NewDefaultGatewayFederationConfig() *GatewayFederationConfigs {
 	return &GatewayFederationConfigs{
 		AaaServer:        newDefaultAaaServer(),
 		EapAka:           newDefaultEapAka(),
+		EapSim:           newDefaultEapSim(),
 		Gx:               newDefaultGx(),
 		Gy:               newDefaultGy(),
 		Health:           newDefaultHealth(),
 		Hss:              newDefaultHss(),
 		S6a:              newDefaultS6a(),
+		S8:               newDefaultS8(),
 		ServedNetworkIds: newDefaultServedNetworkIds(),
 		Swx:              newDefaultSwx(),
 		Csfb:             newDefaultCsfb(),
@@ -57,6 +61,17 @@ func NewDefaultFederatedNetworkConfigs() *FederatedNetworkConfigs {
 	fegNetworkID := "n1"
 	return &FederatedNetworkConfigs{
 		FegNetworkID: &fegNetworkID,
+		FederatedModesMapping: &FederatedModeMap{
+			Enabled: true,
+			Mapping: []*ModeMapItem{
+				{
+					Mode:      "s8_subscriber",
+					Apn:       "internet1",
+					ImsiRange: "000000000000001",
+					Plmn:      "00101",
+				},
+			},
+		},
 	}
 }
 
@@ -64,35 +79,49 @@ func newDefaultAaaServer() *AaaServer {
 	return &AaaServer{
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
-		IDLESessionTimeoutMs: 21600000,
+		IdleSessionTimeoutMs: 21600000,
 	}
 }
 
 func newDefaultEapAka() *EapAka {
 	return &EapAka{
-		PlmnIds: []string{"123456"},
+		PlmnIds: []string{},
 		Timeout: &EapAkaTimeouts{
 			ChallengeMs:            20000,
 			ErrorNotificationMs:    10000,
 			SessionAuthenticatedMs: 5000,
 			SessionMs:              43200000,
 		},
+		MncLen: 3,
+	}
+}
+
+func newDefaultEapSim() *EapSim {
+	return &EapSim{
+		PlmnIds: []string{},
+		Timeout: &EapSimTimeouts{
+			ChallengeMs:            20000,
+			ErrorNotificationMs:    10000,
+			SessionAuthenticatedMs: 5000,
+			SessionMs:              43200000,
+		},
+		MncLen: 3,
 	}
 }
 
 func newDefaultGx() *Gx {
 	return &Gx{
-		Server:       newDefaultDiameterClientConfigs(),
-		OverwriteApn: "",
+		Server:          newDefaultDiameterClientConfigs(),
+		VirtualApnRules: []*VirtualApnRule{},
 	}
 }
 
 func newDefaultGy() *Gy {
 	initMethod := uint32(float32(1))
 	return &Gy{
-		InitMethod:   &initMethod,
-		Server:       newDefaultDiameterClientConfigs(),
-		OverwriteApn: "",
+		InitMethod:      &initMethod,
+		Server:          newDefaultDiameterClientConfigs(),
+		VirtualApnRules: []*VirtualApnRule{},
 	}
 }
 
@@ -162,7 +191,15 @@ func newDefaultHss() *Hss {
 
 func newDefaultS6a() *S6a {
 	return &S6a{
-		Server: newDefaultDiameterClientConfigs(),
+		Server:  newDefaultDiameterClientConfigs(),
+		PlmnIds: []string{"123456"},
+	}
+}
+
+func newDefaultS8() *S8 {
+	return &S8{
+		LocalAddress: "10.0.0.1",
+		PgwAddress:   "10.0.0.2",
 	}
 }
 

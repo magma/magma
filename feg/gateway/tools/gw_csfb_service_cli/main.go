@@ -46,10 +46,6 @@ var marshallerMap = map[string]marshalFunc{
 	"VLRS":   marshalVLRStatus,
 }
 
-func init() {
-	flag.Parse()
-}
-
 func main() {
 	// setting up flags of the CLI
 	helpPtr := flag.Bool("help", false, "[optional] Display this help message")

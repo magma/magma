@@ -110,4 +110,9 @@ class ConfigManagerTest(TestCase):
             loader.assert_called_once_with()
             restarter.assert_called_once_with(['metricsd'])
             updater.assert_called_once_with(update_str)
-            processed_updates.assert_called_once_with(updates)
+
+            configs_by_service = {
+                'magmad': updated_mconfig.configs_by_key['magmad'],
+                'metricsd': updated_mconfig.configs_by_key['metricsd'],
+            }
+            processed_updates.assert_called_once_with(configs_by_service)

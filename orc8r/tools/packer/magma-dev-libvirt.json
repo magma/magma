@@ -1,0 +1,130 @@
+{
+  "variables": {
+    "cloud_token": "{{ env `ATLAS_TOKEN` }}",
+    "version": "1.0.{{timestamp}}",
+    "cpus": "2",
+    "memory": "2048",
+    "disk_size": "40G",
+    "boot_wait": "10s"
+  },
+  "builders": [{
+    "type": "qemu",
+    "vm_name": "magma-dev",
+    "iso_checksum": "md5:5c583fd40360fd039b3ac98387b77dbb",
+    "iso_url": "https://cdimage.debian.org/mirror/cdimage/archive/9.2.1/amd64/iso-cd/debian-9.2.1-amd64-netinst.iso",
+    "disk_size": "{{ user `disk_size` }}",
+    "headless": true,
+    "http_directory": ".",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+    "ssh_wait_timeout": "64206s",
+    "format": "qcow2",
+    "skip_compaction": false,
+    "disk_compression": true,
+    "accelerator": "kvm",
+    "qemuargs": [
+      [ "-smp", "{{ user `cpus` }}" ],
+      [ "-m", "{{ user `memory` }}M" ]
+    ],
+
+    "boot_wait": "{{ user `boot_wait` }}",
+    "boot_command":
+    [
+      "<esc><wait>",
+      "install ",
+      "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/magma-libvirt.seed <wait>",
+      "debian-installer=en_US ",
+      "auto=true ",
+      "locale=en_US ",
+      "kbd-chooser/method=us ",
+      "keyboard-configuration/xkb-keymap=us ",
+      "netcfg/get_hostname={{ .Name }} <wait>",
+      "netcfg/get_domain=magma.com <wait>",
+      "fb=false ",
+      "debconf/frontend=noninteractive ",
+      "console-setup/ask_detect=false ",
+      "console-keymaps-at/keymap=us ",
+      "<enter><wait>"
+    ]
+  }],
+  "provisioners": [
+{
+      "type": "shell",
+      "script": "scripts/provision-stretch.sh",
+      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}"
+    },{
+      "type": "shell",
+      "inline": ["sudo reboot"],
+      "expect_disconnect": true
+    },{
+      "type": "shell",
+      "script": "scripts/guest_additions.sh",
+      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}",
+      "pause_before": "10s"
+    }, {
+      "type": "shell",
+      "script": "scripts/vagrant_key.sh",
+      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/setup.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/ansible_debian.sh"
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "../../../lte/gateway/deploy/magma_dev.yml",
+      "inventory_groups": "dev",
+      "role_paths": [
+        "../../../orc8r/tools/ansible/roles/apt_cache",
+        "../../../orc8r/tools/ansible/roles/distro_snapshot",
+        "../../../orc8r/tools/ansible/roles/docker",
+        "../../../orc8r/tools/ansible/roles/fluent_bit",
+        "../../../orc8r/tools/ansible/roles/gateway_dev",
+        "../../../orc8r/tools/ansible/roles/gateway_services",
+        "../../../orc8r/tools/ansible/roles/golang",
+        "../../../orc8r/tools/ansible/roles/pkgrepo",
+        "../../../orc8r/tools/ansible/roles/python_dev",
+        "../../../orc8r/tools/ansible/roles/resolv_conf",
+        "../../../orc8r/tools/ansible/roles/test_certs",
+        "../../../lte/gateway/deploy/roles/stretch_snapshot",
+        "../../../lte/gateway/deploy/roles/envoy",
+        "../../../lte/gateway/deploy/roles/magma",
+        "../../../lte/gateway/deploy/roles/dev_common",
+        "../../../lte/gateway/deploy/roles/magma",
+        "../../../lte/gateway/deploy/roles/magma_test",
+        "../../../lte/gateway/deploy/roles/ovs_build",
+        "../../../lte/gateway/deploy/roles/ovs_deploy",
+        "../../../lte/gateway/deploy/roles/ovs_prepare",
+        "../../../lte/gateway/deploy/roles/pyvenv",
+        "../../../lte/gateway/deploy/roles/stretch_snapshot",
+        "../../../lte/gateway/deploy/roles/trfserver",
+        "../../../lte/gateway/deploy/roles/uselocalpkgrepo"
+      ],
+      "extra_arguments": [
+        "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
+      ]
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "output": "builds/magma_dev_{{.Provider}}.box",
+        "type": "vagrant"
+      },
+      {
+        "type": "vagrant-cloud",
+        "box_tag": "magmacore/magma_dev",
+        "access_token": "{{user `cloud_token`}}",
+        "version": "{{user `version`}}"
+      }
+
+    ]
+  ]
+}

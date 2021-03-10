@@ -28,12 +28,12 @@ using namespace lte;
 /**
  * Template class for keeping track of a map of one key to many policy rules
  */
-template<typename KeyType,
-         typename hash = std::hash<KeyType>,
-         typename equal = std::equal_to<KeyType>>
+template<
+    typename KeyType, typename hash = std::hash<KeyType>,
+    typename equal = std::equal_to<KeyType>>
 class PoliciesByKeyMap {
  public:
-  PoliciesByKeyMap() {};
+  PoliciesByKeyMap(){};
   PoliciesByKeyMap(hash hasher, equal eq) : rules_by_key_(4, hasher, eq) {}
 
   void insert(const KeyType& key, std::shared_ptr<PolicyRule> rule_p);
@@ -43,16 +43,15 @@ class PoliciesByKeyMap {
   uint32_t policy_count();
 
   bool get_rule_ids_for_key(
-    const KeyType& key,
-    std::vector<std::string>& rules_out);
+      const KeyType& key, std::vector<std::string>& rules_out);
 
   bool get_rule_definitions_for_key(
-    const KeyType& key,
-    std::vector<PolicyRule>& rules_out);
+      const KeyType& key, std::vector<PolicyRule>& rules_out);
 
  private:
-  std::unordered_map<KeyType,
-    std::vector<std::shared_ptr<PolicyRule>>, hash, equal> rules_by_key_;
+  std::unordered_map<
+      KeyType, std::vector<std::shared_ptr<PolicyRule>>, hash, equal>
+      rules_by_key_;
 };
 
 /**
@@ -86,34 +85,28 @@ class PolicyRuleBiMap {
    * @returns false if it doesn't exist, true if so
    */
   virtual bool get_charging_key_for_rule_id(
-    const std::string& rule_id,
-    CreditKey* charging_key);
+      const std::string& rule_id, CreditKey* charging_key);
 
   virtual bool get_monitoring_key_for_rule_id(
-    const std::string& rule_id,
-    std::string* monitoring_key);
+      const std::string& rule_id, std::string* monitoring_key);
 
   /**
    * Get all the rules for a given key. Rule ids are copied into rules_out
    */
   virtual bool get_rule_ids_for_charging_key(
-    const CreditKey& charging_key,
-    std::vector<std::string>& rules_out);
+      const CreditKey& charging_key, std::vector<std::string>& rules_out);
 
   virtual bool get_rule_ids_for_monitoring_key(
-    const std::string& monitoring_key,
-    std::vector<std::string>& rules_out);
+      const std::string& monitoring_key, std::vector<std::string>& rules_out);
 
   /**
    * Get all the rules for a given key. Rule ids are copied into rules_out
    */
   virtual bool get_rule_definitions_for_charging_key(
-    const CreditKey& charging_key,
-    std::vector<PolicyRule>& rules_out);
+      const CreditKey& charging_key, std::vector<PolicyRule>& rules_out);
 
   virtual bool get_rule_definitions_for_monitoring_key(
-    const std::string& monitoring_key,
-    std::vector<PolicyRule>& rules_out);
+      const std::string& monitoring_key, std::vector<PolicyRule>& rules_out);
 
   /**
    * Get the number of rules tracked by a monitoring key
@@ -129,10 +122,10 @@ class PolicyRuleBiMap {
   std::mutex map_mutex_;
   // rule_id -> PolicyRule
   std::unordered_map<std::string, std::shared_ptr<PolicyRule>>
-    rules_by_rule_id_;
+      rules_by_rule_id_;
   // charging key -> [PolicyRule]
   PoliciesByKeyMap<CreditKey, decltype(&ccHash), decltype(&ccEqual)>
-    rules_by_charging_key_;
+      rules_by_charging_key_;
   // monitoring key -> [PolicyRule]
   PoliciesByKeyMap<std::string> rules_by_monitoring_key_;
 };
@@ -140,13 +133,27 @@ class PolicyRuleBiMap {
 /**
  * StaticRuleStore holds the rules that are defined in policydb
  */
-class StaticRuleStore : public PolicyRuleBiMap {
-};
+class StaticRuleStore : public PolicyRuleBiMap {};
 
 /**
  * DynamicRuleStore manages dynamic rules for a subscriber
  */
-class DynamicRuleStore : public PolicyRuleBiMap {
-};
+class DynamicRuleStore : public PolicyRuleBiMap {};
 
-} // namespace magma
+class ConvergedRuleStore : public PolicyRuleBiMap {
+ public:
+  uint32_t pdr_rule_count(void) { return rules_by_pdr_key_.size(); }
+  uint32_t far_rule_count(void) { return rules_by_far_key_.size(); }
+  ConvergedRuleStore(){};
+  void insert_rule(uint32_t rule_id, const SetGroupPDR& rule);
+  void insert_rule(uint32_t rule_id, const SetGroupFAR& rule);
+  bool remove_rule(uint32_t rule_id, SetGroupPDR* rule);
+  bool remove_rule(uint32_t rule_id, SetGroupFAR* rule);
+  bool get_rule(uint32_t rule_id, SetGroupPDR* rule);
+  bool get_rule(uint32_t rule_id, SetGroupFAR* rule);
+
+ private:
+  std::unordered_map<uint32_t, std::shared_ptr<SetGroupPDR>> rules_by_pdr_key_;
+  std::unordered_map<uint32_t, std::shared_ptr<SetGroupFAR>> rules_by_far_key_;
+};
+}  // namespace magma

@@ -395,6 +395,12 @@ func getCreditOnOCSPerInstance(instanceName, imsi string) (*fegprotos.CreditInfo
 	return cli.GetCredits(context.Background(), &lteprotos.SubscriberID{Id: imsi})
 }
 
+// sendChargingReAuthRequestEntireSession triggers a RAR from OCS to Sessiond for all
+// the charging groups on a session (inclding the suspended ones)
+func sendChargingReAuthRequestEntireSession(imsi string) (*fegprotos.ChargingReAuthAnswer, error) {
+	return sendChargingReAuthRequestPerInstance(MockOCSRemote, imsi, 0)
+}
+
 // sendChargingReAuthRequest triggers a RAR from OCS to Sessiond
 // Input: ChargingReAuthTarget
 func sendChargingReAuthRequest(imsi string, ratingGroup uint32) (*fegprotos.ChargingReAuthAnswer, error) {
@@ -406,8 +412,7 @@ func sendChargingReAuthRequestPerInstance(instanceName string, imsi string, rati
 	if err != nil {
 		return nil, err
 	}
-	raa, err := cli.ReAuth(context.Background(),
-		&fegprotos.ChargingReAuthTarget{Imsi: imsi, RatingGroup: ratingGroup})
+	raa, err := cli.ReAuth(context.Background(), &fegprotos.ChargingReAuthTarget{Imsi: imsi, RatingGroup: ratingGroup})
 	return raa, err
 }
 

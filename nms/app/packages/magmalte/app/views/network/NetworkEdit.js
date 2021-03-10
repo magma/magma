@@ -13,25 +13,22 @@
  * @flow strict-local
  * @format
  */
-import type {
-  network,
-  network_epc_configs,
-  network_id,
-  network_ran_configs,
-} from '@fbcnms/magma-api';
+import type {lte_network, network_epc_configs} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '../../theme/design-system/DialogTitle';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+
 import {NetworkEpcEdit} from './NetworkEpc';
 import {NetworkInfoEdit} from './NetworkInfo';
 import {NetworkRanEdit} from './NetworkRanConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 
 const NETWORK_TITLE = 'Network';
 const EPC_TITLE = 'Epc';
@@ -65,12 +62,6 @@ const EditTableType = {
 
 type EditProps = {
   editTable: $Keys<typeof EditTableType>,
-  networkInfo: network,
-  epcConfigs: network_epc_configs,
-  lteRanConfigs: network_ran_configs,
-  onSaveNetworkInfo: network => void,
-  onSaveEpcConfigs: network_epc_configs => void,
-  onSaveLteRanConfigs: network_ran_configs => void,
 };
 
 type DialogProps = {
@@ -126,20 +117,22 @@ export default function AddEditNetworkButton(props: ButtonProps) {
 export function NetworkEditDialog(props: DialogProps) {
   const {open, editProps} = props;
   const classes = useStyles();
-  const [networkId, setNetworkId] = useState<network_id>(
-    editProps?.networkInfo?.id || '',
-  );
-  const [networkInfo, setNetworkInfo] = useState<network>({});
+  const ctx = useContext(LteNetworkContext);
+
+  const [lteNetwork, setLteNetwork] = useState<lte_network>({});
   const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>({});
+  const lteRanConfigs = editProps ? ctx.state.cellular?.ran : undefined;
 
   const [tabPos, setTabPos] = React.useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
 
+  useEffect(() => {
+    setLteNetwork(editProps ? ctx.state : {});
+    setEpcConfigs(editProps ? ctx.state.cellular?.epc ?? {} : {});
+  }, [open, editProps, ctx.state]);
+
   const onClose = () => {
-    setNetworkInfo({});
-    setEpcConfigs({});
-    setNetworkId('');
     props.onClose();
   };
 
@@ -158,14 +151,14 @@ export function NetworkEditDialog(props: DialogProps) {
         <Tab
           key="epc"
           data-testid="epcTab"
-          disabled={networkId ? false : true}
+          disabled={editProps ? false : true}
           label={EPC_TITLE}
         />
         ;
         <Tab
           key="ran"
           data-testid="ranTab"
-          disabled={networkId ? false : true}
+          disabled={editProps ? false : true}
           label={RAN_TITLE}
         />
         ;
@@ -173,19 +166,13 @@ export function NetworkEditDialog(props: DialogProps) {
       {tabPos === 0 && (
         <NetworkInfoEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
-          networkInfo={
-            Object.keys(networkInfo).length != 0
-              ? networkInfo
-              : editProps?.networkInfo
-          }
+          lteNetwork={lteNetwork}
           onClose={onClose}
-          onSave={(networkInfo: network) => {
-            setNetworkInfo(networkInfo);
+          onSave={(lteNetwork: lte_network) => {
+            setLteNetwork(lteNetwork);
             if (editProps) {
-              editProps.onSaveNetworkInfo(networkInfo);
               onClose();
             } else {
-              setNetworkId(networkInfo.id);
               setTabPos(tabPos + 1);
             }
           }}
@@ -194,17 +181,12 @@ export function NetworkEditDialog(props: DialogProps) {
       {tabPos === 1 && (
         <NetworkEpcEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
-          networkId={networkId}
-          epcConfigs={
-            Object.keys(epcConfigs).length != 0
-              ? epcConfigs
-              : editProps?.epcConfigs
-          }
+          networkId={lteNetwork.id}
+          epcConfigs={epcConfigs}
           onClose={onClose}
           onSave={epcConfigs => {
             setEpcConfigs(epcConfigs);
             if (editProps) {
-              editProps.onSaveEpcConfigs(epcConfigs);
               onClose();
             } else {
               setTabPos(tabPos + 1);
@@ -215,13 +197,10 @@ export function NetworkEditDialog(props: DialogProps) {
       {tabPos === 2 && (
         <NetworkRanEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Add Network'}
-          networkId={networkId}
-          lteRanConfigs={editProps?.lteRanConfigs}
+          networkId={lteNetwork.id}
+          lteRanConfigs={lteRanConfigs}
           onClose={onClose}
-          onSave={lteRanConfigs => {
-            editProps?.onSaveLteRanConfigs(lteRanConfigs);
-            onClose();
-          }}
+          onSave={onClose}
         />
       )}
     </Dialog>

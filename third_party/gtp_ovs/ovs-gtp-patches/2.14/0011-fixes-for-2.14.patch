@@ -1,0 +1,231 @@
+From 05b6c99274719d6c58a00f9fd5e437a9d0788f38 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Sat, 28 Nov 2020 23:09:50 -0800
+Subject: [PATCH 11/11] fixes for 2.14
+
+---
+ datapath/flow_netlink.c                       |  2 ++
+ datapath/linux/compat/gtp.c                   | 34 +++++++++++++------
+ .../linux/compat/include/linux/openvswitch.h  |  3 --
+ .../linux/compat/include/net/ip_tunnels.h     |  7 ++--
+ lib/odp-util.c                                | 16 +++++++++
+ manpages.mk                                   |  5 ++-
+ 6 files changed, 47 insertions(+), 20 deletions(-)
+
+diff --git a/datapath/flow_netlink.c b/datapath/flow_netlink.c
+index f7e54cfc1..a1842e1c3 100644
+--- a/datapath/flow_netlink.c
++++ b/datapath/flow_netlink.c
+@@ -41,9 +41,11 @@
+ #include <linux/icmp.h>
+ #include <linux/icmpv6.h>
+ #include <linux/rculist.h>
++#include <linux/openvswitch.h>
+ #include <net/geneve.h>
+ #include <net/ip.h>
+ #include <net/ipv6.h>
++#include <net/ip_tunnels.h>
+ #include <net/ndisc.h>
+ #include <net/mpls.h>
+ #include <net/vxlan.h>
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index 46add66dc..20ad23ecb 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -21,7 +21,6 @@
+ #include <linux/file.h>
+ #include <linux/gtp.h>
+ 
+-#include <net/dst_cache.h>
+ #include <net/dst_metadata.h>
+ #include <net/net_namespace.h>
+ #include <net/protocol.h>
+@@ -190,6 +189,15 @@ static bool gtp_check_ms(struct sk_buff *skb, struct pdp_ctx *pctx,
+ 	return false;
+ }
+ 
++static int check_header(struct sk_buff *skb, int len)
++{
++	if (unlikely(skb->len < len))
++		return -EINVAL;
++	if (unlikely(!pskb_may_pull(skb, len)))
++		return -ENOMEM;
++	return 0;
++}
++
+ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
+ 			unsigned int hdrlen, u8 gtp_version, unsigned int role,
+ 			__be64 tid, u8 flags, u8 type)
+@@ -283,6 +291,20 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
+ 	 * calculate the transport header.
+ 	 */
+ 	skb_reset_network_header(skb);
++	if (!check_header(skb, sizeof(struct iphdr))) {
++		struct iphdr *iph;
++
++		iph = ip_hdr(skb);
++		if (iph->version == 4) {
++			netdev_dbg(gtp->dev, "inner pkt: ipv4");
++			skb->protocol = htons(ETH_P_IP);
++		} else if (iph->version == 6) {
++			netdev_dbg(gtp->dev, "inner pkt: ipv6");
++			skb->protocol = htons(ETH_P_IPV6);
++		} else {
++			netdev_dbg(gtp->dev, "inner pkt: control pkt");
++		}
++	}
+ 
+ 	skb->dev = gtp->dev;
+ 
+@@ -582,8 +604,6 @@ static struct rtable *gtp_get_v4_rt(struct sk_buff *skb,
+                                        struct flowi4 *fl4,
+                                        const struct ip_tunnel_info *info)
+ {
+-	bool use_cache = ip_tunnel_dst_cache_usable(skb, info);
+-	struct dst_cache *dst_cache;
+ 	struct rtable *rt = NULL;
+ 
+ 	if (!gs4)
+@@ -596,12 +616,6 @@ static struct rtable *gtp_get_v4_rt(struct sk_buff *skb,
+ 	fl4->saddr = info->key.u.ipv4.src;
+ 	fl4->flowi4_tos = RT_TOS(info->key.tos);
+ 
+-	dst_cache = (struct dst_cache *)&info->dst_cache;
+-	if (use_cache) {
+-		rt = dst_cache_get_ip4(dst_cache, &fl4->saddr);
+-		if (rt)
+-			return rt;
+-	}
+ 	rt = ip_route_output_key(dev_net(dev), fl4);
+ 	if (IS_ERR(rt)) {
+ 		netdev_dbg(dev, "no route to %pI4\n", &fl4->daddr);
+@@ -612,8 +626,6 @@ static struct rtable *gtp_get_v4_rt(struct sk_buff *skb,
+ 		ip_rt_put(rt);
+ 		return ERR_PTR(-ELOOP);
+ 	}
+-	if (use_cache)
+-		dst_cache_set_ip4(dst_cache, &rt->dst, fl4->saddr);
+ 	return rt;
+ }
+ 
+diff --git a/datapath/linux/compat/include/linux/openvswitch.h b/datapath/linux/compat/include/linux/openvswitch.h
+index 2d884312f..cc41bbea4 100644
+--- a/datapath/linux/compat/include/linux/openvswitch.h
++++ b/datapath/linux/compat/include/linux/openvswitch.h
+@@ -405,10 +405,7 @@ enum ovs_tunnel_key_attr {
+ 	OVS_TUNNEL_KEY_ATTR_IPV6_DST,		/* struct in6_addr dst IPv6 address. */
+ 	OVS_TUNNEL_KEY_ATTR_PAD,
+ 	OVS_TUNNEL_KEY_ATTR_ERSPAN_OPTS,	/* struct erspan_metadata */
+-#ifndef __KERNEL__
+-	/* Only used within userspace data path. */
+ 	OVS_TUNNEL_KEY_ATTR_GTPU_OPTS,		/* struct gtpu_metadata */
+-#endif
+ 	__OVS_TUNNEL_KEY_ATTR_MAX
+ };
+ 
+diff --git a/datapath/linux/compat/include/net/ip_tunnels.h b/datapath/linux/compat/include/net/ip_tunnels.h
+index 66bd252ea..21f3676e8 100644
+--- a/datapath/linux/compat/include/net/ip_tunnels.h
++++ b/datapath/linux/compat/include/net/ip_tunnels.h
+@@ -9,9 +9,6 @@
+  * be used. Those needs to be explicitly defined in this header file. */
+ #include_next <net/ip_tunnels.h>
+ 
+-#ifndef TUNNEL_ERSPAN_OPT
+-#define TUNNEL_ERSPAN_OPT	__cpu_to_be16(0x4000)
+-#endif
+ #define ovs_ip_tunnel_encap ip_tunnel_encap
+ 
+ #ifndef HAVE_IP_TUNNEL_INFO_OPTS_SET_FLAGS
+@@ -514,6 +511,10 @@ static inline int iptunnel_pull_offloads(struct sk_buff *skb)
+ #define skb_is_encapsulated ovs_skb_is_encapsulated
+ bool ovs_skb_is_encapsulated(struct sk_buff *skb);
+ 
++#ifndef TUNNEL_ERSPAN_OPT
++#define TUNNEL_ERSPAN_OPT	__cpu_to_be16(0x4000)
++#endif
++
+ #ifndef TUNNEL_GTPU_OPT
+ #define TUNNEL_GTPU_OPT          __cpu_to_be16(0x8000)
+ #endif
+diff --git a/lib/odp-util.c b/lib/odp-util.c
+index 1de1d07ef..c19654a03 100644
+--- a/lib/odp-util.c
++++ b/lib/odp-util.c
+@@ -5216,10 +5216,24 @@ scan_gtpu_metadata(const char *s,
+                    struct gtpu_metadata *mask)
+ {
+     const char *s_base = s;
++    uint8_t ver = 0, ver_ma = 0;
+     uint8_t flags = 0, flags_ma = 0;
+     uint8_t msgtype = 0, msgtype_ma = 0;
+     int len;
+ 
++    if (!strncmp(s, "ver=", 4)) {
++        s += 4;
++        len = scan_u8(s, &ver, mask ? &ver_ma : NULL);
++        if (len == 0) {
++            return 0;
++        }
++        s += len;
++    }
++    if (s[0] == ',') {
++        s++;
++    }
++
++
+     if (!strncmp(s, "flags=", 6)) {
+         s += 6;
+         len = scan_u8(s, &flags, mask ? &flags_ma : NULL);
+@@ -5244,9 +5258,11 @@ scan_gtpu_metadata(const char *s,
+ 
+     if (!strncmp(s, ")", 1)) {
+         s += 1;
++        key->ver = ver;
+         key->flags = flags;
+         key->msgtype = msgtype;
+         if (mask) {
++            mask->ver = ver_ma;
+             mask->flags = flags_ma;
+             mask->msgtype = msgtype_ma;
+         }
+diff --git a/manpages.mk b/manpages.mk
+index dc201484c..5f04b9c2c 100644
+--- a/manpages.mk
++++ b/manpages.mk
+@@ -104,7 +104,6 @@ utilities/bugtool/ovs-bugtool.8: \
+ utilities/bugtool/ovs-bugtool.8.in:
+ lib/ovs.tmac:
+ 
+-
+ utilities/ovs-dpctl-top.8: \
+ 	utilities/ovs-dpctl-top.8.in \
+ 	lib/ovs.tmac
+@@ -155,8 +154,6 @@ lib/common-syn.man:
+ lib/common.man:
+ lib/ovs.tmac:
+ 
+-lib/ovs.tmac:
+-
+ utilities/ovs-testcontroller.8: \
+ 	utilities/ovs-testcontroller.8.in \
+ 	lib/common.man \
+@@ -211,6 +208,7 @@ vswitchd/ovs-vswitchd.8: \
+ 	lib/coverage-unixctl.man \
+ 	lib/daemon.man \
+ 	lib/dpctl.man \
++	lib/dpdk-unixctl.man \
+ 	lib/dpif-netdev-unixctl.man \
+ 	lib/memory-unixctl.man \
+ 	lib/netdev-dpdk-unixctl.man \
+@@ -230,6 +228,7 @@ lib/common.man:
+ lib/coverage-unixctl.man:
+ lib/daemon.man:
+ lib/dpctl.man:
++lib/dpdk-unixctl.man:
+ lib/dpif-netdev-unixctl.man:
+ lib/memory-unixctl.man:
+ lib/netdev-dpdk-unixctl.man:
+-- 
+2.17.1
+

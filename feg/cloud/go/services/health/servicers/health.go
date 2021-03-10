@@ -18,6 +18,7 @@ import (
 	"time"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/health/metrics"
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/orc8r/cloud/go/blobstore"
@@ -118,7 +119,11 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 	// Get FeGs registered in configurator, then make a health decision based off of the
 	// the number of gateways, which gateway is active, and gateway health
 	magmadGatewayTypeVal := orc8r.MagmadGatewayType
-	gateways, _, err := configurator.LoadEntities(networkID, &magmadGatewayTypeVal, nil, nil, nil, configurator.EntityLoadCriteria{})
+	gateways, _, err := configurator.LoadEntities(
+		networkID, &magmadGatewayTypeVal, nil, nil, nil,
+		configurator.EntityLoadCriteria{},
+		serdes.Entity,
+	)
 	if err != nil {
 		errMsg := fmt.Errorf(
 			"Update Health Error: Could not retrieve gateways registered in network: %s",
@@ -333,10 +338,7 @@ func isSystemHealthy(status *fegprotos.SystemHealthStats, config *healthConfig) 
 	usedMemoryBytes := status.MemTotalBytes - status.MemAvailableBytes
 	exceedsMemThreshold := status.MemTotalBytes != 0 &&
 		float64(usedMemoryBytes)/float64(status.MemTotalBytes) >= float64(config.memAvailableThreshold)
-	if exceedsMemThreshold {
-		return false
-	}
-	return true
+	return !exceedsMemThreshold
 }
 
 func isServiceHealthy(

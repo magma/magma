@@ -19,7 +19,7 @@ MME :
     # When the limits will be reached, overload procedure will take place.
     MAXENB                                    = 8;                              # power of 2
     MAXUE                                     = 16;                             # power of 2
-    RELATIVE_CAPACITY                         = 10;
+    RELATIVE_CAPACITY                         = {{ mmeRelativeCapacity }};
 
     EMERGENCY_ATTACH_SUPPORTED                     = "no";
     UNAUTHENTICATED_IMSI_SUPPORTED                 = "no";
@@ -33,9 +33,9 @@ MME :
     # Display statistics about whole system (expressed in seconds)
     MME_STATISTIC_TIMER                       = 10;
 
-    IP_CAPABILITY = "IPV4";                                                   # UE PDN_TYPE
-
     USE_STATELESS = "{{ use_stateless }}";
+    USE_HA = "{{ use_ha }}";
+    ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
 
     INTERTASK_INTERFACE :
     {
@@ -90,6 +90,14 @@ MME :
          {% for enbTac in attached_enodeb_tacs -%}
          { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ enbTac }}"; }{% if not loop.last %},{% endif %}
          {% endfor %}
+    );
+
+    # List of restricted PLMNs
+    # By default this list is empty
+    # Max number of restricted plmn is 10
+    RESTRICTED_PLMN_LIST = (
+         # Sample plmn
+         #{ MCC="001" ; MNC="010";}
     );
 
     CSFB :
@@ -158,6 +166,17 @@ MME :
         T3486                                 =  8                              # UNUSED in seconds (default is 8s)
         T3489                                 =  4                              # UNUSED in seconds (default is 4s)
         T3495                                 =  8                              # UNUSED in seconds (default is 8s)
+
+        # APN CORRECTION FEATURE
+        ENABLE_APN_CORRECTION                 = "{{ enable_apn_correction }}"
+        APN_CORRECTION_MAP_LIST               = (
+          {% for apn_map in apn_correction_map_list -%}
+          {
+            APN_CORRECTION_MAP_IMSI_PREFIX = "{{ apn_map.imsi_prefix }}" ;
+            APN_CORRECTION_MAP_APN_OVERRIDE = "{{ apn_map.apn_override }}" ;
+          }{% if not loop.last %},{% endif %}
+         {% endfor %}
+        );
     };
 
     SGS :
@@ -217,7 +236,7 @@ MME :
         COLOR             = "no";
 
         # Log level choice in { "EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG", "TRACE"}
-        SCTP_LOG_LEVEL     = "ERROR";
+        SCTP_LOG_LEVEL     = "{{ oai_log_level }}";
         GTPV1U_LOG_LEVEL   = "{{ oai_log_level }}";
         SPGW_APP_LOG_LEVEL = "{{ oai_log_level }}";
         UDP_LOG_LEVEL      = "{{ oai_log_level }}";

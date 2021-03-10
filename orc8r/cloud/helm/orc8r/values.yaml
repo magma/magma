@@ -38,6 +38,8 @@ metrics:
     create: false
   prometheusConfigurer:
     create: false
+  thanos:
+    enabled: false
 
 # secrets sub-chart configuration.
 secrets:
@@ -94,7 +96,7 @@ nginx:
 
   # nginx image
   image:
-    repository:
+    repository: <registry>/nginx
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -138,20 +140,9 @@ controller:
     minAvailable: 1
     maxUnavailable: ""
 
-  # Service configuration.
-  service:
-    annotations: {}
-    labels: {}
-    type: ClusterIP
-    port: 8080
-    targetPort: 8080
-    # port range exposed by controller
-    portStart: 9079
-    portEnd: 9108
-
-  # controller image
+  # orc8r_base image
   image:
-    repository:
+    repository: <registry>/orc8r_base
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -166,11 +157,8 @@ controller:
       port: 5432
       user: postgres
       pass: postgres
-
-  migration:
-    new_handlers: 0
-    new_mconfigs: 0
-    mconfig_whitelist: ""
+    service_registry:
+      mode: "k8s"
 
   podAnnotations: {}
 
@@ -197,6 +185,127 @@ controller:
   # Assign proxy to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
+
+accessd:
+  service:
+    labels: {}
+    annotations: {}
+
+analytics:
+  service:
+    labels: {}
+    annotations: {}
+
+bootstrapper:
+  service:
+    labels: {}
+    annotations: {}
+
+certifier:
+  service:
+    labels: {}
+    annotations: {}
+
+configurator:
+  service:
+    labels: {}
+    annotations: {}
+
+ctraced:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/tracing,
+
+device:
+  service:
+    labels: {}
+    annotations: {}
+
+directoryd:
+  service:
+    labels: {}
+    annotations: {}
+
+dispatcher:
+  service:
+    labels: {}
+    annotations: {}
+
+eventd:
+  service:
+    labels:
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/logs,
+        /magma/v1/events,
+
+metricsd:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/alerts,
+        /magma/v1/networks/:network_id/metrics,
+        /magma/v1/networks/:network_id/prometheus,
+        /magma/v1/tenants/:tenant_id/metrics,
+        /magma/v1/tenants/targets_metadata,
+
+obsidian:
+  service:
+    labels: {}
+    annotations: {}
+
+orchestrator:
+  service:
+    labels:
+      orc8r.io/analytics_collector: "true"
+      orc8r.io/mconfig_builder: "true"
+      orc8r.io/metrics_exporter: "true"
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/state_indexer: "true"
+      orc8r.io/stream_provider: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/state_indexer_types: "directory_record"
+      orc8r.io/state_indexer_version: "1"
+      orc8r.io/stream_provider_streams: "configs"
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /,
+        /magma/v1/channels,
+        /magma/v1/networks,
+        /magma/v1/networks/:network_id,
+
+service_registry:
+  service:
+    labels: {}
+    annotations: {}
+
+state:
+  service:
+    labels: {}
+    annotations: {}
+
+streamer:
+  service:
+    labels: {}
+    annotations: {}
+
+tenants:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/tenants,
+        /magma/v1/tenants/:tenants_id,
 
 # Set True to create a CloudWatch agent to monitor metrics
 cloudwatch:

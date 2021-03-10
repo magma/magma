@@ -45,7 +45,7 @@ constexpr char DETACH_SUCCESS[]   = "detach_success";
 constexpr char S1_SETUP_SUCCESS[] = "s1_setup_success";
 }  // namespace
 
-int event_client_init(void) {
+void event_client_init(void) {
   init_eventd_client();
 }
 
@@ -67,8 +67,7 @@ static int report_event(
   std::string event_value_string = folly::toJson(event_value);
   event_request.set_value(event_value_string);
   event_request.set_tag(event_tag);
-  int rc = log_event(event_request);
-  return rc;
+  return log_event(event_request);
 }
 
 int attach_success_event(imsi64_t imsi64) {
@@ -94,8 +93,16 @@ int detach_success_event(imsi64_t imsi64, const char* action) {
 
 int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {
   folly::dynamic event_value = folly::dynamic::object;
-  event_value["enb_name"]    = enb_name;
-  event_value["enb_id"]      = enb_id;
 
-  return report_event(event_value, S1_SETUP_SUCCESS, MME_STREAM_NAME, enb_name);
+  if (enb_name) {
+    event_value["enb_name"] = enb_name;
+  } else {
+    event_value["enb_name"] = "";
+  }
+
+  event_value["enb_id"] = enb_id;
+
+  return report_event(
+      event_value, S1_SETUP_SUCCESS, MME_STREAM_NAME,
+      folly::to<std::string>(enb_id));
 }

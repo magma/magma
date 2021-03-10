@@ -141,7 +141,7 @@ func (m EapAkaMagmaMethod) Handle(
 			&aaa.EapIdentity{
 				Payload: bytes,
 				Ctx:     &eapContext,
-				Method:  uint32(packet.EAPTypeAKA),
+				Method:  0, // pass undefined method & let EAP router to find an EAP provider to handle the request
 			},
 		)
 	} else {

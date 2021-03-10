@@ -19,6 +19,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
@@ -43,7 +44,7 @@ func registerNetwork(c echo.Context) error {
 		return nerr
 	}
 	network := payload.(*models.Network).ToConfiguratorNetwork()
-	createdNetworks, err := configurator.CreateNetworks([]configurator.Network{network})
+	createdNetworks, err := configurator.CreateNetworks([]configurator.Network{network}, serdes.Network)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -55,7 +56,7 @@ func getNetwork(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	network, err := configurator.LoadNetwork(networkID, true, true)
+	network, err := configurator.LoadNetwork(networkID, true, true, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
@@ -72,7 +73,7 @@ func updateNetwork(c echo.Context) error {
 		return nerr
 	}
 	update := network.(*models.Network).ToUpdateCriteria()
-	err := configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update})
+	err := configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update}, serdes.Network)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -198,12 +199,15 @@ func DeleteDNSRecord(c echo.Context) error {
 }
 
 func updateDNSConfig(networkID string, dnsConfig *models.NetworkDNSConfig) *echo.HTTPError {
-	err := configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{
-		{
-			ID:                   networkID,
-			ConfigsToAddOrUpdate: map[string]interface{}{orc8r.DnsdNetworkType: dnsConfig},
+	err := configurator.UpdateNetworks(
+		[]configurator.NetworkUpdateCriteria{
+			{
+				ID:                   networkID,
+				ConfigsToAddOrUpdate: map[string]interface{}{orc8r.DnsdNetworkType: dnsConfig},
+			},
 		},
-	})
+		serdes.Network,
+	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -219,7 +223,7 @@ func getNetworkIDAndDomain(c echo.Context) (string, string, *echo.HTTPError) {
 }
 
 func getExistingDNSConfig(networkID string) (*models.NetworkDNSConfig, *echo.HTTPError) {
-	iDNSConfig, err := configurator.LoadNetworkConfig(networkID, orc8r.DnsdNetworkType)
+	iDNSConfig, err := configurator.LoadNetworkConfig(networkID, orc8r.DnsdNetworkType, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return nil, echo.NewHTTPError(http.StatusNotFound)
 	} else if err != nil {

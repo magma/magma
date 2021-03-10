@@ -54,7 +54,9 @@
   "sessiond": {
    "@type": "type.googleapis.com/magma.mconfig.SessionD",
    "logLevel": "INFO",
-   "relayEnabled": true
+   "relayEnabled": true,
+   "hssRelayEnabled": true,
+   "gxGyRelayEnabled": true
   },
   "aaa_server": {
    "@type": "type.googleapis.com/magma.mconfig.AAAConfig",

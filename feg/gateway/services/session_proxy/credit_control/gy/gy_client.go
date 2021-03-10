@@ -61,6 +61,7 @@ type GyGlobalConfig struct {
 	OCSOverwriteApn      string
 	OCSServiceIdentifier string
 	DisableGy            bool
+	VirtualApnRules      []*credit_control.VirtualApnRule
 }
 
 var (
@@ -182,6 +183,7 @@ func (gyClient *GyClient) DisableConnections(period time.Duration) {
 // messages received from the OCS
 func registerReAuthHandler(reAuthHandler ChargingReAuthHandler, diamClient *diameter.Client) {
 	reqHandler := func(conn diam.Conn, message *diam.Message) {
+		glog.V(2).Infof("Received Gy reauth message:\n%s\n", message)
 		rar := &ChargingReAuthRequest{}
 		if err := message.Unmarshal(rar); err != nil {
 			glog.Errorf("Received unparseable RAR over Gy %s\n%s", message, err)
@@ -191,6 +193,7 @@ func registerReAuthHandler(reAuthHandler ChargingReAuthHandler, diamClient *diam
 			raa := reAuthHandler(rar)
 			raaMsg := createReAuthAnswerMessage(message, raa)
 			raaMsg = diamClient.AddOriginAVPsToMessage(raaMsg)
+			glog.V(2).Infof("Sending (responding) Gy reauth message:\n%s\n", raaMsg)
 			_, err := raaMsg.WriteToWithRetry(conn, diamClient.Retries())
 			if err != nil {
 				glog.Errorf(
@@ -243,7 +246,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 	m.NewAVP(avp.ServiceContextID, avp.Mbit, 0, datatype.UTF8String(gyClient.diamClient.ServiceContextId()))
 	m.NewAVP(avp.CCRequestNumber, avp.Mbit, 0, datatype.Unsigned32(request.RequestNumber))
 
-	// Always add MSISDN (TASA requirement) if it's provided by AGW
+	// Always add MSISDN if it's provided by AGW
 	if len(request.Msisdn) > 0 {
 		m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
@@ -299,8 +302,6 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	psInfoAvps := []*diam.AVP{
 		// Set PDP Type as IPV4(0)
 		diam.NewAVP(avp.TGPPPDPType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0)),
-		// Argentina TZ (UTC-3hrs) TODO: Make it so that it takes the FeG's timezone
-		// diam.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0}))),
 		// Set RAT Type as EUTRAN(6). See 3GPP TS 29.274, 8.17 "Table 8.17-1: RAT Type values"
 		diam.NewAVP(avp.TGPPRATType, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ratType)),
 		// Set it to 0
@@ -323,10 +324,8 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPSGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPGGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 	}
-	apn := datatype.UTF8String(request.Apn)
-	if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
-		apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)
-	}
+
+	apn := getAPNFromConfig(gyGlobalConfig, request.Apn, request.ChargingCharacteristics)
 	if len(apn) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn))
 	}
@@ -337,7 +336,7 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	if len(request.GcID) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPChargingID, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(request.GcID)))
 	}
-	/********************** TBD - doesn't work with some OCSes *********************
+	/********************** TBD - doesn't work with some OCSes *****************
 	if request.Qos != nil {
 		qosGrp := &diam.GroupedAVP{
 			AVP: []*diam.AVP{
@@ -347,13 +346,30 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		}
 		psInfoGrp.AddAVP(diam.NewAVP(avp.QoSInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, qosGrp))
 	}
-	********************** TBD - doesn't work with current TASA OCS *********************/
+	***************************************************************************/
 
 	svcInfoGrp = append(
 		svcInfoGrp,
 		diam.NewAVP(avp.PSInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, psInfoGrp),
 	)
 	return diam.NewAVP(avp.ServiceInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{AVP: svcInfoGrp})
+}
+
+// getAPNFromConfig returns a new apn value to overwrite the one in the request based on list of regex definied in Gy config.
+// If Virtual APN config is not defined, the function returnis OCSOverwriteApn instead.
+// Input: GyGlobalConfig and the APN received from the request
+// Output: Overwritten apn value
+func getAPNFromConfig(gyGlobalConfig *GyGlobalConfig, requestAPN, chargingCharacteristics string) datatype.UTF8String {
+	apn := datatype.UTF8String(requestAPN)
+	if gyGlobalConfig != nil {
+		if len(gyGlobalConfig.VirtualApnRules) > 0 {
+			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(requestAPN, chargingCharacteristics, gyGlobalConfig.VirtualApnRules))
+		} else if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
+			// OverwriteApn is deprecated transition to VirtualApnRules
+			apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)
+		}
+	}
+	return apn
 }
 
 // getMSCCAVP retrieves the MultipleServicesCreditControl AVP for the
@@ -365,6 +381,25 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 	avpGroup := []*diam.AVP{
 		diam.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(credits.RatingGroup)),
 	}
+
+	// Requested-Service-Unit can only be send in CCR-I and CCR-U
+	if requestType != credit_control.CRTTerminate {
+		var usuGrp []*diam.AVP
+		if credits.RequestedUnits == nil {
+			glog.Errorf("Not adding AVP Requested-Service-Unit. Not found on credit request for session %+v", credits)
+			usuGrp = []*diam.AVP{}
+		} else {
+			usuGrp = []*diam.AVP{
+				diam.NewAVP(avp.CCInputOctets, avp.Mbit, 0, datatype.Unsigned64(credits.RequestedUnits.Rx)),
+				diam.NewAVP(avp.CCOutputOctets, avp.Mbit, 0, datatype.Unsigned64(credits.RequestedUnits.Tx)),
+				diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(credits.RequestedUnits.Total)),
+			}
+		}
+		avpGroup = append(
+			avpGroup, diam.NewAVP(avp.RequestedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{AVP: usuGrp}))
+
+	}
+
 	if serviceIdentifier >= 0 {
 		avpGroup = append(
 			avpGroup,
@@ -373,12 +408,6 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 		avpGroup = append(
 			avpGroup,
 			diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(*credits.ServiceIdentifier)))
-	}
-
-	/*** Altamira OCS needs empty RSU ***/
-	if requestType != credit_control.CRTTerminate {
-		avpGroup = append(
-			avpGroup, diam.NewAVP(avp.RequestedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{AVP: []*diam.AVP{}}))
 	}
 
 	// Used credits can only be sent on updates and terminates
@@ -419,18 +448,12 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 	creditList := make([]*ReceivedCredits, 0, len(cca.CreditControl))
 	for _, mscc := range cca.CreditControl {
 		receivedCredits := &ReceivedCredits{
-			ResultCode:        mscc.ResultCode,
-			GrantedUnits:      &mscc.GrantedServiceUnit,
-			ValidityTime:      mscc.ValidityTime,
-			RatingGroup:       mscc.RatingGroup,
-			ServiceIdentifier: mscc.ServiceIdentifier,
-		}
-		if mscc.FinalUnitIndication != nil {
-			receivedCredits.IsFinal = true
-			receivedCredits.FinalAction = mscc.FinalUnitIndication.Action
-			if mscc.FinalUnitIndication.Action == Redirect {
-				receivedCredits.RedirectServer = mscc.FinalUnitIndication.RedirectServer
-			}
+			ResultCode:          mscc.ResultCode,
+			GrantedUnits:        &mscc.GrantedServiceUnit,
+			ValidityTime:        mscc.ValidityTime,
+			RatingGroup:         mscc.RatingGroup,
+			ServiceIdentifier:   mscc.ServiceIdentifier,
+			FinalUnitIndication: mscc.FinalUnitIndication,
 		}
 		creditList = append(creditList, receivedCredits)
 	}

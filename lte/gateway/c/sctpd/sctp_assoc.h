@@ -21,13 +21,13 @@ namespace sctpd {
 // Models the state of an SCTP association
 class SctpAssoc {
  public:
-  int sd;                 ///< Socket descriptor
-  uint32_t ppid;          ///< Payload protocol Identifier
-  uint16_t instreams;     ///< Number of input streams negotiated
-  uint16_t outstreams;    ///< Number of output strams negotiated
-  uint32_t assoc_id;      ///< SCTP association id
-  uint32_t messages_recv; ///< Number of messages received
-  uint32_t messages_sent; ///< Number of messages sent
+  int sd;                  ///< Socket descriptor
+  uint32_t ppid;           ///< Payload protocol Identifier
+  uint16_t instreams;      ///< Number of input streams negotiated
+  uint16_t outstreams;     ///< Number of output strams negotiated
+  uint32_t assoc_id;       ///< SCTP association id
+  uint32_t messages_recv;  ///< Number of messages received
+  uint32_t messages_sent;  ///< Number of messages sent
 
   SctpAssoc();
 
@@ -35,5 +35,5 @@ class SctpAssoc {
   void dump() const;
 };
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

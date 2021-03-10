@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+echo "Calling-Station-Id = aa:bb:33:44:cc:ff, Called-Station-Id = 11:11:11:11:11:12, User-Name = aa:bb:33:44:cc:ff, NAS-IP-Address = 192.168.1.1, NAS-Identifier = blabla" | radclient -x 127.0.0.1 auth {{ RADIUS_SECRET }}

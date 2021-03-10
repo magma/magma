@@ -1,4 +1,4 @@
-set(S1AP_C_DIR ${PROJECT_BINARY_DIR}/s1ap/r10.5)
+set(S1AP_C_DIR ${PROJECT_BINARY_DIR}/s1ap/r15)
 include_directories(${S1AP_C_DIR})
 
 

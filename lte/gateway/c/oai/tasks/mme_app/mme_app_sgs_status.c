@@ -36,6 +36,7 @@
 #include "3gpp_29.018.h"
 #include "mme_app_itti_messaging.h"
 #include "nas_proc.h"
+#include "mme_app_timer.h"
 
 static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
     ue_mm_context_t* ue_context_p);
@@ -285,13 +286,7 @@ static void _mme_app_handle_sgs_status_for_eps_detach_ind(
        EPS Detach Ind,if running
     */
     if (ue_context_p->sgs_context->ts8_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(ue_context_p->sgs_context->ts8_timer.id, NULL)) {
-        OAILOG_ERROR(
-            LOG_MME_APP,
-            "Failed to stop"
-            "SGS EPS Detach Indication timer for UE id %d \n",
-            ue_context_p->mme_ue_s1ap_id);
-      }
+      mme_app_stop_timer(ue_context_p->sgs_context->ts8_timer.id);
       ue_context_p->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
     }
   }

@@ -65,7 +65,7 @@ fi
 rm -rf "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 
-MAGMA_GITHUB_URL="https://github.com/facebookincubator/magma.git"
+MAGMA_GITHUB_URL="https://github.com/magma/magma.git"
 git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
 source .env
@@ -98,8 +98,9 @@ fi
 
 if [ "$GW_TYPE" == "$XWF" ]; then
   MODULE_DIR="xwf"
+  CONNECTION_MODE=${MODE:=tcp}
   ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg \
-    ansible-playbook -e "xwf_ctrl_ip=$XWF_CTRL" \
+    ansible-playbook -e "xwf_ctrl_ip=$XWF_CTRL connection_mode=$CONNECTION_MODE" \
     "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/xwf.yml -i "localhost," -c local -v
 fi
 

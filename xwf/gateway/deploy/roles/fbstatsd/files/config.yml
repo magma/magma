@@ -1,0 +1,16 @@
+uptime:
+  cron:
+    second: 60
+  command_line: "awk '{print $0/60;}' /proc/uptime"
+redirection_status:
+  cron:
+    second: 120
+  command_line: "RET=0;xwfm_cp_test.sh | grep -i cp_token > /dev/null && RET=1; echo $RET"
+radius_status:
+  cron:
+    second: 120
+  command_line: "RET=0;xwfm_radclient.sh 2>/dev/null | grep -i access-accept > /dev/null && RET=1; echo $RET"
+mem_used_percent:
+  cron:
+    second: 60
+  command_line: "free | grep Mem | awk '{print $3/$2 * 100.0}'"

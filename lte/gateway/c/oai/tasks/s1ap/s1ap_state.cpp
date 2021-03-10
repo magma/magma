@@ -36,6 +36,8 @@ using magma::lte::S1apStateManager;
 
 int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless) {
   S1apStateManager::getInstance().init(max_ues, max_enbs, use_stateless);
+  // remove UEs with unknown IMSI from eNB state
+  remove_ues_without_imsi_from_ue_id_coll();
   return RETURNok;
 }
 
@@ -65,7 +67,8 @@ ue_description_t* s1ap_state_get_ue_enbid(
   ue_description_t* ue = nullptr;
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  uint64_t comp_s1ap_id = (uint64_t) enb_ue_s1ap_id << 32 | sctp_assoc_id;
+  uint64_t comp_s1ap_id =
+      S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
   hashtable_ts_get(state_ue_ht, (const hash_key_t) comp_s1ap_id, (void**) &ue);
 
   return ue;
@@ -93,13 +96,8 @@ ue_description_t* s1ap_state_get_ue_imsi(imsi64_t imsi64) {
   return ue;
 }
 
-uint64_t s1ap_get_comp_s1ap_id(
-    sctp_assoc_id_t sctp_assoc_id, enb_ue_s1ap_id_t enb_ue_s1ap_id) {
-  return (uint64_t) enb_ue_s1ap_id << 32 | sctp_assoc_id;
-}
-
 void put_s1ap_imsi_map() {
-  S1apStateManager::getInstance().put_s1ap_imsi_map();
+  S1apStateManager::getInstance().write_s1ap_imsi_map_to_db();
 }
 
 s1ap_imsi_map_t* get_s1ap_imsi_map() {
@@ -158,4 +156,78 @@ void put_s1ap_ue_state(imsi64_t imsi64) {
 void delete_s1ap_ue_state(imsi64_t imsi64) {
   auto imsi_str = S1apStateManager::getInstance().get_imsi_str(imsi64);
   S1apStateManager::getInstance().clear_ue_state_db(imsi_str);
+}
+
+bool get_mme_ue_ids_no_imsi(
+    const hash_key_t keyP, uint64_t const dataP, void* argP, void** resultP) {
+  hash_key_t** mme_id_list   = (hash_key_t**) resultP;
+  uint32_t* num_ues_checked  = (uint32_t*) argP;
+  ue_description_t* ue_ref_p = NULL;
+
+  // Check if a UE reference exists for this comp_s1ap_id
+  hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
+  hashtable_ts_get(s1ap_ue_state, (const hash_key_t) dataP, (void**) &ue_ref_p);
+  if (!ue_ref_p) {
+    (*mme_id_list)[*num_ues_checked] = keyP;
+    ++(*num_ues_checked);
+    OAILOG_DEBUG(
+        LOG_S1AP,
+        "Adding mme_ue_s1ap_id %lu to eNB clean up list with num_ues_checked "
+        "%u",
+        keyP, *num_ues_checked);
+  }
+  return false;  // always return false to make sure it runs on all elements
+}
+
+void remove_ues_without_imsi_from_ue_id_coll() {
+  s1ap_state_t* s1ap_state_p     = get_s1ap_state(false);
+  hashtable_key_array_t* ht_keys = hashtable_ts_get_keys(&s1ap_state_p->enbs);
+  if (ht_keys == nullptr) {
+    return;
+  }
+
+  hashtable_rc_t ht_rc;
+  hash_key_t* mme_ue_id_no_imsi_list;
+  uint32_t num_ues_checked;
+
+  // get each eNB in s1ap_state
+  for (uint32_t i = 0; i < ht_keys->num_keys; i++) {
+    enb_description_t* enb_association_p = nullptr;
+    ht_rc                                = hashtable_ts_get(
+        &s1ap_state_p->enbs, (hash_key_t) ht_keys->keys[i],
+        (void**) &enb_association_p);
+    if (ht_rc != HASH_TABLE_OK) {
+      continue;
+    }
+
+    if (enb_association_p->ue_id_coll.num_elements == 0) {
+      continue;
+    }
+
+    // for each ue comp_s1ap_id in eNB->ue_id_coll, check if it has an S1ap
+    // ue_context, if not delete it
+    num_ues_checked        = 0;
+    mme_ue_id_no_imsi_list = (hash_key_t*) calloc(
+        enb_association_p->ue_id_coll.num_elements, sizeof(hash_key_t));
+    hashtable_uint64_ts_apply_callback_on_elements(
+        &enb_association_p->ue_id_coll, get_mme_ue_ids_no_imsi,
+        &num_ues_checked, (void**) &mme_ue_id_no_imsi_list);
+
+    // remove all the mme_ue_s1ap_ids
+    for (uint32_t i = 0; i < num_ues_checked; i++) {
+      hashtable_uint64_ts_free(
+          &enb_association_p->ue_id_coll, mme_ue_id_no_imsi_list[i]);
+      enb_association_p->nb_ue_associated--;
+
+      OAILOG_DEBUG(
+          LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
+          enb_association_p->nb_ue_associated,
+          enb_association_p->ue_id_coll.num_elements);
+    }
+
+    // free the list
+    free(mme_ue_id_no_imsi_list);
+  }
+
+  FREE_HASHTABLE_KEY_ARRAY(ht_keys);
 }

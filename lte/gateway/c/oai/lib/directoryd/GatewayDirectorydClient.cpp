@@ -14,14 +14,16 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#include "GatewayDirectorydClient.h"
 
-#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <memory>
 #include <thread>
 #include <utility>
 
+#include <grpcpp/impl/codegen/async_unary_call.h>
+#include <google/protobuf/map.h>
+
 #include "orc8r/protos/common.pb.h"
-#include "GatewayDirectorydClient.h"
 #include "ServiceRegistrySingleton.h"
 
 namespace grpc {
@@ -30,6 +32,7 @@ class ClientContext;
 class Status;
 }  // namespace grpc
 
+using google::protobuf::Map;
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
@@ -61,6 +64,14 @@ bool GatewayDirectoryServiceClient::UpdateRecord(
 
   request.set_id(id);
   request.set_location(location);
+
+  // No values for fields param in UpdateRecord
+  auto fields = request.fields();
+  std::unordered_map<std::string, std::string> fields_map;
+
+  Map<std::string, std::string> proto_fields(
+      fields_map.begin(), fields_map.end());
+  fields = proto_fields;
 
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered

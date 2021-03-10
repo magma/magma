@@ -40,10 +40,16 @@
 #ifndef FILE_GX_MESSAGES_TYPES_SEEN
 #define FILE_GX_MESSAGES_TYPES_SEEN
 
+#include "3gpp_24.007.h"
+#include "3gpp_29.274.h"
+
 #define GX_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                            \
   (mSGpTR)->ittiMsg.gx_nw_init_actv_bearer_request
 #define GX_NW_INITIATED_DEACTIVATE_BEARER_REQ(mSGpTR)                          \
   (mSGpTR)->ittiMsg.gx_nw_init_deactv_bearer_request
+
+#define POLICY_RULE_NAME_MAXLEN                                                \
+  100  // The policy name will be truncated to this
 
 typedef struct itti_gx_nw_init_actv_bearer_request_s {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
@@ -52,6 +58,8 @@ typedef struct itti_gx_nw_init_actv_bearer_request_s {
   traffic_flow_template_t ul_tft;
   traffic_flow_template_t dl_tft;
   bearer_qos_t eps_bearer_qos;
+  char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
+  uint8_t policy_rule_name_length;
 } itti_gx_nw_init_actv_bearer_request_t;
 
 typedef struct itti_gx_nw_init_deactv_bearer_request_s {

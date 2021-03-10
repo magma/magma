@@ -30,7 +30,7 @@ AsyncEventdClient& AsyncEventdClient::getInstance() {
 AsyncEventdClient::AsyncEventdClient() {
   std::shared_ptr<Channel> channel;
   channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-          "eventd", ServiceRegistrySingleton::LOCAL);
+      "eventd", ServiceRegistrySingleton::LOCAL);
   stub_ = EventService::NewStub(channel);
 }
 

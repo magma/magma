@@ -25,11 +25,11 @@ import React from 'react';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
 
+import * as hooks from '../../../components/context/RefreshContext';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
-
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
@@ -51,11 +51,11 @@ const mockThroughput: promql_return_object = {
 const currTime = Date.now();
 
 describe('<Enodeb />', () => {
-  beforeEach(() => {
-    // eslint-disable-next-line max-len
+  beforeAll(() => {
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockThroughput,
     );
+    //   MagmaAPIBindings.getLteByNetworkIdEnodebs.mockResolvedValue(enbInfo);
   });
 
   afterEach(() => {
@@ -76,6 +76,20 @@ describe('<Enodeb />', () => {
         tac: 1,
         transmit_enabled: true,
       },
+      enodeb_config: {
+        config_type: 'MANAGED',
+        managed_config: {
+          bandwidth_mhz: 20,
+          cell_id: 1,
+          device_class: 'Baicells ID TDD/FDD',
+          earfcndl: 44290,
+          pci: 36,
+          special_subframe_pattern: 7,
+          subframe_assignment: 2,
+          tac: 1,
+          transmit_enabled: true,
+        },
+      },
       name: 'testEnodeb0',
       serial: 'testEnodebSerial0',
     },
@@ -93,6 +107,7 @@ describe('<Enodeb />', () => {
       rf_tx_desired: true,
       rf_tx_on: false,
       time_reported: 0,
+      ip_address: '192.168.1.254',
     },
   };
 
@@ -109,16 +124,21 @@ describe('<Enodeb />', () => {
     testEnodebSerial1: enbInfo1,
   };
 
+  const enbCtx = {
+    state: {enbInfo: enbInfo},
+    setState: async _ => {},
+  };
+
+  jest
+    .spyOn(hooks, 'useRefreshingContext')
+    .mockImplementation(() => enbCtx.state);
+
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/enodeb']} initialIndex={0}>
       <MuiPickersUtilsProvider utils={MomentUtils}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
-            <EnodebContext.Provider
-              value={{
-                state: {enbInfo: enbInfo},
-                setState: async _ => {},
-              }}>
+            <EnodebContext.Provider value={enbCtx}>
               <Route path="/nms/:networkId/enodeb/" render={_ => <Enodeb />} />
             </EnodebContext.Provider>
           </MuiStylesThemeProvider>

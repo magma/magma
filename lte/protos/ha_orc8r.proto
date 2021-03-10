@@ -1,0 +1,35 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+message GetEnodebOffloadStateRequest {
+}
+
+message GetEnodebOffloadStateResponse {
+    enum EnodebOffloadState {
+      NO_OP = 0;
+      PRIMARY_CONNECTED = 1;
+      PRIMARY_CONNECTED_AND_SERVING_UES = 2;
+    }
+    // Map from ENB ID to offload state
+    map<uint32, EnodebOffloadState> enodeb_offload_states = 1;
+}
+
+// ha-cloud service definition
+service Ha {
+    // Fetch all ENB state for ENBs served within the pools of the calling AGW
+    rpc GetEnodebOffloadState(GetEnodebOffloadStateRequest) returns (GetEnodebOffloadStateResponse) {}
+}

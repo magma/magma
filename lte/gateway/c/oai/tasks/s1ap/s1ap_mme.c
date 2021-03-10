@@ -42,7 +42,6 @@
 #include "mme_app_statistics.h"
 #include "s1ap_mme_decoder.h"
 #include "s1ap_mme_handlers.h"
-#include "s1ap_ies_defs.h"
 #include "s1ap_mme_nas_procedures.h"
 #include "s1ap_mme_itti_messaging.h"
 #include "service303.h"
@@ -50,7 +49,7 @@
 #include "mme_config.h"
 #include "timer.h"
 #include "itti_free_defined_msg.h"
-#include "S1ap-TimeToWait.h"
+#include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
 #include "common_defs.h"
 #include "intertask_interface.h"
@@ -108,14 +107,9 @@ static int s1ap_send_init_sctp(void) {
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   s1ap_state_t* state;
-  MessagesIds message_id = MESSAGES_ID_MAX;
-
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
-
-  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-  state           = get_s1ap_state(false);
+  MessageDef* received_message_p = receive_msg(reader);
+  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
+  state                          = get_s1ap_state(false);
   AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -132,31 +126,27 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        * New message received from SCTP layer.
        * * * * Decode and handle it.
        */
-      s1ap_message message = {0};
+      S1ap_S1AP_PDU_t pdu = {0};
 
       // Invoke S1AP message decoder
-      if (s1ap_mme_decode_pdu(
-              &message, SCTP_DATA_IND(received_message_p).payload,
-              &message_id) < 0) {
+      if (s1ap_mme_decode_pdu(&pdu, SCTP_DATA_IND(received_message_p).payload) <
+          0) {
         // TODO: Notify eNB of failure with right cause
         OAILOG_ERROR(LOG_S1AP, "Failed to decode new buffer\n");
       } else {
         s1ap_mme_handle_message(
             state, SCTP_DATA_IND(received_message_p).assoc_id,
-            SCTP_DATA_IND(received_message_p).stream, &message);
-      }
-
-      if (message_id != MESSAGES_ID_MAX) {
-        s1ap_free_mme_decode_pdu(&message, message_id);
+            SCTP_DATA_IND(received_message_p).stream, &pdu);
       }
 
       // Free received PDU array
+      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
       bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
     } break;
 
     case SCTP_DATA_CNF:
       s1ap_mme_itti_nas_downlink_cnf(
-          SCTP_DATA_CNF(received_message_p).mme_ue_s1ap_id,
+          SCTP_DATA_CNF(received_message_p).agw_ue_xap_id,
           SCTP_DATA_CNF(received_message_p).is_success);
       break;
     // SCTP layer notifies S1AP of disconnection of a peer.
@@ -260,7 +250,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
           if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
             OAILOG_WARNING_UE(
-                imsi64, LOG_S1AP,
+                LOG_S1AP, imsi64,
                 "Timer expired but no assoicated UE context for UE id %d\n",
                 mme_ue_s1ap_id);
             timer_handle_expired(
@@ -288,18 +278,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       timer_handle_expired(
           received_message_p->ittiMsg.timer_has_expired.timer_id);
 
-      /* TODO - Commenting out below function as it is not used as of now.
-       * Need to handle it when we support other timers in S1AP
-       */
-
-      /* s1ap_handle_timer_expiry
-       * (&received_message_p->ittiMsg.timer_has_expired);
-       */
     } break;
 
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       s1ap_mme_exit();
     } break;
 
@@ -314,7 +297,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   put_s1ap_imsi_map();
   put_s1ap_ue_state(imsi64);
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -340,13 +323,12 @@ int s1ap_mme_init(const mme_config_t* mme_config_p) {
 
   if (get_asn1c_environment_version() < ASN1_MINIMUM_VERSION) {
     OAILOG_ERROR(
-        LOG_S1AP, "ASN1C version %d fount, expecting at least %d\n",
+        LOG_S1AP, "ASN1C version %d found, expecting at least %d\n",
         get_asn1c_environment_version(), ASN1_MINIMUM_VERSION);
     return RETURNerror;
   }
 
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
-  OAILOG_DEBUG(LOG_S1AP, "S1AP Release v10.5\n");
 
   if (s1ap_state_init(
           mme_config_p->max_ues, mme_config_p->max_enbs,
@@ -417,7 +399,7 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref) {
   eNB_LIST_OUT("SCTP assoc id:     %d", enb_ref->sctp_assoc_id);
   eNB_LIST_OUT("SCTP instreams:    %d", enb_ref->instreams);
   eNB_LIST_OUT("SCTP outstreams:   %d", enb_ref->outstreams);
-  eNB_LIST_OUT("UE attache to eNB: %d", enb_ref->nb_ue_associated);
+  eNB_LIST_OUT("UEs attached to eNB: %d", enb_ref->nb_ue_associated);
   indent++;
   sctp_assoc_id_t sctp_assoc_id = enb_ref->sctp_assoc_id;
 
@@ -499,7 +481,8 @@ ue_description_t* s1ap_new_ue(
   DevAssert(ue_ref != NULL);
   ue_ref->sctp_assoc_id  = sctp_assoc_id;
   ue_ref->enb_ue_s1ap_id = enb_ue_s1ap_id;
-  ue_ref->comp_s1ap_id   = s1ap_get_comp_s1ap_id(sctp_assoc_id, enb_ue_s1ap_id);
+  ue_ref->comp_s1ap_id =
+      S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_rc_t hashrc        = hashtable_ts_insert(
@@ -514,6 +497,9 @@ ue_description_t* s1ap_new_ue(
   }
   // Increment number of UE
   enb_ref->nb_ue_associated++;
+  OAILOG_DEBUG(
+      LOG_S1AP, "Num ue associated: %d on assoc id:%d",
+      enb_ref->nb_ue_associated, sctp_assoc_id);
   return ue_ref;
 }
 
@@ -560,6 +546,9 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       &imsi64);
   delete_s1ap_ue_state(imsi64);
 
+  OAILOG_DEBUG(
+      LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
+      enb_ref->nb_ue_associated, enb_ref->ue_id_coll.num_elements);
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
@@ -570,7 +559,6 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name);
       s1ap_remove_enb(state, enb_ref);
-      update_mme_app_stats_connected_enb_sub();
     }
   }
 }
@@ -584,4 +572,5 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref) {
   hashtable_uint64_ts_destroy(&enb_ref->ue_id_coll);
   hashtable_ts_free(&state->enbs, enb_ref->sctp_assoc_id);
   state->num_enbs--;
+  update_mme_app_stats_connected_enb_sub();
 }

@@ -217,6 +217,8 @@ function Map() {
       <MapView
         id="mapView"
         geojson={geojson}
+        // buildLayer method returns a source that should be a string instead
+        // $FlowFixMe[incompatible-type]
         mapLayers={mapLayers}
         MapMarker={WifiMapMarker}
         onMarkerClick={onMarkerClick}

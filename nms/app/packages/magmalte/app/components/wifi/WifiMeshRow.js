@@ -20,7 +20,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@material-ui/core/Button';
 import ChevronRight from '@material-ui/icons/ChevronRight';
-import ClipboardLink from '@fbcnms/ui/components/ClipboardLink';
+import ClipboardLink from '../../components/ClipboardLink';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';

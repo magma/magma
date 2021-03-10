@@ -1,0 +1,112 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+package magma.lte.subscriberdb;
+
+option go_package = "protos";
+
+// SubscriberLookup servicer provides methods for looking up a subscriber by
+// alternative identifiers.
+// Stores the following mappings
+//  - MSISDN -> IMSI
+//  - IP -> IMSI
+//
+// Notes:
+//  - MSISDN
+//    - Each MSISDN is enforced to map to at most 1 IMSI
+//  - IP
+//    - Each IP is expected to map to at most 1 IMSI, but this is not enforced,
+//      deferring to caller-enforcement as-required
+service SubscriberLookup {
+  // GetMSISDNs returns MSISDN -> IMSI mappings.
+  rpc GetMSISDNs (GetMSISDNsRequest) returns (GetMSISDNsResponse) {}
+
+  // SetMSISDN creates a MSISDN -> IMSI mapping.
+  // Error if MSISDN has already been assigned.
+  rpc SetMSISDN (SetMSISDNRequest) returns (SetMSISDNResponse) {}
+
+  // DeleteMSISDN removes the MSISDN -> IMSI mapping.
+  rpc DeleteMSISDN (DeleteMSISDNRequest) returns (DeleteMSISDNResponse) {}
+
+  // GetIPs returns IP -> IMSI mappings.
+  rpc GetIPs (GetIPsRequest) returns (GetIPsResponse) {}
+
+  // SetIPs creates an IP -> IMSI mapping.
+  // Error if IP has already been assigned.
+  rpc SetIPs (SetIPsRequest) returns (SetIPsResponse) {}
+}
+
+message GetMSISDNsRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // msisdns whose IMSIs should be retrieved
+  // An empty list returns all tracked MSISDNs
+  repeated string msisdns = 2;
+}
+
+message GetMSISDNsResponse {
+  // imsis_by_msisdn lists the requested imsis, keyed by their msisdn
+  map<string, string> imsis_by_msisdn = 1;
+}
+
+message SetMSISDNRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // msisdn to set
+  string msisdn = 2;
+  // imsi whose MSISDN should be set
+  string imsi = 3;
+}
+
+message SetMSISDNResponse {}
+
+message DeleteMSISDNRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // msisdn to delete
+  string msisdn = 2;
+}
+
+message DeleteMSISDNResponse {}
+
+message GetIPsRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // ips whose IMSIs should be retrieved
+  // An empty list returns all tracked IPs
+  repeated string ips = 2;
+}
+
+message GetIPsResponse {
+  // ip_mappings found
+  repeated IPMapping ip_mappings = 1;
+}
+
+message SetIPsRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // ip_mappings to set
+  repeated IPMapping ip_mappings = 2;
+}
+
+message SetIPsResponse {}
+
+message IPMapping {
+  // ip to set
+  string ip = 1;
+  // imsi whose IP should be set
+  string imsi = 2;
+  // apn under which this IMSI is assigned the IP
+  string apn = 3;
+}

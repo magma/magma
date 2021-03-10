@@ -17,6 +17,7 @@ import type {
   enodeb,
   enodeb_configuration,
   network_ran_configs,
+  unmanaged_enodeb_configuration,
 } from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
@@ -27,12 +28,12 @@ import DialogTitle from '../../theme/design-system/DialogTitle';
 import EnodebContext from '../../components/context/EnodebContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
-import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {
@@ -46,7 +47,7 @@ import EnodeConfigEditTdd from './EnodebDetailConfigTdd';
 import {AltFormField} from '../../components/FormField';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -124,16 +125,16 @@ export default function AddEditEnodeButton(props: ButtonProps) {
         editProps={props.editProps}
       />
       {props.isLink ? (
-        <Link
+        <Button
           data-testid={(props.editProps?.editTable ?? '') + 'EditButton'}
           component="button"
-          variant="body2"
+          variant="text"
           onClick={handleClickOpen}>
           {props.title}
-        </Link>
+        </Button>
       ) : (
         <Button
-          variant="contained"
+          variant="text"
           className={classes.appBarBtn}
           onClick={handleClickOpen}>
           {props.title}
@@ -151,7 +152,7 @@ function EnodeEditDialog(props: DialogProps) {
   const ctx = useContext(EnodebContext);
   const enodebSerial: string = match.params.enodebSerial;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const lteRanConfigs = ctx.state.lteRanConfigs;
+  const lteRanConfigs = ctx.lteRanConfigs;
 
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,
@@ -159,10 +160,13 @@ function EnodeEditDialog(props: DialogProps) {
 
   const onClose = () => {
     // clear existing state
-    setEnb({});
-    setTabPos(0);
     props.onClose();
   };
+
+  useEffect(() => {
+    setTabPos(editProps ? EditTableType[editProps.editTable] : 0);
+    setEnb({});
+  }, [editProps, open]);
 
   return (
     <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">
@@ -185,7 +189,7 @@ function EnodeEditDialog(props: DialogProps) {
       </Tabs>
       {tabPos === 0 && (
         <ConfigEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
+          isAdd={!editProps}
           enb={Object.keys(enb).length != 0 ? enb : enbInfo?.enb}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
@@ -201,7 +205,7 @@ function EnodeEditDialog(props: DialogProps) {
       )}
       {tabPos === 1 && (
         <RanEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Add eNodeB'}
+          isAdd={!editProps}
           enb={Object.keys(enb).length != 0 ? enb : enbInfo?.enb}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
@@ -213,7 +217,7 @@ function EnodeEditDialog(props: DialogProps) {
 }
 
 type Props = {
-  saveButtonTitle: string,
+  isAdd: boolean,
   enb?: enodeb,
   lteRanConfigs: ?network_ran_configs,
   onClose: () => void,
@@ -241,12 +245,31 @@ export function RanEdit(props: Props) {
   const handleEnbChange = (key: string, val) =>
     setConfig({...config, [key]: val});
 
+  const handleUnmanagedEnbChange = (key: string, val) =>
+    setUnmanagedConfig({...unmanagedConfig, [key]: val});
+
   const handleOptChange = (key: OptKey, val) =>
     setOptConfig({...optConfig, [(key: string)]: val});
 
   const [error, setError] = useState('');
+
+  const [
+    unmanagedConfig,
+    setUnmanagedConfig,
+  ] = useState<unmanaged_enodeb_configuration>(
+    props.enb?.enodeb_config?.unmanaged_config || {
+      cell_id: 0,
+      ip_address: '',
+      tac: 0,
+    },
+  );
+
   const [config, setConfig] = useState<enodeb_configuration>(
-    props.enb?.config || DEFAULT_ENB_CONFIG.config,
+    props.enb?.enodeb_config?.managed_config || DEFAULT_ENB_CONFIG.config,
+  );
+
+  const [enbConfigType, setEnbConfigType] = useState<'MANAGED' | 'UNMANAGED'>(
+    props.enb?.enodeb_config?.config_type ?? 'MANAGED',
   );
 
   const [optConfig, setOptConfig] = useState<OptConfig>({
@@ -262,10 +285,23 @@ export function RanEdit(props: Props) {
 
   const onSave = async () => {
     try {
-      const enb = {
+      const enb: enodeb = {
         ...(props.enb || DEFAULT_ENB_CONFIG),
-        config: buildRanConfig(config, optConfig),
+        config:
+          enbConfigType === 'MANAGED'
+            ? buildRanConfig(config, optConfig)
+            : DEFAULT_ENB_CONFIG.config,
+        enodeb_config: {
+          config_type: enbConfigType,
+          managed_config:
+            enbConfigType === 'MANAGED'
+              ? buildRanConfig(config, optConfig)
+              : undefined,
+          unmanaged_config:
+            enbConfigType === 'UNMANAGED' ? unmanagedConfig : undefined,
+        },
       };
+
       await ctx.setState(enb.serial, {
         enb_state: enbInfo?.enb_state ?? {},
         enb: enb,
@@ -276,7 +312,6 @@ export function RanEdit(props: Props) {
       });
       props.onSave(enb);
     } catch (e) {
-      console.log('xxxx', e);
       setError(e.response?.data?.message ?? e.message);
     }
   };
@@ -290,113 +325,168 @@ export function RanEdit(props: Props) {
               <FormLabel error>{error}</FormLabel>
             </AltFormField>
           )}
-          <AltFormField label={'Device Class'}>
-            <FormControl>
-              <Select
-                value={config.device_class}
-                onChange={({target}) =>
-                  handleEnbChange(
-                    'device_class',
-                    coerceValue(target.value, EnodebDeviceClass),
-                  )
-                }
-                input={<OutlinedInput id="deviceClass" />}>
-                {Object.keys(EnodebDeviceClass).map(
-                  (k: string, idx: number) => (
-                    <MenuItem key={idx} value={EnodebDeviceClass[k]}>
-                      {EnodebDeviceClass[k]}
-                    </MenuItem>
-                  ),
-                )}
-              </Select>
-            </FormControl>
-          </AltFormField>
-          <AltFormField label={'Cell ID'}>
-            <OutlinedInput
-              data-testid="cellId"
-              type="number"
-              min={0}
-              max={Math.pow(2, 28) - 1}
-              fullWidth={true}
-              value={config.cell_id}
+          <AltFormField label={'eNodeB Managed Externally'}>
+            <Switch
+              data-testid="enodeb_config"
               onChange={({target}) =>
-                handleEnbChange('cell_id', parseInt(target.value))
+                setEnbConfigType(target.checked ? 'UNMANAGED' : 'MANAGED')
               }
+              checked={enbConfigType === 'UNMANAGED'}
             />
           </AltFormField>
-          <AltFormField label={'Bandwidth'}>
-            <FormControl>
-              <Select
-                value={optConfig.bandwidthMhz}
-                onChange={({target}) =>
-                  handleOptChange(
-                    'bandwidthMhz',
-                    coerceValue(target.value, EnodebBandwidthOption),
-                  )
-                }
-                input={<OutlinedInput id="bandwidth" />}>
-                {Object.keys(EnodebBandwidthOption).map(
-                  (k: string, idx: number) => (
-                    <MenuItem key={idx} value={EnodebBandwidthOption[k]}>
-                      {EnodebBandwidthOption[k]}
-                    </MenuItem>
-                  ),
-                )}
-              </Select>
-            </FormControl>
-          </AltFormField>
-          {props.lteRanConfigs?.tdd_config && (
-            <EnodeConfigEditTdd
-              earfcndl={optConfig.earfcndl}
-              specialSubframePattern={optConfig.specialSubframePattern}
-              subframeAssignment={optConfig.subframeAssignment}
-              setEarfcndl={v => handleOptChange('earfcndl', v)}
-              setSubframeAssignment={v =>
-                handleOptChange('subframeAssignment', v)
-              }
-              setSpecialSubframePattern={v =>
-                handleOptChange('specialSubframePattern', v)
-              }
-            />
-          )}
-          {props.lteRanConfigs?.fdd_config && (
-            <EnodeConfigEditFdd
-              earfcndl={optConfig.earfcndl}
-              earfcnul={props.lteRanConfigs.fdd_config.earfcnul.toString()}
-              setEarfcndl={v => handleOptChange('earfcndl', v)}
-            />
-          )}
-          <AltFormField label={'PCI'}>
-            <OutlinedInput
-              data-testid="pci"
-              fullWidth={true}
-              value={optConfig.pci}
-              onChange={({target}) => handleOptChange('pci', target.value)}
-            />
-          </AltFormField>
+          {enbConfigType === 'UNMANAGED' ? (
+            <>
+              <AltFormField label={'Cell ID'}>
+                <OutlinedInput
+                  data-testid="cellId"
+                  type="number"
+                  min={0}
+                  max={Math.pow(2, 28) - 1}
+                  fullWidth={true}
+                  value={unmanagedConfig.cell_id}
+                  onChange={({target}) =>
+                    handleUnmanagedEnbChange('cell_id', parseInt(target.value))
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'TAC'}>
+                <OutlinedInput
+                  data-testid="tac"
+                  type="number"
+                  min={0}
+                  max={65535}
+                  fullWidth={true}
+                  value={unmanagedConfig.tac}
+                  onChange={({target}) =>
+                    handleUnmanagedEnbChange('tac', parseInt(target.value))
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'IP Address'}>
+                <OutlinedInput
+                  data-testid="ipAddress"
+                  fullWidth={true}
+                  placeholder="192.168.0.1/24"
+                  value={unmanagedConfig.ip_address}
+                  onChange={({target}) =>
+                    handleUnmanagedEnbChange('ip_address', target.value)
+                  }
+                />
+              </AltFormField>
+            </>
+          ) : (
+            <>
+              <AltFormField label={'Device Class'}>
+                <FormControl>
+                  <Select
+                    value={config.device_class}
+                    onChange={({target}) =>
+                      handleEnbChange(
+                        'device_class',
+                        coerceValue(target.value, EnodebDeviceClass),
+                      )
+                    }
+                    input={<OutlinedInput id="deviceClass" />}>
+                    {Object.keys(EnodebDeviceClass).map(
+                      (k: string, idx: number) => (
+                        <MenuItem key={idx} value={EnodebDeviceClass[k]}>
+                          {EnodebDeviceClass[k]}
+                        </MenuItem>
+                      ),
+                    )}
+                  </Select>
+                </FormControl>
+              </AltFormField>
+              <AltFormField label={'Cell ID'}>
+                <OutlinedInput
+                  data-testid="cellId"
+                  type="number"
+                  min={0}
+                  max={Math.pow(2, 28) - 1}
+                  fullWidth={true}
+                  value={config.cell_id}
+                  onChange={({target}) =>
+                    handleEnbChange('cell_id', parseInt(target.value))
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'Bandwidth'}>
+                <FormControl>
+                  <Select
+                    value={optConfig.bandwidthMhz}
+                    onChange={({target}) =>
+                      handleOptChange(
+                        'bandwidthMhz',
+                        coerceValue(target.value, EnodebBandwidthOption),
+                      )
+                    }
+                    input={<OutlinedInput id="bandwidth" />}>
+                    {Object.keys(EnodebBandwidthOption).map(
+                      (k: string, idx: number) => (
+                        <MenuItem key={idx} value={EnodebBandwidthOption[k]}>
+                          {EnodebBandwidthOption[k]}
+                        </MenuItem>
+                      ),
+                    )}
+                  </Select>
+                </FormControl>
+              </AltFormField>
+              {props.lteRanConfigs?.tdd_config && (
+                <EnodeConfigEditTdd
+                  earfcndl={optConfig.earfcndl}
+                  specialSubframePattern={optConfig.specialSubframePattern}
+                  subframeAssignment={optConfig.subframeAssignment}
+                  setEarfcndl={v => handleOptChange('earfcndl', v)}
+                  setSubframeAssignment={v =>
+                    handleOptChange('subframeAssignment', v)
+                  }
+                  setSpecialSubframePattern={v =>
+                    handleOptChange('specialSubframePattern', v)
+                  }
+                />
+              )}
+              {props.lteRanConfigs?.fdd_config && (
+                <EnodeConfigEditFdd
+                  earfcndl={optConfig.earfcndl}
+                  earfcnul={props.lteRanConfigs.fdd_config.earfcnul.toString()}
+                  setEarfcndl={v => handleOptChange('earfcndl', v)}
+                />
+              )}
+              <AltFormField label={'PCI'}>
+                <OutlinedInput
+                  data-testid="pci"
+                  placeholder="Enter PCI"
+                  fullWidth={true}
+                  value={optConfig.pci}
+                  onChange={({target}) => handleOptChange('pci', target.value)}
+                />
+              </AltFormField>
 
-          <AltFormField label={'TAC'}>
-            <OutlinedInput
-              data-testid="tac"
-              fullWidth={true}
-              value={optConfig.tac}
-              onChange={({target}) => handleOptChange('tac', target.value)}
-            />
-          </AltFormField>
+              <AltFormField label={'TAC'}>
+                <OutlinedInput
+                  data-testid="tac"
+                  placeholder="Enter TAC"
+                  fullWidth={true}
+                  value={optConfig.tac}
+                  onChange={({target}) => handleOptChange('tac', target.value)}
+                />
+              </AltFormField>
 
-          <AltFormField label={'Transmit'}>
-            <FormControl variant={'outlined'}>
-              <Select
-                value={config.transmit_enabled ? 1 : 0}
-                onChange={({target}) =>
-                  handleEnbChange('transmit_enabled', target.value === 1)
-                }
-                input={<OutlinedInput id="transmitEnabled" />}>
-                <MenuItem value={0}>Disabled</MenuItem>
-                <MenuItem value={1}>Enabled</MenuItem>
-              </Select>
-            </FormControl>
-          </AltFormField>
+              <AltFormField label={'Transmit'}>
+                <FormControl variant={'outlined'}>
+                  <Select
+                    value={config.transmit_enabled ? 1 : 0}
+                    onChange={({target}) =>
+                      handleEnbChange('transmit_enabled', target.value === 1)
+                    }
+                    input={<OutlinedInput id="transmitEnabled" />}>
+                    <MenuItem value={0}>Disabled</MenuItem>
+                    <MenuItem value={1}>Enabled</MenuItem>
+                  </Select>
+                </FormControl>
+              </AltFormField>
+            </>
+          )}
         </List>
       </DialogContent>
       <DialogActions>
@@ -404,7 +494,7 @@ export function RanEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Add eNodeB' : 'Save'}
         </Button>
       </DialogActions>
     </>
@@ -418,11 +508,30 @@ export function ConfigEdit(props: Props) {
   const ctx = useContext(EnodebContext);
   const enodebSerial: string = match.params.enodebSerial;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-
   const [enb, setEnb] = useState<enodeb>(props.enb || DEFAULT_ENB_CONFIG);
-
   const onSave = async () => {
     try {
+      if (props.isAdd) {
+        // check if it is not a modify during add i.e we aren't switching tabs back
+        // during add and modifying the information other than the serial number
+        if (
+          enb.serial in ctx.state.enbInfo &&
+          enb.serial !== props.enb?.serial
+        ) {
+          setError(`eNodeB ${enb.serial} already exists`);
+          return;
+        }
+      }
+
+      if (enb.config == null) {
+        enb.config = DEFAULT_ENB_CONFIG.config;
+      }
+      if (enb.enodeb_config == null || enb.enodeb_config.config_type == '') {
+        enb.enodeb_config = {
+          config_type: 'MANAGED',
+          managed_config: DEFAULT_ENB_CONFIG.config,
+        };
+      }
       await ctx.setState(enb.serial, {
         enb_state: enbInfo?.enb_state ?? {},
         enb: enb,
@@ -444,12 +553,15 @@ export function ConfigEdit(props: Props) {
         <List>
           {error !== '' && (
             <AltFormField label={''}>
-              <FormLabel error>{error}</FormLabel>
+              <FormLabel data-testid="configEditError" error>
+                {error}
+              </FormLabel>
             </AltFormField>
           )}
           <AltFormField label={'Name'}>
             <OutlinedInput
               data-testid="name"
+              placeholder="Enter Name"
               fullWidth={true}
               value={enb.name}
               onChange={({target}) => setEnb({...enb, name: target.value})}
@@ -458,6 +570,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Serial Number'}>
             <OutlinedInput
               data-testid="serial"
+              placeholder="Ex: 12020000261814C0021"
               fullWidth={true}
               value={enb.serial}
               readOnly={props.enb ? true : false}
@@ -467,6 +580,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Description'}>
             <OutlinedInput
               data-testid="description"
+              placeholder="Enter Description"
               fullWidth={true}
               multiline
               rows={4}
@@ -483,7 +597,7 @@ export function ConfigEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>

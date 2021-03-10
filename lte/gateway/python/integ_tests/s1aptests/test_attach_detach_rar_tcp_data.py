@@ -17,13 +17,13 @@ import time
 
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
+from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil, GTPBridgeUtils
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+from lte.protos.policydb_pb2 import FlowMatch
 
 
 class TestAttachDetachRarTcpData(unittest.TestCase):
     SPGW_TABLE = 0
-    GTP_PORT = 32768
     LOCAL_PORT = "LOCAL"
 
     def setUp(self):
@@ -35,8 +35,8 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_rar_tcp_data(self):
-        """ attach/detach + send ReAuth Req to session manager with a"""
-        """ single UE """
+        """ Attach/detach + send ReAuth Req to session manager with a
+        single UE """
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
@@ -46,6 +46,8 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         datapath = get_datapath()
         MAX_NUM_RETRIES = 5
+        gtp_br_util = GTPBridgeUtils()
+        GTP_PORT = gtp_br_util.get_gtp_port_no()
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -69,64 +71,64 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
             ulFlow1 = {
                 "ipv4_dst": "192.168.129.42",  # IPv4 destination address
                 "tcp_dst_port": 5002,  # TCP dest port
-                "ip_proto": "TCP",  # Protocol Type
-                "direction": "UL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+                "direction": FlowMatch.UPLINK,  # Direction
             }
 
             # UL Flow description #2
             ulFlow2 = {
                 "ipv4_dst": "192.168.129.42",  # IPv4 destination address
                 "tcp_dst_port": 5001,  # TCP dest port
-                "ip_proto": "TCP",  # Protocol Type
-                "direction": "UL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+                "direction": FlowMatch.UPLINK,  # Direction
             }
 
             # UL Flow description #3
             ulFlow3 = {
                 "ipv4_dst": "192.168.129.64",  # IPv4 destination address
                 "tcp_dst_port": 5003,  # TCP dest port
-                "ip_proto": "TCP",  # Protocol Type
-                "direction": "UL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+                "direction": FlowMatch.UPLINK,  # Direction
             }
 
             # UL Flow description #4
             ulFlow4 = {
                 "ipv4_dst": "192.168.129.42",  # IPv4 destination address
                 "tcp_dst_port": 5004,  # TCP dest port
-                "ip_proto": "TCP",  # Protocol Type
-                "direction": "UL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+                "direction": FlowMatch.UPLINK,  # Direction
             }
 
             # DL Flow description #1
             dlFlow1 = {
                 "ipv4_src": "192.168.129.42",  # IPv4 source address
                 "tcp_src_port": 5001,  # TCP source port
-                "ip_proto": "TCP",  # Protocol Type
-                "direction": "DL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+                "direction": FlowMatch.DOWNLINK,  # Direction
             }
 
             # DL Flow description #2
             dlFlow2 = {
                 "ipv4_src": "192.168.129.64",  # IPv4 source address
                 "tcp_src_port": 5002,  # TCP source port
-                "ip_proto": "TCP",  # Protocol Type
-                "direction": "DL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+                "direction": FlowMatch.DOWNLINK,  # Direction
             }
 
             # DL Flow description #3
             dlFlow3 = {
                 "ipv4_src": "192.168.129.64",  # IPv4 source address
                 "tcp_src_port": 5003,  # TCP source port
-                "ip_proto": "TCP",  # Protocol Type
-                "direction": "DL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+                "direction": FlowMatch.DOWNLINK,  # Direction
             }
 
             # DL Flow description #4
             dlFlow4 = {
                 "ipv4_src": "192.168.129.42",  # IPv4 source address
                 "tcp_src_port": 5004,  # TCP source port
-                "ip_proto": "TCP",  # Protocol Type
-                "direction": "DL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+                "direction": FlowMatch.DOWNLINK,  # Direction
             }
 
             # Flow list to be configured
@@ -144,7 +146,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
             # QoS
             qos = {
                 "qci": 5,  # qci value [1 to 9]
-                "priority": 15,  # Range [0-255]
+                "priority": 0,  # Range [0-255]
                 "max_req_bw_ul": 10000000,  # MAX bw Uplink
                 "max_req_bw_dl": 15000000,  # MAX bw Downlink
                 "gbr_ul": 1000000,  # GBR Uplink
@@ -162,7 +164,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
                 "********************** Sending RAR for IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
-            self._sessionManager_util.create_ReAuthRequest(
+            self._sessionManager_util.send_ReAuthRequest(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 policy_id,
                 flow_list,
@@ -196,7 +198,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
                     datapath,
                     {
                         "table_id": self.SPGW_TABLE,
-                        "match": {"in_port": self.GTP_PORT},
+                        "match": {"in_port": GTP_PORT},
                     },
                 )
                 if len(uplink_flows) > 1:
@@ -292,7 +294,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
                 datapath, {"table_id": self.SPGW_TABLE, "priority": 0}
             )
             self.assertEqual(
-                len(flows), 1, "There should only be 1 default table 0 flow"
+                len(flows), 2, "There should only be 2 default table 0 flows"
             )
 
 

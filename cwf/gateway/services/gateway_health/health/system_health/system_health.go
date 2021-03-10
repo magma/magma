@@ -15,11 +15,13 @@ package system_health
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
 
-	"github.com/coreos/go-iptables/iptables"
 	"github.com/golang/glog"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
+	"github.com/vishvananda/netlink"
 )
 
 // SystemHealth defines an interface to fetch system health and enable/disable
@@ -37,11 +39,6 @@ type SystemHealth interface {
 	Enable() error
 }
 
-const (
-	filterTable = "filter"
-	inputChain  = "INPUT"
-)
-
 // SystemsStats define the metrics this provider will collect.
 type SystemStats struct {
 	CpuUtilPct float32
@@ -50,20 +47,15 @@ type SystemStats struct {
 
 // CWAGSystemHealthProvider defines a system health provider.
 type CWAGSystemHealthProvider struct {
-	iptables      *iptables.IPTables
-	icmpInterface string
+	trafficInterface string
+	virtualIP        string
 }
 
-// NewCWAGSystemHealthProvider creates a new CWAGSystemHealthProvider with
-// initialized iptables.
-func NewCWAGSystemHealthProvider(eth string) (*CWAGSystemHealthProvider, error) {
-	ipt, err := iptables.New()
-	if err != nil {
-		return nil, err
-	}
+// NewCWAGSystemHealthProvider creates a new CWAGSystemHealthProvider.
+func NewCWAGSystemHealthProvider(eth string, virtualIP string) (*CWAGSystemHealthProvider, error) {
 	return &CWAGSystemHealthProvider{
-		iptables:      ipt,
-		icmpInterface: eth,
+		trafficInterface: eth,
+		virtualIP:        virtualIP,
 	}, nil
 }
 
@@ -84,51 +76,108 @@ func (c *CWAGSystemHealthProvider) GetSystemStats() (*SystemStats, error) {
 	return stats, nil
 }
 
-// Enable removes the ICMP DROP rule from iptables for the configured interface.
-// If the iptables rule doesn't exist, Enable has no effect.
+// Enable adds the VIP to the configured interface and updates every route to
+// use the VIP as the src IP.
 func (c *CWAGSystemHealthProvider) Enable() error {
-	exists, err := c.doesICMPDropExist()
+	iface, err := netlink.LinkByName(c.trafficInterface)
+	if err != nil {
+		return err
+	}
+	vipAddr, err := netlink.ParseAddr(c.virtualIP)
+	if err != nil {
+		return err
+	}
+	exists, err := c.doesAddrExistForInterface(iface, vipAddr)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return nil
+		glog.V(1).Infof("Adding VIP address '%s' to interface %s", vipAddr.IP.String(), c.trafficInterface)
+		err = netlink.AddrAdd(iface, vipAddr)
+		if err != nil {
+			return err
+		}
 	}
-	icmpDropCmd := c.getICMPDropCmd()
-	err = c.iptables.Delete(filterTable, inputChain, icmpDropCmd...)
-	if err != nil {
-		glog.Errorf("Unable to remove ICMP DROP rule from iptables for %s", c.icmpInterface)
-		return err
-	}
-	glog.Infof("Successfully removed iptables ICMP DROP for %s", c.icmpInterface)
-	return nil
+	// Ensure gRPC request doesn't timeout due to gratuitous arp
+	go c.sendGratuitousArpReply(vipAddr.IP.String())
+
+	return c.updateInterfaceRouteSrcIP(iface, *vipAddr)
 }
 
-// Disable adds an ICMP DROP rule from iptables for the configured interface.
-// If the iptables rule already exists, Disable has no effect.
+// Disable removes the VIP from the configured interface and updates every
+// route for to use the physical IP as the src IP.
 func (c *CWAGSystemHealthProvider) Disable() error {
-	exists, err := c.doesICMPDropExist()
+	iface, err := netlink.LinkByName(c.trafficInterface)
+	if err != nil {
+		return err
+	}
+	vipAddr, err := netlink.ParseAddr(c.virtualIP)
+	if err != nil {
+		return err
+	}
+	exists, err := c.doesAddrExistForInterface(iface, vipAddr)
 	if err != nil {
 		return err
 	}
 	if exists {
-		return nil
+		glog.V(1).Infof("Removing VIP address '%s' from interface %s", vipAddr.IP.String(), c.trafficInterface)
+		err = netlink.AddrDel(iface, vipAddr)
+		if err != nil {
+			return err
+		}
 	}
-	icmpDropCmd := c.getICMPDropCmd()
-	err = c.iptables.Append(filterTable, inputChain, icmpDropCmd...)
+	addrs, err := netlink.AddrList(iface, netlink.FAMILY_V4)
 	if err != nil {
-		glog.Errorf("Error adding iptables ICMP DROP rule for %s", c.icmpInterface)
 		return err
 	}
-	glog.Infof("Successfully added iptables ICMP DROP for %s", c.icmpInterface)
+	if len(addrs) == 0 {
+		return fmt.Errorf("No physical IP address found for interface")
+	}
+	physicalIp := addrs[0]
+	return c.updateInterfaceRouteSrcIP(iface, physicalIp)
+}
+
+func (c *CWAGSystemHealthProvider) updateInterfaceRouteSrcIP(iface netlink.Link, newSrcIP netlink.Addr) error {
+	routes, err := netlink.RouteList(iface, netlink.FAMILY_V4)
+	if err != nil {
+		return err
+	}
+	var routeErrors []string
+	for _, route := range routes {
+		if route.Src.String() == newSrcIP.IP.String() {
+			continue
+		}
+		glog.V(1).Infof("Updating route (Dst: %s, Gw: %s) to use IP '%s' as src", route.Dst, route.Gw, newSrcIP.IP)
+		route.Src = newSrcIP.IP
+		err = netlink.RouteReplace(&route)
+		if err != nil {
+			routeErrors = append(routeErrors, err.Error())
+		}
+	}
+	if len(routeErrors) > 0 {
+		return fmt.Errorf("Encountered the following errors while updating routes:\n%s\n", strings.Join(routeErrors, "\n"))
+	}
 	return nil
 }
 
-func (c *CWAGSystemHealthProvider) doesICMPDropExist() (bool, error) {
-	icmpDropCmd := c.getICMPDropCmd()
-	return c.iptables.Exists(filterTable, inputChain, icmpDropCmd...)
+func (c *CWAGSystemHealthProvider) sendGratuitousArpReply(vip string) error {
+	arpCmd := exec.Command("arping", "-A", "-I", c.trafficInterface, vip, "-w", "3")
+	output, err := arpCmd.CombinedOutput()
+	if err != nil {
+		glog.Errorf("Received error when sending gratuitous ARP reply: %s", string(output))
+	}
+	return err
 }
 
-func (c *CWAGSystemHealthProvider) getICMPDropCmd() []string {
-	return []string{"-i", c.icmpInterface, "--proto", "icmp", "-j", "DROP"}
+func (c *CWAGSystemHealthProvider) doesAddrExistForInterface(iface netlink.Link, targetAddr *netlink.Addr) (bool, error) {
+	addrs, err := netlink.AddrList(iface, netlink.FAMILY_V4)
+	if err != nil {
+		return false, err
+	}
+	for _, addr := range addrs {
+		if addr.IP.String() == targetAddr.IP.String() {
+			return true, nil
+		}
+	}
+	return false, nil
 }

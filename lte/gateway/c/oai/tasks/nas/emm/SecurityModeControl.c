@@ -98,7 +98,7 @@
 /*
    Timer handlers
 */
-static void _security_t3460_handler(void*);
+static void _security_t3460_handler(void*, imsi64_t* imsi64);
 static int _security_ll_failure(
     emm_context_t* emm_context, struct nas_emm_proc_s* nas_emm_proc);
 static int _security_non_delivered_ho(
@@ -617,7 +617,7 @@ void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _security_t3460_handler(void* args) {
+static void _security_t3460_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_ctx = (emm_context_t*) (args);
 
@@ -628,6 +628,7 @@ static void _security_t3460_handler(void* args) {
   nas_emm_smc_proc_t* smc_proc = get_nas_common_procedure_smc(emm_ctx);
 
   if (smc_proc) {
+    *imsi64 = emm_ctx->_imsi64;
     /*
      * Increment the retransmission counter
      */

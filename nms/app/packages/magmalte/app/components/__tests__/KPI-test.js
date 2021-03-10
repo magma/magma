@@ -14,17 +14,17 @@
  * @format
  */
 import 'jest-dom/extend-expect';
+import EnodebContext from '../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
+import GatewayContext from '../context/GatewayContext';
 import GatewayKPIs from '../GatewayKPIs';
-import MagmaAPIBindings from '@fbcnms/magma-api';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
-import type {enodeb, enodeb_state, lte_gateway} from '@fbcnms/magma-api';
+import type {enodeb_state, lte_gateway} from '@fbcnms/magma-api';
 
 afterEach(cleanup);
 
@@ -67,36 +67,6 @@ const mockGwSt: lte_gateway = {
   },
 };
 
-const mockEnbAll: {[string]: enodeb} = {
-  test1: {
-    name: 'test1',
-    serial: 'test1',
-    config: {
-      cell_id: 0,
-      device_class: 'Baicells Nova-233 G2 OD FDD',
-      transmit_enabled: true,
-    },
-  },
-  test2: {
-    name: 'test2',
-    serial: 'test2',
-    config: {
-      cell_id: 0,
-      device_class: 'Baicells Nova-233 G2 OD FDD',
-      transmit_enabled: true,
-    },
-  },
-  test3: {
-    name: 'test3',
-    serial: 'test3',
-    config: {
-      cell_id: 0,
-      device_class: 'Baicells Nova-233 G2 OD FDD',
-      transmit_enabled: true,
-    },
-  },
-};
-
 const mockEnbSt: enodeb_state = {
   enodeb_configured: true,
   enodeb_connected: true,
@@ -109,6 +79,7 @@ const mockEnbSt: enodeb_state = {
   ptp_connected: true,
   rf_tx_desired: true,
   rf_tx_on: true,
+  ip_address: '192.168.1.254',
 };
 
 jest.mock('axios');
@@ -116,7 +87,7 @@ jest.mock('@fbcnms/magma-api');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 
 describe('<GatewaysKPIs />', () => {
-  beforeEach(() => {
+  const Wrapper = () => {
     const mockUpSt = Object.assign({}, mockGwSt);
     mockUpSt['status'] = {
       checkin_time: Date.now(),
@@ -128,72 +99,98 @@ describe('<GatewaysKPIs />', () => {
         mme_connected: '0',
       },
     };
-    MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValue({
-      test1: mockGwSt,
-      test2: mockGwSt,
-      test3: mockUpSt,
-    });
-  });
+    const gatewayCtx = {
+      state: {
+        test1: mockGwSt,
+        test2: mockGwSt,
+        test3: mockUpSt,
+      },
+      setState: async () => {},
+      updateGateway: async () => {},
+    };
 
-  afterEach(() => {
-    axiosMock.get.mockClear();
-  });
-
-  const Wrapper = () => (
-    <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <Route path="/nms/:networkId" component={GatewayKPIs} />
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </MemoryRouter>
-  );
+    return (
+      <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <GatewayContext.Provider value={gatewayCtx}>
+              <Route path="/nms/:networkId" component={GatewayKPIs} />
+            </GatewayContext.Provider>
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+  };
   it('renders', async () => {
     const {getByTestId} = render(<Wrapper />);
     await wait();
 
-    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(1);
     expect(getByTestId('Connected')).toHaveTextContent('1');
     expect(getByTestId('Disconnected')).toHaveTextContent('2');
   });
 });
 
 describe('<EnodebKPIs />', () => {
-  beforeEach(() => {
-    MagmaAPIBindings.getLteByNetworkIdEnodebs.mockResolvedValue(mockEnbAll);
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.getLteByNetworkIdEnodebsByEnodebSerialState.mockResolvedValue(
-      mockEnbSt,
-    );
-    const mockEnbNotTxSt = Object.assign({}, mockEnbSt);
-    mockEnbNotTxSt.rf_tx_on = false;
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.getLteByNetworkIdEnodebsByEnodebSerialState.mockReturnValueOnce(
-      mockEnbNotTxSt,
-    );
-  });
+  const mockEnbNotTxSt = Object.assign({}, mockEnbSt);
+  mockEnbNotTxSt.rf_tx_on = false;
+  const enbInfo = {
+    test1: {
+      enb: {
+        name: 'test1',
+        serial: 'test1',
+        config: {
+          cell_id: 0,
+          device_class: 'Baicells Nova-233 G2 OD FDD',
+          transmit_enabled: true,
+        },
+      },
+      enb_state: mockEnbSt,
+    },
+    test2: {
+      enb: {
+        name: 'test2',
+        serial: 'test2',
+        config: {
+          cell_id: 0,
+          device_class: 'Baicells Nova-233 G2 OD FDD',
+          transmit_enabled: true,
+        },
+      },
+      enb_state: mockEnbSt,
+    },
+    test3: {
+      enb: {
+        name: 'test3',
+        serial: 'test3',
+        config: {
+          cell_id: 0,
+          device_class: 'Baicells Nova-233 G2 OD FDD',
+          transmit_enabled: true,
+        },
+      },
+      enb_state: mockEnbNotTxSt,
+    },
+  };
+  const enodebCtx = {
+    state: {enbInfo},
+    setState: async () => {},
+  };
 
-  afterEach(() => {
-    axiosMock.get.mockClear();
-  });
-
-  const Wrapper = () => (
-    <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <Route path="/nms/:networkId" component={EnodebKPIs} />
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </MemoryRouter>
-  );
+  const Wrapper = () => {
+    return (
+      <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <EnodebContext.Provider value={enodebCtx}>
+              <Route path="/nms/:networkId" component={EnodebKPIs} />
+            </EnodebContext.Provider>
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+  };
   it('renders', async () => {
     const {getByTestId} = render(<Wrapper />);
-    await wait();
-
-    expect(MagmaAPIBindings.getLteByNetworkIdEnodebs).toHaveBeenCalledTimes(1);
-    expect(
-      MagmaAPIBindings.getLteByNetworkIdEnodebsByEnodebSerialState,
-    ).toHaveBeenCalledTimes(3);
     expect(getByTestId('Total')).toHaveTextContent('3');
     expect(getByTestId('Transmitting')).toHaveTextContent('2');
   });

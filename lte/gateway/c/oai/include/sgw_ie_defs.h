@@ -29,6 +29,7 @@
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "3gpp_29.274.h"
+#include "TrackingAreaIdentity.h"
 
 typedef uint8_t DelayValue_t;
 typedef uint32_t SequenceNumber_t;
@@ -146,20 +147,6 @@ typedef struct {
 typedef struct {
   uint8_t mcc[3];
   uint8_t mnc[3];
-  uint16_t tac;
-} Tai_t;
-
-typedef struct {
-  plmn_t plmn;
-  uint8_t mcc[3];
-  uint8_t mnc[3];
-  eci_t
-      cell_identity; /*!< \brief  The ECI shall be of fixed length of 28 bits */
-} Ecgi_t;
-
-typedef struct {
-  uint8_t mcc[3];
-  uint8_t mnc[3];
   uint16_t lac;
 } Lai_t;
 
@@ -176,8 +163,8 @@ typedef struct {
     Cgi_t cgi;
     Sai_t sai;
     Rai_t rai;
-    Tai_t tai;
-    Ecgi_t ecgi;
+    tai_t tai;
+    ecgi_t ecgi;
     Lai_t lai;
   } s;
 } Uli_t;

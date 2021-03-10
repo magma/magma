@@ -14,9 +14,14 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "lte/protos/mobilityd.proto";
 
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
+
+message HeaderEnrichment{
+  repeated string urls = 1;
+}
 
 // --------------------------------------------------------------------------
 // Policy flow rules
@@ -83,6 +88,7 @@ message PolicyRule{
     VIDEO = 3;
   }
   AppServiceType app_service_type = 14; // optional
+  HeaderEnrichment he = 15;
 }
 
 message ServiceIdentifier {
@@ -118,8 +124,6 @@ message FlowMatch {
     IPPROTO_VRRP = 112;
     IPPROTO_SCTP = 132;
   }
-  string ipv4_src = 1;
-  string ipv4_dst = 2;
   uint32 tcp_src = 3;
   uint32 tcp_dst = 4;
   uint32 udp_src = 5;
@@ -131,6 +135,13 @@ message FlowMatch {
   }
   Direction direction = 8;
   string app_name = 9;
+  IPAddress ip_src = 10;
+  IPAddress ip_dst = 11;
+
+  // TODO deprecate these after safe move to ip_sr/ip_dst vars
+  //reserved 1, 2;
+  string ipv4_src = 1;
+  string ipv4_dst = 2;
 }
 
 message QosArp {
@@ -225,6 +236,30 @@ message AssignedPolicies {
 message InstalledPolicies {
   repeated string installed_base_names = 10;
   repeated string installed_policies = 11;
+}
+
+// ----------------------------------------------------------------------------
+// Subscriber-APN-Policy Mappings
+// ----------------------------------------------------------------------------
+
+// SubscriberPolicySet contains the base names and policy rules currently
+// assigned to a subscriber, keyed by APN
+// NOTE: This does not include the policy used to define the default bearer
+//       flow
+message SubscriberPolicySet {
+  repeated ApnPolicySet rules_per_apn = 1;
+  repeated string global_base_names = 2;
+  repeated string global_policies = 3;
+}
+
+// ApnPolicySet contains the base names and policy rules currently assigned to
+// a (subscriber, APN) tuple
+// NOTE: This does not include the policy used to define the default bearer
+//       flow
+message ApnPolicySet {
+  string apn = 1;
+  repeated string assigned_base_names = 2;
+  repeated string assigned_policies = 3;
 }
 
 // --------------------------------------------------------------------------

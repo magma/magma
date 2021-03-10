@@ -15,8 +15,16 @@ magma-gen-meta:
       filename: diameter_client_configs_swaggergen.go
     - go-struct-name: DiameterServerConfigs
       filename: diameter_server_configs_swaggergen.go
+    - go-struct-name: AaaServer
+      filename: aaa_server_swaggergen.go
     - go-struct-name: EapAkaTimeouts
       filename: eap_aka_timeouts_swaggergen.go
+    - go-struct-name: EapAka
+      filename: eap_aka_swaggergen.go
+    - go-struct-name: EapSimTimeouts
+      filename: eap_sim_timeouts_swaggergen.go
+    - go-struct-name: EapSim
+      filename: eap_sim_swaggergen.go
     - go-struct-name: NetworkFederationConfigs
       filename: network_federation_configs_swaggergen.go
     - go-struct-name: SubscriptionProfile
@@ -762,6 +770,7 @@ paths:
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 definitions:
   feg_network:
     type: object
@@ -821,6 +830,14 @@ definitions:
     properties:
       server:
         $ref: '#/definitions/diameter_client_configs'
+      plmn_ids:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 6
+          pattern: '^(\d{5,6})$'
+          example: '123456'
     x-go-custom-tag: 'magma_alt_name:"S6A"'
 
   hss:
@@ -848,6 +865,21 @@ definitions:
         example: false
     x-go-custom-tag: 'magma_alt_name:"HSS"'
 
+  s8:
+    type: object
+    description: s8 configuration
+    properties:
+      local_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+      pgw_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+
   gx:
     type: object
     description: gx configuration
@@ -865,6 +897,10 @@ definitions:
       overwrite_apn:
         type: string
         example: ""
+      virtual_apn_rules:
+        type: array
+        items:
+          $ref: '#/definitions/virtual_apn_rule'
 
   gy:
     type: object
@@ -891,6 +927,10 @@ definitions:
       overwrite_apn:
         type: string
         example: ""
+      virtual_apn_rules:
+        type: array
+        items:
+          $ref: '#/definitions/virtual_apn_rule'
 
   swx:
     type: object
@@ -941,6 +981,77 @@ definitions:
           maxLength: 6
           pattern: '^(\d{5,6})$'
           example: '123456'
+      use_s6a:
+        type: boolean
+        x-nullable: false
+        default: false
+        example: false
+      mnc_len:
+        type: integer
+        format: int32
+        x-nullable: false
+        default: 3
+        example: 3
+
+  eap_sim:
+    type: object
+    description: eap_sim configuration
+    properties:
+      timeout:
+        $ref: '#/definitions/eap_sim_timeouts'
+      plmn_ids:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 6
+          pattern: '^(\d{5,6})$'
+          example: '123456'
+      use_s6a:
+        type: boolean
+        x-nullable: false
+        default: false
+        example: false
+      mnc_len:
+        type: integer
+        format: int32
+        x-nullable: false
+        default: 3
+        example: 3
+
+  radius_config:
+    type: object
+    description: built-in radius server configuration
+    properties:
+      secret:
+        type: string
+        format: byte
+        default: MTIzNDU2
+        example: MTIzNDU2
+        x-nullable: false
+      network:
+        type: string
+        default: 'udp'
+        example: 'udp'
+        x-nullable: false
+      auth_addr:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        default: ':1812'
+        example: '127.0.0.1:1812'
+        x-nullable: false
+      acct_addr:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        default: ':1813'
+        example: '127.0.0.1:1813'
+        x-nullable: false
+      DAE_addr:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        default: ':3799'
+        example: '127.0.0.1:3799'
+        x-nullable: false
 
   aaa_server:
     type: object
@@ -967,11 +1078,25 @@ definitions:
         type: boolean
         x-nullable: false
         default: false
+      radius_config:
+        $ref: '#/definitions/radius_config'
 
   served_network_ids:
     type: array
     description: served network IDs
     items:
+      type: string
+
+  served_nh_ids:
+    type: array
+    description: served neutral host IDs
+    items:
+      type: string
+
+  nh_routes:
+    type: object
+    description: neutral host PLMN ID to serving FeG network routes
+    additionalProperties:
       type: string
 
   health:
@@ -1052,6 +1177,8 @@ definitions:
     properties:
       s6a:
         $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
       hss:
         $ref: '#/definitions/hss'
       gx:
@@ -1060,6 +1187,8 @@ definitions:
         $ref: '#/definitions/gy'
       swx:
         $ref: '#/definitions/swx'
+      eap_sim:
+        $ref: '#/definitions/eap_sim'
       eap_aka:
         $ref: '#/definitions/eap_aka'
       aaa_server:
@@ -1070,8 +1199,40 @@ definitions:
         $ref: '#/definitions/health'
       csfb:
         $ref: '#/definitions/csfb'
+      served_nh_ids:
+        $ref: '#/definitions/served_nh_ids'
+      nh_routes:
+        $ref: '#/definitions/nh_routes'
 
   eap_aka_timeouts:
+    type: object
+    properties:
+      challenge_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 20000
+        example: 20000
+      error_notification_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 10000
+        example: 10000
+      session_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 43200000
+        example: 43200000
+      session_authenticated_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 5000
+        example: 5000
+
+  eap_sim_timeouts:
     type: object
     properties:
       challenge_ms:
@@ -1226,6 +1387,26 @@ definitions:
         example: ":56789"
         x-nullable: false
 
+  virtual_apn_rule:
+    description: Virtual APN Rule configuration
+    type: object
+    properties:
+      apn_filter:
+        description: Regex to match APN values
+        type: string
+        example: ".*\\.magma.*"
+        x-nullable: false
+      charging_characteristics_filter:
+        description: Regex to match ChargingCharacteristics values
+        type: string
+        example: "12"
+        x-nullable: false
+      apn_overwrite:
+        description: New APN to overwrite when filter matches
+        type: string
+        example: "new.magma.apn"
+        x-nullable: false
+
   subscription_profile:
     description: HSS Subscription Profile
     type: object
@@ -1304,6 +1485,7 @@ definitions:
     minLength: 1
     required:
       - s6a
+      - s8
       - hss
       - gx
       - gy
@@ -1315,6 +1497,8 @@ definitions:
     properties:
       s6a:
         $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
       hss:
         $ref: '#/definitions/hss'
       gx:
@@ -1325,6 +1509,8 @@ definitions:
         $ref: '#/definitions/swx'
       eap_aka:
         $ref: '#/definitions/eap_aka'
+      eap_sim:
+        $ref: '#/definitions/eap_sim'
       aaa_server:
         $ref: '#/definitions/aaa_server'
       served_network_ids:
@@ -1333,6 +1519,10 @@ definitions:
         $ref: '#/definitions/health'
       csfb:
         $ref: '#/definitions/csfb'
+      served_nh_ids:
+        $ref: '#/definitions/served_nh_ids'
+      nh_routes:
+        $ref: '#/definitions/nh_routes'
 
   federated_network_configs:
     description: Configs for networks that are federated
@@ -1344,6 +1534,8 @@ definitions:
       feg_network_id:
         type: string
         example: 'example_feg_network'
+      federated_modes_mapping:
+        $ref: '#/definitions/federated_mode_map'
 
   federation_network_cluster_status:
     description: Status of a Federation HA cluster
@@ -1372,3 +1564,45 @@ definitions:
       description:
         type: string
         x-nullable: false
+
+  federated_mode_map:
+    description: Mapping for PLMN, imsi ranges, vs its gateway mode
+    type: object
+    properties:
+      enabled:
+        description: If Enabled is false, mapping will not be applied
+        type: boolean
+        x-nullable: false
+        example: false
+        default: false
+      mapping:
+        type: array
+        items:
+          $ref: '#/definitions/mode_map_item'
+
+  mode_map_item:
+    description: Item containing {mode, [plmnA, plmB], [imsi1, imsi2], [apnY, apnZ]}
+    type: object
+    properties:
+      mode:
+        type: string
+        enum:
+        - local_subscriber
+        - s8_subscriber
+        example: local_subscriber
+        x-nullable: false
+      plmn:
+        type: string
+        x-nullable: false
+        minLength: 5
+        maxLength: 6
+        pattern: '^(\d{5,6})$'
+        example: '123456'
+      imsi_range:
+        type: string
+        x-nullable: false
+        example: '000000000000000:000019999999999'
+      apn:
+        type: string
+        x-nullable: false
+        example: 'internet.com'

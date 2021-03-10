@@ -15,7 +15,7 @@
  */
 import 'jest-dom/extend-expect';
 
-import * as customHistogram from '../../../components/CustomHistogram';
+import * as customHistogram from '../../../components/CustomMetrics';
 import GatewayLogs from '../GatewayLogs';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import MomentUtils from '@date-io/moment';
@@ -161,20 +161,20 @@ describe('<GatewayLogs />', () => {
     expect(rowItems[0]).toHaveTextContent('Type');
     expect(rowItems[0]).toHaveTextContent('Output');
 
-    expect(rowItems[1]).toHaveTextContent(
-      new Date('2020-06-12T17:42:08.000000000+00:00').toLocaleString(),
-    );
-    expect(rowItems[1]).toHaveTextContent('control_proxy');
-    expect(rowItems[1]).toHaveTextContent('debug');
-    expect(rowItems[1]).toHaveTextContent('Message1');
-
-    expect(rowItems[1]).toHaveTextContent(
-      new Date('2020-06-12T17:42:08.000000000+00:00').toLocaleString(),
-    );
-    expect(rowItems[2]).toHaveTextContent('magmad');
-    expect(rowItems[2]).toHaveTextContent('info');
-    expect(rowItems[2]).toHaveTextContent('Info:Message2');
     expect(rowItems[2]).toHaveTextContent(
+      new Date('2020-06-12T17:42:08.000000000+00:00').toLocaleString(),
+    );
+    expect(rowItems[2]).toHaveTextContent('control_proxy');
+    expect(rowItems[2]).toHaveTextContent('debug');
+    expect(rowItems[2]).toHaveTextContent('Message1');
+
+    expect(rowItems[2]).toHaveTextContent(
+      new Date('2020-06-12T17:42:08.000000000+00:00').toLocaleString(),
+    );
+    expect(rowItems[3]).toHaveTextContent('magmad');
+    expect(rowItems[3]).toHaveTextContent('info');
+    expect(rowItems[3]).toHaveTextContent('Info:Message2');
+    expect(rowItems[3]).toHaveTextContent(
       new Date('2020-06-12T17:42:08.000000000+00:00').toLocaleString(),
     );
   });

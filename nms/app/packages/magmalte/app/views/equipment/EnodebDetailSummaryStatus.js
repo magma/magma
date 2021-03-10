@@ -15,19 +15,27 @@
  */
 import type {DataRows} from '../../components/DataGrid';
 
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../components/context/EnodebContext';
 import React from 'react';
+import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useContext} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 export function EnodebSummary() {
+  const ctx = useContext(EnodebContext);
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
-
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
   const kpiData: DataRows[] = [
     [
       {
@@ -36,45 +44,88 @@ export function EnodebSummary() {
       },
     ],
   ];
-  return <DataGrid data={kpiData} />;
+  return (
+    <>
+      <CardTitleRow icon={SettingsInputAntennaIcon} label={enbInfo.enb.name} />
+      <DataGrid data={kpiData} />
+    </>
+  );
 }
 
-export function EnodebStatus() {
-  const ctx = useContext(EnodebContext);
+export function EnodebStatus({refresh}: {refresh: boolean}) {
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
-  const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const networkId: string = nullthrows(match.params.networkId);
+  const enqueueSnackbar = useEnqueueSnackbar();
 
-  const isEnbHealthy = isEnodebHealthy(enbInfo);
+  // Auto refresh enodeb every 30 seconds
+  const state = useRefreshingContext({
+    context: EnodebContext,
+    networkId: networkId,
+    type: 'enodeb',
+    interval: REFRESH_INTERVAL,
+    id: enodebSerial,
+    enqueueSnackbar,
+    refresh: refresh,
+  });
+
+  // $FlowIgnore
+  const enbInfo = state.enbInfo?.[enodebSerial];
+  const isEnbHealthy = enbInfo ? isEnodebHealthy(enbInfo) : false;
+  const isEnbManaged = enbInfo?.enb?.enodeb_config?.config_type === 'MANAGED';
 
   const kpiData: DataRows[] = [
     [
       {
+        category: 'eNodeB Externally Managed',
+        value: isEnbManaged ? 'False' : 'True',
+      },
+      {
         category: 'Health',
-        value: isEnbHealthy ? 'Good' : 'Bad',
-        statusCircle: true,
+        value: isEnbManaged ? (isEnbHealthy ? 'Good' : 'Bad') : '-',
+        statusCircle: isEnbManaged,
         status: isEnbHealthy,
+        tooltip: isEnbManaged
+          ? isEnbHealthy
+            ? 'eNodeB transmit config and status match'
+            : 'mismatch in eNodeB transmit config and status'
+          : 'Health information unavailable on externally managed eNodeBs',
       },
       {
         category: 'Transmit Enabled',
-        value: enbInfo.enb.config.transmit_enabled ? 'Enabled' : 'Disabled',
+        value: enbInfo?.enb.enodeb_config?.managed_config?.transmit_enabled
+          ? 'Enabled'
+          : 'Disabled',
         statusCircle: true,
-        status: enbInfo.enb.config.transmit_enabled,
+        status: enbInfo?.enb.enodeb_config?.managed_config?.transmit_enabled,
+        tooltip: 'current transmit configuration on the eNodeB',
+      },
+      {
+        category: 'Subscribers',
+        value: enbInfo?.enb_state?.ues_connected ?? 0,
       },
     ],
     [
       {
         category: 'Gateway ID',
-        value: enbInfo.enb_state.reporting_gateway_id ?? '',
+        value: enbInfo?.enb_state.reporting_gateway_id ?? 'Not Available',
         statusCircle: true,
-        status: enbInfo.enb_state.enodeb_connected,
+        status: enbInfo?.enb_state.enodeb_connected,
       },
       {
         category: 'Mme Connected',
-        value: enbInfo.enb_state.mme_connected ? 'Connected' : 'Disconnected',
-        status: enbInfo.enb_state.mme_connected,
+        value: enbInfo?.enb_state.mme_connected ? 'Connected' : 'Disconnected',
+        status: enbInfo?.enb_state.mme_connected,
+      },
+      {
+        category: 'IP Address',
+        value: enbInfo?.enb_state.ip_address ?? 'Not Available',
       },
     ],
   ];
-  return <DataGrid data={kpiData} />;
+  return (
+    <>
+      <DataGrid data={kpiData} />
+    </>
+  );
 }

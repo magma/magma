@@ -2,10 +2,7 @@ version: "3.7"
 
 # Standard logging for each service
 x-logging: &logging_anchor
-  driver: "json-file"
-  options:
-    max-size: "10mb"
-    max-file: "10"
+  driver: ${LOG_DRIVER}
 
 # Standard volumes mounted
 x-standard-volumes: &volumes_anchor
@@ -70,7 +67,18 @@ services:
       test: ["CMD", "nc", "-zv", "localhost","50067"]
       timeout: "4s"
       retries: 3
-    command: python3.5 -m magma.directoryd.main
+    command: python3.8 -m magma.directoryd.main
+
+  eap_sim:
+    <<: *feggoservice
+    container_name: eap_sim
+    environment:
+      USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","9118"]
+      timeout: "4s"
+      retries: 3
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_sim -logtostderr=true -v=0
 
   eap_aka:
     <<: *feggoservice
@@ -86,7 +94,7 @@ services:
   eventd:
     <<: *pyservice
     container_name: eventd
-    command: python3.5 -m magma.eventd.main
+    command: python3.8 -m magma.eventd.main
 
   health:
     <<: *feggoservice
@@ -122,7 +130,7 @@ services:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-    command: python3.5 -m magma.magmad.main
+    command: python3.8 -m magma.magmad.main
 
   pipelined:
     <<: *ltepyservice
@@ -146,7 +154,12 @@ services:
         /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
         /usr/bin/ovs-vsctl set bridge cwag_br0 other-config:disable-in-band=true &&
         /var/opt/magma/scripts/add_uplink_bridge_flows.sh ${UPLINK_PORTS:-eth2 eth3} &&
-        python3.5 -m magma.pipelined.main"
+        python3.8 -m magma.pipelined.main"
+
+  monitord:
+    <<: *ltepyservice
+    container_name: monitord
+    command: python3.8 -m magma.monitord.main
 
   policydb:
     <<: *ltepyservice
@@ -157,12 +170,12 @@ services:
       retries: 3
     depends_on:
       - redis
-    command: python3.5 -m magma.policydb.main
+    command: python3.8 -m magma.policydb.main
 
   redirectd:
     <<: *ltepyservice
     container_name: redirectd
-    command: python3.5 -m magma.redirectd.main
+    command: python3.8 -m magma.redirectd.main
 
   radius:
     image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
@@ -178,8 +191,8 @@ services:
       - AAA_ENDPOINT=127.0.0.1:9109
       - ANALYTICS_GRAPHQL_TOKEN=${ANALYTICS_GRAPHQL_TOKEN}
       - ANALYTICS_GRAPHQL_ENDPOINT=${ANALYTICS_GRAPHQL_ENDPOINT}
-      - STORAGE_TYPE=memory
-      - REDIS_ADDR=
+      - STORAGE_TYPE=${RADIUS_STORAGE_TYPE}
+      - REDIS_ADDR=${RADIUS_REDIS_ADDR}
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost","9108"]
       timeout: "4s"
@@ -219,11 +232,13 @@ services:
     container_name: state
     depends_on:
       - redis
-    command: python3.5 -m magma.state.main
+    command: python3.8 -m magma.state.main
 
   td-agent-bit:
     <<: *pyservice
     container_name: td-agent-bit
+    logging:
+      driver: "json-file"
     command: >
         /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
         /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"

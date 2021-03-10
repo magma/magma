@@ -1,0 +1,101 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: install packages
+  yum: name={{ item }} state=installed
+  with_items:
+    - freeradius-utils
+    - git
+    - dhcp
+
+- name: Copy dhcpd client
+  become: true
+  copy:
+    src: dhclient.conf
+    dest: /etc/dhcp/dhclient.conf
+
+- name: create the env file
+  template:
+    src: env.j2
+    dest: /var/opt/magma/docker/.env
+    mode: 0400
+
+- name: Clone the git repo
+  git:
+   repo: "https://github.com/magma/magma.git"
+   clone: yes
+   force: yes
+   dest: "/opt/magma"
+   version: "{{ image_version }}"
+
+- name: copy the config files for magma
+  shell: cp -r  /opt/magma/cwf/gateway/configs/* /etc/magma/
+
+- name: copy the config files for orchestrator
+  shell: cp -r  /opt/magma/orc8r/gateway/configs/templates/* /etc/magma/templates/
+
+- name: copy pipelined config file
+  shell: cp -r  /opt/magma/xwf/gateway/configs/pipelined.yml /etc/magma/
+
+- name: copy mconfig config file
+  shell: cp -r  /opt/magma/xwf/gateway/configs/gateway.mconfig /var/opt/magma/configs/gateway.mconfig
+
+- name: copy mconfig config file
+  shell: cp -r  /opt/magma/xwf/gateway/configs/gateway.mconfig /etc/magma/gateway.mconfig
+
+- name: copy magmad config file
+  shell: cp -r  /opt/magma/xwf/gateway/configs/magmad.yml /etc/magma/
+
+- name: copy docker compose config file
+  shell: cp -r  /opt/magma/xwf/gateway/docker/docker-compose.yml /var/opt/magma/docker/
+
+- name: copy the control proxy file
+  template: src=control_proxy.yml.j2 dest=/var/opt/magma/configs/control_proxy.yml
+
+- name: copy the control proxy file
+  template: src=control_proxy.yml.j2 dest=/etc/magma/control_proxy.yml
+
+- name: copy the rootca
+  copy: content={{ rootca }} dest=/var/opt/magma/certs/rootCA.pem mode='400'
+
+- name: docker login
+  shell: docker login -u {{ docker_user }} -p {{ docker_pass }}  {{ docker_registry }}
+  args:
+   chdir: "/var/opt/magma/docker/"
+
+- name: copy the recreate script
+  copy:
+   src: xwfm_update.sh
+   dest: /var/opt/magma/docker/
+   mode: '0755'
+
+- name: place the cron file
+  copy:
+   src: xwfm_cron
+   dest: /etc/cron.d/xwfm_cron
+   mode: '0644'
+
+- name: bring up the containers.
+  script: xwfm_update.sh
+
+- name: copy the radclient script
+  template: src=xwfm_radclient.sh.j2 dest=/usr/sbin/xwfm_radclient.sh mode='0755'
+
+- name: copy the list interface  script
+  copy: src=xwfm_list_interface.sh dest=/usr/sbin mode='0755'
+
+- name: copy the  rules list script
+  copy: src=xwfm_list_rules.sh dest=/usr/sbin mode='0755'
+
+- name: copy the cp test  script
+  copy: src=xwfm_cp_test.sh dest=/usr/sbin mode='0755'

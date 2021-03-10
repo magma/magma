@@ -15,7 +15,6 @@ package test_init
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 
 	"magma/feg/cloud/go/protos"
@@ -26,10 +25,8 @@ import (
 	"magma/orc8r/cloud/go/test_utils"
 )
 
-func StartTestService(t *testing.T) error {
+func StartTestService(t *testing.T, diamServerNetworkProtocol, diamServerAddress string) error {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.S6A_PROXY)
-
-	diamAddr := fmt.Sprintf("127.0.0.1:%d", 30000+rand.Intn(1000))
 
 	// Create tmp mconfig test file & load configs from it
 	fegConfigFmt := `{
@@ -38,7 +35,7 @@ func StartTestService(t *testing.T) error {
 				"@type": "type.googleapis.com/magma.mconfig.S6aConfig",
 				"logLevel": "INFO",
 				"server": {
-					"protocol": "sctp",
+					"protocol": "%s",
 					"address": "%s",
 					"retransmits": 3,
 					"watchdogInterval": 1,
@@ -86,16 +83,16 @@ func StartTestService(t *testing.T) error {
 		}
 	}`
 
-	err := mconfig.CreateLoadTempConfig(fmt.Sprintf(fegConfigFmt, diamAddr))
+	err := mconfig.CreateLoadTempConfig(fmt.Sprintf(fegConfigFmt, diamServerNetworkProtocol, diamServerAddress))
 	if err != nil {
 		return err
 	}
-	clientCfg, serverCfg := servicers.GetS6aProxyConfigs()
-	err = test.StartTestS6aServer(serverCfg.Protocol, serverCfg.Addr)
+	config := servicers.GetS6aProxyConfigs()
+	err = test.StartTestS6aServer(config.ServerCfg.Protocol, config.ServerCfg.Addr, false)
 	if err != nil {
 		return err
 	}
-	service, err := servicers.NewS6aProxy(clientCfg, serverCfg)
+	service, err := servicers.NewS6aProxy(config)
 	if err != nil {
 		return err
 	}

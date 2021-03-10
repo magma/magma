@@ -83,6 +83,9 @@ func gatewayPing(c echo.Context) error {
 
 	pingRequest := magmadModels.PingRequest{}
 	err := c.Bind(&pingRequest)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
 	response, err := magmad.GatewayPing(networkID, gatewayID, pingRequest.Packets, pingRequest.Hosts)
 	if err != nil {
 		if err == merrors.ErrNotFound {
@@ -131,6 +134,9 @@ func gatewayGenericCommand(c echo.Context) error {
 	}
 
 	resp, err := models2.ProtobufStructToJSONMap(response.Response)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
 	genericCommandResponse := magmadModels.GenericCommandResponse{
 		Response: resp,
 	}

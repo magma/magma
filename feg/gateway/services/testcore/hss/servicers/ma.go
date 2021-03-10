@@ -17,17 +17,17 @@ import (
 	"errors"
 	"fmt"
 
-	fegprotos "magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	swx "magma/feg/gateway/services/swx_proxy/servicers"
-	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/lte/cloud/go/crypto"
-	lteprotos "magma/lte/cloud/go/protos"
-
+	"github.com/emakeev/milenage"
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/golang/glog"
+
+	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	swx "magma/feg/gateway/services/swx_proxy/servicers"
+	"magma/feg/gateway/services/testcore/hss/storage"
+	lteprotos "magma/lte/cloud/go/protos"
 )
 
 // NewMAA outputs a multimedia authentication answer (MAA) to reply to a multimedia
@@ -102,7 +102,7 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 // NewSuccessfulMAA outputs a successful multimedia authentication answer (MAA) to reply to an
 // multimedia authentication request (MAR) message. It populates the MAA with all of the mandatory fields
 // and adds the authentication vectors. See 3GPP TS 29.273 table 8.1.2.1.1/5.
-func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID datatype.UTF8String, userName datatype.UTF8String, vectors []*crypto.SIPAuthVector) *diam.Message {
+func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID datatype.UTF8String, userName datatype.UTF8String, vectors []*milenage.SIPAuthVector) *diam.Message {
 	maa := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server, diam.TGPP_SWX_APP_ID)
 	for itemNumber, vector := range vectors {
 		authenticate := append(vector.Rand[:], vector.Autn[:]...)
@@ -124,8 +124,8 @@ func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID d
 
 // GenerateSIPAuthVectors generates `numVectors` SIP auth vectors for the subscriber.
 // The vectors and the next value of lteAuthNextSeq are returned (or an error).
-func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *lteprotos.SubscriberData, numVectors uint32) ([]*crypto.SIPAuthVector, uint64, error) {
-	var vectors = make([]*crypto.SIPAuthVector, 0, numVectors)
+func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *lteprotos.SubscriberData, numVectors uint32) ([]*milenage.SIPAuthVector, uint64, error) {
+	var vectors = make([]*milenage.SIPAuthVector, 0, numVectors)
 	lteAuthNextSeq := subscriber.GetState().GetLteAuthNextSeq()
 	for i := uint32(0); i < numVectors; i++ {
 		vector, nextSeq, err := srv.GenerateSIPAuthVector(subscriber)
@@ -144,7 +144,7 @@ func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *lteprotos.Su
 }
 
 // GenerateSIPAuthVector returns the SIP auth vector and the next value of lteAuthNextSeq for the subscriber (or an error).
-func (srv *HomeSubscriberServer) GenerateSIPAuthVector(subscriber *lteprotos.SubscriberData) (*crypto.SIPAuthVector, uint64, error) {
+func (srv *HomeSubscriberServer) GenerateSIPAuthVector(subscriber *lteprotos.SubscriberData) (*milenage.SIPAuthVector, uint64, error) {
 	lte := subscriber.Lte
 	if err := ValidateLteSubscription(lte); err != nil {
 		return nil, 0, NewAuthRejectedError(err.Error())

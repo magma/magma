@@ -15,7 +15,9 @@ package models
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
+	"strings"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
@@ -26,8 +28,13 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
-	"github.com/thoas/go-funk"
 )
+
+// TODO(8/21/20): provide entity-wise namespacing support from configurator
+// Configurator only provides network-level namespacing.
+// This is good enough for now, as subscriber IDs are validated to not contain
+// underscores.
+var magicNamespaceSeparator = "___"
 
 func (m *RuleNames) GetFromNetwork(network configurator.Network) interface{} {
 	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
@@ -66,97 +73,116 @@ func (m *BaseNames) ToUpdateCriteria(network configurator.Network) (configurator
 }
 
 func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
-	return configurator.NetworkEntity{
+	ent := configurator.NetworkEntity{
 		Type:         lte.BaseNameEntityType,
 		Key:          string(m.Name),
-		Associations: m.getAssociations(),
+		Associations: m.GetAssocs(),
 	}
+	return ent
 }
 
 func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRecord {
 	m.Name = BaseName(ent.Key)
+	for _, tk := range ent.ParentAssociations {
+		if tk.Type == lte.SubscriberEntityType {
+			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(tk.Key))
+		}
+	}
 	for _, tk := range ent.Associations {
 		if tk.Type == lte.PolicyRuleEntityType {
 			m.RuleNames = append(m.RuleNames, tk.Key)
-		} else if tk.Type == lte.SubscriberEntityType {
-			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(tk.Key))
 		}
 	}
 	return m
 }
 
-func (m *BaseNameRecord) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	return configurator.EntityUpdateCriteria{
+func (m *BaseNameRecord) ToUpdateCriteria() configurator.EntityUpdateCriteria {
+	update := configurator.EntityUpdateCriteria{
 		Type:              lte.BaseNameEntityType,
 		Key:               string(m.Name),
-		AssociationsToSet: m.getAssociations(),
+		AssociationsToSet: m.GetAssocs(),
 	}
+	return update
 }
 
-func (m *BaseNameRecord) getAssociations() []storage.TypeAndKey {
-	allAssocs := make([]storage.TypeAndKey, 0, len(m.RuleNames)+len(m.AssignedSubscribers))
-	allAssocs = append(allAssocs, m.RuleNames.ToAssocs()...)
+func (m *BaseNameRecord) GetAssocs() storage.TKs {
+	return m.RuleNames.ToTKs()
+}
+
+func (m *BaseNameRecord) GetParentAssocs() []storage.TypeAndKey {
+	var parents storage.TKs
 	for _, sid := range m.AssignedSubscribers {
-		allAssocs = append(allAssocs, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+		parents = append(parents, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
-	return allAssocs
+	return parents
 }
 
-func (m RuleNames) ToAssocs() []storage.TypeAndKey {
-	return funk.Map(
-		m,
-		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: rn}
-		},
-	).([]storage.TypeAndKey)
+func (m RuleNames) ToTKs() storage.TKs {
+	return storage.MakeTKs(lte.PolicyRuleEntityType, m)
 }
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
-	ret := configurator.NetworkEntity{
-		Type:   lte.PolicyRuleEntityType,
-		Key:    string(m.ID),
-		Config: m.getConfig(),
+	ent := configurator.NetworkEntity{
+		Type:         lte.PolicyRuleEntityType,
+		Key:          string(m.ID),
+		Config:       m.getConfig(),
+		Associations: m.GetAssocs(),
 	}
-	for _, sid := range m.AssignedSubscribers {
-		ret.Associations = append(ret.Associations, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
-	}
-	return ret
+	return ent
 }
 
 func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
 	m.ID = PolicyID(ent.Key)
 	m.fillFromConfig(ent.Config)
-	for _, assoc := range ent.Associations {
-		if assoc.Type == lte.SubscriberEntityType {
-			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(assoc.Key))
-		}
+
+	for _, assoc := range ent.ParentAssociations.Filter(lte.SubscriberEntityType) {
+		m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(assoc.Key))
 	}
+	qosProfile, err := ent.Associations.GetFirst(lte.PolicyQoSProfileEntityType)
+	if err == nil {
+		m.QosProfile = qosProfile.Key
+	}
+
 	return m
 }
 
 func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	ret := configurator.EntityUpdateCriteria{
-		Type:      lte.PolicyRuleEntityType,
-		Key:       string(m.ID),
-		NewConfig: m.getConfig(),
+	update := configurator.EntityUpdateCriteria{
+		Type:              lte.PolicyRuleEntityType,
+		Key:               string(m.ID),
+		NewConfig:         m.getConfig(),
+		AssociationsToAdd: m.GetAssocs(),
 	}
+	return update
+}
+
+func (m *PolicyRule) GetParentAssocs() storage.TKs {
+	var parents []storage.TypeAndKey
 	for _, sid := range m.AssignedSubscribers {
-		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+		parents = append(parents, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
-	return ret
+	return parents
+}
+
+func (m *PolicyRule) GetAssocs() storage.TKs {
+	var children []storage.TypeAndKey
+	if m.QosProfile != "" {
+		children = append(children, storage.TypeAndKey{Type: lte.PolicyQoSProfileEntityType, Key: m.QosProfile})
+	}
+	return children
 }
 
 func (m *PolicyRule) getConfig() *PolicyRuleConfig {
 	return &PolicyRuleConfig{
-		FlowList:       m.FlowList,
-		MonitoringKey:  m.MonitoringKey,
-		Priority:       m.Priority,
-		Qos:            m.Qos,
-		RatingGroup:    m.RatingGroup,
-		Redirect:       m.Redirect,
-		TrackingType:   m.TrackingType,
-		AppName:        m.AppName,
-		AppServiceType: m.AppServiceType,
+		FlowList:                m.FlowList,
+		MonitoringKey:           m.MonitoringKey,
+		Priority:                m.Priority,
+		RatingGroup:             m.RatingGroup,
+		Redirect:                m.Redirect,
+		TrackingType:            m.TrackingType,
+		AppName:                 m.AppName,
+		AppServiceType:          m.AppServiceType,
+		HeaderEnrichmentTargets: m.HeaderEnrichmentTargets,
 	}
 }
 
@@ -173,18 +199,60 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	m.FlowList = cfg.FlowList
 	m.MonitoringKey = monKey
 	m.Priority = cfg.Priority
-	m.Qos = cfg.Qos
 	m.RatingGroup = cfg.RatingGroup
 	m.Redirect = cfg.Redirect
 	m.TrackingType = cfg.TrackingType
 	m.AppName = cfg.AppName
 	m.AppServiceType = cfg.AppServiceType
+	m.HeaderEnrichmentTargets = cfg.HeaderEnrichmentTargets
 	return m
 }
 
-func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
+func (m PolicyIdsByApn) ToTKs(subscriberID string) []storage.TypeAndKey {
+	var tks []storage.TypeAndKey
+	for apnName := range m {
+		tks = append(tks, storage.TypeAndKey{Type: lte.APNPolicyProfileEntityType, Key: makeAPNPolicyKey(subscriberID, apnName)})
+	}
+	return tks
+}
+
+func (m PolicyIdsByApn) ToEntities(subscriberID string) []configurator.NetworkEntity {
+	var ents []configurator.NetworkEntity
+	for apnName, policyIDs := range m {
+		// Each apn_policy_profile has 1 edge to an apn and n edges to a policy_rule
+		ent := configurator.NetworkEntity{
+			Type:         lte.APNPolicyProfileEntityType,
+			Key:          makeAPNPolicyKey(subscriberID, apnName),
+			Associations: getAPNPolicyAssocs(apnName, policyIDs),
+		}
+		ents = append(ents, ent)
+	}
+	return ents
+}
+
+func GetAPN(apnPolicyProfileKey string) (string, error) {
+	if !strings.Contains(apnPolicyProfileKey, magicNamespaceSeparator) {
+		return "", errors.New("incorrectly formatted APNPolicyProfile key")
+	}
+	return strings.Split(apnPolicyProfileKey, magicNamespaceSeparator)[1], nil
+}
+
+func makeAPNPolicyKey(subscriberID, apnName string) string {
+	return subscriberID + magicNamespaceSeparator + apnName
+}
+
+func getAPNPolicyAssocs(apnName string, policyIDs PolicyIds) []storage.TypeAndKey {
+	var assocs []storage.TypeAndKey
+	assocs = append(assocs, storage.TypeAndKey{Type: lte.APNEntityType, Key: apnName})
+	for _, policyID := range policyIDs {
+		assocs = append(assocs, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: string(policyID)})
+	}
+	return assocs
+}
+
+func (m *PolicyRuleConfig) ToProto(id string, qos *protos.FlowQos) *protos.PolicyRule {
 	var (
-		protoMKey = []byte{}
+		protoMKey []byte
 		err       error
 	)
 	if len(m.MonitoringKey) > 0 {
@@ -203,12 +271,10 @@ func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
 		AppName:        protos.PolicyRule_AppName(protos.PolicyRule_AppName_value[m.AppName]),
 		AppServiceType: protos.PolicyRule_AppServiceType(protos.PolicyRule_AppServiceType_value[m.AppServiceType]),
 		HardTimeout:    0,
+		Qos:            qos,
 	}
 	if m.Redirect != nil {
 		rule.Redirect = m.Redirect.ToProto()
-	}
-	if m.Qos != nil {
-		rule.Qos = m.Qos.ToProto()
 	}
 	if m.FlowList != nil {
 		flowList := make([]*protos.FlowDescription, 0, len(m.FlowList))
@@ -216,6 +282,9 @@ func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
 			flowList = append(flowList, flow.ToProto())
 		}
 		rule.FlowList = flowList
+	}
+	if len(m.HeaderEnrichmentTargets) != 0 {
+		rule.He = &protos.HeaderEnrichment{Urls: m.HeaderEnrichmentTargets}
 	}
 	return rule
 }
@@ -251,6 +320,23 @@ func (m *FlowDescription) ToProto() *protos.FlowDescription {
 		IpProto:   protos.FlowMatch_IPProto(protos.FlowMatch_IPProto_value[*m.Match.IPProto]),
 	}
 	orc8rProtos.FillIn(m.Match, flowDescription.Match)
+
+	// Backwards compatible for old flow match definition
+	if m.Match.IPSrc != nil {
+		flowDescription.Match.IpSrc = &protos.IPAddress{
+			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPSrc.Version]),
+			Address: []byte(m.Match.IPSrc.Address),
+		}
+		flowDescription.Match.Ipv4Src = m.Match.IPSrc.Address
+	}
+	if m.Match.IPDst != nil {
+		flowDescription.Match.IpDst = &protos.IPAddress{
+			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPDst.Version]),
+			Address: []byte(m.Match.IPDst.Address),
+		}
+		flowDescription.Match.Ipv4Dst = m.Match.IPDst.Address
+	}
+
 	return flowDescription
 }
 
@@ -278,14 +364,8 @@ func (m *RatingGroup) ToProto() *protos.RatingGroup {
 	return rule
 }
 
-func (m *RatingGroup) FromEntity(ent configurator.NetworkEntity) (*RatingGroup, error) {
-	ratingGroupID, err := swag.ConvertUint32(ent.Key)
-	if err != nil {
-		return nil, err
-	}
-	m.ID = RatingGroupID(ratingGroupID)
-	m = ent.Config.(*RatingGroup)
-	return m, nil
+func (m *RatingGroup) FromEntity(ent configurator.NetworkEntity) *RatingGroup {
+	return ent.Config.(*RatingGroup)
 }
 
 func (m *MutableRatingGroup) ToEntityUpdateCriteria(id uint32) configurator.EntityUpdateCriteria {
@@ -314,4 +394,88 @@ func (m *NetworkSubscriberConfig) GetFromNetwork(network configurator.Network) i
 
 func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, m), nil
+}
+
+func (m *PolicyQosProfile) FromBackendModels(networkID string, key string) error {
+	config, err := configurator.LoadEntityConfig(networkID, lte.PolicyQoSProfileEntityType, key, EntitySerdes)
+	if err != nil {
+		return err
+	}
+	*m = *config.(*PolicyQosProfile)
+	return nil
+}
+
+func (m *PolicyQosProfile) ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error) {
+	if key != m.ID {
+		return nil, errors.New("id field is read-only")
+	}
+
+	exists, err := configurator.DoesEntityExist(networkID, lte.PolicyQoSProfileEntityType, key)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.New("profile does not exist")
+	}
+
+	updates := []configurator.EntityUpdateCriteria{
+		{
+			Type:      lte.PolicyQoSProfileEntityType,
+			Key:       key,
+			NewConfig: m,
+		},
+	}
+	return updates, nil
+}
+
+func (m *PolicyQosProfile) ToEntity() configurator.NetworkEntity {
+	ent := configurator.NetworkEntity{
+		Type:   lte.PolicyQoSProfileEntityType,
+		Key:    m.ID,
+		Config: m,
+	}
+	return ent
+}
+
+func (m *PolicyQosProfile) FromEntity(ent configurator.NetworkEntity) *PolicyQosProfile {
+	return ent.Config.(*PolicyQosProfile)
+}
+
+func (m *PolicyQosProfile) ToProto() *protos.FlowQos {
+	proto := &protos.FlowQos{
+		MaxReqBwUl: swag.Uint32Value(m.MaxReqBwUl),
+		MaxReqBwDl: swag.Uint32Value(m.MaxReqBwDl),
+		Qci:        protos.FlowQos_Qci(m.ClassID),
+	}
+	if m.Gbr != nil {
+		proto.GbrUl = swag.Uint32Value(m.Gbr.Uplink)
+		proto.GbrDl = swag.Uint32Value(m.Gbr.Downlink)
+	}
+	if m.Arp != nil {
+		arp := &protos.QosArp{PriorityLevel: swag.Uint32Value(m.Arp.PriorityLevel)}
+		if swag.BoolValue(m.Arp.PreemptionCapability) {
+			arp.PreCapability = 1
+		}
+		if swag.BoolValue(m.Arp.PreemptionVulnerability) {
+			arp.PreVulnerability = 1
+		}
+		proto.Arp = arp
+	}
+	return proto
+}
+
+func (m PolicyIds) ToTKs() []storage.TypeAndKey {
+	var tks []storage.TypeAndKey
+	for _, policyID := range m {
+		tks = append(tks, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: string(policyID)})
+	}
+	return tks
+}
+
+func (m BaseNames) ToTKs() []storage.TypeAndKey {
+	var tks []storage.TypeAndKey
+	for _, baseName := range m {
+		tks = append(tks, storage.TypeAndKey{Type: lte.BaseNameEntityType, Key: string(baseName)})
+	}
+	return tks
 }

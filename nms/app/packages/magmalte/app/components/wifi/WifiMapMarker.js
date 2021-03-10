@@ -49,8 +49,10 @@ const styles = {
 };
 
 type State = {
+  // $FlowFixMe[value-as-type] cannot import directly
   marker: mapboxgl.Marker,
   popupEl: HTMLDivElement,
+  // $FlowFixMe[value-as-type] cannot import directly
   popup: mapboxgl.Popup,
 };
 

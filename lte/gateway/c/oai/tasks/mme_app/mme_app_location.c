@@ -80,22 +80,8 @@ int mme_app_send_s6a_update_location_req(
       ue_context_p->emm_context._imsi.length);
   s6a_ulr_p->imsi_length    = strlen(s6a_ulr_p->imsi);
   s6a_ulr_p->initial_attach = INITIAL_ATTACH;
-  // memcpy(&s6a_ulr_p->visited_plmn, &ue_context_p->e_utran_cgi.plmn, sizeof
-  //(plmn_t));
-  plmn_t visited_plmn = {0};
-  visited_plmn.mcc_digit1 =
-      ue_context_p->emm_context.originating_tai.mcc_digit1;
-  visited_plmn.mcc_digit2 =
-      ue_context_p->emm_context.originating_tai.mcc_digit2;
-  visited_plmn.mcc_digit3 =
-      ue_context_p->emm_context.originating_tai.mcc_digit3;
-  visited_plmn.mnc_digit1 =
-      ue_context_p->emm_context.originating_tai.mnc_digit1;
-  visited_plmn.mnc_digit2 =
-      ue_context_p->emm_context.originating_tai.mnc_digit2;
-  visited_plmn.mnc_digit3 =
-      ue_context_p->emm_context.originating_tai.mnc_digit3;
-
+  plmn_t visited_plmn       = {0};
+  COPY_PLMN(visited_plmn, ue_context_p->emm_context.originating_tai.plmn);
   memcpy(&s6a_ulr_p->visited_plmn, &visited_plmn, sizeof(plmn_t));
   s6a_ulr_p->rat_type = RAT_EUTRAN;
   OAILOG_DEBUG(
@@ -318,6 +304,10 @@ int mme_app_handle_s6a_update_location_ans(
       &ue_mm_context->apn_config_profile,
       &ula_pP->subscription_data.apn_config_profile,
       sizeof(apn_config_profile_t));
+  memcpy(
+      &ue_mm_context->default_charging_characteristics,
+      &ula_pP->subscription_data.default_charging_characteristics,
+      sizeof(charging_characteristics_t));
 
   /*
    * Set the value of  Mobile Reachability timer based on value of T3412
@@ -478,4 +468,16 @@ int mme_app_send_s6a_cancel_location_ans(
   s6a_cla_p->msg_cla_p = msg_cla_p;
   rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+}
+
+void mme_app_get_user_location_information(
+    Uli_t* uli_t_p, const ue_mm_context_t* ue_context_p) {
+  uli_t_p->present = uli_t_p->present | ULI_TAI;
+  COPY_TAI(uli_t_p->s.tai, ue_context_p->emm_context.originating_tai);
+  uli_t_p->present = uli_t_p->present | ULI_ECGI;
+  COPY_PLMN(uli_t_p->s.ecgi.plmn, ue_context_p->e_utran_cgi.plmn);
+  uli_t_p->s.ecgi.cell_identity.enb_id =
+      ue_context_p->e_utran_cgi.cell_identity.enb_id;
+  uli_t_p->s.ecgi.cell_identity.cell_id =
+      ue_context_p->e_utran_cgi.cell_identity.cell_id;
 }

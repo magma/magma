@@ -13,61 +13,41 @@
  * @flow strict-local
  * @format
  */
-import AppBar from '@material-ui/core/AppBar';
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import DataUsageIcon from '@material-ui/icons/DataUsage';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebConfig from './EnodebDetailConfig';
 import EnodebContext from '../../components/context/EnodebContext';
 import GatewayLogs from './GatewayLogs';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
+import TopBar from '../../components/TopBar';
+import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
+import {DateTimePicker} from '@material-ui/pickers';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
-import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
+import {useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
-  },
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
-  },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '16px 0 16px 0',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tabIconLabel: {
-    marginRight: '8px',
   },
   appBarBtn: {
     color: colors.primary.white,
@@ -82,70 +62,36 @@ const useStyles = makeStyles(theme => ({
       background: colors.primary.mirage,
     },
   },
-  appBarBtnSecondary: {
-    color: colors.primary.white,
-  },
-  paper: {
-    textAlign: 'center',
-    padding: theme.spacing(10),
+  dateTimeText: {
+    color: colors.primary.comet,
   },
 }));
 const CHART_TITLE = 'Bandwidth Usage';
 
 export function EnodebDetail() {
-  const ctx = useContext(EnodebContext);
-  const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
-  const enbInfo = ctx.state.enbInfo[enodebSerial];
 
   return (
     <>
-      <div className={classes.topBar}>
-        <Text variant="body2">Equipment/{enbInfo.enb.name}</Text>
-      </div>
+      <TopBar
+        header={`Equipment/${enodebSerial}`}
+        tabs={[
+          {
+            label: 'Overview',
+            to: '/overview',
+            icon: DashboardIcon,
+            filters: <EnodebRebootButton />,
+          },
+          {
+            label: 'Config',
+            to: '/config',
+            icon: SettingsIcon,
+            filters: <EnodebRebootButton />,
+          },
+        ]}
+      />
 
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container direction="row" justify="flex-end" alignItems="center">
-          <Grid item xs={6}>
-            <Tabs
-              value={GetCurrentTabPos(match.url, ['overview', 'config'])}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Overview"
-                component={NestedRouteLink}
-                label={<OverviewTabLabel />}
-                to="/overview"
-                className={classes.tab}
-              />
-              <Tab
-                key="Config"
-                component={NestedRouteLink}
-                label={<ConfigTabLabel />}
-                to="/config"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-          <Grid item xs={6}>
-            <Grid container justify="flex-end" alignItems="center" spacing={2}>
-              <Grid item>
-                <Button className={classes.appBarBtnSecondary}>
-                  Secondary Action
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button className={classes.appBarBtn} variant="contained">
-                  Reboot
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </AppBar>
       <Switch>
         <Route path={relativePath('/overview')} component={Overview} />
         <Route
@@ -160,62 +106,172 @@ export function EnodebDetail() {
   );
 }
 
-function Overview() {
-  const ctx = useContext(EnodebContext);
+function EnodebRebootButtonInternal(props: WithAlert) {
   const classes = useStyles();
+  const ctx = useContext(EnodebContext);
   const {match} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const gatewayId = enbInfo?.enb_state?.reporting_gateway_id;
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const handleClick = () => {
+    if (gatewayId == null) {
+      enqueueSnackbar('Unable to trigger reboot, reporting gateway not found', {
+        variant: 'error',
+      });
+      return;
+    }
+
+    props
+      .confirm(`Are you sure you want to reboot ${enodebSerial}?`)
+      .then(async confirmed => {
+        if (!confirmed) {
+          return;
+        }
+        const params = {
+          command: 'reboot_enodeb',
+          params: {shell_params: {[enodebSerial]: {}}},
+        };
+
+        try {
+          await RunGatewayCommands({
+            networkId,
+            gatewayId,
+            command: 'generic',
+            params,
+          });
+          enqueueSnackbar('eNodeB reboot triggered successfully', {
+            variant: 'success',
+          });
+        } catch (e) {
+          enqueueSnackbar(e.response?.data?.message ?? e.message, {
+            variant: 'error',
+          });
+        }
+      });
+  };
+
+  return (
+    <Button
+      variant="contained"
+      className={classes.appBarBtn}
+      onClick={handleClick}>
+      Reboot
+    </Button>
+  );
+}
+const EnodebRebootButton = withAlert(EnodebRebootButtonInternal);
+
+function Overview() {
+  const classes = useStyles();
+  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
+  const [endDate, setEndDate] = useState(moment());
+  const [refresh, setRefresh] = useState(true);
+
+  function MetricChartFilter() {
+    return (
+      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            Filter By Date
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="outlined"
+            inputVariant="outlined"
+            maxDate={endDate}
+            disableFuture
+            value={startDate}
+            onChange={setStartDate}
+          />
+        </Grid>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            to
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="outlined"
+            inputVariant="outlined"
+            disableFuture
+            value={endDate}
+            onChange={setEndDate}
+          />
+        </Grid>
+      </Grid>
+    );
+  }
+
+  function refreshFilter() {
+    return (
+      <AutorefreshCheckbox
+        autorefreshEnabled={refresh}
+        onToggle={() => setRefresh(current => !current)}
+      />
+    );
+  }
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Grid container spacing={4}>
             <Grid item xs={12} md={6} alignItems="center">
-              <CardTitleRow
-                icon={SettingsInputAntennaIcon}
-                label={enbInfo.enb.name}
-              />
               <EnodebSummary />
             </Grid>
 
             <Grid item xs={12} md={6} alignItems="center">
-              <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <EnodebStatus />
+              <CardTitleRow
+                icon={GraphicEqIcon}
+                label="Status"
+                filter={() => refreshFilter()}
+              />
+              <EnodebStatus refresh={refresh} />
             </Grid>
           </Grid>
         </Grid>
         <Grid item xs={12}>
-          <DateTimeMetricChart
-            title={CHART_TITLE}
-            queries={[
-              `sum(pdcp_user_plane_bytes_dl{service="enodebd", enodeb="${enodebSerial}"})/1000`,
-              `sum(pdcp_user_plane_bytes_ul{service="enodebd", enodeb="${enodebSerial}"})/1000`,
-            ]}
-            legendLabels={['Download', 'Upload']}
+          <CardTitleRow
+            icon={DataUsageIcon}
+            label={CHART_TITLE}
+            filter={MetricChartFilter}
           />
+          <EnodebMetricChart startDate={startDate} endDate={endDate} />
         </Grid>
       </Grid>
     </div>
   );
 }
 
-function OverviewTabLabel() {
-  const classes = useStyles();
-  return (
-    <div className={classes.tabLabel}>
-      <DashboardIcon className={classes.tabIconLabel} /> Overview
-    </div>
-  );
-}
+type Props = {
+  startDate: moment$Moment,
+  endDate: moment$Moment,
+};
 
-function ConfigTabLabel() {
-  const classes = useStyles();
+function EnodebMetricChart(props: Props) {
+  const ctx = useContext(EnodebContext);
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const enbIpAddress = enbInfo?.enb_state?.ip_address ?? '';
 
   return (
-    <div className={classes.tabLabel}>
-      <SettingsIcon className={classes.tabIconLabel} /> Config
-    </div>
+    <DateTimeMetricChart
+      title={CHART_TITLE}
+      unit={'Throughput(mb/s)'}
+      queries={[
+        `rate(gtp_port_user_plane_dl_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000`,
+        `rate(gtp_port_user_plane_ul_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000`,
+      ]}
+      legendLabels={['Download', 'Upload']}
+      startDate={props.startDate}
+      endDate={props.endDate}
+    />
   );
 }
 

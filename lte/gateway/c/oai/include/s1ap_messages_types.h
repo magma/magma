@@ -78,6 +78,8 @@
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_ack
 #define S1AP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                               \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_failure
+#define S1AP_REMOVE_STALE_UE_CONTEXT(mSGpTR)                                   \
+  (mSGpTR)->ittiMsg.s1ap_remove_stale_ue_context
 
 // NOT a ITTI message
 typedef struct s1ap_initial_ue_message_s {
@@ -186,10 +188,12 @@ enum s1cause {
   S1AP_IMPLICIT_CONTEXT_RELEASE,
   S1AP_INITIAL_CONTEXT_SETUP_FAILED,
   S1AP_SCTP_SHUTDOWN_OR_RESET,
-  S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD,
   S1AP_INVALID_ENB_ID,
+  S1AP_INVALID_MME_UE_S1AP_ID,
   S1AP_CSFB_TRIGGERED,
-  S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS
+  S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS,
+  S1AP_NAS_MME_OFFLOADING,
+  S1AP_NAS_MME_PENDING_OFFLOADING
 };
 typedef struct itti_s1ap_ue_context_release_command_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
@@ -215,6 +219,11 @@ typedef struct itti_s1ap_ue_context_release_complete_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
 } itti_s1ap_ue_context_release_complete_t;
+
+typedef struct itti_s1ap_remove_stale_ue_context_s {
+  uint32_t enb_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id;
+} itti_s1ap_remove_stale_ue_context_t;
 
 typedef enum s1ap_csfb_indicator_e {
   CSFB_REQUIRED,

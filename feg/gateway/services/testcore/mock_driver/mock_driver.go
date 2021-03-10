@@ -17,6 +17,8 @@ import (
 	"sync"
 
 	"magma/feg/cloud/go/protos"
+
+	"github.com/golang/glog"
 )
 
 type Expectation interface {
@@ -37,6 +39,7 @@ type MockDriver struct {
 }
 
 func NewMockDriver(expectations []Expectation, behavior protos.UnexpectedRequestBehavior, defaultAnswer interface{}) *MockDriver {
+	glog.Infof("MockDriver: Initializing a new set of Expectations: %s", expectations)
 	resultByIndex := make(map[int]*protos.ExpectationResult, len(expectations))
 	for i := range expectations {
 		resultByIndex[i] = &protos.ExpectationResult{ExpectationIndex: int32(i), ExpectationMet: false}
@@ -55,8 +58,8 @@ func NewMockDriver(expectations []Expectation, behavior protos.UnexpectedRequest
 // GetAnswerFromExpectations will use the message passed in to determine if
 // the message matches the next upcoming expectation. If it does, it will
 // return the answer specified in the expectation.
-// Otherwise, if the unexpected request behavior is set to CONTINUE_WITH_DEFAULT_ANSWER,
-// it will return the default answer.
+// On failure, if the unexpected request behavior is set to
+// CONTINUE_WITH_DEFAULT_ANSWER, it will return the default answer.
 // Otherwise, it will return nil.
 func (e *MockDriver) GetAnswerFromExpectations(message interface{}) interface{} {
 	if !e.expectationsSet {
@@ -68,6 +71,7 @@ func (e *MockDriver) GetAnswerFromExpectations(message interface{}) interface{} 
 	expectation := e.expectations[e.expectationIndex]
 	err := expectation.DoesMatch(message)
 	if err != nil {
+		glog.Errorf("MockDriver: Expectation was not met: %s, err: %s", expectation, err)
 		errByIndex := &protos.ErrorByIndex{Index: int32(e.expectationIndex), Error: err.Error()}
 		e.errorMessages = append(e.errorMessages, errByIndex)
 		return e.getAnswerForUnexpectedMessage()
@@ -91,6 +95,7 @@ func (e *MockDriver) AggregateResults() ([]*protos.ExpectationResult, []*protos.
 func (e *MockDriver) getAnswerForUnexpectedMessage() interface{} {
 	switch e.unexpectedRequestBehavior {
 	case protos.UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER:
+		glog.Infof("MockDriver: Returning default answer for an unexpected request")
 		return e.defaultAnswer
 	default:
 		return nil

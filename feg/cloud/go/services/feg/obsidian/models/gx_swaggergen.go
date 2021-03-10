@@ -29,6 +29,9 @@ type Gx struct {
 
 	// servers
 	Servers []*DiameterClientConfigs `json:"servers"`
+
+	// virtual apn rules
+	VirtualApnRules []*VirtualApnRule `json:"virtual_apn_rules"`
 }
 
 // Validate validates this gx
@@ -40,6 +43,10 @@ func (m *Gx) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateServers(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateVirtualApnRules(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -82,6 +89,31 @@ func (m *Gx) validateServers(formats strfmt.Registry) error {
 			if err := m.Servers[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("servers" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *Gx) validateVirtualApnRules(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.VirtualApnRules) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.VirtualApnRules); i++ {
+		if swag.IsZero(m.VirtualApnRules[i]) { // not required
+			continue
+		}
+
+		if m.VirtualApnRules[i] != nil {
+			if err := m.VirtualApnRules[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("virtual_apn_rules" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

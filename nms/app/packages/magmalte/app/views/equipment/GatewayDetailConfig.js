@@ -14,6 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
+import type {EditProps} from './GatewayDetailConfigEdit';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
@@ -30,6 +31,7 @@ import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {DynamicServices} from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
@@ -57,25 +59,28 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function GatewayJsonConfig() {
-  const {match} = useRouter();
+  const {match, history} = useRouter();
   const [error, setError] = useState('');
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
-  const {status, ...gwInfoJson} = gwInfo;
-
+  const {['status']: _status, ...gwInfoJson} = gwInfo;
   return (
     <JsonEditor
-      content={gwInfoJson}
+      content={{
+        ...gwInfoJson,
+        connected_enodeb_serials: gwInfoJson.connected_enodeb_serials ?? [],
+      }}
       error={error}
       onSave={async gateway => {
         try {
-          await ctx.setState(gatewayId, {...gateway, status});
+          await ctx.setState(gatewayId, gateway);
           enqueueSnackbar('Gateway saved successfully', {
             variant: 'success',
           });
           setError('');
+          history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -90,7 +95,6 @@ export default function GatewayConfig() {
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
-
   function ConfigFilter() {
     return (
       <Button
@@ -103,51 +107,9 @@ export default function GatewayConfig() {
     );
   }
 
-  function editGateway() {
+  function editFilter(editTab: EditProps) {
     return (
-      <AddEditGatewayButton
-        title={'Edit'}
-        isLink={true}
-        editProps={{
-          editTable: 'info',
-        }}
-      />
-    );
-  }
-
-  function editAggregations() {
-    return (
-      <AddEditGatewayButton
-        title={'Edit'}
-        isLink={true}
-        editProps={{
-          editTable: 'aggregation',
-        }}
-      />
-    );
-  }
-
-  function editEPC() {
-    return (
-      <AddEditGatewayButton
-        title={'Edit'}
-        isLink={true}
-        editProps={{
-          editTable: 'epc',
-        }}
-      />
-    );
-  }
-
-  function editRan() {
-    return (
-      <AddEditGatewayButton
-        title={'Edit'}
-        isLink={true}
-        editProps={{
-          editTable: 'ran',
-        }}
-      />
+      <AddEditGatewayButton title={'Edit'} isLink={true} editProps={editTab} />
     );
   }
 
@@ -166,27 +128,54 @@ export default function GatewayConfig() {
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleRow label="Gateway" filter={editGateway} />
+                  <CardTitleRow
+                    label="Gateway"
+                    filter={() => editFilter({editTable: 'info'})}
+                  />
                   <GatewayInfoConfig gwInfo={gwInfo} />
                 </Grid>
+
                 <Grid item xs={12}>
                   <CardTitleRow
-                    label="Aggregations"
-                    filter={editAggregations}
+                    label="Dynamic Services"
+                    filter={() => editFilter({editTable: 'aggregation'})}
                   />
-                  <GatewayAggregation gwInfo={gwInfo} />
+                  <GatewayDynamicServices gwInfo={gwInfo} />
                 </Grid>
+
+                {Object.keys(gwInfo.apn_resources || {}).length > 0 && (
+                  <Grid item xs={12}>
+                    <CardTitleRow
+                      label="Apn Resources"
+                      filter={() => editFilter({editTable: 'apnResources'})}
+                    />
+                    <ApnResourcesTable gwInfo={gwInfo} />
+                  </Grid>
+                )}
               </Grid>
             </Grid>
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleRow label="EPC" filter={editEPC} />
+                  <CardTitleRow
+                    label="EPC"
+                    filter={() => editFilter({editTable: 'epc'})}
+                  />
                   <GatewayEPC gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleRow label="Ran" filter={editRan} />
+                  <CardTitleRow
+                    label="Ran"
+                    filter={() => editFilter({editTable: 'ran'})}
+                  />
                   <GatewayRAN gwInfo={gwInfo} />
+                </Grid>
+                <Grid item xs={12}>
+                  <CardTitleRow
+                    label="Header Enrichment"
+                    filter={() => editFilter({editTable: 'headerEnrichment'})}
+                  />
+                  <GatewayHE gwInfo={gwInfo} />
                 </Grid>
               </Grid>
             </Grid>
@@ -268,29 +257,40 @@ function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
   return <DataGrid data={data} />;
 }
 
-function GatewayAggregation({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayDynamicServices({gwInfo}: {gwInfo: lte_gateway}) {
   const logAggregation = !!gwInfo.magmad.dynamic_services?.includes(
-    'td-agent-bit',
+    DynamicServices.TD_AGENT_BIT,
   );
   const eventAggregation = !!gwInfo.magmad?.dynamic_services?.includes(
-    'eventd',
+    DynamicServices.EVENTD,
   );
-  const aggregations: DataRows[] = [
+  const cpeMonitoring = !!gwInfo.magmad?.dynamic_services?.includes(
+    DynamicServices.MONITORD,
+  );
+  const dynamicServices: DataRows[] = [
     [
       {
-        category: 'Aggregation',
+        category: 'Log Aggregation',
         value: logAggregation ? 'Enabled' : 'Disabled',
-        statusCircle: false,
+        statusCircle: true,
+        status: logAggregation,
       },
       {
-        category: 'Aggregation',
+        category: 'Event Aggregation',
         value: eventAggregation ? 'Enabled' : 'Disabled',
-        statusCircle: false,
+        statusCircle: true,
+        status: eventAggregation,
+      },
+      {
+        category: 'CPE Monitoring',
+        value: cpeMonitoring ? 'Enabled' : 'Disabled',
+        statusCircle: true,
+        status: cpeMonitoring,
       },
     ],
   ];
 
-  return <DataGrid data={aggregations} />;
+  return <DataGrid data={dynamicServices} />;
 }
 
 function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
@@ -336,14 +336,23 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
   const enbInfo =
     gwInfo.connected_enodeb_serials?.reduce(
       (enbs: {[string]: EnodebInfo}, serial: string) => {
-        if (enbCtx.state.enbInfo[serial] != null) {
+        if (enbCtx?.state?.enbInfo?.[serial] != null) {
           enbs[serial] = enbCtx.state.enbInfo[serial];
         }
         return enbs;
       },
       {},
     ) || {};
+  const dhcpServiceStatus = gwInfo.cellular.dns?.dhcp_server_enabled ?? true;
   const ran: DataRows[] = [
+    [
+      {
+        category: 'eNodeB DHCP Service',
+        value: dhcpServiceStatus ? 'Enabled' : 'Disabled',
+        statusCircle: true,
+        status: dhcpServiceStatus,
+      },
+    ],
     [
       {
         category: 'PCI',
@@ -366,4 +375,86 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
   ];
 
   return <DataGrid data={ran} />;
+}
+
+function ApnResourcesTable({gwInfo}: {gwInfo: lte_gateway}) {
+  const apnResources = gwInfo.apn_resources || {};
+  type ApnResourcesRowType = {
+    name: string,
+    id: string,
+    vlanId: number | string,
+  };
+  const apnResourcesRows: Array<ApnResourcesRowType> = Object.keys(
+    apnResources,
+  ).map((apn: string) => {
+    const apnRow = apnResources[apn];
+    return {
+      name: apn,
+      id: apnRow.id,
+      vlanId: apnRow.vlan_id ?? '-',
+    };
+  });
+
+  return (
+    <ActionTable
+      title=""
+      data={apnResourcesRows}
+      columns={[
+        {title: 'Name', field: 'name'},
+        {title: 'Resource ID', field: 'id'},
+        {title: 'VLAN ID', field: 'vlanId'},
+      ]}
+      options={{
+        actionsColumnIndex: -1,
+        pageSizeOptions: [5],
+        toolbar: false,
+      }}
+    />
+  );
+}
+
+function GatewayHE({gwInfo}: {gwInfo: lte_gateway}) {
+  const heEnabled =
+    gwInfo.cellular.he_config?.enable_header_enrichment ?? false;
+  const encryptionEnabled =
+    gwInfo.cellular.he_config?.enable_encryption ?? false;
+  const EncryptionDetail = () => {
+    const encryptionConfig: DataRows[] = [
+      [
+        {
+          category: 'Encryption Key',
+          value: gwInfo.cellular.he_config?.encryption_key || '',
+          obscure: true,
+        },
+        {
+          category: 'Encoding Type',
+          value: gwInfo.cellular.he_config?.he_encoding_type || '',
+        },
+      ],
+      [
+        {
+          category: 'Encryption Algorithm',
+          value: gwInfo.cellular.he_config?.he_encryption_algorithm || '',
+        },
+        {
+          category: 'Hash Function',
+          value: gwInfo.cellular.he_config?.he_hash_function || '',
+        },
+      ],
+    ];
+    return <DataGrid data={encryptionConfig} />;
+  };
+
+  const heConfig: DataRows[] = [
+    [
+      {
+        statusCircle: true,
+        status: heEnabled,
+        category: 'Header Enrichment',
+        value: heEnabled ? 'Enabled' : 'Disabled',
+        collapse: encryptionEnabled ? <EncryptionDetail /> : <></>,
+      },
+    ],
+  ];
+  return <DataGrid data={heConfig} />;
 }

@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -33,7 +34,7 @@ func ReportGatewayStatus(t *testing.T, ctx context.Context, req *models.GatewayS
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedGWStatus, err := serde.Serialize(state.SerdeDomain, orc8r.GatewayStateType, req)
+	serializedGWStatus, err := serde.Serialize(req, orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -49,10 +50,10 @@ func ReportGatewayStatus(t *testing.T, ctx context.Context, req *models.GatewayS
 	assert.NoError(t, err)
 }
 
-func ReportState(t *testing.T, ctx context.Context, stateType string, stateKey string, stateVal interface{}) {
+func ReportState(t *testing.T, ctx context.Context, stateType string, stateKey string, stateVal interface{}, serdes serde.Registry) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
-	serializedState, err := serde.Serialize(state.SerdeDomain, stateType, stateVal)
+	serializedState, err := serde.Serialize(stateVal, stateType, serdes)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{

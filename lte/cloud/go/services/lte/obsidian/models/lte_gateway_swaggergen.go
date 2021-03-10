@@ -19,6 +19,9 @@ import (
 // swagger:model lte_gateway
 type LteGateway struct {
 
+	// apn resources
+	ApnResources ApnResources `json:"apn_resources,omitempty"`
+
 	// cellular
 	// Required: true
 	Cellular *GatewayCellularConfigs `json:"cellular"`
@@ -59,6 +62,10 @@ type LteGateway struct {
 func (m *LteGateway) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateApnResources(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateCellular(formats); err != nil {
 		res = append(res, err)
 	}
@@ -98,6 +105,22 @@ func (m *LteGateway) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *LteGateway) validateApnResources(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ApnResources) { // not required
+		return nil
+	}
+
+	if err := m.ApnResources.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("apn_resources")
+		}
+		return err
+	}
+
 	return nil
 }
 

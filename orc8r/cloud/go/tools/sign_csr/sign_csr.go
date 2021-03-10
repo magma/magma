@@ -102,8 +102,10 @@ func main() {
 	log.Printf("Using CA Subject: %s\n",
 		util.FormatPkixSubject(&caCert.Subject))
 
-	cliCertDER, err := x509.CreateCertificate(
-		rand.Reader, &template, caCert, clientCSR.PublicKey, caPrivKey)
+	cliCertDER, err := x509.CreateCertificate(rand.Reader, &template, caCert, clientCSR.PublicKey, caPrivKey)
+	if err != nil {
+		log.Fatalf("Failed to create x509 certificate: %+v", err)
+	}
 
 	certOut, err := os.Create(certFile)
 	if err != nil {

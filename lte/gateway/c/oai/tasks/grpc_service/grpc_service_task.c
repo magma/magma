@@ -36,13 +36,11 @@ static grpc_service_data_t* grpc_service_config;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE:
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       grpc_service_exit();
       break;
     default:
@@ -52,15 +50,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
   }
 
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
 static void* grpc_service_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_GRPC_SERVICE);
   init_task_context(
-      TASK_GRPC_SERVICE, (task_id_t[]){TASK_SPGW_APP}, 1, handle_message,
-      &grpc_service_task_zmq_ctx);
+      TASK_GRPC_SERVICE, (task_id_t[]){TASK_SPGW_APP, TASK_HA, TASK_AMF_APP}, 3,
+      handle_message, &grpc_service_task_zmq_ctx);
 
   start_grpc_service(grpc_service_config->server_address);
   zloop_start(grpc_service_task_zmq_ctx.event_loop);

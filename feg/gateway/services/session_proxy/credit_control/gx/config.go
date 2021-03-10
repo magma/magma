@@ -178,8 +178,8 @@ func GetGxGlobalConfig() *GxGlobalConfig {
 	return &GxGlobalConfig{
 		PCFROverwriteApn: configsPtr.GetGx().GetOverwriteApn(),
 		DisableGx:        configsPtr.GetGx().GetDisableGx(),
+		VirtualApnRules:  credit_control.GenerateVirtualApnRules(configsPtr.GetGx().GetVirtualApnRules()),
 	}
-
 }
 
 // validGxConfig check if required fields related to Gx are valid in the config

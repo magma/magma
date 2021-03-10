@@ -38,6 +38,8 @@ DEFAULT_NETWORK_CELLULAR_CONFIG = swagger_client.NetworkCellularConfigs(
         lte_auth_amf='gAA=',
         default_rule_id='default_rule_1',
         relay_enabled=True,
+        hss_relay_enabled=True,
+        gx_gy_relay_enabled=True,
     ),
 )
 

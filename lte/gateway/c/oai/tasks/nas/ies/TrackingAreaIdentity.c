@@ -32,14 +32,14 @@ int decode_tracking_area_identity(
     decoded++;
   }
 
-  tai->mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
-  tai->mcc_digit1 = *(buffer + decoded) & 0xf;
+  tai->plmn.mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
+  tai->plmn.mcc_digit1 = *(buffer + decoded) & 0xf;
   decoded++;
-  tai->mnc_digit3 = (*(buffer + decoded) >> 4) & 0xf;
-  tai->mcc_digit3 = *(buffer + decoded) & 0xf;
+  tai->plmn.mnc_digit3 = (*(buffer + decoded) >> 4) & 0xf;
+  tai->plmn.mcc_digit3 = *(buffer + decoded) & 0xf;
   decoded++;
-  tai->mnc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
-  tai->mnc_digit1 = *(buffer + decoded) & 0xf;
+  tai->plmn.mnc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
+  tai->plmn.mnc_digit1 = *(buffer + decoded) & 0xf;
   decoded++;
   // IES_DECODE_U16(tai->tac, *(buffer + decoded));
   IES_DECODE_U16(buffer, decoded, tai->tac);
@@ -63,13 +63,13 @@ int encode_tracking_area_identity(
   }
 
   *(buffer + encoded) =
-      0x00 | ((tai->mcc_digit2 & 0xf) << 4) | (tai->mcc_digit1 & 0xf);
+      0x00 | ((tai->plmn.mcc_digit2 & 0xf) << 4) | (tai->plmn.mcc_digit1 & 0xf);
   encoded++;
   *(buffer + encoded) =
-      0x00 | ((tai->mnc_digit3 & 0xf) << 4) | (tai->mcc_digit3 & 0xf);
+      0x00 | ((tai->plmn.mnc_digit3 & 0xf) << 4) | (tai->plmn.mcc_digit3 & 0xf);
   encoded++;
   *(buffer + encoded) =
-      0x00 | ((tai->mnc_digit2 & 0xf) << 4) | (tai->mnc_digit1 & 0xf);
+      0x00 | ((tai->plmn.mnc_digit2 & 0xf) << 4) | (tai->plmn.mnc_digit1 & 0xf);
   encoded++;
   IES_ENCODE_U16(buffer, encoded, tai->tac);
   return encoded;

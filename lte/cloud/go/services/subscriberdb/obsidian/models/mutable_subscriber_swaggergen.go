@@ -6,10 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
-	"strconv"
-
 	strfmt "github.com/go-openapi/strfmt"
+	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -23,11 +21,14 @@ type MutableSubscriber struct {
 	// active apns
 	ActiveApns ApnList `json:"active_apns,omitempty"`
 
-	// Base names which are active for this subscriber
-	ActiveBaseNames []models1.BaseName `json:"active_base_names,omitempty"`
+	// active base names
+	ActiveBaseNames models1.BaseNames `json:"active_base_names,omitempty"`
 
-	// Policies which are active for this subscriber
-	ActivePolicies []models1.PolicyID `json:"active_policies,omitempty"`
+	// active policies
+	ActivePolicies models1.PolicyIds `json:"active_policies,omitempty"`
+
+	// active policies by apn
+	ActivePoliciesByApn models1.PolicyIdsByApn `json:"active_policies_by_apn,omitempty"`
 
 	// id
 	// Required: true
@@ -57,6 +58,10 @@ func (m *MutableSubscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateActivePolicies(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateActivePoliciesByApn(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -100,15 +105,11 @@ func (m *MutableSubscriber) validateActiveBaseNames(formats strfmt.Registry) err
 		return nil
 	}
 
-	for i := 0; i < len(m.ActiveBaseNames); i++ {
-
-		if err := m.ActiveBaseNames[i].Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("active_base_names" + "." + strconv.Itoa(i))
-			}
-			return err
+	if err := m.ActiveBaseNames.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_base_names")
 		}
-
+		return err
 	}
 
 	return nil
@@ -120,15 +121,27 @@ func (m *MutableSubscriber) validateActivePolicies(formats strfmt.Registry) erro
 		return nil
 	}
 
-	for i := 0; i < len(m.ActivePolicies); i++ {
-
-		if err := m.ActivePolicies[i].Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("active_policies" + "." + strconv.Itoa(i))
-			}
-			return err
+	if err := m.ActivePolicies.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies")
 		}
+		return err
+	}
 
+	return nil
+}
+
+func (m *MutableSubscriber) validateActivePoliciesByApn(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ActivePoliciesByApn) { // not required
+		return nil
+	}
+
+	if err := m.ActivePoliciesByApn.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies_by_apn")
+		}
+		return err
 	}
 
 	return nil

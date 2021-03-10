@@ -43,6 +43,7 @@ Description Defines the EMM primitives available at the EMMAS Service
 #include "TrackingAreaIdentityList.h"
 #include "3gpp_36.401.h"
 #include "3gpp_23.003.h"
+#include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 
 /****************************************************************************/

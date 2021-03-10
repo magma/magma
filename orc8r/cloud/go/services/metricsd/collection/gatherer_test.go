@@ -43,7 +43,7 @@ func TestMetricsGatherer_Gather(t *testing.T) {
 			&TestMetricCollector{ret: []*prometheus_proto.MetricFamily{expected1}},
 			&TestMetricCollector{ret: []*prometheus_proto.MetricFamily{expected2, expected3}},
 		},
-		time.Second*5,
+		time.Second,
 		output,
 	)
 	assert.NoError(t, err)
@@ -51,7 +51,7 @@ func TestMetricsGatherer_Gather(t *testing.T) {
 	go gatherer.Run()
 	timeout := make(chan struct{}, 1)
 	go func() {
-		time.Sleep(15 * time.Second)
+		time.Sleep(5 * time.Second)
 		timeout <- struct{}{}
 	}()
 

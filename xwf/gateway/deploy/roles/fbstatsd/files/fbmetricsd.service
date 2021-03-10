@@ -1,0 +1,8 @@
+[Service]
+User=root
+PermissionsStartOnly=true
+ExecStart=/usr/bin/fbmetrics /etc/fbmetrics.conf
+Restart=always
+RestartSec=10s
+[Install]
+WantedBy=default.target

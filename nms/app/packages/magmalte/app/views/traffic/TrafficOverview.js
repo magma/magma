@@ -13,64 +13,31 @@
  * @flow strict-local
  * @format
  */
-import type {apn, policy_rule} from '@fbcnms/magma-api';
-
+import ApnEditDialog from './ApnEdit';
 import ApnOverview from './ApnOverview';
-import AppBar from '@material-ui/core/AppBar';
-import Grid from '@material-ui/core/Grid';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import Button from '@material-ui/core/Button';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import PolicyOverview from './PolicyOverview';
+import PolicyRuleEditDialog from './PolicyEdit';
+import ProfileEditDialog from './ProfileEdit';
+import RatingGroupEditDialog from './RatingGroupEdit';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import Text from '../../theme/design-system/Text';
+import TopBar from '../../components/TopBar';
 
 import {ApnJsonConfig} from './ApnOverview';
-import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {PolicyJsonConfig} from './PolicyOverview';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {withStyles} from '@material-ui/core/styles';
 
-const POLICY_TITLE = 'Policies';
-const APN_TITLE = 'APNs';
-const useStyles = makeStyles(theme => ({
-  dashboardRoot: {
-    margin: theme.spacing(3),
-    flexGrow: 1,
-  },
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
-  },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '16px 0 16px 0',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tabIconLabel: {
-    marginRight: '8px',
-  },
+const useStyles = makeStyles(_ => ({
   appBarBtn: {
     color: colors.primary.white,
     background: colors.primary.comet,
@@ -84,137 +51,136 @@ const useStyles = makeStyles(theme => ({
       background: colors.primary.mirage,
     },
   },
-  appBarBtnSecondary: {
-    color: colors.primary.white,
-  },
-  // TODO: remove this when we actually fill out the grid sections
-  contentPlaceholder: {
-    padding: '50px 0',
-  },
-  paper: {
-    height: 100,
-    padding: theme.spacing(10),
-    textAlign: 'center',
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-  },
 }));
 
-export default function TrafficDashboard() {
-  const classes = useStyles();
-  const {relativePath, relativeUrl, match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const [policies, setPolicies] = useState<{[string]: policy_rule}>({});
-  const [apns, setApns] = useState<{[string]: apn}>({});
-  const {isLoading: policyLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull,
-    {
-      networkId: networkId,
-    },
-    useCallback(response => {
-      setPolicies(response);
-    }, []),
-  );
+const StyledMenu = withStyles({
+  paper: {
+    border: '1px solid #d3d4d5',
+  },
+})(props => (
+  <Menu
+    data-testid="policy_menu"
+    elevation={0}
+    getContentAnchorEl={null}
+    anchorOrigin={{
+      vertical: 'bottom',
+      horizontal: 'center',
+    }}
+    transformOrigin={{
+      vertical: 'top',
+      horizontal: 'center',
+    }}
+    {...props}
+  />
+));
 
-  const {isLoading: apnLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdApns,
-    {
-      networkId: networkId,
-    },
-    useCallback(response => {
-      setApns(response);
-    }, []),
+function PolicyMenu() {
+  const classes = useStyles();
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [open, setOpen] = React.useState(false);
+  const [profileDialog, setProfileDialog] = React.useState(false);
+  const [ratingGroupDialog, setRatingGroupDialog] = React.useState(false);
+
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  return (
+    <div>
+      <PolicyRuleEditDialog open={open} onClose={() => setOpen(false)} />
+      <ProfileEditDialog
+        open={profileDialog}
+        onClose={() => setProfileDialog(false)}
+      />
+      <RatingGroupEditDialog
+        open={ratingGroupDialog}
+        onClose={() => setRatingGroupDialog(false)}
+      />
+      <Button
+        onClick={handleClick}
+        className={classes.appBarBtn}
+        endIcon={<ArrowDropDownIcon />}>
+        Create New{' '}
+      </Button>
+      <StyledMenu
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleClose}>
+        <MenuItem data-testid="newPolicyMenuItem" onClick={() => setOpen(true)}>
+          <Text variant="subtitle2">Policy</Text>
+        </MenuItem>
+        <MenuItem onClick={() => setProfileDialog(true)}>
+          <Text variant="subtitle2">Profile</Text>
+        </MenuItem>
+        <MenuItem
+          data-testid="newRatingGroupMenuItem"
+          onClick={() => setRatingGroupDialog(true)}>
+          <Text variant="subtitle2">Rating Group</Text>
+        </MenuItem>
+      </StyledMenu>
+    </div>
   );
-  if (policyLoading || apnLoading) {
-    return <LoadingFiller />;
-  }
+}
+
+function ApnMenu() {
+  const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <div>
+      <ApnEditDialog open={open} onClose={() => setOpen(false)} />
+      <Button
+        data-testid="newApnButton"
+        onClick={() => setOpen(true)}
+        className={classes.appBarBtn}>
+        Create New APN
+      </Button>
+    </div>
+  );
+}
+
+export default function TrafficDashboard() {
+  const {relativePath, relativeUrl} = useRouter();
+
   return (
     <>
-      <div className={classes.topBar}>
-        <Text color="light" weight="medium">
-          Traffic
-        </Text>
-      </div>
-
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
-          <Grid item xs={6}>
-            <Tabs
-              value={GetCurrentTabPos(match.url, ['policy', 'apn'])}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Policy"
-                component={NestedRouteLink}
-                label={<PolicyDashboardTabLabel />}
-                to="/policy"
-                className={classes.tab}
-              />
-              <Tab
-                key="APNs"
-                component={NestedRouteLink}
-                label={<APNDashboardTabLabel />}
-                to="/apn"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-        </Grid>
-      </AppBar>
+      <TopBar
+        header="Traffic"
+        tabs={[
+          {
+            label: 'Policies',
+            to: '/policy',
+            icon: LibraryBooksIcon,
+            filters: <PolicyMenu />,
+          },
+          {
+            label: 'APNs',
+            to: '/apn',
+            icon: RssFeedIcon,
+            filters: <ApnMenu />,
+          },
+        ]}
+      />
 
       <Switch>
         <Route
           path={relativePath('/policy/:policyId/json')}
-          render={() => (
-            <PolicyJsonConfig
-              policies={policies}
-              onSave={policy => setPolicies({...policies, [policy.id]: policy})}
-            />
-          )}
+          component={PolicyJsonConfig}
         />
         <Route
           path={relativePath('/apn/:apnId/json')}
-          render={() => (
-            <ApnJsonConfig
-              apns={apns}
-              onSave={apn => setApns({...apns, [apn.apn_name]: apn})}
-            />
-          )}
+          component={ApnJsonConfig}
         />
-        <Route
-          path={relativePath('/policy')}
-          render={() => <PolicyOverview policies={policies} />}
-        />
-        <Route
-          path={relativePath('/apn')}
-          render={() => <ApnOverview apns={apns} />}
-        />
+        <Route path={relativePath('/apn/json')} component={ApnJsonConfig} />
+        <Route path={relativePath('/policy')} component={PolicyOverview} />
+        <Route path={relativePath('/apn')} component={ApnOverview} />
         <Redirect to={relativeUrl('/policy')} />
       </Switch>
     </>
-  );
-}
-
-function PolicyDashboardTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <LibraryBooksIcon className={classes.tabIconLabel} /> {POLICY_TITLE}
-    </div>
-  );
-}
-
-function APNDashboardTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <RssFeedIcon className={classes.tabIconLabel} /> {APN_TITLE}
-    </div>
   );
 }

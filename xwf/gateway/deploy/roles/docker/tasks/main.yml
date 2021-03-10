@@ -1,0 +1,51 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: Install utilities
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - ca-certificates
+      - curl
+      - python3-pip
+      - python3-setuptools
+
+- name: Add Docker’s official GPG key
+  rpm_key:
+    key: https://download.docker.com/linux/centos/gpg
+    state: present
+
+- name: Add the stable repository for Docker
+  shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: Install Docker CE
+  include_role:
+    name: docker_ce_update
+
+- name: Install Docker compose
+  become: true
+  shell: 'curl -L "https://github.com/docker/compose/releases/download/1.25.0-rc1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose; chmod +x /usr/local/bin/docker-compose'
+
+- name: link docker compose
+  shell: ln -s /usr/local/bin/docker-compose /usr/sbin/docker-compose
+  ignore_errors: true
+
+- name: Install python docker module
+  pip:
+    executable: /usr/bin/pip3
+    name: docker
+
+- name: start docker service
+  systemd: name=docker state=started enabled=yes

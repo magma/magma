@@ -1,0 +1,27 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: Get timestamp
+  shell: echo {{ansible_date_time.iso8601}}
+  register: date_output
+
+- name: Get report destination directory
+  shell: echo /tmp/magma_reports/report.{{ansible_facts['nodename']}}.{{date_output.stdout}}
+  register: report_dir_output
+- debug: var=report_dir_output.stdout_lines
+
+- name: Create a directory for report
+  file:
+    path: "{{report_dir_output.stdout}}"
+    state: directory
+    mode: "0777"

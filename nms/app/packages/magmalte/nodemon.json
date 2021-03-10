@@ -4,7 +4,9 @@
     "../../packages/fbcnms-magma-api",
     "config/",
     "scripts/",
-    "server/"
+    "server/",
+    "grafana/",
+    "alerts/"
   ],
   "exec": "node -r '@fbcnms/babel-register'"
 }

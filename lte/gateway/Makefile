@@ -58,6 +58,11 @@ OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABL
 
 endif
 
+# debian stretch build uses older cc not recognizing options needed on ubuntu focal
+
+OS_VERSION_NAME := $(shell (grep VERSION_CODENAME /etc/os-release || true) | sed 's/.*=//g')
+COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall"
+
 $(info OAI_FLAGS $(OAI_FLAGS))
 
 FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
@@ -65,15 +70,20 @@ TEST_FLAG = -DBUILD_TESTS=1
 
 all: build
 
-build: build_python build_common build_oai build_sctpd build_session_manager ## Build all
+build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller ## Build all
+
+smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
 test: test_python test_oai test_session_manager ## Run all tests
 
-clean: clean_python  ## Clean all builds
+clean: clean_python clean_envoy_controller ## Clean all builds
 	rm -rf $(C_BUILD)
 
 clean_python: ## Clean Python-only builds
 	make -C $(MAGMA_ROOT)/lte/gateway/python clean
+
+clean_envoy_controller: ## Clean envoy controller build
+	rm -rf  $(GO_BUILD)/envoy_controller
 
 start: ## Start all services
 	sudo service magma@magmad start
@@ -125,28 +135,38 @@ endef
 build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
-build_common: ## Build shared libraries
-	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
+build_common: format_common ## Build shared libraries
+	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
-build_oai: build_common ## Build OAI
-	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
+build_oai: format_oai build_common ## Build OAI
+	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS) $(COMMON_FLAGS))
 
-build_sctpd: build_common ## Build SCTPD
+build_sctpd: format_sctpd build_common ## Build SCTPD
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
-build_session_manager: build_common ## Build session manager
+build_session_manager: format_session_manager build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
+
+build_connection_tracker: format_connection_tracker build_common ## Build connection tracker
+	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
+
+build_envoy_controller: ## Build envoy controller
+	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
 
 # Catch all for c services that don't have custom flags
 # This works with build_dpi
 build_%:
-	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, )
+	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
 
 scan_oai: ## Scan OAI
 	$(call run_scanbuild, $(C_BUILD)/scan/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
-format_oai: ## Format OAI
-	find $(GATEWAY_C_DIR)/oai \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+format_common:
+	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
+format_%: ## Format service in magma/lte/gateway/c/
+	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 
 test_python: stop ## Run all Python-specific tests
@@ -159,6 +179,12 @@ test_oai: build_common ## Run all OAI-specific tests
 # This works with test_dpi and test_session_manager
 test_%: stop build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+
+# format and test c/session_manager
+precommit_sm: format_session_manager test_session_manager
+
+# format and test c/oai
+precommit_oai: format_oai test_oai
 
 # TODO: include coverage of dpim when it is included in make build
 COV_OUTPUT_OAI = $(OAI_BUILD)/coverage.info

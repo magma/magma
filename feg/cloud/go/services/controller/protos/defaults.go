@@ -28,6 +28,7 @@ var defaultConfig = Config{
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
 		},
+		PlmnIds: []string{},
 	},
 	Gx: &GxConfig{
 		DisableGx: false,
@@ -75,7 +76,7 @@ var defaultConfig = Config{
 	},
 	Swx: &SwxConfig{
 		Servers: []*DiamClientConfig{
-			&DiamClientConfig{
+			{
 				Protocol:         "sctp",
 				Retransmits:      3,
 				WatchdogInterval: 1,

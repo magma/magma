@@ -118,3 +118,7 @@ func (m *TierImage) ValidateModel() error {
 func (m *GatewayStatus) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
+
+func (m *GatewayVpnConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}

@@ -21,7 +21,7 @@ satisfies the following requirements:
 ## Deployment
 ### 1. Create boot USB stick and install Debian on your AGW host
 
-- Download .iso image from [Debian mirror](http://cdimage.debian.org/mirror/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-netinst.iso)
+- Download .iso image from [Debian mirror](https://cdimage.debian.org/cdimage/archive/9.13.0/amd64/iso-cd/debian-9.13.0-amd64-netinst.iso)
 - Create bootable usb using etcher [tutorial here](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
 - Boot your AGW host from USB
   (Press F11 to select boot sequence, :warning: This might be different for
@@ -45,10 +45,21 @@ installation process to get an IP using DHCP.
 
 ### 2. Deploy magma on the  AGW_HOST
 
+*Pre Install Check*
+
+Pre Install Check script provides information on the changes that will be made to the system
+by the AGW installation script.
+
 ```bash
-su
-wget https://raw.githubusercontent.com/facebookincubator/magma/master/lte/gateway/deploy/agw_install.sh
-sh agw_install.sh
+cd ~/magma/lte/gateway/deploy
+./agw_pre_check.sh
+```
+
+*Run AGW installation*
+
+```bash
+cd ~/magma/lte/gateway/deploy
+./agw_install.sh
 ```
 
 The machine will reboot but It's not finished yet, the script is still running in the background.
@@ -64,7 +75,7 @@ When you see "AGW installation is done." It means that your AGW installation is 
 service magma@* status
 ```
 
-- Post Install Check
+*Post Install Check*
 
 ``` bash
 cd ~/magma/lte/gateway/deploy

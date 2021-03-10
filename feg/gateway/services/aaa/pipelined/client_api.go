@@ -78,25 +78,6 @@ func DeleteUeMacFlow(sid *lte_protos.SubscriberID, aaaCtx *protos.Context) error
 	return nil
 }
 
-func UpdateIPFIXFlow(sid *lte_protos.SubscriberID, aaaCtx *protos.Context) error {
-	flowRequest := createFlowRequest(sid, aaaCtx)
-
-	cli, err := getPipelinedClient()
-	if err != nil {
-		return err
-	}
-
-	response, err := cli.UpdateIPFIXFlow(context.Background(), flowRequest)
-	if err != nil {
-		return err
-	}
-	if response.Result != lte_protos.FlowResponse_SUCCESS {
-		return fmt.Errorf("Could not update IPFIX flow for subscriber %s", flowRequest.GetSid())
-	}
-
-	return nil
-}
-
 func createFlowRequest(sid *lte_protos.SubscriberID, aaaCtx *protos.Context) *lte_protos.UEMacFlowRequest {
 	parsedApMacAddr, parsedApName := getApMacAndApName(aaaCtx.GetApn())
 	return &lte_protos.UEMacFlowRequest{

@@ -15,17 +15,17 @@ Install the following tools:
 1. [Docker](https://www.docker.com) and Docker Compose
 2. [Homebrew](https://brew.sh/) *only* for MacOS users
 3. [VirtualBox](https://www.virtualbox.org/)
-3. [Vagrant](https://vagrantup.com)
+4. [Vagrant](https://vagrantup.com)
 
-Replace `brew` with your OS-appropriate package manager as necessary, or see
-the [pyenv installation instructions](https://github.com/pyenv/pyenv#installation).
+Replace `brew` with your OS-appropriate package manager as necessary.
 
 ```bash
-brew install pyenv
+brew install go@1.13 pyenv
 
 # Replace .zshrc with your appropriate shell RC file
 # IMPORTANT: Use .bash_profile, not .bashrc for bash
-echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.zshrc
+echo 'export PATH="/usr/local/opt/go@1.13/bin:$PATH"' >> ~/.zshrc
+echo 'if command -v pyenv 1>/dev/null 2>&1; then eval "$(pyenv init -)"; fi' >> ~/.zshrc
 exec $SHELL
 pyenv install 3.7.3
 pyenv global 3.7.3
@@ -36,8 +36,27 @@ vagrant plugin install vagrant-vbguest
 
 If you are on MacOS, you should start Docker for Mac and increase the memory
 allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
+If you are running into build/test failures with Go that report "signal killed", you
+likely need to increase Docker's allocated resources.
 
 ![Increasing docker engine resources](assets/docker-config.png)
+
+## Downloading Magma
+
+You can find Magma code on [Github](https://github.com/magma/magma).
+
+To download Magma current version, or a specific release do the following:
+
+```bash
+git clone https://github.com/magma/magma.git
+cd magma
+
+# in case you want to use a specific version of Magma (for example v1.3.3)
+git checkout v1.3.3
+
+# to list all available releases
+git tag -l
+```
 
 ## Build/Deploy Tooling
 
@@ -51,22 +70,22 @@ additional prerequisite tools (replace `brew` with your OS-appropriate package
 manager as necessary):
 
 ```bash
-brew install aws-iam-authenticator kubernetes-cli kubernetes-helm terraform
-pip3 install awscli boto3
+brew install aws-iam-authenticator kubectl helm terraform
+python3 -m pip install awscli boto3
 aws configure
 ```
 
 ### Orchestrator and NMS
 
-Orchestrator deployment depends on the following components:
+Orchestrator deployment depends on the following components
 
-1. An AWS account
-2. A Docker image repository (e.g. Docker Hub, JFrog)
-3. A Helm chart repository (e.g. JFrog, Github)*
-4. A registered domain for Orchestrator endpoints
+1. AWS account
+2. Docker image repository (e.g. Docker Hub, JFrog)
+3. Helm chart repository (e.g. JFrog, Github)*
+4. Registered domain for Orchestrator endpoints
 
-\* See https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7
-to set up a private Github repository as a Helm repository.
+\* We describe setting up a private GitHub repository as a Helm repository in
+the [building Orchestrator](../orc8r/deploy_build.md) section.
 
 We recommend deploying the Orchestrator cloud component of Magma into AWS.
 Our open-source Terraform scripts target an AWS deployment environment, but if

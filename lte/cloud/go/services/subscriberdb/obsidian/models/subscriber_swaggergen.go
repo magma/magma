@@ -6,10 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
-	"strconv"
-
 	strfmt "github.com/go-openapi/strfmt"
+	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -23,11 +21,14 @@ type Subscriber struct {
 	// active apns
 	ActiveApns ApnList `json:"active_apns,omitempty"`
 
-	// Base names which are active for this subscriber
-	ActiveBaseNames []models1.BaseName `json:"active_base_names,omitempty"`
+	// active base names
+	ActiveBaseNames models1.BaseNames `json:"active_base_names,omitempty"`
 
-	// Policies which are active for this subscriber
-	ActivePolicies []models1.PolicyID `json:"active_policies,omitempty"`
+	// active policies
+	ActivePolicies models1.PolicyIds `json:"active_policies,omitempty"`
+
+	// active policies by apn
+	ActivePoliciesByApn models1.PolicyIdsByApn `json:"active_policies_by_apn,omitempty"`
 
 	// config
 	// Required: true
@@ -43,6 +44,9 @@ type Subscriber struct {
 
 	// monitoring
 	Monitoring *SubscriberStatus `json:"monitoring,omitempty"`
+
+	// msisdn
+	Msisdn Msisdn `json:"msisdn,omitempty"`
 
 	// Optional name associated with the subscriber
 	Name string `json:"name,omitempty"`
@@ -67,6 +71,10 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateActivePoliciesByApn(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateConfig(formats); err != nil {
 		res = append(res, err)
 	}
@@ -80,6 +88,10 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateMonitoring(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMsisdn(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -115,15 +127,11 @@ func (m *Subscriber) validateActiveBaseNames(formats strfmt.Registry) error {
 		return nil
 	}
 
-	for i := 0; i < len(m.ActiveBaseNames); i++ {
-
-		if err := m.ActiveBaseNames[i].Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("active_base_names" + "." + strconv.Itoa(i))
-			}
-			return err
+	if err := m.ActiveBaseNames.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_base_names")
 		}
-
+		return err
 	}
 
 	return nil
@@ -135,15 +143,27 @@ func (m *Subscriber) validateActivePolicies(formats strfmt.Registry) error {
 		return nil
 	}
 
-	for i := 0; i < len(m.ActivePolicies); i++ {
-
-		if err := m.ActivePolicies[i].Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("active_policies" + "." + strconv.Itoa(i))
-			}
-			return err
+	if err := m.ActivePolicies.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies")
 		}
+		return err
+	}
 
+	return nil
+}
+
+func (m *Subscriber) validateActivePoliciesByApn(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ActivePoliciesByApn) { // not required
+		return nil
+	}
+
+	if err := m.ActivePoliciesByApn.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_policies_by_apn")
+		}
+		return err
 	}
 
 	return nil
@@ -210,6 +230,22 @@ func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateMsisdn(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Msisdn) { // not required
+		return nil
+	}
+
+	if err := m.Msisdn.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("msisdn")
+		}
+		return err
 	}
 
 	return nil

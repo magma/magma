@@ -11,12 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import grpc
 import logging
-from typing import List
+from typing import List, Set
 from lte.protos.mconfig import mconfigs_pb2
-from lte.protos.policydb_pb2 import PolicyRule, FlowDescription, \
-    FlowMatch, RatingGroup
+from lte.protos.policydb_pb2 import RatingGroup, ApnPolicySet,\
+    SubscriberPolicySet
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
     UpdateSessionResponse, StaticRuleInstall, DynamicRuleInstall,\
@@ -24,7 +23,9 @@ from lte.protos.session_manager_pb2 import CreateSessionRequest, \
 from lte.protos.session_manager_pb2_grpc import \
     CentralSessionControllerServicer, \
     add_CentralSessionControllerServicer_to_server
-from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
+from magma.policydb.apn_rule_map_store import ApnRuleAssignmentsDict
+from magma.policydb.basename_store import BaseNameDict
+from magma.policydb.default_rules import get_allow_all_policy_rule
 from magma.policydb.rating_group_store import RatingGroupsDict
 from orc8r.protos.common_pb2 import NetworkID
 
@@ -34,7 +35,13 @@ class SessionRpcServicer(CentralSessionControllerServicer):
     gRPC based server for CentralSessionController service.
 
     This will act as a bare-bones local PCRF and OCS.
-    In current implementation, it is only used for enabling the Captive Portal
+
+    For all connecting subscribers, an allow-all flow will be installed as
+    a dynamic policy rule. In addition, whatever static rules, and static rules
+    from base names have been configured via the orc8r will also be installed
+    for the subscriber.
+
+    This limited PCRF/OCS is also used for enabling the Captive Portal
     feature.
     """
 
@@ -42,12 +49,14 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         self,
         mconfig: mconfigs_pb2.PolicyDB,
         rating_groups_by_id: RatingGroupsDict,
-        subscriberdb_stub: SubscriberDBStub,
+        rules_by_basename: BaseNameDict,
+        apn_rules_by_sid: ApnRuleAssignmentsDict,
     ):
         self._mconfig = mconfig
         self._network_id = NetworkID(id="_")
         self._rating_groups_by_id = rating_groups_by_id
-        self._subscriberdb_stub = subscriberdb_stub
+        self._rules_by_basename = rules_by_basename
+        self._apn_rules_by_sid = apn_rules_by_sid
 
     def get_infinite_credit_charging_keys(self) -> List[int]:
         keys = []
@@ -78,15 +87,15 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         Handles create session request from MME by installing the necessary
         flows in pipelined's enforcement app.
 
-        NOTE: truncate the 'IMSI' prefix
+        NOTE: leave the 'IMSI' prefix
         """
         imsi = request.common_context.sid.id
-        imsi_number = imsi[4:]
+        apn = request.common_context.apn
         logging.info('Creating a session for subscriber ID: %s', imsi)
         return CreateSessionResponse(
             credits=self._get_credits(imsi),
-            static_rules=self._get_rules_for_imsi(imsi_number),
-            dynamic_rules=self._get_default_dynamic_rules(imsi_number),
+            static_rules=self._get_session_static_rules(imsi, apn),
+            dynamic_rules=self._get_default_dynamic_rules(imsi, apn),
             session_id=request.session_id,
         )
 
@@ -106,7 +115,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         resp = UpdateSessionResponse()
         for credit_usage_update in request.updates:
             resp.responses.extend(
-                self._get_credits(credit_usage_update.sid),
+                self._get_credits(credit_usage_update.common_context.sid.id),
             )
         return resp
 
@@ -115,82 +124,82 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         request: SessionTerminateResponse,
         context,
     ) -> SessionTerminateResponse:
-        logging.info('Terminating a session for session ID: %s',
-                     request.session_id)
+        logging.info('Terminating session: %s', request.session_id)
         return SessionTerminateResponse(
-            sid=request.sid,
+            sid=request.common_context.sid.id,
             session_id=request.session_id,
         )
 
     def _get_default_dynamic_rules(
         self,
-        sid: str,
+        subscriber_id: str,
+        apn: str,
     ) -> List[DynamicRuleInstall]:
         """
-        Get a list of dynamic rules to install for allowlisting.
-        """
-        dynamic_rules = []
-        # Build the rule id to be globally unique
-        rule_id_info = {'sid': sid}
-        rule_id = "allowlist_sid-{sid}".format(**rule_id_info)
-        rule = DynamicRuleInstall(
-            policy_rule=self._get_allow_all_policy_rule(rule_id),
-        )
-        dynamic_rules.append(rule)
-        return dynamic_rules
-
-    def _get_allow_all_policy_rule(
-        self,
-        policy_id: str,
-    ) -> PolicyRule:
-        """
-        This builds a PolicyRule used as a default to allow traffic
-        for an attached subscriber.
-        """
-        return PolicyRule(
-            # Don't set the rating group
-            # Don't set the monitoring key
-            # Don't set the hard timeout
-            id=policy_id,
-            priority=2,
-            flow_list=self._get_allow_all_flows(),
-            tracking_type=PolicyRule.TrackingType.Value("NO_TRACKING"),
-        )
-
-    def _get_allow_all_flows(self) -> List[FlowDescription]:
-        """
-        Returns:
-            Two flows, for outgoing and incoming traffic
+        Get a list of dynamic rules to install
+        Currently only includes a single rule for allow-all of traffic
         """
         return [
-            # Set flow match for ll packets
-            # Don't set the app_name field
-            FlowDescription(  # uplink flow
-                match=FlowMatch(
-                    direction=FlowMatch.Direction.Value("UPLINK"),
-                ),
-                action=FlowDescription.Action.Value("PERMIT"),
-            ),
-            FlowDescription(  # downlink flow
-                match=FlowMatch(
-                    direction=FlowMatch.Direction.Value("DOWNLINK"),
-                ),
-                action=FlowDescription.Action.Value("PERMIT"),
-            ),
+            DynamicRuleInstall(
+                policy_rule=get_allow_all_policy_rule(subscriber_id, apn)),
         ]
 
-    def _get_rules_for_imsi(self, imsi: str) -> List[StaticRuleInstall]:
+    def _get_session_static_rules(
+        self,
+        imsi: str,
+        apn: str,
+    ) -> List[StaticRuleInstall]:
         """
         Get the list of static rules to be installed for a subscriber
         NOTE: Remove "IMSI" prefix from imsi argument.
         """
-        try:
-            info = self._subscriberdb_stub.GetSubscriberData(NetworkID(id=imsi))
-            return [StaticRuleInstall(rule_id=rule_id)
-                    for rule_id in info.lte.assigned_policies]
-        except grpc.RpcError:
-            logging.error('Unable to find data for subscriber %s', imsi)
+        if imsi not in self._apn_rules_by_sid:
             return []
+
+        sub_apn_policies = self._apn_rules_by_sid[imsi]
+        assigned_static_rules = [] # type: List[StaticRuleInstall]
+        # Add global rules
+        global_rules = self._get_global_static_rules(sub_apn_policies)
+        assigned_static_rules += \
+            list(map(lambda id: StaticRuleInstall(rule_id=id),
+                     global_rules))
+        # Add APN specific rules
+        for apn_policy_set in sub_apn_policies.rules_per_apn:
+            if apn_policy_set.apn != apn:
+                continue
+            # Only add rules if the APN matches
+            static_rule_ids = self._get_static_rules(apn_policy_set)
+            assigned_static_rules +=\
+                list(map(lambda id: StaticRuleInstall(rule_id=id),
+                         static_rule_ids))
+
+        return assigned_static_rules
+
+    def _get_global_static_rules(
+        self,
+        sub_apn_policies: SubscriberPolicySet,
+    ) -> Set[str]:
+        global_rules = set(sub_apn_policies.global_policies)
+        for basename in sub_apn_policies.global_base_names:
+            if basename not in self._rules_by_basename:
+                # Eventually, basename definition will be streamed from orc8r
+                continue
+            global_rules.update(
+                self._rules_by_basename[basename].RuleNames)
+        return global_rules
+
+    def _get_static_rules(
+        self,
+        policies: ApnPolicySet,
+    ) -> Set[str]:
+        desired_rules = set(policies.assigned_policies)
+        for basename in policies.assigned_base_names:
+            if basename not in self._rules_by_basename:
+                # Eventually, basename definition will be streamed from orc8r
+                continue
+            desired_rules.update(
+                self._rules_by_basename[basename].RuleNames)
+        return desired_rules
 
     def _get_credits(self, sid: str) -> List[CreditUpdateResponse]:
         infinite_credit_keys = self.get_infinite_credit_charging_keys()

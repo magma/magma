@@ -18,11 +18,11 @@ import pathlib
 from magma.common.service import MagmaService
 from magma.configuration.service_configs import load_service_config
 from magma.magmad.upgrade.upgrader import UpgraderFactory
-from magma.magmad.upgrade.upgrader2 import ImageNameT, UpgradeIntent, \
-    Upgrader2, VersionInfo, VersionT, run_command
+from magma.magmad.upgrade.upgrader2 import UpgradeIntent, Upgrader2, \
+    VersionInfo, VersionT, run_command
 
 MAGMA_GITHUB_PATH = "/tmp/magma_upgrade"
-MAGMA_GITHUB_URL = "https://github.com/facebookincubator/magma.git"
+MAGMA_GITHUB_URL = "https://github.com/magma/magma.git"
 
 
 class DockerUpgrader(Upgrader2):
@@ -40,15 +40,6 @@ class DockerUpgrader(Upgrader2):
             return
         self.upgrade_task = self.loop.create_task(self.do_docker_upgrade())
 
-    def version_to_image_name(self, version: VersionT) -> ImageNameT:
-        split_version = version.split('|')
-        if len(split_version) > 2:
-            raise ValueError(
-                'Expected version formatted as '
-                '<image tag>|<git hash>, got {}'.format(version),
-            )
-        return ImageNameT(version)
-
     async def get_upgrade_intent(self) -> UpgradeIntent:
         """
         Returns the desired version tag for the gateway.
@@ -63,8 +54,7 @@ class DockerUpgrader(Upgrader2):
             return UpgradeIntent(stable=VersionT(current_version),
                                  canary=VersionT(""))
 
-        tgt_tag = self.version_to_image_name(tgt_version)
-        return UpgradeIntent(stable=VersionT(tgt_tag), canary=VersionT(""))
+        return UpgradeIntent(stable=VersionT(tgt_version), canary=VersionT(""))
 
     async def get_versions(self) -> VersionInfo:
         """ Returns the current version by parsing the IMAGE_VERSION in the
@@ -124,17 +114,7 @@ class DockerUpgrader(Upgrader2):
             self.get_upgrade_intent(), self.get_versions()
         )
         current_version = version_info.current_version
-
-        # For back-compat, checkout from master if the version doesn't have a
-        # git hash appended
-        version_parts = upgrade_intent.stable.split('|')
-        if len(version_parts) == 2:
-            target_image, git_hash = version_parts
-        else:
-            logging.info('No target git hash was found, will pull configs '
-                         'from master')
-            target_image, git_hash = version_parts[0], 'master'
-
+        target_image = upgrade_intent.stable
         if target_image != current_version:
             logging.info(
                 "There is work to be done:\n"
@@ -147,7 +127,7 @@ class DockerUpgrader(Upgrader2):
             use_proxy = self.service.config["upgrader_factory"]\
                 .get("use_proxy", True)
 
-            await download_update(target_image, git_hash, use_proxy)
+            await download_update(target_image, use_proxy)
             await self.prepare_upgrade(
                 current_version,
                 pathlib.Path(MAGMA_GITHUB_PATH, "magma"),
@@ -169,8 +149,7 @@ class DockerUpgrader(Upgrader2):
 
 
 async def download_update(
-    target_image: str,
-    git_hash: str,
+    target_version: str,
     use_proxy: bool,
 ) -> None:
     """
@@ -199,7 +178,7 @@ async def download_update(
     await run_command(git_clone_cmd, shell=True, check=True)
 
     git_checkout_cmd = "git -C {}/magma checkout {}".format(
-        MAGMA_GITHUB_PATH, git_hash,
+        MAGMA_GITHUB_PATH, target_version,
     )
     await run_command(git_checkout_cmd, shell=True, check=True)
     docker_login_cmd = "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD " \
@@ -208,7 +187,7 @@ async def download_update(
     docker_pull_cmd = "IMAGE_VERSION={} docker-compose --project-directory " \
                       "/var/opt/magma/docker -f " \
                       "/var/opt/magma/docker/docker-compose.yml pull -q".\
-        format(target_image)
+        format(target_version)
     await run_command(docker_pull_cmd, shell=True, check=True)
 
 

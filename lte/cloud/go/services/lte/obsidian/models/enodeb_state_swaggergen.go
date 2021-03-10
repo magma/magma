@@ -41,6 +41,10 @@ type EnodebState struct {
 	// Required: true
 	GpsLongitude *string `json:"gps_longitude"`
 
+	// ip address
+	// Format: ipv4
+	IPAddress strfmt.IPv4 `json:"ip_address,omitempty"`
+
 	// mme connected
 	// Required: true
 	MmeConnected *bool `json:"mme_connected"`
@@ -66,6 +70,9 @@ type EnodebState struct {
 
 	// Time at which the state was reported in ms
 	TimeReported uint64 `json:"time_reported,omitempty"`
+
+	// ues connected
+	UesConnected int32 `json:"ues_connected,omitempty"`
 }
 
 // Validate validates this enodeb state
@@ -93,6 +100,10 @@ func (m *EnodebState) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateGpsLongitude(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIPAddress(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -170,6 +181,19 @@ func (m *EnodebState) validateGpsLatitude(formats strfmt.Registry) error {
 func (m *EnodebState) validateGpsLongitude(formats strfmt.Registry) error {
 
 	if err := validate.Required("gps_longitude", "body", m.GpsLongitude); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebState) validateIPAddress(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPAddress) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("ip_address", "body", "ipv4", m.IPAddress.String(), formats); err != nil {
 		return err
 	}
 

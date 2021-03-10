@@ -164,7 +164,7 @@ inline void emm_ctx_clear_imsi(emm_context_t* const ctxt) {
 
 /* Set IMSI */
 inline void emm_ctx_set_imsi(
-    emm_context_t* const ctxt, imsi_t* imsi, const imsi64_t imsi64) {
+    emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64) {
   ctxt->_imsi   = *imsi;
   ctxt->_imsi64 = imsi64;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_IMSI);
@@ -181,7 +181,7 @@ inline void emm_ctx_set_imsi(
 
 /* Set IMSI, mark it as valid */
 inline void emm_ctx_set_valid_imsi(
-    emm_context_t* const ctxt, imsi_t* imsi, const imsi64_t imsi64) {
+    emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64) {
   ctxt->_imsi   = *imsi;
   ctxt->_imsi64 = imsi64;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_IMSI);
@@ -917,12 +917,15 @@ void emm_init_context(
   emm_ctx_clear_ue_nw_cap(emm_ctx);
   emm_ctx_clear_drx_parameter(emm_ctx);
   emm_ctx_clear_mobile_station_clsMark2(emm_ctx);
-  emm_ctx->T3422.id  = NAS_TIMER_INACTIVE_ID;
-  emm_ctx->T3422.sec = T3422_DEFAULT_VALUE;
+  emm_ctx->T3422.id        = NAS_TIMER_INACTIVE_ID;
+  emm_ctx->T3422.sec       = T3422_DEFAULT_VALUE;
+  emm_ctx->new_attach_info = NULL;
 
   if (init_esm_ctxt) {
     esm_init_context(&emm_ctx->esm_ctx);
   }
+  emm_ctx->emm_procedures = NULL;
+  emm_ctx->esm_msg        = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -1162,19 +1165,11 @@ void emm_context_dump(
   for (k = 0; k < emm_context->_tai_list.numberoflists; k++) {
     switch (emm_context->_tai_list.partial_tai_list[k].typeoflist) {
       case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS: {
-        tai_t tai      = {0};
-        tai.mcc_digit1 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1;
-        tai.mcc_digit2 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2;
-        tai.mcc_digit3 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3;
-        tai.mnc_digit1 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1;
-        tai.mnc_digit2 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2;
-        tai.mnc_digit3 = emm_context->_tai_list.partial_tai_list[k]
-                             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3;
+        tai_t tai = {0};
+        COPY_PLMN(
+            tai.plmn, emm_context->_tai_list.partial_tai_list[k]
+                          .u.tai_one_plmn_non_consecutive_tacs.plmn);
+
         for (int p = 0;
              p <
              (emm_context->_tai_list.partial_tai_list[k].numberofelements + 1);

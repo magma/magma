@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include <fluid/of10msg.hh>
 #include <fluid/of13msg.hh>
 #include <fluid/OFServer.hh>
 
@@ -38,7 +37,7 @@ class OpenflowMessenger {
    */
   virtual fluid_msg::of13::FlowMod create_default_flow_mod(
       uint8_t table_id, fluid_msg::of13::ofp_flow_mod_command command,
-      uint16_t priority) const {}
+      uint16_t priority) const = 0;
 
   /**
    * Sends a completed flow modification to OVS

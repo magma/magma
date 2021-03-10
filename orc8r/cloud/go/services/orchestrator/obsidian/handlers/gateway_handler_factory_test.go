@@ -19,8 +19,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
@@ -34,7 +33,6 @@ import (
 )
 
 func Test_GetPartialReadGatewayHandler(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -50,7 +48,7 @@ func Test_GetPartialReadGatewayHandler(t *testing.T) {
 	gatewayRoot := fmt.Sprintf("%s/:network_id/gateways/:gateway_id", testURLRoot)
 
 	// Test 404
-	getGatewayName := handlers.GetPartialReadGatewayHandler(fmt.Sprintf("%s/Name", gatewayRoot), &testName{})
+	getGatewayName := handlers.GetPartialReadGatewayHandler(fmt.Sprintf("%s/Name", gatewayRoot), &testName{}, nil)
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            gatewayRoot,
@@ -63,13 +61,13 @@ func Test_GetPartialReadGatewayHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	assert.NoError(t, configurator.CreateNetwork(network))
+	assert.NoError(t, configurator.CreateNetwork(network, serdes.Network))
 	gateway := configurator.NetworkEntity{
 		Key:  "gw1",
 		Type: orc8r.MagmadGatewayType,
 		Name: "gateway 1",
 	}
-	_, err := configurator.CreateEntity(networkID, gateway)
+	_, err := configurator.CreateEntity(networkID, gateway, serdes.Entity)
 	assert.NoError(t, err)
 
 	tc = tests.Test{
@@ -86,7 +84,6 @@ func Test_GetPartialReadGatewayHandler(t *testing.T) {
 }
 
 func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -102,7 +99,7 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 	gatewayRoot := fmt.Sprintf("%s/:network_id/gateways/:gateway_id", testURLRoot)
 
 	// Test 404
-	updateGatewayName := handlers.GetPartialUpdateGatewayHandler(fmt.Sprintf("%s/Name", gatewayRoot), &testName{})
+	updateGatewayName := handlers.GetPartialUpdateGatewayHandler(fmt.Sprintf("%s/Name", gatewayRoot), &testName{}, nil)
 	tc := tests.Test{
 		Method:         "PUT",
 		URL:            gatewayRoot,
@@ -115,13 +112,13 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	assert.NoError(t, configurator.CreateNetwork(network))
+	assert.NoError(t, configurator.CreateNetwork(network, serdes.Network))
 	Gateway := configurator.NetworkEntity{
 		Key:  "test_gateway_1",
 		Type: orc8r.MagmadGatewayType,
 		Name: "Gateway 1",
 	}
-	_, err := configurator.CreateEntity(networkID, Gateway)
+	_, err := configurator.CreateEntity(networkID, Gateway, serdes.Entity)
 	assert.NoError(t, err)
 
 	// validation failure
@@ -148,13 +145,16 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	Gateway, err = configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, "test_gateway_1", configurator.EntityLoadCriteria{LoadMetadata: true})
+	Gateway, err = configurator.LoadEntity(
+		networkID, orc8r.MagmadGatewayType, "test_gateway_1",
+		configurator.EntityLoadCriteria{LoadMetadata: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, "updated Name!", Gateway.Name)
 }
 
 func Test_GetGatewayDeviceHandler(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()
@@ -165,7 +165,7 @@ func Test_GetGatewayDeviceHandler(t *testing.T) {
 	test_utils.RegisterNetwork(t, networkID, "Name")
 
 	gatewayRoot := fmt.Sprintf("%s/:network_id/gateways/:gateway_id", testURLRoot)
-	getDevice := handlers.GetReadGatewayDeviceHandler(fmt.Sprintf("%s/device", gatewayRoot))
+	getDevice := handlers.GetReadGatewayDeviceHandler(fmt.Sprintf("%s/device", gatewayRoot), serdes.Device)
 
 	// 404
 	tc := tests.Test{
@@ -208,7 +208,11 @@ func (m *testName) ValidateModel() error {
 }
 
 func (m *testName) FromBackendModels(networkID string, gatewayID string) error {
-	entity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadMetadata: true})
+	entity, err := configurator.LoadEntity(
+		networkID, orc8r.MagmadGatewayType, gatewayID,
+		configurator.EntityLoadCriteria{LoadMetadata: true},
+		serdes.Entity,
+	)
 	if err != nil {
 		return err
 	}

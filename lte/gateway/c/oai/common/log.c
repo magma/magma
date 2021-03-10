@@ -80,6 +80,7 @@
 #define LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH 5
 #define LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH 6
 #define LOG_FUNC_INDENT_SPACES 3
+#define LOG_INDENT_MAX 30
 #define LOG_LEVEL_NAME_MAX_LENGTH 10
 
 #define LOG_CTXT_INFO_FMT                                                      \
@@ -88,6 +89,7 @@
   "%06" PRIu64 " %s %08lX %-*.*s %-*.*s %-*.*s:%04u   [%lu]%*s"
 
 #define LOG_MAGMA_REPO_ROOT "/oai/"
+#define MAX_TIME_STR_LEN 32
 //-------------------------------
 
 typedef unsigned long log_message_number_t;
@@ -295,21 +297,17 @@ static void get_thread_context(log_thread_ctxt_t** thread_ctxt) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       log_exit();
     } break;
 
-    default: {
-    } break;
-  }
+    default: { } break; }
 
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -561,11 +559,15 @@ static void log_get_elapsed_time_since_start(struct timeval * const elapsed_time
 }
 #endif
 //------------------------------------------------------------------------------
-static char* log_get_readable_cur_time(time_t* cur_time) {
+static void log_get_readable_cur_time(time_t* cur_time, char* time_str) {
   // get the current local time
-  *cur_time = time(NULL);
+  time(cur_time);
+  struct tm* cur_local_time;
+  cur_local_time = localtime(cur_time);
   // get the current local time in readable string format
-  return (strtok(ctime(cur_time), "\n"));
+  strftime(
+      time_str, MAX_TIME_STR_LEN, "%a %b %d %H:%M:%S %Y",
+      (const struct tm*) cur_local_time);
 }
 
 //------------------------------------------------------------------------------
@@ -652,6 +654,9 @@ int log_init(
       &g_oai_log.log_proto2str[LOG_S11][0], LOG_MAX_PROTO_NAME_LENGTH, "S11");
   snprintf(
       &g_oai_log.log_proto2str[LOG_S6A][0], LOG_MAX_PROTO_NAME_LENGTH, "S6A");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_SGW_S8][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "SGW_S8");
   snprintf(
       &g_oai_log.log_proto2str[LOG_SECU][0], LOG_MAX_PROTO_NAME_LENGTH, "SECU");
   snprintf(
@@ -1219,9 +1224,14 @@ void log_func(
         thread_ctxt, OAILOG_LEVEL_TRACE, protoP, source_fileP, line_numP,
         "Entering %s()\n", functionP);
     thread_ctxt->indent += LOG_FUNC_INDENT_SPACES;
+    if (thread_ctxt->indent > LOG_INDENT_MAX) {
+      thread_ctxt->indent = LOG_INDENT_MAX;
+    }
   } else {
     thread_ctxt->indent -= LOG_FUNC_INDENT_SPACES;
-    if (thread_ctxt->indent < 0) thread_ctxt->indent = 0;
+    if (thread_ctxt->indent < 0) {
+      thread_ctxt->indent = 0;
+    }
     log_message(
         thread_ctxt, OAILOG_LEVEL_TRACE, protoP, source_fileP, line_numP,
         "Leaving %s()\n", functionP);
@@ -1478,11 +1488,12 @@ int append_log_ctx_info(
     const log_thread_ctxt_t* thread_ctxt, time_t* cur_time,
     const char* short_source_fileP) {
   int rv;
+  char time_str[MAX_TIME_STR_LEN];
+  log_get_readable_cur_time(cur_time, time_str);
   rv = bformata(
       bstr, LOG_CTXT_INFO_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
+      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
@@ -1498,11 +1509,12 @@ int append_log_ctx_info_prefix_id(
     size_t filename_length, const log_thread_ctxt_t* thread_ctxt,
     time_t* cur_time, const char* short_source_fileP) {
   int rv;
+  char time_str[MAX_TIME_STR_LEN];
+  log_get_readable_cur_time(cur_time, time_str);
   rv = bformata(
       bstr, LOG_CTXT_INFO_ID_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
+      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
@@ -1527,4 +1539,15 @@ const char* const get_short_file_name(const char* const source_file_nameP) {
   if (!root_startP) return source_file_nameP;  // root pattern not found
 
   return root_startP + strlen(LOG_MAGMA_REPO_ROOT);
+}
+
+// Return the hex representation of a char array
+
+char* bytes_to_hex(char* byte_array, int length, char* hex_array) {
+  int i;
+  for (i = 0; i < length; i++) {
+    sprintf(hex_array + i * 3, " %02x", (unsigned char) byte_array[i]);
+  }
+  hex_array[3 * length + 1] = '\0';
+  return hex_array;
 }

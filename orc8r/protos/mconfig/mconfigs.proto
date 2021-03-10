@@ -31,25 +31,6 @@ message ControlProxy {
 }
 
 //------------------------------------------------------------------------------
-// DnsD configs
-//------------------------------------------------------------------------------
-message DnsD {
-    orc8r.LogLevel log_level = 1;
-    bool enable_caching = 2;
-    int32 localTTL = 3;
-    repeated NetworkDNSConfigRecordsItems records = 4;
-    bool dhcp_server_enabled = 5;
-}
-
-message NetworkDNSConfigRecordsItems {
-  repeated string a_record = 1;
-  repeated string aaaa_record = 2;
-  repeated string cname_record = 3;
-  string domain = 4;
-}
-
-
-//------------------------------------------------------------------------------
 // MagmaD configs
 //------------------------------------------------------------------------------
 
@@ -121,4 +102,18 @@ message FluentBit {
     string throttle_interval = 12;
 
     map<string, string> files_by_tag = 20;
+}
+
+//------------------------------------------------------------------------------
+// OpenVPN client configs
+//------------------------------------------------------------------------------
+message OpenVPN {
+    bool enable_shell_access = 1;
+}
+
+//------------------------------------------------------------------------------
+// CtraceD configs
+//------------------------------------------------------------------------------
+message CtraceD {
+    orc8r.LogLevel log_level = 1;
 }

@@ -16,19 +16,19 @@ package servicers
 import (
 	"time"
 
-	"magma/feg/cloud/go/protos/mconfig"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/lte/cloud/go/crypto"
-	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/lib/go/protos"
-
+	"github.com/emakeev/milenage"
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"golang.org/x/net/context"
+
+	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/testcore/hss/storage"
+	lteprotos "magma/lte/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -41,7 +41,7 @@ const (
 type HomeSubscriberServer struct {
 	store          storage.SubscriberStore
 	Config         *mconfig.HSSConfig
-	Milenage       *crypto.MilenageCipher
+	Milenage       *milenage.Cipher
 	smClient       *sm.Client
 	connMan        *diameter.ConnectionManager
 	requestTracker *diameter.RequestTracker
@@ -55,14 +55,14 @@ type HomeSubscriberServer struct {
 // NewHomeSubscriberServer initializes a HomeSubscriberServer with an empty accounts map.
 // Output: a new HomeSubscriberServer
 func NewHomeSubscriberServer(store storage.SubscriberStore, config *mconfig.HSSConfig) (*HomeSubscriberServer, error) {
-	milenage, err := crypto.NewMilenageCipher(config.LteAuthAmf)
+	mcipher, err := milenage.NewCipher(config.LteAuthAmf)
 	if err != nil {
 		return nil, err
 	}
 	return &HomeSubscriberServer{
 		store:          store,
 		Config:         config,
-		Milenage:       milenage,
+		Milenage:       mcipher,
 		requestTracker: diameter.NewRequestTracker(),
 		connMan:        diameter.NewConnectionManager(),
 		clientMapping:  map[string]string{},

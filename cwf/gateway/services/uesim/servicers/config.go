@@ -30,6 +30,7 @@ const (
 	defaultRadiusSecret      = "123456"
 	defaultCwagTestBr        = "cwag_test_br0"
 	defaultBrMac             = "76-02-5B-80-EC-44"
+	defaultBypassHssAuth     = false
 )
 
 var (
@@ -37,7 +38,7 @@ var (
 	defaultOp  = []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11")
 )
 
-func getUESimConfig() (*UESimConfig, error) {
+func GetUESimConfig() (*UESimConfig, error) {
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
 	if err != nil {
 		glog.Error(errors.Wrap(err, "No service config found, using default config"))
@@ -59,6 +60,10 @@ func getUESimConfig() (*UESimConfig, error) {
 	if err != nil {
 		brName = defaultCwagTestBr
 	}
+	bypassHssAuth, err := uecfg.GetBool("bypass_HSS_auth")
+	if err != nil {
+		bypassHssAuth = defaultBypassHssAuth
+	}
 	brMac := getBridgeMac(brName)
 	amfBytes := getHexParam(uecfg, "amf", defaultAmf)
 	opBytes := getHexParam(uecfg, "op", defaultOp)
@@ -71,6 +76,7 @@ func getUESimConfig() (*UESimConfig, error) {
 		radiusAcctAddress: acctAddr,
 		radiusSecret:      secret,
 		brMac:             brMac,
+		bypassHssAuth:     bypassHssAuth,
 	}, nil
 }
 
@@ -106,4 +112,8 @@ func getHexParam(cfg *config.ConfigMap, param string, defaultBytes []byte) []byt
 		return defaultBytes
 	}
 	return paramBytes
+}
+
+func GetBypassHssFlag(cfg *UESimConfig) bool {
+	return cfg.bypassHssAuth
 }

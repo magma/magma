@@ -14,19 +14,22 @@
  * @format
  */
 
+import Box from '@material-ui/core/Box';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
+import grey from '@material-ui/core/colors/grey';
 
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -42,6 +45,15 @@ const useStyles = makeStyles(theme => ({
     flexBasis: '33.33%',
     marginRight: '15px',
     textAlign: 'right',
+  },
+  subheading: {
+    fontWeight: '400',
+  },
+  optionalLabel: {
+    color: grey.A700,
+    fontStyle: 'italic',
+    fontWeight: '400',
+    marginLeft: '8px',
   },
   secondaryHeading: {
     flexBasis: '66.66%',
@@ -63,7 +75,11 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   label: string,
   children?: any,
+  dense?: boolean,
   tooltip?: string,
+  subLabel?: string,
+  isOptional?: boolean,
+  disableGutters?: boolean,
 };
 
 export default function FormField(props: Props) {
@@ -90,17 +106,57 @@ export default function FormField(props: Props) {
 }
 
 export function AltFormField(props: Props) {
+  const classes = useStyles();
   return (
-    <ListItem>
+    <ListItem dense={props.dense} disableGutters={props.disableGutters}>
       <Grid container>
         <Grid item xs={12}>
           {props.label}
+          {props.isOptional && (
+            <Typography
+              className={classes.optionalLabel}
+              variant="caption"
+              gutterBottom>
+              {'optional'}
+            </Typography>
+          )}
         </Grid>
+        {props.subLabel && (
+          <Grid item xs={12}>
+            <Typography
+              className={classes.subheading}
+              variant="caption"
+              display="block"
+              gutterBottom>
+              {props.subLabel}
+            </Typography>
+          </Grid>
+        )}
         <Grid item xs={12}>
           {props.children}
         </Grid>
       </Grid>
     </ListItem>
+  );
+}
+
+export function AltFormFieldSubheading(props: Props) {
+  const classes = useStyles();
+  return (
+    <Grid container>
+      <Grid item xs={12}>
+        <Typography
+          className={classes.subheading}
+          variant="caption"
+          display="block"
+          gutterBottom>
+          {props.label}
+        </Typography>
+      </Grid>
+      <Grid item xs={12}>
+        {props.children}
+      </Grid>
+    </Grid>
   );
 }
 
@@ -134,5 +190,23 @@ export function PasswordInput(props: PasswordProps) {
         </InputAdornment>
       }
     />
+  );
+}
+
+type ProgressProps = {
+  value: number,
+  text?: string,
+};
+
+export function LinearProgressWithLabel(props: ProgressProps) {
+  return (
+    <Box display="flex" alignItems="center">
+      <Box width="100%" mr={1}>
+        <LinearProgress variant="determinate" value={props.value} />
+      </Box>
+      <Box minWidth={35}>
+        <Text>{props.text ?? `${Math.round(props.value)}%`}</Text>
+      </Box>
+    </Box>
   );
 }

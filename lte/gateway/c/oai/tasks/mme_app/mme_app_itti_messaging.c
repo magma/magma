@@ -205,6 +205,7 @@ int mme_app_send_s11_create_session_req(
    * - PGW address for CP
    * - paa
    * - ambr
+   * - charging characteristics
    * and by MME Application layer:
    * - selection_mode
    * Set these parameters with random values for now.
@@ -235,6 +236,11 @@ int mme_app_send_s11_create_session_req(
   } else {
     session_request_p->msisdn.length = 0;
   }
+
+  // Fill User Location Information
+  session_request_p->uli.present = 0;  // initialize the presencemask
+  mme_app_get_user_location_information(&session_request_p->uli, ue_mm_context);
+
   session_request_p->rat_type = RAT_EUTRAN;
 
   // default bearer already created by NAS
@@ -261,14 +267,8 @@ int mme_app_send_s11_create_session_req(
   session_request_p->bearer_contexts_to_be_created.bearer_contexts[0]
       .eps_bearer_id                                                  = bc->ebi;
   session_request_p->bearer_contexts_to_be_created.num_bearer_context = 1;
-  /*
-   * Asking for default bearer in initial UE message.
-   * Use the address of ue_context as unique TEID: Need to find better here
-   * and will generate unique id only for 32 bits platforms.
-   */
-  OAI_GCC_DIAG_OFF("-Wpointer-to-int-cast");
-  session_request_p->sender_fteid_for_cp.teid = (teid_t) ue_mm_context;
-  OAI_GCC_DIAG_ON("-Wpointer-to-int-cast");
+  session_request_p->sender_fteid_for_cp.teid =
+      (teid_t) ue_mm_context->mme_ue_s1ap_id;
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);
   session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
@@ -295,8 +295,7 @@ int mme_app_send_s11_create_session_req(
    * Copy the APN AMBR to the sgw create session request message
    */
   memcpy(
-      &session_request_p->ambr, &selected_apn_config_p->ambr,
-      sizeof(ambr_t));
+      &session_request_p->ambr, &selected_apn_config_p->ambr, sizeof(ambr_t));
   /*
    * Set PDN type for pdn_type and PAA even if this IE is redundant
    */
@@ -329,6 +328,22 @@ int mme_app_send_s11_create_session_req(
             sizeof(session_request_p->paa.ipv6_address));
       }
     }
+  }
+
+  // Add Charging Characteristics
+  // If per-APN characteristics is specified, pass it. Otherwise, pass the
+  // default value. The length values should be set to 0 if there is no value
+  // specified.
+  if (selected_apn_config_p->charging_characteristics.length > 0) {
+    memcpy(
+        &session_request_p->charging_characteristics,
+        &selected_apn_config_p->charging_characteristics,
+        sizeof(charging_characteristics_t));
+  } else {
+    memcpy(
+        &session_request_p->charging_characteristics,
+        &ue_mm_context->default_charging_characteristics,
+        sizeof(charging_characteristics_t));
   }
 
   if (ue_mm_context->pdn_contexts[pdn_cid]->pco) {
@@ -379,7 +394,8 @@ int mme_app_send_s11_create_session_req(
  **                                                                        **
  ** name:    nas_itti_sgsap_uplink_unitdata                                **
  **                                                                        **
- ** description: Send itti mesage to SGS task to send NAS message          **
+ ** description: Send itti mesage to SGS or SMS_ORC8R task to send NAS     **
+ **              message.                                                  **
  **                                                                        **
  ** inputs:  imsi : IMSI of UE                                             **
  **          imsi_len : Length of IMSI                                     **
@@ -393,7 +409,7 @@ int mme_app_send_s11_create_session_req(
 void nas_itti_sgsap_uplink_unitdata(
     const char* const imsi, uint8_t imsi_len, bstring nas_msg,
     imeisv_t* imeisv_pP, MobileStationClassmark2* mobilestationclassmark2_pP,
-    tai_t* tai_pP, ecgi_t* ecgi_pP) {
+    tai_t* tai_pP, ecgi_t* ecgi_pP, bool sms_orc8r_enabled) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = NULL;
   int uetimezone        = 0;
@@ -465,14 +481,29 @@ void nas_itti_sgsap_uplink_unitdata(
 
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   imsi64_t imsi64 = message_p->ittiMsgHeader.imsi;
-  if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p) !=
-      RETURNok) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, imsi64,
-        "Failed to send SGSAP Uplink Unitdata to SGS task\n");
+
+  // Check if we're in SMS_ORC8R and send to the appropriate task if so
+  if (sms_orc8r_enabled) {
+    if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SMS_ORC8R, message_p) !=
+        RETURNok) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, imsi64,
+          "Failed to send SGSAP Uplink Unitdata to SMS_ORC8R task\n");
+    } else {
+      OAILOG_DEBUG_UE(
+          LOG_MME_APP, imsi64,
+          "Sent SGSAP Uplink Unitdata to SMS_ORC8R task\n");
+    }
   } else {
-    OAILOG_DEBUG_UE(
-        LOG_MME_APP, imsi64, "Sent SGSAP Uplink Unitdata to SGS task\n");
+    if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p) !=
+        RETURNok) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, imsi64,
+          "Failed to send SGSAP Uplink Unitdata to SGS task\n");
+    } else {
+      OAILOG_DEBUG_UE(
+          LOG_MME_APP, imsi64, "Sent SGSAP Uplink Unitdata to SGS task\n");
+    }
   }
 
   OAILOG_FUNC_OUT(LOG_MME_APP);

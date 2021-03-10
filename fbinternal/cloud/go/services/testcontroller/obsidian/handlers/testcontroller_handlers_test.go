@@ -16,7 +16,7 @@ package handlers_test
 import (
 	"testing"
 
-	fbinternalplugin "magma/fbinternal/cloud/go/plugin"
+	"magma/fbinternal/cloud/go/serdes"
 	"magma/fbinternal/cloud/go/services/testcontroller"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/handlers"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
@@ -25,7 +25,6 @@ import (
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
 
 	"github.com/go-openapi/swag"
@@ -34,7 +33,6 @@ import (
 )
 
 func Test_ListTestCases(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_list_tests")
 
 	e := echo.New()
@@ -54,11 +52,11 @@ func Test_ListTestCases(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
-	err = testcontroller.CreateOrUpdateTestCase(2, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err = testcontroller.CreateOrUpdateTestCase(2, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
-	err = testcontroller.CreateOrUpdateTestCase(3, testcontroller.EnodedTestExcludeTraffic, enodebdNoTrafficTestConfig())
+	err = testcontroller.CreateOrUpdateTestCase(3, testcontroller.EnodedTestExcludeTraffic, enodebdNoTrafficTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 
 	tc.ExpectedResult = tests.JSONMarshaler([]*models.E2eTestCase{
@@ -100,7 +98,6 @@ func Test_ListTestCases(t *testing.T) {
 }
 
 func Test_ListEnodebdTestCases(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_list_enodeb_tests")
 
 	e := echo.New()
@@ -120,9 +117,9 @@ func Test_ListEnodebdTestCases(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
-	err = testcontroller.CreateOrUpdateTestCase(2, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err = testcontroller.CreateOrUpdateTestCase(2, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 	tc.ExpectedResult = tests.JSONMarshaler([]*models.EnodebdE2eTest{
 		{
@@ -150,7 +147,6 @@ func Test_ListEnodebdTestCases(t *testing.T) {
 }
 
 func Test_CreateEnodebdTestCase(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_create_tests")
 
 	e := echo.New()
@@ -171,7 +167,7 @@ func Test_CreateEnodebdTestCase(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := testcontroller.GetTestCases(nil)
+	actual, err := testcontroller.GetTestCases(nil, serdes.TestController)
 	assert.NoError(t, err)
 	expected := map[int64]*testcontroller.UnmarshalledTestCase{
 		1: {
@@ -191,7 +187,6 @@ func Test_CreateEnodebdTestCase(t *testing.T) {
 }
 
 func Test_GetEnodebdTestCase(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_get_tests")
 
 	e := echo.New()
@@ -225,7 +220,7 @@ func Test_GetEnodebdTestCase(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 	tc = tests.Test{
 		Method:         "GET",
@@ -249,7 +244,6 @@ func Test_GetEnodebdTestCase(t *testing.T) {
 }
 
 func Test_UpdateEnodebdTestCase(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_update_tests")
 
 	e := echo.New()
@@ -258,7 +252,7 @@ func Test_UpdateEnodebdTestCase(t *testing.T) {
 	oHands := handlers.GetObsidianHandlers()
 	updateTest := tests.GetHandlerByPathAndMethod(t, oHands, testURLRoot+"/:test_pk", obsidian.PUT).HandlerFunc
 
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 
 	newCfg := defaultEnodebdTestConfig()
@@ -275,7 +269,7 @@ func Test_UpdateEnodebdTestCase(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := testcontroller.GetTestCases(nil)
+	actual, err := testcontroller.GetTestCases(nil, serdes.TestController)
 	assert.NoError(t, err)
 	expected := map[int64]*testcontroller.UnmarshalledTestCase{
 		1: {
@@ -295,7 +289,6 @@ func Test_UpdateEnodebdTestCase(t *testing.T) {
 }
 
 func Test_DeleteEnodebdTestCase(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_delete_tests")
 
 	e := echo.New()
@@ -304,7 +297,7 @@ func Test_DeleteEnodebdTestCase(t *testing.T) {
 	oHands := handlers.GetObsidianHandlers()
 	deleteTest := tests.GetHandlerByPathAndMethod(t, oHands, testURLRoot+"/:test_pk", obsidian.DELETE).HandlerFunc
 
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -316,7 +309,7 @@ func Test_DeleteEnodebdTestCase(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err := testcontroller.GetTestCases(nil)
+	actual, err := testcontroller.GetTestCases(nil, serdes.TestController)
 	assert.NoError(t, err)
 	assert.Empty(t, actual)
 }
@@ -328,25 +321,28 @@ func defaultEnodebdTestConfig() *models.EnodebdTestConfig {
 			ReleaseChannel:  swag.String("beta"),
 			TargetGatewayID: swag.String("gw1"),
 			TargetTier:      swag.String("default"),
-			SLACKWebhook:    swag.String("foo.com"),
+			SlackWebhook:    swag.String("foo.com"),
 		},
 		EnodebSN:        swag.String("1202000038269KP0037"),
 		RunTrafficTests: swag.Bool(true),
 		NetworkID:       swag.String("network1"),
 		TrafficGwID:     swag.String("gw2"),
-		EnodebConfig: &ltemodels.EnodebConfiguration{
-			BandwidthMhz:           20,
-			CellID:                 swag.Uint32(138777000),
-			DeviceClass:            "Baicells ID TDD/FDD",
-			Earfcndl:               44590,
-			Pci:                    260,
-			SpecialSubframePattern: 7,
-			SubframeAssignment:     2,
-			Tac:                    1,
-			TransmitEnabled:        swag.Bool(true),
+		EnodebConfig: &ltemodels.EnodebConfig{
+			ConfigType: "MANAGED",
+			ManagedConfig: &ltemodels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(138777000),
+				DeviceClass:            "Baicells ID TDD/FDD",
+				Earfcndl:               44590,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
-		StartState: "check_for_upgrade",
+		StartState:   "check_for_upgrade",
 	}
 }
 
@@ -357,33 +353,36 @@ func enodebdNoTrafficTestConfig() *models.EnodebdTestConfig {
 			ReleaseChannel:  swag.String("beta"),
 			TargetGatewayID: swag.String("gw1"),
 			TargetTier:      swag.String("default"),
-			SLACKWebhook:    swag.String("foo.com"),
+			SlackWebhook:    swag.String("foo.com"),
 		},
 		EnodebSN:        swag.String("1202000038269KP0037"),
 		RunTrafficTests: swag.Bool(false),
 		NetworkID:       swag.String("network1"),
 		TrafficGwID:     swag.String("gw2"),
-		EnodebConfig: &ltemodels.EnodebConfiguration{
-			BandwidthMhz:           20,
-			CellID:                 swag.Uint32(138777000),
-			DeviceClass:            "Baicells ID TDD/FDD",
-			Earfcndl:               44590,
-			Pci:                    260,
-			SpecialSubframePattern: 7,
-			SubframeAssignment:     2,
-			Tac:                    1,
-			TransmitEnabled:        swag.Bool(true),
+		EnodebConfig: &ltemodels.EnodebConfig{
+			ConfigType: "MANAGED",
+			ManagedConfig: &ltemodels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(138777000),
+				DeviceClass:            "Baicells ID TDD/FDD",
+				Earfcndl:               44590,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
-		StartState: "check_for_upgrade",
+		StartState:   "check_for_upgrade",
 	}
 }
 
 func marshalTestConfig(t *testing.T, tc *models.EnodebdTestConfig) []byte {
-	ret, err := serde.Serialize(testcontroller.SerdeDomain, testcontroller.EnodedTestCaseType, tc)
+	_, err := serde.Serialize(tc, testcontroller.EnodedTestCaseType, serdes.TestController)
 	assert.NoError(t, err)
 
-	ret, err = serde.Serialize(testcontroller.SerdeDomain, testcontroller.EnodedTestExcludeTraffic, tc)
+	ret, err := serde.Serialize(tc, testcontroller.EnodedTestExcludeTraffic, serdes.TestController)
 	assert.NoError(t, err)
 	return ret
 }

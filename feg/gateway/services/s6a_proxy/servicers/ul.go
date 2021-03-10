@@ -20,20 +20,21 @@ import (
 	"strconv"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/s6a_proxy/metrics"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/s6a_proxy/metrics"
 )
 
 // sendULR - sends ULR with given Session ID (sid)
 func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryCount uint) error {
-	c, err := s.connMan.GetConnection(s.smClient, s.serverCfg)
+	c, err := s.connMan.GetConnection(s.smClient, s.config.ServerCfg)
 	if err != nil {
 		return err
 	}
@@ -46,6 +47,7 @@ func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryC
 	m.NewAVP(avp.ULRFlags, avp.Vbit|avp.Mbit, uint32(diameter.Vendor3GPP), datatype.Unsigned32(ULR_FLAGS))
 	m.NewAVP(avp.VisitedPLMNID, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.OctetString(req.VisitedPlmn))
 
+	glog.V(2).Infof("Sending S6a ULR message\n%s\n", m)
 	err = c.SendRequest(m, retryCount)
 	if err != nil {
 		err = Error(codes.DataLoss, err)
@@ -56,6 +58,7 @@ func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryC
 // S6a ULA
 func handleULA(s *s6aProxy) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
+		glog.V(2).Infof("Received S6a ULA message:\n%s\n", m)
 		var ula ULA
 		err := m.Unmarshal(&ula)
 		if err != nil {
@@ -112,10 +115,14 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 						MaxBandwidthUl: ula.SubscriptionData.AMBR.MaxRequestedBandwidthUL,
 						MaxBandwidthDl: ula.SubscriptionData.AMBR.MaxRequestedBandwidthDL,
 					}
+					res.DefaultChargingCharacteristics = ula.SubscriptionData.TgppChargingCharacteristics
 					res.AllApnsIncluded =
 						ula.SubscriptionData.APNConfigurationProfile.AllAPNConfigurationsIncludedIndicator == 0
 					res.NetworkAccessMode = protos.UpdateLocationAnswer_NetworkAccessMode(ula.SubscriptionData.NetworkAccessMode)
-
+					res.RegionalSubscriptionZoneCode = make([][]byte, len(ula.SubscriptionData.RegionalSubscriptionZoneCode))
+					for i, code := range ula.SubscriptionData.RegionalSubscriptionZoneCode {
+						res.RegionalSubscriptionZoneCode[i] = code.Serialize()
+					}
 					for _, apnCfg := range ula.SubscriptionData.APNConfigurationProfile.APNConfigs {
 						res.Apn = append(
 							res.Apn,
@@ -133,6 +140,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 									MaxBandwidthUl: apnCfg.AMBR.MaxRequestedBandwidthUL,
 									MaxBandwidthDl: apnCfg.AMBR.MaxRequestedBandwidthDL,
 								},
+								ChargingCharacteristics: apnCfg.TgppChargingCharacteristics,
 							})
 					}
 					return res, err

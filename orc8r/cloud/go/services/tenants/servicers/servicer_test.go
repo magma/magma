@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/services/tenants/servicers"
@@ -51,7 +50,7 @@ func TestTenantsServicer(t *testing.T) {
 	assert.Equal(t, &sampleTenant, getResp)
 
 	// Get "other" tenant
-	getResp, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
+	_, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
 	assert.Equal(t, "Tenant 2 not found", status.Convert(err).Message())
 
@@ -68,7 +67,7 @@ func TestTenantsServicer(t *testing.T) {
 	assert.Equal(t, sampleTenant2, *getResp)
 
 	// Update nonexistent tenant
-	setResp, err = srv.SetTenant(context.Background(), &protos.IDAndTenant{
+	_, err = srv.SetTenant(context.Background(), &protos.IDAndTenant{
 		Id:     3,
 		Tenant: &sampleTenant2,
 	})
@@ -76,7 +75,7 @@ func TestTenantsServicer(t *testing.T) {
 	assert.Equal(t, "Tenant 3 not found", status.Convert(err).Message())
 
 	// Create second tenant
-	createResp, err = srv.CreateTenant(context.Background(), &protos.IDAndTenant{
+	_, err = srv.CreateTenant(context.Background(), &protos.IDAndTenant{
 		Id:     2,
 		Tenant: &sampleTenant,
 	})
@@ -92,14 +91,14 @@ func TestTenantsServicer(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.Void{}, *delResp)
 
-	getResp, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
+	_, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
 	assert.Equal(t, "Tenant 2 not found", status.Convert(err).Message())
 }
 
 func newTestService(t *testing.T) (protos.TenantsServiceServer, error) {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, tenants.ServiceName)
-	factory := blobstore.NewMemoryBlobStorageFactory()
+	factory := test_utils.NewSQLBlobstore(t, "tenants_servicer_test_blobstore")
 	store := storage.NewBlobstoreStore(factory)
 	servicer, err := servicers.NewTenantsServicer(store)
 	assert.NoError(t, err)

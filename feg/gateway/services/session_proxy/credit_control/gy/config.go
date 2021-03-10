@@ -215,10 +215,12 @@ func GetGyGlobalConfig() *GyGlobalConfig {
 			DisableGy:            false,
 		}
 	}
+
 	return &GyGlobalConfig{
 		OCSOverwriteApn:      diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, configsPtr.GetGy().GetOverwriteApn()),
 		OCSServiceIdentifier: siStr,
 		DisableGy:            configsPtr.GetGy().GetDisableGy(),
+		VirtualApnRules:      credit_control.GenerateVirtualApnRules(configsPtr.GetGy().GetVirtualApnRules()),
 	}
 }
 

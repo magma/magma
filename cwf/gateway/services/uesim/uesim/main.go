@@ -21,13 +21,27 @@ import (
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim/servicers"
 	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 )
 
 func init() {
+	flag.Parse()
+}
 
+func createUeSimServer(store blobstore.BlobStorageFactory) (protos.UESimServer, error) {
+	config, err := servicers.GetUESimConfig()
+	if err != nil {
+		glog.Fatalf("Error getting UESim Config : %s ", err)
+		return nil, err
+	}
+	if servicers.GetBypassHssFlag(config) == true {
+		return servicers.NewUESimServerHssLess(store)
+	} else {
+		return servicers.NewUESimServer(store)
+	}
 }
 
 func main() {
@@ -39,13 +53,16 @@ func main() {
 		glog.Fatalf("Error creating UeSim service: %s", err)
 	}
 
-	store := blobstore.NewMemoryBlobStorageFactory()
-	servicer, err := servicers.NewUESimServer(store)
+	store, err := test_utils.NewSQLBlobstoreForServices("uesim_main_blobstore")
+	if err != nil {
+		glog.Fatalf("Error creating in-memory blobstore: %+v", err)
+	}
+	servicer, err := createUeSimServer(store)
+
+	protos.RegisterUESimServer(srv.GrpcServer, servicer)
 	if err != nil {
 		glog.Fatalf("Error creating UE server: %s", err)
 	}
-	protos.RegisterUESimServer(srv.GrpcServer, servicer)
-
 	// Run the service
 	err = srv.Run()
 	if err != nil {

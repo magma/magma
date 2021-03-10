@@ -15,6 +15,7 @@ package models
 
 import (
 	"fmt"
+	"net"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -41,12 +42,12 @@ func (m *GatewayCwfConfigs) ValidateModel() error {
 	}
 	set := make(map[string][]uint32)
 	for _, peer := range m.AllowedGrePeers {
-		for _, key := range set[string(peer.IP)] {
+		for _, key := range set[peer.IP] {
 			if swag.Uint32Value(peer.Key) == key {
-				return errors.New(fmt.Sprintf("Found duplicate peer %s with key %d", string(peer.IP), key))
+				return errors.New(fmt.Sprintf("Found duplicate peer %s with key %d", peer.IP, key))
 			}
 		}
-		set[string(peer.IP)] = append(set[string(peer.IP)], swag.Uint32Value(peer.Key))
+		set[peer.IP] = append(set[peer.IP], swag.Uint32Value(peer.Key))
 	}
 	return nil
 }
@@ -58,7 +59,7 @@ func (m *CwfSubscriberDirectoryRecord) ValidateModel() error {
 	return nil
 }
 
-func (m *CarrierWifiNetworkClusterStatus) ValidateModel() error {
+func (m *CarrierWifiHaPairStatus) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -68,6 +69,37 @@ func (m *CarrierWifiNetworkClusterStatus) ValidateModel() error {
 func (m *CarrierWifiGatewayHealthStatus) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (m *CwfHaPair) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	if m.GatewayID1 == m.GatewayID2 {
+		return fmt.Errorf("GatewayID1 and GatewayID2 cannot be the same")
+	}
+	return m.Config.ValidateModel()
+}
+
+func (m *MutableCwfHaPair) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	if m.GatewayID1 == m.GatewayID2 {
+		return fmt.Errorf("GatewayID1 and GatewayID2 cannot be the same")
+	}
+	return m.Config.ValidateModel()
+}
+
+func (m *CwfHaPairConfigs) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	_, _, err := net.ParseCIDR(m.TransportVirtualIP)
+	if err != nil {
+		return fmt.Errorf("Transport virtual IP must be specified in CIDR format (e.g. '10.10.10.11/24')")
 	}
 	return nil
 }

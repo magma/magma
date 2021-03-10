@@ -27,6 +27,7 @@ import (
 	orc8rmodels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
+	"magma/wifi/cloud/go/serdes"
 	wifimodels "magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
 
@@ -63,7 +64,7 @@ const (
 // GetHandlers returns all obsidian handlers for Wifi
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(BaseGatewaysPath, wifi.WifiGatewayType, makeWifiGateways),
+		handlers.GetListGatewaysHandler(BaseGatewaysPath, &wifimodels.MutableWifiGateway{}, makeWifiGateways, serdes.Entity, serdes.Device),
 		{Path: BaseGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
@@ -76,21 +77,21 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageMeshPath, Methods: obsidian.PUT, HandlerFunc: updateMesh},
 		{Path: ManageMeshPath, Methods: obsidian.DELETE, HandlerFunc: deleteMesh},
 	}
-	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(BaseNetworksPath, ManageNetworkPath, wifi.WifiNetworkType, &wifimodels.WifiNetwork{})...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkWifiPath, &wifimodels.NetworkWifiConfigs{}, wifi.WifiNetworkType)...)
+	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(BaseNetworksPath, ManageNetworkPath, wifi.WifiNetworkType, &wifimodels.WifiNetwork{}, serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig, serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkWifiPath, &wifimodels.NetworkWifiConfigs{}, wifi.WifiNetworkType, serdes.Network)...)
 
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rmodels.MagmadGatewayConfigs{})...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rmodels.TierID))...)
-	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayWifiPath, &wifimodels.GatewayWifiConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName), serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription), serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rmodels.MagmadGatewayConfigs{}, serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rmodels.TierID), serdes.Entity)...)
+	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath, serdes.Device)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayWifiPath, &wifimodels.GatewayWifiConfigs{}, serdes.Entity)...)
 
-	ret = append(ret, handlers.GetPartialEntityHandlers(ManageMeshNamePath, MeshID, new(wifimodels.MeshName))...)
-	ret = append(ret, handlers.GetPartialEntityHandlers(ManageMeshConfigPath, MeshID, &wifimodels.MeshWifiConfigs{})...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageMeshNamePath, MeshID, new(wifimodels.MeshName), serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageMeshConfigPath, MeshID, &wifimodels.MeshWifiConfigs{}, serdes.Entity)...)
 
 	return ret
 }
@@ -100,12 +101,12 @@ type wifiAndMagmadGatewayEntities struct {
 }
 
 func makeWifiGateways(
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rmodels.GatewayStatus,
 ) map[string]handlers.GatewayModel {
 	gatewayEntsByKey := map[string]*wifiAndMagmadGatewayEntities{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.MultiFilter(orc8r.MagmadGatewayType, wifi.WifiGatewayType) {
 		existing, found := gatewayEntsByKey[tk.Key]
 		if !found {
 			existing = &wifiAndMagmadGatewayEntities{}
@@ -132,7 +133,7 @@ func makeWifiGateways(
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateMagmadGatewayFromModel(c, &wifimodels.MutableWifiGateway{}); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &wifimodels.MutableWifiGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -144,7 +145,7 @@ func getGateway(c echo.Context) error {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGatewayModel(nid, gid)
+	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
 	if nerr != nil {
 		return nerr
 	}
@@ -152,6 +153,7 @@ func getGateway(c echo.Context) error {
 	ent, err := configurator.LoadEntity(
 		nid, wifi.WifiGatewayType, gid,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
 	)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load wifi gateway"), http.StatusInternalServerError)
@@ -178,7 +180,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &wifimodels.MutableWifiGateway{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &wifimodels.MutableWifiGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -189,9 +191,10 @@ func deleteGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	gwEnt, err := configurator.LoadEntity(
-		nid, orc8r.MagmadGatewayType, gid, configurator.EntityLoadCriteria{},
-	)
+	gwEnt, err := configurator.LoadEntity(nid, orc8r.MagmadGatewayType, gid, configurator.EntityLoadCriteria{}, serdes.Entity)
+	if err != nil && err != merrors.ErrNotFound {
+		return obsidian.HttpError(err)
+	}
 
 	err = configurator.DeleteEntities(
 		nid,
@@ -201,13 +204,13 @@ func deleteGateway(c echo.Context) error {
 		},
 	)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err)
 	}
 
 	if gwEnt.PhysicalID != "" {
 		err = device.DeleteDevice(nid, orc8r.AccessGatewayRecordType, gwEnt.PhysicalID)
 		if err != nil {
-			return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway"), http.StatusInternalServerError)
+			return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway"))
 		}
 	}
 
@@ -250,13 +253,17 @@ func createMesh(c echo.Context) error {
 		gwIDs = append(gwIDs, storage.TypeAndKey{Key: string(gwID), Type: orc8r.MagmadGatewayType})
 	}
 
-	_, err := configurator.CreateEntity(nid, configurator.NetworkEntity{
-		Type:         wifi.MeshEntityType,
-		Key:          string(payload.ID),
-		Name:         string(payload.Name),
-		Config:       payload.Config,
-		Associations: gwIDs,
-	})
+	_, err := configurator.CreateEntity(
+		nid,
+		configurator.NetworkEntity{
+			Type:         wifi.MeshEntityType,
+			Key:          string(payload.ID),
+			Name:         string(payload.Name),
+			Config:       payload.Config,
+			Associations: gwIDs,
+		},
+		serdes.Entity,
+	)
 
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -271,7 +278,7 @@ func getMesh(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria())
+	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -300,7 +307,7 @@ func updateMesh(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "mesh ID in body must match mesh_id in path")
 	}
 
-	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria())
+	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -320,7 +327,7 @@ func updateMesh(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "can't update gateways here! please update the individual gateways instead.")
 	}
 
-	_, err = configurator.UpdateEntities(nid, payload.ToUpdateCriteria())
+	_, err = configurator.UpdateEntities(nid, payload.ToUpdateCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -333,7 +340,7 @@ func deleteMesh(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria())
+	ent, err := configurator.LoadEntity(nid, wifi.MeshEntityType, mid, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound

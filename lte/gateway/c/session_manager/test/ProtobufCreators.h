@@ -15,72 +15,139 @@
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include "StoredState.h"
+
+#include "DiameterCodes.h"
 
 namespace magma {
 using namespace lte;
 
-void build_common_context(
-    const std::string& imsi, const std::string& ue_ipv4, const std::string& apn,
-    const std::string& msisdn, const RATType rat_type,
-    CommonSessionContext* common_context);
+CommonSessionContext build_common_context(
+    const std::string& imsi, const std::string& ue_ipv4,
+    const std::string& ue_ipv6, const Teids teids, const std::string& apn,
+    const std::string& msisdn, const RATType rat_type);
 
-void build_lte_context(
+LTESessionContext build_lte_context(
     const std::string& spgw_ipv4, const std::string& imei,
     const std::string& plmn_id, const std::string& imsi_plmn_id,
     const std::string& user_location, uint32_t bearer_id,
-    QosInformationRequest* qos_info, LTESessionContext* lte_context);
+    QosInformationRequest* qos_info);
 
-void build_wlan_context(
-    const std::string& mac_addr, const std::string& radius_session_id,
-    WLANSessionContext* wlan_context);
+WLANSessionContext build_wlan_context(
+    const std::string& mac_addr, const std::string& radius_session_id);
+
+RuleSet create_rule_set(
+    const bool apply_subscriber_wide, const std::string& apn,
+    std::vector<std::string> static_rules,
+    std::vector<PolicyRule> dynamic_rules);
 
 void create_rule_record(
     const std::string& imsi, const std::string& rule_id, uint64_t bytes_rx,
     uint64_t bytes_tx, RuleRecord* rule_record);
 
+void create_rule_record(
+    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    uint64_t bytes_rx, uint64_t bytes_tx, RuleRecord* rule_record);
+
+void create_rule_record(
+    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    uint64_t bytes_rx, uint64_t bytes_tx, uint64_t dropped_rx,
+    uint64_t dropped_tx, RuleRecord* rule_record);
+
 void create_charging_credit(
     uint64_t volume, bool is_final, ChargingCredit* credit);
 
 void create_credit_update_response(
-    const std::string& imsi, uint32_t charging_key, CreditLimitType limit_type,
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, CreditLimitType limit_type,
     CreditUpdateResponse* response);
 
 void create_credit_update_response(
-    const std::string& imsi, uint32_t charging_key, uint64_t volume,
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, uint64_t volume, CreditUpdateResponse* response);
+
+void create_credit_update_response(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, uint64_t volume, ChargingCredit_FinalAction action,
+    std::string redirect_server, std::string restrict_rule,
     CreditUpdateResponse* response);
+
+void create_credit_update_response(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, uint64_t total_volume, uint64_t tx_volume,
+    uint64_t rx_volume, bool is_final, CreditUpdateResponse* response);
+
+void create_credit_update_response(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, uint64_t volume, bool is_final,
+    CreditUpdateResponse* response);
+
+void create_credit_update_response_with_error(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, bool is_final, DiameterResultCode resultCode,
+    CreditUpdateResponse* response);
+
+void create_credit_update_response_with_error(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, bool is_final, DiameterResultCode resultCode,
+    ChargingCredit_FinalAction action, std::string redirect_server,
+    std::string restrict_rule, CreditUpdateResponse* response);
 
 void create_charging_credit(
     uint64_t total_volume, uint64_t tx_volume, uint64_t rx_volume,
     bool is_final, ChargingCredit* credit);
 
-void create_credit_update_response(
-    const std::string& imsi, uint32_t charging_key, uint64_t total_volume,
-    uint64_t tx_volume, uint64_t rx_volume, bool is_final,
-    CreditUpdateResponse* response);
-
-void create_credit_update_response(
-    const std::string& imsi, uint32_t charging_key, uint64_t volume,
-    bool is_final, CreditUpdateResponse* response);
+void create_charging_credit(
+    uint64_t volume, ChargingCredit_FinalAction action,
+    std::string redirect_server, std::string restrict_rule,
+    ChargingCredit* credit);
 
 void create_monitor_credit(
     const std::string& m_key, MonitoringLevel level, uint64_t volume,
     UsageMonitoringCredit* response);
 
-// When volume = 0, the action for the monitoring credit will be set to DISABLE.
-// It is CONTINUE otherwise.
-void create_monitor_update_response(
-    const std::string& imsi, const std::string& m_key, MonitoringLevel level,
-    uint64_t volume, UsageMonitoringUpdateResponse* response);
+void create_monitor_credit(
+    const std::string& m_key, MonitoringLevel level, uint64_t total_volume,
+    uint64_t tx_volume, uint64_t rx_volume, UsageMonitoringCredit* credit);
 
 void create_monitor_update_response(
-    const std::string& imsi, const std::string& m_key, MonitoringLevel level,
-    uint64_t volume, const std::vector<EventTrigger>& event_triggers,
+    const std::string& imsi, const std::string session_id,
+    const std::string& m_key, MonitoringLevel level, uint64_t total_volume,
+    uint64_t tx_volume, uint64_t rx_volume,
+    UsageMonitoringUpdateResponse* response);
+
+void create_monitor_update_response(
+    const std::string& imsi, const std::string session_id,
+    const std::string& m_key, MonitoringLevel level, uint64_t volume,
+    UsageMonitoringUpdateResponse* response);
+
+void create_monitor_update_response(
+    const std::string& imsi, const std::string session_id,
+    const std::string& m_key, MonitoringLevel level, uint64_t volume,
+    const std::vector<EventTrigger>& event_triggers,
+    const uint64_t revalidation_time_unix_ts,
+    UsageMonitoringUpdateResponse* response);
+
+void create_monitor_update_response(
+    const std::string& imsi, const std::string session_id,
+    const std::string& m_key, MonitoringLevel level, uint64_t total_volume,
+    uint64_t tx_volume, uint64_t rx_volume,
+    const std::vector<EventTrigger>& event_triggers,
     const uint64_t revalidation_time_unix_ts,
     UsageMonitoringUpdateResponse* response);
 
 void create_usage_update(
     const std::string& imsi, uint32_t charging_key, uint64_t bytes_rx,
     uint64_t bytes_tx, CreditUsage::UpdateType type, CreditUsageUpdate* update);
+
+void create_update_session_request(
+    std::string imsi, std::string session_id, uint32_t ckey, std::string mkey,
+    CreditUsage::UpdateType type, uint64_t bytes_rx, uint64_t bytes_tx,
+    UpdateSessionRequest* usr);
+
+void create_usage_monitoring_update_request(
+    const std::string& imsi, std::string monitoring_key, uint64_t bytes_rx,
+    uint64_t bytes_tx, UsageMonitoringUpdateRequest* update);
 
 void create_policy_reauth_request(
     const std::string& session_id, const std::string& imsi,
@@ -101,8 +168,9 @@ void create_subscriber_quota_update(
     const SubscriberQuotaUpdate_Type state, SubscriberQuotaUpdate* update);
 
 void create_session_create_response(
-    const std::string& imsi, const std::string& monitoring_key,
-    std::vector<std::string>& static_rules, CreateSessionResponse* response);
+    const std::string& imsi, const std::string session_id,
+    const std::string& monitoring_key, std::vector<std::string>& static_rules,
+    CreateSessionResponse* response);
 
 void create_policy_rule(
     const std::string& rule_id, const std::string& m_key, uint32_t rating_group,
@@ -112,4 +180,15 @@ void create_granted_units(
     uint64_t* total, uint64_t* tx, uint64_t* rx, GrantedUnits* gsu);
 
 magma::mconfig::SessionD get_default_mconfig();
+
+PolicyBearerBindingRequest create_policy_bearer_bind_req(
+    const std::string& imsi, const uint32_t linked_bearer_id,
+    const std::string& rule_id, const uint32_t bearer_id);
+
+UpdateTunnelIdsRequest create_update_tunnel_ids_request(
+    const std::string& imsi, const uint32_t bearer_id, const Teids teids);
+
+UpdateTunnelIdsRequest create_update_tunnel_ids_request(
+    const std::string& imsi, const uint32_t bearer_id, const uint32_t agw_teid,
+    const uint32_t enb_teid);
 }  // namespace magma

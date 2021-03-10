@@ -41,7 +41,7 @@ typedef const struct tagbstring* const_bstring;
 /* Copy functions */
 #define cstr2bstr bfromcstr
 extern bstring bfromcstr(const char* str);
-extern bstring bfromcstr_for_nas_msg_container(const char* str, int len);
+extern bstring bfromcstr_with_str_len(const char* str, int len);
 extern bstring bfromcstralloc(int mlen, const char* str);
 extern bstring bfromcstrrangealloc(int minl, int maxl, const char* str);
 extern bstring blk2bstr(const void* blk, int len);

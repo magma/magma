@@ -44,11 +44,13 @@ const (
 	DefaultMaxBreakSecs         = 5
 	DefaultTrafficGenLengthSecs = 60
 	DefaultRadiusSecret         = "123456"
+	DefaultApn                  = "test"
+	DefaultMsisdn               = "5100001234"
+	DefaultRatType              = 6
 )
 
 var (
-	cmdRegistry   = new(commands.Map)
-	authKey       string
+	cmdRegistry          = new(commands.Map)
 	trafficLength uint64 = DefaultTrafficGenLengthSecs
 	maxBreak      uint64 = DefaultMaxBreakSecs
 )
@@ -65,9 +67,16 @@ func init() {
 		authFlags.PrintDefaults()
 	}
 
+	disconnectCmd := cmdRegistry.Add("disconnect", "Send Disconnect Request to UE Simulator", handleDisconnectCmd)
+	disconnectFlags := disconnectCmd.Flags()
+	disconnectFlags.Usage = func() {
+		fmt.Fprintf(os.Stderr, // std Usage() & PrintDefaults() use Stderr
+			"\tUsage: %s [OPTIONS] %s [%s OPTIONS] <IMSI>\n", os.Args[0], disconnectCmd.Name(), disconnectCmd.Name())
+		authFlags.PrintDefaults()
+	}
+
 	addUeCmd := cmdRegistry.Add("add_ue", "Add UE to UE Simulator", handleAddUeCmd)
 	addUeFlags := addUeCmd.Flags()
-	addUeFlags.StringVar(&authKey, "auth_key", "", "subscriber auth key")
 	addUeFlags.Usage = func() {
 		fmt.Fprintf(os.Stderr, // std Usage() & PrintDefaults() use Stderr
 			"\tUsage: %s [OPTIONS] %s [%s OPTIONS] <IMSI>\n", os.Args[0], addUeCmd.Name(), addUeCmd.Name())
@@ -110,6 +119,7 @@ func handleAuthCmd(cmd *commands.Command, args []string) int {
 }
 
 func handleAddUeCmd(cmd *commands.Command, args []string) int {
+
 	f := cmd.Flags()
 	if f.NArg() < 1 {
 		fmt.Printf("IMSI argument must be provided\n\n")
@@ -120,24 +130,16 @@ func handleAddUeCmd(cmd *commands.Command, args []string) int {
 		return 1
 	}
 	imsi := strings.TrimSpace(f.Arg(0))
-	if len(authKey) == 0 {
-		fmt.Printf("Subscriber auth_key must be provided as a flag: -auth_key <auth_key>\n")
-		return 1
-	}
-	auth_key, err := hex.DecodeString(authKey)
+
+	ues, err := getConfiguredSubscribers(imsi)
 	if err != nil {
-		fmt.Printf("Could not convert auth key to bytes. Please ensure you've provided auth_key in hex format\n")
-		return 1
-	}
-	ue, err := createUeConfig(imsi, auth_key, 0)
-	if err != nil {
-		fmt.Printf("Could not create UE config object: %s", err)
-		return 1
-	}
-	err = uesim.AddUE(ue)
-	if err != nil {
-		fmt.Printf("Add UE Error: %s\n", err)
+		fmt.Printf("Get UE Error: %s\n", err)
 		return 2
+	}
+	err = addUes(ues)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		return 1
 	}
 	fmt.Printf("Successfully added: %s\n", imsi)
 	return 0
@@ -186,17 +188,23 @@ func handleTrafficGenCmd(cmd *commands.Command, args []string) int {
 	fmt.Print("***** Running UE Sim Traffic Generator *****")
 	ues, err := getConfiguredSubscribers()
 	if err != nil {
-		fmt.Printf("Adding configured subscribers failed: %s\n", err)
+		fmt.Printf("Getting configured subscribers failed: %s\n", err)
 		return 1
 	}
+	err = addUes(ues)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		return 1
+	}
+
 	success := make(chan int, len(ues))
 	opError := make(chan int, len(ues))
 	protoError := make(chan int, len(ues))
-	var wg *sync.WaitGroup
+	var wg sync.WaitGroup
 	for _, ue := range ues {
 		fmt.Printf("***** Running EAP-AKA authentication loop for subscriber: %s\n", ue.GetImsi())
 		wg.Add(1)
-		go triggerAuthenticationLoop(ue.GetImsi(), success, opError, protoError, wg)
+		go triggerAuthenticationLoop(ue.GetImsi(), success, opError, protoError, &wg)
 	}
 	totalSuccess := 0
 	totalOpError := 0
@@ -232,7 +240,12 @@ func handleTrafficGenCmd(cmd *commands.Command, args []string) int {
 	return 0
 }
 
-func getConfiguredSubscribers() ([]*protos.UEConfig, error) {
+// getConfiguredSubscribers accepts optional imsi as a parameter and
+// returns array of protos.UEConfig. If no parameter is provided, then all the
+// UEs configured in the uesim.yml are included in the protos.UEConfig.
+
+func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
+	var imsiArg string
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
 	if err != nil {
 		return nil, err
@@ -246,44 +259,40 @@ func getConfiguredSubscribers() ([]*protos.UEConfig, error) {
 		return nil, fmt.Errorf("unable to convert %T to map %v", subscribers, rawMap)
 	}
 	var ues []*protos.UEConfig
+	if len(params) > 0 {
+		// Return UEConfig for a single IMSI
+		imsiArg = params[0]
+	}
+
+	// Return UEConfig for all the IMSIs configured in uesim.yml
 	for k, v := range rawMap {
 		imsi, ok := k.(string)
 		if !ok {
 			continue
 		}
-		rawMap, ok := v.(map[interface{}]interface{})
-		if !ok {
-			continue
-		}
-		configMap := &config.ConfigMap{RawMap: rawMap}
+		if imsiArg == "" || imsi == imsiArg {
+			subscriberCfg, ok := v.(map[interface{}]interface{})
+			if !ok {
+				continue
+			}
+			configMap := &config.ConfigMap{RawMap: subscriberCfg}
 
-		// If auth_key is incorrect, skip subscriber
-		authKey, err := configMap.GetString("auth_key")
-		if err != nil {
-			glog.Errorf("Could not add subscriber due to missing auth_key: %s", err)
-			continue
+			ue, err := createUeConfig(imsi, 0, configMap)
+			if err != nil {
+				glog.Error(err)
+				return nil, err
+			}
+			ues = append(ues, ue)
 		}
-		authKeyBytes, err := hex.DecodeString(authKey)
-		if err != nil {
-			glog.Errorf("Could not add subscriber due to incorrect auth key format: %s", err)
-			continue
-		}
-		ue, err := createUeConfig(imsi, authKeyBytes, 0)
-		if err != nil {
-			glog.Error(err)
-			continue
-		}
-		err = uesim.AddUE(ue)
-		if err != nil {
-			glog.Error(err)
-		}
-		ues = append(ues, ue)
 	}
+
 	return ues, nil
 }
 
-func createUeConfig(imsi string, auth_key []byte, seq_num uint64) (*protos.UEConfig, error) {
+func createUeConfig(imsi string, seq_num uint64, configMap *config.ConfigMap) (*protos.UEConfig, error) {
 	var op string
+	var msisdn, apn string = DefaultMsisdn, DefaultApn
+	var rat int = DefaultRatType
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
 	if err != nil {
 		op = DefaultOp
@@ -292,16 +301,47 @@ func createUeConfig(imsi string, auth_key []byte, seq_num uint64) (*protos.UECon
 	if err != nil {
 		op = DefaultOp
 	}
-	opc, err := crypto.GenerateOpc(auth_key, []byte(op))
+
+	// If auth_key is incorrect, return error
+	authKey, err := configMap.GetString("auth_key")
+	if err != nil {
+		return nil, fmt.Errorf("Could not add subscriber due to missing auth_key: %s", err)
+	}
+	authKeyBytes, err := hex.DecodeString(authKey)
+	if err != nil {
+		return nil, fmt.Errorf("Could not add subscriber due to incorrect auth key format: %s", err)
+	}
+	opc, err := crypto.GenerateOpc(authKeyBytes, []byte(op))
 	if err != nil {
 		return nil, fmt.Errorf("could not generate OPc for subscriber: %s: %s", imsi, err)
 	}
+	msisdn, err = configMap.GetString("msisdn")
+	if err != nil {
+		glog.Infof("MSISDN not set for Imsi[%s], setting default MSISDN %s ", imsi, DefaultMsisdn)
+	}
+	apn, err = configMap.GetString("apn")
+	if err != nil {
+		glog.Infof("APN not set for Imsi[%s], setting default APN %s", imsi, DefaultApn)
+	}
+	rat, err = configMap.GetInt("rat")
+	if err != nil {
+		glog.Infof("RAT-Type not set for Imsi[%s], setting default Rat-Type %d", imsi, DefaultRatType)
+	}
+
+	glog.Infof("Creating UE with IMSI:[%s] MSISDN[%s] APN[%s] RAT[%d] ", imsi, msisdn, apn, rat)
+
 	return &protos.UEConfig{
 		Imsi:    imsi,
-		AuthKey: auth_key,
+		AuthKey: authKeyBytes,
 		AuthOpc: opc[:],
 		Seq:     seq_num,
+		HsslessCfg: &protos.AuthenticateRequestHssLess{
+			Msisdn: msisdn,
+			Apn:    apn,
+			Rat:    uint32(rat),
+		},
 	}, nil
+
 }
 
 func getRadiusSecret() string {
@@ -342,4 +382,39 @@ func main() {
 	args := os.Args[2:]
 	cmd.Flags().Parse(args)
 	os.Exit(cmd.Handle(args))
+}
+
+func addUes(ues []*protos.UEConfig) error {
+
+	for _, ue := range ues {
+		err := uesim.AddUE(ue)
+		if err != nil {
+			return fmt.Errorf("Adding configured subscribers failed: %s", err)
+		}
+	}
+	return nil
+}
+
+func handleDisconnectCmd(cmd *commands.Command, args []string) int {
+	f := cmd.Flags()
+	if f.NArg() < 1 {
+		fmt.Printf("IMSI argument must be provided\n\n")
+		return 1
+	}
+	if f.NArg() > 1 {
+		fmt.Printf("Please provide only an IMSI argument\n")
+		return 1
+	}
+	imsi := strings.TrimSpace(f.Arg(0))
+	req := &protos.DisconnectRequest{
+		Imsi:            imsi,
+		CalledStationID: "76-02-DE-AD-BE-FF",
+	}
+	res, err := uesim.Disconnect(req)
+	if err != nil || res == nil {
+		fmt.Printf("Disconnect Error: %s\n", err)
+		return 2
+	}
+	fmt.Printf("Successfully Disconnected: %s\n", imsi)
+	return 0
 }

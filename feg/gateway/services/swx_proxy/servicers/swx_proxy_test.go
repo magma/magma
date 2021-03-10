@@ -1,9 +1,7 @@
 /*
 Copyright 2020 The Magma Authors.
-
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -144,15 +142,14 @@ func swxStandardTest(t *testing.T, client protos.SwxProxyClient, test_loops int)
 	// Happy path
 	testHappyPath := func(reqId uint32) {
 		userName := test.BASE_IMSI + strconv.Itoa(int(reqId))
-		numVectors := (reqId % 5) + 1 // arbitrary number 1-5
 		authReq := &protos.AuthenticationRequest{
 			UserName:             userName,
-			SipNumAuthVectors:    numVectors,
+			SipNumAuthVectors:    1,
 			AuthenticationScheme: protos.AuthenticationScheme_EAP_AKA,
 		}
 		// Authentication Request - MAR
-		// with cache numVectors will be ignored & the proxy will always ask for MinRequestedVectors
-		// and always will return 1 vector
+		// proxy will always ask for MinRequestedVectors
+		// and will return 1 vector
 		for i := uint32(0); i < servicers.MinRequestedVectors; i++ {
 			authRes, err := client.Authenticate(context.Background(), authReq)
 			if err != nil {
@@ -195,9 +192,65 @@ func swxStandardTest(t *testing.T, client protos.SwxProxyClient, test_loops int)
 			return
 		}
 		t.Logf("GRPC SAA De-register: %#+v", *unregRes)
+
+		// Test EAP-SIM (3 vectors) case
+		authReq = &protos.AuthenticationRequest{
+			// make sure, IMSI for SIM tests does not overlap with single vector tests
+			UserName:             "9" + userName + "9",
+			SipNumAuthVectors:    3,
+			AuthenticationScheme: protos.AuthenticationScheme_EAP_AKA,
+		}
+		authRes, err := client.Authenticate(context.Background(), authReq)
+		if err != nil {
+			t.Fatalf("GRPC MAR Error: %v", err)
+			complChan <- err
+			return
+		}
+		assert.Equal(t, authReq.UserName, authRes.GetUserName())
+		if len(authRes.SipAuthVectors) != 3 {
+			t.Errorf("Unexpected Number of SIPAuthVectors: %d, Expected: %d", len(authRes.SipAuthVectors), 3)
+		}
+		for i := uint32(0); i < 3; i++ {
+			v := authRes.SipAuthVectors[i]
+			assert.Equal(t, protos.AuthenticationScheme_EAP_AKA, v.GetAuthenticationScheme())
+			assert.Equal(t, []byte(test.DefaultSIPAuthenticate+strconv.Itoa(int(i+14))), v.GetRandAutn())
+			assert.Equal(t, []byte(test.DefaultSIPAuthorization), v.GetXres())
+			assert.Equal(t, []byte(test.DefaultCK), v.GetConfidentialityKey())
+			assert.Equal(t, []byte(test.DefaultIK), v.GetIntegrityKey())
+		}
+		authRes, err = client.Authenticate(context.Background(), authReq)
+		if err != nil {
+			t.Fatalf("GRPC MAR Error: %v", err)
+			complChan <- err
+			return
+		}
+		assert.Equal(t, authReq.UserName, authRes.GetUserName())
+		if len(authRes.SipAuthVectors) != 3 {
+			t.Errorf("Unexpected Number of SIPAuthVectors: %d, Expected: %d", len(authRes.SipAuthVectors), 3)
+		}
+		assert.Equal(
+			t, []byte(test.DefaultSIPAuthenticate+strconv.Itoa(int(17))), authRes.SipAuthVectors[0].GetRandAutn())
+		assert.Equal(
+			t, []byte(test.DefaultSIPAuthenticate+strconv.Itoa(int(18))), authRes.SipAuthVectors[1].GetRandAutn())
+		assert.Equal(
+			t, []byte(test.DefaultSIPAuthenticate+strconv.Itoa(int(14))), authRes.SipAuthVectors[2].GetRandAutn())
+		authReq.SipNumAuthVectors = 2
+		authRes, err = client.Authenticate(context.Background(), authReq)
+		if err != nil {
+			t.Fatalf("GRPC MAR Error: %v", err)
+			complChan <- err
+			return
+		}
+		if len(authRes.SipAuthVectors) != 2 {
+			t.Errorf("Unexpected Number of SIPAuthVectors: %d, Expected: %d", len(authRes.SipAuthVectors), 3)
+		}
+		assert.Equal(
+			t, []byte(test.DefaultSIPAuthenticate+strconv.Itoa(int(15))), authRes.SipAuthVectors[0].GetRandAutn())
+		assert.Equal(
+			t, []byte(test.DefaultSIPAuthenticate+strconv.Itoa(int(16))), authRes.SipAuthVectors[1].GetRandAutn())
 		complChan <- nil
 	}
-	go testHappyPath(uint32(rand.Intn(100)))
+	go testHappyPath(uint32(test_loops + rand.Intn(100)))
 	select {
 	case err := <-complChan:
 		if err != nil {

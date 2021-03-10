@@ -65,8 +65,14 @@ services:
   abort_session_service:
     ip_address: 127.0.0.1
     port: 9109
+  s6a_service:
+    ip_address: 127.0.0.1
+    port: 9109
   # If modifying the port, ensure the healthcheck at
   # magma/cwf/gateway/docker/docker-compose.yml is updated
+  eap_sim:
+    ip_address: 127.0.0.1
+    port: 9118
   eap_aka:
     ip_address: 127.0.0.1
     port: 9123
@@ -82,3 +88,9 @@ services:
   dpid:
     ip_address: 127.0.0.1
     port: 50077
+  ctraced:
+    ip_address: 127.0.0.1
+    port: 50079
+  monitord:
+    ip_address: 127.0.0.1
+    port: 50078

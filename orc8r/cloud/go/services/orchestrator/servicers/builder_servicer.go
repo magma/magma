@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -27,16 +28,13 @@ import (
 	"magma/orc8r/lib/go/protos"
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
 
-	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 var localBuilders = []mconfig.Builder{
 	&baseOrchestratorBuilder{},
-	&dnsdBuilder{},
 }
 
 type builderServicer struct{}
@@ -69,7 +67,7 @@ type baseOrchestratorBuilder struct{}
 
 func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (mconfig.ConfigsByKey, error) {
 	networkID := network.ID
-	nativeGraph, err := (configurator.EntityGraph{}).FromStorageProto(graph)
+	nativeGraph, err := (configurator.EntityGraph{}).FromProto(graph, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +90,7 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 		}
 		vals["td-agent-bit"] = getFluentBitMconfig(networkID, gatewayID, gatewayConfig)
 		vals["eventd"] = getEventdMconfig(gatewayConfig)
+		vals["ovpn"] = getVpnMconfig(gatewayConfig)
 	}
 	vals["control_proxy"] = &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO}
 	vals["metricsd"] = &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO}
@@ -182,49 +181,13 @@ func getEventdMconfig(gatewayConfig *models.MagmadGatewayConfigs) *mconfig_proto
 	return ret
 }
 
-type dnsdBuilder struct{}
-
-func (b *dnsdBuilder) Build(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (mconfig.ConfigsByKey, error) {
-	vals := map[string]proto.Message{}
-
-	nativeNetwork, err := (configurator.Network{}).FromStorageProto(network)
-	if err != nil {
-		return nil, err
+func getVpnMconfig(gatewayConfig *models.MagmadGatewayConfigs) *mconfig_protos.OpenVPN {
+	ret := &mconfig_protos.OpenVPN{
+		EnableShellAccess: false,
+	}
+	if gatewayConfig.Vpn != nil {
+		ret.EnableShellAccess = *gatewayConfig.Vpn.EnableShell
 	}
 
-	iConfig, found := nativeNetwork.Configs[orc8r.DnsdNetworkType]
-	if !found {
-		// Fill out the dnsd mconfig with an empty struct if no network config
-		vals["dnsd"] = &mconfig_protos.DnsD{}
-		configs, err := mconfig.MarshalConfigs(vals)
-		if err != nil {
-			return nil, err
-		}
-		return configs, err
-	}
-
-	dnsConfig := iConfig.(*models.NetworkDNSConfig)
-
-	dnsConfigProto := &mconfig_protos.DnsD{}
-	protos.FillIn(dnsConfig, dnsConfigProto)
-	dnsConfigProto.LocalTTL = int32(swag.Uint32Value(dnsConfig.LocalTTL))
-	dnsConfigProto.EnableCaching = swag.BoolValue(dnsConfig.EnableCaching)
-	dnsConfigProto.DhcpServerEnabled = dnsConfig.DhcpServerEnabled
-	dnsConfigProto.LogLevel = protos.LogLevel_INFO
-
-	for _, record := range dnsConfig.Records {
-		recordProto := &mconfig_protos.NetworkDNSConfigRecordsItems{}
-		protos.FillIn(record, recordProto)
-		recordProto.ARecord = funk.Map(record.ARecord, func(a strfmt.IPv4) string { return string(a) }).([]string)
-		recordProto.AaaaRecord = funk.Map(record.AaaaRecord, func(a strfmt.IPv6) string { return string(a) }).([]string)
-		dnsConfigProto.Records = append(dnsConfigProto.Records, recordProto)
-	}
-
-	vals["dnsd"] = dnsConfigProto
-	configs, err := mconfig.MarshalConfigs(vals)
-	if err != nil {
-		return nil, err
-	}
-
-	return configs, err
+	return ret
 }

@@ -1,0 +1,6 @@
+DEVICE=cwag_patch
+ONBOOT=yes
+DEVICETYPE=ovs
+TYPE=OVSPatchPort
+OVS_BRIDGE=cwag_br0
+OVS_PATCH_PEER=uplink_patch

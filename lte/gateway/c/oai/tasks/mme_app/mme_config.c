@@ -174,6 +174,12 @@ void sctp_config_init(sctp_config_t* sctp_conf) {
   sctp_conf->out_streams = SCTP_OUT_STREAMS;
 }
 
+void apn_map_config_init(apn_map_config_t* apn_map_config) {
+  apn_map_config->nb                      = 0;
+  apn_map_config->apn_map[0].imsi_prefix  = NULL;
+  apn_map_config->apn_map[0].apn_override = NULL;
+}
+
 void nas_config_init(nas_config_t* nas_conf) {
   nas_conf->t3402_min               = T3402_DEFAULT_VALUE;
   nas_conf->t3412_min               = T3412_DEFAULT_VALUE;
@@ -188,6 +194,8 @@ void nas_config_init(nas_config_t* nas_conf) {
   nas_conf->force_reject_tau        = true;
   nas_conf->force_reject_sr         = true;
   nas_conf->disable_esm_information = false;
+  nas_conf->enable_apn_correction   = false;
+  apn_map_config_init(&nas_conf->apn_map_config);
 }
 
 void gummei_config_init(gummei_config_t* gummei_conf) {
@@ -294,6 +302,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   bstring address            = NULL;
   bstring cidr               = NULL;
   bstring mask               = NULL;
+  const char* imsi_prefix    = NULL;
+  const char* apn_override   = NULL;
   struct in_addr in_addr_var = {0};
   const char* csfb_mcc       = NULL;
   const char* csfb_mnc       = NULL;
@@ -486,15 +496,20 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     }
 
     if ((config_setting_lookup_string(
-            setting_mme, MME_CONFIG_STRING_IP_CAPABILITY,
-            (const char**) &astring))) {
-      config_pP->ip_capability = bfromcstr(astring);
-    }
-
-    if ((config_setting_lookup_string(
             setting_mme, MME_CONFIG_STRING_USE_STATELESS,
             (const char**) &astring))) {
       config_pP->use_stateless = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_USE_HA, (const char**) &astring))) {
+      config_pP->use_ha = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION,
+            (const char**) &astring))) {
+      config_pP->enable_gtpu_private_ip_correction = parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(
@@ -815,6 +830,78 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         }
       }
     }
+
+    // RESTRICTED PLMN SETTING
+    setting = config_setting_get_member(
+        setting_mme, MME_CONFIG_STRING_RESTRICTED_PLMN_LIST);
+    config_pP->restricted_plmn.num = 0;
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_RESTRICTED_PLMN_LIST \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(
+          LOG_MME_APP, "Number of restricted PLMNs configured =%d\n", num);
+      AssertFatal(
+          num <= MAX_RESTRICTED_PLMN,
+          "Number of restricted PLMNs configured:%d exceeds number of "
+          "restricted PLMNs supported :%d \n",
+          num, MAX_RESTRICTED_PLMN);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+
+        if (sub2setting != NULL) {
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
+            AssertFatal(
+                strlen(mcc) == MAX_MCC_LENGTH,
+                "Bad MCC length (%ld), it must be %u digit ex: 001\n",
+                strlen(mcc), MAX_MCC_LENGTH);
+            // NULL terminated string
+            AssertFatal(
+                mcc[0] >= '0' && mcc[0] <= '9',
+                "MCC[0] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit1 = mcc[0] - '0';
+            AssertFatal(
+                mcc[1] >= '0' && mcc[1] <= '9',
+                "MCC[1] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit2 = mcc[1] - '0';
+            AssertFatal(
+                mcc[2] >= '0' && mcc[2] <= '9',
+                "MCC[2] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit3 = mcc[2] - '0';
+          }
+
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
+            AssertFatal(
+                (strlen(mnc) == MIN_MNC_LENGTH) ||
+                    (strlen(mnc) == MAX_MNC_LENGTH),
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
+                "123\n",
+                strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
+            // NULL terminated string
+            AssertFatal(
+                mnc[0] >= '0' && mnc[0] <= '9',
+                "MNC[0] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mnc_digit1 = mnc[0] - '0';
+            AssertFatal(
+                mnc[1] >= '0' && mnc[1] <= '9',
+                "MNC[1] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mnc_digit2 = mnc[1] - '0';
+            if (3 == strlen(mnc)) {
+              AssertFatal(
+                  mnc[2] >= '0' && mnc[2] <= '9',
+                  "MNC[2] is not a decimal digit\n");
+              config_pP->restricted_plmn.plmn[i].mnc_digit3 = mnc[2] - '0';
+            } else {
+              config_pP->restricted_plmn.plmn[i].mnc_digit3 = 0x0F;
+            }
+          }
+          config_pP->restricted_plmn.num += 1;
+        }
+      }
+    }
+
     // NETWORK INTERFACE SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG);
@@ -1054,6 +1141,67 @@ int mme_config_parse_file(mme_config_t* config_pP) {
               (const char**) &astring))) {
         config_pP->nas_config.disable_esm_information = parse_bool(astring);
       }
+      if ((config_setting_lookup_string(
+              setting, MME_CONFIG_STRING_NAS_ENABLE_APN_CORRECTION,
+              (const char**) &astring))) {
+        config_pP->nas_config.enable_apn_correction = parse_bool(astring);
+      }
+
+      // Parsing APN CORRECTION MAP
+      if (config_pP->nas_config.enable_apn_correction) {
+        subsetting = config_setting_get_member(
+            setting, MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_LIST);
+        config_pP->nas_config.apn_map_config.nb = 0;
+        if (subsetting != NULL) {
+          num = config_setting_length(subsetting);
+          OAILOG_INFO(
+              LOG_MME_APP, "Number of apn correction map configured =%d\n",
+              num);
+          AssertFatal(
+              num <= MAX_APN_CORRECTION_MAP_LIST,
+              "Number of apn correction map configured:%d exceeds the maximum "
+              "number supported"
+              ":%d \n",
+              num, MAX_APN_CORRECTION_MAP_LIST);
+
+          for (i = 0; i < num; i++) {
+            sub2setting = config_setting_get_elem(subsetting, i);
+            if (sub2setting != NULL) {
+              if ((config_setting_lookup_string(
+                      sub2setting,
+                      MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_IMSI_PREFIX,
+                      (const char**) &imsi_prefix))) {
+                if (config_pP->nas_config.apn_map_config.apn_map[i]
+                        .imsi_prefix) {
+                  bassigncstr(
+                      config_pP->nas_config.apn_map_config.apn_map[i]
+                          .imsi_prefix,
+                      imsi_prefix);
+                } else {
+                  config_pP->nas_config.apn_map_config.apn_map[i].imsi_prefix =
+                      bfromcstr(imsi_prefix);
+                }
+              }
+              if ((config_setting_lookup_string(
+                      sub2setting,
+                      MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_APN_OVERRIDE,
+                      (const char**) &apn_override))) {
+                if (config_pP->nas_config.apn_map_config.apn_map[i]
+                        .apn_override) {
+                  bassigncstr(
+                      config_pP->nas_config.apn_map_config.apn_map[i]
+                          .apn_override,
+                      apn_override);
+                } else {
+                  config_pP->nas_config.apn_map_config.apn_map[i].apn_override =
+                      bfromcstr(apn_override);
+                }
+              }
+              config_pP->nas_config.apn_map_config.nb += 1;
+            }
+          }
+        }
+      }
     }
 
     // SGS TIMERS
@@ -1200,9 +1348,6 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "- Statistics timer .....................: %u (seconds)\n\n",
       config_pP->mme_statistic_timer);
-  OAILOG_INFO(
-      LOG_CONFIG, "- IP Capability ........................: %s\n\n",
-      bdata(config_pP->ip_capability));
   OAILOG_INFO(
       LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
       config_pP->use_stateless ? "true" : "false");
@@ -1354,7 +1499,19 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "      Disable Esm information .....: %s\n",
       (config_pP->nas_config.disable_esm_information) ? "true" : "false");
+  OAILOG_INFO(
+      LOG_CONFIG, "      Enable APN Correction .......: %s\n",
+      (config_pP->nas_config.enable_apn_correction) ? "true" : "false");
 
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "      APN CORRECTION MAP LIST (IMSI_PREFIX | APN_OVERRIDE):\n");
+  for (j = 0; j < config_pP->nas_config.apn_map_config.nb; j++) {
+    OAILOG_INFO(
+        LOG_CONFIG, "                                %s | %s \n",
+        bdata(config_pP->nas_config.apn_map_config.apn_map[j].imsi_prefix),
+        bdata(config_pP->nas_config.apn_map_config.apn_map[j].apn_override));
+  }
   OAILOG_INFO(LOG_CONFIG, "- S6A:\n");
 #if S6A_OVER_GRPC
   OAILOG_INFO(LOG_CONFIG, "    protocol .........: gRPC\n");

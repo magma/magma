@@ -18,14 +18,18 @@ import type {network_ran_configs} from '@fbcnms/magma-api';
 
 import React from 'react';
 
-type EnodebState = {
+export type EnodebState = {
   enbInfo: {[string]: EnodebInfo},
-  lteRanConfigs?: network_ran_configs,
 };
 
 export type EnodebContextType = {
   state: EnodebState,
-  setState: (key: string, val?: EnodebInfo) => Promise<void>,
+  lteRanConfigs?: network_ran_configs,
+  setState: (
+    key: string,
+    val?: EnodebInfo,
+    newState?: EnodebState,
+  ) => Promise<void>,
 };
 
 export default React.createContext<EnodebContextType>({});

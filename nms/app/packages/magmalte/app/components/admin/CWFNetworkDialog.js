@@ -73,11 +73,14 @@ export default function CWFNetworkDialog(props: Props) {
       },
     })
       .then(props.onSave)
-      .catch(error =>
-        enqueueSnackbar(error.response?.data?.error || error, {
-          variant: 'error',
-        }),
-      );
+      .catch(error => {
+        enqueueSnackbar(
+          error.response?.data?.message || "error: couldn't edit network",
+          {
+            variant: 'error',
+          },
+        );
+      });
   };
 
   return (

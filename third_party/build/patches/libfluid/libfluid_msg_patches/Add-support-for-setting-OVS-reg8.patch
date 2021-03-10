@@ -1,0 +1,156 @@
+From f7bc581728e457a808da1f49313c57268141e1e1 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Tue, 15 Sep 2020 05:31:07 +0000
+Subject: [PATCH] Add support for setting OVS reg8
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ fluid/of13/of13match.cc  | 69 ++++++++++++++++++++++++++++++++++++++++++++++++
+ fluid/of13/of13match.hh  | 31 ++++++++++++++++++++++
+ fluid/of13/openflow-13.h |  2 ++
+ 3 files changed, 102 insertions(+)
+
+diff --git a/fluid/of13/of13match.cc b/fluid/of13/of13match.cc
+index 01b75e8..f198f19 100644
+--- a/fluid/of13/of13match.cc
++++ b/fluid/of13/of13match.cc
+@@ -2799,5 +2799,74 @@ uint16_t Match::oxm_fields_len() {
+     return len;
+ }
+ 
++NXMReg8::NXMReg8()
++    : OXMTLV(of13::OFPXMC_NXM_1, of13::NXM_REG8, false,
++          of13::OFP_NXM_REG8_LEN),
++      value_((uint32_t) 0),
++      mask_((uint32_t) 0) {
++    create_oxm_req(0x0800, 0, 0, 0);
++}
++
++NXMReg8::NXMReg8(uint32_t value)
++    : OXMTLV(of13::OFPXMC_NXM_1, of13::NXM_REG8, false,
++          of13::OFP_NXM_REG8_LEN),
++      value_(value),
++      mask_((uint32_t) 0) {
++    create_oxm_req(0x0800, 0, 0, 0);
++}
++
++NXMReg8::NXMReg8(uint32_t value, uint32_t mask)
++    : OXMTLV(of13::OFPXMC_NXM_1, of13::NXM_REG8, true,
++          of13::OFP_NXM_REG8_LEN),
++      value_(value),
++      mask_(mask) {
++    create_oxm_req(0x0800, 0, 0, 0);
++}
++
++bool NXMReg8::equals(const OXMTLV &other) {
++
++    if (const NXMReg8 * field = dynamic_cast<const NXMReg8 *>(&other)) {
++        return ((OXMTLV::equals(other)) && (this->value_ == field->value_)
++            && (this->has_mask_ ? this->mask_ == field->mask_ : true));
++    }
++    else {
++        return false;
++    }
++}
++
++OXMTLV& NXMReg8::operator=(const OXMTLV& field) {
++    const NXMReg8& dst = dynamic_cast<const NXMReg8&>(field);
++    OXMTLV::operator=(field);
++    this->value_ = dst.value_;
++    this->mask_ = dst.mask_;
++    return *this;
++}
++
++size_t NXMReg8::pack(uint8_t *buffer) {
++    OXMTLV::pack(buffer);
++    size_t len = this->length_;
++    if (this->has_mask_) {
++        len = this->length_ / 2;
++        uint32_t mask = hton32(this->mask_);
++        memcpy(buffer + (of13::OFP_OXM_HEADER_LEN + len), &mask, len);
++    }
++    uint32_t val = hton32(this->value_);
++    memcpy(buffer + of13::OFP_OXM_HEADER_LEN, &val, len);
++    return 0;
++}
++
++of_error NXMReg8::unpack(uint8_t *buffer) {
++    uint32_t val = *((uint32_t*) (buffer + of13::OFP_OXM_HEADER_LEN));
++    OXMTLV::unpack(buffer);
++    this->value_ = ntoh32(val);
++    if (this->has_mask_) {
++        size_t len = this->length_ / 2;
++        uint32_t mask = *((uint32_t*) (buffer + of13::OFP_OXM_HEADER_LEN
++            + len));
++        this->mask_ = ntoh32(mask);
++    }
++    return 0;
++}
++
+ } //End of namespace of13
+ } //End of namespace fluid_msg
+diff --git a/fluid/of13/of13match.hh b/fluid/of13/of13match.hh
+index cf659a2..5fb9699 100644
+--- a/fluid/of13/of13match.hh
++++ b/fluid/of13/of13match.hh
+@@ -1177,6 +1177,37 @@ public:
+     }
+ };
+ 
++class NXMReg8: public OXMTLV {
++protected:
++    uint32_t value_;
++    uint32_t mask_;
++public:
++    NXMReg8();
++    NXMReg8(uint32_t value);
++    NXMReg8(uint32_t value, uint32_t mask);
++    ~NXMReg8() {
++    }
++    virtual bool equals(const OXMTLV & other);
++    OXMTLV& operator=(const OXMTLV& field);
++    virtual NXMReg8* clone() const {
++        return new NXMReg8(*this);
++    }
++    size_t pack(uint8_t *buffer);
++    of_error unpack(uint8_t *buffer);
++    IPAddress value() const {
++        return this->value_;
++    }
++    IPAddress mask() const {
++        return this->mask_;
++    }
++    void value(uint32_t value) {
++        this->value_ = value;
++    }
++    void mask(uint32_t mask) {
++        this->mask_ = mask;
++    }
++};
++
+ class Match: public MatchHeader {
+ private:
+     /*Current tlvs present by field*/
+diff --git a/fluid/of13/openflow-13.h b/fluid/of13/openflow-13.h
+index d891f35..62a8500 100644
+--- a/fluid/of13/openflow-13.h
++++ b/fluid/of13/openflow-13.h
+@@ -256,6 +256,7 @@ const uint8_t OFP_OXM_MPLS_BOS_LEN = 1;
+ const uint8_t OFP_OXM_IPV6_PBB_ISID_LEN = 4;
+ const uint8_t OFP_OXM_TUNNEL_ID_LEN = 8;
+ const uint8_t OFP_OXM_IPV6_EXTHDR_LEN = 2;
++const uint8_t OFP_NXM_REG8_LEN = 4;
+ 
+ /* Fields to match against flows */
+ struct ofp_match {
+@@ -343,6 +344,7 @@ enum oxm_ofb_match_fields {
+ };
+ 
+ enum nxm_match_fields {
++  NXM_REG8 	      = 8,
+   NXM_TUNNEL_IPV4_DST = 32
+ };
+ 
+-- 
+2.11.0
+

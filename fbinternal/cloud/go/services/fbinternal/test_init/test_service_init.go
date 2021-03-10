@@ -29,6 +29,7 @@ func StartTestService(t *testing.T) {
 		os.Getenv("METRIC_EXPORT_URL"),
 		os.Getenv("FACEBOOK_APP_ID"),
 		os.Getenv("FACEBOOK_APP_SECRET"),
+		"magma",
 		os.Getenv("METRICS_PREFIX"),
 		servicers.ODSMetricsQueueLength,
 		servicers.ODSMetricsExportInterval,

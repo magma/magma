@@ -50,6 +50,7 @@ message EnodebD {
         int32 bandwidth_mhz = 7;
         int32 tac = 8;
         int32 cell_id = 9;
+        string ip_address = 10;
     }
 
     orc8r.LogLevel log_level = 1;
@@ -115,10 +116,42 @@ message PipelineD {
     }
     LiUes li_ues = 12;
 
+    string sgi_management_iface_vlan = 13;
+    string sgi_management_iface_ip_addr = 14;
+    string sgi_management_iface_gw = 15;
+
+    message HEConfig {
+        enum EncryptionAlgorithm {
+            RC4 = 0;
+            AES256_CBC_HMAC_MD5 = 1;
+            AES256_ECB_HMAC_MD5 = 2;
+            GZIPPED_AES256_ECB_SHA1 = 3;
+        }
+        enum HashFunction{
+            MD5 = 0;
+            HEX = 1;
+            SHA256 = 2;
+        }
+        enum EncodingType {
+            BASE64 = 0;
+            HEX2BIN = 1;
+        }
+
+        // enable_header_enrichment is true if header enrichment feature is
+        // enabled for gateway
+        bool enable_header_enrichment = 1;
+        bool enable_encryption = 2;
+        // encryption/hashing/encoding information for headers
+        EncryptionAlgorithm encryptionAlgorithm = 3;
+        HashFunction hashFunction = 4;
+        EncodingType encodingType = 5;
+        string encryption_key = 6;
+        string hmac_key = 7;
+    }
+    HEConfig he_config = 17;
+
     // DEPRECATED
     reserved 4, 11;
-    // repeated string apps = 4;
-    // repeated string li_imsis = 11;
 }
 
 //------------------------------------------------------------------------------
@@ -126,9 +159,12 @@ message PipelineD {
 //------------------------------------------------------------------------------
 message SessionD {
     orc8r.LogLevel log_level = 1;
+    // DEPRECATED
     // Enable forwarding S6a related requests to Federated GW
     bool relay_enabled = 2;
     WalletExhaustDetection wallet_exhaust_detection = 3;
+    // Enable relaying Gx/Gy messages via FeG RPC
+    bool gx_gy_relay_enabled = 4;
 }
 
 message WalletExhaustDetection {
@@ -171,13 +207,21 @@ message MobilityD {
     // An IP block is a range of IP addresses specified by a network address and
     // a prefix-length of the netmask. For example,
     //    IPv4 IP block:      "192.168.0.0/24"
-    //    IPv6 IP block:      "2401:db00:1116:301b::/64"
     string ip_block = 2;
     // ip allocation type, either dhcp or ip_pool
     // default is ip_pool
     IpAllocatorType ip_allocator_type = 3;
     // Enable Static IP from subscriberDB
     bool static_ip_enabled = 4;
+    // Enable multi APN IP allocation
+    bool multi_apn_ip_alloc = 5;
+
+    // IPv6 block for IPv6 allocator, for example:
+    // IPv6 IP block:      "fdee:5:6c::/48"
+    string ipv6_block = 10;
+    // Select ipv6 session prefix allocation type, example:
+    // "RANDOM", "HASH"
+    string ipv6_prefix_allocation_type = 11;
 }
 
 //------------------------------------------------------------------------------
@@ -189,6 +233,7 @@ message MME {
         NON_EPS_SERVICE_CONTROL_OFF = 0;
         NON_EPS_SERVICE_CONTROL_CSFB_SMS = 1;
         NON_EPS_SERVICE_CONTROL_SMS = 2;
+        NON_EPS_SERVICE_CONTROL_SMS_ORC8R = 3;
     }
 
     orc8r.LogLevel log_level = 1;
@@ -205,10 +250,11 @@ message MME {
     int32 mme_code = 6;
     // Enable DNS Caching. Will be filled by DnsD
     bool enable_dns_caching = 7;
+    // DEPRECATED
     // Enable credit control tracking with OCS and forwarding S6a related
     // requests to Federated GW
     bool relay_enabled = 8;
-    // For indicating one of the three modes
+    // For indicating one of the four modes
     NonEPSServiceControl non_eps_service_control = 9;
     // Mobile country code for CSFB
     string csfb_mcc = 10;
@@ -224,6 +270,8 @@ message MME {
     // Overrides field 4 if this is not empty. Field 4 is in the process of
     // being deprecated
     repeated int32 attached_enodeb_tacs = 15;
+    // MME relative capacity - capacity within an MME group. 8-bit
+    int32 mme_relative_capacity = 16;
 
     // DEPRECATED
     // Use relay_enabled instead
@@ -235,8 +283,58 @@ message MME {
     string dns_secondary = 21;
     // Whether NAT is enabled
     bool nat_enabled = 22;
+
+    // Enable relaying S6a messages via FeG RPC
+    bool hss_relay_enabled = 23;
+
+    // Apn Correction feature
+    bool enable_apn_correction = 24;
+    message ApnCorrectionMap {
+      string imsi_prefix = 1;
+      string apn_override = 2;
+    }
+    repeated ApnCorrectionMap apn_correction_map_list = 25;
+
+    // P_CSCF IP address configs
+    string ipv4_p_cscf_address = 26;
+    string ipv6_p_cscf_address = 27;
+
+    // IPv6 DNS server
+    string ipv6_dns_address = 30;
+
+    // SGW S1U endpoint on AGW
+    string ipv4_sgw_s1u_addr = 31;
+
+    message PlmnConfig {
+        string mcc = 1;
+        string mnc = 2;
+    }
+    repeated PlmnConfig restricted_plmns = 32;
+
+    message TacList {
+        repeated uint32 tac = 1;
+    }
+    map<string, TacList> service_area_maps = 33;
+
+    FederatedModeMap federated_mode_map = 34;
 }
 
+message FederatedModeMap {
+    bool enabled = 1;
+    repeated ModeMapItem mapping = 2;
+}
+
+message ModeMapItem {
+    enum FederatedMode {
+        SPGW_SUBSCRIBER = 0;           // default mode is HSS + spgw_task
+        LOCAL_SUBSCRIBER = 1;          // will use subscriberDb + policydb
+        S8_SUBSCRIBER = 2;             // will use HSS (feg) + s8_task
+    }
+    FederatedMode mode = 1;
+    string plmn = 2;
+    string imsi_range = 3;
+    string apn = 4;
+}
 
 //------------------------------------------------------------------------------
 // SubscriberDB configs
@@ -255,8 +353,13 @@ message SubscriberDB {
         uint64 max_dl_bit_rate = 2;
     }
     map<string, SubscriptionProfile> sub_profiles = 4;
+
+    // DEPRECATED
     // Enable forwarding S6a related requests to Federated GW
     bool relay_enabled = 5;
+
+    // Enable relaying S6a messages via FeG RPC
+    bool hss_relay_enabled = 6;
 }
 
 //------------------------------------------------------------------------------
@@ -280,4 +383,29 @@ message MonitorD {
 //------------------------------------------------------------------------------
 message DPID {
     orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// ConnectionD configs
+//------------------------------------------------------------------------------
+message ConnectionD {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// DnsD configs
+//------------------------------------------------------------------------------
+message DnsD {
+    orc8r.LogLevel log_level = 1;
+    bool enable_caching = 2;
+    int32 localTTL = 3;
+    repeated GatewayDNSConfigRecordsItems records = 4;
+    bool dhcp_server_enabled = 5;
+}
+
+message GatewayDNSConfigRecordsItems {
+  repeated string a_record = 1;
+  repeated string aaaa_record = 2;
+  repeated string cname_record = 3;
+  string domain = 4;
 }

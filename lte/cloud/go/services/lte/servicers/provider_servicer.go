@@ -38,10 +38,10 @@ func (s *providerServicer) GetUpdates(ctx context.Context, req *protos.StreamReq
 		streamer = &subscriber_streamer.SubscribersProvider{}
 	case lte.PolicyStreamName:
 		streamer = &policydb_streamer.PoliciesProvider{}
+	case lte.ApnRuleMappingsStreamName:
+		streamer = &policydb_streamer.ApnRuleMappingsProvider{}
 	case lte.BaseNameStreamName:
 		streamer = &policydb_streamer.BaseNamesProvider{}
-	case lte.MappingsStreamName:
-		streamer = &policydb_streamer.RuleMappingsProvider{}
 	case lte.NetworkWideRulesStreamName:
 		streamer = &policydb_streamer.NetworkWideRulesProvider{}
 	case lte.RatingGroupStreamName:

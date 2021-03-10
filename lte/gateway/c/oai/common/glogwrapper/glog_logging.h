@@ -33,8 +33,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <linux/limits.h>
 
-#define MAX_FILE_NAME_LENGTH 100
+#define MAX_FILE_NAME_LENGTH PATH_MAX
 
 #ifdef __cplusplus
 extern "C" {

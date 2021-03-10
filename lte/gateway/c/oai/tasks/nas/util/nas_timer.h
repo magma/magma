@@ -34,6 +34,7 @@ Description Timer utilities
 #ifndef FILE_NAS_TIMER_SEEN
 #define FILE_NAS_TIMER_SEEN
 
+#include "common_types.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
@@ -50,12 +51,12 @@ Description Timer utilities
 
 /* Timer structure */
 typedef struct nas_timer_s {
-  long int id; /* The timer identifier                 */
-  long sec;    /* The timer interval value in seconds  */
+  long int id;  /* The timer identifier                 */
+  uint32_t sec; /* The timer interval value in seconds  */
 } nas_timer_t;
 
 /* Type of the callback executed when the timer expired */
-typedef void (*nas_timer_callback_t)(void*);
+typedef void (*nas_timer_callback_t)(void*, imsi64_t* imsi64);
 
 typedef struct nas_itti_timer_arg_s {
   nas_timer_callback_t nas_timer_callback;
@@ -73,10 +74,10 @@ typedef struct nas_itti_timer_arg_s {
 int nas_timer_init(void);
 void nas_timer_cleanup(void);
 long int nas_timer_start(
-    long sec, long usec, nas_timer_callback_t nas_timer_callback,
+    uint32_t sec, uint32_t usec, nas_timer_callback_t nas_timer_callback,
     void* nas_timer_callback_args);
 long int nas_timer_stop(long int timer_id, void** nas_timer_callback_arg);
 void mme_app_nas_timer_handle_signal_expiry(
-    long timer_id, nas_itti_timer_arg_t* nas_itti_timer_arg);
+    long timer_id, nas_itti_timer_arg_t* nas_itti_timer_arg, imsi64_t* imsi64);
 
 #endif /* FILE_NAS_TIMER_SEEN */

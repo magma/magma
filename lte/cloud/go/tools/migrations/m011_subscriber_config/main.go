@@ -1,3 +1,16 @@
+/*
+ Copyright 2020 The Magma Authors.
+
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package main
 
 import (
@@ -64,6 +77,13 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		if err = rows.Scan(&pk, &oldConf); err != nil {
 			return nil, errors.Wrap(err, "error scanning subscriber row")
 		}
+		shouldMigrate, err := shouldMigrateConf(oldConf)
+		if err != nil {
+			return nil, err
+		}
+		if !shouldMigrate {
+			continue
+		}
 
 		newConf := SubscriberConfig{Lte: oldConf}
 		newConfBytes, err := json.Marshal(newConf)
@@ -84,4 +104,17 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		}
 	}
 	return nil, nil
+}
+
+// To keep the migration idempotent, we will check to see if it can deserialize
+// into the new config type already.
+func shouldMigrateConf(oldConf []byte) (bool, error) {
+	parsedMessage := map[string]interface{}{}
+	err := json.Unmarshal(oldConf, &parsedMessage)
+	if err != nil {
+		return false, errors.Wrap(err, "could not unmarshal legacy config")
+	}
+
+	_, alreadyMigrated := parsedMessage["lte"]
+	return !alreadyMigrated, nil
 }

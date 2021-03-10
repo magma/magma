@@ -49,6 +49,12 @@ export const colors = {
     warningAlt: '#B69900',
     warningFill: '#FFFCED',
   },
+  alerts: {
+    severe: 'E52240',
+    major: '#E36730',
+    minor: '#F5DD5A',
+    other: '#88B3F9',
+  },
   data: {
     coral: '#FF824B',
     flamePea: '#E36730',
@@ -231,6 +237,11 @@ export default createMuiTheme({
         color: colors.primary.white,
       },
     },
+    MuiAccordionSummary: {
+      content: {
+        margin: '0px',
+      },
+    },
     MuiBackdrop: {
       root: {
         backgroundColor: `rgba(50, 56, 69, 0.8)`, // colors.primary.brightGray RGB value
@@ -257,6 +268,13 @@ export default createMuiTheme({
         },
       },
     },
+    MuiCheckbox: {
+      colorSecondary: {
+        '&$checked': {
+          color: colors.secondary.dodgerBlue,
+        },
+      },
+    },
     MuiDivider: {
       root: {
         backgroundColor: colors.primary.concrete,
@@ -279,34 +297,7 @@ export default createMuiTheme({
     MuiDialogContent: {
       root: {
         padding: '32px',
-      },
-    },
-    MuiDialogTitle: {
-      root: {
-        backgroundColor: colors.primary.mirage,
-        padding: '16px 24px',
-        color: colors.primary.white,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-      },
-    },
-    MuiDialog: {
-      paper: {
-        backgroundColor: colors.primary.concrete,
-      },
-    },
-    MuiDialogActions: {
-      root: {
-        backgroundColor: colors.primary.white,
-        boxShadow: shadows.DP3,
-        padding: '20px',
-      },
-    },
-    MuiDialogContent: {
-      root: {
-        padding: '32px',
+        minHeight: '480px',
       },
     },
     MuiDialogTitle: {
@@ -379,6 +370,17 @@ export default createMuiTheme({
         },
       },
     },
+    MuiSwitch: {
+      colorSecondary: {
+        '&$checked': {
+          color: colors.secondary.dodgerBlue,
+        },
+        '&$checked + .MuiSwitch-track': {
+          backgroundColor: colors.secondary.dodgerBlue,
+          opacity: 0.5,
+        },
+      },
+    },
     MuiTabs: {
       indicator: {
         height: '4px',
@@ -428,13 +430,13 @@ export default createMuiTheme({
         padding: 0,
         ...typography.button,
         '&::-webkit-input-placeholder': {
-          opacity: 1,
+          opacity: 0.5,
         },
         '&::-moz-placeholder': {
-          opacity: 1,
+          opacity: 0.5,
         },
         '&::-ms-input-placeholder': {
-          opacity: 1,
+          opacity: 0.5,
         },
       },
       inputMarginDense: {

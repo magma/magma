@@ -26,14 +26,26 @@ magma-gen-meta:
       filename: gateway_epc_configs_swaggergen.go
     - go-struct-name: GatewayNonEpsConfigs
       filename: gateway_non_eps_configs_swaggergen.go
+    - go-struct-name: GatewayDNSConfigs
+      filename: gateway_dns_configs_swaggergen.go
+    - go-struct-name: GatewayDNSRecords
+      filename: gateway_dns_records_swaggergen.go
+    - go-struct-name: GatewayHEConfig
+      filename: gateway_he_config_swaggergen.go
+    - go-struct-name: DNSConfigRecord
+      filename: dns_config_record_swaggergen.go
     - go-struct-name: LteGateway
       filename: lte_gateway_swaggergen.go
     - go-struct-name: MutableLteGateway
       filename: mutable_lte_gateway_swaggergen.go
     - go-struct-name: Enodeb
       filename: enodeb_swaggergen.go
+    - go-struct-name: EnodebConfig
+      filename: enodeb_config_swaggergen.go
     - go-struct-name: EnodebConfiguration
       filename: enodeb_configuration_swaggergen.go
+    - go-struct-name: UnmanagedEnodebConfiguration
+      filename: unmanaged_enodeb_configuration_swaggergen.go
     - go-struct-name: EnodebState
       filename: enodeb_state_swaggergen.go
     - go-struct-name: AggregatedMaximumBitrate
@@ -46,6 +58,16 @@ magma-gen-meta:
       filename: apn_name_swaggergen.go
     - go-struct-name: APN
       filename: apn_swaggergen.go
+    - go-struct-name: CellularGatewayPool
+      filename: cellular_gateway_pool_swaggergen.go
+    - go-struct-name: MutableCellularGatewayPool
+      filename: mutable_cellular_gateway_pool_swaggergen.go
+    - go-struct-name: CellularGatewayPoolConfigs
+      filename: cellular_gateway_pool_configs_swaggergen.go
+    - go-struct-name: CellularGatewayPoolRecord
+      filename: cellular_gateway_pool_record_swaggergen.go
+    - go-struct-name: CellularGatewayPoolRecords
+      filename: cellular_gateway_pool_records_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -61,10 +83,6 @@ tags:
     description: Endpoints related to LTE networks
   - name: LTE Gateways
     description: Endpoints related to LTE gateway management
-  - name: Policies
-    description: Endpoints related to network policy management
-  - name: Rating Groups
-    description: Endpoints related to rating group management
 
 paths:
   /lte:
@@ -332,6 +350,86 @@ paths:
           schema:
             type: string
             example: feg_network
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/gateway_pools:
+    get:
+      summary: List all gateway pools in LTE network
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: All gateway pools in LTE network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/cellular_gateway_pool'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create new gateway pool in LTE network
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: HA Gateway Pool
+          description: LTE HA gateway pool
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_cellular_gateway_pool'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/gateway_pools/{gateway_pool_id}:
+    get:
+      summary: Retrieve gateway pool from LTE network
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/gateway_pool_id'
+      responses:
+        '200':
+          description: HA gateway pool
+          schema:
+            $ref: '#/definitions/cellular_gateway_pool'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update gateway pool in LTE network
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/gateway_pool_id'
+        - in: body
+          name: HA Gateway Pool
+          description: LTE HA gateway pool
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_cellular_gateway_pool'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete gateway pool from LTE network
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/gateway_pool_id'
       responses:
         '204':
           description: Success
@@ -1001,6 +1099,116 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/gateways/{gateway_id}/cellular/dns:
+    get:
+      summary: Get DNS configuration of LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: DNS configuration of the gateway
+          schema:
+            $ref: '#/definitions/gateway_dns_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update DNS configuration of LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: config
+          in: body
+          description: New DNS configuration for the gateway
+          required: true
+          schema:
+            $ref: '#/definitions/gateway_dns_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/gateways/{gateway_id}/cellular/dns/records:
+    get:
+      summary: Get the DNS config records for LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Custom DNS records for the gateway
+          schema:
+            type: array
+            items:
+              $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Change all the DNS records for LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: records
+          in: body
+          description: Custom DNS records for the gateway
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/gateways/{gateway_id}/cellular/pooling:
+    get:
+      summary: Get the gateway pool records for LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Gateway pool records
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/cellular_gateway_pool_record'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Change all the gateway pool records for LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - in: body
+          name: resource
+          description: Gateway pool records for gateway
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/cellular_gateway_pool_record'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /lte/{network_id}/gateways/{gateway_id}/connected_enodeb_serials:
     get:
       summary: Get the SNs of all enodeBs connected to a gateway
@@ -1118,6 +1326,40 @@ paths:
           description: The status of the gateway
           schema:
             $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/gateways/{gateway_id}/vpn:
+    get:
+      summary: Get the gateway VPN configuration
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The current VPN gateway config
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_vpn_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the gateway VPN configuration
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: config
+          in: body
+          description: New VPN configuration
+          required: true
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_vpn_configs'
+      responses:
+        '204':
+          description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -1312,6 +1554,13 @@ parameters:
     required: true
     type: string
 
+  gateway_pool_id:
+    description: Gateway Pool ID
+    in: path
+    name: gateway_pool_id
+    required: true
+    type: string
+
 definitions:
   lte_network:
     type: object
@@ -1433,7 +1682,8 @@ definitions:
       - lte_auth_op
       - mcc
       - mnc
-      - relay_enabled
+      - hss_relay_enabled
+      - gx_gy_relay_enabled
       - tac
     properties:
       mcc:
@@ -1490,7 +1740,10 @@ definitions:
       default_rule_id:
         type: string
         example: 'default_rule_1'
-      relay_enabled:
+      hss_relay_enabled:
+        type: boolean
+        example: false
+      gx_gy_relay_enabled:
         type: boolean
         example: false
       cloud_subscriberdb_enabled:
@@ -1525,6 +1778,9 @@ definitions:
           enable_static_ip_assignments:
             type: boolean
             example: true
+          enable_multi_apn_ip_allocation:
+            type: boolean
+            example: true
           reserved_addresses:
             type: array
             items:
@@ -1555,6 +1811,18 @@ definitions:
                 example:
                   1: ['192.168.0.0/16']
                   2: ['172.10.0.0/16', '172.20.0.0/16']
+      restricted_plmns:
+        type: array
+        description: 'List of PLMN IDs restricted in the network'
+        items:
+          $ref: '#/definitions/plmn_config'
+        x-omitempty: true
+
+      service_area_maps:
+        type: object
+        description: 'Mapping service areas to tacs in the network'
+        additionalProperties:
+          $ref: '#/definitions/tac_list'
 
   lte_gateway:
     type: object
@@ -1585,6 +1853,8 @@ definitions:
         $ref: '#/definitions/gateway_cellular_configs'
       connected_enodeb_serials:
         $ref: '#/definitions/enodeb_serials'
+      apn_resources:
+        $ref: '#/definitions/apn_resources'
       status:
         $ref: './orc8r-swagger.yml#/definitions/gateway_status'
 
@@ -1617,6 +1887,8 @@ definitions:
         $ref: '#/definitions/gateway_cellular_configs'
       connected_enodeb_serials:
         $ref: '#/definitions/enodeb_serials'
+      apn_resources:
+        $ref: '#/definitions/apn_resources'
 
   gateway_cellular_configs:
     type: object
@@ -1631,6 +1903,12 @@ definitions:
         $ref: '#/definitions/gateway_ran_configs'
       non_eps_service:
         $ref: '#/definitions/gateway_non_eps_configs'
+      dns:
+        $ref: '#/definitions/gateway_dns_configs'
+      he_config:
+        $ref: '#/definitions/gateway_he_config'
+      pooling:
+        $ref: '#/definitions/cellular_gateway_pool_records'
 
   gateway_ran_configs:
     type: object
@@ -1667,6 +1945,17 @@ definitions:
         maxLength: 49
         x-nullable: false
         example: '192.168.128.0/24'
+      ipv6_block:
+        type: string
+        x-nullable: false
+        example: 'fdee:5:6c::/48'
+      ipv6_prefix_allocation_mode:
+        type: string
+        x-nullable: false
+        enum:
+          - 'RANDOM'
+          - 'HASH'
+        example: 'RANDOM'
       dns_primary:
         type: string
         minLength: 5
@@ -1677,6 +1966,44 @@ definitions:
         minLength: 5
         maxLength: 45
         example: '8.8.4.4'
+      ipv4_p_cscf_addr:
+        type: string
+        description: IP address for IPv4 P-CSCF on the AGW
+        format: ipv4
+        example: '172.27.23.150'
+      ipv6_dns_addr:
+        description: IPv6 DNS Server address on the AGW
+        type: string
+        format: ipv6
+        example: '2001:4860:4860:0:0:0:0:8888'
+      ipv6_p_cscf_addr:
+        description: IP address for IPv6 P-CSCF on the AGW
+        type: string
+        format: ipv6
+        example: '2a12:577:9941:f99c:0002:0001:c731:f114'
+      ipv4_sgw_s1u_addr:
+        description: IP address for IPv4 S1U endpoint on the AGW
+        type: string
+        minLength: 5
+        maxLength: 49
+      sgi_management_iface_vlan:
+        type: string
+        description: VLAN ID for management interface traffic on the AGW
+        minLength: 1
+        maxLength: 4
+      sgi_management_iface_static_ip:
+        type: string
+        format: cidr
+        description: IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
+        minLength: 5
+        maxLength: 49
+      sgi_management_iface_gw:
+        type: string
+        format: cidr
+        description: IP address of gateway for management interface on the AGW
+        minLength: 5
+        maxLength: 49
+
 
   gateway_non_eps_configs:
     description: Non-EPS service configuration for a gateway
@@ -1718,6 +2045,92 @@ definitions:
           - 0
           - 1
           - 2
+          - 3
+
+  gateway_dns_records:
+    type: array
+    items:
+      $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
+
+  cellular_gateway_pool_records:
+    type: array
+    items:
+      x-nullable: falsee
+      $ref: '#/definitions/cellular_gateway_pool_record'
+
+  gateway_dns_configs:
+    description: DNS configuration for a gateway
+    type: object
+    required:
+      - enable_caching
+      - local_ttl
+      - dhcp_server_enabled
+    properties:
+      enable_caching:
+        type: boolean
+        example: false
+      local_ttl:
+        type: integer
+        format: int32
+        example: 0
+      dhcp_server_enabled:
+        type: boolean
+        example: true
+      records:
+        $ref: '#/definitions/gateway_dns_records'
+
+  gateway_he_config:
+    description: Header Enrichment configuration
+    type: object
+    required:
+      - enable_header_enrichment
+      - enable_encryption
+      - he_encryption_algorithm
+      - he_hash_function
+      - he_encoding_type
+    properties:
+      enable_header_enrichment:
+        description: True if header enrichment feature should be disabled for gateway
+        type: boolean
+        example: true
+      enable_encryption:
+        description: True if headers should be encrypted
+        type: boolean
+        example: true
+      encryption_key:
+        description: Key to be used in header encryption
+        type: string
+        x-nullable: false
+        example: 'C14r0315v0x'
+      hmac_key:
+        description: Hmac key to be used in header encryption
+        type: string
+        x-nullable: false
+        example: 'Xs21Ncas87'
+      he_encryption_algorithm:
+        type: string
+        x-nullable: false
+        enum:
+          - 'RC4'
+          - 'AES256_CBC_HMAC_MD5'
+          - 'AES256_ECB_HMAC_MD5'
+          - 'GZIPPED_AES256_ECB_SHA1'
+        example: 'RC4'
+      he_hash_function:
+        type: string
+        x-nullable: false
+        enum:
+          - 'MD5'
+          - 'HEX'
+          - 'SHA256'
+        example: 'MD5'
+      he_encoding_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'BASE64'
+          - 'HEX2BIN'
+        example: 'BASE64'
 
   enodeb_serials:
     type: array
@@ -1753,10 +2166,30 @@ definitions:
         example: "Description of this radio"
       config:
         $ref: '#/definitions/enodeb_configuration'
+      enodeb_config:
+        $ref: '#/definitions/enodeb_config'
       attached_gateway_id:
         type: string
         example: gw1
         readOnly: true
+
+  enodeb_config:
+    description: Configuration for managed / unmanaged eNodeb
+    type: object
+    required:
+      - config_type
+    properties:
+      config_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'MANAGED'
+          - 'UNMANAGED'
+        example: 'MANAGED'
+      managed_config:
+        $ref: '#/definitions/enodeb_configuration'
+      unmanaged_config:
+        $ref: '#/definitions/unmanaged_enodeb_configuration'
 
   enodeb_configuration:
     description: Configuration for an enodeB. Unfilled fields will be inherited from LTE network and gateway configuration.
@@ -1823,6 +2256,31 @@ definitions:
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
 
+  unmanaged_enodeb_configuration:
+    description: Configuration for externally managed eNodeb devices.
+    type: object
+    minLength: 1
+    required:
+      - cell_id
+      - ip_address
+      - tac
+    properties:
+      cell_id:
+        type: integer
+        format: uint32
+        maximum: 268435455
+        example: 138777000
+      ip_address:
+        type: string
+        format: ipv4
+        example: '192.168.1.142'
+      tac:
+        type: integer
+        format: uint32
+        minimum: 1
+        maximum: 65535
+        example: 1
+
   enodeb_state:
     description: Single Enodeb State
     type: object
@@ -1868,6 +2326,12 @@ definitions:
         type: boolean
       fsm_state:
         type: string
+      ip_address:
+        type: string
+        format: ipv4
+      ues_connected:
+        type: integer
+        format: int32
 
   aggregated_maximum_bitrate:
     type: object
@@ -1943,3 +2407,154 @@ definitions:
         $ref: '#/definitions/apn_name'
       apn_configuration:
         $ref: '#/definitions/apn_configuration'
+
+  apn_resources:
+    description: APN resources keyed by APN name
+    type: object
+    additionalProperties:
+      $ref: '#/definitions/apn_resource'
+
+  apn_resource:
+    type: object
+    required:
+      - id
+      - apn_name
+    properties:
+      id:
+        description: APN resource ID must be unique across all gateways in a network
+        type: string
+        minLength: 1
+        x-nullable: false
+      apn_name:
+        $ref: '#/definitions/apn_name'
+      vlan_id:
+        type: integer
+        format: uint32
+      gateway_ip:
+        type: string
+        format: ipv4
+      gateway_mac:
+        type: string
+        format: mac
+
+  cellular_gateway_pool:
+    description: Highly available gateway pool in an LTE network
+    type: object
+    required:
+      - gateway_pool_id
+      - gateway_ids
+      - config
+    properties:
+      gateway_pool_id:
+         $ref: '#/definitions/gateway_pool_id'
+      gateway_pool_name:
+        type: string
+        example: "Pool 1"
+      config:
+        $ref: '#/definitions/cellular_gateway_pool_configs'
+      gateway_ids:
+        x-nullable: false
+        type: array
+        uniqueItems: true
+        items:
+          $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+
+  mutable_cellular_gateway_pool:
+    description: Mutable version of the cellular gateway pool
+    type: object
+    required:
+      - gateway_pool_id
+      - config
+    properties:
+      gateway_pool_id:
+        $ref: '#/definitions/gateway_pool_id'
+      gateway_pool_name:
+        type: string
+        example: "Pool 1"
+      config:
+        $ref: '#/definitions/cellular_gateway_pool_configs'
+
+  gateway_pool_id:
+    type: string
+    minLength: 1
+    x-nullable: false
+    pattern: '^[a-z][\da-z_-]+$'
+    example: pool1
+
+  cellular_gateway_pool_configs:
+    description: Configuration for gateway pool
+    type: object
+    required:
+      - mme_group_id
+    properties:
+      mme_group_id:
+        x-nullable: false
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 255
+        example: 1
+        default: 1
+
+  cellular_gateway_pool_record:
+    description: Record in a gateway pool
+    type: object
+    required:
+      - gateway_pool_id
+      - mme_code
+      - mme_relative_capacity
+    properties:
+      gateway_pool_id:
+         $ref: '#/definitions/gateway_pool_id'
+      mme_code:
+        x-nullable: false
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 65535
+        example: 1
+        default: 1
+      mme_relative_capacity:
+        x-nullable: false
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 255
+        example: 10
+        default: 10
+
+
+  tac_list:
+    type: array
+    items:
+      $ref: '#/definitions/tac'
+    x-omitempty: true
+    description: 'List of tac ids'
+    example:
+      - 1
+
+  tac:
+    type: integer
+    format: uint32
+    minimum: 1
+    maximum: 65535
+    example: 1
+    x-nullable: false
+
+  plmn_config:
+    description: Record in a gateway pool
+    type: object
+    required:
+      - mcc
+      - mnc
+    properties:
+      mcc:
+        type: string
+        pattern: '^(\d{3})$'
+        example: '001'
+        x-nullable: false
+      mnc:
+        type: string
+        pattern: '^(\d{2,3})$'
+        example: '01'
+        x-nullable: false

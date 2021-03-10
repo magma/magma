@@ -48,7 +48,7 @@
 /*
    Timer handlers
 */
-static void _esm_information_t3489_handler(void*);
+static void _esm_information_t3489_handler(void*, imsi64_t* imsi64);
 
 /* Maximum value of the deactivate EPS bearer context request
    retransmission counter */
@@ -171,7 +171,7 @@ int esm_proc_esm_information_response(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _esm_information_t3489_handler(void* args) {
+static void _esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   /*
@@ -179,7 +179,7 @@ static void _esm_information_t3489_handler(void* args) {
    */
   esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
 
-  if (esm_ebr_timer_data) {
+  if (esm_ebr_timer_data && esm_ebr_timer_data->ctx) {
     /*
      * Increment the retransmission counter
      */
@@ -191,7 +191,11 @@ static void _esm_information_t3489_handler(void* args) {
         "retransmission counter = %d\n",
         esm_ebr_timer_data->ue_id, esm_ebr_timer_data->count);
 
+    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
     if (esm_ebr_timer_data->count < ESM_INFORMATION_COUNTER_MAX) {
+      // Unset the timer id maintained in the esm_ctx, as the timer is no
+      // longer valid.
+      esm_ebr_timer_data->ctx->esm_ctx.T3489.id = NAS_TIMER_INACTIVE_ID;
       /*
        * Re-send deactivate EPS bearer context request message to the UE
        */
@@ -212,7 +216,7 @@ static void _esm_information_t3489_handler(void* args) {
        * Re-start T3489 timer
        */
       bdestroy_wrapper(&esm_ebr_timer_data->msg);
-      free_wrapper((void**) esm_ebr_timer_data);
+      free_wrapper((void**) &esm_ebr_timer_data);
     }
   }
 
@@ -227,19 +231,21 @@ static void _esm_information_t3489_handler(void* args) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _esm_information()                                  **
+ ** Name:    _esm_information()                                            **
  **                                                                        **
  ** Description: Sends DEACTIVATE EPS BEREAR CONTEXT REQUEST message and   **
- **      starts timer T3489                                        **
+ **      starts timer T3489.                                               **
+ **      Function also clearns out any existing T3489 timers referenced    **
+ **      by the esm_ctx datastructure.                                     **
  **                                                                        **
- ** Inputs:  ue_id:      UE local identifier                        **
- **      ebi:       EPS bearer identity                        **
- **      msg:       Encoded ESM message to be sent             **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE local identifier                               **
+ **      ebi:       EPS bearer identity                                    **
+ **      msg:       Encoded ESM message to be sent                         **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    T3489                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    T3489                                                  **
  **                                                                        **
  ***************************************************************************/
 static int _esm_information(
@@ -275,7 +281,7 @@ static int _esm_information(
 
     OAILOG_INFO(
         LOG_NAS_EMM,
-        "UE " MME_UE_S1AP_ID_FMT "Timer T3489 (%lx) expires in %ld seconds\n",
+        "UE " MME_UE_S1AP_ID_FMT "Timer T3489 (%lx) expires in %d seconds\n",
         ue_id, emm_context_p->esm_ctx.T3489.id,
         emm_context_p->esm_ctx.T3489.sec);
   } else {

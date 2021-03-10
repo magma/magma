@@ -1,4 +1,0 @@
-This folder provides an easy way to validate json modeled on yang. Simply add a
-file with validate.json in the directory and run 'docker-compose up --build' and
-it will build an image and run a validator to tell you if the provided json is
-valid yang according to the models.

@@ -14,4 +14,4 @@
 # shellcheck disable=SC1091
 source /etc/environment
 
-cd "$CODEGEN_ROOT" && "$M2_HOME"/bin/mvn clean package && cd - || exit
+cd "$CODEGEN_ROOT" && "$M2_HOME"/bin/mvn clean package -DskipTests && cd - || exit

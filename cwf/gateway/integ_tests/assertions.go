@@ -107,7 +107,25 @@ func (tr *TestRunner) DisconnectAndAssertSuccess(imsi string) {
 func (tr *TestRunner) AssertPolicyEnforcementRecordIsNil(imsi string) {
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(tr.t, err)
+	// This string is taken from pipelined.yml enforcement information
+	delete(recordsBySubID[prependIMSIPrefix(imsi)], "internal_default_drop_flow_rule")
 	assert.Empty(tr.t, recordsBySubID[prependIMSIPrefix(imsi)])
+}
+
+func (tr *TestRunner) AssertEventuallyAllRulesRemovedAfterDisconnect(imsi string) {
+	checkFn := func() bool {
+		fmt.Printf("Waiting until all rules are removed in enforcement stats for %s...\n", imsi)
+		records, err := tr.GetPolicyUsage()
+		if err != nil {
+			return false
+		}
+		if len(records[prependIMSIPrefix(imsi)]) == 0 {
+			return true
+		}
+		return false
+	}
+	assert.Eventually(tr.t, checkFn, 10*time.Second, 2*time.Second)
+	fmt.Println("All enforcement stats are gone!")
 }
 
 // Query assertion result from MockPCRF and assert all expectations were met.
@@ -135,6 +153,20 @@ func (tr *TestRunner) assertAllExpectationsMetNoError(resByIdx []*protos.Expecta
 	if !matches {
 		tr.t.Log(errByIdx)
 	}
+}
+
+func (tr *TestRunner) AssertPolicyUsage(imsi, rule string, minBytes, maxBytes uint64) uint64 {
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(tr.t, err)
+	assert.NotNil(tr.t, recordsBySubID[prependIMSIPrefix(imsi)], fmt.Sprintf("Policy usage record for %s not found", imsi))
+	record := recordsBySubID[prependIMSIPrefix(imsi)][rule]
+	assert.NotNil(tr.t, record, fmt.Sprintf("Policy usage record for %s not found for %s", rule, imsi))
+	if record != nil {
+		assert.GreaterOrEqual(tr.t, record.BytesTx, minBytes, fmt.Sprintf("%s actual=%d < expected=%d", record.RuleId, record.BytesTx, minBytes))
+		assert.LessOrEqual(tr.t, record.BytesTx, maxBytes, fmt.Sprintf("%s actual=%d > expected=%d", record.RuleId, record.BytesTx, maxBytes))
+		return record.BytesTx
+	}
+	return 0
 }
 
 func makeDefaultExpectationResults(n int) []*protos.ExpectationResult {

@@ -78,7 +78,7 @@ static int _nas_message_decrypt(
 
 static int _nas_message_encrypt(
     unsigned char* dest, const unsigned char* src, uint8_t type, uint32_t code,
-    uint8_t seq, int const direction, size_t length,
+    uint8_t seq, size_t length,
     emm_security_context_t* const emm_security_context);
 
 /* Functions used for integrity protection of layer 3 NAS messages */
@@ -127,13 +127,13 @@ int nas_message_encrypt(
     OAILOG_FUNC_RETURN(LOG_NAS, TLV_BUFFER_TOO_SHORT);
   } else if (size > 1) {
     /*
-     * Encrypt the plain NAS message
+     * Encrypt the plain NAS message.
+     * bytes is zero if emm_security_context is null.
      */
     bytes = _nas_message_encrypt(
         outbuf + size, inbuf, header->security_header_type,
         header->message_authentication_code, header->sequence_number,
-        emm_security_context->direction_encode, length - size,
-        emm_security_context);
+        length - size, emm_security_context);
 
     /*
      * Integrity protected the NAS message
@@ -154,7 +154,10 @@ int nas_message_encrypt(
       /*
        * Set the message authentication code of the NAS message
        */
-      *(uint32_t*) (outbuf + sizeof(uint8_t)) = htonl(mac);
+      uint32_t network_mac = htonl(mac);
+      memcpy(
+          outbuf + sizeof(uint8_t), (unsigned char*) &network_mac,
+          sizeof(uint32_t));
     }
   } else {
     /*
@@ -175,26 +178,28 @@ int nas_message_encrypt(
    * * * * overflow counter shall also be incremented by one (see
    * * * * subclause 4.4.3.5).
    */
-  if (SECU_DIRECTION_DOWNLINK == emm_security_context->direction_encode) {
-    emm_security_context->dl_count.seq_num += 1;
+  if (emm_security_context) {
+    if (SECU_DIRECTION_DOWNLINK == emm_security_context->direction_encode) {
+      emm_security_context->dl_count.seq_num += 1;
 
-    if (!emm_security_context->dl_count.seq_num) {
-      emm_security_context->dl_count.overflow += 1;
+      if (!emm_security_context->dl_count.seq_num) {
+        emm_security_context->dl_count.overflow += 1;
+      }
+
+      OAILOG_DEBUG(
+          LOG_NAS, "Incremented emm_security_context.dl_count.seq_num -> %u\n",
+          emm_security_context->dl_count.seq_num);
+    } else {
+      emm_security_context->ul_count.seq_num += 1;
+
+      if (!emm_security_context->ul_count.seq_num) {
+        emm_security_context->ul_count.overflow += 1;
+      }
+
+      OAILOG_DEBUG(
+          LOG_NAS, "Incremented emm_security_context.ul_count.seq_num -> %u\n",
+          emm_security_context->ul_count.seq_num);
     }
-
-    OAILOG_DEBUG(
-        LOG_NAS, "Incremented emm_security_context.dl_count.seq_num -> %u\n",
-        emm_security_context->dl_count.seq_num);
-  } else {
-    emm_security_context->ul_count.seq_num += 1;
-
-    if (!emm_security_context->ul_count.seq_num) {
-      emm_security_context->ul_count.overflow += 1;
-    }
-
-    OAILOG_DEBUG(
-        LOG_NAS, "Incremented emm_security_context.ul_count.seq_num -> %u\n",
-        emm_security_context->ul_count.seq_num);
   }
 
   if (bytes < 0) {
@@ -571,7 +576,10 @@ int nas_message_encode(
       /*
        * Set the message authentication code of the NAS message
        */
-      *(uint32_t*) (buffer + sizeof(uint8_t)) = htonl(mac);
+      uint32_t network_mac = htonl(mac);
+      memcpy(
+          buffer + sizeof(uint8_t), (unsigned char*) &network_mac,
+          sizeof(uint32_t));
 
       if (emm_security_context) {
         /*
@@ -991,7 +999,7 @@ static int _nas_message_protected_encode(
       bytes = _nas_message_encrypt(
           buffer, plain_msg, msg->header.security_header_type,
           msg->header.message_authentication_code, msg->header.sequence_number,
-          emm_security_context->direction_encode, size, emm_security_context);
+          size, emm_security_context);
       // seq, size);
       // seq ++;
     }
@@ -1228,7 +1236,7 @@ static int _nas_message_decrypt(
  ***************************************************************************/
 static int _nas_message_encrypt(
     unsigned char* dest, const unsigned char* src, uint8_t security_header_type,
-    uint32_t code, uint8_t seq, int const direction, size_t length,
+    uint32_t code, uint8_t seq, size_t length,
     emm_security_context_t* const emm_security_context) {
   nas_stream_cipher_t stream_cipher = {0};
   uint32_t count                    = 0;
@@ -1241,6 +1249,8 @@ static int _nas_message_encrypt(
         "No security context set for encryption protection algorithm\n");
     OAILOG_FUNC_RETURN(LOG_NAS, 0);
   }
+
+  int const direction = emm_security_context->direction_encode;
 
   switch (security_header_type) {
     case SECURITY_HEADER_TYPE_NOT_PROTECTED:

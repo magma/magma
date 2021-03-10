@@ -25,7 +25,7 @@
 #ifndef FILE_S1AP_MME_TA_SEEN
 #define FILE_S1AP_MME_TA_SEEN
 
-#include "S1ap-SupportedTAs.h"
+#include "S1ap_SupportedTAs.h"
 #include "TrackingAreaIdentity.h"
 #include "s1ap_types.h"
 

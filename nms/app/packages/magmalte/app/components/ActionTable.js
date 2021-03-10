@@ -13,10 +13,11 @@
  * @flow strict-local
  * @format
  */
-import type {ComponentType} from 'react';
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import CardTitleRow from './layout/CardTitleRow';
 import Check from '@material-ui/icons/Check';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
@@ -34,13 +35,25 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
-import React, {useState} from 'react';
+import React from 'react';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import Select from '@material-ui/core/Select';
+import TextField from '@material-ui/core/TextField';
 
 import {forwardRef} from 'react';
+import {makeStyles} from '@material-ui/styles';
+import {useState} from 'react';
+
+const useStyles = makeStyles(_ => ({
+  inputRoot: {
+    '&.MuiOutlinedInput-root': {
+      padding: 0,
+    },
+  },
+}));
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -58,6 +71,7 @@ const tableIcons = {
     <ChevronLeft {...props} ref={ref} />
   )),
   ResetSearch: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
+  Retry: forwardRef((props, ref) => <RefreshIcon {...props} ref={ref} />),
   Search: forwardRef((props, ref) => <Search {...props} ref={ref} />),
   SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
   ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
@@ -66,7 +80,7 @@ const tableIcons = {
 
 type ActionMenuItems = {
   name: string,
-  handleFunc?: () => void,
+  handleFunc?: () => void | (() => Promise<void>),
 };
 
 type ColumnType =
@@ -85,7 +99,10 @@ type ActionTableColumn = {
 
 type ActionTableOptions = {
   actionsColumnIndex: number,
+  pageSize?: number,
   pageSizeOptions: Array<number>,
+  rowStyle?: {},
+  headerStyle?: {},
 };
 
 type ActionOrderType = {
@@ -94,8 +111,13 @@ type ActionOrderType = {
   tableData: {},
 };
 
+export type ActionFilter = {
+  column: ActionTableColumn,
+  value: string,
+};
+
 export type ActionQuery = {
-  filters: Array<string>,
+  filters: Array<ActionFilter>,
   orderBy: ActionOrderType,
   orderDirection: string,
   page: number,
@@ -105,10 +127,11 @@ export type ActionQuery = {
 };
 
 export type ActionTableProps<T> = {
-  titleIcon?: ComponentType<SvgIconExports>,
+  titleIcon?: SvgIcon,
   tableRef?: {},
   toolbar?: {},
   editable?: {},
+  localization?: {},
   title?: string,
   handleCurrRow?: T => void,
   columns: Array<ActionTableColumn>,
@@ -128,6 +151,7 @@ type SelectProps = {
   defaultValue?: string,
   value: string,
   onChange: string => void,
+  testId?: string,
 };
 
 export function SelectEditComponent(props: SelectProps) {
@@ -140,6 +164,7 @@ export function SelectEditComponent(props: SelectProps) {
   return (
     <FormControl>
       <Select
+        data-testid={props.testId ?? ''}
         value={props.value}
         onChange={({target}) => props.onChange(target.value)}
         input={<OutlinedInput />}>
@@ -150,6 +175,30 @@ export function SelectEditComponent(props: SelectProps) {
         ))}
       </Select>
     </FormControl>
+  );
+}
+
+export function AutoCompleteEditComponent(props: SelectProps) {
+  const classes = useStyles();
+
+  return (
+    <Autocomplete
+      disableClearable
+      options={props.content}
+      freeSolo
+      value={props.value}
+      classes={{
+        inputRoot: classes.inputRoot,
+      }}
+      onChange={(_, newValue) => {
+        props.onChange(newValue);
+      }}
+      inputValue={props.value}
+      onInputChange={(_, newInputValue) => {
+        props.onChange(newInputValue);
+      }}
+      renderInput={(params: {}) => <TextField {...params} variant="outlined" />}
+    />
   );
 }
 
@@ -206,6 +255,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
     <>
       {actionTableJSX}
       <MaterialTable
+        localization={props.localization}
         toolbar={props.toolbar}
         tableRef={props.tableRef}
         editable={props.editable}
@@ -217,7 +267,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
         icons={tableIcons}
         data={props.data}
         actions={
-          props.menuItems
+          props.menuItems?.length
             ? [
                 ...(props.actions ? props.actions : []),
                 {

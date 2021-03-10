@@ -23,6 +23,7 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -42,8 +43,7 @@ import (
 // - Assert that the traffic goes through. This means the network wide rules
 //   gets installed properly.
 // - Trigger a Gx RAR with a rule removal for the block all rule. Assert the
-//   answer is successful. Since the only rule with a usage monitor is removed,
-//   the session will terminate. Assert that policy usage is empty.
+//   answer is successful.
 func TestOmnipresentRules(t *testing.T) {
 	fmt.Println("\nRunning TestOmnipresentRules...")
 	tr := NewTestRunner(t)
@@ -103,7 +103,7 @@ func TestOmnipresentRules(t *testing.T) {
 		ResultCode:    diam.Success,
 	}
 	gyInitRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	gyInitAnswer:= protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	gyInitAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	gyInitExpectation := protos.NewGyCreditControlExpectation().Expect(gyInitRequest).Return(gyInitAnswer)
 	gyExpectations := []*protos.GyCreditControlExpectation{gyInitExpectation}
 	assert.NoError(t, setOCSExpectations(gyExpectations, nil))
@@ -137,27 +137,19 @@ func TestOmnipresentRules(t *testing.T) {
 	}
 	fmt.Printf("Sending a ReAuthRequest with target %v\n", target)
 	raa, err := sendPolicyReAuthRequest(target)
-	tr.WaitForReAuthToProcess()
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
-	fmt.Printf("RAA result code=%v, should be=%v\n", int(raa.ResultCode), diam.Success)
-	//assert.Equal(t, diam.Success, int(raa.ResultCode))
-
-	// With all monitored rules gone, the session should terminate
-	recordsBySubID, err = tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)])
+	assert.Equal(t, int(raa.ResultCode), diameter.SuccessCode)
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // TODO: test disabled for now. Need to modify mconfig to enable/disable Gx
-func testGxDisabledOmnipresentRules(t *testing.T) {
+func TestGxDisabledOmnipresentRules(t *testing.T) {
+	t.Skip()
 	fmt.Println("\nRunning TestOmnipresentRulesGxDisabled...")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
@@ -205,7 +197,7 @@ func testGxDisabledOmnipresentRules(t *testing.T) {
 		ResultCode:    diam.Success,
 	}
 	gyInitRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	gyInitAnswer:= protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	gyInitAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	gyInitExpectation := protos.NewGyCreditControlExpectation().Expect(gyInitRequest).Return(gyInitAnswer)
 	gyExpectations := []*protos.GyCreditControlExpectation{gyInitExpectation}
 	assert.NoError(t, setOCSExpectations(gyExpectations, nil))
@@ -228,6 +220,5 @@ func testGxDisabledOmnipresentRules(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

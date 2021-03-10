@@ -11,18 +11,25 @@
  * limitations under the License.
  */
 
+// File gateway_handlers.go provides generic gateway handlers, with hooks for
+// specific gateway types.
+//
+// These handlers do not support updating a gateway's ID.
+
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
@@ -31,61 +38,75 @@ import (
 	"github.com/pkg/errors"
 )
 
-// MagmadEncompassingGateway is an interface for a gateway API model which
-// wraps the magmad gateway with more fields that translate into additional
-// network entities in the storage layer.
-// Note that *models.MagmadGateway itself implements this interface as well.
+// MagmadEncompassingGateway represents a subtype of the Magmad gateway.
+// The encompassing gateway wraps the base Magmad gateway with additional
+// fields by creating and associating further network entities with the
+// Magmad gateway.
+//
+// Note: since the default Magmad gateway model implements this interface as
+// well, DO NOT return the base Magmad model from any of the "get additional"
+// methods.
 type MagmadEncompassingGateway interface {
-	// ValidatableModel allows the model to be validated by calling
-	// ValidateModel()
 	serde.ValidatableModel
 
-	// GetMagmadGateway returns the *models.MagmadGateway which is wrapped by
-	// the model
+	// GetGatewayType returns the type of the encompassing gateway.
+	GetGatewayType() string
+
+	// GetMagmadGateway returns the Magmad gateways wrapped by the subtype.
 	GetMagmadGateway() *models.MagmadGateway
 
+	// GetAdditionalLoadsOnLoad is a static method that extra TKs to load when
+	// loading this gateway.
+	// The entities loaded during this operation will be passed to the
+	// MakeTypedGateways implementor.
+	// NOTE: unlike with other "get additional" methods, DO NOT return the
+	// gateway itself for this method.
+	GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs
+
 	// GetAdditionalWritesOnCreate returns extra write operations to perform
-	// during creation, inside the same backend transaction as the creation
-	// of the magmad gateway.
-	// Do NOT include the write operation for the magmad gateway in the return
-	// value, as *models.MagmadGateway itself implements this interface and
-	// will create itself.
+	// during creation.
+	// The writes are performed in the same backend transaction with creation
+	// of the Magmad gateway.
 	GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation
 
-	// GetAdditionalEntitiesToLoadOnUpdate is a **static** method which
-	// returns a list of entity keys to load in addition to the magmad gateway
-	// during an update operation. The gateway ID from the API URL parameter
-	// is given as an argument.
+	// GetAdditionalLoadsOnUpdate returns a list of additional entity keys to
+	// load during an update.
 	// The entities loaded during this operation will be passed to
-	// `GetAdditionalWritesOnUpdate`.
-	GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey
+	// GetAdditionalWritesOnUpdate.
+	GetAdditionalLoadsOnUpdate() storage.TKs
 
 	// GetAdditionalWritesOnUpdate returns extra write operations to perform
-	// during a top-level update, inside the same backend transaction as the
-	// update of the magmad gateway.
-	// The gateway ID from the API URL parameter is given as an argument.
-	// Do NOT include the write operation for the magmad gateway in the return
-	// value, as *models.MagmadGateway itself implements this interface and
-	// will update itself.
-	GetAdditionalWritesOnUpdate(
-		gatewayID string,
-		loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
-	) ([]configurator.EntityWriteOperation, error)
+	// during an update.
+	// The writes are performed in the same backend transaction with the update
+	// of the Magmad gateway.
+	GetAdditionalWritesOnUpdate(loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error)
 }
 
-func ListGatewaysHandler(c echo.Context) error {
+// MakeTypedGateways is passed the loaded ents and additional objects,
+// and returns encompassing Magmad gateways keyed by gateway ID.
+type MakeTypedGateways func(
+	entsByTK configurator.NetworkEntitiesByTK,
+	devicesByID map[string]interface{},
+	statusesByID map[string]*models.GatewayStatus,
+) map[string]GatewayModel
+
+func listGatewaysHandler(c echo.Context) error {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	ents, _, err := configurator.LoadEntities(nid, swag.String(orc8r.MagmadGatewayType), nil, nil, nil, configurator.FullEntityLoadCriteria())
+	ents, _, err := configurator.LoadEntities(
+		nid, swag.String(orc8r.MagmadGatewayType), nil, nil, nil,
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	entsByTK := ents.ToEntitiesByID()
+	entsByTK := ents.MakeByTK()
 
-	// for each magmad gateway, we have to load its corresponding device and
+	// For each magmad gateway, we have to load its corresponding device and
 	// its reported status
 	deviceIDs := make([]string, 0, len(entsByTK))
 	for tk, ent := range entsByTK {
@@ -94,25 +115,25 @@ func ListGatewaysHandler(c echo.Context) error {
 		}
 	}
 
-	devicesByID, err := device.GetDevices(nid, orc8r.AccessGatewayRecordType, deviceIDs)
+	devicesByID, err := device.GetDevices(nid, orc8r.AccessGatewayRecordType, deviceIDs, serdes.Device)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load devices"), http.StatusInternalServerError)
 	}
-	statusesByID, err := state.GetGatewayStatuses(nid, deviceIDs)
+	statusesByID, err := wrappers.GetGatewayStatuses(nid, deviceIDs)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, makeGateways(entsByTK, devicesByID, statusesByID))
 }
 
-func CreateGatewayHandler(c echo.Context) error {
-	if nerr := CreateMagmadGatewayFromModel(c, &models.MagmadGateway{}); nerr != nil {
+func createGatewayHandler(c echo.Context) error {
+	if nerr := CreateGateway(c, &models.MagmadGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
 }
 
-func CreateMagmadGatewayFromModel(c echo.Context, model MagmadEncompassingGateway) *echo.HTTPError {
+func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes, deviceSerdes serde.Registry) *echo.HTTPError {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -122,10 +143,10 @@ func CreateMagmadGatewayFromModel(c echo.Context, model MagmadEncompassingGatewa
 	if nerr != nil {
 		return nerr
 	}
-	encompassingGateway := payload.(MagmadEncompassingGateway)
-	mdGateway := encompassingGateway.GetMagmadGateway()
+	subGateway := payload.(MagmadEncompassingGateway)
+	mdGateway := subGateway.GetMagmadGateway()
 
-	// must associate to an existing tier
+	// Must associate to an existing tier
 	tierExists, err := configurator.DoesEntityExist(nid, orc8r.UpgradeTierEntityType, string(mdGateway.Tier))
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to check for tier existence"), http.StatusInternalServerError)
@@ -139,18 +160,17 @@ func CreateMagmadGatewayFromModel(c echo.Context, model MagmadEncompassingGatewa
 	// If the device exists but is unassigned, update it to the payload
 	// If the device doesn't exist, create it and move on
 	deviceID := mdGateway.Device.HardwareID
-	_, err = device.GetDevice(nid, orc8r.AccessGatewayRecordType, deviceID)
+	_, err = device.GetDevice(nid, orc8r.AccessGatewayRecordType, deviceID, deviceSerdes)
 	switch {
 	case err == merrors.ErrNotFound:
-		err = device.RegisterDevice(nid, orc8r.AccessGatewayRecordType, deviceID, mdGateway.Device)
+		err = device.RegisterDevice(nid, orc8r.AccessGatewayRecordType, deviceID, mdGateway.Device, deviceSerdes)
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to register physical device"), http.StatusInternalServerError)
 		}
-		break
 	case err != nil:
 		return obsidian.HttpError(errors.Wrap(err, "failed to check if physical device is already registered"), http.StatusConflict)
 	default: // err == nil
-		assignedEnt, err := configurator.LoadEntityForPhysicalID(deviceID, configurator.EntityLoadCriteria{})
+		assignedEnt, err := configurator.LoadEntityForPhysicalID(deviceID, configurator.EntityLoadCriteria{}, entitySerdes)
 		switch {
 		case err == nil:
 			return obsidian.HttpError(errors.Errorf("device %s is already mapped to gateway %s", deviceID, assignedEnt.Key), http.StatusBadRequest)
@@ -158,47 +178,47 @@ func CreateMagmadGatewayFromModel(c echo.Context, model MagmadEncompassingGatewa
 			return obsidian.HttpError(errors.Wrap(err, "failed to check for existing device assignment"), http.StatusInternalServerError)
 		}
 
-		if err := device.UpdateDevice(nid, orc8r.AccessGatewayRecordType, deviceID, mdGateway.Device); err != nil {
+		if err := device.UpdateDevice(nid, orc8r.AccessGatewayRecordType, deviceID, mdGateway.Device, deviceSerdes); err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to update device record"), http.StatusInternalServerError)
 		}
 	}
 
-	// create the magmad gateway, update the tier, perform additional writes
+	// Create the magmad gateway, update the tier, perform additional writes
 	// as necessary
-	writes := []configurator.EntityWriteOperation{}
+	var writes []configurator.EntityWriteOperation
 	writes = append(writes, mdGateway.GetAdditionalWritesOnCreate()...)
 	writes = append(writes, configurator.EntityUpdateCriteria{
 		Type:              orc8r.UpgradeTierEntityType,
 		Key:               string(mdGateway.Tier),
 		AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(mdGateway.ID)}},
 	})
-	// these type switches aren't great but it's the best I could think of
+	// These type switches aren't great but it's the best I could think of
 	switch payload.(type) {
 	case *models.MagmadGateway:
 		break
 	default:
-		writes = append(writes, encompassingGateway.GetAdditionalWritesOnCreate()...)
+		writes = append(writes, subGateway.GetAdditionalWritesOnCreate()...)
 	}
 
-	if err = configurator.WriteEntities(nid, writes...); err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "failed to create gateway"), http.StatusInternalServerError)
+	if err = configurator.WriteEntities(nid, writes, entitySerdes); err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "error creating gateway"), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func GetGatewayHandler(c echo.Context) error {
+func getGatewayHandler(c echo.Context) error {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
-	ret, nerr := LoadMagmadGatewayModel(nid, gid)
+	ret, nerr := LoadMagmadGateway(nid, gid)
 	if nerr != nil {
 		return nerr
 	}
 	return c.JSON(http.StatusOK, ret)
 }
 
-func LoadMagmadGatewayModel(networkID string, gatewayID string) (*models.MagmadGateway, *echo.HTTPError) {
+func LoadMagmadGateway(networkID string, gatewayID string) (*models.MagmadGateway, *echo.HTTPError) {
 	ent, err := configurator.LoadEntity(
 		networkID, orc8r.MagmadGatewayType, gatewayID,
 		configurator.EntityLoadCriteria{
@@ -207,6 +227,7 @@ func LoadMagmadGatewayModel(networkID string, gatewayID string) (*models.MagmadG
 			LoadAssocsToThis:   true,
 			LoadAssocsFromThis: false,
 		},
+		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
 		return nil, echo.ErrNotFound
@@ -215,11 +236,11 @@ func LoadMagmadGatewayModel(networkID string, gatewayID string) (*models.MagmadG
 		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	dev, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, ent.PhysicalID)
+	dev, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, ent.PhysicalID, serdes.Device)
 	if err != nil && err != merrors.ErrNotFound {
 		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	status, err := state.GetGatewayStatus(networkID, ent.PhysicalID)
+	status, err := wrappers.GetGatewayStatus(networkID, ent.PhysicalID)
 	if err != nil && err != merrors.ErrNotFound {
 		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -233,33 +254,38 @@ func LoadMagmadGatewayModel(networkID string, gatewayID string) (*models.MagmadG
 	return (&models.MagmadGateway{}).FromBackendModels(ent, devCasted, status), nil
 }
 
-func UpdateGatewayHandler(c echo.Context) error {
+func updateGatewayHandler(c echo.Context) error {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	if nerr = UpdateMagmadGatewayFromModel(c, nid, gid, &models.MagmadGateway{}); nerr != nil {
+	if nerr = UpdateGateway(c, nid, gid, &models.MagmadGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
-func UpdateMagmadGatewayFromModel(c echo.Context, nid string, gid string, model MagmadEncompassingGateway) *echo.HTTPError {
+func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompassingGateway, entitySerdes, deviceSerdes serde.Registry) *echo.HTTPError {
 	payload, nerr := GetAndValidatePayload(c, model)
 	if nerr != nil {
 		return nerr
 	}
-	encompassingGateway := payload.(MagmadEncompassingGateway)
-	mdGateway := encompassingGateway.GetMagmadGateway()
+	subGateway := payload.(MagmadEncompassingGateway)
+	mdGateway := subGateway.GetMagmadGateway()
 
-	entsToLoad := []storage.TypeAndKey{}
-	entsToLoad = append(entsToLoad, mdGateway.GetAdditionalEntitiesToLoadOnUpdate(gid)...)
+	if gid != string(mdGateway.ID) {
+		err := fmt.Errorf("gateway ID cannot be updated: gateway ID from parameter (%s) and payload (%s) must match", gid, mdGateway.ID)
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	var entsToLoad []storage.TypeAndKey
+	entsToLoad = append(entsToLoad, mdGateway.GetAdditionalLoadsOnUpdate()...)
 	switch payload.(type) {
 	case *models.MagmadGateway:
 		break
 	default:
-		entsToLoad = append(entsToLoad, encompassingGateway.GetAdditionalEntitiesToLoadOnUpdate(gid)...)
+		entsToLoad = append(entsToLoad, subGateway.GetAdditionalLoadsOnUpdate()...)
 	}
 
 	loadedEnts, _, err := configurator.LoadEntities(
@@ -267,24 +293,25 @@ func UpdateMagmadGatewayFromModel(c echo.Context, nid string, gid string, model 
 		nil, nil, nil,
 		entsToLoad,
 		configurator.FullEntityLoadCriteria(),
+		entitySerdes,
 	)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load gateway before update"), http.StatusInternalServerError)
 	}
 
-	writes, nerr := getUpdateWrites(gid, encompassingGateway, loadedEnts)
+	writes, nerr := getUpdateWrites(subGateway, loadedEnts)
 	if nerr != nil {
 		return nerr
 	}
 
-	err = configurator.WriteEntities(nid, writes...)
+	err = configurator.WriteEntities(nid, writes, entitySerdes)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	// device info is cheap to update, so just do it all the time if
+	// Device info is cheap to update, so just do it all the time if
 	// configurator write was successful
-	err = device.UpdateDevice(nid, orc8r.AccessGatewayRecordType, mdGateway.Device.HardwareID, mdGateway.Device)
+	err = device.UpdateDevice(nid, orc8r.AccessGatewayRecordType, mdGateway.Device.HardwareID, mdGateway.Device, deviceSerdes)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to update device info"), http.StatusInternalServerError)
 	}
@@ -292,30 +319,30 @@ func UpdateMagmadGatewayFromModel(c echo.Context, nid string, gid string, model 
 	return nil
 }
 
-func getUpdateWrites(gid string, payload MagmadEncompassingGateway, loadedEnts configurator.NetworkEntities) ([]configurator.EntityWriteOperation, *echo.HTTPError) {
-	writes := []configurator.EntityWriteOperation{}
-	loadedEntsByID := loadedEnts.ToEntitiesByID()
+func getUpdateWrites(payload MagmadEncompassingGateway, loadedEnts configurator.NetworkEntities) ([]configurator.EntityWriteOperation, *echo.HTTPError) {
+	var writes []configurator.EntityWriteOperation
+	loadedEntsByID := loadedEnts.MakeByTK()
 
-	mdGwWrites, err := payload.GetMagmadGateway().GetAdditionalWritesOnUpdate(gid, loadedEntsByID)
+	mdGwWrites, err := payload.GetMagmadGateway().GetAdditionalWritesOnUpdate(loadedEntsByID)
 	switch {
 	case err == merrors.ErrNotFound:
 		return writes, echo.ErrNotFound
 	case err != nil:
-		return writes, obsidian.HttpError(errors.Wrap(err, "failed to get upate operations from magmad model"), http.StatusInternalServerError)
+		return writes, obsidian.HttpError(errors.Wrap(err, "failed to get update operations from magmad model"), http.StatusInternalServerError)
 	}
 
-	// short circuit if this is the magmad gateway
+	// Short circuit if this is the magmad gateway
 	switch payload.(type) {
 	case *models.MagmadGateway:
 		return mdGwWrites, nil
 	}
 
-	payloadWrites, err := payload.GetAdditionalWritesOnUpdate(gid, loadedEntsByID)
+	payloadWrites, err := payload.GetAdditionalWritesOnUpdate(loadedEntsByID)
 	switch {
 	case err == merrors.ErrNotFound:
 		return writes, echo.ErrNotFound
 	case err != nil:
-		return writes, obsidian.HttpError(errors.Wrap(err, "failed to get upate operations from payload model"), http.StatusInternalServerError)
+		return writes, obsidian.HttpError(errors.Wrap(err, "failed to get update operations from payload model"), http.StatusInternalServerError)
 	}
 
 	writes = append(writes, mdGwWrites...)
@@ -323,36 +350,45 @@ func getUpdateWrites(gid string, payload MagmadEncompassingGateway, loadedEnts c
 	return writes, nil
 }
 
-func DeleteGatewayHandler(c echo.Context) error {
+func deleteGatewayHandler(c echo.Context) error {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
-
-	existingEnt, err := configurator.LoadEntity(
-		nid, orc8r.MagmadGatewayType, gid,
-		configurator.EntityLoadCriteria{LoadMetadata: true, LoadAssocsToThis: true},
-	)
-	switch {
-	case err == merrors.ErrNotFound:
-		return echo.ErrNotFound
-	case err != nil:
-		return obsidian.HttpError(errors.Wrap(err, "failed to load gateway"), http.StatusInternalServerError)
-	}
-
-	err = configurator.DeleteEntity(nid, orc8r.MagmadGatewayType, gid)
+	err := DeleteMagmadGateway(nid, gid, nil)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return makeErr(err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func DeleteMagmadGateway(networkID, gatewayID string, additionalDeletes storage.TKs) error {
+	mdGw, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{}, serdes.Entity)
+	if err != nil {
+		return err
 	}
 
-	if existingEnt.PhysicalID != "" {
-		err = device.DeleteDevice(nid, orc8r.AccessGatewayRecordType, existingEnt.PhysicalID)
+	var deletes storage.TKs
+	deletes = append(deletes, storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: gatewayID})
+	deletes = append(deletes, additionalDeletes...)
+
+	err = configurator.DeleteEntities(networkID, deletes)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "error deleting gateway"), http.StatusInternalServerError)
+	}
+
+	// Now we delete the associated device. Even though we error out
+	// request if this fails, failing on this specific step is non-
+	// blocking because gateway registration handles the case where a
+	// device already exists and is unassigned.
+	if mdGw.PhysicalID != "" {
+		err = device.DeleteDevice(networkID, orc8r.AccessGatewayRecordType, mdGw.PhysicalID)
 		if err != nil {
-			return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway"), http.StatusInternalServerError)
+			return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway. no further action is required"), http.StatusInternalServerError)
 		}
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return nil
 }
 
 func GetStateHandler(c echo.Context) error {
@@ -368,7 +404,7 @@ func GetStateHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	st, err := state.GetGatewayStatus(networkID, physicalID)
+	st, err := wrappers.GetGatewayStatus(networkID, physicalID)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
@@ -379,12 +415,12 @@ func GetStateHandler(c echo.Context) error {
 }
 
 func makeGateways(
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*models.GatewayStatus,
 ) map[string]*models.MagmadGateway {
 	gatewayEntsByKey := map[string]*models.MagmadGateway{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.Filter(orc8r.MagmadGatewayType) {
 		hwID := ent.PhysicalID
 		var devCasted *models.GatewayDevice
 		if devicesByID[hwID] != nil {
@@ -393,4 +429,11 @@ func makeGateways(
 		gatewayEntsByKey[tk.Key] = (&models.MagmadGateway{}).FromBackendModels(ent, devCasted, statusesByID[hwID])
 	}
 	return gatewayEntsByKey
+}
+
+func makeErr(err error) *echo.HTTPError {
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
+	}
+	return obsidian.HttpError(err, http.StatusInternalServerError)
 }

@@ -19,7 +19,7 @@ type ImportingDef struct {
 
 	// bar
 	// Required: true
-	Bar *ImportingDefBar `json:"bar"`
+	Bar *BarDef `json:"bar"`
 
 	// baz
 	// Required: true
@@ -28,7 +28,7 @@ type ImportingDef struct {
 
 	// foo
 	// Required: true
-	Foo *ImportingDefFoo `json:"foo"`
+	Foo *FooDef `json:"foo"`
 }
 
 // Validate validates this importing def
@@ -113,211 +113,6 @@ func (m *ImportingDef) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *ImportingDef) UnmarshalBinary(b []byte) error {
 	var res ImportingDef
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// ImportingDefBar importing def bar
-// swagger:model ImportingDefBar
-type ImportingDefBar struct {
-
-	// baz
-	// Required: true
-	Baz *ImportingDefBarBaz `json:"baz"`
-
-	// quz
-	// Required: true
-	Quz *int64 `json:"quz"`
-}
-
-// Validate validates this importing def bar
-func (m *ImportingDefBar) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.validateBaz(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateQuz(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *ImportingDefBar) validateBaz(formats strfmt.Registry) error {
-
-	if err := validate.Required("bar"+"."+"baz", "body", m.Baz); err != nil {
-		return err
-	}
-
-	if m.Baz != nil {
-		if err := m.Baz.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("bar" + "." + "baz")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *ImportingDefBar) validateQuz(formats strfmt.Registry) error {
-
-	if err := validate.Required("bar"+"."+"quz", "body", m.Quz); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *ImportingDefBar) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *ImportingDefBar) UnmarshalBinary(b []byte) error {
-	var res ImportingDefBar
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// ImportingDefBarBaz importing def bar baz
-// swagger:model ImportingDefBarBaz
-type ImportingDefBarBaz struct {
-
-	// hello
-	// Min Length: 1
-	Hello string `json:"hello,omitempty"`
-
-	// world
-	World int64 `json:"world,omitempty"`
-}
-
-// Validate validates this importing def bar baz
-func (m *ImportingDefBarBaz) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.validateHello(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *ImportingDefBarBaz) validateHello(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Hello) { // not required
-		return nil
-	}
-
-	if err := validate.MinLength("bar"+"."+"baz"+"."+"hello", "body", string(m.Hello), 1); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *ImportingDefBarBaz) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *ImportingDefBarBaz) UnmarshalBinary(b []byte) error {
-	var res ImportingDefBarBaz
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// ImportingDefFoo importing def foo
-// swagger:model ImportingDefFoo
-type ImportingDefFoo struct {
-
-	// bar
-	// Required: true
-	// Min Length: 1
-	Bar *string `json:"bar"`
-
-	// baz
-	// Required: true
-	Baz *int64 `json:"baz"`
-}
-
-// Validate validates this importing def foo
-func (m *ImportingDefFoo) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.validateBar(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateBaz(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *ImportingDefFoo) validateBar(formats strfmt.Registry) error {
-
-	if err := validate.Required("foo"+"."+"bar", "body", m.Bar); err != nil {
-		return err
-	}
-
-	if err := validate.MinLength("foo"+"."+"bar", "body", string(*m.Bar), 1); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *ImportingDefFoo) validateBaz(formats strfmt.Registry) error {
-
-	if err := validate.Required("foo"+"."+"baz", "body", m.Baz); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *ImportingDefFoo) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *ImportingDefFoo) UnmarshalBinary(b []byte) error {
-	var res ImportingDefFoo
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

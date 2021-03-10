@@ -1,84 +1,14 @@
 version: '3.7'
 
-# Standard logging for each service
 x-logging: &logging_anchor
   driver: "json-file"
   options:
-    max-size: "10mb"
+    max-size: "100m"
     max-file: "10"
 
 services:
-  ofproxy:
-    container_name: ofproxy
-    privileged: true
-    networks:
-      - control
-    environment:
-      - APPURL=${APPURL:-https://graph.expresswifi.com}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
-      - AWS_DEFAULT_REGION=${XWF_AWS_DEFAULT_REGION:-}
-      - AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID:-}
-      - DEBUG=1
-      - PORT=6653
-      - REDIRECTOR=ofredirector
-      - ACCESSTOKEN=${XWF_ACCESSTOKEN}
-      - AWSREGION=${XWF_AWS_DEFAULT_REGION:-}
-      - CPURL=${XWF_CPURL}
-      - DNSHARDTIMEOUT=60
-      - INSECURE=${INSECURE:-0}
-      - PARTNERNAME=${XWF_PARTNER_SHORT_NAME}
-      - ODS_CATEGORY_ID=${XWF_ODS_CATEGORY_ID}
-      - ODS_ACCESS_TOKEN=${XWF_ODS_ACCESS_TOKEN}
-      - ODS_PREFIX=xwf.openflow
-      - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
-      - ODS_ENTITY=ofproxy
-    logging: *logging_anchor
-  ofproxy-mt:
-    container_name: ofproxy-mt
-    privileged: true
-    networks:
-      - control
-    environment:
-      - APPURL=${APPURL:-https://graph.expresswifi.com}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
-      - AWS_DEFAULT_REGION=${XWF_AWS_DEFAULT_REGION:-}
-      - AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID:-}
-      - DEBUG=1
-      - PORT=6653
-      - REDIRECTOR=ofredirector
-      - ACCESSTOKEN=${XWF_ACCESSTOKEN}
-      - AWSREGION=${XWF_AWS_DEFAULT_REGION:-}
-      - CPURL=${XWF_CPURL}
-      - DNSHARDTIMEOUT=60
-      - INSECURE=${INSECURE:-0}
-      - MTARCH=1
-      - AWS_ENDPOINT=http://dynamo_db:8000/
-      - PARTNERSTABLE=ofp_partners
-      - PARTNERNAME=${XWF_PARTNER_SHORT_NAME}
-      - ODS_CATEGORY_ID=${XWF_ODS_CATEGORY_ID}
-      - ODS_ACCESS_TOKEN=${XWF_ODS_ACCESS_TOKEN}
-      - ODS_PREFIX=xwf.openflow
-      - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
-      - ODS_ENTITY=ofproxy
-    logging: *logging_anchor
-  ofredirector:
-    container_name: ofredirector
-    privileged: true
-    networks:
-      control:
-        ipv4_address: 10.0.12.231
-    environment:
-      - PUBLICIP=10.0.12.231
-      - DEBUG=1
-      - ODS_ACCESS_TOKEN=${XWF_ODS_ACCESS_TOKEN}
-      - ODS_PREFIX=cwf.openflow
-      - ODS_CATEGORY_ID=${XWF_ODS_CATEGORY_ID}
-      - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
-      - ODS_ENTITY=ofredirector
-    logging: *logging_anchor
   httpserver:
+    image: ${XWF_REGISTRY:-facebookconnectivity-openflow-xwfm-docker.jfrog.io}/httpserver:${TAG:-latest}
     container_name: httpserver
     ports:
       - "8080:80"
@@ -86,17 +16,20 @@ services:
       - control
     logging: *logging_anchor
   ofpradius:
+    image: ${XWF_REGISTRY:-facebookconnectivity-openflow-xwfm-docker.jfrog.io}/ofpradius:${TAG:-latest}
     container_name: ofpradius
     environment:
       - RADIUSSERVERURL=radiusserver
       - AUTHPORT=1812
     networks:
       - control
+    logging: *logging_anchor
   radiusserver:
+    image: ${MAGMA_REGISTRY:-local}/goradius:${XWFM_TAG:-latest}
     container_name: radiusserver
     privileged: true
     environment:
-      - AAA_ENDPOINT=${AAA_ENDPOINT:-https://graph.expresswifi.com/radius/authorization}
+      - AAA_ENDPOINT=${APPURL:-https://graph.expresswifi.com}/radius/authorization
       - AAA_ACCESS_TOKEN=${XWF_ACCESSTOKEN}
       - RADIUS_SECRET=${XWF_SECRET}
       - TEMPLATE_ENV=radius.ofpanalytics.config.json.template
@@ -107,12 +40,11 @@ services:
       /bin/sh -c "./docker-entrypoint.sh"
     networks:
       - control
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "100m"
-        max-file: "10"
+    ports:
+      - "1812:1812/udp"
+    logging: *logging_anchor
   xwfm:
+    image: ${MAGMA_REGISTRY:-local}/xwfm-integ-tests:${XWFM_TAG:-latest}
     container_name: xwfm
     privileged: true
     tty: true
@@ -126,15 +58,15 @@ services:
       - openvswitch:/var/run/openvswitch
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - CTRL_IP=${CTRL_IP:-}
+      - ACCESSTOKEN=${XWF_ACCESSTOKEN}
+      - CONNECTION_MODE=ssl
     networks:
       - control
     logging: *logging_anchor
-    depends_on:
-      - ofproxy
     cap_add:
       - ALL
   pipelined:
+    image: ${MAGMA_REGISTRY:-local}/gateway_pipelined:${XWFM_TAG:-latest}
     container_name: pipelined
     privileged: true
     network_mode: service:xwfm
@@ -148,16 +80,17 @@ services:
       - openvswitch:/var/run/openvswitch
     command: >
       sh -c "
-        until ifconfig cwag_br0; do echo "waiting"; sleep 1; done &&
+        until ovs-vsctl get interface cwag_patch ofport; do echo "waiting"; sleep 1; done &&
         ifconfig cwag_br0 192.168.128.1 netmask 255.255.255.0 up &&
         set bridge cwag_br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
-        python3.5 -m magma.pipelined.main"
+        python3.8 -m magma.pipelined.main"
     logging: *logging_anchor
     cap_add:
       - ALL
   tests:
+    image: ${XWF_REGISTRY:-facebookconnectivity-openflow-xwfm-docker.jfrog.io}/tests:${TAG:-latest}
     container_name: tests
     privileged: true
     tty: true
@@ -167,6 +100,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - control
+      - server
     environment:
       - ACCESSTOKEN=${XWF_ACCESSTOKEN}
       - BASE_URL=${APPURL:-https://graph.expresswifi.com}
@@ -175,12 +109,17 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_DEFAULT_REGION=${XWF_AWS_DEFAULT_REGION:-}
       - AWS_ACCOUNT_ID=${XWF_AWS_ACCOUNT_ID:-}
+      - PARTNERNAME=${XWF_PARTNER_SHORT_NAME}
+      - CPURL=${XWF_CPURL}
+      - VPCEndPointID=${XWF_VPCEndPointID}
+      - BACKEND=${BACKEND:-WWW}
+      - TEST_CONFIG=${TEST_CONFIG:-xwfm}
     logging: *logging_anchor
     depends_on:
       - xwf_client
-      - ofproxy
       - xwfm
   xwf_client:
+    image: ${XWF_REGISTRY:-facebookconnectivity-openflow-xwfm-docker.jfrog.io}/xwf_client:${TAG:-latest}
     container_name: xwf_client
     privileged: true
     network_mode: "none"
@@ -190,48 +129,15 @@ services:
     cap_add:
       - NET_ADMIN
 
-  dynamo_db:
-    image: amazon/dynamodb-local
-    container_name: dynamo_db
-    ports:
-      - "8000:8000"
-    volumes:
-      - dynamodata:/home/dynamodblocal
-    working_dir: /home/dynamodblocal
-    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ."
-    networks:
-      - control
-    logging: *logging_anchor
-  dynamodb_init:
-    container_name: dynamo_db_init
-    environment:
-      - ENDPOINT=http://dynamo_db:8000/
-    command:
-      - ./init
-    networks:
-      - control
-    logging: *logging_anchor
-  nlb:
-    container_name: nlb
-    environment:
-      - SRCPORT=6653
-      - DSTPORT=6653
-      - FORWARD=ofproxy-mt
-    networks:
-      - control
-    logging: *logging_anchor
-
 volumes:
-  dynamodata: {}
   cert:
   configs_override:
   configs_default:
   configs_templates:
   openvswitch:
 networks:
-  wan:
-  lan:
+  server:
   control:
     ipam:
       config:
-      - subnet: 10.0.12.0/24
+        - subnet: 10.0.12.0/24

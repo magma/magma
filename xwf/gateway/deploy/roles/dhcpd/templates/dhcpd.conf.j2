@@ -1,0 +1,16 @@
+option domain-name "xwfn.lan";
+option domain-name-servers ns1.xwfn.lan, ns2.xwfn.lan;
+default-lease-time 3600;
+max-lease-time 7200;
+authoritative;
+{% if dhcp_always_broadcast | default(false) == true %}
+always-broadcast on;
+{% endif %}
+
+subnet {{ dhcp_subnet }} netmask {{ dhcp_netmask }} {
+    option routers                  {{ dhcp_router }};
+    option subnet-mask              {{ dhcp_netmask }};
+    option domain-search            "xwfo.lan";
+    option domain-name-servers      8.8.8.8;
+    range   {{ dhcp_start_addr }}   {{ dhcp_stop_addr }};
+}

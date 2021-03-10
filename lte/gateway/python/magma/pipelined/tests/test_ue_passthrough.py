@@ -28,6 +28,7 @@ from magma.pipelined.tests.app.start_pipelined import (
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
     as FlowQuery
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
@@ -37,6 +38,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     FlowVerifier,
     FlowTest,
     SnapshotVerifier,
+    fake_inout_setup,
 )
 from ryu.lib import hub
 
@@ -108,6 +110,7 @@ class UEMacAddressTest(unittest.TestCase):
                     'mon_port_number': 32769,
                     'idle_timeout': 42,
                 },
+                'uplink_port': OFPP_LOCAL,
             },
             mconfig=PipelineD(
                 ue_ip_block="192.168.128.0/24",
@@ -123,6 +126,7 @@ class UEMacAddressTest(unittest.TestCase):
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.ue_mac_controller = ue_mac_controller_reference.result()
+        cls.inout_controller = inout_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
     @classmethod
@@ -139,6 +143,7 @@ class UEMacAddressTest(unittest.TestCase):
         cli_ip = '1.1.1.1'
         server_ip = '151.42.41.122'
 
+        fake_inout_setup(self.inout_controller)
         # Add subscriber with UE MAC address """
         self.ue_mac_controller.add_ue_mac_flow(imsi_1, self.UE_MAC_1)
 

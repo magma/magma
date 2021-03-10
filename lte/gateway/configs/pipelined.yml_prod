@@ -33,6 +33,7 @@ setup_type: LTE
 # after these static services.
 static_services: [
   'arpd',
+  'proxy',
   'access_control',
   'startup_flows',
 ]
@@ -65,6 +66,7 @@ meter:
 
 enforcement:
   poll_interval: 2
+  default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 dpi:
   enabled: false
@@ -98,11 +100,14 @@ enodeb_iface: eth1
 bridge_name: gtp_br0
 # Bridge ip comes from magma_ifaces_gtp
 bridge_ip_address: 192.168.128.1
+# For ipv6 router solicitation app
+ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 
 # QoS parameters
 qos:
  enable: true
  impl: linux_tc
+ enable_pyroute2: True
  max_rate: 1000000000
  linux_tc:
   min_idx: 2
@@ -117,9 +122,15 @@ monitored_ifaces: ['gtp_br0',
                   ]
 
 # Whether pipelined should cleanup flows on restarts
-clean_restart: true
+clean_restart: false
 
-redis_enabled: false
+redis_enabled: true
+
+# Logs grpc payload content
+magma_print_grpc_payload: false
+
+# MTR iface
+mtr_interface: mtr0
 
 ###############
 ## IMPORTANT ##
@@ -130,11 +141,16 @@ ovs_gtp_port_number: 32768
 # Internal port for monitoring service
 ovs_mtr_port_number: 15577
 
-# define enable_nat for here debugging only.
+# Be careful changing these default values
 # enable_nat: True
-non_mat_gw_probe_frequency: 60
-non_nat_arp_egress_port: dhcp0
+non_nat_gw_probe_frequency: 20
+# non_nat_arp_egress_port: dhcp0
 ovs_uplink_port_name: patch-up
-virtual_mac: '02:ff:bb:cc:dd:ee'
+# virtual_mac: '02:ff:bb:cc:dd:ee'
 uplink_bridge: uplink_br0
 uplink_eth_port_name: eth0
+uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
+
+he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
+
+ovs_gtp_stats_polling_interval: 180

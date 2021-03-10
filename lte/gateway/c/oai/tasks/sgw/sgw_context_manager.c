@@ -207,8 +207,6 @@ sgw_cm_create_bearer_context_information_in_collection(
   hashtable_ts_insert(
       state_imsi_ht, (const hash_key_t) teid, new_bearer_context_information);
 
-  hashtable_uint64_ts_insert(
-      spgw_state->imsi_teid_htbl, (const hash_key_t) imsi64, teid);
   OAILOG_DEBUG(
       LOG_SPGW_APP,
       "Added new s_plus_p_gw_eps_bearer_context_information_t in "
@@ -218,12 +216,43 @@ sgw_cm_create_bearer_context_information_in_collection(
 }
 
 //-----------------------------------------------------------------------------
-int sgw_cm_remove_bearer_context_information(teid_t teid, imsi64_t imsi64) {
+int sgw_cm_remove_bearer_context_information(
+    spgw_state_t* spgw_state, teid_t teid, imsi64_t imsi64) {
   int temp = 0;
 
   hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
   temp                           = hashtable_ts_free(state_imsi_ht, teid);
-  delete_spgw_ue_state(imsi64);
+  if (temp != HASH_TABLE_OK) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64, "Failed to free teid from state_imsi_ht \n");
+    return temp;
+  }
+  spgw_ue_context_t* ue_context_p = NULL;
+  hashtable_ts_get(
+      spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+      (void**) &ue_context_p);
+  if (ue_context_p) {
+    sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p->sgw_s11_teid_list));
+    while (p1) {
+      if (p1->sgw_s11_teid == teid) {
+        LIST_REMOVE(p1, entries);
+        free_wrapper((void**) &p1);
+        break;
+      }
+      p1 = LIST_NEXT(p1, entries);
+    }
+    if (LIST_EMPTY(&ue_context_p->sgw_s11_teid_list)) {
+      temp = hashtable_ts_free(
+          spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64);
+      if (temp != HASH_TABLE_OK) {
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, imsi64,
+            "Failed to free imsi64 from imsi_ue_context_htbl \n");
+        return temp;
+      }
+      delete_spgw_ue_state(imsi64);
+    }
+  }
   return temp;
 }
 
@@ -336,4 +365,56 @@ s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
       state_imsi_ht, (const hash_key_t) teid,
       (void**) &spgw_bearer_context_info);
   return spgw_bearer_context_info;
+}
+
+spgw_ue_context_t* spgw_create_or_get_ue_context(
+    spgw_state_t* spgw_state, imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  spgw_ue_context_t* ue_context_p = NULL;
+  hashtable_ts_get(
+      spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+      (void**) &ue_context_p);
+  if (!ue_context_p) {
+    ue_context_p = (spgw_ue_context_t*) calloc(1, sizeof(spgw_ue_context_t));
+    if (ue_context_p) {
+      LIST_INIT(&ue_context_p->sgw_s11_teid_list);
+      hashtable_ts_insert(
+          spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+          (void*) ue_context_p);
+    } else {
+      OAILOG_ERROR_UE(
+          LOG_SPGW_APP, imsi64, "Failed to allocate memory for UE context \n");
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
+}
+
+int spgw_update_teid_in_ue_context(
+    spgw_state_t* spgw_state, imsi64_t imsi64, teid_t teid) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  spgw_ue_context_t* ue_context_p =
+      spgw_create_or_get_ue_context(spgw_state, imsi64);
+  if (!ue_context_p) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
+        "Failed to get UE context for sgw_s11_teid " TEID_FMT "\n", teid);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
+
+  sgw_s11_teid_t* sgw_s11_teid_p =
+      (sgw_s11_teid_t*) calloc(1, sizeof(sgw_s11_teid_t));
+  if (!sgw_s11_teid_p) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
+        "Failed to allocate memory for sgw_s11_teid:" TEID_FMT "\n", teid);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
+
+  sgw_s11_teid_p->sgw_s11_teid = teid;
+  LIST_INSERT_HEAD(&ue_context_p->sgw_s11_teid_list, sgw_s11_teid_p, entries);
+  OAILOG_DEBUG(
+      LOG_SPGW_APP,
+      "Inserted sgw_s11_teid to list of teids of UE context" TEID_FMT "\n",
+      teid);
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }

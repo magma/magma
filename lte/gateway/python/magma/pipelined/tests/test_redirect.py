@@ -21,7 +21,8 @@ from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     RedirectInformation
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.policy_converters import flow_match_to_magma_match
+from magma.pipelined.policy_converters import flow_match_to_magma_match, \
+    convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
     as FlowQuery
 from magma.pipelined.tests.app.packet_builder import TCPPacketBuilder
@@ -152,17 +153,21 @@ class RedirectTest(unittest.TestCase):
             permit_outbound.append(FlowQuery(
                 self._tbl_num, self.testing_controller,
                 match=flow_match_to_magma_match(
-                    FlowMatch(ipv4_dst=ip, direction=FlowMatch.UPLINK))
+                    FlowMatch(ip_dst=convert_ipv4_str_to_ip_proto(ip),
+                              direction=FlowMatch.UPLINK))
             ))
             permit_inbound.append(FlowQuery(
                 self._tbl_num, self.testing_controller,
                 match=flow_match_to_magma_match(
-                    FlowMatch(ipv4_src=ip, direction=FlowMatch.DOWNLINK))
+                    FlowMatch(ip_src=convert_ipv4_str_to_ip_proto(ip),
+                              direction=FlowMatch.DOWNLINK))
             ))
 
         learn_action_flow = flow_match_to_magma_match(
-            FlowMatch(ip_proto=6, direction=FlowMatch.DOWNLINK,
-                      ipv4_src=self.BRIDGE_IP_ADDRESS, ipv4_dst=sub_ip)
+            FlowMatch(
+                ip_proto=6, direction=FlowMatch.DOWNLINK,
+                ip_src=convert_ipv4_str_to_ip_proto(self.BRIDGE_IP_ADDRESS),
+                ip_dst=convert_ipv4_str_to_ip_proto(sub_ip))
         )
         learn_action_query = FlowQuery(self._tbl_num, self.testing_controller,
                                        learn_action_flow)
@@ -230,16 +235,20 @@ class RedirectTest(unittest.TestCase):
         permit_outbound = FlowQuery(
             self._tbl_num, self.testing_controller,
             match=flow_match_to_magma_match(
-                FlowMatch(ipv4_dst=redirect_ip, direction=FlowMatch.UPLINK))
+                FlowMatch(ip_dst=convert_ipv4_str_to_ip_proto(redirect_ip),
+                          direction=FlowMatch.UPLINK))
         )
         permit_inbound = FlowQuery(
             self._tbl_num, self.testing_controller,
             match=flow_match_to_magma_match(
-                FlowMatch(ipv4_src=redirect_ip, direction=FlowMatch.DOWNLINK))
+                FlowMatch(ip_src=convert_ipv4_str_to_ip_proto(redirect_ip),
+                          direction=FlowMatch.DOWNLINK))
         )
         learn_action_flow = flow_match_to_magma_match(
-            FlowMatch(ip_proto=6, direction=FlowMatch.DOWNLINK,
-                      ipv4_src=self.BRIDGE_IP_ADDRESS, ipv4_dst=sub_ip)
+            FlowMatch(
+                ip_proto=6, direction=FlowMatch.DOWNLINK,
+                ip_src=convert_ipv4_str_to_ip_proto(self.BRIDGE_IP_ADDRESS),
+                ip_dst=convert_ipv4_str_to_ip_proto(sub_ip))
         )
         learn_action_query = FlowQuery(self._tbl_num, self.testing_controller,
                                        learn_action_flow)

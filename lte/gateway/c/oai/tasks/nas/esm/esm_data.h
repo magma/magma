@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esmData.h
+Source      esm_data.h
 
 Version     0.1
 
@@ -41,6 +41,7 @@ Description Defines internal private data handled by EPS Session
 #include "tree.h"
 #include "3gpp_24.007.h"
 #include "mme_api.h"
+#include "EsmCause.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -97,7 +98,8 @@ typedef struct esm_ebr_context_s {
   bitrate_t mbr_ul;
   traffic_flow_template_t* tft;
   protocol_configuration_options_t* pco;
-  struct nas_timer_s timer; /* Retransmission timer         */
+  struct nas_timer_s timer;   /* Retransmission timer         */
+  esm_ebr_timer_data_t* args; /* Retransmission timer parameters */
 } esm_ebr_context_t;
 
 typedef struct esm_ebr_data_s {
@@ -157,6 +159,7 @@ typedef struct esm_pdn_s {
   int n_bearers;    /* Number of allocated EPS bearers;
                      * default EPS bearer is defined at index 0 */
   esm_pt_state_e pt_state;  // procedure transaction state
+  esm_cause_t esm_cause;
 } esm_pdn_t;
 
 struct esm_proc_data_s;
@@ -171,8 +174,6 @@ struct esm_proc_data_s;
  */
 typedef struct esm_context_s {
   int n_active_ebrs; /* Total number of active EPS bearer contexts   */
-  int n_active_pdns; /* Number of active PDN connections     */
-  int n_pdns;
   bool is_emergency; /* Indicates whether a PDN connection for emergency bearer
                         services is established       */
   struct esm_proc_data_s* esm_proc_data;

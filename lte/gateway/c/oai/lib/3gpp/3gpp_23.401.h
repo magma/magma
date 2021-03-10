@@ -49,6 +49,7 @@
 #include "3gpp_29.274.h"
 #include "common_types.h"
 #include "s11_messages_types.h"
+#include "gx_messages_types.h"
 
 //==============================================================================
 // 5.7 Information storage
@@ -103,6 +104,7 @@ typedef struct sgw_eps_bearer_ctxt_s {
   // SDF identifier
   uint8_t num_sdf;
   uint32_t sdf_id[TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX];
+  char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
 } sgw_eps_bearer_ctxt_t;
 
 typedef struct sgw_pdn_connection_s {

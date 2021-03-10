@@ -21,8 +21,8 @@ def gen_prometheus_proto_py(proto_file_dir, output_dir):
     # as a script
     protoc.main(
         (
-            '-I ' + proto_file_dir,
-            '--proto_path=' + proto_file_dir,
+            '',
+            '-I' + proto_file_dir,
             '--python_out=' + output_dir,
             '--grpc_python_out=' + output_dir,
             os.path.join(proto_file_dir, 'metrics.proto'),

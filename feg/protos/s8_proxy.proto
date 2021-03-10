@@ -1,0 +1,151 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+service S8Proxy {
+    rpc CreateSession (CreateSessionRequestPgw) returns(CreateSessionResponsePgw){}
+    rpc DeleteSession (DeleteSessionRequestPgw) returns(DeleteSessionResponsePgw) {}
+    rpc SendEcho(EchoRequest) returns(EchoResponse) {}
+}
+
+// 3GPP TS 29.274  (not all 3gpp create session fields are included)
+message CreateSessionRequestPgw {
+    string pgwAddrs = 1;        // Ip:port of pgw to send the request. If empty
+                                // s8_proxy will use value in its config
+    string imsi = 2;
+    string msisdn = 3;
+    string mei = 4;
+
+    ServingNetwork serving_network = 6;
+    UserLocationInformation uli = 7;
+
+    RATType rat_type = 9;
+    PDNType pdn_type = 10;
+    PdnAddressAllocation paa = 11;
+
+    string apn = 14;
+    Ambr ambr = 16;                      //Aggregate Maximum BitRate
+    SelectionModeType selection_mode = 17;
+
+    BearerContext bearer_context = 20;   // Contains AGW user plane FTEID
+    uint32 c_agw_teid = 21;              // AGW control plane TEID
+
+    bytes indication_flag = 25;
+    string charging_characteristics = 27;
+    TimeZone time_zone = 29;
+}
+
+enum PDNType {
+    UNUSED = 0;
+    IPV4 = 1;
+    IPV6 = 2;
+    IPV4V6 = 3;
+    NonIP = 5;
+}
+
+enum RATType {
+    EUTRAN = 0;
+}
+
+enum SelectionModeType{
+    APN_provided_subscription_verified = 0;
+    ms_APN_subscription_not_verified = 1;
+    network_APN_subscription_not_verified = 2;
+}
+
+message UserLocationInformation {
+    uint32 lac = 1;
+    uint32 ci = 2;
+    uint32 sac = 3;
+    uint32 rac = 4;
+    uint32 tac = 5;       // used on magma
+    uint32 eci = 6;       // used on magma
+    uint32 MeNbi = 7;     // Macro eNodeB ID field
+    uint32 EMeNbi = 8;    // Extended Macro eNodeB ID field
+}
+
+message ServingNetwork {
+    string mcc = 1;             //TODO: change to bytes
+    string mnc = 2;             //TODO: change to bytes
+}
+
+message BearerContext {
+    uint32 id = 1;
+    Fteid user_plane_fteid = 2;
+    QosInformation qos = 3;
+    uint32 charging_id = 4;
+}
+
+message QosInformation {
+    uint32 pci = 1;
+    uint32 priority_level = 2;
+    uint32 preemption_capability = 3;
+    uint32 preemption_vulnerability = 4;
+    uint32 qci = 5;
+    Ambr gbr = 6;
+    Ambr mbr = 7;
+}
+
+message Ambr {
+    uint64 br_ul = 1;
+    uint64 br_dl = 2;
+}
+
+message PdnAddressAllocation{
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 ipv6_prefix = 3;
+}
+
+message TimeZone {
+    int32 delta_seconds = 1;            // delta in seconds from UTC
+    uint32 daylight_saving_time = 2;    // Set to 0 for non daylight savings
+}
+
+message Fteid {
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 teid = 3;
+}
+
+message CreateSessionResponsePgw {
+    string subscriber_ip = 3;
+    uint32 apn_restriction = 4;
+    uint32 c_agw_teid = 6;              // TODO: delete
+    Fteid c_pgw_fteid = 8;
+    BearerContext bearer_context = 10;
+    //TrafficFlowTemplate saved_tft = 13;
+}
+
+message DeleteSessionRequestPgw {
+    string pgwAddrs = 1;
+    string imsi = 4;
+    uint32 bearer_id = 6;
+    uint32 c_agw_teid = 8;          // AGW control plane TEID
+    Fteid c_pgw_fteid = 9;
+}
+
+message DeleteSessionResponsePgw{
+}
+
+message EchoRequest{
+    string pgwAddrs = 1;        // Ip:port of pgw to send the request
+    string imsi = 2;            // needed for nh in feg
+}
+
+message EchoResponse{
+}

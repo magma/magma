@@ -52,13 +52,25 @@ message S6aConfig {
     float request_failure_threshold = 6;
     // Minimum number of requests necessary to consider a metrics snapshot valid
     uint32 minimum_request_threshold = 7;
+    repeated string PlmnIds = 8;
+}
+
+message VirtualApnRule {
+    // apn_filter is a Regex to match APN values
+    string apn_filter = 1;
+    // apn_overwrite is the new APN to overwrite with when filters match
+    string apn_overwrite = 2;
+    // charging_characteristics_filter is a Regex to match
+    // ChargingCharacteristics values
+    string charging_characteristics_filter = 3;
 }
 
 message GxConfig {
     DiamClientConfig server = 1;
-    string OverwriteApn = 2;
+    string OverwriteApn = 2; // Deprecated
     repeated DiamClientConfig servers = 3;
     bool DisableGx = 4;
+    repeated VirtualApnRule virtual_apn_rules = 5;
 }
 
 enum GyInitMethod {
@@ -73,6 +85,7 @@ message GyConfig {
     string OverwriteApn = 3;
     repeated DiamClientConfig servers = 4;
     bool DisableGy = 5;
+    repeated VirtualApnRule virtual_apn_rules = 6;
 }
 
 message SessionProxyConfig {
@@ -116,6 +129,26 @@ message EapAkaConfig {
     }
     Timeouts timeout = 2;
     repeated string PlmnIds = 3;
+    bool UseS6a = 4;
+    int32 MncLen = 5;
+}
+
+// EapProviderTimeouts is a generic EAP provider timeout config for all new providers
+// TODO: It should eventually replace EapAkaConfig as well, but due to the braking nature
+//       of the switch farther planning is required
+message EapProviderTimeouts {
+    uint32 ChallengeMs = 1;
+    uint32 ErrorNotificationMs = 2;
+    uint32 SessionMs = 3;
+    uint32 SessionAuthenticatedMs = 4;
+}
+
+message EapSimConfig {
+    orc8r.LogLevel log_level = 1;
+    EapProviderTimeouts timeout = 2;
+    repeated string PlmnIds = 3;
+    bool UseS6a = 4;
+    int32 MncLen = 5;
 }
 
 message AAAConfig {
@@ -199,3 +232,12 @@ message CsfbConfig {
     SCTPClientConfig client = 2;
 }
 
+message EnvoyControllerConfig {
+    orc8r.LogLevel log_level = 1;
+}
+
+message S8Config {
+    orc8r.LogLevel log_level = 1;
+    string local_address = 2;
+    string pgw_address = 3;
+}

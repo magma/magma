@@ -8,14 +8,6 @@
       "unique_entity": true,
       "debug_prints": true
     },
-    "scuba": {
-      "message_queue_size": 2000,
-      "flush_interval_sec": 2,
-      "batch_size": 15,
-      "graph_url": "https://graph.facebook.com/scribe_logs",
-      "access_token": "$SCUBA_ACCESS_TOKEN",
-      "partner_shortname": "$PARTNER_SHORTNAME"
-    },
     "census": {
       "disable_stats": false,
       "stat_views": ["proc"]

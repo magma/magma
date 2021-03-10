@@ -111,7 +111,7 @@
 
 - name: Uploading gtp patches to remote.
   synchronize:
-    src: "{{ MAGMA_ROOT }}/{{ all_vars.gtp_patch_path }}/ovs/{{ all_vars.ovs_version_short }}/"
+    src: "{{ MAGMA_ROOT }}/{{ all_vars.gtp_patch_path }}/{{ all_vars.ovs_version_short }}/"
     dest: "{{ GIT_HOME.path }}/ovs/"
   with_items:
     - "{{ all_vars.patches }}"
@@ -122,6 +122,11 @@
     chdir: "{{ GIT_HOME.path }}/ovs"
   with_items:
       - "{{ all_vars.patches }}"
+
+- name: Cherry pick vlan patch
+  command: bash -c 'git show "{{ all_vars.vlan_fix_hash }}" | git apply -3 -'
+  args:
+    chdir: "{{ GIT_HOME.path }}/ovs"
 
 - name: Execute the boot.sh script.
   command: sh boot.sh

@@ -30,7 +30,7 @@ type AgwTestConfig struct {
 	// Slack webhook for test notifications
 	// Required: true
 	// Min Length: 1
-	SLACKWebhook *string `json:"slack_webhook"`
+	SlackWebhook *string `json:"slack_webhook"`
 
 	// Gateway ID of the target gateway
 	// Required: true
@@ -55,7 +55,7 @@ func (m *AgwTestConfig) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateSLACKWebhook(formats); err != nil {
+	if err := m.validateSlackWebhook(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -99,13 +99,13 @@ func (m *AgwTestConfig) validateReleaseChannel(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *AgwTestConfig) validateSLACKWebhook(formats strfmt.Registry) error {
+func (m *AgwTestConfig) validateSlackWebhook(formats strfmt.Registry) error {
 
-	if err := validate.Required("slack_webhook", "body", m.SLACKWebhook); err != nil {
+	if err := validate.Required("slack_webhook", "body", m.SlackWebhook); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("slack_webhook", "body", string(*m.SLACKWebhook), 1); err != nil {
+	if err := validate.MinLength("slack_webhook", "body", string(*m.SlackWebhook), 1); err != nil {
 		return err
 	}
 

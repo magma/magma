@@ -13,106 +13,87 @@
  * @flow strict-local
  * @format
  */
-import type {
-  network,
-  network_epc_configs,
-  network_ran_configs,
-} from '@fbcnms/magma-api';
 
 import AddEditNetworkButton from './NetworkEdit';
-import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import JsonEditor from '../../components/JsonEditor';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import NetworkEpc from './NetworkEpc';
 import NetworkInfo from './NetworkInfo';
 import NetworkKPI from './NetworkKPIs';
 import NetworkRanConfig from './NetworkRanConfig';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {NetworkCheck} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {colors} from '../../theme/default';
+import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useState} from 'react';
+import {useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
+  appBarBtn: {
     color: colors.primary.white,
-  },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '16px 0 16px 0',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tabIconLabel: {
-    marginRight: '8px',
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
   },
 }));
 
 export default function NetworkDashboard() {
   const classes = useStyles();
-  const {relativePath, relativeUrl} = useRouter();
+  const {history, relativePath, relativeUrl} = useRouter();
 
   return (
     <>
-      <div className={classes.topBar}>
-        <Text color="light">Network</Text>
-      </div>
-
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container justify="flex-end" alignItems="center">
-          <Grid item xs>
-            <Tabs
-              value={0}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Network"
-                component={NestedRouteLink}
-                label={<NetworkDashboardTabLabel />}
-                to="/network"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-          <Grid item xs>
-            <Grid container justify="flex-end" alignItems="center" spacing={2}>
-              <Grid item>
-                <AddEditNetworkButton title={'Add Network'} isLink={false} />
+      <TopBar
+        header="Network"
+        tabs={[
+          {
+            label: 'Network',
+            to: '/network',
+            icon: NetworkCheck,
+            filters: (
+              <Grid
+                container
+                justify="flex-end"
+                alignItems="center"
+                spacing={2}>
+                <Grid item>
+                  <AddEditNetworkButton title={'Add Network'} isLink={false} />
+                </Grid>
+                <Grid item>
+                  <Button
+                    className={classes.appBarBtn}
+                    onClick={() => {
+                      history.push(relativeUrl('/json'));
+                    }}>
+                    Edit JSON
+                  </Button>
+                </Grid>
               </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </AppBar>
+            ),
+          },
+        ]}
+      />
 
       <Switch>
+        <Route path={relativePath('/json')} component={NetworkJsonConfig} />
         <Route
           path={relativePath('/network')}
           component={NetworkDashboardInternal}
@@ -123,95 +104,39 @@ export default function NetworkDashboard() {
   );
 }
 
-function NetworkDashboardInternal() {
+export function NetworkJsonConfig() {
   const {match} = useRouter();
-  const classes = useStyles();
+  const [error, setError] = useState('');
   const networkId: string = nullthrows(match.params.networkId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(LteNetworkContext);
 
-  const [networkInfo, setNetworkInfo] = useState<network>({});
-  const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>({});
-  const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>({});
-
-  const {isLoading: isInfoLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkId,
-    {
-      networkId: networkId,
-    },
-    useCallback(networkInfo => {
-      setNetworkInfo(networkInfo);
-    }, []),
+  return (
+    <JsonEditor
+      content={ctx.state}
+      error={error}
+      onSave={async lteNetwork => {
+        try {
+          ctx.updateNetworks({networkId, lteNetwork});
+          enqueueSnackbar('Network saved successfully', {
+            variant: 'success',
+          });
+          setError('');
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
   );
-  const {isLoading: isEpcLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularEpc,
-    {
-      networkId: networkId,
-    },
-    useCallback(epc => setEpcConfigs(epc), []),
-  );
+}
 
-  const {isLoading: isRanLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularRan,
-    {
-      networkId: networkId,
-    },
-    useCallback(lteRanConfigs => setLteRanConfigs(lteRanConfigs), []),
-  );
+export function NetworkDashboardInternal() {
+  const classes = useStyles();
+  const ctx = useContext(LteNetworkContext);
 
-  const {response: lteGatwayResp, isLoading: isLteRespLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdGateways,
-    {
-      networkId: networkId,
-    },
-  );
-
-  const {response: enb, isLoading: isEnbRespLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdEnodebs,
-    {
-      networkId: networkId,
-    },
-  );
-
-  const {response: policyRules, isLoading: isPolicyLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPoliciesRules,
-    {
-      networkId: networkId,
-    },
-  );
-
-  const {response: subscriber, isLoading: isSubscriberLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdSubscribers,
-    {
-      networkId: networkId,
-    },
-  );
-
-  const {response: apns, isLoading: isAPNsLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdApns,
-    {
-      networkId: networkId,
-    },
-  );
-
-  if (
-    isEpcLoading ||
-    isInfoLoading ||
-    isRanLoading ||
-    isLteRespLoading ||
-    isEnbRespLoading ||
-    isPolicyLoading ||
-    isSubscriberLoading ||
-    isAPNsLoading
-  ) {
-    return <LoadingFiller />;
-  }
-  const editProps = {
-    networkInfo: networkInfo,
-    lteRanConfigs: lteRanConfigs,
-    epcConfigs: epcConfigs,
-    onSaveNetworkInfo: setNetworkInfo,
-    onSaveEpcConfigs: setEpcConfigs,
-    onSaveLteRanConfigs: setLteRanConfigs,
-  };
+  const epcConfigs = ctx.state.cellular?.epc;
+  const lteRanConfigs = ctx.state.cellular?.ran;
+  const lteDnsConfig = ctx.state?.dns;
 
   function editNetwork() {
     return (
@@ -220,7 +145,6 @@ function NetworkDashboardInternal() {
         isLink={true}
         editProps={{
           editTable: 'info',
-          ...editProps,
         }}
       />
     );
@@ -233,7 +157,6 @@ function NetworkDashboardInternal() {
         isLink={true}
         editProps={{
           editTable: 'ran',
-          ...editProps,
         }}
       />
     );
@@ -246,34 +169,29 @@ function NetworkDashboardInternal() {
         isLink={true}
         editProps={{
           editTable: 'epc',
-          ...editProps,
         }}
       />
     );
   }
-
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <CardTitleRow label="Overview" />
-          <NetworkKPI
-            apns={apns}
-            enb={enb}
-            lteGatwayResp={lteGatwayResp}
-            policyRules={policyRules}
-            subscriber={subscriber}
-          />
+          <NetworkKPI />
         </Grid>
         <Grid item xs={12} md={6}>
           <Grid container spacing={4}>
             <Grid item xs={12}>
               <CardTitleRow label="Network" filter={editNetwork} />
-              <NetworkInfo networkInfo={networkInfo} />
+              <NetworkInfo lteNetwork={ctx.state} />
             </Grid>
             <Grid item xs={12}>
               <CardTitleRow label="RAN" filter={editRAN} />
-              <NetworkRanConfig lteRanConfigs={lteRanConfigs} />
+              <NetworkRanConfig
+                lteDnsConfig={lteDnsConfig}
+                lteRanConfigs={lteRanConfigs}
+              />
             </Grid>
           </Grid>
         </Grid>
@@ -286,16 +204,6 @@ function NetworkDashboardInternal() {
           </Grid>
         </Grid>
       </Grid>
-    </div>
-  );
-}
-
-function NetworkDashboardTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <NetworkCheck className={classes.tabIconLabel} /> Network
     </div>
   );
 }

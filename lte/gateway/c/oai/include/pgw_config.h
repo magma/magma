@@ -55,7 +55,6 @@
 #define PGW_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                         \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
 #define PGW_CONFIG_STRING_UE_MTU "UE_MTU"
-#define PGW_RELAY_ENABLED "RELAY_ENABLED"
 #define PGW_CONFIG_STRING_GTPV1U_REALIZATION "GTPV1U_REALIZATION"
 #define PGW_CONFIG_STRING_NO_GTP_KERNEL_AVAILABLE "NO_GTP_KERNEL_AVAILABLE"
 #define PGW_CONFIG_STRING_GTP_KERNEL_MODULE "GTP_KERNEL_MODULE"
@@ -78,6 +77,7 @@
 #define PGW_WARN_ON_ERROR true
 #define PGW_CONFIG_P_CSCF_IPV4_ADDRESS "P_CSCF_IPV4_ADDRESS"
 #define PGW_CONFIG_P_CSCF_IPV6_ADDRESS "P_CSCF_IPV6_ADDRESS"
+#define PGW_CONFIG_DNS_SERVER_IPV6_ADDRESS "DNS_SERVER_IPV6_ADDRESS"
 
 #define PGW_CONFIG_STRING_NAT_ENABLED "ENABLE_NAT"
 
@@ -115,7 +115,6 @@ typedef struct pgw_config_s {
 
   bool force_push_pco;
   uint16_t ue_mtu;
-  bool relay_enabled;
   bool enable_nat;
 
   struct {
@@ -133,6 +132,10 @@ typedef struct pgw_config_s {
     struct in_addr ipv4_addr;
     struct in6_addr ipv6_addr;
   } pcscf;
+
+  struct {
+    struct in6_addr dns_ipv6_addr;
+  } ipv6;
 
   STAILQ_HEAD(ipv4_pool_head_s, conf_ipv4_list_elm_s) ipv4_pool_list;
 } pgw_config_t;

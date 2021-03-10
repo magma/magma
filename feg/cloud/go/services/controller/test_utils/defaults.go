@@ -15,6 +15,7 @@ package test_utils
 
 import (
 	"magma/feg/cloud/go/services/feg/obsidian/models"
+
 	"github.com/go-openapi/swag"
 )
 
@@ -33,6 +34,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 				Host:             "magma-fedgw.magma.com",
 				Realm:            "magma.com",
 			},
+			PlmnIds: []string{},
 		},
 		Gx: &models.Gx{
 			DisableGx: swag.Bool(false),
@@ -80,7 +82,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 		},
 		Swx: &models.Swx{
 			Servers: []*models.DiameterClientConfigs{
-				&models.DiameterClientConfigs{
+				{
 					Protocol:         "sctp",
 					Retransmits:      3,
 					WatchdogInterval: 1,
@@ -103,7 +105,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 			PlmnIds: []string{},
 		},
 		AaaServer: &models.AaaServer{
-			IDLESessionTimeoutMs: 21600000,
+			IdleSessionTimeoutMs: 21600000,
 			AccountingEnabled:    false,
 			CreateSessionOnAuth:  false,
 		},

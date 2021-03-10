@@ -59,7 +59,7 @@ spec:
       containers:
         - name: "user-grafana"
           image: {{ required "userGrafana.image.respository must be provided" .Values.userGrafana.image.repository }}:{{ .Values.userGrafana.image.tag }}
-          imagePullPolicy: {{ .Values.grafana.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.userGrafana.image.pullPolicy }}
           ports:
             - containerPort: 3000
 
@@ -90,13 +90,29 @@ spec:
           configMap:
             name: grafana-config-file
         - name: "datasources"
-{{ toYaml .Values.userGrafana.volumes.datasources | indent 10 }}
+{{- if .Values.userGrafana.volumes.datasources.volumeSpec }}
+{{ toYaml .Values.userGrafana.volumes.datasources.volumeSpec | indent 10 }}
+{{- else }}
+{{ toYaml .Values.userGrafana.volumes.datasources.defaultVolumeSpec | indent 10 }}
+{{- end }}
         - name: "dashboardproviders"
-{{ toYaml .Values.userGrafana.volumes.dashboardproviders | indent 10 }}
+{{- if .Values.userGrafana.volumes.dashboardproviders.volumeSpec }}
+{{ toYaml .Values.userGrafana.volumes.dashboardproviders.volumeSpec | indent 10 }}
+{{- else }}
+{{ toYaml .Values.userGrafana.volumes.dashboardproviders.defaultVolumeSpec | indent 10 }}
+{{- end }}
         - name: "dashboards"
-{{ toYaml .Values.userGrafana.volumes.dashboards | indent 10 }}
+{{- if .Values.userGrafana.volumes.dashboards.volumeSpec }}
+{{ toYaml .Values.userGrafana.volumes.dashboards.volumeSpec | indent 10 }}
+{{- else }}
+{{ toYaml .Values.userGrafana.volumes.dashboards.defaultVolumeSpec | indent 10 }}
+{{- end }}
         - name: "grafana-data"
-{{ toYaml .Values.userGrafana.volumes.grafanaData | indent 10 }}
+{{- if .Values.userGrafana.volumes.grafanaData.volumeSpec }}
+{{ toYaml .Values.userGrafana.volumes.grafanaData.volumeSpec | indent 10 }}
+{{- else }}
+{{ toYaml .Values.userGrafana.volumes.grafanaData.defaultVolumeSpec | indent 10 }}
+{{- end }}
 
 
 ---

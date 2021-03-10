@@ -33,4 +33,6 @@ message CwfGatewayHealthConfig {
     }
     // gre peers to probe
     repeated grePeer gre_peers = 5;
+    // virtual IP used by AP/WLC to connect to HA cluster
+    string cluster_virtual_ip = 6;
 }

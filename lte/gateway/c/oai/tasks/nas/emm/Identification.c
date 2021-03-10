@@ -38,12 +38,14 @@
 #include "emm_cnDef.h"
 #include "emm_fsm.h"
 #include "emm_regDef.h"
+#include "emm_cause.h"
 #include "mme_app_state.h"
 #include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+extern int check_plmn_restriction(imsi_t imsi);
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -54,7 +56,7 @@ static const char* _emm_identity_type_str[] = {"NOT AVAILABLE", "IMSI", "IMEI",
                                                "IMEISV", "TMSI"};
 
 // callbacks for identification procedure
-static void _identification_t3470_handler(void* args);
+static void _identification_t3470_handler(void* args, imsi64_t* imsi64);
 static int _identification_ll_failure(
     struct emm_context_s* emm_context, struct nas_emm_proc_s* emm_proc);
 static int _identification_non_delivered_ho(
@@ -219,6 +221,17 @@ int emm_proc_identification_complete(
       nas_stop_T3470(ue_id, &ident_proc->T3470, timer_callback_args);
 
       if (imsi) {
+        int emm_cause = check_plmn_restriction(*imsi);
+        if (emm_cause != EMM_CAUSE_SUCCESS) {
+          OAILOG_ERROR(
+              LOG_NAS_EMM,
+              "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
+              ", emm_cause (%d)\n",
+              ue_id, emm_cause);
+          rc = emm_proc_attach_reject(ue_id, emm_cause);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+        }
+
         /*
          * Update the IMSI
          */
@@ -294,7 +307,7 @@ int emm_proc_identification_complete(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _identification_t3470_handler(void* args) {
+static void _identification_t3470_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_ctx = (emm_context_t*) (args);
 
@@ -311,6 +324,7 @@ static void _identification_t3470_handler(void* args) {
         "T3470 timer (%lx) expired ue id " MME_UE_S1AP_ID_FMT " \n",
         ident_proc->T3470.id, ident_proc->ue_id);
     ident_proc->T3470.id = NAS_TIMER_INACTIVE_ID;
+    *imsi64              = emm_ctx->_imsi64;
     /*
      * Increment the retransmission counter
      */

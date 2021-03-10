@@ -17,12 +17,11 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/storage"
-	wifi_plugin "magma/wifi/cloud/go/plugin"
 	wifi_mconfig "magma/wifi/cloud/go/protos/mconfig"
+	"magma/wifi/cloud/go/serdes"
 	wifi_service "magma/wifi/cloud/go/services/wifi"
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
 	wifi_test_init "magma/wifi/cloud/go/services/wifi/test_init"
@@ -33,7 +32,6 @@ import (
 )
 
 func TestBuilder_Build_BaseCases(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &wifi_plugin.WifiOrchestratorPlugin{}))
 	wifi_test_init.StartTestService(t)
 
 	// Empty case: no nw config
@@ -80,7 +78,6 @@ func TestBuilder_Build_BaseCases(t *testing.T) {
 }
 
 func TestBuilder_Build(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &wifi_plugin.WifiOrchestratorPlugin{}))
 	wifi_test_init.StartTestService(t)
 
 	// Empty case: no nw config
@@ -219,7 +216,6 @@ func TestBuilder_Build(t *testing.T) {
 }
 
 func TestBuilder_Build_OverrideSsid(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &wifi_plugin.WifiOrchestratorPlugin{}))
 	wifi_test_init.StartTestService(t)
 
 	// Empty case: no nw config
@@ -358,7 +354,6 @@ func TestBuilder_Build_OverrideSsid(t *testing.T) {
 }
 
 func TestBuilder_Build_OverrideXwf(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &wifi_plugin.WifiOrchestratorPlugin{}))
 	wifi_test_init.StartTestService(t)
 
 	// Empty case: no nw config
@@ -505,11 +500,11 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 }
 
 func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
-	networkProto, err := network.ToStorageProto()
+	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graphProto, err := graph.ToStorageProto()
+	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err
 	}

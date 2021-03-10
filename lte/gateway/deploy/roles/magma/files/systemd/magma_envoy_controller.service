@@ -1,0 +1,37 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+[Unit]
+Description=Magma envoy controller service
+PartOf=magma@pipelined.service
+Before=magma@pipelined.service
+Requires=magma_dp@envoy.service
+Before=magma_dp@envoy.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+ExecStartPre=/bin/bash /usr/local/bin/configure_envoy_namespace.sh setup
+ExecStart=/usr/local/bin/envoy_controller
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py envoy_controller
+ExecStopPost=/bin/bash /usr/local/bin/configure_envoy_namespace.sh destroy
+MemoryAccounting=yes
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=envoy_controller
+User=root
+Restart=always
+RestartSec=5
+LimitCORE=infinity
+MemoryLimit=300M
+
+[Install]
+WantedBy=multi-user.target

@@ -14,15 +14,13 @@ limitations under the License.
 package servicers_test
 
 import (
-	plugin2 "magma/lte/cloud/go/plugin"
-	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
-	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"testing"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/serdes"
+	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/policydb/servicers"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -37,9 +35,6 @@ import (
 )
 
 func TestAssignmentsServicer(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
-
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
@@ -51,7 +46,7 @@ func TestAssignmentsServicer(t *testing.T) {
 	testBaseName := "b1"
 
 	// Initialize network
-	err := configurator.CreateNetwork(configurator.Network{ID: testNetworkId})
+	err := configurator.CreateNetwork(configurator.Network{ID: testNetworkId}, serdes.Network)
 	assert.NoError(t, err)
 
 	// Initialize gateway -> subscriber, and create a policy rule
@@ -82,7 +77,7 @@ func TestAssignmentsServicer(t *testing.T) {
 				},
 			},
 			{
-				Type: lte.CellularGatewayType, Key: testGwLogicalId,
+				Type: lte.CellularGatewayEntityType, Key: testGwLogicalId,
 				Config: newDefaultGatewayConfig(),
 				Associations: []storage.TypeAndKey{
 					{Type: lte.SubscriberEntityType, Key: testSubscriberId},
@@ -92,9 +87,10 @@ func TestAssignmentsServicer(t *testing.T) {
 				Type: orc8r.MagmadGatewayType, Key: testGwLogicalId,
 				Name: "foobar", Description: "foo bar",
 				PhysicalID:   testGwHwId,
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: testGwLogicalId}},
+				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwLogicalId}},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -128,10 +124,9 @@ func TestAssignmentsServicer(t *testing.T) {
 
 	// Verify that the rule is associated to the subscriber
 	ent, err := configurator.LoadEntity(
-		testNetworkId,
-		lte.PolicyRuleEntityType,
-		testPolicyId,
+		testNetworkId, lte.PolicyRuleEntityType, testPolicyId,
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	testPolicy := (&models.PolicyRule{}).FromEntity(ent)
 	assert.NoError(t, err)
@@ -139,10 +134,9 @@ func TestAssignmentsServicer(t *testing.T) {
 
 	// Verify that the base name is associated to the subscriber
 	ent, err = configurator.LoadEntity(
-		testNetworkId,
-		lte.BaseNameEntityType,
-		testBaseName,
+		testNetworkId, lte.BaseNameEntityType, testBaseName,
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	baseName := (&models.BaseNameRecord{}).FromEntity(ent)
 	assert.NoError(t, err)
@@ -155,10 +149,9 @@ func TestAssignmentsServicer(t *testing.T) {
 
 	// Verify that the rule is disassociated from the subscriber
 	ent, err = configurator.LoadEntity(
-		testNetworkId,
-		lte.PolicyRuleEntityType,
-		testPolicyId,
+		testNetworkId, lte.PolicyRuleEntityType, testPolicyId,
 		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
 	)
 	testPolicy = (&models.PolicyRule{}).FromEntity(ent)
 	assert.NoError(t, err)
@@ -166,10 +159,9 @@ func TestAssignmentsServicer(t *testing.T) {
 
 	// Verify that the base name is disassociated from the subscriber
 	ent, err = configurator.LoadEntity(
-		testNetworkId,
-		lte.BaseNameEntityType,
-		testBaseName,
+		testNetworkId, lte.BaseNameEntityType, testBaseName,
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	baseName = (&models.BaseNameRecord{}).FromEntity(ent)
 	assert.NoError(t, err)

@@ -1,0 +1,16 @@
+{% if gateway_mode == 'gateway' %}
+DEVICE=gw0
+IPADDR={{ dhcp_router }}
+NETMASK={{ dhcp_netmask }}
+TYPE=OVSIntPort
+{% endif %}
+{% if gateway_mode == 'passthrough' %}
+DEVICE={{ uplink_if }}
+TYPE=OVSPort
+{% endif %}
+ONBOOT=yes
+DEVICETYPE=ovs
+OVS_BRIDGE=uplink_br0
+BOOTPROTO=none
+HOTPLUG=no
+OVS_EXTRA="set interface $DEVICE ofport=1"

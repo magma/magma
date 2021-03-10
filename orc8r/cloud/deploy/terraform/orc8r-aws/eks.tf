@@ -28,7 +28,9 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 8.0"
 
-  cluster_name = var.cluster_name
+  cluster_name    = var.cluster_name
+  cluster_version = var.cluster_version
+
   vpc_id       = module.vpc.vpc_id
   subnets      = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
 
@@ -45,7 +47,7 @@ module "eks" {
   }
   worker_additional_security_group_ids = concat([aws_security_group.default.id], var.eks_worker_additional_sg_ids)
   workers_additional_policies          = var.eks_worker_additional_policy_arns
-  worker_groups                        = var.eks_worker_groups
+  worker_groups                        = var.thanos_enabled ? concat(var.eks_worker_groups, var.thanos_worker_groups) : var.eks_worker_groups
 
   map_roles = var.eks_map_roles
   map_users = var.eks_map_users

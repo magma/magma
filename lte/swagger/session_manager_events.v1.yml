@@ -14,12 +14,22 @@ definitions:
     properties:
       imsi:
         type: string
+      ip_addr:
+        type: string
+      msisdn:
+        type: string
+      imei:
+        type: string
+      spgw_ip:
+        type: string
       session_id:
         type: string
       apn:
         type: string
       mac_addr:
         type: string
+      pdp_start_time:
+        type: integer
   session_create_failure:
     type: object
     description: Used to track when a session creation failed
@@ -70,8 +80,20 @@ definitions:
         type: string
       ip_addr:
         type: string
+      msisdn:
+        type: string
+      imei:
+        type: string
+      spgw_ip:
+        type: string
       session_id:
         type: string
+      total_tx:
+        type: integer
+        minimum: 0
+      total_rx:
+        type: integer
+        minimum: 0
       charging_tx:
         type: integer
         minimum: 0
@@ -84,3 +106,7 @@ definitions:
       monitoring_rx:
         type: integer
         minimum: 0
+      pdp_start_time:
+        type: integer
+      pdp_end_time:
+        type: integer

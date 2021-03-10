@@ -66,6 +66,7 @@ func testDirectorydStorageImpl(t *testing.T, store storage.DirectorydStorage) {
 	err = store.MapHWIDsToHostnames(map[string]string{hwid0: hostname1})
 	assert.NoError(t, err)
 	recvd, err := store.GetHostnameForHWID(hwid0)
+	assert.NoError(t, err)
 	assert.Equal(t, hostname1, recvd)
 	_, err = store.GetHostnameForHWID(hwid1)
 	assert.Exactly(t, err, merrors.ErrNotFound)

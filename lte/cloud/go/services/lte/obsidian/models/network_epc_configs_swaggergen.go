@@ -26,6 +26,14 @@ type NetworkEpcConfigs struct {
 	// default rule id
 	DefaultRuleID string `json:"default_rule_id,omitempty"`
 
+	// gx gy relay enabled
+	// Required: true
+	GxGyRelayEnabled *bool `json:"gx_gy_relay_enabled"`
+
+	// hss relay enabled
+	// Required: true
+	HssRelayEnabled *bool `json:"hss_relay_enabled"`
+
 	// lte auth amf
 	// Required: true
 	// Format: byte
@@ -54,9 +62,11 @@ type NetworkEpcConfigs struct {
 	// Configuration for network services. Services will be instantiated in the listed order.
 	NetworkServices []string `json:"network_services,omitempty"`
 
-	// relay enabled
-	// Required: true
-	RelayEnabled *bool `json:"relay_enabled"`
+	// List of PLMN IDs restricted in the network
+	RestrictedPlmns []*PlmnConfig `json:"restricted_plmns,omitempty"`
+
+	// Mapping service areas to tacs in the network
+	ServiceAreaMaps map[string]TacList `json:"service_area_maps,omitempty"`
 
 	// sub profiles
 	SubProfiles map[string]NetworkEpcConfigsSubProfilesAnon `json:"sub_profiles,omitempty"`
@@ -71,6 +81,14 @@ type NetworkEpcConfigs struct {
 // Validate validates this network epc configs
 func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateGxGyRelayEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHssRelayEnabled(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateLteAuthAmf(formats); err != nil {
 		res = append(res, err)
@@ -96,7 +114,11 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateRelayEnabled(formats); err != nil {
+	if err := m.validateRestrictedPlmns(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateServiceAreaMaps(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -111,6 +133,24 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateGxGyRelayEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("gx_gy_relay_enabled", "body", m.GxGyRelayEnabled); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateHssRelayEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("hss_relay_enabled", "body", m.HssRelayEnabled); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -225,10 +265,46 @@ func (m *NetworkEpcConfigs) validateNetworkServices(formats strfmt.Registry) err
 	return nil
 }
 
-func (m *NetworkEpcConfigs) validateRelayEnabled(formats strfmt.Registry) error {
+func (m *NetworkEpcConfigs) validateRestrictedPlmns(formats strfmt.Registry) error {
 
-	if err := validate.Required("relay_enabled", "body", m.RelayEnabled); err != nil {
-		return err
+	if swag.IsZero(m.RestrictedPlmns) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.RestrictedPlmns); i++ {
+		if swag.IsZero(m.RestrictedPlmns[i]) { // not required
+			continue
+		}
+
+		if m.RestrictedPlmns[i] != nil {
+			if err := m.RestrictedPlmns[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("restricted_plmns" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateServiceAreaMaps(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ServiceAreaMaps) { // not required
+		return nil
+	}
+
+	for k := range m.ServiceAreaMaps {
+
+		if err := m.ServiceAreaMaps[k].Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("service_area_maps" + "." + k)
+			}
+			return err
+		}
+
 	}
 
 	return nil
@@ -294,6 +370,9 @@ func (m *NetworkEpcConfigs) UnmarshalBinary(b []byte) error {
 // NetworkEpcConfigsMobility Configuration for IP Allocation (Mobility).
 // swagger:model NetworkEpcConfigsMobility
 type NetworkEpcConfigsMobility struct {
+
+	// enable multi apn ip allocation
+	EnableMultiApnIPAllocation bool `json:"enable_multi_apn_ip_allocation,omitempty"`
 
 	// enable static ip assignments
 	EnableStaticIPAssignments bool `json:"enable_static_ip_assignments,omitempty"`

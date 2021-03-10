@@ -43,9 +43,16 @@ if [ "$PING_RESULT" != "$SUCCESS_MESSAGE" ]; then
     addError "eth0 is connected to the internet" "Make sure the hardware has been properly plugged in (eth0 to internet)"
 fi
 
-allServices=("control_proxy" "directoryd" "dnsd" "enodebd" "magmad" "mme" "mobilityd" "pipelined" "policydb" "redis" "sctpd" "sessiond" "state" "subscriberdb")
+allServices=("control_proxy" "directoryd" "dnsd" "enodebd" "magmad" "mme" "mobilityd" "pipelined" "policydb" "redis" "sessiond" "state" "subscriberdb")
 for service in "${allServices[@]}"; do
     if ! systemctl is-active --quiet "magma@$service"; then
+        addError "$service is not running" "Please check our faq"
+    fi
+done
+
+nonMagmadServices=("sctpd")
+for service in "${nonMagmadServices[@]}"; do
+    if ! systemctl is-active --quiet "$service"; then
         addError "$service is not running" "Please check our faq"
     fi
 done
@@ -71,4 +78,44 @@ addInfo "$(apt list -qq --upgradable 2> /dev/null)"
 if [ -n "$INFO" ]; then
     echo "INFO:"
     printf "%s" "$INFO"
+fi
+
+echo "- Check for Root Certificate"
+CA=/var/opt/magma/tmp/certs/rootCA.pem
+if [ -d "/var/opt/magma/tmp/certs/" ]; then
+    if [ -f "$CA" ]; then
+        echo "$CA exists"
+    fi
+else
+    echo "Verify Root CA in /var/opt/magma/tmp/certs/"
+    echo "Access Gateway configurations failed"
+fi
+
+echo "- Check for Control Proxy"
+CP=/var/opt/magma/configs/control_proxy.yml
+if [ -d "/var/opt/magma/configs/" ]; then
+    if [ -f "$CP" ]; then
+        echo "$CP exists"
+        echo "- Check control proxy content"
+        cp_content=("cloud_address" "cloud_port" "bootstrap_address" "bootstrap_port" "rootca_cert" "fluentd_address" "fluentd_port")
+        for content in "${cp_content[@]}"; do
+            if ! grep -q $content $CP; then
+                echo "Missing $content in control proxy"
+            fi
+        done
+    else
+        echo "Control proxy file missing. Check magma installation docs"
+    fi
+else
+    echo "Check Control Proxy Configs in /var/opt/magma/configs/"
+    echo "Access Gateway configurations failed"
+fi
+
+echo "- Verifying Cloud check-in"
+CLOUD=$(journalctl -n20 -u magma@magmad | grep -e 'Checkin Successful' -e 'Got heartBeat from cloud')
+if [ "$CLOUD" ]; then
+    echo "Cloud Check Success"
+else
+    echo "Cloud Check Failed"
+    echo "Check control proxy content in $CP"
 fi

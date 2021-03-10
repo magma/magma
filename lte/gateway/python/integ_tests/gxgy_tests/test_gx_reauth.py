@@ -22,7 +22,7 @@ from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.session_manager_pb2 import CreateSessionResponse, \
     LocalCreateSessionRequest, PolicyReAuthRequest, SessionTerminateResponse
 from lte.protos.subscriberdb_pb2 import SubscriberID
-from magma.pipelined.tests.app.subscriber import SubContextConfig
+from magma.pipelined.tests.app.subscriber import SubContextConfig, default_ambr_config
 from ryu.lib import hub
 
 from .utils import GxGyTestUtil as TestUtil
@@ -59,7 +59,7 @@ class GxReauthTest(unittest.TestCase):
                                            tracking=PolicyRule.NO_TRACKING)
 
         # Initialize sub with 1 static and 1 dynamic rule
-        sub = SubContextConfig('IMSI001010000088888', '192.168.128.74', 4)
+        sub = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
         self.test_util.controller.mock_create_session = Mock(
             return_value=CreateSessionResponse(
                 credits=[create_update_response(sub.imsi, 1, 1024)],

@@ -29,7 +29,7 @@ type GatewayRegistry interface {
 	GetServiceAddress(service string) (string, error)
 	GetServicePort(service string) (int, error)
 	GetServiceProxyAliases(service string) (map[string]int, error)
-	ListAllServices() []string
+	ListAllServices() ([]string, error)
 
 	// Gateway specific methods
 	//

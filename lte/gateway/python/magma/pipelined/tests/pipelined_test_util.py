@@ -14,18 +14,23 @@ limitations under the License.
 import logging
 import os
 import re
+import subprocess
+import netifaces
+import fakeredis
 
 from collections import namedtuple
 from concurrent.futures import Future
 from difflib import unified_diff
 from typing import Dict, List, Optional
+
 from unittest import TestCase
+from unittest import mock
 from unittest.mock import MagicMock
 from ryu.lib import hub
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupPolicyRequest, \
-    UpdateSubscriberQuotaStateRequest
+    UpdateSubscriberQuotaStateRequest, SetupUEMacRequest
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.tests.app.exceptions import BadConfigError, \
@@ -33,6 +38,7 @@ from magma.pipelined.tests.app.exceptions import BadConfigError, \
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery
 from magma.pipelined.tests.app.start_pipelined import StartThread
 from magma.pipelined.app.base import global_epoch
+from magma.pipelined.openflow import flows
 
 """
 Pipelined test util functions can be used for testing pipelined, the usage of
@@ -67,6 +73,7 @@ class FlowVerifier:
     packets matched and compare them to the expected pkt differences passed in
     the FlowTest tuples
     """
+
     def __init__(self, flow_test_list, wait_func):
         """
         Args:
@@ -218,15 +225,17 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
         if (sleep_time >= max_sleep_time):
             raise WaitTimeExceeded(
                 "Waiting on pkts exceeded the max({}) sleep time".
-                format(max_sleep_time)
+                    format(max_sleep_time)
             )
 
 
 def setup_controller(controller, setup_req, sleep_time: float = 1,
                      retries: int = 5):
     for _ in range(0, retries):
-        if controller.is_ready_for_restart_recovery(
-                setup_req.epoch) == SetupFlowsResult.SUCCESS:
+        ret = controller.check_setup_request_epoch(setup_req.epoch)
+        if ret == SetupFlowsResult.SUCCESS:
+            return ret
+        else:
             res = controller.handle_restart(setup_req.requests)
             if res.result == SetupFlowsResult.SUCCESS:
                 return SetupFlowsResult.SUCCESS
@@ -234,7 +243,14 @@ def setup_controller(controller, setup_req, sleep_time: float = 1,
     return res.result
 
 
-def fake_controller_setup(enf_controller, enf_stats_controller=None,
+def fake_inout_setup(inout_controller):
+    TestCase().assertEqual(setup_controller(
+        inout_controller, SetupPolicyRequest(requests=[], epoch=global_epoch)),
+        SetupFlowsResult.SUCCESS)
+
+
+def fake_controller_setup(enf_controller=None,
+                          enf_stats_controller=None,
                           startup_flow_controller=None,
                           check_quota_controller=None,
                           setup_flows_request=None,
@@ -250,7 +266,6 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
         setup_flows_request = SetupPolicyRequest(
             requests=[], epoch=global_epoch,
         )
-    enf_controller.init_finished = False
     if startup_flow_controller:
         startup_flow_controller._flows_received = False
         startup_flow_controller._table_flows.clear()
@@ -259,11 +274,13 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
         TestCase().assertEqual(enf_controller._clean_restart, True)
         if enf_stats_controller:
             TestCase().assertEqual(enf_stats_controller._clean_restart, True)
+    enf_controller.init_finished = False
     TestCase().assertEqual(setup_controller(
         enf_controller, setup_flows_request),
         SetupFlowsResult.SUCCESS)
     if enf_stats_controller:
         enf_stats_controller.init_finished = False
+        enf_stats_controller.cleanup_state()
         TestCase().assertEqual(setup_controller(
             enf_stats_controller, setup_flows_request),
             SetupFlowsResult.SUCCESS)
@@ -276,6 +293,17 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
         TestCase().assertEqual(setup_controller(
             check_quota_controller, check_quota_request),
             SetupFlowsResult.SUCCESS)
+
+
+def fake_cwf_setup(ue_mac_controller, setup_ue_mac_request=None):
+    if setup_ue_mac_request is None:
+        setup_ue_mac_request = SetupUEMacRequest(
+            requests=[], epoch=global_epoch,
+        )
+    ue_mac_controller.init_finished = False
+    TestCase().assertEqual(setup_controller(
+        ue_mac_controller, setup_ue_mac_request),
+        SetupFlowsResult.SUCCESS)
 
 
 def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
@@ -300,7 +328,6 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
     while not all(stats_reported[rule] for rule in rule_list):
         hub.sleep(wait_time)
         for reported_stats in controller._report_usage.call_args_list:
-            #logging.error(reported_stats)
             stats = reported_stats[0][0]
             for rule in rule_list:
                 if rule in stats:
@@ -310,7 +337,7 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
         if (sleep_time >= max_sleep_time):
             raise WaitTimeExceeded(
                 "Waiting on enforcement stats exceeded the max({}) sleep time".
-                format(max_sleep_time)
+                    format(max_sleep_time)
             )
 
 
@@ -350,14 +377,22 @@ def create_service_manager(services: List[int],
     if static_services is None:
         static_services = []
     magma_service.config = {
-        'static_services': static_services
+        'static_services': static_services,
+        '5G_feature_set': {'enable': False}
     }
-    service_manager = ServiceManager(magma_service)
+    # mock the get_default_client function used to return a fakeredis object
+    func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())
+    with mock.patch(
+            'magma.pipelined.rule_mappers.get_default_client',
+            func_mock):
+        service_manager = ServiceManager(magma_service)
 
     # Workaround as we don't use redis in unit tests
     service_manager.rule_id_mapper._rule_nums_by_rule = {}
     service_manager.rule_id_mapper._rules_by_rule_num = {}
     service_manager.session_rule_version_mapper._version_by_imsi_and_rule = {}
+    service_manager.interface_to_prefix_mapper._prefix_by_interface = {}
+    service_manager.tunnel_id_mapper._tunnel_map = {}
 
     return service_manager
 
@@ -380,8 +415,51 @@ def _get_current_bridge_snapshot(bridge_name, service_manager,
     # parsed using regex. Once the ryu api works for unit tests, we can
     # directly parse the api response and avoid the regex.
     flows = BridgeTools.get_annotated_flows_for_bridge(bridge_name,
-        table_assignments, include_stats=include_stats)
+                                                       table_assignments,
+                                                       include_stats=include_stats)
     return [_parse_flow(flow) for flow in flows]
+
+
+def fail(test_case: TestCase, err_msg: str, _bridge_name: str,
+         snapshot_file, current_snapshot):
+    ofctl_cmd = "sudo ovs-ofctl dump-flows %s" % _bridge_name
+    p = subprocess.Popen([ofctl_cmd],
+                         stdout=subprocess.PIPE,
+                         shell=True)
+    ofctl_dump = p.stdout.read().decode("utf-8").strip()
+    logging.error("cmd ofctl_dump: %s", ofctl_dump)
+
+    msg = 'Snapshot mismatch with error:\n' \
+          '{}\n' \
+          'To fix the error, update "{}" to the current snapshot:\n' \
+          '{}'.format(err_msg, snapshot_file,
+                      '\n'.join(current_snapshot))
+    return test_case.fail(msg)
+
+
+def expected_snapshot(test_case: TestCase,
+                      bridge_name: str,
+                      current_snapshot,
+                      snapshot_name: Optional[str] = None) -> bool:
+    if snapshot_name is not None:
+        combined_name = '{}.{}{}'.format(test_case.id(), snapshot_name,
+                                         SNAPSHOT_EXTENSION)
+    else:
+        combined_name = '{}{}'.format(test_case.id(), SNAPSHOT_EXTENSION)
+    snapshot_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        SNAPSHOT_DIR,
+        combined_name)
+
+    try:
+        with open(snapshot_file, 'r') as file:
+            prev_snapshot = []
+            for line in file:
+                prev_snapshot.append(line.rstrip('\n'))
+    except OSError as e:
+        fail(test_case, str(e), bridge_name, combined_name, current_snapshot)
+
+    return snapshot_file, prev_snapshot
 
 
 def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
@@ -400,44 +478,32 @@ def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
         snapshot_name: Name of the snapshot. For tests with multiple snapshots,
             this is used to distinguish the snapshots
     """
-    if snapshot_name is not None:
-        combined_name = '{}.{}{}'.format(test_case.id(), snapshot_name,
-                                         SNAPSHOT_EXTENSION)
-    else:
-        combined_name = '{}{}'.format(test_case.id(), SNAPSHOT_EXTENSION)
-    snapshot_file = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        SNAPSHOT_DIR,
-        combined_name)
+
     current_snapshot = _get_current_bridge_snapshot(bridge_name,
                                                     service_manager,
-                                                    include_stats=include_stats)
+                                                    include_stats)
 
-    def fail(err_msg: str):
-        msg = 'Snapshot mismatch with error:\n' \
-              '{}\n' \
-              'To fix the error, update "{}" to the current snapshot:\n' \
-              '{}'.format(err_msg, snapshot_file,
-                          '\n'.join(current_snapshot))
-        return test_case.fail(msg)
-
-    try:
-        with open(snapshot_file, 'r') as file:
-            prev_snapshot = []
-            for line in file:
-                prev_snapshot.append(line.rstrip('\n'))
-    except OSError as e:
-        fail(str(e))
-        return
-    if set(current_snapshot) != set(prev_snapshot):
-        fail('\n'.join(list(unified_diff(prev_snapshot, current_snapshot,
+    snapshot_file, expected = expected_snapshot(test_case,
+                                                bridge_name,
+                                                current_snapshot,
+                                                snapshot_name)
+    if set(current_snapshot) != set(expected):
+        fail(test_case,
+             '\n'.join(list(unified_diff(expected, current_snapshot,
                                          fromfile='previous snapshot',
-                                         tofile='current snapshot'))))
+                                         tofile='current snapshot'))),
+             bridge_name,
+             snapshot_file,
+             current_snapshot)
 
 
-def wait_for_snapshots(bridge_name: str,
+def wait_for_snapshots(test_case: TestCase,
+                       bridge_name: str,
                        service_manager: ServiceManager,
-                       wait_time: int = 1, max_sleep_time: int = 20):
+                       snapshot_name: Optional[str] = None,
+                       wait_time: int = 1, max_sleep_time: int = 20,
+                       datapath=None,
+                       try_snapshot=False):
     """
     Wait after checking ovs snapshot as new changes might still come in,
 
@@ -452,20 +518,28 @@ def wait_for_snapshots(bridge_name: str,
     sleep_time = 0
     old_snapshot = _get_current_bridge_snapshot(bridge_name, service_manager)
     while True:
+        if datapath:
+            flows.set_barrier(datapath)
         hub.sleep(wait_time)
 
-        new_snapshot = _get_current_bridge_snapshot(bridge_name,
-                                                    service_manager)
-        if new_snapshot == old_snapshot:
-            return
+        new_snapshot = _get_current_bridge_snapshot(bridge_name, service_manager)
+        if try_snapshot:
+            snapshot_file, expected_ = expected_snapshot(test_case,
+                                                         bridge_name,
+                                                         snapshot_name)
+            if new_snapshot == expected_:
+                return
         else:
-            old_snapshot = new_snapshot
+            if new_snapshot == old_snapshot:
+                return
+            else:
+                old_snapshot = new_snapshot
 
         sleep_time = sleep_time + wait_time
-        if (sleep_time >= max_sleep_time):
+        if sleep_time >= max_sleep_time:
             raise WaitTimeExceeded(
                 "Waiting on pkts exceeded the max({}) sleep time".
-                format(max_sleep_time)
+                    format(max_sleep_time)
             )
 
 
@@ -477,7 +551,10 @@ class SnapshotVerifier:
     def __init__(self, test_case: TestCase, bridge_name: str,
                  service_manager: ServiceManager,
                  snapshot_name: Optional[str] = None,
-                 include_stats: bool = True):
+                 include_stats: bool = True,
+                 max_sleep_time: int = 20,
+                 datapath=None,
+                 try_snapshot=False):
         """
         These arguments are used to call assert_bridge_snapshot_match on exit.
 
@@ -494,6 +571,9 @@ class SnapshotVerifier:
         self._service_manager = service_manager
         self._snapshot_name = snapshot_name
         self._include_stats = include_stats
+        self._max_sleep_time = max_sleep_time
+        self._datapath = datapath
+        self._try_snapshot = try_snapshot
 
     def __enter__(self):
         pass
@@ -503,9 +583,55 @@ class SnapshotVerifier:
         Runs after finishing 'with' (Verify snapshot)
         """
         try:
-            wait_for_snapshots(self._bridge_name, self._service_manager)
+            wait_for_snapshots(self._test_case,
+                               self._bridge_name,
+                               self._service_manager,
+                               self._snapshot_name,
+                               max_sleep_time=self._max_sleep_time,
+                               datapath=self._datapath,
+                               try_snapshot=self._try_snapshot)
         except WaitTimeExceeded as e:
+            ofctl_cmd = "sudo ovs-ofctl dump-flows %s".format(self._bridge_name)
+            p = subprocess.Popen([ofctl_cmd],
+                                 stdout=subprocess.PIPE,
+                                 shell=True)
+            ofctl_dump = p.stdout.read().decode("utf-8").strip()
+            logging.error("ofctl_dump: [%s]", ofctl_dump)
             TestCase().fail(e)
+
         assert_bridge_snapshot_match(self._test_case, self._bridge_name,
                                      self._service_manager,
                                      self._snapshot_name, self._include_stats)
+
+
+def get_ovsdb_port_tag(port_name: str) -> str:
+    dump1 = subprocess.Popen(["ovsdb-client", "dump", "Port", "name", "tag"],
+                             stdout=subprocess.PIPE)
+    for port in dump1.stdout.readlines():
+        if port_name not in str(port):
+            continue
+        try:
+            tokens = str(port.decode("utf-8")).strip('\"').split()
+            return tokens[1]
+        except ValueError:
+            pass
+
+
+def get_iface_ipv4(iface: str) -> List[str]:
+    virt_ifaddresses = netifaces.ifaddresses(iface)
+    ip_addr_list = []
+    for ip_rec in virt_ifaddresses[netifaces.AF_INET]:
+        ip_addr_list.append(ip_rec['addr'])
+
+    return ip_addr_list
+
+
+def get_iface_gw_ipv4(iface: str) -> List[str]:
+    gateways = netifaces.gateways()
+    gateway_ip_addr_list = []
+    for gw_ip, gw_iface, _ in gateways[netifaces.AF_INET]:
+        if gw_iface != iface:
+            continue
+        gateway_ip_addr_list.append(gw_ip)
+
+    return gateway_ip_addr_list

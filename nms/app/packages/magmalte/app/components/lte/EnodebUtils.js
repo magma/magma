@@ -43,5 +43,8 @@ export type EnodebInfo = {
 };
 
 export function isEnodebHealthy(enbInfo: EnodebInfo) {
-  return enbInfo.enb.config.transmit_enabled === enbInfo.enb_state.rf_tx_on;
+  return (
+    enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled ===
+    enbInfo.enb_state.rf_tx_on
+  );
 }

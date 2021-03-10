@@ -147,27 +147,28 @@ describe('<DashboardAlertTable />', () => {
   );
 
   it('renders', async () => {
-    const {getByTestId, getByText} = render(<Wrapper />);
+    const {getByText, getAllByRole} = render(<Wrapper />);
     await wait();
     expect(MagmaAPIBindings.getNetworksByNetworkIdAlerts).toHaveBeenCalledTimes(
       1,
     );
 
-    // each sections have only one row so querying rowID 0
-    const rowIdx = 0;
+    // get all rows
+    const rowItems = await getAllByRole('row');
+
     // check if the default is critical alert sections
-    expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert1');
-    fireEvent.click(getByText('1 Critical'));
-    expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert1');
+    expect(rowItems[1]).toHaveTextContent('TestAlert1');
+    fireEvent.click(getByText('Critical(1)'));
+    expect(rowItems[1]).toHaveTextContent('TestAlert1');
 
-    fireEvent.click(getByText('1 Major'));
-    expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert2');
+    fireEvent.click(getByText('Major(1)'));
+    expect(rowItems[1]).toHaveTextContent('TestAlert2');
 
-    fireEvent.click(getByText('1 Minor'));
-    expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert3');
+    fireEvent.click(getByText('Minor(1)'));
+    expect(rowItems[1]).toHaveTextContent('TestAlert3');
 
-    fireEvent.click(getByText('1 Other'));
-    expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert4');
+    fireEvent.click(getByText('Other(1)'));
+    expect(rowItems[1]).toHaveTextContent('TestAlert4');
 
     expect(getByText('Alerts (4)')).toBeInTheDocument();
   });

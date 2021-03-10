@@ -26,7 +26,7 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 var (

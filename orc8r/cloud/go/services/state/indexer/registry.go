@@ -39,8 +39,10 @@ func GetIndexer(serviceName string) (Indexer, error) {
 
 // GetIndexers returns all registered indexers.
 func GetIndexers() ([]Indexer, error) {
-	services := registry.FindServices(orc8r.StateIndexerLabel)
-
+	services, err := registry.FindServices(orc8r.StateIndexerLabel)
+	if err != nil {
+		return []Indexer{}, err
+	}
 	var indexers []Indexer
 	for _, service := range services {
 		x, err := getIndexer(service)
@@ -77,11 +79,11 @@ func getIndexer(serviceName string) (Indexer, error) {
 	if err != nil {
 		return nil, err
 	}
-	versionInt, err := strconv.Atoi(versionVal)
+	versionInt, err := strconv.ParseInt(versionVal, 10, 64)
 	if err != nil {
 		return nil, errors.Wrapf(err, "convert indexer version %v to int for service %s", versionVal, serviceName)
 	}
-	version, err := NewIndexerVersion(int64(versionInt))
+	version, err := NewIndexerVersion(versionInt)
 	if err != nil {
 		return nil, err
 	}

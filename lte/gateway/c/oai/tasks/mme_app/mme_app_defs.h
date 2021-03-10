@@ -36,17 +36,20 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_sgs_fsm.h"
 #include "emm_proc.h"
+#include <czmq.h>
 
 #define INVALID_BEARER_INDEX -1
+#define IPV6_ADDRESS_SIZE 16
+#define IPV4_ADDRESS_SIZE 4
 
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
 int mme_app_handle_s1ap_ue_capabilities_ind(
-    const itti_s1ap_ue_cap_ind_t const* s1ap_ue_cap_ind_pP);
+    const itti_s1ap_ue_cap_ind_t* const s1ap_ue_cap_ind_pP);
 
 void mme_app_handle_s1ap_ue_context_release_complete(
     mme_app_desc_t* mme_app_desc_p,
-    const itti_s1ap_ue_context_release_complete_t const*
+    const itti_s1ap_ue_context_release_complete_t* const
         s1ap_ue_context_release_complete);
 
 int mme_app_send_s6a_update_location_req(
@@ -71,11 +74,11 @@ void mme_app_handle_sgs_detach_req(
 
 int mme_app_handle_sgs_eps_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
-    const const itti_sgsap_eps_detach_ack_t* const eps_detach_ack_p);
+    const itti_sgsap_eps_detach_ack_t* const eps_detach_ack_p);
 
 int mme_app_handle_sgs_imsi_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
-    const const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p);
+    const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p);
 
 void mme_app_handle_conn_est_cnf(
     nas_establish_rsp_t* const nas_conn_est_cnf_pP);
@@ -142,27 +145,34 @@ void mme_ue_context_update_ue_sig_connection_state(
     mme_ue_context_t* const mme_ue_context_p,
     struct ue_mm_context_s* ue_context_p, ecm_state_t new_ecm_state);
 
-void mme_app_handle_mobile_reachability_timer_expiry(void* args);
+void mme_app_handle_mobile_reachability_timer_expiry(
+    void* args, imsi64_t* imsi64);
 
-void mme_app_handle_implicit_detach_timer_expiry(void* args);
+void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64);
 
-void mme_app_handle_initial_context_setup_rsp_timer_expiry(void* args);
+int mme_app_handle_initial_context_setup_rsp_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_ue_context_modification_timer_expiry(void* args);
+void mme_app_handle_ue_context_modification_timer_expiry(
+    void* args, imsi64_t* imsi64);
 
 void mme_app_handle_enb_reset_req(
-    const itti_s1ap_enb_initiated_reset_req_t const* enb_reset_req);
+    const itti_s1ap_enb_initiated_reset_req_t* const enb_reset_req);
 
 int mme_app_handle_initial_paging_request(
     mme_app_desc_t* mme_app_desc_p, const char* imsi);
 
-void mme_app_handle_paging_timer_expiry(void* args);
-void mme_app_handle_ulr_timer_expiry(void* args);
+void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64);
+void mme_app_handle_ulr_timer_expiry(void* args, imsi64_t* imsi64);
 
-void mme_app_handle_sgs_eps_detach_timer_expiry(void* args);
-void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args);
-void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(void* args);
-void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(void* args);
+int mme_app_handle_sgs_eps_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_sgs_imsi_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
+    void* args, imsi64_t* imsi64);
+void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
+    void* args, imsi64_t* imsi64);
 
 int mme_app_send_s6a_cancel_location_ans(
     int cla_result, const char* imsi, uint8_t imsi_length, void* msg_cla_p);
@@ -203,7 +213,7 @@ int mme_app_handle_sgsap_location_update_rej(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej);
 
-void mme_app_handle_ts6_1_timer_expiry(void* args);
+int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
 int mme_app_handle_sgsap_reset_indication(
     itti_sgsap_vlr_reset_indication_t* const reset_indication_pP);
@@ -300,6 +310,17 @@ int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 
 ue_mm_context_t* mme_app_get_ue_context_for_timer(
     mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name);
+
+void mme_app_handle_modify_bearer_rsp(
+    itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
+    ue_mm_context_t* ue_context_p);
+
+void mme_app_get_user_location_information(
+    Uli_t* uli_t_p, const ue_mm_context_t* ue_context_p);
+
+void mme_app_remove_stale_ue_context(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_remove_stale_ue_context_t* s1ap_remove_stale_ue_context);
 
 #define ATTACH_REQ (1 << 0)
 #define TAU_REQUEST (1 << 1)

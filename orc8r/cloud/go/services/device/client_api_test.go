@@ -31,6 +31,11 @@ const (
 	networkID = "network1"
 )
 
+var (
+	testSerde = &Serde{}
+	serdes    = serde.NewRegistry(testSerde)
+)
+
 type idAndInfo struct {
 	deviceKey  string
 	deviceType string
@@ -38,26 +43,16 @@ type idAndInfo struct {
 }
 
 func TestDeviceService(t *testing.T) {
-	testSerde := &Serde{}
-	err := serde.RegisterSerdes(testSerde)
-	assert.NoError(t, err)
 	test_init.StartTestService(t)
 
 	bundle1 := idAndInfo{deviceKey: "device1", deviceType: typeVal, info: 1}
 	bundle2 := idAndInfo{deviceKey: "device2", deviceType: typeVal, info: 2}
-	// Entities that should fail to register
-	unregisteredSerdeBundle := idAndInfo{deviceKey: "device2", deviceType: "unregistered", info: 2}
-	unserializableBundle := idAndInfo{deviceKey: "device2", deviceType: typeVal, info: "(*.*)"}
 
 	// Check contract for empty network
 	assertDevicesNotRegistered(t, bundle1, bundle2)
 
 	// Check contract for empty requests
 	registerDevicesAssertError(t, "", bundle1)
-
-	// Registering ill formatted device values should fail
-	registerDevicesAssertError(t, networkID, unregisteredSerdeBundle)
-	registerDevicesAssertError(t, networkID, unserializableBundle)
 
 	// Register and retrieve devices
 	registerDevicesAssertNoError(t, networkID, bundle1)
@@ -72,7 +67,7 @@ func TestDeviceService(t *testing.T) {
 	updateDevicesAssertNoError(t, networkID, bundle1)
 
 	// Test deletion
-	err = device.DeleteDevices(networkID, []storage.TypeAndKey{{Type: bundle1.deviceType, Key: bundle1.deviceKey}})
+	err := device.DeleteDevices(networkID, []storage.TypeAndKey{{Type: bundle1.deviceType, Key: bundle1.deviceKey}})
 	assert.NoError(t, err)
 	assertDevicesNotRegistered(t, bundle1)
 	assertDevicesAreRegistered(t, bundle2)
@@ -80,7 +75,7 @@ func TestDeviceService(t *testing.T) {
 
 func assertDevicesAreRegistered(t *testing.T, bundles ...idAndInfo) {
 	for _, bundle := range bundles {
-		actualInfo, err := device.GetDevice(networkID, bundle.deviceType, bundle.deviceKey)
+		actualInfo, err := device.GetDevice(networkID, bundle.deviceType, bundle.deviceKey, serdes)
 		assert.NoError(t, err)
 		assert.Equal(t, bundle.info, actualInfo)
 	}
@@ -88,23 +83,26 @@ func assertDevicesAreRegistered(t *testing.T, bundles ...idAndInfo) {
 
 func assertDevicesNotRegistered(t *testing.T, bundles ...idAndInfo) {
 	for _, bundle := range bundles {
-		_, err := device.GetDevice(networkID, bundle.deviceType, bundle.deviceKey)
+		_, err := device.GetDevice(networkID, bundle.deviceType, bundle.deviceKey, serdes)
 		assert.Error(t, err)
+		exists, err := device.DoesDeviceExist(networkID, bundle.deviceType, bundle.deviceKey)
+		assert.NoError(t, err)
+		assert.False(t, exists)
 	}
 }
 
 func registerDevicesAssertNoError(t *testing.T, networkID string, bundle idAndInfo) {
-	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
+	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info, serdes)
 	assert.NoError(t, err)
 }
 
 func registerDevicesAssertError(t *testing.T, networkID string, bundle idAndInfo) {
-	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
+	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info, serdes)
 	assert.Error(t, err)
 }
 
 func updateDevicesAssertNoError(t *testing.T, networkID string, bundle idAndInfo) {
-	err := device.UpdateDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
+	err := device.UpdateDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info, serdes)
 	assert.NoError(t, err)
 }
 

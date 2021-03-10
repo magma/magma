@@ -17,15 +17,15 @@ import (
 	"testing"
 
 	"magma/cwf/cloud/go/cwf"
-	cwf_plugin "magma/cwf/cloud/go/plugin"
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/cloud/go/serdes"
 	cwf_service "magma/cwf/cloud/go/services/cwf"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	cwf_test_init "magma/cwf/cloud/go/services/cwf/test_init"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
+	fegmodels "magma/feg/cloud/go/services/feg/obsidian/models"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/storage"
@@ -38,7 +38,6 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &cwf_plugin.CwfOrchestratorPlugin{}))
 	cwf_test_init.StartTestService(t)
 
 	t.Run("empty network config", func(t *testing.T) {
@@ -78,10 +77,20 @@ func TestBuilder_Build(t *testing.T) {
 			Config:             defaultgwConfig,
 			ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 		}
+		haPair := configurator.NetworkEntity{
+			Config: &models.CwfHaPairConfigs{TransportVirtualIP: "10.10.10.11"},
+			Type:   cwf.CwfHAPairType,
+			Key:    "pair1",
+			Associations: []storage.TypeAndKey{
+				{Type: cwf.CwfGatewayType, Key: "gw1"},
+				{Type: cwf.CwfGatewayType, Key: "gw2"},
+			},
+		}
 		graph := configurator.EntityGraph{
-			Entities: []configurator.NetworkEntity{cwfGW, gw},
+			Entities: []configurator.NetworkEntity{cwfGW, gw, haPair},
 			Edges: []configurator.GraphEdge{
 				{From: gw.GetTypeAndKey(), To: cwfGW.GetTypeAndKey()},
+				{From: haPair.GetTypeAndKey(), To: cwfGW.GetTypeAndKey()},
 			},
 		}
 
@@ -125,8 +134,8 @@ func TestBuilder_Build(t *testing.T) {
 				},
 			},
 			"sessiond": &lte_mconfig.SessionD{
-				LogLevel:     protos.LogLevel_INFO,
-				RelayEnabled: true,
+				LogLevel:         protos.LogLevel_INFO,
+				GxGyRelayEnabled: true,
 				WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 					TerminateOnExhaust: true,
 					Method:             lte_mconfig.WalletExhaustDetection_GxTrackedRules,
@@ -147,6 +156,7 @@ func TestBuilder_Build(t *testing.T) {
 					{Ip: "1.2.3.4/24"},
 					{Ip: "1.1.1.1/24"},
 				},
+				ClusterVirtualIp: "10.10.10.11",
 			},
 		}
 
@@ -157,11 +167,11 @@ func TestBuilder_Build(t *testing.T) {
 }
 
 func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
-	networkProto, err := network.ToStorageProto()
+	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graphProto, err := graph.ToStorageProto()
+	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -181,8 +191,8 @@ func build(network *configurator.Network, graph *configurator.EntityGraph, gatew
 }
 
 var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
-	EapAka: &models.EapAka{
-		Timeout: &models.EapAkaTimeout{
+	EapAka: &fegmodels.EapAka{
+		Timeout: &fegmodels.EapAkaTimeouts{
 			ChallengeMs:            20000,
 			ErrorNotificationMs:    10000,
 			SessionMs:              43200000,
@@ -190,8 +200,8 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 		},
 		PlmnIds: nil,
 	},
-	AaaServer: &models.AaaServer{
-		IDLESessionTimeoutMs: 21600000,
+	AaaServer: &fegmodels.AaaServer{
+		IdleSessionTimeoutMs: 21600000,
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
 	},
@@ -210,7 +220,7 @@ var defaultgwConfig = &models.GatewayCwfConfigs{
 		{IP: "1.2.3.4/24"},
 		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
 	},
-	IPDRExportDst: &models.IPDRExportDst{
+	IpdrExportDst: &models.IpdrExportDst{
 		IP:   "192.168.128.88",
 		Port: 2040,
 	},
