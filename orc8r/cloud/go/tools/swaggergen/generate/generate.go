@@ -20,8 +20,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/swagger"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -165,6 +167,53 @@ func GenerateModels(targetFilepath string, configFilepath string, rootDir string
 	return nil
 }
 
+// GenerateStandAloneSpecs generates a standalone spec file for the given
+// Swagger YAML file.
+func GenerateStandAloneSpecs(targetFilePath string, specs map[string]MagmaSwaggerSpec) (error) {
+	var dependencies []string
+	var yamlCommon string
+	for _, s := range specs {
+		dependentSpec := s.ToSwaggerSpec()
+		dependentSpec.Paths = map[string]interface{}{}
+		yamlSpec, err := marshalToYAML(dependentSpec)
+		if err != nil {
+			return err
+		}
+
+		if s.MagmaGenMeta.TempGenFilename != "orc8r-swagger-common.yml" {
+			yamlCommon = yamlSpec
+		} else {
+			dependencies = append(dependencies, yamlSpec)
+		}
+	}
+
+	targetSpec, err := ioutil.ReadFile(targetFilePath)
+	if err != nil {
+		return errors.Wrap(err, "failed to open target spec")
+	}
+
+	dependencies = append(dependencies, string(targetSpec))
+	combined, warnings, err := spec.Combine(yamlCommon, dependencies)
+	if err != nil {
+		return err
+	}
+	if warnings != nil {
+		glog.Infof("Some Swagger spec traits were overwritten or unable to be read: %+v", warnings)
+	}
+
+	absTargetFilepath, err := filepath.Abs(targetFilePath)
+	splitPath := strings.Split(absTargetFilepath, "/")
+	outFile := splitPath[len(splitPath) - 4] + ".swagger.v1.yml"
+	outputDir := filepath.Join(os.Getenv("MAGMA_ROOT"), "orc8r/cloud/swagger/specs/standalone", outFile)
+
+	err = write(combined, outputDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ParseSwaggerDependencyTree parses the entire dependency tree of a magma
 // swagger spec file specified by the rootFilepath parameter.
 // The returned value maps between the absolute specified dependency filepath
@@ -254,4 +303,34 @@ func readSwaggerSpec(filepath string) (MagmaSwaggerSpec, error) {
 		return MagmaSwaggerSpec{}, errors.Wrapf(err, "could not parse target file %s as yml", filepath)
 	}
 	return spec, nil
+}
+
+// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
+func marshalToYAML(spec swagger.Spec) (string, error) {
+	d, err := yaml.Marshal(&spec)
+	if err != nil {
+		return "", err
+	}
+	return string(d), nil
+}
+
+// write spec to filepath.
+func write(outSpec string, filepath string) error {
+	f, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+	_, err = f.WriteString(outSpec)
+	if err != nil {
+		return err
+	}
+
+	err = f.Sync()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

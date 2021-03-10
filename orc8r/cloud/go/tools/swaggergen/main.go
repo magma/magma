@@ -80,6 +80,7 @@ func main() {
 	targetFilepath := flag.String("target", "", "Target swagger spec to generate code from")
 	configFilepath := flag.String("config", "", "Config file for go-swagger command")
 	rootDir := flag.String("root", os.Getenv("MAGMA_ROOT"), "Root path to resolve dependency and output directories based on")
+	generateStandAloneSpec := flag.Bool("standalone", true, "Generate standalone specs")
 	flag.Parse()
 
 	if *targetFilepath == "" {
@@ -98,6 +99,15 @@ func main() {
 	specs, err := generate.ParseSwaggerDependencyTree(*targetFilepath, *rootDir)
 	if err != nil {
 		glog.Fatalf("Error parsing swagger spec dependency tree: %v\n", err)
+	}
+
+	if *generateStandAloneSpec && *targetFilepath != "swagger-common.yml" {
+		err = generate.GenerateStandAloneSpecs(*targetFilepath, specs)
+		if err != nil {
+			// Swallow GenerateStandAloneSpec error because build should
+			// continue to run even if construction of a standalone spec fails
+			glog.Errorf("Error generating standalone specs: %+v", err)
+		}
 	}
 
 	err = generate.GenerateModels(*targetFilepath, *configFilepath, *rootDir, specs)
