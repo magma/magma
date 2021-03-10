@@ -74,7 +74,7 @@ build: build_python build_common build_oai build_sctpd build_session_manager bui
 
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
-test: test_python test_oai test_session_manager ## Run all tests
+test: test_python test_common test_oai test_session_manager ## Run all tests
 
 clean: clean_python clean_envoy_controller ## Clean all builds
 	rm -rf $(C_BUILD)
@@ -176,6 +176,9 @@ test_python: stop ## Run all Python-specific tests
 
 test_oai: build_common ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
+
+test_common: build_common ## Run all tests in magma_common
+	$(call run_ctest, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager

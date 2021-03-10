@@ -86,7 +86,7 @@ bool reload_failed() {
 }
 
 TEST(test_magma_service, test_ReloadServiceConfig) {
-  MagmaService magma_service(MAGMA_SERIVCE_NAME, MAGMA_SERVICE_VERSION);
+  MagmaService magma_service(MAGMA_SERVICE_NAME, MAGMA_SERVICE_VERSION);
   ReloadConfigResponse response;
 
   magma_service.ReloadServiceConfig(nullptr, nullptr, &response);
