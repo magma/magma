@@ -104,7 +104,9 @@ COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
 # We will mount volumes from docker-compose
 
 # Create running dirs
-WORKDIR /var/opt/magma
+WORKDIR /var/opt/magma/configs
+# Adding mme configuration for stateful run
+RUN echo "use_stateless: false" > mme.yml
 WORKDIR /usr/local/etc/redis
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
 

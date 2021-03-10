@@ -13,7 +13,9 @@ limitations under the License.
 
 import unittest
 from collections import OrderedDict
+import fakeredis
 from unittest.mock import MagicMock
+from unittest import mock
 
 from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app.access_control import AccessControlController
@@ -43,7 +45,12 @@ class ServiceManagerTest(unittest.TestCase):
             'static_services': ['arpd', 'access_control', 'ipfix', 'proxy'],
             '5G_feature_set': {'enable': False}
         }
-        self.service_manager = ServiceManager(magma_service_mock)
+        # mock the get_default_client function used to return a fakeredis object
+        func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())
+        with mock.patch(
+            'magma.pipelined.rule_mappers.get_default_client',
+            func_mock):
+            self.service_manager = ServiceManager(magma_service_mock)
 
     def test_get_table_num(self):
         self.assertEqual(self.service_manager.get_table_num(INGRESS), 1)

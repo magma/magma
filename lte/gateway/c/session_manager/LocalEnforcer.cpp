@@ -35,7 +35,6 @@ uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY                = 2000;
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE                      = false;
 
 using google::protobuf::RepeatedPtrField;
-using google::protobuf::util::TimeUtil;
 
 using namespace std::placeholders;
 

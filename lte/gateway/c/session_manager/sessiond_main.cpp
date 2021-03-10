@@ -179,9 +179,9 @@ int main(int argc, char* argv[]) {
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
   bool converged_access = false;
-  // Check converged sesiond is enebaled or not
-  if ((config["converged_access"].IsDefined()) &&
-      (config["converged_access"].as<bool>())) {
+  // Check converged SessionD is enabled or not
+  if (config["converged_access"].IsDefined() &&
+      config["converged_access"].as<bool>()) {
     converged_access = true;
   }
   MLOG(MINFO) << "Starting Session Manager";
@@ -421,7 +421,7 @@ int main(int argc, char* argv[]) {
     free(conv_set_message_service);
     access_common_message_thread.join();
   }
-  free(session_store);
+  delete session_store;
 
   return 0;
 }
