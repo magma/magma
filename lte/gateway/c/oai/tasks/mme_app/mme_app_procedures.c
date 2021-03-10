@@ -139,14 +139,13 @@ int mme_app_run_s1ap_procedure_modify_bearer_ind(
         proc->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  /** Get the PDN Context. */
   for (int nb_bearer = 0;
        nb_bearer < proc->e_rab_to_be_modified_list.no_of_items; nb_bearer++) {
     e_rab_to_be_modified_bearer_mod_ind_t* item =
         &proc->e_rab_to_be_modified_list.item[nb_bearer];
     /** Get the bearer context. */
     bearer_context_t* bearer_context = NULL;
-    mme_app_get_bearer_context(ue_context_p, item->e_rab_id);
+    bearer_context = mme_app_get_bearer_context(ue_context_p, item->e_rab_id);
     if (!bearer_context) {
       OAILOG_ERROR(
           LOG_MME_APP,
@@ -155,7 +154,6 @@ int mme_app_run_s1ap_procedure_modify_bearer_ind(
           item->e_rab_id, proc->mme_ue_s1ap_id);
       continue;
     }
-    /** Set all bearers, not in the failed list, to inactive. */
     /** Update the FTEID of the bearer context and uncheck the established
      * state. */
     bearer_context->enb_fteid_s1u.teid           = item->s1_xNB_fteid.teid;

@@ -16,8 +16,6 @@
  */
 #pragma once
 
-#ifndef UE_ADDITIONAL_SECURITY_CAPABILITY_SEEN
-#define UE_ADDITIONAL_SECURITY_CAPABILITY_SEEN
 #include <stdint.h>
 
 #define UE_ADDITIONAL_SECURITY_CAPABILITY_MINIMUM_LENGTH 6
@@ -35,5 +33,3 @@ int encode_ue_additional_security_capability(
 int decode_ue_additional_security_capability(
     ue_additional_security_capability_t* uasc, uint8_t iei, uint8_t* buffer,
     uint32_t len);
-
-#endif /* UE_ADDITIONAL_SECURITY_CAPABILITY_SEEN */

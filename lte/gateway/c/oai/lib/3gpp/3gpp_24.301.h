@@ -179,7 +179,8 @@ typedef struct ue_network_capability_s {
 #define UE_NETWORK_CAPABILITY_UIA6 0b00000010
 #define UE_NETWORK_CAPABILITY_UIA7 0b00000001
   uint8_t uia : 7;
-  /* Bits 8 to 6 of octet 7 are spare and shall be coded as zero */
+
+  /*Octet 7*/
   uint8_t prosedd : 1;
   uint8_t prose : 1;
   uint8_t h245ash : 1;
@@ -199,11 +200,11 @@ typedef struct ue_network_capability_s {
 #define UE_NETWORK_CAPABILITY_NF 1
   uint8_t nf : 1;
 
-  /* Bits 8 to 6 of octet 8 are spare and shall be coded as zero */
-  /* S1-U data transfer enabled */
+  /*Octet 8*/
   uint8_t epco : 1;
   uint8_t hccpciot : 1;
   uint8_t erwfopdn : 1;
+  /* S1-U data transfer enabled */
 #define UE_NETWORK_CAPABILITY_S1UDATA 1
   uint8_t s1udata : 1;
   /* User plane CIoT EPS Optimization */
@@ -219,8 +220,7 @@ typedef struct ue_network_capability_s {
 #define UE_NETWORK_CAPABILITY_PROSEDC 1
   uint8_t prosedc : 1;
 
-  /* Bits 8 to 6 of octet 9 are spare and shall be coded as zero */
-
+  /*Octet 9*/
   uint8_t bearer : 1;
   uint8_t sgc : 1;
   uint8_t n1mod : 1;

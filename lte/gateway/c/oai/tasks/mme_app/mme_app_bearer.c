@@ -3872,9 +3872,6 @@ void mme_app_handle_e_rab_modification_ind(
                    .bearer_contexts[idx]
                    .s1_eNB_fteid));
     s11_modify_bearer_request->bearer_contexts_to_be_modified
-        .bearer_contexts[idx]
-        .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
-    s11_modify_bearer_request->bearer_contexts_to_be_modified
         .num_bearer_context++;
 
     OAILOG_DEBUG_UE(
@@ -3914,9 +3911,6 @@ void mme_app_handle_e_rab_modification_ind(
         sizeof(s11_modify_bearer_request->bearer_contexts_to_be_modified
                    .bearer_contexts[idx]
                    .s1_eNB_fteid));
-    s11_modify_bearer_request->bearer_contexts_to_be_modified
-        .bearer_contexts[idx]
-        .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
     s11_modify_bearer_request->bearer_contexts_to_be_modified
         .num_bearer_context++;
 
