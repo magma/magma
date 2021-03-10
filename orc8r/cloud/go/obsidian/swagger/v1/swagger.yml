@@ -7971,10 +7971,26 @@ definitions:
     - timestamp
     - value
     type: object
+  federated_mode_map:
+    description: Mapping for PLMN, imsi ranges, vs its gateway mode
+    properties:
+      enabled:
+        default: false
+        description: If Enabled is false, mapping will not be applied
+        example: false
+        type: boolean
+        x-nullable: false
+      mapping:
+        items:
+          $ref: '#/definitions/mode_map_item'
+        type: array
+    type: object
   federated_network_configs:
     description: Configs for networks that are federated
     minLength: 1
     properties:
+      federated_modes_mapping:
+        $ref: '#/definitions/federated_mode_map'
       feg_network_id:
         example: example_feg_network
         type: string
@@ -9218,6 +9234,32 @@ definitions:
     items:
       $ref: '#/definitions/metric_datapoint'
     type: array
+  mode_map_item:
+    description: Item containing {mode, [plmnA, plmB], [imsi1, imsi2], [apnY, apnZ]}
+    properties:
+      apn:
+        example: internet.com
+        type: string
+        x-nullable: false
+      imsi_range:
+        example: 000000000000000:000019999999999
+        type: string
+        x-nullable: false
+      mode:
+        enum:
+        - local_subscriber
+        - s8_subscriber
+        example: local_subscriber
+        type: string
+        x-nullable: false
+      plmn:
+        example: "123456"
+        maxLength: 6
+        minLength: 5
+        pattern: ^(\d{5,6})$
+        type: string
+        x-nullable: false
+    type: object
   msisdn:
     description: Mobile station international subscriber directory number
     example: "13109976224"

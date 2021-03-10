@@ -14,7 +14,6 @@
 #include "magma_logging.h"
 #include <chrono>
 #include <ctime>
-using grpc::ServerContext;
 using grpc::Status;
 
 namespace magma {
