@@ -111,13 +111,13 @@ bool pid_file_lock(char const* pid_file_name) {
     return false;
   }
   // fruncate file content
-  if (0 != ftruncate(g_fd_pid_file, 0)) {
+  if (ftruncate(g_fd_pid_file, 0) != 0) {
     printf("filename %s failed to truncate\n", pid_file_name);
   }
   // write PID in file
   g_pid = getpid();
   snprintf(pid_dec, sizeof(pid_dec), "%ld", (long) g_pid);
-  if (0 != write(g_fd_pid_file, pid_dec, strlen(pid_dec))) {
+  if (write(g_fd_pid_file, pid_dec, strlen(pid_dec)) != 0) {
     printf("filename %s failed to be written\n", pid_file_name);
   }
   return true;
