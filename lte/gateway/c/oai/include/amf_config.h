@@ -30,9 +30,8 @@
 #include "log.h"
 #include "service303.h"
 
-#define MIN_GUMMEI 1
-#define MAX_GUMMEI 5
-#define MAX_APN_CORRECTION_MAP_LIST 10
+#define MIN_GUAMFI 1
+#define MAX_GUAMFI 5
 
 typedef uint64_t imsi64_t;
 typedef uint32_t amf_ue_ngap_id_t;
@@ -52,7 +51,7 @@ typedef struct ngap_config_s {
 
 typedef struct guamfi_config_s {
   int nb;
-  guamfi_t guamfi[MAX_GUMMEI];
+  guamfi_t guamfi[MAX_GUAMFI];
 } guamfi_config_t;
 
 typedef struct amf_config_s {
