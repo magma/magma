@@ -57,6 +57,7 @@ services:
         /magma/v1/lte/:network_id/msisdns,
         /magma/v1/lte/:network_id/subscriber_state,
         /magma/v1/lte/:network_id/subscribers,
+        /magma/v1/lte/:network_id/subscribers_v2,
 
   policydb:
     host: "localhost"
