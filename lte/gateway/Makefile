@@ -242,7 +242,7 @@ clang_tidy_oai_upload: clang_tidy_oai
 		https://docs.google.com/forms/d/e/1FAIpQLSfHGqOmDhUMAWHSjA_w6NOGqglQBx2IaO1bXLo6zrOE95sRWQ/formResponse?usp=pp_url
 
 ## Generate complete code structural information prior to any test execution
-base_coverage: build_oai build_session_manager build_connection_tracker
+base_coverage: build_oai build_sctpd build_session_manager build_connection_tracker
 	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 

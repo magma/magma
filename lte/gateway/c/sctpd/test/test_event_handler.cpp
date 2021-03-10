@@ -104,7 +104,8 @@ TEST_F(EventHandlerTest, test_event_handler_new_assoc) {
 }
 
 TEST_F(EventHandlerTest, test_event_handler_close_assoc) {
-  auto correct_ppid = Property(&CloseAssocReq::ppid, Eq(close_assoc_req.ppid()));
+  auto correct_ppid =
+      Property(&CloseAssocReq::ppid, Eq(close_assoc_req.ppid()));
   auto correct_assoc_id =
       Property(&CloseAssocReq::assoc_id, Eq(close_assoc_req.assoc_id()));
   auto correct_reset =

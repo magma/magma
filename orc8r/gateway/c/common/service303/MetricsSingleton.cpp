@@ -12,7 +12,6 @@
  */
 #include "MetricsSingleton.h"
 
-using magma::service303::MetricsRegistry;
 using magma::service303::MetricsSingleton;
 using prometheus::BuildCounter;
 using prometheus::BuildGauge;
