@@ -27,7 +27,7 @@ import (
 
 type specServicer struct {
 	partialSpec    string
-	standAloneSpec string
+	standaloneSpec string
 }
 
 // NewSpecServicerFromFile intializes a spec servicer
@@ -37,7 +37,7 @@ func NewSpecServicerFromFile(service string) protos.SwaggerSpecServer {
 	partialPath, standalonePath := getSpecPaths(service)
 	partial, err := ioutil.ReadFile(partialPath)
 	if err != nil {
-		// Swallowing ReadFile error because the service should continue to
+		// Swallow error because the service should continue to
 		// run even if it can't find its partial Swagger spec file.
 		glog.Errorf("Error retrieving Swagger Spec of service %s: %+v", service, err)
 		return NewSpecServicer("", "")
@@ -55,7 +55,7 @@ func NewSpecServicerFromFile(service string) protos.SwaggerSpecServer {
 
 // NewSpecServicer constructs a spec servicer.
 func NewSpecServicer(partialSpec string, standaloneSpec string) protos.SwaggerSpecServer {
-	return &specServicer{partialSpec: partialSpec, standAloneSpec: standaloneSpec}
+	return &specServicer{partialSpec: partialSpec, standaloneSpec: standaloneSpec}
 }
 
 func (s *specServicer) GetPartialSpec(ctx context.Context, request *protos.PartialSpecRequest) (*protos.PartialSpecResponse, error) {
@@ -63,7 +63,7 @@ func (s *specServicer) GetPartialSpec(ctx context.Context, request *protos.Parti
 }
 
 func (s *specServicer) GetStandaloneSpec(ctx context.Context, request *protos.StandaloneSpecRequest) (*protos.StandaloneSpecResponse, error) {
-	return &protos.StandaloneSpecResponse{SwaggerSpec: s.standAloneSpec}, nil
+	return &protos.StandaloneSpecResponse{SwaggerSpec: s.standaloneSpec}, nil
 }
 
 // getSpecPaths returns the filepath on the production image

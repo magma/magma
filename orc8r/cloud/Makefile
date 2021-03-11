@@ -28,7 +28,7 @@ SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
 SWAGGER_V1_CONFIG := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/goswagger-config.yml
 SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/swagger/specs
 SWAGGER_V1_PARTIAL_SPECS_DIR := $(SWAGGER_V1_SPECS_DIR)/partial
-SWAGGER_V1_COMMON_DIR := $(SWAGGER_V1_PARTIAL_SPECS_DIR)/common
+SWAGGER_V1_COMMON_DIR := $(SWAGGER_V1_SPECS_DIR)/common
 SWAGGER_V1_STANDALONE_DIR := $(SWAGGER_V1_SPECS_DIR)/standalone
 
 export SWAGGER_ROOT
@@ -100,11 +100,11 @@ $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
 	if [ -d $*/lib/go ] ; then make -C $*/lib/go fmt ; fi
 
-gen: tools $(GEN_LIST)
+gen: tools swagger_directories $(GEN_LIST)
 $(GEN_LIST): %_gen:
 	make -C $*/cloud/go gen
 
-fullgen: clean_gen swagger_directories gen swagger tidy
+fullgen: clean_gen gen swagger tidy
 
 lint: lint_tools $(LINT_LIST)
 $(LINT_LIST): %_lint:
@@ -141,6 +141,7 @@ swagger: $(SWAGGER_LIST)
 swagger_directories:
 	rm -rf $(SWAGGER_V1_SPECS_DIR)
 	mkdir -p $(SWAGGER_V1_COMMON_DIR)
+	mkdir -p $(SWAGGER_V1_PARTIAL_SPECS_DIR)
 	mkdir -p $(SWAGGER_V1_STANDALONE_DIR)
 
 

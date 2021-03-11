@@ -54,7 +54,7 @@ func main() {
 		glog.Fatal(err)
 	}
 	if warnings != nil {
-		fmt.Printf("Warnings: %+v\n", warnings)
+		glog.Fatalf("Some Swagger spec traits were overwritten or unable to be read: %+v", warnings)
 	}
 
 	fmt.Printf("Writing combined Swagger spec to file:\n%s\n\n", *outFilepath)

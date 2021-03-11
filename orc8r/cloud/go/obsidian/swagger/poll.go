@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	commonSpecPath = "/etc/magma/swagger/specs/partial/common/swagger-common.yml"
+	commonSpecPath = "/etc/magma/swagger/specs/common/swagger-common.yml"
 )
 
 // GetCombinedSpec polls every servicer registered with
@@ -38,7 +38,7 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 	for _, s := range servicers {
 		yamlSpec, err := s.GetPartialSpec()
 		if err != nil {
-			// Swallow GetPartialSpec error because the polling should continue
+			// Swallow error because the polling should continue
 			// even if it fails to receive from a single servicer
 			err = errors.Wrapf(err, "get Swagger spec from %s service", s.GetService())
 			glog.Error(err)

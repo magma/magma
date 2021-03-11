@@ -102,11 +102,11 @@ func main() {
 	}
 
 	if *generateStandAloneSpec && *targetFilepath != "swagger-common.yml" {
-		outPath, err := generate.RetrieveServiceName(*targetFilepath, *rootDir)
+		outPath, err := generate.GetStandaloneFilepath(*targetFilepath, *rootDir)
 		if err != nil {
 			glog.Fatalf("Error parsing target file path %+v", err)
 		}
-		err = generate.GenerateStandAloneSpec(*targetFilepath, specs, outPath)
+		err = generate.GenerateStandaloneSpec(*targetFilepath, specs, outPath)
 		if err != nil {
 			glog.Fatalf("Error generating standalone specs: %+v", err)
 		}
