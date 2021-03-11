@@ -11,7 +11,8 @@
         "label": "Architecture",
         "ids": [
           "orc8r/architecture_overview",
-          "orc8r/architecture_modularity"
+          "orc8r/architecture_modularity",
+          "orc8r/architecture_security"
         ]
       },
       {
@@ -39,8 +40,9 @@
         "type": "subcategory",
         "label": "Development",
         "ids": [
-          "orc8r/development/testing_tips",
-          "orc8r/development/minikube_deployment"
+          "orc8r/dev_security",
+          "orc8r/dev_testing_tips",
+          "orc8r/dev_minikube_deployment"
         ]
       }
     ],

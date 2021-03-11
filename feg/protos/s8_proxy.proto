@@ -58,7 +58,17 @@ enum PDNType {
 }
 
 enum RATType {
-    EUTRAN = 0;
+    RESERVED = 0;
+    UTRAN = 1;
+    GERAN = 2;
+    WLAN = 3;
+    GAN = 4;
+    HSPA = 5;
+    EUTRAN = 6;
+    VIRTUAL = 7;
+    EUTRAN_NB_IOT = 8;
+    LTE_M = 9;
+    NR = 10;
 }
 
 enum SelectionModeType{
