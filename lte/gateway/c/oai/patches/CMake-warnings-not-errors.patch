@@ -1,0 +1,26 @@
+diff --git a/lte/gateway/c/oai/CMakeLists.txt b/lte/gateway/c/oai/CMakeLists.txt
+index 1b81ce755..52ac5e5de 100644
+--- a/lte/gateway/c/oai/CMakeLists.txt
++++ b/lte/gateway/c/oai/CMakeLists.txt
+@@ -26,7 +26,7 @@ endif ()
+ 
+ # TODO (amar) check all the flags used. Copied as is from OAI.
+ set(CMAKE_C_FLAGS
+-  "${CMAKE_C_FLAGS} ${C_FLAGS_PROCESSOR} -std=gnu99 -Wall -Werror -Wstrict-prototypes -fno-strict-aliasing -rdynamic -funroll-loops -Wno-packed-bitfield-compat -fPIC"
++  "${CMAKE_C_FLAGS} ${C_FLAGS_PROCESSOR} -std=gnu99 -Wall -Wstrict-prototypes -fno-strict-aliasing -rdynamic -funroll-loops -Wno-packed-bitfield-compat -fPIC"
+ )
+ 
+ # add autoTOOLS definitions that were maybe used
+diff --git a/lte/gateway/c/oai/oai_mme/CMakeLists.txt b/lte/gateway/c/oai/oai_mme/CMakeLists.txt
+index f9f6aa7ff..95b7d9fe1 100644
+--- a/lte/gateway/c/oai/oai_mme/CMakeLists.txt
++++ b/lte/gateway/c/oai/oai_mme/CMakeLists.txt
+@@ -49,7 +49,7 @@ target_link_libraries(mme
+     -Wl,--end-group
+     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
+     ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls ${SERVICE303_LIB}
+-    prometheus-cpp grpc grpc++ gpr grpc yaml-cpp z cares address_sorting
++    prometheus-cpp grpc grpc++ gpr grpc yaml-cpp yaml z cares boost_program_options boost_filesystem boost_system boost_regex double-conversion address_sorting gflags unwind iberty dl
+ )
+ 
+ if ( NOT EMBEDDED_SGW )
