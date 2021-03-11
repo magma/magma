@@ -368,7 +368,7 @@ int mme_app_handle_sgs_imsi_detach_timer_expiry(
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
-        "SGS EPS Detach Timer expired but no assoicated SGS context for UE "
+        "SGS EPS Detach Timer expired but no associated SGS context for UE "
         "id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -426,7 +426,7 @@ int mme_app_handle_sgs_imsi_detach_timer_expiry(
         "sgs_imsi_detach_timer_expired", 1, 1, "cause",
         "Ts9 timer expired after max retransmission");
   }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /* handle the SGS Implicit IMSI detach timer expiry. */
