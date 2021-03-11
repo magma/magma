@@ -15,7 +15,6 @@
 #include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
 #include "GrpcMagmaUtils.h"
-#include "EnumToString.h"
 #include <google/protobuf/util/time_util.h>
 
 using grpc::Status;
@@ -254,6 +253,19 @@ bool AsyncPipelinedClient::set_upf_session(
   return true;
 }
 
+bool AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
+  DeactivateFlowsRequest req;
+  req.mutable_sid()->set_id(imsi);
+  MLOG(MDEBUG) << "Deactivating all flows for subscriber " << imsi;
+  deactivate_flows_rpc(req, [imsi](Status status, DeactivateFlowsResult resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
+                   << ": " << status.error_message();
+    }
+  });
+  return true;
+}
+
 bool AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
@@ -262,9 +274,9 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const RequestOriginType_OriginType origin_type) {
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
                << dynamic_rules.size()
-               << " dynamic rules and default drop flows for " << imsi
-               << ", type=" << request_origin_type_to_str(origin_type)
-               << ", ipv4=" << ip_addr << ", ipv6=" << ipv6_addr;
+               << " dynamic rules and default drop flows "
+                  "for subscriber "
+               << imsi << " IP " << ip_addr << " " << ipv6_addr;
 
   auto req = create_deactivate_req(
       imsi, ip_addr, ipv6_addr, teids, rule_ids, dynamic_rules, origin_type,
@@ -279,9 +291,8 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules(
     const std::vector<PolicyRule>& dynamic_rules,
     const RequestOriginType_OriginType origin_type) {
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
-               << dynamic_rules.size() << " dynamic rules for " << imsi
-               << ", type=" << request_origin_type_to_str(origin_type)
-               << ", ipv4=" << ip_addr << ", ipv6=" << ipv6_addr;
+               << dynamic_rules.size() << " dynamic rules for subscriber "
+               << imsi << " IP " << ip_addr << " " << ipv6_addr;
 
   auto req = create_deactivate_req(
       imsi, ip_addr, ipv6_addr, teids, rule_ids, dynamic_rules, origin_type,
@@ -290,15 +301,12 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules(
 }
 
 bool AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
-  const std::string imsi = request.sid().id();
-  const std::string ipv4 = request.ip_addr();
-  const std::string ipv6 = request.ipv6_addr();
+  auto imsi = request.sid().id();
   deactivate_flows_rpc(
-      request, [imsi, ipv4, ipv6](Status status, DeactivateFlowsResult resp) {
+      request, [imsi](Status status, DeactivateFlowsResult resp) {
         if (!status.ok()) {
-          MLOG(MERROR) << "Could not deactivate flows for " << imsi
-                       << ", ipv4=" << ipv4 << ", ipv6=" << ipv6 << ": "
-                       << status.error_message();
+          MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
+                       << ": " << status.error_message();
         }
       });
   return true;
@@ -313,8 +321,8 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
     std::function<void(Status status, ActivateFlowsResult)> callback) {
   MLOG(MDEBUG) << "Activating " << static_rules.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for " << imsi
-               << ", type=GX, msisdn=" << msisdn << ", ipv4=" << ip_addr
-               << ", ipv6=" << ipv6_addr;
+               << " msisdn " << msisdn << " and ip " << ip_addr << " "
+               << ipv6_addr;
   // TODO: Activate static rules and dynamic rules separately until bug
   //  is fixed in pipelined which crashes if activated at the same time
   if (static_rules.size() > 0) {
@@ -394,10 +402,7 @@ bool AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules) {
-  MLOG(MDEBUG) << "Activating " << static_rules.size() << " static rules and "
-               << dynamic_rules.size() << " dynamic rules for " << imsi
-               << ", type=GY, msisdn=" << msisdn << ", ipv4=" << ip_addr
-               << ", ipv6=" << ipv6_addr;
+  MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
   auto static_req = create_activate_req(
       imsi, ip_addr, ipv6_addr, teids, msisdn, {}, static_rules,
       std::vector<PolicyRule>(), RequestOriginType::GY);

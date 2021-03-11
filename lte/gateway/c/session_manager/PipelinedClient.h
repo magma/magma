@@ -64,6 +64,13 @@ class PipelinedClient {
       std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
   /**
+   * Deactivate all flows for a subscriber's session
+   * @param imsi - UE to delete all policy flows for
+   * @return true if the operation was successful
+   */
+  virtual bool deactivate_all_flows(const std::string& imsi) = 0;
+
+  /**
    * Deactivate all flows for the specified rules plus any drop default rule
    * added by pipelined
    * @param imsi - UE to delete flows for
@@ -187,6 +194,13 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const std::vector<SessionState::SessionInfo>& infos,
       const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback);
+
+  /**
+   * Deactivate all flows for a subscriber's session
+   * @param imsi - UE to delete all policy flows for
+   * @return true if the operation was successful
+   */
+  bool deactivate_all_flows(const std::string& imsi);
 
   /**
    * Deactivate all flows related to a specific charging key plus any default
