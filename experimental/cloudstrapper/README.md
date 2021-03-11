@@ -133,6 +133,7 @@
 
   - build-ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and
     building OVS.
+
     ```
     ansible-playbook build-ami-configure.yaml -e '@vars/main.yaml' -i files/build_instance_aws_ec2.yaml -e "buildnode=tag_Name_ec2MagmaBuild" -u admin
     ```
@@ -270,8 +271,6 @@
     ```
 
   - Result: AGW AMI created and ready to be used for AGW in-region or Snowcone deployments.
-
-
 
 
 ## Known Issues, Best Practices & Expected Behavior

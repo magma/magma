@@ -16,8 +16,11 @@ package servicers
 import (
 	"context"
 	"fmt"
+	"net"
+	"time"
+
 	"github.com/golang/glog"
-	"github.com/wmnsk/go-gtp/gtpv2"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
 )
@@ -33,22 +36,28 @@ type S8Proxy struct {
 }
 
 type S8ProxyConfig struct {
+	GtpTimeout time.Duration
 	ClientAddr string
-	ServerAddr string
+	ServerAddr *net.UDPAddr
 }
 
-// NewS8Proxy creates an s8 proxy already connected to a server (checks with echo if PGW is alive)
+// NewS8Proxy creates an s8 proxy, but does not checks the PGW is alive
 func NewS8Proxy(config *S8ProxyConfig) (*S8Proxy, error) {
-	gtpCli, err := gtp.NewConnectedAutoClient(context.Background(), config.ServerAddr, gtpv2.IFTypeS5S8SGWGTPC)
+	gtpCli, err := gtp.NewRunningClient(
+		context.Background(), config.ClientAddr,
+		gtp.SGWControlPlaneIfType, config.GtpTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating S8_Proxy: %s", err)
 	}
 	return newS8ProxyImp(gtpCli, config)
 }
 
-//NewS8ProxyNoFirstEcho creates an s8 proxy, but does not checks the PGW is alive
-func NewS8ProxyNoFirstEcho(config *S8ProxyConfig) (*S8Proxy, error) {
-	gtpCli, err := gtp.NewRunningAutoClient(context.Background(), config.ServerAddr, gtpv2.IFTypeS5S8SGWGTPC)
+// NewS8ProxyWithEcho creates an s8 proxy already connected to a server (checks with echo if PGW is alive)
+// Used mainly for testing with s8_cli
+func NewS8ProxyWithEcho(config *S8ProxyConfig) (*S8Proxy, error) {
+	gtpCli, err := gtp.NewConnectedAutoClient(
+		context.Background(), config.ServerAddr.String(),
+		gtp.SGWControlPlaneIfType, config.GtpTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating S8_Proxy: %s", err)
 	}
@@ -67,14 +76,20 @@ func newS8ProxyImp(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
 }
 
 func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRequestPgw) (*protos.CreateSessionResponsePgw, error) {
+	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
+	if err != nil {
+		err = fmt.Errorf("Create Session Request failed due to missing server address: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
 	// build csReq IE message
-	csReqIEs, sessionTeids, err := buildCreateSessionRequestIE(req, s.gtpClient)
+	csReqMsg, err := buildCreateSessionRequestMsg(cPgwUDPAddr, req)
 	if err != nil {
 		return nil, err
 	}
 
 	// send, register and receive create session (session is created on the gtp client during this process too)
-	csRes, err := s.sendAndReceiveCreateSession(csReqIEs, sessionTeids)
+	csRes, err := s.sendAndReceiveCreateSession(req, cPgwUDPAddr, csReqMsg)
 	if err != nil {
 		err = fmt.Errorf("Create Session Request failed: %s", err)
 		glog.Error(err)
@@ -83,71 +98,48 @@ func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 	return csRes, nil
 }
 
-// TODO: see if ModifyBearerRequest applies to S8 for Magma
-func (s *S8Proxy) ModifyBearer(ctx context.Context, req *protos.ModifyBearerRequestPgw) (*protos.ModifyBearerResponsePgw, error) {
-	// Todo: delete this condition
-	err := fmt.Errorf("ModifyBearer is not completed implemented")
-	if err != nil {
-		glog.Error(err)
-		return nil, err
-	}
-
-	session, teid, err := getSessionAndCTeid(s.gtpClient, req.Imsi)
-	if err != nil {
-		return nil, err
-	}
-	mbReqIEs := buildModifyBearerRequest(req, session.GetDefaultBearer().EBI)
-	mdRes, err := s.sendAndReceiveModifyBearer(teid, session, mbReqIEs)
-	if err != nil {
-		err = fmt.Errorf("Modify Bearer Request failed: %s", err)
-		glog.Error(err)
-		return nil, err
-	}
-	return mdRes, nil
-}
-
 func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
-	session, teid, err := getSessionAndCTeid(s.gtpClient, req.Imsi)
+	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
 	if err != nil {
+		err = fmt.Errorf("Delete Session failed due to missing server address: %s", err)
+		glog.Error(err)
 		return nil, err
 	}
-
-	cdRes, err := s.sendAndReceiveDeleteSession(teid, session)
+	dsReqMsg := buildDeleteSessionRequestMsg(req)
+	cdRes, err := s.sendAndReceiveDeleteSession(req, cPgwUDPAddr, dsReqMsg)
 	if err != nil {
 		glog.Errorf("Couldnt delete session for IMSI %s:, %s", req.Imsi, err)
 		return nil, err
 	}
-
 	// remove session from the s8_proxy client
-	s.gtpClient.RemoveSession(session)
-
+	s.gtpClient.RemoveSessionByIMSI(req.Imsi)
 	return cdRes, nil
 }
 
 func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*protos.EchoResponse, error) {
-	err := s.sendAndReceiveEchoRequest()
+	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
+	if err != nil {
+		err = fmt.Errorf("SendEcho to %s failed: %s", cPgwUDPAddr, err)
+		glog.Error(err)
+		return nil, err
+	}
+	err = s.sendAndReceiveEchoRequest(cPgwUDPAddr)
 	if err != nil {
 		return nil, err
 	}
 	return &protos.EchoResponse{}, nil
 }
 
-// TODO: this is a function to expose WaitUntilClientIsReady. That function is only used
-// as a hack for testing and will be removed.
-func (s *S8Proxy) WaitUntilClientIsReady() {
-	s.gtpClient.WaitUntilClientIsReady(0)
-}
-
-func getSessionAndCTeid(cli *gtp.Client, imsi string) (*gtpv2.Session, uint32, error) {
-	session, err := cli.GetSessionByIMSI(imsi)
-	if err != nil {
-		glog.Errorf("Couldnt delete session. Couldnt find a session for IMSI %s:, %s", imsi, err)
-		return nil, 0, err
+// configOrRequestedPgwAddress returns an UDPAddrs if the passed string corresponds to a valid ip,
+// otherwise it uses the server address configured on s8_proxy
+func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.UDPAddr, error) {
+	addrs := ParseAddress(pgwAddrsFromRequest)
+	if addrs != nil {
+		// address comming from string has precednece
+		return addrs, nil
 	}
-	teid, err := session.GetTEID(gtpv2.IFTypeS5S8PGWGTPC)
-	if err != nil {
-		glog.Errorf("Couldnt delete session. Couldnt find control TEID for IMSI %s:, %s", imsi, err)
-		return nil, 0, err
+	if s.config.ServerAddr != nil {
+		return s.config.ServerAddr, nil
 	}
-	return session, teid, nil
+	return nil, fmt.Errorf("Neither the request nor s8_proxy has a valid server (pgw) address")
 }

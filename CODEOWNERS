@@ -20,11 +20,11 @@ openwrt/ @emakeev @uri200
 # More specific mappings for lte/gateway will override this top-level one
 lte/gateway @ardzoht @pshelar
 lte/gateway/c/session_manager @themarwhal @uri200
-lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo
+lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo @ardzoht
 lte/gateway/c/sctpd @ssanadhya @ulaskozat
 lte/gateway/c/connection_tracker @koolzz
 lte/gateway/docker @rdefosse @tmdzk
-lte/gateway/release @kkahrs @tmdzk
+lte/gateway/release @tmdzk
 lte/gateway/python/magma/pipelined @koolzz @pshelar
 lte/gateway/python/integ_tests @ssanadhya @ulaskozat
 lte/gateway/Vagrantfile @mattymo @119Vik @tmdzk
@@ -38,4 +38,4 @@ feg/radius @AyliD @aharonnovo @r-i-g @themarwhal @mpgermano @uri200 @emakeev
 
 nms/ @karthiksubraveti @andreilee @Scott8440
 
-CODEOWNERS @amarpad
+CODEOWNERS @amarpad @electronjoe

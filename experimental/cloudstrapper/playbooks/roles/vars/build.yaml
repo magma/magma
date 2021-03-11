@@ -18,6 +18,7 @@ buildGwInstanceType: t2.medium
 # Ubuntu 20.04 in ap-northeast-1: ami-0f2dd5fc989207c82
 # Ubuntu 20.04 in ca-central-1: ami-02e44367276fe7adc
 buildUbuntuAmi: ami-02e44367276fe7adc
+
 #Debian 4.9.0.9 AMI n us-east-2:  ami-0c305b7817e9fd559
 #Debian 4.9.0.9 AMI n ap-northeast-1: ami-0aac5cd08e351ff0f
 buildDebianAmi: ami-0aac5cd08e351ff0f

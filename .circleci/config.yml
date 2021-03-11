@@ -340,7 +340,7 @@ commands:
     parameters:
       channel:
         type: string
-        default: "#magma_ci"
+        default: "${DEFAULT_SLACK_CHANNEL}"
     steps:
       - run:
           command: |

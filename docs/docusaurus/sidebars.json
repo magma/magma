@@ -8,9 +8,17 @@
     "Orchestrator": [
       {
         "type": "subcategory",
+        "label": "Architecture",
+        "ids": [
+          "orc8r/architecture_overview",
+          "orc8r/architecture_modularity",
+          "orc8r/architecture_security"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Deploy Orchestrator",
         "ids": [
-          "orc8r/intro",
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
           "orc8r/deploy_install",
@@ -32,8 +40,9 @@
         "type": "subcategory",
         "label": "Development",
         "ids": [
-          "orc8r/development/testing_tips",
-          "orc8r/development/minikube_deployment"
+          "orc8r/dev_security",
+          "orc8r/dev_testing_tips",
+          "orc8r/dev_minikube_deployment"
         ]
       }
     ],
@@ -106,7 +115,7 @@
         ]
       }
     ],
-    "FAQ": ["faq/magma_faq"],
+    "FAQ": ["faq/faq_magma"],
     "Proposals": [
       "proposals/p001_vpn_config_from_api",
       "proposals/p002_scaled_prometheus_pipeline",
@@ -114,7 +123,8 @@
       "proposals/p004_fua-restrict-feature",
       "proposals/p005_call_tracing",
       "proposals/p007_header_enrichment",
-      "proposals/p008_apn_correction"
+      "proposals/p008_apn_correction",
+      "proposals/p009_nms_mariadb_migration"
     ]
   }
 }

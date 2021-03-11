@@ -12,10 +12,13 @@ limitations under the License.
 """
 import os
 import logging
+import concurrent.futures
 import queue
+from functools import partial
 from concurrent.futures import Future
 from itertools import chain
 from typing import List, Tuple
+from collections import OrderedDict
 
 import grpc
 from lte.protos import pipelined_pb2_grpc
@@ -24,6 +27,7 @@ from lte.protos.pipelined_pb2 import (
     RequestOriginType,
     ActivateFlowsResult,
     DeactivateFlowsResult,
+    DeactivateFlowsRequest,
     FlowResponse,
     RuleModResult,
     SetupUEMacRequest,
@@ -31,10 +35,16 @@ from lte.protos.pipelined_pb2 import (
     SetupQuotaRequest,
     ActivateFlowsRequest,
     AllTableAssignments,
-    TableAssignment)
+    TableAssignment,
+    SessionSet,
+    PdrState,
+    UPFSessionContextState,
+    OffendingIE,
+    CauseIE)
 from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
+from lte.protos.session_manager_pb2 import RuleRecordTable
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
@@ -50,8 +60,12 @@ from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
 )
+from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
+from magma.pipelined.app.ng_services import NGServiceController
 
 grpc_msg_queue = queue.Queue()
+DEFAULT_CALL_TIMEOUT = 15
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -79,6 +93,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._ng_servicer_app = ng_servicer_app
         self._service_manager = service_manager
 
+        self._call_timeout = service_config.get('call_timeout',
+                                                DEFAULT_CALL_TIMEOUT)
         self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
@@ -105,7 +121,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_default_controllers, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupDefaultControllers processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_default_controllers(self, fut: 'Future(SetupFlowsResult)'):
         res = self._inout_app.handle_restart(None)
@@ -134,7 +154,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupPolicyFlows processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_flows(self, request: SetupPolicyRequest,
                      fut: 'Future[List[SetupFlowsResult]]'
@@ -160,9 +184,20 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
+        for controller in [self._gy_app, self._enforcer_app,
+                           self._enforcement_stats]:
+            if not controller.is_controller_ready():
+                context.set_code(grpc.StatusCode.UNAVAILABLE)
+                context.set_details('Enforcement service not initialized!')
+                return ActivateFlowsResult()
+
         fut = Future()  # type: Future[ActivateFlowsResult]
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("ActivateFlows request processing timed out")
+            return ActivateFlowsResult()
 
     def _update_ipv6_prefix_store(self, ipv6_addr: bytes):
         ipv6_str = ipv6_addr.decode('utf-8')
@@ -186,6 +221,24 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         for rule in request.dynamic_rules:
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, ipv4, rule.id)
+
+    def _remove_version(self, request: DeactivateFlowsRequest, ip_address: str):
+        def cleanup_redis(imsi, ip_address, rule_id, version):
+            self._service_manager.session_rule_version_mapper \
+                .remove(imsi, ip_address, rule_id, version)
+
+        for rule_id in request.rule_ids:
+            self._service_manager.session_rule_version_mapper \
+                .update_version(request.sid.id, ip_address,
+                                rule_id)
+            version = self._service_manager.session_rule_version_mapper \
+                .get_version(request.sid.id, ip_address, rule_id)
+
+            # Give it sometime to cleanup enf stats
+            self._loop.call_later(
+                self._service_config['enforcement']['poll_interval'] * 2,
+                partial(cleanup_redis, request.sid.id, ip_address, rule_id,
+                        version))
 
     def _activate_flows(self, request: ActivateFlowsRequest,
                         fut: 'Future[ActivateFlowsResult]'
@@ -345,6 +398,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
+        for controller in [self._gy_app, self._enforcer_app,
+                           self._enforcement_stats]:
+            if not controller.is_controller_ready():
+                context.set_code(grpc.StatusCode.UNAVAILABLE)
+                context.set_details('Enforcement service not initialized!')
+                return ActivateFlowsResult()
+
         self._loop.call_soon_threadsafe(self._deactivate_flows, request)
         return DeactivateFlowsResult()
 
@@ -370,12 +430,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _deactivate_flows_gx(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GX flows for %s', request.sid.id)
+
         if request.rule_ids:
-            for rule_id in request.rule_ids:
-                self._service_manager.session_rule_version_mapper \
-                    .update_version(request.sid.id, ip_address,
-                                    rule_id)
+            self._remove_version(request, ip_address)
         else:
+            # TODO cleanup redis?
             # If no rule ids are given, all flows are deactivated
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, ip_address)
@@ -389,9 +448,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         logging.debug('Deactivating GY flows for %s', request.sid.id)
         # Only deactivate requested rules here to not affect GX
         if request.rule_ids:
-            for rule_id in request.rule_ids:
-                self._service_manager.session_rule_version_mapper \
-                    .update_version(request.sid.id, ip_address, rule_id)
+            self._remove_version(request, ip_address)
         self._gy_app.deactivate_rules(request.sid.id, ip_address,
                                       request.rule_ids)
 
@@ -409,7 +466,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(
             self._enforcement_stats.get_policy_usage, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("GetPolicyUsage processing timed out")
+            return RuleRecordTable()
 
     # --------------------------
     # IPFIX App
@@ -500,7 +561,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_ue_mac,
                                         request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupUEMacFlows processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_ue_mac(self, request: SetupUEMacRequest,
                       fut: 'Future(SetupFlowsResult)'
@@ -527,6 +592,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
+        if not self._ue_mac_app.is_controller_ready():
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('UE MAC service not initialized!')
+            return FlowResponse()
+
         # 12 hex characters + 5 colons
         if len(request.mac_addr) != 17:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
@@ -536,7 +606,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._add_ue_mac_flow, request, fut)
 
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("AddUEMacFlow processing timed out")
+            return FlowResponse()
 
     def _add_ue_mac_flow(self, request, fut: 'Future(FlowResponse)'):
         res = self._ue_mac_app.add_ue_mac_flow(request.sid.id, request.mac_addr)
@@ -553,6 +627,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
+
+        if not self._ue_mac_app.is_controller_ready():
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('UE MAC service not initialized!')
+            return FlowResponse()
 
         # 12 hex characters + 5 colons
         if len(request.mac_addr) != 17:
@@ -606,7 +685,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_quota,
                                         request, fut)
-        return fut.result()
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupQuotaFlows processing timed out")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_quota(self, request: SetupQuotaRequest,
                      fut: 'Future(SetupFlowsResult)'
@@ -624,6 +707,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
+
+        if not self._check_quota_app.is_controller_ready():
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Check Quota service not initialized!')
+            return FlowResponse()
 
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(
@@ -667,6 +755,69 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if not self._print_grpc_payload:
             return
         logging.info(log_msg)
+
+    def SetSMFSessions(self, request, context):
+        """
+        Setup the 5G Session flows for the subscriber
+        """
+        #if 5G Services are not enabled return UNAVAILABLE
+        if not self._service_manager.is_ng_app_enabled(
+                NGServiceController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return UPFSessionContextState()
+
+        fut = Future()
+        self._log_grpc_payload(request)
+        self._loop.call_soon_threadsafe(\
+                      self.ng_update_session_flows, request, fut)
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("SetupQuotaFlows processing timed out")
+            return UPFSessionContextState()
+
+    def ng_update_session_flows(self, request: SessionSet,
+                                fut: 'Future(UPFSessionContextState)') -> UPFSessionContextState:
+        """
+        Install PDR, FAR and QER flows for the 5G Session send by SMF
+        """
+        logging.debug('Update 5G Session Flow for SessionID:%s, SessionVersion:%d',
+                      request.subscriber_id, request.session_version)
+
+        # Convert message containing PDR to Named Tuple Rules.
+        process_pdr_rules = OrderedDict()
+        response = self._ng_servicer_app.ng_session_message_handler(request, process_pdr_rules)
+
+        # Failure in message processing return failure
+        if response.cause_info.cause_ie == CauseIE.REQUEST_ACCEPTED:
+            for _, pdr_entries in process_pdr_rules.items():
+                # Create the Tunnel
+                ret = self._ng_tunnel_update(pdr_entries, request.subscriber_id)
+                if ret == False:
+                    offending_ie = OffendingIE(identifier=pdr_entries.pdr_id,
+                                               version=pdr_entries.pdr_version)
+
+                    #Session information is filled already
+                    response.cause_info.cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
+                    response.failure_rule_id.pdr.extend([offending_ie])
+                    break
+
+        fut.set_result(response)
+
+    def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
+        if pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+            ret = self._classifier_app.add_tunnel_flows(\
+                           pdr_entry.precedence, pdr_entry.local_f_teid,\
+                           pdr_entry.far_action.o_teid, pdr_entry.ue_ip_addr,\
+                           pdr_entry.far_action.gnb_ip_addr, encode_imsi(subscriber_id))
+
+        elif pdr_entry.pdr_state in \
+             [PdrState.Value('REMOVE'), PdrState.Value('IDLE')]:
+            ret = self._classifier_app.delete_tunnel_flows(\
+                           pdr_entry.local_f_teid, pdr_entry.ue_ip_addr)
+
+        return ret
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],

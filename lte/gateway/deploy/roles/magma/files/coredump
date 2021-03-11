@@ -15,7 +15,7 @@ rm -rf /tmp/"$NAME"_bundle
 mkdir /tmp/"$NAME"_bundle
 mv /var/$NAME.gz /tmp/"$NAME"_bundle
 
-dpkg -s magma | grep Version | sed 's/Version: //' > /tmp/"$NAME"_bundle/version
+apt-cache policy magma | grep Installed > /tmp/"$NAME"_bundle/version
 
 for FILE in `cat /etc/magma/logfiles.txt`
 do

@@ -12,6 +12,7 @@ limitations under the License.
 """
 from .base import MagmaController, ControllerType
 from magma.pipelined.ng_manager.node_state_manager import NodeStateManager
+from magma.pipelined.ng_manager.session_state_manager import SessionStateManager
 
 class NGServiceController(MagmaController):
     """
@@ -43,16 +44,18 @@ class NGServiceController(MagmaController):
         with datapath connect event.
 
         Args:
-            datapath: ryu datapath struct
+            None:
         """
         self._ng_node_mgr.send_association_setup_message()
+        self._ng_sess_mgr = SessionStateManager(self.loop, self.logger)
 
     def cleanup_on_disconnect(self, _):
         """
         Send notification to sessiond about association
         release
+
         Args:
-            datapath: ryu datapath struct
+            None
         """
         self._ng_node_mgr.send_association_release_message()
 
@@ -69,3 +72,6 @@ class NGServiceController(MagmaController):
     def ng_set_node_association(self):
         self._ng_node_mgr.send_association_setup_message()
 
+    # Process the message and send it to SessionStateManager
+    def ng_session_message_handler(self, new_session, process_pdr_rules):
+        return self._ng_sess_mgr.process_session_message(new_session, process_pdr_rules)
