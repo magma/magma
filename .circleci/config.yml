@@ -392,7 +392,7 @@ commands:
             EOF
             )
             echo $slack_data
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
           when: always
 
   persist-githash-version:
@@ -416,6 +416,9 @@ commands:
       version_path:
         description: Path to file that will contain the artifact version
         type: string
+      channel:
+        type: string
+        default: "${DEFAULT_SLACK_CHANNEL}"
     steps:
       - run:
           name: Send slack message
@@ -440,7 +443,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "#ci-publish",
+              "channel": "<< parameters.channel >>",
               "text": "*<< parameters.artifact_name >> Artifact Has Been Published*",
               "attachments": [
                 {
@@ -464,7 +467,7 @@ commands:
             }
             EOF
             )
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
   ### CLOUD
