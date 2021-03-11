@@ -82,7 +82,6 @@ func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 		glog.Error(err)
 		return nil, err
 	}
-
 	// build csReq IE message
 	csReqMsg, err := buildCreateSessionRequestMsg(cPgwUDPAddr, req)
 	if err != nil {
@@ -100,14 +99,12 @@ func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 }
 
 func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
-	// TODO make this stateless once MME has all the requiered information
 	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
 	if err != nil {
 		err = fmt.Errorf("Delete Session failed due to missing server address: %s", err)
 		glog.Error(err)
 		return nil, err
 	}
-
 	dsReqMsg := buildDeleteSessionRequestMsg(req)
 	cdRes, err := s.sendAndReceiveDeleteSession(req, cPgwUDPAddr, dsReqMsg)
 	if err != nil {
