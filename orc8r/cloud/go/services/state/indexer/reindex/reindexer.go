@@ -51,9 +51,15 @@ const (
 )
 
 var (
-	// TestHookReindexComplete is a function called after each reindex Run() completes.
+	// TestHookReindexDone is a function called after each reindex in Run()
+	// completes, regardless of success or failure.
 	// This should only be set by test code.
-	TestHookReindexComplete = func() {}
+	TestHookReindexDone = func() {}
+
+	// TestHookReindexSuccess is a function called after each reindex in Run()
+	// completes successfully.
+	// This should only be set by test code.
+	TestHookReindexSuccess = func() {}
 )
 
 type Reindexer interface {
@@ -138,6 +144,8 @@ func (r *reindexerImpl) GetIndexerVersions() ([]*indexer.Versions, error) {
 
 // If no job available, returns ErrNotFound from magma/orc8r/lib/go/errors.
 func (r *reindexerImpl) claimAndReindexOne(ctx context.Context, batches []reindexBatch) error {
+	defer TestHookReindexDone()
+
 	job, err := r.queue.ClaimAvailableJob()
 	if err != nil {
 		return wrap(err, ErrDefault, "")
@@ -159,7 +167,7 @@ func (r *reindexerImpl) claimAndReindexOne(ctx context.Context, batches []reinde
 	metrics.ReindexDuration.WithLabelValues(job.Idx.GetID()).Set(duration)
 	glog.Infof("Attempt at state reindex job %+v took %f seconds", job, duration)
 
-	TestHookReindexComplete()
+	TestHookReindexSuccess()
 	return nil
 }
 
