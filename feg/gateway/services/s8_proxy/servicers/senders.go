@@ -29,7 +29,7 @@ import (
 
 // sendAndReceiveCreateSession creates a session in the gtp client, sends the create session request
 // to PGW and waits for its answers.
-// Returns a GRPC message translaged from the GTP-U create session response
+// Returns a GRPC message translated from the GTP-C create session response
 func (s *S8Proxy) sendAndReceiveCreateSession(
 	csReq *protos.CreateSessionRequestPgw,
 	cPgwUDPAddr *net.UDPAddr,
@@ -38,52 +38,29 @@ func (s *S8Proxy) sendAndReceiveCreateSession(
 		cPgwUDPAddr.String(), csReq.String())
 
 	grpcMessage, err := s.gtpClient.SendMessageAndExtractGrpc(csReq.Imsi, csReq.CAgwTeid, cPgwUDPAddr, csReqMsg)
-	/*
-		session, seq, err := s.gtpClient.CreateSession(cPgwUDPAddr, csReqIEs...)
-
-
-
-		if err != nil {
-			return nil, fmt.Errorf("failed to send create session at %s: %s", cPgwUDPAddr.String(), err)
-		}
-
-		// add TEID to session and register session
-		session.AddTEID(sessionTeids.uAgwFTeid.MustInterfaceType(), sessionTeids.uAgwFTeid.MustTEID())
-		s.gtpClient.RegisterSession(sessionTeids.cFegFTeid.MustTEID(), session)
-
-		grpcMessage, err := waitMessageAndExtractGrpc(session, seq)
-	*/
 	if err != nil {
 		return nil, fmt.Errorf("no response message to CreateSessionRequest: %s", err)
 	}
-
 	// check if message is proper
 	csRes, ok := grpcMessage.(*protos.CreateSessionResponsePgw)
 	if !ok {
 		s.gtpClient.RemoveSessionByIMSI(csReq.Imsi)
-		//s.gtpClient.RemoveSession(session)
 		return nil, fmt.Errorf("Wrong response type (no CreateSessionResponse), maybe received out of order response message: %s", err)
 	}
-	// TODO : Delete
 	glog.V(2).Infof("Create Session Response (grpc):\n%s", csRes.String())
 	return csRes, nil
 }
 
-// sendAndReceiveDeleteSession  sends delete session request GTP-U message to PGW and
+// sendAndReceiveDeleteSession  sends delete session request GTP-C message to PGW and
 // waits for its answers.
-// Returns a GRPC message translaged from the GTP-U create session response
+// Returns a GRPC message translated from the GTP-C delete session response
 func (s *S8Proxy) sendAndReceiveDeleteSession(req *protos.DeleteSessionRequestPgw,
 	cPgwUDPAddr *net.UDPAddr,
 	dsReqMsg message.Message) (*protos.DeleteSessionResponsePgw, error) {
 
-	//seq, err := s.gtpClient.DeleteSession(teid, session, dsReqIEs...)
 	glog.V(2).Infof("Send Delete Session Request (gtp) to %s:\n%s", cPgwUDPAddr,
 		dsReqMsg)
 	grpcMessage, err := s.gtpClient.SendMessageAndExtractGrpc(req.Imsi, req.CAgwTeid, cPgwUDPAddr, dsReqMsg)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//grpcMessage, err := waitMessageAndExtractGrpc(session, seq)
 	if err != nil {
 		return nil, fmt.Errorf("no response message to DeleteSessionRequest: %s", err)
 	}
