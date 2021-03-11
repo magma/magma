@@ -30,25 +30,28 @@
 #include "log.h"
 #include "service303.h"
 
-#define MIN_GUAMFI 1
-#define MAX_GUAMFI 5
+#define MIN_GUAMFI 1 /*minimum 1 Global Unique AMF Identifier is supported*/
+#define MAX_GUAMFI 5 /*max 5 Global Unique AMF Identifiers are supported*/
 
-typedef uint64_t imsi64_t;
-typedef uint32_t amf_ue_ngap_id_t;
+typedef uint64_t imsi64_t;         /*holds the IMSI value*/
+typedef uint32_t amf_ue_ngap_id_t; /*uniquely identifies the UE over the NG
+                                      interface within the AMF*/
 
+/*TAI list*/
 typedef struct m5g_served_tai_s {
   uint8_t list_type;
   uint8_t nb_tai;
-  uint16_t* plmn_mcc;
-  uint16_t* plmn_mnc;
+  uint16_t* plmn_mcc; /*Mobile Country Code*/
+  uint16_t* plmn_mnc; /*Mobile Network Code*/
   uint16_t* plmn_mnc_len;
-  uint16_t* tac;
+  uint16_t* tac; /*Tracking Area Code*/
 } m5g_served_tai_t;
 
 typedef struct ngap_config_s {
-  uint16_t port_number;
+  uint16_t port_number; /*port #38412 for NGAP*/
 } ngap_config_t;
 
+/*Global Unique AMF Identifier*/
 typedef struct guamfi_config_s {
   int nb;
   guamfi_t guamfi[MAX_GUAMFI];
@@ -77,7 +80,7 @@ typedef struct amf_config_s {
   bool use_stateless;
 } amf_config_t;
 
-extern amf_config_t amf_config;
+extern amf_config_t amf_config; /*global*/
 
 int amf_config_find_mnc_length(
     const char mcc_digit1P, const char mcc_digit2P, const char mcc_digit3P,

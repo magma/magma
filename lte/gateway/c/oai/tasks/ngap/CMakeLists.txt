@@ -46,13 +46,13 @@ target_include_directories(LIB_NGAP PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/r16
 )
 
-set(PCEF_LTE_CPP_PROTOS ngap_state common_types)
+set(NGAP_STATE_CPP_PROTOS ngap_state common_types)
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 set(STATE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
-generate_cpp_protos("${PCEF_LTE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
+generate_cpp_protos("${NGAP_STATE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
         "${STATE_PROTO_DIR}" "${STATE_OUT_DIR}")
 
 add_library(TASK_NGAP
