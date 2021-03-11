@@ -71,9 +71,12 @@ int get_assigned_ipv4_block(
 int pgw_handle_allocate_ipv4_address(
     const char* subscriber_id, const char* apn, const char* pdn_type,
     teid_t context_teid, ebi_t eps_bearer_id) {
+  std::string subscriber_id_str = std::string(subscriber_id);
+  std::string apn_str           = std::string(apn);
+  std::string pdn_type_str      = std::string(pdn_type);
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
-      subscriber_id, apn,
-      [subscriber_id, apn, pdn_type, context_teid, eps_bearer_id](
+      subscriber_id_str, apn_str,
+      [subscriber_id_str, apn_str, pdn_type_str, context_teid, eps_bearer_id](
           const Status& status, const AllocateIPAddressResponse& ip_msg) {
         struct in_addr addr;
         std::string ipv4_addr_str;
@@ -83,8 +86,8 @@ int pgw_handle_allocate_ipv4_address(
         memcpy(&addr, ipv4_addr_str.c_str(), sizeof(in_addr));
         int vlan = atoi(ip_msg.vlan().c_str());
         handle_allocate_ipv4_address_status(
-            status, addr, vlan, subscriber_id, apn, pdn_type, context_teid,
-            eps_bearer_id);
+            status, addr, vlan, subscriber_id_str.c_str(), apn_str.c_str(),
+            pdn_type_str.c_str(), context_teid, eps_bearer_id);
       });
   return 0;
 }
