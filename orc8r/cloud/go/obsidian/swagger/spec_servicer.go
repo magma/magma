@@ -58,12 +58,12 @@ func NewSpecServicer(partialSpec string, standaloneSpec string) protos.SwaggerSp
 	return &specServicer{partialSpec: partialSpec, standAloneSpec: standaloneSpec}
 }
 
-func (s *specServicer) GetPartialSpec(ctx context.Context, request *protos.GetSpecRequest) (*protos.GetSpecResponse, error) {
-	return &protos.GetSpecResponse{SwaggerSpec: s.partialSpec}, nil
+func (s *specServicer) GetPartialSpec(ctx context.Context, request *protos.PartialSpecRequest) (*protos.PartialSpecResponse, error) {
+	return &protos.PartialSpecResponse{SwaggerSpec: s.partialSpec}, nil
 }
 
-func (s *specServicer) GetStandaloneSpec(ctx context.Context, request *protos.GetSpecRequest) (*protos.GetSpecResponse, error) {
-	return &protos.GetSpecResponse{SwaggerSpec: s.standAloneSpec}, nil
+func (s *specServicer) GetStandaloneSpec(ctx context.Context, request *protos.StandaloneSpecRequest) (*protos.StandaloneSpecResponse, error) {
+	return &protos.StandaloneSpecResponse{SwaggerSpec: s.standAloneSpec}, nil
 }
 
 // getSpecPaths returns the filepath on the production image

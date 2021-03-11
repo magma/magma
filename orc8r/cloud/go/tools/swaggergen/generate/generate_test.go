@@ -55,10 +55,10 @@ func TestGenerateStandaloneSpec(t *testing.T) {
 	os.Remove(outPath)
 	defer os.Remove(outPath)
 
-	dependencies, err := generate.ParseSwaggerDependencyTree(targetFilePath, os.Getenv("MAGMA_ROOT"))
+	specs, err := generate.ParseSwaggerDependencyTree(targetFilePath, os.Getenv("MAGMA_ROOT"))
 	assert.NoError(t, err)
 
-	err = generate.GenerateStandAloneSpec(targetFilePath, dependencies, outPath)
+	err = generate.GenerateStandAloneSpec(targetFilePath, specs, outPath)
 	assert.NoError(t, err)
 
 	actual, err := ioutil.ReadFile(outPath)

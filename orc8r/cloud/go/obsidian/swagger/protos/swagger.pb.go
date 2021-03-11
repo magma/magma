@@ -24,70 +24,140 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type GetSpecRequest struct {
+type PartialSpecRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetSpecRequest) Reset()         { *m = GetSpecRequest{} }
-func (m *GetSpecRequest) String() string { return proto.CompactTextString(m) }
-func (*GetSpecRequest) ProtoMessage()    {}
-func (*GetSpecRequest) Descriptor() ([]byte, []int) {
+func (m *PartialSpecRequest) Reset()         { *m = PartialSpecRequest{} }
+func (m *PartialSpecRequest) String() string { return proto.CompactTextString(m) }
+func (*PartialSpecRequest) ProtoMessage()    {}
+func (*PartialSpecRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_49635b75e059a131, []int{0}
 }
 
-func (m *GetSpecRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetSpecRequest.Unmarshal(m, b)
+func (m *PartialSpecRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PartialSpecRequest.Unmarshal(m, b)
 }
-func (m *GetSpecRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetSpecRequest.Marshal(b, m, deterministic)
+func (m *PartialSpecRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PartialSpecRequest.Marshal(b, m, deterministic)
 }
-func (m *GetSpecRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetSpecRequest.Merge(m, src)
+func (m *PartialSpecRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PartialSpecRequest.Merge(m, src)
 }
-func (m *GetSpecRequest) XXX_Size() int {
-	return xxx_messageInfo_GetSpecRequest.Size(m)
+func (m *PartialSpecRequest) XXX_Size() int {
+	return xxx_messageInfo_PartialSpecRequest.Size(m)
 }
-func (m *GetSpecRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetSpecRequest.DiscardUnknown(m)
+func (m *PartialSpecRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PartialSpecRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetSpecRequest proto.InternalMessageInfo
+var xxx_messageInfo_PartialSpecRequest proto.InternalMessageInfo
 
-type GetSpecResponse struct {
+type StandaloneSpecRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *StandaloneSpecRequest) Reset()         { *m = StandaloneSpecRequest{} }
+func (m *StandaloneSpecRequest) String() string { return proto.CompactTextString(m) }
+func (*StandaloneSpecRequest) ProtoMessage()    {}
+func (*StandaloneSpecRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_49635b75e059a131, []int{1}
+}
+
+func (m *StandaloneSpecRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StandaloneSpecRequest.Unmarshal(m, b)
+}
+func (m *StandaloneSpecRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StandaloneSpecRequest.Marshal(b, m, deterministic)
+}
+func (m *StandaloneSpecRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StandaloneSpecRequest.Merge(m, src)
+}
+func (m *StandaloneSpecRequest) XXX_Size() int {
+	return xxx_messageInfo_StandaloneSpecRequest.Size(m)
+}
+func (m *StandaloneSpecRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_StandaloneSpecRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StandaloneSpecRequest proto.InternalMessageInfo
+
+type PartialSpecResponse struct {
 	SwaggerSpec          string   `protobuf:"bytes,1,opt,name=swagger_spec,json=swaggerSpec,proto3" json:"swagger_spec,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetSpecResponse) Reset()         { *m = GetSpecResponse{} }
-func (m *GetSpecResponse) String() string { return proto.CompactTextString(m) }
-func (*GetSpecResponse) ProtoMessage()    {}
-func (*GetSpecResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_49635b75e059a131, []int{1}
+func (m *PartialSpecResponse) Reset()         { *m = PartialSpecResponse{} }
+func (m *PartialSpecResponse) String() string { return proto.CompactTextString(m) }
+func (*PartialSpecResponse) ProtoMessage()    {}
+func (*PartialSpecResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_49635b75e059a131, []int{2}
 }
 
-func (m *GetSpecResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetSpecResponse.Unmarshal(m, b)
+func (m *PartialSpecResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PartialSpecResponse.Unmarshal(m, b)
 }
-func (m *GetSpecResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetSpecResponse.Marshal(b, m, deterministic)
+func (m *PartialSpecResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PartialSpecResponse.Marshal(b, m, deterministic)
 }
-func (m *GetSpecResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetSpecResponse.Merge(m, src)
+func (m *PartialSpecResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PartialSpecResponse.Merge(m, src)
 }
-func (m *GetSpecResponse) XXX_Size() int {
-	return xxx_messageInfo_GetSpecResponse.Size(m)
+func (m *PartialSpecResponse) XXX_Size() int {
+	return xxx_messageInfo_PartialSpecResponse.Size(m)
 }
-func (m *GetSpecResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetSpecResponse.DiscardUnknown(m)
+func (m *PartialSpecResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PartialSpecResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetSpecResponse proto.InternalMessageInfo
+var xxx_messageInfo_PartialSpecResponse proto.InternalMessageInfo
 
-func (m *GetSpecResponse) GetSwaggerSpec() string {
+func (m *PartialSpecResponse) GetSwaggerSpec() string {
+	if m != nil {
+		return m.SwaggerSpec
+	}
+	return ""
+}
+
+type StandaloneSpecResponse struct {
+	SwaggerSpec          string   `protobuf:"bytes,1,opt,name=swagger_spec,json=swaggerSpec,proto3" json:"swagger_spec,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *StandaloneSpecResponse) Reset()         { *m = StandaloneSpecResponse{} }
+func (m *StandaloneSpecResponse) String() string { return proto.CompactTextString(m) }
+func (*StandaloneSpecResponse) ProtoMessage()    {}
+func (*StandaloneSpecResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_49635b75e059a131, []int{3}
+}
+
+func (m *StandaloneSpecResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StandaloneSpecResponse.Unmarshal(m, b)
+}
+func (m *StandaloneSpecResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StandaloneSpecResponse.Marshal(b, m, deterministic)
+}
+func (m *StandaloneSpecResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StandaloneSpecResponse.Merge(m, src)
+}
+func (m *StandaloneSpecResponse) XXX_Size() int {
+	return xxx_messageInfo_StandaloneSpecResponse.Size(m)
+}
+func (m *StandaloneSpecResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_StandaloneSpecResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StandaloneSpecResponse proto.InternalMessageInfo
+
+func (m *StandaloneSpecResponse) GetSwaggerSpec() string {
 	if m != nil {
 		return m.SwaggerSpec
 	}
@@ -95,26 +165,30 @@ func (m *GetSpecResponse) GetSwaggerSpec() string {
 }
 
 func init() {
-	proto.RegisterType((*GetSpecRequest)(nil), "magma.orc8r.obsidian.swagger.GetSpecRequest")
-	proto.RegisterType((*GetSpecResponse)(nil), "magma.orc8r.obsidian.swagger.GetSpecResponse")
+	proto.RegisterType((*PartialSpecRequest)(nil), "magma.orc8r.obsidian.swagger.PartialSpecRequest")
+	proto.RegisterType((*StandaloneSpecRequest)(nil), "magma.orc8r.obsidian.swagger.StandaloneSpecRequest")
+	proto.RegisterType((*PartialSpecResponse)(nil), "magma.orc8r.obsidian.swagger.PartialSpecResponse")
+	proto.RegisterType((*StandaloneSpecResponse)(nil), "magma.orc8r.obsidian.swagger.StandaloneSpecResponse")
 }
 
 func init() { proto.RegisterFile("swagger.proto", fileDescriptor_49635b75e059a131) }
 
 var fileDescriptor_49635b75e059a131 = []byte{
-	// 183 bytes of a gzipped FileDescriptorProto
+	// 214 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2d, 0x2e, 0x4f, 0x4c,
 	0x4f, 0x4f, 0x2d, 0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0xc9, 0x4d, 0x4c, 0xcf, 0x4d,
 	0xd4, 0xcb, 0x2f, 0x4a, 0xb6, 0x28, 0xd2, 0xcb, 0x4f, 0x2a, 0xce, 0x4c, 0xc9, 0x4c, 0xcc, 0xd3,
-	0x83, 0xaa, 0x51, 0x12, 0xe0, 0xe2, 0x73, 0x4f, 0x2d, 0x09, 0x2e, 0x48, 0x4d, 0x0e, 0x4a, 0x2d,
-	0x2c, 0x4d, 0x2d, 0x2e, 0x51, 0x32, 0xe1, 0xe2, 0x87, 0x8b, 0x14, 0x17, 0xe4, 0xe7, 0x15, 0xa7,
-	0x0a, 0x29, 0x72, 0xf1, 0x40, 0xd5, 0xc7, 0x17, 0x17, 0xa4, 0x26, 0x4b, 0x30, 0x2a, 0x30, 0x6a,
-	0x70, 0x06, 0x71, 0x43, 0xc5, 0x40, 0x4a, 0x8d, 0x3e, 0x31, 0x72, 0x71, 0x07, 0x23, 0xf8, 0x42,
-	0xf9, 0x60, 0x73, 0x03, 0x12, 0x8b, 0x4a, 0x32, 0x13, 0x73, 0xc0, 0x22, 0x3a, 0x7a, 0xf8, 0x1c,
-	0xa2, 0x87, 0xea, 0x0a, 0x29, 0x5d, 0x22, 0x55, 0x43, 0x5c, 0xa8, 0xc4, 0x20, 0x54, 0xc4, 0x25,
-	0x08, 0x12, 0x2c, 0x49, 0xcc, 0x4b, 0x49, 0xcc, 0xc9, 0xcf, 0x4b, 0xa5, 0x83, 0x9d, 0x4e, 0x1c,
-	0x51, 0x6c, 0xe0, 0x30, 0x2e, 0x4e, 0x82, 0xd0, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe9,
-	0x27, 0x23, 0xb9, 0x7c, 0x01, 0x00, 0x00,
+	0x83, 0xaa, 0x51, 0x12, 0xe1, 0x12, 0x0a, 0x48, 0x2c, 0x2a, 0xc9, 0x4c, 0xcc, 0x09, 0x2e, 0x48,
+	0x4d, 0x0e, 0x4a, 0x2d, 0x2c, 0x4d, 0x2d, 0x2e, 0x51, 0x12, 0xe7, 0x12, 0x0d, 0x2e, 0x49, 0xcc,
+	0x4b, 0x49, 0xcc, 0xc9, 0xcf, 0x4b, 0x45, 0x96, 0xb0, 0xe0, 0x12, 0x46, 0x51, 0x5e, 0x5c, 0x90,
+	0x9f, 0x57, 0x9c, 0x2a, 0xa4, 0xc8, 0xc5, 0x03, 0x35, 0x30, 0xbe, 0xb8, 0x20, 0x35, 0x59, 0x82,
+	0x51, 0x81, 0x51, 0x83, 0x33, 0x88, 0x1b, 0x2a, 0x06, 0x52, 0xaa, 0x64, 0xcd, 0x25, 0x86, 0x6e,
+	0x24, 0xd1, 0x9a, 0x8d, 0x3a, 0x99, 0xb8, 0xb8, 0x83, 0x11, 0x7c, 0xa1, 0x72, 0x2e, 0x3e, 0xf7,
+	0xd4, 0x12, 0x24, 0x97, 0x08, 0x19, 0xe8, 0xe1, 0xf3, 0xa6, 0x1e, 0xa6, 0x1f, 0xa5, 0x0c, 0x49,
+	0xd0, 0x01, 0x71, 0xa9, 0x12, 0x83, 0x50, 0x03, 0x23, 0x97, 0xa0, 0x7b, 0x6a, 0x09, 0xaa, 0x4f,
+	0x84, 0x8c, 0xf1, 0x1b, 0x85, 0x35, 0x28, 0xa5, 0x4c, 0x48, 0xd3, 0x04, 0x73, 0x82, 0x13, 0x47,
+	0x14, 0x1b, 0x38, 0x62, 0x8b, 0x93, 0x20, 0xb4, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x86, 0x2e,
+	0xb6, 0x5c, 0xf1, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -130,10 +204,10 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SwaggerSpecClient interface {
 	// GetPartialSpec returns partial Swagger specification of the service's REST API.
-	GetPartialSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error)
-	// GetStandaloneSpec returns a standalone Swagger specfication of the
+	GetPartialSpec(ctx context.Context, in *PartialSpecRequest, opts ...grpc.CallOption) (*PartialSpecResponse, error)
+	// GetStandaloneSpec returns a standalone Swagger specification of the
 	// service's REST API.
-	GetStandaloneSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error)
+	GetStandaloneSpec(ctx context.Context, in *StandaloneSpecRequest, opts ...grpc.CallOption) (*StandaloneSpecResponse, error)
 }
 
 type swaggerSpecClient struct {
@@ -144,8 +218,8 @@ func NewSwaggerSpecClient(cc grpc.ClientConnInterface) SwaggerSpecClient {
 	return &swaggerSpecClient{cc}
 }
 
-func (c *swaggerSpecClient) GetPartialSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error) {
-	out := new(GetSpecResponse)
+func (c *swaggerSpecClient) GetPartialSpec(ctx context.Context, in *PartialSpecRequest, opts ...grpc.CallOption) (*PartialSpecResponse, error) {
+	out := new(PartialSpecResponse)
 	err := c.cc.Invoke(ctx, "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetPartialSpec", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -153,8 +227,8 @@ func (c *swaggerSpecClient) GetPartialSpec(ctx context.Context, in *GetSpecReque
 	return out, nil
 }
 
-func (c *swaggerSpecClient) GetStandaloneSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error) {
-	out := new(GetSpecResponse)
+func (c *swaggerSpecClient) GetStandaloneSpec(ctx context.Context, in *StandaloneSpecRequest, opts ...grpc.CallOption) (*StandaloneSpecResponse, error) {
+	out := new(StandaloneSpecResponse)
 	err := c.cc.Invoke(ctx, "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetStandaloneSpec", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -165,20 +239,20 @@ func (c *swaggerSpecClient) GetStandaloneSpec(ctx context.Context, in *GetSpecRe
 // SwaggerSpecServer is the server API for SwaggerSpec service.
 type SwaggerSpecServer interface {
 	// GetPartialSpec returns partial Swagger specification of the service's REST API.
-	GetPartialSpec(context.Context, *GetSpecRequest) (*GetSpecResponse, error)
-	// GetStandaloneSpec returns a standalone Swagger specfication of the
+	GetPartialSpec(context.Context, *PartialSpecRequest) (*PartialSpecResponse, error)
+	// GetStandaloneSpec returns a standalone Swagger specification of the
 	// service's REST API.
-	GetStandaloneSpec(context.Context, *GetSpecRequest) (*GetSpecResponse, error)
+	GetStandaloneSpec(context.Context, *StandaloneSpecRequest) (*StandaloneSpecResponse, error)
 }
 
 // UnimplementedSwaggerSpecServer can be embedded to have forward compatible implementations.
 type UnimplementedSwaggerSpecServer struct {
 }
 
-func (*UnimplementedSwaggerSpecServer) GetPartialSpec(ctx context.Context, req *GetSpecRequest) (*GetSpecResponse, error) {
+func (*UnimplementedSwaggerSpecServer) GetPartialSpec(ctx context.Context, req *PartialSpecRequest) (*PartialSpecResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPartialSpec not implemented")
 }
-func (*UnimplementedSwaggerSpecServer) GetStandaloneSpec(ctx context.Context, req *GetSpecRequest) (*GetSpecResponse, error) {
+func (*UnimplementedSwaggerSpecServer) GetStandaloneSpec(ctx context.Context, req *StandaloneSpecRequest) (*StandaloneSpecResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStandaloneSpec not implemented")
 }
 
@@ -187,7 +261,7 @@ func RegisterSwaggerSpecServer(s *grpc.Server, srv SwaggerSpecServer) {
 }
 
 func _SwaggerSpec_GetPartialSpec_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetSpecRequest)
+	in := new(PartialSpecRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -199,13 +273,13 @@ func _SwaggerSpec_GetPartialSpec_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetPartialSpec",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SwaggerSpecServer).GetPartialSpec(ctx, req.(*GetSpecRequest))
+		return srv.(SwaggerSpecServer).GetPartialSpec(ctx, req.(*PartialSpecRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _SwaggerSpec_GetStandaloneSpec_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetSpecRequest)
+	in := new(StandaloneSpecRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -217,7 +291,7 @@ func _SwaggerSpec_GetStandaloneSpec_Handler(srv interface{}, ctx context.Context
 		FullMethod: "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetStandaloneSpec",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SwaggerSpecServer).GetStandaloneSpec(ctx, req.(*GetSpecRequest))
+		return srv.(SwaggerSpecServer).GetStandaloneSpec(ctx, req.(*StandaloneSpecRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

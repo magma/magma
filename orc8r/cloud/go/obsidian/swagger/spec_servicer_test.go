@@ -53,17 +53,17 @@ func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 	// Success
 	servicer := swagger.NewSpecServicerFromFile("test_spec_servicer")
 
-	req := &protos.GetSpecRequest{}
-	res, err := servicer.GetPartialSpec(context.Background(), req)
+	partialReq := &protos.PartialSpecRequest{}
+	partialRes, err := servicer.GetPartialSpec(context.Background(), partialReq)
 	assert.NoError(t, err)
 
-	assert.Equal(t, testPartialFileContents, res.SwaggerSpec)
+	assert.Equal(t, testPartialFileContents, partialRes.SwaggerSpec)
 
-	req = &protos.GetSpecRequest{}
-	res, err = servicer.GetStandaloneSpec(context.Background(), req)
+	standaloneReq := &protos.StandaloneSpecRequest{}
+	standaloneRes, err := servicer.GetStandaloneSpec(context.Background(), standaloneReq)
 	assert.NoError(t, err)
 
-	assert.Equal(t, testStandaloneFileContents, res.SwaggerSpec)
+	assert.Equal(t, testStandaloneFileContents, standaloneRes.SwaggerSpec)
 }
 
 func TestSpecServicer_GetPartialSpec(t *testing.T) {
@@ -72,7 +72,7 @@ func TestSpecServicer_GetPartialSpec(t *testing.T) {
 	// Success
 	servicer := swagger.NewSpecServicer(testFileContents, "")
 
-	req := &protos.GetSpecRequest{}
+	req := &protos.PartialSpecRequest{}
 	res, err := servicer.GetPartialSpec(context.Background(), req)
 	assert.NoError(t, err)
 
@@ -85,7 +85,7 @@ func TestSpecServicer_GetStandaloneSpec(t *testing.T) {
 	// Success
 	servicer := swagger.NewSpecServicer("", testFileContents)
 
-	req := &protos.GetSpecRequest{}
+	req := &protos.StandaloneSpecRequest{}
 	res, err := servicer.GetStandaloneSpec(context.Background(), req)
 	assert.NoError(t, err)
 

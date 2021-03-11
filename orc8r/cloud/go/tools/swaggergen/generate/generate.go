@@ -168,7 +168,7 @@ func GenerateModels(targetFilepath string, configFilepath string, rootDir string
 }
 
 // GenerateStandAloneSpec generates a standalone spec file for a particular
-// Swagger YAML file.
+// Swagger spec.
 func GenerateStandAloneSpec(targetFilePath string, specs map[string]MagmaSwaggerSpec, outPath string) error {
 	absTargetFilepath, err := filepath.Abs(targetFilePath)
 	if err != nil {
@@ -183,7 +183,7 @@ func GenerateStandAloneSpec(targetFilePath string, specs map[string]MagmaSwagger
 			s.Tags = nil
 		}
 
-		yamlSpec, err := marshalToYAML(s)
+		yamlSpec, err := s.marshalToYAML()
 		if err != nil {
 			return err
 		}
@@ -288,6 +288,17 @@ func StripAndWriteSwaggerSpecs(specs map[string]MagmaSwaggerSpec) error {
 	return nil
 }
 
+// RetrieveServiceName parses the targetFilepath for its originating service.
+func RetrieveServiceName(targetFilePath string, rootDir string) (string, error) {
+	absTargetFilepath, err := filepath.Abs(targetFilePath)
+	if err != nil {
+		return "", errors.Wrapf(err, "target filepath %s is invalid", targetFilePath)
+	}
+	splitPath := strings.Split(absTargetFilepath, "/")
+	outFile := splitPath[len(splitPath)-4] + ".swagger.v1.yml"
+	return filepath.Join(rootDir, "orc8r/cloud/swagger/specs/standalone", outFile), nil
+}
+
 func readSwaggerSpec(filepath string) (MagmaSwaggerSpec, error) {
 	fileContents, err := ioutil.ReadFile(filepath)
 	if err != nil {
@@ -302,9 +313,9 @@ func readSwaggerSpec(filepath string) (MagmaSwaggerSpec, error) {
 	return spec, nil
 }
 
-// marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
-func marshalToYAML(spec MagmaSwaggerSpec) (string, error) {
-	d, err := yaml.Marshal(&spec)
+// marshalToYAML marshals a MagmaSwaggerSpec to a YAML-formatted string.
+func (m *MagmaSwaggerSpec) marshalToYAML() (string, error) {
+	d, err := yaml.Marshal(&m)
 	if err != nil {
 		return "", err
 	}

@@ -44,7 +44,7 @@ func (s *RemoteSpec) GetPartialSpec() (string, error) {
 		return "", err
 	}
 
-	res, err := c.GetPartialSpec(context.Background(), &protos.GetSpecRequest{})
+	res, err := c.GetPartialSpec(context.Background(), &protos.PartialSpecRequest{})
 	if err != nil {
 		return "", err
 	}
@@ -60,7 +60,7 @@ func (s *RemoteSpec) GetStandaloneSpec() (string, error) {
 		return "", err
 	}
 
-	res, err := c.GetStandaloneSpec(context.Background(), &protos.GetSpecRequest{})
+	res, err := c.GetStandaloneSpec(context.Background(), &protos.StandaloneSpecRequest{})
 	if err != nil {
 		return "", err
 	}
