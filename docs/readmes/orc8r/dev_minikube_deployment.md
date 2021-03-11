@@ -1,5 +1,5 @@
 ---
-id: minikube_deployment
+id: dev_minikube_deployment
 title: Deploy on Minikube
 hide_title: true
 ---
@@ -18,7 +18,7 @@ significant differences and many things in there you don't need to worry about.
 
 ### Build and publish images
 
-Follow the instructions at [Building Orchestrator](../deploy_build.md#build-and-publish-container-images).
+Follow the instructions at [Building Orchestrator](./deploy_build.md#build-and-publish-container-images).
 
 In the end you should have your container images published to a registry.
 
@@ -162,7 +162,7 @@ https://localhost:9443
 
 ### Access NMS
 
-Follow the instructions to [Create an admin user](../deploy_install.md#create-an-nms-admin-user)
+Follow the instructions to [Create an admin user](./deploy_install.md#create-an-nms-admin-user)
 
 Port-forward nginx:
 

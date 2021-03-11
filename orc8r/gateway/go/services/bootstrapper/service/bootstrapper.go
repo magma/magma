@@ -173,8 +173,7 @@ func (b *Bootstrapper) PeriodicCheck(now time.Time) (err error) {
 	if err != nil {
 		return
 	}
-	oldCertFile, oldCertKeyFile, newCertFile, newCertKeyFile :=
-		certFile+".old", certKeyFile+".old", certFile+".new", certKeyFile+".new"
+	oldCertFile, oldCertKeyFile, newCertFile, newCertKeyFile := certFile+".old", certKeyFile+".old", certFile+".new", certKeyFile+".new"
 
 	if err = key.WriteKey(newCertKeyFile, newCertKey); err != nil {
 		return
