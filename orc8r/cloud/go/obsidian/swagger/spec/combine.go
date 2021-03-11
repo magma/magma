@@ -146,7 +146,7 @@ func makeAllYAMLReferencesLocal(yamlContents []string) []string {
 	// Match on any yml reference to file_name_here.foo.bar#/baz
 	// and change those references to #/baz (strip the prefix)
 	// e.g. $ref: 'foo_bar_baz.blah#/asdf' -> $ref: '#/asdf'
-	ymlRefRe := regexp.MustCompile(`(\$ref:\s*)['"].+(#/.+)['"]`)
+	ymlRefRe := regexp.MustCompile(`(\$ref:\s+)['"]?.*(#/[^"'\s]+)["']?`)
 	for _, yamlContent := range yamlContents {
 		rewritten = append(rewritten, ymlRefRe.ReplaceAllString(yamlContent, "$1'$2'"))
 	}

@@ -70,6 +70,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"magma/orc8r/cloud/go/tools/swaggergen/generate"
 
@@ -102,7 +104,11 @@ func main() {
 	}
 
 	if *generateStandAloneSpec && *targetFilepath != "swagger-common.yml" {
-		err = generate.GenerateStandAloneSpecs(*targetFilepath, specs)
+		// Retrieve spec service name
+		splitPath := strings.Split(*targetFilepath, "/")
+		outFile := splitPath[len(splitPath)-4] + ".swagger.v1.yml"
+		outPath := filepath.Join(os.Getenv("MAGMA_ROOT"), "orc8r/cloud/swagger/specs/standalone", outFile)
+		err = generate.GenerateStandAloneSpec(*targetFilepath, specs, outPath)
 		if err != nil {
 			// Swallow GenerateStandAloneSpec error because build should
 			// continue to run even if construction of a standalone spec fails

@@ -26,37 +26,51 @@ import (
 )
 
 type specServicer struct {
-	spec string
+	partialSpec    string
+	standAloneSpec string
 }
 
 // NewSpecServicerFromFile intializes a spec servicer
 // given a service name.
 func NewSpecServicerFromFile(service string) protos.SwaggerSpecServer {
 	service = strings.ToLower(service)
-	path := getSpecPath(service)
-	data, err := ioutil.ReadFile(path)
+	partialPath, standalonePath := getSpecPaths(service)
+	partial, err := ioutil.ReadFile(partialPath)
 	if err != nil {
-		// Swallowing ReadFile error because the service should
-		// continue to run even if it can't find its Swagger spec file.
+		// Swallowing ReadFile error because the service should continue to
+		// run even if it can't find its partial Swagger spec file.
 		glog.Errorf("Error retrieving Swagger Spec of service %s: %+v", service, err)
-		return NewSpecServicer("")
+		return NewSpecServicer("", "")
 	}
-	return NewSpecServicer(string(data))
+	standalone, err := ioutil.ReadFile(standalonePath)
+	if err != nil {
+		// Swallowing ReadFile error because the service should continue to
+		// run even if it can't find its standalone Swagger spec file.
+		glog.Errorf("Error retrieving Swagger Spec of service %s: %+v", service, err)
+		return NewSpecServicer("", "")
+	}
+
+	return NewSpecServicer(string(partial), string(standalone))
 }
 
 // NewSpecServicer constructs a spec servicer.
-func NewSpecServicer(spec string) protos.SwaggerSpecServer {
-	return &specServicer{spec}
+func NewSpecServicer(partialSpec string, standaloneSpec string) protos.SwaggerSpecServer {
+	return &specServicer{partialSpec: partialSpec, standAloneSpec: standaloneSpec}
 }
 
-func (s *specServicer) GetSpec(ctx context.Context, request *protos.GetSpecRequest) (*protos.GetSpecResponse, error) {
-	return &protos.GetSpecResponse{SwaggerSpec: s.spec}, nil
+func (s *specServicer) GetPartialSpec(ctx context.Context, request *protos.GetSpecRequest) (*protos.GetSpecResponse, error) {
+	return &protos.GetSpecResponse{SwaggerSpec: s.partialSpec}, nil
 }
 
-// getSpecPath returns the filepath on the production image
+func (s *specServicer) GetStandaloneSpec(ctx context.Context, request *protos.GetSpecRequest) (*protos.GetSpecResponse, error) {
+	return &protos.GetSpecResponse{SwaggerSpec: s.standAloneSpec}, nil
+}
+
+// getSpecPaths returns the filepath on the production image
 // that contains the service's Swagger spec
-func getSpecPath(service string) string {
+func getSpecPaths(service string) (string, string) {
 	specDir := "/etc/magma/swagger/specs"
-	specPath := filepath.Join(specDir, fmt.Sprintf("%s.swagger.v1.yml", service))
-	return specPath
+	partialSpecPath := filepath.Join(specDir, "partial", fmt.Sprintf("%s.swagger.v1.yml", service))
+	standaloneSpecPath := filepath.Join(specDir, "standalone", fmt.Sprintf("%s.swagger.v1.yml", service))
+	return partialSpecPath, standaloneSpecPath
 }

@@ -36,14 +36,31 @@ func NewRemoteSpec(serviceName string) RemoteSpec {
 	return RemoteSpec{service: strings.ToLower(serviceName)}
 }
 
-// GetSpec returns the spec associated to the service as a YAML string.
-func (s *RemoteSpec) GetSpec() (string, error) {
+// GetPartialSpec returns the partial spec associated to the service as a
+// YAML string.
+func (s *RemoteSpec) GetPartialSpec() (string, error) {
 	c, err := s.getClient()
 	if err != nil {
 		return "", err
 	}
 
-	res, err := c.GetSpec(context.Background(), &protos.GetSpecRequest{})
+	res, err := c.GetPartialSpec(context.Background(), &protos.GetSpecRequest{})
+	if err != nil {
+		return "", err
+	}
+
+	return res.SwaggerSpec, nil
+}
+
+// GetStandaloneSpec returns the standalone spec associated to the service as
+// a YAML string.
+func (s *RemoteSpec) GetStandaloneSpec() (string, error) {
+	c, err := s.getClient()
+	if err != nil {
+		return "", err
+	}
+
+	res, err := c.GetStandaloneSpec(context.Background(), &protos.GetSpecRequest{})
 	if err != nil {
 		return "", err
 	}

@@ -28,38 +28,65 @@ import (
 
 func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 	testFile := "test_spec_servicer.swagger.v1.yml"
-	testFileContents := "test yaml spec"
+	testPartialFileContents := "test partial yaml spec"
+	testStandaloneFileContents := "test standalone yaml spec"
 	tmpDir := "/etc/magma/swagger/specs"
+	partialDir := filepath.Join(tmpDir, "partial")
+	standaloneDir := filepath.Join(tmpDir, "standalone")
 
 	os.RemoveAll(tmpDir)
 	defer os.RemoveAll(tmpDir)
 
-	err := os.Mkdir(tmpDir, os.ModePerm)
+	err := os.MkdirAll(partialDir, os.ModePerm)
+	assert.NoError(t, err)
+	err = os.MkdirAll(standaloneDir, os.ModePerm)
 	assert.NoError(t, err)
 
-	tmpSpecPath := filepath.Join(tmpDir, testFile)
-	err = ioutil.WriteFile(tmpSpecPath, []byte(testFileContents), 0644)
+	tmpPartialSpecPath := filepath.Join(partialDir, testFile)
+	err = ioutil.WriteFile(tmpPartialSpecPath, []byte(testPartialFileContents), 0644)
+	assert.NoError(t, err)
+
+	tmpStandaloneSpecPath := filepath.Join(standaloneDir, testFile)
+	err = ioutil.WriteFile(tmpStandaloneSpecPath, []byte(testStandaloneFileContents), 0644)
 	assert.NoError(t, err)
 
 	// Success
 	servicer := swagger.NewSpecServicerFromFile("test_spec_servicer")
-	assert.NoError(t, err)
 
 	req := &protos.GetSpecRequest{}
-	res, err := servicer.GetSpec(context.Background(), req)
+	res, err := servicer.GetPartialSpec(context.Background(), req)
+	assert.NoError(t, err)
+
+	assert.Equal(t, testPartialFileContents, res.SwaggerSpec)
+
+	req = &protos.GetSpecRequest{}
+	res, err = servicer.GetStandaloneSpec(context.Background(), req)
+	assert.NoError(t, err)
+
+	assert.Equal(t, testStandaloneFileContents, res.SwaggerSpec)
+}
+
+func TestSpecServicer_GetPartialSpec(t *testing.T) {
+	testFileContents := "test partial yaml spec"
+
+	// Success
+	servicer := swagger.NewSpecServicer(testFileContents, "")
+
+	req := &protos.GetSpecRequest{}
+	res, err := servicer.GetPartialSpec(context.Background(), req)
 	assert.NoError(t, err)
 
 	assert.Equal(t, testFileContents, res.SwaggerSpec)
 }
 
-func TestSpecServicer_GetSpec(t *testing.T) {
-	testFileContents := "test yaml spec"
+func TestSpecServicer_GetStandaloneSpec(t *testing.T) {
+	testFileContents := "test standalone yaml spec"
 
 	// Success
-	servicer := swagger.NewSpecServicer(testFileContents)
+	servicer := swagger.NewSpecServicer("", testFileContents)
 
 	req := &protos.GetSpecRequest{}
-	res, err := servicer.GetSpec(context.Background(), req)
+	res, err := servicer.GetStandaloneSpec(context.Background(), req)
 	assert.NoError(t, err)
 
 	assert.Equal(t, testFileContents, res.SwaggerSpec)

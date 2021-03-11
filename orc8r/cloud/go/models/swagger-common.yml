@@ -41,12 +41,6 @@ schemes:
   - https
   - http
 
-tags:
-  - name: Networks
-    description: Everything about networks
-  - name: Gateways
-    description: Provision and manage gateways
-
 paths:
   /foo:
     get:

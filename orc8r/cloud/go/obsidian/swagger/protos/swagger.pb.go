@@ -102,17 +102,19 @@ func init() {
 func init() { proto.RegisterFile("swagger.proto", fileDescriptor_49635b75e059a131) }
 
 var fileDescriptor_49635b75e059a131 = []byte{
-	// 158 bytes of a gzipped FileDescriptorProto
+	// 183 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2d, 0x2e, 0x4f, 0x4c,
 	0x4f, 0x4f, 0x2d, 0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0xc9, 0x4d, 0x4c, 0xcf, 0x4d,
 	0xd4, 0xcb, 0x2f, 0x4a, 0xb6, 0x28, 0xd2, 0xcb, 0x4f, 0x2a, 0xce, 0x4c, 0xc9, 0x4c, 0xcc, 0xd3,
 	0x83, 0xaa, 0x51, 0x12, 0xe0, 0xe2, 0x73, 0x4f, 0x2d, 0x09, 0x2e, 0x48, 0x4d, 0x0e, 0x4a, 0x2d,
 	0x2c, 0x4d, 0x2d, 0x2e, 0x51, 0x32, 0xe1, 0xe2, 0x87, 0x8b, 0x14, 0x17, 0xe4, 0xe7, 0x15, 0xa7,
 	0x0a, 0x29, 0x72, 0xf1, 0x40, 0xd5, 0xc7, 0x17, 0x17, 0xa4, 0x26, 0x4b, 0x30, 0x2a, 0x30, 0x6a,
-	0x70, 0x06, 0x71, 0x43, 0xc5, 0x40, 0x4a, 0x8d, 0xca, 0xb9, 0xb8, 0x83, 0x11, 0x5c, 0xa1, 0x0c,
-	0x2e, 0x76, 0xa8, 0x21, 0x42, 0x3a, 0x7a, 0xf8, 0x1c, 0xa0, 0x87, 0x6a, 0xbb, 0x94, 0x2e, 0x91,
-	0xaa, 0x21, 0x2e, 0x53, 0x62, 0x70, 0xe2, 0x88, 0x62, 0x03, 0xfb, 0xb3, 0x38, 0x09, 0x42, 0x1b,
-	0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x20, 0x9f, 0xa8, 0x56, 0x00, 0x01, 0x00, 0x00,
+	0x70, 0x06, 0x71, 0x43, 0xc5, 0x40, 0x4a, 0x8d, 0x3e, 0x31, 0x72, 0x71, 0x07, 0x23, 0xf8, 0x42,
+	0xf9, 0x60, 0x73, 0x03, 0x12, 0x8b, 0x4a, 0x32, 0x13, 0x73, 0xc0, 0x22, 0x3a, 0x7a, 0xf8, 0x1c,
+	0xa2, 0x87, 0xea, 0x0a, 0x29, 0x5d, 0x22, 0x55, 0x43, 0x5c, 0xa8, 0xc4, 0x20, 0x54, 0xc4, 0x25,
+	0x08, 0x12, 0x2c, 0x49, 0xcc, 0x4b, 0x49, 0xcc, 0xc9, 0xcf, 0x4b, 0xa5, 0x83, 0x9d, 0x4e, 0x1c,
+	0x51, 0x6c, 0xe0, 0x30, 0x2e, 0x4e, 0x82, 0xd0, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe9,
+	0x27, 0x23, 0xb9, 0x7c, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -127,8 +129,11 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SwaggerSpecClient interface {
-	// GetSpec returns the Swagger specification of the service's REST API.
-	GetSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error)
+	// GetPartialSpec returns partial Swagger specification of the service's REST API.
+	GetPartialSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error)
+	// GetStandaloneSpec returns a standalone Swagger specfication of the
+	// service's REST API.
+	GetStandaloneSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error)
 }
 
 type swaggerSpecClient struct {
@@ -139,9 +144,18 @@ func NewSwaggerSpecClient(cc grpc.ClientConnInterface) SwaggerSpecClient {
 	return &swaggerSpecClient{cc}
 }
 
-func (c *swaggerSpecClient) GetSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error) {
+func (c *swaggerSpecClient) GetPartialSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error) {
 	out := new(GetSpecResponse)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetSpec", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetPartialSpec", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *swaggerSpecClient) GetStandaloneSpec(ctx context.Context, in *GetSpecRequest, opts ...grpc.CallOption) (*GetSpecResponse, error) {
+	out := new(GetSpecResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetStandaloneSpec", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -150,36 +164,60 @@ func (c *swaggerSpecClient) GetSpec(ctx context.Context, in *GetSpecRequest, opt
 
 // SwaggerSpecServer is the server API for SwaggerSpec service.
 type SwaggerSpecServer interface {
-	// GetSpec returns the Swagger specification of the service's REST API.
-	GetSpec(context.Context, *GetSpecRequest) (*GetSpecResponse, error)
+	// GetPartialSpec returns partial Swagger specification of the service's REST API.
+	GetPartialSpec(context.Context, *GetSpecRequest) (*GetSpecResponse, error)
+	// GetStandaloneSpec returns a standalone Swagger specfication of the
+	// service's REST API.
+	GetStandaloneSpec(context.Context, *GetSpecRequest) (*GetSpecResponse, error)
 }
 
 // UnimplementedSwaggerSpecServer can be embedded to have forward compatible implementations.
 type UnimplementedSwaggerSpecServer struct {
 }
 
-func (*UnimplementedSwaggerSpecServer) GetSpec(ctx context.Context, req *GetSpecRequest) (*GetSpecResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSpec not implemented")
+func (*UnimplementedSwaggerSpecServer) GetPartialSpec(ctx context.Context, req *GetSpecRequest) (*GetSpecResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPartialSpec not implemented")
+}
+func (*UnimplementedSwaggerSpecServer) GetStandaloneSpec(ctx context.Context, req *GetSpecRequest) (*GetSpecResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStandaloneSpec not implemented")
 }
 
 func RegisterSwaggerSpecServer(s *grpc.Server, srv SwaggerSpecServer) {
 	s.RegisterService(&_SwaggerSpec_serviceDesc, srv)
 }
 
-func _SwaggerSpec_GetSpec_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _SwaggerSpec_GetPartialSpec_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSpecRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SwaggerSpecServer).GetSpec(ctx, in)
+		return srv.(SwaggerSpecServer).GetPartialSpec(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetSpec",
+		FullMethod: "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetPartialSpec",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SwaggerSpecServer).GetSpec(ctx, req.(*GetSpecRequest))
+		return srv.(SwaggerSpecServer).GetPartialSpec(ctx, req.(*GetSpecRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SwaggerSpec_GetStandaloneSpec_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSpecRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SwaggerSpecServer).GetStandaloneSpec(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.obsidian.swagger.SwaggerSpec/GetStandaloneSpec",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SwaggerSpecServer).GetStandaloneSpec(ctx, req.(*GetSpecRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -189,8 +227,12 @@ var _SwaggerSpec_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*SwaggerSpecServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetSpec",
-			Handler:    _SwaggerSpec_GetSpec_Handler,
+			MethodName: "GetPartialSpec",
+			Handler:    _SwaggerSpec_GetPartialSpec_Handler,
+		},
+		{
+			MethodName: "GetStandaloneSpec",
+			Handler:    _SwaggerSpec_GetStandaloneSpec_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GenerateCombinedSpecHandler(t *testing.T) {
+func Test_GetCombinedSpecHandler(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1"
 
@@ -65,7 +65,7 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
 
 	for i, s := range services {
-		registerServicer(t, s, tags[i])
+		registerServicer(t, s, tags[i], swagger_lib.TagDefinition{})
 	}
 
 	// Success with registered servicers
@@ -80,15 +80,9 @@ func Test_GenerateCombinedSpecHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
-func Test_GenerateSpecHandler(t *testing.T) {
+func Test_GetSpecHandler(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1"
-
-	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
-	commonSpec := swagger_lib.Spec{
-		Tags: []swagger_lib.TagDefinition{commonTag},
-	}
-	yamlCommon := marshalToYAML(t, commonSpec)
 
 	// Fail with invalid service name.
 	tc := tests.Test{
@@ -97,7 +91,7 @@ func Test_GenerateSpecHandler(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"service"},
 		ParamValues:    []string{"invalid_test_spec_service"},
-		Handler:        handlers.GetSpecHandler(yamlCommon),
+		Handler:        handlers.GetSpecHandler(),
 		ExpectedStatus: 404,
 		ExpectedError:  "service not found",
 	}
@@ -106,13 +100,13 @@ func Test_GenerateSpecHandler(t *testing.T) {
 	// Success with valid service name.
 	tag := swagger_lib.TagDefinition{Name: "Tag 1"}
 	expected := swagger_lib.Spec{
-		Tags: []swagger_lib.TagDefinition{tag, commonTag},
+		Tags: []swagger_lib.TagDefinition{tag},
 	}
 
 	// Clean up registry
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
 
-	registerServicer(t, "test_spec_service1", tag)
+	registerServicer(t, "test_spec_service1", swagger_lib.TagDefinition{}, tag)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -120,14 +114,14 @@ func Test_GenerateSpecHandler(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"service"},
 		ParamValues:    []string{"test_spec_service1"},
-		Handler:        handlers.GetSpecHandler(yamlCommon),
+		Handler:        handlers.GetSpecHandler(),
 		ExpectedStatus: 200,
 		ExpectedResult: expected,
 	}
 	tests.RunUnitTest(t, e, tc)
 }
 
-func Test_GenerateSpecUIHandler(t *testing.T) {
+func Test_GetUIHandler(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1"
 
@@ -166,7 +160,7 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 	// Clean up registry
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
 
-	registerServicer(t, "test_spec_service2", swagger_lib.TagDefinition{})
+	registerServicer(t, "test_spec_service2", swagger_lib.TagDefinition{}, swagger_lib.TagDefinition{})
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -181,16 +175,23 @@ func Test_GenerateSpecUIHandler(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
-func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {
+func registerServicer(
+	t *testing.T,
+	service string,
+	partialTag swagger_lib.TagDefinition,
+	standaloneTag swagger_lib.TagDefinition,
+) {
 	labels := map[string]string{
 		orc8r.SwaggerSpecLabel: "true",
 	}
 
 	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
-	spec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{tag}}
+	partialSpec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{partialTag}}
+	standaloneSpec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{standaloneTag}}
 
-	yamlSpec := marshalToYAML(t, spec)
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer(yamlSpec))
+	partialYamlSpec := marshalToYAML(t, partialSpec)
+	standaloneYamlSpec := marshalToYAML(t, standaloneSpec)
+	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
 
 	go srv.RunTest(lis)
 }

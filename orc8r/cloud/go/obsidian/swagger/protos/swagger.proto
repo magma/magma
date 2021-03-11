@@ -17,8 +17,11 @@ option go_package = "protos";
 
 // SwaggerSpec provides a Swagger specification of the service's REST API.
 service SwaggerSpec {
- // GetSpec returns the Swagger specification of the service's REST API.
- rpc GetSpec(GetSpecRequest) returns (GetSpecResponse) {}
+ // GetPartialSpec returns partial Swagger specification of the service's REST API.
+ rpc GetPartialSpec(GetSpecRequest) returns (GetSpecResponse) {}
+ // GetStandaloneSpec returns a standalone Swagger specfication of the
+ // service's REST API.
+ rpc GetStandaloneSpec(GetSpecRequest) returns (GetSpecResponse) {}
 }
 
 message GetSpecRequest {}
