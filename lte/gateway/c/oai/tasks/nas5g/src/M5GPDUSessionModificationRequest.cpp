@@ -57,7 +57,7 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
   else
     decoded += decoded_result;
 
-  return 0;
+  return decoded;
 }
 
 // Encode PDUSessionModificationRequest Message and its IEs

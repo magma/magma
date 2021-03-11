@@ -57,15 +57,17 @@ int PDUSessionModificationCommandRejectMsg::
                &pdu_session_modif_request->message_type, 0, buffer + decoded,
                len - decoded)) < 0)
     return decoded_result;
+  else
+    decoded += decoded_result;
    if ((decoded_result =
            pdu_session_modif_request->m5gsm_cause.DecodeM5GSMCauseMsg(
                &pdu_session_modif_request->m5gsm_cause, 0, buffer + decoded,
                len - decoded)) < 0)
     return decoded_result;
- else
+  else
     decoded += decoded_result;
 
-  return 0;
+  return decoded;
 }
 
 // Encode PDUSessionModificationCommandReject Message and its IEs

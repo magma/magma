@@ -30,7 +30,7 @@ int decode(void) {
 
   // Decoding Message
   ret = Req.DecodePDUSessionModificationCompleteMsg(&Req, buffer, len);
-  return 0;
+  return ret;
 }
 }  // namespace magma5g
 
@@ -38,5 +38,5 @@ int decode(void) {
 int main(void) {
   int ret;
   ret = magma5g::decode();
-  return 0;
+  return ret;
 }

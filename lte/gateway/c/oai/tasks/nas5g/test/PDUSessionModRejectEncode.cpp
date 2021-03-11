@@ -42,7 +42,7 @@ int encode(void) {
     MLOG(MDEBUG) << setfill('0') << hex << setw(2) << int(buffer[i]);
   }
 
-  return 0;
+  return ret;
 }
 }  // namespace magma5g
 
@@ -51,5 +51,5 @@ int main(void) {
   int ret;
   ret = magma5g::encode();
 
-  return 0;
+  return ret;
 }

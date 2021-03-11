@@ -57,7 +57,7 @@ int PDUSessionModificationCompleteMsg::DecodePDUSessionModificationCompleteMsg(
   else
     decoded += decoded_result;
 
-  return 0;
+  return decoded;
 }
 
 // Encode PDUSessionModificationComplete Message and its IEs

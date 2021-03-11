@@ -24,13 +24,13 @@ int decode(void) {
   int ret = 0;
 
   // Message to be decoded
-  uint8_t buffer[] = {0x2e, 0x01, 0x02, 0xC9};
-  int len          = 4;
+  uint8_t buffer[] = {0x2e, 0x01, 0x02, 0xC9, 0x7a, 0x00, 0x06, 0x02, 0x00, 0x03, 0x20, 0x00, 0x02};
+  int len          = 13;
   PDUSessionModificationRequestMsg Req;
 
   // Decoding Message
   ret = Req.DecodePDUSessionModificationRequestMsg(&Req, buffer, len);
-  return 0;
+  return ret;
 }
 }  // namespace magma5g
 
@@ -38,5 +38,5 @@ int decode(void) {
 int main(void) {
   int ret;
   ret = magma5g::decode();
-  return 0;
+  return ret;
 }
