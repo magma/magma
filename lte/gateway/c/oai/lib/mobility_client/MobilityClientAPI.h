@@ -68,16 +68,12 @@ int get_assigned_ipv4_block(
  * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param addr: contains the IP address allocated upon returning in
  * "host byte order"
- * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
  * @param pdn_type str for PDN type (ipv4, ipv6...)
- * @param spgw_state spgw_state_t struct
- * @param new_bearer_ctxt_info_p SPGW ue context struct
- * @param s5_response itti message for s5_create_session response
  * @return status of gRPC call
  */
 int pgw_handle_allocate_ipv4_address(
-    const char* subscriber_id, const char* apn, struct in_addr* addr,
-    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id);
+    const char* subscriber_id, const char* apn, const char* pdn_type,
+    teid_t context_teid, ebi_t eps_bearer_id);
 
 /**
  * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
@@ -85,11 +81,7 @@ int pgw_handle_allocate_ipv4_address(
  * @param subscriber_id: subscriber id string, i.e. IMSI
  * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param ipv6_addr: contains the IP address allocated upon returning
- * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
  * @param pdn_type str for PDN type (ipv6)
- * @param spgw_state spgw_state_t struct
- * @param new_bearer_ctxt_info_p SPGW ue context struct
- * @param s5_response itti message for s5_create_session response
  * @return status of gRPC call
  */
 

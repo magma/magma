@@ -119,7 +119,6 @@ typedef struct itti_ip_allocation_response_s {
   ///< Success = 0x0)
   teid_t context_teid;  ///< Tunnel Endpoint Identifier S11
   ebi_t eps_bearer_id;  ///< EPS bearer identifier
-  pdn_type_t pdn_type;  ///< PDN Type
   paa_t paa;            ///< PDN Address Allocation
 } itti_ip_allocation_response_t;
 

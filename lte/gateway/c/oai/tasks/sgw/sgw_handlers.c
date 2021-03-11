@@ -1367,13 +1367,6 @@ void handle_s5_create_session_response(
       "EPS bearer id %u\n",
       session_resp.context_teid, session_resp.eps_bearer_id);
 
-  sgi_create_endpoint_resp.status        = session_resp.status;
-  sgi_create_endpoint_resp.context_teid  = session_resp.context_teid;
-  sgi_create_endpoint_resp.eps_bearer_id = session_resp.eps_bearer_id;
-  sgi_create_endpoint_resp.paa.pdn_type =
-      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-          .pdn_type;
-
   // PCO processing
   protocol_configuration_options_t* pco_req =
       &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
@@ -1389,10 +1382,19 @@ void handle_s5_create_session_response(
         "Error in processing PCO in create session request for "
         "context_id: " TEID_FMT "\n",
         session_resp.context_teid);
-    sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
+    session_resp.failure_cause = S5_OK;
+    session_resp.status        = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
   }
   copy_protocol_configuration_options(&sgi_create_endpoint_resp.pco, &pco_resp);
   clear_protocol_configuration_options(&pco_resp);
+
+  // Fill SGi create endpoint resp data
+  sgi_create_endpoint_resp.status        = session_resp.status;
+  sgi_create_endpoint_resp.context_teid  = session_resp.context_teid;
+  sgi_create_endpoint_resp.eps_bearer_id = session_resp.eps_bearer_id;
+  sgi_create_endpoint_resp.paa.pdn_type =
+      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
+          .pdn_type;
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP,
@@ -1906,61 +1908,65 @@ int sgw_handle_ip_allocation_rsp(
   s_plus_p_gw_eps_bearer_context_information_t* bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ip_allocation_rsp->context_teid);
 
-  if (bearer_ctxt_info_p) {
-    sgw_eps_bearer_ctxt_t* eps_bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
-        &bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection,
-        ip_allocation_rsp->eps_bearer_id);
-    if (!eps_bearer_ctx_p) {
-      OAILOG_ERROR_UE(
-          LOG_SPGW_APP,
-          bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
-          "Failed to get default bearer context\n");
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-    }
-    char* imsi =
-        (char*)
-            bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
-    if (ip_allocation_rsp->status == SGI_STATUS_OK) {
-      memcpy(&eps_bearer_ctx_p->paa, &ip_allocation_rsp->paa, sizeof(paa_t));
+  if (!bearer_ctxt_info_p) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64, "Failed to get SPGW UE context for teid %u\n",
+        ip_allocation_rsp->context_teid);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
 
-      // create session in PCEF and return
-      s5_create_session_request_t session_req = {0};
-      session_req.context_teid                = ip_allocation_rsp->context_teid;
-      session_req.eps_bearer_id = ip_allocation_rsp->eps_bearer_id;
-      session_req.status        = ip_allocation_rsp->status;
-      char ip_str[INET_ADDRSTRLEN];
-      inet_ntop(
-          AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip_str,
-          INET_ADDRSTRLEN);
-      struct pcef_create_session_data session_data;
-      get_session_req_data(
-          spgw_state,
-          &bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
-          &session_data);
-      pcef_create_session(
-          spgw_state, imsi, ip_str, NULL, &session_data, session_req,
-          bearer_ctxt_info_p);
-    } else {
-      if (ip_allocation_rsp->status == SGI_STATUS_ERROR_SYSTEM_FAILURE) {
-        /*
-         * This implies that UE session was not release properly.
-         * Release the IP address so that subsequent attempt is successfull
-         */
-        // TODO - Release the GTP-tunnel corresponding to this IP address
-        char* apn =
-            (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information
-                .pdn_connection.apn_in_use;
-        release_ipv4_address(imsi, apn, &ip_allocation_rsp->paa.ipv4_address);
-      }
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+      &bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection,
+      ip_allocation_rsp->eps_bearer_id);
+  if (!eps_bearer_ctx_p) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP,
+        bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
+        "Failed to get default bearer context\n");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
+  char* imsi =
+      (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
+  if (ip_allocation_rsp->status == SGI_STATUS_OK) {
+    memcpy(&eps_bearer_ctx_p->paa, &ip_allocation_rsp->paa, sizeof(paa_t));
 
-      // If we are here then the IP address allocation has failed
-      s5_create_session_response_t s5_response;
-      s5_response.eps_bearer_id = ip_allocation_rsp->eps_bearer_id;
-      s5_response.context_teid  = ip_allocation_rsp->context_teid;
-      s5_response.failure_cause = IP_ALLOCATION_FAILURE;
-      handle_s5_create_session_response(
-          spgw_state, bearer_ctxt_info_p, s5_response);
+    // create session in PCEF
+    s5_create_session_request_t session_req = {0};
+    session_req.context_teid                = ip_allocation_rsp->context_teid;
+    session_req.eps_bearer_id               = ip_allocation_rsp->eps_bearer_id;
+    session_req.status                      = ip_allocation_rsp->status;
+    struct pcef_create_session_data session_data;
+    get_session_req_data(
+        spgw_state,
+        &bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
+        &session_data);
+
+    char ip_str[INET_ADDRSTRLEN];
+    inet_ntop(
+        AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip_str,
+        INET_ADDRSTRLEN);
+    pcef_create_session(
+        spgw_state, imsi, ip_str, NULL, &session_data, session_req,
+        bearer_ctxt_info_p);
+  } else {
+    if (ip_allocation_rsp->status == SGI_STATUS_ERROR_SYSTEM_FAILURE) {
+      /*
+       * This implies that UE session was not release properly.
+       * Release the IP address so that subsequent attempt is successfull
+       */
+      // TODO - Release the GTP-tunnel corresponding to this IP address
+      char* apn = (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information
+                      .pdn_connection.apn_in_use;
+      release_ipv4_address(imsi, apn, &ip_allocation_rsp->paa.ipv4_address);
     }
+
+    // If we are here then the IP address allocation has failed
+    s5_create_session_response_t s5_response;
+    s5_response.eps_bearer_id = ip_allocation_rsp->eps_bearer_id;
+    s5_response.context_teid  = ip_allocation_rsp->context_teid;
+    s5_response.failure_cause = IP_ALLOCATION_FAILURE;
+    handle_s5_create_session_response(
+        spgw_state, bearer_ctxt_info_p, s5_response);
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }

@@ -44,7 +44,7 @@ using magma::lte::MobilityServiceClient;
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
-static int handle_allocate_ipv4_address_status(
+static void handle_allocate_ipv4_address_status(
     const grpc::Status& status, struct in_addr inaddr, int vlan,
     const char* imsi, const char* apn, const char* pdn_type,
     teid_t context_teid, ebi_t eps_bearer_id);
@@ -69,26 +69,27 @@ int get_assigned_ipv4_block(
 }
 
 int pgw_handle_allocate_ipv4_address(
-    const char* subscriber_id, const char* apn, struct in_addr* addr,
-    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id) {
+    const char* subscriber_id, const char* apn, const char* pdn_type,
+    teid_t context_teid, ebi_t eps_bearer_id) {
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id, apn,
-      [addr, subscriber_id, apn, pdn_type, context_teid, eps_bearer_id](
+      [subscriber_id, apn, pdn_type, context_teid, eps_bearer_id](
           const Status& status, const AllocateIPAddressResponse& ip_msg) {
+        struct in_addr addr;
         std::string ipv4_addr_str;
         if (ip_msg.ip_list_size() > 0) {
           ipv4_addr_str = ip_msg.ip_list(0).address();
         }
-        memcpy(addr, ipv4_addr_str.c_str(), sizeof(in_addr));
+        memcpy(&addr, ipv4_addr_str.c_str(), sizeof(in_addr));
         int vlan = atoi(ip_msg.vlan().c_str());
         handle_allocate_ipv4_address_status(
-            status, *addr, vlan, subscriber_id, apn, pdn_type, context_teid,
+            status, addr, vlan, subscriber_id, apn, pdn_type, context_teid,
             eps_bearer_id);
       });
   return 0;
 }
 
-static int handle_allocate_ipv4_address_status(
+static void handle_allocate_ipv4_address_status(
     const Status& status, struct in_addr inaddr, int vlan, const char* imsi,
     const char* apn, const char* pdn_type, teid_t context_teid,
     ebi_t eps_bearer_id) {
@@ -97,7 +98,7 @@ static int handle_allocate_ipv4_address_status(
   if (!message_p) {
     OAILOG_ERROR(
         LOG_UTIL, "Message IP Allocation Response allocation failed\n");
-    return RETURNerror;
+    return;
   }
 
   itti_ip_allocation_response_t* ip_allocation_response_p;
@@ -113,11 +114,11 @@ static int handle_allocate_ipv4_address_status(
     ip_allocation_response_p->paa.ipv4_address = inaddr;
     ip_allocation_response_p->paa.pdn_type     = IPv4;
     ip_allocation_response_p->paa.vlan         = vlan;
+    ip_allocation_response_p->status           = SGI_STATUS_OK;
 
     OAILOG_DEBUG(
         LOG_UTIL, "Allocated IPv4 address for imsi <%s>, apn <%s> vlan %d\n",
         imsi, apn, vlan);
-    ip_allocation_response_p->status = SGI_STATUS_OK;
   } else {
     if (status.error_code() == RPC_STATUS_ALREADY_EXISTS) {
       increment_counter(
@@ -143,7 +144,7 @@ static int handle_allocate_ipv4_address_status(
       LOG_UTIL, message_p->ittiMsgHeader.imsi,
       "Sending IP allocation response message with cause: %u\n",
       ip_allocation_response_p->status);
-  return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
+  send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
 int release_ipv4_address(
