@@ -39,6 +39,8 @@ RUN rm /etc/rhsm-host && \
     libconfig-devel \
     czmq-devel \
     libasan \
+    liblsan \
+    libubsan \
     protobuf-compiler \
     ruby \
     ruby-devel \
@@ -375,17 +377,21 @@ RUN cd libzmq && \
 COPY ./ $MAGMA_ROOT
 
 # Build MME executables
-RUN ldconfig && \
+RUN ldconfig --verbose && \
+    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
+    # temporary warnings not error when compiling
+    cd $MAGMA_ROOT/ && \
+    patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/CMake-warnings-not-errors.patch && \
     cd $MAGMA_ROOT/lte/gateway && \
     echo $FEATURES && \ 
     make build_oai && \
     make build_sctpd
 
 # Prepare config file
-RUN apt-get install -y python3-pip && \
+RUN yum install -y python3-pip && \
     pip3 install jinja2-cli && \
     cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
-    echo '{ \n' \
+    echo -e '{ \n' \
     '"realm": "magma.com",	 \n'\
     '"use_stateless": "", \n'\
     '"conf_dir": "/magma-mme/etc", \n'\
@@ -448,16 +454,54 @@ ENV C_BUILD=/build/c
 
 # Install a few tools (may not be necessary later on)
 ENV TZ=Europe/Paris
-
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
-    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+RUN yum update && \
+    yum -y install --enablerepo="ubi-8-codeready-builder" \
+      libubsan \
+      libasan \
+      psmisc \
       psmisc \
       openssl \
       net-tools \
-      tshark \
-      tzdata \
-  && rm -rf /var/lib/apt/lists/*
+      tzdata && \
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf && \
+    yum clean all -y && \
+    rm -rf /var/cache/yum
+
+# Copy runtime-used shared libraries from builder
+WORKDIR /lib64
+COPY --from=magma-mme-builder /lib64/libsctp.so.1 .
+COPY --from=magma-mme-builder /lib64/libconfig.so.9 .
+COPY --from=magma-mme-builder /lib64/libboost_program_options.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libboost_filesystem.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libboost_system.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libboost_regex.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libgflags.so.2.1 .
+COPY --from=magma-mme-builder /lib64/libglog.so.0 .
+COPY --from=magma-mme-builder /lib64/libczmq.so.3 .
+COPY --from=magma-mme-builder /lib64/libicudata.so.60 .
+COPY --from=magma-mme-builder /lib64/libicui18n.so.60 .
+COPY --from=magma-mme-builder /lib64/libicuuc.so.60 .
+COPY --from=magma-mme-builder /lib64/libidn.so.11 .
+
+WORKDIR /usr/local/lib
+COPY --from=magma-mme-builder /usr/local/lib/libnettle.so.4 .
+COPY --from=magma-mme-builder /usr/local/lib/libgnutls.so.28 .
+COPY --from=magma-mme-builder /usr/local/lib/libgrpc.so .
+COPY --from=magma-mme-builder /usr/local/lib/libgrpc++.so .
+COPY --from=magma-mme-builder /usr/local/lib/libgpr.so .
+COPY --from=magma-mme-builder /usr/local/lib/libyaml-cpp.so.0.6 .
+COPY --from=magma-mme-builder /usr/local/lib/libcares.so.2 .
+COPY --from=magma-mme-builder /usr/local/lib/libaddress_sorting.so  .
+COPY --from=magma-mme-builder /usr/local/lib/libunwind.so.8 .
+COPY --from=magma-mme-builder /usr/local/lib/libfdproto.so.6 .
+COPY --from=magma-mme-builder /usr/local/lib/libfdcore.so.6 .
+COPY --from=magma-mme-builder /usr/local/lib/libprotobuf.so.17 .
+COPY --from=magma-mme-builder /usr/local/lib/libhogweed.so.2 .
+COPY --from=magma-mme-builder /usr/local/lib/libzmq.so.5 .
+
+WORKDIR /usr/local/lib64
+COPY --from=magma-mme-builder /usr/local/lib64/libdouble-conversion.so.3 .
 
 # Copy all fdx files from freeDiameter installation
 WORKDIR /usr/local/lib/freeDiameter
