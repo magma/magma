@@ -46,15 +46,6 @@ func (s S8RelayRouter) CreateSession(
 	return client.CreateSession(ctx, req)
 }
 
-func (s S8RelayRouter) ModifyBearer(c context.Context, req *protos.ModifyBearerRequestPgw) (*protos.ModifyBearerResponsePgw, error) {
-	client, ctx, cancel, err := s.getS8Client(c, req.GetImsi())
-	if err != nil {
-		return nil, err
-	}
-	defer cancel()
-	return client.ModifyBearer(ctx, req)
-}
-
 func (s S8RelayRouter) DeleteSession(c context.Context, req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
 	client, ctx, cancel, err := s.getS8Client(c, req.GetImsi())
 	if err != nil {

@@ -69,14 +69,14 @@
 #include "itti_types.h"
 #include "mme_api.h"
 #include "mme_app_state.h"
+#include "mme_app_timer.h"
 #include "nas_timer.h"
 #include "obj_hashtable.h"
 #include "s1ap_messages_types.h"
 
-/* Obtain a backtrace and print it to stdout. */
-
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
+/* Obtain a backtrace and print it to stdout. */
 void print_trace(void) {
   void* array[10];
   size_t size;
@@ -170,41 +170,18 @@ void mme_app_ue_sgs_context_free_content(
   }
   // Stop SGS Location update timer if running
   if (sgs_context_p->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts6_1_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS Location update timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts6_1_timer.id);
     sgs_context_p->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS EPS Detach indication timer if running
   if (sgs_context_p->ts8_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts8_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS EPS Detach Indication"
-          "timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts8_timer.id);
     sgs_context_p->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
   // Stop SGS IMSI Detach indication timer if running
   if (sgs_context_p->ts9_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts9_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS IMSI Detach Indication"
-          " timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts9_timer.id);
     sgs_context_p->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS Implicit IMSI Detach indication timer if running
@@ -274,17 +251,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   // Stop Initial context setup process guard timer,if running
   if (ue_context_p->initial_context_setup_rsp_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(
-            ue_context_p->initial_context_setup_rsp_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop Initial Context Setup Rsp timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->initial_context_setup_rsp_timer.id);
     ue_context_p->time_ics_rsp_timer_started = 0;
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
@@ -2133,17 +2100,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
   // Stop Initial context setup process guard timer,if running
   if (ue_mm_context->initial_context_setup_rsp_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(
-            ue_mm_context->initial_context_setup_rsp_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-          "Failed to stop Initial Context Setup Rsp timer for UE id  %d \n",
-          ue_mm_context->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_mm_context->initial_context_setup_rsp_timer.id);
     ue_mm_context->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
     // Setting UE context release cause as Initial context setup failure
@@ -2359,9 +2316,9 @@ static bool mme_app_recover_timers_for_ue(
   }
   if (ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED &&
       ue_mm_context_pP->time_ics_rsp_timer_started) {
-    mme_app_resume_timers(
+    mme_app_resume_timer(
         ue_mm_context_pP, ue_mm_context_pP->time_ics_rsp_timer_started,
-        ue_mm_context_pP->initial_context_setup_rsp_timer,
+        &ue_mm_context_pP->initial_context_setup_rsp_timer,
         mme_app_handle_initial_context_setup_rsp_timer_expiry,
         "Initial Context Setup Response");
   }

@@ -225,7 +225,6 @@ int sgw_cm_remove_bearer_context_information(
   if (temp != HASH_TABLE_OK) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64, "Failed to free teid from state_imsi_ht \n");
-    delete_spgw_ue_state(imsi64);
     return temp;
   }
   spgw_ue_context_t* ue_context_p = NULL;
@@ -249,10 +248,11 @@ int sgw_cm_remove_bearer_context_information(
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64,
             "Failed to free imsi64 from imsi_ue_context_htbl \n");
+        return temp;
       }
+      delete_spgw_ue_state(imsi64);
     }
   }
-  delete_spgw_ue_state(imsi64);
   return temp;
 }
 

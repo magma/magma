@@ -14,6 +14,7 @@ import os
 import logging
 import concurrent.futures
 import queue
+from functools import partial
 from concurrent.futures import Future
 from itertools import chain
 from typing import List, Tuple
@@ -26,6 +27,7 @@ from lte.protos.pipelined_pb2 import (
     RequestOriginType,
     ActivateFlowsResult,
     DeactivateFlowsResult,
+    DeactivateFlowsRequest,
     FlowResponse,
     RuleModResult,
     SetupUEMacRequest,
@@ -182,6 +184,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
+        for controller in [self._gy_app, self._enforcer_app,
+                           self._enforcement_stats]:
+            if not controller.is_controller_ready():
+                context.set_code(grpc.StatusCode.UNAVAILABLE)
+                context.set_details('Enforcement service not initialized!')
+                return ActivateFlowsResult()
+
         fut = Future()  # type: Future[ActivateFlowsResult]
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         try:
@@ -212,6 +221,24 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         for rule in request.dynamic_rules:
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, ipv4, rule.id)
+
+    def _remove_version(self, request: DeactivateFlowsRequest, ip_address: str):
+        def cleanup_redis(imsi, ip_address, rule_id, version):
+            self._service_manager.session_rule_version_mapper \
+                .remove(imsi, ip_address, rule_id, version)
+
+        for rule_id in request.rule_ids:
+            self._service_manager.session_rule_version_mapper \
+                .update_version(request.sid.id, ip_address,
+                                rule_id)
+            version = self._service_manager.session_rule_version_mapper \
+                .get_version(request.sid.id, ip_address, rule_id)
+
+            # Give it sometime to cleanup enf stats
+            self._loop.call_later(
+                self._service_config['enforcement']['poll_interval'] * 2,
+                partial(cleanup_redis, request.sid.id, ip_address, rule_id,
+                        version))
 
     def _activate_flows(self, request: ActivateFlowsRequest,
                         fut: 'Future[ActivateFlowsResult]'
@@ -371,6 +398,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
+        for controller in [self._gy_app, self._enforcer_app,
+                           self._enforcement_stats]:
+            if not controller.is_controller_ready():
+                context.set_code(grpc.StatusCode.UNAVAILABLE)
+                context.set_details('Enforcement service not initialized!')
+                return ActivateFlowsResult()
+
         self._loop.call_soon_threadsafe(self._deactivate_flows, request)
         return DeactivateFlowsResult()
 
@@ -396,12 +430,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _deactivate_flows_gx(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GX flows for %s', request.sid.id)
+
         if request.rule_ids:
-            for rule_id in request.rule_ids:
-                self._service_manager.session_rule_version_mapper \
-                    .update_version(request.sid.id, ip_address,
-                                    rule_id)
+            self._remove_version(request, ip_address)
         else:
+            # TODO cleanup redis?
             # If no rule ids are given, all flows are deactivated
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, ip_address)
@@ -415,9 +448,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         logging.debug('Deactivating GY flows for %s', request.sid.id)
         # Only deactivate requested rules here to not affect GX
         if request.rule_ids:
-            for rule_id in request.rule_ids:
-                self._service_manager.session_rule_version_mapper \
-                    .update_version(request.sid.id, ip_address, rule_id)
+            self._remove_version(request, ip_address)
         self._gy_app.deactivate_rules(request.sid.id, ip_address,
                                       request.rule_ids)
 
@@ -561,6 +592,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
+        if not self._ue_mac_app.is_controller_ready():
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('UE MAC service not initialized!')
+            return FlowResponse()
+
         # 12 hex characters + 5 colons
         if len(request.mac_addr) != 17:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
@@ -591,6 +627,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
+
+        if not self._ue_mac_app.is_controller_ready():
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('UE MAC service not initialized!')
+            return FlowResponse()
 
         # 12 hex characters + 5 colons
         if len(request.mac_addr) != 17:
@@ -666,6 +707,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
+
+        if not self._check_quota_app.is_controller_ready():
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Check Quota service not initialized!')
+            return FlowResponse()
 
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(

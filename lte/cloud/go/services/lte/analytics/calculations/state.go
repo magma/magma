@@ -52,7 +52,7 @@ func (x *UserMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 	}
 
 	for _, networkID := range networks {
-		subscriberEnts, err := configurator.LoadAllEntitiesOfType(
+		subscriberEnts, _, err := configurator.LoadAllEntitiesOfType(
 			networkID,
 			lte.SubscriberEntityType,
 			configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
@@ -131,7 +131,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 
 	for _, networkID := range networks {
 		if gatewayVersionCfgOk {
-			gatewayEnts, err := configurator.LoadAllEntitiesOfType(
+			gatewayEnts, _, err := configurator.LoadAllEntitiesOfType(
 				networkID,
 				lte.CellularGatewayEntityType,
 				configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
@@ -171,7 +171,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 		}
 
 		if enbConnectedOk {
-			ents, err := configurator.LoadAllEntitiesOfType(
+			ents, _, err := configurator.LoadAllEntitiesOfType(
 				networkID,
 				lte.CellularEnodebEntityType,
 				configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},

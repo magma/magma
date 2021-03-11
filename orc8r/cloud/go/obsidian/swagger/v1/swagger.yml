@@ -2497,6 +2497,24 @@ paths:
       summary: Retrieve gateway pool from LTE network
       tags:
       - LTE Networks
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_pool_id'
+      - description: LTE HA gateway pool
+        in: body
+        name: HA Gateway Pool
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_cellular_gateway_pool'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update gateway pool in LTE network
+      tags:
+      - LTE Networks
   /lte/{network_id}/gateways:
     get:
       parameters:
@@ -3630,6 +3648,32 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
       summary: Change a subscriber's data profile
+      tags:
+      - Subscribers
+  /lte/{network_id}/subscribers_v2:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: Filter to subscribers with the passed MSISDN
+        in: query
+        name: msisdn
+        required: false
+        type: string
+      - description: Filter to subscribers assigned the passed IP address
+        in: query
+        name: ip
+        required: false
+        type: string
+      - $ref: '#/parameters/page_size'
+      - $ref: '#/parameters/page_token'
+      responses:
+        "200":
+          description: List of subscribers in the network
+          schema:
+            $ref: '#/definitions/paginated_subscribers'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List subscribers in the network with pagination support
       tags:
       - Subscribers
   /networks:
@@ -6569,6 +6613,19 @@ parameters:
     name: node_id
     required: true
     type: string
+  page_size:
+    description: Maximum number of entities to return
+    format: uint32
+    in: query
+    name: page_size
+    required: false
+    type: integer
+  page_token:
+    description: Opaque page token for paginated requests
+    in: query
+    name: page_token
+    required: false
+    type: string
   policy_qos_profile_id:
     description: Policy QoS profile
     in: path
@@ -7953,10 +8010,26 @@ definitions:
     - timestamp
     - value
     type: object
+  federated_mode_map:
+    description: Mapping for PLMN, imsi ranges, vs its gateway mode
+    properties:
+      enabled:
+        default: false
+        description: If Enabled is false, mapping will not be applied
+        example: false
+        type: boolean
+        x-nullable: false
+      mapping:
+        items:
+          $ref: '#/definitions/mode_map_item'
+        type: array
+    type: object
   federated_network_configs:
     description: Configs for networks that are federated
     minLength: 1
     properties:
+      federated_modes_mapping:
+        $ref: '#/definitions/federated_mode_map'
       feg_network_id:
         example: example_feg_network
         type: string
@@ -9200,6 +9273,32 @@ definitions:
     items:
       $ref: '#/definitions/metric_datapoint'
     type: array
+  mode_map_item:
+    description: Item containing {mode, [plmnA, plmB], [imsi1, imsi2], [apnY, apnZ]}
+    properties:
+      apn:
+        example: internet.com
+        type: string
+        x-nullable: false
+      imsi_range:
+        example: 000000000000000:000019999999999
+        type: string
+        x-nullable: false
+      mode:
+        enum:
+        - local_subscriber
+        - s8_subscriber
+        example: local_subscriber
+        type: string
+        x-nullable: false
+      plmn:
+        example: "123456"
+        maxLength: 6
+        minLength: 5
+        pattern: ^(\d{5,6})$
+        type: string
+        x-nullable: false
+    type: object
   msisdn:
     description: Mobile station international subscriber directory number
     example: "13109976224"
@@ -9658,6 +9757,17 @@ definitions:
           type: string
         type: array
         x-omitempty: true
+      restricted_plmns:
+        description: List of PLMN IDs restricted in the network
+        items:
+          $ref: '#/definitions/plmn_config'
+        type: array
+        x-omitempty: true
+      service_area_maps:
+        additionalProperties:
+          $ref: '#/definitions/tac_list'
+        description: Mapping service areas to tacs in the network
+        type: object
       sub_profiles:
         additionalProperties:
           properties:
@@ -9949,6 +10059,9 @@ definitions:
         example: theuamsecret
         type: string
     type: object
+  next_page_token:
+    description: Base 64 encoded page token for subsequent paginated API requests
+    type: string
   nh_routes:
     additionalProperties:
       type: string
@@ -9982,6 +10095,20 @@ definitions:
       version:
         example: 0.0.0
         type: string
+    type: object
+  paginated_subscribers:
+    description: Page of subscribers
+    properties:
+      next_page_token:
+        $ref: '#/definitions/next_page_token'
+      subscribers:
+        additionalProperties:
+          $ref: '#/definitions/subscriber'
+          x-nullable: true
+        type: object
+    required:
+    - next_page_token
+    - subscribers
     type: object
   ping_request:
     properties:
@@ -10062,6 +10189,23 @@ definitions:
         example: 10.0.0.1
         type: string
         x-go-custom-tag: magma_alt_name:"VpnIp"
+    type: object
+  plmn_config:
+    description: Record in a gateway pool
+    properties:
+      mcc:
+        example: "001"
+        pattern: ^(\d{3})$
+        type: string
+        x-nullable: false
+      mnc:
+        example: "01"
+        pattern: ^(\d{2,3})$
+        type: string
+        x-nullable: false
+    required:
+    - mcc
+    - mnc
     type: object
   policy_id:
     example: All ICMP
@@ -11007,6 +11151,21 @@ definitions:
         format: uint64
         type: integer
     type: object
+  tac:
+    example: 1
+    format: uint32
+    maximum: 65535
+    minimum: 1
+    type: integer
+    x-nullable: false
+  tac_list:
+    description: List of tac ids
+    example:
+    - 1
+    items:
+      $ref: '#/definitions/tac'
+    type: array
+    x-omitempty: true
   tail_logs_request:
     properties:
       service:

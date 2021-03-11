@@ -13,7 +13,6 @@ limitations under the License.
 
 
 from .tc_ops import TcOpsBase
-import threading
 import os
 import shlex
 import subprocess
@@ -21,8 +20,6 @@ from typing import List  # noqa
 import logging
 
 LOG = logging.getLogger('pipelined.qos.tc_cmd')
-
-cmd_lock = threading.RLock()
 
 
 # this code can run in either a docker container(CWAG) or as a native
@@ -37,16 +34,15 @@ def argSplit(cmd: str) -> List[str]:
 
 def run_cmd(cmd_list, show_error=True) -> int:
     err = 0
-    with cmd_lock:
-        for cmd in cmd_list:
-            LOG.debug("running %s", cmd)
-            try:
-                args = argSplit(cmd)
-                subprocess.check_call(args)
-            except subprocess.CalledProcessError as e:
-                err = -1
-                if show_error:
-                    LOG.error("error: %s running: %s", str(e.returncode), cmd)
+    for cmd in cmd_list:
+        LOG.debug("running %s", cmd)
+        try:
+            args = argSplit(cmd)
+            subprocess.check_call(args)
+        except subprocess.CalledProcessError as e:
+            err = -1
+            if show_error:
+                LOG.error("error: %s running: %s", str(e.returncode), cmd)
     return err
 
 

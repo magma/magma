@@ -35,8 +35,8 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_rar_tcp_data(self):
-        """ attach/detach + send ReAuth Req to session manager with a"""
-        """ single UE """
+        """ Attach/detach + send ReAuth Req to session manager with a
+        single UE """
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
@@ -146,7 +146,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
             # QoS
             qos = {
                 "qci": 5,  # qci value [1 to 9]
-                "priority": 15,  # Range [0-255]
+                "priority": 0,  # Range [0-255]
                 "max_req_bw_ul": 10000000,  # MAX bw Uplink
                 "max_req_bw_dl": 15000000,  # MAX bw Downlink
                 "gbr_ul": 1000000,  # GBR Uplink
@@ -164,7 +164,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
                 "********************** Sending RAR for IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
-            self._sessionManager_util.create_ReAuthRequest(
+            self._sessionManager_util.send_ReAuthRequest(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 policy_id,
                 flow_list,
