@@ -237,7 +237,7 @@ def get_direction_for_match(flow_match):
     return Direction.IN
 
 
-def convert_ipv4_str_to_ip_proto(ipv4_str: str) -> IPAddress:
+def convert_ipv4_str_to_ip_proto(ipv4_str):
     return IPAddress(version=IPAddress.IPV4,
                      address=ipv4_str.encode('utf-8'))
 

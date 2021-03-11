@@ -21,8 +21,6 @@ import "google/protobuf/timestamp.proto";
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
-// sid + ue_ipv4/ue_ipv6 currently uniquely identifies a session
-// TODO deprecate IPs and use tunnel IDs instead
 message RuleRecord {
   string sid = 1; // Session ID - specified as IMSI
   string rule_id = 2;
@@ -32,8 +30,6 @@ message RuleRecord {
   string ue_ipv6 = 6;
   uint64 dropped_tx = 7;
   uint64 dropped_rx = 8;
-  uint32 uplink_tunnel = 9; // Subscriber uplink tunnel
-  uint32 downlink_tunnel = 10; // Subscriber downlink tunnel
 }
 
 message RuleRecordTable {
