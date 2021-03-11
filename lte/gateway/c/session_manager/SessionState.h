@@ -770,6 +770,10 @@ class SessionState {
    * @param dropped_rx
    */
   void update_dropped_data_metrics(uint64_t dropped_tx, uint64_t dropped_rx);
+
+  RuleStats get_rule_delta(
+      const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
+      uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx);
 };
 
 }  // namespace magma

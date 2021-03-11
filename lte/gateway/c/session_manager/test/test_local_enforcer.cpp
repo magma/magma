@@ -392,6 +392,54 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_mixed_ips) {
       150);
 }
 
+TEST_F(LocalEnforcerTest, test_multi_version_reporting) {
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 2, 1024, response.mutable_credits()->Add());
+  local_enforcer->init_session(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  local_enforcer->update_tunnel_ids(
+      session_map,
+      create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
+
+  insert_static_rule(1, "", "rule1");
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  // ipv4 usage
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 10, 20, 0, 0,
+      record_list->Add());
+  // ipv6 usage for the same charging key and subscriber
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 2, 5, 15, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 1, 5, 15, 0, 0,
+      record_list->Add());
+
+  auto update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table, update);
+
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 10}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 20}});
+
+  //  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 2);
+  //  EXPECT_EQ(
+  //      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_RX],
+  //      15);
+  //  EXPECT_EQ(
+  //      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_TX],
+  //      35);
+  //  EXPECT_EQ(
+  //      update[IMSI1][SESSION_ID_1].charging_credit_map[2].bucket_deltas[USED_RX],
+  //      100);
+  //  EXPECT_EQ(
+  //      update[IMSI1][SESSION_ID_1].charging_credit_map[2].bucket_deltas[USED_TX],
+  //      150);
+}
+
 TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
   CreateSessionResponse response;
   create_credit_update_response(

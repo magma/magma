@@ -190,7 +190,7 @@ struct Usage {
   std::unordered_map<int, RuleStats> stats_map;
 };
 
-typedef std::unordered_map<std::string, Usage>UsageMap;
+typedef std::unordered_map<std::string, Usage> UsageMap;
 
 struct PolicyID {
   PolicyType policy_type;
