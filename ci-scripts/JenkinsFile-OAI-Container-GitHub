@@ -38,6 +38,10 @@ def dsTesterPipelineName = params.dsTesterPipelineName
 // Name of the DsTester child pipeline HTML report file
 def dsTesterPipelineReport = params.dsTesterPipelineReport
 
+// This pipeline is triggered automatically
+// We are analyzing if the modified files are suitable to run it
+def runAllPipelineStages = true
+
 pipeline {
   agent {
     label nodeExecutor
@@ -90,12 +94,28 @@ pipeline {
                   submoduleCfg: [],
                   userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
           )
+          if (!params.REGRESSION_TEST) {
+            try {
+              // Check if the pull request has files that will impact MME behavior
+              // If so, we will run the OAI pipeline
+              sh 'python3 ci-scripts/check_pr_modified_files_for_oai_pipeline.py'
+              // If the previous command is OK, no need to run
+              // All the following stages will be bypassed and the CI
+              // will report a passing status on the GitHub PR web-page.
+              echo '\u2705 \u001B[32mOAI Pipeline is not required to be run on this Pull Request\u001B[0m'
+              runAllPipelineStages = false
+            } catch (Exception e) {
+              echo '\u2705 \u001B[32mOAI Pipeline is mandatory to be run on this Pull Request\u001B[0m'
+              runAllPipelineStages = true
+            }
+          }
           sh "git clean -x -d -f > /dev/null 2>&1"
           sh "mkdir -p archives"
         }
       }
     }
     stage ("Create Test Image") {
+      when { expression {runAllPipelineStages} }
       steps {
         script {
           echo '\u2705 \u001B[32mBuild Target Image to Test\u001B[0m'
@@ -165,6 +185,7 @@ pipeline {
       }
     }
     stage ("Test Image in Unified DsTester Framework") {
+      when { expression {runAllPipelineStages} }
       steps {
         script {
           localStatus = build job: dsTesterPipelineName,
@@ -227,19 +248,21 @@ pipeline {
   post {
     always {
       script {
-        // Remove CI Base image tag
-        sh('docker rmi magma-dev-mme:ci-base-image')
-        // Clean any residual images
-        sh('docker image prune --force > /dev/null 2>&1')
-        try {
-          sh('docker image rm magma-mme:ci-tmp > /dev/null 2>&1')
-        } catch (Exception e) {
-          echo 'OK if not present'
-        }
-        // Zipping all archived log files
-        sh "zip -r -qq magma_logs.zip archives"
-        if (fileExists('magma_logs.zip')) {
-          archiveArtifacts artifacts: 'magma_logs.zip'
+        if (runAllPipelineStages) {
+          // Remove CI Base image tag
+          sh('docker rmi magma-dev-mme:ci-base-image')
+          // Clean any residual images
+          sh('docker image prune --force > /dev/null 2>&1')
+          try {
+            sh('docker image rm magma-mme:ci-tmp > /dev/null 2>&1')
+          } catch (Exception e) {
+            echo 'OK if not present'
+          }
+          // Zipping all archived log files
+          sh "zip -r -qq magma_logs.zip archives"
+          if (fileExists('magma_logs.zip')) {
+            archiveArtifacts artifacts: 'magma_logs.zip'
+          }
         }
       }
     }
