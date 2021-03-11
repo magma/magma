@@ -16,13 +16,12 @@ package servicers
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
-	"magma/orc8r/lib/go/protos"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type indexerServicer struct {
@@ -35,10 +34,6 @@ func NewIndexerManagerServicer(reindexer reindex.Reindexer, autoReindexEnabled b
 }
 
 func (srv *indexerServicer) GetIndexers(ctx context.Context, req *indexer_protos.GetIndexersRequest) (*indexer_protos.GetIndexersResponse, error) {
-	if err := validateCtx(ctx); err != nil {
-		return nil, err
-	}
-
 	versions, err := srv.reindexer.GetIndexerVersions()
 	if err != nil {
 		return nil, internalErr(err, "error getting indexer versions from reindex job queue")
@@ -50,9 +45,6 @@ func (srv *indexerServicer) GetIndexers(ctx context.Context, req *indexer_protos
 
 func (srv *indexerServicer) StartReindex(req *indexer_protos.StartReindexRequest, stream indexer_protos.IndexerManager_StartReindexServer) error {
 	ctx := stream.Context()
-	if err := validateCtx(ctx); err != nil {
-		return err
-	}
 	if err := srv.validateReindexReq(req); err != nil {
 		return err
 	}
@@ -61,14 +53,6 @@ func (srv *indexerServicer) StartReindex(req *indexer_protos.StartReindexRequest
 	err := srv.reindexer.RunUnsafe(ctx, req.IndexerId, sendUpdate)
 	if err != nil {
 		return internalErr(err, "error running reindex operation")
-	}
-	return nil
-}
-
-func validateCtx(ctx context.Context) error {
-	gw := protos.GetClientGateway(ctx)
-	if gw != nil {
-		return status.Error(codes.PermissionDenied, "gateway identity found")
 	}
 	return nil
 }
