@@ -45,3 +45,6 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     SGI_DELETE_ENDPOINT_RESPONSE, itti_sgi_delete_end_point_response_t,
     sgi_delete_end_point_response)
+MESSAGE_DEF(
+    IP_ALLOCATION_RESPONSE, itti_ip_allocation_response_t,
+    ip_allocation_response)
