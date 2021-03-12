@@ -163,6 +163,18 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
          */
       }
     } break;
+
+    case IP_ALLOCATION_RESPONSE: {
+      int32_t rc = sgw_handle_ip_allocation_rsp(
+          spgw_state, &received_message_p->ittiMsg.ip_allocation_response,
+          imsi64);
+      if (rc != RETURNok) {
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, imsi64,
+            "Failed to handle IP_ALLOCATION_RESPONSE, \n");
+      }
+    } break;
+
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
       free(received_message_p);
