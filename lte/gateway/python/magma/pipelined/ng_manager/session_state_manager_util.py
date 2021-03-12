@@ -59,8 +59,8 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
         local_f_teid = pdr_entry.pdi.local_f_teid
 
     # Get UE IP address
-    #if len(pdr_entry.pdi.ue_ip_adr):
-    ue_ip_addr = pdr_entry.pdi.ue_ip_adr
+    if pdr_entry.pdi.ue_ip_adr:
+        ue_ip_addr = pdr_entry.pdi.ue_ip_adr
 
     if len(pdr_entry.set_gr_far.ListFields()):
         far_entry = far_create_rule_entry(pdr_entry.set_gr_far)

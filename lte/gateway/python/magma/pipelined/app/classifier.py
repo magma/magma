@@ -152,15 +152,17 @@ class Classifier(MagmaController):
 
     def _install_default_tunnel_flows(self):
         match = MagmaMatch()
-        flows.add_flow(self._datapath,self.tbl_num, match,
-                       priority=flows.MINIMUM_PRIORITY,
-                       goto_table=self.next_table)
+        flows.add_resubmit_next_service_flow(self._datapath,self.tbl_num, match,
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             reset_default_register=1,
+                                             resubmit_table=self.next_table)
 
     def _install_internal_pkt_fwd_flow(self):
         match = MagmaMatch(in_port=self.config.internal_sampling_port)
-        flows.add_flow(self._datapath,self.tbl_num, match,
-                       priority=flows.MINIMUM_PRIORITY,
-                       goto_table=self.config.internal_sampling_fwd_tbl)
+        flows.add_resubmit_next_service_flow(self._datapath,self.tbl_num, match,
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             reset_default_register=1,
+                                             resubmit_table=self.config.internal_sampling_fwd_tbl)
 
 
     def add_tunnel_flows(self, precedence:int, i_teid:int,
@@ -185,12 +187,17 @@ class Classifier(MagmaController):
             if sid:
                 actions.append(parser.OFPActionSetField(metadata=sid))
 
-            flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                          priority=priority, goto_table=self.next_table)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
+                                                 actions=actions, priority=priority,
+                                                 reset_default_register=1,
+                                                 resubmit_table=self.next_table)
 
         # Install Downlink Tunnel
         actions = []
-        if ue_ip_adr:
+        if not ue_ip_adr:
+            self.logger.error("ue_ip_address is None")
+            return
+        else:
             # Add flow for LOCAL port
             ip_match_out = get_ue_ip_match_args(ue_ip_adr, Direction.IN)
             match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
@@ -204,15 +211,19 @@ class Classifier(MagmaController):
                 if sid:
                     actions.append(parser.OFPActionSetField(metadata=sid))
 
-                flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                               priority=priority, goto_table=self.next_table)
+                flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
+                                                     actions=actions, priority=priority,
+                                                     reset_default_register=1,
+                                                     resubmit_table=self.next_table)
 
             # Add flow for mtr port
             match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
                                in_port=self.config.mtr_port, **ip_match_out)
 
-            flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                           priority=priority, goto_table=self.next_table)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
+                                                 actions=actions, priority=priority,
+                                                 reset_default_register=1,
+                                                 resubmit_table=self.next_table)
        
             # Add ARP flow for LOCAL port
             if ue_ip_adr.version == IPAddress.IPV4:
@@ -223,8 +234,10 @@ class Classifier(MagmaController):
             if sid:
                 actions = [parser.OFPActionSetField(metadata=sid)]
 
-            flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                           priority=priority, goto_table=self.next_table)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
+                                                 actions=actions, priority=priority,
+                                                 reset_default_register=1,
+                                                 resubmit_table=self.next_table)
 
             # Add ARP flow for mtr port
             if ue_ip_adr.version == IPAddress.IPV4:
@@ -232,8 +245,10 @@ class Classifier(MagmaController):
                                    in_port=self.config.mtr_port,
                                    arp_tpa=ipaddress.IPv4Address(ue_ip_adr.address.decode('utf-8')))
 
-            flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                           priority=priority, goto_table=self.next_table)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
+                                                 actions=actions, priority=priority,
+                                                 reset_default_register=1,
+                                                 resubmit_table=self.next_table)
 
         return True
 
@@ -252,7 +267,10 @@ class Classifier(MagmaController):
             flows.delete_flow(self._datapath, self.tbl_num, match)
 
         # Delete flow for LOCAL port
-        if ue_ip_adr:
+        if not ue_ip_adr:
+            self.logger.error("ue_ip_address is None")
+            return
+        else:
             ip_match_out = get_ue_ip_match_args(ue_ip_adr, Direction.IN)
             match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
                                in_port=self._uplink_port, **ip_match_out)
@@ -289,23 +307,33 @@ class Classifier(MagmaController):
         # discard uplink Tunnel
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
-        flows.add_flow(self._datapath, self.tbl_num, match,
-                       priority=priority + 1)
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
+                                             priority=priority + 1,
+                                             reset_default_register=1,
+                                             resubmit_table=self.next_table)
 
         # discard downlink Tunnel for LOCAL port
-        ip_match_out = get_ue_ip_match_args(ue_ip_adr, Direction.IN)
-        match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
+        if not ue_ip_adr:
+            self.logger.error("ue_ip_address is None")
+            return
+        else:
+            ip_match_out = get_ue_ip_match_args(ue_ip_adr, Direction.IN)
+            match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
                            in_port=self._uplink_port, **ip_match_out)
 
-        flows.add_flow(self._datapath, self.tbl_num, match,
-                       priority=priority + 1)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
+                                                 priority=priority + 1,
+                                                 reset_default_register=1,
+                                                 resubmit_table=self.next_table)
 
-        # discard downlink Tunnel for mtr port
-        match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
-                           in_port=self.config.mtr_port, **ip_match_out)
+            # discard downlink Tunnel for mtr port
+            match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
+                               in_port=self.config.mtr_port, **ip_match_out)
 
-        flows.add_flow(self._datapath, self.tbl_num, match,
-                       priority=priority + 1)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
+                                                 priority=priority + 1,
+                                                 reset_default_register=1,
+                                                 resubmit_table=self.next_table)
 
     def _resume_tunnel_flows(self, precedence:int, i_teid:int,
                              ue_ip_adr:IPAddress):
@@ -318,17 +346,21 @@ class Classifier(MagmaController):
                           priority=priority + 1)
 
         # Forward flow for LOCAL port
-        ip_match_out = get_ue_ip_match_args(ue_ip_adr, Direction.IN)
-        match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
-                           in_port=self._uplink_port, **ip_match_out)
+        if not ue_ip_adr:
+            self.logger.error("ue_ip_address is None")
+            return
+        else:
+            ip_match_out = get_ue_ip_match_args(ue_ip_adr, Direction.IN)
+            match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
+                               in_port=self._uplink_port, **ip_match_out)
 
-        flows.delete_flow(self._datapath, self.tbl_num, match,
-                          priority=priority +1)
+            flows.delete_flow(self._datapath, self.tbl_num, match,
+                              priority=priority +1)
 
-        # Forward flow for mtr port
-        match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
-                           in_port=self.config.mtr_port, **ip_match_out)
+            # Forward flow for mtr port
+            match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
+                               in_port=self.config.mtr_port, **ip_match_out)
 
-        flows.delete_flow(self._datapath, self.tbl_num, match,
-                          priority=priority + 1)
+            flows.delete_flow(self._datapath, self.tbl_num, match,
+                              priority=priority + 1)
 
