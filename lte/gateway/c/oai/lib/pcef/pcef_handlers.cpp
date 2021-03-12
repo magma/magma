@@ -16,18 +16,16 @@
  */
 
 #include <grpcpp/impl/codegen/status.h>
-#include <string.h>
+#include <cstring>
 #include <string>
 #include <conversions.h>
+#include <common_defs.h>
 
 #include "pcef_handlers.h"
 #include "PCEFClient.h"
 #include "MobilityClientAPI.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "lte/protos/session_manager.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
 #include "spgw_types.h"
 
 extern "C" {}
@@ -38,25 +36,28 @@ static char _convert_digit_to_char(char digit);
 
 static void create_session_response(
     spgw_state_t* state, const std::string& imsi, const std::string& apn,
-    itti_sgi_create_end_point_response_t sgi_response,
     s5_create_session_request_t session_request, const grpc::Status& status,
     s_plus_p_gw_eps_bearer_context_information_t* ctx_p) {
   s5_create_session_response_t s5_response = {0};
   s5_response.context_teid                 = session_request.context_teid;
   s5_response.eps_bearer_id                = session_request.eps_bearer_id;
-  s5_response.sgi_create_endpoint_resp     = sgi_response;
+  s5_response.status                       = session_request.status;
   s5_response.failure_cause                = S5_OK;
 
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctx_p =
+      ctx_p->sgw_eps_bearer_context_information.pdn_connection
+          .sgw_eps_bearers_array[EBI_TO_INDEX(s5_response.eps_bearer_id)];
+
   if (!status.ok()) {
-    if ((sgi_response.paa.pdn_type == IPv4) ||
-        (sgi_response.paa.pdn_type == IPv4_AND_v6)) {
+    if ((eps_bearer_ctx_p->paa.pdn_type == IPv4) ||
+        (eps_bearer_ctx_p->paa.pdn_type == IPv4_AND_v6)) {
       release_ipv4_address(
-          imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv4_address);
+          imsi.c_str(), apn.c_str(), &eps_bearer_ctx_p->paa.ipv4_address);
     }
-    if ((sgi_response.paa.pdn_type == IPv6) ||
-        (sgi_response.paa.pdn_type == IPv4_AND_v6)) {
+    if ((eps_bearer_ctx_p->paa.pdn_type == IPv6) ||
+        (eps_bearer_ctx_p->paa.pdn_type == IPv4_AND_v6)) {
       release_ipv6_address(
-          imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv6_address);
+          imsi.c_str(), apn.c_str(), &eps_bearer_ctx_p->paa.ipv6_address);
     }
     s5_response.failure_cause = PCEF_FAILURE;
   }
@@ -117,7 +118,6 @@ static void pcef_fill_create_session_req(
 void pcef_create_session(
     spgw_state_t* state, const char* imsi, const char* ip4, const char* ip6,
     const pcef_create_session_data* session_data,
-    itti_sgi_create_end_point_response_t sgi_response,
     s5_create_session_request_t session_request,
     s_plus_p_gw_eps_bearer_context_information_t* ctx_p) {
   auto imsi_str = std::string(imsi);
@@ -138,11 +138,11 @@ void pcef_create_session(
   auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
-      sreq,
-      [imsi_str, apn, sgi_response, session_request, ctx_p, state](
-          grpc::Status status, magma::LocalCreateSessionResponse response) {
+      sreq, [imsi_str, apn, session_request, ctx_p, state](
+                const grpc::Status& status,
+                const magma::LocalCreateSessionResponse& response) {
         create_session_response(
-            state, imsi_str, apn, sgi_response, session_request, status, ctx_p);
+            state, imsi_str, apn, session_request, status, ctx_p);
       });
 }
 

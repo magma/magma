@@ -38,9 +38,13 @@ class RuleIDToNumMapper:
     def __init__(self):
         self.redis_cli = get_default_client()
         self._curr_rule_num = 1
+        self._rule_nums_by_rule = {}
+        self._rules_by_rule_num = {}
+        self._lock = threading.Lock()  # write lock
+
+    def setup_redis(self):
         self._rule_nums_by_rule = RuleIDDict()
         self._rules_by_rule_num = RuleNameDict()
-        self._lock = threading.Lock()  # write lock
 
     def _register_rule(self, rule_id):
         """ NOT thread safe """
@@ -83,8 +87,11 @@ class SessionRuleToVersionMapper:
     VERSION_LIMIT = 0xFFFFFFFF  # 32 bit unsigned int limit (inclusive)
 
     def __init__(self):
-        self._version_by_imsi_and_rule = RuleVersionDict()
+        self._version_by_imsi_and_rule = {}
         self._lock = threading.Lock()  # write lock
+
+    def setup_redis(self):
+        self._version_by_imsi_and_rule = RuleVersionDict()
 
     def _update_version_unsafe(self, imsi: str, ip_addr: str, rule_id: str):
         key = self._get_json_key(encode_imsi(imsi), ip_addr, rule_id)
