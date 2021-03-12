@@ -413,31 +413,18 @@ TEST_F(LocalEnforcerTest, test_multi_version_reporting) {
       record_list->Add());
   // ipv6 usage for the same charging key and subscriber
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 2, 5, 15, 0, 0,
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 1, 25, 35, 0, 0,
       record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 1, 5, 15, 0, 0,
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 2, 5, 105, 0, 0,
       record_list->Add());
+
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 10}});
-  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 20}});
-
-  //  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 2);
-  //  EXPECT_EQ(
-  //      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_RX],
-  //      15);
-  //  EXPECT_EQ(
-  //      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_TX],
-  //      35);
-  //  EXPECT_EQ(
-  //      update[IMSI1][SESSION_ID_1].charging_credit_map[2].bucket_deltas[USED_RX],
-  //      100);
-  //  EXPECT_EQ(
-  //      update[IMSI1][SESSION_ID_1].charging_credit_map[2].bucket_deltas[USED_TX],
-  //      150);
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 30}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 140}});
 }
 
 TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {

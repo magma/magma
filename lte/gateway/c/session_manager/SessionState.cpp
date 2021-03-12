@@ -508,9 +508,9 @@ RuleStats SessionState::get_rule_delta(
   }
 
   auto last_tracked_version_num = usage_it->second.rule_version;
-
   auto last_tracked_version =
       rule_usage_[rule_id].stats_map.find(last_tracked_version_num);
+
   RuleStats prev_usage;
   prev_usage = last_tracked_version->second;
   // if (last_tracked_version_num != rule_version) {
@@ -518,28 +518,34 @@ RuleStats SessionState::get_rule_delta(
     MLOG(MERROR) << "Reported stat version less than the current tracked one";
     return ret;
   }
-  if (used_tx < prev_usage.tx) {
-    MLOG(MERROR) << "Reported stat version less than the current tracked one";
-    return ret;
+
+  if (rule_version > last_tracked_version_num) {
+    ret.tx = used_tx;
+    ret.rx                                          = used_rx;
+    ret.dropped_tx                                  = dropped_tx;
+    ret.dropped_rx                                  = dropped_rx;
+  } else {
+
+    if (used_tx < prev_usage.tx) {
+      MLOG(MERROR) << "Reported stat version less than the current tracked one";
+      return ret;
+    }
+
+    if (prev_usage.tx != 0 && prev_usage.tx > used_tx) {
+      MLOG(MERROR) << "Reported stat used_tx than the current tracked one";
+      return ret;
+    }
+    if (prev_usage.rx != 0 && prev_usage.rx > used_rx) {
+      MLOG(MERROR) << "Reported stat used_rx than the current tracked one";
+      return ret;
+    }
+
+    ret.tx =    used_tx - prev_usage.tx;
+    ret.rx         = used_rx - prev_usage.rx;
+    ret.dropped_tx = dropped_tx - prev_usage.dropped_tx;
+    ret.dropped_rx = dropped_rx - prev_usage.dropped_rx;
   }
 
-  if (prev_usage.tx != 0 && prev_usage.tx > used_tx) {
-    MLOG(MERROR) << "Reported stat used_tx than the current tracked one";
-    return ret;
-  }
-  if (prev_usage.rx != 0 && prev_usage.rx > used_rx) {
-    MLOG(MERROR) << "Reported stat used_rx than the current tracked one";
-    return ret;
-  }
-  // ADD CASE WHEN NEW VERSION IS REPORTED(NEEDS TO BE INSERTED)
-  // asert new version num >> last_tracked
-
-  ret.tx         = used_tx - prev_usage.tx;
-  ret.rx         = used_rx - prev_usage.rx;
-  ret.dropped_tx = dropped_tx - prev_usage.dropped_tx;
-  ret.dropped_rx = dropped_rx - prev_usage.dropped_rx;
-
-  // Update to fresh stats
   RuleStats s = {used_tx, used_rx, dropped_tx, dropped_rx};
   rule_usage_[rule_id].stats_map[rule_version] = s;
   rule_usage_[rule_id].rule_version            = rule_version;
