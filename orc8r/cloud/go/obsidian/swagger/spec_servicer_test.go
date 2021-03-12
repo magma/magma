@@ -31,8 +31,8 @@ func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 	testPartialFileContents := "test partial yaml spec"
 	testStandaloneFileContents := "test standalone yaml spec"
 	tmpDir := "/etc/magma/swagger/specs"
-	partialDir := filepath.Join(tmpDir, "partial")
-	standaloneDir := filepath.Join(tmpDir, "standalone")
+	partialDir := "/etc/magma/swagger/specs/partial"
+	standaloneDir := "/etc/magma/swagger/specs/standalone"
 
 	os.RemoveAll(tmpDir)
 	defer os.RemoveAll(tmpDir)

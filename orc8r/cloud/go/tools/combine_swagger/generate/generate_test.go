@@ -11,15 +11,15 @@
  limitations under the License.
 */
 
-package gen_test
+package generate_test
 
 import (
 	"io/ioutil"
 	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/tools/combine_swagger/gen"
-	"magma/orc8r/cloud/go/tools/swaggergen/generate"
+	"magma/orc8r/cloud/go/tools/combine_swagger/generate"
+	swaggergen "magma/orc8r/cloud/go/tools/swaggergen/generate"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -32,10 +32,10 @@ func Test_GenerateStandaloneSpec(t *testing.T) {
 	os.Remove(specTargetPath)
 	defer os.Remove(specTargetPath)
 
-	specs, err := generate.ParseSwaggerDependencyTree(targetFilePath, os.Getenv("MAGMA_ROOT"))
+	specs, err := swaggergen.ParseSwaggerDependencyTree(targetFilePath, os.Getenv("MAGMA_ROOT"))
 	assert.NoError(t, err)
 
-	err = gen.GenerateSpec(targetFilePath, specs, specTargetPath)
+	err = generate.GenerateSpec(targetFilePath, specs, specTargetPath)
 	assert.NoError(t, err)
 
 	actual, err := ioutil.ReadFile(specTargetPath)

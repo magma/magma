@@ -30,7 +30,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
-	"magma/orc8r/cloud/go/tools/combine_swagger/gen"
+	"magma/orc8r/cloud/go/tools/combine_swagger/generate"
 
 	"github.com/golang/glog"
 )
@@ -67,7 +67,7 @@ func main() {
 	}
 
 	if *generateStandAloneSpec {
-		err := gen.GenerateStandaloneSpecs(*inDir)
+		err := generate.GenerateStandaloneSpecs(*inDir)
 		if err != nil {
 			glog.Fatalf("Error generating standalone Swagger specs %+v", err)
 		}

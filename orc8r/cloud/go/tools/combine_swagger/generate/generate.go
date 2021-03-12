@@ -11,7 +11,7 @@
  limitations under the License.
 */
 
-package gen
+package generate
 
 import (
 	"os"

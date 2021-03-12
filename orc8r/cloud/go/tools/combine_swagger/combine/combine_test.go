@@ -35,7 +35,7 @@ var (
 	specsDir       = filepath.Join(testdataDir, "configs")
 	commonFilepath = filepath.Join(testdataDir, "common/common.yml")
 	outFilepath    = filepath.Join(testdataDir, "out.yml")
-	goldenFilepath = filepath.Join(testdataDir, "out.yml.golden")
+	goldenFilepath = filepath.Join(testdataDir, "monolithic.yml.golden")
 )
 
 // TestCombine tests the generated output against a golden file.
