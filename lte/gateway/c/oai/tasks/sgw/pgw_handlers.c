@@ -96,10 +96,8 @@ void handle_s5_create_session_request(
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     teid_t context_teid, ebi_t eps_bearer_id) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
-  s5_create_session_response_t s5_response                      = {0};
-  struct in_addr inaddr;
-  struct in6_addr in6addr;
+  s5_create_session_response_t s5_response = {0};
+
   char* imsi = NULL;
   char* apn  = NULL;
 
@@ -122,13 +120,6 @@ void handle_s5_create_session_request(
       "EPS bearer id %u\n",
       context_teid, eps_bearer_id);
 
-  // IP forward will forward packets to this teid
-  sgi_create_endpoint_resp.context_teid  = context_teid;
-  sgi_create_endpoint_resp.eps_bearer_id = eps_bearer_id;
-  sgi_create_endpoint_resp.paa.pdn_type =
-      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-          .pdn_type;
-
   imsi =
       (char*)
           new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
@@ -145,14 +136,12 @@ void handle_s5_create_session_request(
 
     case IPv6:
       pgw_handle_allocate_ipv6_address(
-          imsi, apn, &in6addr, sgi_create_endpoint_resp, "ipv6", spgw_state,
-          new_bearer_ctxt_info_p, s5_response);
+          imsi, apn, "ipv6", context_teid, eps_bearer_id);
       break;
 
     case IPv4_AND_v6:
       pgw_handle_allocate_ipv4v6_address(
-          imsi, apn, &inaddr, &in6addr, sgi_create_endpoint_resp, "ipv4v6",
-          spgw_state, new_bearer_ctxt_info_p, s5_response);
+          imsi, apn, "ipv4v6", context_teid, eps_bearer_id);
       break;
 
     default:
