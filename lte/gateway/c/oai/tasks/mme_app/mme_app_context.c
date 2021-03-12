@@ -2361,7 +2361,7 @@ static bool mme_app_recover_timers_for_ue(
       ue_mm_context_pP->time_ics_rsp_timer_started) {
     mme_app_resume_timers(
         ue_mm_context_pP, ue_mm_context_pP->time_ics_rsp_timer_started,
-        ue_mm_context_pP->initial_context_setup_rsp_timer,
+        &ue_mm_context_pP->initial_context_setup_rsp_timer,
         mme_app_handle_initial_context_setup_rsp_timer_expiry,
         "Initial Context Setup Response");
   }
