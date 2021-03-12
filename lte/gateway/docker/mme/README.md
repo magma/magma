@@ -15,7 +15,7 @@ Then you can build:
 
 ```bash
 cd $MAGMA 
-docker build --target magma_mme --tag magma_mme:latest --file lte/gateway/docker/mme/Dockerfile.ubuntu18.04  .
+docker build --target magma-mme --tag magma-mme:latest --file lte/gateway/docker/mme/Dockerfile.ubuntu18.04  .
 ```
 
 ## Build MME RHEL8 podman image
@@ -44,6 +44,6 @@ Finally you can build:
 
 ```bash
 cd $MAGMA
-sudo podman build --target magma_mme --tag magma_mme:latest --file lte/gateway/docker/mme/Dockerfile.rhel8 .
+sudo podman build --target magma-mme --tag magma-mme:latest --file lte/gateway/docker/mme/Dockerfile.rhel8 .
 ```
 
