@@ -42,11 +42,12 @@ using magma::lte::IPAddress;
 using magma::lte::MobilityServiceClient;
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
+extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
-static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
+static void handle_allocate_ipv4_address_status(
     const grpc::Status& status, struct in_addr inaddr, int vlan,
     const char* imsi, const char* apn, const char* pdn_type,
-    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
+    teid_t context_teid, ebi_t eps_bearer_id);
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
     const grpc::Status& status, struct in6_addr addr, int vlan,
@@ -68,80 +69,66 @@ int get_assigned_ipv4_block(
 }
 
 int pgw_handle_allocate_ipv4_address(
-    const char* subscriber_id, const char* apn, struct in_addr* addr,
-    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-    const char* pdn_type, spgw_state_t* spgw_state,
-    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-    s5_create_session_response_t s5_response) {
+    const char* subscriber_id, const char* apn, const char* pdn_type,
+    teid_t context_teid, ebi_t eps_bearer_id) {
+  std::string subscriber_id_str = std::string(subscriber_id);
+  std::string apn_str           = std::string(apn);
+  std::string pdn_type_str      = std::string(pdn_type);
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
-      subscriber_id, apn,
-      [=, &s5_response](
-          const Status& status, AllocateIPAddressResponse ip_msg) {
+      subscriber_id_str, apn_str,
+      [subscriber_id_str, apn_str, pdn_type_str, context_teid, eps_bearer_id](
+          const Status& status, const AllocateIPAddressResponse& ip_msg) {
+        struct in_addr addr;
         std::string ipv4_addr_str;
         if (ip_msg.ip_list_size() > 0) {
           ipv4_addr_str = ip_msg.ip_list(0).address();
         }
-        memcpy(addr, ipv4_addr_str.c_str(), sizeof(in_addr));
-        int vlan      = atoi(ip_msg.vlan().c_str());
-        auto sgi_resp = handle_allocate_ipv4_address_status(
-            status, *addr, vlan, subscriber_id, apn, pdn_type,
-            sgi_create_endpoint_resp);
-
-        if (sgi_resp.status == SGI_STATUS_OK) {
-          // create session in PCEF and return
-          s5_create_session_request_t session_req = {0};
-          session_req.context_teid  = sgi_create_endpoint_resp.context_teid;
-          session_req.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
-          char ip_str[INET_ADDRSTRLEN];
-          inet_ntop(AF_INET, &(addr->s_addr), ip_str, INET_ADDRSTRLEN);
-          struct pcef_create_session_data session_data;
-          get_session_req_data(
-              spgw_state,
-              &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-                   .saved_message,
-              &session_data);
-          pcef_create_session(
-              spgw_state, subscriber_id, ip_str, NULL, &session_data, sgi_resp,
-              session_req, new_bearer_ctxt_info_p);
-        } else {
-          // If we are here then the IP address allocation has failed
-          s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
-          s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
-          s5_response.failure_cause = IP_ALLOCATION_FAILURE;
-          handle_s5_create_session_response(
-              spgw_state, new_bearer_ctxt_info_p, s5_response);
-        }
-        OAILOG_FUNC_OUT(LOG_PGW_APP);
+        memcpy(&addr, ipv4_addr_str.c_str(), sizeof(in_addr));
+        int vlan = atoi(ip_msg.vlan().c_str());
+        handle_allocate_ipv4_address_status(
+            status, addr, vlan, subscriber_id_str.c_str(), apn_str.c_str(),
+            pdn_type_str.c_str(), context_teid, eps_bearer_id);
       });
   return 0;
 }
 
-static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
+static void handle_allocate_ipv4_address_status(
     const Status& status, struct in_addr inaddr, int vlan, const char* imsi,
-    const char* apn, const char* pdn_type,
-    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp) {
+    const char* apn, const char* pdn_type, teid_t context_teid,
+    ebi_t eps_bearer_id) {
+  MessageDef* message_p;
+  message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, IP_ALLOCATION_RESPONSE);
+  if (!message_p) {
+    OAILOG_ERROR(
+        LOG_UTIL, "Message IP Allocation Response allocation failed\n");
+    return;
+  }
+
+  itti_ip_allocation_response_t* ip_allocation_response_p;
+  ip_allocation_response_p = &message_p->ittiMsg.ip_allocation_response;
+  memset(ip_allocation_response_p, 0, sizeof(itti_ip_allocation_response_t));
+
+  ip_allocation_response_p->context_teid  = context_teid;
+  ip_allocation_response_p->eps_bearer_id = eps_bearer_id;
+
   if (status.ok()) {
     increment_counter(
         "ue_pdn_connection", 1, 2, "pdn_type", pdn_type, "result", "success");
-    sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
-    sgi_create_endpoint_resp.paa.pdn_type     = IPv4;
-    sgi_create_endpoint_resp.paa.vlan         = vlan;
+    ip_allocation_response_p->paa.ipv4_address = inaddr;
+    ip_allocation_response_p->paa.pdn_type     = IPv4;
+    ip_allocation_response_p->paa.vlan         = vlan;
+    ip_allocation_response_p->status           = SGI_STATUS_OK;
+
     OAILOG_DEBUG(
         LOG_UTIL, "Allocated IPv4 address for imsi <%s>, apn <%s> vlan %d\n",
         imsi, apn, vlan);
-    sgi_create_endpoint_resp.status = SGI_STATUS_OK;
   } else {
     if (status.error_code() == RPC_STATUS_ALREADY_EXISTS) {
       increment_counter(
           "ue_pdn_connection", 1, 2, "pdn_type", "ipv4", "result",
           "ip_address_already_allocated");
-      /*
-       * This implies that UE session was not release properly.
-       * Release the IP address so that subsequent attempt is successfull
-       */
-      release_ipv4_address(imsi, apn, &inaddr);
-      // TODO - Release the GTP-tunnel corresponding to this IP address
-      sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SYSTEM_FAILURE;
+
+      ip_allocation_response_p->status = SGI_STATUS_ERROR_SYSTEM_FAILURE;
     } else {
       increment_counter(
           "ue_pdn_connection", 1, 2, "pdn_type", pdn_type, "result", "failure");
@@ -150,11 +137,17 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
           "Failed to allocate IPv4 PAA for PDN type IPv4 for "
           "imsi <%s> and apn <%s>\n",
           imsi, apn);
-      sgi_create_endpoint_resp.status =
+      ip_allocation_response_p->status =
           SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
     }
   }
-  return sgi_create_endpoint_resp;
+
+  IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
+  OAILOG_DEBUG_UE(
+      LOG_UTIL, message_p->ittiMsgHeader.imsi,
+      "Sending IP allocation response message with cause: %u\n",
+      ip_allocation_response_p->status);
+  send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
 int release_ipv4_address(
@@ -192,8 +185,8 @@ int pgw_handle_allocate_ipv6_address(
   MobilityServiceClient::getInstance().AllocateIPv6AddressAsync(
       subscriber_id, apn,
       [=, &s5_response](
-          const Status& status, AllocateIPAddressResponse ip_msg) {
-        std::string ipv6_addr_str = "";
+          const Status& status, const AllocateIPAddressResponse& ip_msg) {
+        std::string ipv6_addr_str;
         if (ip_msg.ip_list_size() > 0) {
           ipv6_addr_str = ip_msg.ip_list(0).address();
         } else {
@@ -232,7 +225,7 @@ int pgw_handle_allocate_ipv6_address(
                    .saved_message,
               &session_data);
           pcef_create_session(
-              spgw_state, subscriber_id, NULL, ip6_str, &session_data, sgi_resp,
+              spgw_state, subscriber_id, nullptr, ip6_str, &session_data,
               session_req, new_bearer_ctxt_info_p);
         } else {
           // If we are here then the IP address allocation has failed
@@ -299,9 +292,9 @@ int pgw_handle_allocate_ipv4v6_address(
   MobilityServiceClient::getInstance().AllocateIPv4v6AddressAsync(
       subscriber_id, apn,
       [=, &s5_response](
-          const Status& status, AllocateIPAddressResponse ip_msg) {
-        std::string ipv4_addr_str = "";
-        std::string ipv6_addr_str = "";
+          const Status& status, const AllocateIPAddressResponse& ip_msg) {
+        std::string ipv4_addr_str;
+        std::string ipv6_addr_str;
         if (ip_msg.ip_list_size() == 2) {
           ipv4_addr_str = ip_msg.ip_list(0).address();
           ipv6_addr_str = ip_msg.ip_list(1).address();
@@ -348,7 +341,7 @@ int pgw_handle_allocate_ipv4v6_address(
               &session_data);
           pcef_create_session(
               spgw_state, subscriber_id, ip4_str, ip6_str, &session_data,
-              sgi_resp, session_req, new_bearer_ctxt_info_p);
+              session_req, new_bearer_ctxt_info_p);
           s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
           s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
         } else {

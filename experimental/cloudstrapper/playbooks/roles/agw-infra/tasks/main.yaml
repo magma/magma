@@ -1,0 +1,9 @@
+---
+
+- include: provision-networks.yaml
+  tags: createNet
+- include: provision-instances.yaml
+  tags: createGw
+- include: attach-interfaces.yaml
+  tags: attachIface
+
