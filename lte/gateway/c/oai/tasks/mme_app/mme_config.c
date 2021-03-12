@@ -295,6 +295,9 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   char* s1_mme         = NULL;
   char* if_name_s11    = NULL;
   char* s11            = NULL;
+  char* imsi_low_tmp   = NULL;
+  char* imsi_high_tmp  = NULL;
+  // char* imsi_range     = NULL;
 #if !EMBEDDED_SGW
   char* sgw_ip_address_for_s11 = NULL;
 #endif
@@ -902,6 +905,113 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       }
     }
 
+    // MODE MAP SETTING
+    setting =
+        config_setting_get_member(setting_mme, MME_CONFIG_STRING_MODE_MAP);
+    config_pP->mode_map_config.num = 0;
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_MODE_MAP \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(LOG_MME_APP, "Number of mode maps configured =%d\n", num);
+      AssertFatal(
+          num <= MAX_MODE_MAP_CONFIG,
+          "Number of mode maps configured:%d exceeds number of "
+          "mode maps supported :%d \n",
+          num, MAX_MODE_MAP_CONFIG);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+
+        // PLMN
+        if (sub2setting != NULL) {
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
+            AssertFatal(
+                strlen(mcc) == MAX_MCC_LENGTH,
+                "Bad MCC length (%ld), it must be %u digit ex: 001\n",
+                strlen(mcc), MAX_MCC_LENGTH);
+            // NULL terminated string
+            AssertFatal(
+                mcc[0] >= '0' && mcc[0] <= '9',
+                "MCC[0] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit1 =
+                mcc[0] - '0';
+            AssertFatal(
+                mcc[1] >= '0' && mcc[1] <= '9',
+                "MCC[1] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit2 =
+                mcc[1] - '0';
+            AssertFatal(
+                mcc[2] >= '0' && mcc[2] <= '9',
+                "MCC[2] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit3 =
+                mcc[2] - '0';
+          }
+
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
+            AssertFatal(
+                (strlen(mnc) == MIN_MNC_LENGTH) ||
+                    (strlen(mnc) == MAX_MNC_LENGTH),
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
+                "123\n",
+                strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
+            // NULL terminated string
+            AssertFatal(
+                mnc[0] >= '0' && mnc[0] <= '9',
+                "MNC[0] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mnc_digit1 =
+                mnc[0] - '0';
+            AssertFatal(
+                mnc[1] >= '0' && mnc[1] <= '9',
+                "MNC[1] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mnc_digit2 =
+                mnc[1] - '0';
+            if (3 == strlen(mnc)) {
+              AssertFatal(
+                  mnc[2] >= '0' && mnc[2] <= '9',
+                  "MNC[2] is not a decimal digit\n");
+              config_pP->mode_map_config.mode_map[i].plmn.mnc_digit3 =
+                  mnc[2] - '0';
+            } else {
+              config_pP->mode_map_config.mode_map[i].plmn.mnc_digit3 = 0x0F;
+            }
+          }
+          // IMSI range
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_IMSI_RANGE, &astring))) {
+            /*imsi_range                      = bfromcstr(astring);
+            struct bstrList* imsi_range_lst = bsplit(imsi_range, ':');
+            OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_IMSI_RANGE \n");
+            char tmp                        = '\0';
+            imsi_low_tmp  = bstr2cstr(imsi_range_lst->entry[0], tmp);
+            imsi_high_tmp = bstr2cstr(imsi_range_lst->entry[1], tmp);*/
+            imsi_high_tmp = strdup(astring);
+            imsi_low_tmp  = strsep(&imsi_high_tmp, ":");
+            memcpy(
+                config_pP->mode_map_config.mode_map[i].imsi_low, imsi_low_tmp,
+                strlen(imsi_low_tmp));
+            memcpy(
+                config_pP->mode_map_config.mode_map[i].imsi_high, imsi_high_tmp,
+                strlen(imsi_high_tmp));
+            AssertFatal(
+                strlen(
+                    (char*) config_pP->mode_map_config.mode_map[i].imsi_low) <=
+                        MAX_IMSI_LENGTH ||
+                    strlen((char*) config_pP->mode_map_config.mode_map[i]
+                               .imsi_high) <= MAX_IMSI_LENGTH,
+                "Invalid imsi length\n");
+          }
+          // APN
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_APN, &astring))) {
+            config_pP->mode_map_config.mode_map[i].apn = bfromcstr(astring);
+          }
+          config_pP->mode_map_config.num += 1;
+        }
+      }
+    }
+
     // NETWORK INTERFACE SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG);
@@ -1447,6 +1557,27 @@ void mme_config_display(mme_config_t* config_pP) {
           config_pP->served_tai.plmn_mcc[j], config_pP->served_tai.plmn_mnc[j],
           config_pP->served_tai.tac[j]);
     }
+  }
+  for (j = 0; j < config_pP->mode_map_config.num; j++) {
+    OAILOG_INFO(LOG_CONFIG, "- MODE MAP : \n");
+    OAILOG_INFO(
+        LOG_CONFIG, "            %u,%u,%u,%u,%u,%u\n",
+        config_pP->mode_map_config.mode_map[j].plmn.mcc_digit1,
+        config_pP->mode_map_config.mode_map[j].plmn.mcc_digit2,
+        config_pP->mode_map_config.mode_map[j].plmn.mcc_digit3,
+        config_pP->mode_map_config.mode_map[j].plmn.mnc_digit1,
+        config_pP->mode_map_config.mode_map[j].plmn.mnc_digit2,
+        config_pP->mode_map_config.mode_map[j].plmn.mnc_digit3);
+    OAILOG_INFO(LOG_CONFIG, "- IMSI_LOW :\n");
+    OAILOG_INFO(
+        LOG_CONFIG, "- IMSI_LOW :%s\n",
+        config_pP->mode_map_config.mode_map[j].imsi_low);
+    OAILOG_INFO(
+        LOG_CONFIG, "- IMSI_HIGH :%s\n",
+        config_pP->mode_map_config.mode_map[j].imsi_high);
+    OAILOG_INFO(LOG_CONFIG, "- APN :\n");
+    OAILOG_INFO(
+        LOG_CONFIG, "%s\n", bdata(config_pP->mode_map_config.mode_map[j].apn));
   }
   OAILOG_INFO(LOG_CONFIG, "- NAS:\n");
   OAILOG_INFO(
