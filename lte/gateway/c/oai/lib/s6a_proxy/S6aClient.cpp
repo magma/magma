@@ -18,6 +18,7 @@
 #include <thread>  // std::thread
 #include <iostream>
 #include <utility>
+#include <vector>
 
 #include "lte/protos/mconfig/mconfigs.pb.h"
 #include "MConfigLoader.h"
@@ -38,9 +39,14 @@ using namespace feg;
 
 static bool read_hss_relay_enabled(void);
 
+static std::vector<magma::mconfig::ModeMapItem> read_federated_map(void);
+
 static bool read_mme_cloud_subscriberdb_enabled(void);
 
 static const bool hss_relay_enabled = read_hss_relay_enabled();
+
+static std::vector< ::magma::mconfig::ModeMapItem> fed_mode_map =
+    read_federated_map();
 
 static const bool cloud_subscriberdb_enabled =
     read_mme_cloud_subscriberdb_enabled();
@@ -60,6 +66,10 @@ bool get_cloud_subscriberdb_enabled(void) {
   return cloud_subscriberdb_enabled;
 }
 
+std::vector<magma::mconfig::ModeMapItem> get_federated_mode_map(void) {
+  return fed_mode_map;
+}
+
 static bool read_hss_relay_enabled(void) {
   magma::mconfig::MME mconfig;
   magma::MConfigLoader loader;
@@ -73,6 +83,29 @@ static bool read_hss_relay_enabled(void) {
     return true;
   }
   return mconfig.hss_relay_enabled();
+}
+
+static std::vector<magma::mconfig::ModeMapItem> read_federated_map(void) {
+  magma::mconfig::MME mconfig;
+  magma::MConfigLoader loader;
+  std::vector<magma::mconfig::ModeMapItem> fed_mode_map;
+  if (!loader.load_service_mconfig(MME_SERVICE, &mconfig)) {
+    std::cout << "[INFO] Unable to load mconfig for mme. "
+              << "Federated map will be empty" << std::endl;
+    return fed_mode_map;
+  }
+  if (mconfig.federated_mode_map().enabled() == false) {
+    std::cout << "[INFO] Federated mode map is disabled" << std::endl;
+    return fed_mode_map;
+  }
+  google::protobuf::RepeatedPtrField<magma::mconfig::ModeMapItem>
+      protoFedModeMap = mconfig.federated_mode_map().mapping();
+  std::cout << "[INFO] Loading Federated Mode Map containing "
+            << protoFedModeMap.size() << " items" << std::endl;
+  for (const magma::mconfig::ModeMapItem item : protoFedModeMap) {
+    fed_mode_map.push_back(item);
+  }
+  return fed_mode_map;
 }
 
 static bool read_mme_cloud_subscriberdb_enabled(void) {
