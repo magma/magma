@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/pkg/errors"
 )
@@ -32,6 +33,10 @@ const (
 
 	// DirectorydTypeSessionIDToIMSI is the blobstore type field for the session ID to IMSI mapping.
 	DirectorydTypeSessionIDToIMSI = "sessionid_to_imsi"
+
+	// DirectorydTypeHWIDToDirectoryRecordsIDs is the blobstore type field for
+	// the hardware ID to directory record IDs mapping.
+	DirectorydTypeHWIDToDirectoryRecordIDs = "hwid_to_directory_record_ids"
 
 	// Blobstore needs a network ID, so for network-agnostic types we use a placeholder value.
 	placeholderNetworkID = "placeholder_network"
@@ -121,6 +126,52 @@ func (d *directorydBlobstore) MapSessionIDsToIMSIs(networkID string, sessionIDTo
 	return store.Commit()
 }
 
+// MapHWIDToDirectoryRecordID stores mapping of {hwid -> directory record IDs}.
+func (d *directorydBlobstore) MapHWIDToDirectoryRecordIDs(networkID string, hwIDsToDirectoryRecordIDs map[string]*protos.DirectoryRecordIDs) error {
+	store, err := d.factory.StartTransaction(&storage.TxOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to start transaction")
+	}
+	defer store.Rollback()
+
+	blobs, err := convertDirectoryRecordIDsToBlobs(hwIDsToDirectoryRecordIDs)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal directory record IDs to blob values")
+	}
+	err = store.CreateOrUpdate(networkID, blobs)
+	if err != nil {
+		return errors.Wrap(err, "failed to create or update hwid to directory records mapping")
+	}
+	return store.Commit()
+}
+
+// GetDirectoryRecordIDsForHWID returns the directory record IDs mapped to
+// a hardwareID.
+func (d *directorydBlobstore) GetDirectoryRecordIDsForHWID(networkID string, hwid string) (*protos.DirectoryRecordIDs, error) {
+	store, err := d.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to start transaction")
+	}
+	defer store.Rollback()
+
+	blob, err := store.Get(
+		networkID,
+		storage.TypeAndKey{Type: DirectorydTypeHWIDToDirectoryRecordIDs, Key: hwid},
+	)
+	if err == merrors.ErrNotFound {
+		return nil, err
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get hardwareID to directory record mapping")
+	}
+	recordIds := &protos.DirectoryRecordIDs{}
+	err = protos.Unmarshal(blob.Value, recordIds)
+	if err != nil {
+		return nil, err
+	}
+	return recordIds, store.Commit()
+}
+
 // convertKVToBlobs deterministically converts a string-string map to blobstore blobs.
 func convertKVToBlobs(typ string, kv map[string]string) blobstore.Blobs {
 	var blobs blobstore.Blobs
@@ -132,4 +183,22 @@ func convertKVToBlobs(typ string, kv map[string]string) blobstore.Blobs {
 	sort.Slice(blobs, func(i, j int) bool { return blobs[i].Key < blobs[j].Key })
 
 	return blobs
+}
+
+// convertKVSliceToBlobs deterministically converts a string->directory record
+// IDs to blobstore blobs.
+func convertDirectoryRecordIDsToBlobs(kv map[string]*protos.DirectoryRecordIDs) (blobstore.Blobs, error) {
+	var blobs blobstore.Blobs
+	for k, v := range kv {
+		marshaledValue, err := protos.Marshal(v)
+		if err != nil {
+			return blobs, err
+		}
+		blobs = append(blobs, blobstore.Blob{Type: DirectorydTypeHWIDToDirectoryRecordIDs, Key: k, Value: marshaledValue})
+	}
+
+	// Sort by key for deterministic behavior in tests
+	sort.Slice(blobs, func(i, j int) bool { return blobs[i].Key < blobs[j].Key })
+
+	return blobs, nil
 }

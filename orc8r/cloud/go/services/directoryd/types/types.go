@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"strings"
 
+	"magma/orc8r/lib/go/protos"
+
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 	"github.com/golang/glog"
@@ -31,6 +33,10 @@ type DirectoryRecord struct {
 
 	Identifiers map[string]interface{} `json:"identifiers"`
 }
+
+type DirectoryRecordIDs string
+
+type HWIDToDirectoryRecordIDs map[string][]string
 
 // ValidateModel is a wrapper to validate this directory record
 func (m *DirectoryRecord) ValidateModel() error {
@@ -75,6 +81,26 @@ func (m *DirectoryRecord) GetSessionID() (string, error) {
 	glog.V(2).Infof("Full session ID: %s", sid)
 	strippedSid := stripIMSIFromSessionID(sidStr)
 	return strippedSid, nil
+}
+
+// GetLocation returns the most recent location in a directory record's
+// location history.
+func (m *DirectoryRecord) GetLocation() (string, error) {
+	if len(m.LocationHistory) == 0 {
+		return "", fmt.Errorf("location history is empty")
+	}
+	return m.LocationHistory[0], nil
+}
+
+func (m *HWIDToDirectoryRecordIDs) ToProto() map[string]*protos.DirectoryRecordIDs {
+	if m == nil {
+		return map[string]*protos.DirectoryRecordIDs{}
+	}
+	hwIDtoRecordIDsProto := map[string]*protos.DirectoryRecordIDs{}
+	for hwID, recordIDs := range *m {
+		hwIDtoRecordIDsProto[hwID] = &protos.DirectoryRecordIDs{Ids: recordIDs}
+	}
+	return hwIDtoRecordIDsProto
 }
 
 // stripIMSIFromSessionID removes an IMSI prefix from the session ID.

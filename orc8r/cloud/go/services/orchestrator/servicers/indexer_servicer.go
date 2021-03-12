@@ -26,6 +26,7 @@ import (
 	state_types "magma/orc8r/cloud/go/services/state/types"
 
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -90,25 +91,51 @@ func (i *indexerServicer) CompleteReindex(ctx context.Context, req *protos.Compl
 }
 
 func indexImpl(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	return setSessionID(networkID, states)
+	return indexDirectoryState(networkID, states)
+}
+
+func indexDirectoryState(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+	stateErrs := state_types.StateErrors{}
+	idToRecord := map[state_types.ID]*directoryd_types.DirectoryRecord{}
+	for id, st := range states {
+		directoryRecord, err := getDirectoryRecord(id, st)
+		if err != nil {
+			stateErrs[id] = err
+			continue
+		}
+		idToRecord[id] = directoryRecord
+	}
+
+	errs := &multierror.Error{}
+	sessionStateErrs, sessionIDErr := setSessionID(networkID, idToRecord)
+	if sessionIDErr != nil {
+		errs = multierror.Append(errs, sessionIDErr)
+	}
+	recordStateErrs, recordIDErr := setDirectoryRecordIDs(networkID, idToRecord)
+	if recordIDErr != nil {
+		errs = multierror.Append(errs, recordIDErr)
+	}
+	stateErrs = mergeStateErrs(stateErrs, sessionStateErrs, recordStateErrs)
+
+	return stateErrs, errs.ErrorOrNil()
 }
 
 // setSessionID maps {sessionID -> IMSI}.
-func setSessionID(networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+func setSessionID(networkID string, idToRecords map[state_types.ID]*directoryd_types.DirectoryRecord) (state_types.StateErrors, error) {
 	sessionIDToIMSI := map[string]string{}
 	stateErrors := state_types.StateErrors{}
-	for id, st := range states {
-		sessionID, imsi, err := getSessionIDAndIMSI(id, st)
+	for id, record := range idToRecords {
+		sessionID, err := record.GetSessionID()
 		if err != nil {
 			stateErrors[id] = err
 			continue
 		}
 		if sessionID == "" {
-			glog.V(2).Infof("Session ID not found for record from %s", imsi)
+			glog.V(2).Infof("Session ID not found for record from %s", id.DeviceID)
 			continue
 		}
-
-		sessionIDToIMSI[sessionID] = imsi
+		// directory record state is reported using IMSI as deviceID
+		sessionIDToIMSI[sessionID] = id.DeviceID
 	}
 
 	if len(sessionIDToIMSI) == 0 {
@@ -119,26 +146,72 @@ func setSessionID(networkID string, states state_types.StatesByID) (state_types.
 	if err != nil {
 		return stateErrors, errors.Wrapf(err, "update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
 	}
+	return stateErrors, nil
+}
+
+// setDirectionRecordIDs maps {hwid -> directory record IDs}
+func setDirectoryRecordIDs(networkID string, idToRecords map[state_types.ID]*directoryd_types.DirectoryRecord) (state_types.StateErrors, error) {
+	hwIDToDirectoryRecordIDs := directoryd_types.HWIDToDirectoryRecordIDs{}
+	stateErrors := state_types.StateErrors{}
+	for id, record := range idToRecords {
+		hwID, err := record.GetLocation()
+		if err != nil {
+			stateErrors[id] = err
+			continue
+		}
+		updateHWIDToDirectoryRecords(hwIDToDirectoryRecordIDs, hwID, id.DeviceID)
+	}
+	if len(hwIDToDirectoryRecordIDs) == 0 {
+		return stateErrors, nil
+	}
+	err := directoryd.MapHWIDToDirectoryRecordIDs(networkID, hwIDToDirectoryRecordIDs)
+	if err != nil {
+		return stateErrors, errors.Wrapf(err, "update directoryd mapping of hardware IDs to directory record IDs %+v", hwIDToDirectoryRecordIDs)
+	}
 
 	return stateErrors, nil
 }
 
-// getSessionIDAndIMSI extracts session ID and IMSI from the state.
-// Returns (session ID, IMSI, error).
-func getSessionIDAndIMSI(id state_types.ID, st state_types.State) (string, string, error) {
-	imsi := id.DeviceID
+func updateHWIDToDirectoryRecords(hwIDsToDirectoryRecordIDs map[string][]string, hwID string, recordID string) {
+	ids, ok := hwIDsToDirectoryRecordIDs[hwID]
+	if ok {
+		ids = append(ids, recordID)
+	} else {
+		ids = []string{recordID}
+	}
+	hwIDsToDirectoryRecordIDs[hwID] = ids
+}
 
+func getDirectoryRecord(id state_types.ID, st state_types.State) (*directoryd_types.DirectoryRecord, error) {
 	record, ok := st.ReportedState.(*directoryd_types.DirectoryRecord)
 	if !ok {
-		return "", "", fmt.Errorf(
+		return nil, fmt.Errorf(
 			"convert reported state (id: <%+v>, state: <%+v>) to type %s",
 			id, st, orc8r.DirectoryRecordType,
 		)
 	}
-	sessionID, err := record.GetSessionID()
-	if err != nil {
-		return "", "", errors.Wrap(err, "extract session ID from record")
-	}
+	return record, nil
+}
 
-	return sessionID, imsi, nil
+func mergeStateErrs(allErrs ...state_types.StateErrors) state_types.StateErrors {
+	mergedErrs := state_types.StateErrors{}
+	for _, errs := range allErrs {
+		for id, err := range errs {
+			mergedErrs[id] = err
+		}
+	}
+	return mergedErrs
+}
+
+func getIndexError(e1 error, e2 error) error {
+	if e1 != nil && e2 != nil {
+		return fmt.Errorf("multiple errors occurred during indexing: %s, %s", e1, e2)
+	}
+	if e1 != nil {
+		return e1
+	}
+	if e2 != nil {
+		return e2
+	}
+	return nil
 }

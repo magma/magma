@@ -22,6 +22,7 @@ import (
 	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -311,6 +312,157 @@ func TestDirectorydBlobstore_MapSessionIDToIMSI(t *testing.T) {
 
 	err = store.MapSessionIDsToIMSIs(nid, sidToIMSI)
 	assert.NoError(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+}
+
+func TestDirectorydBlobstore_MapHWIDToDirectoryRecordIDs(t *testing.T) {
+	var blobFactMock *mocks.BlobStorageFactory
+	var blobStoreMock *mocks.TransactionalBlobStorage
+	someErr := errors.New("generic error")
+
+	nid := "some_networkid"
+
+	recordIDs0 := &protos.DirectoryRecordIDs{Ids: []string{"foo_id1", "foo_id2", "foo_id3"}}
+	recordIDs1 := &protos.DirectoryRecordIDs{Ids: []string{"bar_id1", "bar_id2", "bar_id3"}}
+	hwIDs := []string{"aaaa", "bbbb"}
+	hwIDToRecordIDs := map[string]*protos.DirectoryRecordIDs{
+		hwIDs[0]: recordIDs0,
+		hwIDs[1]: recordIDs1,
+	}
+	tks := []storage.TypeAndKey{
+		{Type: dstorage.DirectorydTypeHWIDToDirectoryRecordIDs, Key: hwIDs[0]},
+		{Type: dstorage.DirectorydTypeHWIDToDirectoryRecordIDs, Key: hwIDs[1]},
+	}
+
+	serializedIDs1, err := protos.Marshal(recordIDs0)
+	assert.NoError(t, err)
+	serialziedIDs2, err := protos.Marshal(recordIDs1)
+	assert.NoError(t, err)
+
+	blobs := blobstore.Blobs{
+		{
+			Type:  tks[0].Type,
+			Key:   tks[0].Key,
+			Value: serializedIDs1,
+		},
+		{
+			Type:  tks[1].Type,
+			Key:   tks[1].Key,
+			Value: serialziedIDs2,
+		},
+	}
+
+	// Fail to start transaction
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err = store.MapHWIDToDirectoryRecordIDs(nid, hwIDToRecordIDs)
+	assert.Error(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// store.PutRecord fails
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("CreateOrUpdate", nid, mock.Anything, mock.Anything).
+		Return(someErr).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err = store.MapHWIDToDirectoryRecordIDs(nid, hwIDToRecordIDs)
+	assert.Error(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// Success
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("CreateOrUpdate", nid, blobs).
+		Return(nil).Once()
+	blobStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err = store.MapHWIDToDirectoryRecordIDs(nid, hwIDToRecordIDs)
+	assert.NoError(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+}
+
+func TestDirectorydBlobstore_GetDirectoryRecordIDsForHWID(t *testing.T) {
+	var blobFactMock *mocks.BlobStorageFactory
+	var blobStoreMock *mocks.TransactionalBlobStorage
+	someErr := errors.New("generic error")
+
+	nid := "some_networkid"
+	recordIDs := &protos.DirectoryRecordIDs{Ids: []string{"foo_id1", "foo_id2", "foo_id3"}}
+	hwID := "aaaa"
+
+	tk := storage.TypeAndKey{Type: dstorage.DirectorydTypeHWIDToDirectoryRecordIDs, Key: hwID}
+	serializedIDs1, err := protos.Marshal(recordIDs)
+	assert.NoError(t, err)
+
+	blob := blobstore.Blob{
+		Type:  dstorage.DirectorydTypeHWIDToDirectoryRecordIDs,
+		Key:   hwID,
+		Value: serializedIDs1,
+	}
+
+	// Fail to start transaction
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	_, err = store.GetDirectoryRecordIDsForHWID(nid, hwID)
+	assert.Error(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// store.Get fails with ErrNotFound
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Get", nid, tk).Return(blobstore.Blob{}, merrors.ErrNotFound).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	_, err = store.GetDirectoryRecordIDsForHWID(nid, hwID)
+	assert.Exactly(t, merrors.ErrNotFound, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// store.Get fails with error other than ErrNotFound
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Get", nid, tk).Return(blobstore.Blob{}, someErr).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	_, err = store.GetDirectoryRecordIDsForHWID(nid, hwID)
+	assert.Error(t, err)
+	assert.NotEqual(t, merrors.ErrNotFound, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// Success
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Get", nid, tk).Return(blob, nil).Once()
+	blobStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	recordIdsRecvd, err := store.GetDirectoryRecordIDsForHWID(nid, hwID)
+	assert.NoError(t, err)
+	assert.Equal(t, recordIDs, recordIdsRecvd)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
 }

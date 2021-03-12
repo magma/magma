@@ -13,6 +13,8 @@ limitations under the License.
 
 package storage
 
+import "magma/orc8r/lib/go/protos"
+
 // DirectorydStorage is the persistence service interface for location records.
 // All Directoryd data accesses from directoryd service must go through this interface.
 type DirectorydStorage interface {
@@ -27,4 +29,11 @@ type DirectorydStorage interface {
 
 	// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
 	MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error
+
+	// MapHWIDToDirectoryRecordID maps {hwid -> directory record IDs}.
+	MapHWIDToDirectoryRecordIDs(networkID string, hwidsToIMSIs map[string]*protos.DirectoryRecordIDs) error
+
+	// GetDirectoryRecordIDsForHWID returns the directory record IDs mapped
+	// by a hardwareID.
+	GetDirectoryRecordIDsForHWID(networkID string, hwid string) (*protos.DirectoryRecordIDs, error)
 }

@@ -48,6 +48,24 @@ message MapSessionIDToIMSIRequest {
   map<string, string> sessionIDToIMSI = 2;
 }
 
+message MapHWIDToDirectoryRecordIDsRequest {
+  string networkID = 1;
+  map<string, DirectoryRecordIDs> hwidToRecordIDs = 2;
+}
+
+message DirectoryRecordIDs {
+  repeated string ids = 1;
+}
+
+message GetDirectoryRecordIDsForHWIDRequest {
+  string networkID = 1;
+  string hwid = 2;
+}
+
+message GetDirectoryRecordIDsForHWIDResponse {
+  DirectoryRecordIDs ids = 1;
+}
+
 // DirectoryLookup service associates various identities and locations.
 // This service runs in the controller, generating and consuming mostly derived state.
 service DirectoryLookup {
@@ -62,6 +80,13 @@ service DirectoryLookup {
 
   // MapSessionIDsToIMSIs maps {session ID -> IMSI}.
   rpc MapSessionIDsToIMSIs(MapSessionIDToIMSIRequest) returns (Void) {};
+
+  // MapHWIDToDirectoryRecordIDs maps {hwid -> []byte of directory record IDs}.
+  rpc MapHWIDToDirectoryRecordIDs(MapHWIDToDirectoryRecordIDsRequest) returns (Void) {};
+
+  // GetDirectoryRecordIDsForHWID returns the directory record IDs mapped to
+  // a hardwareID.
+  rpc GetDirectoryRecordIDsForHWID(GetDirectoryRecordIDsForHWIDRequest) returns (GetDirectoryRecordIDsForHWIDResponse) {};
 }
 
 // --------------------------------------------------------------------------

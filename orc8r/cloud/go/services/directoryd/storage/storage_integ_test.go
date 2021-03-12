@@ -20,8 +20,8 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,6 +51,17 @@ func testDirectorydStorageImpl(t *testing.T, store storage.DirectorydStorage) {
 	sid1 := "some_sessionid_1"
 	imsi0 := "some_imsi_0"
 	imsi1 := "some_imsi_1"
+
+	recordIDs0 := &protos.DirectoryRecordIDs{Ids: []string{"foo_id1", "foo_id2"}}
+	recordIDs1 := &protos.DirectoryRecordIDs{Ids: []string{"bar_id1", "bar_id2"}}
+
+	hwIDsToRecordIDs0 := map[string]*protos.DirectoryRecordIDs{
+		hwid0: recordIDs0,
+	}
+	multiHWIDToRecordIds := map[string]*protos.DirectoryRecordIDs{
+		hwid0: recordIDs0,
+		hwid1: recordIDs1,
+	}
 
 	//////////////////////////////
 	// Hostname -> HWID
@@ -159,4 +170,41 @@ func testDirectorydStorageImpl(t *testing.T, store storage.DirectorydStorage) {
 	recvd, err = store.GetIMSIForSessionID(nid1, sid0)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, recvd)
+
+	//////////////////////////////
+	// HWID -> Record IDs
+	//////////////////////////////
+
+	// Empty initially
+	_, err = store.GetDirectoryRecordIDsForHWID(nid0, hwid0)
+	assert.Exactly(t, err, merrors.ErrNotFound)
+	_, err = store.GetDirectoryRecordIDsForHWID(nid0, hwid1)
+	assert.Exactly(t, err, merrors.ErrNotFound)
+
+	// Put and Get hwid0->recordIDs0
+	err = store.MapHWIDToDirectoryRecordIDs(nid0, hwIDsToRecordIDs0)
+	assert.NoError(t, err)
+	recordIdsRecvd, err := store.GetDirectoryRecordIDsForHWID(nid0, hwid0)
+	assert.NoError(t, err)
+	assert.Equal(t, recordIDs0, recordIdsRecvd)
+	_, err = store.GetDirectoryRecordIDsForHWID(nid0, hwid1)
+	assert.Exactly(t, err, merrors.ErrNotFound)
+
+	// Modify recordIDs0, then Put and Get
+	hwIDsToRecordIDs0[hwid0].Ids = append(hwIDsToRecordIDs0[hwid0].Ids, "foo_id3")
+	err = store.MapHWIDToDirectoryRecordIDs(nid0, hwIDsToRecordIDs0)
+	assert.NoError(t, err)
+	recordIdsRecvd, err = store.GetDirectoryRecordIDsForHWID(nid0, hwid0)
+	assert.NoError(t, err)
+	assert.Equal(t, recordIDs0, recordIdsRecvd)
+
+	// Multi-put: Put and Get hwid0->recordIDs0, hwid1->recordIDs1
+	err = store.MapHWIDToDirectoryRecordIDs(nid0, multiHWIDToRecordIds)
+	assert.NoError(t, err)
+	recordIdsRecvd, err = store.GetDirectoryRecordIDsForHWID(nid0, hwid0)
+	assert.NoError(t, err)
+	assert.Equal(t, recordIDs0, recordIdsRecvd)
+	recordIdsRecvd, err = store.GetDirectoryRecordIDsForHWID(nid0, hwid1)
+	assert.NoError(t, err)
+	assert.Equal(t, recordIDs1, recordIdsRecvd)
 }

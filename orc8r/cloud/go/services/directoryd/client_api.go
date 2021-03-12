@@ -125,6 +125,44 @@ func MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) e
 	return nil
 }
 
+// MapHWIDToDirectoryRecordIDs maps {hwid -> directory record IDs}. If existing
+// record IDs already exist for a given hwid, new record IDs will be appended
+// to the existing state.
+func MapHWIDToDirectoryRecordIDs(networkID string, hwidToDirectoryRecordIDs types.HWIDToDirectoryRecordIDs) error {
+	client, err := getDirectorydClient()
+	if err != nil {
+		return errors.Wrap(err, "get directoryd client")
+	}
+	hwidToRecordIDsProto := hwidToDirectoryRecordIDs.ToProto()
+	_, err = client.MapHWIDToDirectoryRecordIDs(context.Background(), &protos.MapHWIDToDirectoryRecordIDsRequest{
+		NetworkID:       networkID,
+		HwidToRecordIDs: hwidToRecordIDsProto,
+	})
+	if err != nil {
+		return fmt.Errorf("map hwids to directory records under network ID %s: %s", networkID, err)
+	}
+
+	return nil
+}
+
+// GetHWIDToDirectoryRecordIDs returns the directory record IDs mapped to a
+// given hwid. The returned state is pruned of all stale directory records.
+func GetHWIDToDirectoryRecordIDs(networkID string, hwid string) ([]string, error) {
+	recordIDs := []string{}
+	client, err := getDirectorydClient()
+	if err != nil {
+		return recordIDs, errors.Wrap(err, "get directoryd client")
+	}
+	res, err := client.GetDirectoryRecordIDsForHWID(context.Background(), &protos.GetDirectoryRecordIDsForHWIDRequest{
+		NetworkID: networkID,
+		Hwid:      hwid,
+	})
+	if err != nil {
+		return recordIDs, fmt.Errorf("get directory records for hwid %s under network ID %s: %s", hwid, networkID, err)
+	}
+	return res.GetIds().GetIds(), nil
+}
+
 //--------------------------
 // State service client APIs
 //--------------------------

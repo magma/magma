@@ -78,13 +78,54 @@ func TestGetSessionID(t *testing.T) {
 }
 
 func TestDirectorydMethods(t *testing.T) {
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
+
 	directoryd_test_init.StartTestService(t)
+	state_test_init.StartTestService(t)
+
+	stateClient, err := getStateServiceClient(t)
+	assert.NoError(t, err)
+
+	configurator_test_utils.RegisterNetwork(t, nid0, "DirectoryD Service Test")
+	configurator_test_utils.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
+	ctx := test_utils.GetContextWithCertificate(t, hwid0)
+
+	record := &types.DirectoryRecord{
+		LocationHistory: []string{hwid0}, // imsi0->hwid0
+		Identifiers: map[string]interface{}{
+			types.RecordKeySessionID: sid0, // imsi0->sid0
+		},
+	}
+	serializedRecord, err := record.MarshalBinary()
+	assert.NoError(t, err)
+
+	st := &protos.State{
+		Type:     orc8r.DirectoryRecordType,
+		DeviceID: imsi0,
+		Value:    serializedRecord,
+	}
 
 	// Empty initially
-	_, err := directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetSessionIDForIMSI(nid0, imsi0)
 	assert.Error(t, err)
 	_, err = directoryd.GetHostnameForHWID(hwid0)
 	assert.Error(t, err)
+
+	// Report state
+	reqReport := &protos.ReportStatesRequest{States: []*protos.State{st}}
+	res, err := stateClient.ReportStates(ctx, reqReport)
+	assert.NoError(t, err)
+	assert.Empty(t, res.UnreportedStates)
+
+	hwidToRecordIds := map[string][]string{hwid0: {imsi0}}
+	err = directoryd.MapHWIDToDirectoryRecordIDs(nid0, hwidToRecordIds)
+	assert.NoError(t, err)
+
+	recordIDs, err := directoryd.GetHWIDToDirectoryRecordIDs(nid0, hwid0)
+	assert.NoError(t, err)
+	expectedRecordIDs := []string{imsi0}
+	assert.Equal(t, expectedRecordIDs, recordIDs)
 
 	// Put sid0->imsi0
 	err = directoryd.MapSessionIDsToIMSIs(nid0, map[string]string{sid0: imsi0})

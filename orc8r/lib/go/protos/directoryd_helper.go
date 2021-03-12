@@ -59,3 +59,29 @@ func (m *MapSessionIDToIMSIRequest) Validate() error {
 	}
 	return nil
 }
+
+func (m *MapHWIDToDirectoryRecordIDsRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.NetworkID == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	if m.HwidToRecordIDs == nil {
+		return errors.New("request hwIDtoRecordIDs cannot be empty")
+	}
+	return nil
+}
+
+func (m *GetDirectoryRecordIDsForHWIDRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.NetworkID == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	if m.Hwid == "" {
+		return errors.New("request hwid cannot be empty")
+	}
+	return nil
+}
