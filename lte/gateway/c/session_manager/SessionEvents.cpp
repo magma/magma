@@ -75,7 +75,7 @@ enum ServiceConditionChange {  // TS 132 298
 namespace magma {
 namespace lte {
 
-EventsReporterImpl::EventsReporterImpl(AsyncEventdClient& eventd_client)
+EventsReporterImpl::EventsReporterImpl(EventdClient& eventd_client)
     : eventd_client_(eventd_client) {}
 
 void EventsReporterImpl::session_created(

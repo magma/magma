@@ -203,7 +203,7 @@ class MockDirectorydClient : public DirectorydClient {
       void(std::function<void(Status status, AllDirectoryRecords)> callback));
 };
 
-class MockEventdClient : public AsyncEventdClient {
+class MockEventdClient : public EventdClient {
  public:
   MOCK_METHOD2(
       log_event, void(
