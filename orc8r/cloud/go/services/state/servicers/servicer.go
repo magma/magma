@@ -49,6 +49,9 @@ func NewStateServicer(factory blobstore.BlobStorageFactory) (protos.StateService
 }
 
 func (srv *stateServicer) GetStates(ctx context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
+	if protos.IsRemoteClient(ctx) {
+		return nil, status.Error(codes.PermissionDenied, "Remote GetStates request")
+	}
 	if err := validateGetStatesRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}

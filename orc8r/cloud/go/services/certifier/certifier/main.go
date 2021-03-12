@@ -46,7 +46,7 @@ var (
 
 func main() {
 	// Create the service, flag will be parsed inside this function
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, certifier.ServiceName)
+	srv, err := service.NewIntraOrchestratorService(orc8r.ModuleName, certifier.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}

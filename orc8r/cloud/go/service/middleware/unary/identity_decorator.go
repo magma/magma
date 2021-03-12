@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-// package interceptors implements all cloud service framework unary interceptors
+// package unary implements all cloud service framework unary interceptors
 package unary
 
 import (

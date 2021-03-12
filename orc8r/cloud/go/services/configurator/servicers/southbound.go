@@ -53,6 +53,9 @@ func (srv *sbConfiguratorServicer) GetMconfig(ctx context.Context, void *protos.
 }
 
 func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *cfg_protos.GetMconfigRequest) (*cfg_protos.GetMconfigResponse, error) {
+	if protos.IsRemoteClient(ctx) {
+		return nil, status.Error(codes.PermissionDenied, "Remote GetMconfigInternal request")
+	}
 	store, err := srv.factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		storage.RollbackLogOnError(store)

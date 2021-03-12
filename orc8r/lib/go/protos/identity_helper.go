@@ -235,6 +235,11 @@ func GetClientGateway(ctx context.Context) *Identity_Gateway {
 	return GetClientIdentity(ctx).GetGateway()
 }
 
+// IsRemoteClient returns true if the RPC caller
+func IsRemoteClient(ctx context.Context) bool {
+	return GetClientGateway(ctx) != nil
+}
+
 // NewContextWithIdentity returns a new Context that carries the given Identity
 // Since nil Identity is equivalent to no Identity, no new CTX will be created
 // if the passed id is nil and the passed ctx will be returned unmodified

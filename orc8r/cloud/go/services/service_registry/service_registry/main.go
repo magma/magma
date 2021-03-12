@@ -36,7 +36,7 @@ const (
 )
 
 func main() {
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, registry.ServiceRegistryServiceName)
+	srv, err := service.NewIntraOrchestratorService(orc8r.ModuleName, registry.ServiceRegistryServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating service registry service %s", err)
 	}

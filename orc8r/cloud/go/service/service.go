@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"sync"
 
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/lib/go/protos"
@@ -38,6 +39,7 @@ const (
 
 var (
 	runEchoServer bool
+	parseFlags    sync.Once
 )
 
 func init() {
@@ -61,25 +63,20 @@ type OrchestratorService struct {
 // interceptor to perform identity check. If your service does not or can not
 // perform identity checks, (e.g., federation), use NewServiceWithOptions.
 func NewOrchestratorService(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*OrchestratorService, error) {
-	flag.Parse()
-
-	err := registry.PopulateServices()
-	if err != nil {
-		return nil, err
-	}
-
+	parseFlags.Do(flag.Parse) // parse flags (once)
 	serverOptions = append(serverOptions, grpc.UnaryInterceptor(unary.MiddlewareHandler))
-	platformService, err := platform_service.NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
-	if err != nil {
-		return nil, err
-	}
+	return newOrchestratorService(moduleName, serviceName, serverOptions)
+}
 
-	echoSrv, err := getEchoServerForOrchestratorService(serviceName)
-	if err != nil {
-		return nil, err
-	}
-
-	return &OrchestratorService{Service: platformService, EchoServer: echoSrv}, nil
+// NewIntraOrchestratorService returns a new gRPC orchestrator service
+// implementing service303 with intra orc8r client security enforcement.
+// If configured, it will also initialize an HTTP echo
+// server as a part of the service. This service will implement a middleware
+// interceptor to perform local client identity check.
+func NewIntraOrchestratorService(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*OrchestratorService, error) {
+	parseFlags.Do(flag.Parse) // parse flags (once)
+	serverOptions = append(serverOptions, grpc.UnaryInterceptor(unary.IntraServiceHandler))
+	return newOrchestratorService(moduleName, serviceName, serverOptions)
 }
 
 // Run runs the service. If the echo HTTP server is non-nil, both the HTTP
@@ -131,6 +128,25 @@ func (s *OrchestratorService) RunTest(lis net.Listener) {
 	if err != nil {
 		glog.Fatal(err)
 	}
+}
+
+// newOrchestratorService returns a new gRPC orchestrator service
+// implementing service303. If configured, it will also initialize an HTTP echo
+// server as a part of the service.
+func newOrchestratorService(moduleName string, serviceName string, serverOptions []grpc.ServerOption) (*OrchestratorService, error) {
+	err := registry.PopulateServices()
+	if err != nil {
+		return nil, err
+	}
+	platformService, err := platform_service.NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
+	if err != nil {
+		return nil, err
+	}
+	echoSrv, err := getEchoServerForOrchestratorService(serviceName)
+	if err != nil {
+		return nil, err
+	}
+	return &OrchestratorService{Service: platformService, EchoServer: echoSrv}, nil
 }
 
 func getEchoServerForOrchestratorService(serviceName string) (*echo.Echo, error) {

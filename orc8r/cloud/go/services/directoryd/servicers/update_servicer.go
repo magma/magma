@@ -24,6 +24,7 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/service/middleware/unary"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -106,7 +107,7 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 		return ret, err
 	}
 	res, err := client.GetStates(
-		makeOutgoingCtx(c),
+		unary.CreateOutgoingCloudClientCtx(),
 		&protos.GetStatesRequest{
 			NetworkID: networkId,
 			Ids:       []*protos.StateID{{Type: orc8r.DirectoryRecordType, DeviceID: r.GetId()}},
@@ -155,7 +156,7 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 		return ret, err
 	}
 	res, err := client.GetStates(
-		makeOutgoingCtx(c),
+		unary.CreateOutgoingCloudClientCtx(),
 		&protos.GetStatesRequest{
 			NetworkID:  networkId,
 			TypeFilter: []string{orc8r.DirectoryRecordType},

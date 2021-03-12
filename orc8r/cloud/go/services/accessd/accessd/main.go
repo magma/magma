@@ -30,8 +30,8 @@ import (
 )
 
 func main() {
-	// Create the service
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, accessd.ServiceName)
+	// Create the service (note: the service is not available to external gateway clients)
+	srv, err := service.NewIntraOrchestratorService(orc8r.ModuleName, accessd.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}

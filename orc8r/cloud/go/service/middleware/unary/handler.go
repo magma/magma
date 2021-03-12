@@ -102,6 +102,15 @@ func MiddlewareHandler(ctx context.Context, req interface{}, info *grpc.UnarySer
 	return
 }
 
+// IntraServiceHandler is an interceptor for internal only orc8r services
+// (services which are supposed to serve only internal orc8r clients)
+func IntraServiceHandler(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	if err = EnforceIntraCloudRPC(ctx, info); err != nil {
+		return resp, err
+	}
+	return callHandler(ctx, req, info, handler)
+}
+
 // callHandler wraps the handler with error recovery, logging, and metrics.
 func callHandler(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer func() {

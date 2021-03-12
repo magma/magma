@@ -56,3 +56,9 @@ func OutgoingCloudClientCtx(ctx context.Context) context.Context {
 	}
 	return metadata.NewOutgoingContext(ctx, md)
 }
+
+// CreateOutgoingCloudClientCtx creates new outgoing cloud client context with magic client CSN metadata
+func CreateOutgoingCloudClientCtx() context.Context {
+	return metadata.NewOutgoingContext(
+		context.Background(), metadata.Pairs(CLIENT_CERT_SN_KEY, ORC8R_CLIENT_CERT_VALUE))
+}
