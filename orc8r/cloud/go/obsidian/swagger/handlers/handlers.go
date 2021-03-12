@@ -34,9 +34,11 @@ import (
 // UI template.
 type UIInfo struct {
 	// URL of the underlying Swagger spec
-	URL      string
+	URL string
 	// Services list
 	Services []string
+	// SelectedService in the sidebar
+	SelectedService string
 }
 
 // RegisterSwaggerHandlers registers routes for Swagger specs and
@@ -116,8 +118,9 @@ func GetUIHandler(tmpl *template.Template) echo.HandlerFunc {
 		sort.Strings(services)
 
 		uiInfo := UIInfo{
-			URL:      obsidian.StaticURLPrefix + "/v1/spec/" + service,
-			Services: services,
+			URL:             obsidian.StaticURLPrefix + "/v1/spec/" + service,
+			Services:        services,
+			SelectedService: service,
 		}
 
 		var buf bytes.Buffer
