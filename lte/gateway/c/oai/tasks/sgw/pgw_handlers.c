@@ -184,6 +184,47 @@ void _spgw_handle_s5_response_with_error(
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 
+void spgw_handle_pcef_create_session_response(
+    spgw_state_t* spgw_state,
+    const itti_pcef_create_session_response_t* const pcef_csr_resp_p,
+    imsi64_t imsi64) {
+  OAILOG_DEBUG_UE(
+      LOG_SPGW_APP, imsi64, "Received PCEF-CREATE-SESSION-RESPONSE");
+
+  s5_create_session_response_t s5_response = {0};
+  s5_response.context_teid                 = pcef_csr_resp_p->teid;
+  s5_response.eps_bearer_id                = pcef_csr_resp_p->eps_bearer_id;
+  s5_response.status                       = pcef_csr_resp_p->sgi_status;
+  s5_response.failure_cause                = S5_OK;
+
+  s_plus_p_gw_eps_bearer_context_information_t* bearer_ctxt_info_p =
+      sgw_cm_get_spgw_context(pcef_csr_resp_p->teid);
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+      &bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection,
+      s5_response.eps_bearer_id);
+
+  char* apn = (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information
+                  .pdn_connection.apn_in_use;
+
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  if (pcef_csr_resp_p->rpc_status != PCEF_STATUS_OK) {
+    if ((eps_bearer_ctx_p->paa.pdn_type == IPv4) ||
+        (eps_bearer_ctx_p->paa.pdn_type == IPv4_AND_v6)) {
+      release_ipv4_address(imsi_str, apn, &eps_bearer_ctx_p->paa.ipv4_address);
+    }
+    if ((eps_bearer_ctx_p->paa.pdn_type == IPv6) ||
+        (eps_bearer_ctx_p->paa.pdn_type == IPv4_AND_v6)) {
+      release_ipv6_address(imsi_str, apn, &eps_bearer_ctx_p->paa.ipv6_address);
+    }
+    s5_response.failure_cause = PCEF_FAILURE;
+  }
+  handle_s5_create_session_response(
+      spgw_state, bearer_ctxt_info_p, s5_response);
+}
+
 /*
  * Handle NW initiated Dedicated Bearer Activation from SPGW service
  */
