@@ -50,14 +50,14 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 		return
 	}
 
-	// get values sent by pgw
+	// get PDN Allocation from PGW
 	if paaIE := csResGtp.PAA; paaIE != nil {
-		ip, err2 := paaIE.IPAddress()
+		paa, pdnType, err2 := handlePDNAddressAllocation(paaIE)
 		if err2 != nil {
-			err = err2
 			return
 		}
-		csRes.SubscriberIp = ip
+		csRes.Paa = paa
+		csRes.PdnType = pdnType
 	} else {
 		err = &gtpv2.RequiredIEMissingError{Type: ie.PDNAddressAllocation}
 		return
@@ -189,4 +189,28 @@ func handleFTEID(fteidIE *ie.IE) (*protos.Fteid, uint8, error) {
 		fteid.Ipv6Address = ipv6.String()
 	}
 	return fteid, interfaceType, nil
+}
+
+func handlePDNAddressAllocation(paaIE *ie.IE) (*protos.PdnAddressAllocation, protos.PDNType, error) {
+	pdnTypeIE, err := paaIE.PDNType()
+	if err != nil {
+		return nil, 0, err
+	}
+	var pdnType protos.PDNType
+	var paa protos.PdnAddressAllocation
+	switch pdnTypeIE {
+	case gtpv2.PDNTypeIPv4:
+		pdnType = protos.PDNType_IPV4
+		paa.Ipv4Address = paaIE.MustIPv4().String()
+	case gtpv2.PDNTypeIPv6:
+		pdnType = protos.PDNType_IPV6
+		paa.Ipv6Address = paaIE.MustIPv6().String()
+	case gtpv2.PDNTypeIPv4v6:
+		pdnType = protos.PDNType_IPV4V6
+		paa.Ipv6Address = paaIE.MustIPv6().String()
+		paa.Ipv6Address = paaIE.MustIPv6().String()
+	case gtpv2.PDNTypeNonIP:
+		pdnType = protos.PDNType_NonIP
+	}
+	return &paa, pdnType, nil
 }

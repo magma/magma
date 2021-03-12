@@ -34,6 +34,8 @@ const (
 	BEARER       = 5
 	AGWTeidU     = uint32(10)
 	AGWTeidC     = uint32(2)
+	PDNType      = protos.PDNType_IPV4
+	PAA          = "10.0.0.10"
 )
 
 func TestS8proxyCreateAndDeleteSession(t *testing.T) {
@@ -63,6 +65,11 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 
 	// check Pgw Control Plane TEID
 	assert.NotEqual(t, 0, csRes.CPgwFteid)
+
+	// check PAA and PDN Allocation
+	assert.Equal(t, PDNType, csRes.PdnType)
+	assert.Equal(t, PAA, csRes.Paa.Ipv4Address)
+	assert.Equal(t, "", csRes.Paa.Ipv6Address)
 
 	// check received QOS
 	sentQos := csReq.BearerContext.Qos
@@ -219,6 +226,34 @@ func TestS8proxyCreateSessionWrongSgwTEIDcFromPgw(t *testing.T) {
 	assert.Empty(t, csRes)
 }
 
+func TestS8proxyCreateSessionIPV6(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+
+	// change IPv4 address for IPV6
+	csReq.PdnType = protos.PDNType_IPV6
+	ipv6Address := "2001:db8::8a2e:370:7334"
+	csReq.Paa = &protos.PdnAddressAllocation{
+		Ipv6Address: ipv6Address,
+		Ipv6Prefix:  0,
+	}
+
+	// Send and receive Create Session Request
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+
+	// check PAA and PDN Allocation for ipv6
+	assert.Equal(t, protos.PDNType_IPV6, csRes.PdnType)
+	assert.Equal(t, "", csRes.Paa.Ipv4Address)
+	assert.Equal(t, ipv6Address, csRes.Paa.Ipv6Address)
+}
+
 func TestS8proxyEcho(t *testing.T) {
 	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
 	defer mockPgw.Close()
@@ -357,9 +392,9 @@ func getMultipleCreateSessionRequest(nRequest int, pgwAddrs string) []*protos.Cr
 					},
 				},
 			},
-			PdnType: protos.PDNType_IPV4,
+			PdnType: PDNType,
 			Paa: &protos.PdnAddressAllocation{
-				Ipv4Address: "10.0.0.10",
+				Ipv4Address: PAA,
 				Ipv6Address: "",
 				Ipv6Prefix:  0,
 			},

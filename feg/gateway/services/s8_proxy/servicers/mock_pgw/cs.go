@@ -144,10 +144,11 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 			return &gtpv2.RequiredIEMissingError{Type: ie.BearerContext}
 		}
 
-		bearer.SubscriberIP = getRandomIp()
+		if paaIE := csReqFromSGW.PAA; paaIE != nil {
+			bearer.SubscriberIP = paaIE.MustIP().String()
+		}
 
 		// FTEIDS and TEIDS
-
 		// create PGW control plane FTeids
 		cIP := strings.Split(c.LocalAddr().String(), ":")[0]
 		var pgwFTEIDc *ie.IE
