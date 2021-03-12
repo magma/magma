@@ -337,10 +337,6 @@ commands:
 
   magma_slack_notify:
     description: Notify Slack on magma job failure
-    parameters:
-      channel:
-        type: string
-        default: "${DEFAULT_SLACK_CHANNEL}"
     steps:
       - run:
           command: |
@@ -364,7 +360,6 @@ commands:
             email=$(git show -s --format='%ae')
             rel_time=$(git show -s --format='%cr')
             abs_time=$(git show -s --format='%cd')
-            slack_channel=<< parameters.channel >>
             gh_text="<https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}|${CIRCLE_SHA1:0:8}> by ${author} <${email}> ${rel_time} (${abs_time})"
 
             pretext="Job \`${CIRCLE_JOB}\` #${CIRCLE_BUILD_NUM} on branch \`${CIRCLE_BRANCH}\` of ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} failed. Check the <${CIRCLE_BUILD_URL}|build logs> for details."
@@ -372,7 +367,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "${slack_channel}",
+              "channel": "#ci",
               "text": "*CircleCI Job Failure*",
               "attachments": [
                 {
@@ -416,9 +411,6 @@ commands:
       version_path:
         description: Path to file that will contain the artifact version
         type: string
-      channel:
-        type: string
-        default: "${DEFAULT_SLACK_CHANNEL}"
     steps:
       - run:
           name: Send slack message
@@ -443,7 +435,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "<< parameters.channel >>",
+              "channel": "#ci",
               "text": "*<< parameters.artifact_name >> Artifact Has Been Published*",
               "attachments": [
                 {
@@ -1013,8 +1005,7 @@ jobs:
       - when:
           condition: <<parameters.notify_xwfm_ci>>
           steps:
-            - magma_slack_notify:
-                channel: "#xwfm_ci"
+            - magma_slack_notify
 
   xwfm-deploy:
     parameters:
