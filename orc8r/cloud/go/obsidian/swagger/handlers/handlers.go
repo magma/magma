@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"html/template"
 	"net/http"
+	"sort"
 	"strings"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -34,6 +35,10 @@ import (
 type UIInfo struct {
 	// URL of the underlying Swagger spec
 	URL string
+	// Services list
+	Services []string
+	// SelectedService in the sidebar
+	SelectedService string
 }
 
 // RegisterSwaggerHandlers registers routes for Swagger specs and
@@ -106,8 +111,20 @@ func GetUIHandler(tmpl *template.Template) echo.HandlerFunc {
 			return obsidian.HttpError(errors.New("service not found"), http.StatusNotFound)
 		}
 
+		services, err := registry.FindServices(orc8r.SwaggerSpecLabel)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		sort.Strings(services)
+
+		uiInfo := UIInfo{
+			URL:             obsidian.StaticURLPrefix + "/v1/spec/" + service,
+			Services:        services,
+			SelectedService: service,
+		}
+
 		var buf bytes.Buffer
-		err = tmpl.Execute(&buf, UIInfo{URL: obsidian.StaticURLPrefix + "/v1/spec/" + service})
+		err = tmpl.Execute(&buf, uiInfo)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
