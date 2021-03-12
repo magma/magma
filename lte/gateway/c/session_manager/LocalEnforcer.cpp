@@ -56,7 +56,7 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<SessionReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    std::shared_ptr<DirectorydClient> directoryd_client,
     std::shared_ptr<EventsReporter> events_reporter,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,

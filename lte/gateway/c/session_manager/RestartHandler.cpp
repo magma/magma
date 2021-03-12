@@ -23,7 +23,7 @@ const uint RestartHandler::max_cleanup_retries_  = 3;
 const uint RestartHandler::rpc_retry_interval_s_ = 5;
 
 RestartHandler::RestartHandler(
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    std::shared_ptr<DirectorydClient> directoryd_client,
     std::shared_ptr<aaa::AsyncAAAClient> aaa_client,
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
     SessionStore& session_store)
