@@ -255,3 +255,12 @@ func readSwaggerSpec(filepath string) (MagmaSwaggerSpec, error) {
 	}
 	return spec, nil
 }
+
+// MarshalToYAML marshals a MagmaSwaggerSpec to a YAML-formatted string.
+func (m *MagmaSwaggerSpec) MarshalToYAML() (string, error) {
+	d, err := yaml.Marshal(&m)
+	if err != nil {
+		return "", err
+	}
+	return string(d), nil
+}

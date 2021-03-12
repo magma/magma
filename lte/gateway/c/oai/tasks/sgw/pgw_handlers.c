@@ -87,7 +87,6 @@ static void _spgw_handle_s5_response_with_error(
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     teid_t context_teid, ebi_t eps_bearer_id,
-    itti_sgi_create_end_point_response_t* sgi_create_endpoint_resp,
     s5_create_session_response_t* s5_response);
 
 //--------------------------------------------------------------------------------
@@ -110,10 +109,10 @@ void handle_s5_create_session_request(
         "Failed to fetch sgw bearer context from the received context "
         "teid" TEID_FMT "\n",
         context_teid);
-    sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
+    s5_response.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
     _spgw_handle_s5_response_with_error(
         spgw_state, new_bearer_ctxt_info_p, context_teid, eps_bearer_id,
-        &sgi_create_endpoint_resp, &s5_response);
+        &s5_response);
   }
 
   OAILOG_DEBUG_UE(
@@ -122,29 +121,6 @@ void handle_s5_create_session_request(
       "Handle s5_create_session_request, for context sgw s11 teid, " TEID_FMT
       "EPS bearer id %u\n",
       context_teid, eps_bearer_id);
-
-  // PCO processing
-  protocol_configuration_options_t* pco_req =
-      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-           .pco;
-  protocol_configuration_options_t pco_resp = {0};
-  protocol_configuration_options_ids_t pco_ids;
-  memset(&pco_ids, 0, sizeof pco_ids);
-
-  if (pgw_process_pco_request(pco_req, &pco_resp, &pco_ids) != RETURNok) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP,
-        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
-        "Error in processing PCO in create session request for "
-        "context_id: " TEID_FMT "\n",
-        context_teid);
-    sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
-    _spgw_handle_s5_response_with_error(
-        spgw_state, new_bearer_ctxt_info_p, context_teid, eps_bearer_id,
-        &sgi_create_endpoint_resp, &s5_response);
-  }
-  copy_protocol_configuration_options(&sgi_create_endpoint_resp.pco, &pco_resp);
-  clear_protocol_configuration_options(&pco_resp);
 
   // IP forward will forward packets to this teid
   sgi_create_endpoint_resp.context_teid  = context_teid;
@@ -160,33 +136,11 @@ void handle_s5_create_session_request(
   apn = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
             .pdn_connection.apn_in_use;
 
-  switch (sgi_create_endpoint_resp.paa.pdn_type) {
+  switch (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+              .saved_message.pdn_type) {
     case IPv4:
-      // Use NAS by default if no preference is set.
-      //
-      // For context, the protocol configuration options (PCO) section of
-      // packet from the UE is optional, which means that it is perfectly
-      // valid UE to send no PCO preferences at all. The previous logic only
-      // allocates an IPv4 address if the UE has explicitly set the PCO
-      // parameter for allocating IPv4 via NAS signaling (as opposed to via
-      // DHCPv4). This means that, in the absence of either parameter being,
-      // set the does not know what to do, so we need a default option as well.
-      //
-      // Since we only support the NAS signaling option right now, we will
-      // default to using NAS signaling UNLESS we see a preference for DHCPv4.
-      // This means that all IPv4 addresses are now allocated via NAS signaling
-      // unless specified otherwise.
-      //
-      // In the long run, we will want to evolve the logic to use whatever
-      // information we have to choose the ``best" allocation method. This means
-      // adding new bitfields to pco_ids in pgw_pco.h, setting them in pgw_pco.c
-      // and using them here in conditional logic. We will also want to
-      // implement different logic between the PDN types.
-      if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
-        pgw_handle_allocate_ipv4_address(
-            imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4", spgw_state,
-            new_bearer_ctxt_info_p, s5_response);
-      }
+      pgw_handle_allocate_ipv4_address(
+          imsi, apn, "ipv4", context_teid, eps_bearer_id);
       break;
 
     case IPv6:
@@ -203,7 +157,9 @@ void handle_s5_create_session_request(
 
     default:
       AssertFatal(
-          0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
+          0, "BAD paa.pdn_type %d",
+          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+              .saved_message.pdn_type);
       break;
   }
 }
@@ -212,12 +168,10 @@ void _spgw_handle_s5_response_with_error(
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     teid_t context_teid, ebi_t eps_bearer_id,
-    itti_sgi_create_end_point_response_t* sgi_create_endpoint_resp,
     s5_create_session_response_t* s5_response) {
-  s5_response->context_teid             = context_teid;
-  s5_response->eps_bearer_id            = eps_bearer_id;
-  s5_response->sgi_create_endpoint_resp = (*sgi_create_endpoint_resp);
-  s5_response->failure_cause            = S5_OK;
+  s5_response->context_teid  = context_teid;
+  s5_response->eps_bearer_id = eps_bearer_id;
+  s5_response->failure_cause = S5_OK;
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP,
@@ -228,6 +182,47 @@ void _spgw_handle_s5_response_with_error(
   handle_s5_create_session_response(
       spgw_state, new_bearer_ctxt_info_p, (*s5_response));
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
+}
+
+void spgw_handle_pcef_create_session_response(
+    spgw_state_t* spgw_state,
+    const itti_pcef_create_session_response_t* const pcef_csr_resp_p,
+    imsi64_t imsi64) {
+  OAILOG_DEBUG_UE(
+      LOG_SPGW_APP, imsi64, "Received PCEF-CREATE-SESSION-RESPONSE");
+
+  s5_create_session_response_t s5_response = {0};
+  s5_response.context_teid                 = pcef_csr_resp_p->teid;
+  s5_response.eps_bearer_id                = pcef_csr_resp_p->eps_bearer_id;
+  s5_response.status                       = pcef_csr_resp_p->sgi_status;
+  s5_response.failure_cause                = S5_OK;
+
+  s_plus_p_gw_eps_bearer_context_information_t* bearer_ctxt_info_p =
+      sgw_cm_get_spgw_context(pcef_csr_resp_p->teid);
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+      &bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection,
+      s5_response.eps_bearer_id);
+
+  char* apn = (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information
+                  .pdn_connection.apn_in_use;
+
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  if (pcef_csr_resp_p->rpc_status != PCEF_STATUS_OK) {
+    if ((eps_bearer_ctx_p->paa.pdn_type == IPv4) ||
+        (eps_bearer_ctx_p->paa.pdn_type == IPv4_AND_v6)) {
+      release_ipv4_address(imsi_str, apn, &eps_bearer_ctx_p->paa.ipv4_address);
+    }
+    if ((eps_bearer_ctx_p->paa.pdn_type == IPv6) ||
+        (eps_bearer_ctx_p->paa.pdn_type == IPv4_AND_v6)) {
+      release_ipv6_address(imsi_str, apn, &eps_bearer_ctx_p->paa.ipv6_address);
+    }
+    s5_response.failure_cause = PCEF_FAILURE;
+  }
+  handle_s5_create_session_response(
+      spgw_state, bearer_ctxt_info_p, s5_response);
 }
 
 /*

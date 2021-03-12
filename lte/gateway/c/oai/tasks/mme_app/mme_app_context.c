@@ -161,7 +161,6 @@ ue_mm_context_t* mme_create_new_ue_context(void) {
 //------------------------------------------------------------------------------
 void mme_app_ue_sgs_context_free_content(
     sgs_context_t* const sgs_context_p, imsi64_t imsi) {
-  nas_itti_timer_arg_t* timer_argP = NULL;
   if (sgs_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP, "Invalid SGS context received for IMSI: " IMSI_64_FMT "\n",
@@ -186,28 +185,12 @@ void mme_app_ue_sgs_context_free_content(
   }
   // Stop SGS Implicit IMSI Detach indication timer if running
   if (sgs_context_p->ts10_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts10_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS Implicit IMSI Detach"
-          " Indication timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts10_timer.id);
     sgs_context_p->ts10_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS Implicit EPS Detach indication timer if running
   if (sgs_context_p->ts13_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts13_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS Implicit EPS Detach"
-          " Indication timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts13_timer.id);
     sgs_context_p->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 }
