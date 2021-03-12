@@ -1,1 +1,1 @@
- cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=0,in_port=15579 actions=resubmit(,202),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=0,in_port=15579 actions=resubmit(,202)
