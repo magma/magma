@@ -24,7 +24,7 @@ const user = {
   passwd: 'password1234',
 };
 export async function SimulateNMSLogin(page: typeof puppeteer.Page) {
-  await page.goto('https://magma-test.localhost/');
+  await page.goto('https://magma-test.localhost/nms');
   await page.waitForXPath(LOGINFORM_SELECTOR);
   await page.click('input[name=email]');
   await page.type('input[name=email]', user.email);

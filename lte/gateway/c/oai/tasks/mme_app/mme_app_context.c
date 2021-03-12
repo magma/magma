@@ -69,14 +69,14 @@
 #include "itti_types.h"
 #include "mme_api.h"
 #include "mme_app_state.h"
+#include "mme_app_timer.h"
 #include "nas_timer.h"
 #include "obj_hashtable.h"
 #include "s1ap_messages_types.h"
 
-/* Obtain a backtrace and print it to stdout. */
-
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
+/* Obtain a backtrace and print it to stdout. */
 void print_trace(void) {
   void* array[10];
   size_t size;
@@ -104,8 +104,8 @@ static bool mme_app_recover_timers_for_ue(
 
 static void mme_app_resume_timers(
     struct ue_mm_context_s* const ue_mm_context_pP, time_t start_time,
-    struct mme_app_timer_t timer, mme_app_timer_callback_t timer_expiry_handler,
-    char* timer_name);
+    struct mme_app_timer_t* timer,
+    mme_app_timer_callback_t timer_expiry_handler, char* timer_name);
 
 static void _directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
@@ -161,7 +161,6 @@ ue_mm_context_t* mme_create_new_ue_context(void) {
 //------------------------------------------------------------------------------
 void mme_app_ue_sgs_context_free_content(
     sgs_context_t* const sgs_context_p, imsi64_t imsi) {
-  nas_itti_timer_arg_t* timer_argP = NULL;
   if (sgs_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP, "Invalid SGS context received for IMSI: " IMSI_64_FMT "\n",
@@ -170,67 +169,28 @@ void mme_app_ue_sgs_context_free_content(
   }
   // Stop SGS Location update timer if running
   if (sgs_context_p->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts6_1_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS Location update timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts6_1_timer.id);
     sgs_context_p->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS EPS Detach indication timer if running
   if (sgs_context_p->ts8_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts8_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS EPS Detach Indication"
-          "timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts8_timer.id);
     sgs_context_p->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
   // Stop SGS IMSI Detach indication timer if running
   if (sgs_context_p->ts9_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts9_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS IMSI Detach Indication"
-          " timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts9_timer.id);
     sgs_context_p->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS Implicit IMSI Detach indication timer if running
   if (sgs_context_p->ts10_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts10_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS Implicit IMSI Detach"
-          " Indication timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts10_timer.id);
     sgs_context_p->ts10_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS Implicit EPS Detach indication timer if running
   if (sgs_context_p->ts13_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts13_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi,
-          "Failed to stop SGS Implicit EPS Detach"
-          " Indication timer for imsi\n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(sgs_context_p->ts13_timer.id);
     sgs_context_p->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 }
@@ -274,17 +234,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   // Stop Initial context setup process guard timer,if running
   if (ue_context_p->initial_context_setup_rsp_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(
-            ue_context_p->initial_context_setup_rsp_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop Initial Context Setup Rsp timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->initial_context_setup_rsp_timer.id);
     ue_context_p->time_ics_rsp_timer_started = 0;
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
@@ -2133,17 +2083,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
   // Stop Initial context setup process guard timer,if running
   if (ue_mm_context->initial_context_setup_rsp_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(
-            ue_mm_context->initial_context_setup_rsp_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-          "Failed to stop Initial Context Setup Rsp timer for UE id  %d \n",
-          ue_mm_context->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_mm_context->initial_context_setup_rsp_timer.id);
     ue_mm_context->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
     // Setting UE context release cause as Initial context setup failure
@@ -2303,16 +2243,33 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
 void mme_app_recover_timers_for_all_ues(void) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   hash_table_ts_t* mme_state_imsi_ht = get_mme_ue_state();
+  uint32_t num_unreg_ues             = 0;
+  hash_key_t* mme_ue_id_unreg_list;
+  mme_ue_id_unreg_list =
+      (hash_key_t*) calloc(mme_state_imsi_ht->num_elements, sizeof(hash_key_t));
   hashtable_ts_apply_callback_on_elements(
-      mme_state_imsi_ht, mme_app_recover_timers_for_ue, NULL, NULL);
+      mme_state_imsi_ht, mme_app_recover_timers_for_ue, &num_unreg_ues,
+      (void**) &mme_ue_id_unreg_list);
+
+  // Handle timer for unregistered UEs here as it will modify the hashtable
+  // entries
+  struct ue_mm_context_s* ue_context_p = NULL;
+  for (uint32_t i = 0; i < num_unreg_ues; i++) {
+    ue_context_p =
+        mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_id_unreg_list[i]);
+    mme_app_handle_timer_for_unregistered_ue(ue_context_p);
+  }
+
+  free(mme_ue_id_unreg_list);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 static bool mme_app_recover_timers_for_ue(
-    const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
-    void** unused_result_pP) {
+    const hash_key_t keyP, void* const ue_context_pP, void* param_pP,
+    void** result_pP) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-
+  uint32_t* num_unreg_ues  = (uint32_t*) param_pP;
+  hash_key_t** mme_id_list = (hash_key_t**) result_pP;
   struct ue_mm_context_s* const ue_mm_context_pP =
       (struct ue_mm_context_s*) ue_context_pP;
 
@@ -2325,26 +2282,26 @@ static bool mme_app_recover_timers_for_ue(
     mme_app_resume_timers(
         ue_mm_context_pP,
         ue_mm_context_pP->time_mobile_reachability_timer_started,
-        ue_mm_context_pP->mobile_reachability_timer,
+        &ue_mm_context_pP->mobile_reachability_timer,
         mme_app_handle_mobile_reachability_timer_expiry, "Mobile Reachability");
   }
   if (ue_mm_context_pP->time_implicit_detach_timer_started) {
     mme_app_resume_timers(
         ue_mm_context_pP, ue_mm_context_pP->time_implicit_detach_timer_started,
-        ue_mm_context_pP->implicit_detach_timer,
+        &ue_mm_context_pP->implicit_detach_timer,
         mme_app_handle_implicit_detach_timer_expiry, "Implicit Detach");
   }
   if (ue_mm_context_pP->time_paging_response_timer_started) {
     mme_app_resume_timers(
         ue_mm_context_pP, ue_mm_context_pP->time_paging_response_timer_started,
-        ue_mm_context_pP->paging_response_timer,
+        &ue_mm_context_pP->paging_response_timer,
         mme_app_handle_paging_timer_expiry, "Paging Response");
   }
   if (ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED &&
       ue_mm_context_pP->time_ics_rsp_timer_started) {
-    mme_app_resume_timers(
+    mme_app_resume_timer(
         ue_mm_context_pP, ue_mm_context_pP->time_ics_rsp_timer_started,
-        ue_mm_context_pP->initial_context_setup_rsp_timer,
+        &ue_mm_context_pP->initial_context_setup_rsp_timer,
         mme_app_handle_initial_context_setup_rsp_timer_expiry,
         "Initial Context Setup Response");
   }
@@ -2360,15 +2317,17 @@ static bool mme_app_recover_timers_for_ue(
   }
 
   if (ue_mm_context_pP->emm_context._emm_fsm_state != EMM_REGISTERED) {
-    mme_app_handle_timer_for_unregistered_ue(ue_mm_context_pP);
+    (*mme_id_list)[*num_unreg_ues] = keyP;
+    ++(*num_unreg_ues);
+    OAILOG_DEBUG(LOG_MME_APP, "Added %u unreg UEs", *num_unreg_ues);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
 }
 
 static void mme_app_resume_timers(
     struct ue_mm_context_s* const ue_mm_context_pP, time_t start_time,
-    struct mme_app_timer_t timer, mme_app_timer_callback_t timer_expiry_handler,
-    char* timer_name) {
+    struct mme_app_timer_t* timer,
+    mme_app_timer_callback_t timer_expiry_handler, char* timer_name) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   time_t current_time = time(NULL);
   time_t lapsed_time  = current_time - start_time;
@@ -2377,13 +2336,13 @@ static void mme_app_resume_timers(
   /* Below condition validates whether timer has expired before MME recovers
    * from restart, so MME shall handle as timer expiry
    */
-  if (timer.sec <= lapsed_time) {
+  if (timer->sec <= lapsed_time) {
     timer_expiry_handler(
         (void*) &(ue_mm_context_pP->mme_ue_s1ap_id),
         &(ue_mm_context_pP->emm_context._imsi64));
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  uint32_t remaining_time_in_seconds = timer.sec - lapsed_time;
+  uint32_t remaining_time_in_seconds = timer->sec - lapsed_time;
   OAILOG_DEBUG(
       LOG_MME_APP,
       "Current_time :%ld %s timer start time :%ld "
@@ -2399,13 +2358,13 @@ static void mme_app_resume_timers(
   if (timer_setup(
           remaining_time_in_seconds, 0, TASK_MME_APP, INSTANCE_DEFAULT,
           TIMER_ONE_SHOT, &timer_callback_arg, sizeof(timer_callback_arg),
-          &(timer.id)) < 0) {
+          &(timer->id)) < 0) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
         "Failed to start %s timer for UE id "
         "" MME_UE_S1AP_ID_FMT "\n",
         timer_name, ue_mm_context_pP->mme_ue_s1ap_id);
-    timer.id = MME_APP_TIMER_INACTIVE_ID;
+    timer->id = MME_APP_TIMER_INACTIVE_ID;
   } else {
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,

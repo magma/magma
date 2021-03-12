@@ -325,8 +325,7 @@ void clean_stale_enb_state(
   enb_description_t* stale_enb_association = NULL;
 
   hashtable_ts_apply_callback_on_elements(
-      (hash_table_ts_t* const) & state->enbs,
-      get_stale_enb_connection_with_enb_id, new_enb_association,
+      &state->enbs, get_stale_enb_connection_with_enb_id, new_enb_association,
       (void**) &stale_enb_association);
   if (stale_enb_association == NULL) {
     // No stale eNB connection found;
@@ -1263,6 +1262,7 @@ int s1ap_mme_generate_ue_context_release_command(
     case S1AP_INVALID_MME_UE_S1AP_ID:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_unknown_mme_ue_s1ap_id;
+      break;
     case S1AP_NAS_MME_OFFLOADING:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;
@@ -2197,7 +2197,6 @@ bool s1ap_send_enb_deregistered_ind(
     *resultP = arg->message_p;
   } else {
     OAILOG_TRACE(LOG_S1AP, "No valid UE provided in callback: %p\n", ue_ref_p);
-    AssertFatal(0, "No valid UE while creating S1AP_ENB_DEREGISTERED_IND");
   }
   return false;
 }

@@ -17,6 +17,7 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/lte"
+	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
@@ -312,4 +313,40 @@ func ToVirtualApnRuleMconfig(rules []*VirtualApnRule) []*mconfig.VirtualApnRule 
 		virtualApnRuleConfigs = append(virtualApnRuleConfigs, apnConf)
 	}
 	return virtualApnRuleConfigs
+}
+
+func ToFederatedModesMap(modesMap *FederatedModeMap) *lte_mconfig.FederatedModeMap {
+	if modesMap == nil {
+		return &lte_mconfig.FederatedModeMap{}
+	}
+	res := &lte_mconfig.FederatedModeMap{}
+	protos.FillIn(modesMap, res)
+	res.Mapping = ToModesMap(modesMap.Mapping)
+	return res
+}
+
+func ToModesMap(model_modes []*ModeMapItem) []*lte_mconfig.ModeMapItem {
+	if model_modes == nil {
+		return []*lte_mconfig.ModeMapItem{}
+	}
+	proto_modes := make([]*lte_mconfig.ModeMapItem, len(model_modes))
+	for i, model_mode := range model_modes {
+		proto_mode := &lte_mconfig.ModeMapItem{}
+		protos.FillIn(model_mode, proto_mode)
+		proto_modes[i] = proto_mode
+		// translate the mode
+		proto_modes[i].Mode = ToFederatedMode(model_mode.Mode)
+	}
+	return proto_modes
+}
+
+func ToFederatedMode(mode string) lte_mconfig.ModeMapItem_FederatedMode {
+	switch mode {
+	case "local_subscriber":
+		return lte_mconfig.ModeMapItem_LOCAL_SUBSCRIBER
+	case "s8_subscriber":
+		return lte_mconfig.ModeMapItem_S8_SUBSCRIBER
+	}
+	// default case
+	return lte_mconfig.ModeMapItem_SPGW_SUBSCRIBER
 }

@@ -257,6 +257,9 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         except KeyError:
             self.logger.error('Could not find rule id %s', rule_id)
             return
+        if num is None:
+            self.logger.error('Rule num is None for rule %s', rule_id)
+            return
         cookie, mask = (num, flows.OVS_COOKIE_MATCH_ALL)
 
         ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)

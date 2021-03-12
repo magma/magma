@@ -12,9 +12,9 @@ limitations under the License.
 """
 import ipaddress
 import logging
-import netifaces
+from typing import List, MutableMapping, Optional
 
-from typing import MutableMapping, Optional, List
+import netifaces
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
 
 NO_VLAN = "NO_VLAN"

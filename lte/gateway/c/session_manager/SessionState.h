@@ -129,13 +129,6 @@ class SessionState {
 
   magma::lte::Fsm_state_FsmState get_proto_fsm_state();
 
-  struct TotalCreditUsage {
-    uint64_t monitoring_tx;
-    uint64_t monitoring_rx;
-    uint64_t charging_tx;
-    uint64_t charging_rx;
-  };
-
  public:
   SessionState(
       const std::string& imsi, const std::string& session_id,
@@ -255,7 +248,7 @@ class SessionState {
    * rules (static and dynamic)
    * Should be called after complete_termination.
    */
-  TotalCreditUsage get_total_credit_usage();
+  SessionCredit::TotalCreditUsage get_total_credit_usage();
 
   ChargingCreditSummaries get_charging_credit_summaries();
 
@@ -550,6 +543,11 @@ class SessionState {
   bool should_rule_be_active(const std::string& rule_id, std::time_t time);
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
 
+  /**
+   * Clear all per-session metrics
+   */
+  void clear_session_metrics();
+
  private:
   std::string imsi_;
   std::string session_id_;
@@ -759,18 +757,16 @@ class SessionState {
 
   /**
    * Increments data usage values for session
+   * @param usage_label either UE_DROPPED_LABEL / UE_USED_LABEL
    * @param bytes_tx
    * @param bytes_rx
    */
-  void update_used_data_metrics(uint64_t bytes_tx, uint64_t bytes_rx);
+  void update_data_metrics(
+      const char* counter_name, uint64_t bytes_tx, uint64_t bytes_rx);
 
   /**
-   * Increments data usage values for session
-   * @param dropped_tx
-   * @param dropped_rx
+   * Computes delta from previous rule report
    */
-  void update_dropped_data_metrics(uint64_t dropped_tx, uint64_t dropped_rx);
-
   RuleStats get_rule_delta(
       const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
       uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx);

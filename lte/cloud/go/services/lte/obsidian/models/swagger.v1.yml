@@ -405,6 +405,24 @@ paths:
             $ref: '#/definitions/cellular_gateway_pool'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update gateway pool in LTE network
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/gateway_pool_id'
+        - in: body
+          name: HA Gateway Pool
+          description: LTE HA gateway pool
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_cellular_gateway_pool'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     delete:
       summary: Delete gateway pool from LTE network
       tags:
@@ -1585,8 +1603,9 @@ definitions:
        $ref: '#/definitions/feg_network_id'
 
   feg_network_id:
+    description: Name of the federated network serving this LTE network. Blank for non federated
     type: string
-    example: 'example_feg_network'
+    example: 'feg_id_only_for_federated_network'
 
   network_ran_configs:
     description: RAN (radio access network) cellular configuration for a network
@@ -1793,6 +1812,18 @@ definitions:
                 example:
                   1: ['192.168.0.0/16']
                   2: ['172.10.0.0/16', '172.20.0.0/16']
+      restricted_plmns:
+        type: array
+        description: 'List of PLMN IDs restricted in the network'
+        items:
+          $ref: '#/definitions/plmn_config'
+        x-omitempty: true
+
+      service_area_maps:
+        type: object
+        description: 'Mapping service areas to tacs in the network'
+        additionalProperties:
+          $ref: '#/definitions/tac_list'
 
   lte_gateway:
     type: object
@@ -2492,3 +2523,39 @@ definitions:
         maximum: 255
         example: 10
         default: 10
+
+
+  tac_list:
+    type: array
+    items:
+      $ref: '#/definitions/tac'
+    x-omitempty: true
+    description: 'List of tac ids'
+    example:
+      - 1
+
+  tac:
+    type: integer
+    format: uint32
+    minimum: 1
+    maximum: 65535
+    example: 1
+    x-nullable: false
+
+  plmn_config:
+    description: Record in a gateway pool
+    type: object
+    required:
+      - mcc
+      - mnc
+    properties:
+      mcc:
+        type: string
+        pattern: '^(\d{3})$'
+        example: '001'
+        x-nullable: false
+      mnc:
+        type: string
+        pattern: '^(\d{2,3})$'
+        example: '01'
+        x-nullable: false

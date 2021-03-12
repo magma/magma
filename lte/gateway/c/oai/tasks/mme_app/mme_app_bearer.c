@@ -72,6 +72,7 @@
 #include "sgs_messages_types.h"
 #include "secu_defs.h"
 #include "esm_proc.h"
+#include "mme_app_timer.h"
 #include "mme_app_pdn_context.h"
 
 #if EMBEDDED_SGW
@@ -509,16 +510,11 @@ void mme_app_handle_conn_est_cnf(
    * corresponding NAS procedure such as ATTACH or SERVICE REQUEST. Send UE
    * context release command to eNB
    */
-  nas_itti_timer_arg_t timer_callback_fun = {0};
-  timer_callback_fun.nas_timer_callback =
-      mme_app_handle_initial_context_setup_rsp_timer_expiry;
-  timer_callback_fun.nas_timer_callback_arg =
-      (void*) &(ue_context_p->mme_ue_s1ap_id);
-  if (timer_setup(
-          ue_context_p->initial_context_setup_rsp_timer.sec, 0, TASK_MME_APP,
-          INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_fun,
-          sizeof(timer_callback_fun),
-          &(ue_context_p->initial_context_setup_rsp_timer.id)) < 0) {
+  if ((ue_context_p->initial_context_setup_rsp_timer.id = mme_app_start_timer(
+           ue_context_p->initial_context_setup_rsp_timer.sec * 1000,
+           TIMER_REPEAT_ONCE,
+           mme_app_handle_initial_context_setup_rsp_timer_expiry,
+           ue_context_p->mme_ue_s1ap_id)) == -1) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, emm_context._imsi64,
         "Failed to start initial context setup response timer for UE id  %d \n",
@@ -1252,8 +1248,9 @@ int mme_app_handle_create_sess_resp(
 
 error_handling_csr_failure:
   increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "failure");
-  bearer_id = create_sess_resp_pP->bearer_contexts_created.bearer_contexts[0]
-                  .eps_bearer_id /* - 5 */;
+  bearer_id =
+      create_sess_resp_pP->bearer_contexts_marked_for_removal.bearer_contexts[0]
+          .eps_bearer_id;
   current_bearer_p = mme_app_get_bearer_context(ue_context_p, bearer_id);
   if (current_bearer_p) {
     transaction_identifier = current_bearer_p->transaction_identifier;
@@ -1567,19 +1564,7 @@ void mme_app_handle_initial_context_setup_rsp(
    */
   if (ue_context_p->initial_context_setup_rsp_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_context_p->initial_context_setup_rsp_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop Initial Context Setup Rsp timer for UE "
-          "id" MME_UE_S1AP_ID_FMT "\n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->initial_context_setup_rsp_timer.id);
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
     ue_context_p->time_ics_rsp_timer_started = 0;
@@ -1884,10 +1869,15 @@ void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64) {
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_initial_context_setup_rsp_timer_expiry(
-    void* args, imsi64_t* imsi64) {
+int mme_app_handle_initial_context_setup_rsp_timer_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_ue_s1ap_id_t mme_ue_s1ap_id      = *((mme_ue_s1ap_id_t*) (args));
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "Initial context setup response timer");
   if (ue_context_p == NULL) {
@@ -1895,9 +1885,8 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  *imsi64 = ue_context_p->emm_context._imsi64;
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_ics_rsp_timer_started         = 0;
   /* *********Abort the ongoing procedure*********
@@ -1941,7 +1930,7 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
           INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
     }
   }
-  OAILOG_FUNC_OUT(LOG_MME_APP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 //------------------------------------------------------------------------------
 void mme_app_handle_initial_context_setup_failure(
@@ -1966,18 +1955,7 @@ void mme_app_handle_initial_context_setup_failure(
   // Stop Initial context setup process guard timer,if running
   if (ue_context_p->initial_context_setup_rsp_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_context_p->initial_context_setup_rsp_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop Initial Context Setup Rsp timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->initial_context_setup_rsp_timer.id);
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
     ue_context_p->time_implicit_detach_timer_started = 0;

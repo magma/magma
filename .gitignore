@@ -49,7 +49,7 @@ orc8r/cloud/test_certs/*.srl
 orc8r/cloud/test_certs/*.pfx
 
 # Ignore generated Swagger files
-orc8r/cloud/configs/swagger_specs
+orc8r/cloud/swagger/specs
 
 # Ignore apt/build cache
 .cache/*
@@ -70,9 +70,8 @@ orc8r/cloud/helm/**/.secrets/
 # Certs for accessing the cloud
 .certs
 
-# Clion config
-devmand/gateway/.idea/
-devmand/gateway/cmake-build-debug/
+# CMake debug files
+lte/gateway/c/session_manager/cmake-build-debug/
 
 # Log files
 *.log

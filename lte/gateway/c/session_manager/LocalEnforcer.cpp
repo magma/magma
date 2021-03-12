@@ -35,7 +35,6 @@ uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY                = 2000;
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE                      = false;
 
 using google::protobuf::RepeatedPtrField;
-using google::protobuf::util::TimeUtil;
 
 using namespace std::placeholders;
 
@@ -1214,6 +1213,9 @@ void LocalEnforcer::complete_termination(
   auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
   reporter_->report_terminate_session(termination_req, logging_cb);
   events_reporter_->session_terminated(imsi, session);
+
+  // clear all metrics associated with this session
+  session->clear_session_metrics();
 
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;

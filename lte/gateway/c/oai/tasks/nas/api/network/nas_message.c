@@ -154,7 +154,10 @@ int nas_message_encrypt(
       /*
        * Set the message authentication code of the NAS message
        */
-      *(uint32_t*) (outbuf + sizeof(uint8_t)) = htonl(mac);
+      uint32_t network_mac = htonl(mac);
+      memcpy(
+          outbuf + sizeof(uint8_t), (unsigned char*) &network_mac,
+          sizeof(uint32_t));
     }
   } else {
     /*
@@ -573,7 +576,10 @@ int nas_message_encode(
       /*
        * Set the message authentication code of the NAS message
        */
-      *(uint32_t*) (buffer + sizeof(uint8_t)) = htonl(mac);
+      uint32_t network_mac = htonl(mac);
+      memcpy(
+          buffer + sizeof(uint8_t), (unsigned char*) &network_mac,
+          sizeof(uint32_t));
 
       if (emm_security_context) {
         /*

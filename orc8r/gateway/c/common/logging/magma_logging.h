@@ -35,7 +35,7 @@ static void set_verbosity(uint32_t verbosity) {
 }
 
 // get_verbosity gets the the global logging verbosity
-static google::int32 get_verbosity(){
+static google::int32 get_verbosity() {
   return FLAGS_v;
 }
 
@@ -46,7 +46,7 @@ static void init_logging(const char* service_name) {
   // log to stderr to automatically log to syslog with systemd
   FLAGS_logtostderr = 1;
 }
-}
+}  // namespace magma
 #endif
 
 // NON GLOG LOGGING

@@ -90,11 +90,11 @@ class AGWHealthSummary:
         #eNBs connected:    {} \t (run `enodebd_cli.py get_all_status` for more details)
         #IPs allocated:     {} \t (run `mobility_cli.py list_allocated_ips` for more details)
         #UEs connected:     {} \t (run `mobility_cli.py get_subscriber_table` for more details)
-        #Core dumps:        {} \t (run `ls /tmp/` to see core dumps)
+        #Core dumps:        {} \t (run `ls /var/core` to see core dumps)
         Earliest core-dump: {}, Latest core-dump: {}
         Registration success rate: {}
         """).format(
-            'Using Feg' if self.hss_relay_enabled else 'Using subscriberdb',
+            'Using Feg' if self.hss_relay_enabled else 'Using SubscriberDB',
             self.nb_enbs_connected,
             len(self.allocated_ips),
             len(self.subscriber_table),

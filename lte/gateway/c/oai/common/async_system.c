@@ -56,10 +56,8 @@ static void async_system_exit(void);
 task_zmq_ctx_t async_system_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  int rc              = 0;
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  int rc                         = 0;
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case ASYNC_SYSTEM_COMMAND: {
@@ -86,7 +84,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       async_system_exit();
     } break;
 
@@ -98,7 +96,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 

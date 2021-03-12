@@ -395,6 +395,10 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             return
 
     def deactivate_default_flow(self, imsi, ip_addr):
+        if self._datapath is None:
+            self.logger.error('Datapath not initialized')
+            return
+
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
         match_out = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.OUT)
 
@@ -618,8 +622,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         for flow in stat_flows[self.tbl_num]:
             self.last_usage_for_delta = self._update_usage_from_flow_stat(
                 self.last_usage_for_delta, flow)
-        self.logger.info("Recovered stats:")
-        self.logger.info(self.last_usage_for_delta)
+        self.logger.info("Recovered enforcement stats")
+        self.logger.debug(self.last_usage_for_delta)
 
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
