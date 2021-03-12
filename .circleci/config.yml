@@ -227,7 +227,7 @@ commands:
       - run: |
           if [ "${CIRCLE_BRANCH}" != "master" ]; then
             echo "Push only happens for master branch"
-            #exit 0
+            exit 0
           fi
 
           DOCKER_REGISTRY="<< parameters.registry >>"
@@ -641,8 +641,7 @@ jobs:
       - tag-push-docker:
           project: feg
           images: "gateway_go|gateway_python"
-          tag: test
-          registry: $FEGTEST_JFROG_DOCKER_REGISTRY
+          registry: $JFROG_DOCKER_FEG_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
       - persist-githash-version:
@@ -1068,6 +1067,31 @@ jobs:
 workflows:
   version: 2
 
+  cloud:
+    jobs:
+      - insync-checkin
+      - cloud_lint
+      - cloud-test
+      - orc8r-build:
+          requires:
+            - insync-checkin
+            - cloud_lint
+            - cloud-test
+
+  lib_gateway:
+    jobs:
+      - orc8r-gateway-test
+
+  agw:
+    jobs:
+      - lte-test
+      - lte-integ-test:
+          <<: *master_and_develop
+      - lte-agw-deploy:
+          <<: *only_master
+          requires:
+            - lte-integ-test
+
   feg:
     jobs:
       - feg-precommit
@@ -1075,3 +1099,76 @@ workflows:
           requires:
             - feg-precommit
 
+  cwag:
+    jobs:
+      - cwag-precommit
+      - cwf-integ-test:
+          <<: *master_and_develop
+      - xwfm-test:
+          <<: *master_and_develop
+      - cwag-deploy:
+          <<: *only_master
+          requires:
+            - cwag-precommit
+            - cwf-integ-test
+      - xwfm-deploy:
+          <<: *only_master
+          name: xwfm-deploy-latest
+          requires:
+            - cwag-deploy
+            - xwfm-test
+          tag-latest: true
+      - cwag-deploy:
+          <<: *only_master
+          name: cwag-deploy-latest
+          requires:
+            - cwag-deploy
+            - xwfm-deploy-latest
+          images: 'gateway_python|gateway_pipelined|gateway_go'
+          tag-latest: true
+
+
+  cwf_operator:
+    jobs:
+      - cwf-operator-precommit
+      - cwf-operator-build:
+          requires:
+            - cwf-operator-precommit
+
+  hourly_xwfm:
+    triggers:
+      - schedule:
+          cron: "0 * * * *"
+          <<: *only_master
+    jobs:
+      - xwfm-test:
+          notify_magma_ci: false
+
+  nms:
+    jobs:
+      - nms-flow-test
+      - eslint
+      - nms-yarn-test:
+          requires:
+            - nms-flow-test
+      - nms-e2e-test:
+          requires:
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
+      - nms-build:
+          requires:
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
+            - nms-e2e-test
+
+  docusaurus:
+   jobs:
+    - docusaurus_build_and_deploy:
+        <<: *only_master
+
+  fossa:
+    jobs:
+      - fossa-analyze:
+          <<: *only_master
