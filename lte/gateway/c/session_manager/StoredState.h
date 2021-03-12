@@ -186,11 +186,17 @@ struct RuleStats {
 };
 
 struct Usage {
-  uint32_t rule_version;
+  uint64_t last_reported_rule_version;
   std::unordered_map<int, RuleStats> stats_map;
+
+  Usage() {
+    last_reported_rule_version = 0;
+    RuleStats s  = {0, 0, 0, 0};
+    stats_map    = {{0, s}};
+  }
 };
 
-typedef std::unordered_map<std::string, Usage> UsageMap;
+typedef std::unordered_map<std::string, Usage> PolicyStatsMap;
 
 struct PolicyID {
   PolicyType policy_type;
@@ -249,7 +255,7 @@ struct StoredSessionState {
   google::protobuf::Timestamp revalidation_time;
   BearerIDByPolicyID bearer_id_by_policy;
   std::vector<SetGroupPDR> PdrList;
-  UsageMap rule_usage;
+  PolicyStatsMap rule_usage;
 };
 
 // Update Criteria

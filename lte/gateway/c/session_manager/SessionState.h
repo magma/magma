@@ -589,7 +589,7 @@ class SessionState {
   // installed, or scheduled for installation for this session
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes_;
 
-  UsageMap rule_usage_;
+  PolicyStatsMap policy_stats_map_;
 
   // map of Gx event_triggers that are pending and its status (bool)
   // If the value is true, that means an update request for that event trigger

@@ -495,41 +495,37 @@ RuleStats SessionState::get_rule_delta(
     const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
     uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx) {
   RuleStats ret = {0};
-  auto usage_it = rule_usage_.find(rule_id);
-  // If no previos record found, create one
-  if (usage_it == rule_usage_.end()) {
-    RuleStats s = {0, 0, 0, 0};  //{used_rx, used_rx, dropped_tx, dropped_rx};
-    Usage usage{};
-    usage.rule_version   = rule_version;
-    usage.stats_map      = {{rule_version, s}};
-    rule_usage_[rule_id] = usage;
 
-    usage_it = rule_usage_.find(rule_id);
+  auto it = policy_stats_map_.find(rule_id);
+  // If no previous record found, create one
+  if (it == policy_stats_map_.end()) {
+    policy_stats_map_[rule_id] = Usage();
+    it                   = policy_stats_map_.find(rule_id);
   }
 
-  auto last_tracked_version_num = usage_it->second.rule_version;
-  auto last_tracked_version =
-      rule_usage_[rule_id].stats_map.find(last_tracked_version_num);
+  auto last_tracked_version_num = it->second.last_reported_rule_version;
+  auto last_tracked =
+      policy_stats_map_[rule_id].stats_map.find(last_tracked_version_num);
+  if (it == policy_stats_map_.end()) {
+     MLOG(MERROR) << "Can't lookup rule stats for rule_id " << rule_id <<
+                     " for version "<< last_tracked_version_num;
+     return ret;
+  }
 
-  RuleStats prev_usage;
-  prev_usage = last_tracked_version->second;
-  // if (last_tracked_version_num != rule_version) {
+  RuleStats prev_usage = last_tracked->second;
   if (rule_version < last_tracked_version_num) {
     MLOG(MERROR) << "Reported stat version less than the current tracked one";
     return ret;
   }
 
   if (rule_version > last_tracked_version_num) {
-    ret.tx = used_tx;
-    ret.rx                                          = used_rx;
-    ret.dropped_tx                                  = dropped_tx;
-    ret.dropped_rx                                  = dropped_rx;
-  } else {
+    ret.tx         = used_tx;
+    ret.rx         = used_rx;
+    ret.dropped_tx = dropped_tx;
+    ret.dropped_rx = dropped_rx;
 
-    if (used_tx < prev_usage.tx) {
-      MLOG(MERROR) << "Reported stat version less than the current tracked one";
-      return ret;
-    }
+    policy_stats_map_[rule_id].last_reported_rule_version = rule_version;
+  } else {
 
     if (prev_usage.tx != 0 && prev_usage.tx > used_tx) {
       MLOG(MERROR) << "Reported stat used_tx than the current tracked one";
@@ -540,15 +536,14 @@ RuleStats SessionState::get_rule_delta(
       return ret;
     }
 
-    ret.tx =    used_tx - prev_usage.tx;
+    ret.tx         = used_tx - prev_usage.tx;
     ret.rx         = used_rx - prev_usage.rx;
     ret.dropped_tx = dropped_tx - prev_usage.dropped_tx;
     ret.dropped_rx = dropped_rx - prev_usage.dropped_rx;
   }
 
-  RuleStats s = {used_tx, used_rx, dropped_tx, dropped_rx};
-  rule_usage_[rule_id].stats_map[rule_version] = s;
-  rule_usage_[rule_id].rule_version            = rule_version;
+  policy_stats_map_[rule_id].stats_map[rule_version] =
+      RuleStats{used_tx, used_rx, dropped_tx, dropped_rx};
 
   return ret;
 }
@@ -559,36 +554,13 @@ void SessionState::add_rule_usage(
     SessionStateUpdateCriteria& update_criteria) {
   CreditKey charging_key;
 
+  // TODO: Rework logic to work with flat rate, below is a temp hack
   RuleStats delta = get_rule_delta(
       rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx);
-
   uint64_t delta_tx         = delta.tx;
   uint64_t delta_rx         = delta.rx;
   uint64_t delta_dropped_tx = delta.dropped_tx;
   uint64_t delta_dropped_rx = delta.dropped_rx;
-
-  // TODO: Rework logic to work with flat rate, below is a temp hack
-
-  // auto stats_map        = usage_it->second.stats_map;
-
-  // If no reported rule version already tracked, create one
-  //  if (last_tracked_version == stats_map.end()) {
-  //    RuleStats s = {0, 0, 0, 0};
-  //    stats_map[version] = s;
-  //
-  //    last_tracked_version = stats_map.find(version);
-  //  }
-
-  // auto cur_version = last_tracked_version->first;
-  // auto it          = stats_map.find(last_tracked_version_num);
-
-  // if prev ruleid != new
-  //  prev_usage.tx            = used_tx;
-  //  prev_usage.rx            = used_rx;
-  //  prev_usage.dropped_tx    = dropped_tx;
-  //  prev_usage.dropped_rx    = dropped_rx;
-  // current_version->second  = RuleStats{used_tx, used_rx, dropped_tx,
-  // dropped_rx};
 
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, &charging_key) ||
       static_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
@@ -616,7 +588,7 @@ void SessionState::add_rule_usage(
   }
   if (session_level_key_ != "" && monitoring_key != session_level_key_) {
     // Update session level key if its different
-    add_to_monitor(session_level_key_, delta_tx, used_rx, update_criteria);
+    add_to_monitor(session_level_key_, delta_tx, delta_rx, update_criteria);
   }
   if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
     update_used_data_metrics(delta_tx, delta_rx);

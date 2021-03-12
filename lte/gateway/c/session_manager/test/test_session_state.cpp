@@ -420,8 +420,8 @@ TEST_F(SessionStateTest, test_session_level_key) {
   auto& single_update_2 = update_2.usage_monitors(0).update();
   EXPECT_EQ(single_update_2.level(), MonitoringLevel::SESSION_LEVEL);
   // Substract the values from first usage report
-  EXPECT_EQ(single_update_2.bytes_rx() - 2000, 1);
-  EXPECT_EQ(single_update_2.bytes_tx() - 5000, 1001);
+  EXPECT_EQ(single_update_2.bytes_rx(), 1);
+  EXPECT_EQ(single_update_2.bytes_tx(), 1001);
 
   // apply updates (prepare the session to be merged into storage)
   // and check monitor has been deleted (=0)

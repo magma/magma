@@ -419,7 +419,6 @@ TEST_F(LocalEnforcerTest, test_multi_version_reporting) {
       IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 2, 5, 105, 0, 0,
       record_list->Add());
 
-
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
