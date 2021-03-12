@@ -21,7 +21,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
-	swagger_lib "magma/orc8r/cloud/go/swagger"
+	spec "magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/registry"
 
@@ -39,8 +39,8 @@ func Test_GetCommonSpec(t *testing.T) {
 	err := os.MkdirAll(commonSpecDir, os.ModePerm)
 	assert.NoError(t, err)
 
-	commonSpec := swagger_lib.Spec{
-		Tags: []swagger_lib.TagDefinition{{Name: "Tag Common"}},
+	commonSpec := spec.Spec{
+		Tags: []spec.TagDefinition{{Name: "Tag Common"}},
 	}
 	yamlCommon := marshalToYAML(t, commonSpec)
 
@@ -53,13 +53,13 @@ func Test_GetCommonSpec(t *testing.T) {
 }
 
 func Test_GetCombinedSwaggerSpecs(t *testing.T) {
-	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
-	commonSpec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{commonTag}}
+	commonTag := spec.TagDefinition{Name: "Tag Common"}
+	commonSpec := spec.Spec{Tags: []spec.TagDefinition{commonTag}}
 	yamlCommon := marshalToYAML(t, commonSpec)
 
 	// Success with no registered servicers
-	expectedSpec := swagger_lib.Spec{
-		Tags: []swagger_lib.TagDefinition{commonTag},
+	expectedSpec := spec.Spec{
+		Tags: []spec.TagDefinition{commonTag},
 	}
 	expectedYaml := marshalToYAML(t, expectedSpec)
 
@@ -69,15 +69,15 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 	assert.Equal(t, expectedYaml, combined)
 
 	// Success with registered servicers
-	tags := []swagger_lib.TagDefinition{
+	tags := []spec.TagDefinition{
 		{Name: "Tag 1"},
 		{Name: "Tag 2"},
 		{Name: "Tag 3"},
 	}
 	services := []string{"test_spec_service1", "test_spec_service2", "test_spec_service3"}
 
-	expectedSpec = swagger_lib.Spec{
-		Tags: []swagger_lib.TagDefinition{tags[0], tags[1], tags[2], commonTag},
+	expectedSpec = spec.Spec{
+		Tags: []spec.TagDefinition{tags[0], tags[1], tags[2], commonTag},
 	}
 	expectedYaml = marshalToYAML(t, expectedSpec)
 
@@ -85,7 +85,7 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
 
 	for i, s := range services {
-		registerServicer(t, s, tags[i])
+		registerServicer(t, s, tags[i], spec.TagDefinition{})
 	}
 
 	combined, err = swagger.GetCombinedSpec(yamlCommon)
@@ -95,7 +95,7 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 
 	// Success even with merge warnings (duplicate tag)
 	serviceDuplicate := "test_spec_service_dup"
-	registerServicer(t, serviceDuplicate, tags[0])
+	registerServicer(t, serviceDuplicate, tags[0], spec.TagDefinition{})
 
 	combined, err = swagger.GetCombinedSpec(yamlCommon)
 	assert.NoError(t, err)
@@ -103,53 +103,56 @@ func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 	assert.Equal(t, expectedYaml, combined)
 }
 
-func Test_GetCombinedSpecFromService(t *testing.T) {
-	commonTag := swagger_lib.TagDefinition{Name: "Tag Common"}
-	commonSpec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{commonTag}}
-	yamlCommon := marshalToYAML(t, commonSpec)
-
+func Test_GetServiceSpec(t *testing.T) {
 	// Fail with empty service
-	_, err := swagger.GetServiceSpec(yamlCommon, "")
+	_, err := swagger.GetServiceSpec("")
 	assert.Error(t, err)
 
 	// Fail with invalid service
-	_, err = swagger.GetServiceSpec(yamlCommon, "invalid_test_spec_service")
+	_, err = swagger.GetServiceSpec("invalid_test_spec_service")
 	assert.Error(t, err)
 
 	// Success with valid service
-	tag := swagger_lib.TagDefinition{Name: "Tag 1"}
+	tag := spec.TagDefinition{Name: "Tag 1"}
 	testService := "test_spec_service"
-	expected := swagger_lib.Spec{
-		Tags: []swagger_lib.TagDefinition{tag, commonTag},
+	expected := spec.Spec{
+		Tags: []spec.TagDefinition{tag},
 	}
 	expectedYaml := marshalToYAML(t, expected)
 
 	// Clean up registry
 	defer registry.RemoveServicesWithLabel(orc8r.SwaggerSpecLabel)
 
-	registerServicer(t, "test_spec_service", tag)
+	registerServicer(t, "test_spec_service", spec.TagDefinition{}, tag)
 
-	combined, err := swagger.GetServiceSpec(yamlCommon, testService)
+	combined, err := swagger.GetServiceSpec(testService)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedYaml, combined)
 }
 
-func registerServicer(t *testing.T, service string, tag swagger_lib.TagDefinition) {
+func registerServicer(
+	t *testing.T,
+	service string,
+	partialTag spec.TagDefinition,
+	standaloneTag spec.TagDefinition,
+) {
 	labels := map[string]string{
 		orc8r.SwaggerSpecLabel: "true",
 	}
 
 	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
-	spec := swagger_lib.Spec{Tags: []swagger_lib.TagDefinition{tag}}
+	partialSpec := spec.Spec{Tags: []spec.TagDefinition{partialTag}}
+	standaloneSpec := spec.Spec{Tags: []spec.TagDefinition{standaloneTag}}
 
-	yamlSpec := marshalToYAML(t, spec)
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer(yamlSpec))
+	partialYamlSpec := marshalToYAML(t, partialSpec)
+	standaloneYamlSpec := marshalToYAML(t, standaloneSpec)
+	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
 
 	go srv.RunTest(lis)
 }
 
 // marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.
-func marshalToYAML(t *testing.T, spec swagger_lib.Spec) string {
+func marshalToYAML(t *testing.T, spec spec.Spec) string {
 	data, err := spec.MarshalBinary()
 	assert.NoError(t, err)
 	return string(data)

@@ -74,9 +74,9 @@ func GetCombinedSpecHandler(yamlCommon string) echo.HandlerFunc {
 	}
 }
 
-// GetSpecHandler returns a routing handler which creates and serves the
-// raw YAML spec of a particular service.
-func GetSpecHandler(yamlCommon string) echo.HandlerFunc {
+// GetSpecHandler returns a routing handler which serves a standalone raw YAML
+// spec of a particular service.
+func GetSpecHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		service, ok, err := getServiceName(c.Param("service"))
 		if err != nil {
@@ -86,12 +86,12 @@ func GetSpecHandler(yamlCommon string) echo.HandlerFunc {
 			return obsidian.HttpError(errors.New("service not found"), http.StatusNotFound)
 		}
 
-		combined, err := swagger.GetServiceSpec(yamlCommon, service)
+		yamlSpec, err := swagger.GetServiceSpec(service)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 
-		return c.String(http.StatusOK, combined)
+		return c.String(http.StatusOK, yamlSpec)
 	}
 }
 
@@ -133,7 +133,7 @@ func registerSpecHandlers(e *echo.Echo, trailSlashMiddleware echo.MiddlewareFunc
 	}
 	e.GET(obsidian.StaticURLPrefix+"/v1/spec", nil, trailSlashMiddleware)
 
-	e.GET(obsidian.StaticURLPrefix+"/v1/spec/:service", GetSpecHandler(yamlCommon))
+	e.GET(obsidian.StaticURLPrefix+"/v1/spec/:service", GetSpecHandler())
 
 	return nil
 }
