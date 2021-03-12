@@ -118,9 +118,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     EXPECT_CALL(
         *pipelined_client, setup_lte(testing::_, testing::_, testing::_))
         .Times(1)
-        .WillOnce(testing::DoAll(
-            CallSetupCallback(SetupFlowsResult_Result_SUCCESS),
-            testing::Return(true)));
+        .WillOnce(CallSetupCallback(SetupFlowsResult_Result_SUCCESS));
     evb->loopOnce();
     evb->loopOnce();
   }
@@ -366,9 +364,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_pipelined_unavailable) {
   send_empty_table();
   // On failure cases, LocalEnforcer will endlessly retry the setup call
   EXPECT_CALL(*pipelined_client, setup_lte(testing::_, testing::_, testing::_))
-      .WillRepeatedly(testing::DoAll(
-          CallSetupCallback(SetupFlowsResult_Result_FAILURE),
-          testing::Return(true)));
+      .WillRepeatedly(CallSetupCallback(SetupFlowsResult_Result_FAILURE));
   evb->loopOnce();
   evb->loopOnce();
   // 1) Create the session
