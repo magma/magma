@@ -47,29 +47,6 @@ func TestParseSwaggerDependencyTree_Cycle(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestGenerateStandaloneSpec(t *testing.T) {
-	goldenFilePath := "../testdata/out.yml.golden"
-	targetFilePath := "../testdata/importer2.yml"
-	specTargetPath := "../testdata/test_result.yml"
-
-	os.Remove(specTargetPath)
-	defer os.Remove(specTargetPath)
-
-	specs, err := generate.ParseSwaggerDependencyTree(targetFilePath, os.Getenv("MAGMA_ROOT"))
-	assert.NoError(t, err)
-
-	err = generate.GenerateStandaloneSpec(targetFilePath, specs, specTargetPath)
-	assert.NoError(t, err)
-
-	actual, err := ioutil.ReadFile(specTargetPath)
-	assert.NoError(t, err)
-
-	expected, err := ioutil.ReadFile(goldenFilePath)
-	assert.NoError(t, err)
-
-	assert.Equal(t, expected, actual)
-}
-
 func TestGenerateModels(t *testing.T) {
 	runTestGenerateCase(t, "../testdata/importer2.yml", "../testdata/importer2")
 	runTestGenerateCase(t, "../testdata/importer.yml", "../testdata/importer")

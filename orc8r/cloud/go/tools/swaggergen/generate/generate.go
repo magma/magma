@@ -20,7 +20,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/swagger"
 
 	"github.com/pkg/errors"
@@ -166,51 +165,6 @@ func GenerateModels(targetFilepath string, configFilepath string, rootDir string
 	return nil
 }
 
-// GenerateStandaloneSpec generates a standalone spec file for a particular
-// Swagger spec.
-func GenerateStandaloneSpec(targetFilepath string, specs map[string]MagmaSwaggerSpec, outPath string) error {
-	absTargetFilepath, err := filepath.Abs(targetFilepath)
-	if err != nil {
-		return errors.Wrapf(err, "target filepath %s is invalid", targetFilepath)
-	}
-
-	var yamlSpecs []string
-	var yamlCommon string
-	for specFilepath, s := range specs {
-		if specFilepath != absTargetFilepath {
-			// Clearing fields not utilized by target service
-			s.Paths = nil
-			s.Tags = nil
-		}
-
-		yamlSpec, err := s.marshalToYAML()
-		if err != nil {
-			return err
-		}
-
-		if s.MagmaGenMeta.TempGenFilename == "orc8r-swagger-common.yml" {
-			yamlCommon = yamlSpec
-		} else {
-			yamlSpecs = append(yamlSpecs, yamlSpec)
-		}
-	}
-
-	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)
-	if err != nil {
-		return err
-	}
-	if warnings != nil {
-		return warnings
-	}
-
-	err = write(combined, outPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // ParseSwaggerDependencyTree parses the entire dependency tree of a magma
 // swagger spec file specified by the rootFilepath parameter.
 // The returned value maps between the absolute specified dependency filepath
@@ -288,19 +242,6 @@ func StripAndWriteSwaggerSpecs(specs map[string]MagmaSwaggerSpec) error {
 	return nil
 }
 
-// GetStandaloneFilepath parses the targetFilepath for its originating service.
-func GetStandaloneFilepath(targetFilePath string, rootDir string) (string, error) {
-	absTargetFilepath, err := filepath.Abs(targetFilePath)
-	if err != nil {
-		return "", errors.Wrapf(err, "target filepath %s is invalid", targetFilePath)
-	}
-	// Iterate through the file path to retrieve the service name of
-	// the Swagger spec
-	splitPath := strings.Split(absTargetFilepath, "/")
-	outFile := splitPath[len(splitPath)-4] + ".swagger.v1.yml"
-	return filepath.Join(rootDir, "orc8r/cloud/swagger/specs/standalone", outFile), nil
-}
-
 func readSwaggerSpec(filepath string) (MagmaSwaggerSpec, error) {
 	fileContents, err := ioutil.ReadFile(filepath)
 	if err != nil {
@@ -315,32 +256,11 @@ func readSwaggerSpec(filepath string) (MagmaSwaggerSpec, error) {
 	return spec, nil
 }
 
-// marshalToYAML marshals a MagmaSwaggerSpec to a YAML-formatted string.
-func (m *MagmaSwaggerSpec) marshalToYAML() (string, error) {
+// MarshalToYAML marshals a MagmaSwaggerSpec to a YAML-formatted string.
+func (m *MagmaSwaggerSpec) MarshalToYAML() (string, error) {
 	d, err := yaml.Marshal(&m)
 	if err != nil {
 		return "", err
 	}
 	return string(d), nil
-}
-
-// write spec to filepath.
-func write(outSpec string, filepath string) error {
-	f, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-	_, err = f.WriteString(outSpec)
-	if err != nil {
-		return err
-	}
-
-	err = f.Sync()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

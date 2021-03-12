@@ -19,11 +19,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/swagger/spec"
-	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
-
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
+	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
 )
 
 func init() {
@@ -31,7 +31,7 @@ func init() {
 }
 
 var (
-	testdataDir    = "testdata"
+	testdataDir    = "../testdata"
 	specsDir       = filepath.Join(testdataDir, "configs")
 	commonFilepath = filepath.Join(testdataDir, "common/common.yml")
 	outFilepath    = filepath.Join(testdataDir, "out.yml")

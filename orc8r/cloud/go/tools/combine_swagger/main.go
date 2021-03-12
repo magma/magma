@@ -30,6 +30,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
+	"magma/orc8r/cloud/go/tools/combine_swagger/gen"
 
 	"github.com/golang/glog"
 )
@@ -38,6 +39,8 @@ func main() {
 	inDir := flag.String("in", "", "Input directory")
 	commonFilepath := flag.String("common", "", "Common definitions filepath")
 	outFilepath := flag.String("out", "", "Output directory")
+	generateStandAloneSpec := flag.Bool("standalone", true, "Generate standalone specs")
+
 	flag.Parse()
 
 	fmt.Printf("Reading Swagger specs from directory:\n%s\n\n", *inDir)
@@ -61,5 +64,12 @@ func main() {
 	err = combine.Write(combined, *outFilepath)
 	if err != nil {
 		glog.Fatal(err)
+	}
+
+	if *generateStandAloneSpec {
+		err := gen.GenerateStandaloneSpecs(*inDir)
+		if err != nil {
+			glog.Fatalf("Error generating standalone Swagger specs %+v", err)
+		}
 	}
 }
