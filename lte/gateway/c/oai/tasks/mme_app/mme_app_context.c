@@ -104,8 +104,8 @@ static bool mme_app_recover_timers_for_ue(
 
 static void mme_app_resume_timers(
     struct ue_mm_context_s* const ue_mm_context_pP, time_t start_time,
-    struct mme_app_timer_t timer, mme_app_timer_callback_t timer_expiry_handler,
-    char* timer_name);
+    struct mme_app_timer_t* timer,
+    mme_app_timer_callback_t timer_expiry_handler, char* timer_name);
 
 static void _directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
@@ -2342,19 +2342,19 @@ static bool mme_app_recover_timers_for_ue(
     mme_app_resume_timers(
         ue_mm_context_pP,
         ue_mm_context_pP->time_mobile_reachability_timer_started,
-        ue_mm_context_pP->mobile_reachability_timer,
+        &ue_mm_context_pP->mobile_reachability_timer,
         mme_app_handle_mobile_reachability_timer_expiry, "Mobile Reachability");
   }
   if (ue_mm_context_pP->time_implicit_detach_timer_started) {
     mme_app_resume_timers(
         ue_mm_context_pP, ue_mm_context_pP->time_implicit_detach_timer_started,
-        ue_mm_context_pP->implicit_detach_timer,
+        &ue_mm_context_pP->implicit_detach_timer,
         mme_app_handle_implicit_detach_timer_expiry, "Implicit Detach");
   }
   if (ue_mm_context_pP->time_paging_response_timer_started) {
     mme_app_resume_timers(
         ue_mm_context_pP, ue_mm_context_pP->time_paging_response_timer_started,
-        ue_mm_context_pP->paging_response_timer,
+        &ue_mm_context_pP->paging_response_timer,
         mme_app_handle_paging_timer_expiry, "Paging Response");
   }
   if (ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED &&
@@ -2386,8 +2386,8 @@ static bool mme_app_recover_timers_for_ue(
 
 static void mme_app_resume_timers(
     struct ue_mm_context_s* const ue_mm_context_pP, time_t start_time,
-    struct mme_app_timer_t timer, mme_app_timer_callback_t timer_expiry_handler,
-    char* timer_name) {
+    struct mme_app_timer_t* timer,
+    mme_app_timer_callback_t timer_expiry_handler, char* timer_name) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   time_t current_time = time(NULL);
   time_t lapsed_time  = current_time - start_time;
@@ -2396,13 +2396,13 @@ static void mme_app_resume_timers(
   /* Below condition validates whether timer has expired before MME recovers
    * from restart, so MME shall handle as timer expiry
    */
-  if (timer.sec <= lapsed_time) {
+  if (timer->sec <= lapsed_time) {
     timer_expiry_handler(
         (void*) &(ue_mm_context_pP->mme_ue_s1ap_id),
         &(ue_mm_context_pP->emm_context._imsi64));
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  uint32_t remaining_time_in_seconds = timer.sec - lapsed_time;
+  uint32_t remaining_time_in_seconds = timer->sec - lapsed_time;
   OAILOG_DEBUG(
       LOG_MME_APP,
       "Current_time :%ld %s timer start time :%ld "
@@ -2418,13 +2418,13 @@ static void mme_app_resume_timers(
   if (timer_setup(
           remaining_time_in_seconds, 0, TASK_MME_APP, INSTANCE_DEFAULT,
           TIMER_ONE_SHOT, &timer_callback_arg, sizeof(timer_callback_arg),
-          &(timer.id)) < 0) {
+          &(timer->id)) < 0) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
         "Failed to start %s timer for UE id "
         "" MME_UE_S1AP_ID_FMT "\n",
         timer_name, ue_mm_context_pP->mme_ue_s1ap_id);
-    timer.id = MME_APP_TIMER_INACTIVE_ID;
+    timer->id = MME_APP_TIMER_INACTIVE_ID;
   } else {
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
