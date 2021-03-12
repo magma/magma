@@ -60,7 +60,6 @@ struct pcef_create_session_data {
 void pcef_create_session(
     spgw_state_t* state, const char* imsi, const char* ip4, const char* ip6,
     const struct pcef_create_session_data* session_data,
-    itti_sgi_create_end_point_response_t sgi_response,
     s5_create_session_request_t bearer_request,
     s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
 

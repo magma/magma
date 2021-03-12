@@ -1603,8 +1603,9 @@ definitions:
        $ref: '#/definitions/feg_network_id'
 
   feg_network_id:
+    description: Name of the federated network serving this LTE network. Blank for non federated
     type: string
-    example: 'example_feg_network'
+    example: 'feg_id_only_for_federated_network'
 
   network_ran_configs:
     description: RAN (radio access network) cellular configuration for a network

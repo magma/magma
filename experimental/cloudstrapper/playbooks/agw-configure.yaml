@@ -1,0 +1,15 @@
+---
+
+- hosts: "{{ agw }}"
+  roles:
+    - agw-platform
+  vars:
+    ansible_ssh_private_key_file: "{{ dirInventory }}/{{ keyHost }}.pem"
+  vars_files:
+    - roles/vars/defaults.yaml
+    - roles/vars/cluster.yaml
+    - "{{ dirInventory }}/secrets.yaml"
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ awsAccessKey }}"
+    AWS_SECRET_ACCESS_KEY: "{{ awsSecretKey }}"
+    AWS_DEFAULT_REGION: "{{ awsAgwRegion }}"
