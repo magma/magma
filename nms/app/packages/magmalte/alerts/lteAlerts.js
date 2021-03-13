@@ -66,7 +66,7 @@ export default function getLteAlerts(
     },
     'Sctpd Crashlooping Alert': {
       alert: 'Sctpd Crashlooping Alert',
-      expr: `increase(unexpected_service_restarts{networkID=~"${networkID}", service_name="sctpd"}[5m]) > 3`,
+      expr: `increase(service_restart_status{networkID=~"${networkID}", service_name="sctpd"}[5m]) > 3`,
       labels: {severity: 'critical'},
       annotations: {
         description: 'Alerts when we have sctpd service crashlooping',
