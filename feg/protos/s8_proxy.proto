@@ -139,6 +139,8 @@ message CreateSessionResponsePgw {
     uint32 c_agw_teid = 4;
     Fteid c_pgw_fteid = 5;
     BearerContext bearer_context = 6;
+    GtpError gtp_error = 7;
+
 }
 
 message DeleteSessionRequestPgw {
@@ -150,6 +152,7 @@ message DeleteSessionRequestPgw {
 }
 
 message DeleteSessionResponsePgw{
+    GtpError gtp_error = 1;
 }
 
 message EchoRequest{
@@ -158,4 +161,10 @@ message EchoRequest{
 }
 
 message EchoResponse{
+}
+
+message GtpError {
+    uint32 cause = 1;
+    string msg= 2;
+
 }

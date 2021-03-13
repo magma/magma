@@ -212,9 +212,6 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 		if err := session.Activate(); err != nil {
 			return err
 		}
-		if err := session.Activate(); err != nil {
-			return err
-		}
 
 		// save values given for testing purposes
 		mPgw.LastTEIDc, err = pgwFTEIDc.TEID()
@@ -334,7 +331,7 @@ func createQosIE(qp *gtpv2.QoSProfile) *ie.IE {
 
 }
 
-func (mPgw *MockPgw) getHandleCreateSessionRequestWithDeniedService() gtpv2.HandlerFunc {
+func (mPgw *MockPgw) getHandleCreateSessionRequestWithDeniedService(errorCause uint8) gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
 		fmt.Println("mock PGW received a CreateSessionRequest, but returning ERROR")
 		csReqFromSGW := msg.(*message.CreateSessionRequest)
@@ -350,14 +347,47 @@ func (mPgw *MockPgw) getHandleCreateSessionRequestWithDeniedService() gtpv2.Hand
 
 		// send
 		csRspFromPGW := message.NewCreateSessionResponse(
-			sgwTEID.MustTEID(), 0,
-			ie.NewCause(gtpv2.CauseServiceDenied, 0, 0, 0, nil),
+			sgwTEID.MustTEID(), msg.Sequence(),
+			ie.NewCause(errorCause, 0, 0, 0, nil),
 		)
 
 		if err := c.RespondTo(sgwAddr, csReqFromSGW, csRspFromPGW); err != nil {
 			return err
 		}
 
+		return nil
+	}
+}
+
+func (mPgw *MockPgw) getHandleCreateSessionRequestWithMissingIE() gtpv2.HandlerFunc {
+	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
+		fmt.Println("mock PGW received a CreateSessionRequest, but returning ERROR")
+		csReqFromSGW := msg.(*message.CreateSessionRequest)
+		sgwTEID := csReqFromSGW.SenderFTEIDC
+		if sgwTEID != nil {
+			_, err := sgwTEID.TEID()
+			if err != nil {
+				return err
+			}
+		} else {
+			return &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}
+		}
+
+		// Mising pgwFTEID and bearer pgwFTEIDu
+		csRspFromPGW := message.NewCreateSessionResponse(
+			sgwTEID.MustTEID(), msg.Sequence(),
+			ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
+			//pgwFTEIDc,
+			ie.NewPDNAddressAllocation("10.1.2.3"),
+			ie.NewAPNRestriction(gtpv2.APNRestrictionPublic2),
+			ie.NewBearerContext(
+				ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
+				ie.NewEPSBearerID(5),
+			))
+
+		if err := c.RespondTo(sgwAddr, csReqFromSGW, csRspFromPGW); err != nil {
+			return err
+		}
 		return nil
 	}
 }
