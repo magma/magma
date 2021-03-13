@@ -37,7 +37,7 @@ AsyncEventdClient::AsyncEventdClient() {
 void AsyncEventdClient::log_event(
     const Event& request, std::function<void(Status status, Void)> callback) {
   auto local_response =
-      new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
+      new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT_SEC);
   local_response->set_response_reader(std::move(
       stub_->AsyncLogEvent(local_response->get_context(), request, &queue_)));
 }

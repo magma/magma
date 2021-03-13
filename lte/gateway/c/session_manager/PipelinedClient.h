@@ -37,6 +37,8 @@ using std::experimental::optional;
  */
 class PipelinedClient {
  public:
+  virtual ~PipelinedClient() = default;
+
   /**
    * Activates all rules for provided SessionInfos
    * @param infos - list of SessionInfos to setup flows for
