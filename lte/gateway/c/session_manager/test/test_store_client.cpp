@@ -67,11 +67,11 @@ TEST_F(StoreClientTest, test_read_and_write) {
   auto tgpp_context   = TgppContext{};
   auto pdp_start_time = 12345;
 
-  auto store_client = new MemoryStoreClient(rule_store);
+  auto store_client = MemoryStoreClient(rule_store);
 
   // Emulate CreateSession, which needs to create a new session for a subscriber
   std::set<std::string> requested_ids{imsi, imsi2};
-  auto session_map = store_client->read_sessions(requested_ids);
+  auto session_map = store_client.read_sessions(requested_ids);
 
   auto uc = get_default_update_criteria();
 
@@ -113,10 +113,10 @@ TEST_F(StoreClientTest, test_read_and_write) {
   EXPECT_EQ(session_map[imsi2].size(), 1);
 
   // And now commit back to storage (memory actually, but later persistent)
-  store_client->write_sessions(std::move(session_map));
+  store_client.write_sessions(std::move(session_map));
 
   // Try to do a read to make sure that things are the same
-  auto session_map_2 = store_client->read_sessions(requested_ids);
+  auto session_map_2 = store_client.read_sessions(requested_ids);
   EXPECT_EQ(session_map_2.size(), 2);
   EXPECT_EQ(session_map_2[imsi].size(), 1);
   EXPECT_EQ(session_map_2[imsi].front()->get_session_id(), sid);
@@ -129,14 +129,14 @@ TEST_F(StoreClientTest, test_read_and_write) {
 
   // Now create a third session
   std::set<std::string> requested_imsi3{imsi3};
-  auto session_map_3 = store_client->read_sessions(requested_imsi3);
+  auto session_map_3 = store_client.read_sessions(requested_imsi3);
   EXPECT_EQ(session_map_3.size(), 1);
   session_map_3[imsi3].push_back(std::move(session3));
   EXPECT_EQ(session_map_3[imsi3].size(), 1);
-  store_client->write_sessions(std::move(session_map_3));
+  store_client.write_sessions(std::move(session_map_3));
 
   // Get all sessions
-  auto all_sessions = store_client->read_all_sessions();
+  auto all_sessions = store_client.read_all_sessions();
   EXPECT_EQ(all_sessions.size(), 3);
   EXPECT_EQ(all_sessions[imsi].size(), 1);
   EXPECT_EQ(all_sessions[imsi].front()->get_session_id(), sid);
