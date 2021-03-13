@@ -999,8 +999,9 @@ int s1ap_mme_handle_initial_context_setup_response(
           .item[initial_context_setup_rsp->e_rab_failed_to_setup_list
                     .no_of_items]
           .cause = erab_item->cause;
-      initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items++;
     }
+    initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items =
+        s1ap_e_rab_list->list.count;
   }
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
