@@ -59,6 +59,21 @@ class BridgeTools:
         return output_hex
 
     @staticmethod
+    def port_is_in_bridge(bridge, interface_name) -> bool:
+        """
+        check if port is part of the switch using ofctl cmd.
+        """
+        if not interface_name or interface_name == "":
+            return False
+        dump1 = subprocess.Popen(["ovs-ofctl", "show", bridge],
+                                 stdout=subprocess.PIPE)
+        for line1 in dump1.stdout.readlines():
+            if interface_name not in str(line1):
+                continue
+            return True
+        return False
+
+    @staticmethod
     def get_ofport(interface_name):
         """
         Gets the ofport name ofport number of a interface
