@@ -94,7 +94,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_focal.vm.provider "virtualbox" do |vb|
       vb.name = "magma-focal-dev"
       vb.linked_clone = true
-      vb.customize ["modifyvm", :id, "--memory", "6144"]
+      vb.customize ["modifyvm", :id, "--memory", "8192"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
