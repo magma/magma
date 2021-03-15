@@ -132,13 +132,14 @@ class StateManager {
       StateConverter::state_to_proto(state_cache_p, &state_proto);
 
       if (redis_client->write_proto(
-              table_key, state_proto, ++this->task_state_version) != RETURNok) {
+              table_key, state_proto, this->task_state_version) != RETURNok) {
         OAILOG_ERROR(log_task, "Failed to write state to db");
         return;
       }
       OAILOG_DEBUG(log_task, "Finished writing state");
     }
 
+    this->task_state_version++;
     this->state_dirty = false;
   }
 
@@ -151,13 +152,15 @@ class StateManager {
     ProtoUe ue_proto = ProtoUe();
     StateConverter::ue_to_proto(ue_context, &ue_proto);
     std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
-    if (redis_client->write_proto(key, ue_proto, ++this->ue_state_version) !=
+    if (redis_client->write_proto(key, ue_proto, this->ue_state_version) !=
         RETURNok) {
       OAILOG_ERROR(
           log_task, "Failed to write UE state to db for IMSI %s",
           imsi_str.c_str());
       return;
     }
+
+    this->ue_state_version++;
     OAILOG_DEBUG(
         log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
   }
