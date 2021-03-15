@@ -12,17 +12,53 @@
       "sysdep": "python3-aioeventlet",
       "version": "0.5.1"
     },
+    "aioh2": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-aioh2",
+      "version": "0.2.2"
+    },
+    "aiohttp": {
+      "root": true,
+      "source": "apt",
+      "sysdep": "python3-aiohttp",
+      "version": "1.2.0"
+    },
     "argparse": {
       "root": false,
       "source": "pypi",
       "sysdep": "python3-argparse",
       "version": "1.4.0"
     },
+    "astroid": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-astroid",
+      "version": "2.4.2"
+    },
+    "attrs": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-attrs",
+      "version": "20.3.0"
+    },
+    "bravado-core": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-bravado-core",
+      "version": "5.16.1"
+    },
     "certifi": {
       "root": true,
       "source": "pypi",
       "sysdep": "python3-certifi",
       "version": "2019.6.16"
+    },
+    "cffi": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-cffi",
+      "version": "1.14.5"
     },
     "chardet": {
       "root": true,
@@ -35,6 +71,12 @@
       "source": "pypi",
       "sysdep": "python3-click",
       "version": "7.1.2"
+    },
+    "cryptography": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-cryptography",
+      "version": "3.2.1"
     },
     "cython": {
       "root": true,
@@ -96,6 +138,12 @@
       "sysdep": "python3-greenlet",
       "version": "0.4.16"
     },
+    "grpcio": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-grpcio",
+      "version": "1.36.1"
+    },
     "h2": {
       "root": true,
       "source": "pypi",
@@ -120,11 +168,23 @@
       "sysdep": "python3-idna",
       "version": "2.8"
     },
+    "importlib-metadata": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-importlib-metadata",
+      "version": "2.1.1"
+    },
     "importlib-resources": {
       "root": false,
       "source": "pypi",
       "sysdep": "python3-importlib-resources",
       "version": "3.0.0"
+    },
+    "isort": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-isort",
+      "version": "4.3.21"
     },
     "itsdangerous": {
       "root": false,
@@ -138,17 +198,59 @@
       "sysdep": "python3-jinja2",
       "version": "2.10"
     },
+    "js-regex": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-js-regex",
+      "version": "1.0.1"
+    },
+    "jsonpickle": {
+      "root": true,
+      "source": "apt",
+      "sysdep": "python3-jsonpickle",
+      "version": "0.9.3"
+    },
+    "jsonpointer": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-jsonpointer",
+      "version": "2.0"
+    },
+    "jsonref": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-jsonref",
+      "version": "0.2"
+    },
+    "jsonschema": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-jsonschema",
+      "version": "3.1.0"
+    },
+    "lazy-object-proxy": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-lazy-object-proxy",
+      "version": "1.4.3"
+    },
     "lxml": {
       "root": true,
       "source": "pypi",
       "sysdep": "python3-lxml",
-      "version": "4.2.1"
+      "version": "4.6.2"
     },
     "markupsafe": {
       "root": false,
       "source": "pypi",
       "sysdep": "python3-markupsafe",
       "version": "1.1.1"
+    },
+    "mccabe": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-mccabe",
+      "version": "0.6.1"
     },
     "monotonic": {
       "root": false,
@@ -168,6 +270,12 @@
       "sysdep": "python3-netaddr",
       "version": "0.8.0"
     },
+    "netifaces": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-netifaces",
+      "version": "0.10.9"
+    },
     "oslo.config": {
       "root": false,
       "source": "pypi",
@@ -186,17 +294,71 @@
       "sysdep": "python3-pbr",
       "version": "5.4.5"
     },
+    "priority": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-priority",
+      "version": "1.3.0"
+    },
+    "prometheus-client": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-prometheus-client",
+      "version": "0.3.1"
+    },
+    "protobuf": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-protobuf",
+      "version": "3.14.0"
+    },
+    "psutil": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-psutil",
+      "version": "5.6.6"
+    },
+    "pycares": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-pycares",
+      "version": "3.1.1"
+    },
+    "pycparser": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-pycparser",
+      "version": "2.20"
+    },
     "pycryptodome": {
       "root": true,
       "source": "pypi",
       "sysdep": "python3-pycryptodome",
       "version": "3.9.9"
     },
+    "pylint": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-pylint",
+      "version": "2.6.2"
+    },
     "pymemoize": {
       "root": true,
       "source": "pypi",
       "sysdep": "python3-pymemoize",
       "version": "1.0.2"
+    },
+    "pyroute2": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-pyroute2",
+      "version": "0.5.14"
+    },
+    "pyrsistent": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-pyrsistent",
+      "version": "0.17.3"
     },
     "pystemd": {
       "root": true,
@@ -210,11 +372,35 @@
       "sysdep": "python3-python-dateutil",
       "version": "2.8.1"
     },
+    "python-redis-lock": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-python-redis-lock",
+      "version": "3.7.0"
+    },
     "pytz": {
       "root": false,
       "source": "pypi",
       "sysdep": "python3-pytz",
       "version": "2020.1"
+    },
+    "pyyaml": {
+      "root": true,
+      "source": "apt",
+      "sysdep": "python3-yaml",
+      "version": "3.12"
+    },
+    "redis": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-redis",
+      "version": "3.5.3"
+    },
+    "redis-collections": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-redis-collections",
+      "version": "0.9.0"
     },
     "repoze.lru": {
       "root": false,
@@ -227,6 +413,12 @@
       "source": "pypi",
       "sysdep": "python3-requests",
       "version": "2.22.0"
+    },
+    "rfc3987": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-rfc3987",
+      "version": "1.3.8"
     },
     "routes": {
       "root": false,
@@ -246,11 +438,23 @@
       "sysdep": "python3-scapy",
       "version": "2.4.4"
     },
+    "simplejson": {
+      "root": false,
+      "source": "apt",
+      "sysdep": "python3-simplejson",
+      "version": "3.10.0"
+    },
     "six": {
       "root": true,
       "source": "pypi",
       "sysdep": "python3-six",
       "version": "1.12.0"
+    },
+    "snowflake": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-snowflake",
+      "version": "0.0.3"
     },
     "spyne": {
       "root": true,
@@ -264,6 +468,24 @@
       "sysdep": "python3-stevedore",
       "version": "1.32.0"
     },
+    "strict-rfc3339": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-strict-rfc3339",
+      "version": "0.7"
+    },
+    "swagger-spec-validator": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-swagger-spec-validator",
+      "version": "2.7.3"
+    },
+    "systemd-python": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-systemd-python",
+      "version": "234"
+    },
     "termcolor": {
       "root": false,
       "source": "apt",
@@ -276,11 +498,29 @@
       "sysdep": "python3-tinyrpc",
       "version": "1.0.4"
     },
+    "toml": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-toml",
+      "version": "0.10.2"
+    },
+    "typed-ast": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-typed-ast",
+      "version": "1.4.2"
+    },
     "urllib3": {
       "root": true,
       "source": "pypi",
       "sysdep": "python3-urllib3",
       "version": "1.25.3"
+    },
+    "webcolors": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-webcolors",
+      "version": "1.11.1"
     },
     "webob": {
       "root": false,
@@ -299,6 +539,12 @@
       "source": "pypi",
       "sysdep": "python3-werkzeug",
       "version": "0.14"
+    },
+    "wrapt": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-wrapt",
+      "version": "1.12.1"
     },
     "wsgiserver": {
       "root": true,
@@ -763,11 +1009,26 @@
     "aioeventlet": {
       "version": "0.5.1"
     },
+    "aioh2": {
+      "version": "0.2.2"
+    },
+    "aiohttp": {
+      "version": "1.2.0"
+    },
+    "bravado-core": {
+      "version": "5.16.1"
+    },
     "certifi": {
       "version": "2019.6.16"
     },
     "chardet": {
       "version": "3.0.4"
+    },
+    "click": {
+      "version": "7.1.2"
+    },
+    "cryptography": {
+      "version": "3.2.1"
     },
     "cython": {
       "version": "0.29.1"
@@ -793,6 +1054,9 @@
     "glob2": {
       "version": "0.7"
     },
+    "grpcio": {
+      "version": "1.36.1"
+    },
     "h2": {
       "version": "3.2.0"
     },
@@ -802,23 +1066,77 @@
     "idna": {
       "version": "2.8"
     },
+    "itsdangerous": {
+      "version": "1.1.0"
+    },
+    "jinja2": {
+      "version": "2.10"
+    },
+    "jsonpickle": {
+      "version": "0.9.3"
+    },
+    "jsonpointer": {
+      "version": "2.0"
+    },
+    "jsonschema": {
+      "version": "3.1.0"
+    },
     "lxml": {
-      "version": "4.2.1"
+      "version": "4.6.2"
+    },
+    "netifaces": {
+      "version": "0.10.9"
+    },
+    "prometheus-client": {
+      "version": "0.3.1"
+    },
+    "protobuf": {
+      "version": "3.14.0"
+    },
+    "psutil": {
+      "version": "5.6.6"
+    },
+    "pycares": {
+      "version": "3.1.1"
     },
     "pycryptodome": {
       "version": "3.9.9"
     },
+    "pylint": {
+      "version": "2.6.2"
+    },
     "pymemoize": {
       "version": "1.0.2"
     },
+    "pyroute2": {
+      "version": "0.5.14"
+    },
     "pystemd": {
-      "version": "0.5.0"
+      "version": "0.8.0"
     },
     "python-dateutil": {
       "version": "2.8.1"
     },
+    "python-redis-lock": {
+      "version": "3.7.0"
+    },
+    "pytz": {
+      "version": "2020.1"
+    },
+    "pyyaml": {
+      "version": "3.12"
+    },
+    "redis": {
+      "version": "3.5.3"
+    },
+    "redis-collections": {
+      "version": "0.9.0"
+    },
     "requests": {
       "version": "2.22.0"
+    },
+    "rfc3987": {
+      "version": "1.3.8"
     },
     "ryu": {
       "version": "4.30"
@@ -826,14 +1144,29 @@
     "scapy": {
       "version": "2.4.4"
     },
+    "setuptools": {
+      "version": "49.6.0"
+    },
     "six": {
       "version": "1.12.0"
+    },
+    "snowflake": {
+      "version": "0.0.3"
     },
     "spyne": {
       "version": "2.12.16"
     },
+    "strict-rfc3339": {
+      "version": "0.7"
+    },
+    "systemd-python": {
+      "version": "234"
+    },
     "urllib3": {
       "version": "1.25.3"
+    },
+    "webcolors": {
+      "version": "1.11.1"
     },
     "websocket-client": {
       "version": "0.56.0"
