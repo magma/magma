@@ -175,7 +175,7 @@ class Classifier(MagmaController):
         match = MagmaMatch(in_port=self.config.internal_conntrack_port)
         flows.add_resubmit_next_service_flow(self._datapath,self.tbl_num, match, [],
                                              priority=flows.MINIMUM_PRIORITY,
-                                             reset_default_register=1,
+                                             reset_default_register=False,
                                              resubmit_table=self.config.internal_conntrack_fwd_tbl)
 
     def add_tunnel_flows(self, precedence:int, i_teid:int,
