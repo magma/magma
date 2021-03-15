@@ -165,7 +165,7 @@ def add_resubmit_next_service_flow(datapath, table, match, actions=None,
                                    instructions=None,
                                    priority=MINIMUM_PRIORITY, retries=3,
                                    cookie=0x0, idle_timeout=0, hard_timeout=0,
-                                   copy_table=None, reset_default_register=0,
+                                   copy_table=None, reset_default_register:bool = True,
                                    resubmit_table=None):
     """
     Add a flow to a table that resubmits to another service.
@@ -360,7 +360,7 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
                                            priority=MINIMUM_PRIORITY,
                                            cookie=0x0, idle_timeout=0,
                                            hard_timeout=0, copy_table=None,
-                                           reset_default_register=0,
+                                           reset_default_register:bool=True,
                                            resubmit_table=None):
     """
     Get an add flow modification message that resubmits to another service
@@ -407,7 +407,7 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
     if copy_table:
         actions.append(parser.NXActionResubmitTable(table_id=copy_table))
 
-    if (reset_default_register == 0):
+    if (reset_default_register):
         actions = actions + reset_scratch_reg_actions
 
     inst = __get_instructions_for_actions(ofproto, parser,

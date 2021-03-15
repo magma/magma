@@ -154,14 +154,14 @@ class Classifier(MagmaController):
         match = MagmaMatch()
         flows.add_resubmit_next_service_flow(self._datapath,self.tbl_num, match,
                                              priority=flows.MINIMUM_PRIORITY,
-                                             reset_default_register=1,
+                                             reset_default_register=False,
                                              resubmit_table=self.next_table)
 
     def _install_internal_pkt_fwd_flow(self):
         match = MagmaMatch(in_port=self.config.internal_sampling_port)
         flows.add_resubmit_next_service_flow(self._datapath,self.tbl_num, match,
                                              priority=flows.MINIMUM_PRIORITY,
-                                             reset_default_register=1,
+                                             reset_default_register=False,
                                              resubmit_table=self.config.internal_sampling_fwd_tbl)
 
 
@@ -189,7 +189,7 @@ class Classifier(MagmaController):
 
             flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
                                                  actions=actions, priority=priority,
-                                                 reset_default_register=1,
+                                                 reset_default_register=False,
                                                  resubmit_table=self.next_table)
 
         # Install Downlink Tunnel
@@ -213,7 +213,7 @@ class Classifier(MagmaController):
 
                 flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
                                                      actions=actions, priority=priority,
-                                                     reset_default_register=1,
+                                                     reset_default_register=False,
                                                      resubmit_table=self.next_table)
 
             # Add flow for mtr port
@@ -222,7 +222,7 @@ class Classifier(MagmaController):
 
             flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
                                                  actions=actions, priority=priority,
-                                                 reset_default_register=1,
+                                                 reset_default_register=False,
                                                  resubmit_table=self.next_table)
        
             # Add ARP flow for LOCAL port
@@ -236,7 +236,7 @@ class Classifier(MagmaController):
 
             flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
                                                  actions=actions, priority=priority,
-                                                 reset_default_register=1,
+                                                 reset_default_register=False,
                                                  resubmit_table=self.next_table)
 
             # Add ARP flow for mtr port
@@ -247,7 +247,7 @@ class Classifier(MagmaController):
 
             flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
                                                  actions=actions, priority=priority,
-                                                 reset_default_register=1,
+                                                 reset_default_register=False,
                                                  resubmit_table=self.next_table)
 
         return True
@@ -302,14 +302,14 @@ class Classifier(MagmaController):
 
 
     def _discard_tunnel_flows(self, precedence:int, i_teid:int,
-                              ue_ip_adr:IPAddress):
+                              ue_ip_adr:IPAddress=None):
         priority = Utils.get_of_priority(precedence)
         # discard uplink Tunnel
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
         flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
                                              priority=priority + 1,
-                                             reset_default_register=1,
+                                             reset_default_register=False,
                                              resubmit_table=self.next_table)
 
         # discard downlink Tunnel for LOCAL port
@@ -323,7 +323,7 @@ class Classifier(MagmaController):
 
             flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
                                                  priority=priority + 1,
-                                                 reset_default_register=1,
+                                                 reset_default_register=False,
                                                  resubmit_table=self.next_table)
 
             # discard downlink Tunnel for mtr port
@@ -332,11 +332,11 @@ class Classifier(MagmaController):
 
             flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
                                                  priority=priority + 1,
-                                                 reset_default_register=1,
+                                                 reset_default_register=False,
                                                  resubmit_table=self.next_table)
 
     def _resume_tunnel_flows(self, precedence:int, i_teid:int,
-                             ue_ip_adr:IPAddress):
+                             ue_ip_adr:IPAddress=None):
 
         priority = Utils.get_of_priority(precedence)
         # Forward flow for gtp port
@@ -357,7 +357,6 @@ class Classifier(MagmaController):
             flows.delete_flow(self._datapath, self.tbl_num, match,
                               priority=priority +1)
 
-            # Forward flow for mtr port
             match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
                                in_port=self.config.mtr_port, **ip_match_out)
 
