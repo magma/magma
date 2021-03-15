@@ -60,7 +60,8 @@ class RedisClient {
    * @return response code of operation
    */
   int write_proto(
-      const std::string& key, const google::protobuf::Message& proto_msg);
+      const std::string& key, const google::protobuf::Message& proto_msg,
+      uint64_t version);
 
   /**
    * Reads value from redis mapped to key and returns proto object

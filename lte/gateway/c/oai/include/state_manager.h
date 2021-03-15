@@ -131,7 +131,8 @@ class StateManager {
       ProtoType state_proto = ProtoType();
       StateConverter::state_to_proto(state_cache_p, &state_proto);
 
-      if (redis_client->write_proto(table_key, state_proto) != RETURNok) {
+      if (redis_client->write_proto(
+              table_key, state_proto, ++this->task_state_version) != RETURNok) {
         OAILOG_ERROR(log_task, "Failed to write state to db");
         return;
       }
@@ -150,7 +151,8 @@ class StateManager {
     ProtoUe ue_proto = ProtoUe();
     StateConverter::ue_to_proto(ue_context, &ue_proto);
     std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
-    if (redis_client->write_proto(key, ue_proto) != RETURNok) {
+    if (redis_client->write_proto(key, ue_proto, ++this->ue_state_version) !=
+        RETURNok) {
       OAILOG_ERROR(
           log_task, "Failed to write UE state to db for IMSI %s",
           imsi_str.c_str());
@@ -225,10 +227,11 @@ class StateManager {
   // Flag for check asserting if the state has been initialized.
   bool is_initialized;
   // Flag for check asserting that write should be done after read.
-  // TODO: Convert this to state versioning variable
   bool state_dirty;
   // Flag for enabling writing and reading to db.
   bool persist_state_enabled;
+  uint64_t task_state_version;
+  uint64_t ue_state_version;
 
  protected:
   std::string table_key;

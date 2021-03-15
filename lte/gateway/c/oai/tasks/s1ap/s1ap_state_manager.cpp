@@ -194,7 +194,8 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
   }
   oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
   S1apStateConverter::s1ap_imsi_map_to_proto(s1ap_imsi_map_, &imsi_proto);
-  redis_client->write_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
+  // s1ap_imsi_map is not state service synced, so version will not be updated
+  redis_client->write_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto, 0);
 }
 
 }  // namespace lte

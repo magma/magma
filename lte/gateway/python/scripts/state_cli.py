@@ -28,7 +28,7 @@ from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule
 
 from magma.common.redis.client import get_default_client
 from magma.common.redis.serializers import get_json_deserializer, \
-    get_proto_deserializer
+    get_proto_deserializer, get_proto_version
 from magma.mobilityd.serialize_utils import deserialize_ip_block, \
     deserialize_ip_desc
 
@@ -169,15 +169,18 @@ class StateCLI(object):
             value = json.loads(jsonpickle.encode(deserializer(value)))
             print(json.dumps(value, indent=2, sort_keys=True))
         else:
-            raise AttributeError('Key not found on redis')
+            raise AttributeError('Failed to parse state, make sure that the parsing of %s key is supported' % key_type)
 
     def _parse_state_proto(self, key_type, value):
         proto = self.STATE_PROTOS.get(key_type.lower())
         if proto:
             deserializer = get_proto_deserializer(proto)
-            print(deserializer(value))
+            parsed_value = deserializer(value)
+            if parsed_value:
+                version = get_proto_version(value)
+                print('State version: %s' % version)
         else:
-            raise AttributeError('Key not found on redis')
+            raise AttributeError('Failed to parse state, make sure that the parsing of %s key is supported' % key_type)
 
     def _parse_set_type(self, deserializer, key):
         set_values = self.client.smembers(key)
