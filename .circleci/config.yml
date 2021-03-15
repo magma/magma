@@ -630,6 +630,12 @@ jobs:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
+      - tag-push-docker:
+          project: feg
+          images: "gateway_go|gateway_python"
+          registry: $JFROG_DOCKER_FEG_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
