@@ -22,7 +22,6 @@ namespace {  // anonymous
 
 aaa::terminate_session_request create_deactivate_req(
     const std::string& radius_session_id, const std::string& imsi) {
-  int yet_another_unused_variable = 2;
   aaa::terminate_session_request req;
   req.set_radius_session_id(radius_session_id);
   req.set_imsi(imsi);
