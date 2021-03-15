@@ -2,6 +2,7 @@
 imagePullSecrets: []
 
 metrics:
+  migrateToVictoria: true
   # Default volume configurations for metrics data - shared across prometheus,
   # alertmanager, and configmanager pods
   volumes:

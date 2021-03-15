@@ -14,14 +14,89 @@ limitations under the License.
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: migrateToVictoria
+  name: migrate-to-victoria
 spec:
   template:
     spec:
+
+      volumes:
+        - name: script-dir
+          hostPath:
+            path: /scripts
+            type: DirectoryOrCreate
+        - name: setup-script
+          configMap:
+            name: migrate-to-victoria-setup-script
+        - name: prometheus-data
+{{ toYaml .Values.metrics.volumes.prometheusData.volumeSpec | indent 10 }}
+
+      initContainers:
+        - name: prepare-scripts
+          image: busybox
+          command: [ "sh", "-c", "cp /tmp/* /scripts; chmod -R 777 /scripts" ]
+          volumeMounts:
+            - name: script-dir
+              mountPath: /scripts
+            - name: setup-script
+              mountPath: /tmp
+        - name: setup
+          image: curlimages/curl
+          command: ["/scripts/setup.sh"]
+          volumeMounts:
+            - name: script-dir
+              mountPath: /scripts
+            - name: prometheus-data
+              mountPath: /data
       containers:
       - name: vmctl
+        volumeMounts:
+          - name: script-dir
+            mountPath: /scripts
+          - name: prometheus-data
+            mountPath: /data
         image: victoriametrics/vmctl
-        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+        command: ["prometheus --vm-addr={{ .Release.Name}}-victoria-metrics-single:8428 --prom-snapshot=/data/snapshots/"]
       restartPolicy: Never
   backoffLimit: 4
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: migrate-to-victoria-script
+data:
+  migrate.sh: |
+    #!/bin/sh
+
+    # ensure snapshot exists
+    if ls /data/snapshots; then echo 'snapshot exists'; else echo 'no snapshot'; fi;
+
+    vmctl-prod --version
+    sleep 100
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: migrate-to-victoria-setup-script
+data:
+  migrate.sh: |
+    #!/bin/sh
+
+    vmctl --version
+    sleep 100
+
+  setup.sh: |
+    #!/bin/sh
+    # setup main script
+    # request snapshot
+    # TODO: Why do I have to use the .magma.svc.cluster.local? If not fixable, will need to do nslookup to
+    #       get this name before curling
+    curl -XPOST http://{{ .Release.Name }}-prometheus.magma.svc.cluster.local:9090/api/v1/admin/tsdb/snapshot
+
+    # check that snapshot exists
+    for i in {1..100}; do sleep 1 && echo 'checking $i'; if ls /data/snapshots; then echo 'snapshot exists'; exit 0; fi; done; exit 1
+
+    # rename to predictable filename
+    mv /data/snapshots/
+
 {{- end }}
