@@ -21,8 +21,7 @@
 #include "TLVDecoder.h"
 #include "DetachAccept.h"
 
-int decode_detach_accept(
-    detach_accept_msg* detach_accept, uint8_t* buffer, uint32_t len) {
+int decode_detach_accept(detach_accept_msg* detach_accept, uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length

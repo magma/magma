@@ -1,0 +1,34 @@
+name: "Clang Format Lint"
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - lte/gateway/c/**
+      - orc8r/gateway/c/**
+
+jobs:
+  clang_format_lint:
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Check Out Repo 
+        uses: actions/checkout@v2
+      -
+        # I am using mmagician fork of get-changed-files (forked from jitterbit/get-changed-files)
+        #   Rationale: our workflow (merge branch into upstream master) is incompatible
+        #   See long list of GH Issues on https://github.com/jitterbit/get-changed-files w.r.t. head ahead of base
+        name: Fetch list of changed files
+        id: changed_files
+        uses: mmagician/get-changed-files@v2
+        with:
+          format: 'space-delimited'
+      -
+        name: "Clang Format Linting"
+        uses: DoozyX/clang-format-lint-action@v0.11
+        with:
+          source: ${{ steps.changed_files.outputs.all }}
+          extensions: 'c,h,cpp,hpp'
+          clangFormatVersion: 11
