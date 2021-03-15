@@ -301,7 +301,7 @@ class Classifier(MagmaController):
         return True    
 
 
-    def _discard_tunnel_flows(self, precedence:int, i_teid:int,
+    def _resume_tunnel_flows(self, precedence:int, i_teid:int,
                               ue_ip_adr:IPAddress=None):
         priority = Utils.get_of_priority(precedence)
         # discard uplink Tunnel
@@ -335,7 +335,7 @@ class Classifier(MagmaController):
                                                  reset_default_register=False,
                                                  resubmit_table=self.next_table)
 
-    def _resume_tunnel_flows(self, precedence:int, i_teid:int,
+    def _discard_tunnel_flows(self, precedence:int, i_teid:int,
                              ue_ip_adr:IPAddress=None):
 
         priority = Utils.get_of_priority(precedence)
