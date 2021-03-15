@@ -41,12 +41,16 @@ S1apStateManager& S1apStateManager::getInstance() {
 
 void S1apStateManager::init(
     uint32_t max_ues, uint32_t max_enbs, bool use_stateless) {
-  log_task              = LOG_S1AP;
-  table_key             = S1AP_STATE_TABLE;
-  task_name             = S1AP_TASK_NAME;
-  persist_state_enabled = use_stateless;
-  max_ues_              = max_ues;
-  max_enbs_             = max_enbs;
+  log_task                      = LOG_S1AP;
+  table_key                     = S1AP_STATE_TABLE;
+  task_name                     = S1AP_TASK_NAME;
+  persist_state_enabled         = use_stateless;
+  state_ue_ht_gen               = 0;
+  max_ues_                      = max_ues;
+  max_enbs_                     = max_enbs;
+  enbs_ht_generation_           = 0;
+  mmeid2associd_ht_generation_  = 0;
+  mme_ue_id_imsi_ht_generation_ = 0;
   create_state();
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_S1AP, "Failed to read state from redis");
@@ -192,9 +196,63 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
   if (!persist_state_enabled) {
     return;
   }
+  // return if no update is necessary
+  uint64_t mme_ue_id_imsi_ht_gen_last =
+      hashtable_uint64_ts_get_generation(s1ap_imsi_map_->mme_ue_id_imsi_htbl);
+  if (mme_ue_id_imsi_ht_generation_ == mme_ue_id_imsi_ht_gen_last) {
+    return;
+  }
+
   oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
   S1apStateConverter::s1ap_imsi_map_to_proto(s1ap_imsi_map_, &imsi_proto);
-  redis_client->write_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
+  int rc_result =
+      redis_client->write_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
+  if (rc_result == RETURNok) {
+    OAILOG_DEBUG(
+        log_task,
+        "S1apStateManager::write_s1ap_imsi_map_to_db(); ht gen: %lu state gen: "
+        "%lu",
+        mme_ue_id_imsi_ht_gen_last, mme_ue_id_imsi_ht_generation_);
+    mme_ue_id_imsi_ht_generation_ = mme_ue_id_imsi_ht_gen_last;
+  } else {
+    OAILOG_ERROR(
+        log_task,
+        "S1apStateManager::write_s1ap_imsi_map_to_db() FAILED; ht gen: %lu "
+        "state gen: "
+        "%lu",
+        mme_ue_id_imsi_ht_gen_last, mme_ue_id_imsi_ht_generation_);
+  }
+}
+
+bool S1apStateManager::should_sync_state_cache(
+    uint64_t& enbs_ht_new_gen, uint64_t& mmeid2associd_ht_new_gen) {
+  uint64_t last_enbs_ht_gen =
+      hashtable_ts_get_generation(&(state_cache_p->enbs));
+  uint64_t last_mmeid2associd_ht_gen =
+      hashtable_ts_get_generation(&(state_cache_p->mmeid2associd));
+
+  OAILOG_DEBUG(
+      log_task,
+      "S1apStateManager::should_sync_state_cache(); eNB (ht gen: %lu state "
+      "gen: %lu); mmeid2associd (ht gen: %lu state gen: %lu)",
+      last_enbs_ht_gen, enbs_ht_generation_, last_mmeid2associd_ht_gen,
+      mmeid2associd_ht_generation_);
+
+  bool should_sync =
+      (last_enbs_ht_gen != enbs_ht_generation_) ||
+      (last_mmeid2associd_ht_gen != mmeid2associd_ht_generation_);
+
+  // set to the latest generation values
+  enbs_ht_new_gen          = last_enbs_ht_gen;
+  mmeid2associd_ht_new_gen = last_mmeid2associd_ht_gen;
+
+  return should_sync;
+}
+
+void S1apStateManager::sync_state_cache(
+    uint64_t enbs_ht_new_gen, uint64_t mmeid2associd_ht_new_gen) {
+  enbs_ht_generation_          = enbs_ht_new_gen;
+  mmeid2associd_ht_generation_ = mmeid2associd_ht_new_gen;
 }
 
 }  // namespace lte

@@ -18,7 +18,7 @@ MME :
     # Define the limits of the system in terms of served eNB and served UE.
     # When the limits will be reached, overload procedure will take place.
     MAXENB                                    = 8;                              # power of 2
-    MAXUE                                     = 16;                             # power of 2
+    MAXUE                                     = 512;                             # power of 2
     RELATIVE_CAPACITY                         = {{ mmeRelativeCapacity }};
 
     EMERGENCY_ATTACH_SUPPORTED                     = "no";

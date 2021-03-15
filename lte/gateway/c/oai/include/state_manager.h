@@ -147,6 +147,15 @@ class StateManager {
         is_initialized,
         "StateManager init() function should be called to initialize state");
 
+    uint64_t ue_ht_new_gen;
+    if (!should_sync_uestate_cache(ue_ht_new_gen)) {
+      OAILOG_DEBUG(
+          log_task,
+          "There was no update to the UE state, ignore write_ue_state_to_db "
+          "for %s",
+          imsi_str.c_str());
+      return;
+    }
     ProtoUe ue_proto = ProtoUe();
     StateConverter::ue_to_proto(ue_context, &ue_proto);
     std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
@@ -156,8 +165,32 @@ class StateManager {
           imsi_str.c_str());
       return;
     }
+    state_ue_ht_gen = ue_ht_new_gen;
     OAILOG_DEBUG(
         log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
+  }
+
+  /**
+   * Returns true if state needs to be updated
+   * and sets the generation values of hash tables
+   * to the latest
+   */
+  virtual bool should_sync_uestate_cache(uint64_t& ue_ht_new_gen) {
+    uint64_t last_uestate_ht_gen = hashtable_ts_get_generation(state_ue_ht);
+    OAILOG_DEBUG(
+        log_task,
+        "StateManager::should_sync_uestate_cache(); (ht gen: %lu state gen: "
+        "%lu)",
+        last_uestate_ht_gen, state_ue_ht_gen);
+    if (last_uestate_ht_gen != state_ue_ht_gen) {
+      ue_ht_new_gen = last_uestate_ht_gen;
+      OAILOG_DEBUG(
+          log_task,
+          "StateManager::should_sync_uestate_cache(); returning true");
+      return true;
+    } else {
+      return false;
+    }
   }
 
   std::string get_imsi_str(imsi64_t imsi64) {
@@ -192,6 +225,7 @@ class StateManager {
   virtual void free_state() = 0;
 
   bool is_persist_state_enabled() const { return persist_state_enabled; }
+  bool is_state_dirty() const { return state_dirty; }
 
  protected:
   StateManager()
@@ -200,6 +234,7 @@ class StateManager {
         persist_state_enabled(false),
         state_cache_p(nullptr),
         state_ue_ht(nullptr),
+        state_ue_ht_gen(0),
         log_task(LOG_UTIL),
         redis_client(std::make_unique<RedisClient>()) {}
   virtual ~StateManager() = default;
@@ -220,6 +255,7 @@ class StateManager {
   // TODO: Make this a unique_ptr
   StateType* state_cache_p;
   hash_table_ts_t* state_ue_ht;
+  uint64_t state_ue_ht_gen;
   // TODO: Revisit one shared connection for all types of state
   std::unique_ptr<RedisClient> redis_client;
   // Flag for check asserting if the state has been initialized.

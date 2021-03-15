@@ -76,7 +76,9 @@ typedef struct obj_hash_table_s {
   void (*freedatafunc)(void**);
   bstring name;
   bool log_enabled;
+  uint64_t generation;  // increment with every ht modification
 } obj_hash_table_t;
+
 typedef struct obj_hash_table_uint64_s {
   pthread_mutex_t mutex;
   hash_size_t size;
@@ -87,6 +89,7 @@ typedef struct obj_hash_table_uint64_s {
   void (*freekeyfunc)(void**);
   bstring name;
   bool log_enabled;
+  uint64_t generation;  // increment with every ht modification
 } obj_hash_table_uint64_t;
 
 void obj_hashtable_no_free_key_callback(void* param);
@@ -179,6 +182,7 @@ hashtable_rc_t obj_hashtable_uint64_get_keys(
     unsigned int* sizeP);
 hashtable_rc_t obj_hashtable_uint64_resize(
     obj_hash_table_uint64_t* const hashtblP, const hash_size_t sizeP);
+uint64_t obj_hashtable_get_generation(obj_hash_table_t* const hashtblP);
 
 // Thread-safe functions
 obj_hash_table_uint64_t* obj_hashtable_uint64_ts_init(
@@ -210,5 +214,6 @@ hashtable_rc_t obj_hashtable_uint64_ts_get_keys(
     unsigned int* sizeP);
 hashtable_rc_t obj_hashtable_uint64_ts_resize(
     obj_hash_table_uint64_t* const hashtblP, const hash_size_t sizeP);
-
+uint64_t obj_hashtable_uint64_ts_get_generation(
+    obj_hash_table_uint64_t* const hashtblP);
 #endif

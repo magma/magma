@@ -87,6 +87,19 @@ class S1apStateManager
    */
   s1ap_imsi_map_t* get_s1ap_imsi_map();
 
+  /**
+   * Returns true if state needs to be updated
+   */
+  bool should_sync_state_cache(
+      uint64_t& enbs_ht_new_gen, uint64_t& mmeid2associd_ht_new_gen);
+
+  /**
+   * Sets the generation values of state hash tables
+   * to the latest
+   */
+  void sync_state_cache(
+      uint64_t enbs_ht_new_gen, uint64_t mmeid2associd_ht_new_gen);
+
  private:
   S1apStateManager();
   ~S1apStateManager();
@@ -102,6 +115,10 @@ class S1apStateManager
   uint32_t max_ues_;
   uint32_t max_enbs_;
   s1ap_imsi_map_t* s1ap_imsi_map_;
+  // last synced generation values
+  uint64_t enbs_ht_generation_;
+  uint64_t mmeid2associd_ht_generation_;
+  uint64_t mme_ue_id_imsi_ht_generation_;
 };
 }  // namespace lte
 }  // namespace magma

@@ -153,6 +153,7 @@ obj_hash_table_uint64_t* obj_hashtable_uint64_init(
     bassignformat(hashtblP->name, "obj_hashtable%u@%p", size, hashtblP);
   }
   hashtblP->log_enabled = true;
+  hashtblP->generation  = 0;
   return hashtblP;
 }
 
@@ -230,6 +231,7 @@ obj_hash_table_uint64_t* obj_hashtable_uint64_ts_init(
   }
 
   hashtblP->log_enabled = true;
+  hashtblP->generation  = 0;
   return hashtblP;
 }
 
@@ -518,6 +520,9 @@ hashtable_rc_t obj_hashtable_uint64_insert(
     return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
   }
 
+  // function call modifies the ht content
+  hashtblP->generation += 1;
+
   if (keyP == NULL) {
     PRINT_HASHTABLE(hashtblP, "return HASH_TABLE_BAD_PARAMETER_KEY\n");
     return HASH_TABLE_BAD_PARAMETER_KEY;
@@ -599,6 +604,9 @@ hashtable_rc_t obj_hashtable_uint64_ts_insert(
   hash = hashtblP->hashfunc(keyP, key_sizeP) % hashtblP->size;
   pthread_mutex_lock(&hashtblP->lock_nodes[hash]);
   node = hashtblP->nodes[hash];
+
+  // function call modifies the ht content
+  hashtblP->generation += 1;
 
   while (node) {
     if (node->key == keyP) {
@@ -697,6 +705,8 @@ hashtable_rc_t obj_hashtable_uint64_free(
       hashtblP->freekeyfunc(&node->key);
       free_wrapper((void**) &node);
       hashtblP->num_elements -= 1;
+      // ht content modified
+      hashtblP->generation += 1;
       PRINT_HASHTABLE(
           hashtblP, "%s(%s,key %p) hash %lx return OK\n", __FUNCTION__,
           bdata(hashtblP->name), keyP, hash);
@@ -747,6 +757,8 @@ hashtable_rc_t obj_hashtable_uint64_ts_free(
       hashtblP->freekeyfunc(&node->key);
       free_wrapper((void**) &node);
       __sync_fetch_and_sub(&hashtblP->num_elements, 1);
+      // ht content modified
+      hashtblP->generation += 1;
       pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
       PRINT_HASHTABLE(
           hashtblP, "%s(%s,key %p) hash %lx return OK\n", __FUNCTION__,
@@ -798,6 +810,8 @@ hashtable_rc_t obj_hashtable_uint64_remove(
       hashtblP->freekeyfunc(&node->key);
       free_wrapper((void**) &node);
       hashtblP->num_elements -= 1;
+      // ht content modified
+      hashtblP->generation += 1;
       PRINT_HASHTABLE(
           hashtblP, "%s(%s,key %p) hash %lx return OK\n", __FUNCTION__,
           bdata(hashtblP->name), keyP, hash);
@@ -848,6 +862,8 @@ hashtable_rc_t obj_hashtable_uint64_ts_remove(
       hashtblP->freekeyfunc(&node->key);
       free_wrapper((void**) &node);
       __sync_fetch_and_sub(&hashtblP->num_elements, 1);
+      // ht content modified
+      hashtblP->generation += 1;
       pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
       PRINT_HASHTABLE(
           hashtblP, "%s(%s,key %p) hash %lx return OK\n", __FUNCTION__,
@@ -1194,4 +1210,13 @@ hashtable_rc_t obj_hashtable_uint64_ts_resize(
   pthread_mutex_unlock(&hashtblP->mutex);
   PRINT_HASHTABLE(hashtblP, "return OK\n");
   return HASH_TABLE_OK;
+}
+
+//------------------------------------------------------------------------------
+/*
+   Function to return all keys of an object hash table
+*/
+uint64_t obj_hashtable_uint64_ts_get_generation(
+    obj_hash_table_uint64_t* const hashtblP) {
+  return hashtblP->generation;
 }

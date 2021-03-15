@@ -92,6 +92,7 @@ typedef struct hash_table_s {
   bstring name;
   bool is_allocated_by_malloc;
   bool log_enabled;
+  uint64_t generation;  // increment with every ht modification
 } hash_table_t;
 
 typedef struct hash_table_ts_s {
@@ -106,7 +107,9 @@ typedef struct hash_table_ts_s {
   bstring name;
   bool is_allocated_by_malloc;
   bool log_enabled;
+  uint64_t generation;  // increment with every ht modification
 } hash_table_ts_t;
+
 typedef struct hash_table_uint64_s {
   hash_size_t size;
   hash_size_t num_elements;
@@ -115,6 +118,7 @@ typedef struct hash_table_uint64_s {
   bstring name;
   bool is_allocated_by_malloc;
   bool log_enabled;
+  uint64_t generation;  // increment with every ht modification
 } hash_table_uint64_t;
 
 typedef struct hash_table_uint64_ts_s {
@@ -127,6 +131,7 @@ typedef struct hash_table_uint64_ts_s {
   bstring name;
   bool is_allocated_by_malloc;
   bool log_enabled;
+  uint64_t generation;  // increment with every ht modification
 } hash_table_uint64_ts_t;
 
 typedef struct hashtable_key_array_s {
@@ -174,6 +179,7 @@ hashtable_rc_t hashtable_get(
     __attribute__((hot));
 hashtable_rc_t hashtable_resize(
     hash_table_t* const hashtbl, const hash_size_t size);
+uint64_t hashtable_get_generation(hash_table_t* const hashtblP);
 
 // Thread-safe functions
 hash_table_ts_t* hashtable_ts_init(
@@ -209,6 +215,7 @@ hashtable_rc_t hashtable_ts_get(
     __attribute__((hot));
 hashtable_rc_t hashtable_ts_resize(
     hash_table_ts_t* const hashtbl, const hash_size_t size);
+uint64_t hashtable_ts_get_generation(hash_table_ts_t* const hashtblP);
 hash_table_uint64_ts_t* hashtable_uint64_ts_init(
     hash_table_uint64_ts_t* const hashtbl, const hash_size_t size,
     hash_size_t (*hashfunc)(const hash_key_t), bstring display_name_p);
@@ -243,5 +250,6 @@ hashtable_rc_t hashtable_uint64_ts_get(
     uint64_t* const dataP) __attribute__((hot));
 hashtable_rc_t hashtable_uint64_ts_resize(
     hash_table_uint64_ts_t* const hashtbl, const hash_size_t size);
-
+uint64_t hashtable_uint64_ts_get_generation(
+    hash_table_uint64_ts_t* const hashtblP);
 #endif

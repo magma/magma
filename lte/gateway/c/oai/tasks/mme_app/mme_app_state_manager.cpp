@@ -27,7 +27,7 @@ extern "C" {
 
 namespace {
 constexpr char MME_NAS_STATE_KEY[] = "mme_nas_state";
-const int NUM_MAX_UE_HTBL_LISTS    = 6;
+const int NUM_MAX_UE_HTBL_LISTS    = 512;
 constexpr char UE_ID_UE_CTXT_TABLE_NAME[] =
     "mme_app_mme_ue_s1ap_id_ue_context_htbl";
 constexpr char IMSI_UE_ID_TABLE_NAME[] = "mme_app_imsi_ue_context_htbl";

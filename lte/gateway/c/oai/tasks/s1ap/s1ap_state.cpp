@@ -50,7 +50,17 @@ void s1ap_state_exit() {
 }
 
 void put_s1ap_state() {
-  S1apStateManager::getInstance().write_state_to_db();
+  uint64_t enbs_ht_new_gen, mmeid2associd_ht_new_gen;
+  if (S1apStateManager::getInstance().should_sync_state_cache(
+          enbs_ht_new_gen, mmeid2associd_ht_new_gen)) {
+    S1apStateManager::getInstance().write_state_to_db();
+    if (S1apStateManager::getInstance().is_state_dirty() == false) {
+      OAILOG_DEBUG(
+          LOG_S1AP, "S1apStateManager::put_s1ap_state: Wrote state to db");
+      S1apStateManager::getInstance().sync_state_cache(
+          enbs_ht_new_gen, mmeid2associd_ht_new_gen);
+    }
+  }
 }
 
 enb_description_t* s1ap_state_get_enb(
@@ -149,6 +159,9 @@ void put_s1ap_ue_state(imsi64_t imsi64) {
     if (ue_ctxt) {
       auto imsi_str = S1apStateManager::getInstance().get_imsi_str(imsi64);
       S1apStateManager::getInstance().write_ue_state_to_db(ue_ctxt, imsi_str);
+      OAILOG_DEBUG(
+          LOG_S1AP,
+          "S1apStateManager::put_s1ap_ue_state: Wrote ue state to db");
     }
   }
 }
