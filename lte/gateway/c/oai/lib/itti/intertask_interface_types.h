@@ -64,8 +64,6 @@
 
 /* Defines to extract task ID fields */
 #define TASK_GET_THREAD_ID(tASKiD) (itti_desc.tasks_info[tASKiD].thread)
-/* Extract the instance from a message */
-#define ITTI_MESSAGE_GET_INSTANCE(mESSAGE) ((mESSAGE)->ittiMsgHeader.instance)
 
 #include <messages_types.h>
 
@@ -128,7 +126,7 @@ typedef struct MessageHeader_s {
 
       task_id_t originTaskId;      /**< ID of the sender task */
       task_id_t destinationTaskId; /**< ID of the destination task */
-      instance_t instance;         /**< Task instance for virtualization */
+      struct timespec timestamp;   /** Time msg got created */
       imsi64_t imsi;               /** IMSI associated to sender task */
 
       MessageHeaderSize

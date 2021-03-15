@@ -33,6 +33,7 @@
 #include "sms_orc8r_client_api.h"
 #include "common_defs.h"
 #include "intertask_interface_types.h"
+#include "itti_free_defined_msg.h"
 
 static void sms_orc8r_exit(void);
 
@@ -40,6 +41,9 @@ task_zmq_ctx_t sms_orc8r_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
+  if (!received_message_p) {
+    return 0;
+  }
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SGSAP_UPLINK_UNITDATA: {
@@ -55,6 +59,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case TERMINATE_MESSAGE: {
+      itti_free_msg_content(received_message_p);
       free(received_message_p);
       sms_orc8r_exit();
     } break;
@@ -66,6 +71,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
+  itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
 }

@@ -45,6 +45,7 @@
 #include "intertask_interface.h"
 #include "intertask_interface_conf.h"
 #include "common_defs.h"
+#include "itti_free_defined_msg.h"
 
 /* Includes "intertask_interface_init.h" to check prototype coherence, but
    disable threads and messages information generation.
@@ -59,6 +60,9 @@
 #include "dynamic_memory_check.h"
 #include "shared_ts_log.h"
 #include "log.h"
+
+/* ZMQ max queue depth. Drop msgs at receive end if exceeded*/
+#define ZMQ_MSG_TIMEOUT_NSEC 2 * 1000000000  // nano seconds
 
 /* ITTI DEBUG groups */
 #define ITTI_DEBUG_POLL (1 << 0)
@@ -147,9 +151,26 @@ MessageDef* receive_msg(zsock_t* reader) {
   // Copy message to avoid memory alignment problems
   MessageDef* msg = (MessageDef*) malloc(zframe_size(msg_frame));
   AssertFatal(msg != NULL, "Message memory allocation failed!\n");
-  memcpy(msg, zframe_data(msg_frame), zframe_size(msg_frame));
 
+  memcpy(msg, zframe_data(msg_frame), zframe_size(msg_frame));
   zframe_destroy(&msg_frame);
+
+  struct timespec current_time;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &current_time);
+  if ((current_time.tv_nsec - msg->ittiMsgHeader.timestamp.tv_nsec) >
+      ZMQ_MSG_TIMEOUT_NSEC) {
+    printf(
+        "Dropping ZMQ msg %s originating from %s due to exceeding max delay of "
+        "%d ns (actual %d ns)\n",
+        itti_get_message_name(msg->ittiMsgHeader.messageId),
+        itti_get_task_name(msg->ittiMsgHeader.originTaskId),
+        ZMQ_MSG_TIMEOUT_NSEC,
+        (int) (current_time.tv_nsec - msg->ittiMsgHeader.timestamp.tv_nsec));
+    itti_free_msg_content(msg);
+    free(msg);
+    return NULL;
+  }
+
   return msg;
 }
 
@@ -288,6 +309,7 @@ static MessageDef* itti_alloc_new_message_sized(
   new_msg->ittiMsgHeader.originTaskId = origin_task_id;
   new_msg->ittiMsgHeader.ittiMsgSize  = size;
   new_msg->ittiMsgHeader.imsi         = 0;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &new_msg->ittiMsgHeader.timestamp);
 
   return new_msg;
 }

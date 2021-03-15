@@ -55,6 +55,9 @@ extern __pid_t g_pid;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
+  if (!received_message_p) {
+    return 0;
+  }
 
   imsi64_t imsi64          = itti_get_associated_imsi(received_message_p);
   spgw_state_t* spgw_state = get_spgw_state(false);

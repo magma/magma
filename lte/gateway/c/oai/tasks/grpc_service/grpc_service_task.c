@@ -29,6 +29,7 @@
 #include "log.h"
 #include "mme_default_values.h"
 #include "grpc_service.h"
+#include "itti_free_defined_msg.h"
 
 static void grpc_service_exit(void);
 
@@ -37,9 +38,13 @@ task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
+  if (!received_message_p) {
+    return 0;
+  }
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE:
+      itti_free_msg_content(received_message_p);
       free(received_message_p);
       grpc_service_exit();
       break;
@@ -50,6 +55,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
   }
 
+  itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
 }

@@ -40,6 +40,9 @@ task_zmq_ctx_t service303_message_task_zmq_ctx;
 static int handle_service303_server_message(
     zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
+  if (!received_message_p) {
+    return 0;
+  }
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE:
@@ -76,6 +79,9 @@ static void* service303_server_thread(__attribute__((unused)) void* args) {
 
 static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
+  if (!received_message_p) {
+    return 0;
+  }
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TIMER_HAS_EXPIRED: {
@@ -101,6 +107,7 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
       service303_set_application_health(APP_UNHEALTHY);
     } break;
     case TERMINATE_MESSAGE:
+      itti_free_msg_content(received_message_p);
       free(received_message_p);
       service303_message_exit();
       break;
@@ -111,6 +118,7 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
+  itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
 }

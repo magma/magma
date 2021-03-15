@@ -63,6 +63,7 @@
 #include "hashtable.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
+#include "itti_free_defined_msg.h"
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -298,15 +299,20 @@ static void get_thread_context(log_thread_ctxt_t** thread_ctxt) {
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
+  if (!received_message_p) {
+    return 0;
+  }
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
+      itti_free_msg_content(received_message_p);
       free(received_message_p);
       log_exit();
     } break;
 
     default: { } break; }
 
+  itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
 }

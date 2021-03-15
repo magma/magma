@@ -33,6 +33,7 @@
 #include "csfb_client_api.h"
 #include "common_defs.h"
 #include "intertask_interface_types.h"
+#include "itti_free_defined_msg.h"
 
 static void sgs_exit(void);
 
@@ -40,6 +41,9 @@ task_zmq_ctx_t sgs_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
+  if (!received_message_p) {
+    return 0;
+  }
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SGSAP_LOCATION_UPDATE_REQ: {
@@ -156,6 +160,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       send_ue_unreachable(&SGSAP_UE_UNREACHABLE(received_message_p));
     } break;
     case TERMINATE_MESSAGE: {
+      itti_free_msg_content(received_message_p);
       free(received_message_p);
       sgs_exit();
     } break;
@@ -167,6 +172,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
+  itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
 }

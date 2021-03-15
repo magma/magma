@@ -196,6 +196,9 @@ static nw_rc_t s11_mme_stop_timer_wrapper(
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
+  if (!received_message_p) {
+    return 0;
+  }
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST: {

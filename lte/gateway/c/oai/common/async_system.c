@@ -58,6 +58,9 @@ task_zmq_ctx_t async_system_task_zmq_ctx;
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   int rc                         = 0;
   MessageDef* received_message_p = receive_msg(reader);
+  if (!received_message_p) {
+    return 0;
+  }
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case ASYNC_SYSTEM_COMMAND: {

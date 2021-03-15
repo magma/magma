@@ -57,7 +57,10 @@ task_zmq_ctx_t s6a_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
-  int rc                         = RETURNerror;
+  if (!received_message_p) {
+    return 0;
+  }
+  int rc = RETURNerror;
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST: {

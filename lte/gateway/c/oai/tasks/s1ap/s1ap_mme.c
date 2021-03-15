@@ -108,8 +108,11 @@ static int s1ap_send_init_sctp(void) {
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   s1ap_state_t* state;
   MessageDef* received_message_p = receive_msg(reader);
-  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
-  state                          = get_s1ap_state(false);
+  if (!received_message_p) {
+    return 0;
+  }
+  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+  state           = get_s1ap_state(false);
   AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
   switch (ITTI_MSG_ID(received_message_p)) {
