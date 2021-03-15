@@ -201,7 +201,6 @@ static void _create_new_attach_info(
 int emm_proc_attach_request(
     mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
     emm_attach_request_ies_t* const ies) {
-  int totally_useless = 1;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   ue_mm_context_t ue_ctx;
