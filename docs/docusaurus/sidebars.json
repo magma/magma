@@ -40,10 +40,10 @@
         "type": "subcategory",
         "label": "Development",
         "ids": [
-          "orc8r/dev_dependencies",
           "orc8r/dev_security",
           "orc8r/dev_testing_tips",
-          "orc8r/dev_minikube_deployment"
+          "orc8r/dev_minikube_deployment",
+          "orc8r/dev_dependencies"
         ]
       }
     ],

@@ -4,9 +4,10 @@ title: Module Dependencies
 hide_title: true
 ---
 
-# Module Dependencies
-Within Magma, each main submodule(orc8r, lte, cwf, feg, wifi, fbinternal),
-is in charge of generating and defining their own constructs.
-This resultingly creates module to module dependencies.
+# Module dependencies on generated constructs
 
-![Module Dependencies](assets/orc8r/module_dependencies.png)
+Within Magma, each module(orc8r, lte, cwf, feg, wifi, fbinternal),
+is in charge of generating and defining their own constructs. A module's
+constructs may have dependencies on those of another module.
+
+![Module Dependencies](assets/orc8r/gen_construct_dependencies.png)
