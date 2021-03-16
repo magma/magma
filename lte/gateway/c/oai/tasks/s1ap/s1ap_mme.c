@@ -350,12 +350,12 @@ int s1ap_mme_init(const mme_config_t* mme_config_p) {
 void s1ap_mme_exit(void) {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
 
-  destroy_task_context(&s1ap_task_zmq_ctx);
-
   put_s1ap_state();
   put_s1ap_imsi_map();
 
   s1ap_state_exit();
+
+  destroy_task_context(&s1ap_task_zmq_ctx);
 
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP: DONE\n");
   OAI_FPRINTF_INFO("TASK_S1AP terminated\n");

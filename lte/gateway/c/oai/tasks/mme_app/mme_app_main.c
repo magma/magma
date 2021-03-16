@@ -500,13 +500,12 @@ static bool _is_mme_app_healthy(void) {
 
 //------------------------------------------------------------------------------
 static void mme_app_exit(void) {
-  destroy_task_context(&mme_app_task_zmq_ctx);
   mme_app_edns_exit();
   clear_mme_nas_state();
   // Clean-up NAS module
   nas_network_cleanup();
   mme_config_exit();
-
+  destroy_task_context(&mme_app_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_MME_APP terminated\n");
   pthread_exit(NULL);
 }
