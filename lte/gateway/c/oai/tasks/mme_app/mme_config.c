@@ -920,7 +920,6 @@ int mme_config_parse_file(mme_config_t* config_pP) {
 
       for (i = 0; i < num; i++) {
         sub2setting = config_setting_get_elem(setting, i);
-        // PLMN
         if (sub2setting != NULL) {
           OAILOG_INFO(LOG_MME_APP, "sub2setting\n");
           // MODE
@@ -939,6 +938,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             }
           }
 
+          // PLMN
           if ((config_setting_lookup_string(
                   sub2setting, MME_CONFIG_STRING_PLMN, &astring))) {
             // NULL terminated string
