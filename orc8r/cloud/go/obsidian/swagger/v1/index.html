@@ -36,6 +36,9 @@
 
 <!-- Sidebar navigation -->
 <div class="sidenav">
+  <!-- Collapse Button -->
+  <button onclick="window.location=window.location + '?docExpansion=none' "> Collapse Tags </button>
+
   <a id = "home" {{if eq .SelectedService "" }}class="selected"{{end}} href="./"> Home </a>
 
   {{ range $idx, $val := .Services}}
