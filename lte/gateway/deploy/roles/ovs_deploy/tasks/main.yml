@@ -127,6 +127,7 @@
   become: yes
   apt:
     name: "{{ packages }}"
+    dpkg_options: 'force-overwrite,force-confdef,force-confold'
   vars:
     packages:
       - magma
