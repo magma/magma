@@ -115,6 +115,20 @@ StoredSessionState SessionState::marshal() {
     marshaled.rule_lifetimes[it.first] = it.second;
   }
 
+  marshaled.policy_stats_map = PolicyStatsMap();
+  for (auto& it : policy_stats_map_) {
+    marshaled.policy_stats_map[it.first] = it.second;
+  }
+  //
+  //  marshaled.policy_stats_map = PolicyStatsMap();
+  //  for (auto& it : policy_stats_map_) {
+  //   marshaled.policy_stats_map[it.first] = it.second;
+  //    for (auto& stat :  it.second.stats_map) {
+  //        marshaled.policy_stats_map[it.first].stats_map[stat.first] =
+  //        stat.second;
+  //    }
+  //  }
+
   return marshaled;
 }
 
@@ -172,6 +186,9 @@ SessionState::SessionState(
   }
   for (auto& rule : marshaled.gy_dynamic_rules) {
     gy_dynamic_rules_.insert_rule(rule);
+  }
+  for (auto& it : marshaled.policy_stats_map) {
+    policy_stats_map_[it.first] = it.second;
   }
 }
 
@@ -498,23 +515,24 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
 
 RuleStats SessionState::get_rule_delta(
     const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
-    uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx) {
+    uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
+    SessionStateUpdateCriteria& uc) {
   RuleStats ret = {0};
 
   auto it = policy_stats_map_.find(rule_id);
   // If no previous record found, create one
   if (it == policy_stats_map_.end()) {
     policy_stats_map_[rule_id] = Usage();
-    it                   = policy_stats_map_.find(rule_id);
+    it                         = policy_stats_map_.find(rule_id);
   }
 
   auto last_tracked_version_num = it->second.last_reported_rule_version;
   auto last_tracked =
       policy_stats_map_[rule_id].stats_map.find(last_tracked_version_num);
   if (it == policy_stats_map_.end()) {
-     MLOG(MERROR) << "Can't lookup rule stats for rule_id " << rule_id <<
-                     " for version "<< last_tracked_version_num;
-     return ret;
+    MLOG(MERROR) << "Can't lookup rule stats for rule_id " << rule_id
+                 << " for version " << last_tracked_version_num;
+    return ret;
   }
 
   RuleStats prev_usage = last_tracked->second;
@@ -531,7 +549,6 @@ RuleStats SessionState::get_rule_delta(
 
     policy_stats_map_[rule_id].last_reported_rule_version = rule_version;
   } else {
-
     if (prev_usage.tx != 0 && prev_usage.tx > used_tx) {
       MLOG(MERROR) << "Reported stat used_tx than the current tracked one";
       return ret;
@@ -550,6 +567,14 @@ RuleStats SessionState::get_rule_delta(
   policy_stats_map_[rule_id].stats_map[rule_version] =
       RuleStats{used_tx, used_rx, dropped_tx, dropped_rx};
 
+  if (uc.rule_usage_updates.find(rule_id) == policy_stats_map_.end()) {
+    uc.rule_usage_updates[rule_id] = Usage();
+  }
+  uc.rule_usage_updates[rule_id].last_reported_rule_version =
+      policy_stats_map_[rule_id].last_reported_rule_version;
+  uc.rule_usage_updates[rule_id].stats_map[rule_version] =
+      policy_stats_map_[rule_id].stats_map[rule_version];
+
   return ret;
 }
 
@@ -561,7 +586,8 @@ void SessionState::add_rule_usage(
 
   // TODO: Rework logic to work with flat rate, below is a temp hack
   RuleStats delta = get_rule_delta(
-      rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx);
+      rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx,
+      update_criteria);
   uint64_t delta_tx         = delta.tx;
   uint64_t delta_rx         = delta.rx;
   uint64_t delta_dropped_tx = delta.dropped_tx;
@@ -598,7 +624,8 @@ void SessionState::add_rule_usage(
   if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
     update_data_metrics(UE_USED_COUNTER_NAME, delta_tx, delta_rx);
   }
-  update_data_metrics(UE_DROPPED_COUNTER_NAME, delta_dropped_tx, delta_dropped_rx);
+  update_data_metrics(
+      UE_DROPPED_COUNTER_NAME, delta_dropped_tx, delta_dropped_rx);
 }
 
 void SessionState::apply_session_rule_set(
@@ -1518,6 +1545,9 @@ ReAuthResult SessionState::reauth_all(
   }
   return res;
 }
+
+void SessionState::apply_rule_usage_update(
+    const PolicyStatsMap rule_usage_updates) {}
 
 void SessionState::apply_charging_credit_update(
     const CreditKey& key, SessionCreditUpdateCriteria& credit_uc) {

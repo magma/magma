@@ -320,6 +320,100 @@ StoredMonitorMap deserialize_stored_usage_monitor_map(std::string& serialized) {
   return stored;
 }
 
+std::string serialize_rule_stats(RuleStats& stored) {
+  folly::dynamic marshaled = folly::dynamic::object;
+
+  marshaled["tx"]         = std::to_string(stored.tx);
+  marshaled["rx"]         = std::to_string(stored.rx);
+  marshaled["dropped_tx"] = std::to_string(stored.dropped_tx);
+  marshaled["dropped_rx"] = std::to_string(stored.dropped_rx);
+
+  std::string serialized = folly::toJson(marshaled);
+  return serialized;
+}
+
+std::string serialize_policy_stats_map(PolicyStatsMap stored) {
+  folly::dynamic marshaled = folly::dynamic::object;
+
+  folly::dynamic policy_keys = folly::dynamic::array;
+  folly::dynamic policy_map  = folly::dynamic::object;
+
+  for (auto& policy_stat : stored) {
+    policy_keys.push_back(policy_stat.first);
+    folly::dynamic usage = folly::dynamic::object;
+    usage["last_reported_rule_version"] =
+        std::to_string(policy_stat.second.last_reported_rule_version);
+
+    usage["stats_map"]        = folly::dynamic::object();
+    folly::dynamic stats_keys = folly::dynamic::array;
+    folly::dynamic stats_map  = folly::dynamic::object;
+
+    for (auto& stat : policy_stat.second.stats_map) {
+      std::string version_str = std::to_string(stat.first);
+      stats_keys.push_back(version_str);
+      folly::dynamic stats   = folly::dynamic::object;
+      stats["tx"]            = std::to_string(stat.second.tx);
+      stats["rx"]            = std::to_string(stat.second.rx);
+      stats["dropped_tx"]    = std::to_string(stat.second.dropped_tx);
+      stats["dropped_rx"]    = std::to_string(stat.second.dropped_rx);
+      stats_map[version_str] = folly::toJson(stats);
+    }
+    usage["stats_keys"]           = stats_keys;
+    usage["stats_map"]            = stats_map;
+    policy_map[policy_stat.first] = folly::toJson(usage);
+  }
+
+  marshaled["policy_keys"] = policy_keys;
+  marshaled["policy_map"]  = policy_map;
+
+  std::string serialized = folly::toJson(marshaled);
+  return serialized;
+}
+
+RuleStats deserialize_rule_stats(std::string& serialized) {
+  auto folly_serialized    = folly::StringPiece(serialized);
+  folly::dynamic marshaled = folly::parseJson(folly_serialized);
+  auto stored              = RuleStats{};
+
+  stored.tx = static_cast<uint64_t>(std::stoul(marshaled["tx"].getString()));
+  stored.rx = static_cast<uint64_t>(std::stoul(marshaled["rx"].getString()));
+  stored.dropped_rx =
+      static_cast<uint64_t>(std::stoul(marshaled["dropped_rx"].getString()));
+  stored.dropped_tx =
+      static_cast<uint64_t>(std::stoul(marshaled["dropped_tx"].getString()));
+
+  return stored;
+}
+
+Usage deserialize_usage(std::string& serialized) {
+  auto folly_serialized    = folly::StringPiece(serialized);
+  folly::dynamic marshaled = folly::parseJson(folly_serialized);
+  auto stored              = Usage{};
+
+  stored.last_reported_rule_version = static_cast<uint64_t>(
+      std::stoul(marshaled["last_reported_rule_version"].getString()));
+  for (auto& key : marshaled["stats_keys"]) {
+    int stat_key = static_cast<uint64_t>(std::stoul(key.getString()));
+    stored.stats_map[stat_key] =
+        deserialize_rule_stats(marshaled["stats_map"][key].getString());
+  }
+
+  return stored;
+}
+
+PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
+  auto folly_serialized    = folly::StringPiece(serialized);
+  folly::dynamic marshaled = folly::parseJson(folly_serialized);
+  auto stored              = PolicyStatsMap{};
+  for (auto& key : marshaled["policy_keys"]) {
+    std::string monitor_key = key.getString();
+    stored[monitor_key] =
+        deserialize_usage(marshaled["policy_map"][key].getString());
+  }
+
+  return stored;
+}
+
 EventTriggerStatus deserialize_pending_event_triggers(std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
@@ -440,6 +534,9 @@ std::string serialize_stored_session(StoredSessionState& stored) {
 
   marshaled["request_number"] = std::to_string(stored.request_number);
 
+  marshaled["policy_stats_map"] =
+      serialize_policy_stats_map(stored.policy_stats_map);
+
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
@@ -505,6 +602,9 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
       std::stoul(marshaled["pdp_start_time"].getString()));
   stored.pdp_end_time =
       static_cast<uint64_t>(std::stoul(marshaled["pdp_end_time"].getString()));
+
+  stored.policy_stats_map =
+      deserialize_policy_stats_map(marshaled["policy_stats_map"].getString());
 
   return stored;
 }

@@ -191,8 +191,8 @@ struct Usage {
 
   Usage() {
     last_reported_rule_version = 0;
-    RuleStats s  = {0, 0, 0, 0};
-    stats_map    = {{0, s}};
+    RuleStats s                = {0, 0, 0, 0};
+    stats_map                  = {{0, s}};
   }
 };
 
@@ -255,7 +255,7 @@ struct StoredSessionState {
   google::protobuf::Timestamp revalidation_time;
   BearerIDByPolicyID bearer_id_by_policy;
   std::vector<SetGroupPDR> PdrList;
-  PolicyStatsMap rule_usage;
+  PolicyStatsMap policy_stats_map;
 };
 
 // Update Criteria
@@ -330,6 +330,8 @@ struct SessionStateUpdateCriteria {
   // Only valid if is_bearer_mapping_updated is true
   BearerIDByPolicyID bearer_id_by_policy;
   Teids teids;
+
+  PolicyStatsMap rule_usage_updates;
 };
 
 SessionStateUpdateCriteria get_default_update_criteria();
