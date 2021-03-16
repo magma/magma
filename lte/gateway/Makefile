@@ -179,8 +179,16 @@ test_oai: build_common ## Run all OAI-specific tests
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
-test_%: stop build_common
+test_%: build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+
+coverage_oai: test_oai
+	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_oai.info
+	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
+
+coverage_session_manager: test_session_manager
+	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_session_manager.info
+	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
 # format and test c/session_manager
 precommit_sm: format_session_manager test_session_manager
@@ -230,57 +238,11 @@ clang_tidy_oai_upload: clang_tidy_oai
 		--data-urlencode "entry.740240539=$(shell grep '\[misc-' /tmp/clang-tidy-oai.findings | wc -l)" \
 		https://docs.google.com/forms/d/e/1FAIpQLSfHGqOmDhUMAWHSjA_w6NOGqglQBx2IaO1bXLo6zrOE95sRWQ/formResponse?usp=pp_url
 
-# TODO: include coverage of dpim when it is included in make build
-COV_OUTPUT_OAI = $(OAI_BUILD)/coverage.info
-COV_OUTPUT_SM = $(C_BUILD)/session_manager/coverage.info
-COV_OUTPUT_TOTAL = $(C_BUILD)/coverage.info
-# Put HTML within magma directory, so it can be accessed from outside VM
-COV_HTML_DIR_OAI = $(GATEWAY_C_DIR)/oai/code_coverage
-COV_HTML_DIR_SM = $(GATEWAY_C_DIR)/session_manager/code_coverage
-COV_HTML_DIR_TOTAL = $(MAGMA_ROOT)/c/code_coverage
+## Generate complete code structural information prior to any test execution
+base_coverage: build_oai build_session_manager build_connection_tracker
+	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info
+	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
-SLEEP_SECS = 10
-
-coverage: ## Generate full code coverage report
-	# Remove any previous gcov output files
-	rm -f `find $(OAI_BUILD) -name *.gcda`
-	rm -f `find $(C_BUILD)/session_manager -name *.gcda`
-	# Stop processes to generate gcda
-	sudo service magma@mme stop
-	sudo pkill -INT sessiond
-	# Wait for gcov output to be generated
-	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
-	sleep $(SLEEP_SECS)
-	# Capture coverage info under different directories individually
-	lcov --capture --directory $(OAI_BUILD) --output-file $(COV_OUTPUT_OAI)
-	lcov --capture --directory $(C_BUILD)/session_manager --output-file $(COV_OUTPUT_SM)
-	# Merge coverage info
-	lcov --add-tracefile $(COV_OUTPUT_OAI) --add-tracefile $(COV_OUTPUT_SM) --output-file $(COV_OUTPUT_TOTAL)
-	# Remove coverage info regarding libraries from /usr/include/
-	lcov --remove $(COV_OUTPUT_TOTAL) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_TOTAL) --quiet
-	# Generate html which shows coverage with graph
-	genhtml $(COV_OUTPUT_TOTAL) --output-directory $(COV_HTML_DIR_TOTAL)
-	@echo "Generated coverage output to $(COV_HTML_DIR_TOTAL)/index.html"
-
-coverage_oai: ## Generate code coverage report for OAI
-	rm -f `find $(OAI_BUILD) -name *.gcda`
-	sudo service magma@mme stop
-	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
-	sleep $(SLEEP_SECS)
-	lcov --capture --directory $(OAI_BUILD) --output-file $(COV_OUTPUT_OAI)
-	lcov --remove $(COV_OUTPUT_OAI) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_OAI) --quiet
-	genhtml $(COV_OUTPUT_OAI) --output-directory $(COV_HTML_DIR_OAI)
-	@echo "Generated coverage output to $(COV_HTML_DIR_OAI)/index.html"
-
-coverage_sm: ## Generate code coverage report for session manager
-	rm -f `find $(C_BUILD)/session_manager -name *.gcda`
-	sudo pkill -INT sessiond
-	sleep $(SLEEP_SECS)
-	lcov --capture --directory $(C_BUILD)/session_manager --output-file $(COV_OUTPUT_SM)
-	lcov --remove $(COV_OUTPUT_SM) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_SM) --quiet
-	genhtml $(COV_OUTPUT_SM) --output-directory $(COV_HTML_DIR_SM)
-	@echo "Generated coverage output to $(COV_HTML_DIR_SM)/index.html"
-
-code_stats: ## Generate lines-of-code statistics for magma project
-	sudo apt-get install -y cloc
-	cloc .
+# Combine results of sub-coverages
+coverage: base_coverage coverage_oai coverage_session_manager
+	lcov -a /tmp/coverage_initialize.info -a /tmp/coverage_oai.info -a /tmp/coverage_session_manager.info -o $(C_BUILD)/coverage.info
