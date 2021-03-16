@@ -39,6 +39,7 @@ from lte.protos.pipelined_pb2 import (
     SetupQuotaRequest,
     SetupUEMacRequest,
     TableAssignment,
+    SessionSet,
     UPFSessionContextState,
     VersionedPolicy,
 )
@@ -793,16 +794,16 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut.set_result(response)
 
     def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
-        if pdr_entry.pdr_state == PdrState.Value('INSTALL'):
-            ret = self._classifier_app.add_tunnel_flows(\
-                           pdr_entry.precedence, pdr_entry.local_f_teid,\
-                           pdr_entry.far_action.o_teid, pdr_entry.ue_ip_addr,\
-                           pdr_entry.far_action.gnb_ip_addr, encode_imsi(subscriber_id))
+        ret = True
 
-        elif pdr_entry.pdr_state in \
-             [PdrState.Value('REMOVE'), PdrState.Value('IDLE')]:
-            ret = self._classifier_app.delete_tunnel_flows(\
-                           pdr_entry.local_f_teid, pdr_entry.ue_ip_addr)
+        ret = self._classifier_app.gtp_handler(pdr_entry.pdr_state,
+                                                pdr_entry.precedence,
+                                                pdr_entry.local_f_teid,
+                                                pdr_entry.far_action.o_teid,
+                                                pdr_entry.ue_ip_addr,
+                                                pdr_entry.far_action.gnb_ip_addr,
+                                                encode_imsi(subscriber_id),
+                                                self._classifier_app.CLASSIFIER_CONTROLLER_ID)
 
         return ret
 

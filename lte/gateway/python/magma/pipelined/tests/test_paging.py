@@ -52,6 +52,7 @@ class PagingTest(unittest.TestCase):
     BRIDGE_IP = '192.168.128.1'
     EnodeB_IP = '192.168.60.141'
     Dst_nat = '192.168.129.42'
+    CLASSIFIER_CONTROLLER_ID = 5
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
@@ -120,7 +121,8 @@ class PagingTest(unittest.TestCase):
         # install the specific flows test case.
         self.classifier_controller._delete_all_flows()
 
-        self.classifier_controller._install_paging_flow("192.168.128.30")
+        self.classifier_controller._install_paging_flow("192.168.128.30",
+                                                        self.CLASSIFIER_CONTROLLER_ID) 
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -146,8 +148,8 @@ class PagingTest(unittest.TestCase):
         # install the specific flows test case.
         self.classifier_controller._delete_all_flows() 
 
-        self.classifier_controller._install_paging_flow("192.168.128.30")
-        
+        self.classifier_controller._install_paging_flow("192.168.128.30",
+                                                        self.CLASSIFIER_CONTROLLER_ID)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         eth = Ether(dst=self.MAC_1, src=self.MAC_2)
