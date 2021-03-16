@@ -114,7 +114,7 @@ setup(
         'hpack>=3.0',
         'freezegun>=0.3.15',
         'pycryptodome>=3.9.9',
-        'pyroute2'
+        'pyroute2>=0.5.14'
     ],
     extras_require={
         'dev': [
@@ -123,7 +123,6 @@ setup(
             # update it in lte/gateway/python/Makefile
             'grpcio-tools>=1.16.1',
             'nose==1.3.7',
-            'pyroute2',
             'iperf3',
         ]
     },

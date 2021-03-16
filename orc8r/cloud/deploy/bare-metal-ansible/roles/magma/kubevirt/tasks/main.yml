@@ -1,0 +1,9 @@
+- name: Apply kubevirt CRD
+  command: kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/{{ kubevirt_version }}/kubevirt-operator.yaml
+
+- name: Wait for CRDs to register
+  pause:
+    seconds: 5
+
+- name: Install kubevirt
+  command: kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/{{ kubevirt_version }}/kubevirt-cr.yaml

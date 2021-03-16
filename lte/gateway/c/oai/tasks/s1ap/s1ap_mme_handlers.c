@@ -980,7 +980,9 @@ int s1ap_mme_handle_initial_context_setup_response(
   }
 
   // Failed bearers
-  itti_mme_app_initial_context_setup_rsp_t* initial_context_setup_rsp = NULL;
+  itti_mme_app_initial_context_setup_rsp_t* initial_context_setup_rsp =
+      &(MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p));
+  initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items = 0;
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_InitialContextSetupResponseIEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_E_RABFailedToSetupListBearerSURes, false);
@@ -997,8 +999,9 @@ int s1ap_mme_handle_initial_context_setup_response(
           .item[initial_context_setup_rsp->e_rab_failed_to_setup_list
                     .no_of_items]
           .cause = erab_item->cause;
-      initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items++;
     }
+    initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items =
+        s1ap_e_rab_list->list.count;
   }
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
@@ -1262,6 +1265,7 @@ int s1ap_mme_generate_ue_context_release_command(
     case S1AP_INVALID_MME_UE_S1AP_ID:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_unknown_mme_ue_s1ap_id;
+      break;
     case S1AP_NAS_MME_OFFLOADING:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;

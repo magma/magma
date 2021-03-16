@@ -1,5 +1,5 @@
 ---
-id: testing_tips
+id: dev_testing_tips
 title: Testing Tips
 hide_title: true
 ---

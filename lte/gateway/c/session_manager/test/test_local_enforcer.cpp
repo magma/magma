@@ -52,15 +52,13 @@ class LocalEnforcerTest : public ::testing::Test {
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
     pipelined_client     = std::make_shared<MockPipelinedClient>();
-    directoryd_client    = std::make_shared<MockDirectorydClient>();
     spgw_client          = std::make_shared<MockSpgwServiceClient>();
     aaa_client           = std::make_shared<MockAAAClient>();
     events_reporter      = std::make_shared<MockEventsReporter>();
     auto default_mconfig = get_default_mconfig();
     local_enforcer       = std::make_unique<LocalEnforcer>(
-        reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, events_reporter, spgw_client, aaa_client, 0, 0,
-        default_mconfig);
+        reporter, rule_store, *session_store, pipelined_client, events_reporter,
+        spgw_client, aaa_client, 0, 0, default_mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map = SessionMap{};
@@ -168,7 +166,6 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<SessionStore> session_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
-  std::shared_ptr<MockDirectorydClient> directoryd_client;
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
   std::shared_ptr<MockEventsReporter> events_reporter;
@@ -815,7 +812,7 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   CreateSessionResponse response;
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 1024, true, response.mutable_credits()->Add());
-  auto session_state = new SessionState(
+  auto session_state = std::make_unique<SessionState>(
       IMSI1, SESSION_ID_1, test_cfg_, *rule_store, tgpp_ctx, pdp_start_time,
       response);
 
@@ -829,7 +826,7 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   session_state->set_revalidation_time(time, uc);
 
   session_map[IMSI1] = SessionVector();
-  session_map[IMSI1].push_back(std::unique_ptr<SessionState>(session_state));
+  session_map[IMSI1].push_back(std::move(session_state));
 
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   bool success =

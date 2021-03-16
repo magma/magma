@@ -23,6 +23,8 @@ import (
 )
 
 const (
+	// MariaDriver etc. are allowed database/sql drivers.
+	// Full list: https://github.com/golang/go/wiki/SQLDrivers
 	MariaDriver    = "mysql"
 	PostgresDriver = "postgres"
 	SQLiteDriver   = "sqlite3"

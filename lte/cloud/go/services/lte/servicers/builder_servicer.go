@@ -81,7 +81,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return nil, err
 	}
 
-	federatedNetworkConfigs, err := getFederatedNetworkConfigs(cellularNwConfig.FegNetworkID, request)
+	federatedNetworkConfigs, err := getFederatedNetworkConfigs(network.Type, cellularNwConfig.FegNetworkID, request)
 	if err != nil {
 		glog.Errorf("Failed to retrieve LTE_federated network config while building lte mconfig")
 		return nil, err
@@ -528,17 +528,18 @@ func getServiceAreaMaps(serviceAreaMaps map[string]lte_models.TacList) map[strin
 
 // getFederatedNetworkConfigs in case this is a federated LTE networkm this function will try to parse out
 // feg_models.FederatedNetworkConfigs out of it
-func getFederatedNetworkConfigs(fegId lte_models.FegNetworkID, request *builder_protos.BuildRequest) (*feg_models.FederatedNetworkConfigs, error) {
-	if fegId == "" {
+func getFederatedNetworkConfigs(networkType string, fegId lte_models.FegNetworkID, request *builder_protos.BuildRequest) (*feg_models.FederatedNetworkConfigs, error) {
+	if networkType != feg.FederatedLteNetworkType {
 		// this is a non federated network, return nothing
+		return nil, nil
+	}
+	if fegId == "" {
+		glog.Warning("federated_id is empty. Ignoring Federated LTE Network config and movign on")
 		return nil, nil
 	}
 	network, err := (configurator.Network{}).FromProto(request.Network, feg_serdes.Network)
 	if err != nil {
 		return nil, err
-	}
-	if network.Type != feg.FederatedLteNetworkType {
-		return nil, fmt.Errorf("LTE network has a federated id, but it is not defined as FederatedLteNetworkType: %s", network.Type)
 	}
 	inwConfig, found := network.Configs[feg.FederatedNetworkType]
 	if !found || inwConfig == nil {

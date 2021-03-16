@@ -337,10 +337,6 @@ commands:
 
   magma_slack_notify:
     description: Notify Slack on magma job failure
-    parameters:
-      channel:
-        type: string
-        default: "#magma_ci"
     steps:
       - run:
           command: |
@@ -364,7 +360,6 @@ commands:
             email=$(git show -s --format='%ae')
             rel_time=$(git show -s --format='%cr')
             abs_time=$(git show -s --format='%cd')
-            slack_channel=<< parameters.channel >>
             gh_text="<https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}|${CIRCLE_SHA1:0:8}> by ${author} <${email}> ${rel_time} (${abs_time})"
 
             pretext="Job \`${CIRCLE_JOB}\` #${CIRCLE_BUILD_NUM} on branch \`${CIRCLE_BRANCH}\` of ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} failed. Check the <${CIRCLE_BUILD_URL}|build logs> for details."
@@ -372,7 +367,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "${slack_channel}",
+              "channel": "${SLACK_CHANNEL_CI}",
               "text": "*CircleCI Job Failure*",
               "attachments": [
                 {
@@ -392,7 +387,7 @@ commands:
             EOF
             )
             echo $slack_data
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
           when: always
 
   persist-githash-version:
@@ -440,7 +435,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "#ci-publish",
+              "channel": "${SLACK_CHANNEL_ARTIFACTS}",
               "text": "*<< parameters.artifact_name >> Artifact Has Been Published*",
               "attachments": [
                 {
@@ -464,7 +459,7 @@ commands:
             }
             EOF
             )
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
   ### CLOUD
@@ -563,6 +558,13 @@ jobs:
           project: orc8r
           images: "nginx|controller"
           tag-latest: true
+      - tag-push-docker:
+          project: orc8r
+          images: "nginx|controller"
+          tag-latest: true
+          registry: $JFROG_DOCKER_ORC8R_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -635,6 +637,12 @@ jobs:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
+      - tag-push-docker:
+          project: feg
+          images: "gateway_go|gateway_python"
+          registry: $JFROG_DOCKER_FEG_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -711,6 +719,14 @@ jobs:
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
           tag-latest: <<parameters.tag-latest>>
+      - tag-push-docker:
+          project: cwf
+          images: <<parameters.images>>
+          tag: <<parameters.tag>>
+          tag-latest: <<parameters.tag-latest>>
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -821,6 +837,12 @@ jobs:
           project: cwf
           images: "operator"
           registry: $DOCKER_MAGMA_REGISTRY
+      - tag-push-docker:
+          project: cwf
+          images: "operator"
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -1010,8 +1032,7 @@ jobs:
       - when:
           condition: <<parameters.notify_xwfm_ci>>
           steps:
-            - magma_slack_notify:
-                channel: "#xwfm_ci"
+            - magma_slack_notify
 
   xwfm-deploy:
     parameters:

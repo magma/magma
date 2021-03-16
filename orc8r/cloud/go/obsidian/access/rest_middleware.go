@@ -31,7 +31,6 @@ import (
 // 1) determines request's access type (READ/WRITE)
 // 2) finds Operator & Entities of the request
 // 3) verifies Operator's access permissions for the entities
-
 func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		decorate := getDecorator(c.Request())

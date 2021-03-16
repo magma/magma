@@ -76,13 +76,16 @@ func newS8ProxyImp(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
 }
 
 func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRequestPgw) (*protos.CreateSessionResponsePgw, error) {
+	err := validateCreateSessionRequest(req)
+	if err != nil {
+		return nil, err
+	}
 	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
 	if err != nil {
 		err = fmt.Errorf("Create Session Request failed due to missing server address: %s", err)
 		glog.Error(err)
 		return nil, err
 	}
-
 	// build csReq IE message
 	csReqMsg, err := buildCreateSessionRequestMsg(cPgwUDPAddr, req)
 	if err != nil {
@@ -100,14 +103,12 @@ func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 }
 
 func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
-	// TODO make this stateless once MME has all the requiered information
 	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
 	if err != nil {
 		err = fmt.Errorf("Delete Session failed due to missing server address: %s", err)
 		glog.Error(err)
 		return nil, err
 	}
-
 	dsReqMsg := buildDeleteSessionRequestMsg(req)
 	cdRes, err := s.sendAndReceiveDeleteSession(req, cPgwUDPAddr, dsReqMsg)
 	if err != nil {
@@ -145,4 +146,12 @@ func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.
 		return s.config.ServerAddr, nil
 	}
 	return nil, fmt.Errorf("Neither the request nor s8_proxy has a valid server (pgw) address")
+}
+
+func validateCreateSessionRequest(csr *protos.CreateSessionRequestPgw) error {
+	if csr.CAgwTeid == 0 || csr.BearerContext == nil ||
+		csr.BearerContext.UserPlaneFteid == nil || csr.BearerContext.Id == 0 {
+		return fmt.Errorf("CreateSessionRequest missing fields %+v", csr)
+	}
+	return nil
 }

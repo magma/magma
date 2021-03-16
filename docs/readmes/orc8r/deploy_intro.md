@@ -51,7 +51,7 @@ likely work as well.
 - `v1.4` [patch branch](https://github.com/magma/magma/tree/v1.4)
 - `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.4`
 Terraform module source
-- `1.5.8` Helm chart version
+- `1.5.16` Helm chart version
 - Additional notes
     - `9.6` PostgreSQL target release, newer versions will likely work as well
 

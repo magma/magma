@@ -14,7 +14,6 @@
 #include "magma_logging.h"
 #include <chrono>
 #include <ctime>
-using grpc::ServerContext;
 using grpc::Status;
 
 namespace magma {
@@ -45,6 +44,12 @@ void AsyncService::wait_for_requests() {
 void AsyncService::stop() {
   running_ = false;
   cq_->Shutdown();
+  // Pop all items in the queue until it is empty
+  // https://github.com/grpc/grpc/issues/8610
+  void* tag;
+  bool ok;
+  while (cq_->Next(&tag, &ok)) {
+  }
 }
 
 LocalSessionManagerAsyncService::LocalSessionManagerAsyncService(

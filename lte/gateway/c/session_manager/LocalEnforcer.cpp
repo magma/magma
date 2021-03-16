@@ -35,7 +35,6 @@ uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY                = 2000;
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE                      = false;
 
 using google::protobuf::RepeatedPtrField;
-using google::protobuf::util::TimeUtil;
 
 using namespace std::placeholders;
 
@@ -57,7 +56,6 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<SessionReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
     std::shared_ptr<EventsReporter> events_reporter,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
@@ -67,7 +65,6 @@ LocalEnforcer::LocalEnforcer(
     : reporter_(reporter),
       rule_store_(rule_store),
       pipelined_client_(pipelined_client),
-      directoryd_client_(directoryd_client),
       events_reporter_(events_reporter),
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
