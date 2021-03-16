@@ -1,0 +1,147 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+MAX_NUM_PARTIAL_NG_CONN_RESET	ngap_amf_handlers.h	32;"	d
+NGAP_FIND_PROTOCOLIE_BY_ID	ngap_common.h	703;"	d
+NGAP_GNB_TIMER	ngap_types.h	/^  NGAP_GNB_TIMER,$/;"	e	enum:n1_timer_class_s
+NGAP_INIT	ngap_types.h	/^  NGAP_INIT,  \/\/\/ The sctp association has been established but n1 hasn't been$/;"	e	enum:amf_ng_gnb_state_s
+NGAP_INVALID_TIMER_CLASS	ngap_types.h	/^  NGAP_INVALID_TIMER_CLASS,$/;"	e	enum:n1_timer_class_s
+NGAP_MAX_BROADCAST_PLMNS	ngap_types.h	31;"	d
+NGAP_MAX_TAI_ITEMS	ngap_types.h	33;"	d
+NGAP_READY	ngap_types.h	/^  NGAP_READY,     \/\/\/< AMF and gNB are N1 associated, UE contexts can be added$/;"	e	enum:amf_ng_gnb_state_s
+NGAP_RESETING	ngap_types.h	/^  NGAP_RESETING,  \/\/\/ The n1state is resetting due to an SCTP reset on the bound$/;"	e	enum:amf_ng_gnb_state_s
+NGAP_SHUTDOWN	ngap_types.h	/^  NGAP_SHUTDOWN   \/\/\/ The N1 state is being torn down due to sctp shutdown.$/;"	e	enum:amf_ng_gnb_state_s
+NGAP_UE_CONNECTED	ngap_types.h	/^  NGAP_UE_CONNECTED,    \/\/\/< UE context ready$/;"	e	enum:ng_ue_state_s
+NGAP_UE_HANDOVER	ngap_types.h	/^  NGAP_UE_HANDOVER,     \/\/\/< Handover procedure triggered$/;"	e	enum:ng_ue_state_s
+NGAP_UE_INVALID_STATE	ngap_types.h	/^  NGAP_UE_INVALID_STATE,$/;"	e	enum:ng_ue_state_s
+NGAP_UE_TIMER	ngap_types.h	/^  NGAP_UE_TIMER$/;"	e	enum:n1_timer_class_s
+NGAP_UE_WAITING_CRR	ngap_types.h	/^  NGAP_UE_WAITING_CRR,  \/\/\/ UE Context release Procedure initiated , waiting for$/;"	e	enum:ng_ue_state_s
+NGAP_UE_WAITING_CSR	ngap_types.h	/^  NGAP_UE_WAITING_CSR,  \/\/\/< Waiting for Initial Context Setup Response$/;"	e	enum:ng_ue_state_s
+TA_LIST_AT_LEAST_ONE_MATCH	ngap_amf_ta.h	/^  TA_LIST_AT_LEAST_ONE_MATCH = 0x2,$/;"	e	enum:__anon1
+TA_LIST_COMPLETE_MATCH	ngap_amf_ta.h	/^  TA_LIST_COMPLETE_MATCH     = 0x3,$/;"	e	enum:__anon1
+TA_LIST_NO_MATCH	ngap_amf_ta.h	/^  TA_LIST_NO_MATCH           = 0x1,$/;"	e	enum:__anon1
+TA_LIST_RET_OK	ngap_amf_ta.h	/^  TA_LIST_RET_OK             = 0,$/;"	e	enum:__anon1
+TA_LIST_UNKNOWN_PLMN	ngap_amf_ta.h	/^  TA_LIST_UNKNOWN_PLMN       = -1,$/;"	e	enum:__anon1
+TA_LIST_UNKNOWN_TAC	ngap_amf_ta.h	/^  TA_LIST_UNKNOWN_TAC        = -2,$/;"	e	enum:__anon1
+amf_config	ngap_amf.c	/^amf_config_t amf_config;$/;"	v
+amf_ng_gnb_state_s	ngap_types.h	/^enum amf_ng_gnb_state_s {$/;"	g
+amf_ue_id_imsi_htbl	ngap_types.h	/^  hash_table_uint64_ts_t* amf_ue_id_imsi_htbl;$/;"	m	struct:ngap_imsi_map_s
+amf_ue_ngap_id	ngap_types.h	/^  amf_ue_ngap_id_t amf_ue_ngap_id;  \/\/\/< Unique UE id over AMF (32 bits wide)$/;"	m	struct:m5g_ue_description_s
+amf_ue_ngap_id_t	ngap_amf_itti_messaging.c	/^typedef uint32_t amf_ue_ngap_id_t;$/;"	t	file:
+amfid2associd	ngap_types.h	/^  hash_table_ts_t amfid2associd;$/;"	m	struct:ngap_state_s
+arg_ngap_construct_gnb_reset_req_s	ngap_amf_handlers.c	/^typedef struct arg_ngap_construct_gnb_reset_req_s {$/;"	s	file:
+arg_ngap_construct_gnb_reset_req_t	ngap_amf_handlers.c	/^} arg_ngap_construct_gnb_reset_req_t;$/;"	t	typeref:struct:arg_ngap_construct_gnb_reset_req_s	file:
+arg_ngap_send_gnb_dereg_ind_s	ngap_amf_handlers.c	/^typedef struct arg_ngap_send_gnb_dereg_ind_s {$/;"	s	file:
+arg_ngap_send_gnb_dereg_ind_t	ngap_amf_handlers.c	/^} arg_ngap_send_gnb_dereg_ind_t;$/;"	t	typeref:struct:arg_ngap_send_gnb_dereg_ind_s	file:
+asn1_xer_print	ngap_common.c	/^int asn1_xer_print = 0;$/;"	v
+asn_debug	ngap_common.c	/^int asn_debug      = 0;$/;"	v
+associated_gnb_id	ngap_amf_handlers.c	/^  uint32_t associated_gnb_id;$/;"	m	struct:arg_ngap_send_gnb_dereg_ind_s	file:
+bplmnlist_count	ngap_types.h	/^  uint8_t bplmnlist_count;  \/\/\/< Number of Broadcast PLMNs in the TAI$/;"	m	struct:m5g_supported_tai_items_s
+bplmns	ngap_types.h	/^  plmn_t bplmns[NGAP_MAX_BROADCAST_PLMNS];  \/\/\/< List of Broadcast PLMNS$/;"	m	struct:m5g_supported_tai_items_s
+comp_ngap_id	ngap_types.h	/^  uint64_t comp_ngap_id;          \/\/\/< Unique composite UE id (sctp_assoc_id &$/;"	m	struct:m5g_ue_description_s
+construct_ngap_amf_full_reset_req	ngap_amf_handlers.c	/^bool construct_ngap_amf_full_reset_req($/;"	f
+current_ue_index	ngap_amf_handlers.c	/^  uint8_t current_ue_index;$/;"	m	struct:arg_ngap_construct_gnb_reset_req_s	file:
+current_ue_index	ngap_amf_handlers.c	/^  uint8_t current_ue_index;$/;"	m	struct:arg_ngap_send_gnb_dereg_ind_s	file:
+default_paging_drx	ngap_types.h	/^  uint8_t default_paging_drx;  \/\/\/< Default paging DRX interval for gNB$/;"	m	struct:gnb_description_s
+deregister_ue_count	ngap_amf_handlers.c	/^  uint32_t deregister_ue_count;$/;"	m	struct:arg_ngap_send_gnb_dereg_ind_s	file:
+gnb_description_s	ngap_types.h	/^typedef struct gnb_description_s {$/;"	s
+gnb_description_t	ngap_types.h	/^} gnb_description_t;$/;"	t	typeref:struct:gnb_description_s
+gnb_id	ngap_types.h	/^  uint32_t gnb_id;             \/\/\/< Unique gNB ID$/;"	m	struct:gnb_description_s
+gnb_name	ngap_types.h	/^  char gnb_name[150];          \/\/\/< Printable gNB Name$/;"	m	struct:gnb_description_s
+gnb_ue_ngap_id	ngap_types.h	/^      gnb_ue_ngap_id : 24;          \/\/\/< Unique UE id over gNB (24 bits wide)$/;"	m	struct:m5g_ue_description_s
+gnbs	ngap_types.h	/^  hash_table_ts_t gnbs;$/;"	m	struct:ngap_state_s
+handle_message	ngap_amf.c	/^static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {$/;"	f	file:
+handled_ues	ngap_amf_handlers.c	/^  uint32_t handled_ues;$/;"	m	struct:arg_ngap_send_gnb_dereg_ind_s	file:
+id	ngap_types.h	/^  long id;  \/* The timer identifier                 *\/$/;"	m	struct:ngap_timer_t
+instreams	ngap_types.h	/^  sctp_stream_id_t instreams;   \/\/\/< Number of streams avalaible on gNB -> AMF$/;"	m	struct:gnb_description_s
+list_count	ngap_types.h	/^  uint8_t list_count;  \/\/\/< Number of TAIs in the list$/;"	m	struct:m5g_supported_ta_list_s
+m5g_supported_ta_list_s	ngap_types.h	/^typedef struct m5g_supported_ta_list_s {$/;"	s
+m5g_supported_ta_list_t	ngap_types.h	/^} m5g_supported_ta_list_t;$/;"	t	typeref:struct:m5g_supported_ta_list_s
+m5g_supported_tai_items_s	ngap_types.h	/^typedef struct m5g_supported_tai_items_s {$/;"	s
+m5g_supported_tai_items_t	ngap_types.h	/^} m5g_supported_tai_items_t;$/;"	t	typeref:struct:m5g_supported_tai_items_s
+m5g_ue_description_s	ngap_types.h	/^typedef struct m5g_ue_description_s {$/;"	s
+m5g_ue_description_t	ngap_types.h	/^} m5g_ue_description_t;$/;"	t	typeref:struct:m5g_ue_description_s
+message_p	ngap_amf_handlers.c	/^  MessageDef* message_p;$/;"	m	struct:arg_ngap_send_gnb_dereg_ind_s	file:
+msg	ngap_amf_handlers.c	/^  MessageDef* msg;$/;"	m	struct:arg_ngap_construct_gnb_reset_req_s	file:
+n1_timer_class_s	ngap_types.h	/^enum n1_timer_class_s {$/;"	g
+nb_ue_associated	ngap_types.h	/^  uint32_t nb_ue_associated;  \/\/\/< Number of NAS associated UE on this gNB$/;"	m	struct:gnb_description_s
+next_sctp_stream	ngap_types.h	/^  sctp_stream_id_t next_sctp_stream;  \/\/\/< Next SCTP stream$/;"	m	struct:gnb_description_s
+ng_gnb_state2str	ngap_amf_handlers.c	/^const char* ng_gnb_state2str(enum amf_ng_gnb_state_s state) {$/;"	f
+ng_state	ngap_types.h	/^      ng_state;  \/\/\/< State of the gNB specific NGAP association$/;"	m	struct:gnb_description_s	typeref:enum:gnb_description_s::amf_ng_gnb_state_s
+ng_ue_state	ngap_types.h	/^  enum ng_ue_state_s ng_ue_state;  \/\/\/< NGAP UE state$/;"	m	struct:m5g_ue_description_s	typeref:enum:m5g_ue_description_s::ng_ue_state_s
+ng_ue_state_s	ngap_types.h	/^enum ng_ue_state_s {$/;"	g
+ngap_amf_compare_plmns	ngap_amf_ta.c	/^static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {$/;"	f	file:
+ngap_amf_compare_ta_lists	ngap_amf_ta.c	/^int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list) {$/;"	f
+ngap_amf_compare_tac	ngap_amf_ta.c	/^static int ngap_amf_compare_tac(\/*const*\/ Ngap_TAC_t* \/*const*\/ tac) {$/;"	f	file:
+ngap_amf_decode_pdu	ngap_amf_decoder.c	/^int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw) {$/;"	f
+ngap_amf_encode_initiating	ngap_amf_encoder.c	/^static inline int ngap_amf_encode_initiating($/;"	f	file:
+ngap_amf_encode_pdu	ngap_amf_encoder.c	/^int ngap_amf_encode_pdu($/;"	f
+ngap_amf_encode_successfull_outcome	ngap_amf_encoder.c	/^static inline int ngap_amf_encode_successfull_outcome($/;"	f	file:
+ngap_amf_encode_unsuccessfull_outcome	ngap_amf_encoder.c	/^static inline int ngap_amf_encode_unsuccessfull_outcome($/;"	f	file:
+ngap_amf_exit	ngap_amf.c	/^void ngap_amf_exit(void) {$/;"	f
+ngap_amf_generate_ng_setup_failure	ngap_amf_handlers.c	/^int ngap_amf_generate_ng_setup_failure($/;"	f
+ngap_amf_generate_ue_context_modification	ngap_amf_handlers.c	/^int ngap_amf_generate_ue_context_modification($/;"	f
+ngap_amf_generate_ue_context_release_command	ngap_amf_handlers.c	/^int ngap_amf_generate_ue_context_release_command($/;"	f
+ngap_amf_handle_initial_context_setup_failure	ngap_amf_handlers.c	/^int ngap_amf_handle_initial_context_setup_failure($/;"	f
+ngap_amf_handle_initial_context_setup_response	ngap_amf_handlers.c	/^int ngap_amf_handle_initial_context_setup_response($/;"	f
+ngap_amf_handle_initial_ue_message	ngap_amf_nas_procedures.c	/^int ngap_amf_handle_initial_ue_message($/;"	f
+ngap_amf_handle_message	ngap_amf_handlers.c	/^int ngap_amf_handle_message($/;"	f
+ngap_amf_handle_ng_setup_request	ngap_amf_handlers.c	/^int ngap_amf_handle_ng_setup_request($/;"	f
+ngap_amf_handle_ue_context_rel_comp_timer_expiry	ngap_amf_handlers.c	/^void ngap_amf_handle_ue_context_rel_comp_timer_expiry($/;"	f
+ngap_amf_handle_ue_context_release_request	ngap_amf_handlers.c	/^int ngap_amf_handle_ue_context_release_request($/;"	f
+ngap_amf_handle_uplink_nas_transport	ngap_amf_nas_procedures.c	/^int ngap_amf_handle_uplink_nas_transport($/;"	f
+ngap_amf_init	ngap_amf.c	/^int ngap_amf_init(const amf_config_t* amf_config_p) {$/;"	f
+ngap_amf_itti_nas_non_delivery_ind	ngap_amf_itti_messaging.c	/^void ngap_amf_itti_nas_non_delivery_ind($/;"	f
+ngap_amf_itti_nas_uplink_ind	ngap_amf_itti_messaging.c	/^int ngap_amf_itti_nas_uplink_ind($/;"	f
+ngap_amf_itti_ngap_initial_ue_message	ngap_amf_itti_messaging.c	/^void ngap_amf_itti_ngap_initial_ue_message($/;"	f
+ngap_amf_itti_send_sctp_request	ngap_amf_itti_messaging.c	/^int ngap_amf_itti_send_sctp_request($/;"	f
+ngap_amf_non_delivery_cause_2_nas_data_rej_cause	ngap_amf_itti_messaging.c	/^static int ngap_amf_non_delivery_cause_2_nas_data_rej_cause($/;"	f	file:
+ngap_amf_release_ue_context	ngap_amf_handlers.c	/^void ngap_amf_release_ue_context($/;"	f
+ngap_amf_set_cause	ngap_amf_handlers.c	/^int ngap_amf_set_cause($/;"	f
+ngap_amf_thread	ngap_amf.c	/^static void* ngap_amf_thread(__attribute__((unused)) void* args) {$/;"	f	file:
+ngap_direction2str	ngap_amf_handlers.c	/^const char* ngap_direction2str(uint8_t dir) {$/;"	f
+ngap_generate_downlink_nas_transport	ngap_amf_nas_procedures.c	/^int ngap_generate_downlink_nas_transport($/;"	f
+ngap_generate_initiating_message	ngap_common.c	/^ssize_t ngap_generate_initiating_message($/;"	f
+ngap_generate_ng_setup_response	ngap_amf_handlers.c	/^int ngap_generate_ng_setup_response($/;"	f
+ngap_generate_successfull_outcome	ngap_common.c	/^ssize_t ngap_generate_successfull_outcome($/;"	f
+ngap_generate_unsuccessfull_outcome	ngap_common.c	/^ssize_t ngap_generate_unsuccessfull_outcome($/;"	f
+ngap_handle_amf_ue_id_notification	ngap_amf_nas_procedures.c	/^void ngap_handle_amf_ue_id_notification($/;"	f
+ngap_handle_conn_est_cnf	ngap_amf_nas_procedures.c	/^void ngap_handle_conn_est_cnf($/;"	f
+ngap_handle_criticality	ngap_common.c	/^void ngap_handle_criticality(Ngap_Criticality_t criticality) {}$/;"	f
+ngap_handle_new_association	ngap_amf_handlers.c	/^int ngap_handle_new_association($/;"	f
+ngap_handle_sctp_disconnection	ngap_amf_handlers.c	/^int ngap_handle_sctp_disconnection($/;"	f
+ngap_handle_ue_context_mod_req	ngap_amf_handlers.c	/^int ngap_handle_ue_context_mod_req($/;"	f
+ngap_handle_ue_context_release_command	ngap_amf_handlers.c	/^int ngap_handle_ue_context_release_command($/;"	f
+ngap_imsi_map_s	ngap_types.h	/^typedef struct ngap_imsi_map_s {$/;"	s
+ngap_imsi_map_t	ngap_types.h	/^} ngap_imsi_map_t;$/;"	t	typeref:struct:ngap_imsi_map_s
+ngap_message_handler_t	ngap_common.h	/^typedef int (*ngap_message_handler_t)($/;"	t
+ngap_message_handlers	ngap_amf_handlers.c	/^ngap_message_handler_t ngap_message_handlers[][3] = {$/;"	v
+ngap_new_gnb	ngap_amf.c	/^gnb_description_t* ngap_new_gnb(ngap_state_t* state) {$/;"	f
+ngap_new_ue	ngap_amf.c	/^m5g_ue_description_t* ngap_new_ue($/;"	f
+ngap_paging_compare_plmns	ngap_amf_ta.c	/^static int ngap_paging_compare_plmns($/;"	f	file:
+ngap_paging_compare_ta_lists	ngap_amf_ta.c	/^int ngap_paging_compare_ta_lists($/;"	f
+ngap_paging_compare_tac	ngap_amf_ta.c	/^static int ngap_paging_compare_tac($/;"	f	file:
+ngap_remove_gnb	ngap_amf.c	/^void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {$/;"	f
+ngap_send_gnb_deregistered_ind	ngap_amf_handlers.c	/^bool ngap_send_gnb_deregistered_ind($/;"	f
+ngap_send_init_sctp	ngap_amf.c	/^static int ngap_send_init_sctp(void) {$/;"	f	file:
+ngap_state_s	ngap_types.h	/^typedef struct ngap_state_s {$/;"	s
+ngap_state_t	ngap_types.h	/^} ngap_state_t;$/;"	t	typeref:struct:ngap_state_s
+ngap_task_zmq_ctx	ngap_amf.c	/^task_zmq_ctx_t ngap_task_zmq_ctx;$/;"	v
+ngap_task_zmq_ctx	ngap_amf_itti_messaging.c	/^task_zmq_ctx_t ngap_task_zmq_ctx;$/;"	v
+ngap_task_zmq_ctx	ngap_amf_itti_messaging.h	/^task_zmq_ctx_t ngap_task_zmq_ctx;$/;"	v
+ngap_timer_t	ngap_types.h	/^struct ngap_timer_t {$/;"	s
+ngap_ue_context_rel_timer	ngap_types.h	/^  struct ngap_timer_t ngap_ue_context_rel_timer;$/;"	m	struct:m5g_ue_description_s	typeref:struct:m5g_ue_description_s::ngap_timer_t
+num_gnbs	ngap_types.h	/^  uint32_t num_gnbs;$/;"	m	struct:ngap_state_s
+outstreams	ngap_types.h	/^  sctp_stream_id_t outstreams;  \/\/\/< Number of streams avalaible on AMF -> gNB$/;"	m	struct:gnb_description_s
+sctp_assoc_id	ngap_types.h	/^  sctp_assoc_id_t sctp_assoc_id;      \/\/\/< SCTP association id on this machine$/;"	m	struct:gnb_description_s
+sctp_assoc_id	ngap_types.h	/^  sctp_assoc_id_t sctp_assoc_id;  \/\/\/< Assoc id of gNB which this UE is attached$/;"	m	struct:m5g_ue_description_s
+sctp_stream_recv	ngap_types.h	/^  sctp_stream_id_t sctp_stream_recv;  \/\/\/< gNB -> AMF stream$/;"	m	struct:m5g_ue_description_s
+sctp_stream_send	ngap_types.h	/^  sctp_stream_id_t sctp_stream_send;  \/\/\/< AMF -> gNB stream$/;"	m	struct:m5g_ue_description_s
+sec	ngap_types.h	/^  long sec; \/* The timer interval value in seconds  *\/$/;"	m	struct:ngap_timer_t
+supported_ta_list	ngap_types.h	/^  m5g_supported_ta_list_t supported_ta_list;  \/\/\/< Supported TAs by gNB$/;"	m	struct:gnb_description_s
+supported_tai_items	ngap_types.h	/^      supported_tai_items[NGAP_MAX_TAI_ITEMS];  \/\/\/< List of TAIs$/;"	m	struct:m5g_supported_ta_list_s
+tac	ngap_types.h	/^  uint16_t tac;             \/\/\/< Supported TAC value$/;"	m	struct:m5g_supported_tai_items_s
+ue_id_coll	ngap_types.h	/^  hash_table_uint64_ts_t ue_id_coll;  \/\/\/< Contains comp_ngap_id assoc to$/;"	m	struct:gnb_description_s

@@ -159,6 +159,12 @@
     (aSN)->bits_unused = 6;                                                    \
   } while (0)
 
+#define AMF_POINTER_TO_BIT_STRING(x, aSN)                                      \
+  do {                                                                         \
+    INT8_TO_OCTET_STRING(x << 2, aSN);                                         \
+    (aSN)->bits_unused = 2;                                                    \
+  } while (0)
+
 #define INT16_TO_OCTET_STRING(x, aSN)                                          \
   do {                                                                         \
     (aSN)->buf  = calloc(2, sizeof(uint8_t));                                  \

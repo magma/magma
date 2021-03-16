@@ -10,6 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/****************************************************************************
+  Source      ngap_types.h
+  Date        2020/07/28
+  Author      Ashish Prajapati
+  Subsystem   Access and Mobility Management Function
+  Description Defines NG Application Protocol Messages
+
+*****************************************************************************/
 
 #pragma once
 

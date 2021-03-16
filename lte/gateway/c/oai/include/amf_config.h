@@ -36,7 +36,7 @@
 typedef uint64_t imsi64_t;         /*holds the IMSI value*/
 typedef uint32_t amf_ue_ngap_id_t; /*uniquely identifies the UE over the NG
                                       interface within the AMF*/
-
+extern char buf_plmn[3];           /*store the parsed plmn buf*/
 /*TAI list*/
 typedef struct m5g_served_tai_s {
   uint8_t list_type;

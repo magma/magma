@@ -10,6 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/****************************************************************************
+  Source      ngap_amf.c
+  Date        2020/07/28
+  Author      Ashish Prajapati
+  Subsystem   Access and Mobility Management Function
+  Description Defines NG Application Protocol Messages
+
+*****************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,6 +35,7 @@
 #include "ngap_amf_handlers.h"
 #include "ngap_amf_nas_procedures.h"
 #include "ngap_amf_itti_messaging.h"
+
 #include "service303.h"
 #include "dynamic_memory_check.h"
 #include "amf_config.h"
@@ -133,6 +142,17 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &NGAP_NAS_DL_DATA_REQ(received_message_p).nas_msg, imsi64);
     } break;
 
+#if 0 /* TODO later*/
+
+    // SCTP layer notifies NGAP of disconnection of a peer.
+    case SCTP_CLOSE_ASSOCIATION: {
+      ngap_handle_sctp_disconnection(
+          state, SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
+          SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
+    } break;
+
+    */
+#endif
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
       zframe_destroy(&msg_frame);

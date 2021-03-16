@@ -27,26 +27,25 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-// These messages files are mandatory and must always be placed in first
-// position
-#include "intertask_messages_def.h"
-#include "timer_messages_def.h"
+/*! \file amf_app_messages_def.h
+  \brief
+  \author Sebastien ROUX, Lionel Gauthier
+  \company Eurecom
+  \email: lionel.gauthier@eurecom.fr
+*/
+// WARNING: Do not include this header directly. Use intertask_interface.h
+// instead.
 
-// Messages files used between tasks
-#include "gtpv1_u_messages_def.h"
-#include "ip_forward_messages_def.h"
-#include "s11_messages_def.h"
-#include "s1ap_messages_def.h"
-#include "ngap_messages_def.h"
-#include "s6a_messages_def.h"
-#include "sctp_messages_def.h"
-#include "gx_messages_def.h"
-#include "mme_app_messages_def.h"
-#include "amf_app_messages_def.h"
-#include "service303_messages_def.h"
-#include "sgs_messages_def.h"
-#include "async_system_messages_def.h"
-#include "udp_messages_def.h"
-#include "ha_messages_def.h"
-#include "n11_messages_def.h"
-#include "s8_messages_def.h"
+MESSAGE_DEF(
+    AMF_APP_INITIAL_CONTEXT_SETUP_RSP, itti_amf_app_initial_context_setup_rsp_t,
+    amf_app_initial_context_setup_rsp)
+MESSAGE_DEF(
+    AMF_APP_INITIAL_CONTEXT_SETUP_FAILURE,
+    itti_amf_app_initial_context_setup_failure_t,
+    amf_app_initial_context_setup_failure)
+MESSAGE_DEF(
+    AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
+    itti_amf_app_ngap_amf_ue_id_notification_t,
+    amf_app_ngap_amf_ue_id_notification)
+MESSAGE_DEF(
+    AMF_APP_UPLINK_DATA_IND, itti_amf_app_ul_data_ind_t, amf_app_ul_data_ind)
