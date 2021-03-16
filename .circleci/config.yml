@@ -367,7 +367,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "#ci",
+              "channel": "${SLACK_CHANNEL_CI}",
               "text": "*CircleCI Job Failure*",
               "attachments": [
                 {
@@ -435,7 +435,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "#ci",
+              "channel": "${SLACK_CHANNEL_ARTIFACTS}",
               "text": "*<< parameters.artifact_name >> Artifact Has Been Published*",
               "attachments": [
                 {
