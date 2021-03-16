@@ -208,7 +208,7 @@ def _checkout_code(repo: str, branch: str, sha1: str, tag: str, pr_num: str,
 def _run_remote_lte_integ_test(repo: str, magma_root: str):
     repo_name = _get_repo_name(repo)
     with cd(f'{repo_name}/{magma_root}/lte/gateway'):
-        test_result = run('fab integ_test', timeout=120*60, warn_only=True)
+        test_result = run('fab integ_test', timeout=180*60, warn_only=True)
 
         # Transfer test summaries into current directory
         run('fab get_test_summaries:dst_path="test-results"', warn_only=True)
