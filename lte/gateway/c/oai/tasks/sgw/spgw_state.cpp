@@ -42,6 +42,8 @@ spgw_state_t* get_spgw_state(bool read_from_db) {
 }
 
 hash_table_ts_t* get_spgw_ue_state() {
+  OAILOG_DEBUG(
+      LOG_SPGW_APP, "get_spgw_ue_state called by thread id %u", pthread_self());
   return SpgwStateManager::getInstance().get_ue_state_ht();
 }
 

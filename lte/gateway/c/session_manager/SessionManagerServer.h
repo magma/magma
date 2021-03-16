@@ -47,6 +47,7 @@ namespace magma {
 class AsyncService {
  public:
   AsyncService(std::unique_ptr<ServerCompletionQueue> cq);
+  virtual ~AsyncService() = default;
 
   /**
    * Start the server, blocks
@@ -164,6 +165,7 @@ template<class GRPCService, class RequestType, class ResponseType>
 class AsyncGRPCRequest : public CallData {
  public:
   AsyncGRPCRequest(ServerCompletionQueue* cq, GRPCService& service);
+  virtual ~AsyncGRPCRequest() = default;
 
   /**
    * proceed moves to the next step in the state machine. If it's in processing,

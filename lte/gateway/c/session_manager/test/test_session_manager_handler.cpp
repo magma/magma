@@ -63,9 +63,8 @@ class SessionManagerHandlerTest : public ::testing::Test {
     events_reporter        = std::make_shared<MockEventsReporter>();
     auto default_mconfig   = get_default_mconfig();
     local_enforcer         = std::make_shared<LocalEnforcer>(
-        reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, events_reporter, spgw_client, aaa_client, 0, 0,
-        default_mconfig);
+        reporter, rule_store, *session_store, pipelined_client, events_reporter,
+        spgw_client, aaa_client, 0, 0, default_mconfig);
     evb = new folly::EventBase();
     std::thread([&]() {
       std::cout << "Started event loop thread\n";
@@ -84,6 +83,11 @@ class SessionManagerHandlerTest : public ::testing::Test {
     teids0.set_enb_teid(0);
     teids1.set_agw_teid(TEID_1_UL);
     teids1.set_enb_teid(TEID_1_DL);
+  }
+
+  virtual void TearDown() {
+    local_enforcer->stop();
+    delete evb;
   }
 
   void insert_static_rule(

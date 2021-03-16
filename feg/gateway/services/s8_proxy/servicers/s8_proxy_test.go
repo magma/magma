@@ -14,6 +14,9 @@ package servicers
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -23,6 +26,8 @@ import (
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wmnsk/go-gtp/gtpv2"
+	"github.com/wmnsk/go-gtp/gtpv2/ie"
 )
 
 const (
@@ -34,6 +39,8 @@ const (
 	BEARER       = 5
 	AGWTeidU     = uint32(10)
 	AGWTeidC     = uint32(2)
+	PDNType      = protos.PDNType_IPV4
+	PAA          = "10.0.0.10"
 )
 
 func TestS8proxyCreateAndDeleteSession(t *testing.T) {
@@ -49,8 +56,10 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	csRes, err := s8p.CreateSession(context.Background(), csReq)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, csRes)
+	assert.Empty(t, csRes.GtpError)
 
 	// check User Plane FTEID was received properly
+	assert.NotNil(t, csRes.BearerContext)
 	assert.Equal(t, mockPgw.LastTEIDu, csRes.BearerContext.UserPlaneFteid.Teid)
 	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
 	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
@@ -63,6 +72,11 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 
 	// check Pgw Control Plane TEID
 	assert.NotEqual(t, 0, csRes.CPgwFteid)
+
+	// check PAA and PDN Allocation
+	assert.Equal(t, PDNType, csRes.PdnType)
+	assert.Equal(t, PAA, csRes.Paa.Ipv4Address)
+	assert.Equal(t, "", csRes.Paa.Ipv6Address)
 
 	// check received QOS
 	sentQos := csReq.BearerContext.Qos
@@ -77,8 +91,9 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	// ---- Delete Session ----
 	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
 
-	_, err = s8p.DeleteSession(context.Background(), cdReq)
+	dsRes, err := s8p.DeleteSession(context.Background(), cdReq)
 	assert.NoError(t, err)
+	assert.Empty(t, dsRes.GtpError)
 	// session shouldnt exist anymore
 	_, err = s8p.gtpClient.GetSessionByIMSI(IMSI1)
 	assert.Error(t, err)
@@ -87,6 +102,49 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	csRes, err = s8p.CreateSession(context.Background(), csReq)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, csRes)
+}
+
+func TestS8ProxyDeleteSessionAfterClientRestars(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, time.Second*600)
+	defer mockPgw.Close()
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+
+	// Send and receive Create Session Request
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+	assert.Empty(t, csRes.GtpError)
+
+	// ------------------------
+	// --- Restart s8_proxy ---
+	config := getDefaultConfig(mockPgw.LocalAddr().String(), time.Second*600)
+	// grab the actual client address since it needs to be the same
+	actualS8Address := strings.Replace(s8p.gtpClient.LocalAddr().String(), "[::]", "", -1)
+	config.ClientAddr = actualS8Address
+	// create again the client (simulate a restart)
+	s8p.gtpClient.Close()
+	// wait to make sure port is finally closed by kernel
+	waitUntilPortIsFree()
+	s8p, err = NewS8Proxy(config)
+	if err != nil {
+		t.Fatalf("Error creating S8 proxy +%s", err)
+	}
+
+	// ------------------------
+	// ---- Delete Session ----
+	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
+
+	// session should be deleted
+	dsRes, err := s8p.DeleteSession(context.Background(), dsReq)
+	assert.NoError(t, err)
+	assert.Empty(t, dsRes.GtpError)
+	// session shouldnt exist anymore
+	_, err = s8p.gtpClient.GetSessionByIMSI(IMSI1)
+	assert.Error(t, err)
 }
 
 func TestS8ProxyDeleteInexistentSession(t *testing.T) {
@@ -109,10 +167,9 @@ func TestS8ProxyDeleteInexistentSession(t *testing.T) {
 	_, err := s8p.DeleteSession(context.Background(), cdReq)
 	assert.Error(t, err)
 	assert.Equal(t, mockPgw.LastTEIDc, uint32(87))
-
 }
 
-func TestS8proxyCreateSessionDeniedService(t *testing.T) {
+func TestS8proxyCreateSessionWithErrors(t *testing.T) {
 	// set up client ans server
 	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
 	defer mockPgw.Close()
@@ -121,8 +178,43 @@ func TestS8proxyCreateSessionDeniedService(t *testing.T) {
 	// ---- Create Session ----
 	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
 
+	// ------------------------
+	// ---- Create Session ----
+	csReq = getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+
 	// PGW denies service
-	mockPgw.SetCreateSessionWithErrorCause()
+	mockPgw.SetCreateSessionWithErrorCause(gtpv2.CauseServiceDenied)
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+	assert.NotEmpty(t, csRes.GtpError)
+	assert.Equal(t, gtpv2.CauseServiceDenied, uint8(csRes.GtpError.Cause))
+
+	// s8_proxy forces a missing IE
+	mockPgw.SetCreateSessionWithMissingIE()
+	csRes, err = s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+	assert.NotEmpty(t, csRes.GtpError)
+	assert.Equal(t, gtpv2.CauseMandatoryIEMissing, uint8(csRes.GtpError.Cause))
+	// check the error code is FullyQualifiedTEID
+	re := regexp.MustCompile("[0-9]+")
+	msg := re.FindString(csRes.GtpError.Msg)
+	assert.Equal(t, strconv.FormatUint(uint64(ie.FullyQualifiedTEID), 10), msg)
+}
+
+func TestS8proxyValidateCreateSession(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+
+	// force error with missing bearer context
+	csReq.BearerContext = &protos.BearerContext{}
+
 	csRes, err := s8p.CreateSession(context.Background(), csReq)
 	assert.Error(t, err)
 	assert.Empty(t, csRes)
@@ -217,6 +309,34 @@ func TestS8proxyCreateSessionWrongSgwTEIDcFromPgw(t *testing.T) {
 	csRes, err := s8p.CreateSession(context.Background(), csReq)
 	assert.Error(t, err)
 	assert.Empty(t, csRes)
+}
+
+func TestS8proxyCreateSessionIPV6(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+
+	// change IPv4 address for IPV6
+	csReq.PdnType = protos.PDNType_IPV6
+	ipv6Address := "2001:db8::8a2e:370:7334"
+	csReq.Paa = &protos.PdnAddressAllocation{
+		Ipv6Address: ipv6Address,
+		Ipv6Prefix:  0,
+	}
+
+	// Send and receive Create Session Request
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+
+	// check PAA and PDN Allocation for ipv6
+	assert.Equal(t, protos.PDNType_IPV6, csRes.PdnType)
+	assert.Equal(t, "", csRes.Paa.Ipv4Address)
+	assert.Equal(t, ipv6Address, csRes.Paa.Ipv6Address)
 }
 
 func TestS8proxyEcho(t *testing.T) {
@@ -357,9 +477,9 @@ func getMultipleCreateSessionRequest(nRequest int, pgwAddrs string) []*protos.Cr
 					},
 				},
 			},
-			PdnType: protos.PDNType_IPV4,
+			PdnType: PDNType,
 			Paa: &protos.PdnAddressAllocation{
-				Ipv4Address: "10.0.0.10",
+				Ipv4Address: PAA,
 				Ipv6Address: "",
 				Ipv6Prefix:  0,
 			},
@@ -406,5 +526,12 @@ func getDefaultConfig(pgwActualAddrs string, gtpTimeout time.Duration) *S8ProxyC
 	return &S8ProxyConfig{
 		GtpTimeout: gtpTimeout,
 		ClientAddr: s8proxyAddrs,
+	}
+}
+
+func waitUntilPortIsFree() {
+	timeout := 20 * time.Millisecond
+	for i := 0; i < 10; i++ {
+		time.Sleep(timeout)
 	}
 }

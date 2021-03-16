@@ -186,20 +186,24 @@ class MockPipelinedClient : public PipelinedClient {
   MOCK_METHOD0(get_current_teid, uint32_t());
 };
 
-class MockDirectorydClient : public AsyncDirectorydClient {
+class MockDirectorydClient : public DirectorydClient {
  public:
-  MockDirectorydClient() {
-    ON_CALL(*this, get_directoryd_ip_field(_, _)).WillByDefault(Return(true));
-  }
-
   MOCK_METHOD2(
-      get_directoryd_ip_field,
-      bool(
-          const std::string& imsi,
-          std::function<void(Status status, DirectoryField)> callback));
+      update_directoryd_record,
+      void(
+          const UpdateRecordRequest& request,
+          std::function<void(Status status, Void)> callback));
+  MOCK_METHOD2(
+      delete_directoryd_record,
+      void(
+          const DeleteRecordRequest& request,
+          std::function<void(Status status, Void)> callback));
+  MOCK_METHOD1(
+      get_all_directoryd_records,
+      void(std::function<void(Status status, AllDirectoryRecords)> callback));
 };
 
-class MockEventdClient : public AsyncEventdClient {
+class MockEventdClient : public EventdClient {
  public:
   MOCK_METHOD2(
       log_event, void(

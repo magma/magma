@@ -36,6 +36,8 @@ from magma.magmad.generic_command.command_executor import \
 from magma.magmad.service_manager import ServiceManager
 from magma.magmad.check.network_check import ping, traceroute
 
+from google.protobuf.json_format import MessageToJson
+
 
 class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
     """
@@ -48,7 +50,8 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                  service_manager: ServiceManager,
                  mconfig_manager: MconfigManager,
                  command_executor: CommandExecutor,
-                 loop):
+                 loop: asyncio.AbstractEventLoop,
+                 print_grpc_payload: bool = False):
         """
         Constructor for the magmad RPC servicer
 
@@ -63,6 +66,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             mconfig_manager: MconfigManager instance
             loop: event loop
         """
+        self._print_grpc_payload = print_grpc_payload
         self._service_manager = service_manager
         self._services = services
         self._mconfig_manager = mconfig_manager
@@ -108,6 +112,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         Restart specified magma services.
         If no services specified, restart all services.
         """
+        self._print_grpc(request)
         async def run_restart():
             await asyncio.sleep(1)
             await self._service_manager.restart_services(request.services)
@@ -125,6 +130,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         managed configurations, reverting the stored mconfigs to the image
         defaults.
         """
+        self._print_grpc(request)
         if request.configs_by_key is None or \
             len(request.configs_by_key) == 0:
             self._mconfig_manager.delete_stored_mconfig()
@@ -147,6 +153,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         Execute some specified network commands to check gateway network health
         """
+        self._print_grpc(request)
         ping_results = self.__ping_specified_hosts(request.pings)
         traceroute_results = self.__traceroute_specified_hosts(
             request.traceroutes)
@@ -166,6 +173,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         as specified in the command executor's command table, then return
         the response of the command.
         """
+        self._print_grpc(request)
         if 'generic_command_config' not in self._magma_service.config:
             set_grpc_err(context,
                          grpc.StatusCode.NOT_FOUND,
@@ -212,6 +220,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         Provides an infinite stream of logs to the client. The client can stop
         the stream by closing the connection.
         """
+        self._print_grpc(request)
         if request.service and \
                 request.service not in ServiceRegistry.list_services():
             set_grpc_err(context,
@@ -273,6 +282,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         enable: Modify AGW config to be stateless
         disable: Modify AGW config to be stateful
         """
+        self._print_grpc(request)
         if request.config_cmd == magmad_pb2.ConfigureStatelessRequest.ENABLE:
             logging.info("RPC: config command enable")
             enable_stateless_agw()
@@ -344,3 +354,15 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         ) for param in traceroute_param_protos]
         traceroute_results = traceroute.traceroute(traceroutes_to_exec)
         return map(create_result_proto, traceroute_results)
+
+    def _print_grpc(self, message):
+        if self._print_grpc_payload:
+            log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
+                                     MessageToJson(message))
+            # add indentation
+            padding = 2 * ' '
+            log_msg =''.join( "{}{}".format(padding, line)
+                              for line in log_msg.splitlines(True))
+
+            log_msg = "GRPC message:\n{}".format(log_msg)
+            logging.info(log_msg)

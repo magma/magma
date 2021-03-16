@@ -92,8 +92,8 @@ class SessiondTest : public ::testing::Test {
     pipelined_mock  = std::make_shared<MockPipelined>();
 
     pipelined_client  = std::make_shared<AsyncPipelinedClient>(test_channel);
-    directoryd_client = std::make_shared<AsyncDirectorydClient>(test_channel);
-    spgw_client       = std::make_shared<AsyncSpgwServiceClient>(test_channel);
+    spgw_client       = std::make_shared<MockSpgwServiceClient>();
+    directoryd_client = std::make_shared<MockDirectorydClient>();
     events_reporter   = std::make_shared<MockEventsReporter>();
     auto rule_store   = std::make_shared<StaticRuleStore>();
     session_store     = std::make_shared<SessionStore>(
@@ -102,12 +102,12 @@ class SessiondTest : public ::testing::Test {
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
 
-    reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
+    session_reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     auto default_mconfig = get_default_mconfig();
     enforcer             = std::make_shared<LocalEnforcer>(
-        reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, events_reporter, spgw_client, nullptr,
-        SESSION_TERMINATION_TIMEOUT_MS, 0, default_mconfig);
+        session_reporter, rule_store, *session_store, pipelined_client,
+        events_reporter, spgw_client, nullptr, SESSION_TERMINATION_TIMEOUT_MS,
+        0, default_mconfig);
     session_map = SessionMap{};
 
     local_service =
@@ -115,8 +115,8 @@ class SessiondTest : public ::testing::Test {
     session_manager = std::make_shared<LocalSessionManagerAsyncService>(
         local_service->GetNewCompletionQueue(),
         std::make_unique<LocalSessionManagerHandlerImpl>(
-            enforcer, reporter.get(), directoryd_client, events_reporter,
-            *session_store));
+            enforcer, session_reporter.get(), directoryd_client,
+            events_reporter, *session_store));
 
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
         local_service->GetNewCompletionQueue(),
@@ -133,51 +133,49 @@ class SessiondTest : public ::testing::Test {
 
     local_service->Start();
 
-    std::thread([&]() {
+    test_service_thread           = std::thread([&]() {
       std::cout << "Started test_service thread\n";
       test_service->Start();
       test_service->WaitForShutdown();
-    })
-        .detach();
-    std::thread([&]() {
+    });
+    pipelined_client_thread       = std::thread([&]() {
       std::cout << "Started pipelined client response thread\n";
       pipelined_client->rpc_response_loop();
-    })
-        .detach();
-    std::thread([&]() { spgw_client->rpc_response_loop(); }).detach();
-    std::thread([&]() {
+    });
+    main_evb_thread               = std::thread([&]() {
       std::cout << "Started main event base thread\n";
       folly::EventBaseManager::get()->setEventBase(evb, 0);
       enforcer->attachEventBase(evb);
       enforcer->start();
-    })
-        .detach();
-    std::thread([&]() {
-      std::cout << "Started reporter thread\n";
-      reporter->rpc_response_loop();
-    })
-        .detach();
-    std::thread([&]() {
+    });
+    session_reporter_thread       = std::thread([&]() {
+      std::cout << "Started session_reporter thread\n";
+      session_reporter->rpc_response_loop();
+    });
+    session_manager_server_thread = std::thread([&]() {
       std::cout << "Started local grpc thread\n";
       session_manager->wait_for_requests();
-    })
-        .detach();
-    std::thread([&]() {
+    });
+    proxy_server_thread           = std::thread([&]() {
       std::cout << "Started local grpc thread\n";
       proxy_responder->wait_for_requests();
-    })
-        .detach();
+    });
     evb->waitUntilRunning();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
   virtual void TearDown() {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // stop all clients + servers
     local_service->Stop();
-    enforcer->stop();
-    reporter->stop();
     test_service->Stop();
+
+    session_manager->stop();
+    proxy_responder->stop();
+    session_reporter->stop();
     pipelined_client->stop();
+    enforcer->stop();
+
     // This is a failsafe in case callbacks keep running on the event loop
     // longer than intended for the unit test
     evb->terminateLoopSoon();
@@ -196,6 +194,16 @@ class SessiondTest : public ::testing::Test {
                 << std::endl;
       EXPECT_TRUE(false);
     }
+    // collect all threads
+    std::cout << "Joining all the threads..." << std::endl;
+    test_service_thread.join();
+    pipelined_client_thread.join();
+    main_evb_thread.join();
+    session_reporter_thread.join();
+    session_manager_server_thread.join();
+    proxy_server_thread.join();
+    std::cout << "Done joining all the threads..." << std::endl;
+    delete evb;
   }
 
   void insert_static_rule(
@@ -208,11 +216,17 @@ class SessiondTest : public ::testing::Test {
   }
 
   // Timeout to not block test
-  void set_timeout(uint32_t ms, std::promise<void>* call_promise) {
-    std::thread([&]() {
+  void set_timeout(
+      uint32_t ms, std::shared_ptr<std::promise<void>> call_promise) {
+    std::thread([ms, call_promise]() {
       std::this_thread::sleep_for(std::chrono::milliseconds(ms));
       EXPECT_TRUE(false);
-      call_promise->set_value();
+      try {
+        call_promise->set_value();
+      } catch (std::future_error& e) {
+        std::cout << "Exception caught when trying to set promise value: "
+                  << e.what();
+      }
     })
         .detach();
   }
@@ -256,17 +270,25 @@ class SessiondTest : public ::testing::Test {
 
  protected:
   folly::EventBase* evb;
-  std::shared_ptr<MockCentralController> controller_mock;
-  std::shared_ptr<MockPipelined> pipelined_mock;
+  std::thread test_service_thread;
+  std::thread pipelined_client_thread;
+  std::thread main_evb_thread;
+  std::thread session_reporter_thread;
+  std::thread session_manager_server_thread;
+  std::thread proxy_server_thread;
+
   std::shared_ptr<LocalEnforcer> enforcer;
-  std::shared_ptr<SessionReporterImpl> reporter;
+  std::shared_ptr<SessionReporterImpl> session_reporter;
   std::shared_ptr<LocalSessionManagerAsyncService> session_manager;
   std::shared_ptr<SessionProxyResponderAsyncService> proxy_responder;
   std::shared_ptr<service303::MagmaService> local_service;
   std::shared_ptr<service303::MagmaService> test_service;
   std::shared_ptr<AsyncPipelinedClient> pipelined_client;
-  std::shared_ptr<AsyncDirectorydClient> directoryd_client;
-  std::shared_ptr<AsyncSpgwServiceClient> spgw_client;
+  // mocks
+  std::shared_ptr<MockCentralController> controller_mock;
+  std::shared_ptr<MockPipelined> pipelined_mock;
+  std::shared_ptr<MockDirectorydClient> directoryd_client;
+  std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockEventsReporter> events_reporter;
   std::shared_ptr<SessionStore> session_store;
   SessionMap session_map;
@@ -291,8 +313,8 @@ class SessiondTest : public ::testing::Test {
  *    is completely independent of both CreateSession() and EndSession().
  */
 TEST_F(SessiondTest, end_to_end_success) {
-  std::promise<void> create_promise, tunnel_promise, update_promise,
-      terminate_promise;
+  std::promise<void> create_promise, tunnel_promise, update_promise;
+  auto terminate_promise = std::make_shared<std::promise<void>>();
   std::promise<std::string> session_id_promise;
   std::string ipv4_addrs  = "192.168.0.1";
   std::string ipv6_addrs  = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
@@ -438,7 +460,7 @@ TEST_F(SessiondTest, end_to_end_success) {
         TerminateSession(testing::_, CheckTerminate(IMSI1), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
-            SetSessionTerminateResponse(), SetPromise(&terminate_promise),
+            SetSessionTerminateResponse(), SetPromise(terminate_promise),
             testing::Return(grpc::Status::OK)));
   }
 
@@ -452,8 +474,8 @@ TEST_F(SessiondTest, end_to_end_success) {
   // session has finished reporting usage from PipelineD.
   send_empty_pipelined_table(stub);
 
-  set_timeout(5000, &terminate_promise);
-  terminate_promise.get_future().get();
+  set_timeout(5000, terminate_promise);
+  terminate_promise->get_future().get();
 }
 
 /**
@@ -467,8 +489,10 @@ TEST_F(SessiondTest, end_to_end_success) {
  * 5) Expect update with usage from both (2) and (4).
  */
 TEST_F(SessiondTest, end_to_end_cloud_down) {
-  std::promise<void> end_promise, failed_update_promise;
+  std::promise<void> failed_update_promise;
   std::promise<std::string> session_id_promise;
+  auto end_promise = std::make_shared<std::promise<void>>();
+
   uint32_t default_bearer = 5;
   uint32_t enb_teid       = TEID_1_DL;
   uint32_t agw_teid       = TEID_1_UL;
@@ -550,7 +574,7 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
         UpdateSession(
             testing::_, CheckSingleUpdate(expected_update_success), testing::_))
         .Times(1)
-        .WillOnce(SetEndPromise(&end_promise, Status::OK));
+        .WillOnce(SetEndPromise(end_promise, Status::OK));
   }
 
   RuleRecordTable table2;
@@ -558,8 +582,8 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   create_rule_record(IMSI1, "rule2", 0, 512, table2.mutable_records()->Add());
   send_update_pipelined_table(stub, table2);
 
-  set_timeout(5000, &end_promise);
-  end_promise.get_future().get();
+  set_timeout(5000, end_promise);
+  end_promise->get_future().get();
 }
 
 int main(int argc, char** argv) {
