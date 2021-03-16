@@ -200,12 +200,20 @@ TEST_F(SessionStateTest, test_marshal_unmarshal) {
   EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 1024);
   EXPECT_EQ(update_criteria.monitor_credit_to_install.size(), 1);
 
+  session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 2000);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1000);
+  EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
+  EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 1000);
+
   auto marshaled   = session_state->marshal();
   auto unmarshaled = SessionState::unmarshal(marshaled, *rule_store);
   EXPECT_EQ(unmarshaled->get_charging_credit(1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(unmarshaled->get_monitor("m1", ALLOWED_TOTAL), 1024);
   EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
   EXPECT_EQ(unmarshaled->is_dynamic_rule_installed("rule2"), false);
+  EXPECT_EQ(
+      unmarshaled->get_policy_stats("rule1").last_reported_rule_version, 1);
 }
 
 TEST_F(SessionStateTest, test_insert_credit) {

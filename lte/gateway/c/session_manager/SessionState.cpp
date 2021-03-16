@@ -2268,4 +2268,12 @@ void SessionState::clear_create_session_response() {
   create_session_response_ = CreateSessionResponse();
 }
 
+Usage SessionState::get_policy_stats(std::string rule_id) {
+  auto it = policy_stats_map_.find(rule_id);
+  if (it == policy_stats_map_.end()) {
+    return Usage{};
+  }
+  return it->second;
+}
+
 }  // namespace magma

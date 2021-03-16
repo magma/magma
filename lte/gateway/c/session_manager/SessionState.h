@@ -489,6 +489,8 @@ class SessionState {
 
   bool apply_update_criteria(SessionStateUpdateCriteria& uc);
 
+  Usage get_policy_stats(std::string rule_id);
+
   // QoS Management
   /**
    * get_dedicated_bearer_updates processes the two rule update inputs and
