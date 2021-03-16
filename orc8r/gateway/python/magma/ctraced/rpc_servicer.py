@@ -39,6 +39,8 @@ class CtraceDRpcServicer(CallTraceServiceServicer):
         _context,
     ) -> StartTraceResponse:
         success = self._trace_mgr.start_trace(
+            request.trace_id,
+            request.timeout,
             request.capture_filters,
             request.display_filters,
         )

@@ -165,8 +165,9 @@ function CreateTraceDetails(props: Props) {
                   placeholder="Enter Trace Timeout (s)"
                   fullWidth={true}
                   value={traceCfg.timeout}
+                  type="number"
                   onChange={({target}) => {
-                    setTraceCfg({...traceCfg, timeout: target.value});
+                    setTraceCfg({...traceCfg, timeout: parseInt(target.value)});
                   }}
                 />
               </AltFormField>
