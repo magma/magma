@@ -288,14 +288,16 @@ ANSIBLE_FILES="${MAGMA_ROOT}/lte/gateway/deploy/roles/magma/files"
 
 SCTPD_VERSION_FILE=$(mktemp)
 SCTPD_MIN_VERSION_FILE=$(mktemp)
+COMMIT_HASH_FILE=$(mktemp)
 
 # files to be removed should be safely named (no special chars from mktemp)
 # use current value (see https://github.com/koalaman/shellcheck/wiki/SC2064)
 # shellcheck disable=SC2064
-trap "rm -f '${SCTPD_VERSION_FILE}' '${SCTPD_MIN_VERSION_FILE}'" EXIT
+trap "rm -f '${SCTPD_VERSION_FILE}' '${SCTPD_MIN_VERSION_FILE}' '${COMMIT_HASH_FILE}'" EXIT
 
 echo "${FULL_VERSION}" > "${SCTPD_VERSION_FILE}"
 echo "${SCTPD_MIN_VERSION}" > "${SCTPD_MIN_VERSION_FILE}"
+echo "COMMIT_HASH=\"${COMMIT_HASH}\"" > "${COMMIT_HASH_FILE}"
 
 BUILDCMD="fpm \
 -s dir \
@@ -335,6 +337,7 @@ ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
 ${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
 ${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
+${COMMIT_HASH_FILE}=/usr/local/share/magma/commit_hash \
 $(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
 $(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
 $(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
