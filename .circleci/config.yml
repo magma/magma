@@ -558,6 +558,13 @@ jobs:
           project: orc8r
           images: "nginx|controller"
           tag-latest: true
+      - tag-push-docker:
+          project: orc8r
+          images: "nginx|controller"
+          tag-latest: true
+          registry: $JFROG_DOCKER_ORC8R_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -712,6 +719,14 @@ jobs:
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
           tag-latest: <<parameters.tag-latest>>
+      - tag-push-docker:
+          project: cwf
+          images: <<parameters.images>>
+          tag: <<parameters.tag>>
+          tag-latest: <<parameters.tag-latest>>
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -822,6 +837,12 @@ jobs:
           project: cwf
           images: "operator"
           registry: $DOCKER_MAGMA_REGISTRY
+      - tag-push-docker:
+          project: cwf
+          images: "operator"
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
