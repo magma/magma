@@ -100,6 +100,14 @@ MME :
          #{ MCC="001" ; MNC="010";}
     );
 
+    # List of federated mode maps
+    # By default this list is empty
+    # Max number of federated mode maps is 20
+    MODE_MAP = (
+         #{ PLMN="001010"; IMSI_RANGE="001010000000001:001010000000500"; APN="internet"; MODE="LOCAL_SUBSCRIBER"},
+         #{ PLMN="123456"; IMSI_RANGE="123456789123456:123456789123477"; APN="ims"; MODE="SPGW_SUBSCRIBER"}
+    );
+
     CSFB :
     {
         NON_EPS_SERVICE_CONTROL = "{{ non_eps_service_control }}";

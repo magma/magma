@@ -100,6 +100,13 @@ typedef enum {
   TLV_FATAL_ERROR = TLV_VALUE_DOESNT_MATCH
 
 } error_code_e;
+
+typedef enum {
+  SPGW_SUBSCRIBER  = 0,  // default mode is HSS + spgw_task
+  LOCAL_SUBSCRIBER = 1,  // will use subscriberDb + policydb
+  S8_SUBSCRIBER    = 2,  // will use HSS (feg) + s8_task
+} mode_map;
+
 //------------------------------------------------------------------------------
 #define DECODE_U8(bUFFER, vALUE, sIZE)                                         \
   vALUE = *(uint8_t*) (bUFFER);                                                \

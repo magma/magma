@@ -61,6 +61,7 @@
 #define MAX_RESTRICTED_PLMN 10
 #define MAX_MODE_MAP_CONFIG 10
 #define MAX_IMSI_LENGTH 15
+#define MAX_MODE_STRING_LEN 20
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
@@ -192,8 +193,10 @@
 
 // INBOUND ROAMING
 #define MME_CONFIG_STRING_MODE_MAP "MODE_MAP"
+#define MME_CONFIG_STRING_MODE "MODE"
 #define MME_CONFIG_STRING_APN "APN"
 #define MME_CONFIG_STRING_IMSI_RANGE "IMSI_RANGE"
+#define MME_CONFIG_STRING_PLMN "PLMN"
 
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
@@ -310,8 +313,8 @@ typedef struct mode_map_s {
   uint8_t mode;
   plmn_t plmn;
   // IMSI range
-  uint8_t imsi_low[MAX_IMSI_LENGTH];
-  uint8_t imsi_high[MAX_IMSI_LENGTH];
+  uint8_t imsi_low[MAX_IMSI_LENGTH + 1];
+  uint8_t imsi_high[MAX_IMSI_LENGTH + 1];
   bstring apn;
 } mode_map_t;
 
