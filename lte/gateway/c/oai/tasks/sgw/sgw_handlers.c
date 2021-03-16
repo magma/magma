@@ -1945,9 +1945,7 @@ int sgw_handle_ip_allocation_rsp(
     inet_ntop(
         AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip_str,
         INET_ADDRSTRLEN);
-    pcef_create_session(
-        spgw_state, imsi, ip_str, NULL, &session_data, session_req,
-        bearer_ctxt_info_p);
+    pcef_create_session(imsi, ip_str, NULL, &session_data, session_req);
   } else {
     if (ip_allocation_rsp->status == SGI_STATUS_ERROR_SYSTEM_FAILURE) {
       /*

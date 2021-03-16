@@ -219,6 +219,7 @@ def main():
         service,
         services, service_manager, get_mconfig_manager(), command_executor,
         service.loop,
+        service.config.get('print_grpc_payload', False)
     )
     magmad_servicer.add_to_server(service.rpc_server)
 

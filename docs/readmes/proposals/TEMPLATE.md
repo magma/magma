@@ -1,6 +1,6 @@
 ---
-id: p[###]_[short-description]
-title: [Title of Design Doc]
+id: proposal_template
+title: Title of Design Doc
 hide_title: true
 ---
 

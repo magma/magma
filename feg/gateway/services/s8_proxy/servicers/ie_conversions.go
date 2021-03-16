@@ -173,25 +173,25 @@ func getRatType(ratType protos.RATType) *ie.IE {
 	case protos.RATType_RESERVED:
 		rType = 0
 	case protos.RATType_UTRAN:
-		rType = 1
+		rType = gtpv2.RATTypeUTRAN
 	case protos.RATType_GERAN:
-		rType = 2
+		rType = gtpv2.RATTypeGERAN
 	case protos.RATType_WLAN:
-		rType = 3
+		rType = gtpv2.RATTypeWLAN
 	case protos.RATType_GAN:
-		rType = 4
+		rType = gtpv2.RATTypeGAN
 	case protos.RATType_HSPA:
-		rType = 5
+		rType = gtpv2.RATTypeHSPAEvolution
 	case protos.RATType_EUTRAN:
-		rType = 6
+		rType = gtpv2.RATTypeEUTRAN
 	case protos.RATType_VIRTUAL:
-		rType = 7
+		rType = gtpv2.RATTypeVirtual
 	case protos.RATType_EUTRAN_NB_IOT:
-		rType = 8
+		rType = gtpv2.RATTypeEUTRANNBIoT
 	case protos.RATType_LTE_M:
-		rType = 9
+		rType = gtpv2.RATTypeLTEM
 	case protos.RATType_NR:
-		rType = 10
+		rType = gtpv2.RATTypeNR
 	default:
 		panic(fmt.Sprintf("RatType %d does not exist", ratType))
 	}

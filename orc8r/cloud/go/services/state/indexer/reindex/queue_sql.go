@@ -167,7 +167,7 @@ func (s *sqlJobQueue) PopulateJobs() (bool, error) {
 }
 
 func (s *sqlJobQueue) ClaimAvailableJob() (*Job, error) {
-	reindexJob, err := s.claimAvailableJob()
+	job, err := s.claimAvailableJob()
 	if err == merrors.ErrNotFound {
 		return nil, nil
 	}
@@ -175,20 +175,18 @@ func (s *sqlJobQueue) ClaimAvailableJob() (*Job, error) {
 		return nil, err
 	}
 
-	idx, err := indexer.GetIndexer(reindexJob.id)
+	idx, err := indexer.GetIndexer(job.id)
 	if err != nil {
+		failed := &Job{Idx: idx, From: job.from, To: job.to}
+		completeErr := s.CompleteJob(failed, errors.Wrap(err, "error claiming available job"))
+		if completeErr != nil {
+			glog.Errorf("Error completing job after failing to claim it: %+v", completeErr)
+		}
 		return nil, err
 	}
-	if idx == nil {
-		return nil, fmt.Errorf("indexer %s not found in registry", reindexJob.id)
-	}
 
-	job := &Job{
-		Idx:  idx,
-		From: reindexJob.from,
-		To:   reindexJob.to,
-	}
-	return job, nil
+	claimedJob := &Job{Idx: idx, From: job.from, To: job.to}
+	return claimedJob, nil
 }
 
 func (s *sqlJobQueue) CompleteJob(job *Job, withErr error) error {

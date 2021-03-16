@@ -225,8 +225,7 @@ int pgw_handle_allocate_ipv6_address(
                    .saved_message,
               &session_data);
           pcef_create_session(
-              spgw_state, subscriber_id, nullptr, ip6_str, &session_data,
-              session_req, new_bearer_ctxt_info_p);
+              subscriber_id, nullptr, ip6_str, &session_data, session_req);
         } else {
           // If we are here then the IP address allocation has failed
           s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
@@ -340,8 +339,7 @@ int pgw_handle_allocate_ipv4v6_address(
                    .saved_message,
               &session_data);
           pcef_create_session(
-              spgw_state, subscriber_id, ip4_str, ip6_str, &session_data,
-              session_req, new_bearer_ctxt_info_p);
+              subscriber_id, ip4_str, ip6_str, &session_data, session_req);
           s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
           s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
         } else {

@@ -1485,7 +1485,6 @@ definitions:
     minLength: 1
     required:
       - s6a
-      - s8
       - hss
       - gx
       - gy
