@@ -65,7 +65,7 @@ TEST_FLAG = -DBUILD_TESTS=1
 
 all: build
 
-build: build_python build_common build_oai build_sctpd build_session_manager ## Build all
+build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker ## Build all
 
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
@@ -138,6 +138,9 @@ build_sctpd: format_sctpd build_common ## Build SCTPD
 
 build_session_manager: format_session_manager build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
+
+build_connection_tracker: build_common ## Build connection tracker
+	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
 # Catch all for c services that don't have custom flags
 # This works with build_dpi
