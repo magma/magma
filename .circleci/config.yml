@@ -321,6 +321,24 @@ commands:
             mkdir -p versions
             cp *_version versions || true
           no_output_timeout: 20m
+      - run:
+          name: Copy debian packages to new JFROG repo
+          command: |
+            cd ${MAGMA_ROOT}/circleci
+            PACKAGE_FILE=packages.tar.gz
+            if [ -f "${PACKAGE_FILE}" ]; then
+               echo "${PACKAGE_FILE} exists"
+               rm -rf *.deb
+               tar xvf ${PACKAGE_FILE} 
+               for i in `ls -a1 *.deb`
+               do
+                  echo "Pushing package $i to JFROG artifiactory"
+                  # curl -uci-bot:XXX -XPUT "https://artifactory.magmacore.org/artifactory/debian-local/pool/chef-integration-test.deb;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
+               done
+            else
+               echo "${PACKAGE_FILE} does NOT exist"
+               echo "No debian packes to push to JFROG"
+            fi
       - store_artifacts:
           path: /tmp/logs
       - store_test_results:
