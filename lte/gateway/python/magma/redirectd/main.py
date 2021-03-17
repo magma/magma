@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import logging
+import sentry_sdk
 import threading
 
 from magma.common.service import MagmaService
@@ -25,6 +26,12 @@ def main():
     main() for redirectd. Starts the server threads.
     """
     service = MagmaService('redirectd', mconfigs_pb2.RedirectD())
+
+    # Optionally pipe errors to Sentry
+    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
+    if sentry_url:
+        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
+        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
 
     redirect_ip = get_service_config_value(
         'pipelined',

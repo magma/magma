@@ -12,9 +12,12 @@ limitations under the License.
 """
 import asyncio
 import logging
+import sentry_sdk
 
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
+from magma.configuration.service_configs import get_service_config_value
+
 from .processor import Processor
 from .protocols.diameter.application import base, s6a
 from .protocols.diameter.server import S6aServer
@@ -29,6 +32,12 @@ from lte.protos.mconfig import mconfigs_pb2
 def main():
     """ main() for subscriberdb """
     service = MagmaService('subscriberdb', mconfigs_pb2.SubscriberDB())
+
+    # Optionally pipe errors to Sentry
+    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
+    if sentry_url:
+        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
+        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
 
     # Initialize a store to keep all subscriber data.
     store = SqliteStore(service.config['db_path'], loop=service.loop,

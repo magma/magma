@@ -12,11 +12,13 @@ limitations under the License.
 """
 import ipaddress
 import logging
+import sentry_sdk
 from typing import Optional
 
 from magma.common.redis.client import get_default_client
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
+from magma.configuration.service_configs import get_service_config_value
 from magma.mobilityd.ip_address_man import IPAddressManager
 from magma.mobilityd.ip_allocator_base import OverlappedIPBlocksError
 from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP
@@ -90,6 +92,12 @@ def _get_ip_block(ip_block_str: str) -> Optional[ipaddress.ip_network]:
 def main():
     """ main() for MobilityD """
     service = MagmaService('mobilityd', mconfigs_pb2.MobilityD())
+
+    # Optionally pipe errors to Sentry
+    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
+    if sentry_url:
+        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
+        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
 
     # Load service configs and mconfig
     config = service.config

@@ -17,6 +17,7 @@ limitations under the License.
 
 import asyncio
 import logging
+import sentry_sdk
 import threading
 
 import aioeventlet
@@ -28,6 +29,7 @@ from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from magma.common.misc_utils import call_process, get_ip_from_if
 from magma.common.service import MagmaService
 from magma.configuration import environment
+from magma.configuration.service_configs import get_service_config_value
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.service_manager import ServiceManager
@@ -41,7 +43,6 @@ from magma.pipelined.bridge_util import BridgeTools
 from lte.protos.mconfig import mconfigs_pb2
 
 
-
 def main():
     """
     Loads the Ryu apps we want to run from the config file.
@@ -53,6 +54,13 @@ def main():
     asyncio.set_event_loop_policy(aioeventlet.EventLoopPolicy())
 
     service = MagmaService('pipelined', mconfigs_pb2.PipelineD())
+
+    # Optionally pipe errors to Sentry
+    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
+    if sentry_url:
+        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
+        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
+
     service_config = service.config
 
     if environment.is_dev_mode():
