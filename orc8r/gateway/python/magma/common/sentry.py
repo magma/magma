@@ -21,5 +21,5 @@ def sentry_init():
     """
     sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
     if sentry_url:
-        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
+        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate', default=1.0)
         sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
