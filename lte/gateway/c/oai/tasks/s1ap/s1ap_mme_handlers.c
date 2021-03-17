@@ -3298,7 +3298,7 @@ int s1ap_mme_handle_erab_modification_indication(
           .s1_xNB_fteid.teid = htonl(*((uint32_t*) erab_item->dL_GTP_TEID.buf));
 
       /** Set the IP address from the FTEID. */
-      if (4 == blength(transport_layer_address)) {
+      if (blength(transport_layer_address == 4)) {
         S1AP_E_RAB_MODIFICATION_IND(message_p)
             .e_rab_not_to_be_modified_list.item[index]
             .s1_xNB_fteid.ipv4 = 1;
@@ -3307,7 +3307,7 @@ int s1ap_mme_handle_erab_modification_indication(
                  .e_rab_not_to_be_modified_list.item[index]
                  .s1_xNB_fteid.ipv4_address,
             transport_layer_address->data, blength(transport_layer_address));
-      } else if (16 == blength(transport_layer_address)) {
+      } else if (blength(transport_layer_address) == 16) {
         S1AP_E_RAB_MODIFICATION_IND(message_p)
             .e_rab_not_to_be_modified_list.item[index]
             .s1_xNB_fteid.ipv6 = 1;

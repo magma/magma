@@ -405,7 +405,7 @@ void mme_app_send_s1ap_e_rab_modification_confirm(
   MessageDef* message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_MODIFICATION_CNF);
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed\n");
+    OAILOG_ERROR(LOG_MME_APP, "itti_alloc_new_message Failed\n");
   }
 
   itti_s1ap_e_rab_modification_cnf_t* s1ap_e_rab_modification_cnf_p =
@@ -432,7 +432,7 @@ void mme_app_send_s1ap_e_rab_modification_confirm(
       proc->e_rab_failed_to_be_modified_list.no_of_items;
 
   /** Sending a message to S1AP. */
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
