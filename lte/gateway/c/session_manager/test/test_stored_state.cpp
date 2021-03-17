@@ -365,6 +365,9 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(
       deserialized.policy_stats_map["rule1"].last_reported_rule_version, 1);
   EXPECT_EQ(deserialized.policy_stats_map["rule1"].stats_map[1].tx, 1);
+  EXPECT_EQ(deserialized.policy_stats_map["rule1"].stats_map[1].rx, 2);
+  EXPECT_EQ(deserialized.policy_stats_map["rule2"].stats_map[1].dropped_tx, 3);
+  EXPECT_EQ(deserialized.policy_stats_map["rule2"].stats_map[2].dropped_rx, 40);
 }
 
 int main(int argc, char** argv) {
