@@ -43,13 +43,13 @@ target_include_directories(LIB_S1AP PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/r15
 )
 
-set(PCEF_LTE_CPP_PROTOS s1ap_state common_types)
+set(S1AP_STATE_CPP_PROTOS s1ap_state common_types)
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 set(STATE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
-generate_cpp_protos("${PCEF_LTE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
+generate_cpp_protos("${S1AP_STATE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
         "${STATE_PROTO_DIR}" "${STATE_OUT_DIR}")
 
 add_library(TASK_S1AP
