@@ -316,7 +316,7 @@ commands:
           command: |
             sleep 10
             cd ${MAGMA_ROOT}/circleci
-            #fab <<parameters.stack>> integ_test:repo=${CIRCLE_REPOSITORY_URL},branch=${CIRCLE_BRANCH},sha1=${CIRCLE_SHA1},run_integ_test=<<parameters.test>>,build_package=<<parameters.build>>,deploy_artifacts=<<parameters.deploy>>
+            fab <<parameters.stack>> integ_test:repo=${CIRCLE_REPOSITORY_URL},branch=${CIRCLE_BRANCH},sha1=${CIRCLE_SHA1},run_integ_test=<<parameters.test>>,build_package=<<parameters.build>>,deploy_artifacts=<<parameters.deploy>>
 
             mkdir -p versions
             cp *_version versions || true
@@ -332,12 +332,12 @@ commands:
                tar xvf ${PACKAGE_FILE} 
                for i in `ls -a1 *.deb`
                do
-                  echo "Pushing package $i to JFROG artifiactory"
-                  # curl -uci-bot:XXX -XPUT "https://artifactory.magmacore.org/artifactory/debian-local/pool/chef-integration-test.deb;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
+                  echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
-               echo "No debian packes to push to JFROG"
+               echo "No debian packages to push to JFROG"
             fi
       - store_artifacts:
           path: /tmp/logs
@@ -803,8 +803,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
-      #- build/determinator:
-      #    <<: *lte_build_verify
+      - build/determinator:
+          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'False'
@@ -1114,14 +1114,13 @@ workflows:
 
   agw:
     jobs:
-      - lte-agw-deploy
-      #- lte-test
-      #- lte-integ-test:
-      #    <<: *master_and_develop
-      #- lte-agw-deploy:
-      #    <<: *only_master
-      #    requires:
-      #      - lte-integ-test
+      - lte-test
+      - lte-integ-test:
+          <<: *master_and_develop
+      - lte-agw-deploy:
+          <<: *only_master
+          requires:
+            - lte-integ-test
 
   feg:
     jobs:
