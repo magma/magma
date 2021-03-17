@@ -1977,7 +1977,7 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   std::unordered_set<std::string> rule_ids({"rule1", "rule2"});
   // Expect NO call to PipelineD for rule1
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
+      *pipelined_client, deactivate_flows_for_rules(
                              IMSI1, testing::_, testing::_, testing::_,
                              CheckSubset(rule_ids), CheckCount(0), testing::_))
       .Times(0);
@@ -1991,7 +1991,7 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
       create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule3", 0);
   EXPECT_CALL(
       *pipelined_client,
-      deactivate_flows_for_rules_for_termination(
+      deactivate_flows_for_rules(
           IMSI1, testing::_, testing::_, testing::_,
           std::vector<std::string>{"rule3"}, CheckCount(0), testing::_))
       .Times(1);

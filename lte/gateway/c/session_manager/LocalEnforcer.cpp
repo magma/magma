@@ -414,7 +414,7 @@ void LocalEnforcer::remove_all_rules_for_termination(
   for (const std::string& static_rule : info.static_rules) {
     uc.static_rules_to_uninstall.insert(static_rule);
   }
-  for (const PolicyRule& gx_dynamic_rule : info.dynamic_rules) {
+  for (const PolicyRule& gx_dynamic_rule : info.gx_dynamic_rules) {
     uc.dynamic_rules_to_uninstall.insert(gx_dynamic_rule.id());
   }
   for (const PolicyRule& gy_dynamic_rule : info.gy_dynamic_rules) {
@@ -425,7 +425,7 @@ void LocalEnforcer::remove_all_rules_for_termination(
   const auto ipv6_addr = session->get_config().common_context.ue_ipv6();
   const Teids teids    = session->get_config().common_context.teids();
   pipelined_client_->deactivate_flows_for_rules_for_termination(
-      imsi, ip_addr, ipv6_addr, teids, info.static_rules, info.dynamic_rules,
+      imsi, ip_addr, ipv6_addr, teids, info.static_rules, info.gx_dynamic_rules,
       RequestOriginType::GX);
 
   auto gy_rules = session->get_all_final_unit_rules();
@@ -2110,7 +2110,7 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
       dynamic_rule_to_remove.push_back(rule);
     }
   }
-  pipelined_client_->deactivate_flows_for_rules_for_termination(
+  pipelined_client_->deactivate_flows_for_rules(
       imsi, session.get_config().common_context.ue_ipv4(),
       session.get_config().common_context.ue_ipv6(),
       session.get_config().common_context.teids(), static_rule_to_remove,

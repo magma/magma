@@ -96,11 +96,6 @@ MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
          req.monitor_usages().size() == monitorCount;
 }
 
-MATCHER_P2(CheckActivateFlows, imsi, rule_count, "") {
-  auto request = static_cast<const ActivateFlowsRequest*>(arg);
-  return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
-}
-
 MATCHER_P6(
     CheckSessionInfos, imsi_list, ip_address_list, ipv6_address_list, cfg,
     static_rule_lists, dynamic_rule_ids_lists, "") {
@@ -114,14 +109,14 @@ MATCHER_P6(
     if (infos[i].ipv6_addr != ipv6_address_list[i]) return false;
     if (infos[i].static_rules.size() != static_rule_lists[i].size())
       return false;
-    if (infos[i].dynamic_rules.size() != dynamic_rule_ids_lists[i].size())
+    if (infos[i].gx_dynamic_rules.size() != dynamic_rule_ids_lists[i].size())
       return false;
     for (size_t r_index = 0; i < infos[i].static_rules.size(); i++) {
       if (infos[i].static_rules[r_index] != static_rule_lists[i][r_index])
         return false;
     }
-    for (size_t r_index = 0; i < infos[i].dynamic_rules.size(); i++) {
-      if (infos[i].dynamic_rules[r_index].id() !=
+    for (size_t r_index = 0; i < infos[i].gx_dynamic_rules.size(); i++) {
+      if (infos[i].gx_dynamic_rules[r_index].id() !=
           dynamic_rule_ids_lists[i][r_index])
         return false;
     }
@@ -206,14 +201,6 @@ MATCHER_P(CheckSingleUpdate, expected_update, "") {
 MATCHER_P(CheckTerminate, imsi, "") {
   auto request = static_cast<const SessionTerminateRequest*>(arg);
   return request->common_context().sid().id() == imsi;
-}
-
-MATCHER_P4(CheckActivateFlows, imsi, ipv4, ipv6, rule_count, "") {
-  auto request = static_cast<const ActivateFlowsRequest*>(arg);
-  auto res     = request->sid().id() == imsi &&
-             request->rule_ids_size() == rule_count &&
-             request->ip_addr() == ipv4 && request->ipv6_addr() == ipv6;
-  return res;
 }
 
 MATCHER_P6(
