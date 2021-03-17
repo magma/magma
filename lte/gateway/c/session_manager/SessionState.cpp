@@ -119,15 +119,6 @@ StoredSessionState SessionState::marshal() {
   for (auto& it : policy_stats_map_) {
     marshaled.policy_stats_map[it.first] = it.second;
   }
-  //
-  //  marshaled.policy_stats_map = PolicyStatsMap();
-  //  for (auto& it : policy_stats_map_) {
-  //   marshaled.policy_stats_map[it.first] = it.second;
-  //    for (auto& stat :  it.second.stats_map) {
-  //        marshaled.policy_stats_map[it.first].stats_map[stat.first] =
-  //        stat.second;
-  //    }
-  //  }
 
   return marshaled;
 }
@@ -529,11 +520,6 @@ RuleStats SessionState::get_rule_delta(
   auto last_tracked_version_num = it->second.last_reported_rule_version;
   auto last_tracked =
       policy_stats_map_[rule_id].stats_map.find(last_tracked_version_num);
-  if (it == policy_stats_map_.end()) {
-    MLOG(MERROR) << "Can't lookup rule stats for rule_id " << rule_id
-                 << " for version " << last_tracked_version_num;
-    return ret;
-  }
 
   RuleStats prev_usage = last_tracked->second;
   if (rule_version < last_tracked_version_num) {
