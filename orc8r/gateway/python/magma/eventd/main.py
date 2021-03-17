@@ -11,10 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sentry_sdk
-
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
-from magma.configuration.service_configs import get_service_config_value
 from .rpc_servicer import EventDRpcServicer
 from .event_validator import EventValidator
 from orc8r.protos.mconfig.mconfigs_pb2 import EventD
@@ -25,10 +23,7 @@ def main():
     service = MagmaService('eventd', EventD())
 
     # Optionally pipe errors to Sentry
-    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
-    if sentry_url:
-        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
-        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
+    sentry_init()
 
     event_validator = EventValidator(service.config)
     eventd_servicer = EventDRpcServicer(service.config, event_validator)

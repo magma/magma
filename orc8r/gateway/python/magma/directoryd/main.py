@@ -11,10 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sentry_sdk
-
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
-from magma.configuration.service_configs import get_service_config_value
 from magma.directoryd.rpc_servicer import GatewayDirectoryServiceRpcServicer
 from orc8r.protos.mconfig import mconfigs_pb2
 
@@ -24,10 +22,7 @@ def main():
     service = MagmaService('directoryd', mconfigs_pb2.DirectoryD())
 
     # Optionally pipe errors to Sentry
-    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
-    if sentry_url:
-        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
-        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
+    sentry_init()
 
     service_config = service.config
 

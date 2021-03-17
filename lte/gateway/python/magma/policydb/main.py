@@ -12,16 +12,15 @@ limitations under the License.
 """
 
 import logging
-import sentry_sdk
 
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.policydb_pb2_grpc import PolicyAssignmentControllerStub
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub,\
     SessionProxyResponderStub
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.common.streamer import StreamerClient
-from magma.configuration.service_configs import get_service_config_value
 from magma.policydb.apn_rule_map_store import ApnRuleAssignmentsDict
 from magma.policydb.basename_store import BaseNameDict
 from magma.policydb.rating_group_store import RatingGroupsDict
@@ -37,10 +36,7 @@ def main():
     service = MagmaService('policydb', mconfigs_pb2.PolicyDB())
 
     # Optionally pipe errors to Sentry
-    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
-    if sentry_url:
-        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
-        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
+    sentry_init()
 
     apn_rules_dict = ApnRuleAssignmentsDict()
     assignments_dict = RuleAssignmentsDict()

@@ -12,17 +12,16 @@ limitations under the License.
 """
 import importlib
 import logging
-import sentry_sdk
 import snowflake
 import typing
 
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.sdwatchdog import SDWatchdog
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
 from magma.configuration.mconfig_managers import MconfigManagerImpl, \
     get_mconfig_manager
-from magma.configuration.service_configs import get_service_config_value
 from magma.magmad.generic_command.command_executor import \
     get_command_executor_impl
 from magma.magmad.upgrade.upgrader import UpgraderFactory, start_upgrade_loop
@@ -49,10 +48,7 @@ def main():
     service = MagmaService('magmad', mconfigs_pb2.MagmaD())
 
     # Optionally pipe errors to Sentry
-    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
-    if sentry_url:
-        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
-        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
+    sentry_init()
 
     logging.info('Starting magmad for UUID: %s', snowflake.make_snowflake())
 

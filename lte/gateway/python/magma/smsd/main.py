@@ -11,11 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sentry_sdk
-
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
-from magma.configuration.service_configs import get_service_config_value
 from lte.protos.sms_orc8r_pb2_grpc import SMSOrc8rServiceStub, SMSOrc8rGatewayServiceStub, SmsDStub
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 from .relay import SmsRelay
@@ -25,10 +23,7 @@ def main():
     service = MagmaService('smsd', None)
 
     # Optionally pipe errors to Sentry
-    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
-    if sentry_url:
-        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
-        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
+    sentry_init()
 
     directoryd_chan = ServiceRegistry.get_rpc_channel('directoryd',
                                                       ServiceRegistry.LOCAL)

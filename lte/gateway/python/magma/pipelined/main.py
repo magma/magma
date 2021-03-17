@@ -17,7 +17,6 @@ limitations under the License.
 
 import asyncio
 import logging
-import sentry_sdk
 import threading
 
 import aioeventlet
@@ -27,9 +26,9 @@ from scapy.arch import get_if_hwaddr
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 from magma.common.misc_utils import call_process, get_ip_from_if
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration import environment
-from magma.configuration.service_configs import get_service_config_value
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.service_manager import ServiceManager
@@ -56,10 +55,7 @@ def main():
     service = MagmaService('pipelined', mconfigs_pb2.PipelineD())
 
     # Optionally pipe errors to Sentry
-    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
-    if sentry_url:
-        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
-        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
+    sentry_init()
 
     service_config = service.config
 

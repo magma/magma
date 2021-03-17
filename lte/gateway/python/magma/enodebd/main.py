@@ -11,14 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sentry_sdk
 from threading import Thread
 from typing import List
 from unittest import mock
 
 from magma.enodebd.enodeb_status import get_service_status_old, \
     get_operational_states
-from magma.configuration.service_configs import get_service_config_value
+from magma.common.sentry import sentry_init
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from magma.enodebd.logger import EnodebdLogger as logger
 from .rpc_servicer import EnodebdRpcServicer
@@ -46,10 +45,7 @@ def main():
     logger.init()
 
     # Optionally pipe errors to Sentry
-    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
-    if sentry_url:
-        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate',default=1.0)
-        sentry_sdk.init(dsn=sentry_url, traces_sample_rate=sentry_sample_rate)
+    sentry_init()
 
     # State machine manager for tracking multiple connected eNB devices.
     state_machine_manager = StateMachineManager(service)
