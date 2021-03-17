@@ -803,8 +803,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
-      - build/determinator:
-          <<: *lte_build_verify
+      #- build/determinator:
+      #    <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'False'
