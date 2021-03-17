@@ -1,0 +1,7 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ .Release.Name }}-certifier-issuer
+spec:
+  ca:
+    secretName: "{{ .Release.Name }}-certifier-tls"

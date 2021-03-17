@@ -52,6 +52,10 @@ secret:
     orc8r: orc8r-secrets-configs-orc8r
   envdir: orc8r-secrets-envdir
 
+# certs
+certs:
+  create: false
+
 nginx:
   create: true
 

@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-certifier-certificate
+spec:
+  secretName: "{{ .Release.Name }}-certifier-tls"
+  commonName: "certifier.{{ .Values.dnsDomain }}"
+  subject:
+    countries:
+      - US
+  duration: 87600h
+  issuerRef:
+    name: {{ .Release.Name }}-selfsigned-issuer
+  isCA: true

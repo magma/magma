@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-fluentd-certificate
+spec:
+  secretName: "{{ .Release.Name }}-fluentd-tls"
+  commonName: "fluentd.{{ .Values.dnsDomain }}"
+  subject:
+    countries:
+      - US
+  duration: 87600h
+  issuerRef:
+    name: {{ .Release.Name }}-selfsigned-issuer
+  isCA: true

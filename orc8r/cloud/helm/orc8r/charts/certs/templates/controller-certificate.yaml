@@ -1,0 +1,20 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-controller-certificate
+spec:
+  secretName: "{{ .Release.Name }}-controller-tls"
+  commonName: "*.{{ .Values.dnsDomain }}"
+  subject:
+    countries:
+      - US
+  duration: {{ .Values.duration }}
+  issuerRef:
+{{- if .Values.controller.customIssuer }}
+    name: {{ .Values.controller.customIssuer }}
+{{- else }}
+    name: {{ .Release.Name }}-root-issuer
+{{- end }}
+  dnsNames:
+  - "*.{{ .Values.dnsDomain }}"
+  - "*.nms.{{ .Values.dnsDomain }}"

@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-admin-operator-certificate
+spec:
+  secretName: "{{ .Release.Name }}-admin-operator-tls"
+  commonName: "admin_operator"
+  subject:
+    countries:
+      - US
+  duration: {{ .Values.duration }}
+  issuerRef:
+{{- if .Values.adminOperator.customIssuer }}
+    name: {{ .Values.adminOperator.customIssuer }}
+{{- else }}
+    name: {{ .Release.Name }}-certifier-issuer
+{{- end }}
+  keystores:
+    pkcs12:
+      create: true
+      passwordSecretRef:
+        key: password
+        name: {{ .Release.Name }}-admin-operator-pkcs12-password
