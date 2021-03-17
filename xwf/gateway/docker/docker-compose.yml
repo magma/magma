@@ -96,6 +96,7 @@ services:
     environment:
       - ODS_ACCESS_TOKEN=${ODS_ACCESS_TOKEN}
       - SCUBA_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
+      - AAA_ENDPOINT=${AAA_ENDPOINT:-https://graph.expresswifi.com/radius/authorization}	
       - AAA_ENDPOINT=https://graph.expresswifi.com/radius/authorization
       - AAA_ACCESS_TOKEN=${AAA_ACCESS_TOKEN}
       - RADIUS_SECRET=${RADIUS_SECRET:-123456}

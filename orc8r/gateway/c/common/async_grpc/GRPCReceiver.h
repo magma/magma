@@ -48,6 +48,7 @@ class GRPCReceiver {
  */
 class AsyncResponse {
  public:
+  virtual ~AsyncResponse() = default;
   /**
    * Override handle_response to be called when a response comes into the queue
    */
