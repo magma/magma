@@ -209,7 +209,7 @@ AsyncPipelinedClient::AsyncPipelinedClient()
     : AsyncPipelinedClient(ServiceRegistrySingleton::Instance()->GetGrpcChannel(
           "pipelined", ServiceRegistrySingleton::LOCAL)) {}
 
-bool AsyncPipelinedClient::setup_cwf(
+void AsyncPipelinedClient::setup_cwf(
     const std::vector<SessionState::SessionInfo>& infos,
     const std::vector<SubscriberQuotaUpdate>& quota_updates,
     const std::vector<std::string> ue_mac_addrs,
@@ -230,10 +230,9 @@ bool AsyncPipelinedClient::setup_cwf(
   setup_ue_mac_rpc(setup_ue_mac_req, callback);
 
   update_subscriber_quota_state(quota_updates);
-  return true;
 }
 
-bool AsyncPipelinedClient::setup_lte(
+void AsyncPipelinedClient::setup_lte(
     const std::vector<SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {
@@ -241,19 +240,17 @@ bool AsyncPipelinedClient::setup_lte(
   setup_default_controllers_rpc(setup_default_req, callback);
   SetupPolicyRequest setup_policy_req = create_setup_policy_req(infos, epoch);
   setup_policy_rpc(setup_policy_req, callback);
-  return true;
 }
 
 // Method to Setup UPF Session
-bool AsyncPipelinedClient::set_upf_session(
+void AsyncPipelinedClient::set_upf_session(
     const SessionState::SessionInfo info,
     std::function<void(Status status, UPFSessionContextState)> callback) {
   SessionSet setup_session_req = create_session_set_req(info);
   set_upf_session_rpc(setup_session_req, callback);
-  return true;
 }
 
-bool AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
+void AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
   DeactivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   MLOG(MDEBUG) << "Deactivating all flows for subscriber " << imsi;
@@ -263,10 +260,9 @@ bool AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
                    << ": " << status.error_message();
     }
   });
-  return true;
 }
 
-bool AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
+void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
     const std::vector<std::string>& rule_ids,
@@ -281,10 +277,10 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
   auto req = create_deactivate_req(
       imsi, ip_addr, ipv6_addr, teids, rule_ids, dynamic_rules, origin_type,
       true);
-  return deactivate_flows(req);
+  deactivate_flows(req);
 }
 
-bool AsyncPipelinedClient::deactivate_flows_for_rules(
+void AsyncPipelinedClient::deactivate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
     const std::vector<std::string>& rule_ids,
@@ -297,10 +293,10 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules(
   auto req = create_deactivate_req(
       imsi, ip_addr, ipv6_addr, teids, rule_ids, dynamic_rules, origin_type,
       false);
-  return deactivate_flows(req);
+  deactivate_flows(req);
 }
 
-bool AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
+void AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
   auto imsi = request.sid().id();
   deactivate_flows_rpc(
       request, [imsi](Status status, DeactivateFlowsResult resp) {
@@ -309,10 +305,9 @@ bool AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
                        << ": " << status.error_message();
         }
       });
-  return true;
 }
 
-bool AsyncPipelinedClient::activate_flows_for_rules(
+void AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     const optional<AggregatedMaximumBitrate>& ambr,
@@ -345,10 +340,9 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
         dynamic_rules, RequestOriginType::GX);
     activate_flows_rpc(req, callback);
   }
-  return true;
 }
 
-bool AsyncPipelinedClient::add_ue_mac_flow(
+void AsyncPipelinedClient::add_ue_mac_flow(
     const SubscriberID& sid, const std::string& ue_mac_addr,
     const std::string& msisdn, const std::string& ap_mac_addr,
     const std::string& ap_name,
@@ -356,10 +350,9 @@ bool AsyncPipelinedClient::add_ue_mac_flow(
   auto req = create_add_ue_mac_flow_req(
       sid, ue_mac_addr, msisdn, ap_mac_addr, ap_name, 0);
   add_ue_mac_flow_rpc(req, callback);
-  return true;
 }
 
-bool AsyncPipelinedClient::update_ipfix_flow(
+void AsyncPipelinedClient::update_ipfix_flow(
     const SubscriberID& sid, const std::string& ue_mac_addr,
     const std::string& msisdn, const std::string& ap_mac_addr,
     const std::string& ap_name, const uint64_t& pdp_start_time) {
@@ -371,10 +364,9 @@ bool AsyncPipelinedClient::update_ipfix_flow(
                    << ue_mac_addr << ": " << status.error_message();
     }
   });
-  return true;
 }
 
-bool AsyncPipelinedClient::delete_ue_mac_flow(
+void AsyncPipelinedClient::delete_ue_mac_flow(
     const SubscriberID& sid, const std::string& ue_mac_addr) {
   auto req = create_delete_ue_mac_flow_req(sid, ue_mac_addr);
   delete_ue_mac_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
@@ -383,10 +375,9 @@ bool AsyncPipelinedClient::delete_ue_mac_flow(
                    << ue_mac_addr << ": " << status.error_message();
     }
   });
-  return true;
 }
 
-bool AsyncPipelinedClient::update_subscriber_quota_state(
+void AsyncPipelinedClient::update_subscriber_quota_state(
     const std::vector<SubscriberQuotaUpdate>& updates) {
   auto req = create_subscriber_quota_state_req(updates);
   update_subscriber_quota_state_rpc(req, [](Status status, FlowResponse resp) {
@@ -394,10 +385,9 @@ bool AsyncPipelinedClient::update_subscriber_quota_state(
       MLOG(MERROR) << "Could send quota update " << status.error_message();
     }
   });
-  return true;
 }
 
-bool AsyncPipelinedClient::add_gy_final_action_flow(
+void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     const std::vector<std::string>& static_rules,
@@ -423,7 +413,6 @@ bool AsyncPipelinedClient::add_gy_final_action_flow(
                        << imsi << ": " << status.error_message();
         }
       });
-  return true;
 }
 
 // RPC definition to Send Set Session request to UPF
