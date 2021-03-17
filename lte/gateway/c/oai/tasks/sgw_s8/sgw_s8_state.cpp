@@ -23,7 +23,7 @@ extern "C" {
 #include "sgw_context_manager.h"
 }
 
-#include "sgw_state_manager.h"
+#include "sgw_s8_state_manager.h"
 
 using magma::lte::SgwStateManager;
 
@@ -46,15 +46,21 @@ int read_sgw_ue_state_db() {
 
 void sgw_state_exit() {
   SgwStateManager::getInstance().free_state();
+  return;
 }
 
 void put_sgw_state() {
   SgwStateManager::getInstance().write_state_to_db();
+  return;
 }
 
-void put_sgw_ue_state(sgw_state_t* sgw_state, imsi64_t imsi64) {}
+void put_sgw_ue_state(sgw_state_t* sgw_state, imsi64_t imsi64) {
+  return;
+}
 
-void delete_sgw_ue_state(imsi64_t imsi64) {}
+void delete_sgw_ue_state(imsi64_t imsi64) {
+  return;
+}
 
 void sgw_free_s11_bearer_context_information(
     sgw_eps_bearer_context_information_t** sgw_eps_context) {
@@ -62,4 +68,5 @@ void sgw_free_s11_bearer_context_information(
     sgw_free_pdn_connection(&(*sgw_eps_context)->pdn_connection);
   }
   free_wrapper((void**) sgw_eps_context);
+  return;
 }

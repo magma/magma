@@ -16,7 +16,7 @@ limitations under the License.
 #include <state_manager.h>
 #include "sgw_s8_state.h"
 #include "lte/protos/oai/sgw_state.pb.h"
-#include "sgw_state_converter.h"
+#include "sgw_s8_state_converter.h"
 
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE    = 512;
@@ -48,7 +48,7 @@ class SgwStateManager : public StateManager<
   /**
    * Initialization function to initialize member variables.
    * @param persist_state should read and write state from db
-   * @param config SPGW config struct
+   * @param config SGW config struct
    */
   void init(bool persist_state, const sgw_config_t* config);
 

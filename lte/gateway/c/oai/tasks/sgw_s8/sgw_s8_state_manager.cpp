@@ -16,7 +16,7 @@ extern "C" {
 #include "backtrace.h"
 }
 
-#include "sgw_state_manager.h"
+#include "sgw_s8_state_manager.h"
 
 namespace magma {
 namespace lte {
@@ -46,22 +46,35 @@ void SgwStateManager::init(bool persist_state, const sgw_config_t* config) {
 }
 
 void SgwStateManager::create_state() {
-  // Allocating sgw_state_p
   state_cache_p = (sgw_state_t*) calloc(1, sizeof(sgw_state_t));
-  display_backtrace();
+  if (!state_cache_p) {
+    OAILOG_CRITICAL(
+        LOG_SGW_S8, "Failed to allocate memory for sgw_state_t structure \n ");
+    return;
+  }
 
   OAILOG_INFO(LOG_SGW_S8, "Creating SGW_S8 state ");
   bstring b   = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
   state_ue_ht = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
       (void (*)(void**)) sgw_free_s11_bearer_context_information, b);
+  if (!state_ue_ht) {
+    OAILOG_CRITICAL(
+        LOG_SGW_S8, "Failed to create state_ue_ht for SGW_S8 task \n");
+    return;
+  }
 
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->ipv4.S1u_S12_S4_up.s_addr;
 
   state_cache_p->imsi_ue_context_htbl = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**)) spgw_free_ue_context, nullptr);
+      (void (*)(void**)) sgw_free_ue_context, nullptr);
+  if (!(state_cache_p->imsi_ue_context_htbl)) {
+    OAILOG_CRITICAL(
+        LOG_SGW_S8, "Failed to create imsi_ue_context_htbl for SGW_S8 task \n");
+    return;
+  }
 
   state_cache_p->tunnel_id = 0;
 
@@ -91,7 +104,7 @@ void SgwStateManager::free_state() {
 }
 
 int SgwStateManager::read_ue_state_from_db() {
-  /*TODO handle stateless */
+  /* TODO handle stateless for SGW_S8 task */
   return RETURNok;
 }
 

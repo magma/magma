@@ -32,22 +32,20 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-/**
- * Class for SGW_S8 tasks state conversion helper functions.
- */
+// Class for SGW_S8 tasks state conversion helper functions.
 class SgwStateConverter : StateConverter {
  public:
   /**
-   * Main function to convert SPGW state to proto definition
+   * Main function to convert SGW state to proto definition
    * @param sgw_state const pointer to sgw_state struct
    * @param sgw_proto SgwState proto object to be written to
    * Memory is owned by the caller
    */
   static void state_to_proto(
-      const sgw_state_t* pgw_state, oai::SgwState* sgw_proto);
+      const sgw_state_t* sgw_state, oai::SgwState* sgw_proto);
 
   /**
-   * Main function to convert SPGW proto to state definition
+   * Main function to convert SGW proto to state definition
    * @param sgw_proto SgwState proto object to be written to
    * @param sgw_state const pointer to sgw_state struct
    * Memory is owned by the caller

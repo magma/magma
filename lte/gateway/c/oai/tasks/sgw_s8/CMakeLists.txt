@@ -15,9 +15,9 @@ message("s8 Proto_includes are ${PROTO_HDRS}")
 set (SGW_S8_SRC
     sgw_s8_task.c
     sgw_s8_handlers.c
-    sgw_state.cpp
-    sgw_state_manager.cpp
-    sgw_state_converter.cpp
+    sgw_s8_state.cpp
+    sgw_s8_state_manager.cpp
+    sgw_s8_state_converter.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )

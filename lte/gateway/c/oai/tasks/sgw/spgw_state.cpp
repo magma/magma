@@ -125,7 +125,7 @@ void pgw_free_pcc_rule(void** rule) {
   }
 }
 
-void spgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
+void sgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
   if (*ue_context_p) {
     sgw_s11_teid_t* p1 = LIST_FIRST(&(*ue_context_p)->sgw_s11_teid_list);
     sgw_s11_teid_t* p2 = NULL;

@@ -89,7 +89,7 @@ void pgw_free_pcc_rule(void** rule);
  * Callback function for imsi_ue_context hashtable's freefunc
  * @param spgw_ue_context_t
  */
-void spgw_free_ue_context(spgw_ue_context_t** ue_context_p);
+void sgw_free_ue_context(spgw_ue_context_t** ue_context_p);
 #ifdef __cplusplus
 }
 #endif

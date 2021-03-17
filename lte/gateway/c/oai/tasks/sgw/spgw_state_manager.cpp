@@ -66,7 +66,7 @@ void SpgwStateManager::create_state() {
 
   state_cache_p->imsi_ue_context_htbl = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**)) spgw_free_ue_context, nullptr);
+      (void (*)(void**)) sgw_free_ue_context, nullptr);
 
   // Creating PGW related state structs
   state_cache_p->deactivated_predefined_pcc_rules = hashtable_ts_create(
