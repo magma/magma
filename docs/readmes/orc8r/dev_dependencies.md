@@ -6,8 +6,9 @@ hide_title: true
 
 # Module dependencies on generated constructs
 
-Within Magma, each module(orc8r, lte, cwf, feg, wifi, fbinternal),
-is in charge of generating and defining their own constructs. A module's
-constructs may have dependencies on those of another module.
+Within Magma, each module (orc8r, lte, cwf, feg, wifi, fbinternal)
+is in charge of generating and defining their own API objects, specifically
+defined as Swagger objects. A module's Swagger objects may depend on those
+from other modules. This results in the following module dependency tree.
 
 ![Module Dependencies](assets/orc8r/gen_construct_dependencies.png)
