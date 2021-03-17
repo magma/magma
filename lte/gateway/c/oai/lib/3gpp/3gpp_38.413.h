@@ -147,9 +147,6 @@ typedef uint16_t
                        // AMF Set within the AMF Region.
 typedef uint8_t Ngap_AMF_Pointer_t;  // 9.3.3.19 AMF Pointer is used to identify
                                      // one or more AMF(s) within the AMF Set.
-// 9.3.3.3 GUAMI
-// This  indicates the AMF identity
-// defined in 3gpp_23.003.h
 
 typedef uint16_t NR_Encryption_Algo;
 typedef uint16_t NR_Integrity_Protection_Algo;

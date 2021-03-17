@@ -89,7 +89,6 @@ typedef struct itti_ngap_initial_ctxt_setup_req_s {
   qci_t qci;
   priority_level_t prio_level;
   teid_t teid;
-  // ip_address_t upf_address;
 } itti_ngap_initial_ctxt_setup_req_t;
 
 // List of possible causes for AMF generated UE context release command towards

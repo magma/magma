@@ -20,6 +20,8 @@ set(ngap_generate_code_done_flag ${GENERATED_FULL_DIR}/NGAP_GENERATE_CODE_DONE)
 if( ${ASN1_SOURCE_DIR} IS_NEWER_THAN ${ngap_generate_code_done_flag})
    file(REMOVE ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.c ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.h)
    file(MAKE_DIRECTORY ${GENERATED_FULL_DIR})
+
+#Create NGAP_PDU structure without pointer references
  execute_process(COMMAND asn1c -pdu=all -fcompound-names -fno-include-deps -gen-PER -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} RESULT_VARIABLE ret)
    if (NOT ${ret} STREQUAL 0)
       message(FATAL_ERROR "${ret}")
