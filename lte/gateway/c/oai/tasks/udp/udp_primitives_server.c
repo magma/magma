@@ -129,10 +129,10 @@ static void udp_server_receive_and_process(
 
     if (ipv6) {
       from_len = (socklen_t) sizeof(struct sockaddr_in6);
-      memset(&addr, 0, sizeof(struct sockaddr_in6));
+      memset(&addr6, 0, sizeof(struct sockaddr_in6));
     } else {
       from_len = (socklen_t) sizeof(struct sockaddr_in);
-      memset(&addr6, 0, sizeof(struct sockaddr_in));
+      memset(&addr, 0, sizeof(struct sockaddr_in));
     }
 
     if ((bytes_received = recvfrom(

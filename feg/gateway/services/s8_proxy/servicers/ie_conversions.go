@@ -26,11 +26,12 @@ import (
 	"magma/feg/gateway/gtp"
 )
 
-// buildCreateSessionRequestIE creates a slice with all the IE needed for a Create Session Request
+// buildCreateSessionRequestIE creates a Message with all the IE needed for a Create Session Request
 func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSessionRequestPgw) (message.Message, error) {
-	// Create session needs e FTEIDs:
-	// - FEG (S8) control plane FTEID will be built using local address and TEID handled by s8_proxy
-	// - AGW user plane FTEID, provided by the bearer in the request
+	// Create session needs two FTEIDs:
+	// - S8 control plane FTEID will be built using local address and control TEID
+	//	 passed by MME
+	// - S8 user plane FTEID, provided by MME in the requested bearer
 
 	// TODO: look for a better way to find the local ip (avoid pinging on each request)
 	// (obtain the IP that is going to send the packet first)
@@ -39,12 +40,11 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 		return nil, err
 	}
 
-	// FEG control plane TEID
-	//cFegFTeid := gtpCli.NewSenderFTEID(ip.String(), "").WithInstance(0)
+	// Control plane TEID
 	cFegFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPC,
 		req.CAgwTeid, ip.String(), "").WithInstance(0)
 
-	// AGW user plane TEID (comming from request)
+	// User plane TEID (ip belongs to pipelined GTP-U interface)
 	uAgwFTeidReq := req.BearerContext.GetUserPlaneFteid()
 	uAgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU,
 		uAgwFTeidReq.Teid, uAgwFTeidReq.Ipv4Address, uAgwFTeidReq.Ipv6Address).WithInstance(2)
@@ -170,8 +170,28 @@ func getUserLocationIndication(mcc, mnc string, uli *protos.UserLocationInformat
 func getRatType(ratType protos.RATType) *ie.IE {
 	var rType uint8
 	switch ratType {
+	case protos.RATType_RESERVED:
+		rType = 0
+	case protos.RATType_UTRAN:
+		rType = gtpv2.RATTypeUTRAN
+	case protos.RATType_GERAN:
+		rType = gtpv2.RATTypeGERAN
+	case protos.RATType_WLAN:
+		rType = gtpv2.RATTypeWLAN
+	case protos.RATType_GAN:
+		rType = gtpv2.RATTypeGAN
+	case protos.RATType_HSPA:
+		rType = gtpv2.RATTypeHSPAEvolution
 	case protos.RATType_EUTRAN:
-		rType = 6
+		rType = gtpv2.RATTypeEUTRAN
+	case protos.RATType_VIRTUAL:
+		rType = gtpv2.RATTypeVirtual
+	case protos.RATType_EUTRAN_NB_IOT:
+		rType = gtpv2.RATTypeEUTRANNBIoT
+	case protos.RATType_LTE_M:
+		rType = gtpv2.RATTypeLTEM
+	case protos.RATType_NR:
+		rType = gtpv2.RATTypeNR
 	default:
 		panic(fmt.Sprintf("RatType %d does not exist", ratType))
 	}

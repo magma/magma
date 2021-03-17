@@ -124,6 +124,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp, imsi64);
     } break;
 
+    case PCEF_CREATE_SESSION_RESPONSE: {
+      spgw_handle_pcef_create_session_response(
+          spgw_state, &received_message_p->ittiMsg.pcef_create_session_response,
+          imsi64);
+    } break;
+
     case GX_NW_INITIATED_ACTIVATE_BEARER_REQ: {
       /* TODO need to discuss as part sending response to PCEF,
        * should these errors need to be mapped to gx errors
@@ -163,6 +169,18 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
          */
       }
     } break;
+
+    case IP_ALLOCATION_RESPONSE: {
+      int32_t rc = sgw_handle_ip_allocation_rsp(
+          spgw_state, &received_message_p->ittiMsg.ip_allocation_response,
+          imsi64);
+      if (rc != RETURNok) {
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, imsi64,
+            "Failed to handle IP_ALLOCATION_RESPONSE, \n");
+      }
+    } break;
+
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
       free(received_message_p);
@@ -225,14 +243,6 @@ int spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing SPGW-APP task interface: ERROR\n");
     return RETURNerror;
   }
-
-  FILE* fp         = NULL;
-  bstring filename = bformat("/tmp/spgw_%d.status", g_pid);
-  fp               = fopen(bdata(filename), "w+");
-  bdestroy_wrapper(&filename);
-  fprintf(fp, "STARTED\n");
-  fflush(fp);
-  fclose(fp);
 
   OAILOG_DEBUG(LOG_SPGW_APP, "Initializing SPGW-APP task interface: DONE\n");
   return RETURNok;

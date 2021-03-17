@@ -15,6 +15,7 @@ package gtp
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -23,9 +24,18 @@ import (
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
-
-	"magma/feg/cloud/go/protos"
+	"google.golang.org/protobuf/runtime/protoiface"
 )
+
+// MockProto is a mock protobuf message to mimick Encanced messages
+type MockProto struct {
+	protoiface.MessageV1
+	Teid uint32
+}
+
+func (mp MockProto) String() string {
+	return fmt.Sprint(mp.Teid)
+}
 
 const (
 	gtpTimeout = 200 * time.Millisecond
@@ -85,9 +95,9 @@ func TestGtpClient(t *testing.T) {
 	msg := message.NewCreateSessionRequest(0, 0, csr...)
 	resMsg, err := gtpClient.SendMessageAndExtractGrpc(IMSI1, cSgwTeid, remoteAddr, msg)
 	assert.NoError(t, err)
-	csRes := resMsg.(*protos.CreateSessionResponsePgw)
+	csRes := resMsg.(MockProto)
 	assert.NotEmpty(t, csRes)
-	assert.Equal(t, cPgwTeid, csRes.CPgwFteid.Teid)
+	assert.Equal(t, cPgwTeid, csRes.Teid)
 
 	// create same session with differnt QCI
 	csr = getCreateSessionRequest(t, gtpClient, localIP, actualServerIPAndPort, bearerId1, qci2)
@@ -95,9 +105,9 @@ func TestGtpClient(t *testing.T) {
 	msg = message.NewCreateSessionRequest(0, 0, csr...)
 	resMsg, err = gtpClient.SendMessageAndExtractGrpc(IMSI1, cSgwTeid, remoteAddr, msg)
 	assert.NoError(t, err)
-	csRes = resMsg.(*protos.CreateSessionResponsePgw)
+	csRes = resMsg.(MockProto)
 	assert.NotEmpty(t, csRes)
-	assert.Equal(t, cPgwTeid, csRes.CPgwFteid.Teid)
+	assert.Equal(t, cPgwTeid, csRes.Teid)
 }
 
 func startGTPServer(t *testing.T) *Client {
@@ -166,22 +176,19 @@ func getHandleCreateSessionResponse(cli *Client) gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, pgwAddr net.Addr, msg message.Message) error {
 
 		csResGtp := msg.(*message.CreateSessionResponse)
-		csRes := &protos.CreateSessionResponsePgw{}
+		mockProto := MockProto{}
 		if pgwCFteidIE := csResGtp.PGWS5S8FTEIDC; pgwCFteidIE != nil {
 			teid, err := pgwCFteidIE.TEID()
 			if err != nil {
 				return err
 			}
-			csRes.CPgwFteid = &protos.Fteid{
-				Ipv4Address: "",
-				Ipv6Address: "",
-				Teid:        teid,
-			}
+			mockProto.Teid = teid
+
 		} else {
 			return &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}
 		}
 
-		return cli.PassMessage(msg.TEID(), pgwAddr, csResGtp, csRes, nil)
+		return cli.PassMessage(msg.TEID(), pgwAddr, csResGtp, mockProto, nil)
 
 	}
 }

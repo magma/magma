@@ -34,19 +34,18 @@ const (
 
 func GetS8ProxyConfig() *S8ProxyConfig {
 	configPtr := &mcfgprotos.S8Config{}
+	conf := &S8ProxyConfig{}
 	err := mconfig.GetServiceConfigs(S8ProxyServiceName, configPtr)
 	if err != nil {
 		glog.V(2).Infof("%s Managed Configs Load Error: %v Using EnvVars", S8ProxyServiceName, err)
-		return &S8ProxyConfig{
-			ClientAddr: os.Getenv(ClientAddrEnv),
-			ServerAddr: ParseAddress(os.Getenv(ServerAddrEnv)),
-		}
+		conf.ClientAddr = os.Getenv(ClientAddrEnv)
+		conf.ServerAddr = ParseAddress(os.Getenv(ServerAddrEnv))
+	} else {
+		conf.ClientAddr = configPtr.LocalAddress
+		conf.ServerAddr = ParseAddress(configPtr.PgwAddress)
 	}
-	glog.V(2).Infof("Loaded %+v configs: %+v", S8ProxyConfig{}, *configPtr)
-	return &S8ProxyConfig{
-		ClientAddr: configPtr.LocalAddress,
-		ServerAddr: ParseAddress(configPtr.PgwAddress),
-	}
+	glog.V(2).Infof("Loaded configs: %+v", conf)
+	return conf
 }
 
 //parseAddress will parse an ip:port address. If parse fails it will just return nil

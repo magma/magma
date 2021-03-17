@@ -174,11 +174,12 @@ void mme_app_handle_ulr_timer_expiry(void* args, imsi64_t* imsi64);
 
 int mme_app_handle_sgs_eps_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args);
-void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args, imsi64_t* imsi64);
-void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
-    void* args, imsi64_t* imsi64);
-void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_sgs_imsi_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
 int mme_app_send_s6a_cancel_location_ans(
     int cla_result, const char* imsi, uint8_t imsi_length, void* msg_cla_p);

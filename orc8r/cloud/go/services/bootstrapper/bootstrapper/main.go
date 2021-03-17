@@ -16,7 +16,6 @@ package main
 import (
 	"crypto/rsa"
 	"flag"
-	"log"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
@@ -24,33 +23,37 @@ import (
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/key"
+
+	"github.com/golang/glog"
 )
 
 var (
-	keyFile = flag.String("cak", "bootstrapper.key.pem", "Bootstrapper's Private Key file")
+	keyFilepath = flag.String("cak", "bootstrapper.key.pem", "Bootstrapper's Private Key file")
 )
 
 func main() {
-	// Create the service, flag will be parsed inside this function
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, bootstrapper.ServiceName)
 	if err != nil {
-		log.Fatalf("Error creating bootstrapper service: %s", err)
+		glog.Fatalf("Error creating service: %+v", err)
 	}
 
-	// Add servicers to the service
-	privKey, err := key.ReadKey(*keyFile)
+	key, err := key.ReadKey(*keyFilepath)
 	if err != nil {
-		log.Fatalf("Failed to read private key: %s", err)
+		glog.Fatalf("Error reading bootstrapper private key: %+v", err)
 	}
-	servicer, err := servicers.NewBootstrapperServer(privKey.(*rsa.PrivateKey))
+	rsaPrivateKey, ok := key.(*rsa.PrivateKey)
+	if !ok {
+		glog.Fatalf("Error coercing bootstrapper private key to RSA private key; actual type: %T", key)
+	}
+
+	servicer, err := servicers.NewBootstrapperServer(rsaPrivateKey)
 	if err != nil {
-		log.Fatalf("Failed to create bootstrapper servicer: %s", err)
+		glog.Fatalf("Error creating bootstrapper servicer: %+v", err)
 	}
 	protos.RegisterBootstrapperServer(srv.GrpcServer, servicer)
 
-	// Run the service
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running service: %s", err)
+		glog.Fatalf("Error running service: %+v", err)
 	}
 }

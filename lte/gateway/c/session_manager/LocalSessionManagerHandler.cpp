@@ -26,7 +26,7 @@ namespace magma {
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    std::shared_ptr<DirectorydClient> directoryd_client,
     std::shared_ptr<EventsReporter> events_reporter,
     SessionStore& session_store)
     : session_store_(session_store),

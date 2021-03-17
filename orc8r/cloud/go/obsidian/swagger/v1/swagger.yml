@@ -3650,6 +3650,32 @@ paths:
       summary: Change a subscriber's data profile
       tags:
       - Subscribers
+  /lte/{network_id}/subscribers_v2:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: Filter to subscribers with the passed MSISDN
+        in: query
+        name: msisdn
+        required: false
+        type: string
+      - description: Filter to subscribers assigned the passed IP address
+        in: query
+        name: ip
+        required: false
+        type: string
+      - $ref: '#/parameters/page_size'
+      - $ref: '#/parameters/page_token'
+      responses:
+        "200":
+          description: List of subscribers in the network
+          schema:
+            $ref: '#/definitions/paginated_subscribers'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List subscribers in the network with pagination support
+      tags:
+      - Subscribers
   /networks:
     get:
       responses:
@@ -6587,6 +6613,19 @@ parameters:
     name: node_id
     required: true
     type: string
+  page_size:
+    description: Maximum number of entities to return
+    format: uint32
+    in: query
+    name: page_size
+    required: false
+    type: integer
+  page_token:
+    description: Opaque page token for paginated requests
+    in: query
+    name: page_token
+    required: false
+    type: string
   policy_qos_profile_id:
     description: Policy QoS profile
     in: path
@@ -8102,7 +8141,8 @@ definitions:
     - dns
     type: object
   feg_network_id:
-    example: example_feg_network
+    description: Name of the federated network serving this LTE network. Blank for non federated
+    example: feg_id_only_for_federated_network
     type: string
   flow_description:
     properties:
@@ -8363,7 +8403,6 @@ definitions:
         $ref: '#/definitions/swx'
     required:
     - s6a
-    - s8
     - hss
     - gx
     - gy
@@ -10020,6 +10059,9 @@ definitions:
         example: theuamsecret
         type: string
     type: object
+  next_page_token:
+    description: Base 64 encoded page token for subsequent paginated API requests
+    type: string
   nh_routes:
     additionalProperties:
       type: string
@@ -10053,6 +10095,20 @@ definitions:
       version:
         example: 0.0.0
         type: string
+    type: object
+  paginated_subscribers:
+    description: Page of subscribers
+    properties:
+      next_page_token:
+        $ref: '#/definitions/next_page_token'
+      subscribers:
+        additionalProperties:
+          $ref: '#/definitions/subscriber'
+          x-nullable: true
+        type: object
+    required:
+    - next_page_token
+    - subscribers
     type: object
   ping_request:
     properties:
