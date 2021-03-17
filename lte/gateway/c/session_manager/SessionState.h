@@ -242,7 +242,7 @@ class SessionState {
       const CreditKey& key, ChargingGrant charging_grant,
       SessionStateUpdateCriteria& uc);
 
-  RulesToProcess get_all_final_unit_rules();
+  std::vector<PolicyRule> get_all_final_unit_rules();
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,
@@ -432,6 +432,13 @@ class SessionState {
 
   void get_rules_per_credit_key(
       CreditKey charging_key, RulesToProcess& rulesToProcess);
+
+  /**
+   * Remove all active/scheduled static/dynamic rules and reflect the change in
+   * session_uc
+   * @param session_uc
+   */
+  void remove_all_rules_for_termination(SessionStateUpdateCriteria& session_uc);
 
   void set_teids(uint32_t enb_teid, uint32_t agw_teid);
 

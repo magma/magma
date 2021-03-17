@@ -269,18 +269,14 @@ void AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
 void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
-    const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules,
     const RequestOriginType_OriginType origin_type) {
-  MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
-               << dynamic_rules.size()
-               << " dynamic rules and default drop flows "
-                  "for subscriber "
-               << imsi << " IP " << ip_addr << " " << ipv6_addr;
+  MLOG(MDEBUG)
+      << "Deactivating all static/dynamic rules and default drop flows "
+         "for subscriber "
+      << imsi << " IP " << ip_addr << " " << ipv6_addr;
 
   auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, teids, rule_ids, dynamic_rules, origin_type,
-      true);
+      imsi, ip_addr, ipv6_addr, teids, {}, {}, origin_type, true);
   deactivate_flows(req);
 }
 

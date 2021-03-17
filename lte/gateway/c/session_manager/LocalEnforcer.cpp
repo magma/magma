@@ -408,32 +408,17 @@ void LocalEnforcer::handle_force_termination_timeout(
 void LocalEnforcer::remove_all_rules_for_termination(
     const std::string& imsi, const std::unique_ptr<SessionState>& session,
     SessionStateUpdateCriteria& uc) {
-  SessionState::SessionInfo info;
-  session->get_session_info(info);
-
-  for (const std::string& static_rule : info.static_rules) {
-    uc.static_rules_to_uninstall.insert(static_rule);
-  }
-  for (const PolicyRule& gx_dynamic_rule : info.gx_dynamic_rules) {
-    uc.dynamic_rules_to_uninstall.insert(gx_dynamic_rule.id());
-  }
-  for (const PolicyRule& gy_dynamic_rule : info.gy_dynamic_rules) {
-    uc.gy_dynamic_rules_to_uninstall.insert(gy_dynamic_rule.id());
-  }
-
-  const auto ip_addr   = session->get_config().common_context.ue_ipv4();
-  const auto ipv6_addr = session->get_config().common_context.ue_ipv6();
-  const Teids teids    = session->get_config().common_context.teids();
+  const std::string ip_addr = session->get_config().common_context.ue_ipv4();
+  const auto ipv6_addr      = session->get_config().common_context.ue_ipv6();
+  const Teids teids         = session->get_config().common_context.teids();
   pipelined_client_->deactivate_flows_for_rules_for_termination(
-      imsi, ip_addr, ipv6_addr, teids, info.static_rules, info.gx_dynamic_rules,
-      RequestOriginType::GX);
-
-  auto gy_rules = session->get_all_final_unit_rules();
-  if (!gy_rules.static_rules.empty() || !gy_rules.dynamic_rules.empty()) {
+      imsi, ip_addr, ipv6_addr, teids, RequestOriginType::GX);
+  if (!session->get_all_final_unit_rules().empty()) {
     pipelined_client_->deactivate_flows_for_rules_for_termination(
-        imsi, ip_addr, ipv6_addr, teids, gy_rules.static_rules,
-        gy_rules.dynamic_rules, RequestOriginType::GY);
+        imsi, ip_addr, ipv6_addr, teids, RequestOriginType::GY);
   }
+
+  session->remove_all_rules_for_termination(uc);
 }
 
 void LocalEnforcer::notify_termination_to_access_service(

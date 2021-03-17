@@ -571,12 +571,11 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   monitor_response->set_result_code(
       DIAMETER_USER_UNKNOWN);  // USER_UNKNOWN permanent failure
 
-  // expect all rules attached to this session should be removed
+  // the request should has no rules so PipelineD deletes all rules
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules_for_termination(
-          IMSI1, testing::_, testing::_, testing::_,
-          std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
+          IMSI1, testing::_, testing::_, testing::_, testing::_))
       .Times(1);
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
@@ -865,10 +864,11 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
+  // the request should has no rules so PipelineD deletes all rules
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             testing::_, testing::_, testing::_, testing::_,
-                             testing::_, testing::_, testing::_))
+      *pipelined_client,
+      deactivate_flows_for_rules_for_termination(
+          testing::_, testing::_, testing::_, testing::_, testing::_))
       .Times(1);
   // Since this is a termination triggered by SessionD/Core (quota exhaustion
   // + FUA-Terminate), we expect MME to be notified to delete the bearer
@@ -920,10 +920,11 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
+  // the request should has no rules so PipelineD deletes all rules
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             testing::_, testing::_, testing::_, testing::_,
-                             testing::_, testing::_, testing::_))
+      *pipelined_client,
+      deactivate_flows_for_rules_for_termination(
+          testing::_, testing::_, testing::_, testing::_, testing::_))
       .Times(1);
 
   EXPECT_CALL(*aaa_client, terminate_session(testing::_, testing::_))
@@ -1401,10 +1402,11 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
+  // the request should has no rules so PipelineD deletes all rules
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             testing::_, testing::_, testing::_, testing::_,
-                             CheckCount(2), CheckCount(1), testing::_))
+      *pipelined_client,
+      deactivate_flows_for_rules_for_termination(
+          testing::_, testing::_, testing::_, testing::_, testing::_))
       .Times(1);
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto usage_updates =
@@ -2679,16 +2681,16 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
   assert_session_is_in_final_state(
       session_map, IMSI1, SESSION_ID_1, credit_key, true);
 
-  EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
-                             std::vector<std::string>{"static_1"},
-                             CheckCount(0), RequestOriginType::GX));
+  // the request should has no rules so PipelineD deletes all rules
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules_for_termination(
-          IMSI1, ip_addr, ipv6_addr, CheckTeids(teids), CheckCount(0),
-          CheckCount(1), RequestOriginType::GY))
+          IMSI1, ip_addr, ipv6_addr, CheckTeids(teids), RequestOriginType::GX));
+  // the request should has no rules so PipelineD deletes all rules
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules_for_termination(
+          IMSI1, ip_addr, ipv6_addr, CheckTeids(teids), RequestOriginType::GY))
       .Times(1);
   local_enforcer->handle_termination_from_access(
       session_map, IMSI1, APN1, update);

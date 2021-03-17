@@ -882,6 +882,32 @@ std::vector<PolicyRule> SessionState::get_all_active_policies() {
   return policies;
 }
 
+void SessionState::remove_all_rules_for_termination(
+    SessionStateUpdateCriteria& session_uc) {
+  std::vector<PolicyRule> gx_dynamic_rules, gy_dynamic_rules,
+      scheduled_dynamic_rules;
+  dynamic_rules_.get_rules(gx_dynamic_rules);
+  for (PolicyRule& policy : gx_dynamic_rules) {
+    remove_dynamic_rule(policy.id(), nullptr, session_uc);
+  }
+  gy_dynamic_rules_.get_rules(gy_dynamic_rules);
+  for (PolicyRule& policy : gy_dynamic_rules) {
+    remove_gy_dynamic_rule(policy.id(), nullptr, session_uc);
+  }
+  for (const std::string& rule_id : active_static_rules_) {
+    deactivate_static_rule(rule_id, session_uc);
+  }
+
+  // remove scheduled rules
+  for (const std::string& rule_id : scheduled_static_rules_) {
+    deactivate_scheduled_static_rule(rule_id, session_uc);
+  }
+  scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
+  for (PolicyRule& policy : scheduled_dynamic_rules) {
+    remove_scheduled_dynamic_rule(policy.id(), nullptr, session_uc);
+  }
+}
+
 void SessionState::set_tgpp_context(
     const magma::lte::TgppContext& tgpp_context,
     SessionStateUpdateCriteria& update_criteria) {
@@ -1251,15 +1277,21 @@ static FinalActionInfo get_final_action_info(
   return final_action_info;
 }
 
-RulesToProcess SessionState::get_all_final_unit_rules() {
-  RulesToProcess rules;
+std::vector<PolicyRule> SessionState::get_all_final_unit_rules() {
+  std::vector<PolicyRule> rules;
   for (auto& credit_pair : credit_map_) {
     auto& grant = credit_pair.second;
-    if (grant->service_state == SERVICE_RESTRICTED) {
-      rules.static_rules = grant->final_action_info.restrict_rules;
+    if (grant->service_state != SERVICE_RESTRICTED) {
+      continue;
+    }
+    for (const std::string rule_id : grant->final_action_info.restrict_rules) {
+      PolicyRule rule;
+      if (static_rules_.get_rule(rule_id, &rule)) {
+        rules.push_back(rule);
+      }
     }
   }
-  get_gy_dynamic_rules().get_rules(rules.dynamic_rules);
+  gy_dynamic_rules_.get_rules(rules);
   return rules;
 }
 
