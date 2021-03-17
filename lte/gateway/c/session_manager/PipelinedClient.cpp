@@ -311,35 +311,15 @@ void AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     const optional<AggregatedMaximumBitrate>& ambr,
-    const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules,
+    const std::vector<PolicyRule>& rules,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
-  MLOG(MDEBUG) << "Activating " << static_rules.size() << " static rules and "
-               << dynamic_rules.size() << " dynamic rules for " << imsi
+  MLOG(MDEBUG) << "Activating " << rules.size() << " rules for " << imsi
                << " msisdn " << msisdn << " and ip " << ip_addr << " "
                << ipv6_addr;
-  // TODO: Activate static rules and dynamic rules separately until bug
-  //  is fixed in pipelined which crashes if activated at the same time
-  if (static_rules.size() > 0) {
-    auto static_req = create_activate_req(
-        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
-        std::vector<PolicyRule>(), RequestOriginType::GX);
-    activate_flows_rpc(static_req, callback);
-  }
-  if (dynamic_rules.size() > 0) {
-    auto dynamic_req = create_activate_req(
-        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr,
-        std::vector<std::string>(), dynamic_rules, RequestOriginType::GX);
-    activate_flows_rpc(dynamic_req, callback);
-  }
-  // If they are both empty, that means this call is at the start of the
-  // session. PipelineD requires at least one call to setup things.
-  if (static_rules.size() == 0 && dynamic_rules.size() == 0) {
-    auto req = create_activate_req(
-        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
-        dynamic_rules, RequestOriginType::GX);
-    activate_flows_rpc(req, callback);
-  }
+  auto req = create_activate_req(
+      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, {}, rules,
+      RequestOriginType::GX);
+  activate_flows_rpc(req, callback);
 }
 
 void AsyncPipelinedClient::add_ue_mac_flow(
@@ -390,29 +370,17 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
-    const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules) {
+    const std::vector<PolicyRule>& rules) {
   MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
-  auto static_req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, {}, static_rules,
-      std::vector<PolicyRule>(), RequestOriginType::GY);
-  activate_flows_rpc(
-      static_req, [imsi](Status status, ActivateFlowsResult resp) {
-        if (!status.ok()) {
-          MLOG(MERROR) << "Could not activate flows through pipelined for UE "
-                       << imsi << ": " << status.error_message();
-        }
-      });
-  auto dynamic_req = create_activate_req(
+  auto req = create_activate_req(
       imsi, ip_addr, ipv6_addr, teids, msisdn, {}, std::vector<std::string>(),
-      dynamic_rules, RequestOriginType::GY);
-  activate_flows_rpc(
-      dynamic_req, [imsi](Status status, ActivateFlowsResult resp) {
-        if (!status.ok()) {
-          MLOG(MERROR) << "Could not activate flows through pipelined for UE "
-                       << imsi << ": " << status.error_message();
-        }
-      });
+      rules, RequestOriginType::GY);
+  activate_flows_rpc(req, [imsi](Status status, ActivateFlowsResult resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not activate GY flows through pipelined for UE "
+                   << imsi << ": " << status.error_message();
+    }
+  });
 }
 
 // RPC definition to Send Set Session request to UPF

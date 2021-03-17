@@ -652,11 +652,9 @@ class SessionState {
    * UpdateSessionRequest.
    *
    * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
-   * @param actions_out Modified with additional actions to take on session.
    */
   void get_monitor_updates(
       UpdateSessionRequest& update_request_out,
-      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -697,7 +695,6 @@ class SessionState {
 
   void get_event_trigger_updates(
       UpdateSessionRequest& update_request_out,
-      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
 
   bool is_static_rule_scheduled(const std::string& rule_id);

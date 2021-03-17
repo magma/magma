@@ -623,7 +623,6 @@ bool SessionState::is_terminating() {
 
 void SessionState::get_monitor_updates(
     UpdateSessionRequest& update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria& update_criteria) {
   for (auto& monitor_pair : monitor_map_) {
     if (!monitor_pair.second->should_send_update()) {
@@ -692,8 +691,8 @@ void SessionState::get_updates(
     SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ != SESSION_ACTIVE) return;
   get_charging_updates(update_request_out, actions_out, update_criteria);
-  get_monitor_updates(update_request_out, actions_out, update_criteria);
-  get_event_trigger_updates(update_request_out, actions_out, update_criteria);
+  get_monitor_updates(update_request_out, update_criteria);
+  get_event_trigger_updates(update_request_out, update_criteria);
 }
 
 SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
@@ -1581,10 +1580,17 @@ void SessionState::get_charging_updates(
           MLOG(MDEBUG) << "Restriction already activated for " << session_id_;
           continue;
         }
-        auto restrict_rules = action->get_mutable_restrict_rules();
+        std::vector<PolicyRule>* restrict_rules =
+            action->get_mutable_restrict_rules();
         grant->set_service_state(SERVICE_RESTRICTED, *credit_uc);
-        for (auto& rule : grant->final_action_info.restrict_rules) {
-          restrict_rules->push_back(rule);
+        for (auto& rule_id : grant->final_action_info.restrict_rules) {
+          PolicyRule rule;
+          if (static_rules_.get_rule(rule_id, &rule)) {
+            restrict_rules->push_back(rule);
+          } else {
+            MLOG(MWARNING) << "Static rule " << rule_id
+                           << " requested as a restrict rule is not found.";
+          }
         }
         // activate service
         action->set_ambr(config_.get_apn_ambr());
@@ -1624,8 +1630,8 @@ void SessionState::fill_service_action(
   action->set_teids(config_.common_context.teids());
   action->set_msisdn(config_.common_context.msisdn());
   action->set_session_id(session_id_);
-  static_rules_.get_rule_ids_for_charging_key(
-      key, *action->get_mutable_rule_ids());
+  static_rules_.get_rules(
+      active_static_rules_, *action->get_mutable_rule_definitions());
   dynamic_rules_.get_rule_definitions_for_charging_key(
       key, *action->get_mutable_rule_definitions());
 }
@@ -1891,7 +1897,6 @@ SessionCreditUpdateCriteria* SessionState::get_monitor_uc(
 // Event Triggers
 void SessionState::get_event_trigger_updates(
     UpdateSessionRequest& update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria& update_criteria) {
   // todo We should also handle other event triggers here too
   auto it = pending_event_triggers_.find(REVALIDATION_TIMEOUT);

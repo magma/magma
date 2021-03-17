@@ -323,20 +323,18 @@ void LocalEnforcer::execute_actions(
 void LocalEnforcer::handle_activate_service_action(
     SessionMap& session_map, const std::unique_ptr<ServiceAction>& action_p,
     SessionUpdate& session_update) {
-  const std::string imsi      = action_p->get_imsi(),
-                    msisdn    = action_p->get_msisdn(),
-                    ip_addr   = action_p->get_ip_addr(),
-                    ipv6_addr = action_p->get_ipv6_addr();
-  const Teids teids           = action_p->get_teids();
-  const auto ambr             = action_p->get_ambr();
-  const auto rule_ids         = action_p->get_rule_ids();
-  const auto rule_defs        = action_p->get_rule_definitions();
+  const std::string imsi                  = action_p->get_imsi(),
+                    msisdn                = action_p->get_msisdn(),
+                    ip_addr               = action_p->get_ip_addr(),
+                    ipv6_addr             = action_p->get_ipv6_addr();
+  const Teids teids                       = action_p->get_teids();
+  const auto ambr                         = action_p->get_ambr();
+  const std::vector<PolicyRule> rule_defs = action_p->get_rule_definitions();
   pipelined_client_->activate_flows_for_rules(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rule_ids, rule_defs,
+      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rule_defs,
       std::bind(
           &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-          ip_addr, ipv6_addr, teids, msisdn, ambr, rule_ids, rule_defs, _1,
-          _2));
+          ip_addr, ipv6_addr, teids, msisdn, ambr, rule_defs, _1, _2));
 }
 
 // Terminates sessions that correspond to the given IMSI and session.
@@ -555,20 +553,19 @@ void LocalEnforcer::install_final_unit_action_flows(
     case REDIRECT: {
       // This is GY based REDIRECT, GX redirect will come in as a regular
       // rule
-      std::vector<std::string> static_rules;
       const auto& rule = create_redirect_rule(action);
       // check if the rule has been installed already.
       if (!session->is_gy_dynamic_rule_installed(rule.id())) {
         pipelined_client_->add_gy_final_action_flow(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, static_rules, {rule});
+            imsi, ip_addr, ipv6_addr, teids, msisdn, {rule});
         session->insert_gy_dynamic_rule(rule, lifetime, session_uc);
       }
       return;
     }
     case RESTRICT_ACCESS: {
       pipelined_client_->add_gy_final_action_flow(
-          imsi, ip_addr, ipv6_addr, teids, msisdn, action->get_restrict_rules(),
-          {});
+          imsi, ip_addr, ipv6_addr, teids, msisdn,
+          action->get_restrict_rules());
       return;
     }
     default:
@@ -682,9 +679,6 @@ static bool should_activate(
 void LocalEnforcer::schedule_static_rule_activation(
     const std::string& imsi, const std::string& session_id,
     const std::string& rule_id, const std::time_t activation_time) {
-  std::vector<std::string> static_rules{rule_id};
-  std::vector<PolicyRule> empty_dynamic_rules;
-
   auto delta = magma::time_difference_from_now(activation_time);
   MLOG(MDEBUG) << "Scheduling " << session_id << " static rule " << rule_id
                << " activation in " << (delta.count() / 1000) << " secs";
@@ -712,20 +706,23 @@ void LocalEnforcer::schedule_static_rule_activation(
           return;
         }
 
-        auto config          = session->get_config();
-        const auto ip_addr   = config.common_context.ue_ipv4();
-        const auto ipv6_addr = config.common_context.ue_ipv6();
-        const Teids teids    = config.common_context.teids();
-        const auto ambr      = config.get_apn_ambr();
-        const auto msisdn    = config.common_context.msisdn();
+        auto config               = session->get_config();
+        const std::string ip_addr = config.common_context.ue_ipv4();
+        const auto ipv6_addr      = config.common_context.ue_ipv6();
+        const Teids teids         = config.common_context.teids();
+        const auto ambr           = config.get_apn_ambr();
+        const std::string msisdn  = config.common_context.msisdn();
 
         session->install_scheduled_static_rule(rule_id, uc);
+        PolicyRule rule;
+        rule_store_->get_rule(rule_id, &rule);
+        std::vector<PolicyRule> rules = {rule};
+
         pipelined_client_->activate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules, {},
+            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rules,
             std::bind(
                 &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-                ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
-                empty_dynamic_rules, _1, _2));
+                ip_addr, ipv6_addr, teids, msisdn, ambr, rules, _1, _2));
 
         session_store_.update_sessions(session_update);
       },
@@ -735,8 +732,6 @@ void LocalEnforcer::schedule_static_rule_activation(
 void LocalEnforcer::schedule_dynamic_rule_activation(
     const std::string& imsi, const std::string& session_id,
     const std::string& rule_id, const std::time_t activation_time) {
-  std::vector<std::string> empty_static_rules;
-
   auto delta = magma::time_difference_from_now(activation_time);
   MLOG(MDEBUG) << "Scheduling " << session_id << " dynamic rule " << rule_id
                << " activation in " << (delta.count() / 1000) << " secs";
@@ -778,11 +773,11 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
         std::vector<PolicyRule> dynamic_rules{policy};
 
         pipelined_client_->activate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, {}, dynamic_rules,
+            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, dynamic_rules,
             std::bind(
                 &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-                ip_addr, ipv6_addr, teids, msisdn, ambr, empty_static_rules,
-                dynamic_rules, _1, _2));
+                ip_addr, ipv6_addr, teids, msisdn, ambr, dynamic_rules, _1,
+                _2));
 
         session_store_.update_sessions(session_update);
       },
@@ -1721,16 +1716,23 @@ void LocalEnforcer::propagate_rule_updates_to_pipelined(
   }
   if (always_send_activate ||
       rules_to_process_is_not_empty(rules_to_activate)) {
-    const auto ambr   = config.get_apn_ambr();
-    const auto msisdn = config.common_context.msisdn();
+    const auto ambr                  = config.get_apn_ambr();
+    const auto msisdn                = config.common_context.msisdn();
+    std::vector<PolicyRule> policies = rules_to_activate.dynamic_rules;
+    for (const std::string& rule_id : rules_to_activate.static_rules) {
+      PolicyRule policy;
+      if (rule_store_->get_rule(rule_id, &policy)) {
+        policies.push_back(policy);
+      } else {
+        MLOG(MWARNING) << "Static rule " << rule_id
+                       << " doesn't exist in RuleStore, skipping...";
+      }
+    }
     pipelined_client_->activate_flows_for_rules(
-        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr,
-        rules_to_activate.static_rules, rules_to_activate.dynamic_rules,
+        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, policies,
         std::bind(
             &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-            ip_addr, ipv6_addr, teids, msisdn, ambr,
-            rules_to_activate.static_rules, rules_to_activate.dynamic_rules, _1,
-            _2));
+            ip_addr, ipv6_addr, teids, msisdn, ambr, policies, _1, _2));
   }
 }
 
@@ -1895,7 +1897,6 @@ void LocalEnforcer::handle_activate_ue_flows_callback(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     optional<AggregatedMaximumBitrate> ambr,
-    const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules, Status status,
     ActivateFlowsResult resp) {
   if (status.ok()) {
