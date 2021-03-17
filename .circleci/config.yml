@@ -1114,13 +1114,13 @@ workflows:
 
   agw:
     jobs:
-      - lte-test
-      - lte-integ-test:
-          <<: *master_and_develop
+      #- lte-test
+      #- lte-integ-test:
+      #    <<: *master_and_develop
       - lte-agw-deploy:
-          <<: *only_master
-          requires:
-            - lte-integ-test
+      #    <<: *only_master
+      #    requires:
+      #      - lte-integ-test
 
   feg:
     jobs:
