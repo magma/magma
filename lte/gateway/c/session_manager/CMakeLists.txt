@@ -33,6 +33,12 @@ if (NOT BUILD_TESTS)
   #   "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
   #set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
   #   "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
+else() # BUILD_TESTS
+  message("Adding code coverage build and linker flags for BUILD_TESTS")
+  set (CMAKE_CXX_FLAGS_DEBUG
+      "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
+  set(CMAKE_LINKER_FLAGS_DEBUG
+      "${CMAKE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 endif ()
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
@@ -173,7 +179,7 @@ add_library(SESSION_MANAGER
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
   DATASTORE
-  glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
+  glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie
   )
 

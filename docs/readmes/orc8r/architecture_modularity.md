@@ -81,9 +81,8 @@ We currently support 7 extensions
 ### Example extension
 
 The interface between core service and extension implementation is defined per extension. Beyond that interface, functionality depends on
-the particular extension. For a concrete example, consider the state indexing codepath
-
-![State indexing codepath](assets/orc8r/state_indexing_codepath.png)
+the particular extension. For a concrete example, consider the state indexing diagram
+described in [State Indexers](./dev_indexers.md).
 
 ## Extending Orchestrator
 
