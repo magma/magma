@@ -20,7 +20,7 @@ spec:
   subject:
     countries:
       - US
-  duration: 87600h
+  duration: {{ .Values.duration }}
   issuerRef:
     name: {{ .Release.Name }}-selfsigned-issuer
   isCA: true

@@ -9,7 +9,6 @@ ci-scripts/ @rdefosse @tmdzk @mattymo @119Vik
 orc8r/ @mpgermano @hcgatewood @emakeev
 orc8r/tools/packer/ @tmdzk @mattymo @119Vik
 orc8r/cloud/deploy/bare-metal/ @tmdzk @mattymo @119Vik
-orc8r/cloud/helm/orc8r/charts/certs/ @ShubhamTatvamasi
 
 feg/ @themarwhal @mpgermano @uri200 @emakeev
 cwf/ @themarwhal @mpgermano @uri200 @emakeev
