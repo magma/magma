@@ -32,8 +32,8 @@ The following table lists the configurable certs parameters.
 | `create` | Set to ``true`` to create orc8r certs. | `false` |
 | `dnsDomain` | Domain Name | `localhost` |
 | `duration` | Certificate duration | `87600h` |
-| `adminOperator.customIssuer` | Custom Issuer | `` |
+| `adminOperator.customIssuer` | Custom Issuer | `""` |
 | `adminOperator.pkcs12.password` | pkcs12 password | `password` |
-| `nms.customIssuer` | Custom Issuer | `` |
-| `controller.customIssuer` | Custom Issuer | `` |
+| `nms.customIssuer` | Custom Issuer | `""` |
+| `controller.customIssuer` | Custom Issuer | `""` |
 | `preInstallChecks.enabled` | Pre Install Checks | `true` |
