@@ -516,7 +516,7 @@ class LocalEnforcer {
 
   /**
    * remove_all_rules_for_termination talks to PipelineD and removes all rules
-   * attached to the session
+   * (Gx/Gy/static/dynamic/everything) attached to the session
    * @param imsi
    * @param session
    * @param uc

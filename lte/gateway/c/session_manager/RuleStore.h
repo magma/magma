@@ -74,7 +74,7 @@ class PolicyRuleBiMap {
   // If the output rule param is NULL, the rule object is not copied.
   virtual bool get_rule(const std::string& rule_id, PolicyRule* rule_out);
 
-  virtual bool get_rules(
+  virtual bool get_rules_by_ids(
       const std::vector<std::string>& rule_ids,
       std::vector<PolicyRule>& rules_out);
 

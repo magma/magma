@@ -565,20 +565,18 @@ void LocalEnforcer::cancel_final_unit_action(
     const std::unique_ptr<SessionState>& session,
     std::vector<PolicyRule> gy_rules_to_deactivate,
     SessionStateUpdateCriteria& uc) {
-  SessionState::SessionInfo info;
-  session->get_session_info(info);
+  auto config = session->get_config().common_context;
 
-  for (const auto& rule : info.gy_dynamic_rules) {
-    PolicyRule dy_rule;
-    bool is_dynamic = session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc);
-    if (is_dynamic) {
-      gy_rules_to_deactivate.push_back(dy_rule);
-    }
+  std::vector<PolicyRule> gy_dynamic_rules;
+  session->get_gy_dynamic_rules().get_rules(gy_dynamic_rules);
+  for (const PolicyRule rule : gy_dynamic_rules) {
+    session->remove_gy_dynamic_rule(rule.id(), nullptr, uc);
+    gy_rules_to_deactivate.push_back(rule);
   }
 
   if (!gy_rules_to_deactivate.empty()) {
     pipelined_client_->deactivate_flows_for_rules(
-        info.imsi, info.ip_addr, info.ipv6_addr, info.teids,
+        config.sid().id(), config.ue_ipv4(), config.ue_ipv6(), config.teids(),
         gy_rules_to_deactivate, RequestOriginType::GY);
   }
 }

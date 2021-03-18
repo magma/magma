@@ -1692,7 +1692,7 @@ void SessionState::fill_service_action(
   action->set_teids(config_.common_context.teids());
   action->set_msisdn(config_.common_context.msisdn());
   action->set_session_id(session_id_);
-  static_rules_.get_rules(
+  static_rules_.get_rules_by_ids(
       active_static_rules_, *action->get_mutable_rule_definitions());
   dynamic_rules_.get_rule_definitions_for_charging_key(
       key, *action->get_mutable_rule_definitions());

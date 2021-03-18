@@ -137,7 +137,7 @@ bool PolicyRuleBiMap::get_rule(
   return true;
 }
 
-bool PolicyRuleBiMap::get_rules(
+bool PolicyRuleBiMap::get_rules_by_ids(
     const std::vector<std::string>& rule_ids,
     std::vector<PolicyRule>& rules_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);
