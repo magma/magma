@@ -681,9 +681,8 @@ void LocalEnforcer::schedule_static_rule_deactivation(
     const std::string& imsi, const std::string& session_id,
     const std::string& rule_id, const std::time_t deactivation_time) {
   auto delta = magma::time_difference_from_now(deactivation_time);
-  MLOG(MDEBUG) << "Scheduling session " << session_id << " static rule "
-               << rule_id << " deactivation in " << (delta.count() / 1000)
-               << " secs";
+  MLOG(MDEBUG) << "Scheduling " << session_id << " static rule " << rule_id
+               << " deactivation in " << (delta.count() / 1000) << " secs";
   evb_->runAfterDelay(
       [=] {
         auto session_map = session_store_.read_sessions(SessionRead{imsi});
@@ -729,9 +728,8 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
     const std::string& imsi, const std::string& session_id,
     const std::string& rule_id, const std::time_t deactivation_time) {
   auto delta = magma::time_difference_from_now(deactivation_time);
-  MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " dynamic rule "
-               << rule_id << " deactivation in " << (delta.count() / 1000)
-               << " secs";
+  MLOG(MDEBUG) << "Scheduling " << session_id << " dynamic rule " << rule_id
+               << " deactivation in " << (delta.count() / 1000) << " secs";
   evb_->runAfterDelay(
       [=] {
         auto session_map = session_store_.read_sessions(SessionRead{imsi});
@@ -1688,7 +1686,7 @@ void LocalEnforcer::process_rules_to_install(
     std::vector<DynamicRuleInstall> dynamic_rule_installs,
     RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
     SessionStateUpdateCriteria& uc) {
-  std::time_t current_time     = time(nullptr);
+  std::time_t current_time     = std::time(nullptr);
   std::string ip_addr          = session.get_config().common_context.ue_ipv4();
   std::string ipv6_addr        = session.get_config().common_context.ue_ipv6();
   const std::string session_id = session.get_session_id();
