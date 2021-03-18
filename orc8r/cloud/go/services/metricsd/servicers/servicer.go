@@ -29,6 +29,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	cloudMetricQueueSize = 100
+)
+
 // MetricsControllerServer implements a handler to the gRPC server run by the
 // Metrics Controller. It can register instances of the Exporter interface for
 // writing to storage
@@ -97,6 +101,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 // them to all exporters after some preprocessing.
 // Returns only when inputChan closed, which should never happen.
 func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_proto.MetricFamily, hostName string) {
+	queue := make([]exporters.MetricAndContext, 0, cloudMetricQueueSize)
 	for family := range inputChan {
 		metricsToSubmit := preprocessCloudMetrics(family, hostName)
 		metricsExporters, err := metricsd.GetMetricsExporters()
@@ -104,11 +109,17 @@ func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_pro
 			glog.Error(err)
 			continue
 		}
+		queue = append(queue, metricsToSubmit)
+		if len(queue) < cloudMetricQueueSize {
+			continue
+		}
 		for _, e := range metricsExporters {
-			err := e.Submit([]exporters.MetricAndContext{metricsToSubmit})
+			err := e.Submit(queue)
 			if err != nil {
 				glog.Error(err)
 			}
+			// clear queue but maintain allocated space
+			queue = queue[:0]
 		}
 	}
 	glog.Error("Consume cloud metrics channel unexpectedly closed")

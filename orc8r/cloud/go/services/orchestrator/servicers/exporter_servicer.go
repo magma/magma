@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 
 	"magma/orc8r/cloud/go/services/metricsd/protos"
@@ -31,48 +30,26 @@ import (
 	"github.com/prometheus/common/expfmt"
 )
 
-const (
-	pushInterval = time.Second * 30
-)
-
 var (
 	prometheusNameRegex = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 	nonPromoChars       = regexp.MustCompile(`[^a-zA-Z\d_]`)
 )
 
 type PushExporterServicer struct {
-	FamiliesByName map[string]*io_prometheus_client.MetricFamily
-	ExportInterval time.Duration
-	PushAddresses  []string
-	sync.Mutex
+	PushAddresses []string
 }
 
 // NewPushExporterServicer returns an exporter pushing metrics to Prometheus
 // pushgateways at the passed addresses.
 func NewPushExporterServicer(pushAddrs []string) protos.MetricsExporterServer {
 	srv := &PushExporterServicer{
-		FamiliesByName: make(map[string]*io_prometheus_client.MetricFamily),
-		ExportInterval: pushInterval,
-		PushAddresses:  ensureHTTP(pushAddrs),
+		PushAddresses: ensureHTTP(pushAddrs),
 	}
-	go srv.exportEvery()
 	return srv
 }
 
 func (s *PushExporterServicer) Submit(ctx context.Context, req *protos.SubmitMetricsRequest) (*protos.SubmitMetricsResponse, error) {
-	s.Lock()
-	defer s.Unlock()
-
-	processedMetrics := processMetrics(req.GetMetrics())
-	for _, family := range processedMetrics {
-		familyName := family.GetName()
-		if baseFamily, ok := s.FamiliesByName[familyName]; ok {
-			addMetricsToFamily(baseFamily, family)
-		} else {
-			s.FamiliesByName[familyName] = family
-		}
-	}
-	return &protos.SubmitMetricsResponse{}, nil
+	return &protos.SubmitMetricsResponse{}, s.pushFamilies(processMetrics(req.GetMetrics()))
 }
 
 func processMetrics(metrics []*protos.ContextualizedMetric) []*io_prometheus_client.MetricFamily {
@@ -83,38 +60,21 @@ func processMetrics(metrics []*protos.ContextualizedMetric) []*io_prometheus_cli
 		if len(metricAndContext.Family.Metric) == 0 {
 			continue
 		}
-		originalFamily := metricAndContext.Family
-		originalFamily.Name = sanitizePrometheusName(metricAndContext.Context.MetricName)
-		// Convert all families to gauges to avoid name collisions of different
-		// types.
-		convertedFamilies := convertFamilyToGauges(originalFamily)
-		for _, fam := range convertedFamilies {
-			familyName := fam.GetName()
-			fam.Metric = dropInvalidMetrics(fam.Metric, familyName)
-			// if all metrics from this family were dropped, don't submit it
-			if len(fam.Metric) == 0 {
-				continue
-			}
-			for _, metric := range fam.Metric {
-				if metric.TimestampMs == nil || *metric.TimestampMs == 0 {
-					timeStamp := time.Now().Unix() * 1000
-					metric.TimestampMs = &timeStamp
-				}
-			}
-			processedMetrics = append(processedMetrics, fam)
+		fam := metricAndContext.Family
+		fam.Name = sanitizePrometheusName(metricAndContext.Context.MetricName)
+		fam.Metric = dropInvalidMetrics(fam.Metric, fam.GetName())
+		if len(fam.Metric) == 0 {
+			continue
 		}
+		for _, metric := range fam.Metric {
+			if metric.TimestampMs == nil || *metric.TimestampMs == 0 {
+				timeStamp := time.Now().Unix() * 1000
+				metric.TimestampMs = &timeStamp
+			}
+		}
+		processedMetrics = append(processedMetrics, fam)
 	}
 	return processedMetrics
-}
-
-func (s *PushExporterServicer) exportEvery() {
-	for range time.Tick(s.ExportInterval) {
-		errs := s.pushFamilies()
-		s.resetFamilies()
-		if len(errs) > 0 {
-			glog.Errorf("error pushing to pushgateway: %v", errs)
-		}
-	}
 }
 
 // dropInvalidMetrics because invalid label names would cause the entire scrape
@@ -140,10 +100,6 @@ func validateLabels(metric *io_prometheus_client.Metric) error {
 	return nil
 }
 
-func addMetricsToFamily(baseFamily *io_prometheus_client.MetricFamily, newFamily *io_prometheus_client.MetricFamily) {
-	baseFamily.Metric = append(baseFamily.Metric, newFamily.Metric...)
-}
-
 func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
 	var buf bytes.Buffer
 	_, err := expfmt.MetricFamilyToText(&buf, family)
@@ -153,44 +109,38 @@ func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
 	return buf.String(), nil
 }
 
-func (s *PushExporterServicer) pushFamilies() []error {
-	var errs []error
-	if len(s.FamiliesByName) == 0 {
-		return []error{}
+func (s *PushExporterServicer) pushFamilies(fams []*io_prometheus_client.MetricFamily) error {
+	if len(fams) == 0 {
+		return nil
 	}
 	builder := strings.Builder{}
 
-	s.Lock()
-	for _, fam := range s.FamiliesByName {
+	for _, fam := range fams {
 		familyString, err := familyToString(fam)
 		if err != nil {
-			errs = append(errs, err)
+			glog.Errorf("Family dropped during push: %s. Error: %v", fam.GetName(), err)
 			continue
 		}
 		builder.WriteString(familyString)
 		builder.WriteString("\n")
 	}
-	s.Unlock()
 
 	body := builder.String()
 	client := http.Client{}
+	var err error
 	for _, address := range s.PushAddresses {
-		resp, err := client.Post(address, "text/plain", bytes.NewBufferString(body))
-		if err != nil {
-			errs = append(errs, fmt.Errorf("error sending request to pushgateway %s: %v", address, err))
+		resp, pushErr := client.Post(address, "text/plain", bytes.NewBufferString(body))
+		if pushErr != nil {
+			err = fmt.Errorf("%w; Error sending request to push receiver: %s: %s", err, address, pushErr)
 			continue
 		}
-		if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode/100 != 2 {
 			respBody, _ := ioutil.ReadAll(resp.Body)
-			errs = append(errs, fmt.Errorf("non-200 response code from pushgateway %s: %s", address, respBody))
+			err = fmt.Errorf("%w; non-200 response code from push receiver: %s: Status: %d, %s", err, address, resp.StatusCode, respBody)
 			continue
 		}
 	}
-	return errs
-}
-
-func (s *PushExporterServicer) resetFamilies() {
-	s.FamiliesByName = make(map[string]*io_prometheus_client.MetricFamily)
+	return err
 }
 
 func ensureHTTP(addrs []string) []string {

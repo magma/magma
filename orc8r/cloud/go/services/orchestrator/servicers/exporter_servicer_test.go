@@ -15,7 +15,6 @@ package servicers_test
 
 import (
 	"regexp"
-	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -65,111 +64,53 @@ func TestEnsureHTTP(t *testing.T) {
 }
 
 func TestPushExporterServicer_Submit_Gauge(t *testing.T) {
-	srv, exp := makeTestCustomPushExporter(t)
+	_, exp := makeTestCustomPushExporter(t)
 	err := submitNewMetric(exp, prometheus_models.MetricType_GAUGE, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, totalMetricCount(srv))
 
 	err = submitNewMetric(exp, prometheus_models.MetricType_GAUGE, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, totalMetricCount(srv))
-
-	assert.Equal(t, len(srv.FamiliesByName), 1)
-	for _, fam := range srv.FamiliesByName {
-		assert.Equal(t, prometheus_models.MetricType_GAUGE, *fam.Type)
-		for _, metric := range fam.Metric {
-			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
-			assert.True(t, tests.HasLabel(metric.Label, metrics.NetworkLabelName, sampleNetworkID))
-		}
-	}
 }
 
 func TestPushExporterServicer_Submit_Counter(t *testing.T) {
-	srv, exp := makeTestCustomPushExporter(t)
+	_, exp := makeTestCustomPushExporter(t)
 	err := submitNewMetric(exp, prometheus_models.MetricType_COUNTER, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, totalMetricCount(srv))
 
 	err = submitNewMetric(exp, prometheus_models.MetricType_COUNTER, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, totalMetricCount(srv))
-
-	assert.Equal(t, len(srv.FamiliesByName), 1)
-	for _, fam := range srv.FamiliesByName {
-		assert.Equal(t, prometheus_models.MetricType_GAUGE, *fam.Type)
-		for _, metric := range fam.Metric {
-			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
-		}
-	}
 }
 
 func TestPushExporterServicer_Submit_Histogram(t *testing.T) {
-	srv, exp := makeTestCustomPushExporter(t)
+	_, exp := makeTestCustomPushExporter(t)
 	err := submitNewMetric(exp, prometheus_models.MetricType_HISTOGRAM, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 5, totalMetricCount(srv))
 
 	err = submitNewMetric(exp, prometheus_models.MetricType_HISTOGRAM, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 10, totalMetricCount(srv))
-
-	assert.Equal(t, len(srv.FamiliesByName), 3)
-	for name, fam := range srv.FamiliesByName {
-		assert.Equal(t, prometheus_models.MetricType_GAUGE, *fam.Type)
-		for _, metric := range fam.Metric {
-			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
-			if strings.HasSuffix(name, bucketPostfix) {
-				assert.True(t, tests.HasLabelName(metric.Label, histogramBucketLabelName))
-			}
-		}
-	}
 }
 
 func TestPushExporterServicer_Submit_Summary(t *testing.T) {
-	srv, exp := makeTestCustomPushExporter(t)
+	_, exp := makeTestCustomPushExporter(t)
 	err := submitNewMetric(exp, prometheus_models.MetricType_SUMMARY, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, totalMetricCount(srv))
 
 	err = submitNewMetric(exp, prometheus_models.MetricType_SUMMARY, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 6, totalMetricCount(srv))
-
-	assert.Equal(t, len(srv.FamiliesByName), 3)
-	for name, fam := range srv.FamiliesByName {
-		assert.Equal(t, prometheus_models.MetricType_GAUGE, *fam.Type)
-		for _, metric := range fam.Metric {
-			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
-			if name == sampleMetricName {
-				assert.True(t, tests.HasLabelName(metric.Label, summaryQuantileLabelName))
-			}
-		}
-	}
 }
 
 func TestPushExporterServicer_Submit_Untyped(t *testing.T) {
-	srv, exp := makeTestCustomPushExporter(t)
+	_, exp := makeTestCustomPushExporter(t)
 	err := submitNewMetric(exp, prometheus_models.MetricType_UNTYPED, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, totalMetricCount(srv))
 
 	err = submitNewMetric(exp, prometheus_models.MetricType_UNTYPED, sampleGatewayContext)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, totalMetricCount(srv))
-
-	assert.Equal(t, len(srv.FamiliesByName), 1)
-	for _, fam := range srv.FamiliesByName {
-		assert.Equal(t, prometheus_models.MetricType_GAUGE, *fam.Type)
-		for _, metric := range fam.Metric {
-			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
-		}
-	}
-
 }
 
 func TestPushExporterServicer_Submit_InvalidMetrics(t *testing.T) {
 	// Submitting a metric family with 0 metrics should not register the family
-	srv, exp := makeTestCustomPushExporter(t)
+	_, exp := makeTestCustomPushExporter(t)
 	noMetricFamily := tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 0, sampleLabels)
 	mc := exporters.MetricAndContext{
 		Family:  noMetricFamily,
@@ -178,7 +119,6 @@ func TestPushExporterServicer_Submit_InvalidMetrics(t *testing.T) {
 
 	err := exp.Submit([]exporters.MetricAndContext{mc})
 	assert.NoError(t, err)
-	assert.Equal(t, len(srv.FamiliesByName), 0)
 }
 
 func TestPushExporterServicer_Submit_InvalidName(t *testing.T) {
@@ -189,7 +129,7 @@ func TestPushExporterServicer_Submit_InvalidName(t *testing.T) {
 }
 
 func testInvalidName(t *testing.T, inputName, expectedName string) {
-	srv, exp := makeTestCustomPushExporter(t)
+	_, exp := makeTestCustomPushExporter(t)
 	mf := tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 1, sampleLabels)
 
 	mc := exporters.MetricAndContext{
@@ -201,15 +141,11 @@ func testInvalidName(t *testing.T, inputName, expectedName string) {
 
 	err := exp.Submit([]exporters.MetricAndContext{mc})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(srv.FamiliesByName))
-	for name := range srv.FamiliesByName {
-		assert.Equal(t, expectedName, name)
-	}
 }
 
 func TestPushExporterServicer_Submit_InvalidLabel(t *testing.T) {
 	// Submitting a metric with invalid labelnames should not include that metric
-	srv, exp := makeTestCustomPushExporter(t)
+	_, exp := makeTestCustomPushExporter(t)
 	mf := tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 5, sampleLabels)
 	extraMetric := tests.MakePromoGauge(10)
 	mf.Metric[2] = &extraMetric
@@ -222,13 +158,9 @@ func TestPushExporterServicer_Submit_InvalidLabel(t *testing.T) {
 
 	err := exp.Submit([]exporters.MetricAndContext{mc})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(srv.FamiliesByName))
-	for _, fam := range srv.FamiliesByName {
-		assert.Equal(t, 4, len(fam.Metric))
-	}
 
 	// If all metrics are invalid, the family should not be submitted
-	srv, exp = makeTestCustomPushExporter(t)
+	_, exp = makeTestCustomPushExporter(t)
 	mf = tests.MakeTestMetricFamily(prometheus_models.MetricType_GAUGE, 1, sampleLabels)
 	badMetric := tests.MakePromoGauge(10)
 	mf.Metric[0] = &badMetric
@@ -241,15 +173,6 @@ func TestPushExporterServicer_Submit_InvalidLabel(t *testing.T) {
 
 	err = exp.Submit([]exporters.MetricAndContext{mc})
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(srv.FamiliesByName))
-}
-
-func totalMetricCount(srv *servicers.PushExporterServicer) int {
-	total := 0
-	for _, fam := range srv.FamiliesByName {
-		total += len(fam.Metric)
-	}
-	return total
 }
 
 func submitNewMetric(exp exporters.Exporter, mtype prometheus_models.MetricType, ctx exporters.MetricContext) error {
