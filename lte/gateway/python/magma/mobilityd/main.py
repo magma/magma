@@ -15,6 +15,7 @@ import logging
 from typing import Optional
 
 from magma.common.redis.client import get_default_client
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.mobilityd.ip_address_man import IPAddressManager
@@ -90,6 +91,9 @@ def _get_ip_block(ip_block_str: str) -> Optional[ipaddress.ip_network]:
 def main():
     """ main() for MobilityD """
     service = MagmaService('mobilityd', mconfigs_pb2.MobilityD())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     # Load service configs and mconfig
     config = service.config
