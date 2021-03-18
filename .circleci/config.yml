@@ -92,7 +92,7 @@ orbs:
                   fi
                 done
                 echo "No changes in [$paths]"
-                circleci step halt
+                circleci-agent step halt
 
 commands:
   install-go:
