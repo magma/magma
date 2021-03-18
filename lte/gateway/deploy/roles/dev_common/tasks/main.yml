@@ -320,3 +320,9 @@
     path: /var/tmp/test_results
     state: directory
     mode: 0777
+
+- name: Patch multipath conf
+  when: preburn and ansible_distribution == "Ubuntu"
+  patch:
+    src: patches/multipath-conf.patch
+    dest: /etc/multipath.conf
