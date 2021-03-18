@@ -107,14 +107,14 @@ static void mme_app_resume_timers(
     struct mme_app_timer_t* timer,
     mme_app_timer_callback_t timer_expiry_handler, char* timer_name);
 
-static void _directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
+static void directoryd_report_location_a(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
   directoryd_report_location(imsi_str);
   OAILOG_INFO_UE(LOG_MME_APP, imsi, "Reported UE location to directoryd\n");
 }
 
-static void _directoryd_remove_location(uint64_t imsi, uint8_t imsi_len) {
+static void directoryd_remove_location_a(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
   directoryd_remove_location(imsi_str);
@@ -751,7 +751,7 @@ void mme_remove_ue_context(
   }
 
   // First, notify directoryd of removal
-  _directoryd_remove_location(
+  directoryd_remove_location_a(
       ue_context_p->emm_context._imsi64,
       ue_context_p->emm_context._imsi.length);
 
@@ -1875,7 +1875,7 @@ void mme_ue_context_update_ue_emm_state(
     ue_context_p->mm_state = new_mm_state;
 
     // Report directoryd UE record
-    _directoryd_report_location(
+    directoryd_report_location_a(
         ue_context_p->emm_context._imsi64,
         ue_context_p->emm_context._imsi.length);
 

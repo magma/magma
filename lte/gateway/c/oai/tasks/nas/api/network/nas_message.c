@@ -70,13 +70,13 @@ static int _nas_message_protected_encode(
     size_t length, void* security);
 
 /* Functions used to decrypt and encrypt layer 3 NAS messages */
-static int _nas_message_decrypt(
+static int nas_message_decrypt_a(
     unsigned char* const dest, unsigned char* const src, uint8_t type,
     uint32_t code, uint8_t seq, size_t length,
     emm_security_context_t* const emm_security_context,
     nas_message_decode_status_t* status);
 
-static int _nas_message_encrypt(
+static int nas_message_encrypt_a(
     unsigned char* dest, const unsigned char* src, uint8_t type, uint32_t code,
     uint8_t seq, size_t length,
     emm_security_context_t* const emm_security_context);
@@ -130,7 +130,7 @@ int nas_message_encrypt(
      * Encrypt the plain NAS message.
      * bytes is zero if emm_security_context is null.
      */
-    bytes = _nas_message_encrypt(
+    bytes = nas_message_encrypt_a(
         outbuf + size, inbuf, header->security_header_type,
         header->message_authentication_code, header->sequence_number,
         length - size, emm_security_context);
@@ -295,7 +295,7 @@ int nas_message_decrypt(
      * Decrypt the security protected NAS message
      */
     // OAI_GCC_DIAG_OFF(discarded-qualifiers);
-    header->protocol_discriminator = _nas_message_decrypt(
+    header->protocol_discriminator = nas_message_decrypt_a(
         outbuf, (unsigned char* const)(inbuf + size),
         header->security_header_type, header->message_authentication_code,
         header->sequence_number, length - size, emm_security_context, status);
@@ -823,7 +823,7 @@ static int _nas_message_protected_decode(
     /*
      * Decrypt the security protected NAS message
      */
-    header->protocol_discriminator = _nas_message_decrypt(
+    header->protocol_discriminator = nas_message_decrypt_a(
         plain_msg, buffer, header->security_header_type,
         header->message_authentication_code, header->sequence_number, length,
         emm_security_context, status);
@@ -996,7 +996,7 @@ static int _nas_message_protected_encode(
       /*
        * Encrypt the encoded plain NAS message
        */
-      bytes = _nas_message_encrypt(
+      bytes = nas_message_encrypt_a(
           buffer, plain_msg, msg->header.security_header_type,
           msg->header.message_authentication_code, msg->header.sequence_number,
           size, emm_security_context);
@@ -1018,7 +1018,7 @@ static int _nas_message_protected_encode(
 
 /****************************************************************************
  **                                                                        **
- ** Name:  _nas_message_decrypt()                                    **
+ ** Name:  nas_message_decrypt_a()                                    **
  **                                                                        **
  ** Description: Decrypt security protected NAS message                    **
  **                                                                        **
@@ -1035,7 +1035,7 @@ static int _nas_message_protected_encode(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _nas_message_decrypt(
+static int nas_message_decrypt_a(
     unsigned char* const dest, unsigned char* const src,
     uint8_t security_header_type, uint32_t code, uint8_t seq, size_t length,
     emm_security_context_t* const emm_security_context,
@@ -1215,7 +1215,7 @@ static int _nas_message_decrypt(
 
 /****************************************************************************
  **                                                                        **
- ** Name:  _nas_message_encrypt()                                    **
+ ** Name:  nas_message_encrypt_a()                                    **
  **                                                                        **
  ** Description: Encrypt plain NAS message                                 **
  **                                                                        **
@@ -1234,7 +1234,7 @@ static int _nas_message_decrypt(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _nas_message_encrypt(
+static int nas_message_encrypt_a(
     unsigned char* dest, const unsigned char* src, uint8_t security_header_type,
     uint32_t code, uint8_t seq, size_t length,
     emm_security_context_t* const emm_security_context) {

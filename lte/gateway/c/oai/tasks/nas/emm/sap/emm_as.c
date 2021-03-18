@@ -105,7 +105,7 @@ static int _emm_as_encrypt(
     const unsigned char* buffer, size_t length,
     emm_security_context_t* emm_security_context);
 
-static int _emm_as_send(const emm_as_t* msg);
+static int emm_as_send_a(const emm_as_t* msg);
 static int _emm_as_security_req(
     const emm_as_security_t*, dl_info_transfer_req_t*);
 static int _emm_as_security_rej(
@@ -195,7 +195,7 @@ int emm_as_send(emm_as_t* msg) {
       /*
        * Other primitives are forwarded to lower layers (S1AP)
        */
-      rc = _emm_as_send(msg);
+      rc = emm_as_send_a(msg);
 
       if (rc != RETURNok) {
         OAILOG_ERROR(
@@ -1159,7 +1159,7 @@ static int _emm_as_encrypt(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _emm_as_send()                                            **
+ ** Name:    emm_as_send_a()                                            **
  **                                                                        **
  ** Description: Builds NAS message according to the given EMMAS Service   **
  **      Access Point primitive and sends it to the Access Stratum **
@@ -1173,7 +1173,7 @@ static int _emm_as_encrypt(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_send(const emm_as_t* msg) {
+static int emm_as_send_a(const emm_as_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   as_message_t as_msg = {0};
 

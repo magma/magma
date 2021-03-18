@@ -129,7 +129,7 @@ static int _emm_start_attach_proc_authentication(
 static int _emm_start_attach_proc_security(
     emm_context_t* emm_context, nas_emm_attach_proc_t* attach_proc);
 
-static int _emm_attach_security(emm_context_t* emm_context);
+static int emm_attach_security_a(emm_context_t* emm_context);
 static int _emm_attach(emm_context_t* emm_context);
 
 static int _emm_attach_success_identification_cb(emm_context_t* emm_context);
@@ -1373,7 +1373,7 @@ static int _emm_attach_failure_security_cb(emm_context_t* emm_context) {
 //}
 /*
  *
- * Name:        _emm_attach_security()
+ * Name:        emm_attach_security_a()
  *
  * Description: Initiates security mode control EMM common procedure.
  *
@@ -1387,11 +1387,11 @@ static int _emm_attach_failure_security_cb(emm_context_t* emm_context) {
  */
 //------------------------------------------------------------------------------
 int emm_attach_security(struct emm_context_s* emm_context) {
-  return _emm_attach_security(emm_context);
+  return emm_attach_security_a(emm_context);
 }
 
 //------------------------------------------------------------------------------
-static int _emm_attach_security(emm_context_t* emm_context) {
+static int emm_attach_security_a(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 

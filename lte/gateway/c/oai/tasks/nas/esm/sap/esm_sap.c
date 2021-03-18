@@ -55,7 +55,7 @@ static int _esm_sap_recv(
     emm_context_t* emm_context, const_bstring req, bstring rsp,
     esm_sap_error_t* err);
 
-static int _esm_sap_send(
+static int esm_sap_send_a(
     int msg_type, bool is_standalone, emm_context_t* emm_context,
     proc_tid_t pti, ebi_t ebi, const esm_sap_data_t* data, bstring rsp);
 
@@ -229,7 +229,7 @@ int esm_sap_send(esm_sap_t* msg) {
         }
         /* Send PDN connectivity request */
 
-        rc = _esm_sap_send(
+        rc = esm_sap_send_a(
             ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST, msg->is_standalone,
             msg->ctx, (proc_tid_t) 0, bearer_activate->ebi, &msg->data,
             msg->send);
@@ -254,7 +254,7 @@ int esm_sap_send(esm_sap_t* msg) {
     case ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ: {
       if (msg->data.eps_bearer_context_deactivate.is_pcrf_initiated) {
         /*Currently we support single bearear deactivation*/
-        rc = _esm_sap_send(
+        rc = esm_sap_send_a(
             DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST, msg->is_standalone, msg->ctx,
             (proc_tid_t) 0, msg->data.eps_bearer_context_deactivate.ebi[0],
             &msg->data, msg->send);
@@ -808,7 +808,7 @@ static int _esm_sap_recv(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _esm_sap_send()                                           **
+ ** Name:    esm_sap_send_a()                                           **
  **                                                                        **
  ** Description: Processes ESM messages to send onto the network: Encoded  **
  **      the message and execute the relevant ESM procedure.       **
@@ -828,7 +828,7 @@ static int _esm_sap_recv(
  **      Return:    RETURNok, RETURNerror                      **
  **                                                                        **
  ***************************************************************************/
-static int _esm_sap_send(
+static int esm_sap_send_a(
     int msg_type, bool is_standalone, emm_context_t* emm_context,
     proc_tid_t pti, ebi_t ebi, const esm_sap_data_t* data, bstring rsp) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
