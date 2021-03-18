@@ -19,8 +19,7 @@ helm install cert-manager jetstack/cert-manager \
 
 Install certs:
 ```bash
-helm install certs . \
-  --set dnsDomain=magma.shubhamtatvamasi.com
+helm install certs .
 ```
 
 ## Configuration
