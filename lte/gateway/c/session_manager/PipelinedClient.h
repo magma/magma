@@ -88,7 +88,6 @@ class PipelinedClient {
   virtual void deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
       const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type) = 0;
 
@@ -212,7 +211,6 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
       const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type);
 

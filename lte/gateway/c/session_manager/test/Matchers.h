@@ -156,9 +156,32 @@ MATCHER_P3(CheckDeleteOneBearerReq, imsi, link_bearer_id, eps_bearer_id, "") {
 }
 
 MATCHER_P(CheckSubset, ids, "") {
-  auto request = static_cast<const std::vector<std::string>>(arg);
+  auto request = static_cast<const std::vector<PolicyRule>>(arg);
   for (size_t i = 0; i < request.size(); i++) {
-    if (ids.find(request[i]) != ids.end()) {
+    if (ids.find(request[i].id()) != ids.end()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+MATCHER_P(CheckPolicyID, id, "") {
+  auto request = static_cast<const std::vector<PolicyRule>>(arg);
+  for (size_t i = 0; i < request.size(); i++) {
+    if (request[i].id() == id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+MATCHER_P2(CheckPolicyIDs, count, ids, "") {
+  auto request = static_cast<const std::vector<PolicyRule>>(arg);
+  if (request.size() != (unsigned int) count) {
+    return false;
+  }
+  for (size_t i = 0; i < request.size(); i++) {
+    if (ids.find(request[i].id()) != ids.end()) {
       return true;
     }
   }

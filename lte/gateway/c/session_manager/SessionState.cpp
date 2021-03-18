@@ -552,11 +552,17 @@ void SessionState::apply_session_static_rule_set(
   RuleLifetime lifetime;
   // Go through the rule set and install any rules not yet installed
   for (const auto& static_rule_id : static_rules) {
+    PolicyRule rule;
+    if (!static_rules_.get_rule(static_rule_id, &rule)) {
+      MLOG(MERROR) << "Static rule " << static_rule_id
+                   << " is not found. Skipping activation";
+      continue;
+    }
     if (!is_static_rule_installed(static_rule_id)) {
       MLOG(MINFO) << "Installing static rule " << static_rule_id << " for "
                   << session_id_;
       activate_static_rule(static_rule_id, lifetime, uc);
-      rules_to_activate.static_rules.push_back(static_rule_id);
+      rules_to_activate.rules.push_back(rule);
     }
   }
   std::vector<std::string> static_rules_to_deactivate;
@@ -564,12 +570,19 @@ void SessionState::apply_session_static_rule_set(
   // Go through the existing rules and uninstall any rule not in the rule set
   for (const auto static_rule_id : active_static_rules_) {
     if (static_rules.find(static_rule_id) == static_rules.end()) {
-      rules_to_deactivate.static_rules.push_back(static_rule_id);
+      PolicyRule rule;
+      if (!static_rules_.get_rule(static_rule_id, &rule)) {
+        MLOG(MERROR) << "Static rule" << static_rule_id
+                     << " is not found. Skipping deactivation";
+        continue;
+      }
+      static_rules_to_deactivate.push_back(static_rule_id);
+      rules_to_deactivate.rules.push_back(rule);
     }
   }
   // Do the actual removal separately so we're not modifying the vector while
   // looping
-  for (const auto static_rule_id : rules_to_deactivate.static_rules) {
+  for (const auto static_rule_id : static_rules_to_deactivate) {
     MLOG(MINFO) << "Removing static rule " << static_rule_id << " for "
                 << session_id_;
     deactivate_static_rule(static_rule_id, uc);
@@ -587,7 +600,7 @@ void SessionState::apply_session_dynamic_rule_set(
       MLOG(MINFO) << "Installing dynamic rule " << dynamic_rule_pair.first
                   << " for " << session_id_;
       insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc);
-      rules_to_activate.dynamic_rules.push_back(dynamic_rule_pair.second);
+      rules_to_activate.rules.push_back(dynamic_rule_pair.second);
     }
   }
   std::vector<PolicyRule> active_dynamic_rules;
@@ -597,7 +610,7 @@ void SessionState::apply_session_dynamic_rule_set(
       MLOG(MINFO) << "Removing dynamic rule " << dynamic_rule.id() << " for "
                   << session_id_;
       remove_dynamic_rule(dynamic_rule.id(), nullptr, uc);
-      rules_to_deactivate.dynamic_rules.push_back(dynamic_rule);
+      rules_to_deactivate.rules.push_back(dynamic_rule);
     }
   }
 }
@@ -1417,10 +1430,19 @@ void SessionState::get_unsuspended_rules(RulesToProcess& rulesToProcess) {
 
 void SessionState::get_rules_per_credit_key(
     CreditKey charging_key, RulesToProcess& rulesToProcess) {
-  static_rules_.get_rule_ids_for_charging_key(
-      charging_key, rulesToProcess.static_rules);
+  std::vector<std::string> static_rules;
+  static_rules_.get_rule_ids_for_charging_key(charging_key, static_rules);
+  for (auto rule_id : static_rules) {
+    PolicyRule rule;
+    if (static_rules_.get_rule(rule_id, &rule)) {
+      rulesToProcess.rules.push_back(rule);
+    } else {
+      MLOG(MWARNING) << "Static rule " << rule_id
+                     << " is not found in the system";
+    }
+  }
   dynamic_rules_.get_rule_definitions_for_charging_key(
-      charging_key, rulesToProcess.dynamic_rules);
+      charging_key, rulesToProcess.rules);
 }
 
 uint64_t SessionState::get_charging_credit(
@@ -1879,21 +1901,27 @@ BearerUpdate SessionState::get_dedicated_bearer_updates(
     SessionStateUpdateCriteria& uc) {
   BearerUpdate update;
   // Rule Installs
-  for (const auto& rule_id : rules_to_activate.static_rules) {
-    update_bearer_creation_req(STATIC, rule_id, config_, update);
-  }
-  for (const auto& rule : rules_to_activate.dynamic_rules) {
+  for (const auto& rule : rules_to_activate.rules) {
     const auto& rule_id = rule.id();
-    update_bearer_creation_req(DYNAMIC, rule_id, config_, update);
+    PolicyType p_type;
+    if (static_rules_.get_rule(rule_id, nullptr)) {
+      p_type = STATIC;
+    } else {
+      p_type = DYNAMIC;
+    }
+    update_bearer_creation_req(p_type, rule_id, config_, update);
   }
 
   // Rule Removals
-  for (const auto& rule_id : rules_to_deactivate.static_rules) {
-    update_bearer_deletion_req(STATIC, rule_id, config_, update, uc);
-  }
-  for (const auto& rule : rules_to_deactivate.dynamic_rules) {
+  for (const auto& rule : rules_to_deactivate.rules) {
     const auto& rule_id = rule.id();
-    update_bearer_deletion_req(DYNAMIC, rule_id, config_, update, uc);
+    PolicyType p_type;
+    if (static_rules_.get_rule(rule_id, nullptr)) {
+      p_type = STATIC;
+    } else {
+      p_type = DYNAMIC;
+    }
+    update_bearer_deletion_req(p_type, rule_id, config_, update, uc);
   }
   return update;
 }
@@ -2012,13 +2040,20 @@ bool SessionState::is_credit_in_final_unit_state(
       it->second->service_state == SERVICE_RESTRICTED);
 }
 
-void SessionState::get_final_action_restrict_rules(
-    const CreditKey& charging_key, std::vector<std::string>& restrict_rules) {
+std::vector<PolicyRule> SessionState::get_final_action_restrict_rules(
+    const CreditKey& charging_key) const {
+  std::vector<PolicyRule> rules;
   auto it = credit_map_.find(charging_key);
   if (it == credit_map_.end()) {
-    return;
+    return rules;
   }
-  restrict_rules = it->second->final_action_info.restrict_rules;
+  for (std::string rule_id : it->second->final_action_info.restrict_rules) {
+    PolicyRule rule;
+    if (static_rules_.get_rule(rule_id, &rule)) {
+      rules.push_back(rule);
+    }
+  }
+  return rules;
 }
 
 // QoS/Bearer Management
@@ -2215,6 +2250,10 @@ CreateSessionResponse SessionState::get_create_session_response() {
 
 void SessionState::clear_create_session_response() {
   create_session_response_ = CreateSessionResponse();
+}
+
+bool RulesToProcess::empty() const {
+  return rules.empty();
 }
 
 }  // namespace magma

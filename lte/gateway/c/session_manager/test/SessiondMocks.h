@@ -103,12 +103,11 @@ class MockPipelinedClient : public PipelinedClient {
           const std::uint64_t& epoch,
           std::function<void(Status status, SetupFlowsResult)> callback));
   MOCK_METHOD1(deactivate_all_flows, void(const std::string& imsi));
-  MOCK_METHOD7(
+  MOCK_METHOD6(
       deactivate_flows_for_rules,
       void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::vector<std::string>& rule_ids,
           const std::vector<PolicyRule>& dynamic_rules,
           const RequestOriginType_OriginType origin_type));
   MOCK_METHOD5(

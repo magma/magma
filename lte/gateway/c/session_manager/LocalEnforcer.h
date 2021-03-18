@@ -591,15 +591,13 @@ class LocalEnforcer {
    */
   void cancel_final_unit_action(
       const std::unique_ptr<SessionState>& session,
-      const std::vector<std::string>& restrict_rules,
+      std::vector<PolicyRule> gy_rules_to_deactivate,
       SessionStateUpdateCriteria& uc);
 
   /**
    * Create redirection rule
    */
   PolicyRule create_redirect_rule(const std::unique_ptr<ServiceAction>& action);
-
-  bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 
   void report_subscriber_state_to_pipelined(
       const std::string& imsi, const std::string& ue_mac_addr,

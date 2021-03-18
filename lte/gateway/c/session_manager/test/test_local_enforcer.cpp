@@ -1086,7 +1086,7 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
                              testing::_, testing::_, testing::_, testing::_,
-                             CheckCount(1), CheckCount(0), testing::_))
+                             CheckCount(1), testing::_))
       .Times(1);
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
@@ -1184,7 +1184,7 @@ TEST_F(LocalEnforcerTest, test_update_with_transient_error) {
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
                              testing::_, testing::_, testing::_, testing::_,
-                             CheckCount(2), CheckCount(0), testing::_))
+                             CheckCount(2), testing::_))
       .Times(1);
 
   local_enforcer->update_session_credits_and_rules(
@@ -1510,6 +1510,11 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   create_monitor_update_response(
       IMSI1, SESSION_ID_1, "4", MonitoringLevel::SESSION_LEVEL, 2128,
       response.mutable_usage_monitors()->Add());
+  response.mutable_static_rules()->Add()->set_rule_id("both_rule");
+  response.mutable_static_rules()->Add()->set_rule_id("ocs_rule");
+  response.mutable_static_rules()->Add()->set_rule_id("pcrf_only");
+  response.mutable_static_rules()->Add()->set_rule_id("pcrf_split");
+
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   local_enforcer->update_tunnel_ids(
@@ -1611,8 +1616,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
                              IMSI1, testing::_, testing::_, testing::_,
-                             std::vector<std::string>{"pcrf_only"},
-                             CheckCount(0), RequestOriginType::GX))
+                             CheckPolicyID("pcrf_only"), RequestOriginType::GX))
       .Times(1);
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
@@ -1981,7 +1985,7 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
                              IMSI1, testing::_, testing::_, testing::_,
-                             CheckSubset(rule_ids), CheckCount(0), testing::_))
+                             CheckSubset(rule_ids), testing::_))
       .Times(0);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_success1, update);
@@ -1992,10 +1996,9 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   auto bearer_bind_req_fail =
       create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule3", 0);
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules(
-          IMSI1, testing::_, testing::_, testing::_,
-          std::vector<std::string>{"rule3"}, CheckCount(0), testing::_))
+      *pipelined_client, deactivate_flows_for_rules(
+                             IMSI1, testing::_, testing::_, testing::_,
+                             CheckPolicyID("rule3"), testing::_))
       .Times(1);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_fail, update);
@@ -2017,10 +2020,9 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   rule_set_per_sub->mutable_rule_set()->Add()->CopyFrom(
       create_rule_set(false, "apn1", {"rule2", "rule4"}, {}));
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules(
-          IMSI1, testing::_, testing::_, testing::_,
-          std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
+      *pipelined_client, deactivate_flows_for_rules(
+                             IMSI1, testing::_, testing::_, testing::_,
+                             CheckPolicyID("rule1"), testing::_))
       .Times(1);
   EXPECT_CALL(
       *spgw_client, delete_dedicated_bearer(CheckDeleteOneBearerReq(
@@ -2039,10 +2041,9 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   monitor_update->add_rules_to_remove("rule2");
 
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules(
-          IMSI1, testing::_, testing::_, testing::_,
-          std::vector<std::string>{"rule2"}, CheckCount(0), testing::_))
+      *pipelined_client, deactivate_flows_for_rules(
+                             IMSI1, testing::_, testing::_, testing::_,
+                             CheckPolicyID("rule2"), testing::_))
       .Times(1);
   EXPECT_CALL(
       *spgw_client, delete_dedicated_bearer(CheckDeleteOneBearerReq(
@@ -2147,11 +2148,11 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
           testing::_))
       .Times(1);
   // For both Session1 + Session2
+  std::unordered_set<std::string> deactivate_ids = {"dynamic1", "static2"};
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules(
-          IMSI1, testing::_, testing::_, testing::_,
-          std::vector<std::string>{"static2"}, CheckCount(1), testing::_))
+      *pipelined_client, deactivate_flows_for_rules(
+                             IMSI1, testing::_, testing::_, testing::_,
+                             CheckPolicyIDs(2, deactivate_ids), testing::_))
       .Times(2);
 
   // Since static3 is also a QoS rule with a new QCI (not equal to default), we
@@ -2925,7 +2926,7 @@ TEST_F(LocalEnforcerTest, test_rar_dynamic_rule_modification) {
     EXPECT_CALL(
         *pipelined_client, deactivate_flows_for_rules(
                                IMSI1, testing::_, testing::_, testing::_,
-                               CheckCount(0), CheckCount(1), testing::_))
+                               CheckCount(1), testing::_))
         .Times(1);
     EXPECT_CALL(
         *pipelined_client, activate_flows_for_rules(

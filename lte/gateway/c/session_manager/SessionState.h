@@ -40,8 +40,10 @@ typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 
 struct RulesToProcess {
-  std::vector<std::string> static_rules;
-  std::vector<PolicyRule> dynamic_rules;
+  // If this vector is set, then it has PolicyRule definitions for both static
+  // and dynamic rules
+  std::vector<PolicyRule> rules;
+  bool empty() const;
 };
 
 // Used to transform the proto message RuleSet into a more useful structure
@@ -473,8 +475,8 @@ class SessionState {
 
   bool is_credit_in_final_unit_state(const CreditKey& charging_key) const;
 
-  void get_final_action_restrict_rules(
-      const CreditKey& charging_key, std::vector<std::string>& restrict_rules);
+  std::vector<PolicyRule> get_final_action_restrict_rules(
+      const CreditKey& charging_key) const;
 
   // Monitors
   bool receive_monitor(

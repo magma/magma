@@ -51,8 +51,7 @@ magma::SessionSet create_session_set_req(
 magma::DeactivateFlowsRequest create_deactivate_req(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const magma::Teids teids,
-    const std::vector<std::string>& rule_ids,
-    const std::vector<magma::PolicyRule>& dynamic_rules,
+    const std::vector<magma::PolicyRule>& rules,
     const magma::RequestOriginType_OriginType origin_type,
     const bool remove_default_drop_rules) {
   magma::DeactivateFlowsRequest req;
@@ -64,10 +63,7 @@ magma::DeactivateFlowsRequest create_deactivate_req(
   req.set_remove_default_drop_flows(remove_default_drop_rules);
   req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
-  for (const auto& id : rule_ids) {
-    ids->Add()->assign(id);
-  }
-  for (const auto& rule : dynamic_rules) {
+  for (const auto& rule : rules) {
     ids->Add()->assign(rule.id());
   }
   return req;
@@ -276,23 +272,21 @@ void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
       << imsi << " IP " << ip_addr << " " << ipv6_addr;
 
   auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, teids, {}, {}, origin_type, true);
+      imsi, ip_addr, ipv6_addr, teids, {}, origin_type, true);
   deactivate_flows(req);
 }
 
 void AsyncPipelinedClient::deactivate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
-    const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules,
+    const std::vector<PolicyRule>& rules,
     const RequestOriginType_OriginType origin_type) {
-  MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
-               << dynamic_rules.size() << " dynamic rules for subscriber "
-               << imsi << " IP " << ip_addr << " " << ipv6_addr;
+  MLOG(MDEBUG) << "Deactivating " << rules.size()
+               << " rules and for subscriber " << imsi << " IP " << ip_addr
+               << " " << ipv6_addr;
 
   auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, teids, rule_ids, dynamic_rules, origin_type,
-      false);
+      imsi, ip_addr, ipv6_addr, teids, rules, origin_type, false);
   deactivate_flows(req);
 }
 
