@@ -61,12 +61,16 @@ struct _MLOG_NEWLINE {
   (_MLOG_NEWLINE(), std::cout << "[" << __FILE__ << ":" << __LINE__ << "] ")
 
 namespace magma {
-static void set_verbosity(uint32_t verbosity) {}
+static void set_verbosity(uint32_t verbosity) {
+  (void)verbosity; // Unused interface parameter.
+}
 // get_verbosity gets the the global logging verbosity
 static uint32_t get_verbosity() {
   return 0;
 }
-static void init_logging(const char* service_name) {}
+static void init_logging(const char* service_name) {
+  (void)service_name; // Unused interface parameter.
+}
 
 }  // namespace magma
 #endif

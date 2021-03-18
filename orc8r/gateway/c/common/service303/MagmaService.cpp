@@ -109,6 +109,8 @@ void MagmaService::ClearOperationalStatesCallback() {
 
 Status MagmaService::GetServiceInfo(
     ServerContext* context, const Void* request, ServiceInfo* response) {
+  (void)context; // Unused interface parameter.
+  (void)request; // Unused interface paremeter.
   auto start_time_secs =
       time_point_cast<seconds>(wall_start_time_).time_since_epoch().count();
 
@@ -128,12 +130,17 @@ Status MagmaService::GetServiceInfo(
 
 Status MagmaService::StopService(
     ServerContext* context, const Void* request, Void* response) {
+  (void)context; // Unused interface parameter.
+  (void)request; // Unused interface paremeter.
+  (void)response; // Unused interface paremeter.
   std::raise(SIGTERM);
   return Status::OK;
 }
 
 Status MagmaService::GetMetrics(
     ServerContext* context, const Void* request, MetricsContainer* response) {
+  (void)context; // Unused interface parameter.
+  (void)request; // Unused interface paremeter.
   // Set all common metrics
   setSharedMetrics();
 
@@ -148,6 +155,8 @@ Status MagmaService::GetMetrics(
 
 Status MagmaService::SetLogLevel(
     ServerContext* context, const LogLevelMessage* request, Void* response) {
+  (void)context; // Unused interface parameter.
+  (void)response; // Unused interface paremeter.
   // log level FATAL is minimum verbosity and maximum level
   auto verbosity = LogLevel::FATAL - request->level();
   set_verbosity(verbosity);
@@ -157,6 +166,8 @@ Status MagmaService::SetLogLevel(
 Status MagmaService::ReloadServiceConfig(
     ServerContext* context, const Void* request,
     ReloadConfigResponse* response) {
+  (void)context; // Unused interface parameter.
+  (void)request; // Unused interface paremeter.
   if (config_reload_callback_ != nullptr) {
     if (config_reload_callback_()) {
       response->set_result(ReloadConfigResponse::RELOAD_SUCCESS);
@@ -173,6 +184,8 @@ Status MagmaService::ReloadServiceConfig(
 Status MagmaService::GetOperationalStates(
     ServerContext* context, const Void* request,
     GetOperationalStatesResponse* response) {
+  (void)context; // Unused interface parameter.
+  (void)request; // Unused interface paremeter.
   auto op_states = (operational_states_callback_ != nullptr) ?
                        operational_states_callback_() :
                        std::list<std::map<std::string, std::string>>();
