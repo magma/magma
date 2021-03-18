@@ -1871,6 +1871,8 @@ void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64) {
 //------------------------------------------------------------------------------
 int mme_app_handle_initial_context_setup_rsp_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
+  (void)loop; // Unused callback parameter.
+  (void)args; // Unused callback parameter.
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
@@ -2858,15 +2860,6 @@ void mme_app_handle_create_dedicated_bearer_rej(
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
-}
-
-//------------------------------------------------------------------------------
-// See 3GPP TS 23.401 version 10.13.0 Release 10: 5.4.4.2 MME Initiated
-// Dedicated Bearer Deactivation
-void mme_app_trigger_mme_initiated_dedicated_bearer_deactivation_procedure(
-    mme_app_desc_t* mme_app_desc_p, ue_mm_context_t* const ue_context,
-    const pdn_cid_t cid) {
-  OAILOG_DEBUG(LOG_MME_APP, "TODO \n");
 }
 
 /**

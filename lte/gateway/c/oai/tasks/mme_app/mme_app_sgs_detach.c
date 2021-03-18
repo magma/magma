@@ -148,6 +148,8 @@ static void mme_app_send_sgs_eps_detach_indication(
 // handle the SGS EPS detach timer expiry
 int mme_app_handle_sgs_eps_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
+  (void)loop; // Unused callback parameter.
+  (void)args; // Unused callback parameter.
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
@@ -208,6 +210,8 @@ int mme_app_handle_sgs_eps_detach_timer_expiry(
 // handle the SGS Implicit EPS detach timer expiry
 int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
+  (void)loop; // Unused callback parameter.
+  (void)args; // Unused callback parameter.
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
@@ -349,6 +353,8 @@ void mme_app_send_sgs_imsi_detach_indication(
 /* handle the SGS IMSI detach timer expiry. */
 int mme_app_handle_sgs_imsi_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
+  (void)loop; // Unused callback parameter.
+  (void)args; // Unused callback parameter.
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
@@ -432,6 +438,8 @@ int mme_app_handle_sgs_imsi_detach_timer_expiry(
 /* handle the SGS Implicit IMSI detach timer expiry. */
 int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
+  (void)loop; // Unused callback parameter.
+  (void)args; // Unused callback parameter.
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {

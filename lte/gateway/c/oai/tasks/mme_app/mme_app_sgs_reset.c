@@ -96,6 +96,9 @@ int mme_app_handle_sgsap_reset_indication(
 bool mme_app_handle_reset_indication(
     const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP) {
+  (void)keyP; // Unused callback parameter.
+  (void)unused_param_pP; // Unused callback parameter.
+  (void)unused_result_pP; // Unused callback parameter.
   int rc = RETURNerror;
   sgs_fsm_t sgs_fsm;
   OAILOG_FUNC_IN(LOG_MME_APP);

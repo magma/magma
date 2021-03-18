@@ -1520,6 +1520,9 @@ bool mme_app_dump_ue_context(
     void** unused_result_pP)
 //------------------------------------------------------------------------------
 {
+  (void)keyP; // Unused callback parameter.
+  (void)unused_param_pP; // Unused callback parameter.
+  (void)unused_result_pP; // Unused callback parameter.
   struct ue_mm_context_s* const ue_mm_context =
       (struct ue_mm_context_s*) ue_mm_context_pP;
   uint8_t j = 0;

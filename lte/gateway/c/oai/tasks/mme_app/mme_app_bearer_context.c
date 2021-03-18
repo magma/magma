@@ -67,7 +67,7 @@ bearer_context_t* mme_app_create_bearer_context(
     mme_app_bearer_context_init(bearer_context);
     bearer_context->ebi = lebi;
     mme_app_add_bearer_context(
-        ue_mm_context, bearer_context, pdn_cid, is_default);
+        ue_mm_context, bearer_context, pdn_cid);
   }
   return bearer_context;
 }
@@ -91,7 +91,7 @@ bearer_context_t* mme_app_get_bearer_context(
 //------------------------------------------------------------------------------
 void mme_app_add_bearer_context(
     ue_mm_context_t* const ue_context, bearer_context_t* const bc,
-    const pdn_cid_t pdn_cid, const bool is_default) {
+    const pdn_cid_t pdn_cid) {
   if (bc->ebi > EPS_BEARER_IDENTITY_LAST ||
       bc->ebi < EPS_BEARER_IDENTITY_FIRST) {
     OAILOG_ERROR(

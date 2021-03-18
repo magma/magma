@@ -929,6 +929,8 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** **
  ***********************************************************************************/
 int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
+  (void)loop; // Unused callback parameter.
+  (void)args; // Unused callback parameter.
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {

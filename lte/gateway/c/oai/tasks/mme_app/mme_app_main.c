@@ -68,6 +68,8 @@ bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
+  (void)loop; // Unused callback function parameter.
+  (void)arg; // Unused callback function parameter.
   MessageDef* received_message_p = receive_msg(reader);
   imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
