@@ -182,6 +182,8 @@ def _get_federated_mode_map(service_mconfig):
             service_mconfig.federated_mode_map.enabled and \
             len(service_mconfig.federated_mode_map.mapping) != 0:
         return service_mconfig.federated_mode_map.mapping
+    return {}
+
 
 def _get_context():
     """
