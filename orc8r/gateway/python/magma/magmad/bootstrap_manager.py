@@ -371,7 +371,7 @@ class BootstrapManager(SDWatchdogTask):
         not_before = cert.not_before.ToDatetime()
         if now < not_before:
             logging.error(
-                'Received a not-yet-valid certificate from: %s', not_before)
+                'Current system time indicates certificate received is not yet valid (notBefore: %s). Consider checking NTP.', not_before)
             return False
 
         not_after = cert.not_after.ToDatetime()
