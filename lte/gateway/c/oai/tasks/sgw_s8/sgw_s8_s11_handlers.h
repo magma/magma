@@ -12,10 +12,10 @@ limitations under the License.
 */
 
 #pragma once
-
+#include "common_types.h"
+#include "s11_messages_types.h"
 #include "intertask_interface.h"
-#include "sgw_config.h"
 
-extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
-
-int sgw_s8_init(sgw_config_t* sgw_config_p);
+int sgw_s8_handle_s11_create_session_request(
+    const itti_s11_create_session_request_t* const session_req_p,
+    imsi64_t imsi64);
