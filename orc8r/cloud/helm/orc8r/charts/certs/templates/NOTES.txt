@@ -24,13 +24,13 @@ These certificates will be installed cert-manager:
 
 Check x509 certificate:
 
-kubectl get secrets {{ .Release.Name }}-nms-tls \
+kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-nms-tls \
   -o jsonpath='{.data.tls\.crt}' | base64 -d | \
   openssl x509 -text -noout -in -
 
 Check pkcs12 certificate:
 
-kubectl get secrets {{ .Release.Name }}-admin-operator-tls \
+kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-admin-operator-tls \
   -o jsonpath='{.data.keystore\.p12}' | base64 -d | \
   openssl pkcs12 -nodes -passin pass:"{{ .Values.adminOperator.pkcs12.password }}" -in -
 {{- end }}
