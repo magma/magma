@@ -52,7 +52,7 @@ secret:
     orc8r: orc8r-secrets-configs-orc8r
   envdir: orc8r-secrets-envdir
 
-# certs
+# certs sub-chart configuration.
 certs:
   create: false
 
