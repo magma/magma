@@ -188,7 +188,7 @@ def s1ap_setup_cloud():
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               destroy_vm="True"):
+               destroy_vm='True', provision_vm='True'):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -208,12 +208,16 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     """
 
     destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_ip = '192.168.60.142'
+
+
     if not gateway_host:
-        gateway_host = vagrant_setup("magma", destroy_vm)
+        gateway_host = vagrant_setup(
+            'magma', destroy_vm, force_provision=provision_vm)
     else:
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
@@ -232,7 +236,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     if not trf_host:
-        trf_host = vagrant_setup("magma_trfserver", destroy_vm)
+        trf_host = vagrant_setup(
+            'magma_trfserver', destroy_vm, force_provision=provision_vm)
     else:
         ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
     execute(_start_trfserver)
@@ -240,7 +245,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
     if not test_host:
-        test_host = vagrant_setup("magma_test", destroy_vm)
+        test_host = vagrant_setup(
+            'magma_test', destroy_vm, force_provision=provision_vm)
     else:
         ansible_setup(test_host, "test", "magma_test.yml")
 
@@ -257,17 +263,17 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 def run_integ_tests(tests=None):
     """
     Function is required to run tests only in pre-configured Jenkins env.
-    
+
     In case of no tests specified with command executed like follows:
     $ fab run_integ_tests
-    
+
     default tests set will be executed as a result of the execution of following
     command in test machine:
-    $ make integ_test 
-    
+    $ make integ_test
+
     In case of selecting specific test like follows:
     $ fab run_integ_tests:tests=s1aptests/test_attach_detach.py
-    
+
     The specific test will be executed as a result of the execution of following
     command in test machine:
     $ make integ_test TESTS=s1aptests/test_attach_detach.py
@@ -276,7 +282,7 @@ def run_integ_tests(tests=None):
     gateway_ip = '192.168.60.142'
     if tests:
         tests = "TESTS=" + tests
-    
+
     execute(_run_integ_tests, gateway_ip, tests)
 
 def get_test_summaries(
