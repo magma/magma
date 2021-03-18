@@ -83,16 +83,27 @@ orbs:
                   exit 0
                 fi
 
-                paths=".circleci circleci <<parameters.paths>>"
+                paths="circleci docs <<parameters.paths>>"
                 echo "Checking paths [$paths]"
+                docsOnlyChanged=1
                 for path in $paths; do
                   if [[ $(git diff master^ --name-only $path) ]]; then
                     echo "Found changes in $path"
-                    exit 0
+                    if [ "$path" != "docs" ]; then
+                      docsOnlyChanged=0
+                      exit 0
+                    fi
                   fi
                 done
+                if [ "$docsOnlyChanged" -eq "1" ]; then
+                   echo "No changes in this commit. So cancelling the CI build."
+                   curl --request POST \
+                               --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel \
+                               --header "Circle-Token: 41304b5c2d9ed542f0b061acb0f816e0627a9e4b"
+                   exit 0
+                fi
                 echo "No changes in [$paths]"
-                circleci-agent step halt
+                circleci step halt
 
 commands:
   install-go:
