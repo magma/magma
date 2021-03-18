@@ -58,7 +58,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   assert(msg_frame);
   MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
 
-  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+  imsi64_t imsi64        = itti_get_associated_imsi(received_message_p);
+  sgw_state_t* sgw_state = get_sgw_state(false);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
@@ -69,7 +70,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S11_CREATE_SESSION_REQUEST: {
       sgw_s8_handle_s11_create_session_request(
-          &received_message_p->ittiMsg.s11_create_session_request, imsi64);
+          sgw_state, &received_message_p->ittiMsg.s11_create_session_request,
+          imsi64);
     } break;
 
     default: {

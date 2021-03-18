@@ -92,9 +92,9 @@ static void _add_tunnel_helper(
 #endif
 
 //------------------------------------------------------------------------------
-uint32_t sgw_get_new_s1u_teid(spgw_state_t* state) {
+uint32_t spgw_get_new_s1u_teid(spgw_state_t* state) {
   __sync_fetch_and_add(&state->gtpv1u_teid, 1);
-  return state->gtpv1u_teid;
+  return (state->gtpv1u_teid) % INITIAL_SGW_S8_S1U_TEID;
 }
 
 //------------------------------------------------------------------------------
@@ -144,10 +144,9 @@ int sgw_handle_s11_create_session_request(
         "sender_fteid_incorrect_parameters");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-
+  sgw_get_new_S11_tunnel_id(&state->tunnel_id);
   new_endpoint_p = sgw_cm_create_s11_tunnel(
-      session_req_pP->sender_fteid_for_cp.teid,
-      sgw_get_new_S11_tunnel_id(state));
+      session_req_pP->sender_fteid_for_cp.teid, state->tunnel_id);
 
   if (new_endpoint_p == NULL) {
     OAILOG_ERROR_UE(
@@ -256,7 +255,8 @@ int sgw_handle_s11_create_session_request(
         session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
             .eps_bearer_id);
     sgw_display_s11_bearer_context_information(
-        s_plus_p_gw_eps_bearer_ctxt_info_p);
+        &s_plus_p_gw_eps_bearer_ctxt_info_p
+             ->sgw_eps_bearer_context_information);
 
     if (eps_bearer_ctxt_p == NULL) {
       OAILOG_ERROR_UE(
@@ -288,7 +288,7 @@ int sgw_handle_s11_create_session_request(
      * Send a create bearer request to PGW and handle respond
      * asynchronously through sgw_handle_s5_create_bearer_response()
      */
-    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up = sgw_get_new_s1u_teid(state);
+    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up = spgw_get_new_s1u_teid(state);
     OAILOG_DEBUG_UE(
         LOG_SPGW_APP, imsi64,
         "Updated eps_bearer_entry_p eps_b_id %u with SGW S1U teid" TEID_FMT
