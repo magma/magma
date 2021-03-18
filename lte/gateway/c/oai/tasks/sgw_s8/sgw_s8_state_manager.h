@@ -32,7 +32,7 @@ namespace lte {
 
 /**
  * SgwStateManager is a singleton (thread-safe, destruction guaranteed)
- * that contains functions to maintain SGW and PGW state, allocating and
+ * that contains functions to maintain SGW state, allocating and
  * freeing state structs, and writing / reading state to db.
  */
 class SgwStateManager : public StateManager<
