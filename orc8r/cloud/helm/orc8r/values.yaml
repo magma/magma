@@ -56,6 +56,30 @@ secret:
 certs:
   create: false
 
+  dnsDomain: localhost
+
+  # Following durations is set on these certificates:
+  # - nms-certificate
+  # - controller-certificate
+  # - admin-operator-certificate
+  # 10 years = 87600h
+  duration: 87600h
+
+  adminOperator:
+    customIssuer:
+    pkcs12:
+      password: password
+
+  nms:
+    customIssuer:
+
+  controller:
+    customIssuer:
+
+  preInstallChecks:
+    enabled: true
+
+
 nginx:
   create: true
 
