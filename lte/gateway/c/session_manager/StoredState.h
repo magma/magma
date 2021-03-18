@@ -26,6 +26,8 @@
 #include "CreditKey.h"
 
 namespace magma {
+using std::experimental::optional;
+
 struct SessionConfig {
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
@@ -33,7 +35,7 @@ struct SessionConfig {
   SessionConfig(){};
   SessionConfig(const LocalCreateSessionRequest& request);
   bool operator==(const SessionConfig& config) const;
-  std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
+  optional<AggregatedMaximumBitrate> get_apn_ambr() const;
 };
 
 // Session Credit
@@ -207,6 +209,14 @@ typedef std::unordered_map<
     StoredChargingCreditMap;
 typedef std::unordered_map<PolicyID, uint32_t, PolicyIDHash> BearerIDByPolicyID;
 
+struct StatsPerPolicy {
+  // The version maintained by SessionD for this rule
+  uint32_t current_version;
+  // The last reported version from PipelineD
+  uint32_t last_reported_version;
+};
+typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;
+
 struct StoredSessionState {
   SessionFsmState fsm_state;
   SessionConfig config;
@@ -230,6 +240,7 @@ struct StoredSessionState {
   std::set<std::string> scheduled_static_rules;
   std::vector<PolicyRule> scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
+  PolicyStatsMap policy_stats;
   uint32_t request_number;
   EventTriggerStatus pending_event_triggers;
   google::protobuf::Timestamp revalidation_time;
@@ -282,6 +293,9 @@ struct SessionStateUpdateCriteria {
   google::protobuf::Timestamp revalidation_time;
   uint32_t request_number_increment;
   uint64_t updated_pdp_end_time;
+
+  // Map to maintain per-policy versions. Contains all values, not delta.
+  optional<PolicyStatsMap> policy_version_and_stats;
 
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;
@@ -350,4 +364,8 @@ std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map);
 std::string serialize_stored_session(StoredSessionState& stored);
 
 StoredSessionState deserialize_stored_session(std::string& serialized);
+
+std::string serialize_policy_stats_map(PolicyStatsMap stats_map);
+
+PolicyStatsMap deserialize_policy_stats_map(std::string& serialized);
 }  // namespace magma

@@ -521,7 +521,7 @@ class SessionState {
    * @param config
    * @return an optional wrapped PolicyRule if creation is needed, {} otherwise
    */
-  std::experimental::optional<PolicyRule> policy_needs_bearer_creation(
+  optional<PolicyRule> policy_needs_bearer_creation(
       const PolicyType policy_type, const std::string& rule_id,
       const SessionConfig& config);
   /**
@@ -581,6 +581,9 @@ class SessionState {
 
   // Used between create session and activate session. Empty afterwards
   CreateSessionResponse create_session_response_;
+
+  // Track version tracking information
+  PolicyStatsMap policy_version_and_stats_;
 
   // All static rules synced from policy DB
   StaticRuleStore& static_rules_;

@@ -768,6 +768,11 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   session_map_2[IMSI1].front()->schedule_static_rule("rule3", lifetime3, uc);
   session_map_2[IMSI1].front()->schedule_static_rule("rule4", lifetime4, uc);
 
+  EXPECT_EQ(uc.static_rules_to_install.count("rule1"), 1);
+  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule2"), 1);
+  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule3"), 1);
+  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule4"), 1);
+
   PolicyRule d1, d2, d3, d4;
   d1.set_id("dynamic_rule1");
   d2.set_id("dynamic_rule2");
@@ -779,9 +784,8 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   session_map_2[IMSI1].front()->schedule_dynamic_rule(d3, lifetime3, uc);
   session_map_2[IMSI1].front()->schedule_dynamic_rule(d4, lifetime4, uc);
 
-  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule2"), 1);
-  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule3"), 1);
-  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule4"), 1);
+  EXPECT_EQ(uc.dynamic_rules_to_install.size(), 1);
+  EXPECT_EQ(uc.new_scheduled_dynamic_rules.size(), 3);
 
   success = session_store->update_sessions(session_update);
   EXPECT_TRUE(success);

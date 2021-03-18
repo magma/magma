@@ -197,11 +197,13 @@ bool PolicyRuleBiMap::get_monitoring_key_for_rule_id(
   if (it == rules_by_rule_id_.end()) {
     return false;
   }
-  if (should_track_monitoring_key(it->second->tracking_type())) {
-    monitoring_key->assign(it->second->monitoring_key());
-    return true;
+  if (!should_track_monitoring_key(it->second->tracking_type())) {
+    return false;
   }
-  return false;
+  if (monitoring_key != nullptr) {
+    monitoring_key->assign(it->second->monitoring_key());
+  }
+  return true;
 }
 
 bool PolicyRuleBiMap::get_rule_ids_for_charging_key(
