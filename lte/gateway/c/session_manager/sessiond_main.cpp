@@ -274,8 +274,8 @@ int main(int argc, char* argv[]) {
   set_consts(config);
   // Initialize the main logical component of SessionD
   auto local_enforcer = std::make_shared<magma::LocalEnforcer>(
-      reporter, rule_store, *session_store, pipelined_client, directoryd_client,
-      events_reporter, spgw_client, aaa_client,
+      reporter, rule_store, *session_store, pipelined_client, events_reporter,
+      spgw_client, aaa_client,
       config["session_force_termination_timeout_ms"].as<long>(),
       get_quota_exhaust_termination_time(config), mconfig);
 

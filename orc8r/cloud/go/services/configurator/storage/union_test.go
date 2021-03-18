@@ -90,4 +90,19 @@ func TestUnionFind(t *testing.T) {
 		},
 		actual,
 	)
+
+	// Trigger xRank < yRank
+	uf = newUnionFind([]string{"1", "2", "3"})
+	uf.union("1", "2")
+	// 1 -> 2 | 3
+	uf.union("3", "1")
+	// 1 -> (2, 3)
+	actual = uf.getComponents()
+	assert.Equal(
+		t,
+		[][]string{
+			{"1", "2", "3"},
+		},
+		actual,
+	)
 }

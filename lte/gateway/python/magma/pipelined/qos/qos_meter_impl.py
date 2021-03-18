@@ -57,7 +57,8 @@ class MeterManager(object):
         ofproto = self._datapath.ofproto
         return None, parser.OFPInstructionMeter(meter_id, ofproto.OFPIT_METER)
 
-    def add_qos(self, _, qos_info: QosInfo, parent=None, __=False) -> int:
+    # pylint:disable=unused-argument
+    def add_qos(self, _, qos_info: QosInfo, parent=None, skip_filter=False) -> int:
         if self._qos_impl_broken:
             raise RuntimeError(BROKEN_KERN_ERROR_MSG)
 
@@ -72,7 +73,8 @@ class MeterManager(object):
         LOG.debug("Adding meter_id %d", meter_id)
         return meter_id
 
-    def remove_qos(self, meter_id: int, d, recovery_mode=False, _=False):
+    # pylint:disable=unused-argument
+    def remove_qos(self, meter_id: int, d, recovery_mode=False, skip_filter=False):
         LOG.debug("Removing meter %d d %d recovery_mode %s", meter_id,
                   d, recovery_mode)
         if meter_id < self._start_idx or meter_id > (self._max_idx - 1):
@@ -99,14 +101,13 @@ class MeterManager(object):
                 'ambr_qid': 0,
             }
         self._id_manager.restore_state(meter_id_map)
-        self._fut.set_result(meter_id_map)
 
     def handle_meter_feature_stats(self, ev_body):
         LOG.debug("handle_meter_feature_stats %s", ev_body)
         for stat in ev_body:
             if stat.max_meter == 0:
                 self._qos_impl_broken = True
-                LOG.error("kernel module has a broken meter implementation")
+                LOG.error(BROKEN_KERN_ERROR_MSG)
 
     @staticmethod
     def dump_meter_state(meter_id):

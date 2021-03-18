@@ -28,11 +28,11 @@ import (
 )
 
 // GetIndexer returns the remote indexer for a desired service.
-// Returns nil if not found.
+// Returns an empty indexer if not found.
 func GetIndexer(serviceName string) (Indexer, error) {
 	x, err := getIndexer(serviceName)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get indexer for service %s", serviceName)
+		return NewEmptyIndexer(serviceName), errors.Wrapf(err, "indexer not found for service %s", serviceName)
 	}
 	return x, nil
 }

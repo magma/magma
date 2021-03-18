@@ -36,9 +36,9 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 
 	var yamlSpecs []string
 	for _, s := range servicers {
-		yamlSpec, err := s.GetSpec()
+		yamlSpec, err := s.GetPartialSpec()
 		if err != nil {
-			// Swallow GetSpec error because the polling should continue
+			// Swallow error because the polling should continue
 			// even if it fails to receive from a single servicer
 			err = errors.Wrapf(err, "get Swagger spec from %s service", s.GetService())
 			glog.Error(err)
@@ -58,24 +58,15 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 	return combined, nil
 }
 
-// GetServiceSpec polls a service for its spec and combines it with the
-// common spec to return a combined spec.
-func GetServiceSpec(yamlCommon string, service string) (string, error) {
+// GetServiceSpec returns a service's standalone spec.
+func GetServiceSpec(service string) (string, error) {
 	remoteSpec := NewRemoteSpec(service)
-	yamlSpec, err := remoteSpec.GetSpec()
+	yamlSpec, err := remoteSpec.GetStandaloneSpec()
 	if err != nil {
 		return "", err
 	}
 
-	combined, warnings, err := spec.Combine(yamlCommon, []string{yamlSpec})
-	if err != nil {
-		return "", err
-	}
-	if warnings != nil {
-		glog.Infof("Some Swagger spec traits were overwritten or unable to be read: %+v", warnings)
-	}
-
-	return combined, nil
+	return yamlSpec, nil
 }
 
 // GetCommonSpec returns the Swagger common spec as a YAML string.

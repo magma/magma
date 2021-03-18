@@ -70,9 +70,8 @@ orc8r/cloud/helm/**/.secrets/
 # Certs for accessing the cloud
 .certs
 
-# Clion config
-devmand/gateway/.idea/
-devmand/gateway/cmake-build-debug/
+# CMake debug files
+lte/gateway/c/session_manager/cmake-build-debug/
 
 # Log files
 *.log
