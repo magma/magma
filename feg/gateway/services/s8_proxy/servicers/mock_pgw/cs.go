@@ -167,7 +167,9 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 			// use passed options value
 			pgwUteid = mPgw.CreateSessionOptions.PgwFTEIDu
 		} else {
+			mPgw.randGenMux.Lock()
 			pgwUteid = (rand.Uint32() / 1000) * 1000 // for easy identification, this teid will always end in 000
+			mPgw.randGenMux.Unlock()
 		}
 		pgwFTEIDu := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8PGWGTPU, pgwUteid, uIP, "").WithInstance(2)
 

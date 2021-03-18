@@ -190,8 +190,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_VALID_QUOTA)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+      .Times(1);
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
@@ -213,8 +212,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_NO_QUOTA)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+      .Times(1);
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
@@ -248,8 +246,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_TERMINATE)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+      .Times(1);
 
   PolicyReAuthAnswer answer;
   auto update = SessionStore::get_default_session_update(session_map);
@@ -297,8 +294,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_TERMINATE)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+      .Times(1);
 
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);

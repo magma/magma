@@ -93,7 +93,7 @@ folly::EventBase& LocalEnforcer::get_event_base() {
   return *evb_;
 }
 
-bool LocalEnforcer::setup(
+void LocalEnforcer::setup(
     SessionMap& session_map, const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {
   std::vector<SessionState::SessionInfo> session_infos;
@@ -138,11 +138,11 @@ bool LocalEnforcer::setup(
   }
   // TODO this assumption of CWF only deployments will not be relevant for long
   if (cwf) {
-    return pipelined_client_->setup_cwf(
+    pipelined_client_->setup_cwf(
         session_infos, quota_updates, ue_mac_addrs, msisdns, apn_mac_addrs,
         apn_names, pdp_start_times, epoch, callback);
   } else {
-    return pipelined_client_->setup_lte(session_infos, epoch, callback);
+    pipelined_client_->setup_lte(session_infos, epoch, callback);
   }
 }
 
@@ -1180,13 +1180,8 @@ void LocalEnforcer::report_subscriber_state_to_pipelined(
     const std::string& imsi, const std::string& ue_mac_addr,
     const SubscriberQuotaUpdate_Type state) {
   auto update = make_subscriber_quota_update(imsi, ue_mac_addr, state);
-  bool add_subscriber_quota_state_success =
-      pipelined_client_->update_subscriber_quota_state(
-          std::vector<SubscriberQuotaUpdate>{update});
-  if (!add_subscriber_quota_state_success) {
-    MLOG(MERROR) << "Failed to update subscriber's quota state to " << state
-                 << " for subscriber " << imsi;
-  }
+  pipelined_client_->update_subscriber_quota_state(
+      std::vector<SubscriberQuotaUpdate>{update});
 }
 
 void LocalEnforcer::complete_termination(
@@ -2023,12 +2018,9 @@ void LocalEnforcer::update_ipfix_flow(
   if (rat_specific.has_wlan_context()) {
     ue_mac_addr = rat_specific.wlan_context().mac_addr();
   }
-  bool update_ipfix_flow_success = pipelined_client_->update_ipfix_flow(
+  pipelined_client_->update_ipfix_flow(
       sid, ue_mac_addr, config.common_context.msisdn(), apn_mac_addr, apn_name,
       pdp_start_time);
-  if (!update_ipfix_flow_success) {
-    MLOG(MERROR) << "Failed to update IPFIX flow for subscriber " << imsi;
-  }
 }
 
 void LocalEnforcer::propagate_bearer_updates_to_mme(
