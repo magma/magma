@@ -298,6 +298,8 @@ class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
                                      include_stats=False)
 
 
+@unittest.skip
+# this reset default GW
 class UplinkBridgeWithNonNATTest_IP_VLAN(unittest.TestCase):
     BRIDGE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
@@ -396,7 +398,8 @@ class UplinkBridgeWithNonNATTest_IP_VLAN(unittest.TestCase):
 
         self.assertIn(cls.SGi_IP, get_iface_ipv4(cls.UPLINK_BRIDGE), "ip not found")
 
-
+@unittest.skip
+# this reset default GW
 class UplinkBridgeWithNonNATTest_IP_VLAN_GW(unittest.TestCase):
     BRIDGE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"

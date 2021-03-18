@@ -223,6 +223,9 @@ class UplinkBridgeController(MagmaController):
         if self.config.enable_nat is True or \
                 self.config.uplink_eth_port_name is None:
             return
+        if BridgeTools.port_is_in_bridge(self.config.uplink_bridge,
+                                         self.config.uplink_eth_port_name):
+            return
         self._cleanup_if(self.config.uplink_eth_port_name, True)
         # Add eth interface to OVS.
         ovs_add_port = "ovs-vsctl --may-exist add-port %s %s" \
@@ -235,20 +238,24 @@ class UplinkBridgeController(MagmaController):
         self.logger.info("Add uplink port: %s", ovs_add_port)
 
     def _del_eth_port(self):
-        self._cleanup_if(self.config.uplink_bridge, True)
-        if self.config.uplink_eth_port_name is None:
-            return
+        if BridgeTools.port_is_in_bridge(self.config.uplink_bridge,
+                                             self.config.uplink_eth_port_name):
+            self._cleanup_if(self.config.uplink_bridge, True)
+            if self.config.uplink_eth_port_name is None:
+                return
 
-        ovs_rem_port = "ovs-vsctl --if-exists del-port %s %s" \
-                       % (self.config.uplink_bridge, self.config.uplink_eth_port_name)
-        try:
-            subprocess.Popen(ovs_rem_port, shell=True).wait()
-            self.logger.info("Remove ovs uplink port: %s", ovs_rem_port)
-        except subprocess.CalledProcessError as ex:
-            self.logger.debug("ignore port del error: %s ", ex)
+            ovs_rem_port = "ovs-vsctl --if-exists del-port %s %s" \
+                           % (self.config.uplink_bridge, self.config.uplink_eth_port_name)
+            try:
+                subprocess.Popen(ovs_rem_port, shell=True).wait()
+                self.logger.info("Remove ovs uplink port: %s", ovs_rem_port)
+            except subprocess.CalledProcessError as ex:
+                self.logger.debug("ignore port del error: %s ", ex)
+                return
 
-        self._set_sgi_ip_addr(self.config.uplink_eth_port_name)
-        self._set_sgi_gw(self.config.uplink_eth_port_name)
+        if self.config.uplink_eth_port_name:
+            self._set_sgi_ip_addr(self.config.uplink_eth_port_name)
+            self._set_sgi_gw(self.config.uplink_eth_port_name)
 
     def _set_sgi_gw(self, if_name: str):
         self.logger.debug('self.config.sgi_management_iface_gw %s',
@@ -260,7 +267,7 @@ class UplinkBridgeController(MagmaController):
 
         try:
             set_gw_command = ["ip",
-                              "route", "add", "default", "via",
+                              "route", "replace", "default", "via",
                               self.config.sgi_management_iface_gw,
                               "metric", "100", "dev",
                               if_name]
@@ -268,7 +275,6 @@ class UplinkBridgeController(MagmaController):
             self.logger.debug("SGi GW config: [%s]", set_gw_command)
         except subprocess.SubprocessError as e:
             self.logger.warning("Error while setting SGi GW: %s", e)
-
 
     def _set_sgi_ip_addr(self, if_name: str):
         self.logger.debug("self.config.sgi_management_iface_ip_addr %s",

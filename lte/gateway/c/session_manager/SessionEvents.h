@@ -29,26 +29,29 @@ namespace lte {
 
 class EventsReporter {
  public:
+  virtual ~EventsReporter() = default;
+
   virtual void session_created(
       const std::string& imsi, const std::string& session_id,
       const SessionConfig& session_context,
-      const std::unique_ptr<SessionState>& session){};
+      const std::unique_ptr<SessionState>& session) = 0;
 
   virtual void session_create_failure(
       const SessionConfig& session_context,
-      const std::string& failure_reason){};
+      const std::string& failure_reason) = 0;
 
   virtual void session_updated(
       const std::string& session_id, const SessionConfig& session_context,
-      const UpdateRequests& update_request){};
+      const UpdateRequests& update_request) = 0;
 
   virtual void session_update_failure(
       const std::string& session_id, const SessionConfig& session_context,
       const UpdateRequests& failed_request,
-      const std::string& failure_reason){};
+      const std::string& failure_reason) = 0;
 
   virtual void session_terminated(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session){};
+      const std::string& imsi,
+      const std::unique_ptr<SessionState>& session) = 0;
 };
 
 /**
@@ -56,7 +59,7 @@ class EventsReporter {
  */
 class EventsReporterImpl : public EventsReporter {
  public:
-  EventsReporterImpl(AsyncEventdClient& eventd_client);
+  EventsReporterImpl(EventdClient& eventd_client);
 
   void session_created(
       const std::string& imsi, const std::string& session_id,
@@ -86,7 +89,7 @@ class EventsReporterImpl : public EventsReporter {
   folly::dynamic get_update_summary(const UpdateRequests& updates);
 
  private:
-  AsyncEventdClient& eventd_client_;
+  EventdClient& eventd_client_;
 };
 
 }  // namespace lte

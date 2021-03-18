@@ -37,29 +37,6 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-/* Messages for S1AP logging */
-MESSAGE_DEF(S1AP_UPLINK_NAS_LOG, IttiMsgText, s1ap_uplink_nas_log)
-MESSAGE_DEF(S1AP_UE_CAPABILITY_IND_LOG, IttiMsgText, s1ap_ue_capability_ind_log)
-MESSAGE_DEF(
-    S1AP_INITIAL_CONTEXT_SETUP_LOG, IttiMsgText, s1ap_initial_context_setup_log)
-MESSAGE_DEF(
-    S1AP_NAS_NON_DELIVERY_IND_LOG, IttiMsgText, s1ap_nas_non_delivery_ind_log)
-MESSAGE_DEF(S1AP_DOWNLINK_NAS_LOG, IttiMsgText, s1ap_downlink_nas_log)
-MESSAGE_DEF(S1AP_S1_SETUP_LOG, IttiMsgText, s1ap_s1_setup_log)
-MESSAGE_DEF(
-    S1AP_INITIAL_UE_MESSAGE_LOG, IttiMsgText, s1ap_initial_ue_message_log)
-MESSAGE_DEF(
-    S1AP_UE_CONTEXT_RELEASE_REQ_LOG, IttiMsgText,
-    s1ap_ue_context_release_req_log)
-MESSAGE_DEF(
-    S1AP_UE_CONTEXT_RELEASE_COMMAND_LOG, IttiMsgText,
-    s1ap_ue_context_release_command_log)
-MESSAGE_DEF(
-    S1AP_UE_CONTEXT_RELEASE_LOG, IttiMsgText, s1ap_ue_context_release_log)
-MESSAGE_DEF(S1AP_ENB_RESET_LOG, IttiMsgText, s1ap_enb_reset_log)
-MESSAGE_DEF(
-    S1AP_UE_CONTEXT_MODIFICATION_LOG, IttiMsgText,
-    s1ap_ue_context_modification_log)
 MESSAGE_DEF(S1AP_UE_CAPABILITIES_IND, itti_s1ap_ue_cap_ind_t, s1ap_ue_cap_ind)
 MESSAGE_DEF(
     S1AP_ENB_DEREGISTERED_IND, itti_s1ap_eNB_deregistered_ind_t,
@@ -101,11 +78,6 @@ MESSAGE_DEF(
     s1ap_ue_context_mod_failure)
 MESSAGE_DEF(S1AP_E_RAB_REL_CMD, itti_s1ap_e_rab_rel_cmd_t, s1ap_e_rab_rel_cmd)
 MESSAGE_DEF(S1AP_E_RAB_REL_RSP, itti_s1ap_e_rab_rel_rsp_t, s1ap_e_rab_rel_rsp)
-MESSAGE_DEF(
-    S1AP_ENB_CONFIGURATION_TRANSFER_LOG, IttiMsgText,
-    s1ap_enb_configuration_transfer_log)
-MESSAGE_DEF(
-    S1AP_PATH_SWITCH_REQUEST_LOG, IttiMsgText, s1ap_path_switch_request_log)
 MESSAGE_DEF(
     S1AP_PATH_SWITCH_REQUEST, itti_s1ap_path_switch_request_t,
     s1ap_path_switch_request)

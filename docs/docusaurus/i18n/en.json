@@ -30,7 +30,10 @@
       "cwf/troubleshooting": {
         "title": "cwf/troubleshooting"
       },
-      "faq/magma_faq": {
+      "debugging_tools/show_tech": {
+        "title": "Show Tech"
+      },
+      "faq/faq_magma": {
         "title": "Frequently Asked Questions"
       },
       "feg/deploy_build": {
@@ -55,8 +58,20 @@
         "title": "Federated Gateway (FeG)",
         "sidebar_label": "Overview"
       },
+      "howtos/call_tracing": {
+        "title": "Call Tracing"
+      },
+      "howtos/events_monitoring": {
+        "title": "Events Monitoring"
+      },
+      "howtos/he_api": {
+        "title": "Header Enrichment"
+      },
       "howtos/readme_package": {
         "title": "Packaging"
+      },
+      "howtos/thanos": {
+        "title": "Thanos"
       },
       "howtos/config_agw_bridged": {
         "title": "AGW Bridged Mode"
@@ -82,6 +97,10 @@
       },
       "lte/eventd": {
         "title": "Eventd"
+      },
+      "lte/ha_setup": {
+        "title": "HA AGW Setup",
+        "sidebar_label": "HA AGW Setup"
       },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
@@ -129,41 +148,56 @@
       "lte/agw_110_upgrade": {
         "title": "Upgrading from 1.0"
       },
-      "nms/nms_dashboard": {
-        "title": "NMS Dashboard"
+      "nms/alerts": {
+        "title": "Alerts"
       },
-      "nms/nms_developer": {
-        "title": "Quick-Start Guide to NMS Development"
+      "nms/dashboard": {
+        "title": "Dashboard"
       },
-      "nms/nms_equipment": {
-        "title": "NMS Equipment"
+      "nms/developer": {
+        "title": "Developer"
       },
-      "nms/nms_grafana": {
+      "nms/equipment": {
+        "title": "Equipment"
+      },
+      "nms/legacy/grafana": {
         "title": "Custom Grafana Dashboards"
       },
-      "nms/json_editing": {
-        "title": "nms/json_editing"
+      "nms/metrics": {
+        "title": "Metrics"
       },
-      "nms/nms_network": {
-        "title": "NMS Network"
+      "nms/network": {
+        "title": "Network"
       },
-      "nms/nms_organizations": {
-        "title": "Multitenancy (Organizations)"
+      "nms/overview": {
+        "title": "Overview"
       },
-      "nms/nms_overview": {
-        "title": "NMS Overview"
+      "nms/setup": {
+        "title": "Setup"
       },
-      "nms/nms_subscriber": {
-        "title": "NMS Subscriber"
+      "nms/subscriber": {
+        "title": "Subscriber"
       },
-      "nms/nms_traffic": {
-        "title": "NMS Traffic"
+      "nms/tips_and_tricks": {
+        "title": "Tips and Tricks"
       },
-      "nms/nms_how_to_guide": {
-        "title": "NMS How To Guide"
+      "nms/traffic": {
+        "title": "Traffic"
+      },
+      "orc8r/architecture_modularity": {
+        "title": "Modularity"
+      },
+      "orc8r/architecture_overview": {
+        "title": "Overview"
+      },
+      "orc8r/architecture_security": {
+        "title": "Security"
       },
       "orc8r/deploy_build": {
         "title": "Build Orchestrator"
+      },
+      "orc8r/deploy_faq": {
+        "title": "FAQs"
       },
       "orc8r/deploy_install": {
         "title": "Install Orchestrator"
@@ -171,8 +205,14 @@
       "orc8r/deploy_intro": {
         "title": "Introduction"
       },
-      "orc8r/development/minikube_deployment": {
+      "orc8r/dev_minikube_deployment": {
         "title": "Deploy on Minikube"
+      },
+      "orc8r/dev_security": {
+        "title": "Security"
+      },
+      "orc8r/dev_testing_tips": {
+        "title": "Testing Tips"
       },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"
@@ -207,6 +247,9 @@
       "orc8r/upgrade_1_3": {
         "title": "Upgrade to v1.3"
       },
+      "orc8r/upgrade_1_4": {
+        "title": "Upgrade to v1.4"
+      },
       "orc8r/upgrade_intro": {
         "title": "Introduction"
       },
@@ -223,10 +266,31 @@
         "title": "Service Restriction Feature"
       },
       "proposals/p005_call_tracing": {
-        "title": "Call Tracing Feature"
+        "title": "Call Tracing for Troubleshooting"
+      },
+      "proposals/p006_subscriber_state_view": {
+        "title": "Displaying Run-time Subscriber State in NMS"
       },
       "proposals/p007_header_enrichment": {
-        "title": "Header Enrichment"
+        "title": "Header enrichment"
+      },
+      "proposals/p008_apn_correction": {
+        "title": "MME APN Correction"
+      },
+      "proposals/p008_mandatory_integration_tests_for_each_PR": {
+        "title": "proposals/p008_mandatory_integration_tests_for_each_PR"
+      },
+      "proposals/p009_nms_mariadb_migration": {
+        "title": "NMS MariaDB Migration"
+      },
+      "proposals/qos_enforcement": {
+        "title": "proposals/qos_enforcement"
+      },
+      "proposals/proposal_process": {
+        "title": "Magma Proposals"
+      },
+      "proposals/p[###]_[short-description]": {
+        "title": "[Title of Design Doc]"
       },
       "version-1.0.0/basics/version-1.0.0-introduction": {
         "title": "Introduction"
@@ -674,6 +738,9 @@
       "version-1.3.0/orc8r/version-1.3.0-deploy_install": {
         "title": "Install Orchestrator"
       },
+      "version-1.3.0/orc8r/version-1.3.0-deploy_intro": {
+        "title": "Introduction"
+      },
       "version-1.3.0/orc8r/version-1.3.0-upgrade_1_3": {
         "title": "Upgrade to v1.3"
       },
@@ -685,19 +752,23 @@
       }
     },
     "links": {
+      "Home": "Home",
+      " | ": " | ",
       "Docs": "Docs",
-      "Help": "Help",
-      "Github": "Github"
+      "Code": "Code",
+      "Community": "Community"
     },
     "categories": {
       "Basics": "Basics",
       "Orchestrator": "Orchestrator",
-      "NMS User Guide": "NMS User Guide",
+      "NMS": "NMS",
       "Access Gateway": "Access Gateway",
       "Feature Guides": "Feature Guides",
+      "Debugging Tools": "Debugging Tools",
       "Federation Gateway": "Federation Gateway",
       "FAQ": "FAQ",
       "Proposals": "Proposals",
+      "NMS User Guide": "NMS User Guide",
       "Symphony": "Symphony"
     }
   },

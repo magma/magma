@@ -53,16 +53,14 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     auto rule_store = std::make_shared<StaticRuleStore>();
     session_store   = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
-    pipelined_client       = std::make_shared<MockPipelinedClient>();
-    auto directoryd_client = std::make_shared<MockDirectorydClient>();
-    auto spgw_client       = std::make_shared<MockSpgwServiceClient>();
-    auto aaa_client        = std::make_shared<MockAAAClient>();
-    auto events_reporter   = std::make_shared<MockEventsReporter>();
-    auto default_mconfig   = get_default_mconfig();
-    local_enforcer         = std::make_shared<LocalEnforcer>(
-        reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, events_reporter, spgw_client, aaa_client, 0, 0,
-        default_mconfig);
+    pipelined_client     = std::make_shared<MockPipelinedClient>();
+    auto spgw_client     = std::make_shared<MockSpgwServiceClient>();
+    auto aaa_client      = std::make_shared<MockAAAClient>();
+    auto events_reporter = std::make_shared<MockEventsReporter>();
+    auto default_mconfig = get_default_mconfig();
+    local_enforcer       = std::make_shared<LocalEnforcer>(
+        reporter, rule_store, *session_store, pipelined_client, events_reporter,
+        spgw_client, aaa_client, 0, 0, default_mconfig);
     session_map = SessionMap{};
 
     proxy_responder = std::make_shared<SessionProxyResponderHandlerImpl>(
@@ -70,6 +68,8 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
 
     local_enforcer->attachEventBase(evb);
   }
+
+  virtual void TearDown() { delete evb; }
 
   std::unique_ptr<SessionState> get_session(
       std::shared_ptr<StaticRuleStore> rule_store) {
@@ -88,52 +88,49 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
         CreateSessionResponse{});
   }
 
-  UsageMonitoringUpdateResponse* get_monitoring_update() {
-    auto units = new GrantedUnits();
-    auto total = new CreditUnit();
-    total->set_is_valid(true);
-    total->set_volume(1000);
-    auto tx = new CreditUnit();
-    tx->set_is_valid(true);
-    tx->set_volume(1000);
-    auto rx = new CreditUnit();
-    rx->set_is_valid(true);
-    rx->set_volume(1000);
-    units->set_allocated_total(total);
-    units->set_allocated_tx(tx);
-    units->set_allocated_rx(rx);
+  UsageMonitoringUpdateResponse get_monitoring_update() {
+    UsageMonitoringUpdateResponse response;
+    response.set_session_id("sid1");
+    response.set_success(true);
 
-    auto monitoring_credit = new UsageMonitoringCredit();
+    auto monitoring_credit = response.mutable_credit();
     monitoring_credit->set_action(UsageMonitoringCredit_Action_CONTINUE);
     monitoring_credit->set_monitoring_key(monitoring_key);
     monitoring_credit->set_level(SESSION_LEVEL);
-    monitoring_credit->set_allocated_granted_units(units);
 
-    auto credit_update = new UsageMonitoringUpdateResponse();
-    credit_update->set_allocated_credit(monitoring_credit);
-    credit_update->set_session_id("sid1");
-    credit_update->set_success(true);
+    auto units = monitoring_credit->mutable_granted_units();
+    auto total = units->mutable_total();
+    auto tx    = units->mutable_tx();
+    auto rx    = units->mutable_rx();
+
+    total->set_is_valid(true);
+    total->set_volume(1000);
+    tx->set_is_valid(true);
+    tx->set_volume(1000);
+    rx->set_is_valid(true);
+    rx->set_volume(1000);
+
     // Don't set event triggers
     // Don't set result code since the response is already successful
     // Don't set any rule installation/uninstallation
     // Don't set the TgppContext, assume gx_gy_relay disabled
-    return credit_update;
+    return response;
   }
 
-  PolicyReAuthRequest* get_policy_reauth_request() {
-    auto request = new PolicyReAuthRequest();
-    request->set_session_id("");
-    request->set_imsi(IMSI1);
+  PolicyReAuthRequest get_policy_reauth_request() {
+    PolicyReAuthRequest request;
+    request.set_session_id("");
+    request.set_imsi(IMSI1);
 
-    auto static_rule = new StaticRuleInstall();
-    static_rule->set_rule_id("static_1");
+    StaticRuleInstall static_rule_1;
+    static_rule_1.set_rule_id("static_1");
 
     // This should be a duplicate rule
-    auto static_rule_2 = new StaticRuleInstall();
-    static_rule_2->set_rule_id(rule_id);
+    StaticRuleInstall static_rule_2;
+    static_rule_2.set_rule_id(rule_id);
 
-    request->mutable_rules_to_install()->AddAllocated(static_rule);
-    request->mutable_rules_to_install()->AddAllocated(static_rule_2);
+    request.mutable_rules_to_install()->Add()->CopyFrom(static_rule_1);
+    request.mutable_rules_to_install()->Add()->CopyFrom(static_rule_2);
     return request;
   }
 
@@ -165,9 +162,8 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id), true);
 
-  auto credit_update                               = get_monitoring_update();
-  UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
-  session->receive_monitor(credit_update_ref, uc);
+  auto monitor_update = get_monitoring_update();
+  session->receive_monitor(monitor_update, uc);
 
   // Add some used credit
   session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333), uc);
@@ -204,7 +200,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
       activate_flows_for_rules(IMSI1, _, _, _, _, _, CheckCount(1), _, _))
       .Times(1);
   proxy_responder->PolicyReAuth(
-      &create_context, request,
+      &create_context, &request,
       [this](grpc::Status status, PolicyReAuthAnswer response_out) {});
 
   // run LocalEnforcer's init_policy_reauth which was scheduled by
@@ -263,8 +259,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
       *pipelined_client,
       deactivate_flows_for_rules_for_termination(
           IMSI1, _, _, _, CheckCount(1), CheckCount(0), RequestOriginType::GX))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+      .Times(1);
   proxy_responder->AbortSession(
       &create_context, &request,
       [this](grpc::Status status, AbortSessionResult response_out) {});

@@ -27,13 +27,18 @@ SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
 SWAGGER_V1_CONFIG := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/goswagger-config.yml
 SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/swagger/specs
-SWAGGER_V1_COMMON_DIR := common
+SWAGGER_V1_PARTIAL_SPECS_DIR := $(SWAGGER_V1_SPECS_DIR)/partial
+SWAGGER_V1_COMMON_DIR := $(SWAGGER_V1_SPECS_DIR)/common
+SWAGGER_V1_STANDALONE_DIR := $(SWAGGER_V1_SPECS_DIR)/standalone
 
 export SWAGGER_ROOT
 export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
 export SWAGGER_V1_CONFIG
 export SWAGGER_V1_SPECS_DIR
+export SWAGGER_V1_COMMON_DIR
+export SWAGGER_V1_PARTIAL_SPECS_DIR
+export SWAGGER_V1_STANDALONE_DIR
 
 COVER_DIR := $(MAGMA_ROOT)/orc8r/cloud/coverage
 export COVER_DIR
@@ -132,13 +137,14 @@ lint_tools:
 ######################
 
 swagger: swagger_directories $(SWAGGER_LIST)
-	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_SPECS_DIR)/$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON)
-	combine_swagger --in=$(SWAGGER_V1_SPECS_DIR) --common=$(SWAGGER_V1_SPECS_DIR)/$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
+	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON)
+	combine_swagger --in=$(SWAGGER_V1_PARTIAL_SPECS_DIR) --common=$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
 	swagger validate $(SWAGGER_V1_YML)
 
 swagger_directories:
 	rm -rf $(SWAGGER_V1_SPECS_DIR)
-	mkdir -p $(SWAGGER_V1_SPECS_DIR)/$(SWAGGER_V1_COMMON_DIR)
+	mkdir -p $(SWAGGER_V1_COMMON_DIR) $(SWAGGER_V1_PARTIAL_SPECS_DIR) $(SWAGGER_V1_STANDALONE_DIR)
+
 
 $(SWAGGER_LIST): %_swagger:
 	make -C $*/cloud/go swagger_tools copy_swagger_files

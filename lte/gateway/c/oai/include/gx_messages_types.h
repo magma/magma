@@ -37,11 +37,11 @@
  * \version 0.1
  */
 
-#ifndef FILE_GX_MESSAGES_TYPES_SEEN
-#define FILE_GX_MESSAGES_TYPES_SEEN
+#pragma once
 
 #include "3gpp_24.007.h"
 #include "3gpp_29.274.h"
+#include "ip_forward_messages_types.h"
 
 #define GX_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                            \
   (mSGpTR)->ittiMsg.gx_nw_init_actv_bearer_request
@@ -50,6 +50,22 @@
 
 #define POLICY_RULE_NAME_MAXLEN                                                \
   100  // The policy name will be truncated to this
+
+typedef enum {
+  PCEF_STATUS_OK     = 0,
+  PCEF_STATUS_FAILED = 1,
+} PcefRpcStatus_t;
+
+/**
+ * PCEF Create Session response from PCEFClient, sent from GRPC task to SPGW
+ * during processing of Create Session Request by SPGW task
+ */
+typedef struct itti_pcef_create_session_response_s {
+  PcefRpcStatus_t rpc_status;
+  teid_t teid;
+  ebi_t eps_bearer_id;
+  SGIStatus_t sgi_status;
+} itti_pcef_create_session_response_t;
 
 typedef struct itti_gx_nw_init_actv_bearer_request_s {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
@@ -69,5 +85,3 @@ typedef struct itti_gx_nw_init_deactv_bearer_request_s {
   ebi_t lbi;
   ebi_t ebi[BEARERS_PER_UE];
 } itti_gx_nw_init_deactv_bearer_request_t;
-
-#endif /* FILE_GX_MESSAGES_TYPES_SEEN */

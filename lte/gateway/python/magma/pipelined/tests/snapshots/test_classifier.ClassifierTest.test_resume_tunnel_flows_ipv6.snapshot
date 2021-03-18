@@ -1,0 +1,3 @@
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,tun_id=0x3,in_port=32768 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,ipv6,in_port=LOCAL,ipv6_dst=2001::4 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,ipv6,in_port=15577,ipv6_dst=2001::4 actions=resubmit(,ingress(main_table))

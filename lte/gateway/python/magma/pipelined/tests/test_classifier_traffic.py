@@ -39,6 +39,7 @@ from scapy.contrib.gtp import GTP_U_Header
 from scapy.all import *
 from magma.pipelined.app.classifier import Classifier
 from scapy.all import Ether, IP, UDP, ARP
+from lte.protos.mobilityd_pb2 import IPAddress
 
 class GTPTrafficTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -125,9 +126,10 @@ class GTPTrafficTest(unittest.TestCase):
 
         # Attach the tunnel flows towards UE.
         seid1 = 5000
+        ue_ip_addr = "192.168.128.30"
         self.classifier_controller.add_tunnel_flows(65525, 1, 1000,
-                                                    "192.168.128.30",
-                                                     self.EnodeB_IP, seid1)
+                                                    IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                    self.EnodeB_IP, seid1)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         eth = Ether(dst=self.MAC_1, src=self.MAC_2)

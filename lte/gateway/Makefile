@@ -61,7 +61,7 @@ endif
 # debian stretch build uses older cc not recognizing options needed on ubuntu focal
 
 OS_VERSION_NAME := $(shell (grep VERSION_CODENAME /etc/os-release || true) | sed 's/.*=//g')
-COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall"
+COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall $(CPPFLAGS)" -DCMAKE_CXX_FLAGS="-Wall $(CPPFLAGS)"
 
 $(info OAI_FLAGS $(OAI_FLAGS))
 
@@ -112,6 +112,8 @@ help: ## Show documented commands
 define run_cmake
 mkdir -p $(1)
 cd $(1) && $(4) cmake $(2) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(3) -GNinja
+# Turn on generation of compile_commands.json (See GH Issue #5488)
+cd $(1) && awk '{if (/^CMAKE_EXPORT_COMPILE_COMMANDS/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt
 ninja -C $(1)
 endef
 

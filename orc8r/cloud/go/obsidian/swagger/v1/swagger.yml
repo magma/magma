@@ -8141,7 +8141,8 @@ definitions:
     - dns
     type: object
   feg_network_id:
-    example: example_feg_network
+    description: Name of the federated network serving this LTE network. Blank for non federated
+    example: feg_id_only_for_federated_network
     type: string
   flow_description:
     properties:
@@ -8402,7 +8403,6 @@ definitions:
         $ref: '#/definitions/swx'
     required:
     - s6a
-    - s8
     - hss
     - gx
     - gy

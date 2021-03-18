@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/wmnsk/go-gtp/gtpv1"
@@ -31,7 +32,7 @@ import (
 
 const (
 	dummyUserPlanePgwIP = "10.0.0.1"
-	gtpTimeout          = 500 * time.Millisecond
+	gtpTimeout          = 5 * time.Second
 )
 
 // MockPgw is just a wrapper around gtp.Client
@@ -39,6 +40,7 @@ type MockPgw struct {
 	*gtp.Client
 	LastValues
 	CreateSessionOptions CreateSessionOptions
+	randGenMux           sync.Mutex
 }
 
 type LastValues struct {
@@ -84,11 +86,16 @@ func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 	return nil
 }
 
-func (mPgw *MockPgw) SetCreateSessionWithErrorCause() {
-	mPgw.AddHandlers(map[uint8]gtpv2.HandlerFunc{
-		message.MsgTypeCreateSessionRequest: mPgw.getHandleCreateSessionRequestWithDeniedService(),
-	})
+func (mPgw *MockPgw) SetCreateSessionWithErrorCause(errorCause uint8) {
+	mPgw.AddHandler(
+		message.MsgTypeCreateSessionRequest,
+		mPgw.getHandleCreateSessionRequestWithDeniedService(errorCause))
+}
 
+func (mPgw *MockPgw) SetCreateSessionWithMissingIE() {
+	mPgw.AddHandler(
+		message.MsgTypeCreateSessionRequest,
+		mPgw.getHandleCreateSessionRequestWithMissingIE())
 }
 
 // ONLY FOR DEBUGGING PURPOSES
