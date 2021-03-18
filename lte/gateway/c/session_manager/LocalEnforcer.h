@@ -110,7 +110,7 @@ class LocalEnforcer {
    * Setup rules for all sessions in pipelined, used whenever pipelined
    * restarts and needs to recover state
    */
-  bool setup(
+  void setup(
       SessionMap& session_map, const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback);
 

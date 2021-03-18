@@ -13,6 +13,7 @@
 
 #include <ctime>
 #include <limits>
+#include <sstream>
 
 #include "ChargingGrant.h"
 #include "EnumToString.h"

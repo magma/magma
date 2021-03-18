@@ -12,6 +12,9 @@
  */
 #include "SessionManagerServer.h"
 #include "magma_logging.h"
+#include <grpc/impl/codegen/port_platform.h>
+#include <stdarg.h>
+#include <stdlib.h>
 #include <chrono>
 #include <ctime>
 using grpc::Status;

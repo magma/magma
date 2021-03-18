@@ -11,5 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package indexer provides tools to define, use, and update state indexers.
-package indexer
+#pragma once
+#include "common_types.h"
+#include "s11_messages_types.h"
+#include "intertask_interface.h"
+
+int sgw_s8_handle_s11_create_session_request(
+    const itti_s11_create_session_request_t* const session_req_p,
+    imsi64_t imsi64);
