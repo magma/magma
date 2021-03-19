@@ -188,6 +188,48 @@ precommit_sm: format_session_manager test_session_manager
 # format and test c/oai
 precommit_oai: format_oai test_oai
 
+# Run clang-tidy
+# TODO: CMake config issue - compile_commands.json is only generated if you first make_oai, then test_oai (or do either twice).
+#       Additionally compile_commands.json is **not capturing all build artifacts this way**
+clang_tidy_oai: build_common
+	mkdir $(GATEWAY_C_DIR)/oai/build
+	cd $(GATEWAY_C_DIR)/oai/build;cmake ..
+	sed -i 's/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON/g' $(GATEWAY_C_DIR)/oai/build/CMakeCache.txt
+	cmake --build $(GATEWAY_C_DIR)/oai/build/ 
+	wget https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py
+	python run-clang-tidy.py -p $(GATEWAY_C_DIR)/oai/build/ -j 2 -checks='-*,clang-analyzer-security*,android-*,cert-*,clang-analyzer-*,concurrency,misc-*,-misc-unused-parameters,bugprone-*' 2>&1 | tee /tmp/clang-tidy-oai.findings
+
+# Pushes per-finding counts to:
+#   https://docs.google.com/forms/d/1-45BZTHh4uBBOCqYM4LAD4zFT91B47sEEntHLkQuXWA/edit#responses
+clang_tidy_oai_upload: clang_tidy_oai
+	# Generate a summary of per-finding counts in the log
+	grep '\]' /tmp/clang-tidy-oai.findings | grep warning: | awk -F'[][]' '{print $$2}' | sort | uniq -c
+	curl -L -v -G -Ss \
+		--data-urlencode "entry.338748281=$(BRANCH)" \
+		--data-urlencode "entry.1421502557=$(REVISION)" \
+		--data-urlencode "entry.1687500610=OAI" \
+		--data-urlencode "entry.1690779794=$(shell grep '\[android-cloexec' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1926965966=$(shell grep '\[bugprone-branch-clone\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.951746576=$(shell grep '\[bugprone-macro-parentheses\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.593794544=$(shell grep '\[bugprone-narrowing-conversions\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.607048444=$(shell grep '\[bugprone-reserved-identifier,cert-dcl37-c,cert-dcl51-cpp\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.2081825272=$(shell grep '\[bugprone-signed-char-misuse,cert-str34-c\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.268408734=$(shell grep '\[bugprone-sizeof-expression\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1339652996=$(shell grep '\[bugprone-suspicious-string-compare\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1446914229=$(shell grep '\[bugprone-too-small-loop-variable\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.718845718=$(shell grep '\[bugprone-undefined-memory-manipulation\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.851497596=$(shell grep '\[cert-' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1963803956=$(shell grep '\[clang-analyzer-core.CallAndMessage\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1218571043=$(shell grep '\[clang-analyzer-core.NullDereference\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1618711162=$(shell grep '\[clang-analyzer-core.uninitialized.Assign\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1062688275=$(shell grep '\[clang-analyzer-deadcode.DeadStores\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1790897376=$(shell grep '\[clang-analyzer-optin' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1730273925=$(shell grep '\[clang-analyzer-security.insecureAPI.strcpy\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.806421502=$(shell grep '\[clang-analyzer-unix.Malloc\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.999694738=$(shell grep '\[clang-analyzer-unix.MallocSizeof\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.740240539=$(shell grep '\[misc-' /tmp/clang-tidy-oai.findings | wc -l)" \
+		https://docs.google.com/forms/d/e/1FAIpQLSfHGqOmDhUMAWHSjA_w6NOGqglQBx2IaO1bXLo6zrOE95sRWQ/formResponse?usp=pp_url
+
 # TODO: include coverage of dpim when it is included in make build
 COV_OUTPUT_OAI = $(OAI_BUILD)/coverage.info
 COV_OUTPUT_SM = $(C_BUILD)/session_manager/coverage.info
