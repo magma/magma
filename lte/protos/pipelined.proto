@@ -77,8 +77,6 @@ message RequestOriginType {
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
   string ip_addr = 2; // Subscriber session ipv4 address
-  // Deprecated
-  repeated string rule_ids = 3; // List of static rules obtained from PCRF
   repeated PolicyRule dynamic_rules = 4;  // List of dynamic rules obtained from PCRF
   RequestOriginType request_origin = 5; // Activate flow source (GX/GY)
   magma.lte.AggregatedMaximumBitrate apn_ambr = 6; // APN AMBR info, passed at the time of session creation
@@ -86,6 +84,8 @@ message ActivateFlowsRequest {
   bytes msisdn = 8; // From SubscriberDB or HSS
   uint32 uplink_tunnel = 9; // Subscriber uplink tunnel
   uint32 downlink_tunnel = 10; // Subscriber downlink tunnel
+
+  reserved 3;
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -115,8 +115,9 @@ message RuleModResult {
 }
 
 message ActivateFlowsResult {
-  repeated RuleModResult static_rule_results = 1;
   repeated RuleModResult dynamic_rule_results = 2;
+
+  reserved 1;
 }
 
 message DeactivateFlowsResult {
@@ -281,7 +282,7 @@ message OuterHeaderCreation {
 
 //Table 7.5.2.3-2: Forwarding Parameters IE in FAR
 message FwdParam {
-  uint32 dest_iface = 1;     
+  uint32 dest_iface = 1;
   string net_instance = 2;
   RedirectInfo redirect_info = 3;
   OuterHeaderCreation outr_head_cr = 4;
