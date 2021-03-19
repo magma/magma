@@ -92,7 +92,6 @@ MME :
          {% endfor %}
     );
 
-
     # List of restricted PLMNs
     # By default this list is empty
     # Max number of restricted plmn is 10
@@ -100,7 +99,6 @@ MME :
          # Sample plmn
          #{ MCC="001" ; MNC="010";}
     );
-
 
     CSFB :
     {
