@@ -13,8 +13,10 @@ limitations under the License.
 import asyncio
 import logging
 
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
+
 from .processor import Processor
 from .protocols.diameter.application import base, s6a
 from .protocols.diameter.server import S6aServer
@@ -29,6 +31,9 @@ from lte.protos.mconfig import mconfigs_pb2
 def main():
     """ main() for subscriberdb """
     service = MagmaService('subscriberdb', mconfigs_pb2.SubscriberDB())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     # Initialize a store to keep all subscriber data.
     store = SqliteStore(service.config['db_path'], loop=service.loop,

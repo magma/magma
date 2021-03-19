@@ -73,10 +73,10 @@ static void convert_paa_to_proto_msg(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-  static void convert_indication_flag_to_proto_msg(
-      const itti_s11_create_session_request_t* msg,
-      magma::feg::CreateSessionRequestPgw* csr) {
-    OAILOG_FUNC_IN(LOG_SGW_S8);
+static void convert_indication_flag_to_proto_msg(
+    const itti_s11_create_session_request_t* msg,
+    magma::feg::CreateSessionRequestPgw* csr) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
 #define INDICATION_FLAG_SIZE 3
   char indication_flag[INDICATION_FLAG_SIZE];
   indication_flag[0] = (msg->indication_flags.daf << DAF_FLAG_BIT_POS) |
