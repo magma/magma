@@ -51,6 +51,9 @@ orc8r/cloud/test_certs/*.pfx
 # Ignore generated Swagger files
 orc8r/cloud/swagger/specs
 
+# Node
+node_modules/
+
 # Ignore apt/build cache
 .cache/*
 

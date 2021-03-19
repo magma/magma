@@ -16,6 +16,8 @@ sed -i "s/.*OVS_CTL_OPTS.*/OVS_CTL_OPTS='--delete-bridges'/" /etc/default/openvs
 # Create /var/core directory
 mkdir -p /var/core
 
+sudo cat /usr/local/share/magma/commit_hash > /etc/environment
+
 # Set magmad service to start on boot
 systemctl enable -f magma@magmad.service
 

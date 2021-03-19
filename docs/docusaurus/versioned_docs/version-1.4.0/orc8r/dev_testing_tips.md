@@ -1,7 +1,8 @@
 ---
-id: dev_testing_tips
+id: version-1.4.0-dev_testing_tips
 title: Testing Tips
 hide_title: true
+original_id: dev_testing_tips
 ---
 
 # Testing Tips

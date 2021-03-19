@@ -272,8 +272,21 @@ MME :
     };
 
     S-GW :
-   {
-    # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
-       SGW_IPV4_ADDRESS_FOR_S11              = "{{ remote_sgw_ip }}";
-   };
+    {
+        # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
+        SGW_IPV4_ADDRESS_FOR_S11              = "{{ remote_sgw_ip }}";
+    };
+
+
+    FEDERATED_MODE_MAP = (
+        # ModeMapItem values can be found at magma/lte/protos/mconfig/mconfigs.proto
+        {% for fed_map in federated_mode_map -%}
+        {
+          MODE        = "{{ fed_map.mode }}"
+          PLMN        = "{{ fed_map.plmn }}"
+          IMSI_RANGE  = "{{ fed_map.imsi_range }}"
+          APN         = "{{ fed_map.apn }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+   );
 };
