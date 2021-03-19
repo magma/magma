@@ -16,7 +16,6 @@ import concurrent.futures
 import queue
 from functools import partial
 from concurrent.futures import Future
-from itertools import chain
 from typing import List, Tuple
 from collections import OrderedDict
 
@@ -289,7 +288,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
             request.dynamic_rules)
 
-        failed_static_rule_results, failed_dynamic_rule_results = \
+        failed_dynamic_rule_results = \
             _retrieve_failed_results(enforcement_stats_res)
         # Do not install any rules that failed to install in enforcement_stats.
         dynamic_rules = \
