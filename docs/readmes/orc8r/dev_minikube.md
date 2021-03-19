@@ -1,5 +1,5 @@
 ---
-id: dev_minikube_deployment
+id: dev_minikube
 title: Deploy on Minikube
 hide_title: true
 ---
