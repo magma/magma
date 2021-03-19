@@ -8933,6 +8933,22 @@ definitions:
     required:
     - latency_ms
     type: object
+  imei:
+    description: IMEI (type allocation code and serial number)
+    properties:
+      snr:
+        example: "176148"
+        pattern: ^(\d{6})$
+        type: string
+        x-nullable: false
+      tac:
+        example: "01300600"
+        pattern: ^(\d{8})$
+        type: string
+        x-nullable: false
+    required:
+    - tac
+    type: object
   ip_address:
     description: IP address
     properties:
@@ -9757,6 +9773,12 @@ definitions:
           type: string
         type: array
         x-omitempty: true
+      restricted_imeis:
+        description: List of IMEIs restricted in the network
+        items:
+          $ref: '#/definitions/imei'
+        type: array
+        x-omitempty: true
       restricted_plmns:
         description: List of PLMN IDs restricted in the network
         items:
@@ -10191,7 +10213,7 @@ definitions:
         x-go-custom-tag: magma_alt_name:"VpnIp"
     type: object
   plmn_config:
-    description: Record in a gateway pool
+    description: PLMN Configuration
     properties:
       mcc:
         example: "001"
