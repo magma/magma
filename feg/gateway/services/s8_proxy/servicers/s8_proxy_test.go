@@ -154,6 +154,23 @@ func TestS8proxyRepeatedCreateSession(t *testing.T) {
 	assert.Equal(t, PgwTEIDc, csRes.CPgwFteid.Teid)
 }
 
+func TestS8proxyCreateWithMissingParam(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+	csReq.BearerContext = nil
+
+	// Send and receive Create Session Request
+	_, err := s8p.CreateSession(context.Background(), csReq)
+	assert.Error(t, err)
+}
+
+// TestS8ProxyDeleteSessionAfterClientRestars test if s8_proxy is able to handle an already
+// created session after s8 has been restarted.
 func TestS8ProxyDeleteSessionAfterClientRestars(t *testing.T) {
 	// set up client ans server
 	s8p, mockPgw := startSgwAndPgw(t, time.Second*600)
@@ -203,8 +220,8 @@ func TestS8ProxyDeleteInexistentSession(t *testing.T) {
 
 	// ------------------------
 	// ---- Delete Session inexistent session ----
-	cdReq := &protos.DeleteSessionRequestPgw{Imsi: "000000000000015"}
-	cdReq = &protos.DeleteSessionRequestPgw{
+	dsReq := &protos.DeleteSessionRequestPgw{Imsi: "000000000000015"}
+	dsReq = &protos.DeleteSessionRequestPgw{
 		PgwAddrs: mockPgw.LocalAddr().String(),
 		Imsi:     "000000000000015",
 		BearerId: 4,
@@ -214,9 +231,21 @@ func TestS8ProxyDeleteInexistentSession(t *testing.T) {
 			Teid:        87,
 		},
 	}
-	_, err := s8p.DeleteSession(context.Background(), cdReq)
+	_, err := s8p.DeleteSession(context.Background(), dsReq)
 	assert.Error(t, err)
 	assert.Equal(t, mockPgw.LastTEIDc, uint32(87))
+}
+
+func TestS8ProxyDeleteWithMissingParamaters(t *testing.T) {
+	s8p, mockPgw := startSgwAndPgw(t, 200*time.Millisecond)
+	defer mockPgw.Close()
+
+	// ------------------------
+	// ---- Delete Session inexistent session ----
+	// create a bad create session request
+	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), nil)
+	_, err := s8p.DeleteSession(context.Background(), dsReq)
+	assert.Error(t, err)
 }
 
 func TestS8proxyCreateSessionWithErrors(t *testing.T) {
