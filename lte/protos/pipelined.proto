@@ -77,6 +77,7 @@ message RequestOriginType {
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
   string ip_addr = 2; // Subscriber session ipv4 address
+  // Deprecated
   repeated string rule_ids = 3; // List of static rules obtained from PCRF
   repeated PolicyRule dynamic_rules = 4;  // List of dynamic rules obtained from PCRF
   RequestOriginType request_origin = 5; // Activate flow source (GX/GY)

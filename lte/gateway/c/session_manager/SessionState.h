@@ -40,8 +40,10 @@ typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 
 struct RulesToProcess {
-  std::vector<std::string> static_rules;
-  std::vector<PolicyRule> dynamic_rules;
+  // If this vector is set, then it has PolicyRule definitions for both static
+  // and dynamic rules
+  std::vector<PolicyRule> rules;
+  bool empty() const;
 };
 
 // Used to transform the proto message RuleSet into a more useful structure
@@ -108,8 +110,10 @@ class SessionState {
 
     uint32_t local_f_teid;
     std::string msisdn;
+    // TODO deprecate std::vector<std::string> static_rules
     std::vector<std::string> static_rules;
-    std::vector<PolicyRule> dynamic_rules;
+    std::vector<PolicyRule> gx_static_rules;
+    std::vector<PolicyRule> gx_dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
     optional<AggregatedMaximumBitrate> ambr;
     // 5G specific extensions
@@ -240,7 +244,7 @@ class SessionState {
       const CreditKey& key, ChargingGrant charging_grant,
       SessionStateUpdateCriteria& uc);
 
-  RulesToProcess get_all_final_unit_rules();
+  std::vector<PolicyRule> get_all_final_unit_rules();
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,
@@ -431,6 +435,13 @@ class SessionState {
   void get_rules_per_credit_key(
       CreditKey charging_key, RulesToProcess& rulesToProcess);
 
+  /**
+   * Remove all active/scheduled static/dynamic rules and reflect the change in
+   * session_uc
+   * @param session_uc
+   */
+  void remove_all_rules_for_termination(SessionStateUpdateCriteria& session_uc);
+
   void set_teids(uint32_t enb_teid, uint32_t agw_teid);
 
   void set_teids(Teids teids);
@@ -464,8 +475,8 @@ class SessionState {
 
   bool is_credit_in_final_unit_state(const CreditKey& charging_key) const;
 
-  void get_final_action_restrict_rules(
-      const CreditKey& charging_key, std::vector<std::string>& restrict_rules);
+  std::vector<PolicyRule> get_final_action_restrict_rules(
+      const CreditKey& charging_key) const;
 
   // Monitors
   bool receive_monitor(
@@ -652,11 +663,9 @@ class SessionState {
    * UpdateSessionRequest.
    *
    * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
-   * @param actions_out Modified with additional actions to take on session.
    */
   void get_monitor_updates(
       UpdateSessionRequest& update_request_out,
-      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -697,7 +706,6 @@ class SessionState {
 
   void get_event_trigger_updates(
       UpdateSessionRequest& update_request_out,
-      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
 
   bool is_static_rule_scheduled(const std::string& rule_id);
