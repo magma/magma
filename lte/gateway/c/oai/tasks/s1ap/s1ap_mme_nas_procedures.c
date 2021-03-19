@@ -886,7 +886,7 @@ void s1ap_handle_conn_est_cnf(
       S1ap_ProcedureCode_id_InitialContextSetup;
   pdu.choice.initiatingMessage.value.present =
       S1ap_InitiatingMessage__value_PR_InitialContextSetupRequest;
-  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_ignore;
+  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_reject;
   out = &pdu.choice.initiatingMessage.value.choice.InitialContextSetupRequest;
 
   /* mandatory */
