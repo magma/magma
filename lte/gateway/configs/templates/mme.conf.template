@@ -92,23 +92,6 @@ MME :
          {% endfor %}
     );
 
-    # List of restricted PLMNs
-    # By default this list is empty
-    # Max number of restricted plmn is 10
-    RESTRICTED_PLMN_LIST = (
-         # Sample plmn
-         #{ MCC="001" ; MNC="010";}
-    );
-
-    # List of federated mode maps
-    # By default this list is empty
-    # Max number of federated mode maps is 10
-    MODE_MAP = (
-         # Sample mode maps
-         #{ PLMN="001010"; IMSI_RANGE="001010000000001:001010000000500"; APN="internet"; MODE="LOCAL_SUBSCRIBER"},
-         #{ PLMN="123456"; IMSI_RANGE="123456789123456:123456789123477"; APN="ims"; MODE="SPGW_SUBSCRIBER"}
-    );
-
     CSFB :
     {
         NON_EPS_SERVICE_CONTROL = "{{ non_eps_service_control }}";
@@ -117,6 +100,27 @@ MME :
         LAC = "{{ lac }}";
     };
 
+
+    # List of restricted PLMNs
+    # By default this list is empty
+    # Max number of restricted plmn is 10
+    RESTRICTED_PLMN_LIST = (
+         # Sample plmn
+         #{ MCC="001" ; MNC="010";}
+    );
+
+    # List of blocked IMEIs
+    # By default this list is empty
+    # Max number of blocked IMEI is 10
+    # Length of IMEI=15 digits, length of IMEISV=16 digits
+    BLOCKED_IMEI_LIST = (
+        # Sample IMEI without SVN i.e 15 digits used in attach req
+        # and identity response messages
+        #{ IMEI="990004823510370"}
+        # Sample IMEISV i.e 16 digits used in security mode
+        # complete message
+        #{ IMEI="9900048235103723"}
+    );
 
     NAS :
     {
@@ -250,8 +254,8 @@ MME :
         SPGW_APP_LOG_LEVEL = "{{ oai_log_level }}";
         UDP_LOG_LEVEL      = "{{ oai_log_level }}";
         S1AP_LOG_LEVEL     = "{{ oai_log_level }}";
-        NAS_LOG_LEVEL      = "{{ oai_log_level }}";
-        MME_APP_LOG_LEVEL  = "{{ oai_log_level }}";
+        NAS_LOG_LEVEL      = "DEBUG";
+        MME_APP_LOG_LEVEL  = "DEBUG";
         GTPV2C_LOG_LEVEL   = "{{ oai_log_level }}";
         S11_LOG_LEVEL      = "{{ oai_log_level }}";
         S6A_LOG_LEVEL      = "{{ oai_log_level }}";
@@ -272,21 +276,8 @@ MME :
     };
 
     S-GW :
-    {
-        # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
-        SGW_IPV4_ADDRESS_FOR_S11              = "{{ remote_sgw_ip }}";
-    };
-
-
-    FEDERATED_MODE_MAP = (
-        # ModeMapItem values can be found at magma/lte/protos/mconfig/mconfigs.proto
-        {% for fed_map in federated_mode_map -%}
-        {
-          MODE        = "{{ fed_map.mode }}"
-          PLMN        = "{{ fed_map.plmn }}"
-          IMSI_RANGE  = "{{ fed_map.imsi_range }}"
-          APN         = "{{ fed_map.apn }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-   );
+   {
+    # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
+       SGW_IPV4_ADDRESS_FOR_S11              = "{{ remote_sgw_ip }}";
+   };
 };

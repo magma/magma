@@ -59,9 +59,8 @@
 #define CIDR_SPLIT_LIST_COUNT 2
 #define MAX_APN_CORRECTION_MAP_LIST 10
 #define MAX_RESTRICTED_PLMN 10
-#define MAX_MODE_MAP_CONFIG 10
+#define MAX_FED_MODE_MAP_CONFIG 10
 #define MAX_IMSI_LENGTH 15
-#define MAX_MODE_STRING_LEN 20
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
@@ -192,7 +191,7 @@
   "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
 
 // INBOUND ROAMING
-#define MME_CONFIG_STRING_MODE_MAP "FEDERATED_MODE_MAP"
+#define MME_CONFIG_STRING_FED_MODE_MAP "FEDERATED_MODE_MAP"
 #define MME_CONFIG_STRING_MODE "MODE"
 #define MME_CONFIG_STRING_APN "APN"
 #define MME_CONFIG_STRING_IMSI_RANGE "IMSI_RANGE"
@@ -309,19 +308,19 @@ typedef struct restricted_plmn_s {
   plmn_t plmn[MAX_RESTRICTED_PLMN];
 } restricted_plmn_config_t;
 
-typedef struct mode_map_s {
+typedef struct fed_mode_map_s {
   uint8_t mode;
   plmn_t plmn;
   // IMSI range
   uint8_t imsi_low[MAX_IMSI_LENGTH + 1];
   uint8_t imsi_high[MAX_IMSI_LENGTH + 1];
   bstring apn;
-} mode_map_t;
+} fed_mode_map_t;
 
-typedef struct mode_map_config_s {
+typedef struct fed_mode_map_config_s {
   int num;
-  mode_map_t mode_map[MAX_MODE_MAP_CONFIG];
-} mode_map_config_t;
+  fed_mode_map_t mode_map[MAX_FED_MODE_MAP_CONFIG];
+} fed_mode_map_config_t;
 
 typedef struct mme_config_s {
   /* Reader/writer lock for this configuration */
@@ -369,7 +368,7 @@ typedef struct mme_config_s {
   ip_t ip;
 
   lai_t lai;
-  mode_map_config_t mode_map_config;
+  fed_mode_map_config_t mode_map_config;
   bool use_stateless;
   bool use_ha;
   bool enable_gtpu_private_ip_correction;
