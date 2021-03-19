@@ -907,7 +907,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     // MODE MAP SETTING
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_MODE_MAP);
-    config_pP->mode_map_config.num = 0;
+    memset(&config_pP->mode_map_config, 0, sizeof(mode_map_t));
     OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_MODE_MAP \n");
     if (setting != NULL) {
       num = config_setting_length(setting);
