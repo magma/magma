@@ -925,17 +925,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           // MODE
           if ((config_setting_lookup_string(
                   sub2setting, MME_CONFIG_STRING_MODE, &astring))) {
-            char mode_str[MAX_MODE_STRING_LEN] = {0};
-            memcpy(mode_str, astring, strlen(astring));
-            if (!strcmp(mode_str, "SPGW_SUBSCRIBER")) {
-              config_pP->mode_map_config.mode_map[i].mode = SPGW_SUBSCRIBER;
-            }
-            if (!strcmp(mode_str, "LOCAL_SUBSCRIBER")) {
-              config_pP->mode_map_config.mode_map[i].mode = LOCAL_SUBSCRIBER;
-            }
-            if (!strcmp(mode_str, "S8_SUBSCRIBER")) {
-              config_pP->mode_map_config.mode_map[i].mode = S8_SUBSCRIBER;
-            }
+            config_pP->mode_map_config.mode_map[i].mode = atoi(astring);
           }
 
           // PLMN
