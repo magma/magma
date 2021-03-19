@@ -113,6 +113,7 @@ inline void ASN_DEBUG(const char* fmt, ...);
 #include "S1ap_E-RABItem.h"
 #include "S1ap_E-RABLevelQoSParameters.h"
 #include "S1ap_E-RABList.h"
+#include "S1ap_E-RABModificationIndication.h"
 #include "S1ap_E-RABModifyItemBearerModRes.h"
 #include "S1ap_E-RABModifyListBearerModRes.h"
 #include "S1ap_E-RABModifyRequest.h"

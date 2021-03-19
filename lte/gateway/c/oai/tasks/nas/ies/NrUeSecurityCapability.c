@@ -16,14 +16,16 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 
 #include "TLVEncoder.h"
 #include "TLVDecoder.h"
-#include "EpsNetworkFeatureSupport.h"
+#include "3gpp_24.301.h"
+#include "NrUeSecurityCapability.h"
 
 //------------------------------------------------------------------------------
-int decode_eps_network_feature_support(
-    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
+int decode_nr_ue_security_capability(
+    nr_ue_security_capability_t* nruesecuritycapability, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
   int decoded   = 0;
   uint8_t ielen = 0;
@@ -33,18 +35,28 @@ int decode_eps_network_feature_support(
     decoded++;
   }
 
+  memset(nruesecuritycapability, 0, sizeof(nr_ue_security_capability_t));
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
+  nruesecuritycapability->nea = *(buffer + decoded);
+  decoded++;
+  nruesecuritycapability->nia = *(buffer + decoded);
+  decoded++;
 
-  epsnetworkfeaturesupport->b1 = (*(buffer + decoded++)) & 0x1;
-  epsnetworkfeaturesupport->b2 = (*(buffer + decoded++));
+  if (len >= (decoded + 2)) {
+    nruesecuritycapability->nr_present = 1;
+    nruesecuritycapability->nea        = *(buffer + decoded);
+    decoded++;
+    nruesecuritycapability->nia = *(buffer + decoded) & 0x7f;
+    decoded++;
+  }
   return decoded;
 }
 
 //------------------------------------------------------------------------------
-int encode_eps_network_feature_support(
-    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
+int encode_nr_ue_security_capability(
+    nr_ue_security_capability_t* nruesecuritycapability, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
@@ -53,7 +65,7 @@ int encode_eps_network_feature_support(
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, EPS_NETWORK_FEATURE_SUPPORT_MINIMUM_LENGTH, len);
+      buffer, NR_UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -62,9 +74,9 @@ int encode_eps_network_feature_support(
 
   lenPtr = (buffer + encoded);
   encoded++;
-  *(buffer + encoded) = 0x00 | (epsnetworkfeaturesupport->b1 & 0x01);
+  *(buffer + encoded) = nruesecuritycapability->nea;
   encoded++;
-  *(buffer + encoded) = epsnetworkfeaturesupport->b2;
+  *(buffer + encoded) = nruesecuritycapability->nia;
   encoded++;
 
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);

@@ -133,17 +133,22 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT "\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
-        if (!ue_context_p->path_switch_req) {
+        if ((!ue_context_p->path_switch_req) && (!ue_context_p->erab_mod_ind)) {
           /* Updating statistics */
           mme_app_handle_modify_bearer_rsp(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
           update_mme_app_stats_s1u_bearer_add();
-        } else {
+        } else if (ue_context_p->path_switch_req) {
           mme_app_handle_path_switch_req_ack(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
           ue_context_p->path_switch_req = false;
+        } else if (ue_context_p->erab_mod_ind) {
+          mme_app_handle_modify_bearer_rsp_erab_mod_ind(
+              &received_message_p->ittiMsg.s11_modify_bearer_response,
+              ue_context_p);
+          ue_context_p->erab_mod_ind = false;
         }
 
         // Check if an offloading request is pending for this UE as part
@@ -186,6 +191,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S1AP_E_RAB_REL_RSP: {
       mme_app_handle_e_rab_rel_rsp(&S1AP_E_RAB_REL_RSP(received_message_p));
+    } break;
+
+    case S1AP_E_RAB_MODIFICATION_IND: {
+      mme_app_handle_e_rab_modification_ind(
+          &S1AP_E_RAB_MODIFICATION_IND(received_message_p));
     } break;
 
     case S1AP_INITIAL_UE_MESSAGE: {

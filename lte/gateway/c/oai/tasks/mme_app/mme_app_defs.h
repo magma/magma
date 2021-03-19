@@ -124,6 +124,13 @@ void mme_app_handle_initial_context_setup_failure(
     const itti_mme_app_initial_context_setup_failure_t* const
         initial_ctxt_setup_failure_pP);
 
+void mme_app_handle_e_rab_modification_ind(
+    const itti_s1ap_e_rab_modification_ind_t* const e_rab_modification_ind);
+
+void mme_app_handle_modify_bearer_rsp_erab_mod_ind(
+    itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
+    ue_mm_context_t* ue_context_p);
+
 bool mme_app_dump_ue_context(
     const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP);

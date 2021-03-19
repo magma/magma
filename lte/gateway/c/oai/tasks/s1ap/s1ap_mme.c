@@ -182,6 +182,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
     } break;
 
+    case S1AP_E_RAB_MODIFICATION_CNF: {
+      s1ap_mme_generate_erab_modification_confirm(
+          state, &received_message_p->ittiMsg.s1ap_e_rab_modification_cnf);
+    } break;
+
     // From MME_APP task
     case S1AP_UE_CONTEXT_RELEASE_COMMAND: {
       s1ap_handle_ue_context_release_command(
