@@ -161,8 +161,8 @@ int mme_app_handle_implicit_detach_timer_expiry(
 int mme_app_handle_initial_context_setup_rsp_timer_expiry(
     zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_ue_context_modification_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_ue_context_modification_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
 void mme_app_handle_enb_reset_req(
     const itti_s1ap_enb_initiated_reset_req_t* const enb_reset_req);
