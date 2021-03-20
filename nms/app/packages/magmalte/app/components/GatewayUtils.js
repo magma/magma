@@ -248,3 +248,16 @@ export const DEFAULT_HE_CONFIG = {
   he_encryption_algorithm: 'RC4',
   he_hash_function: 'MD5',
 };
+export const DEFAULT_GW_PRIMARY_CONFIG = {
+  gateway_id: '',
+  gateway_pool_id: '',
+  mme_code: 1,
+  mme_relative_capacity: 255,
+};
+
+export const DEFAULT_GW_SECONDARY_CONFIG = {
+  gateway_id: '',
+  gateway_pool_id: '',
+  mme_code: 1,
+  mme_relative_capacity: 1,
+};

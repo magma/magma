@@ -16,12 +16,15 @@
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
+import AddEditGatewayPoolButton from './GatewayPoolDetailConfigEdit';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodeb from './EquipmentEnodeb';
 import EnodebDetail from './EnodebDetailMain';
 import Gateway from './EquipmentGateway';
 import GatewayDetail from './GatewayDetailMain';
+import GatewayPools from './EquipmentGatewayPools';
 import Grid from '@material-ui/core/Grid';
+import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import TopBar from '../../components/TopBar';
@@ -87,11 +90,20 @@ function EquipmentDashboardInternal() {
             icon: SettingsInputAntennaIcon,
             filters: <AddEditEnodeButton title="Add New" isLink={false} />,
           },
+          {
+            label: 'Gateway Pools',
+            to: '/pools',
+            icon: GroupWorkIcon,
+            filters: (
+              <AddEditGatewayPoolButton title="Add New" isLink={false} />
+            ),
+          },
         ]}
       />
       <Switch>
         <Route path={relativePath('/gateway')} component={Gateway} />
         <Route path={relativePath('/enodeb')} component={Enodeb} />
+        <Route path={relativePath('/pools')} component={GatewayPools} />
         <Redirect to={relativeUrl('/gateway')} />
       </Switch>
     </>
