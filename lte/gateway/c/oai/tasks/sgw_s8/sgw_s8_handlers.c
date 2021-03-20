@@ -119,11 +119,11 @@ void sgw_s8_handle_s11_create_session_request(
     const itti_s11_create_session_request_t* const session_req_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
   OAILOG_INFO_UE(
       LOG_SGW_S8, imsi64, "Received S11 CREATE SESSION REQUEST from MME_APP\n");
   sgw_eps_bearer_context_information_t* new_sgw_eps_context = NULL;
   mme_sgw_tunnel_t sgw_s11_tunnel                           = {0};
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p                  = NULL;
 
   increment_counter("sgw_s8_create_session", 1, NO_LABELS);
   if (session_req_pP->rat_type != RAT_EUTRAN) {
@@ -131,6 +131,7 @@ void sgw_s8_handle_s11_create_session_request(
         LOG_SGW_S8, imsi64,
         "Received session request with RAT != RAT_TYPE_EUTRAN: type %d\n",
         session_req_pP->rat_type);
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   /*
    * As we are abstracting GTP-C transport, FTeid ip address is useless.

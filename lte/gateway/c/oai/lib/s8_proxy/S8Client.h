@@ -28,22 +28,17 @@ extern "C" {
 
 namespace grpc {
 class Status;
-}  // namespace grpc
-namespace magma {
-namespace orc8r {
-class Void;
-}  // namespace orc8r
-}  // namespace magma
+}
 }
 
 namespace magma {
-using namespace orc8r;
 using namespace feg;
 
 /**
- * S8 is the main client for sending S8 messages to FeG
- * FeG will forward the message to Roaming network's PGW then respond instantly
- * with Void
+ * S8Client is the main asynchronous client for interacting with FedGW.
+ * Responses will come in a queue and call the callback passed.
+ * To start the client and make sure it receives calls, one must call the
+ * rpc_response_loop method defined in the GRPCReceiver base class
  */
 class S8Client : public GRPCReceiver {
  public:

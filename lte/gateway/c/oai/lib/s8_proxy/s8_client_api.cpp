@@ -22,7 +22,8 @@ extern "C" {
 #include "common_defs.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
-static void s8_create_session_response(
+
+static void recv_s8_create_session_response(
     imsi64_t imsi64, teid_t context_teid, const grpc::Status& status,
     magma::feg::CreateSessionResponsePgw& response) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -155,7 +156,6 @@ static void fill_s8_create_session_req(
   magma::feg::ServingNetwork* serving_network = csr->mutable_serving_network();
   serving_network->set_mcc((char*) msg->serving_network.mcc, 3);
   serving_network->set_mnc((char*) msg->serving_network.mnc, 3);
-  magma::feg::UserLocationInformation* uli = csr->mutable_uli();
   convert_uli_to_proto_msg(csr->mutable_uli(), msg->uli);
   csr->set_rat_type(magma::feg::RATType::EUTRAN);
   convert_paa_to_proto_msg(msg, csr);
@@ -193,6 +193,6 @@ void send_s8_create_session_request(
       csr_req,
       [imsi64, sgw_s11_teid](
           grpc::Status status, magma::feg::CreateSessionResponsePgw response) {
-        s8_create_session_response(imsi64, sgw_s11_teid, status, response);
+        recv_s8_create_session_response(imsi64, sgw_s11_teid, status, response);
       });
 }

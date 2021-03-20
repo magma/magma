@@ -81,8 +81,8 @@ int grpc_service_init(void) {
 static void grpc_service_exit(void) {
   bdestroy_wrapper(&grpc_service_config->server_address);
   free_wrapper((void**) &grpc_service_config);
-  destroy_task_context(&grpc_service_task_zmq_ctx);
   stop_grpc_service();
+  destroy_task_context(&grpc_service_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_GRPC_SERVICE terminated\n");
   pthread_exit(NULL);
 }

@@ -182,6 +182,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
     } break;
 
+    case S1AP_E_RAB_MODIFICATION_CNF: {
+      s1ap_mme_generate_erab_modification_confirm(
+          state, &received_message_p->ittiMsg.s1ap_e_rab_modification_cnf);
+    } break;
+
     // From MME_APP task
     case S1AP_UE_CONTEXT_RELEASE_COMMAND: {
       s1ap_handle_ue_context_release_command(
@@ -350,12 +355,12 @@ int s1ap_mme_init(const mme_config_t* mme_config_p) {
 void s1ap_mme_exit(void) {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
 
-  destroy_task_context(&s1ap_task_zmq_ctx);
-
   put_s1ap_state();
   put_s1ap_imsi_map();
 
   s1ap_state_exit();
+
+  destroy_task_context(&s1ap_task_zmq_ctx);
 
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP: DONE\n");
   OAI_FPRINTF_INFO("TASK_S1AP terminated\n");

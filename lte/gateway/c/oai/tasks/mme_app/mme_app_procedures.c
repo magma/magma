@@ -116,6 +116,65 @@ static void mme_app_free_s11_procedure_create_bearer(
 }
 
 //------------------------------------------------------------------------------
+int mme_app_run_s1ap_procedure_modify_bearer_ind(
+    mme_app_s1ap_proc_modify_bearer_ind_t* proc,
+    const itti_s1ap_e_rab_modification_ind_t* const e_rab_modification_ind) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  struct ue_mm_context_s* ue_context_p = NULL;
+  memcpy(
+      (void*) &proc->e_rab_to_be_modified_list,
+      (void*) &e_rab_modification_ind->e_rab_to_be_modified_list,
+      sizeof(proc->e_rab_to_be_modified_list));
+
+  memcpy(
+      (void*) &proc->e_rab_not_to_be_modified_list,
+      (void*) &e_rab_modification_ind->e_rab_not_to_be_modified_list,
+      sizeof(proc->e_rab_not_to_be_modified_list));
+
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(proc->mme_ue_s1ap_id);
+
+  if (!ue_context_p) {
+    OAILOG_INFO(
+        LOG_MME_APP, "No UE session pool is found" MME_UE_S1AP_ID_FMT ". \n",
+        proc->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+  for (int nb_bearer = 0;
+       nb_bearer < proc->e_rab_to_be_modified_list.no_of_items; nb_bearer++) {
+    e_rab_to_be_modified_bearer_mod_ind_t* item =
+        &proc->e_rab_to_be_modified_list.item[nb_bearer];
+    /** Get the bearer context. */
+    bearer_context_t* bearer_context = NULL;
+    bearer_context = mme_app_get_bearer_context(ue_context_p, item->e_rab_id);
+    if (!bearer_context) {
+      OAILOG_ERROR(
+          LOG_MME_APP,
+          "No bearer context (ebi=%d) could be found for " MME_UE_S1AP_ID_FMT
+          ". Skipping.. \n",
+          item->e_rab_id, proc->mme_ue_s1ap_id);
+      continue;
+    }
+    /** Update the FTEID of the bearer context and uncheck the established
+     * state. */
+    bearer_context->enb_fteid_s1u.teid           = item->s1_xNB_fteid.teid;
+    bearer_context->enb_fteid_s1u.interface_type = S1_U_ENODEB_GTP_U;
+    /** Set the IP address from the FTEID. */
+    if (item->s1_xNB_fteid.ipv4) {
+      bearer_context->enb_fteid_s1u.ipv4 = 1;
+      bearer_context->enb_fteid_s1u.ipv4_address.s_addr =
+          item->s1_xNB_fteid.ipv4_address.s_addr;
+    }
+    if (item->s1_xNB_fteid.ipv6) {
+      bearer_context->enb_fteid_s1u.ipv6 = 1;
+      memcpy(
+          &bearer_context->enb_fteid_s1u.ipv6_address,
+          &item->s1_xNB_fteid.ipv6_address, sizeof(item->s1_xNB_fteid));
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+}
+
+//------------------------------------------------------------------------------
 void mme_app_s11_procedure_create_bearer_send_response(
     ue_mm_context_t* const ue_context_p,
     mme_app_s11_proc_create_bearer_t* s11_proc_create) {
