@@ -20,6 +20,7 @@ add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
 
 add_subdirectory(mobility_client)
 add_subdirectory(openflow)
+add_subdirectory(spgw_task)
 # Currently broken due to include error.
 # add_subdirectory(service303)
 # add_subdirectory(service_registry)
