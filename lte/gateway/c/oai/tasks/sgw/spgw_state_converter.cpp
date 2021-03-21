@@ -802,8 +802,8 @@ void SpgwStateConverter::gtpv1u_data_to_proto(
 
 void SpgwStateConverter::proto_to_gtpv1u_data(
     const oai::GTPV1uData& gtp_proto, gtpv1u_data_t* gtp_data) {
-  gtp_data->fd0             = gtp_proto.fd0();
-  gtp_data->fd1u            = gtp_proto.fd1u();
+  gtp_data->fd0  = gtp_proto.fd0();
+  gtp_data->fd1u = gtp_proto.fd1u();
 }
 
 void SpgwStateConverter::sgw_pending_procedures_to_proto(

@@ -74,7 +74,7 @@ build: build_python build_common build_oai build_sctpd build_session_manager bui
 
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
-test: test_python test_oai test_session_manager ## Run all tests
+test: test_python test_common test_oai test_sctpd test_session_manager ## Run all tests
 
 clean: clean_python clean_envoy_controller ## Clean all builds
 	rm -rf $(C_BUILD)
@@ -134,6 +134,14 @@ $(call run_cmake, $(1), $(2), $(3) $(TEST_FLAG))
 cd $(1) && ctest --output-on-failure
 endef
 
+format_common:
+	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
+format_%: ## Format service in magma/lte/gateway/c/
+	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
 build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
@@ -163,19 +171,14 @@ build_%:
 scan_oai: ## Scan OAI
 	$(call run_scanbuild, $(C_BUILD)/scan/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
-format_common:
-	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
-
-format_%: ## Format service in magma/lte/gateway/c/
-	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
-
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
 test_oai: build_common ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
+
+test_common: build_common ## Run all tests in magma_common
+	$(call run_ctest, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
@@ -239,7 +242,7 @@ clang_tidy_oai_upload: clang_tidy_oai
 		https://docs.google.com/forms/d/e/1FAIpQLSfHGqOmDhUMAWHSjA_w6NOGqglQBx2IaO1bXLo6zrOE95sRWQ/formResponse?usp=pp_url
 
 ## Generate complete code structural information prior to any test execution
-base_coverage: build_oai build_session_manager build_connection_tracker
+base_coverage: build_oai build_sctpd build_session_manager build_connection_tracker
 	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
