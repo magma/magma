@@ -831,6 +831,7 @@ jobs:
       - build/determinator:
           <<: *lte_build_verify
       - run: mkdir -p /var/tmp/test_results
+      - run: mkdir -p /var/tmp/codecovs
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
       - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
@@ -848,6 +849,10 @@ jobs:
             make -C $MAGMA_ROOT/lte/gateway/python test_all
       - store_test_results:
           path: /var/tmp/test_results
+      - codecov/upload:
+          file: /var/tmp/codecovs/cover_lte.xml
+      - codecov/upload:
+          file: /var/tmp/codecovs/cover_orc8r.xml
       - magma_slack_notify
 
   lte-integ-test:
