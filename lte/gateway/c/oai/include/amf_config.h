@@ -33,6 +33,13 @@
 #define MIN_GUAMFI 1 /*minimum 1 Global Unique AMF Identifier is supported*/
 #define MAX_GUAMFI 5 /*max 5 Global Unique AMF Identifiers are supported*/
 
+#define amf_config_read_lock(aMFcONFIG)                                        \
+  pthread_rwlock_rdlock(&(aMFcONFIG)->rw_lock)
+#define amf_config_write_lock(aMFcONFIG)                                       \
+  pthread_rwlock_wrlock(&(aMFcONFIG)->rw_lock)
+#define amf_config_unlock(aMFcONFIG)                                           \
+  pthread_rwlock_unlock(&(aMFcONFIG)->rw_lock)
+
 typedef uint64_t imsi64_t;         /*holds the IMSI value*/
 typedef uint32_t amf_ue_ngap_id_t; /*uniquely identifies the UE over the NG
                                       interface within the AMF*/
@@ -92,9 +99,3 @@ int amf_config_parse_file(amf_config_t*);
 void amf_config_display(amf_config_t*);
 
 void amf_config_exit(void);
-#define amf_config_read_lock(aMFcONFIG)                                        \
-  pthread_rwlock_rdlock(&(aMFcONFIG)->rw_lock)
-#define amf_config_write_lock(aMFcONFIG)                                       \
-  pthread_rwlock_wrlock(&(aMFcONFIG)->rw_lock)
-#define amf_config_unlock(aMFcONFIG)                                           \
-  pthread_rwlock_unlock(&(aMFcONFIG)->rw_lock)

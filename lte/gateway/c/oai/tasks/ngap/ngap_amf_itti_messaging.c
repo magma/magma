@@ -61,7 +61,6 @@ int ngap_amf_itti_send_sctp_request(
 }
 
 int ngap_amf_itti_nas_uplink_ind(
-    // const amf_ue_ngap_id_t ue_id,
     const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload,
     const tai_t const* tai, const ecgi_t const* cgi) {
   MessageDef* message_p = NULL;

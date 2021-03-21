@@ -122,6 +122,11 @@
     x = ((buf)[0] << 8) | ((buf)[1]);                                          \
   } while (0)
 
+#define BUFFER_TO_INT24(buf, x)                                                \
+  do {                                                                         \
+    x = ((buf)[0] << 16) | ((buf)[1] << 8)| ((buf)[2]);                                          \
+  } while (0)
+
 /* Convert an integer on 32 bits to the given bUFFER */
 #define INT32_TO_BUFFER(x, buf)                                                \
   do {                                                                         \
@@ -193,6 +198,12 @@
   do {                                                                         \
     DevCheck((aSN)->size == 2, (aSN)->size, 0, 0);                             \
     BUFFER_TO_INT16((aSN)->buf, x);                                            \
+  } while (0)
+
+#define OCTET_STRING_TO_INT24(aSN, x)                                          \
+  do {                                                                         \
+    DevCheck((aSN)->size == 2, (aSN)->size, 0, 0);                             \
+    BUFFER_TO_INT24((aSN)->buf, x);                                            \
   } while (0)
 
 #define OCTET_STRING_TO_INT32(aSN, x)                                          \
@@ -396,6 +407,7 @@
 #define TAC_TO_ASN1 INT16_TO_OCTET_STRING
 #define GTP_TEID_TO_ASN1 INT32_TO_OCTET_STRING
 #define OCTET_STRING_TO_TAC OCTET_STRING_TO_INT16
+#define OCTET_STRING_TO_TAC_5G OCTET_STRING_TO_INT24
 #define OCTET_STRING_TO_MME_CODE OCTET_STRING_TO_INT8
 #define OCTET_STRING_TO_M_TMSI OCTET_STRING_TO_INT32
 #define OCTET_STRING_TO_MME_GID OCTET_STRING_TO_INT16

@@ -161,32 +161,18 @@ int ngap_amf_handle_initial_ue_message(
     if (gNB_ref->next_sctp_stream >= gNB_ref->instreams) {
       gNB_ref->next_sctp_stream = 1;
     }
-    // ngap_dump_gnb(gNB_ref);
-    // TAI mandatory IE
-    // NGAP_FIND_PROTOCOLIE_BY_ID(
-    //    Ngap_InitialUEMessage_IEs_t, ie, container,
-    //    Ngap_ProtocolIE_ID_id_SupportedTAList, true);
+    // ngap_dump_gnb(gNB_ref); //TODO implement later
     NGAP_FIND_PROTOCOLIE_BY_ID(
         Ngap_InitialUEMessage_IEs_t, ie, container,
         Ngap_ProtocolIE_ID_id_UserLocationInformation, true);
-#if 1
-    ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
-        .tAI.tAC.size = 2;  // temp hadrcode to test
-
-#endif
-    OCTET_STRING_TO_TAC(
+    
+    OCTET_STRING_TO_TAC_5G(
         &ie->value.choice.UserLocationInformation.choice
              .userLocationInformationNR.tAI.tAC,
         tai.tac);
     DevAssert(
         ie->value.choice.UserLocationInformation.choice
             .userLocationInformationNR.tAI.pLMNIdentity.size == 3);
-    // TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
-
-    // CGI mandatory IE
-    // NGAP_FIND_PROTOCOLIE_BY_ID(
-    //    Ngap_InitialUEMessage_IEs_t, ie, container,
-    //    Ngap_ProtocolIE_ID_id_EUTRA_CGI, true);
     NGAP_FIND_PROTOCOLIE_BY_ID(
         Ngap_InitialUEMessage_IEs_t, ie, container,
         Ngap_ProtocolIE_ID_id_UserLocationInformation, true);

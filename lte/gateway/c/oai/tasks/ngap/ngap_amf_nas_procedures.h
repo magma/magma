@@ -50,10 +50,23 @@ int ngap_amf_handle_uplink_nas_transport(
     ngap_state_t* state, const sctp_assoc_id_t assocId,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
 
+/** \brief Handle an Downlink NAS transport message.
+ * \param state ngap state
+ * \param gnb_ue_ngap_id  gnb_ue_ngap_id  
+ * \param ue_id amf_ue_ngap_id
+ * \param payload message to transmit
+ * \param imsi64 IMSI value 
+ * @returns int
+ **/
 int ngap_generate_downlink_nas_transport(
     ngap_state_t* state, const gnb_ue_ngap_id_t gnb_ue_ngap_id,
     const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload, imsi64_t imsi64);
 
+/** \brief communicates amf_ue_id to Ngap.
+ * \param state ngap state
+ * \param notification_p common structure for sharing msg 
+ * @returns nothing
+ **/
 void ngap_handle_amf_ue_id_notification(
     ngap_state_t* state,
     const itti_amf_app_ngap_amf_ue_id_notification_t* const notification_p);
