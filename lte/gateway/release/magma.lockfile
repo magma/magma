@@ -826,6 +826,12 @@
           "sysdep": "python3-ryu",
           "version": "4.30"
         },
+        "sentry-sdk": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-sentry-sdk",
+          "version": "1.0.0"
+        },
         "simplejson": {
           "root": false,
           "source": "pypi",
@@ -980,6 +986,9 @@
         },
         "rfc3987": {
           "version": "1.3.8"
+        },
+        "sentry-sdk": {
+          "version": "1.0.0"
         },
         "setuptools": {
           "version": "49.6.0"

@@ -14,7 +14,7 @@
 # This script builds Magma based on the current state of your repo. It needs to
 # be run inside the VM.
 
-set -e
+set -ex
 shopt -s extglob
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
@@ -30,6 +30,7 @@ BUILD_TYPE=Debug
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
 CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
+OS="debian"
 
 while [[ $# -gt 0 ]]
 do
@@ -55,11 +56,16 @@ case $key in
     CONTROL_PROXY_FILE="$2"
     shift
     ;;
+    --os)
+    OS="$2"
+    shift
+    ;;
     *)
     echo "Error: unknown cmdline option:" $key
     echo "Usage: $0 [-v|--version V] [-i|--iteration I] [-h|--hash HASH]
     [-t|--type Debug|RelWithDebInfo] [-c|--cert <path to cert .pem file>]
-    [-p|--proxy <path to control_proxy config .yml file]>"
+    [-p|--proxy <path to control_proxy config .yml file]>
+    [-u|--build-buntu build packages for ubuntu>"
     exit 1
     ;;
 esac
@@ -74,6 +80,19 @@ case $BUILD_TYPE in
     *)
     echo "Error: unknown type option:" $BUILD_TYPE
     echo "Usage: [-t|--type Debug|RelWithDebInfo]"
+    exit 1
+    ;;
+esac
+
+case $OS in
+    debian)
+    ;;
+    ubuntu)
+    echo "Ubuntu package build"
+    ;;
+    *)
+    echo "Error: unknown OS option:" $OS
+    echo "Usage: [--os debian|ubuntu]"
     exit 1
     ;;
 esac
@@ -132,18 +151,32 @@ OAI_DEPS=(
     "liblfds710"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
-    "oai-gtp >= 4.9-9"
     )
 
+if [[ "$OS"  == "debian" ]]; then
+    OAI_DEPS+=("oai-gtp >= 4.9-9")
+fi
+
 # OVS runtime dependencies
-OVS_DEPS=(
-    "magma-libfluid >= 0.1.0.6"
-    "libopenvswitch >= 2.8.10"
-    "openvswitch-switch >= 2.8.10"
-    "openvswitch-common >= 2.8.10"
-    "python-openvswitch >= 2.8.10"
-    "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
-    )
+if [[ "$OS" == "debian" ]]; then
+    OVS_DEPS=(
+        "magma-libfluid >= 0.1.0.6"
+        "libopenvswitch >= 2.8.10"
+        "openvswitch-switch >= 2.8.10"
+        "openvswitch-common >= 2.8.10"
+        "python-openvswitch >= 2.8.10"
+        "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
+        )
+else
+    OVS_DEPS=(
+        "magma-libfluid >= 0.1.0.6"
+        "libopenvswitch >= 2.14"
+        "openvswitch-switch >= 2.14"
+        "openvswitch-common >= 2.14"
+        "python-openvswitch >= 2.14"
+        "openvswitch-datapath-dkms >= 2.14"
+        )
+fi
 
 # generate string for FPM
 SYSTEM_DEPS=""
