@@ -12,7 +12,7 @@
 # Create orchestrator certs.
 create: true
 
-dnsDomain: localhost
+domainName: localhost
 
 # Following durations is set on these certificates:
 # - nms-certificate
@@ -20,6 +20,12 @@ dnsDomain: localhost
 # - admin-operator-certificate
 # 10 years = 87600h
 duration: 87600h
+renewBefore: 24h
+
+bootstrapper:
+  # 1 year = 8760h
+  duration: 8760h
+  renewBefore: 24h
 
 adminOperator:
   customIssuer:

@@ -29,8 +29,11 @@ The following table lists the configurable certs parameters.
 | Parameter        | Description     | Default   |
 | ---              | ---             | ---       |
 | `create` | Set to ``true`` to create orc8r certs. | `false` |
-| `dnsDomain` | Domain Name | `localhost` |
+| `domainName` | Domain Name | `localhost` |
 | `duration` | Certificate duration | `87600h` |
+| `renewBefore` | Renew Certificate | `24h` |
+| `bootstrapper.duration` | Bootstrapper Certificate duration | `8760h` |
+| `bootstrapper.renewBefore` | Renew Bootstrapper Certificate | `24h` |
 | `adminOperator.customIssuer` | Custom Issuer | `""` |
 | `adminOperator.pkcs12.password` | pkcs12 password | `password` |
 | `nms.customIssuer` | Custom Issuer | `""` |

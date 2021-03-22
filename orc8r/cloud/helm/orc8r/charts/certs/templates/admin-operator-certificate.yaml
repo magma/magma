@@ -15,12 +15,13 @@ kind: Certificate
 metadata:
   name: {{ .Release.Name }}-admin-operator-certificate
 spec:
-  secretName: "{{ .Release.Name }}-admin-operator-tls"
-  commonName: "admin_operator"
+  secretName: {{ .Release.Name }}-admin-operator-tls
+  commonName: admin_operator
   subject:
     countries:
       - US
   duration: {{ .Values.duration }}
+  renewBefore: {{ .Values.renewBefore }}
   issuerRef:
 {{- if .Values.adminOperator.customIssuer }}
     name: {{ .Values.adminOperator.customIssuer }}

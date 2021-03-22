@@ -16,5 +16,5 @@ metadata:
   name: {{ .Release.Name }}-certifier-issuer
 spec:
   ca:
-    secretName: "{{ .Release.Name }}-certifier-tls"
+    secretName: {{ .Release.Name }}-certifier-tls
 {{- end }}

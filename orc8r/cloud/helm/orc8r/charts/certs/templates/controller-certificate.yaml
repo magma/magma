@@ -15,12 +15,13 @@ kind: Certificate
 metadata:
   name: {{ .Release.Name }}-controller-certificate
 spec:
-  secretName: "{{ .Release.Name }}-controller-tls"
-  commonName: "*.{{ required "dnsDomain must be provided" .Values.dnsDomain }}"
+  secretName: {{ .Release.Name }}-controller-tls
+  commonName: "*.{{ required "domainName must be provided" .Values.domainName }}"
   subject:
     countries:
       - US
   duration: {{ .Values.duration }}
+  renewBefore: {{ .Values.renewBefore }}
   issuerRef:
 {{- if .Values.controller.customIssuer }}
     name: {{ .Values.controller.customIssuer }}
@@ -28,6 +29,6 @@ spec:
     name: {{ .Release.Name }}-root-issuer
 {{- end }}
   dnsNames:
-  - "*.{{ required "dnsDomain must be provided" .Values.dnsDomain }}"
-  - "*.nms.{{ required "dnsDomain must be provided" .Values.dnsDomain }}"
+  - "*.{{ required "domainName must be provided" .Values.domainName }}"
+  - "*.nms.{{ required "domainName must be provided" .Values.domainName }}"
 {{- end }}

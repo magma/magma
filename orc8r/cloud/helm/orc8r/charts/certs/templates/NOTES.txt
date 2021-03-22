@@ -16,17 +16,17 @@ Your release is named {{ .Release.Name }}.
 These certificates will be installed cert-manager:
 
 {{ .Release.Name }}-admin-operator-tls
-{{ .Release.Name }}-certifier-tls
+{{ .Release.Name }}-bootstrapper-tls
 {{ .Release.Name }}-controller-tls
+{{ .Release.Name }}-certifier-tls
 {{ .Release.Name }}-fluentd-tls
 {{ .Release.Name }}-root-tls
 {{ .Release.Name }}-nms-tls
 
-Check x509 certificate:
+Get private key for bootstrapper:
 
-kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-nms-tls \
-  -o jsonpath='{.data.tls\.crt}' | base64 -d | \
-  openssl x509 -text -noout -in -
+kubectl -n test-certs get secrets {{ .Release.Name }}-bootstrapper-tls \
+  -o jsonpath='{.data.tls\.key}' | base64 -d 
 
 Check pkcs12 certificate:
 
@@ -34,3 +34,9 @@ kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-admin-operat
   -o jsonpath='{.data.keystore\.p12}' | base64 -d | \
   openssl pkcs12 -nodes -passin pass:"{{ .Values.adminOperator.pkcs12.password }}" -in -
 {{- end }}
+
+Check x509 certificate:
+
+kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-nms-tls \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d | \
+  openssl x509 -text -noout -in -

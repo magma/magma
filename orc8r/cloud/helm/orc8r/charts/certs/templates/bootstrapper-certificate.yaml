@@ -10,10 +10,20 @@
 # limitations under the License.
 
 {{- if .Values.create }}
-apiVersion: v1
-kind: Secret
+apiVersion: cert-manager.io/v1
+kind: Certificate
 metadata:
-  name: {{ .Release.Name }}-bootstrapper-key
-data:
-  bootstrapper.key: {{ genPrivateKey "rsa" | b64enc | quote }}
+  name: {{ .Release.Name }}-bootstrapper-certificate
+spec:
+  secretName: {{ .Release.Name }}-bootstrapper-tls
+  commonName: bootstrapper
+  privateKey:
+    rotationPolicy: Always
+  subject:
+    countries:
+      - US
+  duration: {{ .Values.bootstrapper.duration }}
+  renewBefore: {{ .Values.bootstrapper.renewBefore }}
+  issuerRef:
+    name: {{ .Release.Name }}-selfsigned-issuer
 {{- end }}

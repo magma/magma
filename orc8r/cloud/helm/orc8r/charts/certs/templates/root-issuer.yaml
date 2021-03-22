@@ -16,5 +16,5 @@ metadata:
   name: {{ .Release.Name }}-root-issuer
 spec:
   ca:
-    secretName: "{{ .Release.Name }}-root-tls"
+    secretName: {{ .Release.Name }}-root-tls
 {{- end }}

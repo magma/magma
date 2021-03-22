@@ -19,7 +19,6 @@ metadata:
     "helm.sh/hook": pre-install
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
 data:
-  dns_domain: {{ required "dnsDomain must be provided" .Values.dnsDomain }}
 {{- if .Capabilities.APIVersions.Has "cert-manager.io/v1" }}
   cert_manager: "cert-manager is installed"
 {{- else }}
