@@ -157,6 +157,9 @@ pipeline {
         unsuccessful {
           script {
             sh 'echo "MAGMA-OAI-MME DOCKER IMAGE BUILD: KO" >> archives/build_magma_mme.log'
+            // Remove any (at least the last one) dangling build container and any dangling image
+            sh 'docker ps --quiet --filter "status=exited" -n1 | xargs docker rm -f || true'
+            sh('docker image prune --force > /dev/null 2>&1')
           }
         }
         cleanup {
