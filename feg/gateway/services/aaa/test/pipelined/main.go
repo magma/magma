@@ -60,17 +60,10 @@ func (c *DummyPipelined) ActivateFlows(
 	ctx context.Context, req *protos.ActivateFlowsRequest) (res *protos.ActivateFlowsResult, err error) {
 
 	res = &protos.ActivateFlowsResult{
-		StaticRuleResults:  []*protos.RuleModResult{},
 		DynamicRuleResults: []*protos.RuleModResult{},
 	}
-	for _, ruleId := range req.GetRuleIds() {
-		res.StaticRuleResults = append(res.StaticRuleResults, &protos.RuleModResult{
-			RuleId: ruleId,
-			Result: protos.RuleModResult_SUCCESS,
-		})
-	}
 	for _, dynRule := range req.GetDynamicRules() {
-		res.DynamicRuleResults = append(res.StaticRuleResults, &protos.RuleModResult{
+		res.DynamicRuleResults = append(res.DynamicRuleResults, &protos.RuleModResult{
 			RuleId: dynRule.GetId(),
 			Result: protos.RuleModResult_SUCCESS,
 		})
