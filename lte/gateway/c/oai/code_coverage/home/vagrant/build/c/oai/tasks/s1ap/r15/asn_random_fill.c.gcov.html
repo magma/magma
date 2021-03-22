@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/asn_random_fill.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - asn_random_fill.c<span style="font-size: 80%;"> (source / <a href="asn_random_fill.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">25</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2017 Lev Walkin &lt;vlm@lionet.info&gt;.
+<span class="lineNum">       3 </span>            :  * All rights reserved.
+<span class="lineNum">       4 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       5 </span>            :  */
+<span class="lineNum">       6 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;asn_random_fill.h&gt;
+<span class="lineNum">       8 </span>            : #include &lt;constr_TYPE.h&gt;
+<a name="9"><span class="lineNum">       9 </span>            : </a>
+<span class="lineNum">      10 </span>            : int
+<span class="lineNum">      11 </span><span class="lineNoCov">          0 : asn_random_fill(const struct asn_TYPE_descriptor_s *td, void **struct_ptr,</span>
+<span class="lineNum">      12 </span>            :                 size_t length) {
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span><span class="lineNoCov">          0 :     if(td &amp;&amp; td-&gt;op-&gt;random_fill) {</span>
+<span class="lineNum">      15 </span><span class="lineNoCov">          0 :         asn_random_fill_result_t res =</span>
+<span class="lineNum">      16 </span><span class="lineNoCov">          0 :             td-&gt;op-&gt;random_fill(td, struct_ptr, 0, length);</span>
+<span class="lineNum">      17 </span><span class="lineNoCov">          0 :         return (res.code == ARFILL_OK) ? 0 : -1;</span>
+<span class="lineNum">      18 </span>            :     } else {
+<span class="lineNum">      19 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">      20 </span>            :     }
+<span class="lineNum">      21 </span>            : }
+<a name="22"><span class="lineNum">      22 </span>            : </a>
+<span class="lineNum">      23 </span>            : static uintmax_t
+<span class="lineNum">      24 </span><span class="lineNoCov">          0 : asn__intmax_range(intmax_t lb, intmax_t ub) {</span>
+<span class="lineNum">      25 </span><span class="lineNoCov">          0 :     assert(lb &lt;= ub);</span>
+<span class="lineNum">      26 </span><span class="lineNoCov">          0 :     if((ub &lt; 0) == (lb &lt; 0)) {</span>
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 :         return ub - lb;</span>
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 :     } else if(lb &lt; 0) {</span>
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 :         return 1 + ((uintmax_t)ub + (uintmax_t)-(lb + 1));</span>
+<span class="lineNum">      30 </span>            :     } else {
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :         assert(!&quot;Unreachable&quot;);</span>
+<span class="lineNum">      32 </span>            :         return 0;
+<span class="lineNum">      33 </span>            :     }
+<span class="lineNum">      34 </span>            : }
+<a name="35"><span class="lineNum">      35 </span>            : </a>
+<span class="lineNum">      36 </span>            : intmax_t
+<span class="lineNum">      37 </span><span class="lineNoCov">          0 : asn_random_between(intmax_t lb, intmax_t rb) {</span>
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :     if(lb == rb) {</span>
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :         return lb;</span>
+<span class="lineNum">      40 </span>            :     } else {
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :         const uintmax_t intmax_max = ((~(uintmax_t)0) &gt;&gt; 1);</span>
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :         uintmax_t range = asn__intmax_range(lb, rb);</span>
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 :         uintmax_t value = 0;</span>
+<span class="lineNum">      44 </span><span class="lineNoCov">          0 :         uintmax_t got_entropy = 0;</span>
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span>            :         assert(RAND_MAX &gt; 0xffffff);    /* Seen 7ffffffd! */
+<span class="lineNum">      47 </span><span class="lineNoCov">          0 :         assert(range &lt; intmax_max);</span>
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :         for(; got_entropy &lt; range;) {</span>
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 :             got_entropy = (got_entropy &lt;&lt; 24) | 0xffffff;</span>
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :             value = (value &lt;&lt; 24) | (random() % 0xffffff);</span>
+<span class="lineNum">      52 </span>            :         }
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :         return lb + (intmax_t)(value % (range + 1));</span>
+<span class="lineNum">      55 </span>            :     }
+<span class="lineNum">      56 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

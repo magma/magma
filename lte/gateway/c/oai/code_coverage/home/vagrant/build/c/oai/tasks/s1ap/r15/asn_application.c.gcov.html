@@ -1,0 +1,557 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/asn_application.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - asn_application.c<span style="font-size: 80%;"> (source / <a href="asn_application.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">37</td>
+            <td class="headerCovTableEntry">180</td>
+            <td class="headerCovTableEntryLo">20.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntryLo">33.3 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2017 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;asn_application.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;errno.h&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : static asn_enc_rval_t asn_encode_internal(const asn_codec_ctx_t *opt_codec_ctx,
+<span class="lineNum">      10 </span>            :                                           enum asn_transfer_syntax syntax,
+<span class="lineNum">      11 </span>            :                                           const asn_TYPE_descriptor_t *td,
+<span class="lineNum">      12 </span>            :                                           const void *sptr,
+<span class="lineNum">      13 </span>            :                                           asn_app_consume_bytes_f *callback,
+<span class="lineNum">      14 </span>            :                                           void *callback_key);
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : struct callback_count_bytes_key {
+<span class="lineNum">      18 </span>            :     asn_app_consume_bytes_f *callback;
+<span class="lineNum">      19 </span>            :     void *callback_key;
+<span class="lineNum">      20 </span>            :     size_t computed_size;
+<span class="lineNum">      21 </span>            : };
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : /*
+<span class="lineNum">      24 </span>            :  * Encoder which just counts bytes that come through it.
+<a name="25"><span class="lineNum">      25 </span>            :  */</a>
+<span class="lineNum">      26 </span>            : static int
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 : callback_count_bytes_cb(const void *data, size_t size, void *keyp) {</span>
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 :     struct callback_count_bytes_key *key = keyp;</span>
+<span class="lineNum">      29 </span>            :     int ret;
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :     ret = key-&gt;callback(data, size, key-&gt;callback_key);</span>
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :     if(ret &gt;= 0) {</span>
+<span class="lineNum">      33 </span><span class="lineNoCov">          0 :         key-&gt;computed_size += size;</span>
+<span class="lineNum">      34 </span>            :     }
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 :     return ret;</span>
+<span class="lineNum">      37 </span>            : }
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : struct overrun_encoder_key {
+<span class="lineNum">      40 </span>            :     void *buffer;
+<span class="lineNum">      41 </span>            :     size_t buffer_size;
+<span class="lineNum">      42 </span>            :     size_t computed_size;
+<span class="lineNum">      43 </span>            : };
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span>            : struct dynamic_encoder_key {
+<span class="lineNum">      46 </span>            :     void *buffer;
+<span class="lineNum">      47 </span>            :     size_t buffer_size;
+<span class="lineNum">      48 </span>            :     size_t computed_size;
+<span class="lineNum">      49 </span>            : };
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            : struct callback_failure_catch_key {
+<span class="lineNum">      52 </span>            :     asn_app_consume_bytes_f *callback;
+<span class="lineNum">      53 </span>            :     void *callback_key;
+<span class="lineNum">      54 </span>            :     int callback_failed;
+<span class="lineNum">      55 </span>            : };
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span>            : /*
+<span class="lineNum">      58 </span>            :  * Encoder which doesn't stop counting bytes
+<span class="lineNum">      59 </span>            :  * even if it reaches the end of the buffer.
+<a name="60"><span class="lineNum">      60 </span>            :  */</a>
+<span class="lineNum">      61 </span>            : static int
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 : overrun_encoder_cb(const void *data, size_t size, void *keyp) {</span>
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :     struct overrun_encoder_key *key = keyp;</span>
+<span class="lineNum">      64 </span>            : 
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :     if(key-&gt;computed_size + size &gt; key-&gt;buffer_size) {</span>
+<span class="lineNum">      66 </span>            :         /*
+<span class="lineNum">      67 </span>            :          * Avoid accident on the next call:
+<span class="lineNum">      68 </span>            :          * stop adding bytes to the buffer.
+<span class="lineNum">      69 </span>            :          */
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :         key-&gt;buffer_size = 0;</span>
+<span class="lineNum">      71 </span>            :     } else {
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :         memcpy((char *)key-&gt;buffer + key-&gt;computed_size, data, size);</span>
+<span class="lineNum">      73 </span>            :     }
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :     key-&gt;computed_size += size;</span>
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :     return 0;</span>
+<span class="lineNum">      77 </span>            : }
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : /*
+<span class="lineNum">      80 </span>            :  * Encoder which dynamically allocates output, and continues
+<span class="lineNum">      81 </span>            :  * to count even if allocation failed.
+<a name="82"><span class="lineNum">      82 </span>            :  */</a>
+<span class="lineNum">      83 </span>            : static int
+<span class="lineNum">      84 </span><span class="lineCov">         31 : dynamic_encoder_cb(const void *data, size_t size, void *keyp) {</span>
+<span class="lineNum">      85 </span><span class="lineCov">         31 :     struct dynamic_encoder_key *key = keyp;</span>
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span><span class="lineCov">         31 :     if(key-&gt;buffer) {</span>
+<span class="lineNum">      88 </span><span class="lineCov">         31 :         if(key-&gt;computed_size + size &gt;= key-&gt;buffer_size) {</span>
+<span class="lineNum">      89 </span>            :             void *p;
+<span class="lineNum">      90 </span><span class="lineCov">         23 :             size_t new_size = key-&gt;buffer_size;</span>
+<span class="lineNum">      91 </span>            : 
+<span class="lineNum">      92 </span>            :             do {
+<span class="lineNum">      93 </span><span class="lineCov">         26 :                 new_size *= 2;</span>
+<span class="lineNum">      94 </span><span class="lineCov">         26 :             } while(new_size &lt;= key-&gt;computed_size + size);</span>
+<span class="lineNum">      95 </span>            : 
+<span class="lineNum">      96 </span><span class="lineCov">         23 :             p = REALLOC(key-&gt;buffer, new_size);</span>
+<span class="lineNum">      97 </span><span class="lineCov">         23 :             if(p) {</span>
+<span class="lineNum">      98 </span><span class="lineCov">         23 :                 key-&gt;buffer = p;</span>
+<span class="lineNum">      99 </span><span class="lineCov">         23 :                 key-&gt;buffer_size = new_size;</span>
+<span class="lineNum">     100 </span>            :             } else {
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :                 FREEMEM(key-&gt;buffer);</span>
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :                 key-&gt;buffer = 0;</span>
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :                 key-&gt;buffer_size = 0;</span>
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :                 key-&gt;computed_size += size;</span>
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :                 return 0;</span>
+<span class="lineNum">     106 </span>            :             }
+<span class="lineNum">     107 </span>            :         }
+<span class="lineNum">     108 </span><span class="lineCov">         31 :         memcpy((char *)key-&gt;buffer + key-&gt;computed_size, data, size);</span>
+<span class="lineNum">     109 </span>            :     }
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span><span class="lineCov">         31 :     key-&gt;computed_size += size;</span>
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span><span class="lineCov">         31 :     return 0;</span>
+<span class="lineNum">     114 </span>            : }
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            : /*
+<span class="lineNum">     117 </span>            :  * Encoder which help convert the application level encoder failure into EIO.
+<a name="118"><span class="lineNum">     118 </span>            :  */</a>
+<span class="lineNum">     119 </span>            : static int
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 : callback_failure_catch_cb(const void *data, size_t size, void *keyp) {</span>
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :     struct callback_failure_catch_key *key = keyp;</span>
+<span class="lineNum">     122 </span>            :     int ret;
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :     ret = key-&gt;callback(data, size, key-&gt;callback_key);</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :     if(ret &lt; 0) {</span>
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :         key-&gt;callback_failed = 1;</span>
+<span class="lineNum">     127 </span>            :     }
+<span class="lineNum">     128 </span>            : 
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :     return ret;</span>
+<span class="lineNum">     130 </span>            : }
+<a name="131"><span class="lineNum">     131 </span>            : </a>
+<span class="lineNum">     132 </span>            : asn_enc_rval_t
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 : asn_encode(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     134 </span>            :            enum asn_transfer_syntax syntax, const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     135 </span>            :            const void *sptr, asn_app_consume_bytes_f *callback, void *callback_key) {
+<span class="lineNum">     136 </span>            :     struct callback_failure_catch_key cb_key;
+<span class="lineNum">     137 </span>            :     asn_enc_rval_t er;
+<span class="lineNum">     138 </span>            : 
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :     if(!callback) {</span>
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :         errno = EINVAL;</span>
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     142 </span>            :     }
+<span class="lineNum">     143 </span>            : 
+<span class="lineNum">     144 </span><span class="lineNoCov">          0 :     cb_key.callback = callback;</span>
+<span class="lineNum">     145 </span><span class="lineNoCov">          0 :     cb_key.callback_key = callback_key;</span>
+<span class="lineNum">     146 </span><span class="lineNoCov">          0 :     cb_key.callback_failed = 0;</span>
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :     er = asn_encode_internal(opt_codec_ctx, syntax, td, sptr,</span>
+<span class="lineNum">     149 </span>            :                              callback_failure_catch_cb, &amp;cb_key);
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :     if(cb_key.callback_failed) {</span>
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :         assert(er.encoded == -1);</span>
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :         assert(errno == EBADF);</span>
+<span class="lineNum">     153 </span><span class="lineNoCov">          0 :         errno = EIO;</span>
+<span class="lineNum">     154 </span>            :     }
+<span class="lineNum">     155 </span>            : 
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :     return er;</span>
+<span class="lineNum">     157 </span>            : }
+<a name="158"><span class="lineNum">     158 </span>            : </a>
+<span class="lineNum">     159 </span>            : asn_enc_rval_t
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 : asn_encode_to_buffer(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     161 </span>            :                      enum asn_transfer_syntax syntax,
+<span class="lineNum">     162 </span>            :                      const asn_TYPE_descriptor_t *td, const void *sptr,
+<span class="lineNum">     163 </span>            :                      void *buffer, size_t buffer_size) {
+<span class="lineNum">     164 </span>            :     struct overrun_encoder_key buf_key;
+<span class="lineNum">     165 </span>            :     asn_enc_rval_t er;
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 :     if(buffer_size &gt; 0 &amp;&amp; !buffer) {</span>
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :         errno = EINVAL;</span>
+<span class="lineNum">     169 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     170 </span>            :     }
+<span class="lineNum">     171 </span>            : 
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :     buf_key.buffer = buffer;</span>
+<span class="lineNum">     173 </span><span class="lineNoCov">          0 :     buf_key.buffer_size = buffer_size;</span>
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :     buf_key.computed_size = 0;</span>
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 :     er = asn_encode_internal(opt_codec_ctx, syntax, td, sptr,</span>
+<span class="lineNum">     177 </span>            :                              overrun_encoder_cb, &amp;buf_key);
+<span class="lineNum">     178 </span>            : 
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :     if(er.encoded &gt;= 0 &amp;&amp; (size_t)er.encoded != buf_key.computed_size) {</span>
+<span class="lineNum">     180 </span>            :         ASN_DEBUG(&quot;asn_encode() returned %&quot; ASN_PRI_SSIZE
+<span class="lineNum">     181 </span>            :                   &quot; yet produced %&quot; ASN_PRI_SIZE &quot; bytes&quot;,
+<span class="lineNum">     182 </span>            :                   er.encoded, buf_key.computed_size);
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :         assert(er.encoded &lt; 0 || (size_t)er.encoded == buf_key.computed_size);</span>
+<span class="lineNum">     184 </span>            :     }
+<span class="lineNum">     185 </span>            : 
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 :     return er;</span>
+<span class="lineNum">     187 </span>            : }
+<a name="188"><span class="lineNum">     188 </span>            : </a>
+<span class="lineNum">     189 </span>            : asn_encode_to_new_buffer_result_t
+<span class="lineNum">     190 </span><span class="lineCov">         12 : asn_encode_to_new_buffer(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     191 </span>            :                          enum asn_transfer_syntax syntax,
+<span class="lineNum">     192 </span>            :                          const asn_TYPE_descriptor_t *td, const void *sptr) {
+<span class="lineNum">     193 </span>            :     struct dynamic_encoder_key buf_key;
+<span class="lineNum">     194 </span>            :     asn_encode_to_new_buffer_result_t res;
+<span class="lineNum">     195 </span>            : 
+<span class="lineNum">     196 </span><span class="lineCov">         12 :     buf_key.buffer_size = 16;</span>
+<span class="lineNum">     197 </span><span class="lineCov">         12 :     buf_key.buffer = MALLOC(buf_key.buffer_size);</span>
+<span class="lineNum">     198 </span><span class="lineCov">         12 :     buf_key.computed_size = 0;</span>
+<span class="lineNum">     199 </span>            : 
+<span class="lineNum">     200 </span><span class="lineCov">         12 :     res.result = asn_encode_internal(opt_codec_ctx, syntax, td, sptr,</span>
+<span class="lineNum">     201 </span>            :                                      dynamic_encoder_cb, &amp;buf_key);
+<span class="lineNum">     202 </span>            : 
+<span class="lineNum">     203 </span><span class="lineCov">         12 :     if(res.result.encoded &gt;= 0</span>
+<span class="lineNum">     204 </span><span class="lineCov">         12 :        &amp;&amp; (size_t)res.result.encoded != buf_key.computed_size) {</span>
+<span class="lineNum">     205 </span>            :         ASN_DEBUG(&quot;asn_encode() returned %&quot; ASN_PRI_SSIZE
+<span class="lineNum">     206 </span>            :                   &quot; yet produced %&quot; ASN_PRI_SIZE &quot; bytes&quot;,
+<span class="lineNum">     207 </span>            :                   res.result.encoded, buf_key.computed_size);
+<span class="lineNum">     208 </span><span class="lineNoCov">          0 :         assert(res.result.encoded &lt; 0</span>
+<span class="lineNum">     209 </span>            :                || (size_t)res.result.encoded == buf_key.computed_size);
+<span class="lineNum">     210 </span>            :     }
+<span class="lineNum">     211 </span>            : 
+<span class="lineNum">     212 </span><span class="lineCov">         12 :     res.buffer = buf_key.buffer;</span>
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span>            :     /* 0-terminate just in case. */
+<span class="lineNum">     215 </span><span class="lineCov">         12 :     if(res.buffer) {</span>
+<span class="lineNum">     216 </span><span class="lineCov">         12 :         assert(buf_key.computed_size &lt; buf_key.buffer_size);</span>
+<span class="lineNum">     217 </span><span class="lineCov">         12 :         ((char *)res.buffer)[buf_key.computed_size] = '\0';</span>
+<span class="lineNum">     218 </span>            :     }
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span><span class="lineCov">         12 :     return res;</span>
+<span class="lineNum">     221 </span>            : }
+<a name="222"><span class="lineNum">     222 </span>            : </a>
+<span class="lineNum">     223 </span>            : static asn_enc_rval_t
+<span class="lineNum">     224 </span><span class="lineCov">         12 : asn_encode_internal(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     225 </span>            :                     enum asn_transfer_syntax syntax,
+<span class="lineNum">     226 </span>            :                     const asn_TYPE_descriptor_t *td, const void *sptr,
+<span class="lineNum">     227 </span>            :                     asn_app_consume_bytes_f *callback, void *callback_key) {
+<span class="lineNum">     228 </span>            :     asn_enc_rval_t er;
+<span class="lineNum">     229 </span><span class="lineCov">         12 :     enum xer_encoder_flags_e xer_flags = XER_F_CANONICAL;</span>
+<span class="lineNum">     230 </span>            : 
+<span class="lineNum">     231 </span>            :     (void)opt_codec_ctx; /* Parameters are not checked on encode yet. */
+<span class="lineNum">     232 </span>            : 
+<span class="lineNum">     233 </span><span class="lineCov">         12 :     if(!td || !sptr) {</span>
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :         errno = EINVAL;</span>
+<span class="lineNum">     235 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     236 </span>            :     }
+<span class="lineNum">     237 </span>            : 
+<span class="lineNum">     238 </span><span class="lineCov">         12 :     switch(syntax) {</span>
+<span class="lineNum">     239 </span>            :     case ATS_NONSTANDARD_PLAINTEXT:
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :         if(td-&gt;op-&gt;print_struct) {</span>
+<span class="lineNum">     241 </span>            :             struct callback_count_bytes_key cb_key;
+<span class="lineNum">     242 </span><span class="lineNoCov">          0 :             cb_key.callback = callback;</span>
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :             cb_key.callback_key = callback_key;</span>
+<span class="lineNum">     244 </span><span class="lineNoCov">          0 :             cb_key.computed_size = 0;</span>
+<span class="lineNum">     245 </span><span class="lineNoCov">          0 :             if(td-&gt;op-&gt;print_struct(td, sptr, 1, callback_count_bytes_cb,</span>
+<span class="lineNum">     246 </span>            :                                     &amp;cb_key)
+<span class="lineNum">     247 </span>            :                    &lt; 0
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :                || callback_count_bytes_cb(&quot;\n&quot;, 1, &amp;cb_key) &lt; 0) {</span>
+<span class="lineNum">     249 </span><span class="lineNoCov">          0 :                 errno = EBADF; /* Structure has incorrect form. */</span>
+<span class="lineNum">     250 </span><span class="lineNoCov">          0 :                 er.encoded = -1;</span>
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :                 er.failed_type = td;</span>
+<span class="lineNum">     252 </span><span class="lineNoCov">          0 :                 er.structure_ptr = sptr;</span>
+<span class="lineNum">     253 </span>            :             } else {
+<span class="lineNum">     254 </span><span class="lineNoCov">          0 :                 er.encoded = cb_key.computed_size;</span>
+<span class="lineNum">     255 </span><span class="lineNoCov">          0 :                 er.failed_type = 0;</span>
+<span class="lineNum">     256 </span><span class="lineNoCov">          0 :                 er.structure_ptr = 0;</span>
+<span class="lineNum">     257 </span>            :             }
+<span class="lineNum">     258 </span>            :         } else {
+<span class="lineNum">     259 </span><span class="lineNoCov">          0 :             errno = ENOENT; /* Transfer syntax is not defined for this type. */</span>
+<span class="lineNum">     260 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     261 </span>            :         }
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span>            :     case ATS_RANDOM:
+<span class="lineNum">     265 </span><span class="lineNoCov">          0 :         errno = ENOENT; /* Randomization doesn't make sense on output. */</span>
+<span class="lineNum">     266 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     267 </span>            : 
+<span class="lineNum">     268 </span>            :     case ATS_BER:
+<span class="lineNum">     269 </span>            :         /* BER is a superset of DER. */
+<span class="lineNum">     270 </span>            :         /* Fall through. */
+<span class="lineNum">     271 </span>            :     case ATS_DER:
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :         if(td-&gt;op-&gt;der_encoder) {</span>
+<span class="lineNum">     273 </span><span class="lineNoCov">          0 :             er = der_encode(td, sptr, callback, callback_key);</span>
+<span class="lineNum">     274 </span><span class="lineNoCov">          0 :             if(er.encoded == -1) {</span>
+<span class="lineNum">     275 </span><span class="lineNoCov">          0 :                 if(er.failed_type &amp;&amp; er.failed_type-&gt;op-&gt;der_encoder) {</span>
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 :                     errno = EBADF;  /* Structure has incorrect form. */</span>
+<span class="lineNum">     277 </span>            :                 } else {
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 :                     errno = ENOENT; /* DER is not defined for this type. */</span>
+<span class="lineNum">     279 </span>            :                 }
+<span class="lineNum">     280 </span>            :             }
+<span class="lineNum">     281 </span>            :         } else {
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :             errno = ENOENT; /* Transfer syntax is not defined for this type. */</span>
+<span class="lineNum">     283 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     284 </span>            :         }
+<span class="lineNum">     285 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     286 </span>            :     case ATS_CER:
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :         errno = ENOENT; /* Transfer syntax is not defined for any type. */</span>
+<span class="lineNum">     288 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     289 </span>            : 
+<span class="lineNum">     290 </span>            : #ifdef  ASN_DISABLE_OER_SUPPORT
+<span class="lineNum">     291 </span>            :     case ATS_BASIC_OER:
+<span class="lineNum">     292 </span>            :     case ATS_CANONICAL_OER:
+<span class="lineNum">     293 </span>            :         errno = ENOENT; /* PER is not defined. */
+<span class="lineNum">     294 </span>            :         ASN__ENCODE_FAILED;
+<span class="lineNum">     295 </span>            :         break;
+<span class="lineNum">     296 </span>            : #else /* ASN_DISABLE_OER_SUPPORT */
+<span class="lineNum">     297 </span>            :     case ATS_BASIC_OER:
+<span class="lineNum">     298 </span>            :         /* CANONICAL-OER is a superset of BASIC-OER. */
+<span class="lineNum">     299 </span>            :         /* Fall through. */
+<span class="lineNum">     300 </span>            :     case ATS_CANONICAL_OER:
+<span class="lineNum">     301 </span><span class="lineNoCov">          0 :         if(td-&gt;op-&gt;oer_encoder) {</span>
+<span class="lineNum">     302 </span><span class="lineNoCov">          0 :             er = oer_encode(td, sptr, callback, callback_key);</span>
+<span class="lineNum">     303 </span><span class="lineNoCov">          0 :             if(er.encoded == -1) {</span>
+<span class="lineNum">     304 </span><span class="lineNoCov">          0 :                 if(er.failed_type &amp;&amp; er.failed_type-&gt;op-&gt;oer_encoder) {</span>
+<span class="lineNum">     305 </span><span class="lineNoCov">          0 :                     errno = EBADF;  /* Structure has incorrect form. */</span>
+<span class="lineNum">     306 </span>            :                 } else {
+<span class="lineNum">     307 </span><span class="lineNoCov">          0 :                     errno = ENOENT; /* OER is not defined for this type. */</span>
+<span class="lineNum">     308 </span>            :                 }
+<span class="lineNum">     309 </span>            :             }
+<span class="lineNum">     310 </span>            :         } else {
+<span class="lineNum">     311 </span><span class="lineNoCov">          0 :             errno = ENOENT; /* Transfer syntax is not defined for this type. */</span>
+<span class="lineNum">     312 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     313 </span>            :         }
+<span class="lineNum">     314 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     315 </span>            : #endif /* ASN_DISABLE_OER_SUPPORT */
+<span class="lineNum">     316 </span>            : 
+<span class="lineNum">     317 </span>            : #ifdef  ASN_DISABLE_PER_SUPPORT
+<span class="lineNum">     318 </span>            :     case ATS_UNALIGNED_BASIC_PER:
+<span class="lineNum">     319 </span>            :     case ATS_UNALIGNED_CANONICAL_PER:
+<span class="lineNum">     320 </span>            :     case ATS_ALIGNED_BASIC_PER:
+<span class="lineNum">     321 </span>            :     case ATS_ALIGNED_CANONICAL_PER:
+<span class="lineNum">     322 </span>            :         errno = ENOENT; /* PER is not defined. */
+<span class="lineNum">     323 </span>            :         ASN__ENCODE_FAILED;
+<span class="lineNum">     324 </span>            :         break;
+<span class="lineNum">     325 </span>            : #else /* ASN_DISABLE_PER_SUPPORT */
+<span class="lineNum">     326 </span>            :     case ATS_UNALIGNED_BASIC_PER:
+<span class="lineNum">     327 </span>            :         /* CANONICAL-UPER is a superset of BASIC-UPER. */
+<span class="lineNum">     328 </span>            :         /* Fall through. */
+<span class="lineNum">     329 </span>            :     case ATS_UNALIGNED_CANONICAL_PER:
+<span class="lineNum">     330 </span><span class="lineNoCov">          0 :         if(td-&gt;op-&gt;uper_encoder) {</span>
+<span class="lineNum">     331 </span><span class="lineNoCov">          0 :             er = uper_encode(td, 0, sptr, callback, callback_key);</span>
+<span class="lineNum">     332 </span><span class="lineNoCov">          0 :             if(er.encoded == -1) {</span>
+<span class="lineNum">     333 </span><span class="lineNoCov">          0 :                 if(er.failed_type &amp;&amp; er.failed_type-&gt;op-&gt;uper_encoder) {</span>
+<span class="lineNum">     334 </span><span class="lineNoCov">          0 :                     errno = EBADF;  /* Structure has incorrect form. */</span>
+<span class="lineNum">     335 </span>            :                 } else {
+<span class="lineNum">     336 </span><span class="lineNoCov">          0 :                     errno = ENOENT; /* UPER is not defined for this type. */</span>
+<span class="lineNum">     337 </span>            :                 }
+<span class="lineNum">     338 </span>            :             } else {
+<span class="lineNum">     339 </span>            :                 ASN_DEBUG(&quot;Complete encoded in %ld bits&quot;, (long)er.encoded);
+<span class="lineNum">     340 </span><span class="lineNoCov">          0 :                 if(er.encoded == 0) {</span>
+<span class="lineNum">     341 </span>            :                     /* Enforce &quot;Complete Encoding&quot; of X.691 #11.1 */
+<span class="lineNum">     342 </span><span class="lineNoCov">          0 :                     if(callback(&quot;\0&quot;, 1, callback_key) &lt; 0) {</span>
+<span class="lineNum">     343 </span><span class="lineNoCov">          0 :                         errno = EBADF;</span>
+<span class="lineNum">     344 </span><span class="lineNoCov">          0 :                         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     345 </span>            :                     }
+<span class="lineNum">     346 </span><span class="lineNoCov">          0 :                     er.encoded = 8; /* Exactly 8 zero bits is added. */</span>
+<span class="lineNum">     347 </span>            :                 }
+<span class="lineNum">     348 </span>            :                 /* Convert bits into bytes */
+<span class="lineNum">     349 </span><span class="lineNoCov">          0 :                 er.encoded = (er.encoded + 7) &gt;&gt; 3;</span>
+<span class="lineNum">     350 </span>            :             }
+<span class="lineNum">     351 </span>            :         } else {
+<span class="lineNum">     352 </span><span class="lineNoCov">          0 :             errno = ENOENT; /* Transfer syntax is not defined for this type. */</span>
+<span class="lineNum">     353 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     354 </span>            :         }
+<span class="lineNum">     355 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     356 </span>            :     case ATS_ALIGNED_BASIC_PER:
+<span class="lineNum">     357 </span>            :         /* CANONICAL-APER is a superset of BASIC-APER. */
+<span class="lineNum">     358 </span>            :         /* Fall through. */
+<span class="lineNum">     359 </span>            :     case ATS_ALIGNED_CANONICAL_PER:
+<span class="lineNum">     360 </span><span class="lineCov">         12 :         if(td-&gt;op-&gt;aper_encoder) {</span>
+<span class="lineNum">     361 </span><span class="lineCov">         12 :             er = aper_encode(td, 0, sptr, callback, callback_key);</span>
+<span class="lineNum">     362 </span><span class="lineCov">         12 :             if(er.encoded == -1) {</span>
+<span class="lineNum">     363 </span><span class="lineNoCov">          0 :                 if(er.failed_type &amp;&amp; er.failed_type-&gt;op-&gt;aper_encoder) {</span>
+<span class="lineNum">     364 </span><span class="lineNoCov">          0 :                     errno = EBADF;  /* Structure has incorrect form. */</span>
+<span class="lineNum">     365 </span>            :                 } else {
+<span class="lineNum">     366 </span><span class="lineNoCov">          0 :                     errno = ENOENT; /* APER is not defined for this type. */</span>
+<span class="lineNum">     367 </span>            :                 }
+<span class="lineNum">     368 </span>            :             } else {
+<span class="lineNum">     369 </span>            :                 ASN_DEBUG(&quot;Complete encoded in %ld bits&quot;, (long)er.encoded);
+<span class="lineNum">     370 </span><span class="lineCov">         12 :                 if(er.encoded == 0) {</span>
+<span class="lineNum">     371 </span>            :                     /* Enforce &quot;Complete Encoding&quot; of X.691 #11.1 */
+<span class="lineNum">     372 </span><span class="lineNoCov">          0 :                     if(callback(&quot;\0&quot;, 1, callback_key) &lt; 0) {</span>
+<span class="lineNum">     373 </span><span class="lineNoCov">          0 :                         errno = EBADF;</span>
+<span class="lineNum">     374 </span><span class="lineNoCov">          0 :                         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     375 </span>            :                     }
+<span class="lineNum">     376 </span><span class="lineNoCov">          0 :                     er.encoded = 8; /* Exactly 8 zero bits is added. */</span>
+<span class="lineNum">     377 </span>            :                 }
+<span class="lineNum">     378 </span>            :                 /* Convert bits into bytes */
+<span class="lineNum">     379 </span><span class="lineCov">         12 :                 er.encoded = (er.encoded + 7) &gt;&gt; 3;</span>
+<span class="lineNum">     380 </span>            :             }
+<span class="lineNum">     381 </span>            :         } else {
+<span class="lineNum">     382 </span><span class="lineNoCov">          0 :             errno = ENOENT; /* Transfer syntax is not defined for this type. */</span>
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     384 </span>            :         }
+<span class="lineNum">     385 </span><span class="lineCov">         12 :         break;</span>
+<span class="lineNum">     386 </span>            : #endif  /* ASN_DISABLE_PER_SUPPORT */
+<span class="lineNum">     387 </span>            : 
+<span class="lineNum">     388 </span>            :     case ATS_BASIC_XER:
+<span class="lineNum">     389 </span>            :         /* CANONICAL-XER is a superset of BASIC-XER. */
+<span class="lineNum">     390 </span><span class="lineNoCov">          0 :         xer_flags &amp;= ~XER_F_CANONICAL;</span>
+<span class="lineNum">     391 </span><span class="lineNoCov">          0 :         xer_flags |= XER_F_BASIC;</span>
+<span class="lineNum">     392 </span>            :         /* Fall through. */
+<span class="lineNum">     393 </span>            :     case ATS_CANONICAL_XER:
+<span class="lineNum">     394 </span><span class="lineNoCov">          0 :         if(td-&gt;op-&gt;xer_encoder) {</span>
+<span class="lineNum">     395 </span><span class="lineNoCov">          0 :             er = xer_encode(td, sptr, xer_flags, callback, callback_key);</span>
+<span class="lineNum">     396 </span><span class="lineNoCov">          0 :             if(er.encoded == -1) {</span>
+<span class="lineNum">     397 </span><span class="lineNoCov">          0 :                 if(er.failed_type &amp;&amp; er.failed_type-&gt;op-&gt;xer_encoder) {</span>
+<span class="lineNum">     398 </span><span class="lineNoCov">          0 :                     errno = EBADF;  /* Structure has incorrect form. */</span>
+<span class="lineNum">     399 </span>            :                 } else {
+<span class="lineNum">     400 </span><span class="lineNoCov">          0 :                     errno = ENOENT; /* XER is not defined for this type. */</span>
+<span class="lineNum">     401 </span>            :                 }
+<span class="lineNum">     402 </span>            :             }
+<span class="lineNum">     403 </span>            :         } else {
+<span class="lineNum">     404 </span><span class="lineNoCov">          0 :             errno = ENOENT; /* Transfer syntax is not defined for this type. */</span>
+<span class="lineNum">     405 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     406 </span>            :         }
+<span class="lineNum">     407 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     408 </span>            : 
+<span class="lineNum">     409 </span>            :     default:
+<span class="lineNum">     410 </span><span class="lineNoCov">          0 :         errno = ENOENT;</span>
+<span class="lineNum">     411 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     412 </span>            :     }
+<span class="lineNum">     413 </span>            : 
+<span class="lineNum">     414 </span><span class="lineCov">         12 :     return er;</span>
+<span class="lineNum">     415 </span>            : }
+<a name="416"><span class="lineNum">     416 </span>            : </a>
+<span class="lineNum">     417 </span>            : asn_dec_rval_t
+<span class="lineNum">     418 </span><span class="lineNoCov">          0 : asn_decode(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     419 </span>            :            enum asn_transfer_syntax syntax, const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     420 </span>            :            void **sptr, const void *buffer, size_t size) {
+<span class="lineNum">     421 </span><span class="lineNoCov">          0 :     if(!td || !td-&gt;op || !sptr || (size &amp;&amp; !buffer)) {</span>
+<span class="lineNum">     422 </span><span class="lineNoCov">          0 :         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     423 </span>            :     }
+<span class="lineNum">     424 </span>            : 
+<span class="lineNum">     425 </span><span class="lineNoCov">          0 :     switch(syntax) {</span>
+<span class="lineNum">     426 </span>            :     case ATS_CER:
+<span class="lineNum">     427 </span>            :     case ATS_NONSTANDARD_PLAINTEXT:
+<span class="lineNum">     428 </span>            :     default:
+<span class="lineNum">     429 </span><span class="lineNoCov">          0 :         errno = ENOENT;</span>
+<span class="lineNum">     430 </span><span class="lineNoCov">          0 :         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     431 </span>            : 
+<span class="lineNum">     432 </span>            :     case ATS_RANDOM:
+<span class="lineNum">     433 </span><span class="lineNoCov">          0 :         if(!td-&gt;op-&gt;random_fill) {</span>
+<span class="lineNum">     434 </span><span class="lineNoCov">          0 :             ASN__DECODE_FAILED;</span>
+<span class="lineNum">     435 </span>            :         } else {
+<span class="lineNum">     436 </span><span class="lineNoCov">          0 :             if(asn_random_fill(td, sptr, 16000) == 0) {</span>
+<span class="lineNum">     437 </span><span class="lineNoCov">          0 :                 asn_dec_rval_t ret = {RC_OK, 0};</span>
+<span class="lineNum">     438 </span><span class="lineNoCov">          0 :                 return ret;</span>
+<span class="lineNum">     439 </span>            :             } else {
+<span class="lineNum">     440 </span><span class="lineNoCov">          0 :                 ASN__DECODE_FAILED;</span>
+<span class="lineNum">     441 </span>            :             }
+<span class="lineNum">     442 </span>            :         }
+<span class="lineNum">     443 </span>            :         break;
+<span class="lineNum">     444 </span>            : 
+<span class="lineNum">     445 </span>            :     case ATS_DER:
+<span class="lineNum">     446 </span>            :     case ATS_BER:
+<span class="lineNum">     447 </span><span class="lineNoCov">          0 :         return ber_decode(opt_codec_ctx, td, sptr, buffer, size);</span>
+<span class="lineNum">     448 </span>            : 
+<span class="lineNum">     449 </span>            :     case ATS_BASIC_OER:
+<span class="lineNum">     450 </span>            :     case ATS_CANONICAL_OER:
+<span class="lineNum">     451 </span>            : #ifdef  ASN_DISABLE_OER_SUPPORT
+<span class="lineNum">     452 </span>            :         errno = ENOENT;
+<span class="lineNum">     453 </span>            :         ASN__DECODE_FAILED;
+<span class="lineNum">     454 </span>            : #else
+<span class="lineNum">     455 </span><span class="lineNoCov">          0 :         return oer_decode(opt_codec_ctx, td, sptr, buffer, size);</span>
+<span class="lineNum">     456 </span>            : #endif
+<span class="lineNum">     457 </span>            : 
+<span class="lineNum">     458 </span>            :     case ATS_UNALIGNED_BASIC_PER:
+<span class="lineNum">     459 </span>            :     case ATS_UNALIGNED_CANONICAL_PER:
+<span class="lineNum">     460 </span>            : #ifdef  ASN_DISABLE_PER_SUPPORT
+<span class="lineNum">     461 </span>            :         errno = ENOENT;
+<span class="lineNum">     462 </span>            :         ASN__DECODE_FAILED;
+<span class="lineNum">     463 </span>            : #else
+<span class="lineNum">     464 </span><span class="lineNoCov">          0 :         return uper_decode_complete(opt_codec_ctx, td, sptr, buffer, size);</span>
+<span class="lineNum">     465 </span>            : #endif
+<span class="lineNum">     466 </span>            : 
+<span class="lineNum">     467 </span>            :     case ATS_ALIGNED_BASIC_PER:
+<span class="lineNum">     468 </span>            :     case ATS_ALIGNED_CANONICAL_PER:
+<span class="lineNum">     469 </span>            : #ifdef  ASN_DISABLE_PER_SUPPORT
+<span class="lineNum">     470 </span>            :         errno = ENOENT;
+<span class="lineNum">     471 </span>            :         ASN__DECODE_FAILED;
+<span class="lineNum">     472 </span>            : #else
+<span class="lineNum">     473 </span><span class="lineNoCov">          0 :         return aper_decode_complete(opt_codec_ctx, td, sptr, buffer, size);</span>
+<span class="lineNum">     474 </span>            : #endif
+<span class="lineNum">     475 </span>            : 
+<span class="lineNum">     476 </span>            :     case ATS_BASIC_XER:
+<span class="lineNum">     477 </span>            :     case ATS_CANONICAL_XER:
+<span class="lineNum">     478 </span><span class="lineNoCov">          0 :         return xer_decode(opt_codec_ctx, td, sptr, buffer, size);</span>
+<span class="lineNum">     479 </span>            :     }
+<span class="lineNum">     480 </span>            : }
+<span class="lineNum">     481 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

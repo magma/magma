@@ -1,0 +1,609 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/per_opentype.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - per_opentype.c<span style="font-size: 80%;"> (source / <a href="per_opentype.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">43</td>
+            <td class="headerCovTableEntry">219</td>
+            <td class="headerCovTableEntryLo">19.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntryLo">25.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2007 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;per_support.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;constr_TYPE.h&gt;
+<span class="lineNum">       8 </span>            : #include &lt;per_opentype.h&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : typedef struct uper_ugot_key {
+<span class="lineNum">      11 </span>            :         asn_per_data_t oldpd;   /* Old per data source */
+<span class="lineNum">      12 </span>            :         size_t unclaimed;
+<span class="lineNum">      13 </span>            :         size_t ot_moved;        /* Number of bits moved by OT processing */
+<span class="lineNum">      14 </span>            :         int repeat;
+<span class="lineNum">      15 </span>            : } uper_ugot_key;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : static int uper_ugot_refill(asn_per_data_t *pd);
+<span class="lineNum">      18 </span>            : static int per_skip_bits(asn_per_data_t *pd, int skip_nbits);
+<span class="lineNum">      19 </span>            : static asn_dec_rval_t uper_sot_suck(const asn_codec_ctx_t *,
+<span class="lineNum">      20 </span>            :                                     const asn_TYPE_descriptor_t *td,
+<span class="lineNum">      21 </span>            :                                     const asn_per_constraints_t *constraints,
+<span class="lineNum">      22 </span>            :                                     void **sptr, asn_per_data_t *pd);
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span>            : /*
+<span class="lineNum">      25 </span>            :  * Encode an &quot;open type field&quot;.
+<span class="lineNum">      26 </span>            :  * #10.1, #10.2
+<a name="27"><span class="lineNum">      27 </span>            :  */</a>
+<span class="lineNum">      28 </span>            : int
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 : uper_open_type_put(const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">      30 </span>            :                    const asn_per_constraints_t *constraints, const void *sptr,
+<span class="lineNum">      31 </span>            :                    asn_per_outp_t *po) {
+<span class="lineNum">      32 </span>            :     void *buf;
+<span class="lineNum">      33 </span>            :     void *bptr;
+<span class="lineNum">      34 </span>            :     ssize_t size;
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            :     ASN_DEBUG(&quot;Open type put %s ...&quot;, td-&gt;name);
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :     size = uper_encode_to_new_buffer(td, constraints, sptr, &amp;buf);</span>
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :     if(size &lt;= 0) return -1;</span>
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            :     ASN_DEBUG(&quot;Open type put %s of length %&quot; ASN_PRI_SSIZE &quot; + overhead (1byte?)&quot;, td-&gt;name,
+<span class="lineNum">      42 </span>            :               size);
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span><span class="lineNoCov">          0 :     bptr = buf;</span>
+<span class="lineNum">      45 </span>            :     do {
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :         int need_eom = 0;</span>
+<span class="lineNum">      47 </span><span class="lineNoCov">          0 :         ssize_t may_save = uper_put_length(po, size, &amp;need_eom);</span>
+<span class="lineNum">      48 </span>            :         ASN_DEBUG(&quot;Prepending length %&quot; ASN_PRI_SSIZE
+<span class="lineNum">      49 </span>            :                   &quot; to %s and allowing to save %&quot; ASN_PRI_SSIZE,
+<span class="lineNum">      50 </span>            :                   size, td-&gt;name, may_save);
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :         if(may_save &lt; 0) break;</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :         if(per_put_many_bits(po, bptr, may_save * 8)) break;</span>
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :         bptr = (char *)bptr + may_save;</span>
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :         size -= may_save;</span>
+<span class="lineNum">      55 </span><span class="lineNoCov">          0 :         if(need_eom &amp;&amp; uper_put_length(po, 0, 0)) {</span>
+<span class="lineNum">      56 </span><span class="lineNoCov">          0 :             FREEMEM(buf);</span>
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 :             return -1;</span>
+<span class="lineNum">      58 </span>            :         }
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :     } while(size);</span>
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :     FREEMEM(buf);</span>
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 :     if(size) return -1;</span>
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :     return 0;</span>
+<span class="lineNum">      65 </span>            : }
+<a name="66"><span class="lineNum">      66 </span>            : </a>
+<span class="lineNum">      67 </span>            : static asn_dec_rval_t
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 : uper_open_type_get_simple(const asn_codec_ctx_t *ctx,</span>
+<span class="lineNum">      69 </span>            :                           const asn_TYPE_descriptor_t *td,
+<span class="lineNum">      70 </span>            :                           const asn_per_constraints_t *constraints, void **sptr,
+<span class="lineNum">      71 </span>            :                           asn_per_data_t *pd) {
+<span class="lineNum">      72 </span>            :     asn_dec_rval_t rv;
+<span class="lineNum">      73 </span>            :         ssize_t chunk_bytes;
+<span class="lineNum">      74 </span>            :         int repeat;
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :         uint8_t *buf = 0;</span>
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :         size_t bufLen = 0;</span>
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :         size_t bufSize = 0;</span>
+<span class="lineNum">      78 </span>            :         asn_per_data_t spd;
+<span class="lineNum">      79 </span>            :         size_t padding;
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :         ASN__STACK_OVERFLOW_CHECK(ctx);</span>
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span>            :         ASN_DEBUG(&quot;Getting open type %s...&quot;, td-&gt;name);
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span>            :         do {
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 :                 chunk_bytes = uper_get_length(pd, -1, 0, &amp;repeat);</span>
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :                 if(chunk_bytes &lt; 0) {</span>
+<span class="lineNum">      88 </span><span class="lineNoCov">          0 :                         FREEMEM(buf);</span>
+<span class="lineNum">      89 </span><span class="lineNoCov">          0 :                         ASN__DECODE_STARVED;</span>
+<span class="lineNum">      90 </span>            :                 }
+<span class="lineNum">      91 </span><span class="lineNoCov">          0 :                 if(bufLen + chunk_bytes &gt; bufSize) {</span>
+<span class="lineNum">      92 </span>            :                         void *ptr;
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :                         bufSize = chunk_bytes + (bufSize &lt;&lt; 2);</span>
+<span class="lineNum">      94 </span><span class="lineNoCov">          0 :                         ptr = REALLOC(buf, bufSize);</span>
+<span class="lineNum">      95 </span><span class="lineNoCov">          0 :                         if(!ptr) {</span>
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :                                 FREEMEM(buf);</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :                                 ASN__DECODE_FAILED;</span>
+<span class="lineNum">      98 </span>            :                         }
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :                         buf = ptr;</span>
+<span class="lineNum">     100 </span>            :                 }
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :                 if(per_get_many_bits(pd, buf + bufLen, 0, chunk_bytes &lt;&lt; 3)) {</span>
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :                         FREEMEM(buf);</span>
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :                         ASN__DECODE_STARVED;</span>
+<span class="lineNum">     104 </span>            :                 }
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :                 bufLen += chunk_bytes;</span>
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :         } while(repeat);</span>
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span>            :         ASN_DEBUG(&quot;Getting open type %s encoded in %ld bytes&quot;, td-&gt;name,
+<span class="lineNum">     109 </span>            :                 (long)bufLen);
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :         memset(&amp;spd, 0, sizeof(spd));</span>
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :         spd.buffer = buf;</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :         spd.nbits = bufLen &lt;&lt; 3;</span>
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span>            :         ASN_DEBUG_INDENT_ADD(+4);
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :         rv = td-&gt;op-&gt;uper_decoder(ctx, td, constraints, sptr, &amp;spd);</span>
+<span class="lineNum">     117 </span>            :         ASN_DEBUG_INDENT_ADD(-4);
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 :         if(rv.code == RC_OK) {</span>
+<span class="lineNum">     120 </span>            :                 /* Check padding validity */
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :                 padding = spd.nbits - spd.nboff;</span>
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :                 if (((padding &gt; 0 &amp;&amp; padding &lt; 8) ||</span>
+<span class="lineNum">     123 </span>            :                 /* X.691#10.1.3 */
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :                 (spd.nboff == 0 &amp;&amp; spd.nbits == 8 &amp;&amp; spd.buffer == buf)) &amp;&amp;</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :                     per_get_few_bits(&amp;spd, padding) == 0) {</span>
+<span class="lineNum">     126 </span>            :                         /* Everything is cool */
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :                         FREEMEM(buf);</span>
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :                         return rv;</span>
+<span class="lineNum">     129 </span>            :                 }
+<span class="lineNum">     130 </span><span class="lineNoCov">          0 :                 FREEMEM(buf);</span>
+<span class="lineNum">     131 </span><span class="lineNoCov">          0 :                 if(padding &gt;= 8) {</span>
+<span class="lineNum">     132 </span>            :                         ASN_DEBUG(&quot;Too large padding %d in open type&quot;, (int)padding);
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     134 </span>            :                 } else {
+<span class="lineNum">     135 </span>            :                         ASN_DEBUG(&quot;No padding&quot;);
+<span class="lineNum">     136 </span>            :                 }
+<span class="lineNum">     137 </span>            :         } else {
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :                 FREEMEM(buf);</span>
+<span class="lineNum">     139 </span>            :                 /* rv.code could be RC_WMORE, nonsense in this context */
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :                 rv.code = RC_FAIL; /* Noone would give us more */</span>
+<span class="lineNum">     141 </span>            :         }
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :         return rv;</span>
+<span class="lineNum">     144 </span>            : }
+<a name="145"><span class="lineNum">     145 </span>            : </a>
+<span class="lineNum">     146 </span>            : static asn_dec_rval_t CC_NOTUSED
+<span class="lineNum">     147 </span><span class="lineNoCov">          0 : uper_open_type_get_complex(const asn_codec_ctx_t *ctx,</span>
+<span class="lineNum">     148 </span>            :                            const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     149 </span>            :                            asn_per_constraints_t *constraints, void **sptr,
+<span class="lineNum">     150 </span>            :                            asn_per_data_t *pd) {
+<span class="lineNum">     151 </span>            :     uper_ugot_key arg;
+<span class="lineNum">     152 </span>            :         asn_dec_rval_t rv;
+<span class="lineNum">     153 </span>            :         ssize_t padding;
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span><span class="lineNoCov">          0 :         ASN__STACK_OVERFLOW_CHECK(ctx);</span>
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span>            :         ASN_DEBUG(&quot;Getting open type %s from %s&quot;, td-&gt;name,
+<span class="lineNum">     158 </span>            :                 asn_bit_data_string(pd));
+<span class="lineNum">     159 </span><span class="lineNoCov">          0 :         arg.oldpd = *pd;</span>
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :         arg.unclaimed = 0;</span>
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :         arg.ot_moved = 0;</span>
+<span class="lineNum">     162 </span><span class="lineNoCov">          0 :         arg.repeat = 1;</span>
+<span class="lineNum">     163 </span><span class="lineNoCov">          0 :         pd-&gt;refill = uper_ugot_refill;</span>
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 :         pd-&gt;refill_key = &amp;arg;</span>
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 :         pd-&gt;nbits = pd-&gt;nboff;    /* 0 good bits at this point, will refill */</span>
+<span class="lineNum">     166 </span><span class="lineNoCov">          0 :         pd-&gt;moved = 0;       /* This now counts the open type size in bits */</span>
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            :         ASN_DEBUG_INDENT_ADD(+4);
+<span class="lineNum">     169 </span><span class="lineNoCov">          0 :         rv = td-&gt;op-&gt;uper_decoder(ctx, td, constraints, sptr, pd);</span>
+<span class="lineNum">     170 </span>            :         ASN_DEBUG_INDENT_ADD(-4);
+<span class="lineNum">     171 </span>            : 
+<span class="lineNum">     172 </span>            : #define UPDRESTOREPD    do {                                            \
+<span class="lineNum">     173 </span>            :         /* buffer and nboff are valid, preserve them. */                \
+<span class="lineNum">     174 </span>            :         pd-&gt;nbits = arg.oldpd.nbits - (pd-&gt;moved - arg.ot_moved); \
+<span class="lineNum">     175 </span>            :         pd-&gt;moved = arg.oldpd.moved + (pd-&gt;moved - arg.ot_moved); \
+<span class="lineNum">     176 </span>            :         pd-&gt;refill = arg.oldpd.refill;                                       \
+<span class="lineNum">     177 </span>            :         pd-&gt;refill_key = arg.oldpd.refill_key;                               \
+<span class="lineNum">     178 </span>            :   } while(0)
+<span class="lineNum">     179 </span>            : 
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :         if(rv.code != RC_OK) {</span>
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :                 UPDRESTOREPD;</span>
+<span class="lineNum">     182 </span><span class="lineNoCov">          0 :                 return rv;</span>
+<span class="lineNum">     183 </span>            :         }
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span>            :         ASN_DEBUG(&quot;OpenType %s pd%s old%s unclaimed=%d, repeat=%d&quot;, td-&gt;name,
+<span class="lineNum">     186 </span>            :                 asn_bit_data_string(pd),
+<span class="lineNum">     187 </span>            :                 asn_bit_data_string(&amp;arg.oldpd),
+<span class="lineNum">     188 </span>            :                 (int)arg.unclaimed, (int)arg.repeat);
+<span class="lineNum">     189 </span>            : 
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 :         padding = pd-&gt;moved % 8;</span>
+<span class="lineNum">     191 </span><span class="lineNoCov">          0 :         if(padding) {</span>
+<span class="lineNum">     192 </span>            :                 int32_t pvalue;
+<span class="lineNum">     193 </span><span class="lineNoCov">          0 :                 if(padding &gt; 7) {</span>
+<span class="lineNum">     194 </span>            :                         ASN_DEBUG(&quot;Too large padding %d in open type&quot;,
+<span class="lineNum">     195 </span>            :                                 (int)padding);
+<span class="lineNum">     196 </span><span class="lineNoCov">          0 :                         rv.code = RC_FAIL;</span>
+<span class="lineNum">     197 </span><span class="lineNoCov">          0 :                         UPDRESTOREPD;</span>
+<span class="lineNum">     198 </span><span class="lineNoCov">          0 :                         return rv;</span>
+<span class="lineNum">     199 </span>            :                 }
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :                 padding = 8 - padding;</span>
+<span class="lineNum">     201 </span>            :                 ASN_DEBUG(&quot;Getting padding of %d bits&quot;, (int)padding);
+<span class="lineNum">     202 </span><span class="lineNoCov">          0 :                 pvalue = per_get_few_bits(pd, padding);</span>
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :                 switch(pvalue) {</span>
+<span class="lineNum">     204 </span>            :                 case -1:
+<span class="lineNum">     205 </span>            :                         ASN_DEBUG(&quot;Padding skip failed&quot;);
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :                         UPDRESTOREPD;</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :                         ASN__DECODE_STARVED;</span>
+<span class="lineNum">     208 </span><span class="lineNoCov">          0 :                 case 0: break;</span>
+<span class="lineNum">     209 </span>            :                 default:
+<span class="lineNum">     210 </span>            :                         ASN_DEBUG(&quot;Non-blank padding (%d bits 0x%02x)&quot;,
+<span class="lineNum">     211 </span>            :                                 (int)padding, (int)pvalue);
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :                         UPDRESTOREPD;</span>
+<span class="lineNum">     213 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     214 </span>            :                 }
+<span class="lineNum">     215 </span>            :         }
+<span class="lineNum">     216 </span><span class="lineNoCov">          0 :         if(pd-&gt;nboff != pd-&gt;nbits) {</span>
+<span class="lineNum">     217 </span>            :                 ASN_DEBUG(&quot;Open type %s overhead pd%s old%s&quot;, td-&gt;name,
+<span class="lineNum">     218 </span>            :                         asn_bit_data_string(pd), asn_bit_data_string(&amp;arg.oldpd));
+<span class="lineNum">     219 </span>            :                 if(1) {
+<span class="lineNum">     220 </span><span class="lineNoCov">          0 :                         UPDRESTOREPD;</span>
+<span class="lineNum">     221 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     222 </span>            :                 } else {
+<span class="lineNum">     223 </span>            :                         arg.unclaimed += pd-&gt;nbits - pd-&gt;nboff;
+<span class="lineNum">     224 </span>            :                 }
+<span class="lineNum">     225 </span>            :         }
+<span class="lineNum">     226 </span>            : 
+<span class="lineNum">     227 </span>            :         /* Adjust pd back so it points to original data */
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :         UPDRESTOREPD;</span>
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span>            :         /* Skip data not consumed by the decoder */
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :         if(arg.unclaimed) {</span>
+<span class="lineNum">     232 </span>            :                 ASN_DEBUG(&quot;Getting unclaimed %d&quot;, (int)arg.unclaimed);
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 :                 switch(per_skip_bits(pd, arg.unclaimed)) {</span>
+<span class="lineNum">     234 </span>            :                 case -1:
+<span class="lineNum">     235 </span>            :                         ASN_DEBUG(&quot;Claim of %d failed&quot;, (int)arg.unclaimed);
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :                         ASN__DECODE_STARVED;</span>
+<span class="lineNum">     237 </span>            :                 case 0:
+<span class="lineNum">     238 </span>            :                         ASN_DEBUG(&quot;Got claim of %d&quot;, (int)arg.unclaimed);
+<span class="lineNum">     239 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     240 </span>            :                 default:
+<span class="lineNum">     241 </span>            :                         /* Padding must be blank */
+<span class="lineNum">     242 </span>            :                         ASN_DEBUG(&quot;Non-blank unconsumed padding&quot;);
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     244 </span>            :                 }
+<span class="lineNum">     245 </span><span class="lineNoCov">          0 :                 arg.unclaimed = 0;</span>
+<span class="lineNum">     246 </span>            :         }
+<span class="lineNum">     247 </span>            : 
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :         if(arg.repeat) {</span>
+<span class="lineNum">     249 </span>            :                 ASN_DEBUG(&quot;Not consumed the whole thing&quot;);
+<span class="lineNum">     250 </span><span class="lineNoCov">          0 :                 rv.code = RC_FAIL;</span>
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :                 return rv;</span>
+<span class="lineNum">     252 </span>            :         }
+<span class="lineNum">     253 </span>            : 
+<span class="lineNum">     254 </span><span class="lineNoCov">          0 :         return rv;</span>
+<span class="lineNum">     255 </span>            : }
+<span class="lineNum">     256 </span>            : 
+<a name="257"><span class="lineNum">     257 </span>            : </a>
+<span class="lineNum">     258 </span>            : asn_dec_rval_t
+<span class="lineNum">     259 </span><span class="lineNoCov">          0 : uper_open_type_get(const asn_codec_ctx_t *ctx, const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     260 </span>            :                    const asn_per_constraints_t *constraints, void **sptr,
+<span class="lineNum">     261 </span>            :                    asn_per_data_t *pd) {
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 :     return uper_open_type_get_simple(ctx, td, constraints, sptr, pd);</span>
+<span class="lineNum">     263 </span>            : }
+<a name="264"><span class="lineNum">     264 </span>            : </a>
+<span class="lineNum">     265 </span>            : int
+<span class="lineNum">     266 </span><span class="lineNoCov">          0 : uper_open_type_skip(const asn_codec_ctx_t *ctx, asn_per_data_t *pd) {</span>
+<span class="lineNum">     267 </span>            :         asn_TYPE_descriptor_t s_td;
+<span class="lineNum">     268 </span>            :     asn_TYPE_operation_t s_op;
+<span class="lineNum">     269 </span>            :         asn_dec_rval_t rv;
+<span class="lineNum">     270 </span>            : 
+<span class="lineNum">     271 </span><span class="lineNoCov">          0 :         s_td.name = &quot;&lt;unknown extension&gt;&quot;;</span>
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :         s_td.op = &amp;s_op;</span>
+<span class="lineNum">     273 </span><span class="lineNoCov">          0 :     s_op.uper_decoder = uper_sot_suck;</span>
+<span class="lineNum">     274 </span>            : 
+<span class="lineNum">     275 </span><span class="lineNoCov">          0 :         rv = uper_open_type_get(ctx, &amp;s_td, 0, 0, pd);</span>
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 :         if(rv.code != RC_OK)</span>
+<span class="lineNum">     277 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     278 </span>            :         else
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :                 return 0;</span>
+<span class="lineNum">     280 </span>            : }
+<span class="lineNum">     281 </span>            : 
+<span class="lineNum">     282 </span>            : /*
+<span class="lineNum">     283 </span>            :  * Internal functions.
+<span class="lineNum">     284 </span>            :  */
+<a name="285"><span class="lineNum">     285 </span>            : </a>
+<span class="lineNum">     286 </span>            : static asn_dec_rval_t
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 : uper_sot_suck(const asn_codec_ctx_t *ctx, const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     288 </span>            :               const asn_per_constraints_t *constraints, void **sptr,
+<span class="lineNum">     289 </span>            :               asn_per_data_t *pd) {
+<span class="lineNum">     290 </span>            :     asn_dec_rval_t rv;
+<span class="lineNum">     291 </span>            : 
+<span class="lineNum">     292 </span>            :         (void)ctx;
+<span class="lineNum">     293 </span>            :         (void)td;
+<span class="lineNum">     294 </span>            :         (void)constraints;
+<span class="lineNum">     295 </span>            :         (void)sptr;
+<span class="lineNum">     296 </span>            : 
+<span class="lineNum">     297 </span><span class="lineNoCov">          0 :         while(per_get_few_bits(pd, 1) &gt;= 0);</span>
+<span class="lineNum">     298 </span>            : 
+<span class="lineNum">     299 </span><span class="lineNoCov">          0 :         rv.code = RC_OK;</span>
+<span class="lineNum">     300 </span><span class="lineNoCov">          0 :         rv.consumed = pd-&gt;moved;</span>
+<span class="lineNum">     301 </span>            : 
+<span class="lineNum">     302 </span><span class="lineNoCov">          0 :         return rv;</span>
+<span class="lineNum">     303 </span>            : }
+<a name="304"><span class="lineNum">     304 </span>            : </a>
+<span class="lineNum">     305 </span>            : static int
+<span class="lineNum">     306 </span><span class="lineNoCov">          0 : uper_ugot_refill(asn_per_data_t *pd) {</span>
+<span class="lineNum">     307 </span><span class="lineNoCov">          0 :         uper_ugot_key *arg = pd-&gt;refill_key;</span>
+<span class="lineNum">     308 </span>            :         ssize_t next_chunk_bytes, next_chunk_bits;
+<span class="lineNum">     309 </span>            :         ssize_t avail;
+<span class="lineNum">     310 </span>            : 
+<span class="lineNum">     311 </span><span class="lineNoCov">          0 :         asn_per_data_t *oldpd = &amp;arg-&gt;oldpd;</span>
+<span class="lineNum">     312 </span>            : 
+<span class="lineNum">     313 </span>            :         ASN_DEBUG(&quot;REFILLING pd-&gt;moved=%ld, oldpd-&gt;moved=%ld&quot;,
+<span class="lineNum">     314 </span>            :                 (long)pd-&gt;moved, (long)oldpd-&gt;moved);
+<span class="lineNum">     315 </span>            : 
+<span class="lineNum">     316 </span>            :         /* Advance our position to where pd is */
+<span class="lineNum">     317 </span><span class="lineNoCov">          0 :         oldpd-&gt;buffer = pd-&gt;buffer;</span>
+<span class="lineNum">     318 </span><span class="lineNoCov">          0 :         oldpd-&gt;nboff  = pd-&gt;nboff;</span>
+<span class="lineNum">     319 </span><span class="lineNoCov">          0 :         oldpd-&gt;nbits -= pd-&gt;moved - arg-&gt;ot_moved;</span>
+<span class="lineNum">     320 </span><span class="lineNoCov">          0 :         oldpd-&gt;moved += pd-&gt;moved - arg-&gt;ot_moved;</span>
+<span class="lineNum">     321 </span><span class="lineNoCov">          0 :         arg-&gt;ot_moved = pd-&gt;moved;</span>
+<span class="lineNum">     322 </span>            : 
+<span class="lineNum">     323 </span><span class="lineNoCov">          0 :         if(arg-&gt;unclaimed) {</span>
+<span class="lineNum">     324 </span>            :                 /* Refill the container */
+<span class="lineNum">     325 </span><span class="lineNoCov">          0 :                 if(per_get_few_bits(oldpd, 1))</span>
+<span class="lineNum">     326 </span><span class="lineNoCov">          0 :                         return -1;</span>
+<span class="lineNum">     327 </span><span class="lineNoCov">          0 :                 if(oldpd-&gt;nboff == 0) {</span>
+<span class="lineNum">     328 </span><span class="lineNoCov">          0 :                         assert(0);</span>
+<span class="lineNum">     329 </span>            :                         return -1;
+<span class="lineNum">     330 </span>            :                 }
+<span class="lineNum">     331 </span><span class="lineNoCov">          0 :                 pd-&gt;buffer = oldpd-&gt;buffer;</span>
+<span class="lineNum">     332 </span><span class="lineNoCov">          0 :                 pd-&gt;nboff = oldpd-&gt;nboff - 1;</span>
+<span class="lineNum">     333 </span><span class="lineNoCov">          0 :                 pd-&gt;nbits = oldpd-&gt;nbits;</span>
+<span class="lineNum">     334 </span>            :                 ASN_DEBUG(&quot;UNCLAIMED &lt;- return from (pd-&gt;moved=%ld)&quot;,
+<span class="lineNum">     335 </span>            :                         (long)pd-&gt;moved);
+<span class="lineNum">     336 </span><span class="lineNoCov">          0 :                 return 0;</span>
+<span class="lineNum">     337 </span>            :         }
+<span class="lineNum">     338 </span>            : 
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :         if(!arg-&gt;repeat) {</span>
+<span class="lineNum">     340 </span>            :                 ASN_DEBUG(&quot;Want more but refill doesn't have it&quot;);
+<span class="lineNum">     341 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     342 </span>            :         }
+<span class="lineNum">     343 </span>            : 
+<span class="lineNum">     344 </span><span class="lineNoCov">          0 :         next_chunk_bytes = uper_get_length(oldpd, -1, 0, &amp;arg-&gt;repeat);</span>
+<span class="lineNum">     345 </span>            :         ASN_DEBUG(&quot;Open type LENGTH %ld bytes at off %ld, repeat %ld&quot;,
+<span class="lineNum">     346 </span>            :                 (long)next_chunk_bytes, (long)oldpd-&gt;moved, (long)arg-&gt;repeat);
+<span class="lineNum">     347 </span><span class="lineNoCov">          0 :         if(next_chunk_bytes &lt; 0) return -1;</span>
+<span class="lineNum">     348 </span><span class="lineNoCov">          0 :         if(next_chunk_bytes == 0) {</span>
+<span class="lineNum">     349 </span><span class="lineNoCov">          0 :                 pd-&gt;refill = 0;      /* No more refills, naturally */</span>
+<span class="lineNum">     350 </span><span class="lineNoCov">          0 :                 assert(!arg-&gt;repeat);        /* Implementation guarantee */</span>
+<span class="lineNum">     351 </span>            :         }
+<span class="lineNum">     352 </span><span class="lineNoCov">          0 :         next_chunk_bits = next_chunk_bytes &lt;&lt; 3;</span>
+<span class="lineNum">     353 </span><span class="lineNoCov">          0 :         avail = oldpd-&gt;nbits - oldpd-&gt;nboff;</span>
+<span class="lineNum">     354 </span><span class="lineNoCov">          0 :         if(avail &gt;= next_chunk_bits) {</span>
+<span class="lineNum">     355 </span><span class="lineNoCov">          0 :                 pd-&gt;nbits = oldpd-&gt;nboff + next_chunk_bits;</span>
+<span class="lineNum">     356 </span><span class="lineNoCov">          0 :                 arg-&gt;unclaimed = 0;</span>
+<span class="lineNum">     357 </span>            :                 ASN_DEBUG(&quot;!+Parent frame %ld bits, alloting %ld [%ld..%ld] (%ld)&quot;,
+<span class="lineNum">     358 </span>            :                         (long)next_chunk_bits, (long)oldpd-&gt;moved,
+<span class="lineNum">     359 </span>            :                         (long)oldpd-&gt;nboff, (long)oldpd-&gt;nbits,
+<span class="lineNum">     360 </span>            :                         (long)(oldpd-&gt;nbits - oldpd-&gt;nboff));
+<span class="lineNum">     361 </span>            :         } else {
+<span class="lineNum">     362 </span><span class="lineNoCov">          0 :                 pd-&gt;nbits = oldpd-&gt;nbits;</span>
+<span class="lineNum">     363 </span><span class="lineNoCov">          0 :                 arg-&gt;unclaimed = next_chunk_bits - avail;</span>
+<span class="lineNum">     364 </span>            :                 ASN_DEBUG(&quot;!-Parent frame %ld, require %ld, will claim %ld&quot;,
+<span class="lineNum">     365 </span>            :                         (long)avail, (long)next_chunk_bits,
+<span class="lineNum">     366 </span>            :                         (long)arg-&gt;unclaimed);
+<span class="lineNum">     367 </span>            :         }
+<span class="lineNum">     368 </span><span class="lineNoCov">          0 :         pd-&gt;buffer = oldpd-&gt;buffer;</span>
+<span class="lineNum">     369 </span><span class="lineNoCov">          0 :         pd-&gt;nboff = oldpd-&gt;nboff;</span>
+<span class="lineNum">     370 </span>            :         ASN_DEBUG(&quot;Refilled pd%s old%s&quot;,
+<span class="lineNum">     371 </span>            :                 asn_bit_data_string(pd), asn_bit_data_string(oldpd));
+<span class="lineNum">     372 </span><span class="lineNoCov">          0 :         return 0;</span>
+<span class="lineNum">     373 </span>            : }
+<a name="374"><span class="lineNum">     374 </span>            : </a>
+<span class="lineNum">     375 </span>            : static int
+<span class="lineNum">     376 </span><span class="lineNoCov">          0 : per_skip_bits(asn_per_data_t *pd, int skip_nbits) {</span>
+<span class="lineNum">     377 </span><span class="lineNoCov">          0 :         int hasNonZeroBits = 0;</span>
+<span class="lineNum">     378 </span><span class="lineNoCov">          0 :         while(skip_nbits &gt; 0) {</span>
+<span class="lineNum">     379 </span>            :                 int skip;
+<span class="lineNum">     380 </span>            : 
+<span class="lineNum">     381 </span>            :                 /* per_get_few_bits() is more efficient when nbits &lt;= 24 */
+<span class="lineNum">     382 </span><span class="lineNoCov">          0 :                 if(skip_nbits &lt; 24)</span>
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :                         skip = skip_nbits;</span>
+<span class="lineNum">     384 </span>            :                 else
+<span class="lineNum">     385 </span><span class="lineNoCov">          0 :                         skip = 24;</span>
+<span class="lineNum">     386 </span><span class="lineNoCov">          0 :                 skip_nbits -= skip;</span>
+<span class="lineNum">     387 </span>            : 
+<span class="lineNum">     388 </span><span class="lineNoCov">          0 :                 switch(per_get_few_bits(pd, skip)) {</span>
+<span class="lineNum">     389 </span><span class="lineNoCov">          0 :                 case -1: return -1;     /* Starving */</span>
+<span class="lineNum">     390 </span><span class="lineNoCov">          0 :                 case 0: continue;       /* Skipped empty space */</span>
+<span class="lineNum">     391 </span><span class="lineNoCov">          0 :                 default: hasNonZeroBits = 1; continue;</span>
+<span class="lineNum">     392 </span>            :                 }
+<span class="lineNum">     393 </span>            :         }
+<span class="lineNum">     394 </span><span class="lineNoCov">          0 :         return hasNonZeroBits;</span>
+<span class="lineNum">     395 </span>            : }
+<a name="396"><span class="lineNum">     396 </span>            : </a>
+<span class="lineNum">     397 </span>            : static asn_dec_rval_t
+<span class="lineNum">     398 </span><span class="lineCov">         89 : aper_open_type_get_simple(const asn_codec_ctx_t *ctx,</span>
+<span class="lineNum">     399 </span>            :                           const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     400 </span>            :                           const asn_per_constraints_t *constraints, void **sptr, asn_per_data_t *pd) {
+<span class="lineNum">     401 </span>            :         asn_dec_rval_t rv;
+<span class="lineNum">     402 </span>            :         ssize_t chunk_bytes;
+<span class="lineNum">     403 </span>            :         int repeat;
+<span class="lineNum">     404 </span><span class="lineCov">         89 :         uint8_t *buf = 0;</span>
+<span class="lineNum">     405 </span><span class="lineCov">         89 :         size_t bufLen = 0;</span>
+<span class="lineNum">     406 </span><span class="lineCov">         89 :         size_t bufSize = 0;</span>
+<span class="lineNum">     407 </span>            :         asn_per_data_t spd;
+<span class="lineNum">     408 </span>            :         size_t padding;
+<span class="lineNum">     409 </span>            : 
+<span class="lineNum">     410 </span><span class="lineCov">         89 :         ASN__STACK_OVERFLOW_CHECK(ctx);</span>
+<span class="lineNum">     411 </span>            : 
+<span class="lineNum">     412 </span>            :         ASN_DEBUG(&quot;Getting open type %s...&quot;, td-&gt;name);
+<span class="lineNum">     413 </span>            : 
+<span class="lineNum">     414 </span>            :         do {
+<span class="lineNum">     415 </span><span class="lineCov">         89 :                 chunk_bytes = aper_get_length(pd, -1, -1, &amp;repeat);</span>
+<span class="lineNum">     416 </span><span class="lineCov">         89 :                 if(chunk_bytes &lt; 0) {</span>
+<span class="lineNum">     417 </span><span class="lineNoCov">          0 :                         FREEMEM(buf);</span>
+<span class="lineNum">     418 </span><span class="lineNoCov">          0 :                         ASN__DECODE_STARVED;</span>
+<span class="lineNum">     419 </span>            :                 }
+<span class="lineNum">     420 </span><span class="lineCov">         89 :                 if(bufLen + chunk_bytes &gt; bufSize) {</span>
+<span class="lineNum">     421 </span>            :                         void *ptr;
+<span class="lineNum">     422 </span><span class="lineCov">         89 :                         bufSize = chunk_bytes + (bufSize &lt;&lt; 2);</span>
+<span class="lineNum">     423 </span><span class="lineCov">         89 :                         ptr = REALLOC(buf, bufSize);</span>
+<span class="lineNum">     424 </span><span class="lineCov">         89 :                         if(!ptr) {</span>
+<span class="lineNum">     425 </span><span class="lineNoCov">          0 :                                 FREEMEM(buf);</span>
+<span class="lineNum">     426 </span><span class="lineNoCov">          0 :                                 ASN__DECODE_FAILED;</span>
+<span class="lineNum">     427 </span>            :                         }
+<span class="lineNum">     428 </span><span class="lineCov">         89 :                         buf = ptr;</span>
+<span class="lineNum">     429 </span>            :                 }
+<span class="lineNum">     430 </span><span class="lineCov">         89 :                 if(per_get_many_bits(pd, buf + bufLen, 0, chunk_bytes &lt;&lt; 3)) {</span>
+<span class="lineNum">     431 </span><span class="lineNoCov">          0 :                         FREEMEM(buf);</span>
+<span class="lineNum">     432 </span><span class="lineNoCov">          0 :                         ASN__DECODE_STARVED;</span>
+<span class="lineNum">     433 </span>            :                 }
+<span class="lineNum">     434 </span><span class="lineCov">         89 :                 bufLen += chunk_bytes;</span>
+<span class="lineNum">     435 </span><span class="lineCov">         89 :         } while(repeat);</span>
+<span class="lineNum">     436 </span>            : 
+<span class="lineNum">     437 </span>            :         ASN_DEBUG(&quot;Getting open type %s encoded in %ld bytes&quot;, td-&gt;name,
+<span class="lineNum">     438 </span>            :                 (long)bufLen);
+<span class="lineNum">     439 </span>            : 
+<span class="lineNum">     440 </span><span class="lineCov">         89 :         memset(&amp;spd, 0, sizeof(spd));</span>
+<span class="lineNum">     441 </span><span class="lineCov">         89 :         spd.buffer = buf;</span>
+<span class="lineNum">     442 </span><span class="lineCov">         89 :         spd.nbits = bufLen &lt;&lt; 3;</span>
+<span class="lineNum">     443 </span>            : 
+<span class="lineNum">     444 </span>            :         ASN_DEBUG_INDENT_ADD(+4);
+<span class="lineNum">     445 </span><span class="lineCov">         89 :         rv = td-&gt;op-&gt;aper_decoder(ctx, td, constraints, sptr, &amp;spd);</span>
+<span class="lineNum">     446 </span>            :         ASN_DEBUG_INDENT_ADD(-4);
+<span class="lineNum">     447 </span>            : 
+<span class="lineNum">     448 </span><span class="lineCov">         89 :         if(rv.code == RC_OK) {</span>
+<span class="lineNum">     449 </span>            :                 /* Check padding validity */
+<span class="lineNum">     450 </span><span class="lineCov">         89 :                 padding = spd.nbits - spd.nboff;</span>
+<span class="lineNum">     451 </span><span class="lineCov">        164 :                 if (((padding &gt; 0 &amp;&amp; padding &lt; 8) ||</span>
+<span class="lineNum">     452 </span>            :                 /* X.691#10.1.3 */
+<span class="lineNum">     453 </span><span class="lineCov">         89 :                 (spd.nboff == 0 &amp;&amp; spd.nbits == 8 &amp;&amp; spd.buffer == buf)) &amp;&amp;</span>
+<span class="lineNum">     454 </span><span class="lineCov">         14 :                     per_get_few_bits(&amp;spd, padding) == 0) {</span>
+<span class="lineNum">     455 </span>            :                         /* Everything is cool */
+<span class="lineNum">     456 </span><span class="lineCov">         14 :                         FREEMEM(buf);</span>
+<span class="lineNum">     457 </span><span class="lineCov">         14 :                         return rv;</span>
+<span class="lineNum">     458 </span>            :                 }
+<span class="lineNum">     459 </span><span class="lineCov">         75 :                 FREEMEM(buf);</span>
+<span class="lineNum">     460 </span><span class="lineCov">         75 :                 if(padding &gt;= 8) {</span>
+<span class="lineNum">     461 </span>            :                         ASN_DEBUG(&quot;Too large padding %d in open type&quot;, (int)padding);
+<span class="lineNum">     462 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     463 </span>            :                 } else {
+<span class="lineNum">     464 </span>            :                         ASN_DEBUG(&quot;No padding&quot;);
+<span class="lineNum">     465 </span>            :                 }
+<span class="lineNum">     466 </span>            :         } else {
+<span class="lineNum">     467 </span><span class="lineNoCov">          0 :                 FREEMEM(buf);</span>
+<span class="lineNum">     468 </span>            :                 /* rv.code could be RC_WMORE, nonsense in this context */
+<span class="lineNum">     469 </span><span class="lineNoCov">          0 :                 rv.code = RC_FAIL; /* Noone would give us more */</span>
+<span class="lineNum">     470 </span>            :         }
+<span class="lineNum">     471 </span>            : 
+<span class="lineNum">     472 </span><span class="lineCov">         75 :         return rv;</span>
+<span class="lineNum">     473 </span>            : }
+<a name="474"><span class="lineNum">     474 </span>            : </a>
+<span class="lineNum">     475 </span>            : int
+<span class="lineNum">     476 </span><span class="lineCov">         53 : aper_open_type_put(const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     477 </span>            :                    const asn_per_constraints_t *constraints,
+<span class="lineNum">     478 </span>            :                    const void *sptr, asn_per_outp_t *po) {
+<span class="lineNum">     479 </span>            :         void *buf;
+<span class="lineNum">     480 </span>            :         void *bptr;
+<span class="lineNum">     481 </span>            :         ssize_t size;
+<span class="lineNum">     482 </span>            :         size_t toGo;
+<span class="lineNum">     483 </span>            : 
+<span class="lineNum">     484 </span>            :         ASN_DEBUG(&quot;Open type put %s ...&quot;, td-&gt;name);
+<span class="lineNum">     485 </span>            : 
+<span class="lineNum">     486 </span><span class="lineCov">         53 :         size = aper_encode_to_new_buffer(td, constraints, sptr, &amp;buf);</span>
+<span class="lineNum">     487 </span><span class="lineCov">         53 :         if(size &lt;= 0) return -1;</span>
+<span class="lineNum">     488 </span>            : 
+<span class="lineNum">     489 </span><span class="lineCov">        159 :         for(bptr = buf, toGo = size; toGo;) {</span>
+<span class="lineNum">     490 </span><span class="lineCov">         53 :                 ssize_t maySave = aper_put_length(po, -1, toGo);</span>
+<span class="lineNum">     491 </span><span class="lineCov">         53 :                 if(maySave &lt; 0) break;</span>
+<span class="lineNum">     492 </span><span class="lineCov">         53 :                 if(per_put_many_bits(po, bptr, maySave * 8)) break;</span>
+<span class="lineNum">     493 </span><span class="lineCov">         53 :                 bptr = (char *)bptr + maySave;</span>
+<span class="lineNum">     494 </span><span class="lineCov">         53 :                 toGo -= maySave;</span>
+<span class="lineNum">     495 </span>            :         }
+<span class="lineNum">     496 </span>            : 
+<span class="lineNum">     497 </span><span class="lineCov">         53 :         FREEMEM(buf);</span>
+<span class="lineNum">     498 </span><span class="lineCov">         53 :         if(toGo) return -1;</span>
+<span class="lineNum">     499 </span>            : 
+<span class="lineNum">     500 </span>            :         ASN_DEBUG(&quot;Open type put %s of length %ld + overhead (1byte?)&quot;,
+<span class="lineNum">     501 </span>            :                           td-&gt;name, size);
+<span class="lineNum">     502 </span>            : 
+<span class="lineNum">     503 </span><span class="lineCov">         53 :         return 0;</span>
+<span class="lineNum">     504 </span>            : }
+<a name="505"><span class="lineNum">     505 </span>            : </a>
+<span class="lineNum">     506 </span>            : asn_dec_rval_t
+<span class="lineNum">     507 </span><span class="lineCov">         89 : aper_open_type_get(const asn_codec_ctx_t *ctx,</span>
+<span class="lineNum">     508 </span>            :                    const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     509 </span>            :                    const asn_per_constraints_t *constraints,
+<span class="lineNum">     510 </span>            :                    void **sptr, asn_per_data_t *pd) {
+<span class="lineNum">     511 </span>            : 
+<span class="lineNum">     512 </span><span class="lineCov">         89 :         return aper_open_type_get_simple(ctx, td, constraints, sptr, pd);</span>
+<span class="lineNum">     513 </span>            : }
+<a name="514"><span class="lineNum">     514 </span>            : </a>
+<span class="lineNum">     515 </span>            : int
+<span class="lineNum">     516 </span><span class="lineNoCov">          0 : aper_open_type_skip(const asn_codec_ctx_t *ctx, asn_per_data_t *pd) {</span>
+<span class="lineNum">     517 </span>            :         asn_TYPE_descriptor_t s_td;
+<span class="lineNum">     518 </span>            :         asn_dec_rval_t rv;
+<span class="lineNum">     519 </span>            :         asn_TYPE_operation_t op_t;
+<span class="lineNum">     520 </span>            : 
+<span class="lineNum">     521 </span><span class="lineNoCov">          0 :         memset(&amp;op_t, 0, sizeof(op_t));</span>
+<span class="lineNum">     522 </span><span class="lineNoCov">          0 :         s_td.name = &quot;&lt;unknown extension&gt;&quot;;</span>
+<span class="lineNum">     523 </span><span class="lineNoCov">          0 :         s_td.op = &amp;op_t;</span>
+<span class="lineNum">     524 </span><span class="lineNoCov">          0 :         s_td.op-&gt;aper_decoder = uper_sot_suck;</span>
+<span class="lineNum">     525 </span>            : 
+<span class="lineNum">     526 </span><span class="lineNoCov">          0 :         rv = aper_open_type_get(ctx, &amp;s_td, 0, 0, pd);</span>
+<span class="lineNum">     527 </span><span class="lineNoCov">          0 :         if(rv.code != RC_OK)</span>
+<span class="lineNum">     528 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     529 </span>            :         else
+<span class="lineNum">     530 </span><span class="lineNoCov">          0 :                 return 0;</span>
+<span class="lineNum">     531 </span>            : }
+<span class="lineNum">     532 </span>            : 
+<span class="lineNum">     533 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

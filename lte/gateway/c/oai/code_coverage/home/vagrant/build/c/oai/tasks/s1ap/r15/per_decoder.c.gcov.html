@@ -1,0 +1,261 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/per_decoder.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - per_decoder.c<span style="font-size: 80%;"> (source / <a href="per_decoder.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">20</td>
+            <td class="headerCovTableEntry">78</td>
+            <td class="headerCovTableEntryLo">25.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryLo">25.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #include &lt;asn_application.h&gt;</a>
+<span class="lineNum">       2 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       3 </span>            : #include &lt;per_decoder.h&gt;
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : /*
+<span class="lineNum">       6 </span>            :  * Decode a &quot;Production of a complete encoding&quot;, X.691#10.1.
+<span class="lineNum">       7 </span>            :  * The complete encoding contains at least one byte, and is an integral
+<span class="lineNum">       8 </span>            :  * multiple of 8 bytes.
+<a name="9"><span class="lineNum">       9 </span>            :  */</a>
+<span class="lineNum">      10 </span>            : asn_dec_rval_t
+<span class="lineNum">      11 </span><span class="lineNoCov">          0 : uper_decode_complete(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      12 </span>            :                      const asn_TYPE_descriptor_t *td, void **sptr,
+<span class="lineNum">      13 </span>            :                      const void *buffer, size_t size) {
+<span class="lineNum">      14 </span>            :     asn_dec_rval_t rval;
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span><span class="lineNoCov">          0 :         rval = uper_decode(opt_codec_ctx, td, sptr, buffer, size, 0, 0);</span>
+<span class="lineNum">      17 </span><span class="lineNoCov">          0 :         if(rval.consumed) {</span>
+<span class="lineNum">      18 </span>            :                 /*
+<span class="lineNum">      19 </span>            :                  * We've always given 8-aligned data,
+<span class="lineNum">      20 </span>            :                  * so convert bits to integral bytes.
+<span class="lineNum">      21 </span>            :                  */
+<span class="lineNum">      22 </span><span class="lineNoCov">          0 :                 rval.consumed += 7;</span>
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 :                 rval.consumed &gt;&gt;= 3;</span>
+<span class="lineNum">      24 </span><span class="lineNoCov">          0 :         } else if(rval.code == RC_OK) {</span>
+<span class="lineNum">      25 </span><span class="lineNoCov">          0 :                 if(size) {</span>
+<span class="lineNum">      26 </span><span class="lineNoCov">          0 :                         if(((const uint8_t *)buffer)[0] == 0) {</span>
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 :                                 rval.consumed = 1;      /* 1 byte */</span>
+<span class="lineNum">      28 </span>            :                         } else {
+<span class="lineNum">      29 </span>            :                                 ASN_DEBUG(&quot;Expecting single zeroed byte&quot;);
+<span class="lineNum">      30 </span><span class="lineNoCov">          0 :                                 rval.code = RC_FAIL;</span>
+<span class="lineNum">      31 </span>            :                         }
+<span class="lineNum">      32 </span>            :                 } else {
+<span class="lineNum">      33 </span>            :                         /* Must contain at least 8 bits. */
+<span class="lineNum">      34 </span><span class="lineNoCov">          0 :                         rval.code = RC_WMORE;</span>
+<span class="lineNum">      35 </span>            :                 }
+<span class="lineNum">      36 </span>            :         }
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">      39 </span>            : }
+<a name="40"><span class="lineNum">      40 </span>            : </a>
+<span class="lineNum">      41 </span>            : asn_dec_rval_t
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 : uper_decode(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      43 </span>            :             const asn_TYPE_descriptor_t *td, void **sptr, const void *buffer,
+<span class="lineNum">      44 </span>            :             size_t size, int skip_bits, int unused_bits) {
+<span class="lineNum">      45 </span>            :     asn_codec_ctx_t s_codec_ctx;
+<span class="lineNum">      46 </span>            :         asn_dec_rval_t rval;
+<span class="lineNum">      47 </span>            :         asn_per_data_t pd;
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :         if(skip_bits &lt; 0 || skip_bits &gt; 7</span>
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 :         || unused_bits &lt; 0 || unused_bits &gt; 7</span>
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :         || (unused_bits &gt; 0 &amp;&amp; !size))</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :                 ASN__DECODE_FAILED;</span>
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span>            :         /*
+<span class="lineNum">      55 </span>            :          * Stack checker requires that the codec context
+<span class="lineNum">      56 </span>            :          * must be allocated on the stack.
+<span class="lineNum">      57 </span>            :          */
+<span class="lineNum">      58 </span><span class="lineNoCov">          0 :         if(opt_codec_ctx) {</span>
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :                 if(opt_codec_ctx-&gt;max_stack_size) {</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :                         s_codec_ctx = *opt_codec_ctx;</span>
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :                         opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">      62 </span>            :                 }
+<span class="lineNum">      63 </span>            :         } else {
+<span class="lineNum">      64 </span>            :                 /* If context is not given, be security-conscious anyway */
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :                 memset(&amp;s_codec_ctx, 0, sizeof(s_codec_ctx));</span>
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :                 s_codec_ctx.max_stack_size = ASN__DEFAULT_STACK_MAX;</span>
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :                 opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">      68 </span>            :         }
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            :         /* Fill in the position indicator */
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 :         memset(&amp;pd, 0, sizeof(pd));</span>
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :         pd.buffer = (const uint8_t *)buffer;</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :         pd.nboff = skip_bits;</span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :         pd.nbits = 8 * size - unused_bits; /* 8 is CHAR_BIT from &lt;limits.h&gt; */</span>
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :         if(pd.nboff &gt; pd.nbits)</span>
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :                 ASN__DECODE_FAILED;</span>
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            :         /*
+<span class="lineNum">      79 </span>            :          * Invoke type-specific decoder.
+<span class="lineNum">      80 </span>            :          */
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :         if(!td-&gt;op-&gt;uper_decoder)</span>
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :                 ASN__DECODE_FAILED;     /* PER is not compiled in */</span>
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :         rval = td-&gt;op-&gt;uper_decoder(opt_codec_ctx, td, 0, sptr, &amp;pd);</span>
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 :         if(rval.code == RC_OK) {</span>
+<span class="lineNum">      85 </span>            :                 /* Return the number of consumed bits */
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 :                 rval.consumed = ((pd.buffer - (const uint8_t *)buffer) &lt;&lt; 3)</span>
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :                                         + pd.nboff - skip_bits;</span>
+<span class="lineNum">      88 </span>            :                 ASN_DEBUG(&quot;PER decoding consumed %ld, counted %ld&quot;,
+<span class="lineNum">      89 </span>            :                         (long)rval.consumed, (long)pd.moved);
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :                 assert(rval.consumed == pd.moved);</span>
+<span class="lineNum">      91 </span>            :         } else {
+<span class="lineNum">      92 </span>            :                 /* PER codec is not a restartable */
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :                 rval.consumed = 0;</span>
+<span class="lineNum">      94 </span>            :         }
+<span class="lineNum">      95 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">      96 </span>            : }
+<a name="97"><span class="lineNum">      97 </span>            : </a>
+<span class="lineNum">      98 </span>            : asn_dec_rval_t
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 : aper_decode_complete(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     100 </span>            :                      const asn_TYPE_descriptor_t *td, void **sptr,
+<span class="lineNum">     101 </span>            :                      const void *buffer, size_t size) {
+<span class="lineNum">     102 </span>            :         asn_dec_rval_t rval;
+<span class="lineNum">     103 </span>            : 
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :         rval = aper_decode(opt_codec_ctx, td, sptr, buffer, size, 0, 0);</span>
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :         if(rval.consumed) {</span>
+<span class="lineNum">     106 </span>            :                 /*
+<span class="lineNum">     107 </span>            :                  * We've always given 8-aligned data,
+<span class="lineNum">     108 </span>            :                  * so convert bits to integral bytes.
+<span class="lineNum">     109 </span>            :                  */
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :                 rval.consumed += 7;</span>
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :                 rval.consumed &gt;&gt;= 3;</span>
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :         } else if(rval.code == RC_OK) {</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :                 if(size) {</span>
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :                         if(((const uint8_t *)buffer)[0] == 0) {</span>
+<span class="lineNum">     115 </span><span class="lineNoCov">          0 :                                 rval.consumed = 1;      /* 1 byte */</span>
+<span class="lineNum">     116 </span>            :                         } else {
+<span class="lineNum">     117 </span>            :                                 ASN_DEBUG(&quot;Expecting single zeroed byte&quot;);
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 :                                 rval.code = RC_FAIL;</span>
+<span class="lineNum">     119 </span>            :                         }
+<span class="lineNum">     120 </span>            :                 } else {
+<span class="lineNum">     121 </span>            :                         /* Must contain at least 8 bits. */
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :                         rval.code = RC_WMORE;</span>
+<span class="lineNum">     123 </span>            :                 }
+<span class="lineNum">     124 </span>            :         }
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">     127 </span>            : }
+<a name="128"><span class="lineNum">     128 </span>            : </a>
+<span class="lineNum">     129 </span>            : asn_dec_rval_t
+<span class="lineNum">     130 </span><span class="lineCov">         17 : aper_decode(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     131 </span>            :             const asn_TYPE_descriptor_t *td, void **sptr, const void *buffer,
+<span class="lineNum">     132 </span>            :             size_t size, int skip_bits, int unused_bits) {
+<span class="lineNum">     133 </span>            :         asn_codec_ctx_t s_codec_ctx;
+<span class="lineNum">     134 </span>            :         asn_dec_rval_t rval;
+<span class="lineNum">     135 </span>            :         asn_per_data_t pd;
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span><span class="lineCov">         17 :         if(skip_bits &lt; 0 || skip_bits &gt; 7</span>
+<span class="lineNum">     138 </span><span class="lineCov">         17 :                 || unused_bits &lt; 0 || unused_bits &gt; 7</span>
+<span class="lineNum">     139 </span><span class="lineCov">         17 :                 || (unused_bits &gt; 0 &amp;&amp; !size))</span>
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :                 ASN__DECODE_FAILED;</span>
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            :         /*
+<span class="lineNum">     143 </span>            :          * Stack checker requires that the codec context
+<span class="lineNum">     144 </span>            :          * must be allocated on the stack.
+<span class="lineNum">     145 </span>            :          */
+<span class="lineNum">     146 </span><span class="lineCov">         17 :         if(opt_codec_ctx) {</span>
+<span class="lineNum">     147 </span><span class="lineNoCov">          0 :                 if(opt_codec_ctx-&gt;max_stack_size) {</span>
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :                         s_codec_ctx = *opt_codec_ctx;</span>
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :                         opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">     150 </span>            :                 }
+<span class="lineNum">     151 </span>            :         } else {
+<span class="lineNum">     152 </span>            :                 /* If context is not given, be security-conscious anyway */
+<span class="lineNum">     153 </span><span class="lineCov">         17 :                 memset(&amp;s_codec_ctx, 0, sizeof(s_codec_ctx));</span>
+<span class="lineNum">     154 </span><span class="lineCov">         17 :                 s_codec_ctx.max_stack_size = ASN__DEFAULT_STACK_MAX;</span>
+<span class="lineNum">     155 </span><span class="lineCov">         17 :                 opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">     156 </span>            :         }
+<span class="lineNum">     157 </span>            : 
+<span class="lineNum">     158 </span>            :         /* Fill in the position indicator */
+<span class="lineNum">     159 </span><span class="lineCov">         17 :         memset(&amp;pd, 0, sizeof(pd));</span>
+<span class="lineNum">     160 </span><span class="lineCov">         17 :         pd.buffer = (const uint8_t *)buffer;</span>
+<span class="lineNum">     161 </span><span class="lineCov">         17 :         pd.nboff = skip_bits;</span>
+<span class="lineNum">     162 </span><span class="lineCov">         17 :         pd.nbits = 8 * size - unused_bits; /* 8 is CHAR_BIT from &lt;limits.h&gt; */</span>
+<span class="lineNum">     163 </span><span class="lineCov">         17 :         if(pd.nboff &gt; pd.nbits)</span>
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 :                 ASN__DECODE_FAILED;</span>
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span>            :         /*
+<span class="lineNum">     167 </span>            :          * Invoke type-specific decoder.
+<span class="lineNum">     168 </span>            :          */
+<span class="lineNum">     169 </span><span class="lineCov">         17 :         if(!td-&gt;op-&gt;aper_decoder)</span>
+<span class="lineNum">     170 </span><span class="lineNoCov">          0 :                 ASN__DECODE_FAILED;     /* PER is not compiled in */</span>
+<span class="lineNum">     171 </span><span class="lineCov">         17 :                 rval = td-&gt;op-&gt;aper_decoder(opt_codec_ctx, td, 0, sptr, &amp;pd);</span>
+<span class="lineNum">     172 </span><span class="lineCov">         17 :         if(rval.code == RC_OK) {</span>
+<span class="lineNum">     173 </span>            :                 /* Return the number of consumed bits */
+<span class="lineNum">     174 </span><span class="lineCov">         34 :                 rval.consumed = ((pd.buffer - (const uint8_t *)buffer) &lt;&lt; 3)</span>
+<span class="lineNum">     175 </span><span class="lineCov">         17 :                 + pd.nboff - skip_bits;</span>
+<span class="lineNum">     176 </span>            :                 ASN_DEBUG(&quot;PER decoding consumed %zu, counted %zu&quot;,
+<span class="lineNum">     177 </span>            :                                   rval.consumed, pd.moved);
+<span class="lineNum">     178 </span><span class="lineCov">         17 :                 assert(rval.consumed == pd.moved);</span>
+<span class="lineNum">     179 </span>            :         } else {
+<span class="lineNum">     180 </span>            :                 /* PER codec is not a restartable */
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :                 rval.consumed = 0;</span>
+<span class="lineNum">     182 </span>            :         }
+<span class="lineNum">     183 </span><span class="lineCov">         17 :         return rval;</span>
+<span class="lineNum">     184 </span>            : }
+<span class="lineNum">     185 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

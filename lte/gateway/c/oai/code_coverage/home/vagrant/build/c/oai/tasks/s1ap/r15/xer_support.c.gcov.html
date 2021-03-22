@@ -1,0 +1,303 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/xer_support.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - xer_support.c<span style="font-size: 80%;"> (source / <a href="xer_support.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">70</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2003, 2004 X/IO Labs, xiolabs.com.
+<span class="lineNum">       3 </span>            :  * Copyright (c) 2003, 2004, 2005 Lev Walkin &lt;vlm@lionet.info&gt;.
+<span class="lineNum">       4 </span>            :  *      All rights reserved.
+<span class="lineNum">       5 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       6 </span>            :  */
+<span class="lineNum">       7 </span>            : #include &lt;asn_system.h&gt;
+<span class="lineNum">       8 </span>            : #include &lt;xer_support.h&gt;
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : /* Parser states */
+<span class="lineNum">      11 </span>            : typedef enum {
+<span class="lineNum">      12 </span>            :         ST_TEXT,
+<span class="lineNum">      13 </span>            :         ST_TAG_START,
+<span class="lineNum">      14 </span>            :         ST_TAG_BODY,
+<span class="lineNum">      15 </span>            :         ST_TAG_QUOTE_WAIT,
+<span class="lineNum">      16 </span>            :         ST_TAG_QUOTED_STRING,
+<span class="lineNum">      17 </span>            :         ST_TAG_UNQUOTED_STRING,
+<span class="lineNum">      18 </span>            :         ST_COMMENT_WAIT_DASH1,  /* &quot;&lt;!--&quot;[1] */
+<span class="lineNum">      19 </span>            :         ST_COMMENT_WAIT_DASH2,  /* &quot;&lt;!--&quot;[2] */
+<span class="lineNum">      20 </span>            :         ST_COMMENT,
+<span class="lineNum">      21 </span>            :         ST_COMMENT_CLO_DASH2,   /* &quot;--&gt;&quot;[0] */
+<span class="lineNum">      22 </span>            :         ST_COMMENT_CLO_RT       /* &quot;--&gt;&quot;[1] */
+<span class="lineNum">      23 </span>            : } pstate_e;
+<span class="lineNum">      24 </span>            : 
+<span class="lineNum">      25 </span>            : static const int
+<span class="lineNum">      26 </span>            : _charclass[256] = {
+<span class="lineNum">      27 </span>            :         0,0,0,0,0,0,0,0, 0,1,1,0,1,1,0,0,
+<span class="lineNum">      28 </span>            :         0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+<span class="lineNum">      29 </span>            :         1,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+<span class="lineNum">      30 </span>            :         2,2,2,2,2,2,2,2, 2,2,0,0,0,0,0,0,       /* 01234567 89       */
+<span class="lineNum">      31 </span>            :         0,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,       /*  ABCDEFG HIJKLMNO */
+<span class="lineNum">      32 </span>            :         3,3,3,3,3,3,3,3, 3,3,3,0,0,0,0,0,       /* PQRSTUVW XYZ      */
+<span class="lineNum">      33 </span>            :         0,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,       /*  abcdefg hijklmno */
+<span class="lineNum">      34 </span>            :         3,3,3,3,3,3,3,3, 3,3,3,0,0,0,0,0        /* pqrstuvw xyz      */
+<span class="lineNum">      35 </span>            : };
+<span class="lineNum">      36 </span>            : #define WHITESPACE(c)   (_charclass[(unsigned char)(c)] == 1)
+<span class="lineNum">      37 </span>            : #define ALNUM(c)        (_charclass[(unsigned char)(c)] &gt;= 2)
+<span class="lineNum">      38 </span>            : #define ALPHA(c)        (_charclass[(unsigned char)(c)] == 3)
+<span class="lineNum">      39 </span>            : 
+<span class="lineNum">      40 </span>            : /* Aliases for characters, ASCII/UTF-8 */
+<span class="lineNum">      41 </span>            : #define EXCLAM  0x21    /* '!' */
+<span class="lineNum">      42 </span>            : #define CQUOTE  0x22    /* '&quot;' */
+<span class="lineNum">      43 </span>            : #define CDASH   0x2d    /* '-' */
+<span class="lineNum">      44 </span>            : #define CSLASH  0x2f    /* '/' */
+<span class="lineNum">      45 </span>            : #define LANGLE  0x3c    /* '&lt;' */
+<span class="lineNum">      46 </span>            : #define CEQUAL  0x3d    /* '=' */
+<span class="lineNum">      47 </span>            : #define RANGLE  0x3e    /* '&gt;' */
+<span class="lineNum">      48 </span>            : #define CQUEST  0x3f    /* '?' */
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            : /* Invoke token callback */
+<span class="lineNum">      51 </span>            : #define TOKEN_CB_CALL(type, _ns, _current_too, _final) do {     \
+<span class="lineNum">      52 </span>            :                 int _ret;                                       \
+<span class="lineNum">      53 </span>            :                 pstate_e ns  = _ns;                             \
+<span class="lineNum">      54 </span>            :                 ssize_t _sz = (p - chunk_start) + _current_too; \
+<span class="lineNum">      55 </span>            :                 if (!_sz) {                                     \
+<span class="lineNum">      56 </span>            :                         /* Shortcut */                          \
+<span class="lineNum">      57 </span>            :                         state = _ns;                            \
+<span class="lineNum">      58 </span>            :                         break;                                  \
+<span class="lineNum">      59 </span>            :                 }                                               \
+<span class="lineNum">      60 </span>            :                 _ret = cb(type, chunk_start, _sz, key);         \
+<span class="lineNum">      61 </span>            :                 if(_ret &lt; _sz) {                             \
+<span class="lineNum">      62 </span>            :                         if(_current_too &amp;&amp; _ret == -1)          \
+<span class="lineNum">      63 </span>            :                                 state = ns;                     \
+<span class="lineNum">      64 </span>            :                         goto finish;                            \
+<span class="lineNum">      65 </span>            :                 }                                               \
+<span class="lineNum">      66 </span>            :                 chunk_start = p + _current_too;                 \
+<span class="lineNum">      67 </span>            :                 state = ns;                                     \
+<span class="lineNum">      68 </span>            :         } while(0)
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : #define TOKEN_CB(_type, _ns, _current_too)                      \
+<span class="lineNum">      71 </span>            :         TOKEN_CB_CALL(_type, _ns, _current_too, 0)
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            : #define PXML_TAG_FINAL_CHUNK_TYPE      PXML_TAG_END
+<span class="lineNum">      74 </span>            : #define PXML_COMMENT_FINAL_CHUNK_TYPE  PXML_COMMENT_END
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            : #define TOKEN_CB_FINAL(_type, _ns, _current_too)                \
+<span class="lineNum">      77 </span>            :         TOKEN_CB_CALL( _type ## _FINAL_CHUNK_TYPE , _ns, _current_too, 1)
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span>            : /*
+<a name="80"><span class="lineNum">      80 </span>            :  * Parser itself</a>
+<span class="lineNum">      81 </span>            :  */
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 : ssize_t pxml_parse(int *stateContext, const void *xmlbuf, size_t size, pxml_callback_f *cb, void *key) {</span>
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :         pstate_e state = (pstate_e)*stateContext;</span>
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 :         const char *chunk_start = (const char *)xmlbuf;</span>
+<span class="lineNum">      85 </span><span class="lineNoCov">          0 :         const char *p = chunk_start;</span>
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 :         const char *end = p + size;</span>
+<span class="lineNum">      87 </span>            : 
+<span class="lineNum">      88 </span><span class="lineNoCov">          0 :         for(; p &lt; end; p++) {</span>
+<span class="lineNum">      89 </span><span class="lineNoCov">          0 :           int C = *(const unsigned char *)p;</span>
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :           switch(state) {</span>
+<span class="lineNum">      91 </span>            :           case ST_TEXT:
+<span class="lineNum">      92 </span>            :                 /*
+<span class="lineNum">      93 </span>            :                  * Initial state: we're in the middle of some text,
+<span class="lineNum">      94 </span>            :                  * or just have started.
+<span class="lineNum">      95 </span>            :                  */
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :                 if (C == LANGLE) </span>
+<span class="lineNum">      97 </span>            :                         /* We're now in the tag, probably */
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :                         TOKEN_CB(PXML_TEXT, ST_TAG_START, 0);</span>
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     100 </span>            :           case ST_TAG_START:
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :                 if (ALPHA(C) || (C == CSLASH))</span>
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :                         state = ST_TAG_BODY;</span>
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :                 else if (C == EXCLAM)</span>
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :                         state = ST_COMMENT_WAIT_DASH1;</span>
+<span class="lineNum">     105 </span>            :                 else 
+<span class="lineNum">     106 </span>            :                         /*
+<span class="lineNum">     107 </span>            :                          * Not characters and not whitespace.
+<span class="lineNum">     108 </span>            :                          * Must be something like &quot;3 &lt; 4&quot;.
+<span class="lineNum">     109 </span>            :                          */
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :                         TOKEN_CB(PXML_TEXT, ST_TEXT, 1);/* Flush as data */</span>
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     112 </span>            :           case ST_TAG_BODY:
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :                 switch(C) {</span>
+<span class="lineNum">     114 </span>            :                 case RANGLE:
+<span class="lineNum">     115 </span>            :                         /* End of the tag */
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :                         TOKEN_CB_FINAL(PXML_TAG, ST_TEXT, 1);</span>
+<span class="lineNum">     117 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     118 </span>            :                 case LANGLE:
+<span class="lineNum">     119 </span>            :                         /*
+<span class="lineNum">     120 </span>            :                          * The previous tag wasn't completed, but still
+<span class="lineNum">     121 </span>            :                          * recognized as valid. (Mozilla-compatible)
+<span class="lineNum">     122 </span>            :                          */
+<span class="lineNum">     123 </span><span class="lineNoCov">          0 :                         TOKEN_CB_FINAL(PXML_TAG, ST_TAG_START, 0);      </span>
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     125 </span>            :                 case CEQUAL:
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :                         state = ST_TAG_QUOTE_WAIT;</span>
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     128 </span>            :                 }
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     130 </span>            :           case ST_TAG_QUOTE_WAIT:
+<span class="lineNum">     131 </span>            :                 /*
+<span class="lineNum">     132 </span>            :                  * State after the equal sign (&quot;=&quot;) in the tag.
+<span class="lineNum">     133 </span>            :                  */
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :                 switch(C) {</span>
+<span class="lineNum">     135 </span>            :                 case CQUOTE:
+<span class="lineNum">     136 </span><span class="lineNoCov">          0 :                         state = ST_TAG_QUOTED_STRING;</span>
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     138 </span>            :                 case RANGLE:
+<span class="lineNum">     139 </span>            :                         /* End of the tag */
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :                         TOKEN_CB_FINAL(PXML_TAG, ST_TEXT, 1);</span>
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     142 </span>            :                 default:
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :                         if(!WHITESPACE(C))</span>
+<span class="lineNum">     144 </span>            :                                 /* Unquoted string value */
+<span class="lineNum">     145 </span><span class="lineNoCov">          0 :                                 state = ST_TAG_UNQUOTED_STRING;</span>
+<span class="lineNum">     146 </span>            :                 }
+<span class="lineNum">     147 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     148 </span>            :           case ST_TAG_QUOTED_STRING:
+<span class="lineNum">     149 </span>            :                 /*
+<span class="lineNum">     150 </span>            :                  * Tag attribute's string value in quotes.
+<span class="lineNum">     151 </span>            :                  */
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :                 if(C == CQUOTE) {</span>
+<span class="lineNum">     153 </span>            :                         /* Return back to the tag state */
+<span class="lineNum">     154 </span><span class="lineNoCov">          0 :                         state = ST_TAG_BODY;</span>
+<span class="lineNum">     155 </span>            :                 }
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     157 </span>            :           case ST_TAG_UNQUOTED_STRING:
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 :                 if(C == RANGLE) {</span>
+<span class="lineNum">     159 </span>            :                         /* End of the tag */
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :                         TOKEN_CB_FINAL(PXML_TAG, ST_TEXT, 1);</span>
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :                 } else if(WHITESPACE(C)) {</span>
+<span class="lineNum">     162 </span>            :                         /* Return back to the tag state */
+<span class="lineNum">     163 </span><span class="lineNoCov">          0 :                         state = ST_TAG_BODY;</span>
+<span class="lineNum">     164 </span>            :                 }
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     166 </span>            :           case ST_COMMENT_WAIT_DASH1:
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 :                 if(C == CDASH) {</span>
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :                         state = ST_COMMENT_WAIT_DASH2;</span>
+<span class="lineNum">     169 </span>            :                 } else {
+<span class="lineNum">     170 </span>            :                         /* Some ordinary tag. */
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :                         state = ST_TAG_BODY;</span>
+<span class="lineNum">     172 </span>            :                 }
+<span class="lineNum">     173 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     174 </span>            :           case ST_COMMENT_WAIT_DASH2:
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 :                 if(C == CDASH) {</span>
+<span class="lineNum">     176 </span>            :                         /* Seen &quot;&lt;--&quot; */
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 :                         state = ST_COMMENT;</span>
+<span class="lineNum">     178 </span>            :                 } else {
+<span class="lineNum">     179 </span>            :                         /* Some ordinary tag */
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :                         state = ST_TAG_BODY;</span>
+<span class="lineNum">     181 </span>            :                 }
+<span class="lineNum">     182 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     183 </span>            :           case ST_COMMENT:
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :                 if(C == CDASH) {</span>
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 :                         state = ST_COMMENT_CLO_DASH2;</span>
+<span class="lineNum">     186 </span>            :                 }
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     188 </span>            :           case ST_COMMENT_CLO_DASH2:
+<span class="lineNum">     189 </span><span class="lineNoCov">          0 :                 if(C == CDASH) {</span>
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 :                         state = ST_COMMENT_CLO_RT;</span>
+<span class="lineNum">     191 </span>            :                 } else {
+<span class="lineNum">     192 </span>            :                         /* This is not an end of a comment */
+<span class="lineNum">     193 </span><span class="lineNoCov">          0 :                         state = ST_COMMENT;</span>
+<span class="lineNum">     194 </span>            :                 }
+<span class="lineNum">     195 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     196 </span>            :           case ST_COMMENT_CLO_RT:
+<span class="lineNum">     197 </span><span class="lineNoCov">          0 :                 if(C == RANGLE) {</span>
+<span class="lineNum">     198 </span><span class="lineNoCov">          0 :                         TOKEN_CB_FINAL(PXML_COMMENT, ST_TEXT, 1);</span>
+<span class="lineNum">     199 </span><span class="lineNoCov">          0 :                 } else if(C == CDASH) {</span>
+<span class="lineNum">     200 </span>            :                         /* Maintain current state, still waiting for '&gt;' */
+<span class="lineNum">     201 </span>            :                 } else {
+<span class="lineNum">     202 </span><span class="lineNoCov">          0 :                         state = ST_COMMENT;</span>
+<span class="lineNum">     203 </span>            :                 }
+<span class="lineNum">     204 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     205 </span>            :           } /* switch(*ptr) */
+<span class="lineNum">     206 </span>            :         } /* for() */
+<span class="lineNum">     207 </span>            : 
+<span class="lineNum">     208 </span>            :         /*
+<span class="lineNum">     209 </span>            :          * Flush the partially processed chunk, state permitting.
+<span class="lineNum">     210 </span>            :          */
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :         if(p - chunk_start) {</span>
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :                 switch (state) {</span>
+<span class="lineNum">     213 </span>            :                 case ST_COMMENT:
+<span class="lineNum">     214 </span><span class="lineNoCov">          0 :                         TOKEN_CB(PXML_COMMENT, state, 0);</span>
+<span class="lineNum">     215 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     216 </span>            :                 case ST_TEXT:
+<span class="lineNum">     217 </span><span class="lineNoCov">          0 :                         TOKEN_CB(PXML_TEXT, state, 0);</span>
+<span class="lineNum">     218 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     219 </span><span class="lineNoCov">          0 :                 default: break; /* a no-op */</span>
+<span class="lineNum">     220 </span>            :                 }
+<span class="lineNum">     221 </span>            :         }
+<span class="lineNum">     222 </span>            : 
+<span class="lineNum">     223 </span>            : finish:
+<span class="lineNum">     224 </span><span class="lineNoCov">          0 :         *stateContext = (int)state;</span>
+<span class="lineNum">     225 </span><span class="lineNoCov">          0 :         return chunk_start - (const char *)xmlbuf;</span>
+<span class="lineNum">     226 </span>            : }
+<span class="lineNum">     227 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

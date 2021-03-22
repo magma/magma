@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/oer_decoder.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - oer_decoder.c<span style="font-size: 80%;"> (source / <a href="oer_decoder.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">55</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2017 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;asn_codecs_prim.h&gt;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : /*
+<span class="lineNum">       9 </span>            :  * The OER decoder of any type.
+<a name="10"><span class="lineNum">      10 </span>            :  */</a>
+<span class="lineNum">      11 </span>            : asn_dec_rval_t
+<span class="lineNum">      12 </span><span class="lineNoCov">          0 : oer_decode(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      13 </span>            :            const asn_TYPE_descriptor_t *type_descriptor, void **struct_ptr,
+<span class="lineNum">      14 </span>            :            const void *ptr, size_t size) {
+<span class="lineNum">      15 </span>            :     asn_codec_ctx_t s_codec_ctx;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            :         /*
+<span class="lineNum">      18 </span>            :          * Stack checker requires that the codec context
+<span class="lineNum">      19 </span>            :          * must be allocated on the stack.
+<span class="lineNum">      20 </span>            :          */
+<span class="lineNum">      21 </span><span class="lineNoCov">          0 :         if(opt_codec_ctx) {</span>
+<span class="lineNum">      22 </span><span class="lineNoCov">          0 :                 if(opt_codec_ctx-&gt;max_stack_size) {</span>
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 :                         s_codec_ctx = *opt_codec_ctx;</span>
+<span class="lineNum">      24 </span><span class="lineNoCov">          0 :                         opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">      25 </span>            :                 }
+<span class="lineNum">      26 </span>            :         } else {
+<span class="lineNum">      27 </span>            :                 /* If context is not given, be security-conscious anyway */
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 :                 memset(&amp;s_codec_ctx, 0, sizeof(s_codec_ctx));</span>
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 :                 s_codec_ctx.max_stack_size = ASN__DEFAULT_STACK_MAX;</span>
+<span class="lineNum">      30 </span><span class="lineNoCov">          0 :                 opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">      31 </span>            :         }
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            :         /*
+<span class="lineNum">      34 </span>            :          * Invoke type-specific decoder.
+<span class="lineNum">      35 </span>            :          */
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 :         return type_descriptor-&gt;op-&gt;oer_decoder(opt_codec_ctx, type_descriptor, 0,</span>
+<span class="lineNum">      37 </span>            :                 struct_ptr,     /* Pointer to the destination structure */
+<span class="lineNum">      38 </span>            :                 ptr, size       /* Buffer and its size */
+<span class="lineNum">      39 </span>            :                 );
+<span class="lineNum">      40 </span>            : }
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            : /*
+<span class="lineNum">      43 </span>            :  * Open Type is encoded as a length (#8.6) followed by that number of bytes.
+<span class="lineNum">      44 </span>            :  * Since we're just skipping, reading the length would be enough.
+<a name="45"><span class="lineNum">      45 </span>            :  */</a>
+<span class="lineNum">      46 </span>            : ssize_t
+<span class="lineNum">      47 </span><span class="lineNoCov">          0 : oer_open_type_skip(const void *bufptr, size_t size) {</span>
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :     size_t len = 0;</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :     return oer_fetch_length(bufptr, size, &amp;len);</span>
+<span class="lineNum">      50 </span>            : }
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span>            : /*
+<span class="lineNum">      53 </span>            :  * Read the Open Type (X.696 (08/2015), #30).
+<span class="lineNum">      54 </span>            :  * RETURN VALUES:
+<span class="lineNum">      55 </span>            :  *       0:     More data expected than bufptr contains.
+<span class="lineNum">      56 </span>            :  *      -1:     Fatal error deciphering length.
+<span class="lineNum">      57 </span>            :  *      &gt;0:     Number of bytes used from bufptr.
+<a name="58"><span class="lineNum">      58 </span>            :  */</a>
+<span class="lineNum">      59 </span>            : ssize_t
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 : oer_open_type_get(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      61 </span>            :                   const struct asn_TYPE_descriptor_s *td,
+<span class="lineNum">      62 </span>            :                   const asn_oer_constraints_t *constraints, void **struct_ptr,
+<span class="lineNum">      63 </span>            :                   const void *bufptr, size_t size) {
+<span class="lineNum">      64 </span>            :     asn_dec_rval_t dr;
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :     size_t container_len = 0;</span>
+<span class="lineNum">      66 </span>            :     ssize_t len_len;
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :     enum asn_struct_free_method dispose_method =</span>
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :         (*struct_ptr) ? ASFM_FREE_UNDERLYING_AND_RESET : ASFM_FREE_EVERYTHING;</span>
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            :     /* Get the size of a length determinant */
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 :     len_len = oer_fetch_length(bufptr, size, &amp;container_len);</span>
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :     if(len_len &lt;= 0) {</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :         return len_len; /* Error or more data expected */</span>
+<span class="lineNum">      74 </span>            :     }
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            :     /*
+<span class="lineNum">      77 </span>            :      * len_len can't be bigger than size, but size without len_len
+<span class="lineNum">      78 </span>            :      * should be bigger or equal to container length
+<span class="lineNum">      79 </span>            :      */
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :     if(size - len_len &lt; container_len) {</span>
+<span class="lineNum">      81 </span>            :         /* More data is expected */
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :         return 0;</span>
+<span class="lineNum">      83 </span>            :     }
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span><span class="lineNoCov">          0 :     dr = td-&gt;op-&gt;oer_decoder(opt_codec_ctx, td, constraints, struct_ptr,</span>
+<span class="lineNum">      86 </span>            :                          (const uint8_t *)bufptr + len_len, container_len);
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :     if(dr.code == RC_OK) {</span>
+<span class="lineNum">      88 </span><span class="lineNoCov">          0 :         return len_len + container_len;</span>
+<span class="lineNum">      89 </span>            :     } else {
+<span class="lineNum">      90 </span>            :         /* Even if RC_WMORE, we can't get more data into a closed container. */
+<span class="lineNum">      91 </span><span class="lineNoCov">          0 :         td-&gt;op-&gt;free_struct(td, *struct_ptr, dispose_method);</span>
+<span class="lineNum">      92 </span><span class="lineNoCov">          0 :         *struct_ptr = NULL;</span>
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">      94 </span>            :     }
+<span class="lineNum">      95 </span>            : }
+<span class="lineNum">      96 </span>            : 
+<a name="97"><span class="lineNum">      97 </span>            : </a>
+<span class="lineNum">      98 </span>            : asn_dec_rval_t
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 : oer_decode_primitive(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     100 </span>            :                      const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     101 </span>            :                      const asn_oer_constraints_t *constraints, void **sptr,
+<span class="lineNum">     102 </span>            :                      const void *ptr, size_t size) {
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :     ASN__PRIMITIVE_TYPE_t *st = (ASN__PRIMITIVE_TYPE_t *)*sptr;</span>
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :     asn_dec_rval_t rval = {RC_OK, 0};</span>
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :     size_t expected_length = 0;</span>
+<span class="lineNum">     106 </span>            :     ssize_t len_len;
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span>            :     (void)td;
+<span class="lineNum">     109 </span>            :     (void)opt_codec_ctx;
+<span class="lineNum">     110 </span>            :     (void)constraints;
+<span class="lineNum">     111 </span>            : 
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :     if(!st) {</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :         st = (ASN__PRIMITIVE_TYPE_t *)(*sptr = CALLOC(</span>
+<span class="lineNum">     114 </span>            :                                            1, sizeof(ASN__PRIMITIVE_TYPE_t)));
+<span class="lineNum">     115 </span><span class="lineNoCov">          0 :         if(!st) ASN__DECODE_FAILED;</span>
+<span class="lineNum">     116 </span>            :     }
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            :     /*
+<span class="lineNum">     120 </span>            :      * X.696 (08/2015) #27.2
+<span class="lineNum">     121 </span>            :      * Encode length determinant as _number of octets_, but only
+<span class="lineNum">     122 </span>            :      * if upper bound is not equal to lower bound.
+<span class="lineNum">     123 </span>            :      */
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :     len_len = oer_fetch_length(ptr, size, &amp;expected_length);</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :     if(len_len &gt; 0) {</span>
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :         rval.consumed = len_len;</span>
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :         ptr = (const char *)ptr + len_len;</span>
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :         size -= len_len;</span>
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :     } else if(len_len == 0) {</span>
+<span class="lineNum">     130 </span><span class="lineNoCov">          0 :         ASN__DECODE_STARVED;</span>
+<span class="lineNum">     131 </span><span class="lineNoCov">          0 :     } else if(len_len &lt; 0) {</span>
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 :         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     133 </span>            :     }
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :     if(size &lt; expected_length) {</span>
+<span class="lineNum">     136 </span><span class="lineNoCov">          0 :         ASN__DECODE_STARVED;</span>
+<span class="lineNum">     137 </span>            :     } else {
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :         uint8_t *buf = MALLOC(expected_length + 1);</span>
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :         if(buf == NULL) {</span>
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :             ASN__DECODE_FAILED;</span>
+<span class="lineNum">     141 </span>            :         } else {
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 :             memcpy(buf, ptr, expected_length);</span>
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :             buf[expected_length] = '\0';</span>
+<span class="lineNum">     144 </span>            :         }
+<span class="lineNum">     145 </span><span class="lineNoCov">          0 :         FREEMEM(st-&gt;buf);</span>
+<span class="lineNum">     146 </span><span class="lineNoCov">          0 :         st-&gt;buf = buf;</span>
+<span class="lineNum">     147 </span><span class="lineNoCov">          0 :         st-&gt;size = expected_length;</span>
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :         rval.consumed += expected_length;</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">     151 </span>            :     }
+<span class="lineNum">     152 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

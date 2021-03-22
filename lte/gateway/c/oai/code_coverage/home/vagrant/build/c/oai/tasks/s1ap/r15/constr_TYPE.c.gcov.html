@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/constr_TYPE.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - constr_TYPE.c<span style="font-size: 80%;"> (source / <a href="constr_TYPE.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">28</td>
+            <td class="headerCovTableEntryLo">3.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryLo">20.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*-</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2003, 2004 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;constr_TYPE.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;errno.h&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : /*
+<a name="10"><span class="lineNum">      10 </span>            :  * Version of the ASN.1 infrastructure shipped with compiler.</a>
+<span class="lineNum">      11 </span>            :  */
+<span class="lineNum">      12 </span><span class="lineCov">          2 : int get_asn1c_environment_version() { return ASN1C_ENVIRONMENT_VERSION; }</span>
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : static asn_app_consume_bytes_f _print2fp;
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : /*
+<span class="lineNum">      17 </span>            :  * Return the outmost tag of the type.
+<a name="18"><span class="lineNum">      18 </span>            :  */</a>
+<span class="lineNum">      19 </span>            : ber_tlv_tag_t
+<span class="lineNum">      20 </span><span class="lineNoCov">          0 : asn_TYPE_outmost_tag(const asn_TYPE_descriptor_t *type_descriptor,</span>
+<span class="lineNum">      21 </span>            :                 const void *struct_ptr, int tag_mode, ber_tlv_tag_t tag) {
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 :         if(tag_mode)</span>
+<span class="lineNum">      24 </span><span class="lineNoCov">          0 :                 return tag;</span>
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span><span class="lineNoCov">          0 :         if(type_descriptor-&gt;tags_count)</span>
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 :                 return type_descriptor-&gt;tags[0];</span>
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 :         return type_descriptor-&gt;op-&gt;outmost_tag(type_descriptor, struct_ptr, 0, 0);</span>
+<span class="lineNum">      30 </span>            : }
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : /*
+<span class="lineNum">      33 </span>            :  * Print the target language's structure in human readable form.
+<a name="34"><span class="lineNum">      34 </span>            :  */</a>
+<span class="lineNum">      35 </span>            : int
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 : asn_fprint(FILE *stream, const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">      37 </span>            :            const void *struct_ptr) {
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :     if(!stream) stream = stdout;</span>
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :     if(!td || !struct_ptr) {</span>
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :         errno = EINVAL;</span>
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">      42 </span>            :         }
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span>            :         /* Invoke type-specific printer */
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :     if(td-&gt;op-&gt;print_struct(td, struct_ptr, 1, _print2fp, stream)) {</span>
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">      47 </span>            :     }
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span>            :     /* Terminate the output */
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 :     if(_print2fp(&quot;\n&quot;, 1, stream)) {</span>
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">      52 </span>            :     }
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :     return fflush(stream);</span>
+<span class="lineNum">      55 </span>            : }
+<span class="lineNum">      56 </span>            : 
+<a name="57"><span class="lineNum">      57 </span>            : /* Dump the data into the specified stdio stream */</a>
+<span class="lineNum">      58 </span>            : static int
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 : _print2fp(const void *buffer, size_t size, void *app_key) {</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :         FILE *stream = (FILE *)app_key;</span>
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 :         if(fwrite(buffer, 1, size, stream) != size)</span>
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">      64 </span>            : 
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :         return 0;</span>
+<span class="lineNum">      66 </span>            : }
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            : /*
+<span class="lineNum">      70 </span>            :  * Some compilers do not support variable args macros.
+<span class="lineNum">      71 </span>            :  * This function is a replacement of ASN_DEBUG() macro.
+<a name="72"><span class="lineNum">      72 </span>            :  */</a>
+<span class="lineNum">      73 </span>            : void ASN_DEBUG_f(const char *fmt, ...);
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 : void ASN_DEBUG_f(const char *fmt, ...) {</span>
+<span class="lineNum">      75 </span>            :         va_list ap;
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :         va_start(ap, fmt);</span>
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :         vfprintf(stderr, fmt, ap);</span>
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :         fprintf(stderr, &quot;\n&quot;);</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :         va_end(ap);</span>
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

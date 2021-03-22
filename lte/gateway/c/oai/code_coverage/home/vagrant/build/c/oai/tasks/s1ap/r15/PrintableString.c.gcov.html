@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/PrintableString.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - PrintableString.c<span style="font-size: 80%;"> (source / <a href="PrintableString.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">20</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*-</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2003, 2004, 2006 Lev Walkin &lt;vlm@lionet.info&gt;.
+<span class="lineNum">       3 </span>            :  * All rights reserved.
+<span class="lineNum">       4 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       5 </span>            :  */
+<span class="lineNum">       6 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;PrintableString.h&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : /*
+<span class="lineNum">      10 </span>            :  * ASN.1:1984 (X.409)
+<span class="lineNum">      11 </span>            :  */
+<span class="lineNum">      12 </span>            : static const int _PrintableString_alphabet[256] = {
+<span class="lineNum">      13 </span>            :  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,        /*                  */
+<span class="lineNum">      14 </span>            :  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,        /*                  */
+<span class="lineNum">      15 </span>            :  1, 0, 0, 0, 0, 0, 0, 2, 3, 4, 0, 5, 6, 7, 8, 9,        /* .      '() +,-./ */
+<span class="lineNum">      16 </span>            : 10,11,12,13,14,15,16,17,18,19,20, 0, 0,21, 0,22,        /* 0123456789:  = ? */
+<span class="lineNum">      17 </span>            :  0,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,        /*  ABCDEFGHIJKLMNO */
+<span class="lineNum">      18 </span>            : 38,39,40,41,42,43,44,45,46,47,48, 0, 0, 0, 0, 0,        /* PQRSTUVWXYZ      */
+<span class="lineNum">      19 </span>            :  0,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,        /*  abcdefghijklmno */
+<span class="lineNum">      20 </span>            : 64,65,66,67,68,69,70,71,72,73,74, 0, 0, 0, 0, 0,        /* pqrstuvwxyz      */
+<span class="lineNum">      21 </span>            : };
+<span class="lineNum">      22 </span>            : static const int _PrintableString_code2value[74] = {
+<span class="lineNum">      23 </span>            : 32,39,40,41,43,44,45,46,47,48,49,50,51,52,53,54,
+<span class="lineNum">      24 </span>            : 55,56,57,58,61,63,65,66,67,68,69,70,71,72,73,74,
+<span class="lineNum">      25 </span>            : 75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,
+<span class="lineNum">      26 </span>            : 97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,
+<span class="lineNum">      27 </span>            : 113,114,115,116,117,118,119,120,121,122};
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : /*
+<span class="lineNum">      30 </span>            :  * PrintableString basic type description.
+<span class="lineNum">      31 </span>            :  */
+<span class="lineNum">      32 </span>            : static const ber_tlv_tag_t asn_DEF_PrintableString_tags[] = {
+<span class="lineNum">      33 </span>            :         (ASN_TAG_CLASS_UNIVERSAL | (19 &lt;&lt; 2)),    /* [UNIVERSAL 19] IMPLICIT ...*/
+<a name="34"><span class="lineNum">      34 </span>            :         (ASN_TAG_CLASS_UNIVERSAL | (4 &lt;&lt; 2))      /* ... OCTET STRING */</a>
+<span class="lineNum">      35 </span>            : };
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 : static int asn_DEF_PrintableString_v2c(unsigned int value) {</span>
+<a name="37"><span class="lineNum">      37 </span><span class="lineNoCov">          0 :         return _PrintableString_alphabet[value &gt; 255 ? 0 : value] - 1;</span></a>
+<span class="lineNum">      38 </span>            : }
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 : static int asn_DEF_PrintableString_c2v(unsigned int code) {</span>
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :         if(code &lt; 74)</span>
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :                 return _PrintableString_code2value[code];</span>
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">      43 </span>            : }
+<span class="lineNum">      44 </span>            : static asn_per_constraints_t asn_DEF_PrintableString_per_constraints = {
+<span class="lineNum">      45 </span>            :         { APC_CONSTRAINED, 4, 4, 0x20, 0x39 },  /* Value */
+<span class="lineNum">      46 </span>            :         { APC_SEMI_CONSTRAINED, -1, -1, 0, 0 }, /* Size */
+<span class="lineNum">      47 </span>            :         asn_DEF_PrintableString_v2c,
+<span class="lineNum">      48 </span>            :         asn_DEF_PrintableString_c2v
+<span class="lineNum">      49 </span>            : };
+<span class="lineNum">      50 </span>            : asn_TYPE_operation_t asn_OP_PrintableString = {
+<span class="lineNum">      51 </span>            :         OCTET_STRING_free,
+<span class="lineNum">      52 </span>            :         OCTET_STRING_print_utf8,        /* ASCII subset */
+<span class="lineNum">      53 </span>            :         OCTET_STRING_compare,
+<span class="lineNum">      54 </span>            :         OCTET_STRING_decode_ber,      /* Implemented in terms of OCTET STRING */
+<span class="lineNum">      55 </span>            :         OCTET_STRING_encode_der,
+<span class="lineNum">      56 </span>            :         OCTET_STRING_decode_xer_utf8,
+<span class="lineNum">      57 </span>            :         OCTET_STRING_encode_xer_utf8,
+<span class="lineNum">      58 </span>            : #ifdef  ASN_DISABLE_OER_SUPPORT
+<span class="lineNum">      59 </span>            :         0,
+<span class="lineNum">      60 </span>            :         0,
+<span class="lineNum">      61 </span>            : #else
+<span class="lineNum">      62 </span>            :         OCTET_STRING_decode_oer,
+<span class="lineNum">      63 </span>            :         OCTET_STRING_encode_oer,
+<span class="lineNum">      64 </span>            : #endif  /* ASN_DISABLE_OER_SUPPORT */
+<span class="lineNum">      65 </span>            : #ifdef  ASN_DISABLE_PER_SUPPORT
+<span class="lineNum">      66 </span>            :         0,
+<span class="lineNum">      67 </span>            :         0,
+<span class="lineNum">      68 </span>            :         0,
+<span class="lineNum">      69 </span>            :         0,
+<span class="lineNum">      70 </span>            : #else
+<span class="lineNum">      71 </span>            :         OCTET_STRING_decode_uper,
+<span class="lineNum">      72 </span>            :         OCTET_STRING_encode_uper,
+<span class="lineNum">      73 </span>            :         OCTET_STRING_decode_aper,
+<span class="lineNum">      74 </span>            :         OCTET_STRING_encode_aper,
+<span class="lineNum">      75 </span>            : #endif  /* ASN_DISABLE_PER_SUPPORT */
+<span class="lineNum">      76 </span>            :         OCTET_STRING_random_fill,
+<span class="lineNum">      77 </span>            :         0       /* Use generic outmost tag fetcher */
+<span class="lineNum">      78 </span>            : };
+<span class="lineNum">      79 </span>            : asn_TYPE_descriptor_t asn_DEF_PrintableString = {
+<span class="lineNum">      80 </span>            :         &quot;PrintableString&quot;,
+<span class="lineNum">      81 </span>            :         &quot;PrintableString&quot;,
+<span class="lineNum">      82 </span>            :         &amp;asn_OP_PrintableString,
+<span class="lineNum">      83 </span>            :         asn_DEF_PrintableString_tags,
+<span class="lineNum">      84 </span>            :         sizeof(asn_DEF_PrintableString_tags)
+<span class="lineNum">      85 </span>            :           / sizeof(asn_DEF_PrintableString_tags[0]) - 1,
+<span class="lineNum">      86 </span>            :         asn_DEF_PrintableString_tags,
+<span class="lineNum">      87 </span>            :         sizeof(asn_DEF_PrintableString_tags)
+<span class="lineNum">      88 </span>            :           / sizeof(asn_DEF_PrintableString_tags[0]),
+<span class="lineNum">      89 </span>            :         { 0, &amp;asn_DEF_PrintableString_per_constraints, PrintableString_constraint },
+<span class="lineNum">      90 </span>            :         0, 0,   /* No members */
+<span class="lineNum">      91 </span>            :         0       /* No specifics */
+<span class="lineNum">      92 </span>            : };
+<span class="lineNum">      93 </span>            : 
+<a name="94"><span class="lineNum">      94 </span>            : </a>
+<span class="lineNum">      95 </span>            : int
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 : PrintableString_constraint(const asn_TYPE_descriptor_t *td, const void *sptr,</span>
+<span class="lineNum">      97 </span>            :                            asn_app_constraint_failed_f *ctfailcb,
+<span class="lineNum">      98 </span>            :                            void *app_key) {
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :     const PrintableString_t *st = (const PrintableString_t *)sptr;</span>
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :         if(st &amp;&amp; st-&gt;buf) {</span>
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :                 uint8_t *buf = st-&gt;buf;</span>
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :                 uint8_t *end = buf + st-&gt;size;</span>
+<span class="lineNum">     104 </span>            : 
+<span class="lineNum">     105 </span>            :                 /*
+<span class="lineNum">     106 </span>            :                  * Check the alphabet of the PrintableString.
+<span class="lineNum">     107 </span>            :                  * ASN.1:1984 (X.409)
+<span class="lineNum">     108 </span>            :                  */
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :                 for(; buf &lt; end; buf++) {</span>
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :                         if(!_PrintableString_alphabet[*buf]) {</span>
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :                                 ASN__CTFAIL(app_key, td, sptr,</span>
+<span class="lineNum">     112 </span>            :                                         &quot;%s: value byte %ld (%d) &quot;
+<span class="lineNum">     113 </span>            :                                         &quot;not in PrintableString alphabet &quot;
+<span class="lineNum">     114 </span>            :                                         &quot;(%s:%d)&quot;,
+<span class="lineNum">     115 </span>            :                                         td-&gt;name,
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :                                         (long)((buf - st-&gt;buf) + 1),</span>
+<span class="lineNum">     117 </span><span class="lineNoCov">          0 :                                         *buf,</span>
+<span class="lineNum">     118 </span>            :                                         __FILE__, __LINE__);
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 :                                 return -1;</span>
+<span class="lineNum">     120 </span>            :                         }
+<span class="lineNum">     121 </span>            :                 }
+<span class="lineNum">     122 </span>            :         } else {
+<span class="lineNum">     123 </span><span class="lineNoCov">          0 :                 ASN__CTFAIL(app_key, td, sptr,</span>
+<span class="lineNum">     124 </span>            :                         &quot;%s: value not given (%s:%d)&quot;,
+<span class="lineNum">     125 </span>            :                         td-&gt;name, __FILE__, __LINE__);
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     127 </span>            :         }
+<span class="lineNum">     128 </span>            : 
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :         return 0;</span>
+<span class="lineNum">     130 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

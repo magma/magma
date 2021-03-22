@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/asn_internal.h</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - asn_internal.h<span style="font-size: 80%;"> (source / <a href="asn_internal.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntryMed">85.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2003-2017 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : /*
+<span class="lineNum">       6 </span>            :  * Declarations internally useful for the ASN.1 support code.
+<span class="lineNum">       7 </span>            :  */
+<span class="lineNum">       8 </span>            : #ifndef ASN_INTERNAL_H
+<span class="lineNum">       9 </span>            : #define ASN_INTERNAL_H
+<span class="lineNum">      10 </span>            : #define __EXTENSIONS__          /* for Sun */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;asn_application.h&quot;  /* Application-visible API */
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : #ifndef __NO_ASSERT_H__         /* Include assert.h only for internal use. */
+<span class="lineNum">      15 </span>            : #include &lt;assert.h&gt;               /* for assert() macro */
+<span class="lineNum">      16 </span>            : #endif
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : #ifdef  __cplusplus
+<span class="lineNum">      19 </span>            : extern &quot;C&quot; {
+<span class="lineNum">      20 </span>            : #endif
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            : /* Environment version might be used to avoid running with the old library */
+<span class="lineNum">      23 </span>            : #define ASN1C_ENVIRONMENT_VERSION       923     /* Compile-time version */
+<span class="lineNum">      24 </span>            : int get_asn1c_environment_version(void);        /* Run-time version */
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : #define CALLOC(nmemb, size)     calloc(nmemb, size)
+<span class="lineNum">      27 </span>            : #define MALLOC(size)            malloc(size)
+<span class="lineNum">      28 </span>            : #define REALLOC(oldptr, size)   realloc(oldptr, size)
+<span class="lineNum">      29 </span>            : #define FREEMEM(ptr)            free(ptr)
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : #define asn_debug_indent        0
+<span class="lineNum">      32 </span>            : #define ASN_DEBUG_INDENT_ADD(i) do{}while(0)
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : #ifdef  EMIT_ASN_DEBUG
+<span class="lineNum">      35 </span>            : #warning &quot;Use ASN_EMIT_DEBUG instead of EMIT_ASN_DEBUG&quot;
+<span class="lineNum">      36 </span>            : #define ASN_EMIT_DEBUG  EMIT_ASN_DEBUG
+<span class="lineNum">      37 </span>            : #endif
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : /*
+<span class="lineNum">      40 </span>            :  * A macro for debugging the ASN.1 internals.
+<span class="lineNum">      41 </span>            :  * You may enable or override it.
+<span class="lineNum">      42 </span>            :  */
+<span class="lineNum">      43 </span>            : #ifndef ASN_DEBUG       /* If debugging code is not defined elsewhere... */
+<span class="lineNum">      44 </span>            : #if     ASN_EMIT_DEBUG == 1     /* And it was asked to emit this code... */
+<span class="lineNum">      45 </span>            : #if __STDC_VERSION__ &gt;= 199901L
+<span class="lineNum">      46 </span>            : #ifdef  ASN_THREAD_SAFE
+<span class="lineNum">      47 </span>            : /* Thread safety requires sacrifice in output indentation:
+<span class="lineNum">      48 </span>            :  * Retain empty definition of ASN_DEBUG_INDENT_ADD. */
+<span class="lineNum">      49 </span>            : #else   /* !ASN_THREAD_SAFE */
+<span class="lineNum">      50 </span>            : #undef  ASN_DEBUG_INDENT_ADD
+<span class="lineNum">      51 </span>            : #undef  asn_debug_indent
+<span class="lineNum">      52 </span>            : int asn_debug_indent;
+<span class="lineNum">      53 </span>            : #define ASN_DEBUG_INDENT_ADD(i) do { asn_debug_indent += i; } while(0)
+<span class="lineNum">      54 </span>            : #endif  /* ASN_THREAD_SAFE */
+<span class="lineNum">      55 </span>            : #define ASN_DEBUG(fmt, args...) do {                    \
+<span class="lineNum">      56 </span>            :                 int adi = asn_debug_indent;             \
+<span class="lineNum">      57 </span>            :                 while(adi--) fprintf(stderr, &quot; &quot;);    \
+<span class="lineNum">      58 </span>            :                 fprintf(stderr, fmt, ##args);           \
+<span class="lineNum">      59 </span>            :                 fprintf(stderr, &quot; (%s:%d)\n&quot;,         \
+<span class="lineNum">      60 </span>            :                         __FILE__, __LINE__);            \
+<span class="lineNum">      61 </span>            :         } while(0)
+<span class="lineNum">      62 </span>            : #else   /* !C99 */
+<span class="lineNum">      63 </span>            : void CC_PRINTFLIKE(1, 2) ASN_DEBUG_f(const char *fmt, ...);
+<span class="lineNum">      64 </span>            : #define ASN_DEBUG       ASN_DEBUG_f
+<span class="lineNum">      65 </span>            : #endif  /* C99 */
+<span class="lineNum">      66 </span>            : #else   /* ASN_EMIT_DEBUG != 1 */
+<span class="lineNum">      67 </span>            : #if __STDC_VERSION__ &gt;= 199901L
+<span class="lineNum">      68 </span>            : #define ASN_DEBUG(...) do{}while(0)
+<span class="lineNum">      69 </span>            : #else   /* not C99 */
+<span class="lineNum">      70 </span>            : static void CC_PRINTFLIKE(1, 2) ASN_DEBUG(const char *fmt, ...) { (void)fmt; }
+<span class="lineNum">      71 </span>            : #endif  /* C99 or better */
+<span class="lineNum">      72 </span>            : #endif  /* ASN_EMIT_DEBUG */
+<span class="lineNum">      73 </span>            : #endif  /* ASN_DEBUG */
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span>            : /*
+<span class="lineNum">      76 </span>            :  * Print to a callback.
+<span class="lineNum">      77 </span>            :  * The callback is expected to return negative values on error.
+<span class="lineNum">      78 </span>            :  * 0 and positive values are treated as success.
+<span class="lineNum">      79 </span>            :  * RETURN VALUES:
+<span class="lineNum">      80 </span>            :  *  -1: Failed to format or invoke the callback.
+<span class="lineNum">      81 </span>            :  *  &gt;0: Size of the data that got delivered to the callback.
+<span class="lineNum">      82 </span>            :  */
+<span class="lineNum">      83 </span>            : ssize_t CC_PRINTFLIKE(3, 4)
+<span class="lineNum">      84 </span>            : asn__format_to_callback(
+<span class="lineNum">      85 </span>            :     int (*callback)(const void *, size_t, void *key), void *key,
+<span class="lineNum">      86 </span>            :     const char *fmt, ...);
+<span class="lineNum">      87 </span>            : 
+<span class="lineNum">      88 </span>            : /*
+<span class="lineNum">      89 </span>            :  * Invoke the application-supplied callback and fail, if something is wrong.
+<span class="lineNum">      90 </span>            :  */
+<span class="lineNum">      91 </span>            : #define ASN__E_cbc(buf, size) (cb((buf), (size), app_key) &lt; 0)
+<span class="lineNum">      92 </span>            : #define ASN__E_CALLBACK(size, foo) \
+<span class="lineNum">      93 </span>            :     do {                           \
+<span class="lineNum">      94 </span>            :         if(foo) goto cb_failed;    \
+<span class="lineNum">      95 </span>            :         er.encoded += (size);      \
+<span class="lineNum">      96 </span>            :     } while(0)
+<span class="lineNum">      97 </span>            : #define ASN__CALLBACK(buf, size) ASN__E_CALLBACK(size, ASN__E_cbc(buf, size))
+<span class="lineNum">      98 </span>            : #define ASN__CALLBACK2(buf1, size1, buf2, size2) \
+<span class="lineNum">      99 </span>            :     ASN__E_CALLBACK((size1) + (size2),           \
+<span class="lineNum">     100 </span>            :                     ASN__E_cbc(buf1, size1) || ASN__E_cbc(buf2, size2))
+<span class="lineNum">     101 </span>            : #define ASN__CALLBACK3(buf1, size1, buf2, size2, buf3, size3)          \
+<span class="lineNum">     102 </span>            :     ASN__E_CALLBACK((size1) + (size2) + (size3),                       \
+<span class="lineNum">     103 </span>            :                     ASN__E_cbc(buf1, size1) || ASN__E_cbc(buf2, size2) \
+<span class="lineNum">     104 </span>            :                         || ASN__E_cbc(buf3, size3))
+<span class="lineNum">     105 </span>            : 
+<span class="lineNum">     106 </span>            : #define ASN__TEXT_INDENT(nl, level)                                          \
+<span class="lineNum">     107 </span>            :     do {                                                                     \
+<span class="lineNum">     108 </span>            :         int tmp_level = (level);                                             \
+<span class="lineNum">     109 </span>            :         int tmp_nl = ((nl) != 0);                                            \
+<span class="lineNum">     110 </span>            :         int tmp_i;                                                           \
+<span class="lineNum">     111 </span>            :         if(tmp_nl) ASN__CALLBACK(&quot;\n&quot;, 1);                                   \
+<span class="lineNum">     112 </span>            :         if(tmp_level &lt; 0) tmp_level = 0;                                     \
+<span class="lineNum">     113 </span>            :         for(tmp_i = 0; tmp_i &lt; tmp_level; tmp_i++) ASN__CALLBACK(&quot;    &quot;, 4); \
+<span class="lineNum">     114 </span>            :     } while(0)
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            : #define _i_INDENT(nl)   do {                        \
+<span class="lineNum">     117 </span>            :         int tmp_i;                                  \
+<span class="lineNum">     118 </span>            :         if((nl) &amp;&amp; cb(&quot;\n&quot;, 1, app_key) &lt; 0)        \
+<span class="lineNum">     119 </span>            :             return -1;                              \
+<span class="lineNum">     120 </span>            :         for(tmp_i = 0; tmp_i &lt; ilevel; tmp_i++)     \
+<span class="lineNum">     121 </span>            :             if(cb(&quot;    &quot;, 4, app_key) &lt; 0)          \
+<span class="lineNum">     122 </span>            :                 return -1;                          \
+<span class="lineNum">     123 </span>            :     } while(0)
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span>            : /*
+<span class="lineNum">     126 </span>            :  * Check stack against overflow, if limit is set.
+<span class="lineNum">     127 </span>            :  */
+<a name="128"><span class="lineNum">     128 </span>            : #define ASN__DEFAULT_STACK_MAX  (30000)</a>
+<span class="lineNum">     129 </span>            : static int CC_NOTUSED
+<span class="lineNum">     130 </span><span class="lineCov">        258 : ASN__STACK_OVERFLOW_CHECK(const asn_codec_ctx_t *ctx) {</span>
+<span class="lineNum">     131 </span><span class="lineCov">        258 :         if(ctx &amp;&amp; ctx-&gt;max_stack_size) {</span>
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span>            :                 /* ctx MUST be allocated on the stack */
+<span class="lineNum">     134 </span><span class="lineCov">        258 :                 ptrdiff_t usedstack = ((const char *)ctx - (const char *)&amp;ctx);</span>
+<span class="lineNum">     135 </span><span class="lineCov">        258 :                 if(usedstack &gt; 0) usedstack = -usedstack; /* grows up! */</span>
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span>            :                 /* double negative required to avoid int wrap-around */
+<span class="lineNum">     138 </span><span class="lineCov">        258 :                 if(usedstack &lt; -(ptrdiff_t)ctx-&gt;max_stack_size) {</span>
+<span class="lineNum">     139 </span>            :                         ASN_DEBUG(&quot;Stack limit %ld reached&quot;,
+<span class="lineNum">     140 </span>            :                                 (long)ctx-&gt;max_stack_size);
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :                         return -1;</span>
+<span class="lineNum">     142 </span>            :                 }
+<span class="lineNum">     143 </span>            :         }
+<span class="lineNum">     144 </span><span class="lineCov">        258 :         return 0;</span>
+<span class="lineNum">     145 </span>            : }
+<span class="lineNum">     146 </span>            : 
+<span class="lineNum">     147 </span>            : #ifdef  __cplusplus
+<span class="lineNum">     148 </span>            : }
+<span class="lineNum">     149 </span>            : #endif
+<span class="lineNum">     150 </span>            : 
+<span class="lineNum">     151 </span>            : #endif  /* ASN_INTERNAL_H */
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

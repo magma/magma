@@ -1,0 +1,393 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/asn_codecs_prim.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - asn_codecs_prim.c<span style="font-size: 80%;"> (source / <a href="asn_codecs_prim.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntry">108</td>
+            <td class="headerCovTableEntryLo">6.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntryLo">16.7 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*-</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2003, 2004 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;asn_codecs_prim.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;errno.h&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : /*
+<span class="lineNum">      10 </span>            :  * Decode an always-primitive type.
+<a name="11"><span class="lineNum">      11 </span>            :  */</a>
+<span class="lineNum">      12 </span>            : asn_dec_rval_t
+<span class="lineNum">      13 </span><span class="lineNoCov">          0 : ber_decode_primitive(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      14 </span>            :                      const asn_TYPE_descriptor_t *td, void **sptr,
+<span class="lineNum">      15 </span>            :                      const void *buf_ptr, size_t size, int tag_mode) {
+<span class="lineNum">      16 </span><span class="lineNoCov">          0 :     ASN__PRIMITIVE_TYPE_t *st = (ASN__PRIMITIVE_TYPE_t *)*sptr;</span>
+<span class="lineNum">      17 </span>            :         asn_dec_rval_t rval;
+<span class="lineNum">      18 </span><span class="lineNoCov">          0 :         ber_tlv_len_t length = 0; /* =0 to avoid [incorrect] warning. */</span>
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            :         /*
+<span class="lineNum">      21 </span>            :          * If the structure is not there, allocate it.
+<span class="lineNum">      22 </span>            :          */
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 :         if(st == NULL) {</span>
+<span class="lineNum">      24 </span><span class="lineNoCov">          0 :                 st = (ASN__PRIMITIVE_TYPE_t *)CALLOC(1, sizeof(*st));</span>
+<span class="lineNum">      25 </span><span class="lineNoCov">          0 :                 if(st == NULL) ASN__DECODE_FAILED;</span>
+<span class="lineNum">      26 </span><span class="lineNoCov">          0 :                 *sptr = (void *)st;</span>
+<span class="lineNum">      27 </span>            :         }
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            :         ASN_DEBUG(&quot;Decoding %s as plain primitive (tm=%d)&quot;,
+<span class="lineNum">      30 </span>            :                 td-&gt;name, tag_mode);
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            :         /*
+<span class="lineNum">      33 </span>            :          * Check tags and extract value length.
+<span class="lineNum">      34 </span>            :          */
+<span class="lineNum">      35 </span><span class="lineNoCov">          0 :         rval = ber_check_tags(opt_codec_ctx, td, 0, buf_ptr, size,</span>
+<span class="lineNum">      36 </span>            :                         tag_mode, 0, &amp;length, 0);
+<span class="lineNum">      37 </span><span class="lineNoCov">          0 :         if(rval.code != RC_OK)</span>
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :                 return rval;</span>
+<span class="lineNum">      39 </span>            : 
+<span class="lineNum">      40 </span>            :         ASN_DEBUG(&quot;%s length is %d bytes&quot;, td-&gt;name, (int)length);
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            :         /*
+<span class="lineNum">      43 </span>            :          * Make sure we have this length.
+<span class="lineNum">      44 </span>            :          */
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :         buf_ptr = ((const char *)buf_ptr) + rval.consumed;</span>
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :         size -= rval.consumed;</span>
+<span class="lineNum">      47 </span><span class="lineNoCov">          0 :         if(length &gt; (ber_tlv_len_t)size) {</span>
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :                 rval.code = RC_WMORE;</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :                 rval.consumed = 0;</span>
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 :                 return rval;</span>
+<span class="lineNum">      51 </span>            :         }
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :         st-&gt;size = (int)length;</span>
+<span class="lineNum">      54 </span>            :         /* The following better be optimized away. */
+<span class="lineNum">      55 </span>            :         if(sizeof(st-&gt;size) != sizeof(length)
+<span class="lineNum">      56 </span>            :                         &amp;&amp; (ber_tlv_len_t)st-&gt;size != length) {
+<span class="lineNum">      57 </span>            :                 st-&gt;size = 0;
+<span class="lineNum">      58 </span>            :                 ASN__DECODE_FAILED;
+<span class="lineNum">      59 </span>            :         }
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :         st-&gt;buf = (uint8_t *)MALLOC(length + 1);</span>
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 :         if(!st-&gt;buf) {</span>
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :                 st-&gt;size = 0;</span>
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :                 ASN__DECODE_FAILED;</span>
+<span class="lineNum">      65 </span>            :         }
+<span class="lineNum">      66 </span>            : 
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :         memcpy(st-&gt;buf, buf_ptr, length);</span>
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :         st-&gt;buf[length] = '\0';              /* Just in case */</span>
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :         rval.code = RC_OK;</span>
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 :         rval.consumed += length;</span>
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            :         ASN_DEBUG(&quot;Took %ld/%ld bytes to encode %s&quot;,
+<span class="lineNum">      74 </span>            :                 (long)rval.consumed,
+<span class="lineNum">      75 </span>            :                 (long)length, td-&gt;name);
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">      78 </span>            : }
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span>            : /*
+<span class="lineNum">      81 </span>            :  * Encode an always-primitive type using DER.
+<a name="82"><span class="lineNum">      82 </span>            :  */</a>
+<span class="lineNum">      83 </span>            : asn_enc_rval_t
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 : der_encode_primitive(const asn_TYPE_descriptor_t *td, const void *sptr,</span>
+<span class="lineNum">      85 </span>            :                      int tag_mode, ber_tlv_tag_t tag,
+<span class="lineNum">      86 </span>            :                      asn_app_consume_bytes_f *cb, void *app_key) {
+<span class="lineNum">      87 </span>            :     asn_enc_rval_t erval;
+<span class="lineNum">      88 </span><span class="lineNoCov">          0 :         const ASN__PRIMITIVE_TYPE_t *st = (const ASN__PRIMITIVE_TYPE_t *)sptr;</span>
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span>            :         ASN_DEBUG(&quot;%s %s as a primitive type (tm=%d)&quot;,
+<span class="lineNum">      91 </span>            :                 cb?&quot;Encoding&quot;:&quot;Estimating&quot;, td-&gt;name, tag_mode);
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :         erval.encoded = der_write_tags(td, st-&gt;size, tag_mode, 0, tag,</span>
+<span class="lineNum">      94 </span>            :                 cb, app_key);
+<span class="lineNum">      95 </span>            :         ASN_DEBUG(&quot;%s wrote tags %d&quot;, td-&gt;name, (int)erval.encoded);
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :         if(erval.encoded == -1) {</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :                 erval.failed_type = td;</span>
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :                 erval.structure_ptr = sptr;</span>
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :                 return erval;</span>
+<span class="lineNum">     100 </span>            :         }
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :         if(cb &amp;&amp; st-&gt;buf) {</span>
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :                 if(cb(st-&gt;buf, st-&gt;size, app_key) &lt; 0) {</span>
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :                         erval.encoded = -1;</span>
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :                         erval.failed_type = td;</span>
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :                         erval.structure_ptr = sptr;</span>
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :                         return erval;</span>
+<span class="lineNum">     108 </span>            :                 }
+<span class="lineNum">     109 </span>            :         } else {
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :                 assert(st-&gt;buf || st-&gt;size == 0);</span>
+<span class="lineNum">     111 </span>            :         }
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :         erval.encoded += st-&gt;size;</span>
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :         ASN__ENCODED_OK(erval);</span>
+<span class="lineNum">     115 </span>            : }
+<a name="116"><span class="lineNum">     116 </span>            : </a>
+<span class="lineNum">     117 </span>            : void
+<span class="lineNum">     118 </span><span class="lineCov">        207 : ASN__PRIMITIVE_TYPE_free(const asn_TYPE_descriptor_t *td, void *sptr,</span>
+<span class="lineNum">     119 </span>            :                          enum asn_struct_free_method method) {
+<span class="lineNum">     120 </span><span class="lineCov">        207 :     ASN__PRIMITIVE_TYPE_t *st = (ASN__PRIMITIVE_TYPE_t *)sptr;</span>
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span><span class="lineCov">        207 :         if(!td || !sptr)</span>
+<span class="lineNum">     123 </span><span class="lineNoCov">          0 :                 return;</span>
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span>            :         ASN_DEBUG(&quot;Freeing %s as a primitive type&quot;, td-&gt;name);
+<span class="lineNum">     126 </span>            : 
+<span class="lineNum">     127 </span><span class="lineCov">        207 :         if(st-&gt;buf)</span>
+<span class="lineNum">     128 </span><span class="lineCov">        207 :                 FREEMEM(st-&gt;buf);</span>
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span><span class="lineCov">        207 :     switch(method) {</span>
+<span class="lineNum">     131 </span>            :     case ASFM_FREE_EVERYTHING:
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 :         FREEMEM(sptr);</span>
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     134 </span>            :     case ASFM_FREE_UNDERLYING:
+<span class="lineNum">     135 </span><span class="lineCov">        207 :         break;</span>
+<span class="lineNum">     136 </span>            :     case ASFM_FREE_UNDERLYING_AND_RESET:
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :         memset(sptr, 0, sizeof(ASN__PRIMITIVE_TYPE_t));</span>
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     139 </span>            :     }
+<span class="lineNum">     140 </span>            : }
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span>            : /*
+<span class="lineNum">     144 </span>            :  * Local internal type passed around as an argument.
+<span class="lineNum">     145 </span>            :  */
+<span class="lineNum">     146 </span>            : struct xdp_arg_s {
+<span class="lineNum">     147 </span>            :     const asn_TYPE_descriptor_t *type_descriptor;
+<span class="lineNum">     148 </span>            :     void *struct_key;
+<span class="lineNum">     149 </span>            :         xer_primitive_body_decoder_f *prim_body_decoder;
+<span class="lineNum">     150 </span>            :         int decoded_something;
+<span class="lineNum">     151 </span>            :         int want_more;
+<span class="lineNum">     152 </span>            : };
+<span class="lineNum">     153 </span>            : 
+<span class="lineNum">     154 </span>            : /*
+<span class="lineNum">     155 </span>            :  * Since some kinds of primitive values can be encoded using value-specific
+<span class="lineNum">     156 </span>            :  * tags (&lt;MINUS-INFINITY&gt;, &lt;enum-element&gt;, etc), the primitive decoder must
+<span class="lineNum">     157 </span>            :  * be supplied with such tags to parse them as needed.
+<a name="158"><span class="lineNum">     158 </span>            :  */</a>
+<span class="lineNum">     159 </span>            : static int
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 : xer_decode__unexpected_tag(void *key, const void *chunk_buf, size_t chunk_size) {</span>
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :         struct xdp_arg_s *arg = (struct xdp_arg_s *)key;</span>
+<span class="lineNum">     162 </span>            :         enum xer_pbd_rval bret;
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span>            :         /*
+<span class="lineNum">     165 </span>            :          * The chunk_buf is guaranteed to start at '&lt;'.
+<span class="lineNum">     166 </span>            :          */
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 :         assert(chunk_size &amp;&amp; ((const char *)chunk_buf)[0] == 0x3c);</span>
+<span class="lineNum">     168 </span>            : 
+<span class="lineNum">     169 </span>            :         /*
+<span class="lineNum">     170 </span>            :          * Decoding was performed once already. Prohibit doing it again.
+<span class="lineNum">     171 </span>            :          */
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :         if(arg-&gt;decoded_something)</span>
+<span class="lineNum">     173 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     174 </span>            : 
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 :         bret = arg-&gt;prim_body_decoder(arg-&gt;type_descriptor,</span>
+<span class="lineNum">     176 </span>            :                 arg-&gt;struct_key, chunk_buf, chunk_size);
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 :         switch(bret) {</span>
+<span class="lineNum">     178 </span>            :         case XPBD_SYSTEM_FAILURE:
+<span class="lineNum">     179 </span>            :         case XPBD_DECODER_LIMIT:
+<span class="lineNum">     180 </span>            :         case XPBD_BROKEN_ENCODING:
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     182 </span>            :         case XPBD_BODY_CONSUMED:
+<span class="lineNum">     183 </span>            :                 /* Tag decoded successfully */
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :                 arg-&gt;decoded_something = 1;</span>
+<span class="lineNum">     185 </span>            :                 /* Fall through */
+<span class="lineNum">     186 </span>            :         case XPBD_NOT_BODY_IGNORE:      /* Safe to proceed further */
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :                 return 0;</span>
+<span class="lineNum">     188 </span>            :         }
+<span class="lineNum">     189 </span>            : 
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">     191 </span>            : }
+<a name="192"><span class="lineNum">     192 </span>            : </a>
+<span class="lineNum">     193 </span>            : static ssize_t
+<span class="lineNum">     194 </span><span class="lineNoCov">          0 : xer_decode__primitive_body(void *key, const void *chunk_buf, size_t chunk_size, int have_more) {</span>
+<span class="lineNum">     195 </span><span class="lineNoCov">          0 :         struct xdp_arg_s *arg = (struct xdp_arg_s *)key;</span>
+<span class="lineNum">     196 </span>            :         enum xer_pbd_rval bret;
+<span class="lineNum">     197 </span>            :         size_t lead_wsp_size;
+<span class="lineNum">     198 </span>            : 
+<span class="lineNum">     199 </span><span class="lineNoCov">          0 :         if(arg-&gt;decoded_something) {</span>
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :                 if(xer_whitespace_span(chunk_buf, chunk_size) == chunk_size) {</span>
+<span class="lineNum">     201 </span>            :                         /*
+<span class="lineNum">     202 </span>            :                          * Example:
+<span class="lineNum">     203 </span>            :                          * &quot;&lt;INTEGER&gt;123&lt;!--/--&gt; &lt;/INTEGER&gt;&quot;
+<span class="lineNum">     204 </span>            :                          *                      ^- chunk_buf position.
+<span class="lineNum">     205 </span>            :                          */
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :                         return chunk_size;</span>
+<span class="lineNum">     207 </span>            :                 }
+<span class="lineNum">     208 </span>            :                 /*
+<span class="lineNum">     209 </span>            :                  * Decoding was done once already. Prohibit doing it again.
+<span class="lineNum">     210 </span>            :                  */
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     212 </span>            :         }
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span><span class="lineNoCov">          0 :         if(!have_more) {</span>
+<span class="lineNum">     215 </span>            :                 /*
+<span class="lineNum">     216 </span>            :                  * If we've received something like &quot;1&quot;, we can't really
+<span class="lineNum">     217 </span>            :                  * tell whether it is really `1` or `123`, until we know
+<span class="lineNum">     218 </span>            :                  * that there is no more data coming.
+<span class="lineNum">     219 </span>            :                  * The have_more argument will be set to 1 once something
+<span class="lineNum">     220 </span>            :                  * like this is available to the caller of this callback:
+<span class="lineNum">     221 </span>            :                  * &quot;1&lt;tag_start...&quot;
+<span class="lineNum">     222 </span>            :                  */
+<span class="lineNum">     223 </span><span class="lineNoCov">          0 :                 arg-&gt;want_more = 1;</span>
+<span class="lineNum">     224 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     225 </span>            :         }
+<span class="lineNum">     226 </span>            : 
+<span class="lineNum">     227 </span><span class="lineNoCov">          0 :         lead_wsp_size = xer_whitespace_span(chunk_buf, chunk_size);</span>
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :         chunk_buf = (const char *)chunk_buf + lead_wsp_size;</span>
+<span class="lineNum">     229 </span><span class="lineNoCov">          0 :         chunk_size -= lead_wsp_size;</span>
+<span class="lineNum">     230 </span>            : 
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :         bret = arg-&gt;prim_body_decoder(arg-&gt;type_descriptor,</span>
+<span class="lineNum">     232 </span>            :                 arg-&gt;struct_key, chunk_buf, chunk_size);
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 :         switch(bret) {</span>
+<span class="lineNum">     234 </span>            :         case XPBD_SYSTEM_FAILURE:
+<span class="lineNum">     235 </span>            :         case XPBD_DECODER_LIMIT:
+<span class="lineNum">     236 </span>            :         case XPBD_BROKEN_ENCODING:
+<span class="lineNum">     237 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     238 </span>            :         case XPBD_BODY_CONSUMED:
+<span class="lineNum">     239 </span>            :                 /* Tag decoded successfully */
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :                 arg-&gt;decoded_something = 1;</span>
+<span class="lineNum">     241 </span>            :                 /* Fall through */
+<span class="lineNum">     242 </span>            :         case XPBD_NOT_BODY_IGNORE:      /* Safe to proceed further */
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :                 return lead_wsp_size + chunk_size;</span>
+<span class="lineNum">     244 </span>            :         }
+<span class="lineNum">     245 </span>            : 
+<span class="lineNum">     246 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">     247 </span>            : }
+<span class="lineNum">     248 </span>            : 
+<a name="249"><span class="lineNum">     249 </span>            : </a>
+<span class="lineNum">     250 </span>            : asn_dec_rval_t
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 : xer_decode_primitive(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     252 </span>            :                      const asn_TYPE_descriptor_t *td, void **sptr,
+<span class="lineNum">     253 </span>            :                      size_t struct_size, const char *opt_mname,
+<span class="lineNum">     254 </span>            :                      const void *buf_ptr, size_t size,
+<span class="lineNum">     255 </span>            :                      xer_primitive_body_decoder_f *prim_body_decoder) {
+<span class="lineNum">     256 </span><span class="lineNoCov">          0 :     const char *xml_tag = opt_mname ? opt_mname : td-&gt;xml_tag;</span>
+<span class="lineNum">     257 </span>            :         asn_struct_ctx_t s_ctx;
+<span class="lineNum">     258 </span>            :         struct xdp_arg_s s_arg;
+<span class="lineNum">     259 </span>            :         asn_dec_rval_t rc;
+<span class="lineNum">     260 </span>            : 
+<span class="lineNum">     261 </span>            :         /*
+<span class="lineNum">     262 </span>            :          * Create the structure if does not exist.
+<span class="lineNum">     263 </span>            :          */
+<span class="lineNum">     264 </span><span class="lineNoCov">          0 :         if(!*sptr) {</span>
+<span class="lineNum">     265 </span><span class="lineNoCov">          0 :                 *sptr = CALLOC(1, struct_size);</span>
+<span class="lineNum">     266 </span><span class="lineNoCov">          0 :                 if(!*sptr) ASN__DECODE_FAILED;</span>
+<span class="lineNum">     267 </span>            :         }
+<span class="lineNum">     268 </span>            : 
+<span class="lineNum">     269 </span><span class="lineNoCov">          0 :         memset(&amp;s_ctx, 0, sizeof(s_ctx));</span>
+<span class="lineNum">     270 </span><span class="lineNoCov">          0 :         s_arg.type_descriptor = td;</span>
+<span class="lineNum">     271 </span><span class="lineNoCov">          0 :         s_arg.struct_key = *sptr;</span>
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :         s_arg.prim_body_decoder = prim_body_decoder;</span>
+<span class="lineNum">     273 </span><span class="lineNoCov">          0 :         s_arg.decoded_something = 0;</span>
+<span class="lineNum">     274 </span><span class="lineNoCov">          0 :         s_arg.want_more = 0;</span>
+<span class="lineNum">     275 </span>            : 
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 :         rc = xer_decode_general(opt_codec_ctx, &amp;s_ctx, &amp;s_arg,</span>
+<span class="lineNum">     277 </span>            :                 xml_tag, buf_ptr, size,
+<span class="lineNum">     278 </span>            :                 xer_decode__unexpected_tag, xer_decode__primitive_body);
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :         switch(rc.code) {</span>
+<span class="lineNum">     280 </span>            :         case RC_OK:
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :                 if(!s_arg.decoded_something) {</span>
+<span class="lineNum">     282 </span>            :                         char ch;
+<span class="lineNum">     283 </span>            :                         ASN_DEBUG(&quot;Primitive body is not recognized, &quot;
+<span class="lineNum">     284 </span>            :                                 &quot;supplying empty one&quot;);
+<span class="lineNum">     285 </span>            :                         /*
+<span class="lineNum">     286 </span>            :                          * Decoding opportunity has come and gone.
+<span class="lineNum">     287 </span>            :                          * Where's the result?
+<span class="lineNum">     288 </span>            :                          * Try to feed with empty body, see if it eats it.
+<span class="lineNum">     289 </span>            :                          */
+<span class="lineNum">     290 </span><span class="lineNoCov">          0 :                         if(prim_body_decoder(s_arg.type_descriptor,</span>
+<span class="lineNum">     291 </span>            :                                 s_arg.struct_key, &amp;ch, 0)
+<span class="lineNum">     292 </span>            :                                         != XPBD_BODY_CONSUMED) {
+<span class="lineNum">     293 </span>            :                                 /*
+<span class="lineNum">     294 </span>            :                                  * This decoder does not like empty stuff.
+<span class="lineNum">     295 </span>            :                                  */
+<span class="lineNum">     296 </span><span class="lineNoCov">          0 :                                 ASN__DECODE_FAILED;</span>
+<span class="lineNum">     297 </span>            :                         }
+<span class="lineNum">     298 </span>            :                 }
+<span class="lineNum">     299 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     300 </span>            :         case RC_WMORE:
+<span class="lineNum">     301 </span>            :                 /*
+<span class="lineNum">     302 </span>            :                  * Redo the whole thing later.
+<span class="lineNum">     303 </span>            :                  * We don't have a context to save intermediate parsing state.
+<span class="lineNum">     304 </span>            :                  */
+<span class="lineNum">     305 </span><span class="lineNoCov">          0 :                 rc.consumed = 0;</span>
+<span class="lineNum">     306 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     307 </span>            :         case RC_FAIL:
+<span class="lineNum">     308 </span><span class="lineNoCov">          0 :                 rc.consumed = 0;</span>
+<span class="lineNum">     309 </span><span class="lineNoCov">          0 :                 if(s_arg.want_more)</span>
+<span class="lineNum">     310 </span><span class="lineNoCov">          0 :                         rc.code = RC_WMORE;</span>
+<span class="lineNum">     311 </span>            :                 else
+<span class="lineNum">     312 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     313 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     314 </span>            :         }
+<span class="lineNum">     315 </span><span class="lineNoCov">          0 :         return rc;</span>
+<span class="lineNum">     316 </span>            : }
+<span class="lineNum">     317 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/INTEGER_oer.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - INTEGER_oer.c<span style="font-size: 80%;"> (source / <a href="INTEGER_oer.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">85</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2017 Lev Walkin &lt;vlm@lionet.info&gt;.
+<span class="lineNum">       3 </span>            :  * All rights reserved.
+<span class="lineNum">       4 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       5 </span>            :  */
+<span class="lineNum">       6 </span>            : #ifndef ASN_DISABLE_OER_SUPPORT
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       9 </span>            : #include &lt;INTEGER.h&gt;
+<span class="lineNum">      10 </span>            : #include &lt;errno.h&gt;
+<a name="11"><span class="lineNum">      11 </span>            : </a>
+<span class="lineNum">      12 </span>            : asn_dec_rval_t
+<span class="lineNum">      13 </span><span class="lineNoCov">          0 : INTEGER_decode_oer(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      14 </span>            :                    const asn_TYPE_descriptor_t *td,
+<span class="lineNum">      15 </span>            :                    const asn_oer_constraints_t *constraints, void **sptr,
+<span class="lineNum">      16 </span>            :                    const void *ptr, size_t size) {
+<span class="lineNum">      17 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">      18 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">      19 </span><span class="lineNoCov">          0 :     asn_dec_rval_t rval = {RC_OK, 0};</span>
+<span class="lineNum">      20 </span><span class="lineNoCov">          0 :     INTEGER_t *st = (INTEGER_t *)*sptr;</span>
+<span class="lineNum">      21 </span><span class="lineNoCov">          0 :     struct asn_oer_constraint_number_s ct = {0, 0};</span>
+<span class="lineNum">      22 </span>            :     size_t req_bytes;
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span>            :     (void)opt_codec_ctx;
+<span class="lineNum">      25 </span>            :     (void)specs;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 :     if(!st) {</span>
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 :         st = (INTEGER_t *)(*sptr = CALLOC(1, sizeof(*st)));</span>
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 :         if(!st) ASN__DECODE_FAILED;</span>
+<span class="lineNum">      30 </span>            :     }
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :     FREEMEM(st-&gt;buf);</span>
+<span class="lineNum">      33 </span><span class="lineNoCov">          0 :     st-&gt;buf = 0;</span>
+<span class="lineNum">      34 </span><span class="lineNoCov">          0 :     st-&gt;size = 0;</span>
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 :     if(!constraints) constraints = td-&gt;encoding_constraints.oer_constraints;</span>
+<span class="lineNum">      37 </span><span class="lineNoCov">          0 :     if(constraints) ct = constraints-&gt;value;</span>
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :     if(ct.width) {</span>
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :         req_bytes = ct.width;</span>
+<span class="lineNum">      41 </span>            :     } else {
+<span class="lineNum">      42 </span>            :         /* No lower bound and no upper bound, effectively */
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span><span class="lineNoCov">          0 :         ssize_t consumed = oer_fetch_length(ptr, size, &amp;req_bytes);</span>
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :         if(consumed == 0) {</span>
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :             ASN__DECODE_STARVED;</span>
+<span class="lineNum">      47 </span><span class="lineNoCov">          0 :         } else if(consumed == -1) {</span>
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :             ASN__DECODE_FAILED;</span>
+<span class="lineNum">      49 </span>            :         }
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 :         rval.consumed += consumed;</span>
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :         ptr = (const char *)ptr + consumed;</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :         size -= consumed;</span>
+<span class="lineNum">      53 </span>            :     }
+<span class="lineNum">      54 </span>            : 
+<span class="lineNum">      55 </span><span class="lineNoCov">          0 :     if(req_bytes &gt; size) {</span>
+<span class="lineNum">      56 </span><span class="lineNoCov">          0 :         ASN__DECODE_STARVED;</span>
+<span class="lineNum">      57 </span>            :     }
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :     if(ct.positive) {</span>
+<span class="lineNum">      60 </span>            :         /* X.969 08/2015 10.2(a) */
+<span class="lineNum">      61 </span>            :         unsigned msb;   /* Most significant bit */
+<span class="lineNum">      62 </span>            :         size_t useful_size;
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            :         /* Check most significant bit */
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :         msb = *(const uint8_t *)ptr &gt;&gt; 7; /* yields 0 or 1 */</span>
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :         useful_size = msb + req_bytes;</span>
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :         st-&gt;buf = (uint8_t *)MALLOC(useful_size + 1);</span>
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :         if(!st-&gt;buf) {</span>
+<span class="lineNum">      69 </span><span class="lineNoCov">          0 :             ASN__DECODE_FAILED;</span>
+<span class="lineNum">      70 </span>            :         }
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            :         /*
+<span class="lineNum">      73 </span>            :          * Record a large unsigned in a way not to confuse it
+<span class="lineNum">      74 </span>            :          * with signed value.
+<span class="lineNum">      75 </span>            :          */
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :         st-&gt;buf[0] = '\0';</span>
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :         memcpy(st-&gt;buf + msb, ptr, req_bytes);</span>
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :         st-&gt;buf[useful_size] = '\0';    /* Just in case, 0-terminate */</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :         st-&gt;size = useful_size;</span>
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :         rval.consumed += req_bytes;</span>
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">      83 </span>            :     } else {
+<span class="lineNum">      84 </span>            :         /* X.969 08/2015 10.2(b) */
+<span class="lineNum">      85 </span><span class="lineNoCov">          0 :         st-&gt;buf = (uint8_t *)MALLOC(req_bytes + 1);</span>
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 :         if(!st-&gt;buf) {</span>
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :             ASN__DECODE_FAILED;</span>
+<span class="lineNum">      88 </span>            :         }
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :         memcpy(st-&gt;buf, ptr, req_bytes);</span>
+<span class="lineNum">      91 </span><span class="lineNoCov">          0 :         st-&gt;buf[req_bytes] = '\0'; /* Just in case, 0-terminate */</span>
+<span class="lineNum">      92 </span><span class="lineNoCov">          0 :         st-&gt;size = req_bytes;</span>
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span><span class="lineNoCov">          0 :         rval.consumed += req_bytes;</span>
+<span class="lineNum">      95 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">      96 </span>            :     }
+<span class="lineNum">      97 </span>            : }
+<span class="lineNum">      98 </span>            : 
+<span class="lineNum">      99 </span>            : /*
+<span class="lineNum">     100 </span>            :  * Encode as Canonical OER.
+<a name="101"><span class="lineNum">     101 </span>            :  */</a>
+<span class="lineNum">     102 </span>            : asn_enc_rval_t
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 : INTEGER_encode_oer(const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     104 </span>            :                    const asn_oer_constraints_t *constraints, const void *sptr,
+<span class="lineNum">     105 </span>            :                    asn_app_consume_bytes_f *cb, void *app_key) {
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :     const INTEGER_t *st = sptr;</span>
+<span class="lineNum">     107 </span>            :     asn_enc_rval_t er;
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :     struct asn_oer_constraint_number_s ct = {0, 0};</span>
+<span class="lineNum">     109 </span>            :     const uint8_t *buf;
+<span class="lineNum">     110 </span>            :     const uint8_t *end;
+<span class="lineNum">     111 </span>            :     size_t useful_bytes;
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :     size_t req_bytes = 0;</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :     int sign = 0;</span>
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span><span class="lineNoCov">          0 :     if(!st || st-&gt;size == 0) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span><span class="lineNoCov">          0 :     if(!constraints) constraints = td-&gt;encoding_constraints.oer_constraints;</span>
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 :     if(constraints) ct = constraints-&gt;value;</span>
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 :     er.encoded = 0;</span>
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :     buf = st-&gt;buf;</span>
+<span class="lineNum">     123 </span><span class="lineNoCov">          0 :     end = buf + st-&gt;size;</span>
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :     sign = (buf &amp;&amp; buf &lt; end) ? buf[0] &amp; 0x80 : 0;</span>
+<span class="lineNum">     126 </span>            : 
+<span class="lineNum">     127 </span>            :     /* Ignore 9 leading zeroes or ones */
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :     if(ct.positive) {</span>
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :         if(sign) {</span>
+<span class="lineNum">     130 </span>            :             /* The value given is a signed value. Can't proceed. */
+<span class="lineNum">     131 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     132 </span>            :         }
+<span class="lineNum">     133 </span>            :         /* Remove leading zeros. */
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :         for(; buf + 1 &lt; end; buf++) {</span>
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :             if(buf[0] != 0x0) break;</span>
+<span class="lineNum">     136 </span>            :         }
+<span class="lineNum">     137 </span>            :     } else {
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :         for(; buf + 1 &lt; end; buf++) {</span>
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :             if(buf[0] == 0x0 &amp;&amp; (buf[1] &amp; 0x80) == 0) {</span>
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :                 continue;</span>
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :             } else if(buf[0] == 0xff &amp;&amp; (buf[1] &amp; 0x80) != 0) {</span>
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 :                 continue;</span>
+<span class="lineNum">     143 </span>            :             }
+<span class="lineNum">     144 </span><span class="lineNoCov">          0 :             break;</span>
+<span class="lineNum">     145 </span>            :         }
+<span class="lineNum">     146 </span>            :     }
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :     useful_bytes = end - buf;</span>
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :     if(ct.width) {</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :         req_bytes = ct.width;</span>
+<span class="lineNum">     151 </span>            :     } else {
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :         ssize_t r = oer_serialize_length(useful_bytes, cb, app_key);</span>
+<span class="lineNum">     153 </span><span class="lineNoCov">          0 :         if(r &lt; 0) {</span>
+<span class="lineNum">     154 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     155 </span>            :         }
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :         er.encoded += r;</span>
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :         req_bytes = useful_bytes;</span>
+<span class="lineNum">     158 </span>            :     }
+<span class="lineNum">     159 </span>            : 
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :     if(req_bytes &lt; useful_bytes) {</span>
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     162 </span>            :     }
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 :     er.encoded += req_bytes;</span>
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span><span class="lineNoCov">          0 :     for(; req_bytes &gt; useful_bytes; req_bytes--) {</span>
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 :         if(cb(sign?&quot;\xff&quot;:&quot;\0&quot;, 1, app_key) &lt; 0) {</span>
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     169 </span>            :         }
+<span class="lineNum">     170 </span>            :     }
+<span class="lineNum">     171 </span>            : 
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :     if(cb(buf, useful_bytes, app_key) &lt; 0) {</span>
+<span class="lineNum">     173 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     174 </span>            :     }
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 :     ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     177 </span>            : }
+<span class="lineNum">     178 </span>            : 
+<span class="lineNum">     179 </span>            : #endif  /* ASN_DISABLE_OER_SUPPORT */
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

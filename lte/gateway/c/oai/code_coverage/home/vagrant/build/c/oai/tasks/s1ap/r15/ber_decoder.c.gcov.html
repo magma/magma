@@ -1,0 +1,359 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/ber_decoder.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - ber_decoder.c<span style="font-size: 80%;"> (source / <a href="ber_decoder.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">75</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*-</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2003, 2004 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : #undef  ADVANCE
+<span class="lineNum">       8 </span>            : #define ADVANCE(num_bytes)      do {                                    \
+<span class="lineNum">       9 </span>            :                 size_t num = num_bytes;                                 \
+<span class="lineNum">      10 </span>            :                 ptr = ((const char *)ptr) + num;                        \
+<span class="lineNum">      11 </span>            :                 size -= num;                                            \
+<span class="lineNum">      12 </span>            :                 consumed_myself += num;                                 \
+<span class="lineNum">      13 </span>            :         } while(0)
+<span class="lineNum">      14 </span>            : #undef  RETURN
+<span class="lineNum">      15 </span>            : #define RETURN(_code)   do {                                            \
+<span class="lineNum">      16 </span>            :                 asn_dec_rval_t rval;                                    \
+<span class="lineNum">      17 </span>            :                 rval.code = _code;                                      \
+<span class="lineNum">      18 </span>            :                 if(opt_ctx) opt_ctx-&gt;step = step; /* Save context */ \
+<span class="lineNum">      19 </span>            :                 if(_code == RC_OK || opt_ctx)                           \
+<span class="lineNum">      20 </span>            :                         rval.consumed = consumed_myself;                \
+<span class="lineNum">      21 </span>            :                 else                                                    \
+<span class="lineNum">      22 </span>            :                         rval.consumed = 0;      /* Context-free */      \
+<span class="lineNum">      23 </span>            :                 return rval;                                            \
+<span class="lineNum">      24 </span>            :         } while(0)
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : /*
+<span class="lineNum">      27 </span>            :  * The BER decoder of any type.
+<a name="28"><span class="lineNum">      28 </span>            :  */</a>
+<span class="lineNum">      29 </span>            : asn_dec_rval_t
+<span class="lineNum">      30 </span><span class="lineNoCov">          0 : ber_decode(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      31 </span>            :            const asn_TYPE_descriptor_t *type_descriptor, void **struct_ptr,
+<span class="lineNum">      32 </span>            :            const void *ptr, size_t size) {
+<span class="lineNum">      33 </span>            :     asn_codec_ctx_t s_codec_ctx;
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            :         /*
+<span class="lineNum">      36 </span>            :          * Stack checker requires that the codec context
+<span class="lineNum">      37 </span>            :          * must be allocated on the stack.
+<span class="lineNum">      38 </span>            :          */
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :         if(opt_codec_ctx) {</span>
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :                 if(opt_codec_ctx-&gt;max_stack_size) {</span>
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :                         s_codec_ctx = *opt_codec_ctx;</span>
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :                         opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">      43 </span>            :                 }
+<span class="lineNum">      44 </span>            :         } else {
+<span class="lineNum">      45 </span>            :                 /* If context is not given, be security-conscious anyway */
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :                 memset(&amp;s_codec_ctx, 0, sizeof(s_codec_ctx));</span>
+<span class="lineNum">      47 </span><span class="lineNoCov">          0 :                 s_codec_ctx.max_stack_size = ASN__DEFAULT_STACK_MAX;</span>
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :                 opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">      49 </span>            :         }
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            :         /*
+<span class="lineNum">      52 </span>            :          * Invoke type-specific decoder.
+<span class="lineNum">      53 </span>            :          */
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :         return type_descriptor-&gt;op-&gt;ber_decoder(opt_codec_ctx, type_descriptor,</span>
+<span class="lineNum">      55 </span>            :                 struct_ptr,     /* Pointer to the destination structure */
+<span class="lineNum">      56 </span>            :                 ptr, size,      /* Buffer and its size */
+<span class="lineNum">      57 </span>            :                 0               /* Default tag mode is 0 */
+<span class="lineNum">      58 </span>            :                 );
+<span class="lineNum">      59 </span>            : }
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            : /*
+<span class="lineNum">      62 </span>            :  * Check the set of &lt;TL&lt;TL&lt;TL...&gt;&gt;&gt; tags matches the definition.
+<a name="63"><span class="lineNum">      63 </span>            :  */</a>
+<span class="lineNum">      64 </span>            : asn_dec_rval_t
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 : ber_check_tags(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      66 </span>            :                const asn_TYPE_descriptor_t *td, asn_struct_ctx_t *opt_ctx,
+<span class="lineNum">      67 </span>            :                const void *ptr, size_t size, int tag_mode, int last_tag_form,
+<span class="lineNum">      68 </span>            :                ber_tlv_len_t *last_length, int *opt_tlv_form) {
+<span class="lineNum">      69 </span><span class="lineNoCov">          0 :     ssize_t consumed_myself = 0;</span>
+<span class="lineNum">      70 </span>            :         ssize_t tag_len;
+<span class="lineNum">      71 </span>            :         ssize_t len_len;
+<span class="lineNum">      72 </span>            :         ber_tlv_tag_t tlv_tag;
+<span class="lineNum">      73 </span>            :         ber_tlv_len_t tlv_len;
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :         ber_tlv_len_t limit_len = -1;</span>
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :         int expect_00_terminators = 0;</span>
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :         int tlv_constr = -1;    /* If CHOICE, opt_tlv_form is not given */</span>
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :         int step = opt_ctx ? opt_ctx-&gt;step : 0;      /* Where we left previously */</span>
+<span class="lineNum">      78 </span>            :         int tagno;
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span>            :         /*
+<span class="lineNum">      81 </span>            :          * Make sure we didn't exceed the maximum stack size.
+<span class="lineNum">      82 </span>            :          */
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :         if(ASN__STACK_OVERFLOW_CHECK(opt_codec_ctx))</span>
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 :                 RETURN(RC_FAIL);</span>
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            :         /*
+<span class="lineNum">      87 </span>            :          * So what does all this implicit skip stuff mean?
+<span class="lineNum">      88 </span>            :          * Imagine two types,
+<span class="lineNum">      89 </span>            :          *      A ::= [5] IMPLICIT      T
+<span class="lineNum">      90 </span>            :          *      B ::= [2] EXPLICIT      T
+<span class="lineNum">      91 </span>            :          * Where T is defined as
+<span class="lineNum">      92 </span>            :          *      T ::= [4] IMPLICIT SEQUENCE { ... }
+<span class="lineNum">      93 </span>            :          * 
+<span class="lineNum">      94 </span>            :          * Let's say, we are starting to decode type A, given the
+<span class="lineNum">      95 </span>            :          * following TLV stream: &lt;5&gt; &lt;0&gt;. What does this mean?
+<span class="lineNum">      96 </span>            :          * It means that the type A contains type T which is,
+<span class="lineNum">      97 </span>            :          * in turn, empty.
+<span class="lineNum">      98 </span>            :          * Remember though, that we are still in A. We cannot
+<span class="lineNum">      99 </span>            :          * just pass control to the type T decoder. Why? Because
+<span class="lineNum">     100 </span>            :          * the type T decoder expects &lt;4&gt; &lt;0&gt;, not &lt;5&gt; &lt;0&gt;.
+<span class="lineNum">     101 </span>            :          * So, we must make sure we are going to receive &lt;5&gt; while
+<span class="lineNum">     102 </span>            :          * still in A, then pass control to the T decoder, indicating
+<span class="lineNum">     103 </span>            :          * that the tag &lt;4&gt; was implicitly skipped. The decoder of T
+<span class="lineNum">     104 </span>            :          * hence will be prepared to treat &lt;4&gt; as valid tag, and decode
+<span class="lineNum">     105 </span>            :          * it appropriately.
+<span class="lineNum">     106 </span>            :          */
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :         tagno = step    /* Continuing where left previously */</span>
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :                 + (tag_mode==1?-1:0)</span>
+<span class="lineNum">     110 </span>            :                 ;
+<span class="lineNum">     111 </span>            :         ASN_DEBUG(&quot;ber_check_tags(%s, size=%ld, tm=%d, step=%d, tagno=%d)&quot;,
+<span class="lineNum">     112 </span>            :                 td-&gt;name, (long)size, tag_mode, step, tagno);
+<span class="lineNum">     113 </span>            :         /* assert(td-&gt;tags_count &gt;= 1) May not be the case for CHOICE or ANY */
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span><span class="lineNoCov">          0 :         if(tag_mode == 0 &amp;&amp; tagno == (int)td-&gt;tags_count) {</span>
+<span class="lineNum">     116 </span>            :                 /*
+<span class="lineNum">     117 </span>            :                  * This must be the _untagged_ ANY type,
+<span class="lineNum">     118 </span>            :                  * which outermost tag isn't known in advance.
+<span class="lineNum">     119 </span>            :                  * Fetch the tag and length separately.
+<span class="lineNum">     120 </span>            :                  */
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :                 tag_len = ber_fetch_tag(ptr, size, &amp;tlv_tag);</span>
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :                 switch(tag_len) {</span>
+<span class="lineNum">     123 </span><span class="lineNoCov">          0 :                 case -1: RETURN(RC_FAIL);</span>
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :                 case 0: RETURN(RC_WMORE);</span>
+<span class="lineNum">     125 </span>            :                 }
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :                 tlv_constr = BER_TLV_CONSTRUCTED(ptr);</span>
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :                 len_len = ber_fetch_length(tlv_constr,</span>
+<span class="lineNum">     128 </span>            :                         (const char *)ptr + tag_len, size - tag_len, &amp;tlv_len);
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :                 switch(len_len) {</span>
+<span class="lineNum">     130 </span><span class="lineNoCov">          0 :                 case -1: RETURN(RC_FAIL);</span>
+<span class="lineNum">     131 </span><span class="lineNoCov">          0 :                 case 0: RETURN(RC_WMORE);</span>
+<span class="lineNum">     132 </span>            :                 }
+<span class="lineNum">     133 </span>            :                 ASN_DEBUG(&quot;Advancing %ld in ANY case&quot;,
+<span class="lineNum">     134 </span>            :                         (long)(tag_len + len_len));
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :                 ADVANCE(tag_len + len_len);</span>
+<span class="lineNum">     136 </span>            :         } else {
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :                 assert(tagno &lt; (int)td-&gt;tags_count);      /* At least one loop */</span>
+<span class="lineNum">     138 </span>            :         }
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :         for((void)tagno; tagno &lt; (int)td-&gt;tags_count; tagno++, step++) {</span>
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span>            :                 /*
+<span class="lineNum">     142 </span>            :                  * Fetch and process T from TLV.
+<span class="lineNum">     143 </span>            :                  */
+<span class="lineNum">     144 </span><span class="lineNoCov">          0 :                 tag_len = ber_fetch_tag(ptr, size, &amp;tlv_tag);</span>
+<span class="lineNum">     145 </span>            :                         ASN_DEBUG(&quot;Fetching tag from {%p,%ld}: &quot;
+<span class="lineNum">     146 </span>            :                                 &quot;len %ld, step %d, tagno %d got %s&quot;,
+<span class="lineNum">     147 </span>            :                                 ptr, (long)size,
+<span class="lineNum">     148 </span>            :                                 (long)tag_len, step, tagno,
+<span class="lineNum">     149 </span>            :                                 ber_tlv_tag_string(tlv_tag));
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :                 switch(tag_len) {</span>
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :                 case -1: RETURN(RC_FAIL);</span>
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :                 case 0: RETURN(RC_WMORE);</span>
+<span class="lineNum">     153 </span>            :                 }
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span><span class="lineNoCov">          0 :                 tlv_constr = BER_TLV_CONSTRUCTED(ptr);</span>
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span>            :                 /*
+<span class="lineNum">     158 </span>            :                  * If {I}, don't check anything.
+<span class="lineNum">     159 </span>            :                  * If {I,B,C}, check B and C unless we're at I.
+<span class="lineNum">     160 </span>            :                  */
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :                 if(tag_mode != 0 &amp;&amp; step == 0) {</span>
+<span class="lineNum">     162 </span>            :                         /*
+<span class="lineNum">     163 </span>            :                          * We don't expect tag to match here.
+<span class="lineNum">     164 </span>            :                          * It's just because we don't know how the tag
+<span class="lineNum">     165 </span>            :                          * is supposed to look like.
+<span class="lineNum">     166 </span>            :                          */
+<span class="lineNum">     167 </span>            :                 } else {
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :                     assert(tagno &gt;= 0);      /* Guaranteed by the code above */</span>
+<span class="lineNum">     169 </span><span class="lineNoCov">          0 :                     if(tlv_tag != td-&gt;tags[tagno]) {</span>
+<span class="lineNum">     170 </span>            :                         /*
+<span class="lineNum">     171 </span>            :                          * Unexpected tag. Too bad.
+<span class="lineNum">     172 </span>            :                          */
+<span class="lineNum">     173 </span>            :                         ASN_DEBUG(&quot;Expected: %s, &quot;
+<span class="lineNum">     174 </span>            :                                 &quot;expectation failed (tn=%d, tm=%d)&quot;,
+<span class="lineNum">     175 </span>            :                                 ber_tlv_tag_string(td-&gt;tags[tagno]),
+<span class="lineNum">     176 </span>            :                                 tagno, tag_mode
+<span class="lineNum">     177 </span>            :                         );
+<span class="lineNum">     178 </span><span class="lineNoCov">          0 :                         RETURN(RC_FAIL);</span>
+<span class="lineNum">     179 </span>            :                     }
+<span class="lineNum">     180 </span>            :                 }
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span>            :                 /*
+<span class="lineNum">     183 </span>            :                  * Attention: if there are more tags expected,
+<span class="lineNum">     184 </span>            :                  * ensure that the current tag is presented
+<span class="lineNum">     185 </span>            :                  * in constructed form (it contains other tags!).
+<span class="lineNum">     186 </span>            :                  * If this one is the last one, check that the tag form
+<span class="lineNum">     187 </span>            :                  * matches the one given in descriptor.
+<span class="lineNum">     188 </span>            :                  */
+<span class="lineNum">     189 </span><span class="lineNoCov">          0 :                 if(tagno &lt; ((int)td-&gt;tags_count - 1)) {</span>
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 :                         if(tlv_constr == 0) {</span>
+<span class="lineNum">     191 </span>            :                                 ASN_DEBUG(&quot;tlv_constr = %d, expfail&quot;,
+<span class="lineNum">     192 </span>            :                                         tlv_constr);
+<span class="lineNum">     193 </span><span class="lineNoCov">          0 :                                 RETURN(RC_FAIL);</span>
+<span class="lineNum">     194 </span>            :                         }
+<span class="lineNum">     195 </span>            :                 } else {
+<span class="lineNum">     196 </span><span class="lineNoCov">          0 :                         if(last_tag_form != tlv_constr</span>
+<span class="lineNum">     197 </span><span class="lineNoCov">          0 :                         &amp;&amp; last_tag_form != -1) {</span>
+<span class="lineNum">     198 </span>            :                                 ASN_DEBUG(&quot;last_tag_form %d != %d&quot;,
+<span class="lineNum">     199 </span>            :                                         last_tag_form, tlv_constr);
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :                                 RETURN(RC_FAIL);</span>
+<span class="lineNum">     201 </span>            :                         }
+<span class="lineNum">     202 </span>            :                 }
+<span class="lineNum">     203 </span>            : 
+<span class="lineNum">     204 </span>            :                 /*
+<span class="lineNum">     205 </span>            :                  * Fetch and process L from TLV.
+<span class="lineNum">     206 </span>            :                  */
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :                 len_len = ber_fetch_length(tlv_constr,</span>
+<span class="lineNum">     208 </span>            :                         (const char *)ptr + tag_len, size - tag_len, &amp;tlv_len);
+<span class="lineNum">     209 </span>            :                 ASN_DEBUG(&quot;Fetching len = %ld&quot;, (long)len_len);
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 :                 switch(len_len) {</span>
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :                 case -1: RETURN(RC_FAIL);</span>
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :                 case 0: RETURN(RC_WMORE);</span>
+<span class="lineNum">     213 </span>            :                 }
+<span class="lineNum">     214 </span>            : 
+<span class="lineNum">     215 </span>            :                 /*
+<span class="lineNum">     216 </span>            :                  * FIXME
+<span class="lineNum">     217 </span>            :                  * As of today, the chain of tags
+<span class="lineNum">     218 </span>            :                  * must either contain several indefinite length TLVs,
+<span class="lineNum">     219 </span>            :                  * or several definite length ones.
+<span class="lineNum">     220 </span>            :                  * No mixing is allowed.
+<span class="lineNum">     221 </span>            :                  */
+<span class="lineNum">     222 </span><span class="lineNoCov">          0 :                 if(tlv_len == -1) {</span>
+<span class="lineNum">     223 </span>            :                         /*
+<span class="lineNum">     224 </span>            :                          * Indefinite length.
+<span class="lineNum">     225 </span>            :                          */
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :                         if(limit_len == -1) {</span>
+<span class="lineNum">     227 </span><span class="lineNoCov">          0 :                                 expect_00_terminators++;</span>
+<span class="lineNum">     228 </span>            :                         } else {
+<span class="lineNum">     229 </span>            :                                 ASN_DEBUG(&quot;Unexpected indefinite length &quot;
+<span class="lineNum">     230 </span>            :                                         &quot;in a chain of definite lengths&quot;);
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :                                 RETURN(RC_FAIL);</span>
+<span class="lineNum">     232 </span>            :                         }
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 :                         ADVANCE(tag_len + len_len);</span>
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :                         continue;</span>
+<span class="lineNum">     235 </span>            :                 } else {
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :                         if(expect_00_terminators) {</span>
+<span class="lineNum">     237 </span>            :                                 ASN_DEBUG(&quot;Unexpected definite length &quot;
+<span class="lineNum">     238 </span>            :                                         &quot;in a chain of indefinite lengths&quot;);
+<span class="lineNum">     239 </span><span class="lineNoCov">          0 :                                 RETURN(RC_FAIL);</span>
+<span class="lineNum">     240 </span>            :                         }
+<span class="lineNum">     241 </span>            :                 }
+<span class="lineNum">     242 </span>            : 
+<span class="lineNum">     243 </span>            :                 /*
+<span class="lineNum">     244 </span>            :                  * Check that multiple TLVs specify ever decreasing length,
+<span class="lineNum">     245 </span>            :                  * which is consistent.
+<span class="lineNum">     246 </span>            :                  */
+<span class="lineNum">     247 </span><span class="lineNoCov">          0 :                 if(limit_len == -1) {</span>
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :                         limit_len    = tlv_len + tag_len + len_len;</span>
+<span class="lineNum">     249 </span><span class="lineNoCov">          0 :                         if(limit_len &lt; 0) {</span>
+<span class="lineNum">     250 </span>            :                                 /* Too great tlv_len value? */
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :                                 RETURN(RC_FAIL);</span>
+<span class="lineNum">     252 </span>            :                         }
+<span class="lineNum">     253 </span><span class="lineNoCov">          0 :                 } else if(limit_len != tlv_len + tag_len + len_len) {</span>
+<span class="lineNum">     254 </span>            :                         /*
+<span class="lineNum">     255 </span>            :                          * Inner TLV specifies length which is inconsistent
+<span class="lineNum">     256 </span>            :                          * with the outer TLV's length value.
+<span class="lineNum">     257 </span>            :                          */
+<span class="lineNum">     258 </span>            :                         ASN_DEBUG(&quot;Outer TLV is %ld and inner is %ld&quot;,
+<span class="lineNum">     259 </span>            :                                 (long)limit_len, (long)tlv_len);
+<span class="lineNum">     260 </span><span class="lineNoCov">          0 :                         RETURN(RC_FAIL);</span>
+<span class="lineNum">     261 </span>            :                 }
+<span class="lineNum">     262 </span>            : 
+<span class="lineNum">     263 </span><span class="lineNoCov">          0 :                 ADVANCE(tag_len + len_len);</span>
+<span class="lineNum">     264 </span>            : 
+<span class="lineNum">     265 </span><span class="lineNoCov">          0 :                 limit_len -= (tag_len + len_len);</span>
+<span class="lineNum">     266 </span><span class="lineNoCov">          0 :                 if((ssize_t)size &gt; limit_len) {</span>
+<span class="lineNum">     267 </span>            :                         /*
+<span class="lineNum">     268 </span>            :                          * Make sure that we won't consume more bytes
+<span class="lineNum">     269 </span>            :                          * from the parent frame than the inferred limit.
+<span class="lineNum">     270 </span>            :                          */
+<span class="lineNum">     271 </span><span class="lineNoCov">          0 :                         size = limit_len;</span>
+<span class="lineNum">     272 </span>            :                 }
+<span class="lineNum">     273 </span>            :         }
+<span class="lineNum">     274 </span>            : 
+<span class="lineNum">     275 </span><span class="lineNoCov">          0 :         if(opt_tlv_form)</span>
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 :                 *opt_tlv_form = tlv_constr;</span>
+<span class="lineNum">     277 </span><span class="lineNoCov">          0 :         if(expect_00_terminators)</span>
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 :                 *last_length = -expect_00_terminators;</span>
+<span class="lineNum">     279 </span>            :         else
+<span class="lineNum">     280 </span><span class="lineNoCov">          0 :                 *last_length = tlv_len;</span>
+<span class="lineNum">     281 </span>            : 
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :         RETURN(RC_OK);</span>
+<span class="lineNum">     283 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

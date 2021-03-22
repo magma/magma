@@ -1,0 +1,443 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/NativeEnumerated.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - NativeEnumerated.c<span style="font-size: 80%;"> (source / <a href="NativeEnumerated.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">54</td>
+            <td class="headerCovTableEntry">159</td>
+            <td class="headerCovTableEntryLo">34.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntryLo">50.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*-</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2004, 2007 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : /*
+<span class="lineNum">       6 </span>            :  * Read the NativeInteger.h for the explanation wrt. differences between
+<span class="lineNum">       7 </span>            :  * INTEGER and NativeInteger.
+<span class="lineNum">       8 </span>            :  * Basically, both are decoders and encoders of ASN.1 INTEGER type, but this
+<span class="lineNum">       9 </span>            :  * implementation deals with the standard (machine-specific) representation
+<span class="lineNum">      10 </span>            :  * of them instead of using the platform-independent buffer.
+<span class="lineNum">      11 </span>            :  */
+<span class="lineNum">      12 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">      13 </span>            : #include &lt;NativeEnumerated.h&gt;
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span>            : /*
+<span class="lineNum">      16 </span>            :  * NativeEnumerated basic type description.
+<span class="lineNum">      17 </span>            :  */
+<span class="lineNum">      18 </span>            : static const ber_tlv_tag_t asn_DEF_NativeEnumerated_tags[] = {
+<span class="lineNum">      19 </span>            :         (ASN_TAG_CLASS_UNIVERSAL | (10 &lt;&lt; 2))
+<span class="lineNum">      20 </span>            : };
+<span class="lineNum">      21 </span>            : asn_TYPE_operation_t asn_OP_NativeEnumerated = {
+<span class="lineNum">      22 </span>            :         NativeInteger_free,
+<span class="lineNum">      23 </span>            :         NativeInteger_print,
+<span class="lineNum">      24 </span>            :         NativeInteger_compare,
+<span class="lineNum">      25 </span>            :         NativeInteger_decode_ber,
+<span class="lineNum">      26 </span>            :         NativeInteger_encode_der,
+<span class="lineNum">      27 </span>            :         NativeInteger_decode_xer,
+<span class="lineNum">      28 </span>            :         NativeEnumerated_encode_xer,
+<span class="lineNum">      29 </span>            : #ifdef  ASN_DISABLE_OER_SUPPORT
+<span class="lineNum">      30 </span>            :         0,
+<span class="lineNum">      31 </span>            :         0,
+<span class="lineNum">      32 </span>            : #else
+<span class="lineNum">      33 </span>            :         NativeEnumerated_decode_oer,
+<span class="lineNum">      34 </span>            :         NativeEnumerated_encode_oer,
+<span class="lineNum">      35 </span>            : #endif  /* ASN_DISABLE_OER_SUPPORT */
+<span class="lineNum">      36 </span>            : #ifdef  ASN_DISABLE_PER_SUPPORT
+<span class="lineNum">      37 </span>            :         0,
+<span class="lineNum">      38 </span>            :         0,
+<span class="lineNum">      39 </span>            :         0,
+<span class="lineNum">      40 </span>            :         0,
+<span class="lineNum">      41 </span>            : #else
+<span class="lineNum">      42 </span>            :         NativeEnumerated_decode_uper,
+<span class="lineNum">      43 </span>            :         NativeEnumerated_encode_uper,
+<span class="lineNum">      44 </span>            :         NativeEnumerated_decode_aper,
+<span class="lineNum">      45 </span>            :         NativeEnumerated_encode_aper,
+<span class="lineNum">      46 </span>            : #endif  /* ASN_DISABLE_PER_SUPPORT */
+<span class="lineNum">      47 </span>            :         NativeEnumerated_random_fill,
+<span class="lineNum">      48 </span>            :         0       /* Use generic outmost tag fetcher */
+<span class="lineNum">      49 </span>            : };
+<span class="lineNum">      50 </span>            : asn_TYPE_descriptor_t asn_DEF_NativeEnumerated = {
+<span class="lineNum">      51 </span>            :         &quot;ENUMERATED&quot;,                 /* The ASN.1 type is still ENUMERATED */
+<span class="lineNum">      52 </span>            :         &quot;ENUMERATED&quot;,
+<span class="lineNum">      53 </span>            :         &amp;asn_OP_NativeEnumerated,
+<span class="lineNum">      54 </span>            :         asn_DEF_NativeEnumerated_tags,
+<span class="lineNum">      55 </span>            :         sizeof(asn_DEF_NativeEnumerated_tags) / sizeof(asn_DEF_NativeEnumerated_tags[0]),
+<span class="lineNum">      56 </span>            :         asn_DEF_NativeEnumerated_tags,  /* Same as above */
+<span class="lineNum">      57 </span>            :         sizeof(asn_DEF_NativeEnumerated_tags) / sizeof(asn_DEF_NativeEnumerated_tags[0]),
+<span class="lineNum">      58 </span>            :         { 0, 0, asn_generic_no_constraint },
+<span class="lineNum">      59 </span>            :         0, 0,   /* No members */
+<span class="lineNum">      60 </span>            :         0       /* No specifics */
+<span class="lineNum">      61 </span>            : };
+<a name="62"><span class="lineNum">      62 </span>            : </a>
+<span class="lineNum">      63 </span>            : asn_enc_rval_t
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 : NativeEnumerated_encode_xer(const asn_TYPE_descriptor_t *td, const void *sptr,</span>
+<span class="lineNum">      65 </span>            :                             int ilevel, enum xer_encoder_flags_e flags,
+<span class="lineNum">      66 </span>            :                             asn_app_consume_bytes_f *cb, void *app_key) {
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">      68 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">      69 </span>            :     asn_enc_rval_t er;
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :     const long *native = (const long *)sptr;</span>
+<span class="lineNum">      71 </span>            :     const asn_INTEGER_enum_map_t *el;
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            :     (void)ilevel;
+<span class="lineNum">      74 </span>            :     (void)flags;
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :     if(!native) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :     el = INTEGER_map_value2enum(specs, *native);</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :     if(el) {</span>
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :         er.encoded =</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :             asn__format_to_callback(cb, app_key, &quot;&lt;%s/&gt;&quot;, el-&gt;enum_name);</span>
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :         if(er.encoded &lt; 0) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :         ASN__ENCODED_OK(er);</span>
+<span class="lineNum">      84 </span>            :     } else {
+<span class="lineNum">      85 </span>            :         ASN_DEBUG(
+<span class="lineNum">      86 </span>            :             &quot;ASN.1 forbids dealing with &quot;
+<span class="lineNum">      87 </span>            :             &quot;unknown value of ENUMERATED type&quot;);
+<span class="lineNum">      88 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">      89 </span>            :     }
+<span class="lineNum">      90 </span>            : }
+<a name="91"><span class="lineNum">      91 </span>            : </a>
+<span class="lineNum">      92 </span>            : asn_dec_rval_t
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 : NativeEnumerated_decode_uper(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      94 </span>            :                              const asn_TYPE_descriptor_t *td,
+<span class="lineNum">      95 </span>            :                              const asn_per_constraints_t *constraints,
+<span class="lineNum">      96 </span>            :                              void **sptr, asn_per_data_t *pd) {
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs = td-&gt;specifics;</span>
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :     asn_dec_rval_t rval = { RC_OK, 0 };</span>
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :         long *native = (long *)*sptr;</span>
+<span class="lineNum">     100 </span>            :         const asn_per_constraint_t *ct;
+<span class="lineNum">     101 </span>            :         long value;
+<span class="lineNum">     102 </span>            : 
+<span class="lineNum">     103 </span>            :         (void)opt_codec_ctx;
+<span class="lineNum">     104 </span>            : 
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :         if(constraints) ct = &amp;constraints-&gt;value;</span>
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :         else if(td-&gt;encoding_constraints.per_constraints)</span>
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :                 ct = &amp;td-&gt;encoding_constraints.per_constraints-&gt;value;</span>
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :         else ASN__DECODE_FAILED;        /* Mandatory! */</span>
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :         if(!specs) ASN__DECODE_FAILED;</span>
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :         if(!native) {</span>
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :                 native = (long *)(*sptr = CALLOC(1, sizeof(*native)));</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :                 if(!native) ASN__DECODE_FAILED;</span>
+<span class="lineNum">     114 </span>            :         }
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            :         ASN_DEBUG(&quot;Decoding %s as NativeEnumerated&quot;, td-&gt;name);
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 :         if(ct-&gt;flags &amp; APC_EXTENSIBLE) {</span>
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 :                 int inext = per_get_few_bits(pd, 1);</span>
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 :                 if(inext &lt; 0) ASN__DECODE_STARVED;</span>
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :                 if(inext) ct = 0;</span>
+<span class="lineNum">     122 </span>            :         }
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :         if(ct &amp;&amp; ct-&gt;range_bits &gt;= 0) {</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :                 value = per_get_few_bits(pd, ct-&gt;range_bits);</span>
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :                 if(value &lt; 0) ASN__DECODE_STARVED;</span>
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :                 if(value &gt;= (specs-&gt;extension</span>
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :                         ? specs-&gt;extension - 1 : specs-&gt;map_count))</span>
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     130 </span>            :         } else {
+<span class="lineNum">     131 </span><span class="lineNoCov">          0 :                 if(!specs-&gt;extension)</span>
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     133 </span>            :                 /*
+<span class="lineNum">     134 </span>            :                  * X.691, #10.6: normally small non-negative whole number;
+<span class="lineNum">     135 </span>            :                  */
+<span class="lineNum">     136 </span><span class="lineNoCov">          0 :                 value = uper_get_nsnnwn(pd);</span>
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :                 if(value &lt; 0) ASN__DECODE_STARVED;</span>
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :                 value += specs-&gt;extension - 1;</span>
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :                 if(value &gt;= specs-&gt;map_count)</span>
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     141 </span>            :         }
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :         *native = specs-&gt;value2enum[value].nat_value;</span>
+<span class="lineNum">     144 </span>            :         ASN_DEBUG(&quot;Decoded %s = %ld&quot;, td-&gt;name, *native);
+<span class="lineNum">     145 </span>            : 
+<span class="lineNum">     146 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">     147 </span>            : }
+<a name="148"><span class="lineNum">     148 </span>            : </a>
+<span class="lineNum">     149 </span>            : static int
+<span class="lineNum">     150 </span><span class="lineCov">        102 : NativeEnumerated__compar_value2enum(const void *ap, const void *bp) {</span>
+<span class="lineNum">     151 </span><span class="lineCov">        102 :         const asn_INTEGER_enum_map_t *a = ap;</span>
+<span class="lineNum">     152 </span><span class="lineCov">        102 :         const asn_INTEGER_enum_map_t *b = bp;</span>
+<span class="lineNum">     153 </span><span class="lineCov">        102 :         if(a-&gt;nat_value == b-&gt;nat_value)</span>
+<span class="lineNum">     154 </span><span class="lineCov">         59 :                 return 0;</span>
+<span class="lineNum">     155 </span><span class="lineCov">         43 :         if(a-&gt;nat_value &lt; b-&gt;nat_value)</span>
+<span class="lineNum">     156 </span><span class="lineCov">         43 :                 return -1;</span>
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :         return 1;</span>
+<span class="lineNum">     158 </span>            : }
+<a name="159"><span class="lineNum">     159 </span>            : </a>
+<span class="lineNum">     160 </span>            : asn_enc_rval_t
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 : NativeEnumerated_encode_uper(const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     162 </span>            :                              const asn_per_constraints_t *constraints,
+<span class="lineNum">     163 </span>            :                              const void *sptr, asn_per_outp_t *po) {
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">     165 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">     166 </span>            :     asn_enc_rval_t er;
+<span class="lineNum">     167 </span>            :         long native, value;
+<span class="lineNum">     168 </span>            :         const asn_per_constraint_t *ct;
+<span class="lineNum">     169 </span><span class="lineNoCov">          0 :         int inext = 0;</span>
+<span class="lineNum">     170 </span>            :         asn_INTEGER_enum_map_t key;
+<span class="lineNum">     171 </span>            :         const asn_INTEGER_enum_map_t *kf;
+<span class="lineNum">     172 </span>            : 
+<span class="lineNum">     173 </span><span class="lineNoCov">          0 :         if(!sptr) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :         if(!specs) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 :         if(constraints) ct = &amp;constraints-&gt;value;</span>
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 :         else if(td-&gt;encoding_constraints.per_constraints)</span>
+<span class="lineNum">     178 </span><span class="lineNoCov">          0 :                 ct = &amp;td-&gt;encoding_constraints.per_constraints-&gt;value;</span>
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :         else ASN__ENCODE_FAILED;        /* Mandatory! */</span>
+<span class="lineNum">     180 </span>            : 
+<span class="lineNum">     181 </span>            :         ASN_DEBUG(&quot;Encoding %s as NativeEnumerated&quot;, td-&gt;name);
+<span class="lineNum">     182 </span>            : 
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :         er.encoded = 0;</span>
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 :         native = *(const long *)sptr;</span>
+<span class="lineNum">     186 </span>            : 
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :         key.nat_value = native;</span>
+<span class="lineNum">     188 </span><span class="lineNoCov">          0 :         kf = bsearch(&amp;key, specs-&gt;value2enum, specs-&gt;map_count,</span>
+<span class="lineNum">     189 </span>            :                 sizeof(key), NativeEnumerated__compar_value2enum);
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 :         if(!kf) {</span>
+<span class="lineNum">     191 </span>            :                 ASN_DEBUG(&quot;No element corresponds to %ld&quot;, native);
+<span class="lineNum">     192 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     193 </span>            :         }
+<span class="lineNum">     194 </span><span class="lineNoCov">          0 :         value = kf - specs-&gt;value2enum;</span>
+<span class="lineNum">     195 </span>            : 
+<span class="lineNum">     196 </span><span class="lineNoCov">          0 :         if(ct-&gt;range_bits &gt;= 0) {</span>
+<span class="lineNum">     197 </span><span class="lineNoCov">          0 :                 int cmpWith = specs-&gt;extension</span>
+<span class="lineNum">     198 </span><span class="lineNoCov">          0 :                                 ? specs-&gt;extension - 1 : specs-&gt;map_count;</span>
+<span class="lineNum">     199 </span><span class="lineNoCov">          0 :                 if(value &gt;= cmpWith)</span>
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :                         inext = 1;</span>
+<span class="lineNum">     201 </span>            :         }
+<span class="lineNum">     202 </span><span class="lineNoCov">          0 :         if(ct-&gt;flags &amp; APC_EXTENSIBLE) {</span>
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :                 if(per_put_few_bits(po, inext, 1))</span>
+<span class="lineNum">     204 </span><span class="lineNoCov">          0 :                         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     205 </span><span class="lineNoCov">          0 :                 if(inext) ct = 0;</span>
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :         } else if(inext) {</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     208 </span>            :         }
+<span class="lineNum">     209 </span>            : 
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 :         if(ct &amp;&amp; ct-&gt;range_bits &gt;= 0) {</span>
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :                 if(per_put_few_bits(po, value, ct-&gt;range_bits))</span>
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :                         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     213 </span><span class="lineNoCov">          0 :                 ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     214 </span>            :         }
+<span class="lineNum">     215 </span>            : 
+<span class="lineNum">     216 </span><span class="lineNoCov">          0 :         if(!specs-&gt;extension)</span>
+<span class="lineNum">     217 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     218 </span>            : 
+<span class="lineNum">     219 </span>            :         /*
+<span class="lineNum">     220 </span>            :          * X.691, #10.6: normally small non-negative whole number;
+<span class="lineNum">     221 </span>            :          */
+<span class="lineNum">     222 </span>            :         ASN_DEBUG(&quot;value = %ld, ext = %d, inext = %d, res = %ld&quot;,
+<span class="lineNum">     223 </span>            :                 value, specs-&gt;extension, inext,
+<span class="lineNum">     224 </span>            :                 value - (inext ? (specs-&gt;extension - 1) : 0));
+<span class="lineNum">     225 </span><span class="lineNoCov">          0 :         if(uper_put_nsnnwn(po, value - (inext ? (specs-&gt;extension - 1) : 0)))</span>
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :         ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     229 </span>            : }
+<a name="230"><span class="lineNum">     230 </span>            : </a>
+<span class="lineNum">     231 </span>            : asn_dec_rval_t
+<span class="lineNum">     232 </span><span class="lineCov">         92 : NativeEnumerated_decode_aper(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     233 </span>            :                              const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     234 </span>            :                              const asn_per_constraints_t *constraints,
+<span class="lineNum">     235 </span>            :                              void **sptr, asn_per_data_t *pd) {
+<span class="lineNum">     236 </span><span class="lineCov">         92 :         const asn_INTEGER_specifics_t *specs = (const asn_INTEGER_specifics_t *)td-&gt;specifics;</span>
+<span class="lineNum">     237 </span><span class="lineCov">         92 :         asn_dec_rval_t rval = { RC_OK, 0 };</span>
+<span class="lineNum">     238 </span><span class="lineCov">         92 :         long *native = (long *)*sptr;</span>
+<span class="lineNum">     239 </span>            :         const asn_per_constraint_t *ct;
+<span class="lineNum">     240 </span>            :         long value;
+<span class="lineNum">     241 </span>            : 
+<span class="lineNum">     242 </span>            :         (void)opt_codec_ctx;
+<span class="lineNum">     243 </span>            : 
+<span class="lineNum">     244 </span><span class="lineCov">         92 :         if(constraints) ct = &amp;constraints-&gt;value;</span>
+<span class="lineNum">     245 </span><span class="lineCov">          3 :         else if(td-&gt;encoding_constraints.per_constraints)</span>
+<span class="lineNum">     246 </span><span class="lineCov">          3 :                 ct = &amp;td-&gt;encoding_constraints.per_constraints-&gt;value;</span>
+<span class="lineNum">     247 </span><span class="lineNoCov">          0 :         else ASN__DECODE_FAILED;        /* Mandatory! */</span>
+<span class="lineNum">     248 </span><span class="lineCov">         92 :         if(!specs) ASN__DECODE_FAILED;</span>
+<span class="lineNum">     249 </span>            : 
+<span class="lineNum">     250 </span><span class="lineCov">         92 :         if(!native) {</span>
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :                 native = (long *)(*sptr = CALLOC(1, sizeof(*native)));</span>
+<span class="lineNum">     252 </span><span class="lineNoCov">          0 :                 if(!native) ASN__DECODE_FAILED;</span>
+<span class="lineNum">     253 </span>            :         }
+<span class="lineNum">     254 </span>            : 
+<span class="lineNum">     255 </span>            :         ASN_DEBUG(&quot;Decoding %s as NativeEnumerated&quot;, td-&gt;name);
+<span class="lineNum">     256 </span>            : 
+<span class="lineNum">     257 </span><span class="lineCov">         92 :         if(ct-&gt;flags &amp; APC_EXTENSIBLE) {</span>
+<span class="lineNum">     258 </span><span class="lineCov">          3 :                 int inext = per_get_few_bits(pd, 1);</span>
+<span class="lineNum">     259 </span><span class="lineCov">          3 :                 if(inext &lt; 0) ASN__DECODE_STARVED;</span>
+<span class="lineNum">     260 </span><span class="lineCov">          3 :                 if(inext) ct = 0;</span>
+<span class="lineNum">     261 </span>            :         }
+<span class="lineNum">     262 </span>            : 
+<span class="lineNum">     263 </span>            :         /* Deal with APER padding */
+<span class="lineNum">     264 </span><span class="lineCov">         92 :         if(ct &amp;&amp; ct-&gt;upper_bound &gt;= 255) {</span>
+<span class="lineNum">     265 </span><span class="lineNoCov">          0 :                 int padding = 0;</span>
+<span class="lineNum">     266 </span><span class="lineNoCov">          0 :                 padding = (8 - (pd-&gt;moved % 8)) % 8;</span>
+<span class="lineNum">     267 </span>            :                 ASN_DEBUG(&quot;For NativeEnumerated %s,offset= %lu Padding bits = %d&quot;, td-&gt;name, pd-&gt;moved, padding);
+<span class="lineNum">     268 </span>            :                 ASN_DEBUG(&quot;For NativeEnumerated %s, upper bound = %lu&quot;, td-&gt;name, ct-&gt;upper_bound);
+<span class="lineNum">     269 </span><span class="lineNoCov">          0 :                 if(padding &gt; 0)</span>
+<span class="lineNum">     270 </span><span class="lineNoCov">          0 :                         per_get_few_bits(pd, padding);</span>
+<span class="lineNum">     271 </span>            :         }
+<span class="lineNum">     272 </span>            : 
+<span class="lineNum">     273 </span><span class="lineCov">         92 :         if(ct &amp;&amp; ct-&gt;range_bits &gt;= 0) {</span>
+<span class="lineNum">     274 </span><span class="lineCov">         92 :                 value = per_get_few_bits(pd, ct-&gt;range_bits);</span>
+<span class="lineNum">     275 </span><span class="lineCov">         92 :                 if(value &lt; 0) ASN__DECODE_STARVED;</span>
+<span class="lineNum">     276 </span><span class="lineCov">        276 :                 if(value &gt;= (specs-&gt;extension</span>
+<span class="lineNum">     277 </span><span class="lineCov">         92 :                              ? specs-&gt;extension - 1 : specs-&gt;map_count))</span>
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     279 </span>            :         } else {
+<span class="lineNum">     280 </span><span class="lineNoCov">          0 :                 if(!specs-&gt;extension)</span>
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     282 </span>            :                 /*
+<span class="lineNum">     283 </span>            :                  * X.691, #10.6: normally small non-negative whole number;
+<span class="lineNum">     284 </span>            :                  */
+<span class="lineNum">     285 </span><span class="lineNoCov">          0 :                 value = uper_get_nsnnwn(pd);</span>
+<span class="lineNum">     286 </span><span class="lineNoCov">          0 :                 if(value &lt; 0) ASN__DECODE_STARVED;</span>
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :                 value += specs-&gt;extension - 1;</span>
+<span class="lineNum">     288 </span><span class="lineNoCov">          0 :                 if(value &gt;= specs-&gt;map_count)</span>
+<span class="lineNum">     289 </span><span class="lineNoCov">          0 :                         ASN__DECODE_FAILED;</span>
+<span class="lineNum">     290 </span>            :         }
+<span class="lineNum">     291 </span>            : 
+<span class="lineNum">     292 </span><span class="lineCov">         92 :         *native = specs-&gt;value2enum[value].nat_value;</span>
+<span class="lineNum">     293 </span>            :         ASN_DEBUG(&quot;Decoded %s = %ld&quot;, td-&gt;name, *native);
+<span class="lineNum">     294 </span>            : 
+<span class="lineNum">     295 </span><span class="lineCov">         92 :         return rval;</span>
+<span class="lineNum">     296 </span>            : }
+<a name="297"><span class="lineNum">     297 </span>            : </a>
+<span class="lineNum">     298 </span>            : asn_enc_rval_t
+<span class="lineNum">     299 </span><span class="lineCov">         59 : NativeEnumerated_encode_aper(const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     300 </span>            :                              const asn_per_constraints_t *constraints,
+<span class="lineNum">     301 </span>            :                              const void *sptr, asn_per_outp_t *po) {
+<span class="lineNum">     302 </span><span class="lineCov">         59 :         const asn_INTEGER_specifics_t *specs = (const asn_INTEGER_specifics_t *)td-&gt;specifics;</span>
+<span class="lineNum">     303 </span>            :         asn_enc_rval_t er;
+<span class="lineNum">     304 </span>            :         long native, value;
+<span class="lineNum">     305 </span>            :         const asn_per_constraint_t *ct;
+<span class="lineNum">     306 </span><span class="lineCov">         59 :         int inext = 0;</span>
+<span class="lineNum">     307 </span>            :         asn_INTEGER_enum_map_t key;
+<span class="lineNum">     308 </span>            :         asn_INTEGER_enum_map_t *kf;
+<span class="lineNum">     309 </span>            : 
+<span class="lineNum">     310 </span><span class="lineCov">         59 :         if(!sptr) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     311 </span><span class="lineCov">         59 :         if(!specs) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     312 </span>            : 
+<span class="lineNum">     313 </span><span class="lineCov">         59 :         if(constraints) ct = &amp;constraints-&gt;value;</span>
+<span class="lineNum">     314 </span><span class="lineCov">          6 :         else if(td-&gt;encoding_constraints.per_constraints)</span>
+<span class="lineNum">     315 </span><span class="lineCov">          6 :                 ct = &amp;td-&gt;encoding_constraints.per_constraints-&gt;value;</span>
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :         else ASN__ENCODE_FAILED;        /* Mandatory! */</span>
+<span class="lineNum">     317 </span>            : 
+<span class="lineNum">     318 </span>            :         ASN_DEBUG(&quot;Encoding %s as NativeEnumerated&quot;, td-&gt;name);
+<span class="lineNum">     319 </span>            : 
+<span class="lineNum">     320 </span><span class="lineCov">         59 :         er.encoded = 0;</span>
+<span class="lineNum">     321 </span>            : 
+<span class="lineNum">     322 </span><span class="lineCov">         59 :         native = *(const long *)sptr;</span>
+<span class="lineNum">     323 </span><span class="lineCov">         59 :         if(native &lt; 0) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     324 </span>            : 
+<span class="lineNum">     325 </span><span class="lineCov">         59 :         key.nat_value = native;</span>
+<span class="lineNum">     326 </span><span class="lineCov">         59 :         kf = bsearch(&amp;key, specs-&gt;value2enum, specs-&gt;map_count,</span>
+<span class="lineNum">     327 </span>            :                      sizeof(key), NativeEnumerated__compar_value2enum);
+<span class="lineNum">     328 </span><span class="lineCov">         59 :         if(!kf) {</span>
+<span class="lineNum">     329 </span>            :                 ASN_DEBUG(&quot;No element corresponds to %ld&quot;, native);
+<span class="lineNum">     330 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     331 </span>            :         }
+<span class="lineNum">     332 </span><span class="lineCov">         59 :         value = kf - specs-&gt;value2enum;</span>
+<span class="lineNum">     333 </span>            : 
+<span class="lineNum">     334 </span><span class="lineCov">         59 :         if(ct-&gt;range_bits &gt;= 0) {</span>
+<span class="lineNum">     335 </span><span class="lineCov">        118 :                 int cmpWith = specs-&gt;extension</span>
+<span class="lineNum">     336 </span><span class="lineCov">         59 :                               ? specs-&gt;extension - 1 : specs-&gt;map_count;</span>
+<span class="lineNum">     337 </span><span class="lineCov">         59 :                 if(value &gt;= cmpWith)</span>
+<span class="lineNum">     338 </span><span class="lineNoCov">          0 :                         inext = 1;</span>
+<span class="lineNum">     339 </span>            :         }
+<span class="lineNum">     340 </span><span class="lineCov">         59 :         if(ct-&gt;flags &amp; APC_EXTENSIBLE) {</span>
+<span class="lineNum">     341 </span><span class="lineCov">          2 :                 if(per_put_few_bits(po, inext, 1))</span>
+<span class="lineNum">     342 </span><span class="lineNoCov">          0 :                         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     343 </span><span class="lineCov">          2 :                 if(inext) ct = 0;</span>
+<span class="lineNum">     344 </span><span class="lineCov">         57 :         } else if(inext) {</span>
+<span class="lineNum">     345 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     346 </span>            :         }
+<span class="lineNum">     347 </span>            : 
+<span class="lineNum">     348 </span><span class="lineCov">         59 :         if(ct &amp;&amp; ct-&gt;range_bits &gt;= 0) {</span>
+<span class="lineNum">     349 </span><span class="lineCov">         59 :                 if(per_put_few_bits(po, value, ct-&gt;range_bits))</span>
+<span class="lineNum">     350 </span><span class="lineNoCov">          0 :                         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     351 </span><span class="lineCov">         59 :                 ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     352 </span>            :         }
+<span class="lineNum">     353 </span>            : 
+<span class="lineNum">     354 </span><span class="lineNoCov">          0 :         if(!specs-&gt;extension)</span>
+<span class="lineNum">     355 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     356 </span>            : 
+<span class="lineNum">     357 </span>            :         /*
+<span class="lineNum">     358 </span>            :          * X.691, #10.6: normally small non-negative whole number;
+<span class="lineNum">     359 </span>            :          */
+<span class="lineNum">     360 </span>            :         ASN_DEBUG(&quot;value = %ld, ext = %d, inext = %d, res = %ld&quot;,
+<span class="lineNum">     361 </span>            :                   value, specs-&gt;extension, inext,
+<span class="lineNum">     362 </span>            :                   value - (inext ? (specs-&gt;extension - 1) : 0));
+<span class="lineNum">     363 </span><span class="lineNoCov">          0 :         if(uper_put_nsnnwn(po, value - (inext ? (specs-&gt;extension - 1) : 0)))</span>
+<span class="lineNum">     364 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     365 </span>            : 
+<span class="lineNum">     366 </span><span class="lineNoCov">          0 :         ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     367 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

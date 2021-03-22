@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/asn_internal.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - asn_internal.c<span style="font-size: 80%;"> (source / <a href="asn_internal.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">26</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #include &lt;asn_internal.h&gt;</a>
+<a name="2"><span class="lineNum">       2 </span>            : </a>
+<span class="lineNum">       3 </span>            : ssize_t
+<span class="lineNum">       4 </span><span class="lineNoCov">          0 : asn__format_to_callback(int (*cb)(const void *, size_t, void *key), void *key,</span>
+<span class="lineNum">       5 </span>            :                         const char *fmt, ...) {
+<span class="lineNum">       6 </span>            :     char scratch[64];
+<span class="lineNum">       7 </span><span class="lineNoCov">          0 :     char *buf = scratch;</span>
+<span class="lineNum">       8 </span><span class="lineNoCov">          0 :     size_t buf_size = sizeof(scratch);</span>
+<span class="lineNum">       9 </span>            :     int wrote;
+<span class="lineNum">      10 </span>            :     int cb_ret;
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span><span class="lineNoCov">          0 :     do {</span>
+<span class="lineNum">      13 </span>            :         va_list args;
+<span class="lineNum">      14 </span><span class="lineNoCov">          0 :         va_start(args, fmt);</span>
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span><span class="lineNoCov">          0 :         wrote = vsnprintf(buf, buf_size, fmt, args);</span>
+<span class="lineNum">      17 </span><span class="lineNoCov">          0 :         va_end(args);</span>
+<span class="lineNum">      18 </span><span class="lineNoCov">          0 :         if(wrote &lt; (ssize_t)buf_size) {</span>
+<span class="lineNum">      19 </span><span class="lineNoCov">          0 :             if(wrote &lt; 0) {</span>
+<span class="lineNum">      20 </span><span class="lineNoCov">          0 :                 if(buf != scratch) FREEMEM(buf);</span>
+<span class="lineNum">      21 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">      22 </span>            :             }
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 :             break;</span>
+<span class="lineNum">      24 </span>            :         }
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span><span class="lineNoCov">          0 :         buf_size &lt;&lt;= 1;</span>
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 :         if(buf == scratch) {</span>
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 :             buf = MALLOC(buf_size);</span>
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 :             if(!buf) return -1;</span>
+<span class="lineNum">      30 </span>            :         } else {
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :             void *p = REALLOC(buf, buf_size);</span>
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :             if(!p) {</span>
+<span class="lineNum">      33 </span><span class="lineNoCov">          0 :                 FREEMEM(buf);</span>
+<span class="lineNum">      34 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">      35 </span>            :             }
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 :             buf = p;</span>
+<span class="lineNum">      37 </span>            :         }
+<span class="lineNum">      38 </span>            :     } while(1);
+<span class="lineNum">      39 </span>            : 
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :     cb_ret = cb(buf, wrote, key);</span>
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :     if(buf != scratch) FREEMEM(buf);</span>
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :     if(cb_ret &lt; 0) {</span>
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">      44 </span>            :     }
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :     return wrote;</span>
+<span class="lineNum">      47 </span>            : }
+<span class="lineNum">      48 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

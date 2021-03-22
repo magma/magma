@@ -1,0 +1,445 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/xer_decoder.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - xer_decoder.c<span style="font-size: 80%;"> (source / <a href="xer_decoder.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">129</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2004-2017 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : #include &lt;asn_application.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;xer_support.h&gt;          /* XER/XML parsing support */
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : 
+<span class="lineNum">      10 </span>            : /*
+<span class="lineNum">      11 </span>            :  * Decode the XER encoding of a given type.
+<a name="12"><span class="lineNum">      12 </span>            :  */</a>
+<span class="lineNum">      13 </span>            : asn_dec_rval_t
+<span class="lineNum">      14 </span><span class="lineNoCov">          0 : xer_decode(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      15 </span>            :            const asn_TYPE_descriptor_t *td, void **struct_ptr,
+<span class="lineNum">      16 </span>            :            const void *buffer, size_t size) {
+<span class="lineNum">      17 </span>            :     asn_codec_ctx_t s_codec_ctx;
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :         /*
+<span class="lineNum">      20 </span>            :          * Stack checker requires that the codec context
+<span class="lineNum">      21 </span>            :          * must be allocated on the stack.
+<span class="lineNum">      22 </span>            :          */
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 :         if(opt_codec_ctx) {</span>
+<span class="lineNum">      24 </span><span class="lineNoCov">          0 :                 if(opt_codec_ctx-&gt;max_stack_size) {</span>
+<span class="lineNum">      25 </span><span class="lineNoCov">          0 :                         s_codec_ctx = *opt_codec_ctx;</span>
+<span class="lineNum">      26 </span><span class="lineNoCov">          0 :                         opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">      27 </span>            :                 }
+<span class="lineNum">      28 </span>            :         } else {
+<span class="lineNum">      29 </span>            :                 /* If context is not given, be security-conscious anyway */
+<span class="lineNum">      30 </span><span class="lineNoCov">          0 :                 memset(&amp;s_codec_ctx, 0, sizeof(s_codec_ctx));</span>
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :                 s_codec_ctx.max_stack_size = ASN__DEFAULT_STACK_MAX;</span>
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :                 opt_codec_ctx = &amp;s_codec_ctx;</span>
+<span class="lineNum">      33 </span>            :         }
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            :         /*
+<span class="lineNum">      36 </span>            :          * Invoke type-specific decoder.
+<span class="lineNum">      37 </span>            :          */
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :         return td-&gt;op-&gt;xer_decoder(opt_codec_ctx, td, struct_ptr, 0, buffer, size);</span>
+<span class="lineNum">      39 </span>            : }
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            : struct xer__cb_arg {
+<span class="lineNum">      44 </span>            :         pxml_chunk_type_e       chunk_type;
+<span class="lineNum">      45 </span>            :         size_t                  chunk_size;
+<span class="lineNum">      46 </span>            :         const void              *chunk_buf;
+<span class="lineNum">      47 </span>            :         int callback_not_invoked;
+<span class="lineNum">      48 </span>            : };
+<a name="49"><span class="lineNum">      49 </span>            : </a>
+<span class="lineNum">      50 </span>            : static int
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 : xer__token_cb(pxml_chunk_type_e type, const void *_chunk_data, size_t _chunk_size, void *key) {</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :         struct xer__cb_arg *arg = (struct xer__cb_arg *)key;</span>
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :         arg-&gt;chunk_type = type;</span>
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :         arg-&gt;chunk_size = _chunk_size;</span>
+<span class="lineNum">      55 </span><span class="lineNoCov">          0 :         arg-&gt;chunk_buf = _chunk_data;</span>
+<span class="lineNum">      56 </span><span class="lineNoCov">          0 :         arg-&gt;callback_not_invoked = 0;</span>
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 :         return -1;      /* Terminate the XML parsing */</span>
+<span class="lineNum">      58 </span>            : }
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            : /*
+<span class="lineNum">      61 </span>            :  * Fetch the next token from the XER/XML stream.
+<a name="62"><span class="lineNum">      62 </span>            :  */</a>
+<span class="lineNum">      63 </span>            : ssize_t
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 : xer_next_token(int *stateContext, const void *buffer, size_t size, pxer_chunk_type_e *ch_type) {</span>
+<span class="lineNum">      65 </span>            :         struct xer__cb_arg arg;
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :         int new_stateContext = *stateContext;</span>
+<span class="lineNum">      67 </span>            :         ssize_t ret;
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span><span class="lineNoCov">          0 :         arg.callback_not_invoked = 1;</span>
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :         ret = pxml_parse(&amp;new_stateContext, buffer, size, xer__token_cb, &amp;arg);</span>
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 :         if(ret &lt; 0) return -1;</span>
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :         if(arg.callback_not_invoked) {</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :                 assert(ret == 0);       /* No data was consumed */</span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :         *ch_type = PXER_WMORE;</span>
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :                 return 0;               /* Try again with more data */</span>
+<span class="lineNum">      76 </span>            :         } else {
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :                 assert(arg.chunk_size);</span>
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :                 assert(arg.chunk_buf == buffer);</span>
+<span class="lineNum">      79 </span>            :         }
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            :         /*
+<span class="lineNum">      82 </span>            :          * Translate the XML chunk types into more convenient ones.
+<span class="lineNum">      83 </span>            :          */
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 :         switch(arg.chunk_type) {</span>
+<span class="lineNum">      85 </span>            :         case PXML_TEXT:
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 :                 *ch_type = PXER_TEXT;</span>
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">      88 </span>            :         case PXML_TAG:
+<span class="lineNum">      89 </span><span class="lineNoCov">          0 :                 *ch_type = PXER_WMORE;</span>
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :                 return 0;       /* Want more */</span>
+<span class="lineNum">      91 </span>            :         case PXML_TAG_END:
+<span class="lineNum">      92 </span><span class="lineNoCov">          0 :                 *ch_type = PXER_TAG;</span>
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">      94 </span>            :         case PXML_COMMENT:
+<span class="lineNum">      95 </span>            :         case PXML_COMMENT_END:
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :                 *ch_type = PXER_COMMENT;</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">      98 </span>            :         }
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span><span class="lineNoCov">          0 :         *stateContext = new_stateContext;</span>
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :         return arg.chunk_size;</span>
+<span class="lineNum">     102 </span>            : }
+<span class="lineNum">     103 </span>            : 
+<span class="lineNum">     104 </span>            : #define CSLASH  0x2f    /* '/' */
+<span class="lineNum">     105 </span>            : #define LANGLE  0x3c    /* '&lt;' */
+<span class="lineNum">     106 </span>            : #define RANGLE  0x3e    /* '&gt;' */
+<a name="107"><span class="lineNum">     107 </span>            : </a>
+<span class="lineNum">     108 </span>            : xer_check_tag_e
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 : xer_check_tag(const void *buf_ptr, int size, const char *need_tag) {</span>
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :         const char *buf = (const char *)buf_ptr;</span>
+<span class="lineNum">     111 </span>            :         const char *end;
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :         xer_check_tag_e ct = XCT_OPENING;</span>
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :         if(size &lt; 2 || buf[0] != LANGLE || buf[size-1] != RANGLE) {</span>
+<span class="lineNum">     115 </span>            :                 if(size &gt;= 2)
+<span class="lineNum">     116 </span>            :                         ASN_DEBUG(&quot;Broken XML tag: \&quot;%c...%c\&quot;&quot;,
+<span class="lineNum">     117 </span>            :                         buf[0], buf[size - 1]);
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 :                 return XCT_BROKEN;</span>
+<span class="lineNum">     119 </span>            :         }
+<span class="lineNum">     120 </span>            : 
+<span class="lineNum">     121 </span>            :         /*
+<span class="lineNum">     122 </span>            :          * Determine the tag class.
+<span class="lineNum">     123 </span>            :          */
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :         if(buf[1] == CSLASH) {</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :                 buf += 2;       /* advance past &quot;&lt;/&quot; */</span>
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :                 size -= 3;      /* strip &quot;&lt;/&quot; and &quot;&gt;&quot; */</span>
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :                 ct = XCT_CLOSING;</span>
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :                 if(size &gt; 0 &amp;&amp; buf[size-1] == CSLASH)</span>
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :                         return XCT_BROKEN;      /* &lt;/abc/&gt; */</span>
+<span class="lineNum">     130 </span>            :         } else {
+<span class="lineNum">     131 </span><span class="lineNoCov">          0 :                 buf++;          /* advance past &quot;&lt;&quot; */</span>
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 :                 size -= 2;      /* strip &quot;&lt;&quot; and &quot;&gt;&quot; */</span>
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :                 if(size &gt; 0 &amp;&amp; buf[size-1] == CSLASH) {</span>
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :                         ct = XCT_BOTH;</span>
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :                         size--; /* One more, for &quot;/&quot; */</span>
+<span class="lineNum">     136 </span>            :                 }
+<span class="lineNum">     137 </span>            :         }
+<span class="lineNum">     138 </span>            : 
+<span class="lineNum">     139 </span>            :         /* Sometimes we don't care about the tag */
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :         if(!need_tag || !*need_tag)</span>
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :                 return (xer_check_tag_e)(XCT__UNK__MASK | ct);</span>
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span>            :         /*
+<span class="lineNum">     144 </span>            :          * Determine the tag name.
+<span class="lineNum">     145 </span>            :          */
+<span class="lineNum">     146 </span><span class="lineNoCov">          0 :         for(end = buf + size; buf &lt; end; buf++, need_tag++) {</span>
+<span class="lineNum">     147 </span><span class="lineNoCov">          0 :                 int b = *buf, n = *need_tag;</span>
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :                 if(b != n) {</span>
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :                         if(n == 0) {</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :                                 switch(b) {</span>
+<span class="lineNum">     151 </span>            :                                 case 0x09: case 0x0a: case 0x0c: case 0x0d:
+<span class="lineNum">     152 </span>            :                                 case 0x20:
+<span class="lineNum">     153 </span>            :                                         /* &quot;&lt;abc def/&gt;&quot;: whitespace is normal */
+<span class="lineNum">     154 </span><span class="lineNoCov">          0 :                                         return ct;</span>
+<span class="lineNum">     155 </span>            :                                 }
+<span class="lineNum">     156 </span>            :                         }
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :                         return (xer_check_tag_e)(XCT__UNK__MASK | ct);</span>
+<span class="lineNum">     158 </span>            :                 }
+<span class="lineNum">     159 </span><span class="lineNoCov">          0 :                 if(b == 0)</span>
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :                         return XCT_BROKEN;      /* Embedded 0 in buf?! */</span>
+<span class="lineNum">     161 </span>            :         }
+<span class="lineNum">     162 </span><span class="lineNoCov">          0 :         if(*need_tag)</span>
+<span class="lineNum">     163 </span><span class="lineNoCov">          0 :                 return (xer_check_tag_e)(XCT__UNK__MASK | ct);</span>
+<span class="lineNum">     164 </span>            : 
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 :         return ct;</span>
+<span class="lineNum">     166 </span>            : }
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            : 
+<span class="lineNum">     169 </span>            : #undef  ADVANCE
+<span class="lineNum">     170 </span>            : #define ADVANCE(num_bytes)      do {                            \
+<span class="lineNum">     171 </span>            :                 size_t num = (num_bytes);                       \
+<span class="lineNum">     172 </span>            :                 buf_ptr = ((const char *)buf_ptr) + num;        \
+<span class="lineNum">     173 </span>            :                 size -= num;                                    \
+<span class="lineNum">     174 </span>            :                 consumed_myself += num;                         \
+<span class="lineNum">     175 </span>            :         } while(0)
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span>            : #undef  RETURN
+<span class="lineNum">     178 </span>            : #define RETURN(_code)   do {                                    \
+<span class="lineNum">     179 </span>            :                 rval.code = _code;                              \
+<span class="lineNum">     180 </span>            :                 rval.consumed = consumed_myself;                \
+<span class="lineNum">     181 </span>            :                 if(rval.code != RC_OK)                          \
+<span class="lineNum">     182 </span>            :                         ASN_DEBUG(&quot;Failed with %d&quot;, rval.code);       \
+<span class="lineNum">     183 </span>            :                 return rval;                                    \
+<span class="lineNum">     184 </span>            :         } while(0)
+<span class="lineNum">     185 </span>            : 
+<span class="lineNum">     186 </span>            : #define XER_GOT_BODY(chunk_buf, chunk_size, size)       do {    \
+<span class="lineNum">     187 </span>            :                 ssize_t converted_size = body_receiver          \
+<span class="lineNum">     188 </span>            :                         (struct_key, chunk_buf, chunk_size,     \
+<span class="lineNum">     189 </span>            :                                 (size_t)chunk_size &lt; size);  \
+<span class="lineNum">     190 </span>            :                 if(converted_size == -1) RETURN(RC_FAIL);       \
+<span class="lineNum">     191 </span>            :                 if(converted_size == 0                          \
+<span class="lineNum">     192 </span>            :                         &amp;&amp; size == (size_t)chunk_size)          \
+<span class="lineNum">     193 </span>            :                         RETURN(RC_WMORE);                       \
+<span class="lineNum">     194 </span>            :                 chunk_size = converted_size;                    \
+<span class="lineNum">     195 </span>            :         } while(0)
+<span class="lineNum">     196 </span>            : #define XER_GOT_EMPTY() do {                                    \
+<span class="lineNum">     197 </span>            :         if(body_receiver(struct_key, 0, 0, size &gt; 0) == -1)  \
+<span class="lineNum">     198 </span>            :                         RETURN(RC_FAIL);                        \
+<span class="lineNum">     199 </span>            :         } while(0)
+<span class="lineNum">     200 </span>            : 
+<span class="lineNum">     201 </span>            : /*
+<span class="lineNum">     202 </span>            :  * Generalized function for decoding the primitive values.
+<a name="203"><span class="lineNum">     203 </span>            :  */</a>
+<span class="lineNum">     204 </span>            : asn_dec_rval_t
+<span class="lineNum">     205 </span><span class="lineNoCov">          0 : xer_decode_general(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     206 </span>            :         asn_struct_ctx_t *ctx,  /* Type decoder context */
+<span class="lineNum">     207 </span>            :         void *struct_key,
+<span class="lineNum">     208 </span>            :         const char *xml_tag,    /* Expected XML tag */
+<span class="lineNum">     209 </span>            :         const void *buf_ptr, size_t size,
+<span class="lineNum">     210 </span>            :         int (*opt_unexpected_tag_decoder)
+<span class="lineNum">     211 </span>            :                 (void *struct_key, const void *chunk_buf, size_t chunk_size),
+<span class="lineNum">     212 </span>            :         ssize_t (*body_receiver)
+<span class="lineNum">     213 </span>            :                 (void *struct_key, const void *chunk_buf, size_t chunk_size,
+<span class="lineNum">     214 </span>            :                         int have_more)
+<span class="lineNum">     215 </span>            :         ) {
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span>            :         asn_dec_rval_t rval;
+<span class="lineNum">     218 </span><span class="lineNoCov">          0 :         ssize_t consumed_myself = 0;</span>
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span>            :         (void)opt_codec_ctx;
+<span class="lineNum">     221 </span>            : 
+<span class="lineNum">     222 </span>            :         /*
+<span class="lineNum">     223 </span>            :          * Phases of XER/XML processing:
+<span class="lineNum">     224 </span>            :          * Phase 0: Check that the opening tag matches our expectations.
+<span class="lineNum">     225 </span>            :          * Phase 1: Processing body and reacting on closing tag.
+<span class="lineNum">     226 </span>            :          */
+<span class="lineNum">     227 </span><span class="lineNoCov">          0 :         if(ctx-&gt;phase &gt; 1) RETURN(RC_FAIL);</span>
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :         for(;;) {</span>
+<span class="lineNum">     229 </span>            :                 pxer_chunk_type_e ch_type;      /* XER chunk type */
+<span class="lineNum">     230 </span>            :                 ssize_t ch_size;                /* Chunk size */
+<span class="lineNum">     231 </span>            :                 xer_check_tag_e tcv;            /* Tag check value */
+<span class="lineNum">     232 </span>            : 
+<span class="lineNum">     233 </span>            :                 /*
+<span class="lineNum">     234 </span>            :                  * Get the next part of the XML stream.
+<span class="lineNum">     235 </span>            :                  */
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :                 ch_size = xer_next_token(&amp;ctx-&gt;context, buf_ptr, size,</span>
+<span class="lineNum">     237 </span>            :                         &amp;ch_type);
+<span class="lineNum">     238 </span><span class="lineNoCov">          0 :                 if(ch_size == -1) {</span>
+<span class="lineNum">     239 </span><span class="lineNoCov">          0 :             RETURN(RC_FAIL);</span>
+<span class="lineNum">     240 </span>            :         } else {
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :                         switch(ch_type) {</span>
+<span class="lineNum">     242 </span>            :                         case PXER_WMORE:
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :                 RETURN(RC_WMORE);</span>
+<span class="lineNum">     244 </span>            :                         case PXER_COMMENT:              /* Got XML comment */
+<span class="lineNum">     245 </span><span class="lineNoCov">          0 :                                 ADVANCE(ch_size);       /* Skip silently */</span>
+<span class="lineNum">     246 </span><span class="lineNoCov">          0 :                                 continue;</span>
+<span class="lineNum">     247 </span>            :                         case PXER_TEXT:
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :                                 if(ctx-&gt;phase == 0) {</span>
+<span class="lineNum">     249 </span>            :                                         /*
+<span class="lineNum">     250 </span>            :                                          * We have to ignore whitespace here,
+<span class="lineNum">     251 </span>            :                                          * but in order to be forward compatible
+<span class="lineNum">     252 </span>            :                                          * with EXTENDED-XER (EMBED-VALUES, #25)
+<span class="lineNum">     253 </span>            :                                          * any text is just ignored here.
+<span class="lineNum">     254 </span>            :                                          */
+<span class="lineNum">     255 </span>            :                                 } else {
+<span class="lineNum">     256 </span><span class="lineNoCov">          0 :                                         XER_GOT_BODY(buf_ptr, ch_size, size);</span>
+<span class="lineNum">     257 </span>            :                                 }
+<span class="lineNum">     258 </span><span class="lineNoCov">          0 :                                 ADVANCE(ch_size);</span>
+<span class="lineNum">     259 </span><span class="lineNoCov">          0 :                                 continue;</span>
+<span class="lineNum">     260 </span>            :                         case PXER_TAG:
+<span class="lineNum">     261 </span><span class="lineNoCov">          0 :                                 break;  /* Check the rest down there */</span>
+<span class="lineNum">     262 </span>            :                         }
+<span class="lineNum">     263 </span>            :                 }
+<span class="lineNum">     264 </span>            : 
+<span class="lineNum">     265 </span><span class="lineNoCov">          0 :                 assert(ch_type == PXER_TAG &amp;&amp; size);</span>
+<span class="lineNum">     266 </span>            : 
+<span class="lineNum">     267 </span><span class="lineNoCov">          0 :                 tcv = xer_check_tag(buf_ptr, ch_size, xml_tag);</span>
+<span class="lineNum">     268 </span>            :                 /*
+<span class="lineNum">     269 </span>            :                  * Phase 0:
+<span class="lineNum">     270 </span>            :                  *      Expecting the opening tag
+<span class="lineNum">     271 </span>            :                  *      for the type being processed.
+<span class="lineNum">     272 </span>            :                  * Phase 1:
+<span class="lineNum">     273 </span>            :                  *      Waiting for the closing XML tag.
+<span class="lineNum">     274 </span>            :                  */
+<span class="lineNum">     275 </span><span class="lineNoCov">          0 :                 switch(tcv) {</span>
+<span class="lineNum">     276 </span>            :                 case XCT_BOTH:
+<span class="lineNum">     277 </span><span class="lineNoCov">          0 :                         if(ctx-&gt;phase) break;</span>
+<span class="lineNum">     278 </span>            :                         /* Finished decoding of an empty element */
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :                         XER_GOT_EMPTY();</span>
+<span class="lineNum">     280 </span><span class="lineNoCov">          0 :                         ADVANCE(ch_size);</span>
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :                         ctx-&gt;phase = 2;      /* Phase out */</span>
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :                         RETURN(RC_OK);</span>
+<span class="lineNum">     283 </span>            :                 case XCT_OPENING:
+<span class="lineNum">     284 </span><span class="lineNoCov">          0 :                         if(ctx-&gt;phase) break;</span>
+<span class="lineNum">     285 </span><span class="lineNoCov">          0 :                         ADVANCE(ch_size);</span>
+<span class="lineNum">     286 </span><span class="lineNoCov">          0 :                         ctx-&gt;phase = 1;      /* Processing body phase */</span>
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :                         continue;</span>
+<span class="lineNum">     288 </span>            :                 case XCT_CLOSING:
+<span class="lineNum">     289 </span><span class="lineNoCov">          0 :                         if(!ctx-&gt;phase) break;</span>
+<span class="lineNum">     290 </span><span class="lineNoCov">          0 :                         ADVANCE(ch_size);</span>
+<span class="lineNum">     291 </span><span class="lineNoCov">          0 :                         ctx-&gt;phase = 2;      /* Phase out */</span>
+<span class="lineNum">     292 </span><span class="lineNoCov">          0 :                         RETURN(RC_OK);</span>
+<span class="lineNum">     293 </span>            :                 case XCT_UNKNOWN_BO:
+<span class="lineNum">     294 </span>            :                         /*
+<span class="lineNum">     295 </span>            :                          * Certain tags in the body may be expected.
+<span class="lineNum">     296 </span>            :                          */
+<span class="lineNum">     297 </span><span class="lineNoCov">          0 :                         if(opt_unexpected_tag_decoder</span>
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 :                         &amp;&amp; opt_unexpected_tag_decoder(struct_key,</span>
+<span class="lineNum">     299 </span>            :                                         buf_ptr, ch_size) &gt;= 0) {
+<span class="lineNum">     300 </span>            :                                 /* Tag's processed fine */
+<span class="lineNum">     301 </span><span class="lineNoCov">          0 :                                 ADVANCE(ch_size);</span>
+<span class="lineNum">     302 </span><span class="lineNoCov">          0 :                                 if(!ctx-&gt;phase) {</span>
+<span class="lineNum">     303 </span>            :                                         /* We are not expecting
+<span class="lineNum">     304 </span>            :                                          * the closing tag anymore. */
+<span class="lineNum">     305 </span><span class="lineNoCov">          0 :                                         ctx-&gt;phase = 2;      /* Phase out */</span>
+<span class="lineNum">     306 </span><span class="lineNoCov">          0 :                                         RETURN(RC_OK);</span>
+<span class="lineNum">     307 </span>            :                                 }
+<span class="lineNum">     308 </span><span class="lineNoCov">          0 :                                 continue;</span>
+<span class="lineNum">     309 </span>            :                         }
+<span class="lineNum">     310 </span>            :                         /* Fall through */
+<span class="lineNum">     311 </span>            :                 default:
+<span class="lineNum">     312 </span><span class="lineNoCov">          0 :                         break;          /* Unexpected tag */</span>
+<span class="lineNum">     313 </span>            :                 }
+<span class="lineNum">     314 </span>            : 
+<span class="lineNum">     315 </span>            :                 ASN_DEBUG(&quot;Unexpected XML tag (expected \&quot;%s\&quot;)&quot;, xml_tag);
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :                 break;  /* Dark and mysterious things have just happened */</span>
+<span class="lineNum">     317 </span>            :         }
+<span class="lineNum">     318 </span>            : 
+<span class="lineNum">     319 </span><span class="lineNoCov">          0 :         RETURN(RC_FAIL);</span>
+<span class="lineNum">     320 </span>            : }
+<span class="lineNum">     321 </span>            : 
+<a name="322"><span class="lineNum">     322 </span>            : </a>
+<span class="lineNum">     323 </span>            : size_t
+<span class="lineNum">     324 </span><span class="lineNoCov">          0 : xer_whitespace_span(const void *chunk_buf, size_t chunk_size) {</span>
+<span class="lineNum">     325 </span><span class="lineNoCov">          0 :         const char *p = (const char *)chunk_buf;</span>
+<span class="lineNum">     326 </span><span class="lineNoCov">          0 :         const char *pend = p + chunk_size;</span>
+<span class="lineNum">     327 </span>            : 
+<span class="lineNum">     328 </span><span class="lineNoCov">          0 :         for(; p &lt; pend; p++) {</span>
+<span class="lineNum">     329 </span><span class="lineNoCov">          0 :                 switch(*p) {</span>
+<span class="lineNum">     330 </span>            :                 /* X.693, #8.1.4
+<span class="lineNum">     331 </span>            :                  * HORISONTAL TAB (9)
+<span class="lineNum">     332 </span>            :                  * LINE FEED (10) 
+<span class="lineNum">     333 </span>            :                  * CARRIAGE RETURN (13) 
+<span class="lineNum">     334 </span>            :                  * SPACE (32)
+<span class="lineNum">     335 </span>            :                  */
+<span class="lineNum">     336 </span>            :                 case 0x09: case 0x0a: case 0x0d: case 0x20:
+<span class="lineNum">     337 </span><span class="lineNoCov">          0 :                         continue;</span>
+<span class="lineNum">     338 </span>            :                 default:
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     340 </span>            :                 }
+<span class="lineNum">     341 </span><span class="lineNoCov">          0 :                 break;</span>
+<span class="lineNum">     342 </span>            :         }
+<span class="lineNum">     343 </span><span class="lineNoCov">          0 :         return (p - (const char *)chunk_buf);</span>
+<span class="lineNum">     344 </span>            : }
+<span class="lineNum">     345 </span>            : 
+<span class="lineNum">     346 </span>            : /*
+<span class="lineNum">     347 </span>            :  * This is a vastly simplified, non-validating XML tree skipper.
+<a name="348"><span class="lineNum">     348 </span>            :  */</a>
+<span class="lineNum">     349 </span>            : int
+<span class="lineNum">     350 </span><span class="lineNoCov">          0 : xer_skip_unknown(xer_check_tag_e tcv, ber_tlv_len_t *depth) {</span>
+<span class="lineNum">     351 </span><span class="lineNoCov">          0 :         assert(*depth &gt; 0);</span>
+<span class="lineNum">     352 </span><span class="lineNoCov">          0 :         switch(tcv) {</span>
+<span class="lineNum">     353 </span>            :         case XCT_BOTH:
+<span class="lineNum">     354 </span>            :         case XCT_UNKNOWN_BO:
+<span class="lineNum">     355 </span>            :                 /* These negate each other. */
+<span class="lineNum">     356 </span><span class="lineNoCov">          0 :                 return 0;</span>
+<span class="lineNum">     357 </span>            :         case XCT_OPENING:
+<span class="lineNum">     358 </span>            :         case XCT_UNKNOWN_OP:
+<span class="lineNum">     359 </span><span class="lineNoCov">          0 :                 ++(*depth);</span>
+<span class="lineNum">     360 </span><span class="lineNoCov">          0 :                 return 0;</span>
+<span class="lineNum">     361 </span>            :         case XCT_CLOSING:
+<span class="lineNum">     362 </span>            :         case XCT_UNKNOWN_CL:
+<span class="lineNum">     363 </span><span class="lineNoCov">          0 :                 if(--(*depth) == 0)</span>
+<span class="lineNum">     364 </span><span class="lineNoCov">          0 :                         return (tcv == XCT_CLOSING) ? 2 : 1;</span>
+<span class="lineNum">     365 </span><span class="lineNoCov">          0 :                 return 0;</span>
+<span class="lineNum">     366 </span>            :         default:
+<span class="lineNum">     367 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     368 </span>            :         }
+<span class="lineNum">     369 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

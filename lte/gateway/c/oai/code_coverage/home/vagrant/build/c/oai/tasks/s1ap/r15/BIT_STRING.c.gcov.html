@@ -1,0 +1,732 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/BIT_STRING.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - BIT_STRING.c<span style="font-size: 80%;"> (source / <a href="BIT_STRING.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">288</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*-</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2003, 2004 Lev Walkin &lt;vlm@lionet.info&gt;. All rights reserved.
+<span class="lineNum">       3 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       4 </span>            :  */
+<span class="lineNum">       5 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;BIT_STRING.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : /*
+<span class="lineNum">      10 </span>            :  * BIT STRING basic type description.
+<span class="lineNum">      11 </span>            :  */
+<span class="lineNum">      12 </span>            : static const ber_tlv_tag_t asn_DEF_BIT_STRING_tags[] = {
+<span class="lineNum">      13 </span>            :         (ASN_TAG_CLASS_UNIVERSAL | (3 &lt;&lt; 2))
+<span class="lineNum">      14 </span>            : };
+<span class="lineNum">      15 </span>            : asn_OCTET_STRING_specifics_t asn_SPC_BIT_STRING_specs = {
+<span class="lineNum">      16 </span>            :         sizeof(BIT_STRING_t),
+<span class="lineNum">      17 </span>            :         offsetof(BIT_STRING_t, _asn_ctx),
+<span class="lineNum">      18 </span>            :         ASN_OSUBV_BIT
+<span class="lineNum">      19 </span>            : };
+<span class="lineNum">      20 </span>            : asn_TYPE_operation_t asn_OP_BIT_STRING = {
+<span class="lineNum">      21 </span>            :         OCTET_STRING_free,         /* Implemented in terms of OCTET STRING */
+<span class="lineNum">      22 </span>            :         BIT_STRING_print,
+<span class="lineNum">      23 </span>            :         BIT_STRING_compare,
+<span class="lineNum">      24 </span>            :         OCTET_STRING_decode_ber,   /* Implemented in terms of OCTET STRING */
+<span class="lineNum">      25 </span>            :         OCTET_STRING_encode_der,   /* Implemented in terms of OCTET STRING */
+<span class="lineNum">      26 </span>            :         OCTET_STRING_decode_xer_binary,
+<span class="lineNum">      27 </span>            :         BIT_STRING_encode_xer,
+<span class="lineNum">      28 </span>            : #ifdef  ASN_DISABLE_OER_SUPPORT
+<span class="lineNum">      29 </span>            :         0,
+<span class="lineNum">      30 </span>            :         0,
+<span class="lineNum">      31 </span>            : #else
+<span class="lineNum">      32 </span>            :         BIT_STRING_decode_oer,
+<span class="lineNum">      33 </span>            :         BIT_STRING_encode_oer,
+<span class="lineNum">      34 </span>            : #endif  /* ASN_DISABLE_OER_SUPPORT */
+<span class="lineNum">      35 </span>            : #ifdef  ASN_DISABLE_PER_SUPPORT
+<span class="lineNum">      36 </span>            :         0,
+<span class="lineNum">      37 </span>            :         0,
+<span class="lineNum">      38 </span>            :         0,
+<span class="lineNum">      39 </span>            :         0,
+<span class="lineNum">      40 </span>            : #else
+<span class="lineNum">      41 </span>            :         BIT_STRING_decode_uper, /* Unaligned PER decoder */
+<span class="lineNum">      42 </span>            :         BIT_STRING_encode_uper, /* Unaligned PER encoder */
+<span class="lineNum">      43 </span>            :         OCTET_STRING_decode_aper,       /* Aligned PER decoder */
+<span class="lineNum">      44 </span>            :         OCTET_STRING_encode_aper,       /* Aligned PER encoder */
+<span class="lineNum">      45 </span>            : #endif  /* ASN_DISABLE_PER_SUPPORT */
+<span class="lineNum">      46 </span>            :         BIT_STRING_random_fill,
+<span class="lineNum">      47 </span>            :         0       /* Use generic outmost tag fetcher */
+<span class="lineNum">      48 </span>            : };
+<span class="lineNum">      49 </span>            : asn_TYPE_descriptor_t asn_DEF_BIT_STRING = {
+<span class="lineNum">      50 </span>            :         &quot;BIT STRING&quot;,
+<span class="lineNum">      51 </span>            :         &quot;BIT_STRING&quot;,
+<span class="lineNum">      52 </span>            :         &amp;asn_OP_BIT_STRING,
+<span class="lineNum">      53 </span>            :         asn_DEF_BIT_STRING_tags,
+<span class="lineNum">      54 </span>            :         sizeof(asn_DEF_BIT_STRING_tags)
+<span class="lineNum">      55 </span>            :           / sizeof(asn_DEF_BIT_STRING_tags[0]),
+<span class="lineNum">      56 </span>            :         asn_DEF_BIT_STRING_tags,        /* Same as above */
+<span class="lineNum">      57 </span>            :         sizeof(asn_DEF_BIT_STRING_tags)
+<span class="lineNum">      58 </span>            :           / sizeof(asn_DEF_BIT_STRING_tags[0]),
+<span class="lineNum">      59 </span>            :         { 0, 0, BIT_STRING_constraint },
+<span class="lineNum">      60 </span>            :         0, 0,   /* No members */
+<span class="lineNum">      61 </span>            :         &amp;asn_SPC_BIT_STRING_specs
+<span class="lineNum">      62 </span>            : };
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            : /*
+<span class="lineNum">      65 </span>            :  * BIT STRING generic constraint.
+<a name="66"><span class="lineNum">      66 </span>            :  */</a>
+<span class="lineNum">      67 </span>            : int
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 : BIT_STRING_constraint(const asn_TYPE_descriptor_t *td, const void *sptr,</span>
+<span class="lineNum">      69 </span>            :                       asn_app_constraint_failed_f *ctfailcb, void *app_key) {
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :     const BIT_STRING_t *st = (const BIT_STRING_t *)sptr;</span>
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :         if(st &amp;&amp; st-&gt;buf) {</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :                 if((st-&gt;size == 0 &amp;&amp; st-&gt;bits_unused)</span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :                 || st-&gt;bits_unused &lt; 0 || st-&gt;bits_unused &gt; 7) {</span>
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :                         ASN__CTFAIL(app_key, td, sptr,</span>
+<span class="lineNum">      76 </span>            :                                 &quot;%s: invalid padding byte (%s:%d)&quot;,
+<span class="lineNum">      77 </span>            :                                 td-&gt;name, __FILE__, __LINE__);
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :                         return -1;</span>
+<span class="lineNum">      79 </span>            :                 }
+<span class="lineNum">      80 </span>            :         } else {
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :                 ASN__CTFAIL(app_key, td, sptr,</span>
+<span class="lineNum">      82 </span>            :                         &quot;%s: value not given (%s:%d)&quot;,
+<span class="lineNum">      83 </span>            :                         td-&gt;name, __FILE__, __LINE__);
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">      85 </span>            :         }
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :         return 0;</span>
+<span class="lineNum">      88 </span>            : }
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span>            : static const char *_bit_pattern[16] = {
+<span class="lineNum">      91 </span>            :         &quot;0000&quot;, &quot;0001&quot;, &quot;0010&quot;, &quot;0011&quot;, &quot;0100&quot;, &quot;0101&quot;, &quot;0110&quot;, &quot;0111&quot;,
+<span class="lineNum">      92 </span>            :         &quot;1000&quot;, &quot;1001&quot;, &quot;1010&quot;, &quot;1011&quot;, &quot;1100&quot;, &quot;1101&quot;, &quot;1110&quot;, &quot;1111&quot;
+<span class="lineNum">      93 </span>            : };
+<a name="94"><span class="lineNum">      94 </span>            : </a>
+<span class="lineNum">      95 </span>            : asn_enc_rval_t
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 : BIT_STRING_encode_xer(const asn_TYPE_descriptor_t *td, const void *sptr,</span>
+<span class="lineNum">      97 </span>            :                       int ilevel, enum xer_encoder_flags_e flags,
+<span class="lineNum">      98 </span>            :                       asn_app_consume_bytes_f *cb, void *app_key) {
+<span class="lineNum">      99 </span>            :     asn_enc_rval_t er;
+<span class="lineNum">     100 </span>            :         char scratch[128];
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :         char *p = scratch;</span>
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :         char *scend = scratch + (sizeof(scratch) - 10);</span>
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :         const BIT_STRING_t *st = (const BIT_STRING_t *)sptr;</span>
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :         int xcan = (flags &amp; XER_F_CANONICAL);</span>
+<span class="lineNum">     105 </span>            :         uint8_t *buf;
+<span class="lineNum">     106 </span>            :         uint8_t *end;
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :         if(!st || !st-&gt;buf)</span>
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :         er.encoded = 0;</span>
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :         buf = st-&gt;buf;</span>
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :         end = buf + st-&gt;size - 1;    /* Last byte is special */</span>
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            :         /*
+<span class="lineNum">     117 </span>            :          * Binary dump
+<span class="lineNum">     118 </span>            :          */
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 :         for(; buf &lt; end; buf++) {</span>
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 :                 int v = *buf;</span>
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :                 int nline = xcan?0:(((buf - st-&gt;buf) % 8) == 0);</span>
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :                 if(p &gt;= scend || nline) {</span>
+<span class="lineNum">     123 </span><span class="lineNoCov">          0 :                         ASN__CALLBACK(scratch, p - scratch);</span>
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :                         p = scratch;</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :                         if(nline) ASN__TEXT_INDENT(1, ilevel);</span>
+<span class="lineNum">     126 </span>            :                 }
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :                 memcpy(p + 0, _bit_pattern[v &gt;&gt; 4], 4);</span>
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :                 memcpy(p + 4, _bit_pattern[v &amp; 0x0f], 4);</span>
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :                 p += 8;</span>
+<span class="lineNum">     130 </span>            :         }
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 :         if(!xcan &amp;&amp; ((buf - st-&gt;buf) % 8) == 0)</span>
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :                 ASN__TEXT_INDENT(1, ilevel);</span>
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :         ASN__CALLBACK(scratch, p - scratch);</span>
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :         p = scratch;</span>
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :         if(buf == end) {</span>
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :                 int v = *buf;</span>
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :                 int ubits = st-&gt;bits_unused;</span>
+<span class="lineNum">     140 </span>            :                 int i;
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :                 for(i = 7; i &gt;= ubits; i--)</span>
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 :                         *p++ = (v &amp; (1 &lt;&lt; i)) ? 0x31 : 0x30;</span>
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :                 ASN__CALLBACK(scratch, p - scratch);</span>
+<span class="lineNum">     144 </span>            :         }
+<span class="lineNum">     145 </span>            : 
+<span class="lineNum">     146 </span><span class="lineNoCov">          0 :         if(!xcan) ASN__TEXT_INDENT(1, ilevel - 1);</span>
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :         ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     149 </span>            : cb_failed:
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     151 </span>            : }
+<span class="lineNum">     152 </span>            : 
+<span class="lineNum">     153 </span>            : 
+<span class="lineNum">     154 </span>            : /*
+<span class="lineNum">     155 </span>            :  * BIT STRING specific contents printer.
+<a name="156"><span class="lineNum">     156 </span>            :  */</a>
+<span class="lineNum">     157 </span>            : int
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 : BIT_STRING_print(const asn_TYPE_descriptor_t *td, const void *sptr, int ilevel,</span>
+<span class="lineNum">     159 </span>            :                  asn_app_consume_bytes_f *cb, void *app_key) {
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :     const char * const h2c = &quot;0123456789ABCDEF&quot;;</span>
+<span class="lineNum">     161 </span>            :         char scratch[64];
+<span class="lineNum">     162 </span><span class="lineNoCov">          0 :         const BIT_STRING_t *st = (const BIT_STRING_t *)sptr;</span>
+<span class="lineNum">     163 </span>            :         uint8_t *buf;
+<span class="lineNum">     164 </span>            :         uint8_t *end;
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 :         char *p = scratch;</span>
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span>            :         (void)td;       /* Unused argument */
+<span class="lineNum">     168 </span>            : 
+<span class="lineNum">     169 </span><span class="lineNoCov">          0 :         if(!st || !st-&gt;buf)</span>
+<span class="lineNum">     170 </span><span class="lineNoCov">          0 :                 return (cb(&quot;&lt;absent&gt;&quot;, 8, app_key) &lt; 0) ? -1 : 0;</span>
+<span class="lineNum">     171 </span>            : 
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :         ilevel++;</span>
+<span class="lineNum">     173 </span><span class="lineNoCov">          0 :         buf = st-&gt;buf;</span>
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :         end = buf + st-&gt;size;</span>
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span>            :         /*
+<span class="lineNum">     177 </span>            :          * Hexadecimal dump.
+<span class="lineNum">     178 </span>            :          */
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :         for(; buf &lt; end; buf++) {</span>
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :                 if((buf - st-&gt;buf) % 16 == 0 &amp;&amp; (st-&gt;size &gt; 16)</span>
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :                                 &amp;&amp; buf != st-&gt;buf) {</span>
+<span class="lineNum">     182 </span><span class="lineNoCov">          0 :                         _i_INDENT(1);</span>
+<span class="lineNum">     183 </span>            :                         /* Dump the string */
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :                         if(cb(scratch, p - scratch, app_key) &lt; 0) return -1;</span>
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 :                         p = scratch;</span>
+<span class="lineNum">     186 </span>            :                 }
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :                 *p++ = h2c[*buf &gt;&gt; 4];</span>
+<span class="lineNum">     188 </span><span class="lineNoCov">          0 :                 *p++ = h2c[*buf &amp; 0x0F];</span>
+<span class="lineNum">     189 </span><span class="lineNoCov">          0 :                 *p++ = 0x20;</span>
+<span class="lineNum">     190 </span>            :         }
+<span class="lineNum">     191 </span>            : 
+<span class="lineNum">     192 </span><span class="lineNoCov">          0 :         if(p &gt; scratch) {</span>
+<span class="lineNum">     193 </span><span class="lineNoCov">          0 :                 p--;    /* Eat the tailing space */</span>
+<span class="lineNum">     194 </span>            : 
+<span class="lineNum">     195 </span><span class="lineNoCov">          0 :                 if((st-&gt;size &gt; 16)) {</span>
+<span class="lineNum">     196 </span><span class="lineNoCov">          0 :                         _i_INDENT(1);</span>
+<span class="lineNum">     197 </span>            :                 }
+<span class="lineNum">     198 </span>            : 
+<span class="lineNum">     199 </span>            :                 /* Dump the incomplete 16-bytes row */
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :                 if(cb(scratch, p - scratch, app_key) &lt; 0)</span>
+<span class="lineNum">     201 </span><span class="lineNoCov">          0 :                         return -1;</span>
+<span class="lineNum">     202 </span>            :         }
+<span class="lineNum">     203 </span>            : 
+<span class="lineNum">     204 </span><span class="lineNoCov">          0 :     if(st-&gt;bits_unused) {</span>
+<span class="lineNum">     205 </span><span class="lineNoCov">          0 :         int ret = snprintf(scratch, sizeof(scratch), &quot; (%d bit%s unused)&quot;,</span>
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :                            st-&gt;bits_unused, st-&gt;bits_unused == 1 ? &quot;&quot; : &quot;s&quot;);</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :         assert(ret &gt; 0 &amp;&amp; ret &lt; (ssize_t)sizeof(scratch));</span>
+<span class="lineNum">     208 </span><span class="lineNoCov">          0 :         if(ret &gt; 0 &amp;&amp; ret &lt; (ssize_t)sizeof(scratch)</span>
+<span class="lineNum">     209 </span><span class="lineNoCov">          0 :            &amp;&amp; cb(scratch, ret, app_key) &lt; 0)</span>
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 :             return -1;</span>
+<span class="lineNum">     211 </span>            :     }
+<span class="lineNum">     212 </span>            : 
+<span class="lineNum">     213 </span><span class="lineNoCov">          0 :         return 0;</span>
+<span class="lineNum">     214 </span>            : }
+<span class="lineNum">     215 </span>            : 
+<span class="lineNum">     216 </span>            : /*
+<span class="lineNum">     217 </span>            :  * Non-destructively remove the trailing 0-bits from the given bit string.
+<a name="218"><span class="lineNum">     218 </span>            :  */</a>
+<span class="lineNum">     219 </span>            : static const BIT_STRING_t *
+<span class="lineNum">     220 </span><span class="lineNoCov">          0 : BIT_STRING__compactify(const BIT_STRING_t *st, BIT_STRING_t *tmp) {</span>
+<span class="lineNum">     221 </span>            :     const uint8_t *b;
+<span class="lineNum">     222 </span>            :     union {
+<span class="lineNum">     223 </span>            :         const uint8_t *c_buf;
+<span class="lineNum">     224 </span>            :         uint8_t *nc_buf;
+<span class="lineNum">     225 </span>            :     } unconst;
+<span class="lineNum">     226 </span>            : 
+<span class="lineNum">     227 </span><span class="lineNoCov">          0 :     if(st-&gt;size == 0) {</span>
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :         assert(st-&gt;bits_unused == 0);</span>
+<span class="lineNum">     229 </span><span class="lineNoCov">          0 :         return st;</span>
+<span class="lineNum">     230 </span>            :     } else {
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :         for(b = &amp;st-&gt;buf[st-&gt;size - 1]; b &gt; st-&gt;buf &amp;&amp; *b == 0; b--) {</span>
+<span class="lineNum">     232 </span>            :             ;
+<span class="lineNum">     233 </span>            :         }
+<span class="lineNum">     234 </span>            :         /* b points to the last byte which may contain data */
+<span class="lineNum">     235 </span><span class="lineNoCov">          0 :         if(*b) {</span>
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :             int unused = 7;</span>
+<span class="lineNum">     237 </span><span class="lineNoCov">          0 :             uint8_t v = *b;</span>
+<span class="lineNum">     238 </span><span class="lineNoCov">          0 :             v &amp;= -(int8_t)v;</span>
+<span class="lineNum">     239 </span><span class="lineNoCov">          0 :             if(v &amp; 0x0F) unused -= 4;</span>
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :             if(v &amp; 0x33) unused -= 2;</span>
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :             if(v &amp; 0x55) unused -= 1;</span>
+<span class="lineNum">     242 </span><span class="lineNoCov">          0 :             tmp-&gt;size = b-st-&gt;buf + 1;</span>
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :             tmp-&gt;bits_unused = unused;</span>
+<span class="lineNum">     244 </span>            :         } else {
+<span class="lineNum">     245 </span><span class="lineNoCov">          0 :             tmp-&gt;size = b-st-&gt;buf;</span>
+<span class="lineNum">     246 </span><span class="lineNoCov">          0 :             tmp-&gt;bits_unused = 0;</span>
+<span class="lineNum">     247 </span>            :         }
+<span class="lineNum">     248 </span>            : 
+<span class="lineNum">     249 </span><span class="lineNoCov">          0 :         assert(b &gt;= st-&gt;buf);</span>
+<span class="lineNum">     250 </span>            :     }
+<span class="lineNum">     251 </span>            : 
+<span class="lineNum">     252 </span><span class="lineNoCov">          0 :     unconst.c_buf = st-&gt;buf;</span>
+<span class="lineNum">     253 </span><span class="lineNoCov">          0 :     tmp-&gt;buf = unconst.nc_buf;</span>
+<span class="lineNum">     254 </span><span class="lineNoCov">          0 :     return tmp;</span>
+<span class="lineNum">     255 </span>            : }
+<span class="lineNum">     256 </span>            : 
+<span class="lineNum">     257 </span>            : /*
+<span class="lineNum">     258 </span>            :  * Lexicographically compare the common prefix of both strings,
+<span class="lineNum">     259 </span>            :  * and if it is the same return -1 for the smallest string.
+<a name="260"><span class="lineNum">     260 </span>            :  */</a>
+<span class="lineNum">     261 </span>            : int
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 : BIT_STRING_compare(const asn_TYPE_descriptor_t *td, const void *aptr,</span>
+<span class="lineNum">     263 </span>            :                    const void *bptr) {
+<span class="lineNum">     264 </span>            :     /*
+<span class="lineNum">     265 </span>            :      * Remove information about trailing bits, since
+<span class="lineNum">     266 </span>            :      * X.680 (08/2015) #22.7 &quot;ensure that different semantics are not&quot;
+<span class="lineNum">     267 </span>            :      * &quot;associated with [values that differ only in] the trailing 0 bits.&quot;
+<span class="lineNum">     268 </span>            :      */
+<span class="lineNum">     269 </span>            :     BIT_STRING_t compact_a, compact_b;
+<span class="lineNum">     270 </span><span class="lineNoCov">          0 :     const BIT_STRING_t *a = BIT_STRING__compactify(aptr, &amp;compact_a);</span>
+<span class="lineNum">     271 </span><span class="lineNoCov">          0 :     const BIT_STRING_t *b = BIT_STRING__compactify(bptr, &amp;compact_b);</span>
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :     const asn_OCTET_STRING_specifics_t *specs = td-&gt;specifics;</span>
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span><span class="lineNoCov">          0 :     assert(specs &amp;&amp; specs-&gt;subvariant == ASN_OSUBV_BIT);</span>
+<span class="lineNum">     275 </span>            : 
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 :     if(a &amp;&amp; b) {</span>
+<span class="lineNum">     277 </span><span class="lineNoCov">          0 :         size_t common_prefix_size = a-&gt;size &lt;= b-&gt;size ? a-&gt;size : b-&gt;size;</span>
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 :         int ret = memcmp(a-&gt;buf, b-&gt;buf, common_prefix_size);</span>
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :         if(ret == 0) {</span>
+<span class="lineNum">     280 </span>            :             /* Figure out which string with equal prefixes is longer. */
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :             if(a-&gt;size &lt; b-&gt;size) {</span>
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     283 </span><span class="lineNoCov">          0 :             } else if(a-&gt;size &gt; b-&gt;size) {</span>
+<span class="lineNum">     284 </span><span class="lineNoCov">          0 :                 return 1;</span>
+<span class="lineNum">     285 </span>            :             } else {
+<span class="lineNum">     286 </span>            :                 /* Figure out how many unused bits */
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :                 if(a-&gt;bits_unused &gt; b-&gt;bits_unused) {</span>
+<span class="lineNum">     288 </span><span class="lineNoCov">          0 :                     return -1;</span>
+<span class="lineNum">     289 </span><span class="lineNoCov">          0 :                 } else if(a-&gt;bits_unused &lt; b-&gt;bits_unused) {</span>
+<span class="lineNum">     290 </span><span class="lineNoCov">          0 :                     return 1;</span>
+<span class="lineNum">     291 </span>            :                 } else {
+<span class="lineNum">     292 </span><span class="lineNoCov">          0 :                     return 0;</span>
+<span class="lineNum">     293 </span>            :                 }
+<span class="lineNum">     294 </span>            :             }
+<span class="lineNum">     295 </span>            :         } else {
+<span class="lineNum">     296 </span><span class="lineNoCov">          0 :             return ret;</span>
+<span class="lineNum">     297 </span>            :         }
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 :     } else if(!a &amp;&amp; !b) {</span>
+<span class="lineNum">     299 </span><span class="lineNoCov">          0 :         return 0;</span>
+<span class="lineNum">     300 </span><span class="lineNoCov">          0 :     } else if(!a) {</span>
+<span class="lineNum">     301 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">     302 </span>            :     } else {
+<span class="lineNum">     303 </span><span class="lineNoCov">          0 :         return 1;</span>
+<span class="lineNum">     304 </span>            :     }
+<span class="lineNum">     305 </span>            : }
+<span class="lineNum">     306 </span>            : 
+<span class="lineNum">     307 </span>            : #ifndef  ASN_DISABLE_PER_SUPPORT
+<span class="lineNum">     308 </span>            : 
+<span class="lineNum">     309 </span>            : #undef  RETURN
+<span class="lineNum">     310 </span>            : #define RETURN(_code)                       \
+<span class="lineNum">     311 </span>            :     do {                                    \
+<span class="lineNum">     312 </span>            :         asn_dec_rval_t tmprval;             \
+<span class="lineNum">     313 </span>            :         tmprval.code = _code;               \
+<span class="lineNum">     314 </span>            :         tmprval.consumed = consumed_myself; \
+<span class="lineNum">     315 </span>            :         return tmprval;                     \
+<span class="lineNum">     316 </span>            :     } while(0)
+<span class="lineNum">     317 </span>            : 
+<span class="lineNum">     318 </span>            : static asn_per_constraint_t asn_DEF_BIT_STRING_constraint_size = {
+<span class="lineNum">     319 </span>            :     APC_SEMI_CONSTRAINED, -1, -1, 0, 0};
+<a name="320"><span class="lineNum">     320 </span>            : </a>
+<span class="lineNum">     321 </span>            : asn_dec_rval_t
+<span class="lineNum">     322 </span><span class="lineNoCov">          0 : BIT_STRING_decode_uper(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     323 </span>            :                        const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     324 </span>            :                        const asn_per_constraints_t *constraints, void **sptr,
+<span class="lineNum">     325 </span>            :                        asn_per_data_t *pd) {
+<span class="lineNum">     326 </span><span class="lineNoCov">          0 :     const asn_OCTET_STRING_specifics_t *specs = td-&gt;specifics</span>
+<span class="lineNum">     327 </span>            :                 ? (const asn_OCTET_STRING_specifics_t *)td-&gt;specifics
+<span class="lineNum">     328 </span><span class="lineNoCov">          0 :                 : &amp;asn_SPC_BIT_STRING_specs;</span>
+<span class="lineNum">     329 </span><span class="lineNoCov">          0 :     const asn_per_constraints_t *pc =</span>
+<span class="lineNum">     330 </span><span class="lineNoCov">          0 :         constraints ? constraints : td-&gt;encoding_constraints.per_constraints;</span>
+<span class="lineNum">     331 </span>            :         const asn_per_constraint_t *csiz;
+<span class="lineNum">     332 </span><span class="lineNoCov">          0 :         asn_dec_rval_t rval = { RC_OK, 0 };</span>
+<span class="lineNum">     333 </span><span class="lineNoCov">          0 :         BIT_STRING_t *st = (BIT_STRING_t *)*sptr;</span>
+<span class="lineNum">     334 </span><span class="lineNoCov">          0 :         ssize_t consumed_myself = 0;</span>
+<span class="lineNum">     335 </span>            :         int repeat;
+<span class="lineNum">     336 </span>            : 
+<span class="lineNum">     337 </span>            :         (void)opt_codec_ctx;
+<span class="lineNum">     338 </span>            : 
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :         if(pc) {</span>
+<span class="lineNum">     340 </span><span class="lineNoCov">          0 :                 csiz = &amp;pc-&gt;size;</span>
+<span class="lineNum">     341 </span>            :         } else {
+<span class="lineNum">     342 </span><span class="lineNoCov">          0 :                 csiz = &amp;asn_DEF_BIT_STRING_constraint_size;</span>
+<span class="lineNum">     343 </span>            :         }
+<span class="lineNum">     344 </span>            : 
+<span class="lineNum">     345 </span><span class="lineNoCov">          0 :         if(specs-&gt;subvariant != ASN_OSUBV_BIT) {</span>
+<span class="lineNum">     346 </span>            :                 ASN_DEBUG(&quot;Subvariant %d is not BIT OSUBV_BIT&quot;, specs-&gt;subvariant);
+<span class="lineNum">     347 </span><span class="lineNoCov">          0 :                 RETURN(RC_FAIL);</span>
+<span class="lineNum">     348 </span>            :     }
+<span class="lineNum">     349 </span>            : 
+<span class="lineNum">     350 </span>            :         /*
+<span class="lineNum">     351 </span>            :          * Allocate the string.
+<span class="lineNum">     352 </span>            :          */
+<span class="lineNum">     353 </span><span class="lineNoCov">          0 :         if(!st) {</span>
+<span class="lineNum">     354 </span><span class="lineNoCov">          0 :                 st = (BIT_STRING_t *)(*sptr = CALLOC(1, specs-&gt;struct_size));</span>
+<span class="lineNum">     355 </span><span class="lineNoCov">          0 :                 if(!st) RETURN(RC_FAIL);</span>
+<span class="lineNum">     356 </span>            :         }
+<span class="lineNum">     357 </span>            : 
+<span class="lineNum">     358 </span>            :         ASN_DEBUG(&quot;PER Decoding %s size %ld .. %ld bits %d&quot;,
+<span class="lineNum">     359 </span>            :                 csiz-&gt;flags &amp; APC_EXTENSIBLE ? &quot;extensible&quot; : &quot;non-extensible&quot;,
+<span class="lineNum">     360 </span>            :                 csiz-&gt;lower_bound, csiz-&gt;upper_bound, csiz-&gt;effective_bits);
+<span class="lineNum">     361 </span>            : 
+<span class="lineNum">     362 </span><span class="lineNoCov">          0 :         if(csiz-&gt;flags &amp; APC_EXTENSIBLE) {</span>
+<span class="lineNum">     363 </span><span class="lineNoCov">          0 :                 int inext = per_get_few_bits(pd, 1);</span>
+<span class="lineNum">     364 </span><span class="lineNoCov">          0 :                 if(inext &lt; 0) RETURN(RC_WMORE);</span>
+<span class="lineNum">     365 </span><span class="lineNoCov">          0 :                 if(inext) {</span>
+<span class="lineNum">     366 </span><span class="lineNoCov">          0 :                         csiz = &amp;asn_DEF_BIT_STRING_constraint_size;</span>
+<span class="lineNum">     367 </span>            :                 }
+<span class="lineNum">     368 </span>            :         }
+<span class="lineNum">     369 </span>            : 
+<span class="lineNum">     370 </span><span class="lineNoCov">          0 :         if(csiz-&gt;effective_bits &gt;= 0) {</span>
+<span class="lineNum">     371 </span><span class="lineNoCov">          0 :                 FREEMEM(st-&gt;buf);</span>
+<span class="lineNum">     372 </span><span class="lineNoCov">          0 :         st-&gt;size = (csiz-&gt;upper_bound + 7) &gt;&gt; 3;</span>
+<span class="lineNum">     373 </span><span class="lineNoCov">          0 :         st-&gt;buf = (uint8_t *)MALLOC(st-&gt;size + 1);</span>
+<span class="lineNum">     374 </span><span class="lineNoCov">          0 :                 if(!st-&gt;buf) { st-&gt;size = 0; RETURN(RC_FAIL); }</span>
+<span class="lineNum">     375 </span>            :         }
+<span class="lineNum">     376 </span>            : 
+<span class="lineNum">     377 </span>            :         /* X.691, #16.5: zero-length encoding */
+<span class="lineNum">     378 </span>            :         /* X.691, #16.6: short fixed length encoding (up to 2 octets) */
+<span class="lineNum">     379 </span>            :         /* X.691, #16.7: long fixed length encoding (up to 64K octets) */
+<span class="lineNum">     380 </span><span class="lineNoCov">          0 :         if(csiz-&gt;effective_bits == 0) {</span>
+<span class="lineNum">     381 </span>            :                 int ret;
+<span class="lineNum">     382 </span>            :         ASN_DEBUG(&quot;Encoding BIT STRING size %ld&quot;, csiz-&gt;upper_bound);
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :         ret = per_get_many_bits(pd, st-&gt;buf, 0, csiz-&gt;upper_bound);</span>
+<span class="lineNum">     384 </span><span class="lineNoCov">          0 :                 if(ret &lt; 0) RETURN(RC_WMORE);</span>
+<span class="lineNum">     385 </span><span class="lineNoCov">          0 :                 consumed_myself += csiz-&gt;upper_bound;</span>
+<span class="lineNum">     386 </span><span class="lineNoCov">          0 :                 st-&gt;buf[st-&gt;size] = 0;</span>
+<span class="lineNum">     387 </span><span class="lineNoCov">          0 :         st-&gt;bits_unused = (8 - (csiz-&gt;upper_bound &amp; 0x7)) &amp; 0x7;</span>
+<span class="lineNum">     388 </span><span class="lineNoCov">          0 :         RETURN(RC_OK);</span>
+<span class="lineNum">     389 </span>            :         }
+<span class="lineNum">     390 </span>            : 
+<span class="lineNum">     391 </span><span class="lineNoCov">          0 :         st-&gt;size = 0;</span>
+<span class="lineNum">     392 </span>            :         do {
+<span class="lineNum">     393 </span>            :                 ssize_t raw_len;
+<span class="lineNum">     394 </span>            :                 ssize_t len_bytes;
+<span class="lineNum">     395 </span>            :                 ssize_t len_bits;
+<span class="lineNum">     396 </span>            :                 void *p;
+<span class="lineNum">     397 </span>            :                 int ret;
+<span class="lineNum">     398 </span>            : 
+<span class="lineNum">     399 </span>            :                 /* Get the PER length */
+<span class="lineNum">     400 </span><span class="lineNoCov">          0 :                 raw_len = uper_get_length(pd, csiz-&gt;effective_bits, csiz-&gt;lower_bound,</span>
+<span class="lineNum">     401 </span>            :                                           &amp;repeat);
+<span class="lineNum">     402 </span><span class="lineNoCov">          0 :                 if(raw_len &lt; 0) RETURN(RC_WMORE);</span>
+<span class="lineNum">     403 </span><span class="lineNoCov">          0 :         if(raw_len == 0 &amp;&amp; st-&gt;buf) break;</span>
+<span class="lineNum">     404 </span>            : 
+<span class="lineNum">     405 </span>            :                 ASN_DEBUG(&quot;Got PER length eb %ld, len %ld, %s (%s)&quot;,
+<span class="lineNum">     406 </span>            :                         (long)csiz-&gt;effective_bits, (long)raw_len,
+<span class="lineNum">     407 </span>            :                         repeat ? &quot;repeat&quot; : &quot;once&quot;, td-&gt;name);
+<span class="lineNum">     408 </span><span class="lineNoCov">          0 :         len_bits = raw_len;</span>
+<span class="lineNum">     409 </span><span class="lineNoCov">          0 :         len_bytes = (len_bits + 7) &gt;&gt; 3;</span>
+<span class="lineNum">     410 </span><span class="lineNoCov">          0 :         if(len_bits &amp; 0x7) st-&gt;bits_unused = 8 - (len_bits &amp; 0x7);</span>
+<span class="lineNum">     411 </span>            :         /* len_bits be multiple of 16K if repeat is set */
+<span class="lineNum">     412 </span><span class="lineNoCov">          0 :         p = REALLOC(st-&gt;buf, st-&gt;size + len_bytes + 1);</span>
+<span class="lineNum">     413 </span><span class="lineNoCov">          0 :                 if(!p) RETURN(RC_FAIL);</span>
+<span class="lineNum">     414 </span><span class="lineNoCov">          0 :                 st-&gt;buf = (uint8_t *)p;</span>
+<span class="lineNum">     415 </span>            : 
+<span class="lineNum">     416 </span><span class="lineNoCov">          0 :         ret = per_get_many_bits(pd, &amp;st-&gt;buf[st-&gt;size], 0, len_bits);</span>
+<span class="lineNum">     417 </span><span class="lineNoCov">          0 :         if(ret &lt; 0) RETURN(RC_WMORE);</span>
+<span class="lineNum">     418 </span><span class="lineNoCov">          0 :                 st-&gt;size += len_bytes;</span>
+<span class="lineNum">     419 </span><span class="lineNoCov">          0 :         } while(repeat);</span>
+<span class="lineNum">     420 </span><span class="lineNoCov">          0 :         st-&gt;buf[st-&gt;size] = 0;    /* nul-terminate */</span>
+<span class="lineNum">     421 </span>            : 
+<span class="lineNum">     422 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">     423 </span>            : }
+<a name="424"><span class="lineNum">     424 </span>            : </a>
+<span class="lineNum">     425 </span>            : asn_enc_rval_t
+<span class="lineNum">     426 </span><span class="lineNoCov">          0 : BIT_STRING_encode_uper(const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     427 </span>            :                        const asn_per_constraints_t *constraints,
+<span class="lineNum">     428 </span>            :                        const void *sptr, asn_per_outp_t *po) {
+<span class="lineNum">     429 </span><span class="lineNoCov">          0 :     const asn_OCTET_STRING_specifics_t *specs =</span>
+<span class="lineNum">     430 </span><span class="lineNoCov">          0 :         td-&gt;specifics ? (const asn_OCTET_STRING_specifics_t *)td-&gt;specifics</span>
+<span class="lineNum">     431 </span><span class="lineNoCov">          0 :                       : &amp;asn_SPC_BIT_STRING_specs;</span>
+<span class="lineNum">     432 </span><span class="lineNoCov">          0 :     const asn_per_constraints_t *pc =</span>
+<span class="lineNum">     433 </span><span class="lineNoCov">          0 :         constraints ? constraints : td-&gt;encoding_constraints.per_constraints;</span>
+<span class="lineNum">     434 </span>            :         const asn_per_constraint_t *csiz;
+<span class="lineNum">     435 </span><span class="lineNoCov">          0 :         const BIT_STRING_t *st = (const BIT_STRING_t *)sptr;</span>
+<span class="lineNum">     436 </span>            :         BIT_STRING_t compact_bstr;  /* Do not modify this directly! */
+<span class="lineNum">     437 </span><span class="lineNoCov">          0 :         asn_enc_rval_t er = { 0, 0, 0 };</span>
+<span class="lineNum">     438 </span><span class="lineNoCov">          0 :         int inext = 0;          /* Lies not within extension root */</span>
+<span class="lineNum">     439 </span>            :         size_t size_in_bits;
+<span class="lineNum">     440 </span>            :         const uint8_t *buf;
+<span class="lineNum">     441 </span>            :         int ret;
+<span class="lineNum">     442 </span>            :         int ct_extensible;
+<span class="lineNum">     443 </span>            : 
+<span class="lineNum">     444 </span><span class="lineNoCov">          0 :         if(!st || (!st-&gt;buf &amp;&amp; st-&gt;size))</span>
+<span class="lineNum">     445 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     446 </span>            : 
+<span class="lineNum">     447 </span><span class="lineNoCov">          0 :         if(specs-&gt;subvariant == ASN_OSUBV_BIT) {</span>
+<span class="lineNum">     448 </span><span class="lineNoCov">          0 :         if((st-&gt;size == 0 &amp;&amp; st-&gt;bits_unused) || (st-&gt;bits_unused &amp; ~7))</span>
+<span class="lineNum">     449 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     450 </span>            :     } else {
+<span class="lineNum">     451 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     452 </span>            :     }
+<span class="lineNum">     453 </span>            : 
+<span class="lineNum">     454 </span><span class="lineNoCov">          0 :         if(pc) {</span>
+<span class="lineNum">     455 </span><span class="lineNoCov">          0 :         csiz = &amp;pc-&gt;size;</span>
+<span class="lineNum">     456 </span>            :     } else {
+<span class="lineNum">     457 </span><span class="lineNoCov">          0 :                 csiz = &amp;asn_DEF_BIT_STRING_constraint_size;</span>
+<span class="lineNum">     458 </span>            :         }
+<span class="lineNum">     459 </span><span class="lineNoCov">          0 :         ct_extensible = csiz-&gt;flags &amp; APC_EXTENSIBLE;</span>
+<span class="lineNum">     460 </span>            : 
+<span class="lineNum">     461 </span>            :     /* Figure out the size without the trailing bits */
+<span class="lineNum">     462 </span><span class="lineNoCov">          0 :     st = BIT_STRING__compactify(st, &amp;compact_bstr);</span>
+<span class="lineNum">     463 </span><span class="lineNoCov">          0 :     size_in_bits = 8 * st-&gt;size - st-&gt;bits_unused;</span>
+<span class="lineNum">     464 </span>            : 
+<span class="lineNum">     465 </span>            :     ASN_DEBUG(
+<span class="lineNum">     466 </span>            :         &quot;Encoding %s into %&quot; ASN_PRI_SIZE &quot; bits&quot;
+<span class="lineNum">     467 </span>            :         &quot; (%ld..%ld, effective %d)%s&quot;,
+<span class="lineNum">     468 </span>            :         td-&gt;name, size_in_bits, csiz-&gt;lower_bound, csiz-&gt;upper_bound,
+<span class="lineNum">     469 </span>            :         csiz-&gt;effective_bits, ct_extensible ? &quot; EXT&quot; : &quot;&quot;);
+<span class="lineNum">     470 </span>            : 
+<span class="lineNum">     471 </span>            :     /* Figure out whether size lies within PER visible constraint */
+<span class="lineNum">     472 </span>            : 
+<span class="lineNum">     473 </span><span class="lineNoCov">          0 :     if(csiz-&gt;effective_bits &gt;= 0) {</span>
+<span class="lineNum">     474 </span><span class="lineNoCov">          0 :         if((ssize_t)size_in_bits &gt; csiz-&gt;upper_bound) {</span>
+<span class="lineNum">     475 </span><span class="lineNoCov">          0 :             if(ct_extensible) {</span>
+<span class="lineNum">     476 </span><span class="lineNoCov">          0 :                 csiz = &amp;asn_DEF_BIT_STRING_constraint_size;</span>
+<span class="lineNum">     477 </span><span class="lineNoCov">          0 :                 inext = 1;</span>
+<span class="lineNum">     478 </span>            :             } else {
+<span class="lineNum">     479 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     480 </span>            :             }
+<span class="lineNum">     481 </span>            :         }
+<span class="lineNum">     482 </span>            :     } else {
+<span class="lineNum">     483 </span><span class="lineNoCov">          0 :         inext = 0;</span>
+<span class="lineNum">     484 </span>            :     }
+<span class="lineNum">     485 </span>            : 
+<span class="lineNum">     486 </span><span class="lineNoCov">          0 :     if(ct_extensible) {</span>
+<span class="lineNum">     487 </span>            :                 /* Declare whether length is [not] within extension root */
+<span class="lineNum">     488 </span><span class="lineNoCov">          0 :                 if(per_put_few_bits(po, inext, 1))</span>
+<span class="lineNum">     489 </span><span class="lineNoCov">          0 :                         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     490 </span>            :         }
+<span class="lineNum">     491 </span>            : 
+<span class="lineNum">     492 </span><span class="lineNoCov">          0 :     if(csiz-&gt;effective_bits &gt;= 0 &amp;&amp; !inext) {</span>
+<span class="lineNum">     493 </span><span class="lineNoCov">          0 :         int add_trailer = (ssize_t)size_in_bits &lt; csiz-&gt;lower_bound;</span>
+<span class="lineNum">     494 </span>            :         ASN_DEBUG(
+<span class="lineNum">     495 </span>            :             &quot;Encoding %&quot; ASN_PRI_SIZE &quot; bytes (%ld), length (in %d bits) trailer %d; actual &quot;
+<span class="lineNum">     496 </span>            :             &quot;value %&quot; ASN_PRI_SSIZE &quot;&quot;,
+<span class="lineNum">     497 </span>            :             st-&gt;size, size_in_bits - csiz-&gt;lower_bound, csiz-&gt;effective_bits,
+<span class="lineNum">     498 </span>            :             add_trailer,
+<span class="lineNum">     499 </span>            :             add_trailer ? 0 : (ssize_t)size_in_bits - csiz-&gt;lower_bound);
+<span class="lineNum">     500 </span><span class="lineNoCov">          0 :         ret = per_put_few_bits(</span>
+<span class="lineNum">     501 </span>            :             po, add_trailer ? 0 : (ssize_t)size_in_bits - csiz-&gt;lower_bound,
+<span class="lineNum">     502 </span>            :             csiz-&gt;effective_bits);
+<span class="lineNum">     503 </span><span class="lineNoCov">          0 :         if(ret) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     504 </span><span class="lineNoCov">          0 :         ret = per_put_many_bits(po, st-&gt;buf, size_in_bits);</span>
+<span class="lineNum">     505 </span><span class="lineNoCov">          0 :         if(ret) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     506 </span><span class="lineNoCov">          0 :         if(add_trailer) {</span>
+<span class="lineNum">     507 </span>            :             static const uint8_t zeros[16];
+<span class="lineNum">     508 </span><span class="lineNoCov">          0 :             size_t trailing_zero_bits = csiz-&gt;lower_bound - size_in_bits;</span>
+<span class="lineNum">     509 </span><span class="lineNoCov">          0 :             while(trailing_zero_bits &gt; 0) {</span>
+<span class="lineNum">     510 </span><span class="lineNoCov">          0 :                 if(trailing_zero_bits &gt; 8 * sizeof(zeros)) {</span>
+<span class="lineNum">     511 </span><span class="lineNoCov">          0 :                     ret = per_put_many_bits(po, zeros, 8 * sizeof(zeros));</span>
+<span class="lineNum">     512 </span><span class="lineNoCov">          0 :                     trailing_zero_bits -= 8 * sizeof(zeros);</span>
+<span class="lineNum">     513 </span>            :                 } else {
+<span class="lineNum">     514 </span><span class="lineNoCov">          0 :                     ret = per_put_many_bits(po, zeros, trailing_zero_bits);</span>
+<span class="lineNum">     515 </span><span class="lineNoCov">          0 :                     trailing_zero_bits = 0;</span>
+<span class="lineNum">     516 </span>            :                 }
+<span class="lineNum">     517 </span><span class="lineNoCov">          0 :                 if(ret) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     518 </span>            :             }
+<span class="lineNum">     519 </span>            :         }
+<span class="lineNum">     520 </span><span class="lineNoCov">          0 :         ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     521 </span>            :     }
+<span class="lineNum">     522 </span>            : 
+<span class="lineNum">     523 </span>            :     ASN_DEBUG(&quot;Encoding %&quot; ASN_PRI_SIZE &quot; bytes&quot;, st-&gt;size);
+<span class="lineNum">     524 </span>            : 
+<span class="lineNum">     525 </span><span class="lineNoCov">          0 :     buf = st-&gt;buf;</span>
+<span class="lineNum">     526 </span>            :     do {
+<span class="lineNum">     527 </span><span class="lineNoCov">          0 :         int need_eom = 0;</span>
+<span class="lineNum">     528 </span><span class="lineNoCov">          0 :         ssize_t maySave = uper_put_length(po, size_in_bits, &amp;need_eom);</span>
+<span class="lineNum">     529 </span><span class="lineNoCov">          0 :         if(maySave &lt; 0) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     530 </span>            : 
+<span class="lineNum">     531 </span>            :         ASN_DEBUG(&quot;Encoding %&quot; ASN_PRI_SSIZE &quot; of %&quot; ASN_PRI_SIZE &quot;&quot;, maySave, size_in_bits);
+<span class="lineNum">     532 </span>            : 
+<span class="lineNum">     533 </span><span class="lineNoCov">          0 :         ret = per_put_many_bits(po, buf, maySave);</span>
+<span class="lineNum">     534 </span><span class="lineNoCov">          0 :         if(ret) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     535 </span>            : 
+<span class="lineNum">     536 </span><span class="lineNoCov">          0 :         buf += maySave &gt;&gt; 3;</span>
+<span class="lineNum">     537 </span><span class="lineNoCov">          0 :         size_in_bits -= maySave;</span>
+<span class="lineNum">     538 </span><span class="lineNoCov">          0 :         assert(!(maySave &amp; 0x07) || !size_in_bits);</span>
+<span class="lineNum">     539 </span><span class="lineNoCov">          0 :         if(need_eom &amp;&amp; uper_put_length(po, 0, 0))</span>
+<span class="lineNum">     540 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED; /* End of Message length */</span>
+<span class="lineNum">     541 </span><span class="lineNoCov">          0 :     } while(size_in_bits);</span>
+<span class="lineNum">     542 </span>            : 
+<span class="lineNum">     543 </span><span class="lineNoCov">          0 :     ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     544 </span>            : }
+<span class="lineNum">     545 </span>            : 
+<span class="lineNum">     546 </span>            : #endif  /* ASN_DISABLE_PER_SUPPORT */
+<a name="547"><span class="lineNum">     547 </span>            : </a>
+<span class="lineNum">     548 </span>            : asn_random_fill_result_t
+<span class="lineNum">     549 </span><span class="lineNoCov">          0 : BIT_STRING_random_fill(const asn_TYPE_descriptor_t *td, void **sptr,</span>
+<span class="lineNum">     550 </span>            :                        const asn_encoding_constraints_t *constraints,
+<span class="lineNum">     551 </span>            :                        size_t max_length) {
+<span class="lineNum">     552 </span><span class="lineNoCov">          0 :     const asn_OCTET_STRING_specifics_t *specs =</span>
+<span class="lineNum">     553 </span><span class="lineNoCov">          0 :         td-&gt;specifics ? (const asn_OCTET_STRING_specifics_t *)td-&gt;specifics</span>
+<span class="lineNum">     554 </span><span class="lineNoCov">          0 :                       : &amp;asn_SPC_BIT_STRING_specs;</span>
+<span class="lineNum">     555 </span><span class="lineNoCov">          0 :     asn_random_fill_result_t result_ok = {ARFILL_OK, 1};</span>
+<span class="lineNum">     556 </span><span class="lineNoCov">          0 :     asn_random_fill_result_t result_failed = {ARFILL_FAILED, 0};</span>
+<span class="lineNum">     557 </span><span class="lineNoCov">          0 :     asn_random_fill_result_t result_skipped = {ARFILL_SKIPPED, 0};</span>
+<span class="lineNum">     558 </span>            :     static unsigned lengths[] = {0,     1,     2,     3,     4,     8,
+<span class="lineNum">     559 </span>            :                                  126,   127,   128,   16383, 16384, 16385,
+<span class="lineNum">     560 </span>            :                                  65534, 65535, 65536, 65537};
+<span class="lineNum">     561 </span>            :     uint8_t *buf;
+<span class="lineNum">     562 </span>            :     uint8_t *bend;
+<span class="lineNum">     563 </span>            :     uint8_t *b;
+<span class="lineNum">     564 </span>            :     size_t rnd_bits, rnd_len;
+<span class="lineNum">     565 </span>            :     BIT_STRING_t *st;
+<span class="lineNum">     566 </span>            : 
+<span class="lineNum">     567 </span><span class="lineNoCov">          0 :     if(max_length == 0) return result_skipped;</span>
+<span class="lineNum">     568 </span>            : 
+<span class="lineNum">     569 </span><span class="lineNoCov">          0 :     switch(specs-&gt;subvariant) {</span>
+<span class="lineNum">     570 </span>            :     case ASN_OSUBV_ANY:
+<span class="lineNum">     571 </span><span class="lineNoCov">          0 :         return result_failed;</span>
+<span class="lineNum">     572 </span>            :     case ASN_OSUBV_BIT:
+<span class="lineNum">     573 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     574 </span>            :     default:
+<span class="lineNum">     575 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     576 </span>            :     }
+<span class="lineNum">     577 </span>            : 
+<span class="lineNum">     578 </span>            :     /* Figure out how far we should go */
+<span class="lineNum">     579 </span><span class="lineNoCov">          0 :     rnd_bits = lengths[asn_random_between(</span>
+<span class="lineNum">     580 </span>            :         0, sizeof(lengths) / sizeof(lengths[0]) - 1)];
+<span class="lineNum">     581 </span><span class="lineNoCov">          0 :     if(!constraints || !constraints-&gt;per_constraints)</span>
+<span class="lineNum">     582 </span><span class="lineNoCov">          0 :         constraints = &amp;td-&gt;encoding_constraints;</span>
+<span class="lineNum">     583 </span><span class="lineNoCov">          0 :     if(constraints-&gt;per_constraints) {</span>
+<span class="lineNum">     584 </span><span class="lineNoCov">          0 :         const asn_per_constraint_t *pc = &amp;constraints-&gt;per_constraints-&gt;size;</span>
+<span class="lineNum">     585 </span><span class="lineNoCov">          0 :         if(pc-&gt;flags &amp; APC_CONSTRAINED) {</span>
+<span class="lineNum">     586 </span><span class="lineNoCov">          0 :             long suggested_upper_bound = pc-&gt;upper_bound &lt; (ssize_t)max_length</span>
+<span class="lineNum">     587 </span><span class="lineNoCov">          0 :                                              ? pc-&gt;upper_bound</span>
+<span class="lineNum">     588 </span><span class="lineNoCov">          0 :                                              : (ssize_t)max_length;</span>
+<span class="lineNum">     589 </span><span class="lineNoCov">          0 :             if(max_length &lt; (size_t)pc-&gt;lower_bound) {</span>
+<span class="lineNum">     590 </span><span class="lineNoCov">          0 :                 return result_skipped;</span>
+<span class="lineNum">     591 </span>            :             }
+<span class="lineNum">     592 </span><span class="lineNoCov">          0 :             if(pc-&gt;flags &amp; APC_EXTENSIBLE) {</span>
+<span class="lineNum">     593 </span><span class="lineNoCov">          0 :                 switch(asn_random_between(0, 5)) {</span>
+<span class="lineNum">     594 </span>            :                 case 0:
+<span class="lineNum">     595 </span><span class="lineNoCov">          0 :                     if(pc-&gt;lower_bound &gt; 0) {</span>
+<span class="lineNum">     596 </span><span class="lineNoCov">          0 :                         rnd_bits = pc-&gt;lower_bound - 1;</span>
+<span class="lineNum">     597 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     598 </span>            :                     }
+<span class="lineNum">     599 </span>            :                     /* Fall through */
+<span class="lineNum">     600 </span>            :                 case 1:
+<span class="lineNum">     601 </span><span class="lineNoCov">          0 :                     rnd_bits = pc-&gt;upper_bound + 1;</span>
+<span class="lineNum">     602 </span><span class="lineNoCov">          0 :                     break;</span>
+<span class="lineNum">     603 </span>            :                 case 2:
+<span class="lineNum">     604 </span>            :                     /* Keep rnd_bits from the table */
+<span class="lineNum">     605 </span><span class="lineNoCov">          0 :                     if(rnd_bits &lt; max_length) {</span>
+<span class="lineNum">     606 </span><span class="lineNoCov">          0 :                         break;</span>
+<span class="lineNum">     607 </span>            :                     }
+<span class="lineNum">     608 </span>            :                     /* Fall through */
+<span class="lineNum">     609 </span>            :                 default:
+<span class="lineNum">     610 </span><span class="lineNoCov">          0 :                     rnd_bits = asn_random_between(pc-&gt;lower_bound,</span>
+<span class="lineNum">     611 </span>            :                                                   suggested_upper_bound);
+<span class="lineNum">     612 </span>            :                 }
+<span class="lineNum">     613 </span>            :             } else {
+<span class="lineNum">     614 </span><span class="lineNoCov">          0 :                 rnd_bits =</span>
+<span class="lineNum">     615 </span><span class="lineNoCov">          0 :                     asn_random_between(pc-&gt;lower_bound, suggested_upper_bound);</span>
+<span class="lineNum">     616 </span>            :             }
+<span class="lineNum">     617 </span>            :         } else {
+<span class="lineNum">     618 </span><span class="lineNoCov">          0 :             rnd_bits = asn_random_between(0, max_length - 1);</span>
+<span class="lineNum">     619 </span>            :         }
+<span class="lineNum">     620 </span><span class="lineNoCov">          0 :     } else if(rnd_bits &gt;= max_length) {</span>
+<span class="lineNum">     621 </span><span class="lineNoCov">          0 :         rnd_bits = asn_random_between(0, max_length - 1);</span>
+<span class="lineNum">     622 </span>            :     }
+<span class="lineNum">     623 </span>            : 
+<span class="lineNum">     624 </span><span class="lineNoCov">          0 :     rnd_len = (rnd_bits + 7) / 8;</span>
+<span class="lineNum">     625 </span><span class="lineNoCov">          0 :     buf = CALLOC(1, rnd_len + 1);</span>
+<span class="lineNum">     626 </span><span class="lineNoCov">          0 :     if(!buf) return result_failed;</span>
+<span class="lineNum">     627 </span>            : 
+<span class="lineNum">     628 </span><span class="lineNoCov">          0 :     bend = &amp;buf[rnd_len];</span>
+<span class="lineNum">     629 </span>            : 
+<span class="lineNum">     630 </span><span class="lineNoCov">          0 :     for(b = buf; b &lt; bend; b++) {</span>
+<span class="lineNum">     631 </span><span class="lineNoCov">          0 :         *(uint8_t *)b = asn_random_between(0, 255);</span>
+<span class="lineNum">     632 </span>            :     }
+<span class="lineNum">     633 </span><span class="lineNoCov">          0 :     *b = 0; /* Zero-terminate just in case. */</span>
+<span class="lineNum">     634 </span>            : 
+<span class="lineNum">     635 </span><span class="lineNoCov">          0 :     if(*sptr) {</span>
+<span class="lineNum">     636 </span><span class="lineNoCov">          0 :         st = *sptr;</span>
+<span class="lineNum">     637 </span><span class="lineNoCov">          0 :         FREEMEM(st-&gt;buf);</span>
+<span class="lineNum">     638 </span>            :     } else {
+<span class="lineNum">     639 </span><span class="lineNoCov">          0 :         st = (BIT_STRING_t *)(*sptr = CALLOC(1, specs-&gt;struct_size));</span>
+<span class="lineNum">     640 </span><span class="lineNoCov">          0 :         if(!st) {</span>
+<span class="lineNum">     641 </span><span class="lineNoCov">          0 :             FREEMEM(buf);</span>
+<span class="lineNum">     642 </span><span class="lineNoCov">          0 :             return result_failed;</span>
+<span class="lineNum">     643 </span>            :         }
+<span class="lineNum">     644 </span>            :     }
+<span class="lineNum">     645 </span>            : 
+<span class="lineNum">     646 </span><span class="lineNoCov">          0 :     st-&gt;buf = buf;</span>
+<span class="lineNum">     647 </span><span class="lineNoCov">          0 :     st-&gt;size = rnd_len;</span>
+<span class="lineNum">     648 </span><span class="lineNoCov">          0 :     st-&gt;bits_unused = (8 - (rnd_bits &amp; 0x7)) &amp; 0x7;</span>
+<span class="lineNum">     649 </span><span class="lineNoCov">          0 :     if(st-&gt;bits_unused) {</span>
+<span class="lineNum">     650 </span><span class="lineNoCov">          0 :         assert(st-&gt;size &gt; 0);</span>
+<span class="lineNum">     651 </span><span class="lineNoCov">          0 :         st-&gt;buf[st-&gt;size-1] &amp;= 0xff &lt;&lt; st-&gt;bits_unused;</span>
+<span class="lineNum">     652 </span>            :     }
+<span class="lineNum">     653 </span>            : 
+<span class="lineNum">     654 </span><span class="lineNoCov">          0 :     result_ok.length = st-&gt;size;</span>
+<span class="lineNum">     655 </span><span class="lineNoCov">          0 :     return result_ok;</span>
+<span class="lineNum">     656 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/OCTET_STRING_oer.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - OCTET_STRING_oer.c<span style="font-size: 80%;"> (source / <a href="OCTET_STRING_oer.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">75</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2017 Lev Walkin &lt;vlm@lionet.info&gt;.
+<span class="lineNum">       3 </span>            :  * All rights reserved.
+<span class="lineNum">       4 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       5 </span>            :  */
+<span class="lineNum">       6 </span>            : #ifndef ASN_DISABLE_OER_SUPPORT
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">       9 </span>            : #include &lt;OCTET_STRING.h&gt;
+<span class="lineNum">      10 </span>            : #include &lt;errno.h&gt;
+<a name="11"><span class="lineNum">      11 </span>            : </a>
+<span class="lineNum">      12 </span>            : asn_dec_rval_t
+<span class="lineNum">      13 </span><span class="lineNoCov">          0 : OCTET_STRING_decode_oer(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      14 </span>            :                         const asn_TYPE_descriptor_t *td,
+<span class="lineNum">      15 </span>            :                         const asn_oer_constraints_t *constraints, void **sptr,
+<span class="lineNum">      16 </span>            :                         const void *ptr, size_t size) {
+<span class="lineNum">      17 </span><span class="lineNoCov">          0 :     const asn_OCTET_STRING_specifics_t *specs =</span>
+<span class="lineNum">      18 </span><span class="lineNoCov">          0 :         td-&gt;specifics ? (const asn_OCTET_STRING_specifics_t *)td-&gt;specifics</span>
+<span class="lineNum">      19 </span><span class="lineNoCov">          0 :                       : &amp;asn_SPC_OCTET_STRING_specs;</span>
+<span class="lineNum">      20 </span><span class="lineNoCov">          0 :     OCTET_STRING_t *st = (OCTET_STRING_t *)*sptr;</span>
+<span class="lineNum">      21 </span><span class="lineNoCov">          0 :     const asn_oer_constraints_t *cts =</span>
+<span class="lineNum">      22 </span><span class="lineNoCov">          0 :         constraints ? constraints : td-&gt;encoding_constraints.oer_constraints;</span>
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 :     ssize_t ct_size = cts ? cts-&gt;size : -1;</span>
+<span class="lineNum">      24 </span><span class="lineNoCov">          0 :     asn_dec_rval_t rval = {RC_OK, 0};</span>
+<span class="lineNum">      25 </span><span class="lineNoCov">          0 :     size_t expected_length = 0;</span>
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            :     size_t unit_bytes;
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 :     switch(specs-&gt;subvariant) {</span>
+<span class="lineNum">      29 </span>            :     default:
+<span class="lineNum">      30 </span>            :     case ASN_OSUBV_BIT:
+<span class="lineNum">      31 </span>            :         ASN_DEBUG(&quot;Invalid use of OCTET STRING to decode BIT STRING&quot;);
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 :         ASN__DECODE_FAILED;</span>
+<span class="lineNum">      33 </span>            :     case ASN_OSUBV_ANY:
+<span class="lineNum">      34 </span>            :         /* Fall through */
+<span class="lineNum">      35 </span>            :     case ASN_OSUBV_STR:
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 :         unit_bytes = 1;</span>
+<span class="lineNum">      37 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">      38 </span>            :     case ASN_OSUBV_U16:
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :         unit_bytes = 2;</span>
+<span class="lineNum">      40 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">      41 </span>            :     case ASN_OSUBV_U32:
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :         unit_bytes = 4;</span>
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">      44 </span>            :     }
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span>            :     (void)opt_codec_ctx;
+<span class="lineNum">      47 </span>            : 
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :     if(!st) {</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :         st = (OCTET_STRING_t *)(*sptr = CALLOC(1, specs-&gt;struct_size));</span>
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 :         if(!st) ASN__DECODE_FAILED;</span>
+<span class="lineNum">      51 </span>            :     }
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :     if(ct_size &gt;= 0) {</span>
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :         expected_length = unit_bytes * ct_size;</span>
+<span class="lineNum">      55 </span>            :     } else {
+<span class="lineNum">      56 </span>            :         /*
+<span class="lineNum">      57 </span>            :          * X.696 (08/2015) #27.2
+<span class="lineNum">      58 </span>            :          * Encode length determinant as _number of octets_, but only
+<span class="lineNum">      59 </span>            :          * if upper bound is not equal to lower bound.
+<span class="lineNum">      60 </span>            :          */
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :         ssize_t len_len = oer_fetch_length(ptr, size, &amp;expected_length);</span>
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 :         if(len_len &gt; 0) {</span>
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :             rval.consumed = len_len;</span>
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :             ptr = (const char *)ptr + len_len;</span>
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :             size -= len_len;</span>
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :         } else if(len_len == 0) {</span>
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :             ASN__DECODE_STARVED;</span>
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :         } else if(len_len &lt; 0) {</span>
+<span class="lineNum">      69 </span><span class="lineNoCov">          0 :             ASN__DECODE_FAILED;</span>
+<span class="lineNum">      70 </span>            :         }
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :         if(expected_length % unit_bytes != 0) {</span>
+<span class="lineNum">      73 </span>            :             ASN_DEBUG(
+<span class="lineNum">      74 </span>            :                 &quot;Data size %&quot; ASN_PRI_SIZE &quot; bytes is not consistent with multiplier %&quot; ASN_PRI_SIZE &quot;&quot;,
+<span class="lineNum">      75 </span>            :                 expected_length, unit_bytes);
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :             ASN__DECODE_FAILED;</span>
+<span class="lineNum">      77 </span>            :         }
+<span class="lineNum">      78 </span>            :     }
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :     if(size &lt; expected_length) {</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :         ASN__DECODE_STARVED;</span>
+<span class="lineNum">      82 </span>            :     } else {
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :         uint8_t *buf = MALLOC(expected_length + 1);</span>
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 :         if(buf == NULL) {</span>
+<span class="lineNum">      85 </span><span class="lineNoCov">          0 :             ASN__DECODE_FAILED;</span>
+<span class="lineNum">      86 </span>            :         } else {
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :             memcpy(buf, ptr, expected_length);</span>
+<span class="lineNum">      88 </span><span class="lineNoCov">          0 :             buf[expected_length] = '\0';</span>
+<span class="lineNum">      89 </span>            :         }
+<span class="lineNum">      90 </span><span class="lineNoCov">          0 :         FREEMEM(st-&gt;buf);</span>
+<span class="lineNum">      91 </span><span class="lineNoCov">          0 :         st-&gt;buf = buf;</span>
+<span class="lineNum">      92 </span><span class="lineNoCov">          0 :         st-&gt;size = expected_length;</span>
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span><span class="lineNoCov">          0 :         rval.consumed += expected_length;</span>
+<span class="lineNum">      95 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">      96 </span>            :     }
+<span class="lineNum">      97 </span>            : }
+<span class="lineNum">      98 </span>            : 
+<span class="lineNum">      99 </span>            : /*
+<span class="lineNum">     100 </span>            :  * Encode as Canonical OER.
+<a name="101"><span class="lineNum">     101 </span>            :  */</a>
+<span class="lineNum">     102 </span>            : asn_enc_rval_t
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 : OCTET_STRING_encode_oer(const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     104 </span>            :                         const asn_oer_constraints_t *constraints,
+<span class="lineNum">     105 </span>            :                         const void *sptr, asn_app_consume_bytes_f *cb,
+<span class="lineNum">     106 </span>            :                         void *app_key) {
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :     const asn_OCTET_STRING_specifics_t *specs =</span>
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :         td-&gt;specifics ? (const asn_OCTET_STRING_specifics_t *)td-&gt;specifics</span>
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :                       : &amp;asn_SPC_OCTET_STRING_specs;</span>
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :     const OCTET_STRING_t *st = (const OCTET_STRING_t *)sptr;</span>
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :     const asn_oer_constraints_t *cts =</span>
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :         constraints ? constraints : td-&gt;encoding_constraints.oer_constraints;</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :     ssize_t ct_size = cts ? cts-&gt;size : -1;</span>
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :     asn_enc_rval_t er = {0, 0, 0};</span>
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :     if(!st) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            :     ASN_DEBUG(&quot;Encoding %s %&quot; ASN_PRI_SIZE &quot; as OCTET STRING&quot;, td ? td-&gt;name : &quot;&quot;, st-&gt;size);
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 :     if(ct_size &gt;= 0) {</span>
+<span class="lineNum">     121 </span>            :         /*
+<span class="lineNum">     122 </span>            :          * Check that available data matches the constraint
+<span class="lineNum">     123 </span>            :          */
+<span class="lineNum">     124 </span>            :         size_t unit_bytes;
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :         switch(specs-&gt;subvariant) {</span>
+<span class="lineNum">     126 </span>            :         default:
+<span class="lineNum">     127 </span>            :         case ASN_OSUBV_BIT:
+<span class="lineNum">     128 </span>            :             ASN_DEBUG(&quot;Invalid use of OCTET STRING to encode BIT STRING&quot;);
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     130 </span>            :         case ASN_OSUBV_ANY:
+<span class="lineNum">     131 </span>            :             /* Fall through */
+<span class="lineNum">     132 </span>            :         case ASN_OSUBV_STR:
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :             unit_bytes = 1;</span>
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :             break;</span>
+<span class="lineNum">     135 </span>            :         case ASN_OSUBV_U16:
+<span class="lineNum">     136 </span><span class="lineNoCov">          0 :             unit_bytes = 2;</span>
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :             break;</span>
+<span class="lineNum">     138 </span>            :         case ASN_OSUBV_U32:
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :             unit_bytes = 4;</span>
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :             break;</span>
+<span class="lineNum">     141 </span>            :         }
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :         if(st-&gt;size != unit_bytes * (size_t)ct_size) {</span>
+<span class="lineNum">     144 </span>            :             ASN_DEBUG(
+<span class="lineNum">     145 </span>            :                 &quot;Trying to encode %s (%&quot; ASN_PRI_SIZE &quot; bytes) which doesn't fit SIZE &quot;
+<span class="lineNum">     146 </span>            :                 &quot;constraint (%&quot; ASN_PRI_SIZE &quot;)&quot;,
+<span class="lineNum">     147 </span>            :                 td-&gt;name, st-&gt;size, ct_size);
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     149 </span>            :         }
+<span class="lineNum">     150 </span>            :     } else {
+<span class="lineNum">     151 </span>            :         /*
+<span class="lineNum">     152 </span>            :          * X.696 (08/2015) #27.2
+<span class="lineNum">     153 </span>            :          * Encode length determinant as _number of octets_, but only
+<span class="lineNum">     154 </span>            :          * if upper bound is not equal to lower bound.
+<span class="lineNum">     155 </span>            :          */
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :         ssize_t ret = oer_serialize_length(st-&gt;size, cb, app_key);</span>
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :         if(ret &lt; 0) {</span>
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 :             ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     159 </span>            :         }
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :         er.encoded += ret;</span>
+<span class="lineNum">     161 </span>            :     }
+<span class="lineNum">     162 </span>            : 
+<span class="lineNum">     163 </span><span class="lineNoCov">          0 :     er.encoded += st-&gt;size;</span>
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 :     if(cb(st-&gt;buf, st-&gt;size, app_key) &lt; 0) {</span>
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 :         ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     166 </span>            :     } else {
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 :         ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     168 </span>            :     }
+<span class="lineNum">     169 </span>            : }
+<span class="lineNum">     170 </span>            : 
+<span class="lineNum">     171 </span>            : #endif  /* ASN_DISABLE_OER_SUPPORT */
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

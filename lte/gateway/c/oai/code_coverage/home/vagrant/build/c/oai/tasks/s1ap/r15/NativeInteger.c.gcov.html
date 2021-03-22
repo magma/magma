@@ -1,0 +1,626 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - /home/vagrant/build/c/oai/tasks/s1ap/r15/NativeInteger.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../../../../../../index.html">top level</a> - <a href="index.html">home/vagrant/build/c/oai/tasks/s1ap/r15</a> - NativeInteger.c<span style="font-size: 80%;"> (source / <a href="NativeInteger.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">39</td>
+            <td class="headerCovTableEntry">208</td>
+            <td class="headerCovTableEntryLo">18.8 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-02-17 15:02:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntryLo">33.3 %</td>
+          </tr>
+          <tr><td><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*-</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2004, 2005, 2006 Lev Walkin &lt;vlm@lionet.info&gt;.
+<span class="lineNum">       3 </span>            :  * All rights reserved.
+<span class="lineNum">       4 </span>            :  * Redistribution and modifications are permitted subject to BSD license.
+<span class="lineNum">       5 </span>            :  */
+<span class="lineNum">       6 </span>            : /*
+<span class="lineNum">       7 </span>            :  * Read the NativeInteger.h for the explanation wrt. differences between
+<span class="lineNum">       8 </span>            :  * INTEGER and NativeInteger.
+<span class="lineNum">       9 </span>            :  * Basically, both are decoders and encoders of ASN.1 INTEGER type, but this
+<span class="lineNum">      10 </span>            :  * implementation deals with the standard (machine-specific) representation
+<span class="lineNum">      11 </span>            :  * of them instead of using the platform-independent buffer.
+<span class="lineNum">      12 </span>            :  */
+<span class="lineNum">      13 </span>            : #include &lt;asn_internal.h&gt;
+<span class="lineNum">      14 </span>            : #include &lt;NativeInteger.h&gt;
+<span class="lineNum">      15 </span>            : 
+<span class="lineNum">      16 </span>            : /*
+<span class="lineNum">      17 </span>            :  * NativeInteger basic type description.
+<span class="lineNum">      18 </span>            :  */
+<span class="lineNum">      19 </span>            : static const ber_tlv_tag_t asn_DEF_NativeInteger_tags[] = {
+<span class="lineNum">      20 </span>            :         (ASN_TAG_CLASS_UNIVERSAL | (2 &lt;&lt; 2))
+<span class="lineNum">      21 </span>            : };
+<span class="lineNum">      22 </span>            : asn_TYPE_operation_t asn_OP_NativeInteger = {
+<span class="lineNum">      23 </span>            :         NativeInteger_free,
+<span class="lineNum">      24 </span>            :         NativeInteger_print,
+<span class="lineNum">      25 </span>            :         NativeInteger_compare,
+<span class="lineNum">      26 </span>            :         NativeInteger_decode_ber,
+<span class="lineNum">      27 </span>            :         NativeInteger_encode_der,
+<span class="lineNum">      28 </span>            :         NativeInteger_decode_xer,
+<span class="lineNum">      29 </span>            :         NativeInteger_encode_xer,
+<span class="lineNum">      30 </span>            : #ifdef  ASN_DISABLE_OER_SUPPORT
+<span class="lineNum">      31 </span>            :         0,
+<span class="lineNum">      32 </span>            :         0,
+<span class="lineNum">      33 </span>            : #else
+<span class="lineNum">      34 </span>            :         NativeInteger_decode_oer,       /* OER decoder */
+<span class="lineNum">      35 </span>            :         NativeInteger_encode_oer,       /* Canonical OER encoder */
+<span class="lineNum">      36 </span>            : #endif  /* ASN_DISABLE_OER_SUPPORT */
+<span class="lineNum">      37 </span>            : #ifdef  ASN_DISABLE_PER_SUPPORT
+<span class="lineNum">      38 </span>            :         0,
+<span class="lineNum">      39 </span>            :         0,
+<span class="lineNum">      40 </span>            :         0,
+<span class="lineNum">      41 </span>            :         0,
+<span class="lineNum">      42 </span>            : #else
+<span class="lineNum">      43 </span>            :         NativeInteger_decode_uper,      /* Unaligned PER decoder */
+<span class="lineNum">      44 </span>            :         NativeInteger_encode_uper,      /* Unaligned PER encoder */
+<span class="lineNum">      45 </span>            :         NativeInteger_decode_aper,      /* Aligned PER decoder */
+<span class="lineNum">      46 </span>            :         NativeInteger_encode_aper,      /* Aligned PER encoder */
+<span class="lineNum">      47 </span>            : #endif  /* ASN_DISABLE_PER_SUPPORT */
+<span class="lineNum">      48 </span>            :         NativeInteger_random_fill,
+<span class="lineNum">      49 </span>            :         0       /* Use generic outmost tag fetcher */
+<span class="lineNum">      50 </span>            : };
+<span class="lineNum">      51 </span>            : asn_TYPE_descriptor_t asn_DEF_NativeInteger = {
+<span class="lineNum">      52 </span>            :         &quot;INTEGER&quot;,                    /* The ASN.1 type is still INTEGER */
+<span class="lineNum">      53 </span>            :         &quot;INTEGER&quot;,
+<span class="lineNum">      54 </span>            :         &amp;asn_OP_NativeInteger,
+<span class="lineNum">      55 </span>            :         asn_DEF_NativeInteger_tags,
+<span class="lineNum">      56 </span>            :         sizeof(asn_DEF_NativeInteger_tags) / sizeof(asn_DEF_NativeInteger_tags[0]),
+<span class="lineNum">      57 </span>            :         asn_DEF_NativeInteger_tags,     /* Same as above */
+<span class="lineNum">      58 </span>            :         sizeof(asn_DEF_NativeInteger_tags) / sizeof(asn_DEF_NativeInteger_tags[0]),
+<span class="lineNum">      59 </span>            :         { 0, 0, asn_generic_no_constraint },
+<span class="lineNum">      60 </span>            :         0, 0,   /* No members */
+<span class="lineNum">      61 </span>            :         0       /* No specifics */
+<span class="lineNum">      62 </span>            : };
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            : /*
+<span class="lineNum">      65 </span>            :  * Decode INTEGER type.
+<a name="66"><span class="lineNum">      66 </span>            :  */</a>
+<span class="lineNum">      67 </span>            : asn_dec_rval_t
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 : NativeInteger_decode_ber(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">      69 </span>            :                          const asn_TYPE_descriptor_t *td, void **nint_ptr,
+<span class="lineNum">      70 </span>            :                          const void *buf_ptr, size_t size, int tag_mode) {
+<span class="lineNum">      71 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">      72 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :     long *native = (long *)*nint_ptr;</span>
+<span class="lineNum">      74 </span>            :         asn_dec_rval_t rval;
+<span class="lineNum">      75 </span>            :         ber_tlv_len_t length;
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span>            :         /*
+<span class="lineNum">      78 </span>            :          * If the structure is not there, allocate it.
+<span class="lineNum">      79 </span>            :          */
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :         if(native == NULL) {</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :                 native = (long *)(*nint_ptr = CALLOC(1, sizeof(*native)));</span>
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :                 if(native == NULL) {</span>
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :                         rval.code = RC_FAIL;</span>
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 :                         rval.consumed = 0;</span>
+<span class="lineNum">      85 </span><span class="lineNoCov">          0 :                         return rval;</span>
+<span class="lineNum">      86 </span>            :                 }
+<span class="lineNum">      87 </span>            :         }
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            :         ASN_DEBUG(&quot;Decoding %s as INTEGER (tm=%d)&quot;,
+<span class="lineNum">      90 </span>            :                 td-&gt;name, tag_mode);
+<span class="lineNum">      91 </span>            : 
+<span class="lineNum">      92 </span>            :         /*
+<span class="lineNum">      93 </span>            :          * Check tags.
+<span class="lineNum">      94 </span>            :          */
+<span class="lineNum">      95 </span><span class="lineNoCov">          0 :         rval = ber_check_tags(opt_codec_ctx, td, 0, buf_ptr, size,</span>
+<span class="lineNum">      96 </span>            :                         tag_mode, 0, &amp;length, 0);
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :         if(rval.code != RC_OK)</span>
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :                 return rval;</span>
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span>            :         ASN_DEBUG(&quot;%s length is %d bytes&quot;, td-&gt;name, (int)length);
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            :         /*
+<span class="lineNum">     103 </span>            :          * Make sure we have this length.
+<span class="lineNum">     104 </span>            :          */
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :         buf_ptr = ((const char *)buf_ptr) + rval.consumed;</span>
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :         size -= rval.consumed;</span>
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :         if(length &gt; (ber_tlv_len_t)size) {</span>
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :                 rval.code = RC_WMORE;</span>
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :                 rval.consumed = 0;</span>
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :                 return rval;</span>
+<span class="lineNum">     111 </span>            :         }
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span>            :         /*
+<span class="lineNum">     114 </span>            :          * ASN.1 encoded INTEGER: buf_ptr, length
+<span class="lineNum">     115 </span>            :          * Fill the native, at the same time checking for overflow.
+<span class="lineNum">     116 </span>            :          * If overflow occured, return with RC_FAIL.
+<span class="lineNum">     117 </span>            :          */
+<span class="lineNum">     118 </span>            :         {
+<span class="lineNum">     119 </span>            :                 INTEGER_t tmp;
+<span class="lineNum">     120 </span>            :                 union {
+<span class="lineNum">     121 </span>            :                         const void *constbuf;
+<span class="lineNum">     122 </span>            :                         void *nonconstbuf;
+<span class="lineNum">     123 </span>            :                 } unconst_buf;
+<span class="lineNum">     124 </span>            :                 long l;
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :                 unconst_buf.constbuf = buf_ptr;</span>
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :                 tmp.buf = (uint8_t *)unconst_buf.nonconstbuf;</span>
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :                 tmp.size = length;</span>
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span><span class="lineNoCov">          0 :                 if((specs&amp;&amp;specs-&gt;field_unsigned)</span>
+<span class="lineNum">     131 </span><span class="lineNoCov">          0 :                         ? asn_INTEGER2ulong(&amp;tmp, (unsigned long *)&amp;l) /* sic */</span>
+<span class="lineNum">     132 </span><span class="lineNoCov">          0 :                         : asn_INTEGER2long(&amp;tmp, &amp;l)) {</span>
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :                         rval.code = RC_FAIL;</span>
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :                         rval.consumed = 0;</span>
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :                         return rval;</span>
+<span class="lineNum">     136 </span>            :                 }
+<span class="lineNum">     137 </span>            : 
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :                 *native = l;</span>
+<span class="lineNum">     139 </span>            :         }
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :         rval.code = RC_OK;</span>
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 :         rval.consumed += length;</span>
+<span class="lineNum">     143 </span>            : 
+<span class="lineNum">     144 </span>            :         ASN_DEBUG(&quot;Took %ld/%ld bytes to encode %s (%ld)&quot;,
+<span class="lineNum">     145 </span>            :                 (long)rval.consumed, (long)length, td-&gt;name, (long)*native);
+<span class="lineNum">     146 </span>            : 
+<span class="lineNum">     147 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">     148 </span>            : }
+<span class="lineNum">     149 </span>            : 
+<span class="lineNum">     150 </span>            : /*
+<span class="lineNum">     151 </span>            :  * Encode the NativeInteger using the standard INTEGER type DER encoder.
+<a name="152"><span class="lineNum">     152 </span>            :  */</a>
+<span class="lineNum">     153 </span>            : asn_enc_rval_t
+<span class="lineNum">     154 </span><span class="lineNoCov">          0 : NativeInteger_encode_der(const asn_TYPE_descriptor_t *sd, const void *ptr,</span>
+<span class="lineNum">     155 </span>            :                          int tag_mode, ber_tlv_tag_t tag,
+<span class="lineNum">     156 </span>            :                          asn_app_consume_bytes_f *cb, void *app_key) {
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :     unsigned long native = *(const unsigned long *)ptr; /* Disable sign ext. */</span>
+<span class="lineNum">     158 </span>            :     asn_enc_rval_t erval;
+<span class="lineNum">     159 </span>            :         INTEGER_t tmp;
+<span class="lineNum">     160 </span>            : 
+<span class="lineNum">     161 </span>            : #ifdef  WORDS_BIGENDIAN         /* Opportunistic optimization */
+<span class="lineNum">     162 </span>            : 
+<span class="lineNum">     163 </span>            :         tmp.buf = (uint8_t *)&amp;native;
+<span class="lineNum">     164 </span>            :         tmp.size = sizeof(native);
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span>            : #else   /* Works even if WORDS_BIGENDIAN is not set where should've been */
+<span class="lineNum">     167 </span>            :         uint8_t buf[sizeof(native)];
+<span class="lineNum">     168 </span>            :         uint8_t *p;
+<span class="lineNum">     169 </span>            : 
+<span class="lineNum">     170 </span>            :         /* Prepare a fake INTEGER */
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :         for(p = buf + sizeof(buf) - 1; p &gt;= buf; p--, native &gt;&gt;= 8)</span>
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :                 *p = (uint8_t)native;</span>
+<span class="lineNum">     173 </span>            : 
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :         tmp.buf = buf;</span>
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 :         tmp.size = sizeof(buf);</span>
+<span class="lineNum">     176 </span>            : #endif  /* WORDS_BIGENDIAN */
+<span class="lineNum">     177 </span>            :         
+<span class="lineNum">     178 </span>            :         /* Encode fake INTEGER */
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :         erval = INTEGER_encode_der(sd, &amp;tmp, tag_mode, tag, cb, app_key);</span>
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :     if(erval.structure_ptr == &amp;tmp) {</span>
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :         erval.structure_ptr = ptr;</span>
+<span class="lineNum">     182 </span>            :     }
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :         return erval;</span>
+<span class="lineNum">     184 </span>            : }
+<span class="lineNum">     185 </span>            : 
+<span class="lineNum">     186 </span>            : /*
+<span class="lineNum">     187 </span>            :  * Decode the chunk of XML text encoding INTEGER.
+<a name="188"><span class="lineNum">     188 </span>            :  */</a>
+<span class="lineNum">     189 </span>            : asn_dec_rval_t
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 : NativeInteger_decode_xer(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     191 </span>            :                          const asn_TYPE_descriptor_t *td, void **sptr,
+<span class="lineNum">     192 </span>            :                          const char *opt_mname, const void *buf_ptr,
+<span class="lineNum">     193 </span>            :                          size_t size) {
+<span class="lineNum">     194 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">     195 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">     196 </span>            :     asn_dec_rval_t rval;
+<span class="lineNum">     197 </span>            :         INTEGER_t st;
+<span class="lineNum">     198 </span><span class="lineNoCov">          0 :         void *st_ptr = (void *)&amp;st;</span>
+<span class="lineNum">     199 </span><span class="lineNoCov">          0 :         long *native = (long *)*sptr;</span>
+<span class="lineNum">     200 </span>            : 
+<span class="lineNum">     201 </span><span class="lineNoCov">          0 :         if(!native) {</span>
+<span class="lineNum">     202 </span><span class="lineNoCov">          0 :                 native = (long *)(*sptr = CALLOC(1, sizeof(*native)));</span>
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :                 if(!native) ASN__DECODE_FAILED;</span>
+<span class="lineNum">     204 </span>            :         }
+<span class="lineNum">     205 </span>            : 
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :         memset(&amp;st, 0, sizeof(st));</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :         rval = INTEGER_decode_xer(opt_codec_ctx, td, &amp;st_ptr, </span>
+<span class="lineNum">     208 </span>            :                 opt_mname, buf_ptr, size);
+<span class="lineNum">     209 </span><span class="lineNoCov">          0 :         if(rval.code == RC_OK) {</span>
+<span class="lineNum">     210 </span>            :                 long l;
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :                 if((specs&amp;&amp;specs-&gt;field_unsigned)</span>
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :                         ? asn_INTEGER2ulong(&amp;st, (unsigned long *)&amp;l) /* sic */</span>
+<span class="lineNum">     213 </span><span class="lineNoCov">          0 :                         : asn_INTEGER2long(&amp;st, &amp;l)) {</span>
+<span class="lineNum">     214 </span><span class="lineNoCov">          0 :                         rval.code = RC_FAIL;</span>
+<span class="lineNum">     215 </span><span class="lineNoCov">          0 :                         rval.consumed = 0;</span>
+<span class="lineNum">     216 </span>            :                 } else {
+<span class="lineNum">     217 </span><span class="lineNoCov">          0 :                         *native = l;</span>
+<span class="lineNum">     218 </span>            :                 }
+<span class="lineNum">     219 </span>            :         } else {
+<span class="lineNum">     220 </span>            :                 /*
+<span class="lineNum">     221 </span>            :                  * Cannot restart from the middle;
+<span class="lineNum">     222 </span>            :                  * there is no place to save state in the native type.
+<span class="lineNum">     223 </span>            :                  * Request a continuation from the very beginning.
+<span class="lineNum">     224 </span>            :                  */
+<span class="lineNum">     225 </span><span class="lineNoCov">          0 :                 rval.consumed = 0;</span>
+<span class="lineNum">     226 </span>            :         }
+<span class="lineNum">     227 </span><span class="lineNoCov">          0 :         ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_INTEGER, &amp;st);</span>
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">     229 </span>            : }
+<span class="lineNum">     230 </span>            : 
+<a name="231"><span class="lineNum">     231 </span>            : </a>
+<span class="lineNum">     232 </span>            : asn_enc_rval_t
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 : NativeInteger_encode_xer(const asn_TYPE_descriptor_t *td, const void *sptr,</span>
+<span class="lineNum">     234 </span>            :                          int ilevel, enum xer_encoder_flags_e flags,
+<span class="lineNum">     235 </span>            :                          asn_app_consume_bytes_f *cb, void *app_key) {
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">     237 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">     238 </span>            :     char scratch[32];   /* Enough for 64-bit int */
+<span class="lineNum">     239 </span>            :         asn_enc_rval_t er;
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :         const long *native = (const long *)sptr;</span>
+<span class="lineNum">     241 </span>            : 
+<span class="lineNum">     242 </span>            :         (void)ilevel;
+<span class="lineNum">     243 </span>            :         (void)flags;
+<span class="lineNum">     244 </span>            : 
+<span class="lineNum">     245 </span><span class="lineNoCov">          0 :         if(!native) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     246 </span>            : 
+<span class="lineNum">     247 </span><span class="lineNoCov">          0 :         er.encoded = snprintf(scratch, sizeof(scratch),</span>
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :                         (specs &amp;&amp; specs-&gt;field_unsigned)</span>
+<span class="lineNum">     249 </span>            :                         ? &quot;%lu&quot; : &quot;%ld&quot;, *native);
+<span class="lineNum">     250 </span><span class="lineNoCov">          0 :         if(er.encoded &lt;= 0 || (size_t)er.encoded &gt;= sizeof(scratch)</span>
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :                 || cb(scratch, er.encoded, app_key) &lt; 0)</span>
+<span class="lineNum">     252 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     253 </span>            : 
+<span class="lineNum">     254 </span><span class="lineNoCov">          0 :         ASN__ENCODED_OK(er);</span>
+<span class="lineNum">     255 </span>            : }
+<span class="lineNum">     256 </span>            : 
+<span class="lineNum">     257 </span>            : #ifndef  ASN_DISABLE_PER_SUPPORT
+<a name="258"><span class="lineNum">     258 </span>            : </a>
+<span class="lineNum">     259 </span>            : asn_dec_rval_t
+<span class="lineNum">     260 </span><span class="lineNoCov">          0 : NativeInteger_decode_uper(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     261 </span>            :                           const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     262 </span>            :                           const asn_per_constraints_t *constraints, void **sptr,
+<span class="lineNum">     263 </span>            :                           asn_per_data_t *pd) {
+<span class="lineNum">     264 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">     265 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">     266 </span>            :     asn_dec_rval_t rval;
+<span class="lineNum">     267 </span><span class="lineNoCov">          0 :         long *native = (long *)*sptr;</span>
+<span class="lineNum">     268 </span>            :         INTEGER_t tmpint;
+<span class="lineNum">     269 </span><span class="lineNoCov">          0 :         void *tmpintptr = &amp;tmpint;</span>
+<span class="lineNum">     270 </span>            : 
+<span class="lineNum">     271 </span>            :         (void)opt_codec_ctx;
+<span class="lineNum">     272 </span>            :         ASN_DEBUG(&quot;Decoding NativeInteger %s (UPER)&quot;, td-&gt;name);
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span><span class="lineNoCov">          0 :         if(!native) {</span>
+<span class="lineNum">     275 </span><span class="lineNoCov">          0 :                 native = (long *)(*sptr = CALLOC(1, sizeof(*native)));</span>
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 :                 if(!native) ASN__DECODE_FAILED;</span>
+<span class="lineNum">     277 </span>            :         }
+<span class="lineNum">     278 </span>            : 
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :         memset(&amp;tmpint, 0, sizeof tmpint);</span>
+<span class="lineNum">     280 </span><span class="lineNoCov">          0 :         rval = INTEGER_decode_uper(opt_codec_ctx, td, constraints,</span>
+<span class="lineNum">     281 </span>            :                                    &amp;tmpintptr, pd);
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :         if(rval.code == RC_OK) {</span>
+<span class="lineNum">     283 </span><span class="lineNoCov">          0 :                 if((specs&amp;&amp;specs-&gt;field_unsigned)</span>
+<span class="lineNum">     284 </span><span class="lineNoCov">          0 :                         ? asn_INTEGER2ulong(&amp;tmpint, (unsigned long *)native)</span>
+<span class="lineNum">     285 </span><span class="lineNoCov">          0 :                         : asn_INTEGER2long(&amp;tmpint, native))</span>
+<span class="lineNum">     286 </span><span class="lineNoCov">          0 :                         rval.code = RC_FAIL;</span>
+<span class="lineNum">     287 </span>            :                 else
+<span class="lineNum">     288 </span>            :                         ASN_DEBUG(&quot;NativeInteger %s got value %ld&quot;,
+<span class="lineNum">     289 </span>            :                                 td-&gt;name, *native);
+<span class="lineNum">     290 </span>            :         }
+<span class="lineNum">     291 </span><span class="lineNoCov">          0 :         ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_INTEGER, &amp;tmpint);</span>
+<span class="lineNum">     292 </span>            : 
+<span class="lineNum">     293 </span><span class="lineNoCov">          0 :         return rval;</span>
+<span class="lineNum">     294 </span>            : }
+<a name="295"><span class="lineNum">     295 </span>            : </a>
+<span class="lineNum">     296 </span>            : asn_enc_rval_t
+<span class="lineNum">     297 </span><span class="lineNoCov">          0 : NativeInteger_encode_uper(const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     298 </span>            :                           const asn_per_constraints_t *constraints,
+<span class="lineNum">     299 </span>            :                           const void *sptr, asn_per_outp_t *po) {
+<span class="lineNum">     300 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">     301 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">     302 </span>            :     asn_enc_rval_t er;
+<span class="lineNum">     303 </span>            :         long native;
+<span class="lineNum">     304 </span>            :         INTEGER_t tmpint;
+<span class="lineNum">     305 </span>            : 
+<span class="lineNum">     306 </span><span class="lineNoCov">          0 :         if(!sptr) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     307 </span>            : 
+<span class="lineNum">     308 </span><span class="lineNoCov">          0 :     native = *(const long *)sptr;</span>
+<span class="lineNum">     309 </span>            : 
+<span class="lineNum">     310 </span>            :     ASN_DEBUG(&quot;Encoding NativeInteger %s %ld (UPER)&quot;, td-&gt;name, native);
+<span class="lineNum">     311 </span>            : 
+<span class="lineNum">     312 </span><span class="lineNoCov">          0 :         memset(&amp;tmpint, 0, sizeof(tmpint));</span>
+<span class="lineNum">     313 </span><span class="lineNoCov">          0 :         if((specs&amp;&amp;specs-&gt;field_unsigned)</span>
+<span class="lineNum">     314 </span><span class="lineNoCov">          0 :                 ? asn_ulong2INTEGER(&amp;tmpint, native)</span>
+<span class="lineNum">     315 </span><span class="lineNoCov">          0 :                 : asn_long2INTEGER(&amp;tmpint, native))</span>
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     317 </span><span class="lineNoCov">          0 :         er = INTEGER_encode_uper(td, constraints, &amp;tmpint, po);</span>
+<span class="lineNum">     318 </span><span class="lineNoCov">          0 :         ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_INTEGER, &amp;tmpint);</span>
+<span class="lineNum">     319 </span><span class="lineNoCov">          0 :         return er;</span>
+<span class="lineNum">     320 </span>            : }
+<a name="321"><span class="lineNum">     321 </span>            : </a>
+<span class="lineNum">     322 </span>            : asn_dec_rval_t
+<span class="lineNum">     323 </span><span class="lineCov">        121 : NativeInteger_decode_aper(const asn_codec_ctx_t *opt_codec_ctx,</span>
+<span class="lineNum">     324 </span>            :                           const asn_TYPE_descriptor_t *td,
+<span class="lineNum">     325 </span>            :                           const asn_per_constraints_t *constraints, void **sptr, asn_per_data_t *pd) {
+<span class="lineNum">     326 </span>            : 
+<span class="lineNum">     327 </span><span class="lineCov">        121 :         const asn_INTEGER_specifics_t *specs = (const asn_INTEGER_specifics_t *)td-&gt;specifics;</span>
+<span class="lineNum">     328 </span>            :         asn_dec_rval_t rval;
+<span class="lineNum">     329 </span><span class="lineCov">        121 :         long *native = (long *)*sptr;</span>
+<span class="lineNum">     330 </span>            :         INTEGER_t tmpint;
+<span class="lineNum">     331 </span><span class="lineCov">        121 :         void *tmpintptr = &amp;tmpint;</span>
+<span class="lineNum">     332 </span>            : 
+<span class="lineNum">     333 </span>            :         (void)opt_codec_ctx;
+<span class="lineNum">     334 </span>            :         ASN_DEBUG(&quot;Decoding NativeInteger %s (APER)&quot;, td-&gt;name);
+<span class="lineNum">     335 </span>            : 
+<span class="lineNum">     336 </span><span class="lineCov">        121 :         if(!native) {</span>
+<span class="lineNum">     337 </span><span class="lineNoCov">          0 :                 native = (long *)(*sptr = CALLOC(1, sizeof(*native)));</span>
+<span class="lineNum">     338 </span><span class="lineNoCov">          0 :                 if(!native) ASN__DECODE_FAILED;</span>
+<span class="lineNum">     339 </span>            :         }
+<span class="lineNum">     340 </span>            : 
+<span class="lineNum">     341 </span><span class="lineCov">        121 :         memset(&amp;tmpint, 0, sizeof tmpint);</span>
+<span class="lineNum">     342 </span><span class="lineCov">        121 :         rval = INTEGER_decode_aper(opt_codec_ctx, td, constraints,</span>
+<span class="lineNum">     343 </span>            :                                    &amp;tmpintptr, pd);
+<span class="lineNum">     344 </span><span class="lineCov">        121 :         if(rval.code == RC_OK) {</span>
+<span class="lineNum">     345 </span><span class="lineCov">        242 :                 if((specs&amp;&amp;specs-&gt;field_unsigned)</span>
+<span class="lineNum">     346 </span><span class="lineCov">         14 :                         ? asn_INTEGER2ulong(&amp;tmpint, (unsigned long *)native)</span>
+<span class="lineNum">     347 </span><span class="lineCov">        107 :                         : asn_INTEGER2long(&amp;tmpint, native))</span>
+<span class="lineNum">     348 </span><span class="lineNoCov">          0 :                         rval.code = RC_FAIL;</span>
+<span class="lineNum">     349 </span>            :                 else
+<span class="lineNum">     350 </span>            :                         ASN_DEBUG(&quot;NativeInteger %s got value %ld&quot;,
+<span class="lineNum">     351 </span>            :                                   td-&gt;name, *native);
+<span class="lineNum">     352 </span>            :         }
+<span class="lineNum">     353 </span><span class="lineCov">        121 :         ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_INTEGER, &amp;tmpint);</span>
+<span class="lineNum">     354 </span>            : 
+<span class="lineNum">     355 </span><span class="lineCov">        121 :         return rval;</span>
+<span class="lineNum">     356 </span>            : }
+<a name="357"><span class="lineNum">     357 </span>            : </a>
+<span class="lineNum">     358 </span>            : asn_enc_rval_t
+<span class="lineNum">     359 </span><span class="lineCov">         82 : NativeInteger_encode_aper(const asn_TYPE_descriptor_t *td,</span>
+<span class="lineNum">     360 </span>            :                           const asn_per_constraints_t *constraints,
+<span class="lineNum">     361 </span>            :                           const void *sptr, asn_per_outp_t *po) {
+<span class="lineNum">     362 </span>            : 
+<span class="lineNum">     363 </span><span class="lineCov">         82 :         const asn_INTEGER_specifics_t *specs = (const asn_INTEGER_specifics_t *)td-&gt;specifics;</span>
+<span class="lineNum">     364 </span>            :         asn_enc_rval_t er;
+<span class="lineNum">     365 </span>            :         long native;
+<span class="lineNum">     366 </span>            :         INTEGER_t tmpint;
+<span class="lineNum">     367 </span>            : 
+<span class="lineNum">     368 </span><span class="lineCov">         82 :         if(!sptr) ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     369 </span>            : 
+<span class="lineNum">     370 </span><span class="lineCov">         82 :         native = *(const long *)sptr;</span>
+<span class="lineNum">     371 </span>            : 
+<span class="lineNum">     372 </span>            :         ASN_DEBUG(&quot;Encoding NativeInteger %s %ld (APER)&quot;, td-&gt;name, native);
+<span class="lineNum">     373 </span>            : 
+<span class="lineNum">     374 </span><span class="lineCov">         82 :         memset(&amp;tmpint, 0, sizeof(tmpint));</span>
+<span class="lineNum">     375 </span><span class="lineCov">        164 :         if((specs&amp;&amp;specs-&gt;field_unsigned)</span>
+<span class="lineNum">     376 </span><span class="lineCov">         11 :                 ? asn_ulong2INTEGER(&amp;tmpint, (unsigned long)native)</span>
+<span class="lineNum">     377 </span><span class="lineCov">         71 :                 : asn_long2INTEGER(&amp;tmpint, native))</span>
+<span class="lineNum">     378 </span><span class="lineNoCov">          0 :                 ASN__ENCODE_FAILED;</span>
+<span class="lineNum">     379 </span><span class="lineCov">         82 :         er = INTEGER_encode_aper(td, constraints, &amp;tmpint, po);</span>
+<span class="lineNum">     380 </span><span class="lineCov">         82 :         ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_INTEGER, &amp;tmpint);</span>
+<span class="lineNum">     381 </span><span class="lineCov">         82 :         return er;</span>
+<span class="lineNum">     382 </span>            : }
+<span class="lineNum">     383 </span>            : 
+<span class="lineNum">     384 </span>            : #endif  /* ASN_DISABLE_PER_SUPPORT */
+<span class="lineNum">     385 </span>            : 
+<span class="lineNum">     386 </span>            : /*
+<span class="lineNum">     387 </span>            :  * INTEGER specific human-readable output.
+<a name="388"><span class="lineNum">     388 </span>            :  */</a>
+<span class="lineNum">     389 </span>            : int
+<span class="lineNum">     390 </span><span class="lineNoCov">          0 : NativeInteger_print(const asn_TYPE_descriptor_t *td, const void *sptr,</span>
+<span class="lineNum">     391 </span>            :                     int ilevel, asn_app_consume_bytes_f *cb, void *app_key) {
+<span class="lineNum">     392 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">     393 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">     394 </span><span class="lineNoCov">          0 :     const long *native = (const long *)sptr;</span>
+<span class="lineNum">     395 </span>            :     char scratch[32]; /* Enough for 64-bit int */
+<span class="lineNum">     396 </span>            :     int ret;
+<span class="lineNum">     397 </span>            : 
+<span class="lineNum">     398 </span>            :     (void)td;       /* Unused argument */
+<span class="lineNum">     399 </span>            :     (void)ilevel;   /* Unused argument */
+<span class="lineNum">     400 </span>            : 
+<span class="lineNum">     401 </span><span class="lineNoCov">          0 :     if(native) {</span>
+<span class="lineNum">     402 </span><span class="lineNoCov">          0 :         long value = *native;</span>
+<span class="lineNum">     403 </span><span class="lineNoCov">          0 :         ret = snprintf(scratch, sizeof(scratch),</span>
+<span class="lineNum">     404 </span><span class="lineNoCov">          0 :                        (specs &amp;&amp; specs-&gt;field_unsigned) ? &quot;%lu&quot; : &quot;%ld&quot;, value);</span>
+<span class="lineNum">     405 </span><span class="lineNoCov">          0 :         assert(ret &gt; 0 &amp;&amp; (size_t)ret &lt; sizeof(scratch));</span>
+<span class="lineNum">     406 </span><span class="lineNoCov">          0 :         if(cb(scratch, ret, app_key) &lt; 0) return -1;</span>
+<span class="lineNum">     407 </span><span class="lineNoCov">          0 :         if(specs &amp;&amp; (value &gt;= 0 || !specs-&gt;field_unsigned)) {</span>
+<span class="lineNum">     408 </span><span class="lineNoCov">          0 :             const asn_INTEGER_enum_map_t *el =</span>
+<span class="lineNum">     409 </span>            :                 INTEGER_map_value2enum(specs, value);
+<span class="lineNum">     410 </span><span class="lineNoCov">          0 :             if(el) {</span>
+<span class="lineNum">     411 </span><span class="lineNoCov">          0 :                 if(cb(&quot; (&quot;, 2, app_key) &lt; 0) return -1;</span>
+<span class="lineNum">     412 </span><span class="lineNoCov">          0 :                 if(cb(el-&gt;enum_name, el-&gt;enum_len, app_key) &lt; 0) return -1;</span>
+<span class="lineNum">     413 </span><span class="lineNoCov">          0 :                 if(cb(&quot;)&quot;, 1, app_key) &lt; 0) return -1;</span>
+<span class="lineNum">     414 </span>            :             }
+<span class="lineNum">     415 </span>            :         }
+<span class="lineNum">     416 </span><span class="lineNoCov">          0 :         return 0;</span>
+<span class="lineNum">     417 </span>            :         } else {
+<span class="lineNum">     418 </span><span class="lineNoCov">          0 :                 return (cb(&quot;&lt;absent&gt;&quot;, 8, app_key) &lt; 0) ? -1 : 0;</span>
+<span class="lineNum">     419 </span>            :         }
+<span class="lineNum">     420 </span>            : }
+<a name="421"><span class="lineNum">     421 </span>            : </a>
+<span class="lineNum">     422 </span>            : void
+<span class="lineNum">     423 </span><span class="lineCov">        354 : NativeInteger_free(const asn_TYPE_descriptor_t *td, void *ptr,</span>
+<span class="lineNum">     424 </span>            :                    enum asn_struct_free_method method) {
+<span class="lineNum">     425 </span><span class="lineCov">        354 :     if(!td || !ptr)</span>
+<span class="lineNum">     426 </span><span class="lineNoCov">          0 :                 return;</span>
+<span class="lineNum">     427 </span>            : 
+<span class="lineNum">     428 </span>            :         ASN_DEBUG(&quot;Freeing %s as INTEGER (%d, %p, Native)&quot;,
+<span class="lineNum">     429 </span>            :                 td-&gt;name, method, ptr);
+<span class="lineNum">     430 </span>            : 
+<span class="lineNum">     431 </span><span class="lineCov">        354 :     switch(method) {</span>
+<span class="lineNum">     432 </span>            :     case ASFM_FREE_EVERYTHING:
+<span class="lineNum">     433 </span><span class="lineNoCov">          0 :         FREEMEM(ptr);</span>
+<span class="lineNum">     434 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     435 </span>            :     case ASFM_FREE_UNDERLYING:
+<span class="lineNum">     436 </span><span class="lineCov">        354 :         break;</span>
+<span class="lineNum">     437 </span>            :     case ASFM_FREE_UNDERLYING_AND_RESET:
+<span class="lineNum">     438 </span><span class="lineNoCov">          0 :         memset(ptr, 0, sizeof(long));</span>
+<span class="lineNum">     439 </span><span class="lineNoCov">          0 :         break;</span>
+<span class="lineNum">     440 </span>            :     }
+<span class="lineNum">     441 </span>            : }
+<a name="442"><span class="lineNum">     442 </span>            : </a>
+<span class="lineNum">     443 </span>            : int
+<span class="lineNum">     444 </span><span class="lineCov">        577 : NativeInteger_compare(const asn_TYPE_descriptor_t *td, const void *aptr, const void *bptr) {</span>
+<span class="lineNum">     445 </span>            :     (void)td;
+<span class="lineNum">     446 </span>            : 
+<span class="lineNum">     447 </span><span class="lineCov">        577 :     if(aptr &amp;&amp; bptr) {</span>
+<span class="lineNum">     448 </span><span class="lineCov">        577 :         const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">     449 </span>            :             (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">     450 </span><span class="lineCov">        577 :         if(specs &amp;&amp; specs-&gt;field_unsigned) {</span>
+<span class="lineNum">     451 </span><span class="lineNoCov">          0 :             const unsigned long *a = aptr;</span>
+<span class="lineNum">     452 </span><span class="lineNoCov">          0 :             const unsigned long *b = bptr;</span>
+<span class="lineNum">     453 </span><span class="lineNoCov">          0 :             if(*a &lt; *b) {</span>
+<span class="lineNum">     454 </span><span class="lineNoCov">          0 :                 return -1;</span>
+<span class="lineNum">     455 </span><span class="lineNoCov">          0 :             } else if(*a &gt; *b) {</span>
+<span class="lineNum">     456 </span><span class="lineNoCov">          0 :                 return 1;</span>
+<span class="lineNum">     457 </span>            :             } else {
+<span class="lineNum">     458 </span><span class="lineNoCov">          0 :                 return 0;</span>
+<span class="lineNum">     459 </span>            :             }
+<span class="lineNum">     460 </span>            :         } else {
+<span class="lineNum">     461 </span><span class="lineCov">        577 :             const long *a = aptr;</span>
+<span class="lineNum">     462 </span><span class="lineCov">        577 :             const long *b = bptr;</span>
+<span class="lineNum">     463 </span><span class="lineCov">        577 :             if(*a &lt; *b) {</span>
+<span class="lineNum">     464 </span><span class="lineCov">        161 :                 return -1;</span>
+<span class="lineNum">     465 </span><span class="lineCov">        416 :             } else if(*a &gt; *b) {</span>
+<span class="lineNum">     466 </span><span class="lineCov">        327 :                 return 1;</span>
+<span class="lineNum">     467 </span>            :             } else {
+<span class="lineNum">     468 </span><span class="lineCov">         89 :                 return 0;</span>
+<span class="lineNum">     469 </span>            :             }
+<span class="lineNum">     470 </span>            :         }
+<span class="lineNum">     471 </span><span class="lineNoCov">          0 :     } else if(!aptr) {</span>
+<span class="lineNum">     472 </span><span class="lineNoCov">          0 :         return -1;</span>
+<span class="lineNum">     473 </span>            :     } else {
+<span class="lineNum">     474 </span><span class="lineNoCov">          0 :         return 1;</span>
+<span class="lineNum">     475 </span>            :     }
+<span class="lineNum">     476 </span>            : }
+<a name="477"><span class="lineNum">     477 </span>            : </a>
+<span class="lineNum">     478 </span>            : asn_random_fill_result_t
+<span class="lineNum">     479 </span><span class="lineNoCov">          0 : NativeInteger_random_fill(const asn_TYPE_descriptor_t *td, void **sptr,</span>
+<span class="lineNum">     480 </span>            :                           const asn_encoding_constraints_t *constraints,
+<span class="lineNum">     481 </span>            :                           size_t max_length) {
+<span class="lineNum">     482 </span><span class="lineNoCov">          0 :     const asn_INTEGER_specifics_t *specs =</span>
+<span class="lineNum">     483 </span>            :         (const asn_INTEGER_specifics_t *)td-&gt;specifics;
+<span class="lineNum">     484 </span><span class="lineNoCov">          0 :     asn_random_fill_result_t result_ok = {ARFILL_OK, 1};</span>
+<span class="lineNum">     485 </span><span class="lineNoCov">          0 :     asn_random_fill_result_t result_failed = {ARFILL_FAILED, 0};</span>
+<span class="lineNum">     486 </span><span class="lineNoCov">          0 :     asn_random_fill_result_t result_skipped = {ARFILL_SKIPPED, 0};</span>
+<span class="lineNum">     487 </span><span class="lineNoCov">          0 :     long *st = *sptr;</span>
+<span class="lineNum">     488 </span>            :     const asn_INTEGER_enum_map_t *emap;
+<span class="lineNum">     489 </span>            :     size_t emap_len;
+<span class="lineNum">     490 </span>            :     intmax_t value;
+<span class="lineNum">     491 </span>            :     int find_inside_map;
+<span class="lineNum">     492 </span>            : 
+<span class="lineNum">     493 </span><span class="lineNoCov">          0 :     if(max_length == 0) return result_skipped;</span>
+<span class="lineNum">     494 </span>            : 
+<span class="lineNum">     495 </span><span class="lineNoCov">          0 :     if(st == NULL) {</span>
+<span class="lineNum">     496 </span><span class="lineNoCov">          0 :         st = (long *)CALLOC(1, sizeof(*st));</span>
+<span class="lineNum">     497 </span><span class="lineNoCov">          0 :         if(st == NULL) {</span>
+<span class="lineNum">     498 </span><span class="lineNoCov">          0 :             return result_failed;</span>
+<span class="lineNum">     499 </span>            :         }
+<span class="lineNum">     500 </span>            :     }
+<span class="lineNum">     501 </span>            : 
+<span class="lineNum">     502 </span><span class="lineNoCov">          0 :     if(specs) {</span>
+<span class="lineNum">     503 </span><span class="lineNoCov">          0 :         emap = specs-&gt;value2enum;</span>
+<span class="lineNum">     504 </span><span class="lineNoCov">          0 :         emap_len = specs-&gt;map_count;</span>
+<span class="lineNum">     505 </span><span class="lineNoCov">          0 :         if(specs-&gt;strict_enumeration) {</span>
+<span class="lineNum">     506 </span><span class="lineNoCov">          0 :             find_inside_map = emap_len &gt; 0;</span>
+<span class="lineNum">     507 </span>            :         } else {
+<span class="lineNum">     508 </span><span class="lineNoCov">          0 :             find_inside_map = emap_len ? asn_random_between(0, 1) : 0;</span>
+<span class="lineNum">     509 </span>            :         }
+<span class="lineNum">     510 </span>            :     } else {
+<span class="lineNum">     511 </span><span class="lineNoCov">          0 :         emap = 0;</span>
+<span class="lineNum">     512 </span><span class="lineNoCov">          0 :         emap_len = 0;</span>
+<span class="lineNum">     513 </span><span class="lineNoCov">          0 :         find_inside_map = 0;</span>
+<span class="lineNum">     514 </span>            :     }
+<span class="lineNum">     515 </span>            : 
+<span class="lineNum">     516 </span><span class="lineNoCov">          0 :     if(find_inside_map) {</span>
+<span class="lineNum">     517 </span><span class="lineNoCov">          0 :         assert(emap_len &gt; 0);</span>
+<span class="lineNum">     518 </span><span class="lineNoCov">          0 :         value = emap[asn_random_between(0, emap_len - 1)].nat_value;</span>
+<span class="lineNum">     519 </span>            :     } else {
+<span class="lineNum">     520 </span>            :         const asn_per_constraints_t *ct;
+<span class="lineNum">     521 </span>            : 
+<span class="lineNum">     522 </span>            :         static const long variants[] = {
+<span class="lineNum">     523 </span>            :             -65536, -65535, -65534, -32769, -32768, -32767, -16385, -16384,
+<span class="lineNum">     524 </span>            :             -16383, -257,   -256,   -255,   -254,   -129,   -128,   -127,
+<span class="lineNum">     525 </span>            :             -126,   -1,     0,      1,      126,    127,    128,    129,
+<span class="lineNum">     526 </span>            :             254,    255,    256,    257,    16383,  16384,  16385,  32767,
+<span class="lineNum">     527 </span>            :             32768,  32769,  65534,  65535,  65536,  65537};
+<span class="lineNum">     528 </span><span class="lineNoCov">          0 :         if(specs &amp;&amp; specs-&gt;field_unsigned) {</span>
+<span class="lineNum">     529 </span><span class="lineNoCov">          0 :             assert(variants[18] == 0);</span>
+<span class="lineNum">     530 </span><span class="lineNoCov">          0 :             value = variants[asn_random_between(</span>
+<span class="lineNum">     531 </span>            :                 18, sizeof(variants) / sizeof(variants[0]) - 1)];
+<span class="lineNum">     532 </span>            :         } else {
+<span class="lineNum">     533 </span><span class="lineNoCov">          0 :             value = variants[asn_random_between(</span>
+<span class="lineNum">     534 </span>            :                 0, sizeof(variants) / sizeof(variants[0]) - 1)];
+<span class="lineNum">     535 </span>            :         }
+<span class="lineNum">     536 </span>            : 
+<span class="lineNum">     537 </span><span class="lineNoCov">          0 :         if(!constraints) constraints = &amp;td-&gt;encoding_constraints;</span>
+<span class="lineNum">     538 </span><span class="lineNoCov">          0 :         ct = constraints ? constraints-&gt;per_constraints : 0;</span>
+<span class="lineNum">     539 </span><span class="lineNoCov">          0 :         if(ct &amp;&amp; (ct-&gt;value.flags &amp; APC_CONSTRAINED)) {</span>
+<span class="lineNum">     540 </span><span class="lineNoCov">          0 :             if(value &lt; ct-&gt;value.lower_bound || value &gt; ct-&gt;value.upper_bound) {</span>
+<span class="lineNum">     541 </span><span class="lineNoCov">          0 :                 value = asn_random_between(ct-&gt;value.lower_bound,</span>
+<span class="lineNum">     542 </span>            :                                            ct-&gt;value.upper_bound);
+<span class="lineNum">     543 </span>            :             }
+<span class="lineNum">     544 </span>            :         }
+<span class="lineNum">     545 </span>            :     }
+<span class="lineNum">     546 </span>            : 
+<span class="lineNum">     547 </span><span class="lineNoCov">          0 :     *sptr = st;</span>
+<span class="lineNum">     548 </span><span class="lineNoCov">          0 :     *st = value;</span>
+<span class="lineNum">     549 </span><span class="lineNoCov">          0 :     return result_ok;</span>
+<span class="lineNum">     550 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
