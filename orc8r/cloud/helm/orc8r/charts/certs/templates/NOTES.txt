@@ -13,7 +13,7 @@ limitations under the License.
 
 Your release is named {{ .Release.Name }}.
 
-These certificates will be installed cert-manager:
+These certificates are installed by cert-manager:
 
 {{ .Release.Name }}-admin-operator-tls
 {{ .Release.Name }}-bootstrapper-tls
