@@ -30,7 +30,7 @@ apt-get update
 apt-get install -y openssh-server gcc rsync dirmngr
 
 # Add the Etagecom magma repo
-bash -c 'echo -e "deb http://packages.magma.etagecom.io stretch-test main" > /etc/apt/sources.list.d/packages_magma_etagecom_io.list'
+bash -c 'echo -e "deb http://packages.magma.etagecom.io magma-custom main" > /etc/apt/sources.list.d/packages_magma_etagecom_io.list'
 
 # Create the preferences file for backports
 bash -c 'cat <<EOF > /etc/apt/preferences.d/magma-preferences
