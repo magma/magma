@@ -55,11 +55,11 @@ class SessionStoreTest : public ::testing::Test {
   }
 
   PolicyRule get_dynamic_rule() {
-    auto policy = new PolicyRule();
-    policy->set_id(dynamic_rule_id_1);
-    policy->set_priority(10);
-    policy->set_tracking_type(PolicyRule::ONLY_OCS);
-    return *policy;
+    PolicyRule policy;
+    policy.set_id(dynamic_rule_id_1);
+    policy.set_priority(10);
+    policy.set_tracking_type(PolicyRule::ONLY_OCS);
+    return policy;
   }
 
   std::unique_ptr<SessionState> get_session(
@@ -112,36 +112,33 @@ class SessionStoreTest : public ::testing::Test {
         imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time,
         response1);
   }
-  UsageMonitoringUpdateResponse* get_monitoring_update() {
-    auto units = new GrantedUnits();
-    auto total = new CreditUnit();
-    total->set_is_valid(true);
-    total->set_volume(1000);
-    auto tx = new CreditUnit();
-    tx->set_is_valid(true);
-    tx->set_volume(1000);
-    auto rx = new CreditUnit();
-    rx->set_is_valid(true);
-    rx->set_volume(1000);
-    units->set_allocated_total(total);
-    units->set_allocated_tx(tx);
-    units->set_allocated_rx(rx);
+  UsageMonitoringUpdateResponse get_monitoring_update() {
+    UsageMonitoringUpdateResponse response;
+    response.set_session_id("sid1");
+    response.set_success(true);
 
-    auto monitoring_credit = new UsageMonitoringCredit();
+    auto monitoring_credit = response.mutable_credit();
     monitoring_credit->set_action(UsageMonitoringCredit_Action_CONTINUE);
     monitoring_credit->set_monitoring_key(monitoring_key);
     monitoring_credit->set_level(SESSION_LEVEL);
-    monitoring_credit->set_allocated_granted_units(units);
 
-    auto credit_update = new UsageMonitoringUpdateResponse();
-    credit_update->set_allocated_credit(monitoring_credit);
-    credit_update->set_session_id("sid1");
-    credit_update->set_success(true);
+    auto units = monitoring_credit->mutable_granted_units();
+    auto total = units->mutable_total();
+    auto tx    = units->mutable_tx();
+    auto rx    = units->mutable_rx();
+
+    total->set_is_valid(true);
+    total->set_volume(1000);
+    tx->set_is_valid(true);
+    tx->set_volume(1000);
+    rx->set_is_valid(true);
+    rx->set_volume(1000);
+
     // Don't set event triggers
     // Don't set result code since the response is already successful
     // Don't set any rule installation/uninstallation
     // Don't set the TgppContext, assume gx_gy_relay disabled
-    return credit_update;
+    return response;
   }
 
   SessionStateUpdateCriteria get_update_criteria() {
@@ -151,7 +148,8 @@ class SessionStoreTest : public ::testing::Test {
     update_criteria.static_rules_to_install = std::set<std::string>{};
     update_criteria.static_rules_to_install.insert(rule_id_1);
     update_criteria.dynamic_rules_to_install = std::vector<PolicyRule>{};
-    update_criteria.dynamic_rules_to_install.push_back(get_dynamic_rule());
+    PolicyRule policy                        = get_dynamic_rule();
+    update_criteria.dynamic_rules_to_install.push_back(policy);
     RuleLifetime lifetime;
     update_criteria.new_rule_lifetimes[rule_id_1]         = lifetime;
     update_criteria.new_rule_lifetimes[dynamic_rule_id_1] = lifetime;
@@ -259,12 +257,12 @@ TEST_F(SessionStoreTest, test_metering_reporting) {
   EXPECT_TRUE(update_success);
 
   // verify if UE traffic metrics are recorded properly
-  auto resp = new MetricsContainer();
+  MetricsContainer resp;
   auto magma_service =
       std::make_shared<service303::MagmaService>("test_service", "1.0");
-  magma_service->GetMetrics(nullptr, nullptr, resp);
+  magma_service->GetMetrics(nullptr, nullptr, &resp);
   auto reported_metrics = 0;
-  for (auto const& fam : resp->family()) {
+  for (auto const& fam : resp.family()) {
     if (fam.name().compare("ue_traffic") == 0) {
       for (auto const& m : fam.metric()) {
         for (auto const& l : m.label()) {
@@ -313,9 +311,8 @@ TEST_F(SessionStoreTest, test_read_and_write) {
       session->get_create_session_response().DebugString(),
       response1.DebugString());
 
-  auto credit_update                               = get_monitoring_update();
-  UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
-  session->receive_monitor(credit_update_ref, uc);
+  auto monitor_update = get_monitoring_update();
+  session->receive_monitor(monitor_update, uc);
 
   // Add some used credit
   session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333), uc);

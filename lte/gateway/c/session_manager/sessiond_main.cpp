@@ -179,9 +179,9 @@ int main(int argc, char* argv[]) {
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
   bool converged_access = false;
-  // Check converged sesiond is enebaled or not
-  if ((config["converged_access"].IsDefined()) &&
-      (config["converged_access"].as<bool>())) {
+  // Check converged SessionD is enabled or not
+  if (config["converged_access"].IsDefined() &&
+      config["converged_access"].as<bool>()) {
     converged_access = true;
   }
   MLOG(MINFO) << "Starting Session Manager";
@@ -274,8 +274,8 @@ int main(int argc, char* argv[]) {
   set_consts(config);
   // Initialize the main logical component of SessionD
   auto local_enforcer = std::make_shared<magma::LocalEnforcer>(
-      reporter, rule_store, *session_store, pipelined_client, directoryd_client,
-      events_reporter, spgw_client, aaa_client,
+      reporter, rule_store, *session_store, pipelined_client, events_reporter,
+      spgw_client, aaa_client,
       config["session_force_termination_timeout_ms"].as<long>(),
       get_quota_exhaust_termination_time(config), mconfig);
 
@@ -421,7 +421,7 @@ int main(int argc, char* argv[]) {
     free(conv_set_message_service);
     access_common_message_thread.join();
   }
-  free(session_store);
+  delete session_store;
 
   return 0;
 }

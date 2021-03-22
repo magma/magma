@@ -101,6 +101,7 @@
 #define MME_CONFIG_STRING_S6A_CONFIG "S6A"
 #define MME_CONFIG_STRING_S6A_CONF_FILE_PATH "S6A_CONF"
 #define MME_CONFIG_STRING_S6A_HSS_HOSTNAME "HSS_HOSTNAME"
+#define MME_CONFIG_STRING_S6A_HSS_REALM "HSS_REALM"
 
 #define MME_CONFIG_STRING_SCTP_CONFIG "SCTP"
 #define MME_CONFIG_STRING_SCTP_INSTREAMS "SCTP_INSTREAMS"
@@ -242,6 +243,7 @@ typedef struct ip_s {
 typedef struct s6a_config_s {
   bstring conf_file;
   bstring hss_host_name;
+  bstring hss_realm;
 } s6a_config_t;
 
 typedef struct itti_config_s {

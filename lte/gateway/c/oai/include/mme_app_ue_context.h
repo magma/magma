@@ -460,6 +460,7 @@ typedef struct ue_mm_context_s {
   network_access_mode_t network_access_mode;
 
   bool path_switch_req;
+  bool erab_mod_ind;
   /* Storing activate_dedicated_bearer_req messages received
    * when UE is in ECM_IDLE state*/
   emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req[BEARERS_PER_UE];

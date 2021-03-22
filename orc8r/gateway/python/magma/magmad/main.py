@@ -12,11 +12,12 @@ limitations under the License.
 """
 import importlib
 import logging
+import snowflake
 import typing
 
-import snowflake
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.sdwatchdog import SDWatchdog
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
 from magma.configuration.mconfig_managers import MconfigManagerImpl, \
@@ -45,6 +46,9 @@ def main():
     Main magmad function
     """
     service = MagmaService('magmad', mconfigs_pb2.MagmaD())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     logging.info('Starting magmad for UUID: %s', snowflake.make_snowflake())
 
@@ -219,6 +223,7 @@ def main():
         service,
         services, service_manager, get_mconfig_manager(), command_executor,
         service.loop,
+        service.config.get('print_grpc_payload', False)
     )
     magmad_servicer.add_to_server(service.rpc_server)
 

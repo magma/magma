@@ -38,28 +38,28 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 			return
 		}
 		if cause != gtpv2.CauseRequestAccepted {
-			err = &gtpv2.CauseNotOKError{
-				MsgType: csResGtp.MessageTypeName(),
-				Cause:   cause,
-				Msg:     fmt.Sprintf("Not accepted"),
+			csRes.GtpError = &protos.GtpError{
+				Cause: uint32(cause),
+				Msg:   fmt.Sprintf("Message with sequence # %d not accepted", msg.Sequence()),
 			}
 			return
 		}
+		// If we get here, the message will be processed
 	} else {
-		err = &gtpv2.RequiredIEMissingError{Type: ie.Cause}
+		csRes.GtpError = errorIeMissing(ie.Cause)
 		return
 	}
 
-	// get values sent by pgw
+	// get PDN Allocation from PGW
 	if paaIE := csResGtp.PAA; paaIE != nil {
-		ip, err2 := paaIE.IPAddress()
+		paa, pdnType, err2 := handlePDNAddressAllocation(paaIE)
 		if err2 != nil {
-			err = err2
 			return
 		}
-		csRes.SubscriberIp = ip
+		csRes.Paa = paa
+		csRes.PdnType = pdnType
 	} else {
-		err = &gtpv2.RequiredIEMissingError{Type: ie.PDNAddressAllocation}
+		csRes.GtpError = errorIeMissing(ie.PDNAddressAllocation)
 		return
 	}
 
@@ -73,7 +73,7 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 		//session.AddTEID(interfaceType, pgwCFteid.GetTeid())
 		csRes.CPgwFteid = pgwCFteid
 	} else {
-		err = &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}
+		csRes.GtpError = errorIeMissing(ie.FullyQualifiedTEID)
 		return
 	}
 
@@ -89,10 +89,9 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 					return
 				}
 				if cause != gtpv2.CauseRequestAccepted {
-					err = &gtpv2.CauseNotOKError{
-						MsgType: csResGtp.MessageTypeName(),
-						Cause:   cause,
-						//Msg:     fmt.Sprintf("subscriber: %s", session.IMSI),
+					csRes.GtpError = &protos.GtpError{
+						Cause: uint32(cause),
+						Msg:   fmt.Sprintf("Bearer could not be created"),
 					}
 					return
 				}
@@ -119,7 +118,7 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 		}
 		csRes.BearerContext = bearerCtx
 	} else {
-		err = &gtpv2.RequiredIEMissingError{Type: ie.BearerContext}
+		csRes.GtpError = errorIeMissing(ie.BearerContext)
 		return
 	}
 	return csRes, nil
@@ -142,20 +141,25 @@ func parseDelteSessionResponse(msg message.Message) (
 			return
 		}
 		if cause != gtpv2.CauseRequestAccepted {
-			err = &gtpv2.CauseNotOKError{
-				MsgType: cdResGtp.MessageTypeName(),
-				Cause:   cause,
-				Msg:     fmt.Sprintf("Delete Session Response not accepted"),
+			dsRes.GtpError = &protos.GtpError{
+				Cause: uint32(cause),
+				Msg:   fmt.Sprintf("DeleteSessionRequest with sequence # %d not accepted", msg.Sequence()),
 			}
 			return
 		}
 	} else {
-		err = &gtpv2.RequiredIEMissingError{
-			Type: ie.Cause,
-		}
+		dsRes.GtpError = errorIeMissing(ie.Cause)
 		return
 	}
 	return dsRes, nil
+}
+
+func errorIeMissing(missingIE uint8) *protos.GtpError {
+	errMsg := gtpv2.RequiredIEMissingError{Type: missingIE}
+	return &protos.GtpError{
+		Cause: uint32(gtpv2.CauseMandatoryIEMissing),
+		Msg:   errMsg.Error(),
+	}
 }
 
 // handleFTEID converts FTEID IE format into Proto format returning also the type of interface
@@ -189,4 +193,28 @@ func handleFTEID(fteidIE *ie.IE) (*protos.Fteid, uint8, error) {
 		fteid.Ipv6Address = ipv6.String()
 	}
 	return fteid, interfaceType, nil
+}
+
+func handlePDNAddressAllocation(paaIE *ie.IE) (*protos.PdnAddressAllocation, protos.PDNType, error) {
+	pdnTypeIE, err := paaIE.PDNType()
+	if err != nil {
+		return nil, 0, err
+	}
+	var pdnType protos.PDNType
+	var paa protos.PdnAddressAllocation
+	switch pdnTypeIE {
+	case gtpv2.PDNTypeIPv4:
+		pdnType = protos.PDNType_IPV4
+		paa.Ipv4Address = paaIE.MustIPv4().String()
+	case gtpv2.PDNTypeIPv6:
+		pdnType = protos.PDNType_IPV6
+		paa.Ipv6Address = paaIE.MustIPv6().String()
+	case gtpv2.PDNTypeIPv4v6:
+		pdnType = protos.PDNType_IPV4V6
+		paa.Ipv6Address = paaIE.MustIPv6().String()
+		paa.Ipv6Address = paaIE.MustIPv6().String()
+	case gtpv2.PDNTypeNonIP:
+		pdnType = protos.PDNType_NonIP
+	}
+	return &paa, pdnType, nil
 }

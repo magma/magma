@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.0.2)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(MagmaCore)
 
@@ -26,7 +25,7 @@ endif ()
 
 # TODO (amar) check all the flags used. Copied as is from OAI.
 set(CMAKE_C_FLAGS
-  "${CMAKE_C_FLAGS} ${C_FLAGS_PROCESSOR} -std=gnu99 -Wall -Werror -Wstrict-prototypes -fno-strict-aliasing -rdynamic -funroll-loops -Wno-packed-bitfield-compat -fPIC"
+  "${CMAKE_C_FLAGS} ${C_FLAGS_PROCESSOR} -std=gnu99 -Wall -Wstrict-prototypes -fno-strict-aliasing -rdynamic -funroll-loops -fPIC"
 )
 
 # add autoTOOLS definitions that were maybe used

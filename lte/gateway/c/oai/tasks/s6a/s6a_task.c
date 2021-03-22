@@ -167,10 +167,8 @@ int s6a_init(const mme_config_t* mme_config_p) {
 
 //------------------------------------------------------------------------------
 static void s6a_exit(void) {
-  destroy_task_context(&s6a_task_zmq_ctx);
-
   s6a_viface_close();
-
+  destroy_task_context(&s6a_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_S6A terminated\n");
   pthread_exit(NULL);
 }

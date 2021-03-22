@@ -94,9 +94,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_focal.vm.provider "virtualbox" do |vb|
       vb.name = "magma-focal-dev"
       vb.linked_clone = true
-      vb.customize ["modifyvm", :id, "--memory", "6144"]
+      vb.customize ["modifyvm", :id, "--memory", "8192"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000 ]
     end
     magma_focal.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false

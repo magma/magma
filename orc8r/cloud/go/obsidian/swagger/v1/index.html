@@ -8,6 +8,7 @@
   <title>Magma API Docs</title>
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="../../static/swagger-ui/dist/swagger-ui.css" >
+  <link rel="stylesheet" type="text/css" href="../../v1/static/sidebar.css" >
   <link rel="icon" type="image/png" href="../../static/swagger-ui/dist/favicon-32x32.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="../../static/swagger-ui/dist/favicon-16x16.png" sizes="16x16" />
   <style>
@@ -29,9 +30,22 @@
       background: #fafafa;
     }
   </style>
+  <script src="https://kit.fontawesome.com/85d0a9f517.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
+
+<!-- Sidebar navigation -->
+<div class="sidenav">
+  <a id = "home" {{if eq .SelectedService "" }}class="selected"{{end}} href="./"> Home </a>
+
+  {{ range $idx, $val := .Services}}
+  <a href="{{$val}}" {{if eq $.SelectedService $val}}class="selected"{{end}}> {{ $val }} </a>
+  {{ end }}
+
+  <!-- Collapse Button -->
+  <button class="fas fa-compress-alt" style="cursor: pointer; font-size: x-large; margin-left: 10px;" onclick="window.location=window.location + '?docExpansion=none' "></button>
+</div>
 
 <svg xmlns="http://www.w3.org/2000/svg"
      style="position:absolute;width:0;height:0">

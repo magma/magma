@@ -29,10 +29,7 @@
 #include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
 
-using grpc::Channel;
 using grpc::InsecureServerCredentials;
-using grpc::Server;
-using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
 using io::prometheus::client::MetricFamily;

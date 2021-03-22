@@ -3,10 +3,10 @@ circleci/ @tmdzk @mattymo @119Vik
 
 ci-scripts/ @rdefosse @tmdzk @mattymo @119Vik
 
-*/cloud/ @mpgermano @hcgatewood
+*/cloud/ @mpgermano @hcgatewood @karthiksubraveti @andreilee
 .golangci.yml @mpgermano @hcgatewood
 
-orc8r/ @mpgermano @hcgatewood @emakeev
+orc8r/ @mpgermano @hcgatewood @emakeev @karthiksubraveti @andreilee
 orc8r/tools/packer/ @tmdzk @mattymo @119Vik
 orc8r/cloud/deploy/bare-metal/ @tmdzk @mattymo @119Vik
 
@@ -24,7 +24,7 @@ lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo @ardzoht
 lte/gateway/c/sctpd @ssanadhya @ulaskozat
 lte/gateway/c/connection_tracker @koolzz
 lte/gateway/docker @rdefosse @tmdzk
-lte/gateway/release @kkahrs @tmdzk
+lte/gateway/release @tmdzk
 lte/gateway/python/magma/pipelined @koolzz @pshelar
 lte/gateway/python/integ_tests @ssanadhya @ulaskozat
 lte/gateway/Vagrantfile @mattymo @119Vik @tmdzk
@@ -36,6 +36,6 @@ lte/gateway/Vagrantfile @mattymo @119Vik @tmdzk
 xwf/ @AyliD @aharonnovo @r-i-g
 feg/radius @AyliD @aharonnovo @r-i-g @themarwhal @mpgermano @uri200 @emakeev
 
-nms/ @karthiksubraveti @andreilee @Scott8440
+nms/ @karthiksubraveti @andreilee @Scott8440 @HannaFar
 
-CODEOWNERS @amarpad
+CODEOWNERS @amarpad @electronjoe

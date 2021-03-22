@@ -74,9 +74,9 @@ static int main_init(void) {
   init_task_context(
       TASK_MAIN,
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
-                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP,
+                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
                     TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
-      10, NULL, &main_zmq_ctx);
+      11, NULL, &main_zmq_ctx);
 
   return RETURNok;
 }
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
-  CHECK_INIT_RETURN(sgw_s8_init());
+  CHECK_INIT_RETURN(sgw_s8_init(&spgw_config.sgw_config));
 #else
   CHECK_INIT_RETURN(udp_init());
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));

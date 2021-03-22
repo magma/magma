@@ -21,7 +21,7 @@ namespace sctpd {
 SctpdEventHandler::SctpdEventHandler(SctpdUplinkClient& client)
     : _client(client) {}
 
-void SctpdEventHandler::HandleNewAssoc(
+int SctpdEventHandler::HandleNewAssoc(
     uint32_t ppid, uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
     std::string& ran_cp_ipaddr) {
   NewAssocReq req;
@@ -33,7 +33,7 @@ void SctpdEventHandler::HandleNewAssoc(
   req.set_outstreams(outstreams);
   req.set_ran_cp_ipaddr(ran_cp_ipaddr);
 
-  _client.newAssoc(req, &res);
+  return _client.newAssoc(req, &res);
 }
 
 void SctpdEventHandler::HandleCloseAssoc(

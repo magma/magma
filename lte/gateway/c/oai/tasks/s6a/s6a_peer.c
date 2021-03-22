@@ -80,9 +80,7 @@ void s6a_peer_connected_cb(struct peer_info* info, void* arg) {
 }
 
 int s6a_fd_new_peer(void) {
-  char host_name[100];
-  size_t host_name_len = 0;
-  int ret              = 0;
+  int ret = 0;
 #if FD_CONF_FILE_NO_CONNECT_PEERS_CONFIGURED
   struct peer_info info = {0};
 #endif
@@ -92,24 +90,10 @@ int s6a_fd_new_peer(void) {
     return RETURNerror;
   }
 
-  if (fd_g_config->cnf_diamid) {
-    free(fd_g_config->cnf_diamid);
-    fd_g_config->cnf_diamid_len = 0;
-  }
-
-  DevAssert(gethostname(host_name, 100) == 0);
-  host_name_len                = strlen(host_name);
-  host_name[host_name_len]     = '.';
-  host_name[host_name_len + 1] = '\0';
-  strcat(host_name, (const char*) mme_config.realm->data);
-  fd_g_config->cnf_diamid     = strdup(host_name);
-  fd_g_config->cnf_diamid_len = strlen(fd_g_config->cnf_diamid);
   OAILOG_DEBUG(
       LOG_S6A, "Diameter identity of MME: %s with length: %zd\n",
       fd_g_config->cnf_diamid, fd_g_config->cnf_diamid_len);
   bstring hss_name = bstrcpy(mme_config.s6a_config.hss_host_name);
-  bconchar(hss_name, '.');
-  bconcat(hss_name, mme_config.realm);
 
   if (mme_config_unlock(&mme_config)) {
     OAILOG_ERROR(LOG_S6A, "Failed to unlock configuration\n");

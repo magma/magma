@@ -31,11 +31,7 @@ var (
 
 // BuildACLForEntities builds ACL from networks, operators & gateways command
 // line flags
-func BuildACLForEntities(
-	networks,
-	operators,
-	gateways Entities) []*accessprotos.AccessControl_Entity {
-
+func BuildACLForEntities(networks, operators, gateways Entities) []*accessprotos.AccessControl_Entity {
 	// Assemble ACL for the Operator
 	// NOTE: Gateway granularity access control is not implemented yet
 	var acl []*accessprotos.AccessControl_Entity

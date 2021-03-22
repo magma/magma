@@ -34,6 +34,8 @@ class SessionReporterTest : public ::testing::Test {
    * Create magma service and run in separate thread
    */
   virtual void SetUp() {
+    evb = new folly::EventBase();
+
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         "test_service", ServiceRegistrySingleton::LOCAL);
     magma_service =
@@ -41,7 +43,7 @@ class SessionReporterTest : public ::testing::Test {
     mock_cloud = std::make_shared<MockCentralController>();
     magma_service->AddServiceToServer(mock_cloud.get());
 
-    reporter = std::make_shared<SessionReporterImpl>(&evb, channel);
+    reporter = std::make_shared<SessionReporterImpl>(evb, channel);
 
     std::thread reporter_thread([&]() {
       std::cout << "Started reporter thread\n";
@@ -65,14 +67,14 @@ class SessionReporterTest : public ::testing::Test {
   virtual void TearDown() {
     magma_service->Stop();
     reporter->stop();
+    delete evb;
   }
 
   // Timeout to not block test
   void set_timeout(uint32_t ms) {
-    std::thread([&]() {
+    std::thread([ms]() {
       std::this_thread::sleep_for(std::chrono::milliseconds(ms));
       EXPECT_TRUE(false);
-      evb.terminateLoopSoon();
     })
         .detach();
   }
@@ -81,7 +83,7 @@ class SessionReporterTest : public ::testing::Test {
   std::shared_ptr<service303::MagmaService> magma_service;
   std::shared_ptr<MockCentralController> mock_cloud;
   std::shared_ptr<SessionReporter> reporter;
-  folly::EventBase evb;
+  folly::EventBase* evb;
   MockCallback mock_callback;
 };
 
@@ -114,14 +116,14 @@ TEST_F(SessionReporterTest, test_single_call) {
   // wait for one response
   std::thread([&]() {
     promise1.get_future().wait();
-    evb.terminateLoopSoon();
+    evb->terminateLoopSoon();
   })
       .detach();
 
   set_timeout(1000);
 
   // wait for callback
-  evb.loopForever();
+  evb->loopForever();
 }
 
 // Test multiple calls at the same time, wait for all to finish
@@ -167,14 +169,14 @@ TEST_F(SessionReporterTest, test_multi_call) {
     promise1.get_future().wait();
     promise2.get_future().wait();
     promise3.get_future().wait();
-    evb.terminateLoopSoon();
+    evb->terminateLoopSoon();
   })
       .detach();
 
   set_timeout(1000);
 
   // wait for callback
-  evb.loopForever();
+  evb->loopForever();
 }
 
 int main(int argc, char** argv) {

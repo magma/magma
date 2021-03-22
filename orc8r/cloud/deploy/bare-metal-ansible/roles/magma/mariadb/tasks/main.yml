@@ -1,0 +1,27 @@
+- name: mariadb | Ensure bitnami helm repo
+  command: helm repo add bitnami https://charts.bitnami.com/bitnami
+
+- name: mariadb | Update repo metadata
+  command: helm repo update
+
+- name: mariadb | Ensure namespace
+  command: kubectl create ns {{ mariadb_namespace }}
+  failed_when: false
+
+- name: mariadb | Ensure charts dir
+  file:
+    path: "{{ charts_dir }}"
+    state: directory
+    recurse: yes
+
+- name: mariadb | Template out helm chart values
+  template:
+    src: mariadb-values.yaml.j2
+    dest: "{{ charts_dir }}/{{ item }}-values.yaml"
+  with_items:
+    - mariadb
+
+- name: mariadb | Install/upgrade helm charts
+  command: helm upgrade --install -n {{ mariadb_namespace }} {{ item }} bitnami/{{ item }} -f {{ charts_dir }}/{{ item }}-values.yaml --wait
+  with_items:
+    - mariadb

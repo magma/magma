@@ -30,7 +30,7 @@ target_link_libraries(COMMON_TEST_LIB
   SERVICE303_LIB
 )
 
-foreach(common_test yaml_utils magma_service)
+foreach(common_test yaml_utils magma_service service_registry service303 metrics)
   add_executable(${common_test}_test test_${common_test}.cpp)
   target_link_libraries(${common_test}_test COMMON_TEST_LIB)
   add_test(test_${common_test} ${common_test}_test)

@@ -63,6 +63,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     set_session_manager = std::make_shared<SetMessageManagerHandler>(
         session_enforcer, *session_store);
   }
+  virtual void TearDown() { delete evb; }
 
  public:
   std::shared_ptr<SessionStore> session_store;

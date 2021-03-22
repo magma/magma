@@ -3650,6 +3650,32 @@ paths:
       summary: Change a subscriber's data profile
       tags:
       - Subscribers
+  /lte/{network_id}/subscribers_v2:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: Filter to subscribers with the passed MSISDN
+        in: query
+        name: msisdn
+        required: false
+        type: string
+      - description: Filter to subscribers assigned the passed IP address
+        in: query
+        name: ip
+        required: false
+        type: string
+      - $ref: '#/parameters/page_size'
+      - $ref: '#/parameters/page_token'
+      responses:
+        "200":
+          description: List of subscribers in the network
+          schema:
+            $ref: '#/definitions/paginated_subscribers'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List subscribers in the network with pagination support
+      tags:
+      - Subscribers
   /networks:
     get:
       responses:
@@ -6587,6 +6613,19 @@ parameters:
     name: node_id
     required: true
     type: string
+  page_size:
+    description: Maximum number of entities to return
+    format: uint32
+    in: query
+    name: page_size
+    required: false
+    type: integer
+  page_token:
+    description: Opaque page token for paginated requests
+    in: query
+    name: page_token
+    required: false
+    type: string
   policy_qos_profile_id:
     description: Policy QoS profile
     in: path
@@ -7971,10 +8010,26 @@ definitions:
     - timestamp
     - value
     type: object
+  federated_mode_map:
+    description: Mapping for PLMN, imsi ranges, vs its gateway mode
+    properties:
+      enabled:
+        default: false
+        description: If Enabled is false, mapping will not be applied
+        example: false
+        type: boolean
+        x-nullable: false
+      mapping:
+        items:
+          $ref: '#/definitions/mode_map_item'
+        type: array
+    type: object
   federated_network_configs:
     description: Configs for networks that are federated
     minLength: 1
     properties:
+      federated_modes_mapping:
+        $ref: '#/definitions/federated_mode_map'
       feg_network_id:
         example: example_feg_network
         type: string
@@ -8086,7 +8141,8 @@ definitions:
     - dns
     type: object
   feg_network_id:
-    example: example_feg_network
+    description: Name of the federated network serving this LTE network. Blank for non federated
+    example: feg_id_only_for_federated_network
     type: string
   flow_description:
     properties:
@@ -8347,7 +8403,6 @@ definitions:
         $ref: '#/definitions/swx'
     required:
     - s6a
-    - s8
     - hss
     - gx
     - gy
@@ -8878,6 +8933,22 @@ definitions:
     required:
     - latency_ms
     type: object
+  imei:
+    description: IMEI (type allocation code and serial number)
+    properties:
+      snr:
+        example: "176148"
+        pattern: ^(\d{6})$
+        type: string
+        x-nullable: false
+      tac:
+        example: "01300600"
+        pattern: ^(\d{8})$
+        type: string
+        x-nullable: false
+    required:
+    - tac
+    type: object
   ip_address:
     description: IP address
     properties:
@@ -9218,6 +9289,32 @@ definitions:
     items:
       $ref: '#/definitions/metric_datapoint'
     type: array
+  mode_map_item:
+    description: Item containing {mode, [plmnA, plmB], [imsi1, imsi2], [apnY, apnZ]}
+    properties:
+      apn:
+        example: internet.com
+        type: string
+        x-nullable: false
+      imsi_range:
+        example: 000000000000000:000019999999999
+        type: string
+        x-nullable: false
+      mode:
+        enum:
+        - local_subscriber
+        - s8_subscriber
+        example: local_subscriber
+        type: string
+        x-nullable: false
+      plmn:
+        example: "123456"
+        maxLength: 6
+        minLength: 5
+        pattern: ^(\d{5,6})$
+        type: string
+        x-nullable: false
+    type: object
   msisdn:
     description: Mobile station international subscriber directory number
     example: "13109976224"
@@ -9676,6 +9773,12 @@ definitions:
           type: string
         type: array
         x-omitempty: true
+      restricted_imeis:
+        description: List of IMEIs restricted in the network
+        items:
+          $ref: '#/definitions/imei'
+        type: array
+        x-omitempty: true
       restricted_plmns:
         description: List of PLMN IDs restricted in the network
         items:
@@ -9978,6 +10081,9 @@ definitions:
         example: theuamsecret
         type: string
     type: object
+  next_page_token:
+    description: Base 64 encoded page token for subsequent paginated API requests
+    type: string
   nh_routes:
     additionalProperties:
       type: string
@@ -10011,6 +10117,20 @@ definitions:
       version:
         example: 0.0.0
         type: string
+    type: object
+  paginated_subscribers:
+    description: Page of subscribers
+    properties:
+      next_page_token:
+        $ref: '#/definitions/next_page_token'
+      subscribers:
+        additionalProperties:
+          $ref: '#/definitions/subscriber'
+          x-nullable: true
+        type: object
+    required:
+    - next_page_token
+    - subscribers
     type: object
   ping_request:
     properties:
@@ -10093,7 +10213,7 @@ definitions:
         x-go-custom-tag: magma_alt_name:"VpnIp"
     type: object
   plmn_config:
-    description: Record in a gateway pool
+    description: PLMN Configuration
     properties:
       mcc:
         example: "001"

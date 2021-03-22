@@ -1603,8 +1603,9 @@ definitions:
        $ref: '#/definitions/feg_network_id'
 
   feg_network_id:
+    description: Name of the federated network serving this LTE network. Blank for non federated
     type: string
-    example: 'example_feg_network'
+    example: 'feg_id_only_for_federated_network'
 
   network_ran_configs:
     description: RAN (radio access network) cellular configuration for a network
@@ -1823,6 +1824,13 @@ definitions:
         description: 'Mapping service areas to tacs in the network'
         additionalProperties:
           $ref: '#/definitions/tac_list'
+
+      restricted_imeis:
+        type: array
+        description: 'List of IMEIs restricted in the network'
+        items:
+          $ref: '#/definitions/imei'
+        x-omitempty: true
 
   lte_gateway:
     type: object
@@ -2542,7 +2550,7 @@ definitions:
     x-nullable: false
 
   plmn_config:
-    description: Record in a gateway pool
+    description: PLMN Configuration
     type: object
     required:
       - mcc
@@ -2557,4 +2565,21 @@ definitions:
         type: string
         pattern: '^(\d{2,3})$'
         example: '01'
+        x-nullable: false
+
+  imei:
+    description: IMEI (type allocation code and serial number)
+    type: object
+    required:
+      - tac
+    properties:
+      tac:
+        type: string
+        pattern: '^(\d{8})$'
+        example: '01300600'
+        x-nullable: false
+      snr:
+        type: string
+        pattern: '^(\d{6})$'
+        example: '176148'
         x-nullable: false
