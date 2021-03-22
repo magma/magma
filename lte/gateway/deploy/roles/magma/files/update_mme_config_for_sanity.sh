@@ -94,7 +94,7 @@ function configure_blocked_imei {
 
   # Configure blocked imei(s) in MME configuration file
   blocked_imei_config=(
-    '{ IMEI= "9900048235103723" }'
+    '{ TAC="99000482"; SNR="351037" }'
   )
   blocked_imei_cmd_str=""
   for config in "${blocked_imei_config[@]}"

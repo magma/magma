@@ -308,7 +308,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   const char* csfb_mcc       = NULL;
   const char* csfb_mnc       = NULL;
   const char* lac            = NULL;
-  const char* imei_str       = NULL;
+  const char* tac_str        = NULL;
+  const char* snr_str        = NULL;
 
   config_init(&cfg);
 
@@ -919,19 +920,30 @@ int mme_config_parse_file(mme_config_t* config_pP) {
 
       for (i = 0; i < num; i++) {
         sub2setting = config_setting_get_elem(setting, i);
-
         if (sub2setting != NULL) {
           if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_IMEI, &imei_str))) {
+                  sub2setting, MME_CONFIG_STRING_TAC, &tac_str))) {
             AssertFatal(
-                strlen(imei_str) == MIN_LEN_IMEI ||
-                    strlen(imei_str) == MAX_LEN_IMEI,
-                "Bad IMEI length (%ld), it must be %u digits or %u digits\n",
-                strlen(imei_str), MIN_LEN_IMEI, MAX_LEN_IMEI);
+                strlen(tac_str) == MAX_LEN_TAC,
+                "Bad TAC length (%ld), it must be %u digits\n", strlen(tac_str),
+                MAX_LEN_TAC);
+            memcpy(
+                (char*) &config_pP->blocked_imei.imei_list[i].imei, tac_str,
+                strlen(tac_str));
           }
-          memcpy(
-              (char*) &config_pP->blocked_imei.imei_list[i].imei, imei_str,
-              strlen(imei_str));
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_SNR, &snr_str))) {
+            if (strlen(snr_str)) {
+              AssertFatal(
+                  strlen(snr_str) == MAX_LEN_SNR,
+                  "Bad SNR length (%ld), it must be %u digits\n",
+                  strlen(snr_str), MAX_LEN_SNR);
+              memcpy(
+                  (char*) &config_pP->blocked_imei.imei_list[i]
+                      .imei[strlen(tac_str)],
+                  snr_str, strlen(snr_str));
+            }
+          }
           config_pP->blocked_imei.num += 1;
         }
       }
@@ -1484,7 +1496,7 @@ void mme_config_display(mme_config_t* config_pP) {
     }
   }
   for (j = 0; j < config_pP->blocked_imei.num; j++) {
-    OAILOG_DEBUG(
+    OAILOG_INFO(
         LOG_CONFIG, "- Blocked IMEI : %s\n",
         config_pP->blocked_imei.imei_list[j].imei);
   }

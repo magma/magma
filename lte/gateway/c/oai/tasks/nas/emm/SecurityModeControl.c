@@ -377,10 +377,10 @@ int emm_proc_security_mode_control(
  **                                                                        **
  ** Name:    validate_imei()                                               **
  **                                                                        **
- ** Description: Check if the received imei/imeisv matches with the        **
+ ** Description: Check if the received imei matches with the        **
  **              blocked imei list                                         **
  **                                                                        **
- ** Inputs:  imei/imeisv string : imei/imeisv received in security mode    **
+ ** Inputs:  imei/imeisv string : imei received in security mode    **
  **                               complete/attach req                      **
  ** Outputs:                                                               **
  **      Return:    EMM cause                                              **
@@ -391,7 +391,8 @@ int validate_imei(char* imei) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   for (uint8_t itr = 0; itr < mme_config.blocked_imei.num; itr++) {
     if (!memcmp(
-            imei, mme_config.blocked_imei.imei_list[itr].imei, strlen(imei))) {
+            imei, mme_config.blocked_imei.imei_list[itr].imei,
+            strlen((char*) mme_config.blocked_imei.imei_list[itr].imei))) {
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_IMEI_NOT_ACCEPTED);
     }
   }
@@ -488,13 +489,16 @@ int emm_proc_security_mode_complete(
       imeisv.u.num.parity = imeisvmob->oddeven;
       // Convert to string
       char imeisv_str[MAX_IMEISV_SIZE + 1] = {0};
+      char imei_tmp[MAX_IMEI_SIZE]         = {0};
       IMEISV_TO_STRING(&imeisv, imeisv_str, MAX_IMEISV_SIZE + 1);
+      // Copy only 14 digits for validatation.
+      memcpy(imei_tmp, imeisv_str, (MAX_IMEI_SIZE - 1));
       OAILOG_DEBUG(
           LOG_NAS_EMM,
-          "EMM-PROC  - String imeisv "
+          "EMM-PROC  - String imei "
           "%s\n",
-          imeisv_str);
-      int emm_cause = validate_imei(imeisv_str);
+          imei_tmp);
+      int emm_cause = validate_imei(imei_tmp);
       if (emm_cause != EMM_CAUSE_SUCCESS) {
         OAILOG_ERROR(
             LOG_NAS_EMM,
