@@ -14,10 +14,6 @@ create: true
 
 domainName: localhost
 
-# Following durations is set on these certificates:
-# - nms-certificate
-# - controller-certificate
-# - admin-operator-certificate
 # 10 years = 87600h
 duration: 87600h
 renewBefore: 24h
