@@ -25,7 +25,7 @@ These certificates will be installed cert-manager:
 
 Get private key for bootstrapper:
 
-kubectl -n test-certs get secrets {{ .Release.Name }}-bootstrapper-tls \
+kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-bootstrapper-tls \
   -o jsonpath='{.data.tls\.key}' | base64 -d 
 
 Check pkcs12 certificate:
@@ -33,10 +33,11 @@ Check pkcs12 certificate:
 kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-admin-operator-tls \
   -o jsonpath='{.data.keystore\.p12}' | base64 -d | \
   openssl pkcs12 -nodes -passin pass:"{{ .Values.adminOperator.pkcs12.password }}" -in -
-{{- end }}
 
 Check x509 certificate:
 
 kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-nms-tls \
   -o jsonpath='{.data.tls\.crt}' | base64 -d | \
   openssl x509 -text -noout -in -
+
+{{- end }}
