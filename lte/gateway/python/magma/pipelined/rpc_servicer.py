@@ -214,9 +214,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Update version for a given subscriber and rule.
         """
-        for rule_id in request.rule_ids:
-            self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, ipv4, rule_id)
         for rule in request.dynamic_rules:
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, ipv4, rule.id)
@@ -254,7 +251,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv4 = self._install_flows_gx(request, ipv4)
             else:
                 ret_ipv4 = self._install_flows_gy(request, ipv4)
-            ret.static_rule_results.extend(ret_ipv4.static_rule_results)
             ret.dynamic_rule_results.extend(ret_ipv4.dynamic_rule_results)
         if request.ipv6_addr:
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
@@ -263,7 +259,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv6 = self._install_flows_gx(request, ipv6)
             else:
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
-            ret.static_rule_results.extend(ret_ipv6.static_rule_results)
             ret.dynamic_rule_results.extend(ret_ipv6.dynamic_rule_results)
         if request.uplink_tunnel and request.downlink_tunnel:
             self._update_tunnel_map_store(request.uplink_tunnel,
