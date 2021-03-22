@@ -907,16 +907,16 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     // MODE MAP SETTING
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_FED_MODE_MAP);
-    memset(&config_pP->mode_map_config, 0, sizeof(mode_map_t));
+    memset(&config_pP->mode_map_config, 0, sizeof(fed_mode_map_t));
     OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_FED_MODE_MAP \n");
     if (setting != NULL) {
       num = config_setting_length(setting);
       OAILOG_INFO(LOG_MME_APP, "Number of mode maps configured =%d\n", num);
       AssertFatal(
-          num <= MAX_MODE_MAP_CONFIG,
+          num <= MAX_FED_MODE_MAP_CONFIG,
           "Number of mode maps configured:%d exceeds number of "
           "mode maps supported :%d \n",
-          num, MAX_MODE_MAP_CONFIG);
+          num, MAX_FED_MODE_MAP_CONFIG);
 
       for (i = 0; i < num; i++) {
         sub2setting = config_setting_get_elem(setting, i);
