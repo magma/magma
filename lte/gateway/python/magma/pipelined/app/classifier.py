@@ -476,12 +476,12 @@ class Classifier(MagmaController):
                        priority=flows.PAGING_PRIORITY + 1,
                        hard_timeout= self.config.paging_timeout)
 
-    def _install_paging_flow(self, ue_ip_addr:str, controller_id:int=0):
+    def _install_paging_flow(self, ue_ip_addr:IPAddress, controller_id:int=0):
         ofproto = self._datapath.ofproto
         parser = self._datapath.ofproto_parser
-
+        ip_match_out = get_ue_ip_match_args(ue_ip_addr, Direction.IN)
         # Add flow for paging.
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=ue_ip_addr)
+        match = MagmaMatch(eth_type=get_eth_type(ue_ip_addr), **ip_match_out)
 
         # Pass Controller ID value as a ACTION
         actions = [parser.NXActionController(0, controller_id,
@@ -493,12 +493,13 @@ class Classifier(MagmaController):
                               output_port=ofproto.OFPP_CONTROLLER,
                               max_len=ofproto.OFPCML_NO_BUFFER)
 
-    def _remove_paging_flow(self, ue_ip_addr:str):
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=ue_ip_addr)
+    def _remove_paging_flow(self, ue_ip_addr:IPAddress):
+        ip_match_out = get_ue_ip_match_args(ue_ip_addr, Direction.IN)
+        match = MagmaMatch(eth_type=get_eth_type(ue_ip_addr), **ip_match_out)
         flows.delete_flow(self._datapath, self.tbl_num, match)
 
     def gtp_handler(self, pdr_state, precedence:int, local_f_teid:int,
-                     o_teid:int, ue_ip_addr:str, gnb_ip_addr:str,
+                     o_teid:int, ue_ip_addr:IPAddress, gnb_ip_addr:str,
                      sid:int = None, controller_id:int = 0):
 
         if pdr_state == PdrState.Value('INSTALL'):

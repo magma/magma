@@ -43,6 +43,7 @@ from ryu.lib import hub
 from scapy.contrib.gtp import GTP_U_Header
 from scapy.all import *
 from magma.pipelined.app.classifier import Classifier
+from lte.protos.mobilityd_pb2 import IPAddress
 
 class PagingTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -121,7 +122,8 @@ class PagingTest(unittest.TestCase):
         # install the specific flows test case.
         self.classifier_controller._delete_all_flows()
 
-        self.classifier_controller._install_paging_flow("192.168.128.30",
+        ue_ip_addr = "192.168.128.30"
+        self.classifier_controller._install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                         self.CLASSIFIER_CONTROLLER_ID) 
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
@@ -133,7 +135,8 @@ class PagingTest(unittest.TestCase):
         """
            Delete the paging flow from table 0
         """
-        self.classifier_controller._remove_paging_flow("192.168.128.30")
+        ue_ip_addr = "192.168.128.30"
+        self.classifier_controller._remove_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)#, include_stats=False)
@@ -148,7 +151,8 @@ class PagingTest(unittest.TestCase):
         # install the specific flows test case.
         self.classifier_controller._delete_all_flows() 
 
-        self.classifier_controller._install_paging_flow("192.168.128.30",
+        ue_ip_addr = "192.168.128.30"
+        self.classifier_controller._install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                         self.CLASSIFIER_CONTROLLER_ID)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
