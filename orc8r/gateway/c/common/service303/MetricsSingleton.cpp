@@ -12,17 +12,16 @@
  */
 #include "MetricsSingleton.h"
 
-using magma::service303::MetricsRegistry;
 using magma::service303::MetricsSingleton;
 using prometheus::BuildCounter;
 using prometheus::BuildGauge;
 using prometheus::BuildHistogram;
 using prometheus::Registry;
 
-MetricsSingleton* MetricsSingleton::instance_ = NULL;
+MetricsSingleton* MetricsSingleton::instance_ = nullptr;
 
 MetricsSingleton& MetricsSingleton::Instance() {
-  if (instance_ == NULL) {
+  if (instance_ == nullptr) {
     instance_ = new MetricsSingleton();
   }
   return *instance_;
