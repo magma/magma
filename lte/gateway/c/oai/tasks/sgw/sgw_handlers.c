@@ -219,17 +219,6 @@ int sgw_handle_s11_create_session_request(
              .pdn_connection,
         0, sizeof(sgw_pdn_connection_t));
 
-    if (s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-            .pdn_connection.sgw_eps_bearers_array == NULL) {
-      OAILOG_ERROR_UE(
-          LOG_SPGW_APP, imsi64,
-          "Failed to create eps bearers collection object\n");
-      increment_counter(
-          "spgw_create_session", 1, 2, "result", "failure", "cause",
-          "internal_software_error");
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-    }
-
     if (session_req_pP->apn) {
       s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
           .pdn_connection.apn_in_use = strdup(session_req_pP->apn);
