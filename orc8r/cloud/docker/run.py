@@ -40,7 +40,7 @@ def main() -> None:
         if args.thanos:
             f.append('thanos')
         file_args = _make_file_args(f)
-        compose_line = 'COMPOSE_FILE={}  {}\n'.format(
+        compose_line = 'COMPOSE_FILE={}  \n{}\n'.format(
             ':'.join(file_args),
             DO_NOT_COMMIT,
         )
