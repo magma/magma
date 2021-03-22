@@ -86,9 +86,6 @@ uint64_t mme_app_imsi_to_u64(mme_app_imsi_t imsi_src);
 void mme_app_ue_context_uint_to_imsi(
     uint64_t imsi_src, mme_app_imsi_t* imsi_dst);
 
-void mme_app_convert_imsi_to_imsi_mme(
-    mme_app_imsi_t* imsi_dst, const imsi_t* imsi_src);
-
 mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
     mme_ue_s1ap_id_t* mme_app_ue_s1ap_id_generator_p);
 
