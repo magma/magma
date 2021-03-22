@@ -95,7 +95,15 @@
       shell: dpkg -i {{PACKAGE_LOCATION_ABSOLUTE.stdout}}/{{ item }}
       become: yes
       with_items:
-        - "{{ ovs_build_config.packages }}"
+        - "{{ ovs_build_config.packages_debian }}"
+      when: ansible_distribution == "Debian"
+
+    - name: Load built packages.
+      shell: dpkg -i {{PACKAGE_LOCATION_ABSOLUTE.stdout}}/{{ item }}
+      become: yes
+      with_items:
+        - "{{ ovs_build_config.packages_ubuntu }}"
+      when: ansible_distribution == "Ubuntu"
 
 - name: Configuring magma apt preferences.
   become: yes
