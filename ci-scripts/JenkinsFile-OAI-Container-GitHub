@@ -99,7 +99,7 @@ pipeline {
               // Check if the pull request has files that will impact MME behavior
               // If so, we will run the OAI pipeline
               // For security reasons, we retrieve from a trusted forked repository
-              sh 'wget https://raw.githubusercontent.com/rdefosse/magma/trusted-oai-ci-pipeline/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -o ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
+              sh 'wget --quiet https://raw.githubusercontent.com/rdefosse/magma/trusted-oai-ci-pipeline/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -O ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
               sh 'python3 ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
               // If the previous command is OK, no need to run
               // All the following stages will be bypassed and the CI
@@ -165,7 +165,7 @@ pipeline {
         cleanup {
           script {
             // Again for security reason
-            sh 'wget https://raw.githubusercontent.com/rdefosse/magma/trusted-oai-ci-pipeline/ci-scripts/generateHtmlReport-OAI-pipeline.py -o ci-scripts/ci-generateHtmlReport-OAI-pipeline.py'
+            sh 'wget --quiet https://raw.githubusercontent.com/rdefosse/magma/trusted-oai-ci-pipeline/ci-scripts/generateHtmlReport-OAI-pipeline.py -O ci-scripts/ci-generateHtmlReport-OAI-pipeline.py'
             if (env.ghprbPullId != null) {
               commitID = sh returnStdout: true, script: 'git rev-parse origin/master'
               commitID = commitID.trim()
