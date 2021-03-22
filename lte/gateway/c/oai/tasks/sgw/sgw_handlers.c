@@ -1947,13 +1947,13 @@ int sgw_handle_ip_allocation_rsp(
       inet_ntop(
           AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip_str,
           INET_ADDRSTRLEN);
-        pcef_create_session(imsi, ip_str, NULL, &session_data, session_req);
+      pcef_create_session(imsi, ip_str, NULL, &session_data, session_req);
     } else if (ip_allocation_rsp->paa.pdn_type == IPv6) {
       char ip6_str[INET6_ADDRSTRLEN];
       inet_ntop(
           AF_INET6, &(ip_allocation_rsp->paa.ipv6_address), ip6_str,
           INET6_ADDRSTRLEN);
-        pcef_create_session(imsi, NULL, ip6_str, &session_data, session_req);
+      pcef_create_session(imsi, NULL, ip6_str, &session_data, session_req);
     } else if (ip_allocation_rsp->paa.pdn_type == IPv4_AND_v6) {
       char ip4_str[INET_ADDRSTRLEN];
       inet_ntop(
@@ -1963,7 +1963,7 @@ int sgw_handle_ip_allocation_rsp(
       inet_ntop(
           AF_INET6, &(ip_allocation_rsp->paa.ipv6_address), ip6_str,
           INET6_ADDRSTRLEN);
-        pcef_create_session(imsi, ip4_str, ip6_str, &session_data, session_req);
+      pcef_create_session(imsi, ip4_str, ip6_str, &session_data, session_req);
     }
   } else {
     if (ip_allocation_rsp->status == SGI_STATUS_ERROR_SYSTEM_FAILURE) {
