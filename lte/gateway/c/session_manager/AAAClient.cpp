@@ -44,9 +44,7 @@ aaa::add_sessions_request create_add_sessions_req(
         continue;
       }
       const auto& wlan_context = config.rat_specific_context.wlan_context();
-      magma::SessionState::SessionInfo session_info;
-      session->get_session_info(session_info);
-      ctx.set_imsi(session_info.imsi);
+      ctx.set_imsi(config.common_context.sid().id());
       ctx.set_session_id(wlan_context.radius_session_id());
       ctx.set_acct_session_id(session->get_session_id());
       ctx.set_mac_addr(wlan_context.mac_addr());

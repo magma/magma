@@ -762,8 +762,9 @@ func (m *RequestOriginType) GetType() RequestOriginType_OriginType {
 }
 
 type ActivateFlowsRequest struct {
-	Sid                  *SubscriberID             `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	IpAddr               string                    `protobuf:"bytes,2,opt,name=ip_addr,json=ipAddr,proto3" json:"ip_addr,omitempty"`
+	Sid    *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	IpAddr string        `protobuf:"bytes,2,opt,name=ip_addr,json=ipAddr,proto3" json:"ip_addr,omitempty"`
+	// Deprecated
 	RuleIds              []string                  `protobuf:"bytes,3,rep,name=rule_ids,json=ruleIds,proto3" json:"rule_ids,omitempty"`
 	DynamicRules         []*PolicyRule             `protobuf:"bytes,4,rep,name=dynamic_rules,json=dynamicRules,proto3" json:"dynamic_rules,omitempty"`
 	RequestOrigin        *RequestOriginType        `protobuf:"bytes,5,opt,name=request_origin,json=requestOrigin,proto3" json:"request_origin,omitempty"`

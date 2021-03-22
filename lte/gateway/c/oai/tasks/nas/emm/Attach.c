@@ -257,7 +257,7 @@ int emm_proc_attach_request(
    * shall reject any request to attach with an attach type set to "EPS
    * emergency attach".
    */
-  if (!(_emm_data.conf.eps_network_feature_support &
+  if (!(_emm_data.conf.eps_network_feature_support[0] &
         EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE_SUPPORTED) &&
       (EMM_ATTACH_TYPE_EMERGENCY == ies->type)) {
     REQUIREMENT_3GPP_24_301(R10_5_5_1__1);
@@ -1761,7 +1761,11 @@ static int _emm_send_attach_accept(emm_context_t* emm_context) {
     //----------------------------------------
     REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__14);
     emm_sap.u.emm_as.u.establish.eps_network_feature_support =
-        &_emm_data.conf.eps_network_feature_support;
+        calloc(1, sizeof(eps_network_feature_support_t));
+    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
+        _emm_data.conf.eps_network_feature_support[0];
+    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
+        _emm_data.conf.eps_network_feature_support[1];
 
     /*
      * Delete any preexisting UE radio capabilities, pursuant to
@@ -1770,7 +1774,8 @@ static int _emm_send_attach_accept(emm_context_t* emm_context) {
     // Note: this is safe from double-free errors because it sets to NULL
     // after freeing, which free treats as a no-op.
     bdestroy_wrapper(&ue_mm_context_p->ue_radio_capability);
-
+    free_wrapper(
+        (void**) &emm_sap.u.emm_as.u.establish.eps_network_feature_support);
     /*
      * Setup EPS NAS security data
      */
@@ -1827,6 +1832,7 @@ static int _emm_send_attach_accept(emm_context_t* emm_context) {
   } else {
     OAILOG_WARNING(LOG_NAS_EMM, "ue_mm_context NULL\n");
   }
+
   increment_counter("ue_attach", 1, 1, "action", "attach_accept_sent");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -1929,9 +1935,16 @@ static int _emm_attach_accept_retx(emm_context_t* emm_context) {
         " EMM-PROC  - Include the same GUTI in the Attach Accept Retx "
         "message\n",
         ue_id);
+    emm_sap.u.emm_as.u.establish.eps_network_feature_support =
+        calloc(1, sizeof(eps_network_feature_support_t));
     emm_sap.u.emm_as.u.data.new_guti = &emm_context->_guti;
-    emm_sap.u.emm_as.u.data.eps_network_feature_support =
-        &_emm_data.conf.eps_network_feature_support;
+    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
+        _emm_data.conf.eps_network_feature_support[0];
+    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
+        _emm_data.conf.eps_network_feature_support[1];
+    free_wrapper(
+        (void**) &emm_sap.u.emm_as.u.establish.eps_network_feature_support);
+
     /*
      * Setup EPS NAS security data
      */

@@ -78,8 +78,6 @@ class PipelinedClient {
   virtual void deactivate_flows_for_rules_for_termination(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
-      const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type) = 0;
 
   /**
@@ -90,7 +88,6 @@ class PipelinedClient {
   virtual void deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
       const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type) = 0;
 
@@ -101,8 +98,7 @@ class PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules,
+      const std::vector<PolicyRule>& rules,
       std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
   /**
@@ -142,8 +138,7 @@ class PipelinedClient {
   virtual void add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::string& msisdn, const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules) = 0;
+      const std::string& msisdn, const std::vector<PolicyRule>& rules) = 0;
 
   /**
    * Set up a Session of type SetMessage to be sent to UPF
@@ -206,8 +201,6 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void deactivate_flows_for_rules_for_termination(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
-      const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type);
 
   /**
@@ -218,7 +211,6 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
       const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type);
 
@@ -235,8 +227,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules,
+      const std::vector<PolicyRule>& rules,
       std::function<void(Status status, ActivateFlowsResult)> callback);
 
   /**
@@ -269,8 +260,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::string& msisdn, const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules);
+      const std::string& msisdn, const std::vector<PolicyRule>& rules);
 
   void set_upf_session(
       const SessionState::SessionInfo info,

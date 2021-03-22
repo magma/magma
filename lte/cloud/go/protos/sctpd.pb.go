@@ -800,8 +800,8 @@ type SctpdUplinkClient interface {
 	// @param NewAssocReq request specifying new association's information
 	// @return NewAssocRes void response object
 	NewAssoc(ctx context.Context, in *NewAssocReq, opts ...grpc.CallOption) (*NewAssocRes, error)
-	// CloseAssoc - notify MME of closing/reseting eNB assocation
-	// @param CloseAssocReq request specifying closing assocation and close type
+	// CloseAssoc - notify MME of closing/resetting eNB association
+	// @param CloseAssocReq request specifying closing association and close type
 	// @return CloseAssocRes void response object
 	CloseAssoc(ctx context.Context, in *CloseAssocReq, opts ...grpc.CallOption) (*CloseAssocRes, error)
 }
@@ -851,8 +851,8 @@ type SctpdUplinkServer interface {
 	// @param NewAssocReq request specifying new association's information
 	// @return NewAssocRes void response object
 	NewAssoc(context.Context, *NewAssocReq) (*NewAssocRes, error)
-	// CloseAssoc - notify MME of closing/reseting eNB assocation
-	// @param CloseAssocReq request specifying closing assocation and close type
+	// CloseAssoc - notify MME of closing/resetting eNB association
+	// @param CloseAssocReq request specifying closing association and close type
 	// @return CloseAssocRes void response object
 	CloseAssoc(context.Context, *CloseAssocReq) (*CloseAssocRes, error)
 }

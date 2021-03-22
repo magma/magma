@@ -190,9 +190,9 @@ message S11BearerContext {
 
 // gtvpv1u_data
 message GTPV1uData {
-    string ip_address = 1;
-    uint32 seq_num = 2;
-    uint32 restart_counter = 3;
+    string ip_address = 1      [deprecated = true];
+    uint32 seq_num = 2         [deprecated = true];
+    uint32 restart_counter = 3 [deprecated = true];
 
     uint32 fd0 = 4;
     uint32 fd1u = 5;

@@ -12,7 +12,6 @@
  */
 
 #include "MetricsHelpers.h"
-
 #include "MetricsSingleton.h"
 
 namespace magma {

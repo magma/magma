@@ -946,15 +946,21 @@ TEST_F(SessionStateTest, test_apply_session_rule_set) {
   EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-3"));
 
   // Check the RulesToProcess is properly filled out
-  EXPECT_EQ(to_activate.static_rules.size(), 1);
-  EXPECT_EQ(to_activate.static_rules[0], "rule-static-3");
-  EXPECT_EQ(to_deactivate.static_rules.size(), 1);
-  EXPECT_EQ(to_deactivate.static_rules[0], "rule-static-1");
-
-  EXPECT_EQ(to_activate.dynamic_rules.size(), 1);
-  EXPECT_EQ(to_activate.dynamic_rules[0].id(), "rule-dynamic-3");
-  EXPECT_EQ(to_deactivate.dynamic_rules.size(), 1);
-  EXPECT_EQ(to_deactivate.dynamic_rules[0].id(), "rule-dynamic-1");
+  EXPECT_EQ(to_activate.rules.size(), 2);
+  const std::string activate_rule1   = to_activate.rules[0].id();
+  const std::string activate_rule2   = to_activate.rules[1].id();
+  const std::string deactivate_rule1 = to_deactivate.rules[0].id();
+  const std::string deactivate_rule2 = to_deactivate.rules[1].id();
+  EXPECT_TRUE(
+      activate_rule1 == "rule-static-3" || activate_rule1 == "rule-dynamic-3");
+  EXPECT_TRUE(
+      activate_rule2 == "rule-static-3" || activate_rule2 == "rule-dynamic-3");
+  EXPECT_TRUE(
+      deactivate_rule1 == "rule-static-1" ||
+      deactivate_rule1 == "rule-dynamic-1");
+  EXPECT_TRUE(
+      deactivate_rule2 == "rule-static-1" ||
+      deactivate_rule2 == "rule-dynamic-1");
 
   // Finally assert the changes get applied to the update criteria
   EXPECT_EQ(uc.static_rules_to_install.size(), 1);

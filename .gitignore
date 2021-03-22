@@ -25,7 +25,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
+/build/
 develop-eggs/
 dist/
 eggs/
@@ -50,6 +50,9 @@ orc8r/cloud/test_certs/*.pfx
 
 # Ignore generated Swagger files
 orc8r/cloud/swagger/specs
+
+# Node
+node_modules/
 
 # Ignore apt/build cache
 .cache/*
@@ -95,3 +98,4 @@ fb
 
 # Code coverage
 orc8r/cloud/coverage/
+feg/gateway/coverage/
