@@ -799,6 +799,22 @@ jobs:
             ci_env=`bash <(curl -s https://codecov.io/env)`
             docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info"
 
+  mme-clang-warnings:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+      BRANCH: << pipeline.git.branch >>
+      REVISION: << pipeline.git.revision >>
+    steps:
+      - checkout
+      - run:
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
+            docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
+
   lte-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -1165,6 +1181,8 @@ workflows:
     jobs:
       - lte-test
       - mme-clang-tidy:
+          <<: *only_master
+      - mme-clang-warnings:
           <<: *only_master
       - lte-integ-test:
           <<: *master_and_develop

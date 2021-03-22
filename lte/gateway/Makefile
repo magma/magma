@@ -151,6 +151,33 @@ build_common: format_common ## Build shared libraries
 build_oai: format_oai build_common ## Build OAI
 	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS) $(COMMON_FLAGS))
 
+build_oai_clang: build_common ## Build OAI with Clang, store compiler outputs to log
+	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS) $(COMMON_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
+
+# Upload Clang-Warning counts by type to Google Sheet via Google Survey
+#  Graph available at https://docs.google.com/spreadsheets/d/1ndiIKJNI2IJZBwavnu1x_KwwvlQppnoYEOtYdihqiIQ/edit#gid=734064581
+# TODO: Move to a third party service (I could not find) or make a binary that parses + uploads this without missing new warning types.
+clang_warning_oai_upload: build_oai_clang ## Generate and then upload warning statistics to Google Survey for telemetry
+	curl -L -v -G -Ss \
+		--data-urlencode "entry.608561103=$(BRANCH)" \
+		--data-urlencode "entry.1257088109=$(REVISION)" \
+		--data-urlencode "entry.708918097=OAI" \
+		--data-urlencode "entry.1995144005=$(shell grep '\[-Wconstant-conversion\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.889426184=$(shell grep '\[-Wdeprecated-declarations\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.6143542=$(shell grep '\[-Wenum-conversion\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1953446373=$(shell grep '\[-Wextern-c-compat\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1508747323=$(shell grep '\[-Winconsistent-missing-override\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1682903653=$(shell grep '\[-Winitializer-overrides\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1030484709=$(shell grep '\[-Wnon-c-typedef-for-linkage\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1885910120=$(shell grep '\[-Wnull-dereference\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.411691731=$(shell grep '\[-Wparentheses-equality\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.872392934=$(shell grep '\[-Wpointer-bool-conversion\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1058267165=$(shell grep '\[-Wtautological-constant-out-of-range-compare\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1145616398=$(shell grep '\[-Wtautological-overlap-compare\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1265654844=$(shell grep '\[-Wtautological-pointer-compare\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.599425517=$(shell grep '\[-Wtypedef-redefinition\]' /tmp/clang-build.oai.log | wc -l)" \
+		https://docs.google.com/forms/d/e/1FAIpQLScKB3nLPASxzr4AXW5_yeHCjkEURY0K9OAFPIyNFzkA5CY_kw/formResponse?usp=pp_url
+
 build_sctpd: format_sctpd build_common ## Build SCTPD
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
