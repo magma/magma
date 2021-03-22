@@ -43,7 +43,6 @@ void sgw_handle_sgi_endpoint_updated(
 int sgw_handle_sgi_endpoint_deleted(
     const itti_sgi_delete_end_point_request_t* const resp_pP, imsi64_t imsi64);
 int sgw_handle_modify_bearer_request(
-    spgw_state_t* state,
     const itti_s11_modify_bearer_request_t* const modify_bearer_p,
     imsi64_t imsi64);
 int sgw_handle_delete_session_request(

@@ -46,7 +46,6 @@ int spgw_handle_nw_initiated_bearer_actv_req(
     imsi64_t imsi64, gtpv2c_cause_value_t* failed_cause);
 
 int32_t spgw_handle_nw_initiated_bearer_deactv_req(
-    spgw_state_t* spgw_state,
     const itti_gx_nw_init_deactv_bearer_request_t* const bearer_req_p,
     imsi64_t imsi64);
 

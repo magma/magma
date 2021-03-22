@@ -67,9 +67,9 @@ int get_assigned_ipv4_block(
 int pgw_handle_allocate_ipv4_address(
     const char* subscriber_id, const char* apn, const char* pdn_type,
     teid_t context_teid, ebi_t eps_bearer_id) {
-  std::string subscriber_id_str = std::string(subscriber_id);
-  std::string apn_str           = std::string(apn);
-  std::string pdn_type_str      = std::string(pdn_type);
+  auto subscriber_id_str = std::string(subscriber_id);
+  auto apn_str           = std::string(apn);
+  auto pdn_type_str      = std::string(pdn_type);
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id_str, apn_str,
       [subscriber_id_str, apn_str, pdn_type_str, context_teid, eps_bearer_id](
@@ -85,7 +85,7 @@ int pgw_handle_allocate_ipv4_address(
             status, addr, vlan, subscriber_id_str.c_str(), apn_str.c_str(),
             pdn_type_str.c_str(), context_teid, eps_bearer_id);
       });
-  return 0;
+  return RETURNok;
 }
 
 static void handle_allocate_ipv4_address_status(
@@ -174,10 +174,13 @@ int get_subscriber_id_from_ipv4(
 int pgw_handle_allocate_ipv6_address(
     const char* subscriber_id, const char* apn, const char* pdn_type,
     teid_t context_teid, ebi_t eps_bearer_id) {
+  auto subscriber_id_str = std::string(subscriber_id);
+  auto apn_str           = std::string(apn);
+  auto pdn_type_str      = std::string(pdn_type);
   // Make an RPC call to Mobilityd
   MobilityServiceClient::getInstance().AllocateIPv6AddressAsync(
-      subscriber_id, apn,
-      [subscriber_id, apn, pdn_type, context_teid, eps_bearer_id](
+      subscriber_id_str, apn_str,
+      [subscriber_id_str, apn_str, pdn_type_str, context_teid, eps_bearer_id](
           const Status& status, const AllocateIPAddressResponse& ip_msg) {
         struct in6_addr ip6_addr;
         std::string ipv6_addr_str;
@@ -187,7 +190,7 @@ int pgw_handle_allocate_ipv6_address(
           OAILOG_ERROR(
               LOG_UTIL,
               " Error in allocating ipv6 address for IMSI <%s> apn <%s>\n",
-              subscriber_id, apn);
+              subscriber_id_str.c_str(), apn_str.c_str());
           OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
         }
 
@@ -195,10 +198,10 @@ int pgw_handle_allocate_ipv6_address(
         int vlan = atoi(ip_msg.vlan().c_str());
 
         handle_allocate_ipv6_address_status(
-            status, ip6_addr, vlan, subscriber_id, apn, pdn_type, context_teid,
-            eps_bearer_id);
+            status, ip6_addr, vlan, subscriber_id_str.c_str(), apn_str.c_str(),
+            pdn_type_str.c_str(), context_teid, eps_bearer_id);
       });
-  return 0;
+  return RETURNok;
 }
 
 static void handle_allocate_ipv6_address_status(
@@ -243,7 +246,7 @@ static void handle_allocate_ipv6_address_status(
           "ue_pdn_connection", 1, 2, "pdn_type", pdn_type, "result", "failure");
       OAILOG_ERROR(
           LOG_UTIL,
-          "Failed to allocate IPv6 PAA for PDN type IPv4 for "
+          "Failed to allocate IPv6 PAA for PDN type IPv6 for "
           "imsi <%s> and apn <%s>\n",
           imsi, apn);
       ip_allocation_response_p->status =
@@ -262,10 +265,13 @@ static void handle_allocate_ipv6_address_status(
 int pgw_handle_allocate_ipv4v6_address(
     const char* subscriber_id, const char* apn, const char* pdn_type,
     teid_t context_teid, ebi_t eps_bearer_id) {
+  auto subscriber_id_str = std::string(subscriber_id);
+  auto apn_str           = std::string(apn);
+  auto pdn_type_str      = std::string(pdn_type);
   // Get IPv4v6 address
   MobilityServiceClient::getInstance().AllocateIPv4v6AddressAsync(
-      subscriber_id, apn,
-      [subscriber_id, apn, pdn_type, context_teid, eps_bearer_id](
+      subscriber_id_str, apn_str,
+      [subscriber_id_str, apn_str, pdn_type_str, context_teid, eps_bearer_id](
           const Status& status, const AllocateIPAddressResponse& ip_msg) {
         struct in_addr ip4_addr;
         struct in6_addr ip6_addr;
@@ -278,24 +284,24 @@ int pgw_handle_allocate_ipv4v6_address(
               LOG_UTIL,
               "Allocated IPv4 Address <%s>, IPv6 Address <%s>, PDN Type <%s>,"
               " for IMSI <%s> and APN <%s>\n",
-              ipv4_addr_str.c_str(), ipv6_addr_str.c_str(), pdn_type,
-              subscriber_id, apn);
+              ipv4_addr_str.c_str(), ipv6_addr_str.c_str(),
+              pdn_type_str.c_str(), subscriber_id_str.c_str(), apn_str.c_str());
         } else {
           OAILOG_ERROR(
               LOG_UTIL,
               " Error in allocating IPv4 and IPv6 addresses for IMSI <%s> apn "
               "<%s>\n",
-              subscriber_id, apn);
+              subscriber_id_str.c_str(), apn_str.c_str());
           OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
         }
         memcpy(&ip4_addr, ipv4_addr_str.c_str(), sizeof(in_addr));
         memcpy(&ip6_addr, ipv6_addr_str.c_str(), sizeof(in6_addr));
         int vlan = atoi(ip_msg.vlan().c_str());
         handle_allocate_ipv4v6_address_status(
-            status, ip4_addr, ip6_addr, vlan, subscriber_id, apn, pdn_type,
-            context_teid, eps_bearer_id);
+            status, ip4_addr, ip6_addr, vlan, subscriber_id_str.c_str(),
+            apn_str.c_str(), pdn_type_str.c_str(), context_teid, eps_bearer_id);
       });
-  return 0;
+  return RETURNok;
 }
 
 static void handle_allocate_ipv4v6_address_status(
