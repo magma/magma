@@ -19,18 +19,18 @@ using ::testing::Test;
 namespace magma {
 namespace service303 {
 
-const std::string MAGMA_SERVICE_NAME    = "test_service";
-const std::string MAGMA_SERVICE_VERSION = "0.0.0";
-const std::string META_KEY              = "key";
-const std::string META_VALUE            = "value";
+const std::string SERVICE_NAME    = "test_service";
+const std::string SERVICE_VERSION = "0.0.0";
+const std::string META_KEY        = "key";
+const std::string META_VALUE      = "value";
 
 TEST(test_magma_service, test_GetServiceInfo) {
-  MagmaService magma_service(MAGMA_SERVICE_NAME, MAGMA_SERVICE_VERSION);
+  MagmaService magma_service(SERVICE_NAME, SERVICE_VERSION);
   ServiceInfo response;
 
   magma_service.GetServiceInfo(nullptr, nullptr, &response);
-  EXPECT_EQ(response.name(), MAGMA_SERVICE_NAME);
-  EXPECT_EQ(response.version(), MAGMA_SERVICE_VERSION);
+  EXPECT_EQ(response.name(), SERVICE_NAME);
+  EXPECT_EQ(response.version(), SERVICE_VERSION);
   EXPECT_EQ(response.state(), ServiceInfo::ALIVE);
   EXPECT_EQ(response.health(), ServiceInfo::APP_UNKNOWN);
   auto start_time_1 = response.start_time_secs();
@@ -40,8 +40,8 @@ TEST(test_magma_service, test_GetServiceInfo) {
 
   magma_service.setApplicationHealth(ServiceInfo::APP_HEALTHY);
   magma_service.GetServiceInfo(nullptr, nullptr, &response);
-  EXPECT_EQ(response.name(), MAGMA_SERVICE_NAME);
-  EXPECT_EQ(response.version(), MAGMA_SERVICE_VERSION);
+  EXPECT_EQ(response.name(), SERVICE_NAME);
+  EXPECT_EQ(response.version(), SERVICE_VERSION);
   EXPECT_EQ(response.state(), ServiceInfo::ALIVE);
   EXPECT_EQ(response.health(), ServiceInfo::APP_HEALTHY);
   auto start_time_2 = response.start_time_secs();
@@ -55,7 +55,7 @@ ServiceInfoMeta test_callback() {
 }
 
 TEST(test_magma_service, test_GetServiceInfo_with_callback) {
-  MagmaService magma_service(MAGMA_SERVICE_NAME, MAGMA_SERVICE_VERSION);
+  MagmaService magma_service(SERVICE_NAME, SERVICE_VERSION);
   ServiceInfo response;
 
   magma_service.GetServiceInfo(nullptr, nullptr, &response);
@@ -86,7 +86,7 @@ bool reload_failed() {
 }
 
 TEST(test_magma_service, test_ReloadServiceConfig) {
-  MagmaService magma_service(MAGMA_SERIVCE_NAME, MAGMA_SERVICE_VERSION);
+  MagmaService magma_service(SERVICE_NAME, SERVICE_VERSION);
   ReloadConfigResponse response;
 
   magma_service.ReloadServiceConfig(nullptr, nullptr, &response);
@@ -115,6 +115,5 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
 }  // namespace service303
 }  // namespace magma

@@ -267,25 +267,25 @@ int mme_api_get_emm_config(
   }
 
   // hardcoded
-  config->eps_network_feature_support =
+  config->eps_network_feature_support[0] =
       EPS_NETWORK_FEATURE_SUPPORT_CS_LCS_LOCATION_SERVICES_VIA_CS_DOMAIN_NOT_SUPPORTED;
   if (mme_config_p->eps_network_feature_support
           .emergency_bearer_services_in_s1_mode != 0) {
-    config->eps_network_feature_support |=
+    config->eps_network_feature_support[0] |=
         EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE_SUPPORTED;
   }
   if (mme_config_p->eps_network_feature_support
           .ims_voice_over_ps_session_in_s1 != 0) {
-    config->eps_network_feature_support |=
+    config->eps_network_feature_support[0] |=
         EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1_SUPPORTED;
   }
   if (mme_config_p->eps_network_feature_support.location_services_via_epc !=
       0) {
-    config->eps_network_feature_support |=
+    config->eps_network_feature_support[0] |=
         EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC_SUPPORTED;
   }
   if (mme_config_p->eps_network_feature_support.extended_service_request != 0) {
-    config->eps_network_feature_support |=
+    config->eps_network_feature_support[0] |=
         EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST_SUPPORTED;
   }
 

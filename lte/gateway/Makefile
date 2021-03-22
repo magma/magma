@@ -74,7 +74,7 @@ build: build_python build_common build_oai build_sctpd build_session_manager bui
 
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
-test: test_python test_oai test_session_manager ## Run all tests
+test: test_python test_common test_oai test_sctpd test_session_manager ## Run all tests
 
 clean: clean_python clean_envoy_controller ## Clean all builds
 	rm -rf $(C_BUILD)
@@ -134,6 +134,14 @@ $(call run_cmake, $(1), $(2), $(3) $(TEST_FLAG))
 cd $(1) && ctest --output-on-failure
 endef
 
+format_common:
+	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
+format_%: ## Format service in magma/lte/gateway/c/
+	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
 build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
@@ -163,24 +171,27 @@ build_%:
 scan_oai: ## Scan OAI
 	$(call run_scanbuild, $(C_BUILD)/scan/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
-format_common:
-	find $(MAGMA_ROOT)/orc8r/gateway/c/common \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
-
-format_%: ## Format service in magma/lte/gateway/c/
-	find $(GATEWAY_C_DIR)/$* \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
-
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
 test_oai: build_common ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
+test_common: build_common ## Run all tests in magma_common
+	$(call run_ctest, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
+
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
-test_%: stop build_common
+test_%: build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+
+coverage_oai: test_oai
+	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_oai.info
+	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
+
+coverage_session_manager: test_session_manager
+	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_session_manager.info
+	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
 # format and test c/session_manager
 precommit_sm: format_session_manager test_session_manager
@@ -188,57 +199,53 @@ precommit_sm: format_session_manager test_session_manager
 # format and test c/oai
 precommit_oai: format_oai test_oai
 
-# TODO: include coverage of dpim when it is included in make build
-COV_OUTPUT_OAI = $(OAI_BUILD)/coverage.info
-COV_OUTPUT_SM = $(C_BUILD)/session_manager/coverage.info
-COV_OUTPUT_TOTAL = $(C_BUILD)/coverage.info
-# Put HTML within magma directory, so it can be accessed from outside VM
-COV_HTML_DIR_OAI = $(GATEWAY_C_DIR)/oai/code_coverage
-COV_HTML_DIR_SM = $(GATEWAY_C_DIR)/session_manager/code_coverage
-COV_HTML_DIR_TOTAL = $(MAGMA_ROOT)/c/code_coverage
+# Run clang-tidy
+# TODO: CMake config issue - compile_commands.json is only generated if you first make_oai, then test_oai (or do either twice).
+#       Additionally compile_commands.json is **not capturing all build artifacts this way**
+clang_tidy_oai: build_common
+	mkdir $(GATEWAY_C_DIR)/oai/build
+	cd $(GATEWAY_C_DIR)/oai/build;cmake ..
+	sed -i 's/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON/g' $(GATEWAY_C_DIR)/oai/build/CMakeCache.txt
+	cmake --build $(GATEWAY_C_DIR)/oai/build/ 
+	wget https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py
+	python run-clang-tidy.py -p $(GATEWAY_C_DIR)/oai/build/ -j 2 -checks='-*,clang-analyzer-security*,android-*,cert-*,clang-analyzer-*,concurrency,misc-*,-misc-unused-parameters,bugprone-*' 2>&1 | tee /tmp/clang-tidy-oai.findings
 
-SLEEP_SECS = 10
+# Pushes per-finding counts to:
+#   https://docs.google.com/forms/d/1-45BZTHh4uBBOCqYM4LAD4zFT91B47sEEntHLkQuXWA/edit#responses
+clang_tidy_oai_upload: clang_tidy_oai
+	# Generate a summary of per-finding counts in the log
+	grep '\]' /tmp/clang-tidy-oai.findings | grep warning: | awk -F'[][]' '{print $$2}' | sort | uniq -c
+	curl -L -v -G -Ss \
+		--data-urlencode "entry.338748281=$(BRANCH)" \
+		--data-urlencode "entry.1421502557=$(REVISION)" \
+		--data-urlencode "entry.1687500610=OAI" \
+		--data-urlencode "entry.1690779794=$(shell grep '\[android-cloexec' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1926965966=$(shell grep '\[bugprone-branch-clone\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.951746576=$(shell grep '\[bugprone-macro-parentheses\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.593794544=$(shell grep '\[bugprone-narrowing-conversions\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.607048444=$(shell grep '\[bugprone-reserved-identifier,cert-dcl37-c,cert-dcl51-cpp\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.2081825272=$(shell grep '\[bugprone-signed-char-misuse,cert-str34-c\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.268408734=$(shell grep '\[bugprone-sizeof-expression\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1339652996=$(shell grep '\[bugprone-suspicious-string-compare\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1446914229=$(shell grep '\[bugprone-too-small-loop-variable\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.718845718=$(shell grep '\[bugprone-undefined-memory-manipulation\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.851497596=$(shell grep '\[cert-' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1963803956=$(shell grep '\[clang-analyzer-core.CallAndMessage\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1218571043=$(shell grep '\[clang-analyzer-core.NullDereference\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1618711162=$(shell grep '\[clang-analyzer-core.uninitialized.Assign\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1062688275=$(shell grep '\[clang-analyzer-deadcode.DeadStores\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1790897376=$(shell grep '\[clang-analyzer-optin' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.1730273925=$(shell grep '\[clang-analyzer-security.insecureAPI.strcpy\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.806421502=$(shell grep '\[clang-analyzer-unix.Malloc\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.999694738=$(shell grep '\[clang-analyzer-unix.MallocSizeof\]' /tmp/clang-tidy-oai.findings | wc -l)" \
+		--data-urlencode "entry.740240539=$(shell grep '\[misc-' /tmp/clang-tidy-oai.findings | wc -l)" \
+		https://docs.google.com/forms/d/e/1FAIpQLSfHGqOmDhUMAWHSjA_w6NOGqglQBx2IaO1bXLo6zrOE95sRWQ/formResponse?usp=pp_url
 
-coverage: ## Generate full code coverage report
-	# Remove any previous gcov output files
-	rm -f `find $(OAI_BUILD) -name *.gcda`
-	rm -f `find $(C_BUILD)/session_manager -name *.gcda`
-	# Stop processes to generate gcda
-	sudo service magma@mme stop
-	sudo pkill -INT sessiond
-	# Wait for gcov output to be generated
-	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
-	sleep $(SLEEP_SECS)
-	# Capture coverage info under different directories individually
-	lcov --capture --directory $(OAI_BUILD) --output-file $(COV_OUTPUT_OAI)
-	lcov --capture --directory $(C_BUILD)/session_manager --output-file $(COV_OUTPUT_SM)
-	# Merge coverage info
-	lcov --add-tracefile $(COV_OUTPUT_OAI) --add-tracefile $(COV_OUTPUT_SM) --output-file $(COV_OUTPUT_TOTAL)
-	# Remove coverage info regarding libraries from /usr/include/
-	lcov --remove $(COV_OUTPUT_TOTAL) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_TOTAL) --quiet
-	# Generate html which shows coverage with graph
-	genhtml $(COV_OUTPUT_TOTAL) --output-directory $(COV_HTML_DIR_TOTAL)
-	@echo "Generated coverage output to $(COV_HTML_DIR_TOTAL)/index.html"
+## Generate complete code structural information prior to any test execution
+base_coverage: build_oai build_sctpd build_session_manager build_connection_tracker
+	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info
+	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
-coverage_oai: ## Generate code coverage report for OAI
-	rm -f `find $(OAI_BUILD) -name *.gcda`
-	sudo service magma@mme stop
-	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
-	sleep $(SLEEP_SECS)
-	lcov --capture --directory $(OAI_BUILD) --output-file $(COV_OUTPUT_OAI)
-	lcov --remove $(COV_OUTPUT_OAI) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_OAI) --quiet
-	genhtml $(COV_OUTPUT_OAI) --output-directory $(COV_HTML_DIR_OAI)
-	@echo "Generated coverage output to $(COV_HTML_DIR_OAI)/index.html"
-
-coverage_sm: ## Generate code coverage report for session manager
-	rm -f `find $(C_BUILD)/session_manager -name *.gcda`
-	sudo pkill -INT sessiond
-	sleep $(SLEEP_SECS)
-	lcov --capture --directory $(C_BUILD)/session_manager --output-file $(COV_OUTPUT_SM)
-	lcov --remove $(COV_OUTPUT_SM) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_SM) --quiet
-	genhtml $(COV_OUTPUT_SM) --output-directory $(COV_HTML_DIR_SM)
-	@echo "Generated coverage output to $(COV_HTML_DIR_SM)/index.html"
-
-code_stats: ## Generate lines-of-code statistics for magma project
-	sudo apt-get install -y cloc
-	cloc .
+# Combine results of sub-coverages
+coverage: base_coverage coverage_oai coverage_session_manager
+	lcov -a /tmp/coverage_initialize.info -a /tmp/coverage_oai.info -a /tmp/coverage_session_manager.info -o $(C_BUILD)/coverage.info

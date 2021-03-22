@@ -122,8 +122,8 @@ service SctpdUplink {
     // @return NewAssocRes void response object
     rpc NewAssoc (NewAssocReq) returns (NewAssocRes) {}
 
-    // CloseAssoc - notify MME of closing/reseting eNB assocation
-    // @param CloseAssocReq request specifying closing assocation and close type
+    // CloseAssoc - notify MME of closing/resetting eNB association
+    // @param CloseAssocReq request specifying closing association and close type
     // @return CloseAssocRes void response object
     rpc CloseAssoc (CloseAssocReq) returns (CloseAssocRes) {}
 }

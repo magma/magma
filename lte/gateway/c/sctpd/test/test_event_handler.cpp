@@ -54,13 +54,17 @@ class EventHandlerTest : public ::testing::Test {
     send_ul_req.set_assoc_id(123);
     send_ul_req.set_stream(321);
     send_ul_req.set_payload("testtest");
+    send_ul_req.set_ppid(42);
 
     new_assoc_req.set_assoc_id(1234);
     new_assoc_req.set_instreams(16);
     new_assoc_req.set_outstreams(32);
+    new_assoc_req.set_ran_cp_ipaddr("127.0.0.1");
+    new_assoc_req.set_ppid(42);
 
     close_assoc_req.set_assoc_id(12345);
     close_assoc_req.set_is_reset(true);
+    close_assoc_req.set_ppid(42);
 
     auto channel = grpc::CreateChannel("", grpc::InsecureChannelCredentials());
 
@@ -77,50 +81,61 @@ class EventHandlerTest : public ::testing::Test {
 };
 
 TEST_F(EventHandlerTest, test_event_handler_new_assoc) {
+  auto correct_ppid = Property(&NewAssocReq::ppid, Eq(new_assoc_req.ppid()));
   auto correct_assoc_id =
       Property(&NewAssocReq::assoc_id, Eq(new_assoc_req.assoc_id()));
   auto correct_instreams =
       Property(&NewAssocReq::instreams, Eq(new_assoc_req.instreams()));
   auto correct_outstreams =
       Property(&NewAssocReq::outstreams, Eq(new_assoc_req.outstreams()));
-  auto correct_new_assoc_req =
-      AllOf(correct_assoc_id, correct_instreams, correct_outstreams);
+  auto correct_ran_cp_ipaddr =
+      Property(&NewAssocReq::ran_cp_ipaddr, Eq(new_assoc_req.ran_cp_ipaddr()));
+  auto correct_new_assoc_req = AllOf(
+      correct_ppid, correct_assoc_id, correct_instreams, correct_outstreams,
+      correct_ran_cp_ipaddr);
 
   EXPECT_CALL(*_uplink_client, newAssoc(correct_new_assoc_req, NotNull()))
       .Times(1);
 
+  auto ran_cp_ipaddr = new_assoc_req.ran_cp_ipaddr();
   _handler->HandleNewAssoc(
-      new_assoc_req.assoc_id(), new_assoc_req.instreams(),
-      new_assoc_req.outstreams());
+      new_assoc_req.ppid(), new_assoc_req.assoc_id(), new_assoc_req.instreams(),
+      new_assoc_req.outstreams(), ran_cp_ipaddr);
 }
 
 TEST_F(EventHandlerTest, test_event_handler_close_assoc) {
+  auto correct_ppid =
+      Property(&CloseAssocReq::ppid, Eq(close_assoc_req.ppid()));
   auto correct_assoc_id =
       Property(&CloseAssocReq::assoc_id, Eq(close_assoc_req.assoc_id()));
   auto correct_reset =
       Property(&CloseAssocReq::is_reset, Eq(close_assoc_req.is_reset()));
-  auto correct_close_assoc_req = AllOf(correct_assoc_id, correct_reset);
+  auto correct_close_assoc_req =
+      AllOf(correct_ppid, correct_assoc_id, correct_reset);
 
   EXPECT_CALL(*_uplink_client, closeAssoc(correct_close_assoc_req, NotNull()))
       .Times(1);
 
   _handler->HandleCloseAssoc(
-      close_assoc_req.assoc_id(), close_assoc_req.is_reset());
+      close_assoc_req.ppid(), close_assoc_req.assoc_id(),
+      close_assoc_req.is_reset());
 }
 
 TEST_F(EventHandlerTest, test_event_handler_send_ul) {
+  auto correct_ppid = Property(&SendUlReq::ppid, Eq(send_ul_req.ppid()));
   auto correct_assoc_id =
       Property(&SendUlReq::assoc_id, Eq(send_ul_req.assoc_id()));
   auto correct_stream = Property(&SendUlReq::stream, Eq(send_ul_req.stream()));
   auto correct_payload =
       Property(&SendUlReq::payload, Eq(send_ul_req.payload()));
   auto correct_send_ul_req =
-      AllOf(correct_assoc_id, correct_stream, correct_payload);
+      AllOf(correct_ppid, correct_assoc_id, correct_stream, correct_payload);
 
   EXPECT_CALL(*_uplink_client, sendUl(correct_send_ul_req, NotNull())).Times(1);
 
   _handler->HandleRecv(
-      send_ul_req.assoc_id(), send_ul_req.stream(), send_ul_req.payload());
+      send_ul_req.ppid(), send_ul_req.assoc_id(), send_ul_req.stream(),
+      send_ul_req.payload());
 }
 
 }  // namespace sctpd

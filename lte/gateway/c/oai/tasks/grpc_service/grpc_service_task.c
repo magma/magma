@@ -68,7 +68,7 @@ static void* grpc_service_thread(__attribute__((unused)) void* args) {
 
 int grpc_service_init(void) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing grpc_service task interface\n");
-  grpc_service_config                 = calloc(1, sizeof(grpc_service_config));
+  grpc_service_config                 = calloc(1, sizeof(grpc_service_data_t));
   grpc_service_config->server_address = bfromcstr(GRPCSERVICES_SERVER_ADDRESS);
 
   if (itti_create_task(TASK_GRPC_SERVICE, &grpc_service_thread, NULL) < 0) {
@@ -81,8 +81,8 @@ int grpc_service_init(void) {
 static void grpc_service_exit(void) {
   bdestroy_wrapper(&grpc_service_config->server_address);
   free_wrapper((void**) &grpc_service_config);
-  destroy_task_context(&grpc_service_task_zmq_ctx);
   stop_grpc_service();
+  destroy_task_context(&grpc_service_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_GRPC_SERVICE terminated\n");
   pthread_exit(NULL);
 }
