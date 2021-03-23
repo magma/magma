@@ -27,7 +27,11 @@ class TestEnbPartialReset(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_enb_partial_reset(self):
-        """ ENB Partial Reset for 2 UEs """
+        """ENB Partial Reset:
+        1) Attach 2 UEs
+        2) Send partial reset for 1 UE
+        3) Detach both the UEs
+        """
         ue_ids = []
         num_ues = 2
         self._s1ap_wrapper.configUEDevice(num_ues)
