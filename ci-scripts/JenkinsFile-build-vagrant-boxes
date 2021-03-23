@@ -91,7 +91,7 @@ pipeline {
         axes {
           axis {
             name 'base_box'
-            values "magma-dev", "magma-test", "magma-trfserver"
+            values "magma-dev", "magma-test", "magma-trfserver", "magma-dev-focal"
           }
         }
         stages {
@@ -126,7 +126,7 @@ pipeline {
         axes {
           axis {
             name 'base_box'
-            values "magma-dev", "magma-test", "magma-trfserver"
+            values "magma-dev", "magma-test", "magma-trfserver", "magma-dev-focal"
           }
         }
         stages {
