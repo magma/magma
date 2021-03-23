@@ -17,9 +17,6 @@ COPY ./ $MAGMA_ROOT
 
 # Build MME executables
 RUN export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
-    # temporary warnings not error when compiling
-    cd $MAGMA_ROOT/ && \
-    patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/CMake-warnings-not-errors.patch && \
     cd $MAGMA_ROOT/lte/gateway && \
     echo $FEATURES && \
     make build_oai && \
