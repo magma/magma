@@ -24,10 +24,8 @@ ovs_build_config:
     - "openvswitch-switch_2.8.10-1_amd64.deb"
 
   packages_ubuntu:
-    - "oai-gtp_4.9-9_amd64.deb"
     - "libopenvswitch_2.14.3-1_amd64.deb"
     - "openvswitch-datapath-dkms_2.14.3-1_all.deb"
-    - "openvswitch-datapath-source_2.14.3_all.deb"
     - "openvswitch-common_2.14.3-1_amd64.deb"
     - "openvswitch-switch_2.14.3-1_amd64.deb"
 
