@@ -109,18 +109,19 @@ $(BIN)/grpcio-tools: install_virtualenv
 .test: .tests .sudo_tests
 
 RESULTS_DIR := /var/tmp/test_results
+CODECOV_DIR := /var/tmp/codecovs
 
 .tests:
 ifdef TESTS
 	$(eval NAME ?= $(shell $(BIN)/python setup.py --name))
-	. $(PYTHON_BUILD)/bin/activate; $(BIN)/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/tests_$(NAME).xml --with-coverage --cover-erase --cover-branches --cover-package=magma -s $(TESTS)
+	. $(PYTHON_BUILD)/bin/activate; $(BIN)/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/tests_$(NAME).xml --with-coverage --cover-erase --cover-branches --cover-package=magma --cover-xml --cover-xml-file=$(CODECOV_DIR)/cover_$(NAME).xml -s $(TESTS)
 endif
 
 .sudo_tests:
 ifdef SUDO_TESTS
 ifndef SKIP_SUDO_TESTS
 	$(eval NAME ?= $(shell $(BIN)/python setup.py --name))
-	. $(PYTHON_BUILD)/bin/activate; sudo $(BIN)/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/sudo_$(NAME).xml --with-coverage --cover-branches --cover-package=magma -s $(SUDO_TESTS)
+	. $(PYTHON_BUILD)/bin/activate; sudo $(BIN)/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/sudo_$(NAME).xml --with-coverage --cover-branches --cover-package=magma --cover-xml --cover-xml-file=$(CODECOV_DIR)/cover_$(NAME).xml -s $(SUDO_TESTS)
 endif
 endif
 
