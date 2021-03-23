@@ -97,6 +97,12 @@ func FindServingFeGHwId(agNwID, imsi string) (string, error) {
 					return nhFegHwId, nil
 				}
 				glog.V(1).Infof("no NH route found for IMSI: %s", imsi)
+			} else if glog.V(1) {
+				if len(networkFegConfigs.NhRoutes) == 0 {
+					glog.Infof("no NH route configured for Gateway Network: %s, IMSI: %s", agNwID, imsi)
+				} else {
+					glog.Infof("no valid IMSI (%s) for Gateway Network: %s", imsi, agNwID)
+				}
 			}
 			return getActiveFeGForNetwork(servingFegNetwork)
 		}
