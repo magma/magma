@@ -266,25 +266,26 @@
     pkg:
       - python3-openvswitch
       - nlohmann-json3-dev
+      # managing gtp interface
+      - ifupdown
 
 - name: Copy the gtp interface initialization definition
   copy:
     src: magma_ifaces_gtp
     dest: /etc/network/interfaces.d/gtp
-  when: full_provision and ansible_distribution == "Debian"
+  when: full_provision
 
 - name: Preload the GTP module
-  ignore_errors: yes
   modprobe:
     name: gtp
     state: present
-  when: full_provision
+  when: full_provision and ansible_distribution == "Debian"
 
 - name: Persist preloading the GTP module on boot
   copy:
     src: magma_modules_load
     dest: /etc/modules-load.d/magma.conf
-  when: full_provision
+  when: full_provision and ansible_distribution == "Debian"
 
 - name: Delete the OVS bridge on system initialization
   lineinfile: dest=/etc/default/openvswitch-switch regexp='.*OVS_CTL_OPTS=.*' line='OVS_CTL_OPTS=\'--delete-bridges\'' state=present
@@ -351,8 +352,7 @@
   when: full_provision
 
 - name: Bring up ovs bridge
-  ignore_errors: yes
-  shell: ifup --allow=ovs {{ item }}
+  shell: ifup -i /etc/network/interfaces.d/gtp {{ item }}
   with_items:
     - gtp_br0
     - uplink_br0
