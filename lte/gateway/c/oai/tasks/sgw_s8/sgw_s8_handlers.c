@@ -842,3 +842,69 @@ static int sgw_s8_add_gtp_s8_tunnel(
   }
   OAILOG_FUNC_RETURN(LOG_SGW_S8, rv);
 }
+
+void sgw_s8_handle_s11_delete_session_request(
+    sgw_state_t* sgw_state,
+    const itti_s11_delete_session_request_t* const delete_session_req_p,
+    imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  gtpv2c_cause_value_t gtpv2c_cause = 0;
+  if (!delete_session_req_p) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Received NULL delete_session_req_p from mme app \n");
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+  OAILOG_INFO_UE(
+      LOG_SGW_S8, imsi64,
+      "Received S11 DELETE SESSION REQUEST for sgw_s11_teid " TEID_FMT "\n",
+      delete_session_req_p->teid);
+  increment_counter("sgw_delete_session", 1, NO_LABELS);
+  if (delete_session_req_p->indication_flags.oi) {
+    OAILOG_DEBUG_UE(
+        LOG_SPGW_APP, imsi64,
+        "OI flag is set for this message indicating the request"
+        "should be forwarded to P-GW entity\n");
+  }
+
+  sgw_eps_bearer_context_information_t* sgw_context_p =
+      sgw_get_sgw_eps_bearer_context(delete_session_req_p->teid);
+  if (!sgw_context_p) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Failed to fetch sgw_eps_bearer_context_info from "
+        "sgw_s11_teid " TEID_FMT " \n",
+        delete_session_req_p->teid);
+    /*TODO Rashmi send DSrsp with context not found */
+    gtpv2c_cause = CONTEXT_NOT_FOUND;
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+  if ((delete_session_req_p->sender_fteid_for_cp.ipv4) &&
+      (delete_session_req_p->sender_fteid_for_cp.ipv6)) {
+    // Sender F-TEID IE present
+    if (delete_session_req_p->teid != sgw_context_p->mme_teid_S11) {
+      gtpv2c_cause = INVALID_PEER;
+      OAILOG_ERROR_UE(
+          LOG_SPGW_APP, imsi64,
+          "Mismatch in MME Teid for CP teid recevied in delete session "
+          "req: " TEID_FMT " teid present in sgw_context :" TEID_FMT "\n",
+          delete_session_req_p->teid, sgw_context_p->mme_teid_S11);
+    }
+  }
+  if (delete_session_req_p->lbi !=
+      sgw_context_p->pdn_connection.default_bearer) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
+        "Mismatch in default eps bearer_id, bearer_id recevied in delete "
+        "session req :%d and bearer_id present in sgw_context :%d \n",
+        delete_session_req_p->lbi,
+        sgw_context_p->pdn_connection.default_bearer);
+  }
+
+  send_s8_delete_session_request(
+      sgw_context_p->imsi64, sgw_context_p->imsi,
+      sgw_context_p->s_gw_teid_S11_S4,
+      sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp,
+      sgw_context_p->pdn_connection.default_bearer);
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}

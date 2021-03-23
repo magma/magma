@@ -60,4 +60,23 @@ void S8Client::s8_create_session_request(
   response->set_response_reader(std::move(response_reader));
 }
 
+void S8Client::s8_delete_session_request(
+    const DeleteSessionRequestPgw& dsr_req,
+    std::function<void(grpc::Status, DeleteSessionResponsePgw)> callback) {
+  S8Client& client = get_instance();
+  // Create a raw response pointer that stores a callback to be called when the
+  // gRPC call is answered
+  auto response = new AsyncLocalResponse<DeleteSessionResponsePgw>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  // Create a response reader for the `CreateSession` RPC call. This reader
+  // stores the client context, the request to pass in, and the queue to add
+  // the response to when done
+  auto response_reader = client.stub_->AsyncDeleteSession(
+      response->get_context(), dsr_req, &client.queue_);
+  // Set the reader for the local response. This executes the `DeleteSession`
+  // response using the response reader. When it is done, the callback stored in
+  // `local_response` will be called
+  response->set_response_reader(std::move(response_reader));
+}
+
 }  // namespace magma

@@ -102,6 +102,12 @@ static void get_paa_from_proto_msg(
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
+static void recv_s8_delete_session_response(
+    imsi64_t imsi64, teid_t context_teid, const grpc::Status& status,
+    magma::feg::DeleteSessionResponsePgw& response) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
 
 static void recv_s8_create_session_response(
     imsi64_t imsi64, teid_t context_teid, const grpc::Status& status,
@@ -378,5 +384,28 @@ static void convert_proto_msg_to_itti_csr(
   } else {
     s5_response->cause = REQUEST_ACCEPTED;
   }
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+void send_s8_delete_session_request(
+    imsi64_t imsi64, Imsi_t imsi, teid_t sgw_s11_teid, teid_t pgw_s5_teid,
+    ebi_t bearer_id) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  std::cout << "Sending delete session request for IMSI: " << imsi64
+            << "and context_teid: " << sgw_s11_teid << std::endl;
+
+  magma::feg::DeleteSessionRequestPgw dsr_req;
+
+  dsr_req.Clear();
+  dsr_req.set_imsi((char*) imsi.digit, imsi.length);
+  dsr_req.set_bearer_id(bearer_id);
+  dsr_req.mutable_c_pgw_fteid()->set_teid(pgw_s5_teid);
+  magma::S8Client::s8_delete_session_request(
+      dsr_req,
+      [imsi64, sgw_s11_teid](
+          grpc::Status status, magma::feg::DeleteSessionResponsePgw response) {
+        recv_s8_delete_session_response(imsi64, sgw_s11_teid, status, response);
+      });
+
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
