@@ -140,9 +140,17 @@ int check_plmn_restriction(imsi_t imsi) {
         (imsi.u.num.digit4 ==
          mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
         (imsi.u.num.digit5 ==
-         mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
-        (imsi.u.num.digit6 ==
-         mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
+         mme_config.restricted_plmn.plmn[itr].mnc_digit2)) {
+      /* MNC could be 2 or 3 digits. But for a given MCC,
+       * all the MNCs are of same length. Check MNC digit3
+       * only if mnc_digit3 in mme_config is not set to 0xf
+       */
+      if (mme_config.restricted_plmn.plmn[itr].mnc_digit3 != 0xf) {
+        if (imsi.u.num.digit6 !=
+            mme_config.restricted_plmn.plmn[itr].mnc_digit3) {
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
+        }
+      }
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_PLMN_NOT_ALLOWED);
     }
   }
