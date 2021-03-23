@@ -184,7 +184,7 @@ def _get_federated_mode_map(service_mconfig):
         return service_mconfig.federated_mode_map.mapping
     return {}
 
-def _get_restricted_plmns(mme_service_config):
+def _get_restricted_plmns(service_mconfig):
     if service_mconfig.restricted_plmns:
         return service_mconfig.restricted_plmns
     return {}
