@@ -587,14 +587,6 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * Remove final action flows through pipelined
-   */
-  void cancel_final_unit_action(
-      const std::unique_ptr<SessionState>& session,
-      std::vector<PolicyRule> gy_rules_to_deactivate,
-      SessionStateUpdateCriteria& uc);
-
-  /**
    * Create redirection rule
    */
   PolicyRule create_redirect_rule(const std::unique_ptr<ServiceAction>& action);
