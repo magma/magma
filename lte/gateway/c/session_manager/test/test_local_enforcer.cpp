@@ -1091,7 +1091,7 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
                              testing::_, testing::_, testing::_, testing::_,
-                             CheckCount(1), testing::_))
+                             CheckRuleCount(1), testing::_))
       .Times(1);
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
@@ -1145,7 +1145,7 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
       add_gy_final_action_flow(
           IMSI1, test_cfg_.common_context.ue_ipv4(),
           test_cfg_.common_context.ue_ipv6(), CheckTeids(teids1),
-          test_cfg_.common_context.msisdn(), CheckCount(1)))
+          test_cfg_.common_context.msisdn(), CheckRuleCount(1)))
       .Times(1);
   local_enforcer->execute_actions(session_map, actions, update);
   EXPECT_EQ(session_update.updates_size(), 0);
@@ -1189,7 +1189,7 @@ TEST_F(LocalEnforcerTest, test_update_with_transient_error) {
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
                              testing::_, testing::_, testing::_, testing::_,
-                             CheckCount(2), testing::_))
+                             CheckRuleCount(2), testing::_))
       .Times(1);
 
   local_enforcer->update_session_credits_and_rules(
@@ -2677,9 +2677,10 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
       actions[0]->get_redirect_server().redirect_server_address(), "12.7.7.4");
 
   EXPECT_CALL(
-      *pipelined_client, add_gy_final_action_flow(
-                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
-                             test_cfg_.common_context.msisdn(), CheckCount(1)))
+      *pipelined_client,
+      add_gy_final_action_flow(
+          IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
+          test_cfg_.common_context.msisdn(), CheckRuleCount(1)))
       .Times(1);
   // Execute actions and asset final action state
   local_enforcer->execute_actions(session_map, actions, update);
@@ -2756,9 +2757,9 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   EXPECT_EQ(actions[0]->get_restrict_rules()[0].id(), "rule1");
 
   EXPECT_CALL(
-      *pipelined_client,
-      add_gy_final_action_flow(
-          IMSI1, ip_addr, ipv6_addr, CheckTeids(teids), msisdn, CheckCount(1)))
+      *pipelined_client, add_gy_final_action_flow(
+                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
+                             msisdn, CheckRuleCount(1)))
       .Times(1);
   // Execute actions and asset final action state
   local_enforcer->execute_actions(session_map, actions, update);
@@ -2869,9 +2870,10 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   EXPECT_EQ(actions[0]->get_restrict_rules()[0].id(), "restrict_rule");
 
   EXPECT_CALL(
-      *pipelined_client, add_gy_final_action_flow(
-                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
-                             test_cfg_.common_context.msisdn(), CheckCount(1)))
+      *pipelined_client,
+      add_gy_final_action_flow(
+          IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
+          test_cfg_.common_context.msisdn(), CheckRuleCount(1)))
       .Times(1);
   // Execute actions and asset final action state
   local_enforcer->execute_actions(session_map, actions, update);
@@ -2931,7 +2933,7 @@ TEST_F(LocalEnforcerTest, test_rar_dynamic_rule_modification) {
     EXPECT_CALL(
         *pipelined_client, deactivate_flows_for_rules(
                                IMSI1, testing::_, testing::_, testing::_,
-                               CheckCount(1), testing::_))
+                               CheckRuleCount(1), testing::_))
         .Times(1);
     EXPECT_CALL(
         *pipelined_client, activate_flows_for_rules(

@@ -250,18 +250,6 @@ void AsyncPipelinedClient::set_upf_session(
   set_upf_session_rpc(setup_session_req, callback);
 }
 
-void AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
-  DeactivateFlowsRequest req;
-  req.mutable_sid()->set_id(imsi);
-  MLOG(MDEBUG) << "Deactivating all flows for subscriber " << imsi;
-  deactivate_flows_rpc(req, [imsi](Status status, DeactivateFlowsResult resp) {
-    if (!status.ok()) {
-      MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
-                   << ": " << status.error_message();
-    }
-  });
-}
-
 void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
@@ -279,14 +267,14 @@ void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
 void AsyncPipelinedClient::deactivate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
-    const std::vector<PolicyRule>& rules,
+    const RulesToProcess to_process,
     const RequestOriginType_OriginType origin_type) {
-  MLOG(MDEBUG) << "Deactivating " << rules.size()
+  MLOG(MDEBUG) << "Deactivating " << to_process.rules.size()
                << " rules and for subscriber " << imsi << " IP " << ip_addr
                << " " << ipv6_addr;
 
   auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, teids, rules, origin_type, false);
+      imsi, ip_addr, ipv6_addr, teids, to_process.rules, origin_type, false);
   deactivate_flows(req);
 }
 
@@ -364,10 +352,10 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
-    const std::vector<PolicyRule>& rules) {
+    const RulesToProcess to_process) {
   MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
   auto req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, {}, rules,
+      imsi, ip_addr, ipv6_addr, teids, msisdn, {}, to_process.rules,
       RequestOriginType::GY);
   activate_flows_rpc(req, [imsi](Status status, ActivateFlowsResult resp) {
     if (!status.ok()) {

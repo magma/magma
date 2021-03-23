@@ -476,7 +476,7 @@ class SessionState {
   optional<FinalActionInfo> get_final_action_if_final_unit_state(
       const CreditKey& ckey) const;
 
-  std::vector<PolicyRule> remove_all_final_action_rules(
+  RulesToProcess remove_all_final_action_rules(
       const FinalActionInfo& final_action_info,
       SessionStateUpdateCriteria& session_uc);
 

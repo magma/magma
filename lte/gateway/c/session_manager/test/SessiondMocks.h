@@ -102,13 +102,12 @@ class MockPipelinedClient : public PipelinedClient {
           const std::vector<SessionState::SessionInfo>& infos,
           const std::uint64_t& epoch,
           std::function<void(Status status, SetupFlowsResult)> callback));
-  MOCK_METHOD1(deactivate_all_flows, void(const std::string& imsi));
   MOCK_METHOD6(
       deactivate_flows_for_rules,
       void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::vector<PolicyRule>& dynamic_rules,
+          const RulesToProcess to_process,
           const RequestOriginType_OriginType origin_type));
   MOCK_METHOD5(
       deactivate_flows_for_rules_for_termination,
@@ -149,7 +148,7 @@ class MockPipelinedClient : public PipelinedClient {
       void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::string& msisdn, const std::vector<PolicyRule>& rules));
+          const std::string& msisdn, const RulesToProcess to_process));
   MOCK_METHOD2(
       set_upf_session,
       void(
