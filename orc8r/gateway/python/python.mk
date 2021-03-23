@@ -28,6 +28,7 @@ endif
 BIN := $(PYTHON_BUILD)/bin
 SRC := $(MAGMA_ROOT)
 SITE_PACKAGES_DIR := $(PYTHON_BUILD)/lib/python$(PYTHON_VERSION)/site-packages
+PATCHES_DIR := $(SRC)/lte/gateway/deploy/roles/magma/files/patches
 
 # Command to pip install into the virtualenv
 VIRT_ENV_PIP_INSTALL := $(BIN)/pip3 install -q -U --cache-dir $(PIP_CACHE_HOME)
@@ -53,8 +54,8 @@ $(SITE_PACKAGES_DIR)/setuptools: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) "setuptools==49.6.0"  # newer than 41.0.1
 
 py_patches:
-	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <patches/aioeventlet.py38.patch 2>/dev/null \
-	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <patches/aioeventlet.py38.patch && echo "aioeventlet was patched" ) \
+	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <$(PATCHES_DIR)/aioeventlet.py38.patch 2>/dev/null \
+	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <$(PATCHES_DIR)/aioeventlet.py38.patch && echo "aioeventlet was patched" ) \
 	|| ( true && echo "skipping aioeventlet patch since it was already applied")
 
 	$(VIRT_ENV_PIP_INSTALL) --force-reinstall git+https://github.com/URenko/aioh2.git

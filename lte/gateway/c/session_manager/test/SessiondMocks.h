@@ -80,34 +80,13 @@ class MockPipelined final : public Pipelined::Service {
 class MockPipelinedClient : public PipelinedClient {
  public:
   MockPipelinedClient() {
-    ON_CALL(*this, setup_cwf(_, _, _, _, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, setup_lte(_, _, _)).WillByDefault(Return(true));
-    ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
-    ON_CALL(*this, deactivate_flows_for_rules(_, _, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(
-        *this, deactivate_flows_for_rules_for_termination(_, _, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
-    ON_CALL(*this, update_ipfix_flow(_, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, add_gy_final_action_flow(_, _, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, set_upf_session(_, _)).WillByDefault(Return(true));
-    ON_CALL(*this, update_subscriber_quota_state(_))
-        .WillByDefault(Return(true));
     ON_CALL(*this, get_next_teid()).WillByDefault(Return(0));
     ON_CALL(*this, get_current_teid()).WillByDefault(Return(0));
   }
 
   MOCK_METHOD9(
       setup_cwf,
-      bool(
+      void(
           const std::vector<SessionState::SessionInfo>& infos,
           const std::vector<SubscriberQuotaUpdate>& quota_updates,
           const std::vector<std::string> ue_mac_addrs,
@@ -119,67 +98,61 @@ class MockPipelinedClient : public PipelinedClient {
           std::function<void(Status status, SetupFlowsResult)> callback));
   MOCK_METHOD3(
       setup_lte,
-      bool(
+      void(
           const std::vector<SessionState::SessionInfo>& infos,
           const std::uint64_t& epoch,
           std::function<void(Status status, SetupFlowsResult)> callback));
-  MOCK_METHOD1(deactivate_all_flows, bool(const std::string& imsi));
-  MOCK_METHOD7(
+  MOCK_METHOD1(deactivate_all_flows, void(const std::string& imsi));
+  MOCK_METHOD6(
       deactivate_flows_for_rules,
-      bool(
+      void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::vector<std::string>& rule_ids,
           const std::vector<PolicyRule>& dynamic_rules,
           const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD7(
+  MOCK_METHOD5(
       deactivate_flows_for_rules_for_termination,
-      bool(
+      void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::vector<std::string>& rule_ids,
-          const std::vector<PolicyRule>& dynamic_rules,
           const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD9(
+  MOCK_METHOD8(
       activate_flows_for_rules,
-      bool(
+      void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
           const std::string& msisdn,
           const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
-          const std::vector<std::string>& static_rules,
           const std::vector<PolicyRule>& dynamic_rules,
           std::function<void(Status status, ActivateFlowsResult)> callback));
   MOCK_METHOD6(
       add_ue_mac_flow,
-      bool(
+      void(
           const SubscriberID& sid, const std::string& ue_mac_addr,
           const std::string& msisdn, const std::string& ap_mac_addr,
           const std::string& ap_name,
           std::function<void(Status status, FlowResponse)> callback));
   MOCK_METHOD6(
       update_ipfix_flow,
-      bool(
+      void(
           const SubscriberID& sid, const std::string& ue_mac_addr,
           const std::string& msisdn, const std::string& ap_mac_addr,
           const std::string& ap_name, const uint64_t& pdp_start_time));
   MOCK_METHOD1(
       update_subscriber_quota_state,
-      bool(const std::vector<SubscriberQuotaUpdate>& updates));
+      void(const std::vector<SubscriberQuotaUpdate>& updates));
   MOCK_METHOD2(
       delete_ue_mac_flow,
-      bool(const SubscriberID& sid, const std::string& ue_mac_addr));
-  MOCK_METHOD7(
+      void(const SubscriberID& sid, const std::string& ue_mac_addr));
+  MOCK_METHOD6(
       add_gy_final_action_flow,
-      bool(
+      void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::string& msisdn,
-          const std::vector<std::string>& static_rules,
-          const std::vector<PolicyRule>& dynamic_rules));
+          const std::string& msisdn, const std::vector<PolicyRule>& rules));
   MOCK_METHOD2(
       set_upf_session,
-      bool(
+      void(
           const SessionState::SessionInfo info,
           std::function<void(Status status, UPFSessionContextState)> callback));
   MOCK_METHOD0(get_next_teid, uint32_t());

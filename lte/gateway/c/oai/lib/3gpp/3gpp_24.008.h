@@ -726,6 +726,24 @@ typedef struct ms_network_capability_s {
   uint8_t nf_cap : 1;
 #define MS_NETWORK_CAPABILITY_GERAN_NETWORK_SHARING 0b00000001
   uint8_t geran_ns : 1;
+
+#define MS_NETWORK_CAPABILITY_USER_PLANE_INTEGRITY_PROTECTION_SUPPORT 0b10000000
+  uint8_t up_integ_prot_support : 1;
+#define MS_NETWORK_CAPABILITY_GIA4 0b01000000
+  uint8_t gia4 : 1;
+#define MS_NETWORK_CAPABILITY_GIA5 0b00100000
+  uint8_t gia5 : 1;
+#define MS_NETWORK_CAPABILITY_GIA6 0b00010000
+  uint8_t gia6 : 1;
+#define MS_NETWORK_CAPABILITY_GIA7 0b00001000
+  uint8_t gia7 : 1;
+#define MS_NETWORK_CAPABILITY_EPCO_IE_INDICATOR 0b00000100
+  uint8_t epco_ie_ind : 1;
+#define MS_NETWORK_CAPABILITY_RESTRICTION_ON_USE_OF_ENHANCED_COVERAGE_CAPABILITY \
+  0b00000010
+  uint8_t rest_use_enhanc_cov_cap : 1;
+#define MS_NETWORK_CAPABILITY_DUAL_CONNECTIVITY_EUTRA_NR_CAPABILITY 0b00000001
+  uint8_t en_dc : 1;
 } ms_network_capability_t;
 
 int encode_ms_network_capability_ie(

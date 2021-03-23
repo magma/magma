@@ -161,6 +161,7 @@ void s1ap_config_init(s1ap_config_t* s1ap_conf) {
 
 void s6a_config_init(s6a_config_t* s6a_conf) {
   s6a_conf->hss_host_name = NULL;
+  s6a_conf->hss_realm     = NULL;
   s6a_conf->conf_file     = bfromcstr(S6A_CONF_FILE);
 }
 
@@ -587,6 +588,20 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           AssertFatal(
               1 == 0, "You have to provide a valid HSS hostname %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
+      }
+      if ((config_setting_lookup_string(
+              setting, MME_CONFIG_STRING_S6A_HSS_REALM,
+              (const char**) &astring))) {
+        if (astring != NULL) {
+          if (config_pP->s6a_config.hss_realm) {
+            bassigncstr(config_pP->s6a_config.hss_realm, astring);
+          } else {
+            config_pP->s6a_config.hss_realm = bfromcstr(astring);
+          }
+        } else
+          AssertFatal(
+              1 == 0, "You have to provide a valid HSS realm %s=...\n",
+              MME_CONFIG_STRING_S6A_HSS_REALM);
       }
     }
 #endif /* !S6A_OVER_GRPC */

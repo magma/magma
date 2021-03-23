@@ -6,7 +6,7 @@ FROM ubuntu:bionic as magma-mme-builder
 ARG GIT_PROXY
 ARG FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
-ENV BUILD_TYPE=Debug
+ENV BUILD_TYPE=RelWithDebInfo
 ENV C_BUILD=/build/c
 ENV TZ=Europe/Paris
 ENV DEBIAN_FRONTEND=noninteractive

@@ -12,13 +12,18 @@ limitations under the License.
 """
 
 from magma.common.service import MagmaService
+from magma.common.sentry import sentry_init
+from orc8r.protos.mconfig.mconfigs_pb2 import CtraceD
 from .rpc_servicer import CtraceDRpcServicer
 from .trace_manager import TraceManager
-from orc8r.protos.mconfig.mconfigs_pb2 import CtraceD
+
 
 def main():
     """ main() for ctraced """
     service = MagmaService('ctraced', CtraceD())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     trace_manager = TraceManager(service.config)
 

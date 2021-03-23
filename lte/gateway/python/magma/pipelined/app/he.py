@@ -384,6 +384,7 @@ class HeaderEnrichmentController(MagmaController):
                               cookie=rule_num, cookie_mask=flows.OVS_COOKIE_MATCH_ALL)
 
         success = deactivate_he_urls_for_ue(ue_addr, rule_id)
+        logging.debug("Del HE proxy: %s", success)
         if success:
             if rule_num == -1:
                 self._ue_rule_counter.delete(ue_ip_str)

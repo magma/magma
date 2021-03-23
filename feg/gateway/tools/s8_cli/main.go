@@ -135,9 +135,9 @@ func init() {
 		fmt.Sprint("Starts s8 proxy checking PGW is alive"))
 
 	eFlags.BoolVar(&useMconfig, "use_mconfig", false,
-		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
+		"Use local gateway.mconfig configuration for local proxy (if set - starts local s8 proxy)")
 
-	eFlags.BoolVar(&useBuiltinCli, "use_builtincli", true,
+	eFlags.BoolVar(&useBuiltinCli, "use_builtincli", false,
 		"Use local built in client instead of the running instance on the gateway")
 
 }
@@ -159,7 +159,7 @@ func createSession(cmd *commands.Command, args []string) int {
 	// Create Session Request messagea
 	_, offset := time.Now().Zone()
 	csReq := &protos.CreateSessionRequestPgw{
-		//PgwAddrs: pgwServerAddr,	// this will set through config
+		PgwAddrs: pgwServerAddr,
 		Imsi:     imsi,
 		Msisdn:   "00111",
 		Mei:      generateIMEIbasedOnIMSI(imsi),
@@ -241,6 +241,7 @@ func createSession(cmd *commands.Command, args []string) int {
 
 		fmt.Println("\n *** Delete Session Test ***")
 		dsReq := &protos.DeleteSessionRequestPgw{
+			PgwAddrs:  pgwServerAddr,
 			Imsi:      imsi,
 			BearerId:  bearerId,
 			CAgwTeid:  uint32(AGWTeidC),
@@ -282,6 +283,8 @@ func initialize(cmd *commands.Command, args []string) (s8Cli, *flag.FlagSet, err
 
 	// start and configure a test server that will act as a PGW
 	if testServer {
+		// ONLY USE BUILTIN CLI
+		useBuiltinCli = true
 		pgwServerAddr, err = startTestServer()
 		if err != nil {
 			return nil, nil, err
@@ -292,12 +295,12 @@ func initialize(cmd *commands.Command, args []string) (s8Cli, *flag.FlagSet, err
 
 	conf := &servicers.S8ProxyConfig{
 		ClientAddr: fmt.Sprintf(":%s", localPort),
-		ServerAddr: servicers.ParseAddress(pgwServerAddr),
 	}
 
 	// Selection of builtIn Client or S8proxy running on the gateway
 	if useMconfig || useBuiltinCli {
 		// use builtin proxy (ignore loccal proxy)
+		fmt.Println("Using builtin S8_proxy")
 		if useMconfig {
 			conf = servicers.GetS8ProxyConfig()
 		}
@@ -315,6 +318,7 @@ func initialize(cmd *commands.Command, args []string) (s8Cli, *flag.FlagSet, err
 
 		cli = s8BuiltIn{localProxy}
 	} else {
+		fmt.Println("Using local S8_proxy")
 		// TODO: use local proxy running on the gateway
 		proxyAddr, _ = registry.GetServiceAddress(registry.S8_PROXY)
 		cli = s8CliImpl{}
@@ -388,9 +392,12 @@ func main() {
 	// Init help for all commands
 	flag.Usage = func() {
 		cmd := os.Args[0]
+		fmt.Println("Example:")
+		fmt.Println("./s8_cli cs -server 172.16.1.2:2123 -use_builtincli -delete 3 -apn roam  001020000000066 -logtostderr")
 		fmt.Printf(
-			"\nUsage: \033[1m%s command [OPTIONS]\033[0m\n\n",
+			"\nUsage: \033[1m%s command [OPTIONS] <IMSI> [DEFAULTS]\033[0m\n\n",
 			filepath.Base(cmd))
+		fmt.Println("Defaults:")
 		flag.PrintDefaults()
 		fmt.Println("\nCommands:")
 		cmdRegistry.Usage()

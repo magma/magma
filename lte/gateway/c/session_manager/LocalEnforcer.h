@@ -110,7 +110,7 @@ class LocalEnforcer {
    * Setup rules for all sessions in pipelined, used whenever pipelined
    * restarts and needs to recover state
    */
-  bool setup(
+  void setup(
       SessionMap& session_map, const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback);
 
@@ -483,7 +483,6 @@ class LocalEnforcer {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
       const std::string& msisdn, optional<AggregatedMaximumBitrate> ambr,
-      const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
 
@@ -517,7 +516,7 @@ class LocalEnforcer {
 
   /**
    * remove_all_rules_for_termination talks to PipelineD and removes all rules
-   * attached to the session
+   * (Gx/Gy/static/dynamic/everything) attached to the session
    * @param imsi
    * @param session
    * @param uc
@@ -592,15 +591,13 @@ class LocalEnforcer {
    */
   void cancel_final_unit_action(
       const std::unique_ptr<SessionState>& session,
-      const std::vector<std::string>& restrict_rules,
+      std::vector<PolicyRule> gy_rules_to_deactivate,
       SessionStateUpdateCriteria& uc);
 
   /**
    * Create redirection rule
    */
   PolicyRule create_redirect_rule(const std::unique_ptr<ServiceAction>& action);
-
-  bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 
   void report_subscriber_state_to_pipelined(
       const std::string& imsi, const std::string& ue_mac_addr,

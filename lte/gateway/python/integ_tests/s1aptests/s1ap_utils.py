@@ -24,6 +24,7 @@ from typing import Optional
 
 import grpc
 import subprocess
+import json
 
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
@@ -482,7 +483,9 @@ class S1ApUtil(object):
             if len(uplink_flows) == num_ul_flows:
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
-        assert len(uplink_flows) == num_ul_flows, "Uplink flow missing for UE"
+        assert len(uplink_flows) == num_ul_flows,\
+            "Uplink flow missing for UE: %d !=" % (len(uplink_flows), num_ul_flows)
+
         assert uplink_flows[0]["match"]["tunnel_id"] is not None
 
         # DOWNLINK
@@ -1338,7 +1341,7 @@ class SessionManagerUtil(object):
                 )
             )
 
-    def get_policy_rule(self, policy_id, qos=None, flow_match_list=None):
+    def get_policy_rule(self, policy_id, qos=None, flow_match_list=None, he_urls=None):
         if qos is not None:
             policy_qos = FlowQos(
                 qci=qos["qci"],
@@ -1365,11 +1368,12 @@ class SessionManagerUtil(object):
             rating_group=1,
             monitoring_key=None,
             qos=policy_qos,
+            he=he_urls,
         )
 
         return policy_rule
 
-    def send_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
+    def send_ReAuthRequest(self, imsi, policy_id, flow_list, qos, he_urls=None):
         """
         Sends Policy RAR message to session manager
         """
@@ -1378,7 +1382,7 @@ class SessionManagerUtil(object):
         res = None
         self.get_flow_match(flow_list, flow_match_list)
 
-        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
+        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list, he_urls)
 
         qos = QoSInformation(qci=qos["qci"])
 
@@ -1499,6 +1503,7 @@ class GTPBridgeUtils:
             self.gtp_port_name = "gtp0"
         else:
             self.gtp_port_name = "g_8d3ca8c0"
+        self.proxy_port = "proxy_port"
 
     def get_gtp_port_no(self) -> Optional[int]:
         output = self.magma_utils.exec_command_output(
@@ -1507,6 +1512,20 @@ class GTPBridgeUtils:
             if self.gtp_port_name in line:
                 port_info = line.split()
                 return port_info[1]
+
+    def get_proxy_port_no(self) -> Optional[int]:
+        output = self.magma_utils.exec_command_output(
+            "sudo ovsdb-client dump Interface name ofport")
+        for line in output.split('\n'):
+            if self.proxy_port in line:
+                port_info = line.split()
+                return port_info[1]
+    # RYU rest API is not able dump flows from non zero table.
+    # this adds similar API using `ovs-ofctl` cmd
+    def get_flows(self, table_id) -> []:
+        output = self.magma_utils.exec_command_output(
+            "sudo ovs-ofctl dump-flows gtp_br0 table={}".format(table_id))
+        return output.split('\n')
 
 class HaUtil:
     def __init__(self):
@@ -1524,3 +1543,51 @@ class HaUtil:
             self._ha_stub.StartAgwOffload(req)
         except grpc.RpcError as e:
             print("gRPC failed with %s: %s" % (e.code(), e.details()))
+
+
+class HeaderEnrichmentUtils:
+    def __init__(self):
+        self.magma_utils = MagmadUtil(None)
+        self.dump = None
+
+    def restart_envoy_service(self):
+        print("restarting envoy")
+        self.magma_utils.exec_command_output("sudo service magma@envoy_controller restart")
+        time.sleep(5)
+        self.magma_utils.exec_command_output("sudo service magma_dp@envoy restart")
+        time.sleep(20)
+        print("restarting envoy done")
+
+    def get_envoy_config(self):
+        output = self.magma_utils.exec_command_output(
+            "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump")
+        self.dump = json.loads(output)
+
+        return self.dump
+
+    def get_route_config(self):
+        self.dump = self.get_envoy_config()
+
+        for conf in self.dump['configs']:
+            if 'dynamic_listeners' in conf:
+                return conf['dynamic_listeners'][0]['active_state']['listener']['filter_chains'][0]['filters']
+
+        return []
+
+    def he_count_record_of_imsi_to_domain(self, imsi, domain) -> int:
+        envoy_conf1 = self.get_route_config()
+        cnt = 0
+        for conf in envoy_conf1:
+            virtual_host_config = conf['typed_config']['route_config']['virtual_hosts']
+
+            for host_conf in virtual_host_config:
+                if domain in host_conf['domains']:
+                    he_headers = host_conf['request_headers_to_add']
+                    for hdr in he_headers:
+                        he_key = hdr['header']['key']
+                        he_val = hdr['header']['value']
+                        if he_key == 'imsi' and he_val == imsi:
+                            cnt = cnt + 1
+
+        return cnt
+

@@ -8,7 +8,7 @@ SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
 KVERS=$(uname -r)
-MAGMA_VERSION="${MAGMA_VERSION:-v1.3}"
+MAGMA_VERSION="${MAGMA_VERSION:-v1.4}"
 CLOUD_INSTALL="cloud"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
 
@@ -98,7 +98,7 @@ if [ -n "${REPO_HOST}" ]; then
     fi
 fi
 
-if [ "${REPO_PROTO}" == 'https' ]; then
+if [[ "${REPO_PROTO}" == 'https' ]]; then
     echo "Ensure HTTPS apt transport method is installed"
     apt install -y apt-transport-https
 fi
@@ -165,7 +165,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
       ANSIBLE_VARS="${ANSIBLE_VARS} ovs_use_pkgrepo=no"
   fi
   echo "Triggering ovs_deploy playbook"
-  if [ $1 == "$CLOUD_INSTALL" ]; then
+  if [[ $1 == "$CLOUD_INSTALL" ]]; then
       su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml --skip-tags \"skipfirstinstall\""
       su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml"
       service openvswitch-switch restart

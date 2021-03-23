@@ -1531,7 +1531,7 @@ int append_log_ctx_info_prefix_id(
 //    input: /home/vagrant/magma/lte/gateway/c/oai/tasks/nas/emm/sap/emm_cn.c
 //           Assume root is /oai/
 //    output: tasks/nas/emm/sap/emm_cn.c
-const char* const get_short_file_name(const char* const source_file_nameP) {
+const char* get_short_file_name(const char* const source_file_nameP) {
   if (!source_file_nameP) return source_file_nameP;
 
   char* root_startP = strstr(source_file_nameP, LOG_MAGMA_REPO_ROOT);

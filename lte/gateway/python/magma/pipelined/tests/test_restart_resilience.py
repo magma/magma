@@ -68,7 +68,6 @@ class RestartResilienceTest(unittest.TestCase):
         """
         super(RestartResilienceTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls._static_rule_dict = {}
         cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
         cls._enforcement_tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
@@ -128,10 +127,7 @@ class RestartResilienceTest(unittest.TestCase):
         cls.startup_flows_contoller = startup_flows_ref.result()
         cls.testing_controller = testing_controller_reference.result()
 
-        cls.enforcement_stats_controller._policy_dict = cls._static_rule_dict
         cls.enforcement_stats_controller._report_usage = MagicMock()
-
-        cls.enforcement_controller._policy_dict = cls._static_rule_dict
         cls.enforcement_controller._redirect_manager._save_redirect_entry =\
             MagicMock()
 
@@ -338,13 +334,11 @@ class RestartResilienceTest(unittest.TestCase):
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
-        self._static_rule_dict[policies[0].id] = policies[0]
-        self._static_rule_dict[policies[1].id] = policies[1]
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._enforcement_tbl_num, self.enforcement_stats_controller,
             nuke_flows_on_exit=False
-        ).add_static_rule(policies[0].id).add_static_rule(policies[1].id)
+        ).add_dynamic_rule(policies[0]).add_dynamic_rule(policies[1])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -399,7 +393,7 @@ class RestartResilienceTest(unittest.TestCase):
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi),
                     ip_addr=sub_ip,
-                    rule_ids=[policies[0].id, policies[1].id]
+                    dynamic_rules=[policies[0], policies[1]]
                 ),
             ],
             epoch=global_epoch

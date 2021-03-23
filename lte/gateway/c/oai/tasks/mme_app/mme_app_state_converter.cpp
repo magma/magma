@@ -706,6 +706,9 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
       ue_context_proto.ue_context_modification_timer(),
       &state_ue_mm_context->ue_context_modification_timer);
   proto_to_mme_app_timer(
+      ue_context_proto.ulr_response_timer(),
+      &state_ue_mm_context->ulr_response_timer);
+  proto_to_mme_app_timer(
       ue_context_proto.paging_response_timer(),
       &state_ue_mm_context->paging_response_timer);
   state_ue_mm_context->time_mobile_reachability_timer_started =

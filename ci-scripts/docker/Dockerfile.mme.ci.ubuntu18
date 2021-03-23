@@ -5,7 +5,7 @@ FROM magma-dev-mme:ci-base-image as magma-mme-builder
 
 ARG FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
-ENV BUILD_TYPE=Debug
+ENV BUILD_TYPE=RelWithDebInfo
 ENV C_BUILD=/build/c
 ENV TZ=Europe/Paris
 ENV DEBIAN_FRONTEND=noninteractive
@@ -123,6 +123,9 @@ RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@
 
 WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
+
+# use this label for CI purpose
+LABEL use-separate-hss-realm="true"
 
 # expose ports
 EXPOSE 3870/tcp 5870/tcp 2123/udp

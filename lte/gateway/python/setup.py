@@ -95,6 +95,7 @@ setup(
         'spyne>=2.12.16',
         'scapy==2.4.4',
         'flask>=1.0.2',
+        'sentry_sdk>=1.0.0',
         'aioeventlet>=0.4',
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',

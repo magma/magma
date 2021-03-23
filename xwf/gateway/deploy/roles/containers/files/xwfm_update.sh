@@ -27,6 +27,13 @@ fi
 # Otherwise recreate containers with the new image
 cd /var/opt/magma/docker || exit
 
+# Validate docker-compose file
+CONFIG=$(docker-compose -f docker-compose.yml config)
+if [ -z "$CONFIG" ]; then
+  echo "docker-compose.yml is not valid"
+  exit
+fi
+
 # Pull all images
 /usr/local/bin/docker-compose pull
 

@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// PlmnConfig Record in a gateway pool
+// PlmnConfig PLMN Configuration
 // swagger:model plmnConfig
 type PlmnConfig struct {
 

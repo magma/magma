@@ -174,20 +174,6 @@ int emm_recv_attach_request(
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Attach Request message\n");
   increment_counter("ue_attach", 1, NO_LABELS);
-  /*
-   * Message checking
-   */
-
-  if (msg->uenetworkcapability.spare != 0b000) {
-    /*
-     * Spare bits shall be coded as zero
-     */
-    *emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
-    REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_b__4);
-    OAILOG_WARNING(
-        LOG_NAS_EMM, "EMMAS-SAP - [%08x] - Non zero spare bits is suspicious\n",
-        ue_id);
-  }
 
   /*
    * Handle message checking error

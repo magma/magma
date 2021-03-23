@@ -195,7 +195,7 @@ sgw_cm_create_bearer_context_information_in_collection(
         "Failed to create APN collection object entry for EPS bearer S11 "
         "teid " TEID_FMT "\n",
         teid);
-    sgw_free_s11_bearer_context_information(&new_bearer_context_information);
+    spgw_free_s11_bearer_context_information(&new_bearer_context_information);
     return NULL;
   }
 

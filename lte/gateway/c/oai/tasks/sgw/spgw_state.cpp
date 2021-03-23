@@ -79,7 +79,7 @@ void delete_spgw_ue_state(imsi64_t imsi64) {
   SpgwStateManager::getInstance().clear_ue_state_db(imsi_str);
 }
 
-void sgw_free_s11_bearer_context_information(
+void spgw_free_s11_bearer_context_information(
     s_plus_p_gw_eps_bearer_context_information_t** context_p) {
   if (*context_p) {
     sgw_free_pdn_connection(
@@ -125,7 +125,7 @@ void pgw_free_pcc_rule(void** rule) {
   }
 }
 
-void spgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
+void sgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
   if (*ue_context_p) {
     sgw_s11_teid_t* p1 = LIST_FIRST(&(*ue_context_p)->sgw_s11_teid_list);
     sgw_s11_teid_t* p2 = NULL;
