@@ -22,8 +22,8 @@ Error: rpc error: code = Unknown desc = release orc8r failed: timed out waiting 
 - Run following kubectl commands to get more details on the error encountered
 
 ```
-kubectl -n orc8r get pods
-kubectl -n orc8r describe pods
+kubectl --namespace orc8r get pods
+kubectl --namespace orc8r describe pods
 # pod status ImagePullBackOff, indicates that Image wasn't found
 # pod can also be crash looping, pod status will provide this information,
 # in this case, looking at the logs of individual container will help debug this further
