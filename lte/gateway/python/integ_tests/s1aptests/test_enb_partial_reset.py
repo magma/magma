@@ -48,7 +48,7 @@ class TestEnbPartialReset(unittest.TestCase):
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
         # Trigger eNB Reset
-        # Add delay to ensure S1APTester sends attach partial before sending
+        # Add delay to ensure S1APTester sends attach complete before sending
         # eNB Reset Request
         time.sleep(0.5)
         print("************************* Sending eNB Partial Reset Request")
@@ -69,9 +69,10 @@ class TestEnbPartialReset(unittest.TestCase):
         for indx in range(reset_req.r.partialRst.numOfConn):
             reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[indx]
             print(
-                "Reset_req.r.partialRst.ueS1apIdPairList[indx].ueId",
-                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
+                "Reset_req.r.partialRst.ueS1apIdPairList[",
                 indx,
+                "].ueId",
+                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
             )
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.RESET_REQ, reset_req

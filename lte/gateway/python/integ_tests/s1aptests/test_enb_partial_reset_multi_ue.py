@@ -28,7 +28,11 @@ class TestEnbPartialResetMultiUe(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_enb_partial_reset_multi_ue(self):
-        """ ENB Partial Reset for 32 UEs """
+        """ENB Partial Reset for multiple UEs:
+        1) Attach 32 UEs
+        2) Send partial reset for a random subset of the attached UEs
+        3) Detach all the 32 UEs
+        """
         ue_ids = []
         num_ues = 32
         self._s1ap_wrapper.configUEDevice(num_ues)
@@ -48,7 +52,7 @@ class TestEnbPartialResetMultiUe(unittest.TestCase):
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        # Add delay to ensure S1APTester sends attach partial before sending
+        # Add delay to ensure S1APTester sends attach complete before sending
         # eNB Reset Request
         time.sleep(0.5)
 
@@ -82,9 +86,10 @@ class TestEnbPartialResetMultiUe(unittest.TestCase):
                 reset_ue_list[indx]
             ]
             print(
-                "Reset_req.r.partialRst.ueS1apIdPairList[indx].ueId",
-                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
+                "Reset_req.r.partialRst.ueS1apIdPairList[",
                 indx,
+                "].ueId",
+                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
             )
 
         # Send eNB Partial Reset
