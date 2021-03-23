@@ -36,7 +36,7 @@ from ryu.lib import hub
 from scapy.all import *
 from scapy.all import ARP, IP, UDP, Ether
 from scapy.contrib.gtp import GTP_U_Header
-
+from lte.protos.pipelined_pb2 import IPFlowDL
 
 class GTPTrafficTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -127,9 +127,10 @@ class GTPTrafficTest(unittest.TestCase):
         # Attach the tunnel flows towards UE.
         seid1 = 5000
         ue_ip_addr = "192.168.128.30"
+        ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller.add_tunnel_flows(65525, 1, 1000,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1, True)
+                                                    self.EnodeB_IP, seid1, ip_flow_dl=ip_flow_dl, True)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         eth = Ether(dst=self.MAC_1, src=self.MAC_2)
