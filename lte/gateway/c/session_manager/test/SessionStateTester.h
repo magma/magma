@@ -38,10 +38,6 @@ class SessionStateTest : public ::testing::Test {
         pdp_start_time, CreateSessionResponse{});
     update_criteria = get_default_update_criteria();
   }
-  enum RuleType {
-    STATIC  = 0,
-    DYNAMIC = 1,
-  };
 
   void insert_static_rule_into_store(
       uint32_t rating_group, const std::string& m_key,
@@ -51,9 +47,9 @@ class SessionStateTest : public ::testing::Test {
     rule_store->insert_rule(rule);
   }
 
-  void insert_rule(
+  uint32_t insert_rule(
       uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, RuleType rule_type,
+      const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);
@@ -63,17 +59,19 @@ class SessionStateTest : public ::testing::Test {
         // insert into list of existing rules
         rule_store->insert_rule(rule);
         // mark the rule as active in session
-        session_state->activate_static_rule(rule_id, lifetime, update_criteria);
-        break;
+        return session_state->activate_static_rule(
+            rule_id, lifetime, update_criteria);
       case DYNAMIC:
         session_state->insert_dynamic_rule(rule, lifetime, update_criteria);
+        return 0;
         break;
     }
+    return 0;
   }
 
   void schedule_rule(
       uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, RuleType rule_type,
+      const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);
@@ -165,7 +163,7 @@ class SessionStateTest : public ::testing::Test {
 
   void activate_rule(
       uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, RuleType rule_type,
+      const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);

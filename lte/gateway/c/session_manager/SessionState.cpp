@@ -523,8 +523,10 @@ void SessionState::apply_session_static_rule_set(
     if (!is_static_rule_installed(static_rule_id)) {
       MLOG(MINFO) << "Installing static rule " << static_rule_id << " for "
                   << session_id_;
-      activate_static_rule(static_rule_id, lifetime, uc);
+      uint32_t version = activate_static_rule(static_rule_id, lifetime, uc);
+      // Set up rules_to_activate
       rules_to_activate.rules.push_back(rule);
+      rules_to_activate.versions.push_back(version);
     }
   }
   std::vector<std::string> static_rules_to_deactivate;
@@ -972,13 +974,16 @@ void SessionState::insert_gy_dynamic_rule(
   update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
 }
 
-void SessionState::activate_static_rule(
+uint32_t SessionState::activate_static_rule(
     const std::string& rule_id, RuleLifetime& lifetime,
     SessionStateUpdateCriteria& update_criteria) {
   rule_lifetimes_[rule_id] = lifetime;
   active_static_rules_.push_back(rule_id);
   update_criteria.static_rules_to_install.insert(rule_id);
   update_criteria.new_rule_lifetimes[rule_id] = lifetime;
+
+  increment_rule_stats(rule_id, update_criteria);
+  return policy_version_and_stats_[rule_id].current_version;
 }
 
 bool SessionState::remove_dynamic_rule(
@@ -1033,21 +1038,22 @@ bool SessionState::deactivate_scheduled_static_rule(
 }
 
 void SessionState::sync_rules_to_time(
-    std::time_t current_time, SessionStateUpdateCriteria& update_criteria) {
+    std::time_t current_time, SessionStateUpdateCriteria& session_uc) {
   // Update active static rules
   for (const std::string& rule_id : active_static_rules_) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
-      deactivate_static_rule(rule_id, update_criteria);
+      deactivate_static_rule(rule_id, session_uc);
     }
   }
   // Update scheduled static rules
   std::set<std::string> scheduled_rule_ids = scheduled_static_rules_;
   for (const std::string& rule_id : scheduled_rule_ids) {
     if (should_rule_be_active(rule_id, current_time)) {
-      install_scheduled_static_rule(rule_id, update_criteria);
+      scheduled_static_rules_.erase(rule_id);
+      activate_static_rule(rule_id, rule_lifetimes_[rule_id], session_uc);
     } else if (should_rule_be_deactivated(rule_id, current_time)) {
       scheduled_static_rules_.erase(rule_id);
-      update_criteria.static_rules_to_uninstall.insert(rule_id);
+      deactivate_static_rule(rule_id, session_uc);
     }
   }
   // Update active dynamic rules
@@ -1055,7 +1061,7 @@ void SessionState::sync_rules_to_time(
   dynamic_rules_.get_rule_ids(dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
-      remove_dynamic_rule(rule_id, NULL, update_criteria);
+      remove_dynamic_rule(rule_id, NULL, session_uc);
     }
   }
   // Update scheduled dynamic rules
@@ -1063,9 +1069,9 @@ void SessionState::sync_rules_to_time(
   scheduled_dynamic_rules_.get_rule_ids(dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_active(rule_id, current_time)) {
-      install_scheduled_dynamic_rule(rule_id, update_criteria);
+      install_scheduled_dynamic_rule(rule_id, session_uc);
     } else if (should_rule_be_deactivated(rule_id, current_time)) {
-      remove_scheduled_dynamic_rule(rule_id, NULL, update_criteria);
+      remove_scheduled_dynamic_rule(rule_id, NULL, session_uc);
     }
   }
 }
@@ -1134,19 +1140,6 @@ void SessionState::install_scheduled_dynamic_rule(
   }
   update_criteria.dynamic_rules_to_install.push_back(dynamic_rule);
   dynamic_rules_.insert_rule(dynamic_rule);
-}
-
-void SessionState::install_scheduled_static_rule(
-    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
-  auto it = scheduled_static_rules_.find(rule_id);
-  if (it == scheduled_static_rules_.end()) {
-    MLOG(MERROR) << "Failed to mark a scheduled static rule as installed "
-                    "with rule_id: "
-                 << rule_id;
-  }
-  update_criteria.static_rules_to_install.insert(rule_id);
-  scheduled_static_rules_.erase(rule_id);
-  active_static_rules_.push_back(rule_id);
 }
 
 uint32_t SessionState::get_credit_key_count() {
@@ -2293,6 +2286,21 @@ void SessionState::clear_create_session_response() {
 
 bool RulesToProcess::empty() const {
   return rules.empty();
+}
+
+void SessionState::increment_rule_stats(
+    const std::string& rule_id, SessionStateUpdateCriteria& session_uc) {
+  if (policy_version_and_stats_.find(rule_id) ==
+      policy_version_and_stats_.end()) {
+    policy_version_and_stats_[rule_id]                       = StatsPerPolicy();
+    policy_version_and_stats_[rule_id].current_version       = 0;
+    policy_version_and_stats_[rule_id].last_reported_version = 0;
+  }
+  policy_version_and_stats_[rule_id].current_version++;
+
+  if (!session_uc.policy_version_and_stats) {
+    session_uc.policy_version_and_stats = policy_version_and_stats_;
+  }
 }
 
 }  // namespace magma

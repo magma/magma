@@ -762,11 +762,17 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
       .activation_time   = std::time_t(15),
       .deactivation_time = std::time_t(20),
   };
-  auto& uc = session_update[IMSI1][SESSION_ID_1];
-  session_map_2[IMSI1].front()->activate_static_rule("rule1", lifetime1, uc);
+  auto& uc    = session_update[IMSI1][SESSION_ID_1];
+  uint32_t v1 = session_map_2[IMSI1].front()->activate_static_rule(
+      "rule1", lifetime1, uc);
   session_map_2[IMSI1].front()->schedule_static_rule("rule2", lifetime2, uc);
   session_map_2[IMSI1].front()->schedule_static_rule("rule3", lifetime3, uc);
   session_map_2[IMSI1].front()->schedule_static_rule("rule4", lifetime4, uc);
+
+  EXPECT_EQ(v1, 1);
+
+  EXPECT_TRUE(uc.policy_version_and_stats);
+  EXPECT_EQ((*uc.policy_version_and_stats)["rule1"].current_version, 1);
 
   EXPECT_EQ(uc.static_rules_to_install.count("rule1"), 1);
   EXPECT_EQ(uc.new_scheduled_static_rules.count("rule2"), 1);

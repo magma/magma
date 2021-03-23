@@ -185,6 +185,7 @@ struct RulesToProcess {
   // If this vector is set, then it has PolicyRule definitions for both static
   // and dynamic rules
   std::vector<PolicyRule> rules;
+  std::vector<uint32_t> versions;
   bool empty() const;
 };
 
