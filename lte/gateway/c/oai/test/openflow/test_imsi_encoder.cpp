@@ -14,9 +14,12 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <string.h>
-#include <gtest/gtest.h>
-#include "IMSIEncoder.h"
+#include <gtest/gtest-message.h>     // for Message
+#include <gtest/gtest-param-test.h>  // for ParamIteratorInterface, Values
+#include <gtest/gtest-test-part.h>   // for TestPartResult
+#include <gtest/gtest.h>             // for InitGoogleTest, RUN_ALL_TESTS
+#include <string>                    // for basic_string, string
+#include "IMSIEncoder.h"             // for IMSIEncoder, openflow
 
 using ::testing::Test;
 using ::testing::Values;

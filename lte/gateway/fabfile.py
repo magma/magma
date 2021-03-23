@@ -71,7 +71,7 @@ def test():
 def package(vcs='hg', all_deps="False",
             cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
             destroy_vm='False',
-            vm='magma'):
+            vm='magma', os="debian"):
     """ Builds the magma package """
     all_deps = False if all_deps == "False" else True
     destroy_vm = bool(strtobool(destroy_vm))
@@ -99,8 +99,9 @@ def package(vcs='hg', all_deps="False",
         print("Building magma package, picking up commit %s..." % hash)
         run('make clean')
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
-        run('./release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s' %
-            (hash, build_type, cert_file, proxy_config))
+
+        run('./release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s --os %s' %
+            (hash, build_type, cert_file, proxy_config, os))
 
 
         run('rm -rf ~/magma-packages')
