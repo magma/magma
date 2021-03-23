@@ -370,3 +370,9 @@
     - mtr0
     - ipfix0
   when: full_provision
+
+- name: Patch python aio lib
+  patch:
+    src: patches/aioeventlet.py38.patch
+    dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Ubuntu"
