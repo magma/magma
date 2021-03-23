@@ -43,6 +43,8 @@ struct RulesToProcess {
   // If this vector is set, then it has PolicyRule definitions for both static
   // and dynamic rules
   std::vector<PolicyRule> rules;
+  // Vector of rule versions. versions[i] contains the version for rules[i]
+  std::vector<uint32_t> versions;
   bool empty() const;
 };
 
@@ -322,7 +324,7 @@ class SessionState {
   /**
    * Add a static rule to the session which is currently active.
    */
-  void activate_static_rule(
+  uint32_t activate_static_rule(
       const std::string& rule_id, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
@@ -384,6 +386,8 @@ class SessionState {
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
+  bool is_static_rule_scheduled(const std::string& rule_id);
+
   /**
    * Schedule a static rule for activation in the future.
    */
@@ -395,12 +399,6 @@ class SessionState {
    * Mark a scheduled dynamic rule as activated.
    */
   void install_scheduled_dynamic_rule(
-      const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
-
-  /**
-   * Mark a scheduled static rule as activated.
-   */
-  void install_scheduled_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
 
   void set_suspend_credit(
@@ -712,8 +710,6 @@ class SessionState {
       UpdateSessionRequest& update_request_out,
       SessionStateUpdateCriteria& update_criteria);
 
-  bool is_static_rule_scheduled(const std::string& rule_id);
-
   /** apply static_rules which is the desired state for the session's rules **/
   void apply_session_static_rule_set(
       std::unordered_set<std::string> static_rules,
@@ -773,6 +769,15 @@ class SessionState {
    */
   void update_data_metrics(
       const char* counter_name, uint64_t bytes_tx, uint64_t bytes_rx);
+
+  // PolicyStatsMap functions
+  /**
+   *
+   * @param rule_id
+   * @param session_uc
+   */
+  void increment_rule_stats(
+      const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
 };
 
 }  // namespace magma

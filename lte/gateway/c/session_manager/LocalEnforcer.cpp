@@ -680,7 +680,11 @@ void LocalEnforcer::schedule_static_rule_activation(
         const auto ambr           = config.get_apn_ambr();
         const std::string msisdn  = config.common_context.msisdn();
 
-        session->install_scheduled_static_rule(rule_id, uc);
+        if (session->is_static_rule_scheduled(rule_id)) {
+          // scheduled_static_rules_.erase(rule_id);
+        }
+        uint32_t version = session->activate_static_rule(
+            rule_id, session->get_rule_lifetime(rule_id), uc);
         PolicyRule rule;
         rule_store_->get_rule(rule_id, &rule);
         RulesToProcess to_process;
@@ -1784,9 +1788,10 @@ void LocalEnforcer::process_rules_to_install(
       schedule_static_rule_activation(
           imsi, session_id, id, lifetime.activation_time);
     } else {
-      session.activate_static_rule(id, lifetime, uc);
+      uint32_t version = session.activate_static_rule(id, lifetime, uc);
       // Set up rules_to_activate
       rules_to_activate.rules.push_back(static_rule);
+      rules_to_activate.versions.push_back(version);
     }
 
     if (lifetime.deactivation_time > current_time) {

@@ -102,7 +102,8 @@ TEST_F(SessionStateTest, test_rule_scheduling) {
   EXPECT_EQ(1, session_state->total_monitored_rules_count());
   EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule1"));
 
-  session_state->install_scheduled_static_rule("rule2", _uc);
+  session_state->activate_static_rule(
+      "rule2", session_state->get_rule_lifetime("rule2"), _uc);
   EXPECT_EQ(2, session_state->total_monitored_rules_count());
   EXPECT_TRUE(session_state->is_static_rule_installed("rule2"));
 }
@@ -150,7 +151,6 @@ TEST_F(SessionStateTest, test_rule_time_sync) {
   EXPECT_TRUE(uc.dynamic_rules_to_uninstall.count("d3"));
 
   EXPECT_TRUE(uc.static_rules_to_install.count("s1"));
-  EXPECT_TRUE(uc.static_rules_to_uninstall.count("s3"));
 
   // Update the time once more, sync again, and check expectations
   test_time = std::time_t(16);
