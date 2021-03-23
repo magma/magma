@@ -162,5 +162,5 @@ RUN python3.8 -m pip install --force-reinstall git+https://github.com/URenko/aio
 
 # patching aioeventlet
 RUN mkdir /patches
-COPY lte/gateway/python/patches/aioeventlet.py38.patch /patches
+COPY lte/gateway/deploy/roles/magma/files/patches/aioeventlet.py38.patch /patches
 RUN patch -N -s -f /usr/local/lib/python3.8/dist-packages/aioeventlet.py < patches/aioeventlet.py38.patch
