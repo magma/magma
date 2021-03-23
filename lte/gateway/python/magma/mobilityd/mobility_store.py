@@ -13,13 +13,13 @@ limitations under the License.
 from collections import defaultdict
 
 import redis
-from magma.common.redis.containers import RedisFlatDict, RedisSet
-from magma.common.redis.serializers import RedisSerde
-from magma.common.redis.containers import RedisHashDict
-from magma.common.redis.serializers import get_json_serializer, \
-    get_json_deserializer
-from magma.common.redis.client import get_default_client
+from lte.protos.mobilityd_pb2 import GWInfo
 
+from magma.common.redis.client import get_default_client
+from magma.common.redis.containers import RedisFlatDict, RedisHashDict, \
+    RedisSet
+from magma.common.redis.serializers import RedisSerde, get_json_deserializer, \
+    get_json_serializer
 from magma.mobilityd import serialize_utils
 from magma.mobilityd.ip_descriptor import IPDesc
 from magma.mobilityd.ip_descriptor_map import IpDescriptorMap
@@ -45,7 +45,7 @@ class MobilityStore(object):
             self.ip_state_map = IpDescriptorMap(defaultdict(dict))
             self.assigned_ip_blocks = set()  # {ip_block}
             self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
-            self.dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
+            self.dhcp_gw_info = UplinkGatewayInfo(defaultdict(GWInfo))
             self.dhcp_store = {}  # mac => DHCP_State
             self.allocated_iid = {}  # {ipv6 interface identifiers}
             self.sid_session_prefix_allocated = {}  # SID => session prefix
@@ -79,7 +79,7 @@ class IPDescDict(RedisFlatDict):
                            serialize_utils.serialize_ip_desc,
                            serialize_utils.deserialize_ip_desc,
                            )
-        super().__init__(client, serde)
+        super().__init__(client, serde, writethrough=True)
 
 
 def ip_states(client, key):

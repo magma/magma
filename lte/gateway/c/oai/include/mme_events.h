@@ -26,7 +26,7 @@ extern "C" {
 /**
  * Helper function to initiate AsyncEventdClient in its own thread
  */
-int event_client_init(void);
+void event_client_init(void);
 
 /**
  * Logs Attach successful event

@@ -1,0 +1,13 @@
+diff --git a/src/msg.cpp b/src/msg.cpp
+index 9924ba05..0103e798 100644
+--- a/src/msg.cpp
++++ b/src/msg.cpp
+@@ -557,7 +557,7 @@ int zmq::msg_t::set_group (const char * group_, size_t length_)
+         return -1;
+     }
+ 
+-    strncpy (u.base.group, group_, length_);
++    memcpy (u.base.group, group_, length_);
+     u.base.group[length_] = '\0';
+ 
+     return 0;

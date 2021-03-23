@@ -8,6 +8,15 @@
     "Orchestrator": [
       {
         "type": "subcategory",
+        "label": "Architecture",
+        "ids": [
+          "orc8r/architecture_overview",
+          "orc8r/architecture_modularity",
+          "orc8r/architecture_security"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Deploy Orchestrator",
         "ids": [
           "orc8r/deploy_intro",
@@ -31,8 +40,11 @@
         "type": "subcategory",
         "label": "Development",
         "ids": [
-          "orc8r/development/testing_tips",
-          "orc8r/development/minikube_deployment"
+          "orc8r/dev_security",
+          "orc8r/dev_indexers",
+          "orc8r/dev_testing",
+          "orc8r/dev_minikube",
+          "orc8r/dev_dependencies"
         ]
       }
     ],
@@ -70,6 +82,7 @@
           "lte/config_agw",
           "lte/enodebd",
           "lte/config_apn",
+          "lte/ha_setup",
           "lte/agw_130_upgrade",
           "lte/agw_120_upgrade",
           "lte/agw_110_upgrade"
@@ -78,7 +91,12 @@
       {
         "type": "subcategory",
         "label": "AGW Development",
-        "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes", "lte/eventd"]
+        "ids": [
+          "lte/tr069",
+          "lte/s1ap_tests",
+          "lte/dev_notes",
+          "lte/eventd"
+        ]
       }
     ],
     "Feature Guides": [
@@ -86,7 +104,8 @@
       "howtos/config_agw_bridged",
       "howtos/thanos",
       "howtos/call_tracing",
-      "howtos/events_monitoring"
+      "howtos/events_monitoring",
+      "howtos/header_enrichment.md"
     ],
     "Debugging Tools": [
       "debugging_tools/show_tech"
@@ -103,7 +122,14 @@
         ]
       }
     ],
-    "FAQ": ["faq/magma_faq"],
+    "FAQ": [
+      "faq/faq_magma"
+    ],
+    "Contributing": [
+      "contributing/contribute_onboarding",
+      "contributing/contribute_workflow",
+      "contributing/contribute_conventions"
+    ],
     "Proposals": [
       "proposals/p001_vpn_config_from_api",
       "proposals/p002_scaled_prometheus_pipeline",
@@ -111,7 +137,8 @@
       "proposals/p004_fua-restrict-feature",
       "proposals/p005_call_tracing",
       "proposals/p007_header_enrichment",
-      "proposals/p008_apn_correction"
+      "proposals/p008_apn_correction",
+      "proposals/p009_nms_mariadb_migration"
     ]
   }
 }

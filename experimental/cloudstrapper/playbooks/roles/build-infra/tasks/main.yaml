@@ -1,0 +1,7 @@
+---
+
+- include: orc8r-devops.yaml
+  tags: devopsOrc8r
+
+- include: agw-devops.yaml
+  tags: devopsAgw

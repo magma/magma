@@ -26,7 +26,7 @@ namespace magma {
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    std::shared_ptr<DirectorydClient> directoryd_client,
     std::shared_ptr<EventsReporter> events_reporter,
     SessionStore& session_store)
     : session_store_(session_store),
@@ -37,7 +37,7 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
       current_epoch_(0),
       reported_epoch_(0),
       retry_timeout_ms_(std::chrono::milliseconds{5000}),
-      is_setting_up_pipelined_(false) {}
+      pipelined_state_(PipelineDState::NOT_READY) {}
 
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
@@ -140,37 +140,37 @@ bool LocalSessionManagerHandlerImpl::is_pipelined_restarted() {
 
 void LocalSessionManagerHandlerImpl::handle_setup_callback(
     const std::uint64_t& epoch, Status status, SetupFlowsResult resp) {
-  using namespace std::placeholders;
-  // Reset the variable since we've received a SetupResponse
-  is_setting_up_pipelined_ = false;
-  if (status.ok() && resp.result() == resp.SUCCESS) {
-    MLOG(MDEBUG) << "Successfully setup PipelineD with epoch: " << epoch;
-    return;
-  }
-
-  if (current_epoch_ != epoch) {
-    // This means that PipelineD has restarted since the initial Setup call was
-    // called
-    MLOG(MDEBUG) << "Received stale PipelineD setup callback for epoch: "
-                 << epoch << ", current epoch: " << current_epoch_;
-    return;
-  }
-  if (status.ok() && resp.result() == resp.OUTDATED_EPOCH) {
-    MLOG(MWARNING) << "PipelineD setup call has outdated epoch, abandoning.";
-    return;
-  }
-
-  // Cases for which we re-try the Setup call
-  if (!status.ok()) {
-    MLOG(MERROR) << "Could not setup PipelineD, rpc failed with: "
-                 << status.error_message() << ", retrying PipelineD setup "
-                 << "for epoch: " << epoch;
-  } else if (resp.result() == resp.FAILURE) {
-    MLOG(MWARNING) << "PipelineD setup failed, retrying PipelineD setup "
-                   << "after delay, for epoch: " << epoch;
-  }
-
+  // Run everything in the event base thread since we asynchronously
+  // read/modify pipelined_state_
   enforcer_->get_event_base().runInEventBaseThread([=] {
+    if (status.ok() && resp.result() == resp.SUCCESS) {
+      MLOG(MDEBUG) << "Successfully setup PipelineD with epoch: " << epoch;
+      pipelined_state_ = PipelineDState::READY;
+      return;
+    }
+    pipelined_state_ = PipelineDState::NOT_READY;
+    if (current_epoch_ != epoch) {
+      // This means that PipelineD has restarted since the initial Setup call
+      // was called
+      MLOG(MDEBUG) << "Received stale PipelineD setup callback for epoch: "
+                   << epoch << ", current epoch: " << current_epoch_;
+      return;
+    }
+    if (status.ok() && resp.result() == resp.OUTDATED_EPOCH) {
+      MLOG(MWARNING) << "PipelineD setup call has outdated epoch, abandoning.";
+      return;
+    }
+
+    // Cases for which we re-try the Setup call
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not setup PipelineD, rpc failed with: "
+                   << status.error_message() << ", retrying PipelineD setup "
+                   << "for epoch: " << epoch;
+    } else if (resp.result() == resp.FAILURE) {
+      MLOG(MWARNING) << "PipelineD setup failed, retrying PipelineD setup "
+                     << "after delay, for epoch: " << epoch;
+    }
+
     enforcer_->get_event_base().runAfterDelay(
         [=] { call_setup_pipelined(epoch); }, retry_timeout_ms_.count());
   });
@@ -179,15 +179,16 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
 void LocalSessionManagerHandlerImpl::call_setup_pipelined(
     const std::uint64_t& epoch) {
   using namespace std::placeholders;
-  if (is_setting_up_pipelined_) {
+  if (pipelined_state_ == PipelineDState::SETTING_UP) {
     // Return if there is already a Setup call in progress
     return;
   }
   if (current_epoch_ != epoch) {
-    // This means that PipelineD has restarted since the this call was scheduled
+    // This means that PipelineD has restarted since the this call was
+    // scheduled
     return;
   }
-  is_setting_up_pipelined_ = true;
+  pipelined_state_ = PipelineDState::SETTING_UP;
 
   MLOG(MINFO) << "Sending a setup call to PipelineD with epoch: " << epoch;
   auto session_map = session_store_.read_all_sessions();
@@ -230,6 +231,15 @@ void LocalSessionManagerHandlerImpl::CreateSession(
         const auto& session_id = id_gen_.gen_session_id(imsi);
         SessionConfig cfg(request_cpy);
         log_create_session(cfg);
+        if (pipelined_state_ != READY) {
+          MLOG(MINFO) << "Rejecting LocalCreateSessionRequest for " << imsi
+                      << " apn=" << cfg.common_context.apn()
+                      << " since PipelineD is still setting up.";
+          send_local_create_session_response(
+              Status(grpc::UNAVAILABLE, "PipelineD is not ready"), session_id,
+              response_callback);
+          return;
+        }
 
         auto session_map     = session_store_.read_sessions({imsi});
         const auto& rat_type = cfg.common_context.rat_type();
@@ -577,8 +587,8 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
     bool update_success =
         session_store_.raw_write_sessions(std::move(session_map));
     if (!update_success) {
-      MLOG(MERROR)
-          << "Failed in updating SessionStore after processing UpdateTunnelIds";
+      MLOG(MERROR) << "Failed in updating SessionStore after processing "
+                      "UpdateTunnelIds";
       auto err_status = Status(grpc::ABORTED, "Failed to store tunnels Ids");
       response_callback(err_status, UpdateTunnelIdsResponse());
       return;

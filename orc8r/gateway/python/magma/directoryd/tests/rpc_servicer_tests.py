@@ -44,7 +44,7 @@ class DirectorydRpcServiceTests(TestCase):
                 'magma.directoryd.rpc_servicer.get_default_client',
                 func_mock):
             # Add the servicer
-            self._servicer = GatewayDirectoryServiceRpcServicer()
+            self._servicer = GatewayDirectoryServiceRpcServicer(False)
             self._servicer.add_to_server(self._rpc_server)
             self._rpc_server.start()
 

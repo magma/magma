@@ -80,6 +80,7 @@
 #define LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH 5
 #define LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH 6
 #define LOG_FUNC_INDENT_SPACES 3
+#define LOG_INDENT_MAX 30
 #define LOG_LEVEL_NAME_MAX_LENGTH 10
 
 #define LOG_CTXT_INFO_FMT                                                      \
@@ -296,19 +297,17 @@ static void get_thread_context(log_thread_ctxt_t** thread_ctxt) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       log_exit();
     } break;
 
     default: { } break; }
 
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -655,6 +654,9 @@ int log_init(
       &g_oai_log.log_proto2str[LOG_S11][0], LOG_MAX_PROTO_NAME_LENGTH, "S11");
   snprintf(
       &g_oai_log.log_proto2str[LOG_S6A][0], LOG_MAX_PROTO_NAME_LENGTH, "S6A");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_SGW_S8][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "SGW_S8");
   snprintf(
       &g_oai_log.log_proto2str[LOG_SECU][0], LOG_MAX_PROTO_NAME_LENGTH, "SECU");
   snprintf(
@@ -1222,9 +1224,14 @@ void log_func(
         thread_ctxt, OAILOG_LEVEL_TRACE, protoP, source_fileP, line_numP,
         "Entering %s()\n", functionP);
     thread_ctxt->indent += LOG_FUNC_INDENT_SPACES;
+    if (thread_ctxt->indent > LOG_INDENT_MAX) {
+      thread_ctxt->indent = LOG_INDENT_MAX;
+    }
   } else {
     thread_ctxt->indent -= LOG_FUNC_INDENT_SPACES;
-    if (thread_ctxt->indent < 0) thread_ctxt->indent = 0;
+    if (thread_ctxt->indent < 0) {
+      thread_ctxt->indent = 0;
+    }
     log_message(
         thread_ctxt, OAILOG_LEVEL_TRACE, protoP, source_fileP, line_numP,
         "Leaving %s()\n", functionP);
@@ -1524,7 +1531,7 @@ int append_log_ctx_info_prefix_id(
 //    input: /home/vagrant/magma/lte/gateway/c/oai/tasks/nas/emm/sap/emm_cn.c
 //           Assume root is /oai/
 //    output: tasks/nas/emm/sap/emm_cn.c
-const char* const get_short_file_name(const char* const source_file_nameP) {
+const char* get_short_file_name(const char* const source_file_nameP) {
   if (!source_file_nameP) return source_file_nameP;
 
   char* root_startP = strstr(source_file_nameP, LOG_MAGMA_REPO_ROOT);

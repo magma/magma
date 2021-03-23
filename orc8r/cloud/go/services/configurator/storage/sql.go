@@ -73,14 +73,15 @@ const (
 
 // NewSQLConfiguratorStorageFactory returns a ConfiguratorStorageFactory
 // implementation backed by a SQL database.
-func NewSQLConfiguratorStorageFactory(db *sql.DB, generator storage.IDGenerator, sqlBuilder sqorc.StatementBuilder) ConfiguratorStorageFactory {
-	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator, builder: sqlBuilder}
+func NewSQLConfiguratorStorageFactory(db *sql.DB, generator storage.IDGenerator, sqlBuilder sqorc.StatementBuilder, maxEntityLoadSize uint32) ConfiguratorStorageFactory {
+	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator, builder: sqlBuilder, maxEntityLoadSize: maxEntityLoadSize}
 }
 
 type sqlConfiguratorStorageFactory struct {
-	db          *sql.DB
-	idGenerator storage.IDGenerator
-	builder     sqorc.StatementBuilder
+	db                *sql.DB
+	idGenerator       storage.IDGenerator
+	builder           sqorc.StatementBuilder
+	maxEntityLoadSize uint32
 }
 
 func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error) {
@@ -252,7 +253,7 @@ func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &sqlConfiguratorStorage{tx: tx, idGenerator: fact.idGenerator, builder: fact.builder}, nil
+	return &sqlConfiguratorStorage{tx: tx, idGenerator: fact.idGenerator, builder: fact.builder, maxEntityLoadSize: fact.maxEntityLoadSize}, nil
 }
 
 func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
@@ -266,9 +267,10 @@ func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
 }
 
 type sqlConfiguratorStorage struct {
-	tx          *sql.Tx
-	idGenerator storage.IDGenerator
-	builder     sqorc.StatementBuilder
+	tx                *sql.Tx
+	idGenerator       storage.IDGenerator
+	builder           sqorc.StatementBuilder
+	maxEntityLoadSize uint32
 }
 
 func (store *sqlConfiguratorStorage) Commit() error {
@@ -471,6 +473,14 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 		return a.GetTypeAndKey().String() < b.GetTypeAndKey().String()
 	}
 	sort.Slice(ret.Entities, func(i, j int) bool { return entComparator(ret.Entities[i], ret.Entities[j]) })
+
+	// Set next page token when there may be more pages to return
+	if len(ret.Entities) == store.getEntityLoadPageSize(loadCriteria) {
+		ret.NextPageToken, err = getNextPageToken(ret.Entities)
+		if err != nil {
+			return ret, err
+		}
+	}
 
 	return ret, nil
 }

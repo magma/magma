@@ -35,11 +35,28 @@ vagrant plugin install vagrant-vbguest
 ```
 
 If you are on MacOS, you should start Docker for Mac and increase the memory
-allocation for the Docker engine to at least 4GB (Preferences -> Advanced). 
-If you are running into build/test failures with Go that report "signal killed", you
-likely need to increase Docker's allocated resources.
+allocation for the Docker engine to at least 4GB (Preferences -> Resources ->
+Advanced). If you are running into build/test failures with Go that report
+"signal killed", you likely need to increase Docker's allocated resources.
 
 ![Increasing docker engine resources](assets/docker-config.png)
+
+## Downloading Magma
+
+You can find Magma code on [Github](https://github.com/magma/magma).
+
+To download Magma current version, or a specific release do the following:
+
+```bash
+git clone https://github.com/magma/magma.git
+cd magma
+
+# in case you want to use a specific version of Magma (for example v1.3.3)
+git checkout v1.3.3
+
+# to list all available releases
+git tag -l
+```
 
 ## Build/Deploy Tooling
 

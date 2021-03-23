@@ -57,7 +57,6 @@ class EnforcementStatsTest(unittest.TestCase):
         """
         super(EnforcementStatsTest, self).setUpClass()
         warnings.simplefilter('ignore')
-        self._static_rule_dict = {}
         self.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
         self._main_tbl_num = self.service_manager.get_table_num(
             EnforcementController.APP_NAME)
@@ -123,10 +122,7 @@ class EnforcementStatsTest(unittest.TestCase):
         self.enforcement_controller = enforcement_controller_reference.result()
         self.testing_controller = testing_controller_reference.result()
 
-        self.enforcement_stats_controller._policy_dict = self._static_rule_dict
         self.enforcement_stats_controller._report_usage = MagicMock()
-
-        self.enforcement_controller._policy_dict = self._static_rule_dict
         self.enforcement_controller._redirect_manager._save_redirect_entry = \
             MagicMock()
 
@@ -176,12 +172,11 @@ class EnforcementStatsTest(unittest.TestCase):
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
-        self._static_rule_dict[policies[0].id] = policies[0]
-        self._static_rule_dict[policies[1].id] = policies[1]
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_static_rule(policies[0].id).add_static_rule(policies[1].id)
+        ).add_dynamic_rule(policies[0]) \
+         .add_dynamic_rule(policies[1])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -260,7 +255,6 @@ class EnforcementStatsTest(unittest.TestCase):
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'redir_test')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
-        self._static_rule_dict[policy.id] = policy
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
@@ -323,11 +317,10 @@ class EnforcementStatsTest(unittest.TestCase):
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
-        self._static_rule_dict[policy.id] = policy
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_static_rule(policy.id)
+        ).add_dynamic_rule(policy)
 
         # =========================== Verification ===========================
 
@@ -364,11 +357,10 @@ class EnforcementStatsTest(unittest.TestCase):
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
-        self._static_rule_dict[policy.id] = policy
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_static_rule(policy.id)
+        ).add_dynamic_rule(policy)
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
@@ -432,11 +424,10 @@ class EnforcementStatsTest(unittest.TestCase):
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
-        self._static_rule_dict[policy.id] = policy
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_static_rule(policy.id)
+        ).add_dynamic_rule(policy)
 
         # =========================== Verification ===========================
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
@@ -474,11 +465,10 @@ class EnforcementStatsTest(unittest.TestCase):
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
-        self._static_rule_dict[policy.id] = policy
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_static_rule(policy.id)
+        ).add_dynamic_rule(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -562,11 +552,10 @@ class EnforcementStatsTest(unittest.TestCase):
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
-        self._static_rule_dict[policy.id] = policy
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_static_rule(policy.id)
+        ).add_dynamic_rule(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -601,11 +590,11 @@ class EnforcementStatsTest(unittest.TestCase):
             self.enforcement_controller.deactivate_rules(
                 imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.id])
             self.enforcement_controller.activate_rules(
-                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
-                [])
+                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
+                [policy])
             self.enforcement_stats_controller.activate_rules(
-                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
-                [])
+                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
+                [policy])
             pkt_sender.send(packet)
 
         wait_for_enforcement_stats(self.enforcement_stats_controller,

@@ -162,13 +162,33 @@ s1ap_message_handler_t message_handlers[][3] = {
     {s1ap_mme_handle_enb_configuration_transfer, 0,
      0},       /* eNBConfigurationTransfer */
     {0, 0, 0}, /* MMEConfigurationTransfer */
+    // HERE END UPDATES REL 9, 10, 11
+    // UPDATE RELEASE 12 :
     {0, 0, 0}, /* CellTrafficTrace */
-               // UPDATE RELEASE 9
-    {0, 0, 0}, /* Kill */
-    {0, 0, 0}, /* DownlinkUEAssociatedLPPaTransport  */
-    {0, 0, 0}, /* UplinkUEAssociatedLPPaTransport */
-    {0, 0, 0}, /* DownlinkNonUEAssociatedLPPaTransport */
-    {0, 0, 0}, /* UplinkNonUEAssociatedLPPaTransport */
+    {0, 0, 0}, /* 43 Kill */
+    {0, 0, 0}, /* 44 DownlinkUEAssociatedLPPaTransport  */
+    {0, 0, 0}, /* 45 UplinkUEAssociatedLPPaTransport */
+    {0, 0, 0}, /* 46 DownlinkNonUEAssociatedLPPaTransport */
+    {0, 0, 0}, /* 47 UplinkNonUEAssociatedLPPaTransport */
+    {0, 0, 0}, /* 48 UERadioCapabilityMatch */
+    {0, 0, 0}, /* 49 PWSRestartIndication */
+    // UPDATE RELEASE 13 :
+    {s1ap_mme_handle_erab_modification_indication, 0,
+     0},       /* 50 E-RABModificationIndication */
+    {0, 0, 0}, /* 51 PWSFailureIndication */
+    {0, 0, 0}, /* 52 RerouteNASRequest */
+    {0, 0, 0}, /* 53 UEContextModificationIndication */
+    {0, 0, 0}, /* 54 ConnectionEstablishmentIndication */
+    // UPDATE RELEASE 14 :
+    {0, 0, 0}, /* 55 UEContextSuspend */
+    {0, 0, 0}, /* 56 UEContextResume */
+    {0, 0, 0}, /* 57 NASDeliveryIndication */
+    {0, 0, 0}, /* 58 RetrieveUEInformation */
+    {0, 0, 0}, /* 59 UEInformationTransfer */
+    // UPDATE RELEASE 15 :
+    {0, 0, 0}, /* 60 eNBCPRelocationIndication */
+    {0, 0, 0}, /* 61 MMECPRelocationIndication */
+    {0, 0, 0}, /* 62 SecondaryRATDataUsageReport */
 };
 
 int s1ap_mme_handle_message(
@@ -325,8 +345,7 @@ void clean_stale_enb_state(
   enb_description_t* stale_enb_association = NULL;
 
   hashtable_ts_apply_callback_on_elements(
-      (hash_table_ts_t* const) & state->enbs,
-      get_stale_enb_connection_with_enb_id, new_enb_association,
+      &state->enbs, get_stale_enb_connection_with_enb_id, new_enb_association,
       (void**) &stale_enb_association);
   if (stale_enb_association == NULL) {
     // No stale eNB connection found;
@@ -981,7 +1000,9 @@ int s1ap_mme_handle_initial_context_setup_response(
   }
 
   // Failed bearers
-  itti_mme_app_initial_context_setup_rsp_t* initial_context_setup_rsp = NULL;
+  itti_mme_app_initial_context_setup_rsp_t* initial_context_setup_rsp =
+      &(MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p));
+  initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items = 0;
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_InitialContextSetupResponseIEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_E_RABFailedToSetupListBearerSURes, false);
@@ -998,8 +1019,9 @@ int s1ap_mme_handle_initial_context_setup_response(
           .item[initial_context_setup_rsp->e_rab_failed_to_setup_list
                     .no_of_items]
           .cause = erab_item->cause;
-      initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items++;
     }
+    initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items =
+        s1ap_e_rab_list->list.count;
   }
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
@@ -1260,9 +1282,13 @@ int s1ap_mme_generate_ue_context_release_command(
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_ue_not_available_for_ps_service;
       break;
+    case S1AP_RADIO_MULTIPLE_E_RAB_ID:
+      cause_type  = S1ap_Cause_PR_radioNetwork;
+      cause_value = S1ap_CauseRadioNetwork_multiple_E_RAB_ID_instances;
     case S1AP_INVALID_MME_UE_S1AP_ID:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_unknown_mme_ue_s1ap_id;
+      break;
     case S1AP_NAS_MME_OFFLOADING:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;
@@ -2197,7 +2223,6 @@ bool s1ap_send_enb_deregistered_ind(
     *resultP = arg->message_p;
   } else {
     OAILOG_TRACE(LOG_S1AP, "No valid UE provided in callback: %p\n", ue_ref_p);
-    AssertFatal(0, "No valid UE while creating S1AP_ENB_DEREGISTERED_IND");
   }
   return false;
 }
@@ -2357,7 +2382,8 @@ int s1ap_handle_new_association(
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
     }
     enb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
-    hashtable_rc_t hash_rc         = hashtable_ts_insert(
+    enb_association->enb_id = 0xFFFFFFFF;  // home or macro eNB is 28 or 20bits.
+    hashtable_rc_t hash_rc  = hashtable_ts_insert(
         &state->enbs, (const hash_key_t) enb_association->sctp_assoc_id,
         (void*) enb_association);
     if (HASH_TABLE_OK != hash_rc) {
@@ -3133,6 +3159,273 @@ int s1ap_handle_paging_request(
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+}
+
+//------------------------------------------------------------------------------
+int s1ap_mme_handle_erab_modification_indication(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  enb_ue_s1ap_id_t enb_ue_s1ap_id               = 0;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id               = 0;
+  int rc                                        = RETURNok;
+  S1ap_E_RABModificationIndication_t* container = NULL;
+  S1ap_E_RABModificationIndicationIEs_t* ie     = NULL;
+  ue_description_t* ue_ref_p                    = NULL;
+  MessageDef* message_p                         = NULL;
+
+  container =
+      &pdu->choice.initiatingMessage.value.choice.E_RABModificationIndication;
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_E_RABModificationIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_E_RABModificationIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  // eNB UE S1AP ID is limited to 24 bits
+  enb_ue_s1ap_id =
+      (enb_ue_s1ap_id_t)(ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid((uint32_t) mme_ue_s1ap_id)) == NULL) {
+    OAILOG_DEBUG(
+        LOG_S1AP,
+        "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT
+        " %u(10)\n",
+        (uint32_t) mme_ue_s1ap_id, (uint32_t) mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if (ue_ref_p->enb_ue_s1ap_id != enb_ue_s1ap_id) {
+    OAILOG_DEBUG(
+        LOG_S1AP,
+        "Mismatch in eNB UE S1AP ID, known: " ENB_UE_S1AP_ID_FMT
+        ", received: " ENB_UE_S1AP_ID_FMT "\n",
+        ue_ref_p->enb_ue_s1ap_id, enb_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_MODIFICATION_IND);
+  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
+  S1AP_E_RAB_MODIFICATION_IND(message_p).mme_ue_s1ap_id =
+      ue_ref_p->mme_ue_s1ap_id;
+  S1AP_E_RAB_MODIFICATION_IND(message_p).enb_ue_s1ap_id =
+      ue_ref_p->enb_ue_s1ap_id;
+
+  /** Get the bearers to be modified. */
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_E_RABModificationIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_E_RABToBeModifiedListBearerModInd, true);
+  const S1ap_E_RABToBeModifiedListBearerModInd_t* const e_rab_list =
+      &ie->value.choice.E_RABToBeModifiedListBearerModInd;
+  int num_erab = e_rab_list->list.count;
+  for (int index = 0; index < num_erab; index++) {
+    const S1ap_E_RABToBeModifiedItemBearerModIndIEs_t* const erab_item_ies =
+        (S1ap_E_RABToBeModifiedItemBearerModIndIEs_t*)
+            e_rab_list->list.array[index];
+    const S1ap_E_RABToBeModifiedItemBearerModInd_t* const erab_item =
+        (S1ap_E_RABToBeModifiedItemBearerModInd_t*) &erab_item_ies->value.choice
+            .E_RABToBeModifiedItemBearerModInd;
+    S1AP_E_RAB_MODIFICATION_IND(message_p)
+        .e_rab_to_be_modified_list.item[index]
+        .e_rab_id = erab_item->e_RAB_ID;
+
+    bstring transport_layer_address = blk2bstr(
+        erab_item->transportLayerAddress.buf,
+        erab_item->transportLayerAddress.size);
+
+    S1AP_E_RAB_MODIFICATION_IND(message_p)
+        .e_rab_to_be_modified_list.item[index]
+        .s1_xNB_fteid.teid = htonl(*((uint32_t*) erab_item->dL_GTP_TEID.buf));
+
+    /** Set the IP address from the FTEID. */
+    if (4 == blength(transport_layer_address)) {
+      S1AP_E_RAB_MODIFICATION_IND(message_p)
+          .e_rab_to_be_modified_list.item[index]
+          .s1_xNB_fteid.ipv4 = 1;
+      memcpy(
+          &S1AP_E_RAB_MODIFICATION_IND(message_p)
+               .e_rab_to_be_modified_list.item[index]
+               .s1_xNB_fteid.ipv4_address,
+          transport_layer_address->data, blength(transport_layer_address));
+    } else if (16 == blength(transport_layer_address)) {
+      S1AP_E_RAB_MODIFICATION_IND(message_p)
+          .e_rab_to_be_modified_list.item[index]
+          .s1_xNB_fteid.ipv6 = 1;
+      memcpy(
+          &S1AP_E_RAB_MODIFICATION_IND(message_p)
+               .e_rab_to_be_modified_list.item[index]
+               .s1_xNB_fteid.ipv6_address,
+          transport_layer_address->data, blength(transport_layer_address));
+    } else {
+      AssertFatal(
+          0, "TODO IP address %d bytes", blength(transport_layer_address));
+    }
+    bdestroy_wrapper(&transport_layer_address);
+
+    S1AP_E_RAB_MODIFICATION_IND(message_p)
+        .e_rab_to_be_modified_list.no_of_items++;
+  }
+
+  /** Get the bearers not to be modified. */
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_E_RABModificationIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_E_RABNotToBeModifiedListBearerModInd, false);
+  if (ie) {
+    const S1ap_E_RABNotToBeModifiedListBearerModInd_t* const
+        e_rab_not_mod_list =
+            &ie->value.choice.E_RABNotToBeModifiedListBearerModInd;
+    num_erab = e_rab_not_mod_list->list.count;
+    for (int index = 0; index < num_erab; index++) {
+      const S1ap_E_RABNotToBeModifiedItemBearerModIndIEs_t* const
+          erab_item_ies = (S1ap_E_RABNotToBeModifiedItemBearerModIndIEs_t*)
+                              e_rab_not_mod_list->list.array[index];
+      const S1ap_E_RABNotToBeModifiedItemBearerModInd_t* const erab_item =
+          (S1ap_E_RABNotToBeModifiedItemBearerModInd_t*) &erab_item_ies->value
+              .choice.E_RABNotToBeModifiedItemBearerModInd;
+      S1AP_E_RAB_MODIFICATION_IND(message_p)
+          .e_rab_not_to_be_modified_list.item[index]
+          .e_rab_id = erab_item->e_RAB_ID;
+
+      bstring transport_layer_address = blk2bstr(
+          erab_item->transportLayerAddress.buf,
+          erab_item->transportLayerAddress.size);
+
+      S1AP_E_RAB_MODIFICATION_IND(message_p)
+          .e_rab_not_to_be_modified_list.item[index]
+          .s1_xNB_fteid.teid = htonl(*((uint32_t*) erab_item->dL_GTP_TEID.buf));
+
+      /** Set the IP address from the FTEID. */
+      if (blength(transport_layer_address) == 4) {
+        S1AP_E_RAB_MODIFICATION_IND(message_p)
+            .e_rab_not_to_be_modified_list.item[index]
+            .s1_xNB_fteid.ipv4 = 1;
+        memcpy(
+            &S1AP_E_RAB_MODIFICATION_IND(message_p)
+                 .e_rab_not_to_be_modified_list.item[index]
+                 .s1_xNB_fteid.ipv4_address,
+            transport_layer_address->data, blength(transport_layer_address));
+      } else if (blength(transport_layer_address) == 16) {
+        S1AP_E_RAB_MODIFICATION_IND(message_p)
+            .e_rab_not_to_be_modified_list.item[index]
+            .s1_xNB_fteid.ipv6 = 1;
+        memcpy(
+            &S1AP_E_RAB_MODIFICATION_IND(message_p)
+                 .e_rab_not_to_be_modified_list.item[index]
+                 .s1_xNB_fteid.ipv6_address,
+            transport_layer_address->data, blength(transport_layer_address));
+      } else {
+        AssertFatal(
+            0, "TODO IP address %d bytes", blength(transport_layer_address));
+      }
+      bdestroy_wrapper(&transport_layer_address);
+
+      S1AP_E_RAB_MODIFICATION_IND(message_p)
+          .e_rab_not_to_be_modified_list.no_of_items++;
+    }
+  }
+  rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+}
+
+//------------------------------------------------------------------------------
+void s1ap_mme_generate_erab_modification_confirm(
+    s1ap_state_t* state, const itti_s1ap_e_rab_modification_cnf_t* const conf) {
+  uint8_t* buffer_p        = NULL;
+  uint32_t length          = 0;
+  ue_description_t* ue_ref = NULL;
+  S1ap_S1AP_PDU_t pdu      = {0};
+  S1ap_E_RABModificationConfirm_t* out;
+  S1ap_E_RABModificationConfirmIEs_t* ie = NULL;
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+  DevAssert(conf != NULL);
+
+  if ((ue_ref = s1ap_state_get_ue_mmeid(conf->mme_ue_s1ap_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "This mme ue s1ap id (" MME_UE_S1AP_ID_FMT
+        ") is not attached to any UE context\n",
+        conf->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
+
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
+  pdu.choice.successfulOutcome.procedureCode =
+      S1ap_ProcedureCode_id_E_RABModificationIndication;
+  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
+  pdu.choice.successfulOutcome.value.present =
+      S1ap_SuccessfulOutcome__value_PR_E_RABModificationConfirm;
+  out = &pdu.choice.successfulOutcome.value.choice.E_RABModificationConfirm;
+
+  /* mandatory */
+  ie = (S1ap_E_RABModificationConfirmIEs_t*) calloc(
+      1, sizeof(S1ap_E_RABModificationConfirmIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+  ie->criticality   = S1ap_Criticality_ignore;
+  ie->value.present = S1ap_E_RABModificationConfirmIEs__value_PR_MME_UE_S1AP_ID;
+  ie->value.choice.MME_UE_S1AP_ID = conf->mme_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* mandatory */
+  ie = (S1ap_E_RABModificationConfirmIEs_t*) calloc(
+      1, sizeof(S1ap_E_RABModificationConfirmIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
+  ie->criticality   = S1ap_Criticality_ignore;
+  ie->value.present = S1ap_E_RABModificationConfirmIEs__value_PR_ENB_UE_S1AP_ID;
+  ie->value.choice.ENB_UE_S1AP_ID = conf->enb_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  if (conf->e_rab_modify_list.no_of_items) {
+    ie = (S1ap_E_RABModificationConfirmIEs_t*) calloc(
+        1, sizeof(S1ap_E_RABModificationConfirmIEs_t));
+    ie->id          = S1ap_ProtocolIE_ID_id_E_RABModifyListBearerModConf;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present =
+        S1ap_E_RABModificationConfirmIEs__value_PR_E_RABModifyListBearerModConf;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+    S1ap_E_RABModifyListBearerModConf_t* e_rabmodifylistbearermodconf =
+        &ie->value.choice.E_RABModifyListBearerModConf;
+
+    for (int i = 0; i < conf->e_rab_modify_list.no_of_items; i++) {
+      S1ap_E_RABModifyItemBearerModConfIEs_t* item =
+          calloc(1, sizeof(S1ap_E_RABModifyItemBearerModConfIEs_t));
+
+      item->id          = S1ap_ProtocolIE_ID_id_E_RABModifyItemBearerModConf;
+      item->criticality = S1ap_Criticality_reject;
+      item->value.present =
+          S1ap_E_RABModifyItemBearerModConfIEs__value_PR_E_RABModifyItemBearerModConf;
+
+      S1ap_E_RABModifyItemBearerModConf_t* bearer =
+          &item->value.choice.E_RABModifyItemBearerModConf;
+      bearer->e_RAB_ID = conf->e_rab_modify_list.e_rab_id[i];
+
+      ASN_SEQUENCE_ADD(&e_rabmodifylistbearermodconf->list, item);
+    }
+  }
+
+  if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+    OAILOG_ERROR(
+        LOG_S1AP, "Encoding of S1ap_E_RABModificationConfirmIEs_t failed \n");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
+
+  OAILOG_NOTICE(
+      LOG_S1AP,
+      "Send S1AP E_RAB_MODIFICATION_CONFIRM Command message MME_UE_S1AP_ID "
+      "= " MME_UE_S1AP_ID_FMT " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
+      (mme_ue_s1ap_id_t) ue_ref->mme_ue_s1ap_id,
+      (enb_ue_s1ap_id_t) ue_ref->enb_ue_s1ap_id);
+  bstring b = blk2bstr(buffer_p, length);
+  free(buffer_p);
+  s1ap_mme_itti_send_sctp_request(
+      &b, ue_ref->sctp_assoc_id, ue_ref->sctp_stream_send,
+      ue_ref->mme_ue_s1ap_id);
+  OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
 //----------------------------------------------------------------

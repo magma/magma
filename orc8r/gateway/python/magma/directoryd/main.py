@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.directoryd.rpc_servicer import GatewayDirectoryServiceRpcServicer
 from orc8r.protos.mconfig import mconfigs_pb2
@@ -20,8 +21,14 @@ def main():
     """ main() for Directoryd """
     service = MagmaService('directoryd', mconfigs_pb2.DirectoryD())
 
+    # Optionally pipe errors to Sentry
+    sentry_init()
+
+    service_config = service.config
+
     # Add servicer to the server
-    gateway_directory_servicer = GatewayDirectoryServiceRpcServicer()
+    gateway_directory_servicer = GatewayDirectoryServiceRpcServicer(
+        service_config.get('print_grpc_payload', False))
     gateway_directory_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop

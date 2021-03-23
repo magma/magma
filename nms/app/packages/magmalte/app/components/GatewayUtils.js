@@ -235,6 +235,7 @@ export const DEFAULT_GATEWAY_CONFIG = {
   tier: 'default',
 };
 export const DEFAULT_DNS_CONFIG = {
+  dhcp_server_enabled: false,
   enable_caching: false,
   local_ttl: 0,
   records: [],

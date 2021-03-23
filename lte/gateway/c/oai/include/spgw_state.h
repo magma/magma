@@ -67,7 +67,7 @@ void delete_spgw_ue_state(imsi64_t imsi64);
  * Callback function for s11_bearer_context_information hashtable freefunc
  * @param context_p spgw eps bearer context entry on hashtable
  */
-void sgw_free_s11_bearer_context_information(
+void spgw_free_s11_bearer_context_information(
     s_plus_p_gw_eps_bearer_context_information_t** context_p);
 /**
  * Frees pdn connection and its contained objects
@@ -89,7 +89,7 @@ void pgw_free_pcc_rule(void** rule);
  * Callback function for imsi_ue_context hashtable's freefunc
  * @param spgw_ue_context_t
  */
-void spgw_free_ue_context(spgw_ue_context_t** ue_context_p);
+void sgw_free_ue_context(spgw_ue_context_t** ue_context_p);
 #ifdef __cplusplus
 }
 #endif

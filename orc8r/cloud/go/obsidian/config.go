@@ -14,16 +14,18 @@
 package obsidian
 
 const (
-	Product              = "Obsidian Server"
-	Version              = "0.1"
-	DefaultPort          = 9081
-	DefaultHttpsPort     = 9443
-	DefaultServerCert    = "server_cert.pem"
-	DefaultServerCertKey = "server_cert.key.pem"
-	DefaultClientCAs     = "ca_cert.pem"
-	DefaultStaticFolder  = "/var/opt/magma/static"
-	StaticURLPrefix      = "/apidocs"
-	ServiceName          = "OBSIDIAN"
+	Product                      = "Obsidian Server"
+	Version                      = "0.1"
+	DefaultPort                  = 9081
+	DefaultHttpsPort             = 9443
+	DefaultServerCert            = "server_cert.pem"
+	DefaultServerCertKey         = "server_cert.key.pem"
+	DefaultClientCAs             = "ca_cert.pem"
+	DefaultStaticFolder          = "/var/opt/magma/static"
+	StaticURLPrefix              = "/swagger"
+	StaticURLPrefixLegacy        = "/apidocs"
+	ServiceName                  = "OBSIDIAN"
+	EnableDynamicSwaggerSpecsKey = "enable_dynamic_swagger_specs"
 )
 
 // configs
@@ -35,4 +37,9 @@ var (
 	ClientCAPoolPath   string
 	AllowAnyClientCert bool
 	StaticFolder       string
+	// EnableDynamicSwaggerSpecs is a config in the obsidian
+	// service config.
+	// When true, poll and combine Swagger specs at runtime
+	// When false, fall back to serving the static Swagger spec asset
+	EnableDynamicSwaggerSpecs bool
 )

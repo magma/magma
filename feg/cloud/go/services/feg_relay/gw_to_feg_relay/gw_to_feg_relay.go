@@ -86,7 +86,7 @@ func (server *GatewayToFeGServer) useDispatcherHandler(responseWriter http.Respo
 	if !gw.Registered() {
 		http2.WriteErrResponse(responseWriter, http2.NewHTTPGrpcError(
 			"Gateway is not registered",
-			int(codes.PermissionDenied), http.StatusForbidden))
+			int(codes.PermissionDenied), http.StatusPreconditionFailed))
 		return
 	}
 	http2.LogRequestWithVerbosity(req, 4)

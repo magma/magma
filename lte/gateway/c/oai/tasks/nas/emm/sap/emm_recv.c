@@ -49,6 +49,7 @@
 #include "emm_data.h"
 #include "mme_api.h"
 #include "mme_app_ue_context.h"
+#include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -112,6 +113,42 @@ int emm_recv_status(
    Functions executed by the MME upon receiving EMM message from the UE
    --------------------------------------------------------------------------
 */
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    check_plmn_restriction()                                      **
+ **                                                                        **
+ ** Description: Check if the received PLMN matches with the               **
+ **              restricted PLMN list                                      **
+ **                                                                        **
+ ** Inputs:  imsi : imsi received in attach request/identity               **
+ **                 response                                               **
+ ** Outputs:                                                               **
+ **      Return:    EMM cause                                              **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int check_plmn_restriction(imsi_t imsi) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  for (uint8_t itr = 0; itr < mme_config.restricted_plmn.num; itr++) {
+    if ((imsi.u.num.digit1 ==
+         mme_config.restricted_plmn.plmn[itr].mcc_digit1) &&
+        (imsi.u.num.digit2 ==
+         mme_config.restricted_plmn.plmn[itr].mcc_digit2) &&
+        (imsi.u.num.digit3 ==
+         mme_config.restricted_plmn.plmn[itr].mcc_digit3) &&
+        (imsi.u.num.digit4 ==
+         mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
+        (imsi.u.num.digit5 ==
+         mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
+        (imsi.u.num.digit6 ==
+         mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_PLMN_NOT_ALLOWED);
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
+}
+
 /****************************************************************************
  **                                                                        **
  ** Name:    emm_recv_attach_request()                                 **
@@ -137,19 +174,6 @@ int emm_recv_attach_request(
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Attach Request message\n");
   increment_counter("ue_attach", 1, NO_LABELS);
-  /*
-   * Message checking
-   */
-  if (msg->uenetworkcapability.spare != 0b000) {
-    /*
-     * Spare bits shall be coded as zero
-     */
-    *emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
-    REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_b__4);
-    OAILOG_WARNING(
-        LOG_NAS_EMM, "EMMAS-SAP - [%08x] - Non zero spare bits is suspicious\n",
-        ue_id);
-  }
 
   /*
    * Handle message checking error
@@ -241,6 +265,23 @@ int emm_recv_attach_request(
     params->imsi->u.num.digit15 = msg->oldgutiorimsi.imsi.identity_digit15;
     params->imsi->u.num.parity  = 0x0f;
     params->imsi->length        = msg->oldgutiorimsi.imsi.num_digits;
+
+    // Check for PLMN restriction
+    *emm_cause = check_plmn_restriction(*params->imsi);
+    if (*emm_cause != EMM_CAUSE_SUCCESS) {
+      OAILOG_ERROR(
+          LOG_NAS_EMM,
+          "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
+          " , emm_cause =(%d)\n",
+          ue_id, *emm_cause);
+      rc = emm_proc_attach_reject(ue_id, *emm_cause);
+      free_emm_attach_request_ies(
+          (emm_attach_request_ies_t * * const) & params);
+      // Free the ESM container
+      bdestroy(msg->esmmessagecontainer);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+    }
+
   } else if (
       msg->oldgutiorimsi.imei.typeofidentity == EPS_MOBILE_IDENTITY_IMEI) {
     /*

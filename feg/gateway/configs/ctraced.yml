@@ -21,6 +21,5 @@ trace_interfaces:
 
 # Options available:
 #   - tshark
-#   - tcpdump
 # tshark has more capabilities - see command_builder.py
 trace_tool: tshark

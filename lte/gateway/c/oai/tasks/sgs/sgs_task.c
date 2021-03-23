@@ -39,9 +39,7 @@ static void sgs_exit(void);
 task_zmq_ctx_t sgs_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SGSAP_LOCATION_UPDATE_REQ: {
@@ -158,7 +156,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       send_ue_unreachable(&SGSAP_UE_UNREACHABLE(received_message_p));
     } break;
     case TERMINATE_MESSAGE: {
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       sgs_exit();
     } break;
 
@@ -169,7 +167,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 

@@ -359,10 +359,12 @@ int sgw_handle_sgi_endpoint_created(
           resp_pP->eps_bearer_id);
       AssertFatal(eps_bearer_ctxt_p, "ERROR UNABLE TO GET EPS BEARER ENTRY\n");
       AssertFatal(
-          sizeof(eps_bearer_ctxt_p->paa) == sizeof(resp_pP->paa),
+          sizeof(eps_bearer_ctxt_p->paa) ==
+              sizeof(create_session_response_p->paa),
           "Mismatch in lengths");  // sceptic mode
-      memcpy(&eps_bearer_ctxt_p->paa, &resp_pP->paa, sizeof(paa_t));
-      memcpy(&create_session_response_p->paa, &resp_pP->paa, sizeof(paa_t));
+      memcpy(
+          &create_session_response_p->paa, &eps_bearer_ctxt_p->paa,
+          sizeof(paa_t));
       copy_protocol_configuration_options(
           &create_session_response_p->pco, &resp_pP->pco);
       clear_protocol_configuration_options(&resp_pP->pco);
@@ -1365,7 +1367,34 @@ void handle_s5_create_session_response(
       "EPS bearer id %u\n",
       session_resp.context_teid, session_resp.eps_bearer_id);
 
-  sgi_create_endpoint_resp = session_resp.sgi_create_endpoint_resp;
+  // PCO processing
+  protocol_configuration_options_t* pco_req =
+      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
+           .pco;
+  protocol_configuration_options_t pco_resp = {0};
+  protocol_configuration_options_ids_t pco_ids;
+  memset(&pco_ids, 0, sizeof pco_ids);
+
+  if (pgw_process_pco_request(pco_req, &pco_resp, &pco_ids) != RETURNok) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP,
+        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
+        "Error in processing PCO in create session request for "
+        "context_id: " TEID_FMT "\n",
+        session_resp.context_teid);
+    session_resp.failure_cause = S5_OK;
+    session_resp.status        = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
+  }
+  copy_protocol_configuration_options(&sgi_create_endpoint_resp.pco, &pco_resp);
+  clear_protocol_configuration_options(&pco_resp);
+
+  // Fill SGi create endpoint resp data
+  sgi_create_endpoint_resp.status        = session_resp.status;
+  sgi_create_endpoint_resp.context_teid  = session_resp.context_teid;
+  sgi_create_endpoint_resp.eps_bearer_id = session_resp.eps_bearer_id;
+  sgi_create_endpoint_resp.paa.pdn_type =
+      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
+          .pdn_type;
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP,
@@ -1420,6 +1449,8 @@ void handle_s5_create_session_response(
     }
   } else if (session_resp.failure_cause == PCEF_FAILURE) {
     cause = SERVICE_DENIED;
+  } else if (session_resp.failure_cause == IP_ALLOCATION_FAILURE) {
+    cause = SYSTEM_FAILURE;
   }
   // Send Create Session Response with Nack
   message_p =
@@ -1435,9 +1466,14 @@ void handle_s5_create_session_response(
   memset(
       create_session_response_p, 0, sizeof(itti_s11_create_session_response_t));
   create_session_response_p->cause.cause_value = cause;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+  create_session_response_p->bearer_contexts_marked_for_removal
+      .bearer_contexts[0]
       .cause.cause_value = cause;
-  create_session_response_p->bearer_contexts_created.num_bearer_context += 1;
+  create_session_response_p->bearer_contexts_marked_for_removal
+      .num_bearer_context += 1;
+  create_session_response_p->bearer_contexts_marked_for_removal
+      .bearer_contexts[0]
+      .eps_bearer_id = session_resp.eps_bearer_id;
   create_session_response_p->teid =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_teid_S11;
   create_session_response_p->trxn =
@@ -1859,6 +1895,80 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
       s11_pcrf_ded_bearer_deactv_rsp->cause, ebi);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
+
+int sgw_handle_ip_allocation_rsp(
+    spgw_state_t* spgw_state,
+    const itti_ip_allocation_response_t* ip_allocation_rsp, imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+
+  OAILOG_DEBUG_UE(
+      LOG_SPGW_APP, imsi64,
+      "Received ip_allocation_rsp from gRPC task handler\n");
+
+  s_plus_p_gw_eps_bearer_context_information_t* bearer_ctxt_info_p =
+      sgw_cm_get_spgw_context(ip_allocation_rsp->context_teid);
+
+  if (!bearer_ctxt_info_p) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64, "Failed to get SPGW UE context for teid %u\n",
+        ip_allocation_rsp->context_teid);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+      &bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection,
+      ip_allocation_rsp->eps_bearer_id);
+  if (!eps_bearer_ctx_p) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP,
+        bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
+        "Failed to get default bearer context\n");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
+  char* imsi =
+      (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
+  if (ip_allocation_rsp->status == SGI_STATUS_OK) {
+    memcpy(&eps_bearer_ctx_p->paa, &ip_allocation_rsp->paa, sizeof(paa_t));
+
+    // create session in PCEF
+    s5_create_session_request_t session_req = {0};
+    session_req.context_teid                = ip_allocation_rsp->context_teid;
+    session_req.eps_bearer_id               = ip_allocation_rsp->eps_bearer_id;
+    session_req.status                      = ip_allocation_rsp->status;
+    struct pcef_create_session_data session_data;
+    get_session_req_data(
+        spgw_state,
+        &bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
+        &session_data);
+
+    char ip_str[INET_ADDRSTRLEN];
+    inet_ntop(
+        AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip_str,
+        INET_ADDRSTRLEN);
+    pcef_create_session(imsi, ip_str, NULL, &session_data, session_req);
+  } else {
+    if (ip_allocation_rsp->status == SGI_STATUS_ERROR_SYSTEM_FAILURE) {
+      /*
+       * This implies that UE session was not release properly.
+       * Release the IP address so that subsequent attempt is successfull
+       */
+      // TODO - Release the GTP-tunnel corresponding to this IP address
+      char* apn = (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information
+                      .pdn_connection.apn_in_use;
+      release_ipv4_address(imsi, apn, &ip_allocation_rsp->paa.ipv4_address);
+    }
+
+    // If we are here then the IP address allocation has failed
+    s5_create_session_response_t s5_response;
+    s5_response.eps_bearer_id = ip_allocation_rsp->eps_bearer_id;
+    s5_response.context_teid  = ip_allocation_rsp->context_teid;
+    s5_response.failure_cause = IP_ALLOCATION_FAILURE;
+    handle_s5_create_session_response(
+        spgw_state, bearer_ctxt_info_p, s5_response);
+  }
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
+}
+
 bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p) {
   bool rc = true;
 
@@ -1957,10 +2067,11 @@ static void _generate_dl_flow(
     if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
       struct in_addr remoteaddr = {.s_addr = 0};
-      remoteaddr.s_addr = (packet_filter->ipv4remoteaddr[0].addr << 24) +
-                          (packet_filter->ipv4remoteaddr[1].addr << 16) +
-                          (packet_filter->ipv4remoteaddr[2].addr << 8) +
-                          packet_filter->ipv4remoteaddr[3].addr;
+      remoteaddr.s_addr =
+          (((uint32_t) packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[3].addr));
       dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
       dlflow->set_params |= SRC_IPV4;
       dlflow->dst_ip.s_addr = ipv4_s_addr;
@@ -1983,10 +2094,11 @@ static void _generate_dl_flow(
     if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
       struct in_addr remoteaddr = {.s_addr = 0};
-      remoteaddr.s_addr = (packet_filter->ipv4remoteaddr[0].addr << 24) +
-                          (packet_filter->ipv4remoteaddr[1].addr << 16) +
-                          (packet_filter->ipv4remoteaddr[2].addr << 8) +
-                          packet_filter->ipv4remoteaddr[3].addr;
+      remoteaddr.s_addr =
+          (((uint32_t) packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t) packet_filter->ipv4remoteaddr[3].addr));
       dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
       dlflow->set_params |= SRC_IPV4;
     }

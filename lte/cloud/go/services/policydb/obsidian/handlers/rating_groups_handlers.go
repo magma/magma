@@ -38,7 +38,7 @@ func ListRatingGroups(c echo.Context) error {
 		return nerr
 	}
 
-	ents, err := configurator.LoadAllEntitiesOfType(
+	ents, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, lte.RatingGroupEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,

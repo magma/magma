@@ -11,8 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from test_controller import BaseMagmaTest
+import unittest
 
 
+@unittest.skip("temporarily disabled")
 class InoutTest(BaseMagmaTest.MagmaControllerTest):
     def setUp(self):
         super(InoutTest, self).setUp()
