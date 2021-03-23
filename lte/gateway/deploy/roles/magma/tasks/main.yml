@@ -10,6 +10,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Fix resove conf
+  when: ansible_distribution == "Ubuntu"
+  shell: ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
+
 - name: Include vars of all.yaml
   include_vars:
     file: all.yaml
