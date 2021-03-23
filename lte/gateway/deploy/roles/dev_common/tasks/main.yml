@@ -304,6 +304,13 @@
     CODEGEN_ROOT: "{{ codegen_root }}"
   when: preburn
 
+- name: Fix kernel commandline for interface naming.
+  shell: |
+    sed -i 's/enp0s3/eth0/g' /etc/netplan/50-cloud-init.yaml
+    sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+  when: preburn
+
 - name: Create links for clang-format
   become: yes
   command: "update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-7 1000"
