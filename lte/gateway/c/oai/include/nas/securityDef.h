@@ -62,7 +62,7 @@ Description Contains global security definitions
 #define AUTH_IK_SIZE 16       /* Integrity key:            128 bits     */
 #define AUTH_RES_SIZE 16      /* Authentication response:      128 bits */
 #define AUTH_SNID_SIZE 3      /* Serving network's identity:   24 bits  */
-#define AUTH_KASME_SIZE 32    /* KASME security key:        256 bits    */i
+#define AUTH_KASME_SIZE 32    /* KASME security key:        256 bits    */
 #define AUTH_KAMF_SIZE 32     /* KAMF security key:        256 bits    */
 #define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
 #define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */
