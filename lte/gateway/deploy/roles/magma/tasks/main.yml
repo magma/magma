@@ -215,7 +215,7 @@
       - libconfig-dev
 
 - name: Overwrite linux 4.9 GTP module with patched module
-  apt: pkg=oai-gtp=4.9-5 state=present update_cache=yes dpkg_options=force-overwrite
+  apt: pkg=oai-gtp=4.9-9 state=present update_cache=yes dpkg_options=force-overwrite
   retries: 5
   when: preburn and ansible_distribution == "Debian"
 
