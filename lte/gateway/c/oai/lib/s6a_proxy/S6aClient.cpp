@@ -103,7 +103,6 @@ S6aClient& S6aClient::get_subdb_instance(bool enable_s6a_proxy_channel) {
 // Extract MCC and MNC from the imsi received and match with
 // configuration
 bool match_fed_mode_map(const char* imsi) {
-  // TODO - Add handling for MNC with length 2 digits
   uint8_t mcc_d1 = imsi[0] - '0';
   uint8_t mcc_d2 = imsi[1] - '0';
   uint8_t mcc_d3 = imsi[2] - '0';
@@ -115,9 +114,14 @@ bool match_fed_mode_map(const char* imsi) {
          (mcc_d2 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit2) &&
          (mcc_d3 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit3) &&
          (mnc_d1 == mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit1) &&
-         (mnc_d2 == mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit2) &&
-         (mnc_d3 ==
-          mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit3))) {
+         (mnc_d2 ==
+          mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit2))) {
+      if (mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit3 != 0xf) {
+        if (mnc_d3 !=
+            mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit3) {
+          continue;
+        }
+      }
       if ((mme_config.mode_map_config.mode_map[itr].mode == SPGW_SUBSCRIBER) ||
           (mme_config.mode_map_config.mode_map[itr].mode == S8_SUBSCRIBER)) {
         return true;
@@ -127,6 +131,7 @@ bool match_fed_mode_map(const char* imsi) {
       }
     }
   }
+
   // If the plmn is not found/configured we still create a channel
   // towards the FeG as the default mode is HSS + spgw_task.
   std::cout << "[INFO]  PLMN is not found/configured. Selecting default mode"
