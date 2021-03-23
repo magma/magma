@@ -269,3 +269,10 @@
     - mtr0
     - ipfix0
   when: full_provision
+
+- name: Copy ryu ipfix patch
+  copy:
+    src: nx_actions.py
+    dest: /home/vagrant/build/python/lib/python3.5/site-packages/ryu/ofproto/
+  when: full_provision
+
