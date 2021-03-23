@@ -214,15 +214,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Update version for a given subscriber and rule.
         """
-        for rule in request.dynamic_rules:
-            self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, ipv4, rule.id)
+        for policy in request.policies:
+            self._service_manager.session_rule_version_mapper.save_version(
+                request.sid.id, ipv4, policy.rule.id, policy.version)
 
     def _remove_version(self, request: DeactivateFlowsRequest, ip_address: str):
-        def cleanup_redis(imsi, ip_address, rule_id, version):
-            self._service_manager.session_rule_version_mapper \
-                .remove(imsi, ip_address, rule_id, version)
-
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper \
                 .update_version(request.sid.id, ip_address,

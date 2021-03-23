@@ -34,29 +34,29 @@ class RuleMappersTest(unittest.TestCase):
         rule_ids = ['rule1', 'rule2']
         imsi = 'IMSI12345'
         ip_addr = '1.2.3.4'
-        self._session_rule_version_mapper.update_version(
-            imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0])
+        self._session_rule_version_mapper.save_version(
+            imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0], 1)
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0]),
             1)
 
-        self._session_rule_version_mapper.update_version(
-            imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[1])
+        self._session_rule_version_mapper.save_version(
+            imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[1], 1)
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[1]),
             1)
 
-        self._session_rule_version_mapper.update_version(
-            imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0])
+        self._session_rule_version_mapper.save_version(
+            imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0], 2)
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0]),
             2)
 
         # Test updating version for all rules of a subscriber
-        self._session_rule_version_mapper.update_version(imsi, None)
+        self._session_rule_version_mapper.save_version(imsi, None, None)
 
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
@@ -70,29 +70,29 @@ class RuleMappersTest(unittest.TestCase):
     def test_session_rule_version_mapper_cwf(self):
         rule_ids = ['rule1', 'rule2']
         imsi = 'IMSI12345'
-        self._session_rule_version_mapper.update_version(
-            imsi, None, rule_ids[0])
+        self._session_rule_version_mapper.save_version(
+            imsi, None, rule_ids[0], 1)
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, None, rule_ids[0]),
             1)
 
-        self._session_rule_version_mapper.update_version(
-            imsi, None, rule_ids[1])
+        self._session_rule_version_mapper.save_version(
+            imsi, None, rule_ids[1], 1)
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, None, rule_ids[1]),
             1)
 
-        self._session_rule_version_mapper.update_version(
-            imsi, None, rule_ids[0])
+        self._session_rule_version_mapper.save_version(
+            imsi, None, rule_ids[0], 2)
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, None, rule_ids[0]),
             2)
 
         # Test updating version for all rules of a subscriber
-        self._session_rule_version_mapper.update_version(imsi, None)
+        self._session_rule_version_mapper.save_version(imsi, None, None)
 
         self.assertEqual(
             self._session_rule_version_mapper.get_version(

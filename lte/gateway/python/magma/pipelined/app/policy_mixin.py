@@ -55,7 +55,7 @@ class PolicyMixin(metaclass=ABCMeta):
             self.proxy_controller_fut = None
         self.proxy_controller = None
 
-    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, dynamic_rules):
+    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, policies):
         """
         Activate the flows for a subscriber based on the rules stored in Redis.
         During activation, a default flow may be installed for the subscriber.
@@ -77,7 +77,7 @@ class PolicyMixin(metaclass=ABCMeta):
             )
         dyn_results = []
         for rule in dynamic_rules:
-            res = self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+            res = self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies.rule, policies.version)
             dyn_results.append(RuleModResult(rule_id=rule.id, result=res))
 
         # Install a base flow for when no rule is matched.
@@ -300,7 +300,7 @@ class PolicyMixin(metaclass=ABCMeta):
 
 
     @abstractmethod
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Install a flow given a rule. Subclass should implement this.
 

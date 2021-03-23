@@ -84,7 +84,11 @@ message ActivateFlowsRequest {
   bytes msisdn = 8; // From SubscriberDB or HSS
   uint32 uplink_tunnel = 9; // Subscriber uplink tunnel
   uint32 downlink_tunnel = 10; // Subscriber downlink tunnel
-
+  message VersionedPolicyRule {
+    PolicyRule rule = 1;
+    uint64 version = 2;
+  }
+  repeated VersionedPolicyRule policies = 11;
   reserved 3;
 }
 
@@ -112,11 +116,11 @@ message RuleModResult {
     FAILURE = 2;
   }
   Result result = 2;
+  uint64_t version = 3;
 }
 
 message ActivateFlowsResult {
   repeated RuleModResult dynamic_rule_results = 2;
-
   reserved 1;
 }
 

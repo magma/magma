@@ -84,25 +84,17 @@ class SessionRuleToVersionMapper:
     multiple threads.
     """
 
-    VERSION_LIMIT = 0xFFFFFFFF  # 32 bit unsigned int limit (inclusive)
-
     def __init__(self):
         self._version_by_imsi_and_rule = {}
         self._lock = threading.Lock()  # write lock
 
-    def setup_redis(self):
-        self._version_by_imsi_and_rule = RuleVersionDict()
-
-    def _update_version_unsafe(self, imsi: str, ip_addr: str, rule_id: str):
+    def _save_version_unsafe(self, imsi: str, ip_addr: str, rule_id: str,
+                             version):
         key = self._get_json_key(encode_imsi(imsi), ip_addr, rule_id)
-        version = self._version_by_imsi_and_rule.get(key)
-        if not version:
-            version = 0
-        self._version_by_imsi_and_rule[key] = \
-            (version % self.VERSION_LIMIT) + 1
+        self._version_by_imsi_and_rule[key] = version
 
-    def update_version(self, imsi: str, ip_addr: IPAddress,
-                       rule_id: Optional[str] = None):
+    def save_version(self, imsi: str, ip_addr: IPAddress,
+                     rule_id: Optional[str] = None, version: int = 1):
         """
         Increment the version number for a given subscriber and rule. If the
         rule id is not specified, then all rules for the subscriber will be
@@ -120,7 +112,7 @@ class SessionRuleToVersionMapper:
                     if imsi == encoded_imsi and ip_addr_str == ip_addr_str:
                         self._version_by_imsi_and_rule[k] = v + 1
             else:
-                self._update_version_unsafe(imsi, ip_addr_str, rule_id)
+                self._save_version_unsafe(imsi, ip_addr_str, rule_id, version)
 
     def get_version(self, imsi: str, ip_addr: IPAddress, rule_id: str) -> int:
         """

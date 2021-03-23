@@ -160,7 +160,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
                     uplink_tunnel=None,
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
-                    dynamic_rules=self._dynamic_rules)
+                    policies=self._dynamic_rules)
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):
