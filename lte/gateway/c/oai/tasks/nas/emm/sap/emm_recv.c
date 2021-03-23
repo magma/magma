@@ -148,7 +148,7 @@ int check_plmn_restriction(imsi_t imsi) {
       if (mme_config.restricted_plmn.plmn[itr].mnc_digit3 != 0xf) {
         if (imsi.u.num.digit6 !=
             mme_config.restricted_plmn.plmn[itr].mnc_digit3) {
-          OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
+          continue;
         }
       }
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_PLMN_NOT_ALLOWED);
