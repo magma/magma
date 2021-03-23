@@ -46,10 +46,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         Adds a subscriber to the store
         """
-        try:
-            self._print_grpc(request)
-        except Exception as e:  # pylint: disable=broad-except
-            logging.debug("Exception while trying to log GRPC: %s", e)
+        self._print_grpc(request)
         sid = SIDUtils.to_str(request.sid)
         logging.debug("Add subscriber rpc for sid: %s", sid)
         try:
@@ -63,10 +60,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         Deletes a subscriber from the store
         """
-        try:
-            self._print_grpc(request)
-        except Exception as e:  # pylint: disable=broad-except
-            logging.debug("Exception while trying to log GRPC: %s", e)
+        self._print_grpc(request)
         sid = SIDUtils.to_str(request)
         logging.debug("Delete subscriber rpc for sid: %s", sid)
         self._store.delete_subscriber(sid)
@@ -94,10 +88,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         Returns the subscription data for the subscriber
         """
-        try:
-            self._print_grpc(request)
-        except Exception as e:  # pylint: disable=broad-except
-            logging.debug("Exception while trying to log GRPC: %s", e)
+        self._print_grpc(request)
         sid = SIDUtils.to_str(request)
         try:
             return self._store.get_subscriber_data(sid)
@@ -110,22 +101,22 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         Returns a list of subscribers from the store
         """
-        try:
-            self._print_grpc(request)
-        except Exception as e:  # pylint: disable=broad-except
-            logging.debug("Exception while trying to log GRPC: %s", e)
+        self._print_grpc(request)
         sids = self._store.list_subscribers()
         sid_msgs = [SIDUtils.to_pb(sid) for sid in sids]
         return subscriberdb_pb2.SubscriberIDSet(sids=sid_msgs)
 
     def _print_grpc(self, message):
         if self._print_grpc_payload:
-            log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
+            try:
+                log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
                                      MessageToJson(message))
-            # add indentation
-            padding = 2 * ' '
-            log_msg =''.join( "{}{}".format(padding, line)
+                # add indentation
+                padding = 2 * ' '
+                log_msg =''.join( "{}{}".format(padding, line)
                               for line in log_msg.splitlines(True))
 
-            log_msg = "GRPC message:\n{}".format(log_msg)
-            logging.info(log_msg)
+                log_msg = "GRPC message:\n{}".format(log_msg)
+                logging.info(log_msg)
+            except Exception as e:  # pylint: disable=broad-except
+                logging.debug("Exception while trying to log GRPC: %s", e)
