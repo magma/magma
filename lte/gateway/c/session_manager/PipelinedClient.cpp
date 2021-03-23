@@ -305,13 +305,13 @@ void AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     const optional<AggregatedMaximumBitrate>& ambr,
-    const std::vector<PolicyRule>& rules,
+    const RulesToProcess to_process,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
-  MLOG(MDEBUG) << "Activating " << rules.size() << " rules for " << imsi
-               << " msisdn " << msisdn << " and ip " << ip_addr << " "
+  MLOG(MDEBUG) << "Activating " << to_process.rules.size() << " rules for "
+               << imsi << " msisdn " << msisdn << " and ip " << ip_addr << " "
                << ipv6_addr;
   auto req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rules,
+      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process.rules,
       RequestOriginType::GX);
   activate_flows_rpc(req, callback);
 }

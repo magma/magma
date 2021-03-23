@@ -194,7 +194,7 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, testing::_, testing::_, testing::_,
                              test_cwf_cfg.common_context.msisdn(), testing::_,
-                             CheckCount(0), testing::_))
+                             CheckRuleCount(0), testing::_))
       .Times(1);
 
   EXPECT_CALL(
@@ -232,7 +232,7 @@ TEST_F(LocalEnforcerTest, test_init_infinite_metered_credit) {
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, IP1, IPv6_1, CheckTeids(teids1),
                              test_cfg_.common_context.msisdn(), testing::_,
-                             CheckCount(1), testing::_))
+                             CheckRuleCount(1), testing::_))
       .Times(1);
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
@@ -263,7 +263,7 @@ TEST_F(LocalEnforcerTest, test_init_no_credit) {
       activate_flows_for_rules(
           IMSI1, test_cfg_.common_context.ue_ipv4(),
           test_cfg_.common_context.ue_ipv6(), CheckTeids(teids1),
-          test_cfg_.common_context.msisdn(), testing::_, CheckCount(1),
+          test_cfg_.common_context.msisdn(), testing::_, CheckRuleCount(1),
           testing::_))
       .Times(1);
   local_enforcer->init_session(
@@ -1387,7 +1387,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
       *pipelined_client, activate_flows_for_rules(
                              testing::_, testing::_, testing::_, testing::_,
                              test_cfg_.common_context.msisdn(), testing::_,
-                             CheckCount(3), testing::_))
+                             CheckRuleCount(3), testing::_))
       .Times(1);
 
   local_enforcer->init_session(
@@ -1476,7 +1476,7 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
                              test_cfg_.common_context.msisdn(), testing::_,
-                             CheckCount(4), testing::_))
+                             CheckRuleCount(4), testing::_))
       .Times(1);
 
   // We do not expect rule5 and rule2 to be activated since they are scheduled a
@@ -1644,7 +1644,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, testing::_, testing::_, testing::_,
                              test_cfg_.common_context.msisdn(), testing::_,
-                             CheckCount(1), testing::_))
+                             CheckRuleCount(1), testing::_))
       .Times(1);
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
@@ -2141,7 +2141,7 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
       *pipelined_client,
       activate_flows_for_rules(
           IMSI1, IP1, testing::_, CheckTeids(config1.common_context.teids()),
-          config1.common_context.msisdn(), testing::_, CheckCount(2),
+          config1.common_context.msisdn(), testing::_, CheckRuleCount(2),
           testing::_))
       .Times(1);
   // PipelineD expectations for Session2
@@ -2149,7 +2149,7 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
       *pipelined_client,
       activate_flows_for_rules(
           IMSI1, IP2, testing::_, CheckTeids(config2.common_context.teids()),
-          config2.common_context.msisdn(), testing::_, CheckCount(1),
+          config2.common_context.msisdn(), testing::_, CheckRuleCount(1),
           testing::_))
       .Times(1);
   // For both Session1 + Session2
@@ -2651,7 +2651,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
                              test_cfg_.common_context.msisdn(), testing::_,
-                             CheckCount(1), testing::_))
+                             CheckRuleCount(1), testing::_))
       .Times(1);
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
@@ -2729,7 +2729,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
-                             msisdn, testing::_, CheckCount(3), testing::_))
+                             msisdn, testing::_, CheckRuleCount(3), testing::_))
       .Times(1);
 
   local_enforcer->init_session(
@@ -2830,7 +2830,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
-                             msisdn, testing::_, CheckCount(1), testing::_))
+                             msisdn, testing::_, CheckRuleCount(1), testing::_))
       .Times(1);
 
   local_enforcer->init_session(
@@ -2900,7 +2900,7 @@ TEST_F(LocalEnforcerTest, test_rar_dynamic_rule_modification) {
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, testing::_, testing::_, testing::_,
                              test_cfg_.common_context.msisdn(), testing::_,
-                             CheckCount(1), testing::_))
+                             CheckRuleCount(1), testing::_))
       .Times(1);
 
   local_enforcer->init_session(
@@ -2937,7 +2937,7 @@ TEST_F(LocalEnforcerTest, test_rar_dynamic_rule_modification) {
         *pipelined_client, activate_flows_for_rules(
                                IMSI1, testing::_, testing::_, testing::_,
                                test_cfg_.common_context.msisdn(), testing::_,
-                               CheckCount(1), testing::_))
+                               CheckRuleCount(1), testing::_))
         .Times(1);
   }
   local_enforcer->init_policy_reauth(session_map, rar, raa, session_ucs);

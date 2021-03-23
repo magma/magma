@@ -323,18 +323,19 @@ void LocalEnforcer::execute_actions(
 void LocalEnforcer::handle_activate_service_action(
     SessionMap& session_map, const std::unique_ptr<ServiceAction>& action_p,
     SessionUpdate& session_update) {
-  const std::string imsi                  = action_p->get_imsi(),
-                    msisdn                = action_p->get_msisdn(),
-                    ip_addr               = action_p->get_ip_addr(),
-                    ipv6_addr             = action_p->get_ipv6_addr();
-  const Teids teids                       = action_p->get_teids();
-  const auto ambr                         = action_p->get_ambr();
-  const std::vector<PolicyRule> rule_defs = action_p->get_rule_definitions();
+  const std::string imsi      = action_p->get_imsi(),
+                    msisdn    = action_p->get_msisdn(),
+                    ip_addr   = action_p->get_ip_addr(),
+                    ipv6_addr = action_p->get_ipv6_addr();
+  const Teids teids           = action_p->get_teids();
+  const auto ambr             = action_p->get_ambr();
+  RulesToProcess to_process;
+  to_process.rules = action_p->get_rule_definitions();
   pipelined_client_->activate_flows_for_rules(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rule_defs,
+      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
       std::bind(
           &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-          ip_addr, ipv6_addr, teids, msisdn, ambr, rule_defs, _1, _2));
+          ip_addr, ipv6_addr, teids, _1, _2));
 }
 
 // Terminates sessions that correspond to the given IMSI and session.
@@ -678,13 +679,14 @@ void LocalEnforcer::schedule_static_rule_activation(
         session->install_scheduled_static_rule(rule_id, uc);
         PolicyRule rule;
         rule_store_->get_rule(rule_id, &rule);
-        std::vector<PolicyRule> rules = {rule};
+        RulesToProcess to_process;
+        to_process.rules = std::vector<PolicyRule>{rule};
 
         pipelined_client_->activate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rules,
+            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
             std::bind(
                 &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-                ip_addr, ipv6_addr, teids, msisdn, ambr, rules, _1, _2));
+                ip_addr, ipv6_addr, teids, _1, _2));
 
         session_store_.update_sessions(session_update);
       },
@@ -732,14 +734,14 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
         session->install_scheduled_dynamic_rule(rule_id, session_uc);
         PolicyRule policy;
         session->get_scheduled_dynamic_rules().get_rule(rule_id, &policy);
-        std::vector<PolicyRule> dynamic_rules{policy};
+        RulesToProcess to_process;
+        to_process.rules = std::vector<PolicyRule>{policy};
 
         pipelined_client_->activate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, dynamic_rules,
+            imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
             std::bind(
                 &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-                ip_addr, ipv6_addr, teids, msisdn, ambr, dynamic_rules, _1,
-                _2));
+                ip_addr, ipv6_addr, teids, _1, _2));
 
         session_store_.update_sessions(session_update);
       },
@@ -1681,11 +1683,10 @@ void LocalEnforcer::propagate_rule_updates_to_pipelined(
     const auto ambr   = config.get_apn_ambr();
     const auto msisdn = config.common_context.msisdn();
     pipelined_client_->activate_flows_for_rules(
-        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rules_to_activate.rules,
+        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rules_to_activate,
         std::bind(
             &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-            ip_addr, ipv6_addr, teids, msisdn, ambr, rules_to_activate.rules,
-            _1, _2));
+            ip_addr, ipv6_addr, teids, _1, _2));
   }
 }
 
@@ -1859,9 +1860,7 @@ void LocalEnforcer::schedule_revalidation(
 
 void LocalEnforcer::handle_activate_ue_flows_callback(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
-    optional<AggregatedMaximumBitrate> ambr,
-    const std::vector<PolicyRule>& dynamic_rules, Status status,
+    const std::string& ipv6_addr, const Teids teids, Status status,
     ActivateFlowsResult resp) {
   if (status.ok()) {
     MLOG(MDEBUG) << "Pipelined add ue enf flow succeeded for " << imsi;

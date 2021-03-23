@@ -31,8 +31,14 @@ MATCHER_P(CheckCount, count, "") {
   return arg_count == count;
 }
 
+MATCHER_P(CheckRuleCount, count, "") {
+  int arg_count = arg.rules.size();
+  return arg_count == count;
+}
+
 MATCHER_P(CheckRuleNames, list_static_rules, "") {
-  std::vector<PolicyRule> rules = arg;
+  RulesToProcess to_process     = arg;
+  std::vector<PolicyRule> rules = to_process.rules;
   if (rules.size() != list_static_rules.size()) {
     return false;
   }

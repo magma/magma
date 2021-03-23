@@ -98,7 +98,7 @@ class PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const std::vector<PolicyRule>& rules,
+      const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
   /**
@@ -227,7 +227,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const std::vector<PolicyRule>& rules,
+      const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback);
 
   /**

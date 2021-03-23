@@ -123,7 +123,7 @@ class MockPipelinedClient : public PipelinedClient {
           const std::string& ipv6_addr, const Teids teids,
           const std::string& msisdn,
           const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
-          const std::vector<PolicyRule>& dynamic_rules,
+          const RulesToProcess to_process,
           std::function<void(Status status, ActivateFlowsResult)> callback));
   MOCK_METHOD6(
       add_ue_mac_flow,
