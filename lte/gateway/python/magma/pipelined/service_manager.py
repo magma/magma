@@ -533,7 +533,6 @@ class ServiceManager:
                 logging.warning("Pipelined waiting for redis...")
                 time.sleep(1)
             self.rule_id_mapper.setup_redis()
-            self.session_rule_version_mapper.setup_redis()
             self.interface_to_prefix_mapper.setup_redis()
             self.tunnel_id_mapper.setup_redis()
 

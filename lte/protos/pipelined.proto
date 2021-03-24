@@ -123,7 +123,7 @@ message RuleModResult {
     FAILURE = 2;
   }
   Result result = 2;
-  uint64_t version = 3;
+  uint64 version = 3;
 }
 
 message ActivateFlowsResult {
