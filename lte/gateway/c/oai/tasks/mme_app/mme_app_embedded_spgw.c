@@ -125,7 +125,7 @@ int mme_config_embedded_spgw_parse_opt_line(
         bfromcstr("/usr/local/etc/oai/spgw.conf");
   }
 
-  if (mme_config_parse_file(mme_config_p) != 0) {
+  if (mme_config_parse_file(mme_config_p, &amf_config) != 0) {
     return RETURNerror;
   }
 

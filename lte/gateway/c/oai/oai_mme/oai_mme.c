@@ -34,7 +34,7 @@
 #include "amf_config.h"
 #include "shared_ts_log.h"
 #include "common_defs.h"
-#include "amf_config.h"
+
 #include "intertask_interface_init.h"
 #include "sctp_primitives_server.h"
 #include "s1ap_mme.h"
@@ -45,7 +45,6 @@
 #include "sgs_defs.h"
 #include "sms_orc8r_defs.h"
 #include "ha_defs.h"
-#include "sgw_s8_defs.h"
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
@@ -104,9 +103,10 @@ int main(int argc, char* argv[]) {
    */
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(mme_config_embedded_spgw_parse_opt_line(
-      argc, argv, &mme_config, &amf_config, &spgw_config));
+      argc, argv, &mme_config, &spgw_config));
 #else
-  CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
+  CHECK_INIT_RETURN(
+      mme_config_parse_opt_line(argc, argv, &mme_config, &amf_config));
 #endif
 
   pid_file_name = get_pid_file_name(mme_config.pid_dir);
@@ -129,7 +129,6 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
-  CHECK_INIT_RETURN(sgw_s8_init());
 #else
   CHECK_INIT_RETURN(udp_init());
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
