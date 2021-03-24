@@ -92,6 +92,12 @@ void get_session_req_data(
 void pcef_update_teids(
     const char* imsi, uint8_t default_bearer_id, uint32_t enb_teid,
     uint32_t agw_teid);
+
+int get_msisdn_from_session_req(
+    const itti_s11_create_session_request_t* saved_req, char* msisdn);
+
+char _convert_digit_to_char(char digit);
+
 #ifdef __cplusplus
 }
 #endif

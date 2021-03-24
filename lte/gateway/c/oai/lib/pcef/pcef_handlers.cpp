@@ -43,8 +43,6 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 #define ULI_DATA_SIZE 13
 
-static char _convert_digit_to_char(char digit);
-
 // TODO Clean up pcef_create_session_data structure to include
 // imsi/ip/bearer_id etc.
 static void pcef_fill_create_session_req(
@@ -208,7 +206,7 @@ void pcef_update_teids(
  * else if they are in [48,57] keep them the same
  * else log an error and return '0'=48 value
  */
-static char _convert_digit_to_char(char digit) {
+char _convert_digit_to_char(char digit) {
   if ((digit >= 0) && (digit <= 9)) {
     return (digit + '0');
   } else if ((digit >= '0') && (digit <= '9')) {
@@ -298,7 +296,7 @@ static int get_uli_from_session_req(
   return 1;
 }
 
-static int get_msisdn_from_session_req(
+int get_msisdn_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* msisdn) {
   int len = saved_req->msisdn.length;
   int i, j;

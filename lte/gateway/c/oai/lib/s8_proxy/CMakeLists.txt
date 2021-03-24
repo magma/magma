@@ -20,8 +20,6 @@ generate_grpc_protos("${S8C_FEG_GRPC_PROTOS}" "${PROTO_SRCS}"
 generate_cpp_protos("${S8C_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
-message("Proto_srcs are ${PROTO_SRCS}")
-message("Proto_hdrs are ${PROTO_HDRS}")
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(LIB_S8_PROXY
@@ -33,7 +31,7 @@ add_library(LIB_S8_PROXY
 
 target_link_libraries(LIB_S8_PROXY
     ${ASYNC_GRPC} ${SERVICE_REGISTRY}
-    LIB_BSTR LIB_HASHTABLE ${CONFIG}
+    LIB_BSTR LIB_HASHTABLE LIB_PCEF ${CONFIG}
 )
 
 target_include_directories(LIB_S8_PROXY PUBLIC
