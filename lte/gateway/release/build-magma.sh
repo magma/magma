@@ -115,7 +115,7 @@ MAGMA_DEPS=(
     "ntpdate" # required for eventd time synchronization
     "python3-scapy >= 2.4.3-4"
     "libtins-dev" # required for Connection tracker
-    "libml-dev" # required for Connection tracker
+    "libmnl-dev" # required for Connection tracker
     )
 
 # OAI runtime dependencies
