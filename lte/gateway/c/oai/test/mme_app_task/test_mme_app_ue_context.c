@@ -18,10 +18,26 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "conversions.h"
 #include "mme_app_ue_context.h"
 #include "3gpp_23.003.h"
 
 #define TEST_CASE_COMMON_CONVERT_MAX 10
+
+/**
+ * @brief mme_app_convert_imsi_to_imsi_mme: converts the imsi_t struct to the
+ * imsi mme struct
+ * @param imsi_dst
+ * @param imsi_src
+ */
+// TODO: (amar) This and below functions are only used in testing possibly move
+// these to the testing module
+void mme_app_convert_imsi_to_imsi_mme(
+    mme_app_imsi_t* imsi_dst, const imsi_t* imsi_src) {
+  memset(imsi_dst->data, (uint8_t) '\0', sizeof(imsi_dst->data));
+  IMSI_TO_STRING(imsi_src, imsi_dst->data, IMSI_BCD_DIGITS_MAX + 1);
+  imsi_dst->length = strlen(imsi_dst->data);
+}
 
 START_TEST(imsi_empty_test) {
   mme_app_imsi_t imsi_mme = {.length = 0};

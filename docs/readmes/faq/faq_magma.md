@@ -84,9 +84,9 @@ This section lists some of the commonly asked questions related to Magma operati
 
 ## Orchestrator
 ### How can I check production pods in Orchestrator running on Kubernetes?
-  - **For all pods:** `kubectl -n magma get pods`.
-  - **Logs of a particular pod:** `kubectl -n magma logs -f <CONTROLLER PODNAME>`.
-  - **NOTE:** In above commands, please use the actual namespace after `-n` you have chosen to install orc8r in.
+  - **For all pods:** `kubectl --namespace orc8r get pods`.
+  - **Logs of a particular pod:** `kubectl --namespace orc8r logs -f <CONTROLLER PODNAME>`.
+  - **NOTE:** In above commands, please use the actual namespace after `--namespace` you have chosen to install orc8r in.
 
 ### How can I test Orchestrator connection with Gateway?
   - Login to Gateway, then run `sudo checkin_cli.py`.
@@ -102,13 +102,13 @@ This section lists some of the commonly asked questions related to Magma operati
   - Put in the required inputs and click **Execute**.
 
 ### How can I check the services running in Orchestrator?
-  - List the running pods with `kubectl -norc8r get pods`
+  - List the running pods with `kubectl --namespace orc8r get pods`
   - Grab the name of orc8r-controller pods, they are in the format `orc8r-controller-xxxxxxxxxx-yyyyy`
-  - Collect the state of services on each pod: `kubectl -norc8r exec orc8r-controller-xxxxxxxxxx-yyyyy  bash -- supervisorctl status`
+  - Collect the state of services on each pod: `kubectl --namespace orc8r exec orc8r-controller-xxxxxxxxxx-yyyyy  bash -- supervisorctl status`
 
 ### How to verify which services are running in Orc8r-controller?
-  - **Get the controller pods:** `kubectl -n magma get pods`.
-  - **Execute the command in the pod:** `kubectl exec -n magma <CONTROLLER PODNAME> supervisorctl status`.
+  - **Get the controller pods:** `kubectl --namespace orc8r get pods`.
+  - **Execute the command in the pod:** `kubectl --namespace orc8r exec <CONTROLLER PODNAME> supervisorctl status`.
 
 ## NMS
 ### What is an NMS (Network Management System)?

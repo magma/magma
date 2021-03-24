@@ -96,8 +96,13 @@ MME :
     # By default this list is empty
     # Max number of restricted plmn is 10
     RESTRICTED_PLMN_LIST = (
-         # Sample plmn
-         #{ MCC="001" ; MNC="010";}
+        # PlmnConfig values can be found at magma/lte/protos/mconfig/mconfigs.proto
+        {% for plmn_config in restrictedPlmns -%}
+        {
+          MCC        = "{{ plmn_config.mcc }}"
+          MNC        = "{{ plmn_config.mnc }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
     );
 
     CSFB :

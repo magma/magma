@@ -1,7 +1,7 @@
-From 210e7e9c43cf8fe900fafaa0f8620cce39cb6f7a Mon Sep 17 00:00:00 2001
+From 824b89cbee63c1c6e06b2a04497c701104d05c78 Mon Sep 17 00:00:00 2001
 From: Jiannan Ouyang <ouyangj@fb.com>
 Date: Wed, 14 Jun 2017 22:28:11 +0000
-Subject: [PATCH 1/4] datapath: add vport-gtp for GPRS Tunneling Protocol
+Subject: [PATCH 1/7] datapath: add vport-gtp for GPRS Tunneling Protocol
 
 Add vport-gtp which uses gtp_create_flow_based_dev exported by the Linux GTP
 module to create a flow based net_device
@@ -50,7 +50,7 @@ index eec9f2338..fc4a6efcd 100644
  	linux/compat/include/net/inet_frag.h \
  	linux/compat/include/net/inetpeer.h \
 diff --git a/datapath/linux/compat/include/linux/openvswitch.h b/datapath/linux/compat/include/linux/openvswitch.h
-index bc6c94b8d..abd3e779d 100644
+index 561f89502..72d16aabf 100644
 --- a/datapath/linux/compat/include/linux/openvswitch.h
 +++ b/datapath/linux/compat/include/linux/openvswitch.h
 @@ -236,6 +236,7 @@ enum ovs_vport_type {
@@ -104,7 +104,7 @@ index 000000000..d76b03a66
 +#endif /* __NET_GTP_WRAPPER_H */
 diff --git a/datapath/vport-gtp.c b/datapath/vport-gtp.c
 new file mode 100644
-index 000000000..cf4f81f85
+index 000000000..7d9df6dce
 --- /dev/null
 +++ b/datapath/vport-gtp.c
 @@ -0,0 +1,146 @@
