@@ -561,26 +561,6 @@ void LocalEnforcer::install_final_unit_action_flows(
   }
 }
 
-void LocalEnforcer::cancel_final_unit_action(
-    const std::unique_ptr<SessionState>& session,
-    std::vector<PolicyRule> gy_rules_to_deactivate,
-    SessionStateUpdateCriteria& uc) {
-  auto config = session->get_config().common_context;
-
-  std::vector<PolicyRule> gy_dynamic_rules;
-  session->get_gy_dynamic_rules().get_rules(gy_dynamic_rules);
-  for (const PolicyRule rule : gy_dynamic_rules) {
-    session->remove_gy_dynamic_rule(rule.id(), nullptr, uc);
-    gy_rules_to_deactivate.push_back(rule);
-  }
-
-  if (!gy_rules_to_deactivate.empty()) {
-    pipelined_client_->deactivate_flows_for_rules(
-        config.sid().id(), config.ue_ipv4(), config.ue_ipv6(), config.teids(),
-        gy_rules_to_deactivate, RequestOriginType::GY);
-  }
-}
-
 UpdateSessionRequest LocalEnforcer::collect_updates(
     SessionMap& session_map,
     std::vector<std::unique_ptr<ServiceAction>>& actions,
@@ -1331,10 +1311,8 @@ void LocalEnforcer::update_charging_credits(
     const auto& credit_key(credit_update_resp);
     // We need to retrieve restrict_rules and is_final_action_state
     // prior to receiving charging credit as they will be updated.
-    std::vector<PolicyRule> restrict_rules =
-        session->get_final_action_restrict_rules(credit_key);
-    bool is_final_action_state =
-        session->is_credit_in_final_unit_state(credit_key);
+    optional<FinalActionInfo> final_action_info =
+        session->get_final_action_if_final_unit_state(credit_key);
     bool valid_credit =
         session->receive_charging_credit(credit_update_resp, uc);
     session->set_tgpp_context(credit_update_resp.tgpp_ctx(), uc);
@@ -1363,10 +1341,17 @@ void LocalEnforcer::update_charging_credits(
     }
 
     // TODO: move it to actions vector
-    if (is_final_action_state) {
-      // We need to cancel final unit action flows installed in pipelined here
-      // following the reception of new charging credit.
-      cancel_final_unit_action(session, restrict_rules, uc);
+    if (final_action_info) {
+      std::vector<PolicyRule> gy_rules =
+          session->remove_all_final_action_rules(*final_action_info, uc);
+      if (!gy_rules.empty()) {
+        auto config = session->get_config().common_context;
+        // We need to cancel final unit action flows installed in pipelined here
+        // following the reception of new charging credit.
+        pipelined_client_->deactivate_flows_for_rules(
+            config.sid().id(), config.ue_ipv4(), config.ue_ipv6(),
+            config.teids(), gy_rules, RequestOriginType::GY);
+      }
     }
   }
 }

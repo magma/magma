@@ -473,10 +473,12 @@ class SessionState {
 
   EventTriggerStatus get_event_triggers() { return pending_event_triggers_; }
 
-  bool is_credit_in_final_unit_state(const CreditKey& charging_key) const;
+  optional<FinalActionInfo> get_final_action_if_final_unit_state(
+      const CreditKey& ckey) const;
 
-  std::vector<PolicyRule> get_final_action_restrict_rules(
-      const CreditKey& charging_key) const;
+  std::vector<PolicyRule> remove_all_final_action_rules(
+      const FinalActionInfo& final_action_info,
+      SessionStateUpdateCriteria& session_uc);
 
   // Monitors
   bool receive_monitor(

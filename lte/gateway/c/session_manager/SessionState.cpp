@@ -2029,29 +2029,41 @@ void SessionState::set_revalidation_time(
   update_criteria.revalidation_time = time;
 }
 
-bool SessionState::is_credit_in_final_unit_state(
+optional<FinalActionInfo> SessionState::get_final_action_if_final_unit_state(
     const CreditKey& charging_key) const {
   auto it = credit_map_.find(charging_key);
   if (it == credit_map_.end()) {
-    return false;
+    return {};
   }
-  return (
-      it->second->service_state == SERVICE_REDIRECTED ||
-      it->second->service_state == SERVICE_RESTRICTED);
+  if (it->second->service_state != SERVICE_REDIRECTED &&
+      it->second->service_state != SERVICE_RESTRICTED) {
+    return {};
+  }
+  return it->second->final_action_info;
 }
 
-std::vector<PolicyRule> SessionState::get_final_action_restrict_rules(
-    const CreditKey& charging_key) const {
+std::vector<PolicyRule> SessionState::remove_all_final_action_rules(
+    const FinalActionInfo& final_action_info,
+    SessionStateUpdateCriteria& session_uc) {
   std::vector<PolicyRule> rules;
-  auto it = credit_map_.find(charging_key);
-  if (it == credit_map_.end()) {
-    return rules;
-  }
-  for (std::string rule_id : it->second->final_action_info.restrict_rules) {
-    PolicyRule rule;
-    if (static_rules_.get_rule(rule_id, &rule)) {
-      rules.push_back(rule);
-    }
+  switch (final_action_info.final_action) {
+    case ChargingCredit_FinalAction_REDIRECT: {
+      PolicyRule rule;
+      if (remove_gy_dynamic_rule("redirect", &rule, session_uc)) {
+        rules.push_back(rule);
+      }
+    } break;
+    case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+      for (std::string rule_id : final_action_info.restrict_rules) {
+        PolicyRule rule;
+        if (static_rules_.get_rule(rule_id, &rule)) {
+          rules.push_back(rule);
+          deactivate_static_rule(rule_id, session_uc);
+        }
+      }
+      break;
+    default:
+      break;
   }
   return rules;
 }
