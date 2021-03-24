@@ -35,6 +35,8 @@ Setting up a test tier is a two part process. First, create a test tier in the "
 
 Once this is created, navigate back to the main "Equipment" tab page. Under the Gateways table select the "Actions" button on the row of the AGW you would like to add to the test tier.  Select the "Edit" option to take you into the configuration page and then select "Edit JSON" in the top right. At the bottom on the JSON object change the "tier" to match the name of your test tier. Click "Save" in the top right to complete the process.  
 
+/Users/jmullane/Desktop/JSON_edit.png
+
 ## Manual Upgrade
 
 SSH into your target AGW then:
