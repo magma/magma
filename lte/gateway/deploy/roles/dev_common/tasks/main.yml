@@ -183,6 +183,8 @@
       - iperf3
       - libsystemd-dev
       - pkg-config
+      - libtins-dev
+      - libmnl-dev
   retries: 5
   when: preburn
 
