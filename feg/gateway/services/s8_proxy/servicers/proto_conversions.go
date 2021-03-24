@@ -50,6 +50,9 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 		return
 	}
 
+	// get C AGW Teid (is the same used on Create Session Request by MME)
+	csRes.CAgwTeid = msg.TEID()
+
 	// get PDN Allocation from PGW
 	if paaIE := csResGtp.PAA; paaIE != nil {
 		paa, pdnType, err2 := handlePDNAddressAllocation(paaIE)
