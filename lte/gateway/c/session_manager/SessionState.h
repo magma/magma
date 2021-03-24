@@ -87,6 +87,8 @@ struct BearerUpdate {
  */
 class SessionState {
  public:
+  // SessionInfo is a struct used to bundle necessary information
+  // PipelineDClient needs to make requests
   struct SessionInfo {
     enum upfNodeType {
       IPv4 = 0,
@@ -110,11 +112,8 @@ class SessionState {
 
     uint32_t local_f_teid;
     std::string msisdn;
-    // TODO deprecate std::vector<std::string> static_rules
-    std::vector<std::string> static_rules;
-    std::vector<PolicyRule> gx_static_rules;
-    std::vector<PolicyRule> gx_dynamic_rules;
-    std::vector<PolicyRule> gy_dynamic_rules;
+    RulesToProcess gx_rules;
+    RulesToProcess gy_dynamic_rules;
     optional<AggregatedMaximumBitrate> ambr;
     // 5G specific extensions
     std::vector<SetGroupPDR> Pdr_rules_;

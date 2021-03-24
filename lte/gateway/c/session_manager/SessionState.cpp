@@ -870,14 +870,13 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.msisdn    = config_.common_context.msisdn();
   info.ambr      = config_.get_apn_ambr();
 
-  dynamic_rules_.get_rules(info.gx_dynamic_rules);
-  gy_dynamic_rules_.get_rules(info.gy_dynamic_rules);
-  info.static_rules = active_static_rules_;
+  dynamic_rules_.get_rules(info.gx_rules.rules);
+  gy_dynamic_rules_.get_rules(info.gy_dynamic_rules.rules);
 
   for (const std::string& rule_id : active_static_rules_) {
     PolicyRule rule;
     if (static_rules_.get_rule(rule_id, &rule)) {
-      info.gx_static_rules.push_back(rule);
+      info.gx_rules.rules.push_back(rule);
     }
   }
 }

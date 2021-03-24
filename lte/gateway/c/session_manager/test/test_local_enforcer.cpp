@@ -2458,12 +2458,11 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI2, 0, teids0));
 
-  std::vector<std::string> imsi_list                      = {IMSI2, IMSI1};
-  std::vector<std::string> ip_address_list                = {IP1, IP1};
-  std::vector<std::string> ipv6_address_list              = {"", ""};
-  std::vector<std::vector<std::string>> static_rule_list  = {{}, {"rule2"}};
-  std::vector<std::vector<std::string>> dynamic_rule_list = {{"rule22"},
-                                                             {"rule1"}};
+  std::vector<std::string> imsi_list              = {IMSI2, IMSI1};
+  std::vector<std::string> ip_address_list        = {IP1, IP1};
+  std::vector<std::string> ipv6_address_list      = {"", ""};
+  std::vector<std::vector<std::string>> rule_list = {{"rule22"},
+                                                     {"rule1", "rule2"}};
 
   std::vector<std::string> ue_mac_addrs  = {"00:00:00:00:00:02",
                                            "11:22:00:00:22:11"};
@@ -2472,13 +2471,12 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
                                             "01-a1-20-c2-0f-bb"};
   std::vector<std::string> apn_names     = {"Magma", "CWC_OFFLOAD"};
   EXPECT_CALL(
-      *pipelined_client,
-      setup_cwf(
-          CheckSessionInfos(
-              imsi_list, ip_address_list, ipv6_address_list, test_cwf_cfg2,
-              static_rule_list, dynamic_rule_list),
-          testing::_, ue_mac_addrs, msisdns, apn_mac_addrs, apn_names,
-          testing::_, testing::_, testing::_))
+      *pipelined_client, setup_cwf(
+                             CheckSessionInfos(
+                                 imsi_list, ip_address_list, ipv6_address_list,
+                                 test_cwf_cfg2, rule_list),
+                             testing::_, ue_mac_addrs, msisdns, apn_mac_addrs,
+                             apn_names, testing::_, testing::_, testing::_))
       .Times(1);
 
   local_enforcer->setup(
@@ -2527,12 +2525,11 @@ TEST_F(LocalEnforcerTest, test_pipelined_lte_setup) {
       session_map,
       create_update_tunnel_ids_request(IMSI2, BEARER_ID_2, teids2));
 
-  std::vector<std::string> imsi_list                      = {IMSI2, IMSI1};
-  std::vector<std::string> ip_address_list                = {IP1, IP1};
-  std::vector<std::string> ipv6_address_list              = {IPv6_1, ""};
-  std::vector<std::vector<std::string>> static_rule_list  = {{}, {"rule2"}};
-  std::vector<std::vector<std::string>> dynamic_rule_list = {{"rule22"},
-                                                             {"rule1"}};
+  std::vector<std::string> imsi_list              = {IMSI2, IMSI1};
+  std::vector<std::string> ip_address_list        = {IP1, IP1};
+  std::vector<std::string> ipv6_address_list      = {IPv6_1, ""};
+  std::vector<std::vector<std::string>> rule_list = {{"rule22"},
+                                                     {"rule1", "rule2"}};
 
   std::vector<std::string> ue_mac_addrs  = {"00:00:00:00:00:02",
                                            "11:22:00:00:22:11"};
@@ -2541,12 +2538,11 @@ TEST_F(LocalEnforcerTest, test_pipelined_lte_setup) {
                                             "01-a1-20-c2-0f-bb"};
   std::vector<std::string> apn_names     = {"Magma", "CWC_OFFLOAD"};
   EXPECT_CALL(
-      *pipelined_client,
-      setup_lte(
-          CheckSessionInfos(
-              imsi_list, ip_address_list, ipv6_address_list, test_cfg_,
-              static_rule_list, dynamic_rule_list),
-          testing::_, testing::_))
+      *pipelined_client, setup_lte(
+                             CheckSessionInfos(
+                                 imsi_list, ip_address_list, ipv6_address_list,
+                                 test_cfg_, rule_list),
+                             testing::_, testing::_))
       .Times(1);
 
   local_enforcer->setup(
