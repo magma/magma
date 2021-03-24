@@ -10,19 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_amf_handlers.h
-  Version     0.1
-  Date        2020/07/28
-  Product     NGAP stack
-  Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
-  Description Defines NG Application Protocol Messages Handlers
 
-*****************************************************************************/
+#pragma once
 
-#ifndef FILE_NGAP_MME_HANDLERS_SEEN
-#define FILE_NGAP_MME_HANDLERS_SEEN
 #include <stdbool.h>
 
 #include "ngap_amf.h"
@@ -47,53 +37,66 @@ int ngap_amf_handle_message(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
 
-int ngap_amf_handle_ue_cap_indication(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
-
-/** \brief Handle an S1 Setup request message.
- * Typically add the eNB in the list of served eNB if not present, simply reset
- * UEs association otherwise. S1SetupResponse message is sent in case of success
- *or S1SetupFailure if the MME cannot accept the configuration received. \param
- *assoc_id SCTP association ID \param stream Stream number \param message_p The
- *message decoded by the ASN1C decoder
- * @returns int
+/** \brief Handle an Ng Setup request message.
+ * Typically add the gNB in the list of served gNB if not present, simply reset
+ * UEs association otherwise. NgSetupResponse message is sent in case of success
+ * or NgSetupFailure if the AMF cannot accept the configuration received. 
+ * \param assoc_id SCTP association ID 
+ * \param stream Stream number 
+ * \param message_p The message decoded by the ASN1C decoder
  **/
 int ngap_amf_handle_ng_setup_request(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
 
-int ngap_amf_handle_path_switch_request(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
+int ngap_amf_generate_ng_setup_failure(
+    const sctp_assoc_id_t assoc_id, const Ngap_Cause_PR cause_type,
+    const long cause_value, const long time_to_wait);
 
-int ngap_amf_handle_ue_context_release_request(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
-
-int ngap_handle_ue_context_release_command(
-    ngap_state_t* state,
-    const itti_ngap_ue_context_release_command_t* const
-        ue_context_release_command_pP,
-    imsi64_t imsi64);
-
-int ngap_amf_handle_ue_context_release_complete(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
-
-int ngap_handle_ue_context_mod_req(
-    ngap_state_t* state,
-    const itti_ngap_ue_context_mod_req_t* const ue_context_mod_req_pP,
-    imsi64_t imsi64);
-
+/** \brief handler to  process InitialContextSetup failure 
+ * \param state ngap state
+ * \param assoc_id SCTP association ID
+ * \param stream Stream number
+ * \param message_p message will be encoded by  ASN1C encoder
+ * @returns int
+ **/
 int ngap_amf_handle_initial_context_setup_failure(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
 
+/** \brief handler to  process InitialContextSetup response 
+ * \param state ngap state
+ * \param assoc_id SCTP association ID
+ * \param stream Stream number
+ * \param message_p message will be encoded by  ASN1C encoder
+ * @returns int
+ **/
 int ngap_amf_handle_initial_context_setup_response(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
 
+/** \brief SCTP layer notifies NGAP of disconnection of a peer 
+ * \param state ngap state
+ * \param assoc_id SCTP association ID
+ * \param reset Flag for reset 
+ * @returns int
+ **/
+int ngap_handle_sctp_disconnection(
+    ngap_state_t* state, const sctp_assoc_id_t assoc_id, bool reset);
+
+/** \brief SCTP layer notifies NGAP of new association 
+ * \param state ngap state
+ * \param sctp_new_peer_p new peer info
+ * @returns int
+ **/
+int ngap_handle_new_association(
+    ngap_state_t* state, sctp_new_peer_t* sctp_new_peer_p);
+
+/** \brief sets the cause for NgSetup Failure  
+ * \param cause_p cause value 
+ * \param cause_type cause type
+ * @returns int
+ **/
 int ngap_handle_sctp_disconnection(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id, bool reset);
 
@@ -104,64 +107,10 @@ int ngap_amf_set_cause(
     Ngap_Cause_t* cause_p, const Ngap_Cause_PR cause_type,
     const long cause_value);
 
-int ngap_amf_generate_ng_setup_failure(
-    const sctp_assoc_id_t assoc_id, const Ngap_Cause_PR cause_type,
-    const long cause_value, const long time_to_wait);
-
-int ngap_amf_handle_erab_setup_response(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
-
-int ngap_amf_handle_erab_setup_failure(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
-
-void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
-    ngap_state_t* state, m5g_ue_description_t* ue_ref_p);
-
-void ngap_amf_release_ue_context(
-    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, imsi64_t imsi64);
-
 int ngap_amf_handle_error_ind_message(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
 
-int ngap_amf_handle_gnb_reset(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
-
-int ngap_handle_gnb_initiated_reset_ack(
-    const itti_ngap_gnb_initiated_reset_ack_t* const gnb_reset_ack_p,
-    imsi64_t imsi64);
-
-int ngap_handle_paging_request(
-    ngap_state_t* state, const itti_ngap_paging_request_t* paging_request,
-    imsi64_t imsi64);
-
-int ngap_amf_handle_ue_context_modification_response(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
-
 int ngap_amf_handle_ue_context_modification_failure(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
-
-int ngap_amf_handle_erab_release_response(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
-
-int ngap_amf_handle_gnb_configuration_transfer(
-    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
-
-int ngap_handle_path_switch_req_ack(
-    ngap_state_t* state,
-    const itti_ngap_path_switch_request_ack_t* path_switch_req_ack_p,
-    imsi64_t imsi64);
-
-int ngap_handle_path_switch_req_failure(
-    ngap_state_t* state,
-    const itti_ngap_path_switch_request_failure_t* path_switch_req_failure_p,
-    imsi64_t imsi64);
-
-#endif /* FILE_NGAP_MME_HANDLERS_SEEN */

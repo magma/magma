@@ -10,16 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_amf_handlers.c
-  Version     0.1
-  Date        2020/07/28
-  Product     NGAP stack
-  Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
-  Description Defines NG Application Protocol Messages Handlers
-
-*****************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -509,13 +499,11 @@ int ngap_generate_ng_setup_response(
   Ngap_NGSetupResponse_t* out;
   Ngap_NGSetupResponseIEs_t* ie        = NULL;
   Ngap_ServedGUAMIItem_t* servedGUAMFI = NULL;
-  int i, j;
-  int enc_rval    = 0;
-  uint8_t* buffer = NULL;
-  uint32_t length = 0;
-  int rc          = RETURNok;
+  int enc_rval                         = 0;
+  uint8_t* buffer                      = NULL;
+  uint32_t length                      = 0;
+  int rc                               = RETURNok;
 
-  OAILOG_FUNC_IN(LOG_NGAP);
   DevAssert(gnb_association != NULL);
   memset(&pdu, 0, sizeof(pdu));
 
@@ -527,6 +515,18 @@ int ngap_generate_ng_setup_response(
       Ngap_SuccessfulOutcome__value_PR_NGSetupResponse;
   out = &pdu.choice.successfulOutcome.value.choice.NGSetupResponse;
 
+  ie =
+      (Ngap_NGSetupResponseIEs_t*) calloc(1, sizeof(Ngap_NGSetupResponseIEs_t));
+  ie->id            = Ngap_ProtocolIE_ID_id_AMFName;
+  ie->criticality   = Ngap_Criticality_reject;
+  ie->value.present = Ngap_NGSetupResponseIEs__value_PR_AMFName;
+
+  char* amf_name = "AMF1";
+
+  OCTET_STRING_fromBuf(&ie->value.choice.AMFName, amf_name, strlen(amf_name));
+
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
   // Generating response
   ie =
       (Ngap_NGSetupResponseIEs_t*) calloc(1, sizeof(Ngap_NGSetupResponseIEs_t));
@@ -537,7 +537,8 @@ int ngap_generate_ng_setup_response(
   // memset for gcc 4.8.4 instead of {0}, servedGUAMFI.servedPLMNs
   servedGUAMFI = calloc(1, sizeof *servedGUAMFI);
 
-  amf_config_read_lock(&amf_config);
+#if 0  
+amf_config_read_lock(&amf_config);
   /*
    * Use the guamfi parameters provided by configuration
    * that should be sorted
@@ -571,9 +572,31 @@ int ngap_generate_ng_setup_response(
     amf_gid = &servedGUAMFI->gUAMI.aMFRegionID;
     INT16_TO_OCTET_STRING(amf_config.guamfi.guamfi[i].amf_gid, amf_gid);
 
+    OAILOG_ERROR(LOG_NGAP, "######ACL_TAG: %s, %d  ", __func__, __LINE__);
     amfc = &servedGUAMFI->gUAMI.aMFSetID;
     INT8_TO_OCTET_STRING(amf_config.guamfi.guamfi[i].amf_code, amfc);
   }
+#endif
+  /*************************Temp code******************************/
+  Ngap_PLMNIdentity_t* plmn = NULL;
+  plmn                      = &servedGUAMFI->gUAMI.pLMNIdentity;
+
+  OCTET_STRING_fromBuf(plmn, buf_plmn, sizeof(buf_plmn) /*3bytes*/);
+  Ngap_AMFRegionID_t* amf_gid = NULL;
+  Ngap_AMFSetID_t* amfc       = NULL;
+  Ngap_AMFPointer_t* aMFP     = NULL;
+
+  amf_gid = &servedGUAMFI->gUAMI.aMFRegionID;
+  INT8_TO_OCTET_STRING(1, amf_gid);  // 8
+
+  amfc = &servedGUAMFI->gUAMI.aMFSetID;
+  UE_ID_INDEX_TO_BIT_STRING(1, amfc);  // 10
+
+  aMFP = &servedGUAMFI->gUAMI.aMFPointer;
+  AMF_POINTER_TO_BIT_STRING(1, aMFP);  // 6
+
+  /*************************Temp code******************************/
+
   ASN_SEQUENCE_ADD(&ie->value.choice.ServedGUAMIList.list, servedGUAMFI);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
@@ -585,18 +608,51 @@ int ngap_generate_ng_setup_response(
   ie->value.choice.RelativeAMFCapacity = amf_config.relative_capacity;
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
-  amf_config_unlock(&amf_config);
+  //  amf_config_unlock(&amf_config);
   /*
    * The AMF is only serving E-UTRAN RAT, so the list contains only one element
    */
+
+  /*PLMNList*/
+  ie =
+      (Ngap_NGSetupResponseIEs_t*) calloc(1, sizeof(Ngap_NGSetupResponseIEs_t));
+  ie->id            = Ngap_ProtocolIE_ID_id_PLMNSupportList;
+  ie->criticality   = Ngap_Criticality_reject;
+  ie->value.present = Ngap_NGSetupResponseIEs__value_PR_PLMNSupportList;
+
+  Ngap_PLMNSupportItem_t* plmnItem =
+      (Ngap_PLMNSupportItem_t*) calloc(1, sizeof(Ngap_PLMNSupportItem_t));
+
+  OCTET_STRING_fromBuf(
+      &plmnItem->pLMNIdentity, buf_plmn, sizeof(buf_plmn) /*3bytes*/);
+
+  /* Ngap_SliceSupportList */
+
+  Ngap_SliceSupportItem_t* SliceItem =
+      (Ngap_SliceSupportItem_t*) calloc(1, sizeof(Ngap_SliceSupportItem_t));
+
+  char* from_buf = "0x11";
+
+  OCTET_STRING_fromBuf(&SliceItem->s_NSSAI.sST, from_buf, 1);
+
+  ASN_SEQUENCE_ADD(
+      &plmnItem->sliceSupportList.list,
+      SliceItem);  // adding slice item to slice list
+
+  ASN_SEQUENCE_ADD(
+      &ie->value.choice.PLMNSupportList.list,
+      plmnItem);  // adding plmn item to plmn list
+
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
   enc_rval = ngap_amf_encode_pdu(&pdu, &buffer, &length);
+  OAILOG_INFO(LOG_NGAP, "ACL_TAG: %s, %d encode done ", __func__, __LINE__);
 
   /*
    * Failed to encode ng setup response...
    */
   if (enc_rval < 0) {
     OAILOG_DEBUG(LOG_NGAP, "Removed gNB %d\n", gnb_association->sctp_assoc_id);
-    OAILOG_ERROR(LOG_NGAP, " %s encode not done\n", __func__);
     ngap_remove_gnb(state, gnb_association);
   } else {
     /*
@@ -729,6 +785,75 @@ int ngap_amf_handle_initial_context_setup_response(
 }
 
 //------------------------------------------------------------------------------
+int ngap_handle_new_association(
+    ngap_state_t* state, sctp_new_peer_t* sctp_new_peer_p) {
+  gnb_description_t* gnb_association = NULL;
+
+  OAILOG_FUNC_IN(LOG_NGAP);
+  DevAssert(sctp_new_peer_p != NULL);
+
+  /*
+   * Checking that the assoc id has a valid gNB attached to.
+   */
+  gnb_association = ngap_state_get_gnb(state, sctp_new_peer_p->assoc_id);
+  if (gnb_association == NULL) {
+    OAILOG_DEBUG(
+        LOG_NGAP, "Create gNB context for assoc_id: %d\n",
+        sctp_new_peer_p->assoc_id);
+    /*
+     * Create new context
+     */
+    gnb_association = ngap_new_gnb(state);
+
+    if (gnb_association == NULL) {
+      /*
+       * We failed to allocate memory
+       */
+      /*
+       * TODO: send reject there
+       */
+      OAILOG_ERROR(
+          LOG_NGAP, "Failed to allocate gNB context for assoc_id: %d\n",
+          sctp_new_peer_p->assoc_id);
+      OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
+    }
+    gnb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
+    hashtable_rc_t hash_rc         = hashtable_ts_insert(
+        &state->gnbs, (const hash_key_t) gnb_association->sctp_assoc_id,
+        (void*) gnb_association);
+    if (HASH_TABLE_OK != hash_rc) {
+      OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+    }
+  } else if (
+      (gnb_association->ng_state == NGAP_SHUTDOWN) ||
+      (gnb_association->ng_state == NGAP_RESETING)) {
+    OAILOG_WARNING(
+        LOG_NGAP,
+        "Received new association request on an association that is being %s, "
+        "ignoring",
+        ng_gnb_state2str(gnb_association->ng_state));
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  } else {
+    OAILOG_DEBUG(
+        LOG_NGAP, "gNB context already exists for assoc_id: %d, update it\n",
+        sctp_new_peer_p->assoc_id);
+  }
+
+  gnb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
+  /*
+   * Fill in in and out number of streams available on SCTP connection.
+   */
+  gnb_association->instreams  = (sctp_stream_id_t) sctp_new_peer_p->instreams;
+  gnb_association->outstreams = (sctp_stream_id_t) sctp_new_peer_p->outstreams;
+  /*
+   * initialize the next sctp stream to 1 as 0 is reserved for non
+   * * * * ue associated signalling.
+   */
+  gnb_association->next_sctp_stream = 1;
+  gnb_association->ng_state         = NGAP_INIT;
+  OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
+}
+
 int ngap_amf_handle_ue_context_release_request(
     ngap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,

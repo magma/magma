@@ -10,16 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_amf_nas_procedures.c
-  Version     0.1
-  Date        2020/07/28
-  Product     NGAP stack
-  Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
-  Description Defines NG Application Protocol Messages
-
-*****************************************************************************/
 
 #include <stdio.h>
 #include <stdint.h>
@@ -96,10 +86,11 @@ int ngap_amf_handle_initial_ue_message(
     OAILOG_ERROR(LOG_NGAP, "Unknown gNB on assoc_id %d\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
+
   // gNB UE NGAP ID is limited to 24 bits
   gnb_ue_ngap_id =
       (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
-  OAILOG_INFO(
+  OAILOG_ERROR(
       LOG_NGAP,
       "New Initial UE message received with gNB UE NGAP ID: " GNB_UE_NGAP_ID_FMT
       "\n",
@@ -109,8 +100,12 @@ int ngap_amf_handle_initial_ue_message(
   if (ue_ref == NULL) {
     tai_t tai       = {0};
     guamfi_t guamfi = {
-        .plmn = {0}, .amf_code = 0, .amf_gid = 0};  // initialized after
-    s_tmsi_m5_t s_tmsi = {.amf_code = 0, .m_tmsi = INVALID_M_TMSI};
+        .plmn         = {0},
+        .amf_set_id   = 0,
+        .amf_regionid = 0};  // initialized after
+                             //.plmn = {0}, .amf_code = 0, .amf_gid = 0};  //
+                             // initialized after
+    s_tmsi_m5_t s_tmsi = {.amf_set_id = 0, .m_tmsi = INVALID_M_TMSI};
     ecgi_t ecgi        = {.plmn = {0}, .cell_identity = {0}};
     csg_id_t csg_id    = 0;
 
@@ -158,25 +153,18 @@ int ngap_amf_handle_initial_ue_message(
     if (gNB_ref->next_sctp_stream >= gNB_ref->instreams) {
       gNB_ref->next_sctp_stream = 1;
     }
-    // ngap_dump_gnb(gNB_ref);
+    // ngap_dump_gnb(gNB_ref); //TODO implement later
     NGAP_FIND_PROTOCOLIE_BY_ID(
         Ngap_InitialUEMessage_IEs_t, ie, container,
         Ngap_ProtocolIE_ID_id_UserLocationInformation, true);
-#if 1
-    ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
-        .tAI.tAC.size = 2;  // temp hadrcode to test
-#endif
-
-    OCTET_STRING_TO_TAC(
+    
+    OCTET_STRING_TO_TAC_5G(
         &ie->value.choice.UserLocationInformation.choice
              .userLocationInformationNR.tAI.tAC,
         tai.tac);
     DevAssert(
         ie->value.choice.UserLocationInformation.choice
             .userLocationInformationNR.tAI.pLMNIdentity.size == 3);
-    // TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
-
-    // CGI mandatory IE
     NGAP_FIND_PROTOCOLIE_BY_ID(
         Ngap_InitialUEMessage_IEs_t, ie, container,
         Ngap_ProtocolIE_ID_id_UserLocationInformation, true);
@@ -200,7 +188,7 @@ int ngap_amf_handle_initial_ue_message(
         Ngap_ProtocolIE_ID_id_FiveG_S_TMSI, false);
     if (ie_e_tmsi) {
       OCTET_STRING_TO_AMF_CODE(
-          &ie_e_tmsi->value.choice.FiveG_S_TMSI.aMFSetID, s_tmsi.amf_code);
+          &ie_e_tmsi->value.choice.FiveG_S_TMSI.aMFSetID, s_tmsi.amf_set_id);
       OCTET_STRING_TO_M_TMSI(
           &ie_e_tmsi->value.choice.FiveG_S_TMSI.fiveG_TMSI, s_tmsi.m_tmsi);
     }
@@ -559,185 +547,6 @@ int ngap_generate_downlink_nas_transport(
   OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
 }
 
-//------------------------------------------------------------------------------
-void ngap_handle_conn_est_cnf(
-    ngap_state_t* state,
-    const itti_amf_app_connection_establishment_cnf_t* const conn_est_cnf_pP) {
-  /*
-   * We received create session response from S-GW on S11 interface abstraction.
-   * At least one bearer has been established. We can now send ngap initial
-   * context setup request message to gNB.
-   */
-  uint8_t* buffer_p            = NULL;
-  uint32_t length              = 0;
-  m5g_ue_description_t* ue_ref = NULL;
-  Ngap_InitialContextSetupRequest_t* out;
-  Ngap_InitialContextSetupRequestIEs_t* ie = NULL;
-  Ngap_NGAP_PDU_t pdu                      = {0};  // yes, alloc on stack
-
-  OAILOG_FUNC_IN(LOG_NGAP);
-  DevAssert(conn_est_cnf_pP != NULL);
-
-  OAILOG_INFO(
-      LOG_NGAP,
-      "Received Connection Establishment Confirm from AMF_APP for ue_id = %u\n",
-      conn_est_cnf_pP->ue_id);
-  ue_ref = ngap_state_get_ue_amfid(conn_est_cnf_pP->ue_id);
-  if (!ue_ref) {
-    OAILOG_ERROR(
-        LOG_NGAP,
-        "This amf ue ngap id (" AMF_UE_NGAP_ID_FMT
-        ") is not attached to any UE context\n",
-        conn_est_cnf_pP->ue_id);
-    // There are some race conditions were NAS T3450 timer is stopped and
-    // removed at same time
-    OAILOG_FUNC_OUT(LOG_NGAP);
-  }
-
-  imsi64_t imsi64;
-  ngap_imsi_map_t* imsi_map = get_ngap_imsi_map();
-  hashtable_uint64_ts_get(
-      imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) conn_est_cnf_pP->ue_id,
-      &imsi64);
-
-  /*
-   * Start the outcome response timer.
-   * * * * When time is reached, AMF consider that procedure outcome has failed.
-   */
-  //     timer_setup(amf_config.ngap_config.outcome_drop_timer_sec, 0,
-  //     TASK_NGAP, INSTANCE_DEFAULT,
-  //                 TIMER_ONE_SHOT,
-  //                 NULL,
-  //                 &ue_ref->outcome_response_timer_id);
-  /*
-   * Insert the timer in the MAP of amf_ue_ngap_id <-> timer_id
-   */
-  //     ngap_timer_insert(ue_ref->amf_ue_ngap_id,
-  //     ue_ref->outcome_response_timer_id);
-  memset(&pdu, 0, sizeof(pdu));
-  pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
-  pdu.choice.initiatingMessage.procedureCode =
-      Ngap_ProcedureCode_id_InitialContextSetup;
-  pdu.choice.initiatingMessage.value.present =
-      Ngap_InitiatingMessage__value_PR_InitialContextSetupRequest;
-  pdu.choice.initiatingMessage.criticality = Ngap_Criticality_ignore;
-  out = &pdu.choice.initiatingMessage.value.choice.InitialContextSetupRequest;
-
-  /* mandatory */
-  ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
-      1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID;
-  ie->criticality = Ngap_Criticality_reject;
-  ie->value.present =
-      Ngap_InitialContextSetupRequestIEs__value_PR_AMF_UE_NGAP_ID;
-  ie->value.choice.AMF_UE_NGAP_ID = ue_ref->amf_ue_ngap_id;
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
-  /* mandatory */
-  ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
-      1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID;
-  ie->criticality = Ngap_Criticality_reject;
-  ie->value.present =
-      Ngap_InitialContextSetupRequestIEs__value_PR_RAN_UE_NGAP_ID;
-  ie->value.choice.RAN_UE_NGAP_ID = ue_ref->gnb_ue_ngap_id;
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
-  /* mandatory */
-  ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
-      1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
-  ie->criticality = Ngap_Criticality_reject;
-  ie->value.present =
-      Ngap_InitialContextSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
-  asn_uint642INTEGER(
-      &ie->value.choice.UEAggregateMaximumBitRate.uEAggregateMaximumBitRateDL,
-      conn_est_cnf_pP->ue_ambr.br_dl);
-  asn_uint642INTEGER(
-      &ie->value.choice.UEAggregateMaximumBitRate.uEAggregateMaximumBitRateUL,
-      conn_est_cnf_pP->ue_ambr.br_ul);
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-  /* mandatory */
-  ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
-      1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListCxtReq;
-  ie->criticality = Ngap_Criticality_reject;
-  ie->value.present =
-      Ngap_InitialContextSetupRequestIEs__value_PR_PDUSessionResourceSetupListCxtReq;
-
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-  // Ngap_PDUSessionResourceSetupListCxtReq_t* const pdusession_to_be_setup_list
-  // =
-  //		&ie->value.choice.PDUSessionResourceSetupListCxtReq;
-
-  ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
-      1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-  ie->id          = Ngap_ProtocolIE_ID_id_UESecurityCapabilities;
-  ie->criticality = Ngap_Criticality_reject;
-  ie->value.present =
-      Ngap_InitialContextSetupRequestIEs__value_PR_UESecurityCapabilities;
-
-  Ngap_UESecurityCapabilities_t* const ue_security_capabilities =
-      &ie->value.choice.UESecurityCapabilities;
-
-  ue_security_capabilities->nRencryptionAlgorithms.buf =
-      calloc(1, sizeof(uint16_t));
-  memcpy(
-      ue_security_capabilities->nRencryptionAlgorithms.buf,
-      &conn_est_cnf_pP->ue_security_capabilities_encryption_algorithms,
-      sizeof(uint16_t));
-  ue_security_capabilities->nRencryptionAlgorithms.size        = 2;
-  ue_security_capabilities->nRencryptionAlgorithms.bits_unused = 0;
-  OAILOG_DEBUG(
-      LOG_NGAP, "security_capabilities_encryption_algorithms 0x%04X\n",
-      conn_est_cnf_pP->ue_security_capabilities_encryption_algorithms);
-
-  ue_security_capabilities->nRintegrityProtectionAlgorithms.buf =
-      calloc(1, sizeof(uint16_t));
-  memcpy(
-      ue_security_capabilities->nRintegrityProtectionAlgorithms.buf,
-      &conn_est_cnf_pP->ue_security_capabilities_integrity_algorithms,
-      sizeof(uint16_t));
-  ue_security_capabilities->nRintegrityProtectionAlgorithms.size        = 2;
-  ue_security_capabilities->nRintegrityProtectionAlgorithms.bits_unused = 0;
-  OAILOG_DEBUG(
-      LOG_NGAP, "security_capabilities_integrity_algorithms 0x%04X\n",
-      conn_est_cnf_pP->ue_security_capabilities_integrity_algorithms);
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
-  /* mandatory */
-  ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
-      1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
-  ie->id            = Ngap_ProtocolIE_ID_id_SecurityKey;
-  ie->criticality   = Ngap_Criticality_reject;
-  ie->value.present = Ngap_InitialContextSetupRequestIEs__value_PR_SecurityKey;
-  if (conn_est_cnf_pP->kgnb) {
-    ie->value.choice.SecurityKey.buf = calloc(AUTH_KGNB_SIZE, sizeof(uint8_t));
-    memcpy(
-        ie->value.choice.SecurityKey.buf, conn_est_cnf_pP->kgnb,
-        AUTH_KGNB_SIZE);
-    ie->value.choice.SecurityKey.size = AUTH_KGNB_SIZE;
-  } else {
-    OAILOG_DEBUG(LOG_NGAP, "No kgnb\n");
-    ie->value.choice.SecurityKey.buf  = NULL;
-    ie->value.choice.SecurityKey.size = 0;
-  }
-  ie->value.choice.SecurityKey.bits_unused = 0;
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
-  OAILOG_NOTICE_UE(
-      LOG_NGAP, imsi64,
-      "Send NGAP_INITIAL_CONTEXT_SETUP_REQUEST message AMF_UE_NGAP_ID "
-      "= " AMF_UE_NGAP_ID_FMT " gNB_UE_NGAP_ID = " GNB_UE_NGAP_ID_FMT "\n",
-      (amf_ue_ngap_id_t) ue_ref->amf_ue_ngap_id,
-      (gnb_ue_ngap_id_t) ue_ref->gnb_ue_ngap_id);
-  bstring b = blk2bstr(buffer_p, length);
-  free(buffer_p);
-  ngap_amf_itti_send_sctp_request(
-      &b, ue_ref->sctp_assoc_id, ue_ref->sctp_stream_send,
-      ue_ref->amf_ue_ngap_id);
-  OAILOG_FUNC_OUT(LOG_NGAP);
-}
 //------------------------------------------------------------------------------
 void ngap_handle_amf_ue_id_notification(
     ngap_state_t* state,
