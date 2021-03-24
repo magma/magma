@@ -47,11 +47,21 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     PrintGrpcMessage(
         static_cast<const google::protobuf::Message&>(request_cpy));
   }
-  MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+    if (!session_store_.is_ready()) {
+      // Since PipelineD reports a delta value for usage, this could lead to
+      // SessionD missing some usage if Redis becomes unavailable. However,
+      // since we usually only see this case on service restarts, we'll let this
+      // slide for now. Once we move to flat-rate reporting from PipelineD this
+      // will no longer be an issue.
+      MLOG(MINFO) << "SessionStore client is not yet ready... Ignoring this "
+                     "RuleRecordTable";
+      return;
+    }
     auto session_map = session_store_.read_all_sessions();
     SessionUpdate update =
         SessionStore::get_default_session_update(session_map);
+    MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
     enforcer_->aggregate_records(session_map, request_cpy, update);
     check_usage_for_reporting(std::move(session_map), update);
   });
@@ -238,6 +248,15 @@ void LocalSessionManagerHandlerImpl::CreateSession(
           send_local_create_session_response(
               Status(grpc::UNAVAILABLE, "PipelineD is not ready"), session_id,
               response_callback);
+          return;
+        }
+        if (!session_store_.is_ready()) {
+          MLOG(MINFO) << "Rejecting LocalCreateSessionRequest for " << imsi
+                      << " apn=" << cfg.common_context.apn()
+                      << " since SessionStore (Redis) is unavailable.";
+          send_local_create_session_response(
+              Status(grpc::UNAVAILABLE, "Storage backend is not available"),
+              session_id, response_callback);
           return;
         }
 
