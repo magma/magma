@@ -362,13 +362,20 @@ void clean_stale_enb_state(
     ue_description_t* ue_ref = NULL;
     for (int i = 0; i < keys->num_keys; i++) {
       ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t) keys->keys[i]);
+      /* The function s1ap_remove_ue will take care of removing the enb also,
+       * when the last UE is removed
+       */
       s1ap_remove_ue(state, ue_ref);
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
+  } else {
+    // Remove the old eNB association
+    OAILOG_INFO(
+        LOG_S1AP, "Deleting eNB: %s (Sctp_assoc_id = %u)",
+        stale_enb_association->enb_name, stale_enb_association->sctp_assoc_id);
+    s1ap_remove_enb(state, stale_enb_association);
   }
 
-  // Remove the old eNB association
-  s1ap_remove_enb(state, stale_enb_association);
   OAILOG_DEBUG(LOG_S1AP, "Removed stale eNB and all associated UEs.");
 }
 
