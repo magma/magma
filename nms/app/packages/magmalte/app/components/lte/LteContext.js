@@ -60,6 +60,7 @@ import {
   SetGatewayState,
   SetTierState,
   UpdateGateway,
+  UpdateGatewayPoolResources,
 } from '../../state/lte/EquipmentState';
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
@@ -286,7 +287,6 @@ export function SubscriberContextProvider(props: Props) {
 
 export function GatewayPoolsContextProvider(props: Props) {
   const {networkId} = props;
-  const gwCtx = useContext(GatewayContext);
   const [isLoading, setIsLoading] = useState(true);
   const [gatewayPools, setGatewayPools] = useState<{
     [string]: gatewayPoolsStateType,
@@ -312,7 +312,7 @@ export function GatewayPoolsContextProvider(props: Props) {
       setIsLoading(false);
     };
     fetchState();
-  }, [networkId, enqueueSnackbar, gwCtx.state]);
+  }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
     return <LoadingFiller />;
@@ -324,6 +324,15 @@ export function GatewayPoolsContextProvider(props: Props) {
         state: gatewayPools,
         setState: (key, value?, resources?) =>
           SetGatewayPoolsState({
+            gatewayPools,
+            setGatewayPools,
+            networkId,
+            key,
+            value,
+            resources,
+          }),
+        updateGatewayPoolResources: (key, value?, resources?) =>
+          UpdateGatewayPoolResources({
             gatewayPools,
             setGatewayPools,
             networkId,

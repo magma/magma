@@ -26,13 +26,21 @@ import React from 'react';
 import defaultTheme from '@fbcnms/ui/theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {SetGatewayPoolsState} from '../../../state/lte/EquipmentState';
+import {
+  SetGatewayPoolsState,
+  UpdateGatewayPoolResources,
+} from '../../../state/lte/EquipmentState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
+const enqueueSnackbarMock = jest.fn();
+jest
+  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .mockReturnValue(enqueueSnackbarMock);
+
 afterEach(cleanup);
 
 const gwPoolStateMock = {
@@ -155,15 +163,15 @@ describe('<GatewayPools />', () => {
           <GatewayPoolsContext.Provider
             value={{
               state: gwPoolStateMock,
-              setState: (key, value?) => {
-                return SetGatewayPoolsState({
+              setState: (key, value?) =>
+                SetGatewayPoolsState({
                   networkId,
                   gatewayPools: gwPoolStateMock,
                   setGatewayPools: () => {},
                   key,
                   value,
-                });
-              },
+                }),
+              updateGatewayPoolResources: async _ => {},
             }}>
             <Route
               path="/nms/:networkId/pools/"
@@ -262,6 +270,15 @@ describe('<AddEditGatewayPoolButton />', () => {
                   state: {},
                   setState: async (key, value?, resources?) =>
                     SetGatewayPoolsState({
+                      networkId,
+                      gatewayPools: gwPoolsState,
+                      setGatewayPools: setGatewayPoolsState,
+                      key,
+                      value,
+                      resources,
+                    }),
+                  updateGatewayPoolResources: (key, value?, resources) =>
+                    UpdateGatewayPoolResources({
                       networkId,
                       gatewayPools: gwPoolsState,
                       setGatewayPools: setGatewayPoolsState,

@@ -52,6 +52,7 @@ import {
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 const CONFIG_TITLE = 'Config';
 const GATEWAY_PRIMARY_TITLE = 'Gateway Primary';
@@ -272,6 +273,7 @@ type Props = {
 };
 
 export function ConfigEdit(props: Props) {
+  const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayPoolsContext);
   const [gwPool, setGwPool] = useState<mutable_cellular_gateway_pool>(
@@ -289,6 +291,9 @@ export function ConfigEdit(props: Props) {
   const onSave = async () => {
     try {
       await ctx.setState(gwPool.gateway_pool_id, gwPool);
+      enqueueSnackbar('Gateway Pool saved successfully', {
+        variant: 'success',
+      });
       props.onSave(gwPool);
     } catch (e) {
       setError(e.response?.data?.message ?? e.message);
@@ -360,6 +365,7 @@ export function ConfigEdit(props: Props) {
 }
 
 export function GatewayEdit(props: Props) {
+  const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayPoolsContext);
   const gwCtx = useContext(GatewayContext);
@@ -425,10 +431,13 @@ export function GatewayEdit(props: Props) {
 
   const onSave = async () => {
     try {
-      await ctx.setState(gwPool.gateway_pool_id, gwPool, [
+      await ctx.updateGatewayPoolResources(gwPool.gateway_pool_id, gwPool, [
         ...props.gatewayPrimary,
         ...props.gatewaySecondary,
       ]);
+      enqueueSnackbar('Gateway Pool Record(s) saved successfully', {
+        variant: 'success',
+      });
       props.onSave(gwPool);
     } catch (e) {
       setError(e.response?.data?.message ?? e.message);
