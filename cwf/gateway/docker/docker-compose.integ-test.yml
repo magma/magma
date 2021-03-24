@@ -66,6 +66,8 @@ services:
       core: -1
     security_opt:
       - seccomp:unconfined
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 1
     privileged: true
     command: >
       sh -c "mkdir -p /var/opt/magma/cores &&

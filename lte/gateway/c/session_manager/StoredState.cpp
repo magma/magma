@@ -455,6 +455,9 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   marshaled["bearer_id_by_policy"] =
       serialize_bearer_id_by_policy(stored.bearer_id_by_policy);
 
+  marshaled["policy_version_and_stats"] =
+      serialize_policy_stats_map(stored.policy_version_and_stats);
+
   folly::dynamic static_rule_ids = folly::dynamic::array;
   for (const auto& rule_id : stored.static_rule_ids) {
     static_rule_ids.push_back(rule_id);
@@ -512,6 +515,9 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
 
   stored.bearer_id_by_policy = deserialize_bearer_id_by_policy(
       marshaled["bearer_id_by_policy"].getString());
+
+  stored.policy_version_and_stats = deserialize_policy_stats_map(
+      marshaled["policy_version_and_stats"].getString());
 
   CreateSessionResponse csr;
   csr.ParseFromString(marshaled["create_session_response"].getString());

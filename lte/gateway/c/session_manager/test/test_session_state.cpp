@@ -48,12 +48,14 @@ TEST_F(SessionStateTest, test_session_rules) {
   EXPECT_EQ(session_state->is_static_rule_installed("rule3"), true);
   EXPECT_EQ(session_state->is_static_rule_installed("rule_DNE"), false);
 
+  EXPECT_EQ(session_state->get_current_rule_version("rule2"), 1);
+  EXPECT_EQ(session_state->get_current_rule_version("rule3"), 1);
+
   // Test rule removals
   PolicyRule rule_out;
   session_state->deactivate_static_rule("rule2", update_criteria);
   EXPECT_EQ(1, session_state->total_monitored_rules_count());
-  EXPECT_EQ(
-      true,
+  EXPECT_TRUE(
       session_state->remove_dynamic_rule("rule1", &rule_out, update_criteria));
   EXPECT_EQ("m1", rule_out.monitoring_key());
   EXPECT_EQ(0, session_state->total_monitored_rules_count());
@@ -98,7 +100,10 @@ TEST_F(SessionStateTest, test_rule_scheduling) {
   // Now suppose some time has passed, and it's time to mark scheduled rules
   // as active. The responsibility is given to the session owner to make
   // these calls
-  session_state->install_scheduled_dynamic_rule("rule1", _uc);
+  PolicyRule rule;
+  session_state->remove_scheduled_dynamic_rule("rule1", &rule, _uc);
+  session_state->insert_dynamic_rule(
+      rule, session_state->get_rule_lifetime("rule1"), _uc);
   EXPECT_EQ(1, session_state->total_monitored_rules_count());
   EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule1"));
 
@@ -106,6 +111,9 @@ TEST_F(SessionStateTest, test_rule_scheduling) {
       "rule2", session_state->get_rule_lifetime("rule2"), _uc);
   EXPECT_EQ(2, session_state->total_monitored_rules_count());
   EXPECT_TRUE(session_state->is_static_rule_installed("rule2"));
+
+  EXPECT_EQ(session_state->get_current_rule_version("rule1"), 1);
+  EXPECT_EQ(session_state->get_current_rule_version("rule2"), 1);
 }
 
 /**
@@ -290,12 +298,10 @@ TEST_F(SessionStateTest, test_add_rule_usage) {
   EXPECT_EQ(update.usage_monitors_size(), 2);
 
   PolicyRule policy_out;
-  EXPECT_EQ(
-      true, session_state->remove_dynamic_rule(
-                "dyn_rule1", &policy_out, update_criteria));
-  EXPECT_EQ(
-      true, session_state->deactivate_static_rule("rule1", update_criteria));
-  EXPECT_EQ(false, session_state->active_monitored_rules_exist());
+  EXPECT_TRUE(session_state->remove_dynamic_rule(
+      "dyn_rule1", &policy_out, update_criteria));
+  EXPECT_TRUE(session_state->deactivate_static_rule("rule1", update_criteria));
+  EXPECT_FALSE(session_state->active_monitored_rules_exist());
   EXPECT_TRUE(
       std::find(
           update_criteria.dynamic_rules_to_uninstall.begin(),
@@ -655,9 +661,8 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   EXPECT_EQ(update_criteria.gy_dynamic_rules_to_install.size(), 1);
 
   PolicyRule rule_out;
-  EXPECT_EQ(
-      true, session_state->remove_gy_dynamic_rule(
-                "redirect", &rule_out, update_criteria));
+  EXPECT_TRUE(session_state->remove_gy_dynamic_rule(
+      "redirect", &rule_out, update_criteria));
   // basic sanity checks to see it's properly deleted
   rules_out = {};
   session_state->get_gy_dynamic_rules().get_rule_ids(rules_out_ptr);

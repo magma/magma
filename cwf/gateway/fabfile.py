@@ -91,7 +91,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_run_unit_tests)
 
     execute(_set_cwag_configs, "gateway.mconfig")
-    execute(_add_networkhost_docker)
+    #execute(_add_networkhost_docker)
     cwag_host_to_mac = execute(_get_br_mac, CWAG_BR_NAME)
     host = env.hosts[0]
     cwag_br_mac = cwag_host_to_mac[host]

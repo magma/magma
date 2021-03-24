@@ -46,6 +46,7 @@ struct RulesToProcess {
   // Vector of rule versions. versions[i] contains the version for rules[i]
   std::vector<uint32_t> versions;
   bool empty() const;
+  void append_versioned_policy(PolicyRule rule, uint32_t version);
 };
 
 // Used to transform the proto message RuleSet into a more useful structure
@@ -308,6 +309,14 @@ class SessionState {
    */
   optional<PolicyType> get_policy_type(const std::string& rule_id);
 
+  /**
+   * @brief Get the current rule version object
+   *
+   * @param rule_id
+   * @return uint32_t
+   */
+  uint32_t get_current_rule_version(const std::string& rule_id);
+
   bool is_dynamic_rule_installed(const std::string& rule_id);
 
   bool is_gy_dynamic_rule_installed(const std::string& rule_id);
@@ -317,20 +326,28 @@ class SessionState {
   /**
    * Add a dynamic rule to the session which is currently active.
    */
-  void insert_dynamic_rule(
+  uint32_t insert_dynamic_rule(
       const PolicyRule& rule, RuleLifetime& lifetime,
-      SessionStateUpdateCriteria& update_criteria);
+      SessionStateUpdateCriteria& session_uc);
 
   /**
    * Add a static rule to the session which is currently active.
    */
   uint32_t activate_static_rule(
       const std::string& rule_id, RuleLifetime& lifetime,
-      SessionStateUpdateCriteria& update_criteria);
-
-  void insert_gy_dynamic_rule(
-      const PolicyRule& rule, RuleLifetime& lifetime,
-      SessionStateUpdateCriteria& update_criteria);
+      SessionStateUpdateCriteria& session_uc);
+  /**
+   * @brief Insert a PolicyRule into gy_dynamic_rules_
+   *
+   * @param rule
+   * @param p_type DYNAMIC or STATIC
+   * @param lifetime
+   * @param update_criteria
+   * @return uint32_t
+   */
+  uint32_t insert_gy_rule(
+      const PolicyRule& rule, const PolicyType p_type, RuleLifetime& lifetime,
+      SessionStateUpdateCriteria& session_uc);
 
   /**
    * Remove a currently active dynamic rule to mark it as deactivated.
@@ -342,7 +359,7 @@ class SessionState {
    *                        updates to a session.
    * @return True if successfully removed.
    */
-  bool remove_dynamic_rule(
+  optional<uint32_t> remove_dynamic_rule(
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
@@ -350,7 +367,7 @@ class SessionState {
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
-  bool remove_gy_dynamic_rule(
+  optional<uint32_t> remove_gy_dynamic_rule(
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
@@ -358,16 +375,15 @@ class SessionState {
    * Remove a currently active static rule to mark it as deactivated.
    *
    * @param rule_id ID of the rule to be removed.
-   * @param update_criteria Tracks updates to the session. To be passed back to
+   * @param session_uc Tracks updates to the session. To be passed back to
    *                        the SessionStore to resolve issues of concurrent
    *                        updates to a session.
-   * @return True if successfully removed.
+   * @return new version if successfully removed. otherwise returns {}
    */
-  bool deactivate_static_rule(
-      const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
+  optional<uint32_t> deactivate_static_rule(
+      const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
 
-  bool deactivate_scheduled_static_rule(
-      const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
+  bool deactivate_scheduled_static_rule(const std::string& rule_id);
 
   std::vector<std::string>& get_static_rules();
 
@@ -395,12 +411,6 @@ class SessionState {
       const std::string& rule_id, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
-  /**
-   * Mark a scheduled dynamic rule as activated.
-   */
-  void install_scheduled_dynamic_rule(
-      const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
-
   void set_suspend_credit(
       const CreditKey& charging_key, bool new_suspended,
       SessionStateUpdateCriteria& update_criteria);
@@ -427,10 +437,9 @@ class SessionState {
 
   SessionFsmState get_state();
 
-  void get_unsuspended_rules(RulesToProcess& rulesToProcess);
-
   void get_rules_per_credit_key(
-      CreditKey charging_key, RulesToProcess& rulesToProcess);
+      CreditKey charging_key, RulesToProcess& rulesToProcess,
+      SessionStateUpdateCriteria& session_uc);
 
   /**
    * Remove all active/scheduled static/dynamic rules and reflect the change in
@@ -580,7 +589,7 @@ class SessionState {
   // Used between create session and activate session. Empty afterwards
   CreateSessionResponse create_session_response_;
 
-  // Track version tracking information
+  // Track version tracking information used for LTE/WLAN
   PolicyStatsMap policy_version_and_stats_;
 
   // All static rules synced from policy DB
