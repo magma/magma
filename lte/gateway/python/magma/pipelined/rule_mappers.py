@@ -93,8 +93,7 @@ class SessionRuleToVersionMapper:
         key = self._get_json_key(encode_imsi(imsi), ip_addr, rule_id)
         self._version_by_imsi_and_rule[key] = version
 
-    def save_version(self, imsi: str, ip_addr: IPAddress,
-                     rule_id: Optional[str] = None, version: int = 1):
+    def update_all_ue_versions(self, imsi: str, ip_addr: IPAddress):
         """
         Increment the version number for a given subscriber and rule. If the
         rule id is not specified, then all rules for the subscriber will be
@@ -106,13 +105,25 @@ class SessionRuleToVersionMapper:
         else:
             ip_addr_str = ip_addr.address.decode('utf-8').strip()
         with self._lock:
-            if rule_id is None:
-                for k, v in self._version_by_imsi_and_rule.items():
-                    _, imsi, ip_addr_str, _ = SubscriberRuleKey(*json.loads(k))
-                    if imsi == encoded_imsi and ip_addr_str == ip_addr_str:
-                        self._version_by_imsi_and_rule[k] = v + 1
-            else:
-                self._save_version_unsafe(imsi, ip_addr_str, rule_id, version)
+            for k, v in self._version_by_imsi_and_rule.items():
+                _, imsi, ip_addr_str, _ = SubscriberRuleKey(*json.loads(k))
+                if imsi == encoded_imsi and ip_addr_str == ip_addr_str:
+                    self._version_by_imsi_and_rule[k] = v + 1
+
+    def save_version(self, imsi: str, ip_addr: IPAddress,
+                     rule_id: [str], version: int):
+        """
+        Increment the version number for a given subscriber and rule. If the
+        rule id is not specified, then all rules for the subscriber will be
+        incremented.
+        """
+        encoded_imsi = encode_imsi(imsi)
+        if ip_addr is None or ip_addr.address is None:
+            ip_addr_str = ""
+        else:
+            ip_addr_str = ip_addr.address.decode('utf-8').strip()
+        with self._lock:
+            self._save_version_unsafe(imsi, ip_addr_str, rule_id, version)
 
     def get_version(self, imsi: str, ip_addr: IPAddress, rule_id: str) -> int:
         """

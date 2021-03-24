@@ -56,7 +56,8 @@ class RuleMappersTest(unittest.TestCase):
             2)
 
         # Test updating version for all rules of a subscriber
-        self._session_rule_version_mapper.save_version(imsi, None, None)
+        self._session_rule_version_mapper.update_all_ue_versions(imsi,
+            convert_ipv4_str_to_ip_proto(ip_addr))
 
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
@@ -92,7 +93,7 @@ class RuleMappersTest(unittest.TestCase):
             2)
 
         # Test updating version for all rules of a subscriber
-        self._session_rule_version_mapper.save_version(imsi, None, None)
+        self._session_rule_version_mapper.update_all_ue_versions(imsi, None)
 
         self.assertEqual(
             self._session_rule_version_mapper.get_version(

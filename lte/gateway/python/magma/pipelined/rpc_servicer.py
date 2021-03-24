@@ -220,6 +220,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 request.sid.id, ipv4, policy.rule.id, policy.version)
 
     def _remove_version(self, request: DeactivateFlowsRequest, ip_address: str):
+        def cleanup_dict(imsi, ip_address, rule_id, version):
+            self._service_manager.session_rule_version_mapper \
+                .remove(imsi, ip_address, rule_id, version)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper \
                 .update_version(request.sid.id, ip_address,
@@ -227,11 +230,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             version = self._service_manager.session_rule_version_mapper \
                 .get_version(request.sid.id, ip_address, rule_id)
 
-            # Give it sometime to cleanup enf stats
-            self._loop.call_later(
-                self._service_config['enforcement']['poll_interval'] * 2,
-                partial(cleanup_redis, request.sid.id, ip_address, rule_id,
-                        version))
+            cleanup_dict(request.sid.id, ip_address, rule_id, version)
 
     def _activate_flows(self, request: ActivateFlowsRequest,
                         fut: 'Future[ActivateFlowsResult]'
@@ -417,8 +416,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         else:
             # TODO cleanup redis?
             # If no rule ids are given, all flows are deactivated
-            self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, ip_address)
+            self._service_manager.session_rule_version_mapper\
+                .update_all_ue_versions(request.sid.id, ip_address)
         if request.remove_default_drop_flows:
             self._enforcement_stats.deactivate_default_flow(request.sid.id,
                                                             ip_address)
