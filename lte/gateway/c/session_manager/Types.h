@@ -187,6 +187,7 @@ struct RulesToProcess {
   std::vector<PolicyRule> rules;
   std::vector<uint32_t> versions;
   bool empty() const;
+  void append_versioned_policy(PolicyRule rule, uint32_t version);
 };
 
 struct StatsPerPolicy {

@@ -62,8 +62,8 @@ class SessionStateTest : public ::testing::Test {
         return session_state->activate_static_rule(
             rule_id, lifetime, update_criteria);
       case DYNAMIC:
-        session_state->insert_dynamic_rule(rule, lifetime, update_criteria);
-        return 0;
+        return session_state->insert_dynamic_rule(
+            rule, lifetime, update_criteria);
         break;
     }
     return 0;
@@ -106,7 +106,7 @@ class SessionStateTest : public ::testing::Test {
     }
   }
 
-  void insert_gy_redirection_rule(const std::string& rule_id) {
+  uint32_t insert_gy_redirection_rule(const std::string& rule_id) {
     PolicyRule redirect_rule;
     redirect_rule.set_id(rule_id);
     redirect_rule.set_priority(999);
@@ -124,7 +124,7 @@ class SessionStateTest : public ::testing::Test {
         redirect_server.redirect_server_address());
 
     RuleLifetime lifetime{};
-    session_state->insert_gy_dynamic_rule(
+    return session_state->insert_gy_rule(
         redirect_rule, lifetime, update_criteria);
   }
 
@@ -161,7 +161,7 @@ class SessionStateTest : public ::testing::Test {
     session_state->receive_monitor(monitor_resp, update_criteria);
   }
 
-  void activate_rule(
+  uint32_t activate_rule(
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
@@ -171,12 +171,17 @@ class SessionStateTest : public ::testing::Test {
     switch (rule_type) {
       case STATIC:
         rule_store->insert_rule(rule);
-        session_state->activate_static_rule(rule_id, lifetime, update_criteria);
+        return session_state->activate_static_rule(
+            rule_id, lifetime, update_criteria);
         break;
       case DYNAMIC:
-        session_state->insert_dynamic_rule(rule, lifetime, update_criteria);
+        return session_state->insert_dynamic_rule(
+            rule, lifetime, update_criteria);
+        break;
+      default:
         break;
     }
+    return 0;
   }
 
  protected:
