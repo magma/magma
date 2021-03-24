@@ -49,4 +49,3 @@
         magma_deps: /home/{{ ansible_user }}/magma-deps
     - role: fluent_bit
     - role: pyvenv
-    - role: ghz

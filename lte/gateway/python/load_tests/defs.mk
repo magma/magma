@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -11,9 +10,6 @@
 # limitations under the License.
 #
 
-# shellcheck disable=SC1091
-source /etc/environment
-
-cd "$GHZ_ROOT"/cmd/ghz
-"$GO_BIN"/go build .
-
+# Add the load tests to be run
+LOAD_TESTS=loadtest_mobilityd.py:allocate \
+loadtest_mobilityd.py:release
