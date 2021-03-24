@@ -13,29 +13,22 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(SPGW_LIB_DIR $ENV{C_BUILD}/oai/tasks/sgw)
-include_directories(${SPGW_LIB_DIR})
+find_package(Check REQUIRED)
+find_package(Threads REQUIRED)
 
-include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("/usr/src/googletest/googlemock/include/")
-
-add_library(SPGW_TASK_TEST_LIB
-    state_creators.h
-    state_creators.cpp
+set(MME_APP_UE_CONTEXT_IMSI_SRC
+    test_mme_app_ue_context.c
     )
 
-link_directories(/usr/src/googletest/googlemock/lib/)
-
-target_link_libraries(SPGW_TASK_TEST_LIB
-    TASK_SGW
-    gmock_main gtest gtest_main gmock
-    pthread rt yaml-cpp
+add_executable(test_mme_app_ue_context_imsi ${MME_APP_UE_CONTEXT_IMSI_SRC})
+target_link_libraries(test_mme_app_ue_context_imsi
+    TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    LIB_BSTR LIB_HASHTABLE
+    )
+target_include_directories(test_mme_app_ue_context_imsi PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CHECK_INCLUDE_DIRS}
     )
 
-set_target_properties(SPGW_TASK_TEST_LIB PROPERTIES LINKER_LANGUAGE CXX)
-
-foreach (sgw_test spgw_state_converter)
-  add_executable(${sgw_test}_test test_${sgw_test}.cpp)
-  target_link_libraries(${sgw_test}_test SPGW_TASK_TEST_LIB)
-  add_test(test_${sgw_test} ${sgw_test}_test)
-endforeach (sgw_test)
+add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
