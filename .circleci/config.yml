@@ -316,7 +316,7 @@ commands:
           command: |
             sleep 10
             cd ${MAGMA_ROOT}/circleci
-            fab <<parameters.stack>> integ_test:repo=${CIRCLE_REPOSITORY_URL},branch=${CIRCLE_BRANCH},sha1=${CIRCLE_SHA1},run_integ_test=<<parameters.test>>,build_package=<<parameters.build>>,deploy_artifacts=<<parameters.deploy>>
+            # fab <<parameters.stack>> integ_test:repo=${CIRCLE_REPOSITORY_URL},branch=${CIRCLE_BRANCH},sha1=${CIRCLE_SHA1},run_integ_test=<<parameters.test>>,build_package=<<parameters.build>>,deploy_artifacts=<<parameters.deploy>>
 
             mkdir -p versions
             cp *_version versions || true
@@ -333,7 +333,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
+                 # curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
