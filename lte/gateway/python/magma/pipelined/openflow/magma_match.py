@@ -77,7 +77,7 @@ class MagmaMatch(object):
         if self.proxy_tag is not None:
             ryu_match[PROXY_TAG_REG] = self.proxy_tag
         if self.ng_session_id is not None:
-            ryu_match[NG_FLOW_ENABLE_REG] = self.ng_session_id
+            ryu_match[NG_SESSION_ID_REG] = self.ng_session_id
         return ryu_match
 
     def _check_args(self):

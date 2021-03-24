@@ -554,7 +554,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error('Datapath not initialized')
             return
 
-        if remove_default_flow == True:
+        if remove_default_flow:
             ng_match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN, ng_session_id)
             ng_match_out = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.OUT, ng_session_id)
             flows.delete_flow(self._datapath, self.tbl_num, ng_match_in)
@@ -868,6 +868,6 @@ def get_adjusted_delta(begin, end):
     return (end - begin + timedelta(milliseconds=150)).total_seconds()
 
 def _get_ng_enable(flow):
-    if NG_FLOW_ENABLE_REG not in flow.match:
+    if NG_SESSION_ID_REG not in flow.match:
         return None
-    return flow.match[NG_FLOW_ENABLE_REG]
+    return flow.match[NG_SESSION_ID_REG]

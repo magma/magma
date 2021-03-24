@@ -119,7 +119,7 @@ class EnforcementTableTest(unittest.TestCase):
                             action=FlowDescription.PERMIT)]
 
         self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
-                                       		       None,[], dynamic_rules=[PolicyRule(
+                                       		       None, dynamic_rules=[PolicyRule(
                                                                            id='rule1',
                                                                            priority=65536,
                                                                            flow_list=flow_list
@@ -147,7 +147,7 @@ class EnforcementTableTest(unittest.TestCase):
                             action=FlowDescription.PERMIT)]
 
         self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
-                                       		       None,[], dynamic_rules=[PolicyRule(
+                                       		       None, dynamic_rules=[PolicyRule(
                                                                            id='rule1',
                                                                            priority=65530,
                                                                            flow_list=flow_list
@@ -163,7 +163,7 @@ class EnforcementTableTest(unittest.TestCase):
                             action=FlowDescription.PERMIT)]
 
         self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
-                                       		       None,[], dynamic_rules=[PolicyRule(
+                                       		       None, dynamic_rules=[PolicyRule(
                                                                            id='rule1',
                                                                            priority=65536,
                                                                            flow_list=flow_list

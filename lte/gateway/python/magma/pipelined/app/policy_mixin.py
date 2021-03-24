@@ -113,24 +113,6 @@ class PolicyMixin(metaclass=ABCMeta):
             self.proxy_controller.remove_subscriber_he_flows(ip_addr, rule_id,
                                                              rule_num)
 
-    def _install_flow_for_static_rule(self, imsi, msisdn: bytes, uplink_tunnel: int,
-                                      ip_addr, apn_ambr, rule_id, ng_session_id=0):
-        """
-        Install a flow to get stats for a particular static rule id. The rule
-        will be loaded from Redis and installed.
-
-        Args:
-            imsi (string): subscriber to install rule for
-            ip_addr (string): subscriber session ipv4 address
-            rule_id (string): policy rule id
-        """
-        rule = self._policy_dict[rule_id]
-        if rule is None:
-            self.logger.error("Could not find rule for rule_id: %s", rule_id)
-            return RuleModResult.FAILURE
-        return self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr,
-                                           apn_ambr, rule, ng_session_id)
-
     def _wait_for_rule_responses(self, imsi, ip_addr, rule, chan):
         def fail(err):
             self.logger.error(
@@ -291,7 +273,7 @@ class PolicyMixin(metaclass=ABCMeta):
         actions.extend(
             [parser.NXActionRegLoad2(dst=RULE_NUM_REG, value=rule_num),
              parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version),
-             parser.NXActionRegLoad2(dst=NG_FLOW_ENABLE_REG, value=ng_session_id)
+             parser.NXActionRegLoad2(dst=NG_SESSION_ID_REG, value=ng_session_id)
              ])
         return actions, instructions
 

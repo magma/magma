@@ -32,7 +32,7 @@ PROXY_TAG_REG = 'reg10'
 SCRATCH_REGS = ['reg0', 'reg3']
 RULE_VERSION_REG = 'reg4'
 
-NG_FLOW_ENABLE_REG = 'reg11'
+NG_SESSION_ID_REG = 'reg11'
 
 # Register values
 REG_ZERO_VAL = 0x0

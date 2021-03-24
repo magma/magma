@@ -201,7 +201,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         Args:
             imsi (string): subscriber id
         """
-        raise NotImplementedError
+        pass
 
     def _delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
