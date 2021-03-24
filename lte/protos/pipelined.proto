@@ -127,7 +127,7 @@ message RuleModResult {
 }
 
 message ActivateFlowsResult {
-  repeated RuleModResult dynamic_rule_results = 2;
+  repeated RuleModResult policy_results = 2;
   reserved 1;
 }
 

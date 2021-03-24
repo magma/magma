@@ -16,6 +16,7 @@ from concurrent.futures import Future
 from unittest.mock import MagicMock
 
 import warnings
+from lte.protos.pipelined_pb2 import VersionedPolicy
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     RedirectInformation
@@ -161,8 +162,14 @@ class EnforcementStatsTest(unittest.TestCase):
             action=FlowDescription.PERMIT)
         ]
         policies = [
-            PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
-            PolicyRule(id='rx_match', priority=5, flow_list=flow_list2)
+            VersionedPolicy(
+                rule=PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
+                version=1,
+            ),
+            VersionedPolicy(
+                rule=PolicyRule(id='rx_match', priority=5, flow_list=flow_list2),
+                version=1,
+            )
         ]
         enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
                          imsi + '|rx_match' + '|' + sub_ip]
@@ -175,8 +182,8 @@ class EnforcementStatsTest(unittest.TestCase):
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_dynamic_rule(policies[0]) \
-         .add_dynamic_rule(policies[1])
+        ).add_policy(policies[0]) \
+         .add_policy(policies[1])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -242,13 +249,16 @@ class EnforcementStatsTest(unittest.TestCase):
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
         flow_list = [FlowDescription(match=FlowMatch())]
-        policy = PolicyRule(
-            id='redir_test', priority=3, flow_list=flow_list,
-            redirect=RedirectInformation(
-                support=1,
-                address_type=2,
-                server_address="http://about.sha.ddih.org/"
-            )
+        policy = VersionedPolicy(
+            rule=PolicyRule(
+                id='redir_test', priority=3, flow_list=flow_list,
+                redirect=RedirectInformation(
+                    support=1,
+                    address_type=2,
+                    server_address="http://about.sha.ddih.org/"
+                )
+            ),
+            version=1,
         )
         stat_name = imsi + '|redir_test' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.save_version(
@@ -258,7 +268,7 @@ class EnforcementStatsTest(unittest.TestCase):
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -312,7 +322,10 @@ class EnforcementStatsTest(unittest.TestCase):
                 direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
-        policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
+        policy = VersionedPolicy(
+            rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
+            version=1,
+        )
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
 
@@ -320,7 +333,7 @@ class EnforcementStatsTest(unittest.TestCase):
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
 
         # =========================== Verification ===========================
 
@@ -352,7 +365,10 @@ class EnforcementStatsTest(unittest.TestCase):
                 direction=FlowMatch.UPLINK),
             action=FlowDescription.DENY)
         ]
-        policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
+        policy = VersionedPolicy(
+            rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
+            version=1,
+        )
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
 
@@ -360,7 +376,7 @@ class EnforcementStatsTest(unittest.TestCase):
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
@@ -419,7 +435,10 @@ class EnforcementStatsTest(unittest.TestCase):
                 direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
-        policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
+        policy = VersionedPolicy(
+            rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
+            version=1,
+        )
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
 
@@ -427,7 +446,7 @@ class EnforcementStatsTest(unittest.TestCase):
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
 
         # =========================== Verification ===========================
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
@@ -459,7 +478,10 @@ class EnforcementStatsTest(unittest.TestCase):
                 direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
-        policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
+        policy = VersionedPolicy(
+            rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
+            version=1,
+        )
         enf_stat_name = imsi + '|rule1' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
@@ -468,7 +490,7 @@ class EnforcementStatsTest(unittest.TestCase):
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -499,7 +521,7 @@ class EnforcementStatsTest(unittest.TestCase):
                 save_version(imsi, convert_ipv4_str_to_ip_proto(sub_ip),
                              'rule1', 2)
             self.enforcement_controller.deactivate_rules(
-                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.id])
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.rule.id])
 
         wait_for_enforcement_stats(self.enforcement_stats_controller,
                                    [enf_stat_name])
@@ -546,7 +568,10 @@ class EnforcementStatsTest(unittest.TestCase):
                 direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
-        policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
+        policy = VersionedPolicy(
+            rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
+            version=1,
+        )
         enf_stat_name = imsi + '|rule1' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
@@ -555,7 +580,7 @@ class EnforcementStatsTest(unittest.TestCase):
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -588,7 +613,8 @@ class EnforcementStatsTest(unittest.TestCase):
                 save_version(imsi, convert_ipv4_str_to_ip_proto(sub_ip),
                              'rule1', 2)
             self.enforcement_controller.deactivate_rules(
-                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.id])
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.rule.id])
+            policy.version=2
             self.enforcement_controller.activate_rules(
                 imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
                 [policy])

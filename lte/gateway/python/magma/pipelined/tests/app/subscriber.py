@@ -55,7 +55,7 @@ class SubscriberContext(abc.ABC):
     """
 
     @abc.abstractmethod
-    def add_policy(self, policy_rule):
+    def add_policy(self, policy):
         """
         Adds new dynamic rule to subcriber
         Args:
@@ -107,8 +107,8 @@ class RyuRPCSubscriberContext(SubscriberContext):
         self._policies = []
         self._pipelined_stub = pipelined_stub
 
-    def add_policy(self, policy_rule):
-        self._policies.append(policy_rule)
+    def add_policy(self, policy):
+        self._policies.append(policy)
         return self
 
     def _activate_subscriber_rules(self):
@@ -140,7 +140,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
         self._nuke_flows_on_exit = nuke_flows_on_exit
 
     def add_policy(self, policy):
-        self._policies.append(policy_rule)
+        self._policies.append(policy)
         return self
 
     def _activate_subscriber_rules(self):

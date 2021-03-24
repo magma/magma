@@ -402,7 +402,10 @@ class EnforcementTableTest(unittest.TestCase):
             'IMSI911500451242001', '192.168.128.100',
             self.enforcement_controller, self._tbl_num
         ).add_policy(
-            PolicyRule(id='qqq', priority=2, flow_list=tcp_match)
+            VersionedPolicy(
+                rule=PolicyRule(id='qqq', priority=2, flow_list=tcp_match),
+                version=1,
+            )
         )
         isolator2 = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context2.cfg)
