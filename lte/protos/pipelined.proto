@@ -74,22 +74,28 @@ message RequestOriginType {
   OriginType type = 1;
 }
 
+message VersionedPolicy {
+  PolicyRule rule = 1;
+  uint32 version = 2;
+}
+
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
   string ip_addr = 2; // Subscriber session ipv4 address
-  repeated PolicyRule dynamic_rules = 4;  // List of dynamic rules obtained from PCRF
+  repeated PolicyRule dynamic_rules = 4;  // List of dynamic rules obtained from PCRF TODO deprecate
   RequestOriginType request_origin = 5; // Activate flow source (GX/GY)
   magma.lte.AggregatedMaximumBitrate apn_ambr = 6; // APN AMBR info, passed at the time of session creation
   bytes ipv6_addr = 7; // Subscriber session ipv6 address
   bytes msisdn = 8; // From SubscriberDB or HSS
   uint32 uplink_tunnel = 9; // Subscriber uplink tunnel
   uint32 downlink_tunnel = 10; // Subscriber downlink tunnel
-  message VersionedPolicyRule {
-    PolicyRule rule = 1;
-    uint64 version = 2;
-  }
-  repeated VersionedPolicyRule policies = 11;
+  repeated VersionedPolicy policies = 11; // Policy + version pairs
   reserved 3;
+}
+
+message VersionedPolicyID {
+  string rule_id = 1;
+  uint32 version = 2;
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -99,13 +105,14 @@ message ActivateFlowsRequest {
 // If no rule ids are given, all flows are deactivated
 message DeactivateFlowsRequest {
   SubscriberID sid = 1;
-  repeated string rule_ids = 2;
+  repeated string rule_ids = 2; // TODO deprecate
   RequestOriginType request_origin = 3;
   string ip_addr = 4; // Subscriber session ipv4 address
   bytes ipv6_addr = 5; // Subscriber session ipv6 address
   bool remove_default_drop_flows = 6;
   uint32 uplink_tunnel = 7; // Subscriber uplink tunnel
   uint32 downlink_tunnel = 8; // Subscriber downlink tunnel
+  repeated VersionedPolicyID policies = 9; // PolicyID + version pairs
 }
 
 message RuleModResult {

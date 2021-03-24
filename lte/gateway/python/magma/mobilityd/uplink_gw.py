@@ -66,9 +66,11 @@ class UplinkGatewayInfo:
         logging.info("Using GW info: %s", gws)
         if gws is not None:
             default_gw = gws['default']
-            if default_gw is not None and \
-                    default_gw[netifaces.AF_INET] is not None:
-                self.update_ip(default_gw[netifaces.AF_INET][0])
+            gw_ip_addr = None
+            if default_gw is not None:
+                gw_ip_addr = default_gw.get(netifaces.AF_INET, None)
+            if gw_ip_addr is not None:
+                self.update_ip(gw_ip_addr[0])
 
     def update_ip(self, ip: Optional[str], vlan_id=None):
         """

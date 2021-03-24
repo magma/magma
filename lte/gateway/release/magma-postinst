@@ -37,6 +37,8 @@ systemctl stop lighttpd
 systemctl disable lighttpd
 
 # Restart rsyslog to pick up fluent-bit config, create fluent-bit DB directory
+cp /etc/logrotate.d/rsyslog /etc/logrotate.d/rsyslog.orig
+cp /etc/logrotate.d/rsyslog.magma /etc/logrotate.d/rsyslog
 systemctl restart rsyslog
 mkdir -p /var/opt/magma/fluent-bit
 

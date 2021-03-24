@@ -235,18 +235,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
 
   // Stop paging response timer if running
   if (ue_context_p->paging_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    timer_argP                       = NULL;
-    if (timer_remove(
-            ue_context_p->paging_response_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop Paging Response timer for UE id %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->paging_response_timer.id);
     ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
@@ -2193,7 +2182,7 @@ static bool mme_app_recover_timers_for_ue(
         mme_app_handle_implicit_detach_timer_expiry, "Implicit Detach");
   }
   if (ue_mm_context_pP->time_paging_response_timer_started) {
-    mme_app_resume_timers(
+    mme_app_resume_timer(
         ue_mm_context_pP, ue_mm_context_pP->time_paging_response_timer_started,
         &ue_mm_context_pP->paging_response_timer,
         mme_app_handle_paging_timer_expiry, "Paging Response");

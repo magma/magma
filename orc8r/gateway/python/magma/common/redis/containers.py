@@ -313,14 +313,14 @@ class RedisFlatDict(MutableMapping[str, T]):
             raise KeyError(composite_key)
         return deleted_count
 
-    def get(self, key: str) -> Optional[T]:
+    def get(self, key: str, default=None) -> Optional[T]:
         """Get ``d[key:type]`` from dictionary.
         Returns None if *key:type* is not in the map
         """
         try:
             return self.__getitem__(key)
         except (KeyError, ValueError):
-            return None
+            return default
 
     def clear(self) -> None:
         """

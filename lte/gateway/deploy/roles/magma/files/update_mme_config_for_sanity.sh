@@ -69,7 +69,7 @@ function reduce_mobile_reachability_timer_value {
 
 function configure_restricted_plmn {
   # Remove default restricted PLMN from MME configuration file
-  sed -i -e '/RESTRICTED_PLMN_LIST/{n;d}' \
+  sed -i -e '/RESTRICTED_PLMN_LIST/{n;N;N;N;N;N;N;d}' \
     "$mme_config_file"
 
   # Configure restricted PLMN/s in MME configuration file

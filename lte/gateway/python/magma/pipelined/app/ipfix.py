@@ -45,12 +45,13 @@ class IPFIXController(MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
+        self._dpi_enabled = kwargs['config']['dpi']['enabled']
+        self._bridge_name = kwargs['config']['bridge_name']
+        self._conntrackd_enabled = kwargs['config']['conntrackd']['enabled']
         self.ipfix_config = self._get_ipfix_config(kwargs['config'],
                                                    kwargs['mconfig'])
-        self._bridge_name = kwargs['config']['bridge_name']
-        self._dpi_enabled = kwargs['config']['dpi']['enabled']
         # If DPI enabled don't sample normal traffic, sample only internal pkts
-        if self._dpi_enabled:
+        if self._dpi_enabled or self._conntrackd_enabled:
             self._ipfix_sample_tbl_num = \
                 self._service_manager.INTERNAL_IPFIX_SAMPLE_TABLE_NUM
         else:
@@ -85,7 +86,7 @@ class IPFIXController(MagmaController):
                 obs_domain_id=0, obs_point_id=0, cache_timeout=0,
                 sampling_port=0)
 
-        if config_dict['dpi']['enabled']:
+        if self._dpi_enabled or self._conntrackd_enabled:
             probability = 65535
         else:
             probability = config_dict['ipfix']['probability']
@@ -212,7 +213,7 @@ class IPFIXController(MagmaController):
             sampling_port=self.ipfix_config.sampling_port)]
 
         match = MagmaMatch(imsi=encode_imsi(imsi))
-        if self._dpi_enabled:
+        if self._dpi_enabled or self._conntrackd_enabled:
             flows.add_drop_flow(
                 self._datapath, self._ipfix_sample_tbl_num, match, actions,
                 priority=flows.UE_FLOW_PRIORITY)

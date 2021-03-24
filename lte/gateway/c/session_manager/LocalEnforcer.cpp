@@ -1027,12 +1027,10 @@ bool LocalEnforcer::update_tunnel_ids(
   handle_session_activate_rule_updates(
       imsi, *session, csr, charging_credits_received);
 
+  update_ipfix_flow(imsi, session->get_config(), time_since_epoch);
   // if (session_state->get_config().common_context.rat_type() == TGPP_WLAN) {
-  if (session->is_radius_cwf_session()) {
-    update_ipfix_flow(imsi, session->get_config(), time_since_epoch);
-    if (terminate_on_wallet_exhaust()) {
-      handle_session_activate_subscriber_quota_state(imsi, *session);
-    }
+  if (terminate_on_wallet_exhaust()) {
+    handle_session_activate_subscriber_quota_state(imsi, *session);
   }
 
   if (revalidation_required(csr.event_triggers())) {
