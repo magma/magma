@@ -32,6 +32,8 @@ class MemoryStoreClient final : public StoreClient {
   MemoryStoreClient(MemoryStoreClient&&)      = default;
   ~MemoryStoreClient()                        = default;
 
+  bool is_ready() { return true; };
+
   SessionMap read_sessions(std::set<std::string> subscriber_ids);
 
   SessionMap read_all_sessions();

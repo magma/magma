@@ -1,7 +1,7 @@
-From a37c40b230e3347b53548dd2c1fccbc3cb12179a Mon Sep 17 00:00:00 2001
+From a2116901673d283795a430721a6aa914991a7a9f Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 29 Jun 2020 02:45:36 +0000
-Subject: [PATCH 05/11] OVS: gtp echo handling
+Subject: [PATCH 05/14] OVS: gtp echo handling
 
 This uses OVS BFD module to send ech msgs.
 
@@ -9,23 +9,23 @@ testing done using ./tests/test-gtp 1.11.1.1 3201000a0000000000010000ff0003000a0
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
- include/openvswitch/packets.h  |  16 ++
- lib/bfd.c                      |  81 ++++++++--
+ include/openvswitch/packets.h  |  16 +++
+ lib/bfd.c                      |  81 ++++++++++--
  lib/bfd.h                      |   4 +-
- lib/netdev-provider.h          |   8 +
+ lib/netdev-provider.h          |   8 ++
  lib/netdev-vport-private.h     |   1 +
- lib/netdev-vport.c             | 267 +++++++++++++++++++++++++++++++-
- lib/netdev.c                   |  38 +++++
+ lib/netdev-vport.c             | 267 +++++++++++++++++++++++++++++++++++++++-
+ lib/netdev.c                   |  38 ++++++
  lib/netdev.h                   |  11 ++
  ofproto/ofproto-dpif-monitor.c |  13 +-
- ofproto/ofproto-dpif-xlate.c   |  35 +++--
+ ofproto/ofproto-dpif-xlate.c   |  35 ++++--
  ofproto/ofproto-dpif-xlate.h   |   2 +
- ofproto/ofproto-dpif.c         |  17 ++
+ ofproto/ofproto-dpif.c         |  17 +++
  ofproto/ofproto-dpif.h         |   2 +
  tests/automake.mk              |   3 +
  tests/system-common-macros.at  |  19 +++
- tests/system-layer3-tunnels.at | 273 ++++++++++++++++++++++++++-------
- tests/test-gtp.c               | 111 ++++++++++++++
+ tests/system-layer3-tunnels.at | 273 +++++++++++++++++++++++++++++++++--------
+ tests/test-gtp.c               | 111 +++++++++++++++++
  17 files changed, 818 insertions(+), 83 deletions(-)
  create mode 100644 tests/test-gtp.c
 
@@ -287,7 +287,7 @@ index d89a28c66..3c82d5837 100644
  
  int netdev_vport_construct(struct netdev *);
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index 7158ef428..4e9696b98 100644
+index 0f3d587e0..1db1b7c0d 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
 @@ -29,6 +29,7 @@
@@ -324,7 +324,7 @@ index 7158ef428..4e9696b98 100644
      has_seq = strstr(type, "gre");
      memset(&tnl_cfg, 0, sizeof tnl_cfg);
  
-@@ -1121,6 +1125,256 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
+@@ -1129,6 +1133,256 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
  
  
  #ifdef __linux__
@@ -581,7 +581,7 @@ index 7158ef428..4e9696b98 100644
  static int
  netdev_vport_get_ifindex(const struct netdev *netdev_)
  {
-@@ -1246,6 +1500,11 @@ netdev_vport_tunnel_register(void)
+@@ -1254,6 +1508,11 @@ netdev_vport_tunnel_register(void)
                .build_header = netdev_gtpu_build_header,
                .push_header = netdev_gtpu_push_header,
                .pop_header = netdev_gtpu_pop_header,
@@ -593,7 +593,7 @@ index 7158ef428..4e9696b98 100644
            },
            {{NULL, NULL, 0, 0}}
          },
-@@ -1264,6 +1523,12 @@ netdev_vport_tunnel_register(void)
+@@ -1272,6 +1531,12 @@ netdev_vport_tunnel_register(void)
          unixctl_command_register("tnl/egress_port_range", "min max", 0, 2,
                                   netdev_tnl_egress_port_range, NULL);
  
@@ -708,7 +708,7 @@ index bb0e49091..42bf211e9 100644
                  MSEC_TO_PRIO(next_wake_time));
  }
 diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
-index e0ede2cab..6b5f8051a 100644
+index 1f78da105..1ee6845e6 100644
 --- a/ofproto/ofproto-dpif-xlate.c
 +++ b/ofproto/ofproto-dpif-xlate.c
 @@ -7954,17 +7954,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
@@ -1275,5 +1275,5 @@ index 000000000..aede93daf
 +    return 0;
 +}
 -- 
-2.17.1
+2.13.5
 

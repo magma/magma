@@ -51,7 +51,7 @@ magma::SessionSet create_session_set_req(
 magma::DeactivateFlowsRequest create_deactivate_req(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const magma::Teids teids,
-    const std::vector<magma::PolicyRule>& rules,
+    const magma::RulesToProcess& to_process,
     const magma::RequestOriginType_OriginType origin_type,
     const bool remove_default_drop_rules) {
   magma::DeactivateFlowsRequest req;
@@ -63,7 +63,7 @@ magma::DeactivateFlowsRequest create_deactivate_req(
   req.set_remove_default_drop_flows(remove_default_drop_rules);
   req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
-  for (const auto& rule : rules) {
+  for (const auto& rule : to_process.rules) {
     ids->Add()->assign(rule.id());
   }
   return req;
@@ -74,7 +74,7 @@ magma::ActivateFlowsRequest create_activate_req(
     const std::string& ipv6_addr, const magma::Teids teids,
     const std::string& msisdn,
     const optional<magma::AggregatedMaximumBitrate>& ambr,
-    const std::vector<magma::PolicyRule>& dynamic_rules,
+    const magma::RulesToProcess& to_process,
     const magma::RequestOriginType_OriginType origin_type) {
   magma::ActivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
@@ -88,7 +88,7 @@ magma::ActivateFlowsRequest create_activate_req(
     req.mutable_apn_ambr()->CopyFrom(*ambr);
   }
   auto mut_dyn_rules = req.mutable_dynamic_rules();
-  for (const auto& dyn_rule : dynamic_rules) {
+  for (const auto& dyn_rule : to_process.rules) {
     mut_dyn_rules->Add()->CopyFrom(dyn_rule);
   }
   return req;
@@ -130,18 +130,9 @@ magma::SetupPolicyRequest create_setup_policy_req(
   std::vector<magma::ActivateFlowsRequest> activation_reqs;
 
   for (auto it = infos.begin(); it != infos.end(); it++) {
-    std::vector<magma::lte::PolicyRule> gx_rules = {};
-    // combine gx_static_rules and gy_dynamic_rules
-    for (magma::PolicyRule rule : it->gx_static_rules) {
-      gx_rules.push_back(rule);
-    }
-    for (magma::lte::PolicyRule rule : it->gx_dynamic_rules) {
-      gx_rules.push_back(rule);
-    }
-
     auto gx_activate_req = create_activate_req(
         it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, it->ambr,
-        gx_rules, magma::RequestOriginType::GX);
+        it->gx_rules, magma::RequestOriginType::GX);
     activation_reqs.push_back(gx_activate_req);
     if (!it->gy_dynamic_rules.empty()) {
       auto gy_activate_req = create_activate_req(
@@ -250,18 +241,6 @@ void AsyncPipelinedClient::set_upf_session(
   set_upf_session_rpc(setup_session_req, callback);
 }
 
-void AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
-  DeactivateFlowsRequest req;
-  req.mutable_sid()->set_id(imsi);
-  MLOG(MDEBUG) << "Deactivating all flows for subscriber " << imsi;
-  deactivate_flows_rpc(req, [imsi](Status status, DeactivateFlowsResult resp) {
-    if (!status.ok()) {
-      MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
-                   << ": " << status.error_message();
-    }
-  });
-}
-
 void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
@@ -271,22 +250,24 @@ void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
          "for subscriber "
       << imsi << " IP " << ip_addr << " " << ipv6_addr;
 
-  auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, teids, {}, origin_type, true);
+  RulesToProcess empty_to_process;
+  empty_to_process.rules = std::vector<PolicyRule>{};
+  auto req               = create_deactivate_req(
+      imsi, ip_addr, ipv6_addr, teids, empty_to_process, origin_type, true);
   deactivate_flows(req);
 }
 
 void AsyncPipelinedClient::deactivate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
-    const std::vector<PolicyRule>& rules,
+    const RulesToProcess to_process,
     const RequestOriginType_OriginType origin_type) {
-  MLOG(MDEBUG) << "Deactivating " << rules.size()
+  MLOG(MDEBUG) << "Deactivating " << to_process.rules.size()
                << " rules and for subscriber " << imsi << " IP " << ip_addr
                << " " << ipv6_addr;
 
   auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, teids, rules, origin_type, false);
+      imsi, ip_addr, ipv6_addr, teids, to_process, origin_type, false);
   deactivate_flows(req);
 }
 
@@ -305,13 +286,13 @@ void AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     const optional<AggregatedMaximumBitrate>& ambr,
-    const std::vector<PolicyRule>& rules,
+    const RulesToProcess to_process,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
-  MLOG(MDEBUG) << "Activating " << rules.size() << " rules for " << imsi
-               << " msisdn " << msisdn << " and ip " << ip_addr << " "
+  MLOG(MDEBUG) << "Activating " << to_process.rules.size() << " rules for "
+               << imsi << " msisdn " << msisdn << " and ip " << ip_addr << " "
                << ipv6_addr;
   auto req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, rules,
+      imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
       RequestOriginType::GX);
   activate_flows_rpc(req, callback);
 }
@@ -364,10 +345,10 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
-    const std::vector<PolicyRule>& rules) {
+    const RulesToProcess to_process) {
   MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
   auto req = create_activate_req(
-      imsi, ip_addr, ipv6_addr, teids, msisdn, {}, rules,
+      imsi, ip_addr, ipv6_addr, teids, msisdn, {}, to_process,
       RequestOriginType::GY);
   activate_flows_rpc(req, [imsi](Status status, ActivateFlowsResult resp) {
     if (!status.ok()) {

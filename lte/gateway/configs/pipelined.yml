@@ -165,6 +165,12 @@ he_enabled: true
 # Make as a True when gnb ip will support for uplink 
 ovs_multi_tunnel: False
 
+# Internal port for processing internal conntrack
+ovs_internal_conntrack_port_number: 15579
+
+# Table to forward packets from the internal conntrack
+ovs_internal_conntrack_fwd_tbl_number: 202
+
 # For 5G Functionality Support flag
 5G_feature_set:
  enable: False

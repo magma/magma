@@ -481,9 +481,7 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
-      const std::string& msisdn, optional<AggregatedMaximumBitrate> ambr,
-      const std::vector<PolicyRule>& dynamic_rules, Status status,
+      const std::string& ipv6_addr, const Teids teids, Status status,
       ActivateFlowsResult resp);
 
   /**
@@ -585,14 +583,6 @@ class LocalEnforcer {
   void install_final_unit_action_flows(
       SessionMap& session_map, const std::unique_ptr<ServiceAction>& action,
       SessionUpdate& session_update);
-
-  /**
-   * Remove final action flows through pipelined
-   */
-  void cancel_final_unit_action(
-      const std::unique_ptr<SessionState>& session,
-      std::vector<PolicyRule> gy_rules_to_deactivate,
-      SessionStateUpdateCriteria& uc);
 
   /**
    * Create redirection rule
