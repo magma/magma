@@ -203,7 +203,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 "Failed to install rule %s for subscriber %s: %s",
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
-
         if ng_session_id:
             msgs = self._get_ng_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, 
                                                      ip_addr, apn_ambr, rule, ng_session_id)
@@ -808,6 +807,49 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         #Send Session messages
         SessionStateManager.report_session_config_state(session_config_dict,
                                                         self.ng_config.sessiond_setinterface)
+
+    def deactivate_rules(self, imsi, ip_addr, rule_ids):
+        """
+        Deactivate flows for a subscriber.
+            imsi+ipv4+rule_ids -> remove rules for specific imsi session
+
+        Args:
+            imsi (string): subscriber id
+            ip_addr (string): subscriber ip address
+            rule_ids (list of strings): policy rule ids
+        """
+        if not self.init_finished:
+            self.logger.error('Pipelined is not initialized')
+            return RuleModResult.FAILURE
+
+        for rule_id in rule_ids:
+            self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
+
+    def _deactivate_flow_for_rule(self, imsi, ip_addr, rule_id):
+        """
+        Deactivate a specific rule using the flow cookie for a subscriber
+        """
+        try:
+            num = self._rule_mapper.get_rule_num(rule_id)
+        except KeyError:
+            self.logger.error('Could not find rule id %s', rule_id)
+            return
+        if num is None:
+            self.logger.error('Rule num is None for rule %s', rule_id)
+            return
+        cookie, mask = (num, flows.OVS_COOKIE_MATCH_ALL)
+
+        ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
+        match = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                           imsi=encode_imsi(imsi), **ip_match_in)
+        flows.delete_flow(self._datapath, self.tbl_num, match,
+                          cookie=cookie, cookie_mask=mask)
+        ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
+        match = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                           imsi=encode_imsi(imsi), **ip_match_out)
+        flows.delete_flow(self._datapath, self.tbl_num, match,
+                          cookie=cookie, cookie_mask=mask)
+
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction, ng_session_id=0):
     """
