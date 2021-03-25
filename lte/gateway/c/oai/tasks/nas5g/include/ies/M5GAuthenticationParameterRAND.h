@@ -20,6 +20,7 @@ namespace magma5g {
 class AuthenticationParameterRANDMsg {
  public:
 #define RAND_MIN_LEN 16
+#define RAND_MAX_LEN 16
   uint8_t iei;
   std::string rand_val;
 

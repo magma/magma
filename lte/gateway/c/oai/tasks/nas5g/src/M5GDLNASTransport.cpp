@@ -143,6 +143,13 @@ int DLNASTransportMsg::EncodeDLNASTransportMsg(
     return encoded_result;
   else
     encoded += encoded_result;
+  if ((encoded_result =
+           dl_nas_transport->pdu_session_identity.EncodePDUSessionIdentityMsg(
+               &dl_nas_transport->pdu_session_identity, PDU_SESSION_IDENTITY,
+               buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
 
   return encoded;
 }

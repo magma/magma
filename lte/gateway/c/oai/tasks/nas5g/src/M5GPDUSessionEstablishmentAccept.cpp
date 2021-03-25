@@ -12,6 +12,7 @@
 #include <sstream>
 #include "M5GPDUSessionEstablishmentAccept.h"
 #include "M5GCommonDefs.h"
+#include "M5gNasMessage.h"
 
 namespace magma5g {
 PDUSessionEstablishmentAcceptMsg::PDUSessionEstablishmentAcceptMsg(){};
@@ -29,8 +30,9 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
 int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept, uint8_t* buffer,
     uint32_t len) {
-  uint32_t encoded   = 0;
-  int encoded_result = 0;
+  uint32_t encoded        = 0;
+  uint32_t encoded_result = 0;
+
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_ESTABLISH_ACPT_MIN_LEN, len);
 
@@ -86,6 +88,19 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
            pdu_session_estab_accept->session_ambr.EncodeSessionAMBRMsg(
                &pdu_session_estab_accept->session_ambr, 0, buffer + encoded,
                len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result =
+           pdu_session_estab_accept->pdu_address.EncodePDUAddressMsg(
+               &pdu_session_estab_accept->pdu_address, PDU_ADDRESS,
+               buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = pdu_session_estab_accept->dnn.EncodeDNNMsg(
+           &pdu_session_estab_accept->dnn, DNN, buffer + encoded,
+           len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
