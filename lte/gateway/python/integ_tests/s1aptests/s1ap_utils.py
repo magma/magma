@@ -312,7 +312,7 @@ class S1ApUtil(object):
         attach_req.pdnType_pr.pres = True
         attach_req.pdnType_pr.pdn_type = pdn_type
 
-        # Populate PCO only if pcscf_addr_type is set
+        # Populate PCO if pcscf_addr_type/dns_ipv6_addr/ipcp is set
         if pcscf_addr_type or dns_ipv6_addr or ipcp:
             self.populate_pco(
                 attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr, ipcp
