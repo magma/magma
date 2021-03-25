@@ -91,6 +91,13 @@ UpdateLocationRequest convert_itti_s6a_update_location_request_to_proto_msg(
   }
 
   /*
+   * Set the dual_registeration_5g_indicator
+   */
+  if (msg->dual_regis_5g_ind) {
+    ret.set_dual_regis_5g_ind(DUAL_REGIS_5G_IND);
+  }
+
+  /*
    * Set the initial_attach
    */
   if (msg->initial_attach) {
