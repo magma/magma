@@ -14,26 +14,32 @@ limitations under the License.
 import unittest
 import time
 from builtins import range
+import random
 
 import s1ap_types
 import s1ap_wrapper
+from s1ap_utils import MagmadUtil
 
 
-class TestEnbPartialReset(unittest.TestCase):
+class TestEnbPartialResetMultiUeWithMmeRestart(unittest.TestCase):
     def setUp(self):
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+        )
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_enb_partial_reset(self):
-        """ENB Partial Reset:
-        1) Attach 2 UEs
-        2) Send partial reset for 1 UE
-        3) Detach both the UEs
+    def test_enb_partial_reset_multi_ue_with_mme_restart(self):
+        """ENB Partial Reset with MME restart for multiple UEs:
+        1) Attach 32 UEs
+        2) Send partial reset for a random subset of the attached UEs
+        3) Restart MME
+        4) Send service request for all the UEs which were reset
+        5) Detach all the 32 UEs
         """
         ue_ids = []
-        num_ues = 2
+        num_ues = 32
         self._s1ap_wrapper.configUEDevice(num_ues)
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -51,11 +57,21 @@ class TestEnbPartialReset(unittest.TestCase):
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        # Trigger eNB Reset
         # Add delay to ensure S1APTester sends attach complete before sending
         # eNB Reset Request
         time.sleep(0.5)
-        print("************************* Sending eNB Partial Reset Request")
+
+        # Set the reset UEs list
+        random.seed(time.clock())
+        reset_ue_count = random.randint(1, num_ues)
+        random.seed(time.clock())
+        reset_ue_list = random.sample(range(num_ues), reset_ue_count)
+
+        print(
+            "************************* Sending eNB Partial Reset Request for",
+            reset_ue_count,
+            "UEs",
+        )
         reset_req = s1ap_types.ResetReq()
         reset_req.rstType = s1ap_types.resetType.PARTIAL_RESET.value
         reset_req.cause = s1ap_types.ResetCause()
@@ -66,27 +82,55 @@ class TestEnbPartialReset(unittest.TestCase):
         reset_req.cause.causeVal = 3
         reset_req.r = s1ap_types.R()
         reset_req.r.partialRst = s1ap_types.PartialReset()
-        reset_req.r.partialRst.numOfConn = (int)(num_ues / 2)
+        reset_req.r.partialRst.numOfConn = reset_ue_count
         reset_req.r.partialRst.ueS1apIdPairList = (
             (s1ap_types.UeS1apIdPair) * reset_req.r.partialRst.numOfConn
         )()
         for indx in range(reset_req.r.partialRst.numOfConn):
-            reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[indx]
+            reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[
+                reset_ue_list[indx]
+            ]
             print(
                 "Reset_req.r.partialRst.ueS1apIdPairList[",
                 indx,
                 "].ueId",
                 reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
             )
+
+        # Send eNB Partial Reset
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.RESET_REQ, reset_req
         )
+
+        print("************************* Restarting MME service on gateway")
+        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
+
+        for j in range(30):
+            print("Waiting for", j, "seconds")
+            time.sleep(1)
+
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
 
-        # Sleep for 3 seconds to ensure that MME has cleaned up all S1 state
-        # before proceeding
-        time.sleep(3)
+        # Send service request for all the Reset UE Ids
+        for indx in range(reset_req.r.partialRst.numOfConn):
+            print(
+                "************************* Sending Service request for UE id",
+                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
+            )
+            req = s1ap_types.ueserviceReq_t()
+            req.ue_Id = reset_req.r.partialRst.ueS1apIdPairList[indx].ueId
+            req.ueMtmsi = s1ap_types.ueMtmsi_t()
+            req.ueMtmsi.pres = False
+            req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
+            self._s1ap_wrapper.s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
+            )
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
+
         # Trigger detach request
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)

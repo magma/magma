@@ -14,26 +14,27 @@ limitations under the License.
 import unittest
 import time
 from builtins import range
+import random
 
 import s1ap_types
 import s1ap_wrapper
 
 
-class TestEnbPartialReset(unittest.TestCase):
+class TestEnbPartialResetMultiUe(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_enb_partial_reset(self):
-        """ENB Partial Reset:
-        1) Attach 2 UEs
-        2) Send partial reset for 1 UE
-        3) Detach both the UEs
+    def test_enb_partial_reset_multi_ue(self):
+        """ENB Partial Reset for multiple UEs:
+        1) Attach 32 UEs
+        2) Send partial reset for a random subset of the attached UEs
+        3) Detach all the 32 UEs
         """
         ue_ids = []
-        num_ues = 2
+        num_ues = 32
         self._s1ap_wrapper.configUEDevice(num_ues)
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -51,11 +52,21 @@ class TestEnbPartialReset(unittest.TestCase):
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        # Trigger eNB Reset
         # Add delay to ensure S1APTester sends attach complete before sending
         # eNB Reset Request
         time.sleep(0.5)
-        print("************************* Sending eNB Partial Reset Request")
+
+        # Set the reset UEs list
+        random.seed(time.clock())
+        reset_ue_count = random.randint(1, num_ues)
+        random.seed(time.clock())
+        reset_ue_list = random.sample(range(num_ues), reset_ue_count)
+
+        print(
+            "************************* Sending eNB Partial Reset Request for",
+            reset_ue_count,
+            "UEs",
+        )
         reset_req = s1ap_types.ResetReq()
         reset_req.rstType = s1ap_types.resetType.PARTIAL_RESET.value
         reset_req.cause = s1ap_types.ResetCause()
@@ -66,18 +77,22 @@ class TestEnbPartialReset(unittest.TestCase):
         reset_req.cause.causeVal = 3
         reset_req.r = s1ap_types.R()
         reset_req.r.partialRst = s1ap_types.PartialReset()
-        reset_req.r.partialRst.numOfConn = (int)(num_ues / 2)
+        reset_req.r.partialRst.numOfConn = reset_ue_count
         reset_req.r.partialRst.ueS1apIdPairList = (
             (s1ap_types.UeS1apIdPair) * reset_req.r.partialRst.numOfConn
         )()
         for indx in range(reset_req.r.partialRst.numOfConn):
-            reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[indx]
+            reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[
+                reset_ue_list[indx]
+            ]
             print(
                 "Reset_req.r.partialRst.ueS1apIdPairList[",
                 indx,
                 "].ueId",
                 reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
             )
+
+        # Send eNB Partial Reset
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.RESET_REQ, reset_req
         )
