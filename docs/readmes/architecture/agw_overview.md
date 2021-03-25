@@ -45,7 +45,7 @@ The main service within the access gateway (AGW) is Magmad, which brings up all 
 
 14. **Monitord ** - a dynamic service that monitors the CPEs connected to the AGW. It will send ICMP pings to the CPEs connected to the gateway and report if they are active. 
 
-15. **SMSd ** - service that functions as the AGW interface that will sync the SMS information with Orc8r. 
+15. **SMSd** - service that functions as the AGW interface that will sync the SMS information with Orc8r. 
 
 16. **Td-agent-bit** - consists of Fluentbit and is run as a dynamic service on the AGW. To use td-agent-bit the user must modify the gateway magmad configuration. It is used for log aggregation and event logging where it takes input from syslog and the events service and forwards the output to the Orc8r. It is received on the Orc8r by Fluentd where it is stored in Elasticsearch. 
 
