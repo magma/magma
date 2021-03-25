@@ -14,7 +14,7 @@ The main service within the access gateway (AGW) is Magmad, which brings up all 
 
 1. **Sctpd** - High availability SCTP interface to radio front end. Sctpd forms the endpoint of the S1-C connection. 
 
-2. **Mme** - Implements S1AP, NAS and MME subcomponents for LTE control plane Also implements SGW and PGW control plane. If the mme is restarted, S1 connection will be restarted and users service will be affected. Mobilityd, pipelined, and sessiond are restarted in this process as well. 
+2. **MME** - Implements S1AP, NAS and MME subcomponents for LTE control plane Also implements SGW and PGW control plane. If the mme is restarted, S1 connection will be restarted and users service will be affected. Mobilityd, pipelined, and sessiond are restarted in this process as well. 
 
 3. **Enodebd** - Enodebd supports management of eNodeB devices that use TR-069 as a management interface. This is used for both provisioning the eNodeB and collecting the performance metrics. It also acts as a statistics reporter for externally managed eNodeBs. It supports following data models:
 * Device Data model : TR-181 and TR-098
@@ -57,4 +57,3 @@ The main service within the access gateway (AGW) is Magmad, which brings up all 
    * Control proxy abstract the service addressability, by providing a service registry which maps a user addressable name to its remote IP and port.
    * All traffic over HTTP/2, and are encrypted using TLS. The traffic is routed to individual services by encoding the service name in the HTTP/2 :authority: header.
   * Individual GRPC calls between a gateway and the controller are multiplexed over the same HTTP/2 connection, and this helps to avoid the connection setup time per RPC call.
-
