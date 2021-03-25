@@ -249,6 +249,7 @@
       - ntpdate
       # For call tracing
       - tshark
+      - getenvoy-envoy
 
 - name: Install debian Magma dependencies
   retries: 5
