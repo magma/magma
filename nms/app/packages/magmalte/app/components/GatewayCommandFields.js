@@ -13,34 +13,51 @@
  * @flow
  * @format
  */
+import type {DataRows} from './DataGrid';
+import type {generic_command_response} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Check from '@material-ui/icons/Check';
+import DataGrid from './DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
 import Fade from '@material-ui/core/Fade';
 import FormField from './FormField';
+import FormLabel from '@material-ui/core/FormLabel';
 import Input from '@material-ui/core/Input';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 import grey from '@material-ui/core/colors/grey';
-
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+
+import {AltFormField} from './FormField';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   input: {
     margin: '10px 0',
     width: '100%',
   },
   divider: {
     margin: '10px 0',
+  },
+  jsonTextarea: {
+    fontFamily: 'monospace',
+    height: '95%',
+    border: 'none',
+    margin: theme.spacing(2),
+    width: '100%',
   },
 }));
 
@@ -390,4 +407,168 @@ export function GenericCommandControls(props: ChildProps) {
       </FormField>
     </div>
   );
+}
+
+type FileComponentProps = {
+  title?: string,
+  content: string,
+  error?: string,
+};
+function FileComponent(props: FileComponentProps) {
+  const classes = useStyles();
+  let content = props.content.replace(/\\n/g, '\n');
+  content = content.slice(1, -1);
+
+  return (
+    <List>
+      {props.title ?? <ListItemText> {props.title} </ListItemText>}
+      {props.error !== '""' && (
+        <ListItemText>
+          <AltFormField label={''}>
+            <FormLabel data-testid="fileError" error>
+              {props.error}
+            </FormLabel>
+          </AltFormField>
+        </ListItemText>
+      )}
+      <ListItem>
+        <textarea
+          data-testid="fileContent"
+          rows="8"
+          className={classes.jsonTextarea}
+          autoCapitalize="none"
+          autoComplete="none"
+          autoCorrect="none"
+          spellCheck={false}
+          value={content}
+        />
+      </ListItem>
+    </List>
+  );
+}
+
+const TROUBLESHOOTING_HINTS = {
+  FLUENTD_SUCCESS:
+    'Gateway contains fluentd parameters, Verify if \
+control proxy config contains the right fluentd address and port information, \
+typically fluend address is fluentd.<orc8r_domain_name> and fluend port is 24224',
+  FLUENTD_MISSING:
+    'Gateway is missing fluentd parameters, Add the \
+right fluentd address and port information to the control proxy config on the \
+gateway, typically fluend address is fluentd.<orc8r_domain_name> and fluend port\
+ is 24224',
+  AGG_API_SUCCESS:
+    'event and log aggregation API are returning successful \
+responses',
+};
+
+const CONTROL_PROXY_CONTENT = 'cat /var/opt/magma/configs/control_proxy.yml';
+const FLUENT_BIT_LOGS = 'journalctl -u magma@td-agent-bit  -n 10';
+export function TroubleshootingControl(props: ChildProps) {
+  const {match} = useRouter();
+  const [
+    controlProxyContent,
+    setControlProxyContent,
+  ] = useState<generic_command_response>({});
+  const [
+    tdAgentLogsContent,
+    setTdAgentLogsContent,
+  ] = useState<generic_command_response>({});
+  const networkId = nullthrows(match.params.networkId);
+  const controlProxyParams = {
+    command: 'bash',
+    params: {
+      shell_params: [`-c '${CONTROL_PROXY_CONTENT}'`],
+    },
+  };
+  const {isLoading: isProxyFileLoading} = useMagmaAPI(
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric,
+    // $FlowIssue[incompatible-call]
+    {networkId, gatewayId: props.gatewayID, parameters: controlProxyParams},
+    useCallback(response => setControlProxyContent(response), []),
+  );
+  const tdAgentBitLogs = {
+    command: 'bash',
+    params: {
+      shell_params: [`-c '${FLUENT_BIT_LOGS}'`],
+    },
+  };
+  const {isLoading: isTdAgentBitLogsLoading} = useMagmaAPI(
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric,
+    // $FlowIssue[incompatible-call]
+    {networkId, gatewayId: props.gatewayID, parameters: tdAgentBitLogs},
+    useCallback(response => setTdAgentLogsContent(response), []),
+  );
+  const {
+    isLoading: isEventAPILoading,
+    error,
+  } = useMagmaAPI(MagmaV1API.getEventsByNetworkIdAboutCount, {networkId});
+
+  if (isProxyFileLoading || isEventAPILoading || isTdAgentBitLogsLoading) {
+    return <LoadingFiller />;
+  }
+
+  const errContent = JSON.stringify(
+    controlProxyContent?.response?.['stderr'] ?? {},
+  );
+  const fileContent = JSON.stringify(
+    controlProxyContent?.response?.['stdout'] ?? {},
+    null,
+    2,
+  );
+  const tdErrContent = JSON.stringify(
+    controlProxyContent?.response?.['stderr'] ?? {},
+  );
+  const tdAgentLogsFileContent = JSON.stringify(
+    tdAgentLogsContent?.response?.['stdout'] ?? {},
+    null,
+    2,
+  );
+
+  const containsFluentdParams =
+    fileContent.includes('fluentd_address') &&
+    fileContent.includes('fluentd_port');
+
+  const kpiData: DataRows[] = [
+    [
+      {
+        category: 'Control Proxy Config Validation',
+        value: containsFluentdParams ? 'Good' : 'Bad',
+        status: containsFluentdParams,
+        statusCircle: true,
+        tooltip: containsFluentdParams
+          ? TROUBLESHOOTING_HINTS.FLUENTD_SUCCESS
+          : TROUBLESHOOTING_HINTS.FLUENTD_MISSING,
+        collapse: <FileComponent content={fileContent} error={errContent} />,
+      },
+    ],
+    [
+      {
+        category: 'API validation',
+        value: error == null ? 'Good' : 'Bad',
+        status: error == null,
+        statusCircle: true,
+        tooltip:
+          error == null
+            ? TROUBLESHOOTING_HINTS.AGG_API_SUCCESS
+            : `event and log aggregation api is failing,  ${
+                error ?? 'internal server error'
+              }`,
+      },
+    ],
+    [
+      {
+        category: 'Fluent Bit Logs',
+        value: '',
+        tooltip: 'fluend bit logs',
+        collapse: (
+          <FileComponent
+            content={tdAgentLogsFileContent}
+            error={tdErrContent}
+          />
+        ),
+      },
+    ],
+  ];
+  return <DataGrid data={kpiData} />;
 }

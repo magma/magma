@@ -1,0 +1,26 @@
+[
+  {
+    "ParameterKey":"paramImageBase",
+    "ParameterValue": "ami-0c305b7817e9fd559"
+  }, 
+  {
+    "ParameterKey":"paramSecGroup",
+    "ParameterValue": "sg-0f63cf61d234bca69"
+  }, 
+  {
+    "ParameterKey":"paramAgwTagName",
+    "ParameterValue": "MenloParkAgwA"
+  }, 
+  {
+    "ParameterKey":"paramSshKey",
+    "ParameterValue": "keyMagmaHostProto"
+  }, 
+  {
+    "ParameterKey":"paramSubnetSgi",
+    "ParameterValue": "subnet-0f4d357ab0b4a4119"
+  }, 
+  {
+    "ParameterKey":"paramAzHome",
+    "ParameterValue": "us-east-2c"
+  } 
+]

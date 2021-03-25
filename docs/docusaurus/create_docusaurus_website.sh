@@ -12,10 +12,31 @@
 
 set -e
 
-cd "$(dirname "$0")/.."
-docker build -f docusaurus/Dockerfile -t docusaurus-doc .
-docker stop docs_container || true
-docker run --rm -p 3000:3000 -d --name docs_container docusaurus-doc
+# spin for the passed number of seconds, defaulting to 10 seconds.
+function spin() {
+  nsec=${1-10}
+  spin='-\|/'
+  i=0
+  while [[ "$(curl -s -o /dev/null -w '%{http_code}' localhost:3000)" != "200" ]]; do
+    i=$(( i + 1 ))
+    j=$(( i % 4 ))
+    printf "\r${spin:$j:1}"
+    sleep 1
+  done
+  printf "\r \n"
+}
 
-echo ""
-echo "Navigate to http://127.0.0.1:3000/magma/ to see the docs."
+docker-compose down
+docker build -t magma_docusaurus .
+docker-compose up -d
+
+echo ''
+echo 'NOTE: README changes will live-reload. Sidebar changes require re-running this script.'
+echo ''
+echo 'Waiting for Docusaurus site to come up...'
+echo 'If you want to follow the build logs, run docker-compose logs -f docusaurus'
+spin
+echo 'Navigate to http://localhost:3000/ to see the docs.'
+
+open 'http://localhost:3000/' || true
+

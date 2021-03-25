@@ -51,6 +51,7 @@ ORC8R_AGW_PYTHON_ROOT = "$MAGMA_ROOT/orc8r/gateway/python"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests"
 DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 DEFAULT_PROXY = "$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
+TEST_SUMMARY_GLOB = "/var/tmp/test_results/*.xml"
 
 # Look for keys as specified in our ~/.ssh/config
 env.use_ssh_config = True
@@ -69,14 +70,15 @@ def test():
 
 def package(vcs='hg', all_deps="False",
             cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
-            destroy_vm='False'):
+            destroy_vm='False',
+            vm='magma', os="debian"):
     """ Builds the magma package """
     all_deps = False if all_deps == "False" else True
     destroy_vm = bool(strtobool(destroy_vm))
 
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
-        vagrant_setup('magma', destroy_vm=destroy_vm)
+        vagrant_setup(vm, destroy_vm=destroy_vm)
 
     if not hasattr(env, 'debug_mode'):
         print("Error: The Deploy target isn't specified. Specify one with\n\n"
@@ -97,8 +99,9 @@ def package(vcs='hg', all_deps="False",
         print("Building magma package, picking up commit %s..." % hash)
         run('make clean')
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
-        run('./release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s' %
-            (hash, build_type, cert_file, proxy_config))
+
+        run('./release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s --os %s' %
+            (hash, build_type, cert_file, proxy_config, os))
 
 
         run('rm -rf ~/magma-packages')
@@ -111,14 +114,27 @@ def package(vcs='hg', all_deps="False",
         run('mv *.deb ~/magma-packages')
 
         with cd('release'):
-            run('cat mirrored_packages | '
-                'xargs -I% sudo aptitude download -q2 %')
+            mirrored_packages_file = 'mirrored_packages'
+            if vm and vm.startswith('magma_'):
+                mirrored_packages_file += vm[5:]
+
+            run('cat {}'.format(mirrored_packages_file)
+                + ' | xargs -I% sudo aptitude download -q2 %')
             run('cp *.deb ~/magma-packages')
             run('sudo rm -f *.deb')
 
         if all_deps:
             pkg.download_all_pkgs()
             run('cp /var/cache/apt/archives/*.deb ~/magma-packages')
+
+
+def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
+    destroy_vm = bool(strtobool(destroy_vm))
+    # If a host list isn't specified, default to the magma vagrant vm
+    if not env.hosts:
+        vagrant_setup('magma', destroy_vm=destroy_vm)
+    with cd('~/magma/lte/gateway'):
+        run('./release/build-ovs.sh ' + destdir)
 
 
 def depclean():
@@ -238,6 +254,44 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_oai_coverage)
 
 
+def run_integ_tests(tests=None):
+    """
+    Function is required to run tests only in pre-configured Jenkins env.
+    
+    In case of no tests specified with command executed like follows:
+    $ fab run_integ_tests
+    
+    default tests set will be executed as a result of the execution of following
+    command in test machine:
+    $ make integ_test 
+    
+    In case of selecting specific test like follows:
+    $ fab run_integ_tests:tests=s1aptests/test_attach_detach.py
+    
+    The specific test will be executed as a result of the execution of following
+    command in test machine:
+    $ make integ_test TESTS=s1aptests/test_attach_detach.py
+    """
+    test_host = vagrant_setup("magma_test", destroy_vm=False)
+    gateway_ip = '192.168.60.142'
+    if tests:
+        tests = "TESTS=" + tests
+    
+    execute(_run_integ_tests, gateway_ip, tests)
+
+def get_test_summaries(
+        gateway_host=None,
+        test_host=None,
+        dst_path="/tmp"):
+    local('mkdir -p ' + dst_path)
+    _switch_to_vm(gateway_host, "magma", "magma_dev.yml", False)
+    with settings(warn_only=True):
+        get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
+    _switch_to_vm(test_host, "magma_test", "magma_test.yml", False)
+    with settings(warn_only=True):
+        get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
+
+
 def get_test_logs(gateway_host=None,
                   test_host=None,
                   trf_host=None,
@@ -325,7 +379,7 @@ def get_test_logs(gateway_host=None,
 def _dist_upgrade():
     """ Upgrades OS packages on dev box """
     run('sudo apt-get update')
-    run('sudo apt-get -y dist-upgrade')
+    run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade')
 
 
 def _build_magma():
@@ -398,7 +452,7 @@ def _make_integ_tests():
         run('make')
 
 
-def _run_integ_tests(gateway_ip='192.168.60.142'):
+def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
     """ Run the integration tests
 
     For now, just run a single basic test
@@ -407,6 +461,7 @@ def _run_integ_tests(gateway_ip='192.168.60.142'):
     host = env.hosts[0].split(':')[0]
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
+    tests = tests or ''
     """
     NOTE: the s1aptester produces a bunch of output which the python ssh
     library, and thus fab, has trouble processing quickly. Instead, we manually
@@ -428,5 +483,11 @@ def _run_integ_tests(gateway_ip='192.168.60.142'):
           ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
           ' source ~/build/python/bin/activate;'
           ' export GATEWAY_IP=%s;'
-          ' make integ_test\''
-          % (key, host, port, gateway_ip))
+          ' make integ_test %s\''
+          % (key, host, port, gateway_ip, tests))
+
+def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
+    if not addr:
+        vagrant_setup(host_name, destroy_vm)
+    else:
+        ansible_setup(addr, host_name, ansible_file)

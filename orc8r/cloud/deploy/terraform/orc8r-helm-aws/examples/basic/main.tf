@@ -11,7 +11,7 @@
 # limitations under the License.
 ################################################################################
 
-module orc8r {
+module "orc8r" {
   # Change this to pull from github with a specified ref
   source = "../../../orc8r-aws"
 
@@ -22,8 +22,9 @@ module orc8r {
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
 
-  vpc_name     = "orc8r"
-  cluster_name = "orc8r"
+  vpc_name        = "orc8r"
+  cluster_name    = "orc8r"
+  cluster_version = "1.17"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
@@ -36,7 +37,7 @@ module orc8r {
   elasticsearch_ebs_volume_type = "gp2"
 }
 
-module orc8r-app {
+module "orc8r-app" {
   # Change this to pull from github with a specified ref
   source = "../.."
 
@@ -80,8 +81,8 @@ module orc8r-app {
 
   elasticsearch_endpoint = module.orc8r.es_endpoint
 
-  orc8r_chart_version = "1.4.36"
-  orc8r_tag           = "1.3.0"
+  orc8r_deployment_type = "fwa"
+  orc8r_tag             = "1.4.0"
 }
 
 output "nameservers" {

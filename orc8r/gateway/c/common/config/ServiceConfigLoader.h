@@ -22,20 +22,17 @@ namespace magma {
  * information
  */
 class ServiceConfigLoader final {
+ public:
+  /*
+   * Load service configuration from file.
+   *
+   * @return YAML::Node a Node representation of the file.
+   */
+  YAML::Node load_service_config(const std::string& service_name);
 
-  public:
-    /*
-     * Load service configuration from file.
-     *
-     * @return YAML::Node a Node representation of the file.
-     */
-    YAML::Node load_service_config(const std::string& service_name);
-
-
-  private:
-    static constexpr const char* CONFIG_DIR = "/etc/magma/";
-    static constexpr const char* OVERRIDE_DIR = "/var/opt/magma/configs/";
-
+ private:
+  static constexpr const char* CONFIG_DIR   = "/etc/magma/";
+  static constexpr const char* OVERRIDE_DIR = "/var/opt/magma/configs/";
 };
 
-}
+}  // namespace magma

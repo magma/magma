@@ -15,8 +15,6 @@
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
 
-using grpc::Status;
-
 namespace magma {
 
 template<typename KeyType, typename hash, typename equal>
@@ -135,6 +133,20 @@ bool PolicyRuleBiMap::get_rule(
   }
   if (rule_out != NULL) {
     rule_out->CopyFrom(*it->second);
+  }
+  return true;
+}
+
+bool PolicyRuleBiMap::get_rules_by_ids(
+    const std::vector<std::string>& rule_ids,
+    std::vector<PolicyRule>& rules_out) {
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  for (const std::string rule_id : rule_ids) {
+    auto it = rules_by_rule_id_.find(rule_id);
+    if (it == rules_by_rule_id_.end()) {
+      return false;
+    }
+    rules_out.push_back(*it->second);
   }
   return true;
 }

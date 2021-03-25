@@ -218,6 +218,8 @@ struct StoredSessionState {
   uint32_t local_teid;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;
+  // will store the response from the core between Create and Activate Session
+  CreateSessionResponse create_session_response;
   // 5G session version handling
   uint32_t current_version;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
@@ -306,6 +308,7 @@ struct SessionStateUpdateCriteria {
   bool is_bearer_mapping_updated;
   // Only valid if is_bearer_mapping_updated is true
   BearerIDByPolicyID bearer_id_by_policy;
+  Teids teids;
 };
 
 SessionStateUpdateCriteria get_default_update_criteria();

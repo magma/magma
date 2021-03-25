@@ -63,6 +63,10 @@ void mme_app_send_delete_session_request(
     const pdn_cid_t cid) {
   MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
+  OAILOG_INFO_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64,
+      "Handle Delete session request for mme_s11_teid :%d\n",
+      ue_context_p->mme_teid_s11);
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_DELETE_SESSION_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR(
@@ -112,6 +116,9 @@ void mme_app_send_delete_session_request(
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  OAILOG_INFO(
+      LOG_MME_APP, "Send Delete session Req for teid " TEID_FMT "\n",
+      ue_context_p->mme_teid_s11);
   increment_counter("mme_spgw_delete_session_req", 1, NO_LABELS);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -120,16 +127,17 @@ void mme_app_send_delete_session_request(
 void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
   struct ue_mm_context_s* ue_context_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
-  OAILOG_INFO(
-      LOG_MME_APP,
-      "Handle Detach Req at MME app for ue-id: " MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP, "UE context doesn't exist -> Nothing to do :-) \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  OAILOG_INFO(
+      LOG_MME_APP,
+      "Handle Detach Req at MME app for ue-id: " MME_UE_S1AP_ID_FMT
+      " with mme_s11_teid " TEID_FMT "\n",
+      ue_id, ue_context_p->mme_teid_s11);
   if ((!ue_context_p->mme_teid_s11) &&
       (!ue_context_p->nb_active_pdn_contexts)) {
     /* No Session.
@@ -141,14 +149,18 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
       OAILOG_ERROR(LOG_MME_APP, "Failed to fetch mme_app_desc_p \n");
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
+
+    if (ue_context_p->emm_context.new_attach_info) {
+      nas_delete_all_emm_procedures(&ue_context_p->emm_context);
+      free_esm_context_content(&ue_context_p->emm_context.esm_ctx);
+      proc_new_attach_req(ue_context_p);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
     if (ECM_IDLE == ue_context_p->ecm_state) {
       ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
       // Notify S1AP to release S1AP UE context locally.
       mme_app_itti_ue_context_release(
           ue_context_p, ue_context_p->ue_context_rel_cause);
-      // Free MME UE Context
-      mme_notify_ue_context_released(
-          &mme_app_desc_p->mme_ue_contexts, ue_context_p);
       // Send PUR,before removal of ue contexts
       if ((ue_context_p->send_ue_purge_request == true) &&
           (ue_context_p->hss_initiated_detach == false)) {
@@ -163,12 +175,6 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
       mme_app_itti_ue_context_release(
           ue_context_p, ue_context_p->ue_context_rel_cause);
       if (ue_context_p->ue_context_rel_cause == S1AP_SCTP_SHUTDOWN_OR_RESET) {
-        // Just cleanup the MME APP state associated with s1.
-        mme_ue_context_update_ue_sig_connection_state(
-            &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
-        // Free MME UE Context
-        mme_notify_ue_context_released(
-            &mme_app_desc_p->mme_ue_contexts, ue_context_p);
         // Send PUR,before removal of ue contexts
         if ((ue_context_p->send_ue_purge_request == true) &&
             (ue_context_p->hss_initiated_detach == false)) {

@@ -14,12 +14,26 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <string.h>
-#include <gtest/gtest.h>
-#include <fluid/of10msg.hh>
-#include <fluid/of13msg.hh>
-#include "GTPApplication.h"
-#include "openflow_mocks.h"
+#include <arpa/inet.h>                       // for inet_addr, inet_pton
+#include <fluid/of13/openflow-13.h>          // for ofp_flow_mod_command
+#include <gtest/gtest.h>                     // for TestInfo (ptr only), TEST_F
+#include <netinet/in.h>                      // for in_addr, in6_addr
+#include <stdint.h>                          // for uint32_t
+#include <string.h>                          // for NULL, memcpy
+#include <sys/socket.h>                      // for AF_INET6
+#include <fluid/of13/of13match.hh>           // for ARPTPA, EthType, IPProto
+#include <fluid/of13msg.hh>                  // for FlowMod
+#include <fluid/util/ethaddr.hh>             // for fluid_msg
+#include <fluid/util/ipaddr.hh>              // for IPAddress
+#include <memory>                            // for shared_ptr, __shared_ptr
+#include "ControllerEvents.h"                // for AddGTPTunnelEvent, Delet...
+#include "GTPApplication.h"                  // for GTPApplication
+#include "OpenflowController.h"              // for OpenflowController
+#include "gmock/gmock-generated-matchers.h"  // for AllOf, AllOfResult5<>::type
+#include "gmock/gmock-matchers.h"            // for AnythingMatcher, _
+#include "gmock/gmock-spec-builders.h"       // for EXPECT_CALL, TypedExpect...
+#include "gtpv1u.h"                          // for ip_flow_dl, ip_flow_dl::...
+#include "openflow_mocks.h"                  // for MockMessenger
 
 using ::testing::_;
 using ::testing::AllOf;

@@ -1,0 +1,186 @@
+#!/bin/groovy
+
+def GIT_URL = "github.com/magma/magma"
+def GIT_BRANCH = "master"
+def slack_channel = "#magma-ci-bot"
+
+pipeline {
+  agent {
+      label "virtualbox"
+  }
+  options {
+    timestamps()
+    ansiColor('xterm')
+  }
+  stages {
+    stage("Prepate Env"){
+      steps{
+        script {
+          echo "Clean Env"
+          cleanWs()
+          sh "docker system prune -f"
+          echo "Purge old vagrant boxes"
+          sh "sudo vagrant box prune --force"
+          sh "sudo chown -R jenkins:libvirt ~jenkins/.vagrant.d"
+          echo "Clone Sources"
+          checkout(
+            changelog: false, 
+            poll: false, 
+            scm: [$class: 'GitSCM', 
+                  branches: [[name: '${sha1}']], 
+                  doGenerateSubmoduleConfigurations: false, 
+                  extensions: [], 
+                  submoduleCfg: [], 
+                  userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
+          )
+        }
+      }
+    }
+    stage("cwag-precommit"){
+      environment {
+        MAGMA_ROOT = sh(script: 'pwd', , returnStdout: true).trim()
+        GO111MODULE = "on"
+        GOPROXY = "https://proxy.golang.org"
+      }
+      steps{
+        script {
+          sh "./circleci/golang_before_install.sh"
+          dir("cwf/gateway"){
+            sh "go mod download"
+            sh "make -C ${MAGMA_ROOT}/cwf/gateway precommit"
+            sh "make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit"
+        }
+        }
+      }
+    }
+    stage("cwf-integ-test"){
+      environment {
+        CIRCLE_REPOSITORY_URL = "https://${GIT_URL}.git"
+        CIRCLE_BRANCH = "$GIT_BRANCH"
+        CIRCLE_SHA1 = "HEAD"
+        PYTHONPATH = "$WORKSPACE/orc8r"
+        VAGRANT_DEFAULT_PROVIDER = "virtualbox"
+      }
+      steps{
+        script {
+          echo "Setup required packages"
+          sh """
+            export PATH;
+            export PYENV_ROOT="\$HOME/.pyenv"
+            export PATH="\$PYENV_ROOT/bin:\$PATH"
+            eval "\$(pyenv init -)"
+            eval "\$(pyenv virtualenv-init -)"
+            pyenv global 3.7.0
+            pip3 install --upgrade pip
+            pip3 install fabric3 jsonpickle requests PyYAML awscli docker-compose
+          """
+          dir('cwf/gateway') {
+            // sh "sleep 10"
+            sh "vagrant global-status"
+            sh "vagrant global-status 2>/dev/null | awk '/workspace/{print \$1}' | xargs -I {} vagrant destroy -f {}"
+            try {
+                sh "vboxmanage controlvm cwag-dev poweroff || true; vboxmanage unregistervm cwag-dev --delete"
+            } catch (Exception e) {
+                echo "cwag-dev didn't exists as expected"
+            }
+            try {
+                sh "vboxmanage controlvm magma-trfserver poweroff || true; vboxmanage unregistervm magma-trfserver --delete"
+            } catch (Exception e) {
+                echo "magma-trfserver didn't exists as expected"
+            }
+            try {
+                sh "vboxmanage controlvm cwag-test poweroff || true; vboxmanage unregistervm cwag-test --delete"
+            } catch (Exception e) {
+                echo "cwag-test didn't exists as expected"
+            }
+          
+            dir('docker') {
+              sh """
+              docker-compose \
+                -f docker-compose.yml \
+                -f docker-compose.override.yml \
+                -f docker-compose.nginx.yml \
+                -f docker-compose.integ-test.yml \
+                build --parallel
+              """
+            }
+            def test_xml = "tests.xml"
+            def test_html = "tests.html"
+            def test_folder = "cwf-artifacts"
+            def test_results = 0
+            timeout(time: 110, unit: 'MINUTES') {
+              try {
+                sh """
+                  export PYENV_ROOT="\$HOME/.pyenv"
+                  export PATH="\$PYENV_ROOT/shims:\$PATH"
+                  fab integ_test:destroy_vm=True,transfer_images=True,test_result_xml=$test_xml
+                """
+              } catch (Exception e) {
+                test_results = 1
+              }
+            }
+            //  Move JUnit test result to /tmp/test-results directory
+            sh "mkdir $test_folder"
+            try {
+              sh "junit2html $test_xml $test_html"
+              sh "cp $test_xml $test_folder"
+              sh "cp $test_html $test_folder"
+            } catch (Exception e) {
+              echo "It might fail because XML file was not generated at previous step"
+              currentBuild.result = 'FAILURE'
+            }
+            
+            // On failure, transfer logs of key services from docker containers and
+            // copy to the log directory. This will get stored as an artifact in the
+            // circleCI config.
+            // Following lines to be translated in to Jenkins DSL yet
+            if (test_results) {
+              currentBuild.result = 'FAILURE'
+              def services = "sessiond session_proxy pcrf ocs pipelined ingress"
+              try {
+                sh """
+                  export PYENV_ROOT="\$HOME/.pyenv"
+                  export PATH="\$PYENV_ROOT/shims:\$PATH"
+                  fab transfer_artifacts:services='$services',get_core_dump=True
+                """
+                // Copy the log files out from the node
+                sh "cp *.log $test_folder"
+                if( fileExists("coredump.tar.gz") ) {
+                  sh "cp coredump.tar.gz $test_folder"
+                }
+              } catch (Exception e) {}
+            }
+            timeout(time: 10, unit: 'MINUTES') {
+              archiveArtifacts("$test_folder/*")
+            }
+          }
+        }
+      }
+    }
+  }
+  post {
+    success {
+      script {
+        def color = "good"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
+        echo message
+        sendSocialMediaMessage(slack_channel,color, message)
+      }
+    }
+    unsuccessful {
+      script {
+        def color = "danger"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
+        echo message
+        sendSocialMediaMessage(slack_channel,color, message)
+      }
+    }
+  }
+}
+
+//-------------------------------------------------------------------------------
+// Abstraction function to send social media messages:
+// like on Slack or Mattermost
+def sendSocialMediaMessage(pipeChannel, pipeColor, pipeMessage) {
+    slackSend channel: pipeChannel, color: pipeColor, message: pipeMessage
+}

@@ -86,7 +86,7 @@ func (server *GatewayToFeGServer) useDispatcherHandler(responseWriter http.Respo
 	if !gw.Registered() {
 		http2.WriteErrResponse(responseWriter, http2.NewHTTPGrpcError(
 			"Gateway is not registered",
-			int(codes.PermissionDenied), http.StatusForbidden))
+			int(codes.PermissionDenied), http.StatusPreconditionFailed))
 		return
 	}
 	http2.LogRequestWithVerbosity(req, 4)
@@ -131,7 +131,6 @@ func (server *GatewayToFeGServer) useDispatcherHandler(responseWriter http.Respo
 		glog.Errorf(respErr.Error())
 		http2.WriteErrResponse(responseWriter, respErr)
 	}
-	return
 }
 
 func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *http2.HTTPGrpcError) {
@@ -210,13 +209,13 @@ func getGatewayIdentity(headers http.Header) (*protos.Identity_Gateway, error) {
 	}
 	md := map[string]string{}
 	snKeys := headers[ClientCertSnKeyHttpHeader]
-	if snKeys != nil && len(snKeys) == 1 {
+	if len(snKeys) == 1 {
 		md[ClientCertSnKeyHttpHeader] = snKeys[0]
 	} else {
 		return nil, fmt.Errorf("no client cert header present to determine gateway identity")
 	}
 	cnKeys := headers[ClientCertCnKeyHttpHeader]
-	if cnKeys != nil && len(cnKeys) == 1 {
+	if len(cnKeys) == 1 {
 		md[ClientCertCnKeyHttpHeader] = cnKeys[0]
 	}
 	ctx := metadata.NewIncomingContext(context.Background(), metadata.New(md))
@@ -229,14 +228,14 @@ func getGatewayIdentity(headers http.Header) (*protos.Identity_Gateway, error) {
 }
 
 func processResponse(w http.ResponseWriter, resp *http.Response) *http2.HTTPGrpcError {
-	glog.V(5).Infof("response header: %v\n response trailer "+
-		"before reading body: %v\n response statusCode: %v\n",
-		resp.Header, resp.Trailer, resp.StatusCode)
 	if resp == nil {
 		errMsg := "nil http response"
-		return http2.NewHTTPGrpcError(errMsg,
-			int(codes.Internal), http.StatusInternalServerError)
+		return http2.NewHTTPGrpcError(errMsg, int(codes.Internal), http.StatusInternalServerError)
 	}
+	glog.V(5).Infof(
+		"response header: %v\n response trailer before reading body: %v\n response statusCode: %v\n",
+		resp.Header, resp.Trailer, resp.StatusCode,
+	)
 	writeHeadersToResponseWriter(resp.Header, w)
 	payload, err := getRespPayload(resp.Body)
 	if err != nil || payload == nil {

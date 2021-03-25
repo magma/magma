@@ -17,8 +17,17 @@
     msg: "Ansible upgrade needed. Current version is {{ ansible_version.full }}"
   when: preburn
 
+- name: Install ansible for Ubuntu systems
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    pkg:
+      - ansible
+  retries: 5
+
 - name: Install ansible community collection
   shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
+  ignore_errors: yes
 
 - name: Set build environment variables
   lineinfile:
@@ -36,6 +45,14 @@
     -  SWAGGER_CODEGEN_JAR={{ swagger_codegen_jar }}
     -  CODEGEN_ROOT={{ codegen_root }}
   when: full_provision
+
+- name: "Go export"
+  lineinfile:
+    dest: "/home/{{ ansible_user }}/.profile"
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - export PATH=$PATH:"/usr/local/go/bin"
 
 - name: Create the ccache directory
   file:
@@ -116,7 +133,7 @@
   shell: gem install fpm
   when: preburn
 
-- name: Install dependencies for building and shipping client release
+- name: Common install dependencies for building and shipping client release
   tags: dev
   apt:
     state: present
@@ -126,13 +143,11 @@
       - autoconf
       - build-essential
       - ccache
-      - clang-3.8
       - clang-format-7
       - ninja-build
       - git
       - libtool
       - python3-apt
-      - python3-aioeventlet
       - python3-setuptools
       - python3-requests
       - python3-pip
@@ -142,6 +157,28 @@
       - curl
   retries: 5
   when: preburn
+
+- name: Install build requirements for Debian systems
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    pkg:
+      - clang-3.8
+      - python3-aioeventlet
+  retries: 5
+
+- name: Install build requirements for Ubuntu systems
+  # python3-aioeventlet manually built with fpm and uploaded to jfrog focal-dev repo
+  # due to upstream versioning bug
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    pkg:
+      - clang
+      - cmake
+      - make
+      - python3-aioeventlet
+  retries: 5
 
 # /etc/environment doesn't expand variables, so if we want to modify the path,
 # we need to do it in profile.d
@@ -172,17 +209,13 @@
       # install gRPC
       - grpc-dev
       # install protobuf
-      - libprotobuf10
       - libprotobuf-dev
-      - libprotobuf-lite10
-      - libprotoc10
       - libprotoc-dev
       - libxml2-dev
       - libxslt-dev
       - protobuf-compiler
       # install ethtool for disabling TCP checksumming
       - ethtool
-      - libssl1.0-dev
       - libffi-dev
       - iperf3
       - libsystemd-dev
@@ -192,6 +225,30 @@
       - libmnl-dev
   retries: 5
   when: preburn
+
+- name: Install Debian Magma gateway dev dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libprotobuf10
+      - libprotobuf-lite10
+      - libprotoc10
+      - libssl1.0-dev
+
+- name: Install Ubuntu Magma gateway dev dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libprotobuf17
+      - libprotobuf-lite17
+      - libprotoc17
+      - libssl-dev
 
 ###############################################
 # Download and build swagger-codegen
@@ -247,7 +304,25 @@
     CODEGEN_ROOT: "{{ codegen_root }}"
   when: preburn
 
+- name: Fix kernel commandline for interface naming.
+  shell: |
+    sed -i 's/enp0s3/eth0/g' /etc/netplan/50-cloud-init.yaml
+    sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+  when: preburn
+
 - name: Create links for clang-format
   become: yes
   command: "update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-7 1000"
   when: preburn
+
+- file:
+    path: /var/tmp/test_results
+    state: directory
+    mode: 0777
+
+- name: Patch multipath conf
+  when: preburn and ansible_distribution == "Ubuntu"
+  patch:
+    src: patches/multipath-conf.patch
+    dest: /etc/multipath.conf

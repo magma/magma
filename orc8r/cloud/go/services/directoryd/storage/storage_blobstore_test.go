@@ -94,6 +94,7 @@ func TestDirectorydBlobstoreStorage_GetHostnameForHWID(t *testing.T) {
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
 	hostnameRecvd, err := store.GetHostnameForHWID(hwid)
+	assert.NoError(t, err)
 	assert.Equal(t, hostname, hostnameRecvd)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -116,7 +117,7 @@ func TestDirectorydBlobstoreStorage_MapHWIDToHostname(t *testing.T) {
 		{Type: dstorage.DirectorydTypeHWIDToHostname, Key: hwids[1]},
 	}
 
-	blobs := []blobstore.Blob{
+	blobs := blobstore.Blobs{
 		{
 			Type:  tks[0].Type,
 			Key:   tks[0].Key,
@@ -235,6 +236,7 @@ func TestDirectorydBlobstore_GetIMSIForSessionID(t *testing.T) {
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
 	imsiRecvd, err := store.GetIMSIForSessionID(nid, sid)
+	assert.NoError(t, err)
 	assert.Equal(t, imsi, imsiRecvd)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -259,7 +261,7 @@ func TestDirectorydBlobstore_MapSessionIDToIMSI(t *testing.T) {
 		{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sids[1]},
 	}
 
-	blobs := []blobstore.Blob{
+	blobs := blobstore.Blobs{
 		{
 			Type:  tks[0].Type,
 			Key:   tks[0].Key,

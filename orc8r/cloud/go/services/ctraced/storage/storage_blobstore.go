@@ -14,6 +14,8 @@ limitations under the License.
 package storage
 
 import (
+	"fmt"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
@@ -49,12 +51,12 @@ func (c *ctracedBlobStore) StoreCallTrace(networkID string, callTraceID string, 
 
 	err = store.CreateOrUpdate(
 		networkID,
-		[]blobstore.Blob{
-			blobstore.Blob{Type: CtracedBlobType, Key: callTraceID, Value: data, Version: 0},
+		blobstore.Blobs{
+			{Type: CtracedBlobType, Key: callTraceID, Value: data, Version: 0},
 		},
 	)
 	if err != nil {
-		return errors.Wrap(err, "failed to store call trace")
+		return errors.Wrap(err, fmt.Sprintf("failed to store call trace %s", callTraceID))
 	}
 
 	return store.Commit()
@@ -76,8 +78,29 @@ func (c *ctracedBlobStore) GetCallTrace(networkID string, callTraceID string) ([
 		return nil, err
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get hostname")
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to get call trace %s", callTraceID))
 	}
 
 	return blob.Value, store.Commit()
+}
+
+// DeleteCallTrace
+func (c *ctracedBlobStore) DeleteCallTrace(networkID string, callTraceID string) error {
+	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
+	if err != nil {
+		return errors.Wrap(err, "failed to start transaction")
+	}
+	defer store.Rollback()
+
+	err = store.Delete(
+		networkID,
+		[]storage.TypeAndKey{
+			{Type: CtracedBlobType, Key: callTraceID},
+		},
+	)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("failed to delete call trace %s", callTraceID))
+	}
+
+	return store.Commit()
 }

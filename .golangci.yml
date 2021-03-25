@@ -1,0 +1,40 @@
+# golangci-lint settings.
+# Ref: https://github.com/golangci/golangci-lint/blob/master/.golangci.example.yml
+
+run:
+  timeout: 7m
+  skip-dirs:
+    - '.*/migrations/.*'
+
+linters-settings:
+  gofmt:
+    simplify: true
+  misspell:
+    locale: US
+
+issues:
+  exclude-rules:
+    - linters:
+      - staticcheck
+      # Ignore:
+      # - deprecation warnings
+      # - unconditional loop termination
+      text: "SA1019:|SA4004:"
+
+# Ref: https://golangci-lint.run/usage/linters/
+linters:
+  # Whitelist-only (disable default set of linters)
+  disable-all: true
+  enable:
+    - exportloopref
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - predeclared
+    - rowserrcheck
+    - staticcheck
+    - typecheck
+    - unconvert

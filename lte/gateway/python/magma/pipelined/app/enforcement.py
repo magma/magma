@@ -10,14 +10,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List
-
 from lte.protos.pipelined_pb2 import RuleModResult
 
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.policy_mixin import PolicyMixin
-from magma.pipelined.app.restart_mixin import RestartMixin
+from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
 
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
@@ -32,7 +30,6 @@ from magma.pipelined.qos.qos_meter_impl import MeterManager
 
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 
@@ -90,8 +87,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager(datapath, self.loop, self._config)
-        self._qos_mgr.setup()
+        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -136,35 +132,24 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         if qos_impl and isinstance(qos_impl, MeterManager):
             qos_impl.handle_meter_feature_stats(ev.msg.body)
 
-    def _install_default_flows_if_not_installed(self, datapath,
-            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
+    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
-        For each direction set the default flows to just forward to next app.
-        The enforcement flows for each subscriber would be added when the
-        IP session is created, by reaching out to the controller/PCRF.
-        If default flows are already installed, do nothing.
+        Gets the default flow msg that forward to stats table(traffic will be
+        dropped because stats table doesn't forward anything)
 
         Args:
             datapath: ryu datapath struct
         Returns:
-            The list of flows that remain after inserting default flows
+            The list of default msgs to add
         """
         match = MagmaMatch()
-
         msg = flows.get_add_resubmit_next_service_flow_msg(
             datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self._enforcement_stats_tbl,
             cookie=self.DEFAULT_FLOW_COOKIE)
 
-        msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list(self._datapath, [msg],
-                                             existing_flows[self.tbl_num])
-        if msgs:
-            chan = self._msg_hub.send(msgs, datapath)
-            self._wait_for_responses(chan, len(msgs))
-
-        return {self.tbl_num: remaining_flows}
+        return {self.tbl_num: [msg]}
 
     def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
         """
@@ -272,6 +257,9 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         except KeyError:
             self.logger.error('Could not find rule id %s', rule_id)
             return
+        if num is None:
+            self.logger.error('Rule num is None for rule %s', rule_id)
+            return
         cookie, mask = (num, flows.OVS_COOKIE_MATCH_ALL)
 
         ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
@@ -335,3 +323,6 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         else:
             for rule_id in rule_ids:
                 self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
+
+    def recover_state(self, _):
+        pass

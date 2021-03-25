@@ -27,7 +27,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 
 	"github.com/golang/glog"
-	"github.com/prometheus/client_model/go"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 )
 
@@ -36,8 +36,8 @@ const (
 )
 
 var (
-	prometheusNameRegex = regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$")
-	nonPromoChars       = regexp.MustCompile("[^a-zA-Z\\d_]")
+	prometheusNameRegex = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+	nonPromoChars       = regexp.MustCompile(`[^a-zA-Z\d_]`)
 )
 
 type PushExporterServicer struct {

@@ -19,6 +19,7 @@ services:
     labels:
       orc8r.io/mconfig_builder: "true"
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/feg,
@@ -31,6 +32,8 @@ services:
     proxy_aliases:
       s6a_proxy:
         port: 9103
+      s8_proxy:
+        port: 9103
       session_proxy:
         port: 9079
       swx_proxy:
@@ -38,7 +41,7 @@ services:
       csfb:
         port: 9079
       feg_hello:
-        port: 9079
+        port: 9103
       ocs:
         port: 9079
       pcrf:

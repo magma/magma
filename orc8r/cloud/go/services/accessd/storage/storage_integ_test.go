@@ -88,6 +88,7 @@ func testAccessdStorageImpl(t *testing.T, store storage.AccessdStorage) {
 
 	// Put acl2, GetMany acls 0 and 1
 	err = store.PutACL(ids[2], acls[idHashes[2]])
+	assert.NoError(t, err)
 	aclsRecvd, err := store.GetManyACL(ids[0:2])
 	assert.NoError(t, err)
 	assert.Len(t, aclsRecvd, 2)

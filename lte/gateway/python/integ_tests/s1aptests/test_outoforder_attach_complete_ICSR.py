@@ -107,7 +107,26 @@ class TestOutOfOrderAttachCompleteInitialCtxtSetupRsp(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete
         )
 
-        time.sleep(3)
+        # Wait on EMM Information from MME
+        self._s1ap_wrapper._s1_util.receive_emm_info()
+        print("************************* Running UE detach for UE id ",
+              req.ue_id)
+        # Now detach the UE
+        detach_req = s1ap_types.uedetachReq_t()
+        detach_req.ue_Id = req.ue_id
+        detach_req.ueDetType = (
+            s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
+        )
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
+        )
+        # Wait for UE context release command
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
+
+        time.sleep(1)
 
 
 if __name__ == "__main__":

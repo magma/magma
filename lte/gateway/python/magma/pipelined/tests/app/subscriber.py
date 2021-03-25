@@ -55,17 +55,6 @@ class SubscriberContext(abc.ABC):
     """
 
     @abc.abstractmethod
-    def add_static_rule(self, id):
-        """
-        Adds a new static rule to the subscriber
-        Args:
-            id (String): PolicyRule id
-        Returns:
-            Self
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
     def add_dynamic_rule(self, policy_rule):
         """
         Adds new dynamic rule to subcriber
@@ -116,12 +105,7 @@ class RyuRPCSubscriberContext(SubscriberContext):
     def __init__(self, imsi, ip, pipelined_stub, table_id=5):
         self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
         self._dynamic_rules = []
-        self._static_rule_names = []
         self._pipelined_stub = pipelined_stub
-
-    def add_static_rule(self, id):
-        self._static_rule_names.append(id)
-        return self
 
     def add_dynamic_rule(self, policy_rule):
         self._dynamic_rules.append(policy_rule)
@@ -131,7 +115,6 @@ class RyuRPCSubscriberContext(SubscriberContext):
         try_grpc_call_with_retries(
             lambda: self._pipelined_stub.ActivateFlows(
                 ActivateFlowsRequest(sid=SIDUtils.to_pb(self.cfg.imsi),
-                                     rule_ids=self._static_rule_names,
                                      dynamic_rules=self._dynamic_rules))
         )
 
@@ -152,14 +135,9 @@ class RyuDirectSubscriberContext(SubscriberContext):
                  enforcement_stats_controller=None, nuke_flows_on_exit=True):
         self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
         self._dynamic_rules = []
-        self._static_rule_names = []
         self._ec = enforcement_controller
         self._esc = enforcement_stats_controller
         self._nuke_flows_on_exit = nuke_flows_on_exit
-
-    def add_static_rule(self, id):
-        self._static_rule_names.append(id)
-        return self
 
     def add_dynamic_rule(self, policy_rule):
         self._dynamic_rules.append(policy_rule)
@@ -174,7 +152,6 @@ class RyuDirectSubscriberContext(SubscriberContext):
                 uplink_tunnel=None,
                 ip_addr=ip_addr,
                 apn_ambr=default_ambr_config,
-                static_rule_ids=self._static_rule_names,
                 dynamic_rules=self._dynamic_rules)
             if self._esc:
                 self._esc.activate_rules(
@@ -183,7 +160,6 @@ class RyuDirectSubscriberContext(SubscriberContext):
                     uplink_tunnel=None,
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
-                    static_rule_ids=self._static_rule_names,
                     dynamic_rules=self._dynamic_rules)
         hub.joinall([hub.spawn(activate_flows)])
 

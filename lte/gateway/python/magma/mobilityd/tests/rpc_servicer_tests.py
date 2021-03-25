@@ -58,7 +58,7 @@ class RpcTests(unittest.TestCase):
                                            store)
 
         # Add the servicer
-        self._servicer = MobilityServiceRpcServicer(self._allocator)
+        self._servicer = MobilityServiceRpcServicer(self._allocator, False)
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
 

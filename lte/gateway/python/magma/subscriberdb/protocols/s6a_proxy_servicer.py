@@ -19,6 +19,8 @@ from magma.subscriberdb.store.base import SubscriberNotFoundError
 
 from feg.protos import s6a_proxy_pb2, s6a_proxy_pb2_grpc
 
+from google.protobuf.json_format import MessageToJson
+
 
 class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
     """
@@ -26,9 +28,6 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
     """
 
     def __init__(self, lte_processor):
-        """
-        Store should be thread-safe since we use a thread pool for requests.
-        """
         self.lte_processor = lte_processor
         logging.info("starting s6a_proxy servicer")
 
@@ -39,16 +38,13 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         s6a_proxy_pb2_grpc.add_S6aProxyServicer_to_server(self, server)
 
     def AuthenticationInformation(self, request, context):
-        """
-        Adds a subscriber to the store
-        """
         imsi = request.user_name
         aia = s6a_proxy_pb2.AuthenticationInformationAnswer()
         try:
             plmn = request.visited_plmn
 
             re_sync_info = request.resync_info
-            #resync_info =
+            # resync_info =
             #  rand + auts, rand is of 16 bytes + auts is of 14 bytes
             sizeof_resync_info = 30
             if re_sync_info and (re_sync_info != b'\x00' * sizeof_resync_info):
@@ -133,6 +129,11 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
 
         return ula
 
+    def PurgeUE(self, request, context):
+        logging.warning("Purge request not implemented: %s %s",
+                        request.DESCRIPTOR.full_name, MessageToJson(request))
+        return s6a_proxy_pb2.PurgeUEAnswer()
+
     @staticmethod
     def encode_msisdn(msisdn: str) -> bytes:
         # Mimic how the MSISDN is encoded in ULA : 3GPP TS 29.329-f10
@@ -141,9 +142,9 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             msisdn = msisdn + "F"
         result = []
         # Treat each 2 characters as a byte and flip the order
-        for i in range(len(msisdn)//2):
-            first = int(msisdn[2*i])
-            second = int(msisdn[2*i+1], 16)
+        for i in range(len(msisdn) // 2):
+            first = int(msisdn[2 * i])
+            second = int(msisdn[2 * i + 1], 16)
             flipped = first + (second << 4)
             result.append(flipped)
         return bytes(result)

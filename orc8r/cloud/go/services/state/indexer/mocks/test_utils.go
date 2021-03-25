@@ -59,7 +59,7 @@ func NewMockIndexer(
 		}
 	}).Return(nil, nil)
 
-	// Indexer servicer goroutine doesn't get cancelled, but we don't care
+	// Indexer servicer goroutine doesn't get canceled, but we don't care
 	// since its service name gets overridden
 	state_test_init.StartNewTestIndexer(t, mockIndexer)
 	remoteIndexer = indexer.NewRemoteIndexer(id, version, types...)

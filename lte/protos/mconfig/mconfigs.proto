@@ -152,9 +152,6 @@ message PipelineD {
 
     // DEPRECATED
     reserved 4, 11;
-    // repeated string apps = 4;
-    // repeated string li_imsis = 11;
-    bool disable_header_enrichment = 16 [deprecated = true];;
 }
 
 //------------------------------------------------------------------------------
@@ -305,8 +302,39 @@ message MME {
     // IPv6 DNS server
     string ipv6_dns_address = 30;
 
+    // SGW S1U endpoint on AGW
+    string ipv4_sgw_s1u_addr = 31;
+
+    message PlmnConfig {
+        string mcc = 1;
+        string mnc = 2;
+    }
+    repeated PlmnConfig restricted_plmns = 32;
+
+    message TacList {
+        repeated uint32 tac = 1;
+    }
+    map<string, TacList> service_area_maps = 33;
+
+    FederatedModeMap federated_mode_map = 34;
 }
 
+message FederatedModeMap {
+    bool enabled = 1;
+    repeated ModeMapItem mapping = 2;
+}
+
+message ModeMapItem {
+    enum FederatedMode {
+        SPGW_SUBSCRIBER = 0;           // default mode is HSS + spgw_task
+        LOCAL_SUBSCRIBER = 1;          // will use subscriberDb + policydb
+        S8_SUBSCRIBER = 2;             // will use HSS (feg) + s8_task
+    }
+    FederatedMode mode = 1;
+    string plmn = 2;
+    string imsi_range = 3;
+    string apn = 4;
+}
 
 //------------------------------------------------------------------------------
 // SubscriberDB configs
@@ -354,6 +382,13 @@ message MonitorD {
 // DPID configs
 //------------------------------------------------------------------------------
 message DPID {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// ConnectionD configs
+//------------------------------------------------------------------------------
+message ConnectionD {
     orc8r.LogLevel log_level = 1;
 }
 

@@ -195,7 +195,7 @@ sgw_cm_create_bearer_context_information_in_collection(
         "Failed to create APN collection object entry for EPS bearer S11 "
         "teid " TEID_FMT "\n",
         teid);
-    sgw_free_s11_bearer_context_information(&new_bearer_context_information);
+    spgw_free_s11_bearer_context_information(&new_bearer_context_information);
     return NULL;
   }
 
@@ -216,12 +216,43 @@ sgw_cm_create_bearer_context_information_in_collection(
 }
 
 //-----------------------------------------------------------------------------
-int sgw_cm_remove_bearer_context_information(teid_t teid, imsi64_t imsi64) {
+int sgw_cm_remove_bearer_context_information(
+    spgw_state_t* spgw_state, teid_t teid, imsi64_t imsi64) {
   int temp = 0;
 
   hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
   temp                           = hashtable_ts_free(state_imsi_ht, teid);
-  delete_spgw_ue_state(imsi64);
+  if (temp != HASH_TABLE_OK) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64, "Failed to free teid from state_imsi_ht \n");
+    return temp;
+  }
+  spgw_ue_context_t* ue_context_p = NULL;
+  hashtable_ts_get(
+      spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+      (void**) &ue_context_p);
+  if (ue_context_p) {
+    sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p->sgw_s11_teid_list));
+    while (p1) {
+      if (p1->sgw_s11_teid == teid) {
+        LIST_REMOVE(p1, entries);
+        free_wrapper((void**) &p1);
+        break;
+      }
+      p1 = LIST_NEXT(p1, entries);
+    }
+    if (LIST_EMPTY(&ue_context_p->sgw_s11_teid_list)) {
+      temp = hashtable_ts_free(
+          spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64);
+      if (temp != HASH_TABLE_OK) {
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, imsi64,
+            "Failed to free imsi64 from imsi_ue_context_htbl \n");
+        return temp;
+      }
+      delete_spgw_ue_state(imsi64);
+    }
+  }
   return temp;
 }
 

@@ -34,7 +34,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {AllNetworkTypes, XWFM} from '@fbcnms/types/network';
 import {CWF, FEG, FEG_LTE} from '@fbcnms/types/network';
 import {makeStyles} from '@material-ui/styles';
-import {triggerAlertSync} from './Alerts';
+import {triggerAlertSync} from '../../state/SyncAlerts';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useState} from 'react';
 
@@ -94,7 +94,7 @@ export default function NetworkDialog(props: Props) {
       <DialogContent>
         {error && <FormLabel error>{error}</FormLabel>}
         <TextField
-          name="name"
+          name="networkId"
           label="Network ID"
           className={classes.input}
           value={networkID}

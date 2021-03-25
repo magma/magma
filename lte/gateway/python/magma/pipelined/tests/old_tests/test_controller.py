@@ -182,7 +182,7 @@ class BaseMagmaTest:
             if tries > 10:
                 raise ValueError("Switch didn't connect in time, failing")
 
-
+@unittest.skip
 class MagmaControllerPktTest(BaseMagmaTest.MagmaControllerTest):
     def setUp(self):
         super(MagmaControllerPktTest, self).setUp()

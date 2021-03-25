@@ -20,8 +20,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
@@ -36,7 +34,6 @@ import (
 )
 
 func Test_ListReleaseChannels(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -79,7 +76,6 @@ func Test_ListReleaseChannels(t *testing.T) {
 }
 
 func Test_CreateReleaseChannel(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -127,7 +123,6 @@ func Test_CreateReleaseChannel(t *testing.T) {
 }
 
 func Test_ReleaseChannel(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -222,7 +217,6 @@ func Test_ReleaseChannel(t *testing.T) {
 }
 
 func Test_Tiers(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -439,7 +433,6 @@ func Test_Tiers(t *testing.T) {
 }
 
 func TestPartialTierReads(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -537,7 +530,6 @@ func TestPartialTierReads(t *testing.T) {
 }
 
 func TestPartialTierUpdates(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()

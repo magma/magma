@@ -25,7 +25,8 @@ from ryu.base.app_manager import AppManager
 from scapy.arch import get_if_hwaddr
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
-from magma.common.misc_utils import call_process
+from magma.common.misc_utils import call_process, get_ip_from_if
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration import environment
 from magma.pipelined.app import of_rest_server
@@ -52,6 +53,10 @@ def main():
     asyncio.set_event_loop_policy(aioeventlet.EventLoopPolicy())
 
     service = MagmaService('pipelined', mconfigs_pb2.PipelineD())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
+
     service_config = service.config
 
     if environment.is_dev_mode():
@@ -94,6 +99,12 @@ def main():
     he_enabled = service.config.get('he_enabled', he_enabled_flag)
     service.config['he_enabled'] = he_enabled
 
+    # monitoring related configuration
+    mtr_interface = service.config.get('mtr_interface', None)
+    if mtr_interface:
+        mtr_ip = get_ip_from_if(mtr_interface)
+        service.config['mtr_ip'] = mtr_ip
+
     # Load the ryu apps
     service_manager = ServiceManager(service)
     service_manager.load()
@@ -132,6 +143,7 @@ def main():
         manager.applications.get('TunnelLearnController', None),
         manager.applications.get('Classifier', None),
         manager.applications.get('InOutController', None),
+        manager.applications.get('NGServiceController', None),
         service.config,
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)

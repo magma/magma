@@ -59,8 +59,8 @@ controller:
       host: ${orc8r_db_host}
       port: ${orc8r_db_port}
       user: ${orc8r_db_user}
-  service:
-    portEnd: 9121
+    service_registry:
+      mode: "k8s"
 
 metrics:
   imagePullSecrets:
@@ -89,14 +89,14 @@ metrics:
     create: true
     image:
       repository: docker.io/facebookincubator/prometheus-configurer
-      tag: 1.0.0
+      tag: ${prometheus_configurer_version}
     prometheusURL: ${prometheus_url}
 
   alertmanagerConfigurer:
     create: true
     image:
       repository: docker.io/facebookincubator/alertmanager-configurer
-      tag: 1.0.0
+      tag: ${alertmanager_configurer_version}
     alertmanagerURL: ${alertmanager_url}
 
   prometheusCache:
@@ -115,17 +115,21 @@ metrics:
     create: ${create_usergrafana}
     volumes:
       datasources:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaDatasources}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaDatasources}
       dashboardproviders:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaProviders}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaProviders}
       dashboards:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaDashboards}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaDashboards}
       grafanaData:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaData}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaData}
 
   thanos:
     enabled: ${thanos_enabled}

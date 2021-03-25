@@ -32,7 +32,8 @@ func newUnionFind(pks []string) *unionFind {
 
 // unionFind is an implementation of a union-find data structure for efficient
 // computation of connected components in a graph. The DS implements path
-// compression on find and rank-rated union
+// compression on find and rank-rated union.
+// Tutorial: https://www.youtube.com/watch?v=0jNmHPfA_yE
 type unionFind struct {
 	parents map[string]string
 	ranks   map[string]int

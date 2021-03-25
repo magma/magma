@@ -41,6 +41,7 @@ func (s *RelayRouter) SayHello(ctx context.Context, req *protos.HelloRequest) (*
 	}
 	conn, ctx, cancel, err := s.GetFegServiceConnection(ctx, imsi, FegHello)
 	if err != nil {
+		glog.Errorf("SayHello error for NH IMSI '%s', greeting '%s': %v", imsi, req.GetGreeting(), err)
 		return nil, err
 	}
 	defer cancel()

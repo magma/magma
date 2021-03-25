@@ -123,32 +123,6 @@ func (store *sqlBlobStorage) Rollback() error {
 	return err
 }
 
-func (store *sqlBlobStorage) ListKeys(networkID string, typeVal string) ([]string, error) {
-	if err := store.validateTx(); err != nil {
-		return nil, err
-	}
-
-	rows, err := store.builder.Select(keyCol).From(store.tableName).
-		Where(sq.Eq{nidCol: networkID, typeCol: typeVal}).
-		RunWith(store.tx).
-		Query()
-	if err != nil {
-		return nil, err
-	}
-	defer sqorc.CloseRowsLogOnError(rows, "ListKeys")
-
-	var keys []string
-	for rows.Next() {
-		var key string
-		err = rows.Scan(&key)
-		if err != nil {
-			return []string{}, err
-		}
-		keys = append(keys, key)
-	}
-	return keys, nil
-}
-
 func (store *sqlBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
 	multiRet, err := store.GetMany(networkID, []storage.TypeAndKey{id})
 	if err != nil {
@@ -160,7 +134,7 @@ func (store *sqlBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob,
 	return multiRet[0], nil
 }
 
-func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error) {
+func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) (Blobs, error) {
 	if err := store.validateTx(); err != nil {
 		return nil, err
 	}
@@ -175,7 +149,7 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "GetMany")
 
-	var blobs []Blob
+	var blobs Blobs
 	for rows.Next() {
 		var t, k string
 		var val []byte
@@ -187,11 +161,15 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 		}
 		blobs = append(blobs, Blob{Type: t, Key: k, Value: val, Version: version})
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
+	}
 	return blobs, nil
 }
 
-func (store *sqlBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error) {
-	ret := map[string][]Blob{}
+func (store *sqlBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string]Blobs, error) {
+	ret := map[string]Blobs{}
 	if err := store.validateTx(); err != nil {
 		return ret, err
 	}
@@ -247,10 +225,14 @@ func (store *sqlBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) 
 		nidCol = append(nidCol, Blob{Type: t, Key: k, Value: val, Version: version})
 		ret[nid] = nidCol
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
+	}
 	return ret, nil
 }
 
-func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) error {
+func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs Blobs) error {
 	// defer tx validation to GetMany
 	existingBlobs, err := store.GetMany(networkID, getBlobIDs(blobs))
 	if err != nil {
@@ -304,6 +286,10 @@ func (store *sqlBlobStorage) GetExistingKeys(keys []string, filter SearchFilter)
 			return nil, err
 		}
 		scannedKeys = append(scannedKeys, key)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
 	}
 	return scannedKeys, nil
 }
@@ -380,7 +366,7 @@ func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange
 	return nil
 }
 
-func (store *sqlBlobStorage) insertNewBlobs(networkID string, blobs []Blob) error {
+func (store *sqlBlobStorage) insertNewBlobs(networkID string, blobs Blobs) error {
 	insertBuilder := store.builder.Insert(store.tableName).
 		Columns(nidCol, typeCol, keyCol, valCol, verCol)
 	for _, blob := range blobs {
@@ -388,7 +374,7 @@ func (store *sqlBlobStorage) insertNewBlobs(networkID string, blobs []Blob) erro
 	}
 	_, err := insertBuilder.RunWith(store.tx).Exec()
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("error creating blobs"))
+		return errors.Wrap(err, "error creating blobs")
 	}
 	return nil
 }
@@ -406,7 +392,7 @@ func getWhereCondition(networkID string, ids []storage.TypeAndKey) sq.Or {
 	return whereConditions
 }
 
-func getBlobIDs(blobs []Blob) []storage.TypeAndKey {
+func getBlobIDs(blobs Blobs) []storage.TypeAndKey {
 	ret := make([]storage.TypeAndKey, 0, len(blobs))
 	for _, blob := range blobs {
 		ret = append(ret, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
@@ -420,16 +406,16 @@ type blobChange struct {
 }
 
 type blobsToCreateAndChange struct {
-	blobsToCreate []Blob
+	blobsToCreate Blobs
 	blobsToChange map[storage.TypeAndKey]blobChange
 }
 
-func partitionBlobsToCreateAndChange(blobsToUpdate []Blob, existingBlobs []Blob) blobsToCreateAndChange {
+func partitionBlobsToCreateAndChange(blobsToUpdate Blobs, existingBlobs Blobs) blobsToCreateAndChange {
 	ret := blobsToCreateAndChange{
-		blobsToCreate: []Blob{},
+		blobsToCreate: Blobs{},
 		blobsToChange: map[storage.TypeAndKey]blobChange{},
 	}
-	existingBlobsByID := GetBlobsByTypeAndKey(existingBlobs)
+	existingBlobsByID := existingBlobs.ByTK()
 
 	for _, blob := range blobsToUpdate {
 		blobID := storage.TypeAndKey{Type: blob.Type, Key: blob.Key}

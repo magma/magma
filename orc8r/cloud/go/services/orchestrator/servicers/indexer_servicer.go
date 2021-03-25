@@ -43,8 +43,6 @@ type indexerServicer struct{}
 
 // NewIndexerServicer returns the state indexer for directoryd.
 //
-// TODO(7/30/20): move this indexer to the directoryd service once directoryd is moved to an lte (non-core) service
-//
 // The directoryd indexer performs the following indexing functions:
 //	- sidToIMSI: map session ID to IMSI
 //
@@ -73,6 +71,9 @@ func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (
 		return nil, err
 	}
 	stErrs, err := indexImpl(req.NetworkId, states)
+	if err != nil {
+		return nil, err
+	}
 	res := &protos.IndexResponse{StateErrors: state_types.MakeProtoStateErrors(stErrs)}
 	return res, nil
 }

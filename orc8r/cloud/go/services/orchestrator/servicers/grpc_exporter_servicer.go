@@ -19,7 +19,7 @@ import (
 
 	edge_hub "github.com/facebookincubator/prometheus-edge-hub/grpc"
 	"github.com/pkg/errors"
-	"github.com/prometheus/client_model/go"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 	"google.golang.org/grpc"
 )
 

@@ -12,6 +12,7 @@ services:
       SERVICE_HOSTNAME: localhost  # All services are reachable through localhost
       SQL_DRIVER: postgres
       DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
+#      DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
       SQL_DIALECT: psql
       SERVICE_REGISTRY_MODE: yaml
     links:

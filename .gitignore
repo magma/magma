@@ -1,8 +1,8 @@
-### vagrant ###
+# Vagrant
 .vagrant
 *.retry
 
-### vim ###
+# Vim
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
 *.un~
@@ -10,11 +10,11 @@ Session.vim
 .netrwhist
 *~
 
-### python ###
-# Byte-compiled / optimized / DLL files
+# Python: byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-# Virtual environments
+
+# Python: virtual environments
 .env/
 .coverage
 .python-version
@@ -25,7 +25,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
+/build/
 develop-eggs/
 dist/
 eggs/
@@ -48,11 +48,11 @@ orc8r/cloud/test_certs/*.pem
 orc8r/cloud/test_certs/*.srl
 orc8r/cloud/test_certs/*.pfx
 
-# Ignore generated swagger file
-orc8r/cloud/docker/controller/apidocs/swagger.yml
-orc8r/cloud/docker/controller/apidocs/temp
-orc8r/cloud/docker/controller/apidocs/v1/swagger.yml
-orc8r/cloud/docker/controller/apidocs/v1/temp
+# Ignore generated Swagger files
+orc8r/cloud/swagger/specs
+
+# Node
+node_modules/
 
 # Ignore apt/build cache
 .cache/*
@@ -73,9 +73,8 @@ orc8r/cloud/helm/**/.secrets/
 # Certs for accessing the cloud
 .certs
 
-# Clion config
-devmand/gateway/.idea/
-devmand/gateway/cmake-build-debug/
+# CMake debug files
+lte/gateway/c/session_manager/cmake-build-debug/
 
 # Log files
 *.log
@@ -84,15 +83,23 @@ devmand/gateway/cmake-build-debug/
 cscope.*
 tags
 
-#CI files
+# CI files
 archives/
 test_results_magma_converged_mme.html
 
-#intellij
+# IntelliJ
 .idea/
+
+# VS Code
+.vscode/
 
 # Internal
 fb
 
-#MacOS artifacts
+# MacOS artifacts
 .DS_Store
+
+# Code coverage
+orc8r/cloud/coverage/
+feg/gateway/coverage/
+lte/gateway/c/oai/code_coverage/

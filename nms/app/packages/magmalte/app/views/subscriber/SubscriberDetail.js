@@ -16,6 +16,7 @@
 import type {DataRows} from '../../components/DataGrid';
 import type {subscriber} from '@fbcnms/magma-api';
 
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DataGrid from '../../components/DataGrid';
@@ -32,11 +33,15 @@ import SubscriberDetailConfig from './SubscriberDetailConfig';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
+import {useContext, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -102,7 +107,7 @@ export default function SubscriberDetail() {
   return (
     <>
       <TopBar
-        header={`Equipment/${subscriberInfo.name ?? subscriberId}`}
+        header={`Subscriber/${subscriberInfo.name ?? subscriberId}`}
         tabs={
           !Object.keys(subscriberInfo).length
             ? [
@@ -145,12 +150,58 @@ export default function SubscriberDetail() {
         <Route
           path={relativePath('/event')}
           render={() => (
-            <EventsTable sz="lg" eventStream="SUBSCRIBER" tags={subscriberId} />
+            <EventsTable
+              sz="lg"
+              eventStream="SUBSCRIBER"
+              isAutoRefreshing={true}
+              tags={subscriberId}
+            />
           )}
         />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
     </>
+  );
+}
+function StatusInfo() {
+  const {match} = useRouter();
+  const subscriberId: string = nullthrows(match.params.subscriberId);
+  const networkId: string = nullthrows(match.params.networkId);
+  const [refresh, setRefresh] = useState(false);
+
+  const ctx = useRefreshingContext({
+    context: SubscriberContext,
+    networkId: networkId,
+    type: 'subscriber',
+    interval: REFRESH_INTERVAL,
+    refresh: refresh,
+    id: subscriberId,
+  });
+  // $FlowIgnore
+  const subscriberInfo: subscriber = ctx.state?.[subscriberId];
+  function refreshFilter() {
+    return (
+      <AutorefreshCheckbox
+        autorefreshEnabled={refresh}
+        onToggle={() => setRefresh(current => !current)}
+      />
+    );
+  }
+  return (
+    <Grid container spacing={4}>
+      <Grid item xs={12} md={6}>
+        <CardTitleRow icon={PersonIcon} label="Subscriber" />
+        <Info subscriberInfo={subscriberInfo} />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <CardTitleRow
+          icon={GraphicEqIcon}
+          label="Status"
+          filter={() => refreshFilter()}
+        />
+        <Status subscriberInfo={subscriberInfo} />
+      </Grid>
+    </Grid>
   );
 }
 
@@ -168,16 +219,7 @@ function Overview() {
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
-              <CardTitleRow icon={PersonIcon} label="Subscriber" />
-              <Info subscriberInfo={subscriberInfo} />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <Status subscriberInfo={subscriberInfo} />
-            </Grid>
-          </Grid>
+          <StatusInfo />
         </Grid>
         <Grid item xs={12}>
           <SubscriberChart />

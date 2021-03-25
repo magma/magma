@@ -36,6 +36,7 @@ setup(
         'magma.monitord',
         'magma.pipelined',
         'magma.pipelined.app',
+        'magma.pipelined.ng_manager',
         'magma.pipelined.openflow',
         'magma.pipelined.qos',
         'magma.pkt_tester',
@@ -89,11 +90,12 @@ setup(
         'envoy>=0.0.3',
         'glob2>=0.7',
         # lxml required by spyne.
-        'lxml==4.2.1',
+        'lxml==4.6.2',
         'ryu>=4.30',
         'spyne>=2.12.16',
         'scapy==2.4.4',
         'flask>=1.0.2',
+        'sentry_sdk>=1.0.0',
         'aioeventlet>=0.4',
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
@@ -112,7 +114,8 @@ setup(
         'h2>=3.2.0',
         'hpack>=3.0',
         'freezegun>=0.3.15',
-        'pycryptodome>=3.9.9'
+        'pycryptodome>=3.9.9',
+        'pyroute2>=0.5.14'
     ],
     extras_require={
         'dev': [
@@ -121,7 +124,6 @@ setup(
             # update it in lte/gateway/python/Makefile
             'grpcio-tools>=1.16.1',
             'nose==1.3.7',
-            'pyroute2',
             'iperf3',
         ]
     },

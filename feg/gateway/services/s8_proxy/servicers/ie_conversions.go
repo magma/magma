@@ -14,45 +14,201 @@ limitations under the License.
 package servicers
 
 import (
+	"fmt"
 	"net"
-
-	"magma/feg/cloud/go/protos"
+	"time"
 
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
+	"github.com/wmnsk/go-gtp/gtpv2/message"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/gtp"
 )
 
-type SessionFTeids struct {
-	cFTeid *ie.IE
-	uFTeid *ie.IE
+// buildCreateSessionRequestIE creates a Message with all the IE needed for a Create Session Request
+func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSessionRequestPgw) (message.Message, error) {
+	// Create session needs two FTEIDs:
+	// - S8 control plane FTEID will be built using local address and control TEID
+	//	 passed by MME
+	// - S8 user plane FTEID, provided by MME in the requested bearer
+
+	// TODO: look for a better way to find the local ip (avoid pinging on each request)
+	// (obtain the IP that is going to send the packet first)
+	ip, err := gtp.GetLocalOutboundIP(cPgwUDPAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	// Control plane TEID
+	cFegFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPC,
+		req.CAgwTeid, ip.String(), "").WithInstance(0)
+
+	// User plane TEID (ip belongs to pipelined GTP-U interface)
+	uAgwFTeidReq := req.BearerContext.GetUserPlaneFteid()
+	uAgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU,
+		uAgwFTeidReq.Teid, uAgwFTeidReq.Ipv4Address, uAgwFTeidReq.Ipv6Address).WithInstance(2)
+
+	// Qos
+	qos := req.BearerContext.GetQos()
+	ieQos := ie.NewBearerQoS(uint8(qos.Pci), uint8(qos.PriorityLevel), uint8(qos.PreemptionVulnerability),
+		uint8(qos.Qci), qos.Mbr.BrUl, qos.Mbr.BrDl, qos.Gbr.BrUl, qos.Gbr.BrDl)
+
+	// bearer
+	bearerId := ie.NewEPSBearerID(uint8(req.BearerContext.Id))
+	bearer := ie.NewBearerContext(bearerId, uAgwFTeid, ieQos)
+
+	//timezone
+	offset := time.Duration(req.TimeZone.DeltaSeconds) * time.Second
+	daylightSavingTime := uint8(req.TimeZone.DaylightSavingTime)
+
+	ies := []*ie.IE{
+		ie.NewIMSI(req.GetImsi()),
+		bearer,
+		cFegFTeid,
+		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
+		getPdnType(req.PdnType),
+		getPDNAddressAllocation(req),
+		getRatType(req.RatType),
+		getSelectionModeType(req.SelectionMode),
+		ie.NewMSISDN(string(req.Msisdn[:])),
+		ie.NewMobileEquipmentIdentity(req.Mei),
+		ie.NewServingNetwork(req.ServingNetwork.Mcc, req.ServingNetwork.Mnc),
+		ie.NewAccessPointName(req.Apn),
+		ie.NewAggregateMaximumBitRate(uint32(req.Ambr.BrUl), uint32(req.Ambr.BrDl)),
+		ie.NewUETimeZone(offset, daylightSavingTime),
+
+		// TODO: Hardcoded values
+		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+		ie.NewAPNRestriction(gtpv2.APNRestrictionNoExistingContextsorRestriction),
+		// TODO: set charging characteristics
+	}
+
+	msg := message.NewCreateSessionRequest(0, 0, ies...)
+
+	return msg, nil
 }
 
-func buildCreateSessionRequestIE(req *protos.CreateSessionRequestPgw, conn *gtpv2.Conn, s8IpAddr net.Addr) ([]*ie.IE, SessionFTeids) {
-	// cTEID will be managed by s8_proxy
-	cFTeid := conn.NewSenderFTEID(s8IpAddr.String(), "")
+func buildDeleteSessionRequestMsg(req *protos.DeleteSessionRequestPgw) message.Message {
+	ies := []*ie.IE{
+		ie.NewEPSBearerID(uint8(req.BearerId)),
+	}
+	return message.NewDeleteSessionRequest(req.CPgwFteid.Teid, 0, ies...)
+}
 
-	// uTEID will be given by MME (managed by MME)
-	uFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU, req.UserPlaneTeid, req.S5S8Ip4UserPane, req.S5S8Ip6UserPane)
-	// TODO: add proper to bearer
-	ieQos := ie.NewBearerQoS(1, 2, 1, 0xff, 0, 0, 0, 0)
+func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
+	var res *ie.IE
+	if req.PdnType == protos.PDNType_IPV4 {
+		res = ie.NewPDNAddressAllocation(req.Paa.Ipv4Address)
+	}
+	if req.PdnType == protos.PDNType_IPV6 {
+		res = ie.NewPDNAddressAllocationIPv6(req.Paa.Ipv6Address, uint8(req.Paa.Ipv6Prefix))
+	}
+	if req.PdnType == protos.PDNType_IPV4V6 {
+		res = ie.NewPDNAddressAllocationDual(req.Paa.Ipv4Address, req.Paa.Ipv6Address, uint8(req.Paa.Ipv6Prefix))
+	}
+	return res
+}
 
-	// TODO: indication flag
-	// TODO: set uli
-	// TODO: set apn restriction
+// getPdnType convert proto PDNType into GTP PDN type
+func getPdnType(pdnType protos.PDNType) *ie.IE {
+	var res = uint8(0)
+	switch pdnType {
+	case protos.PDNType_IPV4:
+		res = gtpv2.PDNTypeIPv4 // v4
+	case protos.PDNType_IPV6:
+		res = gtpv2.PDNTypeIPv6 // v6
+	case protos.PDNType_IPV4V6:
+		res = gtpv2.PDNTypeIPv4 // v4v6
+	case protos.PDNType_NonIP:
+		res = gtpv2.PDNTypeNonIP // nonIP
+	default:
+		panic(fmt.Sprintf("PdnType %d does not exist", pdnType))
+	}
+	return ie.NewPDNType(res)
+}
 
-	return []*ie.IE{
-		ie.NewIMSI(req.GetSid().Id),
-		ie.NewMSISDN(string(req.MSISDN[:])),
-		ie.NewMobileEquipmentIdentity(req.MEI),
-		ie.NewServingNetwork(req.MCC, req.MNC),
-		ie.NewRATType(uint8(req.RatType)),
-		cFTeid,
-		ie.NewAccessPointName(req.Apn),
-		// TODO: selection mode
-		ie.NewSelectionMode(gtpv2.SelectionModeMSorNetworkProvidedAPNSubscribedVerified),
-		ie.NewPDNType(uint8(req.PdnType)),
-		ie.NewPDNAddressAllocation(req.PdnAddressAllocation),
-		ie.NewAggregateMaximumBitRate(req.AmbrUp, req.AmbrDown),
-		ie.NewBearerContext(ie.NewEPSBearerID(uint8(req.BearerId)), uFTeid, ieQos),
-	}, SessionFTeids{cFTeid, uFTeid}
+func getUserLocationIndication(mcc, mnc string, uli *protos.UserLocationInformation) *ie.IE {
+	var (
+		cgi    *ie.CGI    = nil
+		sai    *ie.SAI    = nil
+		rai    *ie.RAI    = nil
+		tai    *ie.TAI    = nil
+		ecgi   *ie.ECGI   = nil
+		lai    *ie.LAI    = nil
+		menbi  *ie.MENBI  = nil
+		emenbi *ie.EMENBI = nil
+	)
+
+	if uli.Lac != 0 && uli.Ci != 0 {
+		cgi = ie.NewCGI(mcc, mnc, uint16(uli.Lac), uint16(uli.Ci))
+	}
+	if uli.Lac != 0 && uli.Sac != 0 {
+		sai = ie.NewSAI(mcc, mnc, uint16(uli.Lac), uint16(uli.Sac))
+	}
+	if uli.Lac != 0 && uli.Rac != 0 {
+		rai = ie.NewRAI(mcc, mnc, uint16(uli.Lac), uint16(uli.Rac))
+	}
+	if uli.Tac != 0 {
+		tai = ie.NewTAI(mcc, mnc, uint16(uli.Tac))
+	}
+	if uli.Eci != 0 {
+		ecgi = ie.NewECGI(mcc, mnc, uli.Eci)
+	}
+	if uli.Lac != 0 {
+		lai = ie.NewLAI(mcc, mnc, uint16(uli.Lac))
+	}
+	if uli.MeNbi != 0 {
+		menbi = ie.NewMENBI(mcc, mnc, uli.MeNbi)
+	}
+	if uli.EMeNbi != 0 {
+		emenbi = ie.NewEMENBI(mcc, mnc, uli.EMeNbi)
+	}
+	return ie.NewUserLocationInformationStruct(cgi, sai, rai, tai, ecgi, lai, menbi, emenbi)
+}
+
+func getRatType(ratType protos.RATType) *ie.IE {
+	var rType uint8
+	switch ratType {
+	case protos.RATType_RESERVED:
+		rType = 0
+	case protos.RATType_UTRAN:
+		rType = gtpv2.RATTypeUTRAN
+	case protos.RATType_GERAN:
+		rType = gtpv2.RATTypeGERAN
+	case protos.RATType_WLAN:
+		rType = gtpv2.RATTypeWLAN
+	case protos.RATType_GAN:
+		rType = gtpv2.RATTypeGAN
+	case protos.RATType_HSPA:
+		rType = gtpv2.RATTypeHSPAEvolution
+	case protos.RATType_EUTRAN:
+		rType = gtpv2.RATTypeEUTRAN
+	case protos.RATType_VIRTUAL:
+		rType = gtpv2.RATTypeVirtual
+	case protos.RATType_EUTRAN_NB_IOT:
+		rType = gtpv2.RATTypeEUTRANNBIoT
+	case protos.RATType_LTE_M:
+		rType = gtpv2.RATTypeLTEM
+	case protos.RATType_NR:
+		rType = gtpv2.RATTypeNR
+	default:
+		panic(fmt.Sprintf("RatType %d does not exist", ratType))
+	}
+	return ie.NewRATType(rType)
+}
+
+func getSelectionModeType(selMode protos.SelectionModeType) *ie.IE {
+	var rType uint8
+	switch selMode {
+	case protos.SelectionModeType_APN_provided_subscription_verified:
+		rType = gtpv2.SelectionModeMSorNetworkProvidedAPNSubscribedVerified
+	case protos.SelectionModeType_ms_APN_subscription_not_verified:
+		rType = gtpv2.SelectionModeMSProvidedAPNSubscriptionNotVerified
+	case protos.SelectionModeType_network_APN_subscription_not_verified:
+		rType = gtpv2.SelectionModeNetworkProvidedAPNSubscriptionNotVerified
+	default:
+		panic(fmt.Sprintf("RatType %d does not exist", selMode))
+	}
+	return ie.NewSelectionMode(rType)
 }

@@ -1,0 +1,21 @@
+---
+- name: remove current version of ansible
+  apt:
+    name: ansible
+    state: absent
+
+- name: add line in file
+  lineinfile:
+    path: /etc/apt/sources.list
+    line: deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main
+
+- name: add key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 93C4A3FD7BB9C367
+
+- name: install packages
+  apt:
+    name: "{{ pkgGateway }}"
+    state: present
+

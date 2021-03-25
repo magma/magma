@@ -83,10 +83,6 @@ tags:
     description: Endpoints related to LTE networks
   - name: LTE Gateways
     description: Endpoints related to LTE gateway management
-  - name: Policies
-    description: Endpoints related to network policy management
-  - name: Rating Groups
-    description: Endpoints related to rating group management
 
 paths:
   /lte:
@@ -407,6 +403,24 @@ paths:
           description: HA gateway pool
           schema:
             $ref: '#/definitions/cellular_gateway_pool'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update gateway pool in LTE network
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/gateway_pool_id'
+        - in: body
+          name: HA Gateway Pool
+          description: LTE HA gateway pool
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_cellular_gateway_pool'
+      responses:
+        '201':
+          description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     delete:
@@ -1133,7 +1147,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/dns_config_record'
+              $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
@@ -1150,7 +1164,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/dns_config_record'
+              $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
       responses:
         '204':
           description: Success
@@ -1589,8 +1603,9 @@ definitions:
        $ref: '#/definitions/feg_network_id'
 
   feg_network_id:
+    description: Name of the federated network serving this LTE network. Blank for non federated
     type: string
-    example: 'example_feg_network'
+    example: 'feg_id_only_for_federated_network'
 
   network_ran_configs:
     description: RAN (radio access network) cellular configuration for a network
@@ -1797,6 +1812,25 @@ definitions:
                 example:
                   1: ['192.168.0.0/16']
                   2: ['172.10.0.0/16', '172.20.0.0/16']
+      restricted_plmns:
+        type: array
+        description: 'List of PLMN IDs restricted in the network'
+        items:
+          $ref: '#/definitions/plmn_config'
+        x-omitempty: true
+
+      service_area_maps:
+        type: object
+        description: 'Mapping service areas to tacs in the network'
+        additionalProperties:
+          $ref: '#/definitions/tac_list'
+
+      restricted_imeis:
+        type: array
+        description: 'List of IMEIs restricted in the network'
+        items:
+          $ref: '#/definitions/imei'
+        x-omitempty: true
 
   lte_gateway:
     type: object
@@ -1955,6 +1989,11 @@ definitions:
         type: string
         format: ipv6
         example: '2a12:577:9941:f99c:0002:0001:c731:f114'
+      ipv4_sgw_s1u_addr:
+        description: IP address for IPv4 S1U endpoint on the AGW
+        type: string
+        minLength: 5
+        maxLength: 49
       sgi_management_iface_vlan:
         type: string
         description: VLAN ID for management interface traffic on the AGW
@@ -2019,48 +2058,13 @@ definitions:
   gateway_dns_records:
     type: array
     items:
-      $ref: '#/definitions/dns_config_record'
+      $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
 
   cellular_gateway_pool_records:
     type: array
     items:
       x-nullable: falsee
       $ref: '#/definitions/cellular_gateway_pool_record'
-
-  dns_config_record:
-    description: Mapping used for DNS resolving from a domain
-    type: object
-    required:
-      - domain
-    properties:
-      domain:
-        type: string
-        minLength: 1
-        x-nullable: false
-        example: example.com
-      a_record:
-        type: array
-        items:
-          type: string
-          minLength: 1
-          format: ipv4
-          x-nullable: false
-          example: 192.88.99.142
-      aaaa_record:
-        type: array
-        items:
-          type: string
-          minLength: 1
-          format: ipv6
-          x-nullable: false
-          example: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
-      cname_record:
-        type: array
-        items:
-          type: string
-          minLength: 1
-          x-nullable: false
-          example: cname.example.com
 
   gateway_dns_configs:
     description: DNS configuration for a gateway
@@ -2096,13 +2100,10 @@ definitions:
       enable_header_enrichment:
         description: True if header enrichment feature should be disabled for gateway
         type: boolean
-        example: false
-        x-nullable: false
-        default: true
+        example: true
       enable_encryption:
         description: True if headers should be encrypted
         type: boolean
-        x-nullable: false
         example: true
       encryption_key:
         description: Key to be used in header encryption
@@ -2444,65 +2445,6 @@ definitions:
         type: string
         format: mac
 
-  qos_class_id:
-    type: integer
-    format: int32
-    example: 9
-    default: 9
-    # Enum values must align 1-1 with policydb.FlowQos proto's Qci enum
-    enum:
-      - 0
-      - 1
-      - 2
-      - 3
-      - 4
-      - 5
-      - 6
-      - 7
-      - 8
-      - 9
-      - 65
-      - 66
-      - 67
-      - 70
-      - 75
-      - 79
-    x-go-custom-tag: 'magma_alt_name:"QCI"'
-
-  gbr:
-    description: Guaranteed bit rate
-    type: object
-    required:
-      - uplink
-      - downlink
-    properties:
-      uplink:
-        type: integer
-        format: uint32
-      downlink:
-        type: integer
-        format: uint32
-
-  arp:
-    description: Allocation and retention priority
-    type: object
-    properties:
-      priority_level:
-        type: integer
-        format: uint32
-        minimum: 0
-        maximum: 15
-        example: 15
-        default: 15
-      preemption_capability:
-        type: boolean
-        example: true
-        default: true
-      preemption_vulnerability:
-        type: boolean
-        example: false
-        default: false
-
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network
     type: object
@@ -2588,3 +2530,56 @@ definitions:
         maximum: 255
         example: 10
         default: 10
+
+
+  tac_list:
+    type: array
+    items:
+      $ref: '#/definitions/tac'
+    x-omitempty: true
+    description: 'List of tac ids'
+    example:
+      - 1
+
+  tac:
+    type: integer
+    format: uint32
+    minimum: 1
+    maximum: 65535
+    example: 1
+    x-nullable: false
+
+  plmn_config:
+    description: PLMN Configuration
+    type: object
+    required:
+      - mcc
+      - mnc
+    properties:
+      mcc:
+        type: string
+        pattern: '^(\d{3})$'
+        example: '001'
+        x-nullable: false
+      mnc:
+        type: string
+        pattern: '^(\d{2,3})$'
+        example: '01'
+        x-nullable: false
+
+  imei:
+    description: IMEI (type allocation code and serial number)
+    type: object
+    required:
+      - tac
+    properties:
+      tac:
+        type: string
+        pattern: '^(\d{8})$'
+        example: '01300600'
+        x-nullable: false
+      snr:
+        type: string
+        pattern: '^(\d{6})$'
+        example: '176148'
+        x-nullable: false

@@ -112,6 +112,22 @@ func (tr *TestRunner) AssertPolicyEnforcementRecordIsNil(imsi string) {
 	assert.Empty(tr.t, recordsBySubID[prependIMSIPrefix(imsi)])
 }
 
+func (tr *TestRunner) AssertEventuallyAllRulesRemovedAfterDisconnect(imsi string) {
+	checkFn := func() bool {
+		fmt.Printf("Waiting until all rules are removed in enforcement stats for %s...\n", imsi)
+		records, err := tr.GetPolicyUsage()
+		if err != nil {
+			return false
+		}
+		if len(records[prependIMSIPrefix(imsi)]) == 0 {
+			return true
+		}
+		return false
+	}
+	assert.Eventually(tr.t, checkFn, 10*time.Second, 2*time.Second)
+	fmt.Println("All enforcement stats are gone!")
+}
+
 // Query assertion result from MockPCRF and assert all expectations were met.
 // Only applicable when MockDriver is used.
 func (tr *TestRunner) AssertAllGxExpectationsMetNoError() {

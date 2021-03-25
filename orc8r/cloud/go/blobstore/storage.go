@@ -32,7 +32,26 @@ type Blob struct {
 
 type Blobs []Blob
 
-func (bs Blobs) GetKeys() []string {
+// TKs converts blobs to their associated type and key.
+func (bs Blobs) TKs() []storage.TypeAndKey {
+	tks := make([]storage.TypeAndKey, 0, len(bs))
+	for _, blob := range bs {
+		tks = append(tks, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
+	}
+	return tks
+}
+
+// ByTK returns a computed view of a list of blobs as a map of
+// blobs keyed by blob TypeAndKey.
+func (bs Blobs) ByTK() map[storage.TypeAndKey]Blob {
+	ret := make(map[storage.TypeAndKey]Blob, len(bs))
+	for _, blob := range bs {
+		ret[storage.TypeAndKey{Type: blob.Type, Key: blob.Key}] = blob
+	}
+	return ret
+}
+
+func (bs Blobs) Keys() []string {
 	var keys []string
 	for _, b := range bs {
 		keys = append(keys, b.Key)
@@ -68,7 +87,6 @@ type BlobStorageFactory interface {
 // TransactionalBlobStorage is the client API for blob storage operations
 // within the context of a transaction.
 // TODO(4/9/2020): refactor Get-like methods into package-level defaults wrapping Search -- see e.g. ListKeysByNetwork
-// TODO(10/19/2020): refactor []Blob to Blobs in interface
 type TransactionalBlobStorage interface {
 	// Commit commits the existing transaction.
 	// If an error is returned from the backing storage while committing,
@@ -80,9 +98,6 @@ type TransactionalBlobStorage interface {
 	// rolling back has no effect and returns an error.
 	Rollback() error
 
-	// ListKeys returns all the blob keys stored for the network and type.
-	ListKeys(networkID string, typeVal string) ([]string, error)
-
 	// Get loads a specific blob from storage.
 	// If there is no blob matching the given ID, ErrNotFound from
 	// magma/orc8r/lib/go/errors will be returned.
@@ -92,21 +107,21 @@ type TransactionalBlobStorage interface {
 	// specifiedIDs.
 	// If there is no blob corresponding to a TypeAndKey, the returned list
 	// will not have a corresponding Blob.
-	GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error)
+	GetMany(networkID string, ids []storage.TypeAndKey) (Blobs, error)
 
 	// Search returns a filtered collection of blobs keyed by the network ID
 	// to which they belong.
 	// Blobs are filtered according to the search filter. Empty filter returns
 	// all blobs. Blobs contents are loaded according to the load criteria.
 	// Empty criteria loads all fields.
-	Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error)
+	Search(filter SearchFilter, criteria LoadCriteria) (map[string]Blobs, error)
 
 	// CreateOrUpdate writes blobs to the storage.
 	// Blobs are either updated in-place or created. The Version field of
 	// blobs passed here will be used if it is not set to 0, otherwise version
 	// incrementation will be handled internally inside the storage
 	// implementation.
-	CreateOrUpdate(networkID string, blobs []Blob) error
+	CreateOrUpdate(networkID string, blobs Blobs) error
 
 	// GetExistingKeys takes in a list of keys and returns a list of keys that
 	// exist from the input.
@@ -123,7 +138,7 @@ type TransactionalBlobStorage interface {
 }
 
 // GetAllOfType returns all blobs in the network of the passed type.
-func GetAllOfType(store TransactionalBlobStorage, networkID, typ string) ([]Blob, error) {
+func GetAllOfType(store TransactionalBlobStorage, networkID, typ string) (Blobs, error) {
 	filter := CreateSearchFilter(nil, []string{typ}, nil, nil)
 	criteria := LoadCriteria{LoadValue: true}
 
@@ -133,6 +148,17 @@ func GetAllOfType(store TransactionalBlobStorage, networkID, typ string) ([]Blob
 	}
 
 	return blobsByNetwork[networkID], nil
+}
+
+func ListKeys(store TransactionalBlobStorage, networkID string, typ string) ([]string, error) {
+	filter := CreateSearchFilter(&networkID, []string{typ}, nil, nil)
+	criteria := LoadCriteria{LoadValue: false}
+
+	networkBlobs, err := store.Search(filter, criteria)
+	if err != nil {
+		return nil, err
+	}
+	return networkBlobs[networkID].Keys(), nil
 }
 
 // ListKeysByNetwork returns all blob keys, keyed by network ID.
@@ -147,7 +173,7 @@ func ListKeysByNetwork(store TransactionalBlobStorage) (map[string][]storage.Typ
 
 	tks := map[string][]storage.TypeAndKey{}
 	for network, blobs := range blobsByNetwork {
-		tks[network] = GetTKsFromBlobs(blobs)
+		tks[network] = blobs.TKs()
 	}
 
 	return tks, nil
@@ -215,35 +241,6 @@ type LoadCriteria struct {
 	// LoadValue specifies whether to load the value of a blob.
 	// Set to false to only load blob metadata.
 	LoadValue bool
-}
-
-// GetTKsFromBlobs converts blobs to their associated type and key.
-func GetTKsFromBlobs(blobs []Blob) []storage.TypeAndKey {
-	tks := make([]storage.TypeAndKey, 0, len(blobs))
-	for _, blob := range blobs {
-		tks = append(tks, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
-	}
-	return tks
-}
-
-// GetTKsFromKeys returns the passed keys mapped as TypeAndKey, with the passed
-// type applied to each.
-func GetTKsFromKeys(typ string, keys []string) []storage.TypeAndKey {
-	tks := make([]storage.TypeAndKey, 0, len(keys))
-	for _, k := range keys {
-		tks = append(tks, storage.TypeAndKey{Type: typ, Key: k})
-	}
-	return tks
-}
-
-// GetBlobsByTypeAndKey returns a computed view of a list of blobs as a map of
-// blobs keyed by blob TypeAndKey.
-func GetBlobsByTypeAndKey(blobs []Blob) map[storage.TypeAndKey]Blob {
-	ret := make(map[storage.TypeAndKey]Blob, len(blobs))
-	for _, blob := range blobs {
-		ret[storage.TypeAndKey{Type: blob.Type, Key: blob.Key}] = blob
-	}
-	return ret
 }
 
 func stringListToSet(v []string) map[string]bool {

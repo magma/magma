@@ -35,14 +35,24 @@ func CloudClientInterceptor(
 	ctx context.Context, method string, req, reply interface{},
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 
+	return invoker(OutgoingCloudClientCtx(ctx), method, req, reply, cc, opts...)
+}
+
+// OutgoingCloudClientCtx amends outgoing cloud client context with magic client CSN metadata
+// if the original context doesn't already have client certificate serial number metadata
+func OutgoingCloudClientCtx(ctx context.Context) context.Context {
 	md, exists := metadata.FromOutgoingContext(ctx)
 	if exists {
+		if sns := md.Get(CLIENT_CERT_SN_KEY); len(sns) == 1 && len(sns[0]) > 0 {
+			// Do not alter outgoing CTX if it already has client certificate serial header
+			// this should allow dual use services (serving external as well as internal clients) to be called
+			// internally passing external client cert SN (see directoryd update servicer)
+			return ctx
+		}
 		md = md.Copy()
 		md.Set(CLIENT_CERT_SN_KEY, ORC8R_CLIENT_CERT_VALUE)
 	} else {
 		md = metadata.Pairs(CLIENT_CERT_SN_KEY, ORC8R_CLIENT_CERT_VALUE)
 	}
-	outgoingCtx := metadata.NewOutgoingContext(ctx, md)
-	err := invoker(outgoingCtx, method, req, reply, cc, opts...)
-	return err
+	return metadata.NewOutgoingContext(ctx, md)
 }

@@ -165,12 +165,12 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
         try:
             if hash is None or hash.lower() == "latest":
                 # install latest on the repository
-                sudo("apt install -f -y --allow-downgrades magma")
+                sudo("apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma")
             else:
                 sudo(
                     "version=$("
                     "apt-cache madison magma | grep {hash} | awk 'NR==1{{print $3}}');"
-                    "apt install -f -y --allow-downgrades magma=$version".format(
+                    "apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma=$version".format(
                         hash=hash
                     )
                 )
@@ -282,10 +282,13 @@ def run_3gpp_tests(
         test_files = [test_files]
     test_output = []
 
-    for test_file in test_files:
-        fastprint("Run test for file %s\n" % (test_file))
-        _setup_env("ng40", VM_IP_MAP[setup]["ng40"], key_filename)
-        with cd("/home/ng40/magma/automation"):
+    _setup_env("ng40", VM_IP_MAP[setup]["ng40"], key_filename)
+
+    with cd("/home/ng40/magma/automation"):
+        for test_file in test_files:
+            fastprint("Check ng40 status (if any test is currently running\n")
+            run("ng40test state.ntl")
+            fastprint("Run test for file %s\n" % (test_file))
             with hide("warnings", "running", "stdout"), settings(warn_only=True):
                 output = run("ng40test %s" % test_file)
                 test_output.append(output)

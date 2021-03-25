@@ -12,12 +12,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import fire
+import ast
 import json
+from json.decoder import JSONDecodeError
+from typing import Union
+
+import fire
 import jsonpickle
 import random
-import ast
-from typing import Any, Union
+from lte.protos.keyval_pb2 import IPDesc
+from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
+from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
+from lte.protos.oai.spgw_state_pb2 import SpgwState, SpgwUeContext
+from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule
 
 from magma.common.redis.client import get_default_client
 from magma.common.redis.serializers import get_json_deserializer, \
@@ -25,11 +32,7 @@ from magma.common.redis.serializers import get_json_deserializer, \
 from magma.mobilityd.serialize_utils import deserialize_ip_block, \
     deserialize_ip_desc
 
-from lte.protos.keyval_pb2 import IPDesc
-from lte.protos.policydb_pb2 import PolicyRule, InstalledPolicies
-from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
-from lte.protos.oai.spgw_state_pb2 import SpgwState, S11BearerContext
-from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
+NO_DESERIAL_MSG = "No deserializer exists for type '{}'"
 
 
 def _deserialize_session_json(serialized_json_str: bytes) -> str:
@@ -85,6 +88,7 @@ class StateCLI(object):
         'rule_names': get_json_deserializer(),
         'rule_ids': get_json_deserializer(),
         'rule_versions': get_json_deserializer(),
+        'rules': get_proto_deserializer(PolicyRule),
     }
 
     STATE_PROTOS = {
@@ -92,7 +96,7 @@ class StateCLI(object):
         'spgw_state': SpgwState,
         's1ap_state': S1apState,
         'mme': UeContext,
-        'spgw': S11BearerContext,
+        'spgw': SpgwUeContext,
         's1ap': UeDescription,
         'mobilityd_ipdesc_record': IPDesc,
         'rules': PolicyRule,
@@ -130,19 +134,19 @@ class StateCLI(object):
         if redis_type == 'hash':
             deserializer = self.STATE_DESERIALIZERS.get(key_type)
             if not deserializer:
-                raise AttributeError('Key not found on redis')
+                raise AttributeError(NO_DESERIAL_MSG.format(key_type))
             self._parse_hash_type(deserializer, key)
         elif redis_type == 'set':
             deserializer = self.STATE_DESERIALIZERS.get(key_type)
             if not deserializer:
-                raise AttributeError('Key not found on redis')
+                raise AttributeError(NO_DESERIAL_MSG.format(key_type))
             self._parse_set_type(deserializer, key)
         else:
             value = self.client.get(key)
             # Try parsing as json first, if there's decoding error, parse proto
             try:
                 self._parse_state_json(value)
-            except UnicodeDecodeError:
+            except (UnicodeDecodeError, JSONDecodeError):
                 self._parse_state_proto(key_type, value)
 
     def corrupt(self, key):

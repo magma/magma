@@ -43,11 +43,11 @@ type wwwExporter struct {
 }
 
 //NewWWWExporter exporter instance to export metrics
-func NewWWWExporter(metricsPrefix, appSecret, appID, metricExportURL, categoryName string) Exporter {
+func NewWWWExporter(metricsPrefix, appID, appSecret, metricExportURL, categoryName string) Exporter {
 	return &wwwExporter{
 		metricsPrefix:   metricsPrefix,
-		appSecret:       appSecret,
 		appID:           appID,
+		appSecret:       appSecret,
 		metricExportURL: metricExportURL,
 		categoryName:    categoryName,
 	}
@@ -95,7 +95,7 @@ func (e *wwwExporter) FormatKey(res *protos.CalculationResult) string {
 }
 
 // Labels to not add to key
-var forbiddenKeyLabelNames = []string{metrics.NetworkLabelName}
+var forbiddenKeyLabelNames = []string{metrics.NetworkLabelName, metrics.ImsiLabelName}
 
 func labelIsForbidden(labelName string, forbiddenLabels []string) bool {
 	for _, forbidden := range forbiddenLabels {

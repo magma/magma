@@ -17,10 +17,10 @@ package integration
 
 import (
 	"fmt"
+	"math"
 	"sync"
 	"testing"
 	"time"
-	"math"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
@@ -203,8 +203,8 @@ func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 				// this wait can be remove
 				tr.WaitForEnforcementStatsToSync()
 				req := &cwfprotos.GenTrafficRequest{
-					Imsi: imsi,
-					Volume: &wrappers.StringValue{Value: "2M"},
+					Imsi:    imsi,
+					Volume:  &wrappers.StringValue{Value: "2M"},
 					Bitrate: &wrappers.StringValue{Value: "60M"},
 					Timeout: 30,
 				}
@@ -230,7 +230,7 @@ func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 				// We should not be seeing > 1024k data here
 				assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
 				assert.NoError(t, err)
-				assert.True(t, record.BytesTx <= uint64(math.Round(2.5 * MegaBytes)+Buffer), fmt.Sprintf("policy usage: %v", record))
+				assert.True(t, record.BytesTx <= uint64(math.Round(2.5*MegaBytes)+Buffer), fmt.Sprintf("policy usage: %v", record))
 				// TODO: make sure OCS records its proper usage and it matches with what we monitored
 				//infos, err := getCreditOnOCSPerInstance(element.ocsName, imsi)
 				//fmt.Printf("\t ---> policy usage: %v\n", record)

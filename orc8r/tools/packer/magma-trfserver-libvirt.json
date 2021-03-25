@@ -4,7 +4,7 @@
     "version": "1.0.{{timestamp}}",
     "cpus": "2",
     "memory": "2048",
-    "disk_size": "10G",
+    "disk_size": "40G",
     "boot_wait": "10s"
   },
   "builders": [{

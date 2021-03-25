@@ -68,12 +68,12 @@ fi
 
 wait_for_db_containers
 
-if [[ -f admin_operator.pfx ]]; then
+if [[ -f admin_operator.pfx ]] && [[ -f admin_operator.pem ]] && [[ -f admin_operator.key.pem ]] ; then
   echo ""
   echo "########################"
   echo "Add existing admin certs"
   echo "########################"
-  grep -q admin_operator <(${ACCESSC} list) && exit_already_exists
+  ${ACCESSC} list | grep -q admin_operator && exit_already_exists
   ${ACCESSC} add-existing -admin -cert admin_operator.pem admin_operator
   echo "[success] test certs added"
 else

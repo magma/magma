@@ -5,7 +5,6 @@ magma-gen-meta:
   go-package: magma/lte/cloud/go/services/policydb/obsidian/models
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
-    - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
   temp-gen-filename: lte-policydb-swagger.yml
   output-dir: lte/cloud/go/services/policydb/obsidian
   types:
@@ -557,7 +556,7 @@ definitions:
 
   policy_rule:
     # A traffic match template and a identifier that is
-    # used to labelling usage records
+    # used to labeling usage records
     type: object
     required:
       - id

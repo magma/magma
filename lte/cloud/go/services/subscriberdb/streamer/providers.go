@@ -49,7 +49,7 @@ func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) (
 	if err != nil {
 		return nil, errors.Wrapf(err, "load cellular gateway from magmad gateway %s", magmadGateway.Key)
 	}
-	subEnts, err := configurator.LoadAllEntitiesOfType(
+	subEnts, _, err := configurator.LoadAllEntitiesOfType(
 		gateway.NetworkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true,
 			LoadAssocsToThis: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -64,8 +64,7 @@ func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) (
 
 	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
 	for _, sub := range subEnts {
-		subProto := &lte_protos.SubscriberData{}
-		subProto, err = subscriberToMconfig(sub, apnsByName, apnResourcesByAPN)
+		subProto, err := subscriberToMconfig(sub, apnsByName, apnResourcesByAPN)
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +76,7 @@ func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) (
 }
 
 func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
-	apns, err := configurator.LoadAllEntitiesOfType(
+	apns, _, err := configurator.LoadAllEntitiesOfType(
 		gateway.NetworkID, lte.APNEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,

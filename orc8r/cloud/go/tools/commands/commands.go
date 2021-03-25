@@ -96,7 +96,7 @@ func (cmds *Map) Usage() {
 
 	// NOTE: std flag package uses os.Stderr for output
 	// (https://golang.org/pkg/flag/#FlagSet.SetOutput), we preserve this
-	// behaviour
+	// behavior
 	out := os.Stderr
 	for name, cmd := range cmds.cmdMap {
 		// Underscore & bold command's name in the usage printout

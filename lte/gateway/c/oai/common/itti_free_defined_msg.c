@@ -138,18 +138,6 @@ void itti_free_msg_content(MessageDef* const message_p) {
       message_p->ittiMsg.s11_paging_request.imsi = NULL;
     } break;
 
-    case S1AP_UPLINK_NAS_LOG:
-    case S1AP_UE_CAPABILITY_IND_LOG:
-    case S1AP_INITIAL_CONTEXT_SETUP_LOG:
-    case S1AP_NAS_NON_DELIVERY_IND_LOG:
-    case S1AP_DOWNLINK_NAS_LOG:
-    case S1AP_S1_SETUP_LOG:
-    case S1AP_INITIAL_UE_MESSAGE_LOG:
-    case S1AP_UE_CONTEXT_RELEASE_REQ_LOG:
-    case S1AP_UE_CONTEXT_RELEASE_COMMAND_LOG:
-    case S1AP_UE_CONTEXT_RELEASE_LOG:
-      // DO nothing
-      break;
     case S1AP_ENB_INITIATED_RESET_ACK:
       free_wrapper((void**) &message_p->ittiMsg.s1ap_enb_initiated_reset_ack
                        .ue_to_reset_list);

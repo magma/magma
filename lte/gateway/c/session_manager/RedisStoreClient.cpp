@@ -67,13 +67,12 @@ SessionMap RedisStoreClient::read_sessions(
   SessionMap session_map;
   for (const std::string& key : subscriber_ids) {
     auto reply = futures[key].get();
-    if (reply.is_null()) {
-      // value just doesn't exist
-      session_map[key] = SessionVector{};
-    } else if (reply.is_error()) {
+    if (reply.is_error()) {
       MLOG(MERROR) << "RedisStoreClient: Unable to get value for key " << key;
       throw RedisReadFailed();
-    } else if (!reply.is_string()) {
+    }
+    if (reply.is_null() || !reply.is_string()) {
+      // value just doesn't exist
       session_map[key] = SessionVector{};
     } else {
       session_map[key] = std::move(deserialize_session_vec(reply.as_string()));

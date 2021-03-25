@@ -65,6 +65,7 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 // - Generate traffic and verify if the traffic observed bitrate matches the configured
 // bitrate
 func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
+	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxUplinkTrafficQosEnforcement")
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -123,8 +124,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
@@ -148,6 +148,7 @@ func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
 // - Generate traffic from server to client and verify if the traffic observed bitrate
 //   matches the configured bitrate
 func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
+	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxDownlinkTrafficQosEnforcement")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
@@ -202,7 +203,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), 2*time.Minute, 2*time.Second)
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, ruleKey), 2*time.Minute, 2*time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 //TestGxQosDowngradeWithCCAUpdate
@@ -219,6 +220,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 // - Send another CCA-update which upgrades the QOS through a dynamic rule and verify
 // that the observed bitrate maches the newly configured bitrate
 func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
+	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxQosDowngradeWithCCAUpdate")
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -320,8 +322,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(6 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()
@@ -339,6 +340,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 // - Generate traffic and verify if the traffic observed bitrate matches the newly
 // downgraded bitrate
 func TestGxQosDowngradeWithReAuth(t *testing.T) {
+	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxQosDowngradeWithReAuth")
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -418,6 +420,5 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

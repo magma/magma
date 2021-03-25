@@ -27,6 +27,7 @@
 #include "Nonce.h"
 #include "UeSecurityCapability.h"
 #include "common_defs.h"
+#include "UeAdditionalSecurityCapability.h"
 
 int decode_security_mode_command(
     security_mode_command_msg* security_mode_command, uint8_t* buffer,
@@ -121,6 +122,22 @@ int decode_security_mode_command(
             SECURITY_MODE_COMMAND_NONCEMME_PRESENT;
         break;
 
+      case SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI:
+        if ((decoded_result = decode_ue_additional_security_capability(
+                 &security_mode_command
+                      ->replayedueadditionalsecuritycapabilities,
+                 SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
+                 buffer + decoded, len - decoded)) <= 0) {
+          return decoded_result;
+        }
+        decoded += decoded_result;
+        /*
+         * Set corresponding mask to 1 in presencemask
+         */
+        security_mode_command->presencemask |=
+            SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECU_CAPABILITY_PRESENT;
+        break;
+
       default:
         errorCodeDecoder = TLV_UNEXPECTED_IEI;
         OAILOG_ERROR(
@@ -207,5 +224,18 @@ int encode_security_mode_command(
       encoded += encode_result;
   }
 
+  if ((security_mode_command->presencemask &
+       SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECU_CAPABILITY_PRESENT) ==
+      SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECU_CAPABILITY_PRESENT) {
+    if ((encode_result = encode_ue_additional_security_capability(
+             &security_mode_command->replayedueadditionalsecuritycapabilities,
+             SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
+             buffer + encoded, len - encoded)) < 0) {
+      // Return in case of error
+      return encode_result;
+    } else {
+      encoded += encode_result;
+    }
+  }
   return encoded;
 }

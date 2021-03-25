@@ -19,14 +19,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 func init() {
 	flag.Var(
 		&syslogDest,
 		syslogFlag,
-		"Redirect stderr to syslog, optional syslog destination in network::address format (system default otherwise)")
+		"Redirect stderr to syslog, optional syslog destination in network::address format (system default otherwise)",
+	)
 
 	if shouldParse() {
 		// Save original settings
@@ -59,13 +59,4 @@ func init() {
 	if *stdoutToStderr {
 		stdout, os.Stdout = os.Stdout, os.Stderr
 	}
-}
-
-// shouldParse returns true if initflag should parse flags.
-// This hack works around the fact that initflags breaks test tool outputs.
-func shouldParse() bool {
-	isTest := strings.HasSuffix(os.Args[0], ".test") ||
-		strings.HasSuffix(os.Args[0], "_test.go") ||
-		strings.HasSuffix(os.Args[0], "_test_go")
-	return !flag.Parsed() && !isTest
 }

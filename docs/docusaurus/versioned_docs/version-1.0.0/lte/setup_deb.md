@@ -58,7 +58,7 @@ installation process to get an IP using DHCP.
 
 ```bash
 su
-wget https://raw.githubusercontent.com/facebookincubator/magma/v1.0.0/lte/gateway/deploy/agw_prepare.sh
+wget https://raw.githubusercontent.com/magma/magma/v1.0.0/lte/gateway/deploy/agw_prepare.sh
 sh agw_prepare.sh
 ```
 
@@ -68,7 +68,7 @@ A prompt will pop up to as you if you want to stop removing linux-image-4.9.0-11
 - [AGW_DEPLOY] Build and run AGW_DEPLOY container
 
 ```bash
-git clone https://github.com/facebookincubator/magma.git ~/magma
+git clone https://github.com/magma/magma.git ~/magma
 git fetch && git fetch --tags
 git checkout v1.0.0
 

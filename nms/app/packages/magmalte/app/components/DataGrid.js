@@ -163,39 +163,49 @@ function DataObscure(value: number | string, category: ?string) {
   );
 }
 
-function DataCollapse(
-  category: ?string,
-  value: string | number,
-  //$FlowFixMe TODO: Needs a ComponentType argument
-  collapse: ComponentType,
-) {
+function DataCollapse(data: Data) {
   const props = {collapsed: true};
   const classes = useStyles(props);
   const [open, setOpen] = React.useState(true);
+  const dataEntryValue = data.value + (data.unit ?? '');
   return (
-    <List key={`${category ?? value}Collapse`} className={classes.list}>
+    <List
+      key={`${data.category ?? data.value}Collapse`}
+      className={classes.list}>
       <ListItem button onClick={() => setOpen(!open)}>
         <CardHeader
-          data-testid={category}
-          title={category}
+          data-testid={data.category}
+          title={data.category}
           className={classes.dataBox}
-          subheader={value}
+          subheader={
+            data.statusCircle === true
+              ? StatusIndicator(
+                  data.statusInactive || false,
+                  data.status || false,
+                  dataEntryValue,
+                )
+              : data.icon
+              ? DataIcon(data.icon, dataEntryValue)
+              : data.obscure === true
+              ? DataObscure(data.value, data.category)
+              : dataEntryValue
+          }
           titleTypographyProps={{
-            variant: 'body3',
+            variant: 'caption',
             className: classes.dataLabel,
-            title: category,
+            title: data.category,
           }}
           subheaderTypographyProps={{
             variant: 'body1',
             className: classes.dataValue,
-            title: value,
+            title: data.tooltip ?? dataEntryValue,
           }}
         />
         {open ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
       <Divider />
-      <Collapse key={value} in={open} timeout="auto" unmountOnExit>
-        {collapse}
+      <Collapse key={data.value} in={open} timeout="auto" unmountOnExit>
+        {data.collapse ?? <></>}
       </Collapse>
     </List>
   );
@@ -239,7 +249,7 @@ export default function DataGrid(props: Props) {
               className={classes.dataBlock}>
               <Grid item xs={12}>
                 {data.collapse !== undefined && data.collapse !== false ? (
-                  DataCollapse(data.category, data.value, data.collapse)
+                  DataCollapse(data)
                 ) : (
                   <CardHeader
                     data-testid={data.category}

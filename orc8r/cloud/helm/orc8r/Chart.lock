@@ -1,18 +1,18 @@
 dependencies:
 - name: secrets
   repository: ""
-  version: 0.1.9
+  version: 0.1.10
 - name: metrics
   repository: ""
-  version: 1.4.20
+  version: 1.4.22
 - name: nms
   repository: ""
-  version: 0.1.7
+  version: 0.1.10
 - name: logging
   repository: ""
   version: 0.1.10
 - name: orc8rlib
   repository: file://../orc8rlib
   version: 0.1.2
-digest: sha256:7eb85738fba772adbead4a2575ae39d30c01dd267780da401855aef153d7ade4
-generated: "2020-12-15T02:19:04.959363-05:00"
+digest: sha256:7a49d5fba17dce594a8a6c4c89a7204678acca652c4b4d4727fc07f00132117d
+generated: "2021-03-05T11:56:20.589138693+05:30"

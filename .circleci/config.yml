@@ -15,6 +15,8 @@ aliases:
           - develop
   - &lte_build_verify
     paths: "orc8r lte"
+  - &c_cpp_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -25,6 +27,8 @@ aliases:
     paths: "orc8r"
   - &cwf_build_verify
     paths: "cwf"
+  - &docs_only
+    paths: "docs"
 
 executors:
   node:
@@ -33,6 +37,23 @@ executors:
 
 orbs:
   artifactory: circleci/artifactory@0.0.7
+  codecov: codecov/codecov@1.1.3
+
+  python:
+    commands:
+      set_version:
+        parameters:
+          python_version:
+            description: Valid Python version to set
+            type: string
+            default: "3.7.0"
+        steps:
+          - run:
+              name: Set Python version
+              command: pyenv global <<parameters.python_version>>
+          - run:
+              name: Upgrade Pip
+              command: pip install --upgrade pip
 
   docker:
     commands:
@@ -41,7 +62,7 @@ orbs:
           compose_version:
             description: Docker-compose version to install
             type: string
-            default: '1.25.4'
+            default: "1.25.4"
         steps:
           - run:
               name: Install Docker Compose
@@ -78,6 +99,22 @@ orbs:
                 circleci step halt
 
 commands:
+  install-go:
+    description: Install go from sources
+    parameters:
+      go-version:
+        description: go version default 1.15.7
+        type: string
+        default: "1.15.7"
+    steps:
+      - run: |
+          sudo rm -rf /usr/local/go
+          GO_VERSION=<< parameters.go-version >>
+          wget "https://golang.org/dl/go$GO_VERSION.linux-amd64.tar.gz" -O ./go.tar
+          sudo tar -C /usr/local -xzf go.tar
+          export PATH=$PATH:/usr/local/go/bin
+
+
   run-with-retry:
     description: Run command with retry
     parameters:
@@ -208,18 +245,23 @@ commands:
           PROJECT=<< parameters.project >>
           TAG=<< parameters.tag >>
           TAG_LATEST=<< parameters.tag-latest >>
+
+          function tag_and_push {
+            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
+            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
+            docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
+          }
+
           for IMAGE in "${IMAGES_ARRAY[@]}"; do
             IMAGE_TOSEARCH=$IMAGE
             if [ ! -z $PROJECT ]; then
               IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
             fi
             IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
-            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$TAG"
+            tag_and_push "$TAG"
             if [ "$TAG_LATEST" = true ]; then
-              docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:latest"
+              tag_and_push "latest"
             fi
-            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$TAG"
-            docker push "${DOCKER_REGISTRY}/$IMAGE:$TAG"
           done
 
   magma_integ_test:
@@ -268,9 +310,7 @@ commands:
             echo export AWS_DEFAULT_REGION="us-east-1" >> $BASH_ENV
             echo export AWS_ACCESS_KEY_ID="$(printenv MAGMA_DEPLOY_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
             echo export AWS_SECRET_ACCESS_KEY="$(printenv MAGMA_DEPLOY_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
-      - run:
-          name: Select python 3.7.0
-          command: pyenv global 3.7.0
+      - python/set_version
       - run:
           name: Install python prerequisites
           command: pip3 install fabric3 jsonpickle requests PyYAML awscli
@@ -301,10 +341,6 @@ commands:
 
   magma_slack_notify:
     description: Notify Slack on magma job failure
-    parameters:
-      channel:
-        type: string
-        default: "#magma_ci"
     steps:
       - run:
           command: |
@@ -328,7 +364,6 @@ commands:
             email=$(git show -s --format='%ae')
             rel_time=$(git show -s --format='%cr')
             abs_time=$(git show -s --format='%cd')
-            slack_channel=<< parameters.channel >>
             gh_text="<https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}|${CIRCLE_SHA1:0:8}> by ${author} <${email}> ${rel_time} (${abs_time})"
 
             pretext="Job \`${CIRCLE_JOB}\` #${CIRCLE_BUILD_NUM} on branch \`${CIRCLE_BRANCH}\` of ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} failed. Check the <${CIRCLE_BUILD_URL}|build logs> for details."
@@ -336,7 +371,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "${slack_channel}",
+              "channel": "${SLACK_CHANNEL_CI}",
               "text": "*CircleCI Job Failure*",
               "attachments": [
                 {
@@ -356,7 +391,7 @@ commands:
             EOF
             )
             echo $slack_data
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
           when: always
 
   persist-githash-version:
@@ -404,7 +439,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "#ci-publish",
+              "channel": "${SLACK_CHANNEL_ARTIFACTS}",
               "text": "*<< parameters.artifact_name >> Artifact Has Been Published*",
               "attachments": [
                 {
@@ -428,7 +463,7 @@ commands:
             }
             EOF
             )
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
   ### CLOUD
@@ -444,16 +479,44 @@ jobs:
       - build/determinator:
           <<: *all_gateways_build_verify
       - docker/install-dc
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
+      - python/set_version
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -t -l
+            python3 build.py --tests --up
           no_output_timeout: 15m
       - magma_slack_notify
 
+  # Fail if code doesn't pass formatting requirements.
+  # Upload test coverage statistics.
+  cloud_lint:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
+      - docker/install-dc
+      - python/set_version
+      - run:
+          name: Lint cloud Go code
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --lint
+      - run:
+          name: Generate test coverage
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py --coverage
+      - codecov/upload:
+          file: /home/circleci/project/orc8r/cloud/coverage/all.gocov
+      - magma_slack_notify
+
+  # Fail if checked-in generated code doesn't match output from
+  # generation command.
   insync-checkin:
     machine:
       image: ubuntu-1604:201903-01
@@ -466,13 +529,11 @@ jobs:
           <<: *all_gateways_build_verify
       - docker/install-dc
       - run: sudo apt-get update
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
+      - python/set_version
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -g
+            python3 build.py --generate
       - run: sudo chown -R circleci $MAGMA_ROOT/*
       - run: git add .
       - run: git status
@@ -492,16 +553,22 @@ jobs:
           <<: *all_gateways_build_verify
       - docker/install-dc
       - run: sudo apt-get update
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
+      - python/set_version
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -a --nocache --parallel
+            python3 build.py --all --nocache --parallel
       - tag-push-docker:
           project: orc8r
-          images: "nginx|controller|base"
+          images: "nginx|controller"
+          tag-latest: true
+      # - tag-push-docker:
+      #     project: orc8r
+      #     images: "nginx|controller"
+      #     tag-latest: true
+      #     registry: $JFROG_DOCKER_ORC8R_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -531,16 +598,44 @@ jobs:
             go vet ./...
       - magma_slack_notify
 
-  feg-precommit:
-    docker:
-      - image: circleci/golang:1.13-stretch-node-browsers-legacy
-    resource_class: medium+
+  feg-lint:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
     environment:
       GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
           <<: *federated_build_verify
+      - install-go
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: ./circleci/golang_before_install.sh
+      - run-with-retry:
+         command: go mod download
+         workdir: ${MAGMA_ROOT}/cwf/gateway
+      - run:
+          name: Generate test coverage
+          command: |
+            cd ${MAGMA_ROOT}/feg/gateway
+            make -C ${MAGMA_ROOT}/feg/gateway cover
+      - codecov/upload:
+          file: /home/circleci/project/feg/gateway/coverage/feg.gocov
+      - magma_slack_notify
+
+  feg-precommit:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      GO111MODULE: 'on'
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *federated_build_verify
+      - install-go
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
@@ -572,6 +667,12 @@ jobs:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
+      # - tag-push-docker:
+      #     project: feg
+      #     images: "gateway_go|gateway_python"
+      #     registry: $JFROG_DOCKER_FEG_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -623,6 +724,9 @@ jobs:
         description: Images to deploy
         type: string
         default: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -644,11 +748,74 @@ jobs:
           images: <<parameters.images>>
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
+      # - tag-push-docker:
+      #     project: cwf
+      #     images: <<parameters.images>>
+      #     tag: <<parameters.tag>>
+      #     tag-latest: <<parameters.tag-latest>>
+      #     registry: $JFROG_DOCKER_CWF_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
           artifact_name: CWAG
           version_path: versions/cwag_version
+      - magma_slack_notify
+
+  mme-clang-tidy:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+      BRANCH: << pipeline.git.branch >>
+      REVISION: << pipeline.git.revision >>
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *c_cpp_build_verify
+      - run:
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
+            docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v $MAGMA_ROOT:/magma -i -t magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
+      - magma_slack_notify
+
+  c-cpp-codecov:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *c_cpp_build_verify
+      - run:
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+            ci_env=`bash <(curl -s https://codecov.io/env)`
+            docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info"
+      - magma_slack_notify
+
+  mme-clang-warnings:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+      BRANCH: << pipeline.git.branch >>
+      REVISION: << pipeline.git.revision >>
+    steps:
+      - checkout
+      - run:
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
+            docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
       - magma_slack_notify
 
   lte-test:
@@ -666,6 +833,8 @@ jobs:
       - checkout
       - build/determinator:
           <<: *lte_build_verify
+      - run: mkdir -p /var/tmp/test_results
+      - run: mkdir -p /var/tmp/codecovs
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
       - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
@@ -681,6 +850,12 @@ jobs:
             mkdir ${CODEGEN_ROOT}
             wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
             make -C $MAGMA_ROOT/lte/gateway/python test_all
+      - store_test_results:
+          path: /var/tmp/test_results
+      - codecov/upload:
+          file: /var/tmp/codecovs/cover_lte.xml
+      - codecov/upload:
+          file: /var/tmp/codecovs/cover_orc8r.xml
       - magma_slack_notify
 
   lte-integ-test:
@@ -751,6 +926,12 @@ jobs:
           project: cwf
           images: "operator"
           registry: $DOCKER_MAGMA_REGISTRY
+      # - tag-push-docker:
+      #     project: cwf
+      #     images: "operator"
+      #     registry: $JFROG_DOCKER_CWF_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -828,7 +1009,6 @@ jobs:
             ./e2e_test_setup.sh
       - store_artifacts:
           path: /tmp/nms_artifacts
-
       - magma_slack_notify
 
   nms-build:
@@ -884,6 +1064,8 @@ jobs:
       DOCUSAURUS_BASE_URL: /magma/
     steps:
       - checkout
+      - build/determinator:
+          <<: *docs_only
       - run:
           name: Setup docusaurus expected directory structure
           command: |
@@ -900,6 +1082,7 @@ jobs:
             echo "machine github.com login mamga-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
+      - magma_slack_notify
 
   ### XWF
 
@@ -926,8 +1109,6 @@ jobs:
           name: Setup Environment Variables
           command: |
             echo export MAGMA_ROOT=$(pwd) >> $BASH_ENV
-            echo export AWS_ACCESS_KEY_ID="$(printenv XWF_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
-            echo export AWS_SECRET_ACCESS_KEY="$(printenv XWF_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
             echo export RUN_UID=$RANDOM >> $BASH_ENV
       - run:
           command: |
@@ -935,15 +1116,15 @@ jobs:
             docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
             cd ${MAGMA_ROOT}/xwf/docker/
             docker-compose pull || true
-            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
+            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py
       - when:
           condition: <<parameters.notify_magma_ci>>
-          steps: magma_slack_notify
+          steps:
+            - magma_slack_notify
       - when:
           condition: <<parameters.notify_xwfm_ci>>
           steps:
-            - magma_slack_notify:
-                channel: "#xwfm_ci"
+            - magma_slack_notify
 
   xwfm-deploy:
     parameters:
@@ -951,6 +1132,9 @@ jobs:
         description: Containers tag
         type: string
         default: ${CIRCLE_SHA1:0:8}
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -968,6 +1152,7 @@ jobs:
           images: 'goradius'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - run:
           name: Load openvswitch kernel module for xwf integ test
           command: sudo modprobe openvswitch
@@ -980,6 +1165,7 @@ jobs:
           images: 'xwfm-integ-tests'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - magma_slack_notify
 
 workflows:
@@ -987,12 +1173,14 @@ workflows:
 
   cloud:
     jobs:
-      - cloud-test
       - insync-checkin
+      - cloud_lint
+      - cloud-test
       - orc8r-build:
           requires:
-            - cloud-test
             - insync-checkin
+            - cloud_lint
+            - cloud-test
 
   lib_gateway:
     jobs:
@@ -1001,15 +1189,21 @@ workflows:
   agw:
     jobs:
       - lte-test
+      - mme-clang-tidy:
+          <<: *only_master
+      - mme-clang-warnings:
+          <<: *only_master
       - lte-integ-test:
           <<: *master_and_develop
       - lte-agw-deploy:
           <<: *only_master
           requires:
             - lte-integ-test
+      - c-cpp-codecov
 
   feg:
     jobs:
+      - feg-lint
       - feg-precommit
       - feg-build:
           requires:
@@ -1029,26 +1223,19 @@ workflows:
             - cwf-integ-test
       - xwfm-deploy:
           <<: *only_master
+          name: xwfm-deploy-latest
           requires:
-            - xwfm-test
             - cwag-deploy
+            - xwfm-test
+          tag-latest: true
       - cwag-deploy:
           <<: *only_master
           name: cwag-deploy-latest
           requires:
-            - xwfm-test
-            - cwag-precommit
-            - cwf-integ-test
-          images: 'gateway_python|gateway_pipelined'
-          tag: 'latest'
-      - xwfm-deploy:
-          <<: *only_master
-          name: xwfm-deploy-latest
-          requires:
-            - xwfm-test
-            - cwag-precommit
-            - cwf-integ-test
-          tag: 'latest'
+            - cwag-deploy
+            - xwfm-deploy-latest
+          images: 'gateway_python|gateway_pipelined|gateway_go'
+          tag-latest: true
 
 
   cwf_operator:

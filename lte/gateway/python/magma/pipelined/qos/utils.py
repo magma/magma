@@ -30,6 +30,7 @@ class IdManager(object):
         self._max_idx = max_idx
         self._counter = start_idx
         self._free_idx_list = deque()
+        self._restore_done = False
 
     def allocate_idx(self,) -> int:
         idx = self._get_free_idx()
@@ -50,6 +51,8 @@ class IdManager(object):
         self._free_idx_list.append(idx)
 
     def restore_state(self, id_set):
+        if self._restore_done:
+            return
         if not id_set:
             return
 
@@ -57,6 +60,7 @@ class IdManager(object):
         for idx in range(self._start_idx, self._counter):
             if idx not in id_set:
                 self._free_idx_list.append(idx)
+        self._restore_done = True
 
     def _get_free_idx(self) -> int:
         if self._free_idx_list:

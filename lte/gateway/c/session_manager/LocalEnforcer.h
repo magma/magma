@@ -22,7 +22,6 @@
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-#include <orc8r/protos/directoryd.pb.h>
 
 #include "AAAClient.h"
 #include "DirectorydClient.h"
@@ -91,7 +90,6 @@ class LocalEnforcer {
       std::shared_ptr<SessionReporter> reporter,
       std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
       std::shared_ptr<PipelinedClient> pipelined_client,
-      std::shared_ptr<AsyncDirectorydClient> directoryd_client,
       std::shared_ptr<EventsReporter> events_reporter,
       std::shared_ptr<SpgwServiceClient> spgw_client,
       std::shared_ptr<aaa::AAAClient> aaa_client,
@@ -112,7 +110,7 @@ class LocalEnforcer {
    * Setup rules for all sessions in pipelined, used whenever pipelined
    * restarts and needs to recover state
    */
-  bool setup(
+  void setup(
       SessionMap& session_map, const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback);
 
@@ -161,7 +159,7 @@ class LocalEnforcer {
    * Perform any rule installs/removals that need to be executed given a
    * CreateSessionResponse.
    */
-  void handle_session_init_rule_updates(
+  void handle_session_activate_rule_updates(
       const std::string& imsi, SessionState& session_state,
       const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
@@ -171,11 +169,11 @@ class LocalEnforcer {
       BearerUpdate& bearer_updates);
 
   /**
-   * Initialize credit received from the cloud in the system. This adds all the
-   * charging keys to the credit manager for tracking
+   * Initialize session on session map. Adds some information comming from
+   * the core (cloud). Rules will be installed by init_session_credit
    * @param credit_response - message from cloud containing initial credits
    */
-  void init_session_credit(
+  void init_session(
       SessionMap& session_map, const std::string& imsi,
       const std::string& session_id, const SessionConfig& cfg,
       const CreateSessionResponse& response);
@@ -281,12 +279,10 @@ class LocalEnforcer {
    * UE on pipelined. UE will be identified by pipelined using its IP
    * @param session_map
    * @param request
-   * @param session_update
    * @return true if successfully processed the request
    */
   bool update_tunnel_ids(
-      SessionMap& session_map, const UpdateTunnelIdsRequest& request,
-      SessionUpdate& session_update);
+      SessionMap& session_map, const UpdateTunnelIdsRequest& request);
 
   std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; };
 
@@ -300,7 +296,6 @@ class LocalEnforcer {
   std::shared_ptr<SessionReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
-  std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   std::shared_ptr<EventsReporter> events_reporter_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
@@ -486,10 +481,7 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const std::string& msisdn,
-      optional<AggregatedMaximumBitrate> ambr,
-      const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules, Status status,
+      const std::string& ipv6_addr, const Teids teids, Status status,
       ActivateFlowsResult resp);
 
   /**
@@ -522,7 +514,7 @@ class LocalEnforcer {
 
   /**
    * remove_all_rules_for_termination talks to PipelineD and removes all rules
-   * attached to the session
+   * (Gx/Gy/static/dynamic/everything) attached to the session
    * @param imsi
    * @param session
    * @param uc
@@ -593,19 +585,9 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * Remove final action flows through pipelined
-   */
-  void cancel_final_unit_action(
-      const std::unique_ptr<SessionState>& session,
-      const std::vector<std::string>& restrict_rules,
-      SessionStateUpdateCriteria& uc);
-
-  /**
    * Create redirection rule
    */
   PolicyRule create_redirect_rule(const std::unique_ptr<ServiceAction>& action);
-
-  bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 
   void report_subscriber_state_to_pipelined(
       const std::string& imsi, const std::string& ue_mac_addr,
@@ -621,7 +603,7 @@ class LocalEnforcer {
    * Otherwise, mark the subscriber as out of quota to pipelined, and schedule
    * the session to be terminated in a configured amount of time.
    */
-  void handle_session_init_subscriber_quota_state(
+  void handle_session_activate_subscriber_quota_state(
       const std::string& imsi, SessionState& session_state);
 
   bool is_wallet_exhausted(SessionState& session_state);

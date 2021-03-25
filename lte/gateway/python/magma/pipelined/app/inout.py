@@ -10,14 +10,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List
 import ipaddress
 import threading
 
 from collections import namedtuple
 
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from scapy.arch import get_if_hwaddr, get_if_addr
 from scapy.data import ETHER_BROADCAST, ETH_P_ALL
@@ -31,16 +29,18 @@ from magma.pipelined.mobilityd_client import get_mobilityd_gw_info, \
 from lte.protos.mobilityd_pb2 import IPAddress
 
 from magma.pipelined.app.li_mirror import LIMirrorController
-from magma.pipelined.app.restart_mixin import RestartMixin
 from magma.pipelined.openflow import flows
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
 from magma.pipelined.openflow.registers import load_direction, Direction, \
-    PASSTHROUGH_REG_VAL, TUN_PORT_REG, PROXY_TAG_TO_PROXY
+    PASSTHROUGH_REG_VAL, TUN_PORT_REG, PROXY_TAG_TO_PROXY, REG_ZERO_VAL
+from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
 
 from ryu.lib import hub
 from ryu.lib.packet import ether_types
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 
 # ingress and egress service names -- used by other controllers
 
@@ -153,40 +153,35 @@ class InOutController(RestartMixin, MagmaController):
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
-        self._setup_non_nat_monitoring(datapath)
+        self._setup_non_nat_monitoring()
+        # TODO possibly investigate stateless XWF(no sessiond)
+        if self.config.setup_type == 'XWF':
+            self.delete_all_flows(datapath)
+            self._install_default_flows(datapath)
 
-    def _install_default_flows_if_not_installed(self, datapath,
-            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
-        ret = {}
-        
-        ingress_msgs = self._get_default_ingress_flow_msgs(datapath)
-        msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list(self._datapath, ingress_msgs,
-                existing_flows[self._ingress_tbl_num])
-        ret[self._ingress_tbl_num] = remaining_flows
-        if msgs:
-            chan = self._msg_hub.send(msgs, datapath)
-            self._wait_for_responses(chan, len(msgs))
+    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
+        """
+        Gets the default flow msgs for pkt routing
 
-        egress_msgs = self._get_default_egress_flow_msgs(datapath)
-        msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list(self._datapath, egress_msgs,
-                                             existing_flows[self._egress_tbl_num])
-        ret[self._egress_tbl_num] = remaining_flows
-        if msgs:
-            chan = self._msg_hub.send(msgs, datapath)
-            self._wait_for_responses(chan, len(msgs))
+        Args:
+            datapath: ryu datapath struct
+        Returns:
+            The list of default msgs to add
+        """
+        return {
+            self._ingress_tbl_num: self._get_default_ingress_flow_msgs(datapath),
+            self._midle_tbl_num: self._get_default_middle_flow_msgs(datapath),
+            self._egress_tbl_num: self._get_default_egress_flow_msgs(datapath),
+        }
 
-        middle_msgs = self._get_default_middle_flow_msgs(datapath)
-        msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list(self._datapath, middle_msgs,
-                                             existing_flows[self._midle_tbl_num])
-        ret[self._midle_tbl_num] = remaining_flows
-        if msgs:
-            chan = self._msg_hub.send(msgs, datapath)
-            self._wait_for_responses(chan, len(msgs))
+    def _install_default_flows(self, datapath):
+        default_msg_map = self._get_default_flow_msgs(datapath)
+        default_msgs = []
 
-        return ret
+        for _, msgs in default_msg_map.items():
+            default_msgs.extend(msgs)
+        chan = self._msg_hub.send(default_msgs, datapath)
+        self._wait_for_responses(chan, len(default_msgs))
 
     def cleanup_on_disconnect(self, datapath):
         if self._clean_restart:
@@ -211,7 +206,7 @@ class InOutController(RestartMixin, MagmaController):
         # Allow passthrough pkts(skip enforcement and send to egress table)
         ps_match = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
         msgs.append(flows.get_add_resubmit_next_service_flow_msg(dp,
-            self._midle_tbl_num, ps_match,actions=[], 
+            self._midle_tbl_num, ps_match, actions=[],
             priority=flows.PASSTHROUGH_PRIORITY,
             resubmit_table=self._egress_tbl_num))
 
@@ -368,14 +363,26 @@ class InOutController(RestartMixin, MagmaController):
             )
 
         # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
-        match = MagmaMatch()
+        # Passthrough is zero for packets from eNodeB GTP tunnels
+        ps_match_out = MagmaMatch(passthrough=REG_ZERO_VAL)
         actions = [load_direction(parser, Direction.OUT)]
         msgs.append(
-            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num,match,
+            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_out,
                                                  actions=actions,
                                                  priority=flows.MINIMUM_PRIORITY,
                                                  resubmit_table=next_table)
         )
+        # Passthrough is one for packets from remote PGW GTP tunnels, set direction
+        # flag to IN for such packets.
+        ps_match_in = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
+        actions = [load_direction(parser, Direction.IN)]
+        msgs.append(
+            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_in,
+                                                 actions=actions,
+                                                 priority=flows.MINIMUM_PRIORITY,
+                                                 resubmit_table=next_table)
+        )
+
         return msgs
 
     def _get_gw_mac_address(self, ip: IPAddress, vlan: str = "") -> str:
@@ -443,9 +450,12 @@ class InOutController(RestartMixin, MagmaController):
                     if latest_mac_addr == "":
                         latest_mac_addr = gw_info.mac
 
-                    self._install_default_egress_flows(self._datapath,
-                                                       latest_mac_addr,
-                                                       gw_info.vlan)
+                    msgs = self._get_default_egress_flow_msgs(self._datapath,
+                                                              latest_mac_addr,
+                                                              gw_info.vlan)
+                    chan = self._msg_hub.send(msgs, self._datapath)
+                    self._wait_for_responses(chan, len(msgs))
+
                     if latest_mac_addr != "":
                         set_mobilityd_gw_info(gw_info.ip,
                                               latest_mac_addr,
@@ -455,13 +465,11 @@ class InOutController(RestartMixin, MagmaController):
 
             hub.sleep(self.config.non_nat_gw_probe_frequency)
 
-    def _setup_non_nat_monitoring(self, datapath):
+    def _setup_non_nat_monitoring(self):
         """
         Setup egress flow to forward traffic to internet GW.
         Start a thread to figure out MAC address of uplink NAT gw.
 
-        Args:
-            datapath: datapath to install flows.
         """
         if self._gw_mac_monitor is not None:
             # No need to multiple probes here.
@@ -477,7 +485,6 @@ class InOutController(RestartMixin, MagmaController):
                              self.config.non_nat_arp_egress_port,
                              self.config.uplink_port)
 
-        self._datapath = datapath
         self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
 
         threading.Event().wait(1)
@@ -503,7 +510,6 @@ class InOutController(RestartMixin, MagmaController):
             priority=flows.UE_FLOW_PRIORITY, actions=actions,
             output_port=self.config.he_proxy_port)]
 
-
     def _wait_for_responses(self, chan, response_count):
         def fail(err):
             self.logger.error("Failed to install rule with error: %s", err)
@@ -512,21 +518,29 @@ class InOutController(RestartMixin, MagmaController):
             try:
                 result = chan.get()
             except MsgChannel.Timeout:
-                return fail("No response from OVS policy mixin")
+                return fail("No response from OVS msg channel")
             if not result.ok():
                 return fail(result.exception())
 
-    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
+    def _get_ue_specific_flow_msgs(self, _):
+        return {}
+
+    def recover_state(self, _):
         pass
 
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
-        pass
-
-    def _install_redirect_flow(self, imsi, ip_addr, rule):
+    def finish_init(self, _):
         pass
 
     def cleanup_state(self):
         pass
+
+    @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
+    def _handle_barrier(self, ev):
+        self._msg_hub.handle_barrier(ev)
+
+    @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
+    def _handle_error(self, ev):
+        self._msg_hub.handle_error(ev)
 
 
 def _get_vlan_egress_flow_msgs(dp, table_no, ip, out_port=None,

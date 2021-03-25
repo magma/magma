@@ -157,18 +157,18 @@ describe('<DashboardAlertTable />', () => {
     const rowItems = await getAllByRole('row');
 
     // check if the default is critical alert sections
-    expect(rowItems[0]).toHaveTextContent('TestAlert1');
-    fireEvent.click(getByText('1 Critical'));
-    expect(rowItems[0]).toHaveTextContent('TestAlert1');
+    expect(rowItems[1]).toHaveTextContent('TestAlert1');
+    fireEvent.click(getByText('Critical(1)'));
+    expect(rowItems[1]).toHaveTextContent('TestAlert1');
 
-    fireEvent.click(getByText('1 Major'));
-    expect(rowItems[0]).toHaveTextContent('TestAlert2');
+    fireEvent.click(getByText('Major(1)'));
+    expect(rowItems[1]).toHaveTextContent('TestAlert2');
 
-    fireEvent.click(getByText('1 Minor'));
-    expect(rowItems[0]).toHaveTextContent('TestAlert3');
+    fireEvent.click(getByText('Minor(1)'));
+    expect(rowItems[1]).toHaveTextContent('TestAlert3');
 
-    fireEvent.click(getByText('1 Other'));
-    expect(rowItems[0]).toHaveTextContent('TestAlert4');
+    fireEvent.click(getByText('Other(1)'));
+    expect(rowItems[1]).toHaveTextContent('TestAlert4');
 
     expect(getByText('Alerts (4)')).toBeInTheDocument();
   });

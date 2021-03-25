@@ -1,0 +1,244 @@
+#!/bin/groovy
+
+def GIT_URL = "github.com/magma/magma"
+def GIT_BRANCH = "master"
+def slack_channel = "#magma-ci-bot"
+def test_results = 0
+pipeline {
+  agent {
+      label "libvirt"
+  }
+  options {
+    timestamps()
+    ansiColor('xterm')
+  }
+  stages {
+    stage("Prepate Env"){
+      steps{
+        script {
+          echo "Clean Env"
+          cleanWs()
+          echo "Clone Sources"
+          checkout(
+            changelog: false, 
+            poll: false, 
+            scm: [$class: 'GitSCM', 
+                  branches: [[name: '$sha1']], 
+                  doGenerateSubmoduleConfigurations: false, 
+                  extensions: [], 
+                  submoduleCfg: [], 
+                  userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
+          )
+        }
+      }
+    }
+    stage("Clean Resources"){
+      environment {
+        PYTHONPATH = "${WORKSPACE}/orc8r"
+      }
+      steps{
+        script {
+          echo "Clean Docker Cache"
+          sh "sudo docker system prune -f"
+          
+          echo "Purge old vagrant boxes"
+          sh "sudo vagrant box prune --force"
+          sh "sudo chown -R jenkins:libvirt ~jenkins/.vagrant.d"
+
+          
+          echo "Clean VMs"
+          sh "vagrant global-status"
+          sh "sudo virsh list --all --name"
+          sh "vagrant global-status 2>/dev/null | awk '/workspace/{print \$1}' | xargs -I {} vagrant destroy -f {}"
+          try {
+            sh('sudo virsh list --all --name | grep magma | xargs --no-run-if-empty -n1 sudo virsh destroy')
+            sh('sudo virsh list --all --name | grep cwag | xargs --no-run-if-empty -n1 sudo virsh destroy')
+          }
+          catch (Exception e) {
+              echo "Fine. Let it go..."
+          }
+          try {
+                sh('sudo virsh list --all --name | grep magma | xargs --no-run-if-empty -n1 sudo virsh undefine')
+                sh('sudo virsh list --all --name | grep cwag | xargs --no-run-if-empty -n1 sudo virsh undefine')
+                // Clean LTE VMs
+                sh('cd lte/gateway;virsh undefine gateway_magma || true; vagrant destroy --force magma')
+                sh('cd lte/gateway;virsh undefine gateway_magma_test || true; vagrant destroy --force magma_test')
+                sh('cd lte/gateway;virsh undefine gateway_magma_trfserver || true; vagrant destroy --force magma_trfserver')
+                // Clean CWF VMs
+                sh('cd cwf/gateway;vagrant destroy --force cwag')
+                sh('cd cwf/gateway;vagrant destroy --force cwag_test')
+                sh('cd lte/gateway;vagrant destroy --force magma_trfserver')
+          }
+          catch (Exception e) {
+              echo "Fine. Let it go..."
+          }
+        }
+      }
+    }
+    stage("Setup Packages"){
+      environment {
+        PYTHONPATH = "${WORKSPACE}/orc8r"
+      }
+      steps{
+        script {
+          echo "Setup required packages"
+          sh """
+            export PATH;
+            export PYENV_ROOT="\$HOME/.pyenv"
+            export PATH="\$PYENV_ROOT/bin:\$PATH"
+            eval "\$(pyenv init -)"
+            eval "\$(pyenv virtualenv-init -)"
+            pyenv global 3.7.0
+            pip3 install --upgrade pip
+            pip3 install fabric3 jsonpickle requests PyYAML awscli docker-compose
+          """
+        }
+      }
+    }
+
+    stage ("Provisioning") {
+      parallel {
+        stage("Setup Magma VM"){
+          environment {
+            PYTHONPATH = "${WORKSPACE}/orc8r"
+          }
+          steps{
+            script {
+              dir('lte/gateway') {
+                timeout(time: 70, unit: 'MINUTES') {
+                  sh 'vagrant up --provider libvirt magma'
+                  sh 'vagrant status'
+                  sh 'sudo chown -R jenkins:libvirt "${WORKSPACE}/.cache"'
+
+                  sh 'vagrant ssh magma -c "cd magma/lte/gateway && make"'
+                  try {
+                    sh 'vagrant ssh magma -c "cd magma/lte/gateway && make test"'
+                  } catch (Exception e) {
+                    test_results=1
+                  }
+                  try {
+                    sh 'vagrant ssh magma -c "cd magma/lte/gateway/python && make coverage"'
+                  } catch (Exception e) {
+                    test_results=1
+                  } 
+                  sh 'vagrant ssh magma -c "cd magma/lte/gateway && make run"'
+                  sh 'vagrant ssh magma -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"'
+                }
+              }
+            } 
+          }
+        }
+        stage("Setup TrfServer VM"){
+          environment {
+            PYTHONPATH = "${WORKSPACE}/orc8r"
+          }
+          steps{
+            script {
+              dir('lte/gateway') {
+                timeout(time: 10, unit: 'MINUTES') {
+                    sh 'vagrant up --provider libvirt magma_trfserver'
+                    sh 'vagrant ssh magma_trfserver -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"'
+                    sh 'vagrant ssh magma_trfserver -c "sudo nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1 &"'
+                }
+              }
+            }
+          }
+        }
+        
+        stage("Setup Magma Test VM"){
+          environment {
+            PYTHONPATH = "${WORKSPACE}/orc8r"
+          }
+          steps{
+            script {
+              dir('lte/gateway') {
+                timeout(time: 10, unit: 'MINUTES') {
+                  sh 'vagrant up --provider libvirt magma_test'
+                  sh 'vagrant ssh magma_test -c "cd magma/lte/gateway/python && make"'
+                  sh 'vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests && make"'
+                  sh 'vagrant ssh magma_test -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"'
+                  sh 'vagrant ssh magma_test -c "cat /etc/hosts"'
+                  sh 'vagrant ssh magma_test -c "echo \'127.0.1.1       magma-test.magma.com    magma-test\' | sudo tee --append /etc/hosts"'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    stage("LTE integration tests"){
+      environment {
+        PYTHONPATH = "${WORKSPACE}/orc8r"
+      }
+      steps{
+        script {
+          dir('lte/gateway') {
+            // Wait a bit to ensure AGW services are started 
+            sh "sleep 30"
+            timeout(time: 120, unit: 'MINUTES') {
+                try {
+                 sh """
+                  export PYENV_ROOT="\$HOME/.pyenv"
+                  export PATH="\$PYENV_ROOT/shims:\$PATH"
+                  fab run_integ_tests
+                 """
+                } catch (Exception e) {
+                  test_results=1
+                }
+                
+                try {
+                  sh 'vagrant ssh magma -c "cd magma/lte/gateway && make coverage_oai"'
+                } catch (Exception e) {
+                  test_results=1
+                }
+            }
+            def test_folder = "lte-artifacts"
+            sh "mkdir ${test_folder}"
+            if (test_results) {
+              currentBuild.result = 'FAILURE'
+              def tar_file_name = "lte-test-logs.tar.gz"
+              // # On failure, transfer logs into current directory
+              def log_path = "${test_folder}/${tar_file_name}"
+              timeout(time: 2, unit: 'MINUTES') {
+                sh """
+                  export PYENV_ROOT="\$HOME/.pyenv"
+                  export PATH="\$PYENV_ROOT/shims:\$PATH"
+                  fab get_test_logs:dst_path=\"${log_path}\"
+                """
+              }
+              timeout(time: 10, unit: 'MINUTES') {
+                archiveArtifacts("${test_folder}/*")
+              }
+            }
+            
+          }
+        }
+      }
+    }
+  }
+  post {
+    success {
+      script {
+        def color = "good"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
+        echo message
+        sendSocialMediaMessage(slack_channel,color, message)
+      }
+    }
+    unsuccessful {
+      script {
+        def color = "danger"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
+        echo message
+        sendSocialMediaMessage(slack_channel,color, message)
+      }
+    }
+  }
+}
+
+//-------------------------------------------------------------------------------
+// Abstraction function to send social media messages:
+// like on Slack or Mattermost
+def sendSocialMediaMessage(pipeChannel, pipeColor, pipeMessage) {
+    slackSend channel: pipeChannel, color: pipeColor, message: pipeMessage
+}

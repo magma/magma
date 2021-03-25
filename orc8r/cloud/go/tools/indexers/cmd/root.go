@@ -19,7 +19,6 @@ import (
 	"log"
 	"os"
 
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/state"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/lib/go/registry"
@@ -58,7 +57,6 @@ func globalPre(cmd *cobra.Command, args []string) {
 		log.SetOutput(ioutil.Discard)
 		defer log.SetOutput(os.Stderr)
 	}
-	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 	registry.MustPopulateServices()
 }
 

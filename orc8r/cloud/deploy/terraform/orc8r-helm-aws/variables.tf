@@ -91,12 +91,6 @@ variable "orc8r_proxy_replicas" {
   default     = 2
 }
 
-variable "use_nginx_proxy" {
-  description = "Feature flag for Nginx proxy."
-  type        = bool
-  default     = true
-}
-
 variable "orc8r_db_name" {
   description = "DB name for Orchestrator database connection."
   type        = string
@@ -161,9 +155,53 @@ variable "helm_deployment_name" {
   default     = "orc8r"
 }
 
-variable "orc8r_chart_version" {
-  description = "Version of the Orchestrator Helm chart to install."
+variable "orc8r_deployment_type" {
+  description = "Type of orc8r deployment (fixed wireless access, federated fixed wireless access, or all modules)"
   type        = string
+  validation {
+    condition = (
+      var.orc8r_deployment_type == "fwa" ||
+      var.orc8r_deployment_type == "federated_fwa" ||
+      var.orc8r_deployment_type == "all"
+    )
+    error_message = "The orc8r_deployment_type value must be one of ['fwa', 'federated_fwa', 'all']."
+  }
+}
+
+variable "orc8r_chart_version" {
+  description = "Version of the core orchestrator Helm chart to install."
+  type        = string
+  default     = "1.5.18"
+}
+
+variable "cwf_orc8r_chart_version" {
+  description = "Version of the orchestrator cwf module Helm chart to install."
+  type        = string
+  default     = "0.2.1"
+}
+
+variable "fbinternal_orc8r_chart_version" {
+  description = "Version of the orchestrator fbinternal module Helm chart to install."
+  type        = string
+  default     = "0.2.1"
+}
+
+variable "feg_orc8r_chart_version" {
+  description = "Version of the orchestrator feg module Helm chart to install."
+  type        = string
+  default     = "0.2.2"
+}
+
+variable "lte_orc8r_chart_version" {
+  description = "Version of the orchestrator lte module Helm chart to install."
+  type        = string
+  default     = "0.2.2"
+}
+
+variable "wifi_orc8r_chart_version" {
+  description = "Version of the orchestrator wifi module Helm chart to install."
+  type        = string
+  default     = "0.2.1"
 }
 
 variable "orc8r_tag" {
@@ -200,6 +238,24 @@ variable "elasticsearch_retention_days" {
   description = "Retention period in days of Elasticsearch indices."
   type        = number
   default     = 7
+}
+
+variable "elasticsearch_port" {
+  description = "Port Elastic search is listening."
+  type        = number
+  default     = 443
+}
+
+variable "elasticsearch_use_ssl" {
+  description = "Defines if elasicsearch curator should speak to ELK HTTP or HTTPS."
+  type        = string
+  default     = "True"
+}
+
+variable "elasticsearch_curator_log_level" {
+  description = "Defines Elasticsearch curator logging level."
+  type        = string
+  default     = "INFO"
 }
 
 ##############################################################################
@@ -284,19 +340,76 @@ variable "thanos_object_store_bucket_name" {
 
 variable "thanos_query_node_selector" {
   description = "NodeSelector value to specify which node to run thanos query pod on. Default is 'thanos' to be deployed on the default thanos worker group."
-  type = string
-  default = "thanos"
+  type        = string
+  default     = "thanos"
 }
 
 
 variable "thanos_compact_node_selector" {
   description = "NodeSelector value to specify which node to run thanos compact pod on. Label is 'compute-type:<value>'"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "thanos_store_node_selector" {
   description = "NodeSelector value to specify which node to run thanos store pod on. Label is 'compute-type:<value>'"
+  type        = string
+  default     = ""
+}
+
+##############################################################################
+# Analytics Service
+##############################################################################
+variable "analytics_export_enabled" {
+  description = "Deploy thanos components and object storage"
+  type        = bool
+  default     = false
+}
+
+variable "analytics_metrics_prefix" {
+  description = "Bucket name for s3 object storage. Must be globally unique"
+  type        = string
+  default     = ""
+}
+
+variable "analytics_app_secret" {
+  description = "App secret for which the metrics is to be exported to"
   type = string
   default = ""
+}
+
+
+variable "analytics_app_id" {
+  description = "App ID for which the metrics is to be exported to"
+  type = string
+  default = ""
+}
+
+variable "analytics_metric_export_url" {
+  description = "Metric Export URL"
+  type = string
+  default = ""
+}
+
+variable "analytics_category_name" {
+  description = "Category under which the exported metrics will be placed under"
+  type = string
+  default = "magma"
+}
+
+
+##############################################################################
+# Other dependency variables
+##############################################################################
+
+variable "prometheus_configurer_version" {
+  description = "Image version for prometheus configurer."
+  type        = string
+  default     = "1.0.4"
+}
+
+variable "alertmanager_configurer_version" {
+  description = "Image version for alertmanager configurer."
+  type        = string
+  default     = "1.0.4"
 }

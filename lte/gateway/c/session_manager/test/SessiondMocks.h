@@ -42,12 +42,15 @@ namespace magma {
 class MockPipelined final : public Pipelined::Service {
  public:
   MockPipelined() : Pipelined::Service() {
-    ON_CALL(*this, AddRule(_, _, _)).WillByDefault(Return(Status::OK));
     ON_CALL(*this, ActivateFlows(_, _, _)).WillByDefault(Return(Status::OK));
     ON_CALL(*this, DeactivateFlows(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, SetupPolicyFlows(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, SetupDefaultControllers(_, _, _))
+        .WillByDefault(Return(Status::OK));
+    ON_CALL(*this, SetupUEMacFlows(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, SetupQuotaFlows(_, _, _)).WillByDefault(Return(Status::OK));
   }
 
-  MOCK_METHOD3(AddRule, Status(grpc::ServerContext*, const PolicyRule*, Void*));
   MOCK_METHOD3(
       ActivateFlows, Status(
                          grpc::ServerContext*, const ActivateFlowsRequest*,
@@ -56,40 +59,34 @@ class MockPipelined final : public Pipelined::Service {
       DeactivateFlows, Status(
                            grpc::ServerContext*, const DeactivateFlowsRequest*,
                            DeactivateFlowsResult*));
+  MOCK_METHOD3(
+      SetupPolicyFlows,
+      Status(
+          grpc::ServerContext*, const SetupPolicyRequest*, SetupFlowsResult*));
+  MOCK_METHOD3(
+      SetupDefaultControllers,
+      Status(
+          grpc::ServerContext*, const SetupDefaultRequest*, SetupFlowsResult*));
+  MOCK_METHOD3(
+      SetupUEMacFlows,
+      Status(
+          grpc::ServerContext*, const SetupUEMacRequest*, SetupFlowsResult*));
+  MOCK_METHOD3(
+      SetupQuotaFlows,
+      Status(
+          grpc::ServerContext*, const SetupQuotaRequest*, SetupFlowsResult*));
 };
 
 class MockPipelinedClient : public PipelinedClient {
  public:
   MockPipelinedClient() {
-    ON_CALL(*this, setup_cwf(_, _, _, _, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, setup_lte(_, _, _)).WillByDefault(Return(true));
-    ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
-    ON_CALL(*this, deactivate_flows_for_rules(_, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, deactivate_flows_for_rules_for_termination(_, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, update_tunnel_ids(_, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
-    ON_CALL(*this, update_ipfix_flow(_, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, add_gy_final_action_flow(_, _, _, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, set_upf_session(_, _)).WillByDefault(Return(true));
-    ON_CALL(*this, update_subscriber_quota_state(_))
-        .WillByDefault(Return(true));
     ON_CALL(*this, get_next_teid()).WillByDefault(Return(0));
     ON_CALL(*this, get_current_teid()).WillByDefault(Return(0));
   }
 
   MOCK_METHOD9(
       setup_cwf,
-      bool(
+      void(
           const std::vector<SessionState::SessionInfo>& infos,
           const std::vector<SubscriberQuotaUpdate>& quota_updates,
           const std::vector<std::string> ue_mac_addrs,
@@ -101,91 +98,84 @@ class MockPipelinedClient : public PipelinedClient {
           std::function<void(Status status, SetupFlowsResult)> callback));
   MOCK_METHOD3(
       setup_lte,
-      bool(
+      void(
           const std::vector<SessionState::SessionInfo>& infos,
           const std::uint64_t& epoch,
           std::function<void(Status status, SetupFlowsResult)> callback));
-  MOCK_METHOD1(deactivate_all_flows, bool(const std::string& imsi));
   MOCK_METHOD6(
       deactivate_flows_for_rules,
-      bool(
+      void(
           const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr,
-          const std::vector<std::string>& rule_ids,
-          const std::vector<PolicyRule>& dynamic_rules,
+          const std::string& ipv6_addr, const Teids teids,
+          const RulesToProcess to_process,
           const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD6(
+  MOCK_METHOD5(
       deactivate_flows_for_rules_for_termination,
-      bool(
+      void(
           const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr,
-          const std::vector<std::string>& rule_ids,
-          const std::vector<PolicyRule>& dynamic_rules,
+          const std::string& ipv6_addr, const Teids teids,
           const RequestOriginType_OriginType origin_type));
   MOCK_METHOD8(
       activate_flows_for_rules,
-      bool(
+      void(
           const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr, const std::string& msisdn,
+          const std::string& ipv6_addr, const Teids teids,
+          const std::string& msisdn,
           const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
-          const std::vector<std::string>& static_rules,
-          const std::vector<PolicyRule>& dynamic_rules,
+          const RulesToProcess to_process,
           std::function<void(Status status, ActivateFlowsResult)> callback));
-  MOCK_METHOD5(
-      update_tunnel_ids,
-      bool(
-          const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr, const uint32_t enb_teid,
-          const uint32_t agw_teid));
   MOCK_METHOD6(
       add_ue_mac_flow,
-      bool(
+      void(
           const SubscriberID& sid, const std::string& ue_mac_addr,
           const std::string& msisdn, const std::string& ap_mac_addr,
           const std::string& ap_name,
           std::function<void(Status status, FlowResponse)> callback));
   MOCK_METHOD6(
       update_ipfix_flow,
-      bool(
+      void(
           const SubscriberID& sid, const std::string& ue_mac_addr,
           const std::string& msisdn, const std::string& ap_mac_addr,
           const std::string& ap_name, const uint64_t& pdp_start_time));
   MOCK_METHOD1(
       update_subscriber_quota_state,
-      bool(const std::vector<SubscriberQuotaUpdate>& updates));
+      void(const std::vector<SubscriberQuotaUpdate>& updates));
   MOCK_METHOD2(
       delete_ue_mac_flow,
-      bool(const SubscriberID& sid, const std::string& ue_mac_addr));
+      void(const SubscriberID& sid, const std::string& ue_mac_addr));
   MOCK_METHOD6(
       add_gy_final_action_flow,
-      bool(
+      void(
           const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr, const std::string& msisdn,
-          const std::vector<std::string>& static_rules,
-          const std::vector<PolicyRule>& dynamic_rules));
+          const std::string& ipv6_addr, const Teids teids,
+          const std::string& msisdn, const RulesToProcess to_process));
   MOCK_METHOD2(
       set_upf_session,
-      bool(
+      void(
           const SessionState::SessionInfo info,
           std::function<void(Status status, UPFSessionContextState)> callback));
   MOCK_METHOD0(get_next_teid, uint32_t());
   MOCK_METHOD0(get_current_teid, uint32_t());
 };
 
-class MockDirectorydClient : public AsyncDirectorydClient {
+class MockDirectorydClient : public DirectorydClient {
  public:
-  MockDirectorydClient() {
-    ON_CALL(*this, get_directoryd_ip_field(_, _)).WillByDefault(Return(true));
-  }
-
   MOCK_METHOD2(
-      get_directoryd_ip_field,
-      bool(
-          const std::string& imsi,
-          std::function<void(Status status, DirectoryField)> callback));
+      update_directoryd_record,
+      void(
+          const UpdateRecordRequest& request,
+          std::function<void(Status status, Void)> callback));
+  MOCK_METHOD2(
+      delete_directoryd_record,
+      void(
+          const DeleteRecordRequest& request,
+          std::function<void(Status status, Void)> callback));
+  MOCK_METHOD1(
+      get_all_directoryd_records,
+      void(std::function<void(Status status, AllDirectoryRecords)> callback));
 };
 
-class MockEventdClient : public AsyncEventdClient {
+class MockEventdClient : public EventdClient {
  public:
   MOCK_METHOD2(
       log_event, void(

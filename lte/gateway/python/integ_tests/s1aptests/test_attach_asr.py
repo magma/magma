@@ -68,6 +68,22 @@ class TestAttachASR(unittest.TestCase):
             "IMSI" + "".join([str(i) for i in req.imsi]),
         )
 
+        # Receive NW initiated detach request
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
+        )
+        print("**************** Received NW initiated Detach Req")
+        print("**************** Sending Detach Accept")
+
+        # Send detach accept
+        detach_accept = s1ap_types.ueTrigDetachAcceptInd_t()
+        detach_accept.ue_Id = req.ue_id
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept
+        )
+
         print("Sleeping for 5 seconds")
         time.sleep(5)
 

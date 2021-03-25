@@ -11,6 +11,9 @@
 # limitations under the License.
 
 log_level: INFO
+
+print_grpc_payload: false
+
 # List of services for magmad to control
 magma_services:
   - control_proxy
@@ -66,7 +69,6 @@ metricsd:
   collect_interval: 60 # How frequently to collect metrics samples in seconds
   sync_interval: 60 # How frequently to sync to cloud in seconds
   grpc_timeout: 10 # Timeout in seconds
-  queue_length: 1000 # Number of failed samples to enqueue for resend
   max_grpc_msg_size_mb: 4 # Max message size for gRPC channel in MBs
   # List of services for metricsd to poll
   services:

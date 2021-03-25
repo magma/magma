@@ -14,6 +14,8 @@ controller:
       pass: ${orc8r_db_pass}
       port: 3306
       user: ${orc8r_db_user}
+  service:
+    portEnd: 9121
 
 imagePullSecrets:
 - name: artifactory
@@ -82,7 +84,7 @@ nms:
   - name: artifactory
   magmalte:
     env:
-      api_host: api.nuclab.maxwellswireless.com
+      api_host: api.${dns_domain}
       grafana_address: orc8r-user-grafana:3000
       mysql_db: ${nms_db_user}
       mysql_host: ${nms_db_host}
@@ -91,6 +93,7 @@ nms:
       mysql_user: ${nms_db_user}
       mysql_dialect: mariadb
     image:
+      pullPolicy: IfNotPresent
       repository: ${img_repo}/magmalte
       tag: ${nms_tag}
     manifests:
@@ -128,7 +131,9 @@ nginx:
       bootstrapLagacy:
         external-dns.alpha.kubernetes.io/hostname: bootstrapper-controller.${dns_domain}
       clientcertLegacy:
-        external-dns.alpha.kubernetes.io/hostname: controller.${dns_domain},api.${dns_domain}
+        external-dns.alpha.kubernetes.io/hostname: controller.${dns_domain}
+      proxy:
+        external-dns.alpha.kubernetes.io/hostname: api.${dns_domain}
     legacyEnabled: true
     name: orc8r-bootstrap-legacy
     type: LoadBalancer

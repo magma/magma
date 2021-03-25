@@ -224,16 +224,12 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
    * Destination Host
    */
   {
-    bstring host = bstrcpy(mme_config.s6a_config.hss_host_name);
-    bconchar(host, '.');
-    bconcat(host, mme_config.realm);
     CHECK_FCT(
         fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_host, 0, &avp_p));
-    value.os.data = (unsigned char*) bdata(host);
-    value.os.len  = blength(host);
+    value.os.data = (unsigned char*) bdata(mme_config.s6a_config.hss_host_name);
+    value.os.len  = blength(mme_config.s6a_config.hss_host_name);
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
-    bdestroy_wrapper(&host);
   }
   /*
    * Destination_Realm
@@ -241,8 +237,8 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
   {
     CHECK_FCT(
         fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_realm, 0, &avp_p));
-    value.os.data = (unsigned char*) bdata(mme_config.realm);
-    value.os.len  = blength(mme_config.realm);
+    value.os.data = (unsigned char*) bdata(mme_config.s6a_config.hss_realm);
+    value.os.len  = blength(mme_config.s6a_config.hss_realm);
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
   }
