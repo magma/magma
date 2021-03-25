@@ -3073,7 +3073,7 @@ func TestDeleteApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadAllEntitiesOfType("n1", lte.APNEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, _, err := configurator.LoadAllEntitiesOfType("n1", lte.APNEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{
@@ -3358,7 +3358,7 @@ func TestAPNResource(t *testing.T) {
 	assert.False(t, exists)
 
 	// Configurator confirms all APN resources are now deleted
-	ents, err := configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
+	ents, _, err := configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, ents)
 
@@ -3375,7 +3375,7 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms gw's APN resources exist again
-	ents, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
+	ents, _, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, ents, 2)
 	assert.ElementsMatch(t, []string{"res1", "res2"}, []string{ents[0].Key, ents[1].Key})
@@ -3403,7 +3403,7 @@ func TestAPNResource(t *testing.T) {
 	assert.Equal(t, "res2", gwEnt.Associations.Filter(lte.APNResourceEntityType).Keys()[0])
 
 	// Configurator confirms APN resource was deleted due to cascading delete
-	ents, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
+	ents, _, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, ents, 1)
 	assert.Equal(t, "res2", ents[0].Key)
@@ -3774,6 +3774,7 @@ func TestHAGatewayPools(t *testing.T) {
 	listHaPools := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateway_pools", obsidian.GET).HandlerFunc
 	createHaPool := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateway_pools", obsidian.POST).HandlerFunc
 	getHaPool := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateway_pools/:gateway_pool_id", obsidian.GET).HandlerFunc
+	updateHaPool := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateway_pools/:gateway_pool_id", obsidian.PUT).HandlerFunc
 	deleteHaPool := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateway_pools/:gateway_pool_id", obsidian.DELETE).HandlerFunc
 
 	getPoolRecord := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateways/:gateway_id/cellular/pooling", obsidian.GET).HandlerFunc
@@ -3888,6 +3889,34 @@ func TestHAGatewayPools(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Update HA Pool
+	expectedPool.GatewayPoolName = "pool 1 updated"
+	expectedPool.Config = &lteModels.CellularGatewayPoolConfigs{MmeGroupID: 4}
+
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/:gateway_pool_id", gatewayPoolsURLRoot),
+		Payload:        tests.JSONMarshaler(expectedPool),
+		ParamNames:     []string{"network_id", "gateway_pool_id"},
+		ParamValues:    []string{"n1", "pool1"},
+		Handler:        updateHaPool,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler("pool1"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Ensure update succeeded
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/:gateway_pool_id", gatewayPoolsURLRoot),
+		ParamNames:     []string{"network_id", "gateway_pool_id"},
+		ParamValues:    []string{"n1", "pool1"},
+		Handler:        getHaPool,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expectedPool),
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Create pool2
 	pool2 := &lteModels.MutableCellularGatewayPool{
 		GatewayPoolID:   lteModels.GatewayPoolID("pool2"),
@@ -3937,6 +3966,7 @@ func TestHAGatewayPools(t *testing.T) {
 	expectedPool.GatewayIds = []models2.GatewayID{"g1"}
 	expectedPool.GatewayPoolID = "pool2"
 	expectedPool.GatewayPoolName = "pool2"
+	expectedPool.Config.MmeGroupID = 1
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/:gateway_pool_id", gatewayPoolsURLRoot),

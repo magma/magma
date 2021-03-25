@@ -115,7 +115,6 @@ message AccessControl {
 // itself would only exist within a single network and will be invisible to
 // anyone outside this network. ACLs of scoped operators  will only be allowed to
 // hold Identities of similarly scoped entities.
-//
 service AccessControlManager {
     // Overwrites Permissions for operator Identity to manage others
     // Request includes ACL to set for the Operator

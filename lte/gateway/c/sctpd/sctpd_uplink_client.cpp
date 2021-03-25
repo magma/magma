@@ -10,9 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <chrono>
 
 #include "sctpd_uplink_client.h"
-
 #include "util.h"
 
 namespace magma {
@@ -20,16 +20,17 @@ namespace sctpd {
 
 using grpc::ClientContext;
 
-SctpdUplinkClient::SctpdUplinkClient(std::shared_ptr<Channel> channel)
-{
+SctpdUplinkClient::SctpdUplinkClient(std::shared_ptr<Channel> channel) {
   _stub = SctpdUplink::NewStub(channel);
 }
 
-int SctpdUplinkClient::sendUl(const SendUlReq &req, SendUlRes *res)
-{
+int SctpdUplinkClient::sendUl(const SendUlReq& req, SendUlRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
+  auto deadline = std::chrono::system_clock::now() +
+                  std::chrono::milliseconds(1000 * RESPONSE_TIMEOUT);
+  context.set_deadline(deadline);
 
   auto status = _stub->SendUl(&context, req, res);
 
@@ -41,11 +42,13 @@ int SctpdUplinkClient::sendUl(const SendUlReq &req, SendUlRes *res)
   return status.ok() ? 0 : -1;
 }
 
-int SctpdUplinkClient::newAssoc(const NewAssocReq &req, NewAssocRes *res)
-{
+int SctpdUplinkClient::newAssoc(const NewAssocReq& req, NewAssocRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
+  auto deadline = std::chrono::system_clock::now() +
+                  std::chrono::milliseconds(1000 * RESPONSE_TIMEOUT);
+  context.set_deadline(deadline);
 
   auto status = _stub->NewAssoc(&context, req, res);
 
@@ -57,12 +60,12 @@ int SctpdUplinkClient::newAssoc(const NewAssocReq &req, NewAssocRes *res)
   return status.ok() ? 0 : -1;
 }
 
-int SctpdUplinkClient::closeAssoc(const CloseAssocReq &req, CloseAssocRes *res)
-{
+int SctpdUplinkClient::closeAssoc(
+    const CloseAssocReq& req, CloseAssocRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
-
+  // Not putting a timeout event for closeAssoc events
   auto status = _stub->CloseAssoc(&context, req, res);
 
   if (!status.ok()) {
@@ -73,5 +76,5 @@ int SctpdUplinkClient::closeAssoc(const CloseAssocReq &req, CloseAssocRes *res)
   return status.ok() ? 0 : -1;
 }
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

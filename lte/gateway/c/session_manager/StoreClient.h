@@ -29,6 +29,14 @@ typedef std::unordered_map<std::string, SessionVector> SessionMap;
  */
 class StoreClient {
  public:
+  virtual ~StoreClient() = default;
+
+  /**
+   * @brief Return a boolean to indicate whether the client is ready to accept
+   * requests
+   */
+  virtual bool is_ready() = 0;
+
   /**
    * Directly read the subscriber's sessions from storage
    *

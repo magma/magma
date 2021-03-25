@@ -177,6 +177,17 @@ def _get_apn_correction_map_list(service_mconfig):
         return service_mconfig.apn_correction_map_list
     return get_service_config_value("mme", "apn_correction_map_list", None)
 
+def _get_federated_mode_map(service_mconfig):
+    if service_mconfig.federated_mode_map and \
+            service_mconfig.federated_mode_map.enabled and \
+            len(service_mconfig.federated_mode_map.mapping) != 0:
+        return service_mconfig.federated_mode_map.mapping
+    return {}
+
+def _get_restricted_plmns(service_mconfig):
+    if service_mconfig.restricted_plmns:
+        return service_mconfig.restricted_plmns
+    return {}
 
 def _get_context():
     """
@@ -207,7 +218,9 @@ def _get_context():
         "use_stateless": get_service_config_value("mme",
                                                   "use_stateless", ""),
         "attached_enodeb_tacs": _get_attached_enodeb_tacs(mme_service_config),
-        "enable_nat": _get_enable_nat(mme_service_config)
+        "enable_nat": _get_enable_nat(mme_service_config),
+        "federated_mode_map" : _get_federated_mode_map(mme_service_config),
+        "restricted_plmns" : _get_restricted_plmns(mme_service_config)
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or \
@@ -224,11 +237,11 @@ def _get_context():
             "ovs_uplink_mac",
     ):
         context[key] = get_service_config_value("spgw", key, "")
-    context["enable_apn_correction"] = get_service_config_value("mme",
-                                                                "enable_apn_correction",
-                                                                "")
-    context["apn_correction_map_list"] = _get_apn_correction_map_list(
-        mme_service_config)
+    context["enable_apn_correction"] = \
+        get_service_config_value("mme", "enable_apn_correction", "")
+    context["apn_correction_map_list"] = \
+        _get_apn_correction_map_list(mme_service_config)
+
     return context
 
 

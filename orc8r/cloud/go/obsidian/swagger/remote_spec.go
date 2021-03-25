@@ -24,23 +24,27 @@ import (
 	"github.com/golang/glog"
 )
 
-type remoteSpec struct {
-	// service name of the remoteSpec
+// RemoteSpec identifies a remote spec
+type RemoteSpec struct {
+	// service name of the RemoteSpec
 	// should always be lowercase to match service registry convention
 	service string
 }
 
-func NewRemoteSpec(serviceName string) remoteSpec {
-	return remoteSpec{service: strings.ToLower(serviceName)}
+// NewRemoteSpec constructs a endpoint to communicate with the spec servicer.
+func NewRemoteSpec(serviceName string) RemoteSpec {
+	return RemoteSpec{service: strings.ToLower(serviceName)}
 }
 
-func (s *remoteSpec) GetSpec() (string, error) {
+// GetPartialSpec returns the partial spec associated to the service as a
+// YAML string.
+func (s *RemoteSpec) GetPartialSpec() (string, error) {
 	c, err := s.getClient()
 	if err != nil {
 		return "", err
 	}
 
-	res, err := c.GetSpec(context.Background(), &protos.GetSpecRequest{})
+	res, err := c.GetPartialSpec(context.Background(), &protos.PartialSpecRequest{})
 	if err != nil {
 		return "", err
 	}
@@ -48,7 +52,28 @@ func (s *remoteSpec) GetSpec() (string, error) {
 	return res.SwaggerSpec, nil
 }
 
-func (s *remoteSpec) getClient() (protos.SwaggerSpecClient, error) {
+// GetStandaloneSpec returns the standalone spec associated to the service as
+// a YAML string.
+func (s *RemoteSpec) GetStandaloneSpec() (string, error) {
+	c, err := s.getClient()
+	if err != nil {
+		return "", err
+	}
+
+	res, err := c.GetStandaloneSpec(context.Background(), &protos.StandaloneSpecRequest{})
+	if err != nil {
+		return "", err
+	}
+
+	return res.SwaggerSpec, nil
+}
+
+// GetService returns the service name.
+func (s *RemoteSpec) GetService() string {
+	return s.service
+}
+
+func (s *RemoteSpec) getClient() (protos.SwaggerSpecClient, error) {
 	conn, err := registry.GetConnection(s.service)
 	if err != nil {
 		initErr := merrors.NewInitError(err, s.service)

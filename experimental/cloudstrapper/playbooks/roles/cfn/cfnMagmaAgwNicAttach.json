@@ -1,0 +1,41 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+      "paramGatewayInstance": {
+        "Type": "String",
+	"Description": "Public IP-only AGW instance"
+      },
+      "paramSubnetEnb": {
+        "Type": "String",
+	"Description": "Subnet for new NIC"
+      },
+      "paramNicTagName": {
+        "Type": "String",
+	"Description": "Tagname for NIC"
+      },
+      "paramSgSgi": {
+        "Type": "String",
+	"Description": "Security Group for NIC"
+      }
+    },
+    "Resources": {
+      "nicEnb": {
+        "Type" : "AWS::EC2::NetworkInterface",
+        "Properties" : {
+          "Tags": [{"Key":"Name","Value": { "Ref" : "paramNicTagName" }}],
+          "Description": "S1 NIC for AGW - Connects to eNB",
+          "SourceDestCheck": "false",
+          "GroupSet": [{ "Ref": "paramSgSgi"}],
+          "SubnetId": { "Ref" : "paramSubnetEnb" }
+       }
+     },
+	"Nic2": {
+	  "Type" : "AWS::EC2::NetworkInterfaceAttachment",
+          "Properties" : {
+             "InstanceId" : {"Ref" : "paramGatewayInstance"},
+             "NetworkInterfaceId" : {"Ref" : "nicEnb"},
+             "DeviceIndex" : "1"
+          }
+	}
+    }
+}

@@ -418,7 +418,7 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 
 		// All subscribers have an APN
 
-		allSubs, err := configurator.LoadAllEntitiesOfType(
+		allSubs, _, err := configurator.LoadAllEntitiesOfType(
 			nid, subscriberEntType,
 			configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 			serdes,

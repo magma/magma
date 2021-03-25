@@ -25,7 +25,9 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/obsidian/reverse_proxy"
+	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -43,14 +45,20 @@ func Start() {
 	e.Use(CollectStats)
 	e.Use(middleware.Recover())
 
-	// Serve static pages for the API docs
-	e.Static(obsidian.StaticURLPrefix, obsidian.StaticFolder+"/apidocs")
-	e.Static(obsidian.StaticURLPrefix+"/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
+	err := handlers.RegisterSwaggerHandlers(e)
+	if err != nil {
+		// Swallow RegisterHandlerError because the obsidian service should
+		// continue to run even if Swagger handlers aren't registered.
+		glog.Errorf("Error registering Swagger handlers %+v", err)
+	}
+
+	// Serve static assets for the Swagger UI
+	e.Static(obsidian.StaticURLPrefix+"/static/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
+	e.Static(obsidian.StaticURLPrefix+"/v1/static", obsidian.StaticFolder+"/swagger/v1/static")
 
 	portStr := fmt.Sprintf(":%d", obsidian.Port)
 	log.Printf("Starting %s on %s", obsidian.Product, portStr)
 
-	var err error
 	if obsidian.TLS {
 		var caCerts []byte
 		caCerts, err = ioutil.ReadFile(obsidian.ClientCAPoolPath)

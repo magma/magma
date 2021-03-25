@@ -28,8 +28,9 @@ import (
 	"flag"
 	"fmt"
 
-	"magma/orc8r/cloud/go/swagger"
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
+	"magma/orc8r/cloud/go/tools/combine_swagger/generate"
 
 	"github.com/golang/glog"
 )
@@ -38,6 +39,8 @@ func main() {
 	inDir := flag.String("in", "", "Input directory")
 	commonFilepath := flag.String("common", "", "Common definitions filepath")
 	outFilepath := flag.String("out", "", "Output directory")
+	generateStandAloneSpec := flag.Bool("standalone", true, "Generate standalone specs")
+
 	flag.Parse()
 
 	fmt.Printf("Reading Swagger specs from directory:\n%s\n\n", *inDir)
@@ -49,17 +52,24 @@ func main() {
 	}
 
 	fmt.Printf("Combining specs together...\n\n")
-	combined, warnings, err := swagger.Combine(yamlCommon, yamlSpecs)
+	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)
 	if err != nil {
 		glog.Fatal(err)
 	}
 	if warnings != nil {
-		fmt.Printf("Warnings: %+v\n", warnings)
+		glog.Fatalf("Some Swagger spec traits were overwritten or unable to be read: %+v", warnings)
 	}
 
 	fmt.Printf("Writing combined Swagger spec to file:\n%s\n\n", *outFilepath)
 	err = combine.Write(combined, *outFilepath)
 	if err != nil {
 		glog.Fatal(err)
+	}
+
+	if *generateStandAloneSpec {
+		err := generate.GenerateStandaloneSpecs(*inDir)
+		if err != nil {
+			glog.Fatalf("Error generating standalone Swagger specs %+v", err)
+		}
 	}
 }

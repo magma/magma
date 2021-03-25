@@ -50,6 +50,8 @@ class RedisStoreClient final : public StoreClient {
 
   bool try_redis_connect();
 
+  bool is_ready() { return client_->is_connected(); };
+
   SessionMap read_sessions(std::set<std::string> subscriber_ids);
 
   SessionMap read_all_sessions();

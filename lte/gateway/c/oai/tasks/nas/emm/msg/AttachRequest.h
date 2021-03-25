@@ -30,6 +30,7 @@
 #include "TrackingAreaIdentity.h"
 #include "AdditionalUpdateType.h"
 #include "GutiType.h"
+#include "UeAdditionalSecurityCapability.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
@@ -54,7 +55,8 @@
    MOBILE_STATION_CLASSMARK_2_MAXIMUM_LENGTH +                                 \
    MOBILE_STATION_CLASSMARK_3_MAXIMUM_LENGTH +                                 \
    SUPPORTED_CODEC_LIST_MAXIMUM_LENGTH +                                       \
-   ADDITIONAL_UPDATE_TYPE_MAXIMUM_LENGTH + GUTI_TYPE_MAXIMUM_LENGTH)
+   ADDITIONAL_UPDATE_TYPE_MAXIMUM_LENGTH + GUTI_TYPE_MAXIMUM_LENGTH +          \
+   UE_ADDITIONAL_SECURITY_CAPABILITY_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
  * Bit mask should be set to 1.
@@ -75,6 +77,7 @@
   (1 << 12)
 #define ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT (1 << 13)
 #define ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT (1 << 14)
+#define ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT (1 << 15)
 
 typedef enum attach_request_iei_tag {
   ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI         = GMM_PTMSI_SIGNATURE_IEI,
@@ -98,7 +101,8 @@ typedef enum attach_request_iei_tag {
       GMM_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI,
   ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IEI = 0x10,
   ATTACH_REQUEST_DEVICE_PROPERTIES_IEI                     = 0xD0,
-  ATTACH_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI            = 0xD1
+  ATTACH_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI            = 0xD1,
+  ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI     = 0x6F
 } attach_request_iei;
 
 /*
@@ -136,6 +140,7 @@ typedef struct attach_request_msg_tag {
       voicedomainpreferenceandueusagesetting;
   ms_network_feature_support_t msnetworkfeaturesupport;
   network_resource_identifier_container_t networkresourceidentifiercontainer;
+  ue_additional_security_capability_t ueadditionalsecuritycapability;
 } attach_request_msg;
 
 int decode_attach_request(

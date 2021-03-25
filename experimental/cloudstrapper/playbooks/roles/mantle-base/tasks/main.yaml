@@ -1,0 +1,9 @@
+---
+
+- name: create experimental home and inventory folders
+  file:
+    name: "{{ dirInventory }}"
+    state: directory
+    mode: '0775'
+
+

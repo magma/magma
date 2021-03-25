@@ -30,14 +30,14 @@ AsyncEventdClient& AsyncEventdClient::getInstance() {
 AsyncEventdClient::AsyncEventdClient() {
   std::shared_ptr<Channel> channel;
   channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-          "eventd", ServiceRegistrySingleton::LOCAL);
+      "eventd", ServiceRegistrySingleton::LOCAL);
   stub_ = EventService::NewStub(channel);
 }
 
 void AsyncEventdClient::log_event(
     const Event& request, std::function<void(Status status, Void)> callback) {
   auto local_response =
-      new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
+      new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT_SEC);
   local_response->set_response_reader(std::move(
       stub_->AsyncLogEvent(local_response->get_context(), request, &queue_)));
 }

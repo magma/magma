@@ -321,6 +321,8 @@ func testSendULA(settings *sm.Settings, w io.Writer, m *diam.Message) (n int64, 
 			diam.NewAVP(avp.AccessRestrictionData, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(47)),
 			diam.NewAVP(avp.SubscriberStatus, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(0)),
 			diam.NewAVP(avp.NetworkAccessMode, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(2)),
+			diam.NewAVP(avp.RegionalSubscriptionZoneCode, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.OctetString([]byte{155, 36, 12, 2, 227, 43, 246, 254})),
+			diam.NewAVP(avp.RegionalSubscriptionZoneCode, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.OctetString([]byte{1, 1, 0, 1})),
 			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, VENDOR_3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
 					diam.NewAVP(

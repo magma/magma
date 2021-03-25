@@ -27,6 +27,7 @@
 #include "3gpp_29.274.h"
 #include "3gpp_24.008.h"
 #include "3gpp_24.007.h"
+#include "queue.h"
 
 // Each service data flow template may contain any number of service data
 // flow filters;

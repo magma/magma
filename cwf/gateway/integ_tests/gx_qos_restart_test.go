@@ -62,7 +62,7 @@ const (
 	nonCleanRestartYaml = "clean_restart: false"
 )
 
-//TestQosEnforcementRestart
+//testQosEnforcementRestart
 // This test verifies the QOS configuration(uplink) present in the rules
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-ULQos) with QOS config setting with
@@ -70,6 +70,7 @@ const (
 // - Generate traffic and verify if the traffic observed bitrate matches the configured
 // bitrate, restart pipelined and verify if Qos remains enforced
 func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg string) {
+	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	tr := NewTestRunner(t)
 
 	// do not use restartPipeline functon. Otherwise we are not testing the case where attach
@@ -166,6 +167,7 @@ func restartPipelined(t *testing.T, tr *TestRunner) {
 }
 
 func TestQosRestartMeterClean(t *testing.T) {
+	t.Skip()
 	fmt.Println("\nRunning TestQosRestartMeterClean...")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
@@ -182,6 +184,7 @@ func TestQosRestartMeterClean(t *testing.T) {
 }
 
 func TestQosRestartMeterNonClean(t *testing.T) {
+	t.Skip()
 	fmt.Println("\nRunning TestQosRestartMeterNonClean...")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {

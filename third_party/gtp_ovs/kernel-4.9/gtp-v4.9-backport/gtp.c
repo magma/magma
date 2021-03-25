@@ -55,6 +55,13 @@ struct gtpu_ext_hdr {
         u8 type;
 };
 
+struct gtpu_ext_hdr_pdu_sc {
+	u8 len;
+	u8 pdu_type;
+	u8 qfi;
+        u8 next_type;
+};
+
 /* An active session for the subscriber. */
 struct pdp_ctx {
 	struct hlist_node	hlist_tid;
@@ -352,6 +359,7 @@ static int gtp1u_udp_encap_recv(struct gtp_dev *gtp, struct sk_buff *skb)
 			netdev_dbg(gtp->dev, "current hdr len %d next hdr type: %d\n", len, next_hdr);
 		}
 		netdev_dbg(gtp->dev, "pkt type: %x", *(u8*) (skb->data + hdrlen));
+		netdev_dbg(gtp->dev, "skb-len %d gtp len %d hdr len %d\n", skb->len, (int) ntohs(gtp1->length), hdrlen);
 	} else if (gtp1->flags & GTP1_F_MASK)
 		hdrlen += 4;
 
@@ -502,12 +510,32 @@ static inline void gtp0_push_header(struct sk_buff *skb, struct pdp_ctx *pctx)
 	gtp0->tid	= cpu_to_be64(pctx->u.v0.tid);
 }
 
-static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid)
-{
-	int payload_len = skb->len;
-	struct gtp1_header *gtp1;
+const struct gtpu_ext_hdr n_hdr = {
+	.type = 0x85,
+};
 
-	gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1));
+const struct gtpu_ext_hdr_pdu_sc pdu_sc_hdr = {
+	.len = 1,
+	.pdu_type = 0x0, /* PDU_TYPE_DL_PDU_SESSION_INFORMATION */
+	.qfi = 5,
+        .next_type = 0,
+};
+
+static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid, __u8 qfi)
+{
+	struct gtpu_ext_hdr *next_hdr;
+	struct gtpu_ext_hdr_pdu_sc *pdu_sc;
+	struct gtp1_header *gtp1;
+	int payload_len = skb->len;
+	__u8 flags = 0x30;
+
+	if (qfi) {
+		gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1) + sizeof (*next_hdr) + sizeof (*pdu_sc));
+		payload_len += (sizeof(*next_hdr) + sizeof(*pdu_sc));
+		flags = flags | GTP_EXTENSION_HDR_FLAG;
+	} else {
+		gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1));
+	}
 
 	/* Bits    8  7  6  5  4  3  2	1
 	 *	  +--+--+--+--+--+--+--+--+
@@ -515,14 +543,21 @@ static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid)
 	 *	  +--+--+--+--+--+--+--+--+
 	 *	    0  0  1  1	1  0  0  0
 	 */
-	gtp1->flags	= 0x30; /* v1, GTP-non-prime. */
+	gtp1->flags	= flags; /* v1, GTP-non-prime. */
 	gtp1->type	= GTP_TPDU;
 	gtp1->length	= htons(payload_len);
 	gtp1->tid	= tid;
 
-	/* TODO: Suppport for extension header, sequence number and N-PDU.
-	 *	 Update the length field if any of them is available.
-	 */
+	if (qfi) {
+		/* TODO: Suppport for extension header, sequence number and N-PDU.
+		 *	 Update the length field if any of them is available.
+		 */
+		next_hdr = (struct gtpu_ext_hdr *) (gtp1 + 1);
+		*next_hdr = n_hdr;
+		pdu_sc = (struct gtpu_ext_hdr_pdu_sc *) (next_hdr + 1);
+		*pdu_sc = pdu_sc_hdr;
+		pdu_sc->qfi = qfi;
+	}
 }
 
 struct gtp_pktinfo {
@@ -562,6 +597,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 	int mtu;
         __u8 tos;
         __be16 df = 0;
+        __u8 set_qfi = 0;
 
 	// flow-based GTP1U encap
 	info = skb_tunnel_info(skb);
@@ -573,8 +609,12 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		saddr = info->key.u.ipv4.src;
 		sk = gtp->sk1u;
                 tos = info->key.tos;
+
                 if (info->key.tun_flags & TUNNEL_DONT_FRAGMENT)
                         df = htons(IP_DF);
+
+		if (info->key.tun_flags & TUNNEL_OAM)
+		    set_qfi = 5;
 
 		netdev_dbg(dev, "flow-based GTP1U encap: tunnel id %d\n",
 			   be32_to_cpu(tun_id));
@@ -663,7 +703,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		break;
 	case GTP_V1:
 		pktinfo->gtph_port = htons(GTP1U_PORT);
-		gtp1_push_header(skb, tun_id);
+		gtp1_push_header(skb, tun_id, set_qfi);
 		break;
 	}
 
@@ -1665,7 +1705,7 @@ static int __init gtp_init(void)
 	if (err < 0)
 		goto unreg_genl_family;
 
-	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v8\n",
+	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v8h\n",
 		sizeof(struct pdp_ctx));
 	return 0;
 

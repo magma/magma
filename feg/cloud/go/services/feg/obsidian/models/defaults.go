@@ -61,6 +61,17 @@ func NewDefaultFederatedNetworkConfigs() *FederatedNetworkConfigs {
 	fegNetworkID := "n1"
 	return &FederatedNetworkConfigs{
 		FegNetworkID: &fegNetworkID,
+		FederatedModesMapping: &FederatedModeMap{
+			Enabled: true,
+			Mapping: []*ModeMapItem{
+				{
+					Mode:      "s8_subscriber",
+					Apn:       "internet1",
+					ImsiRange: "000000000000001",
+					Plmn:      "00101",
+				},
+			},
+		},
 	}
 }
 

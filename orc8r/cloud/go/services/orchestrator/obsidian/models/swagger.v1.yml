@@ -85,6 +85,10 @@ info:
   version: 1.0.0
 
 tags:
+  - name: Networks
+    description: Everything about networks
+  - name: Gateways
+    description: Provision and manage gateways
   - name: Upgrades
     description: Configuration to manage upgrades
 

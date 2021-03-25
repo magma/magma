@@ -4,7 +4,6 @@ magma-gen-meta:
   go-package: magma/lte/cloud/go/services/smsd/servicers/models
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
-    - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
     - 'lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml'
   temp-gen-filename: lte-smsd-swagger.yml
   output-dir: lte/cloud/go/services/smsd/obsidian

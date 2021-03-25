@@ -14,7 +14,7 @@
 # This script builds Magma based on the current state of your repo. It needs to
 # be run inside the VM.
 
-set -e
+set -ex
 shopt -s extglob
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
@@ -30,6 +30,7 @@ BUILD_TYPE=Debug
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
 CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
+OS="debian"
 
 while [[ $# -gt 0 ]]
 do
@@ -55,11 +56,16 @@ case $key in
     CONTROL_PROXY_FILE="$2"
     shift
     ;;
+    --os)
+    OS="$2"
+    shift
+    ;;
     *)
     echo "Error: unknown cmdline option:" $key
     echo "Usage: $0 [-v|--version V] [-i|--iteration I] [-h|--hash HASH]
     [-t|--type Debug|RelWithDebInfo] [-c|--cert <path to cert .pem file>]
-    [-p|--proxy <path to control_proxy config .yml file]>"
+    [-p|--proxy <path to control_proxy config .yml file]>
+    [-u|--build-buntu build packages for ubuntu>"
     exit 1
     ;;
 esac
@@ -74,6 +80,19 @@ case $BUILD_TYPE in
     *)
     echo "Error: unknown type option:" $BUILD_TYPE
     echo "Usage: [-t|--type Debug|RelWithDebInfo]"
+    exit 1
+    ;;
+esac
+
+case $OS in
+    debian)
+    ;;
+    ubuntu)
+    echo "Ubuntu package build"
+    ;;
+    *)
+    echo "Error: unknown OS option:" $OS
+    echo "Usage: [--os debian|ubuntu]"
     exit 1
     ;;
 esac
@@ -132,18 +151,32 @@ OAI_DEPS=(
     "liblfds710"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
-    "oai-gtp >= 4.9-5"
     )
 
+if [[ "$OS"  == "debian" ]]; then
+    OAI_DEPS+=("oai-gtp >= 4.9-9")
+fi
+
 # OVS runtime dependencies
-OVS_DEPS=(
-    "magma-libfluid >= 0.1.0.5"
-    "libopenvswitch >= 2.8.9"
-    "openvswitch-switch >= 2.8.9"
-    "openvswitch-common >= 2.8.9"
-    "python-openvswitch >= 2.8.9"
-    "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.9"
-    )
+if [[ "$OS" == "debian" ]]; then
+    OVS_DEPS=(
+        "magma-libfluid >= 0.1.0.6"
+        "libopenvswitch >= 2.8.10"
+        "openvswitch-switch >= 2.8.10"
+        "openvswitch-common >= 2.8.10"
+        "python-openvswitch >= 2.8.10"
+        "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
+        )
+else
+    OVS_DEPS=(
+        "magma-libfluid >= 0.1.0.6"
+        "libopenvswitch >= 2.14"
+        "openvswitch-switch >= 2.14"
+        "openvswitch-common >= 2.14"
+        "python-openvswitch >= 2.14"
+        "openvswitch-datapath-dkms >= 2.14"
+        )
+fi
 
 # generate string for FPM
 SYSTEM_DEPS=""
@@ -165,7 +198,11 @@ POSTINST=${RELEASE_DIR}/magma-postinst
 
 # python environment
 # python3.5 on stretch, python3.8 on focal
-PY_VERSION=python3
+if grep -q stretch /etc/os-release; then
+    PY_VERSION=python3.5
+else
+    PY_VERSION=python3.8
+fi
 PY_PKG_LOC=dist-packages
 PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
@@ -284,14 +321,16 @@ ANSIBLE_FILES="${MAGMA_ROOT}/lte/gateway/deploy/roles/magma/files"
 
 SCTPD_VERSION_FILE=$(mktemp)
 SCTPD_MIN_VERSION_FILE=$(mktemp)
+COMMIT_HASH_FILE=$(mktemp)
 
 # files to be removed should be safely named (no special chars from mktemp)
 # use current value (see https://github.com/koalaman/shellcheck/wiki/SC2064)
 # shellcheck disable=SC2064
-trap "rm -f '${SCTPD_VERSION_FILE}' '${SCTPD_MIN_VERSION_FILE}'" EXIT
+trap "rm -f '${SCTPD_VERSION_FILE}' '${SCTPD_MIN_VERSION_FILE}' '${COMMIT_HASH_FILE}'" EXIT
 
 echo "${FULL_VERSION}" > "${SCTPD_VERSION_FILE}"
 echo "${SCTPD_MIN_VERSION}" > "${SCTPD_MIN_VERSION_FILE}"
+echo "COMMIT_HASH=\"${COMMIT_HASH}\"" > "${COMMIT_HASH_FILE}"
 
 BUILDCMD="fpm \
 -s dir \
@@ -331,6 +370,7 @@ ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
 ${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
 ${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
+${COMMIT_HASH_FILE}=/usr/local/share/magma/commit_hash \
 $(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
 $(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
 $(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
@@ -354,7 +394,10 @@ $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/templates/*" /etc/magma/template
 $(glob_files "${MAGMA_ROOT}/orc8r/gateway/configs/templates/*" /etc/magma/templates/) \
 ${CONTROL_PROXY_FILE}=/etc/magma/ \
 $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.conf) \
+$(glob_files "${ANSIBLE_FILES}/configure_envoy_namespace.sh" /usr/local/bin/ ) \
+$(glob_files "${ANSIBLE_FILES}/envoy.yaml" /var/opt/magma/ ) \
 $(glob_files "${ANSIBLE_FILES}/logrotate_oai.conf" /etc/logrotate.d/oai) \
+$(glob_files "${ANSIBLE_FILES}/logrotate_rsyslog.conf" /etc/logrotate.d/rsyslog.magma) \
 $(glob_files "${ANSIBLE_FILES}/local-cdn/*" /var/www/local-cdn/) \
 ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
@@ -366,7 +409,7 @@ ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
-$(glob_files "${ANSIBLE_FILES}/config_stateless_*.sh" /usr/local/bin/)"
+" # Leave this quote on a new line to mark end of BUILDCMD
 
 eval "$BUILDCMD"
 

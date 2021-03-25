@@ -15,11 +15,13 @@ limitations under the License.
 
 import argparse
 import fileinput
+import pathlib
 import subprocess
 import sys
 
 from typing import List
 
+HOST_BUILD_CTX = '/tmp/magma_orc8r_build'
 DO_NOT_COMMIT = '# DO NOT COMMIT THIS CHANGE'
 
 
@@ -48,6 +50,9 @@ def main() -> None:
 
     if args.print:
         return
+
+    # Ensure build context exists, otherwise docker-compose throws an error
+    pathlib.Path(HOST_BUILD_CTX).mkdir(parents=True, exist_ok=True)
 
     cmd = ['docker-compose', 'up', '-d']
     print("Running '%s'..." % ' '.join(cmd))

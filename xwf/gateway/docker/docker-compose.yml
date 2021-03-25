@@ -96,7 +96,7 @@ services:
     environment:
       - ODS_ACCESS_TOKEN=${ODS_ACCESS_TOKEN}
       - SCUBA_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
-      - AAA_ENDPOINT=https://graph.expresswifi.com/radius/authorization
+      - AAA_ENDPOINT=${AAA_ENDPOINT:-https://graph.expresswifi.com/radius/authorization}
       - AAA_ACCESS_TOKEN=${AAA_ACCESS_TOKEN}
       - RADIUS_SECRET=${RADIUS_SECRET:-123456}
       - TEMPLATE_ENV=radius.ofpanalytics.config.json.template
@@ -128,8 +128,6 @@ services:
       - SCRIBE_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
       - SCUBA_TABLE=perfpipe_xwf_xwfm_logs
       - PARTNER_SHORTNAME=${PARTNER_SHORTNAME}
-    volumes:
-      - /var/log/fluentbit-logs:/var/log/fluentbit-logs
 
   cadvisor:
     image: gcr.io/google-containers/cadvisor:latest

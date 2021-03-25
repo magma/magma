@@ -19,11 +19,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"magma/orc8r/cloud/go/swagger"
-	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
-
 	"github.com/hashicorp/go-multierror"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/obsidian/swagger/spec"
+	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
 )
 
 func init() {
@@ -31,11 +31,11 @@ func init() {
 }
 
 var (
-	testdataDir    = "testdata"
+	testdataDir    = "../testdata"
 	specsDir       = filepath.Join(testdataDir, "configs")
 	commonFilepath = filepath.Join(testdataDir, "common/common.yml")
 	outFilepath    = filepath.Join(testdataDir, "out.yml")
-	goldenFilepath = filepath.Join(testdataDir, "out.yml.golden")
+	goldenFilepath = filepath.Join(testdataDir, "monolithic.yml.golden")
 )
 
 // TestCombine tests the generated output against a golden file.
@@ -53,7 +53,7 @@ func TestCombine(t *testing.T) {
 	yamlCommon, yamlSpecs, err := combine.Load(commonFilepath, specsDir)
 	assert.NoError(t, err)
 
-	combined, warnings, err := swagger.Combine(yamlCommon, yamlSpecs)
+	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)
 	assert.NoError(t, err)
 
 	assert.Error(t, warnings)

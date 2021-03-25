@@ -27,8 +27,11 @@ class InterfaceIDToPrefixMapper:
     """
 
     def __init__(self):
-        self._prefix_by_interface = PrefixDict()
+        self._prefix_by_interface = {}
         self._lock = threading.Lock()  # write lock
+
+    def setup_redis(self):
+        self._prefix_by_interface = PrefixDict()
 
     def get_prefix(self, interface):
         with self._lock:

@@ -9,29 +9,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+cmake_minimum_required(VERSION 3.7.2)
 
-add_compile_options(-std=c++14)
-set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
+include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("/usr/src/googletest/googlemock/include/")
 include_directories("${PROJECT_SOURCE_DIR}/../common/config")
 include_directories("${PROJECT_SOURCE_DIR}/../common/service303")
-
 include_directories("${PROJECT_SOURCE_DIR}/../common/protobuf")
+link_directories("/usr/src/googletest/googlemock/lib/")
 
-add_library(COMMON_TEST_LIB)
-
-target_link_libraries(COMMON_TEST_LIB
-  CONFIG
-  gmock_main
-  yaml-cpp
-  pthread
-  rt
-  ${GCOV_LIB}
-  SERVICE303_LIB
-)
-
-foreach(common_test yaml_utils magma_service)
+foreach(common_test yaml_utils magma_service service_registry service303 metrics)
   add_executable(${common_test}_test test_${common_test}.cpp)
-  target_link_libraries(${common_test}_test COMMON_TEST_LIB)
+  target_link_libraries(${common_test}_test 
+	  CONFIG 
+	  gmock_main gtest gtest_main gmock
+	  yaml-cpp pthread rt
+	  ${GCOV_LIB}
+	  SERVICE303_LIB)
   add_test(test_${common_test} ${common_test}_test)
 endforeach(common_test)
