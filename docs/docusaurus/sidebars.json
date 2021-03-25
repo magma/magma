@@ -143,6 +143,9 @@
       "proposals/p009_nms_mariadb_migration",
       "proposals/p010_subscriber_scaling",
       "proposals/p011_victoriametrics"
-    ]
+    ],
+     "Architecture": [
+       "architecture/agw_overview"
+     ]  
   }
 }
