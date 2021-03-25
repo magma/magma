@@ -480,6 +480,7 @@ type GatewayPoolsStateProps = {
   value?: mutable_cellular_gateway_pool,
   resources?: Array<GatewayPoolRecordsType>,
 };
+// update gateway pool config
 export async function SetGatewayPoolsState(props: GatewayPoolsStateProps) {
   const {networkId, gatewayPools, setGatewayPools, key, value} = props;
   if (value != null) {
@@ -520,11 +521,12 @@ export async function SetGatewayPoolsState(props: GatewayPoolsStateProps) {
     setGatewayPools(newGatewayPools);
   }
 }
-export async function UpdateGatewayPoolResources(
-  props: GatewayPoolsStateProps,
-) {
+
+// update gateway pool primary/secondary gateways
+export async function UpdateGatewayPoolRecords(props: GatewayPoolsStateProps) {
   const {networkId, gatewayPools, setGatewayPools, key, resources} = props;
-  // Add primary/secondary gateways
+
+  // add primary/secondary gateways
   if (resources != null) {
     const requests = resources.map(async resource => {
       if (resource.gateway_id !== '') {
@@ -541,7 +543,7 @@ export async function UpdateGatewayPoolResources(
     });
     await Promise.all(requests);
 
-    // Delete primary/secondary gateways
+    // delete primary/secondary gateways
     const resourcesIds = resources.map(resource => resource.gateway_id);
     const deletedGateways = gatewayPools[key].gatewayPool.gateway_ids.filter(
       gwId => !resourcesIds.includes(gwId),
@@ -572,19 +574,21 @@ type InitGatewayPoolStateType = {
 export async function InitGatewayPoolState(props: InitGatewayPoolStateType) {
   const {networkId, setGatewayPools, enqueueSnackbar} = props;
   const pools = await FetchGatewayPools({networkId: networkId});
+
   if (pools) {
     const poolGatewayState = {};
     Object.keys(pools).map(async poolId => {
       const pool = pools[poolId];
       try {
+        // get primary/secondary gateways for each gateway pool
         const records = pool.gateway_ids?.map(async id => {
-          const records = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayIdCellularPooling(
+          const gatewayRecords = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayIdCellularPooling(
             {
               networkId,
               gatewayId: id,
             },
           );
-          return records.map(record => {
+          return gatewayRecords.map(record => {
             return {...record, gateway_id: id};
           });
         });
@@ -599,7 +603,6 @@ export async function InitGatewayPoolState(props: InitGatewayPoolStateType) {
         });
       }
     });
-
     setGatewayPools(poolGatewayState);
   }
 }

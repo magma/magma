@@ -16,7 +16,7 @@
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import 'jest-dom/extend-expect';
-import AddEditGatewayPoolButton from '../GatewayPoolDetailConfigEdit';
+import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
 import GatewayPoolsContext from '../../../components/context/GatewayPoolsContext';
@@ -24,11 +24,12 @@ import MagmaAPIBindings from '@fbcnms/magma-api';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '@fbcnms/ui/theme/default';
+
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {
   SetGatewayPoolsState,
-  UpdateGatewayPoolResources,
+  UpdateGatewayPoolRecords,
 } from '../../../state/lte/EquipmentState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
@@ -171,7 +172,7 @@ describe('<GatewayPools />', () => {
                   key,
                   value,
                 }),
-              updateGatewayPoolResources: async _ => {},
+              updateGatewayPoolRecords: async _ => {},
             }}>
             <Route
               path="/nms/:networkId/pools/"
@@ -216,6 +217,7 @@ describe('<GatewayPools />', () => {
     expect(rowItems[3]).toHaveTextContent('-');
     expect(rowItems[3]).toHaveTextContent('-');
 
+    // delete gateway pool3
     const actionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(actionList[2]);
@@ -277,8 +279,8 @@ describe('<AddEditGatewayPoolButton />', () => {
                       value,
                       resources,
                     }),
-                  updateGatewayPoolResources: (key, value?, resources) =>
-                    UpdateGatewayPoolResources({
+                  updateGatewayPoolRecords: (key, value?, resources) =>
+                    UpdateGatewayPoolRecords({
                       networkId,
                       gatewayPools: gwPoolsState,
                       setGatewayPools: setGatewayPoolsState,

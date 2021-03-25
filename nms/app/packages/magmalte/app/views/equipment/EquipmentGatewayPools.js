@@ -24,7 +24,8 @@ import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {GatewayPoolEditDialog} from './GatewayPoolDetailConfigEdit';
+
+import {GatewayPoolEditDialog} from './GatewayPoolEdit';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
@@ -161,12 +162,18 @@ function GatewayPoolsTableRaw(props: WithAlert) {
         title=""
         data={gatewayPoolRows}
         columns={[
-          {title: 'Name', field: 'name'},
+          {
+            title: 'Name',
+            field: 'name',
+          },
           {
             title: 'ID',
             field: 'id',
           },
-          {title: 'MME Group ID', field: 'mmeGroupId'},
+          {
+            title: 'MME Group ID',
+            field: 'mmeGroupId',
+          },
           {
             title: 'Primary Gateway',
             field: 'gatewayPrimary',
@@ -199,21 +206,9 @@ function GatewayPoolsTableRaw(props: WithAlert) {
                   try {
                     await ctx.setState(currRow.id);
                   } catch (e) {
-                    if (ctx.state[currRow.id].gatewayPoolRecords.length > 0) {
-                      enqueueSnackbar(
-                        'All gateways must first be removed from the pool before it can be deleted ',
-                        {
-                          variant: 'error',
-                        },
-                      );
-                    } else {
-                      enqueueSnackbar(
-                        'failed deleting gateway pool ' + currRow.id,
-                        {
-                          variant: 'error',
-                        },
-                      );
-                    }
+                    enqueueSnackbar(e.response?.data?.message ?? e.message, {
+                      variant: 'error',
+                    });
                   }
                 });
             },

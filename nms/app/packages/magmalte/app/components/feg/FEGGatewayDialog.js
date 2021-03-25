@@ -204,7 +204,6 @@ export default function FEGGatewayDialog(props: Props) {
     served_network_ids: [],
     swx: {...getDiameterConfigs(swx)},
     csfb: {...getSCTPConfigs(csfb)},
-    s8: {},
   });
 
   const onSave = async () => {

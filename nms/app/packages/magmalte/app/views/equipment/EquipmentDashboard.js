@@ -16,7 +16,7 @@
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
-import AddEditGatewayPoolButton from './GatewayPoolDetailConfigEdit';
+import AddEditGatewayPoolButton from './GatewayPoolEdit';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodeb from './EquipmentEnodeb';
 import EnodebDetail from './EnodebDetailMain';

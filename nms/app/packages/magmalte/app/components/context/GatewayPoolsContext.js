@@ -22,21 +22,28 @@ import type {
 
 import React from 'react';
 
+// add gateway ID to gateway pool records (gateway primary/secondary)
 export type GatewayPoolRecordsType = {
   gateway_id: string,
 } & cellular_gateway_pool_record;
+
 export type gatewayPoolsStateType = {
   gatewayPool: cellular_gateway_pool,
   gatewayPoolRecords: Array<GatewayPoolRecordsType>,
 };
+
+/* GatewayPoolsContextType
+state: gateway pool config and associated gateway pool records
+setState: POST, PUT, DELETE gateway pool config
+updateGatewayPoolRecords: POST, PUT, DELETE gateway pool records
+*/
 export type GatewayPoolsContextType = {
   state: {[string]: gatewayPoolsStateType},
   setState: (
     key: gateway_pool_id,
     val?: mutable_cellular_gateway_pool,
-    resources?: Array<GatewayPoolRecordsType>,
   ) => Promise<void>,
-  updateGatewayPoolResources: (
+  updateGatewayPoolRecords: (
     key: gateway_pool_id,
     val?: mutable_cellular_gateway_pool,
     resources?: Array<GatewayPoolRecordsType>,

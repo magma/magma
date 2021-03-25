@@ -60,7 +60,7 @@ import {
   SetGatewayState,
   SetTierState,
   UpdateGateway,
-  UpdateGatewayPoolResources,
+  UpdateGatewayPoolRecords,
 } from '../../state/lte/EquipmentState';
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
@@ -322,17 +322,16 @@ export function GatewayPoolsContextProvider(props: Props) {
     <GatewayPoolsContext.Provider
       value={{
         state: gatewayPools,
-        setState: (key, value?, resources?) =>
+        setState: (key, value?) =>
           SetGatewayPoolsState({
             gatewayPools,
             setGatewayPools,
             networkId,
             key,
             value,
-            resources,
           }),
-        updateGatewayPoolResources: (key, value?, resources?) =>
-          UpdateGatewayPoolResources({
+        updateGatewayPoolRecords: (key, value?, resources?) =>
+          UpdateGatewayPoolRecords({
             gatewayPools,
             setGatewayPools,
             networkId,
