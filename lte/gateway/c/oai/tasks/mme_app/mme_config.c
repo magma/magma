@@ -992,24 +992,24 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           // IMSI range
           if ((config_setting_lookup_string(
                   sub2setting, MME_CONFIG_STRING_IMSI_RANGE, &astring))) {
-            imsi_high_tmp = strdup(astring);
-            imsi_low_tmp  = strsep(&imsi_high_tmp, ":");
-            memcpy(
-                (char*) config_pP->mode_map_config.mode_map[i].imsi_low,
-                imsi_low_tmp, strlen(imsi_low_tmp));
-            AssertFatal(
-                strlen(
-                    (char*) config_pP->mode_map_config.mode_map[i].imsi_low) <=
-                    MAX_IMSI_LENGTH,
-                "Invalid imsi_low length\n");
-            memcpy(
-                (char*) config_pP->mode_map_config.mode_map[i].imsi_high,
-                imsi_high_tmp, strlen(imsi_high_tmp));
-            AssertFatal(
-                strlen(
-                    (char*) config_pP->mode_map_config.mode_map[i].imsi_high) <=
-                    MAX_IMSI_LENGTH,
-                "Invalid imsi_high length\n");
+            if (strlen(astring)) {
+              imsi_high_tmp = strdup(astring);
+              imsi_low_tmp  = strsep(&imsi_high_tmp, ":");
+              memcpy(
+                  (char*) config_pP->mode_map_config.mode_map[i].imsi_low,
+                  imsi_low_tmp, strlen(imsi_low_tmp));
+              AssertFatal(
+                  strlen((char*) config_pP->mode_map_config.mode_map[i]
+                             .imsi_low) <= MAX_IMSI_LENGTH,
+                  "Invalid imsi_low length\n");
+              memcpy(
+                  (char*) config_pP->mode_map_config.mode_map[i].imsi_high,
+                  imsi_high_tmp, strlen(imsi_high_tmp));
+              AssertFatal(
+                  strlen((char*) config_pP->mode_map_config.mode_map[i]
+                             .imsi_high) <= MAX_IMSI_LENGTH,
+                  "Invalid imsi_high length\n");
+            }
           }
           // APN
           if ((config_setting_lookup_string(

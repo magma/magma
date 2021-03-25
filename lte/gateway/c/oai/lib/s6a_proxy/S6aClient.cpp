@@ -102,13 +102,19 @@ S6aClient& S6aClient::get_subdb_instance(bool enable_s6a_proxy_channel) {
 
 // Extract MCC and MNC from the imsi received and match with
 // configuration
-bool match_fed_mode_map(const char* imsi) {
+int match_fed_mode_map(const char* imsi) {
   uint8_t mcc_d1 = imsi[0] - '0';
   uint8_t mcc_d2 = imsi[1] - '0';
   uint8_t mcc_d3 = imsi[2] - '0';
   uint8_t mnc_d1 = imsi[3] - '0';
   uint8_t mnc_d2 = imsi[4] - '0';
   uint8_t mnc_d3 = imsi[5] - '0';
+  if ((mcc_d1 < 0 || mcc_d1 > 9) || (mcc_d2 < 0 || mcc_d2 > 9) ||
+      (mcc_d3 < 0 || mcc_d3 > 9) || (mnc_d1 < 0 || mnc_d1 > 9) ||
+      (mnc_d2 < 0 || mnc_d2 > 9) || (mnc_d3 < 0 || mnc_d3 > 9)) {
+    std::cout << "[ERROR] MCC/MNC is not a decimal digit " << std::endl;
+    return -1;
+  }
   for (uint8_t itr = 0; itr < mme_config.mode_map_config.num; itr++) {
     if (((mcc_d1 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit1) &&
          (mcc_d2 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit2) &&
@@ -122,21 +128,14 @@ bool match_fed_mode_map(const char* imsi) {
           continue;
         }
       }
-      if ((mme_config.mode_map_config.mode_map[itr].mode == SPGW_SUBSCRIBER) ||
-          (mme_config.mode_map_config.mode_map[itr].mode == S8_SUBSCRIBER)) {
-        return true;
-      } else if (
-          mme_config.mode_map_config.mode_map[itr].mode == LOCAL_SUBSCRIBER) {
-        return false;
-      }
+      return mme_config.mode_map_config.mode_map[itr].mode;
     }
   }
-
   // If the plmn is not found/configured we still create a channel
   // towards the FeG as the default mode is HSS + spgw_task.
   std::cout << "[INFO]  PLMN is not found/configured. Selecting default mode"
             << std::endl;
-  return true;
+  return (magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER);
 }
 
 S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
@@ -167,12 +166,17 @@ void S6aClient::purge_ue(
     const char* imsi, std::function<void(Status, PurgeUEAnswer)> callbk) {
   bool enable_s6a_proxy_channel = false;
   S6aClient* client_tmp;
-  if (match_fed_mode_map(imsi) == true) {
+  int fed_mode = match_fed_mode_map(imsi);
+  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
+      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
     enable_s6a_proxy_channel = true;
     client_tmp = &get_s6a_proxy_instance(enable_s6a_proxy_channel);
-  } else {
+  } else if (
+      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
     enable_s6a_proxy_channel = false;
     client_tmp               = &get_subdb_instance(enable_s6a_proxy_channel);
+  } else {
+    return;
   }
 
   S6aClient& client = *client_tmp;
@@ -201,12 +205,17 @@ void S6aClient::authentication_info_req(
     std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk) {
   bool enable_s6a_proxy_channel = false;
   S6aClient* client_tmp;
-  if (match_fed_mode_map(msg->imsi) == true) {
+  int fed_mode = match_fed_mode_map(msg->imsi);
+  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
+      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
     enable_s6a_proxy_channel = true;
     client_tmp = &get_s6a_proxy_instance(enable_s6a_proxy_channel);
-  } else {
+  } else if (
+      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
     enable_s6a_proxy_channel = false;
     client_tmp               = &get_subdb_instance(enable_s6a_proxy_channel);
+  } else {
+    return;
   }
 
   S6aClient& client = *client_tmp;
@@ -235,13 +244,19 @@ void S6aClient::update_location_request(
     std::function<void(Status, feg::UpdateLocationAnswer)> callbk) {
   bool enable_s6a_proxy_channel = false;
   S6aClient* client_tmp;
-  if (match_fed_mode_map(msg->imsi) == true) {
+  int fed_mode = match_fed_mode_map(msg->imsi);
+  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
+      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
     enable_s6a_proxy_channel = true;
     client_tmp = &get_s6a_proxy_instance(enable_s6a_proxy_channel);
-  } else {
+  } else if (
+      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
     enable_s6a_proxy_channel = false;
     client_tmp               = &get_subdb_instance(enable_s6a_proxy_channel);
+  } else {
+    return;
   }
+
   S6aClient& client = *client_tmp;
   UpdateLocationRequest proto_msg =
       convert_itti_s6a_update_location_request_to_proto_msg(msg);

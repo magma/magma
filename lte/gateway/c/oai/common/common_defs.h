@@ -101,10 +101,13 @@ typedef enum {
 
 } error_code_e;
 
+/* This enum should match with the ModeMapItem_FederatedMode enum
+ * defined in mconfigs.pb.h
+ */
 typedef enum {
   SPGW_SUBSCRIBER  = 0,  // default mode is HSS + spgw_task
-  LOCAL_SUBSCRIBER = 1,  // will use subscriberDb + policydb
-  S8_SUBSCRIBER    = 2,  // will use HSS (feg) + s8_task
+  LOCAL_SUBSCRIBER = 1,  // will use subscriberDb + spgw_task
+  S8_SUBSCRIBER    = 2,  // will use federated HSS + s8_task
 } mode_map;
 
 //------------------------------------------------------------------------------
