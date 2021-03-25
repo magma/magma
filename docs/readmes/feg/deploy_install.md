@@ -1,9 +1,10 @@
 ---
 id: deploy_install
-title: Installing Federation Gateway
+title: Install FeG
 hide_title: true
 ---
-# Installing Federation Gateway
+
+# Install Federation Gateway
 
 ## Prerequisites
 

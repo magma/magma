@@ -1,9 +1,13 @@
 ---
 id: eventd
-title: Eventd
+title: Event Reporting
 hide_title: true
 ---
-# Eventd
+
+# Event Reporting
+
+This document describes how gateway events are reported via the *eventd* service.
+
 ### Overview
 
 Eventd is a structured logging service that unifies event-logs from Magma services.
@@ -13,7 +17,7 @@ Events are placed into `streams`, which are like logical buckets for events. The
 
 ### Infrastructure
 
-![Magma events architecture diagram](assets/lte/events_architecture.png?raw=true "Magma Events Architecture") 
+![Magma events architecture diagram](assets/lte/events_architecture.png?raw=true "Magma Events Architecture")
 The events pipeline is set up with functional pieces across the access gateway, orc8r, and NMS.
 
 First, on the gateway, events are aggregated by the `eventd` service.

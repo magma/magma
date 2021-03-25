@@ -1,10 +1,11 @@
 ---
-id: config_agw
-title: AGW Configuration
-sidebar_label: AGW Configuration
+id: deploy_config_agw
+title: Configure AGW
 hide_title: true
 ---
-# Access Gateway Configuration
+
+# Configure Access Gateway
+
 ## Prerequisites
 
 Before beginning to configure your Magma Access Gateway, you will need to make
@@ -18,11 +19,11 @@ You will need to set up a super-user in a valid NMS Organization in order to
 use the NMS. See "[NMS Multitenancy](https://magma.github.io/magma/docs/nms/nms_organizations)"
 to complete this step.
 
-You also should have completed all the steps in "[Access Gateway Setup (On Bare Metal)](https://magma.github.io/magma/docs/lte/setup_deb)".
+You also should have completed all the steps in "[Install Access Gateway (On Bare Metal)](https://magma.github.io/magma/docs/lte/deploy_install)".
 For this part, we strongly recommend that you SSH into the AGW box from a host
 machine instead of using the AGW directly.
 
-In this latest version, Magma Access Gateway no longer has a hardwired default Access Point Name (APN). Therefore, each UE must have a subscription profile that includes at least one APN to be able to attach to the network. Please follow the instructions in "[APN Configuration](config_apn.md)".
+In this latest version, Magma Access Gateway no longer has a hardwired default Access Point Name (APN). Therefore, each UE must have a subscription profile that includes at least one APN to be able to attach to the network. Please follow the instructions in "[APN Configuration](deploy_config_apn.md)".
 
 ## Access Gateway Configuration
 

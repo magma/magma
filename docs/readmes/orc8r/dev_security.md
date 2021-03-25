@@ -6,7 +6,7 @@ hide_title: true
 
 # Security Debugging
 
-This document describes some tools for understanding and debugging Orc8r security. Read the [Security Overview](./dev_security.md) first for
+This document describes some tools for understanding and debugging Orc8r security. Read the [Security Overview](./architecture_security) first for
 a top-level understanding of the security architecture.
 
 ## Architecture
@@ -139,10 +139,10 @@ View certificates and ACLs
 # These commands are run from one of Orc8r's application containers/pods
 
 # List all registered operators, along with their ACLs and certificate serial numbers
-envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc list
+/var/opt/magma/bin/accessc list
 
 # List all registered certificates, along with their associated identities
-envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc list-certs
+/var/opt/magma/bin/accessc list-certs
 ```
 
 Debug northbound interface (REST API)
@@ -180,10 +180,12 @@ grpcurl \
     magma.orc8r.Bootstrapper/GetChallenge
 
 # Emulate gateway request to state service's ReportStates endpoint (protected)
+#
+# gateway.{key,crt} copied from target gateway.
 grpcurl \
     -insecure \
-    -key /tmp/magma_protos/gateway.key \   # copied from target gateway
-    -cert /tmp/magma_protos/gateway.crt \  # copied from target gateway
+    -key /tmp/magma_protos/gateway.key \
+    -cert /tmp/magma_protos/gateway.crt \
     -authority state-controller.magma.test \
     -protoset /tmp/magma_protos/out.protoset \
     -d '{"states": [{"type": "test"}]}' \
@@ -192,14 +194,16 @@ grpcurl \
 
 # Emulate gateway request to state service's GetStates endpoint (protected)
 #
+# gateway.{key,crt} copied from target gateway.
+#
 # Note: this is an Orc8r-internal endpoint. To run this outside an Orc8r
 # application container, you may have to temporarily mutate some access
 # enforcment configuration in your dev setup. Alternatively, you could
 # run this command from inside an Orc8r application pod.
 grpcurl \
     -insecure \
-    -key /tmp/magma_protos/gateway.key \   # copied from target gateway
-    -cert /tmp/magma_protos/gateway.crt \  # copied from target gateway
+    -key /tmp/magma_protos/gateway.key \
+    -cert /tmp/magma_protos/gateway.crt \
     -authority state-controller.magma.test \
     -protoset /tmp/magma_protos/out.protoset \
     -d '{"networkID": "test"}' \
