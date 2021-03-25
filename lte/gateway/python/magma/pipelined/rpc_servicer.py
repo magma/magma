@@ -247,7 +247,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv4 = self._install_flows_gx(request, ipv4)
             else:
                 ret_ipv4 = self._install_flows_gy(request, ipv4)
-            ret.dynamic_rule_results.extend(ret_ipv4.dynamic_rule_results)
+            ret.policy_results.extend(ret_ipv4.policy_results)
         if request.ipv6_addr:
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
             self._update_ipv6_prefix_store(request.ipv6_addr)
@@ -255,7 +255,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv6 = self._install_flows_gx(request, ipv6)
             else:
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
-            ret.dynamic_rule_results.extend(ret_ipv6.dynamic_rule_results)
+            ret.policy_results.extend(ret_ipv6.policy_results)
         if request.uplink_tunnel and request.downlink_tunnel:
             self._update_tunnel_map_store(request.uplink_tunnel,
                                           request.downlink_tunnel)
@@ -290,7 +290,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             policies)
 
         # Include the failed rules from enforcement_stats in the response.
-        enforcement_res.dynamic_rule_results.extend(
+        enforcement_res.policy_results.extend(
             failed_policies_results)
         return enforcement_res
 
@@ -309,7 +309,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.dynamic_rules)
+            request.policies)
 
         failed_policies_results = \
             _retrieve_failed_results(enforcement_stats_res)
@@ -322,7 +322,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                             policies)
 
         # Include the failed rules from enforcement_stats in the response.
-        gy_res.dynamic_rule_results.extend(failed_policies_results)
+        gy_res.policy_results.extend(failed_policies_results)
         return gy_res
 
     def _activate_rules_in_enforcement_stats(self, imsi: str,
@@ -799,7 +799,7 @@ def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                                         List[RuleModResult]]:
     failed_policies_results = \
         [result for result in
-         activate_flow_result.dynamic_rule_results if
+         activate_flow_result.policy_results if
          result.result == RuleModResult.FAILURE]
     return failed_policies_results
 
@@ -807,14 +807,14 @@ def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
 def _filter_failed_policies(request: ActivateFlowsRequest,
                             failed_results: List[RuleModResult]
                             ) -> List[VersionedPolicy]:
-    failed_dynamic_rule_ids = [result.rule_id for result in failed_results]
+    failed_policies = [result.rule_id for result in failed_results]
     return [policy for policy in request.policies if
-            policy.rule.id not in failed_dynamic_rule_ids]
+            policy.rule.id not in failed_policies]
 
 
 def _report_enforcement_failures(activate_flow_result: ActivateFlowsResult,
                                  imsi: str):
-    for result in activate_flow_result.dynamic_rule_results:
+    for result in activate_flow_result.policy_results:
         if result.result == RuleModResult.SUCCESS:
             continue
         ENFORCEMENT_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
@@ -824,7 +824,7 @@ def _report_enforcement_failures(activate_flow_result: ActivateFlowsResult,
 def _report_enforcement_stats_failures(
         activate_flow_result: ActivateFlowsResult,
         imsi: str):
-    for result in activate_flow_result.dynamic_rule_results:
+    for result in activate_flow_result.policy_results:
         if result.result == RuleModResult.SUCCESS:
             continue
         ENFORCEMENT_STATS_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
