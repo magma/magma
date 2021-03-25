@@ -43,7 +43,7 @@ The main service within the access gateway (AGW) is Magmad, which brings up all 
 
 13. **Eventd** - Service that acts like an intermediary for different magma services, using the service303 interface, it will receive and push the generated registered events to the td-agent-bit service on the gateway, so these can be then later sent to Orchestrator. These events will be sent to ElasticSearch where they can be queried. 
 
-14. **Monitord ** - a dynamic service that monitors the CPEs connected to the AGW. It will send ICMP pings to the CPEs connected to the gateway and report if they are active. 
+14. **Monitord** - a dynamic service that monitors the CPEs connected to the AGW. It will send ICMP pings to the CPEs connected to the gateway and report if they are active. 
 
 15. **SMSd** - service that functions as the AGW interface that will sync the SMS information with Orc8r. 
 
