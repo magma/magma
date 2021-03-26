@@ -30,73 +30,72 @@ const (
 	ReceiverNameQueryParam = "receiver"
 )
 
-func GetConfigureAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
-	return getHandlerWithReceiverFunc(configManagerURL, configureAlertReceiver)
+func GetConfigureAlertReceiverHandler(configManagerURL string, client HttpClient) func(echo.Context) error {
+	return getHandlerWithReceiverFunc(configManagerURL, configureAlertReceiver, client)
 }
 
-func GetRetrieveAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
-	return getHandlerWithReceiverFunc(configManagerURL, retrieveAlertReceivers)
+func GetRetrieveAlertReceiverHandler(configManagerURL string, client HttpClient) func(echo.Context) error {
+	return getHandlerWithReceiverFunc(configManagerURL, retrieveAlertReceivers, client)
 }
 
-func GetUpdateAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
-	return getHandlerWithReceiverFunc(configManagerURL, updateAlertReceiver)
+func GetUpdateAlertReceiverHandler(configManagerURL string, client HttpClient) func(echo.Context) error {
+	return getHandlerWithReceiverFunc(configManagerURL, updateAlertReceiver, client)
 }
 
-func GetDeleteAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
-	return getHandlerWithReceiverFunc(configManagerURL, deleteAlertReceiver)
+func GetDeleteAlertReceiverHandler(configManagerURL string, client HttpClient) func(echo.Context) error {
+	return getHandlerWithReceiverFunc(configManagerURL, deleteAlertReceiver, client)
 }
 
 // getHandlerWithReceiverFunc returns an echo HandlerFunc that checks the
 // networkID and runs the given handlerImplFunc that communicates with the
 // alertmanager config service
-func getHandlerWithReceiverFunc(configManagerURL string, handlerImplFunc func(echo.Context, string) error) func(echo.Context) error {
+func getHandlerWithReceiverFunc(configManagerURL string, handlerImplFunc func(echo.Context, string, HttpClient) error, client HttpClient) func(echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
 		url := makeNetworkReceiverPath(configManagerURL, networkID)
-		return handlerImplFunc(c, url)
+		return handlerImplFunc(c, url, client)
 	}
 }
 
-func GetRetrieveAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
-	return getHandlerWithRouteFunc(configManagerURL, retrieveAlertRoute)
+func GetRetrieveAlertRouteHandler(configManagerURL string, client HttpClient) func(c echo.Context) error {
+	return getHandlerWithRouteFunc(configManagerURL, retrieveAlertRoute, client)
 }
 
-func GetUpdateAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
-	return getHandlerWithRouteFunc(configManagerURL, updateAlertRoute)
+func GetUpdateAlertRouteHandler(configManagerURL string, client HttpClient) func(c echo.Context) error {
+	return getHandlerWithRouteFunc(configManagerURL, updateAlertRoute, client)
 }
 
 // getHandlerWithRouteFunc returns an echo HandlerFunc that checks the
 // networkID and runs the given handlerImplFunc that communicates with the
 // alertmanager config service for routing trees
-func getHandlerWithRouteFunc(configManagerURL string, handlerImplFunc func(echo.Context, string) error) func(echo.Context) error {
+func getHandlerWithRouteFunc(configManagerURL string, handlerImplFunc func(echo.Context, string, HttpClient) error, client HttpClient) func(echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
 		url := makeNetworkRoutePath(configManagerURL, networkID)
-		return handlerImplFunc(c, url)
+		return handlerImplFunc(c, url, client)
 	}
 }
 
-func configureAlertReceiver(c echo.Context, url string) error {
+func configureAlertReceiver(c echo.Context, url string, client HttpClient) error {
 	receiver, err := buildReceiverFromContext(c)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	sendErr := sendConfig(receiver, url, http.MethodPost)
+	sendErr := sendConfig(receiver, url, http.MethodPost, client)
 	if sendErr != nil {
 		return obsidian.HttpError(fmt.Errorf("%s", sendErr.Message), sendErr.Code)
 	}
 	return c.NoContent(http.StatusOK)
 }
 
-func retrieveAlertReceivers(c echo.Context, url string) error {
-	client := &http.Client{}
+func retrieveAlertReceivers(c echo.Context, url string, client HttpClient) error {
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
@@ -116,7 +115,7 @@ func retrieveAlertReceivers(c echo.Context, url string) error {
 	return c.JSON(http.StatusOK, recs)
 }
 
-func updateAlertReceiver(c echo.Context, url string) error {
+func updateAlertReceiver(c echo.Context, url string, client HttpClient) error {
 	receiver, err := buildReceiverFromContext(c)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
@@ -130,21 +129,20 @@ func updateAlertReceiver(c echo.Context, url string) error {
 	}
 	url += fmt.Sprintf("/%s", neturl.PathEscape(receiverName))
 
-	sendErr := sendConfig(receiver, url, http.MethodPut)
+	sendErr := sendConfig(receiver, url, http.MethodPut, client)
 	if sendErr != nil {
 		return obsidian.HttpError(sendErr, sendErr.Code)
 	}
 	return c.NoContent(http.StatusOK)
 }
 
-func deleteAlertReceiver(c echo.Context, url string) error {
+func deleteAlertReceiver(c echo.Context, url string, client HttpClient) error {
 	receiverName := c.QueryParam(ReceiverNameQueryParam)
 	if receiverName == "" {
 		return obsidian.HttpError(fmt.Errorf("receiver name not provided"), http.StatusBadRequest)
 	}
 	url += fmt.Sprintf("/%s", neturl.PathEscape(receiverName))
 
-	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -162,8 +160,7 @@ func deleteAlertReceiver(c echo.Context, url string) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func retrieveAlertRoute(c echo.Context, url string) error {
-	client := &http.Client{}
+func retrieveAlertRoute(c echo.Context, url string, client HttpClient) error {
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
@@ -183,13 +180,13 @@ func retrieveAlertRoute(c echo.Context, url string) error {
 	return c.JSON(http.StatusOK, route)
 }
 
-func updateAlertRoute(c echo.Context, url string) error {
+func updateAlertRoute(c echo.Context, url string, client HttpClient) error {
 	route, err := buildRouteFromContext(c)
 	if err != nil {
-		return obsidian.HttpError(fmt.Errorf("invalid route specification: %v\n", err), http.StatusBadRequest)
+		return obsidian.HttpError(fmt.Errorf("invalid route specification: %v", err), http.StatusBadRequest)
 	}
 
-	sendErr := sendConfig(route, url, http.MethodPost)
+	sendErr := sendConfig(route, url, http.MethodPost, client)
 	if sendErr != nil {
 		return obsidian.HttpError(fmt.Errorf("error updating alert route: %v", sendErr.Message), sendErr.Code)
 	}

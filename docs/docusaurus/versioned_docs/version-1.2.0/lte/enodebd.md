@@ -163,3 +163,28 @@ failure until you add the corresponding IMSI to the subscriber database.
 
 Continue to the next section to register your subscribers and configure your
 APNs to start serving traffic.
+
+## Unmanaged eNB Installation via AGW
+
+### Background
+
+The configuration of unmanaged (eNBs lacking TR-069 functionality) is done through the dnsd service within the AGW. In order to enable dynamic IP allocation of these eNBs, this service must be disabled.
+
+### Disable dnsd Service
+
+1. SSH into your AGW 
+2. Type ```cat -n dnsd.conf```
+3. Comment out the line for dhcp-range 
+
+Alternatively, this can also be completed using the orchestrator through dhcp_server_enabled on the network cloud in the DNS configuration. 
+
+### S1 Interface 
+
+Connect your eNodeB to the ```eth1``` interface of Magma gateway. Magma uses ```eth1``` as the default S1 interface. If you have more than one eNodeB, use an L2 switch to connect all S1 interfaces. For debugging purposes, you may find it particularly useful to do the following:
+
+1. Configure a managed L2 switch (e.g. this NETGEAR) to mirror port X and port Y to port Z.
+2. Connect port X of that switch to the ```eth1``` interface on your AGW.
+3. Connect the WAN interface on your enodeB to port Y on the switch.
+4. Connect your host to port Z on the switch.
+
+This will allow you to do live packet captures with Wireshark from your host to debug the S1 interface between the enodeB and the AGW (filter for SCTP). In this case, ensure that your eNB is using IPs from the MME pool and verify that that eNB is point to the MME IP on the AGW. 
