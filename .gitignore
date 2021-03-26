@@ -25,7 +25,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
+/build/
 develop-eggs/
 dist/
 eggs/
@@ -90,6 +90,9 @@ test_results_magma_converged_mme.html
 # IntelliJ
 .idea/
 
+# VS Code
+.vscode/
+
 # Internal
 fb
 
@@ -98,3 +101,5 @@ fb
 
 # Code coverage
 orc8r/cloud/coverage/
+feg/gateway/coverage/
+lte/gateway/c/oai/code_coverage/

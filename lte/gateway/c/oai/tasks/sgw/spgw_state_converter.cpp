@@ -796,25 +796,14 @@ void SpgwStateConverter::proto_to_eps_bearer_qos(
 void SpgwStateConverter::gtpv1u_data_to_proto(
     const gtpv1u_data_t* gtp_data, GTPV1uData* gtp_proto) {
   gtp_proto->Clear();
-
-  if (gtp_data->ip_addr != nullptr) {
-    gtp_proto->set_ip_address(gtp_data->ip_addr);
-  }
-
-  gtp_proto->set_seq_num(gtp_data->seq_num);
-  gtp_proto->set_restart_counter(gtp_data->restart_counter);
   gtp_proto->set_fd0(gtp_data->fd0);
   gtp_proto->set_fd1u(gtp_data->fd1u);
 }
 
 void SpgwStateConverter::proto_to_gtpv1u_data(
     const oai::GTPV1uData& gtp_proto, gtpv1u_data_t* gtp_data) {
-  strncpy(
-      gtp_data->ip_addr, gtp_proto.ip_address().c_str(),
-      gtp_proto.ip_address().length());
-  gtp_data->restart_counter = gtp_proto.restart_counter();
-  gtp_data->fd0             = gtp_proto.fd0();
-  gtp_data->fd1u            = gtp_proto.fd1u();
+  gtp_data->fd0  = gtp_proto.fd0();
+  gtp_data->fd1u = gtp_proto.fd1u();
 }
 
 void SpgwStateConverter::sgw_pending_procedures_to_proto(
@@ -892,7 +881,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
 void SpgwStateConverter::ue_to_proto(
     const spgw_ue_context_t* ue_state, oai::SpgwUeContext* ue_proto) {
   if (ue_state && (!(LIST_EMPTY(&ue_state->sgw_s11_teid_list)))) {
-    sgw_s11_teid_t* s11_teid_p = NULL;
+    sgw_s11_teid_t* s11_teid_p = nullptr;
     LIST_FOREACH(s11_teid_p, &ue_state->sgw_s11_teid_list, entries) {
       if (s11_teid_p) {
         auto spgw_ctxt = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
@@ -908,8 +897,8 @@ void SpgwStateConverter::ue_to_proto(
 void SpgwStateConverter::proto_to_ue(
     const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  spgw_state_t* spgw_state     = NULL;
-  hash_table_ts_t* state_ue_ht = NULL;
+  spgw_state_t* spgw_state     = nullptr;
+  hash_table_ts_t* state_ue_ht = nullptr;
   if (ue_proto.s11_bearer_context_size()) {
     spgw_state = get_spgw_state(false);
     if (!spgw_state) {

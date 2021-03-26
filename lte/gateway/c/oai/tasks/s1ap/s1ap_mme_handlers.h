@@ -159,6 +159,13 @@ int s1ap_handle_path_switch_req_failure(
     const itti_s1ap_path_switch_request_failure_t* path_switch_req_failure_p,
     imsi64_t imsi64);
 
+int s1ap_mme_handle_erab_modification_indication(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu);
+
+void s1ap_mme_generate_erab_modification_confirm(
+    s1ap_state_t* state, const itti_s1ap_e_rab_modification_cnf_t* const conf);
+
 int s1ap_mme_generate_ue_context_release_command(
     s1ap_state_t* state, ue_description_t* ue_ref_p, enum s1cause,
     imsi64_t imsi64, sctp_assoc_id_t assoc_id, sctp_stream_id_t stream,

@@ -17,7 +17,7 @@ var (
 
 func TestValuesCache_Set(t *testing.T) {
 	mockAPI := &mocks.SeriesAPI{}
-	testCache := getTestCache(time.Minute, time.Minute, 150, mockAPI)
+	testCache := getTestCache(time.Minute, time.Minute, 150, mockAPI, 0)
 
 	// Basic Cache Set works
 	testCache.Set([]string{"testParam1"}, sampleLabelSet)
@@ -40,7 +40,7 @@ func TestValuesCache_Set(t *testing.T) {
 
 func TestValuesCache_Get(t *testing.T) {
 	mockAPI := &mocks.SeriesAPI{}
-	testCache := getTestCache(time.Minute, time.Minute, 10000, mockAPI)
+	testCache := getTestCache(time.Minute, time.Minute, 10000, mockAPI, 0)
 
 	// Basic Cache Get works
 	_, ok := testCache.Get([]string{"testParam1"})
@@ -64,14 +64,13 @@ func TestValuesCache_Get(t *testing.T) {
 	assert.True(t, ok)
 }
 
-func getTestCache(oldestAcceptable, ttl time.Duration, limit int, mockAPI SeriesAPI) SeriesCache {
-	return SeriesCache{
-		responses: map[string]*cacheData{},
-		specs: Specs{
+func getTestCache(oldestAcceptable, ttl time.Duration, limit int, mockAPI SeriesAPI, updateFreq time.Duration) *SeriesCache {
+	return NewSeriesCache(Params{
+		Specs: Specs{
 			OldestAcceptable: oldestAcceptable,
 			TTL:              ttl,
 			LimitBytes:       limit,
 		},
-		updateFunc: GetCacheUpdateProvider(mockAPI),
-	}
+		UpdateFreq: updateFreq,
+	}, GetCacheUpdateProvider(mockAPI))
 }

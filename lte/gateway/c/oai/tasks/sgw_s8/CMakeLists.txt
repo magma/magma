@@ -25,7 +25,7 @@ add_library(TASK_SGW_S8 ${SGW_S8_SRC})
 
 target_link_libraries(TASK_SGW_S8
     COMMON
-    LIB_BSTR LIB_HASHTABLE
+    LIB_BSTR LIB_HASHTABLE LIB_S8_PROXY
     LIB_OPENFLOW_CONTROLLER TASK_SERVICE303
     cpp_redis tacopie protobuf
 )

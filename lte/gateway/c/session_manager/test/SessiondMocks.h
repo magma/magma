@@ -102,32 +102,27 @@ class MockPipelinedClient : public PipelinedClient {
           const std::vector<SessionState::SessionInfo>& infos,
           const std::uint64_t& epoch,
           std::function<void(Status status, SetupFlowsResult)> callback));
-  MOCK_METHOD1(deactivate_all_flows, void(const std::string& imsi));
-  MOCK_METHOD7(
+  MOCK_METHOD6(
       deactivate_flows_for_rules,
       void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::vector<std::string>& rule_ids,
-          const std::vector<PolicyRule>& dynamic_rules,
+          const RulesToProcess to_process,
           const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD7(
+  MOCK_METHOD5(
       deactivate_flows_for_rules_for_termination,
       void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::vector<std::string>& rule_ids,
-          const std::vector<PolicyRule>& dynamic_rules,
           const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD9(
+  MOCK_METHOD8(
       activate_flows_for_rules,
       void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
           const std::string& msisdn,
           const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
-          const std::vector<std::string>& static_rules,
-          const std::vector<PolicyRule>& dynamic_rules,
+          const RulesToProcess to_process,
           std::function<void(Status status, ActivateFlowsResult)> callback));
   MOCK_METHOD6(
       add_ue_mac_flow,
@@ -148,14 +143,12 @@ class MockPipelinedClient : public PipelinedClient {
   MOCK_METHOD2(
       delete_ue_mac_flow,
       void(const SubscriberID& sid, const std::string& ue_mac_addr));
-  MOCK_METHOD7(
+  MOCK_METHOD6(
       add_gy_final_action_flow,
       void(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
-          const std::string& msisdn,
-          const std::vector<std::string>& static_rules,
-          const std::vector<PolicyRule>& dynamic_rules));
+          const std::string& msisdn, const RulesToProcess to_process));
   MOCK_METHOD2(
       set_upf_session,
       void(

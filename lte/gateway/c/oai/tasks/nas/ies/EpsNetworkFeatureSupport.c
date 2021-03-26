@@ -36,8 +36,9 @@ int decode_eps_network_feature_support(
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
-  *epsnetworkfeaturesupport = *buffer & 0x1;
-  decoded++;
+
+  epsnetworkfeaturesupport->b1 = (*(buffer + decoded++)) & 0x1;
+  epsnetworkfeaturesupport->b2 = (*(buffer + decoded++));
   return decoded;
 }
 
@@ -61,8 +62,11 @@ int encode_eps_network_feature_support(
 
   lenPtr = (buffer + encoded);
   encoded++;
-  *(buffer + encoded) = 0x00 | (*epsnetworkfeaturesupport & 0x1);
+  *(buffer + encoded) = 0x00 | (epsnetworkfeaturesupport->b1 & 0x01);
   encoded++;
+  *(buffer + encoded) = epsnetworkfeaturesupport->b2;
+  encoded++;
+
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
   return encoded;
 }

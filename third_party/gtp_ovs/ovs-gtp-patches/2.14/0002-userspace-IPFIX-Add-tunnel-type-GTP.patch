@@ -1,7 +1,7 @@
-From b2bf6b4bb70e7b0ac296ed0bdd3f9e5ae5ab3b72 Mon Sep 17 00:00:00 2001
+From 5cc9f1c716c2d580b0e7ee4a91b81315e3c883cc Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 24 Feb 2020 04:29:56 +0000
-Subject: [PATCH 02/11] userspace: IPFIX: Add tunnel type GTP
+Subject: [PATCH 02/14] userspace: IPFIX: Add tunnel type GTP
 
 Add support for ingress/egress tunnel type GTP
 in IPFIX.
@@ -56,7 +56,7 @@ index b89dfdd52..50f95e637 100644
  
  int
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index e7ddf1547..7158ef428 100644
+index 2a7d14e99..0f3d587e0 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
 @@ -578,6 +578,7 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
@@ -194,5 +194,5 @@ index a87b6777c..530752444 100644
  AT_CHECK([ovs-ofctl del-flows int-br])
  
 -- 
-2.17.1
+2.13.5
 

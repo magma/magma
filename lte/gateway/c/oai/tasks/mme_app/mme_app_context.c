@@ -223,52 +223,19 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   // Stop UE context modification process guard timer,if running
   if (ue_context_p->ue_context_modification_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_context_p->ue_context_modification_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop UE Context Modification timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->ue_context_modification_timer.id);
     ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
   // Stop ULR Response timer if running
   if (ue_context_p->ulr_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    timer_argP                       = NULL;
-    if (timer_remove(
-            ue_context_p->ulr_response_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop ULR timer for UE id %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->ulr_response_timer.id);
     ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
   // Stop paging response timer if running
   if (ue_context_p->paging_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    timer_argP                       = NULL;
-    if (timer_remove(
-            ue_context_p->paging_response_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop Paging Response timer for UE id %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->paging_response_timer.id);
     ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
@@ -1707,18 +1674,7 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
   // Stop ue_context_modification  guard timer,if running
   if (ue_context_p->ue_context_modification_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_context_p->ue_context_modification_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop UE Context Modification timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->ue_context_modification_timer.id);
     ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   if (ue_context_p->sgs_context != NULL) {
@@ -1755,18 +1711,7 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
   // Stop ue_context_modification  guard timer,if running
   if (ue_context_p->ue_context_modification_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_context_p->ue_context_modification_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to stop UE Context Modification timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->ue_context_modification_timer.id);
     ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
@@ -1963,8 +1908,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
   enb_s1ap_id_key_t enb_s1ap_id_key     = INVALID_ENB_UE_S1AP_ID_KEY;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  nas_itti_timer_arg_t* timer_argP = NULL;
-  mme_app_desc_t* mme_app_desc_p   = get_mme_nas_state(false);
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   if (!ue_mm_context) {
     /*
@@ -2048,17 +1992,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
   // Stop UE context modification process guard timer,if running
   if (ue_mm_context->ue_context_modification_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(
-            ue_mm_context->ue_context_modification_timer.id,
-            (void**) &timer_argP)) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-          "Failed to stop UE Context Modification timer for UE id  %d \n",
-          ue_mm_context->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_mm_context->ue_context_modification_timer.id);
     ue_mm_context->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
@@ -2248,7 +2182,7 @@ static bool mme_app_recover_timers_for_ue(
         mme_app_handle_implicit_detach_timer_expiry, "Implicit Detach");
   }
   if (ue_mm_context_pP->time_paging_response_timer_started) {
-    mme_app_resume_timers(
+    mme_app_resume_timer(
         ue_mm_context_pP, ue_mm_context_pP->time_paging_response_timer_started,
         &ue_mm_context_pP->paging_response_timer,
         mme_app_handle_paging_timer_expiry, "Paging Response");

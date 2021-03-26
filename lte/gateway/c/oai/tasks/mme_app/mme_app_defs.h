@@ -124,6 +124,13 @@ void mme_app_handle_initial_context_setup_failure(
     const itti_mme_app_initial_context_setup_failure_t* const
         initial_ctxt_setup_failure_pP);
 
+void mme_app_handle_e_rab_modification_ind(
+    const itti_s1ap_e_rab_modification_ind_t* const e_rab_modification_ind);
+
+void mme_app_handle_modify_bearer_rsp_erab_mod_ind(
+    itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
+    ue_mm_context_t* ue_context_p);
+
 bool mme_app_dump_ue_context(
     const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP);
@@ -154,8 +161,8 @@ int mme_app_handle_implicit_detach_timer_expiry(
 int mme_app_handle_initial_context_setup_rsp_timer_expiry(
     zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_ue_context_modification_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_ue_context_modification_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
 void mme_app_handle_enb_reset_req(
     const itti_s1ap_enb_initiated_reset_req_t* const enb_reset_req);
@@ -163,8 +170,8 @@ void mme_app_handle_enb_reset_req(
 int mme_app_handle_initial_paging_request(
     mme_app_desc_t* mme_app_desc_p, const char* imsi);
 
-void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64);
-void mme_app_handle_ulr_timer_expiry(void* args, imsi64_t* imsi64);
+int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
 int mme_app_handle_sgs_eps_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args);

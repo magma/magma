@@ -22,6 +22,7 @@
 #include "TLVDecoder.h"
 #include "AttachAccept.h"
 #include "common_defs.h"
+#include "emm_cause.h"
 
 int decode_attach_accept(
     attach_accept_msg* attach_accept, uint8_t* buffer, uint32_t len) {
@@ -303,13 +304,15 @@ int encode_attach_accept(
 
   if ((attach_accept->presencemask & ATTACH_ACCEPT_EMM_CAUSE_PRESENT) ==
       ATTACH_ACCEPT_EMM_CAUSE_PRESENT) {
-    if ((encode_result = encode_emm_cause(
-             &attach_accept->emmcause, ATTACH_ACCEPT_EMM_CAUSE_IEI,
-             buffer + encoded, len - encoded)) < 0) {
-      // Return in case of error
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, encode_result);
-    } else
-      encoded += encode_result;
+    if (attach_accept->emmcause != (uint8_t) EMM_CAUSE_SUCCESS) {
+      if ((encode_result = encode_emm_cause(
+               &attach_accept->emmcause, ATTACH_ACCEPT_EMM_CAUSE_IEI,
+               buffer + encoded, len - encoded)) < 0) {
+        // Return in case of error
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, encode_result);
+      } else
+        encoded += encode_result;
+    }
   }
 
   if ((attach_accept->presencemask & ATTACH_ACCEPT_T3402_VALUE_PRESENT) ==

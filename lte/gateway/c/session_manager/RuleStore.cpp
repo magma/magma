@@ -137,6 +137,20 @@ bool PolicyRuleBiMap::get_rule(
   return true;
 }
 
+bool PolicyRuleBiMap::get_rules_by_ids(
+    const std::vector<std::string>& rule_ids,
+    std::vector<PolicyRule>& rules_out) {
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  for (const std::string rule_id : rule_ids) {
+    auto it = rules_by_rule_id_.find(rule_id);
+    if (it == rules_by_rule_id_.end()) {
+      return false;
+    }
+    rules_out.push_back(*it->second);
+  }
+  return true;
+}
+
 bool PolicyRuleBiMap::remove_rule(
     const std::string& rule_id, PolicyRule* rule_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);

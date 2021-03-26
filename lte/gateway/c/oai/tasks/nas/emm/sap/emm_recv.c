@@ -140,9 +140,17 @@ int check_plmn_restriction(imsi_t imsi) {
         (imsi.u.num.digit4 ==
          mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
         (imsi.u.num.digit5 ==
-         mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
-        (imsi.u.num.digit6 ==
-         mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
+         mme_config.restricted_plmn.plmn[itr].mnc_digit2)) {
+      /* MNC could be 2 or 3 digits. But for a given MCC,
+       * all the MNCs are of same length. Check MNC digit3
+       * only if mnc_digit3 in mme_config is not set to 0xf
+       */
+      if (mme_config.restricted_plmn.plmn[itr].mnc_digit3 != 0xf) {
+        if (imsi.u.num.digit6 !=
+            mme_config.restricted_plmn.plmn[itr].mnc_digit3) {
+          continue;
+        }
+      }
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_PLMN_NOT_ALLOWED);
     }
   }
@@ -174,20 +182,6 @@ int emm_recv_attach_request(
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Attach Request message\n");
   increment_counter("ue_attach", 1, NO_LABELS);
-  /*
-   * Message checking
-   */
-
-  if (msg->uenetworkcapability.spare != 0b000) {
-    /*
-     * Spare bits shall be coded as zero
-     */
-    *emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
-    REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_b__4);
-    OAILOG_WARNING(
-        LOG_NAS_EMM, "EMMAS-SAP - [%08x] - Non zero spare bits is suspicious\n",
-        ue_id);
-  }
 
   /*
    * Handle message checking error

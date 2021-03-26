@@ -47,11 +47,12 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
         .detach();
 
     monitoring_key = "mk1";
-    rule_id        = "test_rule_1";
+    rule_id_1      = "test_rule_1";
+    rule_id_2      = "test_rule_2";
 
-    reporter        = std::make_shared<MockSessionReporter>();
-    auto rule_store = std::make_shared<StaticRuleStore>();
-    session_store   = std::make_shared<SessionStore>(
+    reporter      = std::make_shared<MockSessionReporter>();
+    rule_store    = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
     pipelined_client     = std::make_shared<MockPipelinedClient>();
     auto spgw_client     = std::make_shared<MockSpgwServiceClient>();
@@ -123,20 +124,27 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     request.set_imsi(IMSI1);
 
     StaticRuleInstall static_rule_1;
-    static_rule_1.set_rule_id("static_1");
+    static_rule_1.set_rule_id(rule_id_2);
 
     // This should be a duplicate rule
     StaticRuleInstall static_rule_2;
-    static_rule_2.set_rule_id(rule_id);
+    static_rule_2.set_rule_id(rule_id_1);
 
     request.mutable_rules_to_install()->Add()->CopyFrom(static_rule_1);
     request.mutable_rules_to_install()->Add()->CopyFrom(static_rule_2);
     return request;
   }
 
+  void insert_static_rule(const std::string& rule_id) {
+    PolicyRule rule;
+    create_policy_rule(rule_id, "", 0, &rule);
+    rule_store->insert_rule(rule);
+  }
+
  protected:
   std::string monitoring_key;
-  std::string rule_id;
+  std::string rule_id_1;
+  std::string rule_id_2;
 
   std::shared_ptr<MockPipelinedClient> pipelined_client;
   std::shared_ptr<SessionProxyResponderHandlerImpl> proxy_responder;
@@ -150,17 +158,18 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
 };
 
 TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
-  // 1) Create SessionStore
-  auto rule_store = std::make_shared<StaticRuleStore>();
+  // 1) Initialize static rules
+  insert_static_rule(rule_id_1);
+  insert_static_rule(rule_id_2);
 
   // 2) Create bare-bones session for IMSI1
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
-  session->activate_static_rule(rule_id, lifetime, uc);
+  session->activate_static_rule(rule_id_1, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
-  EXPECT_EQ(session->is_static_rule_installed(rule_id), true);
+  EXPECT_EQ(session->is_static_rule_installed(rule_id_1), true);
 
   auto monitor_update = get_monitoring_update();
   session->receive_monitor(monitor_update, uc);
@@ -185,10 +194,10 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
   EXPECT_EQ(
-      session_map[IMSI1].front()->is_static_rule_installed("static_1"), false);
+      session_map[IMSI1].front()->is_static_rule_installed(rule_id_2), false);
 
   // 4) Now call PolicyReAuth
-  //    This is done with a duplicate install of rule_id. This checks that
+  //    This is done with a duplicate install of rule_id_1. This checks that
   //    duplicate rule installs are ignored, as they are occasionally
   //    requested by the session proxy. If the duplicate rule install causes
   //    a failure, then the entire PolicyReAuth will not save to the
@@ -197,7 +206,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   grpc::ServerContext create_context;
   EXPECT_CALL(
       *pipelined_client,
-      activate_flows_for_rules(IMSI1, _, _, _, _, _, CheckCount(1), _, _))
+      activate_flows_for_rules(IMSI1, _, _, _, _, _, CheckRuleCount(1), _))
       .Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, &request,
@@ -216,21 +225,22 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
   EXPECT_EQ(
-      session_map[IMSI1].front()->is_static_rule_installed("static_1"), true);
+      session_map[IMSI1].front()->is_static_rule_installed(rule_id_2), true);
 }
 
 TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
-  // 1) Create SessionStore
-  auto rule_store = std::make_shared<StaticRuleStore>();
+  // 1) Initialize static rules
+  insert_static_rule(rule_id_1);
+  insert_static_rule(rule_id_2);
 
   // 2) Create bare-bones session for IMSI1
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
-  session->activate_static_rule(rule_id, lifetime, uc);
+  session->activate_static_rule(rule_id_1, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
-  EXPECT_EQ(session->is_static_rule_installed(rule_id), true);
+  EXPECT_EQ(session->is_static_rule_installed(rule_id_1), true);
 
   // 3) Commit session for IMSI1 into SessionStore
   auto sessions = SessionVector{};
@@ -247,7 +257,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
   EXPECT_EQ(
-      session_map[IMSI1].front()->is_static_rule_installed("static_1"), false);
+      session_map[IMSI1].front()->is_static_rule_installed(rule_id_2), false);
 
   // 4) Now call AbortSession
   //    We should see a session deletion which would trigger deactivate_flows
@@ -255,10 +265,10 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   request.set_user_name(IMSI1);
   request.set_session_id(SESSION_ID_1);
   grpc::ServerContext create_context;
+  // the request should has no rules so PipelineD deletes all rules
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules_for_termination(
-          IMSI1, _, _, _, CheckCount(1), CheckCount(0), RequestOriginType::GX))
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
+                             IMSI1, _, _, _, RequestOriginType::GX))
       .Times(1);
   proxy_responder->AbortSession(
       &create_context, &request,

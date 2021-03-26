@@ -317,12 +317,17 @@ int emm_proc_security_mode_control(
      * Set the GPRS integrity algorithms to be replayed to the UE
      */
     uint8_t gea = emm_ctx->_ms_network_capability.gea1;
-    if (gea) {
+    if (gea | emm_ctx->_ms_network_capability.egea) {
       gea = (gea << 6) | emm_ctx->_ms_network_capability.egea;
     }
     smc_proc->gea          = gea;
     smc_proc->umts_present = emm_ctx->_ue_network_capability.umts_present;
-    smc_proc->gprs_present = (gea >= (MS_NETWORK_CAPABILITY_GEA1 >> 1));
+    smc_proc->gprs_present = (gea > 0);
+
+    OAILOG_DEBUG(
+        LOG_NAS_EMM, "EMM-PROC  - SMC gprs_present %d gea bits %02x\n",
+        smc_proc->gprs_present, smc_proc->gea);
+
     /*
      * Set the EPS encryption algorithms selected to the UE
      */

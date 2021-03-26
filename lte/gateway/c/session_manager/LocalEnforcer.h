@@ -481,10 +481,7 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
-      const std::string& msisdn, optional<AggregatedMaximumBitrate> ambr,
-      const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules, Status status,
+      const std::string& ipv6_addr, const Teids teids, Status status,
       ActivateFlowsResult resp);
 
   /**
@@ -517,7 +514,7 @@ class LocalEnforcer {
 
   /**
    * remove_all_rules_for_termination talks to PipelineD and removes all rules
-   * attached to the session
+   * (Gx/Gy/static/dynamic/everything) attached to the session
    * @param imsi
    * @param session
    * @param uc
@@ -588,19 +585,9 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * Remove final action flows through pipelined
-   */
-  void cancel_final_unit_action(
-      const std::unique_ptr<SessionState>& session,
-      const std::vector<std::string>& restrict_rules,
-      SessionStateUpdateCriteria& uc);
-
-  /**
    * Create redirection rule
    */
   PolicyRule create_redirect_rule(const std::unique_ptr<ServiceAction>& action);
-
-  bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 
   void report_subscriber_state_to_pipelined(
       const std::string& imsi, const std::string& ue_mac_addr,

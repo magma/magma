@@ -303,7 +303,7 @@ int spgw_handle_nw_initiated_bearer_actv_req(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
-  teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(spgw_state);
+  teid_t s1_u_sgw_fteid = spgw_get_new_s1u_teid(spgw_state);
   // Create temporary dedicated bearer context
   rc = _create_temporary_dedicated_bearer_context(
       spgw_ctxt_p, bearer_req_p, spgw_state, s1_u_sgw_fteid);

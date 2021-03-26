@@ -34,12 +34,13 @@ if (NOT BUILD_TESTS)
   #set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
   #   "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
 else() # BUILD_TESTS
-  message("Adding code coverage build and linker flags for BUILD_TESTS")
-  set (CMAKE_CXX_FLAGS_DEBUG
-      "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
-  set(CMAKE_LINKER_FLAGS_DEBUG
-      "${CMAKE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 endif ()
+
+message("Adding code coverage build and linker flags for BUILD_TESTS")
+set (CMAKE_CXX_FLAGS_DEBUG
+  "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
+set(CMAKE_LINKER_FLAGS_DEBUG
+  "${CMAKE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -48,7 +49,7 @@ add_definitions(-DLOG_WITH_GLOG)
 
 message("Build type is ${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function")
 endif ()
 
 include_directories("${OUTPUT_DIR}")

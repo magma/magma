@@ -27,7 +27,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - updated vbguest-tool
     magma.vm.box = "magmacore/magma_dev"
     magma.vm.hostname = "magma-dev"
-    magma.vm.box_version = "1.1.20210120"
+    magma.vm.box_version = "1.1.20210323"
 
     magma.vbguest.auto_update = false
 
@@ -97,6 +97,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.customize ["modifyvm", :id, "--memory", "8192"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000 ]
     end
     magma_focal.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false
@@ -111,7 +112,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :magma_trfserver, autostart: false do |magma_trfserver|
     magma_trfserver.vm.box = "magmacore/magma_trfserver"
     magma_trfserver.vm.hostname = "magma-trfserver"
-    magma_trfserver.vm.box_version = "1.1.20210120"
+    magma_trfserver.vm.box_version = "1.1.20210323"
     magma_trfserver.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
@@ -162,7 +163,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Get our prepackaged box from the atlas cloud
     magma_test.vm.box = "magmacore/magma_test"
     magma_test.vm.hostname = "magma-test"
-    magma_test.vm.box_version = "1.1.20210120"
+    magma_test.vm.box_version = "1.1.20210323"
     magma_test.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine

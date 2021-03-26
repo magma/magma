@@ -187,8 +187,8 @@ ERROR:root:Metrics upload error! [StatusCode.UNKNOWN] rpc error: code = Unavaila
 
 On the orc8r, we can debug the issues by dumping the logs on prometheus, prometheus-configmanager, prometheus-cache and metricsd
 ```
-kubectl logs -n orc8r -l app.kubernetes.io/component=prometheus-configurer -c prometheus-configurer
-kubectl logs -n orc8r -l app.kubernetes.io/component=prometheus -c prometheus
-kubectl logs -n orc8r -l app.kubernetes.io/component=metricsd
+kubectl --namespace orc8r logs -l app.kubernetes.io/component=prometheus-configurer -c prometheus-configurer
+kubectl --namespace orc8r logs -l app.kubernetes.io/component=prometheus -c prometheus
+kubectl --namespace orc8r logs -l app.kubernetes.io/component=metricsd
 helm --debug -n orc8r get values orc8r
 ```

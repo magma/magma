@@ -42,7 +42,9 @@ class Classifier(MagmaController):
     APP_TYPE = ControllerType.SPECIAL
     ClassifierConfig = namedtuple(
             'ClassifierConfig',
-            ['gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port', 'internal_sampling_fwd_tbl', 'multi_tunnel_flag'],
+            ['gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port',
+             'internal_sampling_fwd_tbl', 'multi_tunnel_flag',
+             'internal_conntrack_port', 'internal_conntrack_fwd_tbl'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -77,8 +79,12 @@ class Classifier(MagmaController):
             internal_sampling_port=
                                config_dict['ovs_internal_sampling_port_number'],
             internal_sampling_fwd_tbl=
-                              config_dict['ovs_internal_sampling_fwd_tbl_number'],
+                               config_dict['ovs_internal_sampling_fwd_tbl_number'],
             multi_tunnel_flag=multi_tunnel_flag,
+            internal_conntrack_port=
+                               config_dict['ovs_internal_conntrack_port_number'],
+            internal_conntrack_fwd_tbl=
+                               config_dict['ovs_internal_conntrack_fwd_tbl_number'],
 
         )
 
@@ -142,6 +148,7 @@ class Classifier(MagmaController):
 
         self._install_default_tunnel_flows()
         self._install_internal_pkt_fwd_flow()
+        self._install_internal_conntrack_flow()
 
     def _delete_all_flows(self):
         flows.delete_all_flows_from_table(self._datapath, self.tbl_num)
@@ -164,6 +171,12 @@ class Classifier(MagmaController):
                                              reset_default_register=False,
                                              resubmit_table=self.config.internal_sampling_fwd_tbl)
 
+    def _install_internal_conntrack_flow(self):
+        match = MagmaMatch(in_port=self.config.internal_conntrack_port)
+        flows.add_resubmit_next_service_flow(self._datapath,self.tbl_num, match, [],
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             reset_default_register=False,
+                                             resubmit_table=self.config.internal_conntrack_fwd_tbl)
 
     def add_tunnel_flows(self, precedence:int, i_teid:int,
                          o_teid:int, ue_ip_adr:IPAddress,
