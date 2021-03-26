@@ -22,6 +22,7 @@
 
 #include "GRPCReceiver.h"
 #include "Types.h"
+#include "SessionState.h"
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 

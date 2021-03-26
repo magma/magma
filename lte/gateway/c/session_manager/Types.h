@@ -25,6 +25,9 @@
 
 #include "CreditKey.h"
 
+// This file is intended for declaring types that are shared across classes.
+// If a type has a clear owner, do NOT put in this file
+
 namespace magma {
 struct SessionConfig {
   CommonSessionContext common_context;

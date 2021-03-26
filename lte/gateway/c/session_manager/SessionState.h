@@ -612,6 +612,7 @@ class SessionState {
 
   // PolicyID->DedicatedBearerID used for 4G bearer/QoS management
   BearerIDByPolicyID bearer_id_by_policy_;
+  const uint32_t REDIRECT_FLOW_PRIORITY = 2000;
 
  private:
   /**
@@ -626,7 +627,32 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& uc);
 
-  void fill_service_action(
+  /**
+   * @brief Get a CreditUsageUpdate for the case where we want to continue
+   * service
+   *
+   * @param grant
+   * @param session_uc
+   * @return optional<CreditUsageUpdate>
+   */
+  optional<CreditUsageUpdate> get_update_for_continue_service(
+      const CreditKey& key, std::unique_ptr<ChargingGrant>& grant,
+      SessionStateUpdateCriteria& session_uc);
+
+  void fill_service_action_for_activate(
+      std::unique_ptr<ServiceAction>& action, const CreditKey& key);
+
+  void fill_service_action_for_restrict(
+      std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
+      std::unique_ptr<ChargingGrant>& grant);
+
+  PolicyRule make_redirect_rule(std::unique_ptr<ChargingGrant>& grant);
+
+  void fill_service_action_for_redirect(
+      std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
+      std::unique_ptr<ChargingGrant>& grant, PolicyRule redirect_rule);
+
+  void fill_service_action_with_context(
       std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
       const CreditKey& key);
 
