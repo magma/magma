@@ -34,6 +34,8 @@ uint32_t sgw_get_new_s5s8u_teid(sgw_state_t* state) {
   return (state->s5s8u_teid);
 }
 
+// Re-using the spgw_ue context structure, that contains the list sgw_s11_teids
+// and is common across both sgw_s8 and spgw tasks.
 spgw_ue_context_t* sgw_create_or_get_ue_context(
     sgw_state_t* sgw_state, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);

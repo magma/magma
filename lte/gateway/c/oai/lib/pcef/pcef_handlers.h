@@ -96,7 +96,7 @@ void pcef_update_teids(
 int get_msisdn_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* msisdn);
 
-char _convert_digit_to_char(char digit);
+char convert_digit_to_char(char digit);
 
 #ifdef __cplusplus
 }
