@@ -53,7 +53,7 @@ class Classifier(MagmaController):
             'ClassifierConfig',
             ['gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port',
              'internal_sampling_fwd_tbl', 'multi_tunnel_flag',
-             'internal_conntrack_port', 'internal_conntrack_fwd_tbl'],
+             'internal_conntrack_port', 'internal_conntrack_fwd_tbl', 'paging_timeout'],
     )
 
     def __init__(self, *args, **kwargs):
