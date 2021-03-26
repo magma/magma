@@ -102,7 +102,7 @@ typedef enum {
 } error_code_e;
 
 /* This enum should match with the ModeMapItem_FederatedMode enum
- * defined in mconfigs.pb.h
+ * defined in mconfigs.proto
  */
 typedef enum {
   SPGW_SUBSCRIBER  = 0,  // default mode is HSS + spgw_task

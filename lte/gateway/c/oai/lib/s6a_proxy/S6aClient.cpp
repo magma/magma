@@ -90,13 +90,13 @@ static bool read_mme_cloud_subscriberdb_enabled(void) {
   return mconfig.cloud_subscriberdb_enabled();
 }
 
-S6aClient& S6aClient::get_s6a_proxy_instance(bool enable_s6a_proxy_channel) {
-  static S6aClient s6a_proxy_instance(enable_s6a_proxy_channel);
+S6aClient& S6aClient::get_s6a_proxy_instance() {
+  static S6aClient s6a_proxy_instance(true);
   return s6a_proxy_instance;
 }
 
-S6aClient& S6aClient::get_subdb_instance(bool enable_s6a_proxy_channel) {
-  static S6aClient subdb_instance(enable_s6a_proxy_channel);
+S6aClient& S6aClient::get_subdb_instance() {
+  static S6aClient subdb_instance(false);
   return subdb_instance;
 }
 
@@ -164,17 +164,14 @@ S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
 
 void S6aClient::purge_ue(
     const char* imsi, std::function<void(Status, PurgeUEAnswer)> callbk) {
-  bool enable_s6a_proxy_channel = false;
   S6aClient* client_tmp;
   int fed_mode = match_fed_mode_map(imsi);
   if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
       (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
-    enable_s6a_proxy_channel = true;
-    client_tmp = &get_s6a_proxy_instance(enable_s6a_proxy_channel);
+    client_tmp = &get_s6a_proxy_instance();
   } else if (
       fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
-    enable_s6a_proxy_channel = false;
-    client_tmp               = &get_subdb_instance(enable_s6a_proxy_channel);
+    client_tmp = &get_subdb_instance();
   } else {
     return;
   }
@@ -203,17 +200,14 @@ void S6aClient::purge_ue(
 void S6aClient::authentication_info_req(
     const s6a_auth_info_req_t* const msg,
     std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk) {
-  bool enable_s6a_proxy_channel = false;
   S6aClient* client_tmp;
   int fed_mode = match_fed_mode_map(msg->imsi);
   if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
       (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
-    enable_s6a_proxy_channel = true;
-    client_tmp = &get_s6a_proxy_instance(enable_s6a_proxy_channel);
+    client_tmp = &get_s6a_proxy_instance();
   } else if (
       fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
-    enable_s6a_proxy_channel = false;
-    client_tmp               = &get_subdb_instance(enable_s6a_proxy_channel);
+    client_tmp = &get_subdb_instance();
   } else {
     return;
   }
@@ -242,17 +236,14 @@ void S6aClient::authentication_info_req(
 void S6aClient::update_location_request(
     const s6a_update_location_req_t* const msg,
     std::function<void(Status, feg::UpdateLocationAnswer)> callbk) {
-  bool enable_s6a_proxy_channel = false;
   S6aClient* client_tmp;
   int fed_mode = match_fed_mode_map(msg->imsi);
   if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
       (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
-    enable_s6a_proxy_channel = true;
-    client_tmp = &get_s6a_proxy_instance(enable_s6a_proxy_channel);
+    client_tmp = &get_s6a_proxy_instance();
   } else if (
       fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
-    enable_s6a_proxy_channel = false;
-    client_tmp               = &get_subdb_instance(enable_s6a_proxy_channel);
+    client_tmp = &get_subdb_instance();
   } else {
     return;
   }

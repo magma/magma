@@ -82,8 +82,8 @@ class S6aClient : public GRPCReceiver {
  private:
   S6aClient(bool enable_s6a_proxy_channel);
   static S6aClient& get_instance();
-  static S6aClient& get_s6a_proxy_instance(bool enable_s6a_proxy_channel);
-  static S6aClient& get_subdb_instance(bool enable_s6a_proxy_channel);
+  static S6aClient& get_s6a_proxy_instance();
+  static S6aClient& get_subdb_instance();
   std::unique_ptr<feg::S6aProxy::Stub> stub_;
   static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
 };
