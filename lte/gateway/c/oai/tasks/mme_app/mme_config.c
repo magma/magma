@@ -1357,7 +1357,9 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
       config_pP->use_stateless ? "true" : "false");
-  OAILOG_INFO( LOG_CONFIG, "- enable_converged_core .......: %s\n\n", config_pP->enable_converged_core ? "true" : "false");
+  OAILOG_INFO(
+      LOG_CONFIG, "- enable_converged_core .......: %s\n\n",
+      config_pP->enable_converged_core ? "true" : "false");
   OAILOG_INFO(LOG_CONFIG, "- CSFB:\n");
   OAILOG_INFO(
       LOG_CONFIG,
