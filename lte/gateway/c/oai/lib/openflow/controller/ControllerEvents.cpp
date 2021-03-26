@@ -185,7 +185,7 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       dl_flow_valid_(false),
       dl_flow_(),
       dl_flow_precedence_(DEFAULT_PRECEDENCE),
-      ExternalEvent(EVENT_ADD_GTP_TUNNEL),
+      ExternalEvent(EVENT_ADD_GTP_S8_TUNNEL),
       enb_gtp_port_(enb_gtp_port),
       pgw_gtp_port_(pgw_gtp_port) {}
 
@@ -203,7 +203,7 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       dl_flow_valid_(false),
       dl_flow_(),
       dl_flow_precedence_(DEFAULT_PRECEDENCE),
-      ExternalEvent(EVENT_ADD_GTP_TUNNEL),
+      ExternalEvent(EVENT_ADD_GTP_S8_TUNNEL),
       enb_gtp_port_(enb_gtp_port),
       pgw_gtp_port_(pgw_gtp_port) {}
 
@@ -285,7 +285,7 @@ DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
       in_tei_(in_tei),
       dl_flow_valid_(true),
       dl_flow_(*dl_flow),
-      ExternalEvent(EVENT_DELETE_GTP_TUNNEL),
+      ExternalEvent(EVENT_DELETE_GTP_S8_TUNNEL),
       enb_gtp_port_(enb_gtp_port),
       pgw_gtp_port_(pgw_gtp_port) {}
 
@@ -296,7 +296,7 @@ DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
       in_tei_(in_tei),
       dl_flow_valid_(false),
       dl_flow_(),
-      ExternalEvent(EVENT_DELETE_GTP_TUNNEL),
+      ExternalEvent(EVENT_DELETE_GTP_S8_TUNNEL),
       enb_gtp_port_(enb_gtp_port),
       pgw_gtp_port_(pgw_gtp_port) {}
 
