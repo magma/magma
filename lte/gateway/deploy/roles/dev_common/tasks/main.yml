@@ -25,6 +25,20 @@
       - ansible
   retries: 5
 
+- name: Copy ssh keepAlive configs
+  copy: src={{ item.src }} dest={{ item.dest }}
+  become: yes
+  with_items:
+    - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
+  when: preburn
+
+- name: Restart service ssh
+  become: yes
+  service:
+    name: ssh
+    state: restarted
+  when: preburn
+
 - name: Install ansible community collection
   shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
   ignore_errors: yes
