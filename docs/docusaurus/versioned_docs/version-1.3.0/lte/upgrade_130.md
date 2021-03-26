@@ -1,10 +1,10 @@
 ---
 id: version-1.3.0-agw_130_upgrade
-title: Upgrading from 1.2
+title: Upgrade to v1.3
 hide_title: true
 original_id: agw_130_upgrade
 ---
-# Upgrading from 1.2
+# Upgrade to v1.3
 
 You can upgrade your access gateways remotely from the NMS or SSH directly
 into them and run an `apt-get install`.
