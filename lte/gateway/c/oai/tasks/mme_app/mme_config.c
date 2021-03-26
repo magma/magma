@@ -296,6 +296,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   char* s1_mme         = NULL;
   char* if_name_s11    = NULL;
   char* s11            = NULL;
+  char* imsi_low_tmp   = NULL;
+  char* imsi_high_tmp  = NULL;
 #if !EMBEDDED_SGW
   char* sgw_ip_address_for_s11 = NULL;
 #endif
@@ -917,6 +919,123 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       }
     }
 
+    // MODE MAP SETTING
+    setting =
+        config_setting_get_member(setting_mme, MME_CONFIG_STRING_FED_MODE_MAP);
+    memset(&config_pP->mode_map_config, 0, sizeof(fed_mode_map_t));
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_FED_MODE_MAP \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(LOG_MME_APP, "Number of mode maps configured =%d\n", num);
+      AssertFatal(
+          num <= MAX_FED_MODE_MAP_CONFIG,
+          "Number of mode maps configured:%d exceeds number of "
+          "mode maps supported :%d \n",
+          num, MAX_FED_MODE_MAP_CONFIG);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+        if (sub2setting != NULL) {
+          OAILOG_INFO(LOG_MME_APP, "sub2setting\n");
+          // MODE
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MODE, &astring))) {
+            config_pP->mode_map_config.mode_map[i].mode = atoi(astring);
+          }
+
+          // PLMN
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_PLMN, &astring))) {
+            // NULL terminated string
+            char fed_mode_mcc[MAX_MCC_LENGTH + 1],
+                fed_mode_mnc[MAX_MNC_LENGTH + 1];
+            // Convert to 3gpp PLMN (MCC and MNC) format
+            // First 3 chars in astring is MCC next 3 or 2 chars is MNC
+            memcpy(fed_mode_mcc, astring, MAX_MCC_LENGTH);
+            memcpy(
+                fed_mode_mnc, &astring[MAX_MCC_LENGTH],
+                (strlen(astring) - MAX_MCC_LENGTH));
+            AssertFatal(
+                strlen(fed_mode_mcc) == MAX_MCC_LENGTH,
+                "Bad MCC length (%ld), it must be %u digit ex: 001\n",
+                strlen(fed_mode_mcc), MAX_MCC_LENGTH);
+            AssertFatal(
+                fed_mode_mcc[0] >= '0' && fed_mode_mcc[0] <= '9',
+                "MCC[0] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit1 =
+                fed_mode_mcc[0] - '0';
+            AssertFatal(
+                fed_mode_mcc[1] >= '0' && fed_mode_mcc[1] <= '9',
+                "MCC[1] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit2 =
+                fed_mode_mcc[1] - '0';
+            AssertFatal(
+                fed_mode_mcc[2] >= '0' && fed_mode_mcc[2] <= '9',
+                "MCC[2] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit3 =
+                fed_mode_mcc[2] - '0';
+
+            // MNC
+            AssertFatal(
+                (strlen(fed_mode_mnc) == MIN_MNC_LENGTH) ||
+                    (strlen(fed_mode_mnc) == MAX_MNC_LENGTH),
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
+                "123\n",
+                strlen(fed_mode_mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
+
+            // NULL terminated string
+            AssertFatal(
+                fed_mode_mnc[0] >= '0' && fed_mode_mnc[0] <= '9',
+                "MNC[0] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mnc_digit1 =
+                fed_mode_mnc[0] - '0';
+            AssertFatal(
+                fed_mode_mnc[1] >= '0' && fed_mode_mnc[1] <= '9',
+                "MNC[1] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mnc_digit2 =
+                fed_mode_mnc[1] - '0';
+            if (3 == strlen(fed_mode_mnc)) {
+              AssertFatal(
+                  fed_mode_mnc[2] >= '0' && fed_mode_mnc[2] <= '9',
+                  "MNC[2] is not a decimal digit\n");
+              config_pP->mode_map_config.mode_map[i].plmn.mnc_digit3 =
+                  fed_mode_mnc[2] - '0';
+            } else {
+              config_pP->mode_map_config.mode_map[i].plmn.mnc_digit3 = 0x0F;
+            }
+          }
+          // IMSI range
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_IMSI_RANGE, &astring))) {
+            if (strlen(astring)) {
+              imsi_high_tmp = strdup(astring);
+              imsi_low_tmp  = strsep(&imsi_high_tmp, ":");
+              memcpy(
+                  (char*) config_pP->mode_map_config.mode_map[i].imsi_low,
+                  imsi_low_tmp, strlen(imsi_low_tmp));
+              AssertFatal(
+                  strlen((char*) config_pP->mode_map_config.mode_map[i]
+                             .imsi_low) <= MAX_IMSI_LENGTH,
+                  "Invalid imsi_low length\n");
+              memcpy(
+                  (char*) config_pP->mode_map_config.mode_map[i].imsi_high,
+                  imsi_high_tmp, strlen(imsi_high_tmp));
+              AssertFatal(
+                  strlen((char*) config_pP->mode_map_config.mode_map[i]
+                             .imsi_high) <= MAX_IMSI_LENGTH,
+                  "Invalid imsi_high length\n");
+            }
+          }
+          // APN
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_APN, &astring))) {
+            config_pP->mode_map_config.mode_map[i].apn = bfromcstr(astring);
+          }
+          config_pP->mode_map_config.num += 1;
+        }
+      }
+    }
+
     // NETWORK INTERFACE SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG);
@@ -1462,6 +1581,29 @@ void mme_config_display(mme_config_t* config_pP) {
           config_pP->served_tai.plmn_mcc[j], config_pP->served_tai.plmn_mnc[j],
           config_pP->served_tai.tac[j]);
     }
+  }
+  for (j = 0; j < config_pP->mode_map_config.num; j++) {
+    OAILOG_INFO(LOG_CONFIG, "- MODE MAP : \n");
+    OAILOG_INFO(
+        LOG_CONFIG, "  - MODE : %d \n",
+        config_pP->mode_map_config.mode_map[j].mode);
+    OAILOG_INFO(
+        LOG_CONFIG, "  - MCC MNC : %u,%u,%u,%u,%u,%u\n",
+        config_pP->mode_map_config.mode_map[j].plmn.mcc_digit1,
+        config_pP->mode_map_config.mode_map[j].plmn.mcc_digit2,
+        config_pP->mode_map_config.mode_map[j].plmn.mcc_digit3,
+        config_pP->mode_map_config.mode_map[j].plmn.mnc_digit1,
+        config_pP->mode_map_config.mode_map[j].plmn.mnc_digit2,
+        config_pP->mode_map_config.mode_map[j].plmn.mnc_digit3);
+    OAILOG_INFO(
+        LOG_CONFIG, "  - IMSI_LOW : %s\n",
+        config_pP->mode_map_config.mode_map[j].imsi_low);
+    OAILOG_INFO(
+        LOG_CONFIG, "  - IMSI_HIGH : %s\n",
+        config_pP->mode_map_config.mode_map[j].imsi_high);
+    OAILOG_INFO(
+        LOG_CONFIG, "  - APN : %s\n",
+        bdata(config_pP->mode_map_config.mode_map[j].apn));
   }
   OAILOG_INFO(LOG_CONFIG, "- NAS:\n");
   OAILOG_INFO(
