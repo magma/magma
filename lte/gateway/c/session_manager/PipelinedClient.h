@@ -21,7 +21,7 @@
 #include <lte/protos/subscriberdb.pb.h>
 
 #include "GRPCReceiver.h"
-#include "SessionState.h"
+#include "Types.h"
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 

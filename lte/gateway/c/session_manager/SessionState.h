@@ -26,6 +26,7 @@
 #include "SessionCredit.h"
 #include "Monitor.h"
 #include "ChargingGrant.h"
+#include "Types.h"
 
 namespace magma {
 using std::experimental::optional;
@@ -38,13 +39,6 @@ typedef std::unordered_map<
     ChargingCreditSummaries;
 typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
-
-struct RulesToProcess {
-  // If this vector is set, then it has PolicyRule definitions for both static
-  // and dynamic rules
-  std::vector<PolicyRule> rules;
-  bool empty() const;
-};
 
 // Used to transform the proto message RuleSet into a more useful structure
 struct RuleSetToApply {
