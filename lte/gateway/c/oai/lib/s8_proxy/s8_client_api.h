@@ -12,12 +12,14 @@ limitations under the License.
 */
 
 #pragma once
-#include "common_types.h"
-#include "s11_messages_types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "intertask_interface.h"
-#include "spgw_types.h"
-
-void sgw_s8_handle_s11_create_session_request(
-    sgw_state_t* sgw_state,
-    const itti_s11_create_session_request_t* const session_req_p,
+#include "common_types.h"
+void send_s8_create_session_request(
+    teid_t sgw_s11_teid, const itti_s11_create_session_request_t* msg,
     imsi64_t imsi64);
+#ifdef __cplusplus
+}
+#endif
