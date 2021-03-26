@@ -1,3 +1,4 @@
+
 """
 Copyright 2020 The Magma Authors.
 
@@ -31,6 +32,7 @@ class Test3485TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_3485_timer_for_dedicated_bearer_with_mme_restart(self):
+
         """ Test case validates the functionality of 3485 timer for
             Dedicated bearer while MME restarts
         Step1: UE attaches to network
