@@ -157,7 +157,7 @@ int ngap_amf_handle_initial_ue_message(
     NGAP_FIND_PROTOCOLIE_BY_ID(
         Ngap_InitialUEMessage_IEs_t, ie, container,
         Ngap_ProtocolIE_ID_id_UserLocationInformation, true);
-    
+
     OCTET_STRING_TO_TAC_5G(
         &ie->value.choice.UserLocationInformation.choice
              .userLocationInformationNR.tAI.tAC,
