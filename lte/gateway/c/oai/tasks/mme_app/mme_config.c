@@ -642,10 +642,11 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_TAI_LIST);
     if (setting != NULL) {
       num = config_setting_length(setting);
-      if (num <= MIN_TAI_SUPPORTED) {
+      if (num < MIN_TAI_SUPPORTED) {
         fprintf(
             stderr,
-            "Not even one TAI is configured, configure minimum one TAI\n");
+            "ERROR: No TAI is configured.  At least one TAI must be "
+            "configured.\n");
       }
 
       if (config_pP->served_tai.nb_tai != num) {
@@ -701,7 +702,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
 
             if (!TAC_IS_VALID(config_pP->served_tai.tac[i])) {
               fprintf(
-                  stderr, "Invalid TAC value " TAC_FMT,
+                  stderr, "ERROR: Invalid TAC value " TAC_FMT,
                   config_pP->served_tai.tac[i]);
             }
           }
