@@ -97,15 +97,36 @@ func buildDeleteSessionRequestMsg(req *protos.DeleteSessionRequestPgw) message.M
 }
 
 func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
-	var res *ie.IE
+	var (
+		res        *ie.IE
+		ipv4       string
+		ipv6       string
+		ipv6Prefix uint8
+	)
+	// extract ips of default values
+	if req.Paa == nil || req.Paa.Ipv4Address == "" {
+		ipv4 = "0.0.0.0"
+	} else {
+		ipv4 = req.Paa.Ipv4Address
+	}
+
+	if req.Paa == nil || req.Paa.Ipv6Address == "" {
+		ipv6 = "::"
+		ipv6Prefix = 0
+	} else {
+		ipv6 = req.Paa.Ipv6Address
+		ipv6Prefix = uint8(req.Paa.Ipv6Prefix)
+	}
+
+	// create the IE based on the type
 	if req.PdnType == protos.PDNType_IPV4 {
-		res = ie.NewPDNAddressAllocation(req.Paa.Ipv4Address)
+		res = ie.NewPDNAddressAllocation(ipv4)
 	}
 	if req.PdnType == protos.PDNType_IPV6 {
-		res = ie.NewPDNAddressAllocationIPv6(req.Paa.Ipv6Address, uint8(req.Paa.Ipv6Prefix))
+		res = ie.NewPDNAddressAllocationIPv6(ipv6, ipv6Prefix)
 	}
 	if req.PdnType == protos.PDNType_IPV4V6 {
-		res = ie.NewPDNAddressAllocationDual(req.Paa.Ipv4Address, req.Paa.Ipv6Address, uint8(req.Paa.Ipv6Prefix))
+		res = ie.NewPDNAddressAllocationDual(ipv4, ipv6, ipv6Prefix)
 	}
 	return res
 }
