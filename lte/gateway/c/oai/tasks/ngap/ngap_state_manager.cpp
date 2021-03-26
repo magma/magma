@@ -154,9 +154,9 @@ void NgapStateManager::create_ngap_imsi_map() {
 
   ngap_imsi_map_->amf_ue_id_imsi_htbl =
       hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
- if (!persist_state_enabled) {
-   return;
- }
+  if (!persist_state_enabled) {
+    return;
+  }
   oai::NgapImsiMap imsi_proto = oai::NgapImsiMap();
   redis_client->read_proto(NGAP_IMSI_MAP_TABLE_NAME, imsi_proto);
 
@@ -178,8 +178,8 @@ ngap_imsi_map_t* NgapStateManager::get_ngap_imsi_map() {
 
 void NgapStateManager::put_ngap_imsi_map() {
   if (!persist_state_enabled) {
-  return;
- }
+    return;
+  }
   oai::NgapImsiMap imsi_proto = oai::NgapImsiMap();
   NgapStateConverter::ngap_imsi_map_to_proto(ngap_imsi_map_, &imsi_proto);
   redis_client->write_proto(NGAP_IMSI_MAP_TABLE_NAME, imsi_proto);

@@ -39,4 +39,3 @@ typedef enum m5g_EstablishmentCause {
   M5G_SPARE2,
   M5G_SPARE1,
 } m5g_rrc_establishment_cause_t;
-
