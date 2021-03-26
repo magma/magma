@@ -395,6 +395,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 //   no traffic passed
 // Note: things might get weird if there are clock skews
 func TestGxRevalidationTime(t *testing.T) {
+	t.Skip("Skipping due to current test flakiness, investigating...")
 	fmt.Println("\nRunning TestGxRevalidationTime...")
 
 	tr := NewTestRunner(t)
