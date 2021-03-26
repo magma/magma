@@ -574,7 +574,6 @@ amf_config_read_lock(&amf_config);
     amf_gid = &servedGUAMFI->gUAMI.aMFRegionID;
     INT16_TO_OCTET_STRING(amf_config.guamfi.guamfi[i].amf_gid, amf_gid);
 
-    OAILOG_ERROR(LOG_NGAP, "######ACL_TAG: %s, %d  ", __func__, __LINE__);
     amfc = &servedGUAMFI->gUAMI.aMFSetID;
     INT8_TO_OCTET_STRING(amf_config.guamfi.guamfi[i].amf_code, amfc);
   }
@@ -648,7 +647,6 @@ amf_config_read_lock(&amf_config);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   enc_rval = ngap_amf_encode_pdu(&pdu, &buffer, &length);
-  OAILOG_INFO(LOG_NGAP, "ACL_TAG: %s, %d encode done ", __func__, __LINE__);
 
   /*
    * Failed to encode ng setup response...
@@ -1767,3 +1765,231 @@ const char* ngap_direction2str(uint8_t dir) {
       return "unknown direction";
   }
 }
+
+//------------------------------------------------------------------------------
+int ngap_amf_handle_pduSession_release_response(
+    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
+  OAILOG_FUNC_IN(LOG_NGAP);
+  Ngap_PDUSessionResourceReleaseResponseIEs_t* ie     = NULL;
+  Ngap_PDUSessionResourceReleaseResponse_t* container = NULL;
+  m5g_ue_description_t* ue_ref_p                      = NULL;
+  MessageDef* message_p                               = NULL;
+  int rc                                              = RETURNok;
+  imsi64_t imsi64                                     = INVALID_IMSI64;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id                     = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id                     = 0;
+
+  container = &pdu->choice.successfulOutcome.value.choice
+                   .PDUSessionResourceReleaseResponse;
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceReleaseResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
+  amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+
+  if ((ie) &&
+      (ue_ref_p = ngap_state_get_ue_amfid((uint32_t) amf_ue_ngap_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_NGAP,
+        "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT "\n",
+        (amf_ue_ngap_id_t) amf_ue_ngap_id);
+     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceReleaseResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
+  // gNB UE NGAP ID is limited to 24 bits
+  gnb_ue_ngap_id =
+      (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+  
+if ((ie) && ue_ref_p->gnb_ue_ngap_id != gnb_ue_ngap_id) {
+    OAILOG_ERROR(
+        LOG_NGAP,
+        "Mismatch in gNB UE NGAP ID, known: " GNB_UE_NGAP_ID_FMT
+        ", received: " GNB_UE_NGAP_ID_FMT "\n",
+        ue_ref_p->gnb_ue_ngap_id, (gnb_ue_ngap_id_t) gnb_ue_ngap_id);
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+  
+ ngap_imsi_map_t* imsi_map = get_ngap_imsi_map();
+  hashtable_uint64_ts_get(
+      imsi_map->amf_ue_id_imsi_htbl,
+      (const hash_key_t) ie->value.choice.AMF_UE_NGAP_ID, &imsi64);
+
+  message_p =
+      itti_alloc_new_message(TASK_NGAP, NGAP_PDUSESSIONRESOURCE_REL_RSP);
+  if (message_p == NULL) {
+    OAILOG_ERROR(LOG_NGAP, "itti_alloc_new_message Failed\n");
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+  NGAP_PDUSESSIONRESOURCE_REL_RSP(message_p).amf_ue_ngap_id =  ue_ref_p->amf_ue_ngap_id;
+  NGAP_PDUSESSIONRESOURCE_REL_RSP(message_p).gnb_ue_ngap_id =  ue_ref_p->gnb_ue_ngap_id;
+  NGAP_PDUSESSIONRESOURCE_REL_RSP(message_p)
+      .pduSessionResourceReleasedRspList.no_of_items = 0;
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceReleaseResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_PDUSessionResourceReleasedListRelRes, true);
+
+
+  if (ie) {
+    const Ngap_PDUSessionResourceReleasedListRelRes_t* const
+        pduSessionResourceList =
+            &ie->value.choice.PDUSessionResourceReleasedListRelRes;
+
+    int num_pduSessionResource = pduSessionResourceList->list.count;
+
+    for (int index = 0; index < num_pduSessionResource; index++) {
+      const Ngap_PDUSessionResourceReleasedItemRelRes_t* const
+          pduSessionResource_item =
+              (Ngap_PDUSessionResourceReleasedItemRelRes_t*)
+                  pduSessionResourceList->list.array[index];
+      NGAP_PDUSESSIONRESOURCE_REL_RSP(message_p)
+          .pduSessionResourceReleasedRspList.item[index]
+          .Pdu_Session_ID = pduSessionResource_item->pDUSessionID;
+      NGAP_PDUSESSIONRESOURCE_REL_RSP(message_p)
+          .pduSessionResourceReleasedRspList.no_of_items++;
+    }
+  }
+  message_p->ittiMsgHeader.imsi = imsi64;
+  rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  OAILOG_INFO(LOG_NGAP, " PDU RELEASE msg sent to amf\n");
+  OAILOG_FUNC_RETURN(LOG_NGAP, rc);
+}
+
+
+int ngap_amf_handle_pduSession_setup_response(
+    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
+  OAILOG_FUNC_IN(LOG_NGAP);
+  Ngap_PDUSessionResourceSetupResponse_t* container = NULL;
+  Ngap_PDUSessionResourceSetupResponseIEs_t* ie     = NULL;
+  QosFlowPerTNLInformation_t response_transfer = {0};
+  m5g_ue_description_t* ue_ref_p           = NULL;
+  MessageDef* message_p           = NULL;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  int rc                          = RETURNok;
+  imsi64_t imsi64                 = INVALID_IMSI64;
+  container = &pdu->choice.successfulOutcome.value.choice
+                   .PDUSessionResourceSetupResponse;
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
+  if (ie) {
+    amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
+  if (ie) {
+    // gNB UE NGAP ID is limited to 24 bits
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
+        ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+  if ((ue_ref_p = ngap_state_get_ue_amfid((uint32_t) amf_ue_ngap_id)) == NULL) {
+    OAILOG_DEBUG(
+        LOG_NGAP,
+        "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT "\n",
+        amf_ue_ngap_id);
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+
+  if (ue_ref_p->gnb_ue_ngap_id != gnb_ue_ngap_id) {
+    OAILOG_DEBUG(
+        LOG_NGAP, "Mismatch in gNB UE NGAP ID, known: " GNB_UE_NGAP_ID_FMT ", received: " GNB_UE_NGAP_ID_FMT "\n",
+        ue_ref_p->gnb_ue_ngap_id, gnb_ue_ngap_id);
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+  ngap_imsi_map_t* imsi_map = get_ngap_imsi_map();
+   hashtable_uint64_ts_get( imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t)
+   ue_ref_p->amf_ue_ngap_id, &imsi64);
+
+  message_p =
+      itti_alloc_new_message(TASK_NGAP, NGAP_PDUSESSIONRESOURCE_SETUP_RSP);
+  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
+    NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).amf_ue_ngap_id =
+    ue_ref_p->amf_ue_ngap_id;
+    NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).gnb_ue_ngap_id =
+    ue_ref_p->gnb_ue_ngap_id;
+
+  NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).pduSessionResource_setup_list.no_of_items = 0;
+  NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).pduSessionResourceFailedToSetupList.no_of_items = 0;
+
+  NGAP_FIND_PROTOCOLIE_BY_ID( Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container, Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes, false);
+
+  if (ie) {
+    int pduSessionResource = ie->value.choice.PDUSessionResourceSetupListSURes.list.count;
+
+    for (int index = 0; index < pduSessionResource; index++) {
+      Ngap_PDUSessionResourceSetupItemSURes_t* pduSession_setup_item =
+          (Ngap_PDUSessionResourceSetupItemSURes_t*) ie->value.choice
+              .PDUSessionResourceSetupListSURes.list.array[index];
+
+      NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).pduSessionResource_setup_list.item[index]
+          .Pdu_Session_ID = pduSession_setup_item->pDUSessionID;
+
+Ngap_PDUSessionResourceSetupResponseTransfer_t* pDUSessionResourceSetupResponseTransfer = NULL;
+asn_dec_rval_t decode_result;
+
+        decode_result = aper_decode_complete(NULL, &asn_DEF_Ngap_PDUSessionResourceSetupResponseTransfer, (void **)&pDUSessionResourceSetupResponseTransfer, pduSession_setup_item->pDUSessionResourceSetupResponseTransfer.buf, pduSession_setup_item->pDUSessionResourceSetupResponseTransfer.size);
+
+    if(decode_result.code == RC_OK) {
+        OAILOG_DEBUG( LOG_NGAP, " Decode Successful ");
+}else{
+        OAILOG_ERROR( LOG_NGAP, " Decode Failed ");
+}
+response_transfer = {{0}};
+
+memcpy(response_transfer.tunnel.gTP_TEID, pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation.uPTransportLayerInformation.choice.gTPTunnel.gTP_TEID.buf, 4 );
+
+memcpy(response_transfer.tunnel.transportLayerAddress, pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation.uPTransportLayerInformation.choice.gTPTunnel.transportLayerAddress.buf, 4 );
+
+response_transfer.associatedQosFlowList.items = 1;
+response_transfer.associatedQosFlowList.QosFlowIdentifier[0] = pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation.associatedQosFlowList.list.array[0]->qosFlowIdentifier;
+
+NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).pduSessionResource_setup_list.item[index].PDU_Session_Resource_Setup_Response_Transfer = response_transfer;
+
+     NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).pduSessionResource_setup_list.no_of_items += 1;
+    }
+  }
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_PDUSessionResourceFailedToSetupListSURes, false);
+  if (ie) {
+    int pduSessionResource =
+        ie->value.choice.PDUSessionResourceFailedToSetupListSURes.list.count;
+    for (int index = 0; index < pduSessionResource; index++) {
+      Ngap_PDUSessionResourceFailedToSetupItemSURes_t* pduSessionResource_item =
+          (Ngap_PDUSessionResourceFailedToSetupItemSURes_t*) ie->value.choice
+              .PDUSessionResourceFailedToSetupListSURes.list.array[index];
+
+      NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p)
+          .pduSessionResourceFailedToSetupList.item[index]
+          .Pdu_Session_ID = pduSessionResource_item->pDUSessionID;
+      NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p)
+          .pduSessionResourceFailedToSetupList.item[index]
+          .PDU_Session_Resource_Setup_Unsuccessful_Transfer = blk2bstr(
+          pduSessionResource_item->pDUSessionResourceSetupUnsuccessfulTransfer
+              .buf,
+          pduSessionResource_item->pDUSessionResourceSetupUnsuccessfulTransfer
+              .size);
+
+      NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p)
+          .pduSessionResourceFailedToSetupList.no_of_items += 1;
+    }
+  }
+
+  message_p->ittiMsgHeader.imsi = imsi64;
+  rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
+  OAILOG_FUNC_RETURN(LOG_NGAP, rc);
+}
+
+

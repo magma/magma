@@ -152,3 +152,40 @@ typedef struct itti_ngap_gNB_deregistered_ind_s {
   amf_ue_ngap_id_t amf_ue_ngap_id[NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE];
   uint32_t gnb_id;
 } itti_ngap_gNB_deregistered_ind_t;
+
+typedef struct itti_ngap_pdusession_resource_setup_req_s {
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  bstring nas_pdu;  // optional
+
+  ngap_ue_aggregate_maximum_bit_rate_t
+      ue_aggregate_maximum_bit_rate;  // optional
+
+  Ngap_PDUSession_Resource_Setup_Request_List_t pduSessionResource_setup_list;
+} itti_ngap_pdusession_resource_setup_req_t;
+
+typedef struct itti_ngap_pdusessionresource_setup_rsp_s {
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+
+  Ngap_PDUSession_Resource_Setup_Response_List_t pduSessionResource_setup_list;
+  Ngap_PDUSession_Resource_Failed_To_Setup_List_t
+      pduSessionResourceFailedToSetupList;
+
+} itti_ngap_pdusessionresource_setup_rsp_t;
+
+typedef struct itti_ngap_pdusessionresource_rel_rsp_s {
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+
+  Ngap_PDUSession_Resource_Released_List_t pduSessionResourceReleasedRspList;
+
+} itti_ngap_pdusessionresource_rel_rsp_t;
+
+typedef struct itti_ngap_pdusessionresource_rel_req_s {
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+  bstring nas_msg;
+  Ngap_PDUSession_Resource_TO_Release_List_t pduSessionResourceToRelReqList;
+
+} itti_ngap_pdusessionresource_rel_req_t;
