@@ -198,6 +198,7 @@ def _get_context():
     context = {
         "mme_s11_ip": _get_iface_ip("mme", "s11_iface_name"),
         "sgw_s11_ip": _get_iface_ip("spgw", "s11_iface_name"),
+        "sgw_s5s8_up_ip": _get_iface_ip("spgw", "sgw_s5s8_up_iface_name"),
         "remote_sgw_ip": get_service_config_value("mme",
                                                   "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
