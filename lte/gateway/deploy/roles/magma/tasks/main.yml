@@ -377,6 +377,13 @@
     dest: /home/vagrant/build/python/lib/python3.5/site-packages/ryu/ofproto/
   when: full_provision
 
+- name: Change build folder ownership
+  ansible.builtin.file:
+    path: /home/vagrant/build
+    owner: vagrant
+    group: vagrant
+    recurse: yes
+
 - name: Patch python aio lib
   patch:
     src: patches/aioeventlet.py38.patch
