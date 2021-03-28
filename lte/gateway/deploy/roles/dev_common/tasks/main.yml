@@ -216,6 +216,7 @@
       - protobuf-compiler
       # install ethtool for disabling TCP checksumming
       - ethtool
+      - ifupdown
       - libffi-dev
       - iperf3
       - libsystemd-dev
@@ -326,3 +327,22 @@
   patch:
     src: patches/multipath-conf.patch
     dest: /etc/multipath.conf
+
+- name: Copy Interface file.
+  copy:
+    src: magma_interfaces
+    dest: /etc/network/interfaces
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Remove netplan and enable networking.
+  shell: |
+    systemctl unmask networking
+    systemctl enable networking
+    apt-get --assume-yes purge nplan netplan.i
+  when: preburn
+
+- name: Copy Resolve file.
+  copy:
+    src: magma_resolv.conf
+    dest: /etc/systemd/resolved.conf
+  when: preburn and ansible_distribution == "Ubuntu"
