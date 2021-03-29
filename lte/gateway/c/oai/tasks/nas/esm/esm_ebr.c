@@ -41,7 +41,7 @@
 /****************************************************************************/
 
 /* String representation of EPS bearer context status */
-static const char* _esm_ebr_state_str[ESM_EBR_STATE_MAX] = {
+static const char* esm_ebr_state_str[ESM_EBR_STATE_MAX] = {
     "BEARER CONTEXT INACTIVE", "BEARER CONTEXT ACTIVE",
     "BEARER CONTEXT INACTIVE PENDING", "BEARER CONTEXT MODIFY PENDING",
     "BEARER CONTEXT ACTIVE PENDING"};
@@ -54,7 +54,7 @@ static const char* _esm_ebr_state_str[ESM_EBR_STATE_MAX] = {
 
 /* Returns the index of the next available entry in the list of EPS bearer
    context data */
-static int _esm_ebr_get_available_entry(emm_context_t* emm_context);
+static int esm_ebr_get_available_entry(emm_context_t* emm_context);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -116,7 +116,7 @@ int esm_ebr_assign(emm_context_t* emm_context) {
   ue_mm_context_t* ue_context_p =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
-  int i = _esm_ebr_get_available_entry(emm_context);
+  int i = esm_ebr_get_available_entry(emm_context);
   if (i < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
   }
@@ -516,7 +516,7 @@ int esm_ebr_set_status(
           LOG_NAS_ESM,
           "ESM-FSM   - Status of EPS bearer context %d changed:"
           " %s ===> %s\n",
-          ebi, _esm_ebr_state_str[old_status], _esm_ebr_state_str[status]);
+          ebi, esm_ebr_state_str[old_status], esm_ebr_state_str[status]);
       ebr_ctx->status = status;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
     } else {
@@ -524,7 +524,7 @@ int esm_ebr_set_status(
           LOG_NAS_ESM,
           "ESM-FSM   - Status of EPS bearer context %d unchanged:"
           " %s \n",
-          ebi, _esm_ebr_state_str[status]);
+          ebi, esm_ebr_state_str[status]);
     }
   }
 
@@ -640,7 +640,7 @@ bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _esm_ebr_get_available_entry(emm_context_t* emm_context) {
+static int esm_ebr_get_available_entry(emm_context_t* emm_context) {
   ue_mm_context_t* ue_mm_context =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   int i;

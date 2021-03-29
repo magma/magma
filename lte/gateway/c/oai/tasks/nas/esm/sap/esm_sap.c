@@ -45,12 +45,12 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-extern int _pdn_connectivity_delete(emm_context_t* ctx, int pid);
+extern int pdn_connectivity_delete(emm_context_t* ctx, int pid);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
-static int _esm_sap_recv(
+static int esm_sap_recv(
     int msg_type, unsigned int ue_id, bool is_standalone,
     emm_context_t* emm_context, const_bstring req, bstring rsp,
     esm_sap_error_t* err);
@@ -62,7 +62,7 @@ static int esm_sap_send_a(
 /*
    String representation of ESM-SAP primitives
 */
-static const char* _esm_sap_primitive_str[] = {
+static const char* esm_sap_primitive_str[] = {
     "ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_REQ",
     "ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_CNF",
     "ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_REJ",
@@ -139,7 +139,7 @@ int esm_sap_send(esm_sap_t* msg) {
   assert((primitive > ESM_START) && (primitive < ESM_END));
   OAILOG_INFO(
       LOG_NAS_ESM, "ESM-SAP   - Received primitive %s (%d)\n",
-      _esm_sap_primitive_str[primitive - ESM_START - 1], primitive);
+      esm_sap_primitive_str[primitive - ESM_START - 1], primitive);
 
   switch (primitive) {
     case ESM_PDN_CONNECTIVITY_REQ:
@@ -147,7 +147,7 @@ int esm_sap_send(esm_sap_t* msg) {
        * The MME received a PDN connectivity request message
        */
       increment_counter("ue_pdn_connection", 1, NO_LABELS);
-      rc = _esm_sap_recv(
+      rc = esm_sap_recv(
           PDN_CONNECTIVITY_REQUEST, msg->ue_id, msg->is_standalone, msg->ctx,
           msg->recv, msg->send, &msg->err);
       break;
@@ -189,7 +189,7 @@ int esm_sap_send(esm_sap_t* msg) {
       /*
        * The MME received activate default ESP bearer context accept
        */
-      rc = _esm_sap_recv(
+      rc = esm_sap_recv(
           ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT, msg->ue_id,
           msg->is_standalone, msg->ctx, msg->recv, msg->send, &msg->err);
       /*
@@ -206,7 +206,7 @@ int esm_sap_send(esm_sap_t* msg) {
       /*
        * The MME received activate default ESP bearer context reject
        */
-      rc = _esm_sap_recv(
+      rc = esm_sap_recv(
           ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT, msg->ue_id,
           msg->is_standalone, msg->ctx, msg->recv, msg->send, &msg->err);
       bdestroy_wrapper((bstring*) &msg->recv);
@@ -272,7 +272,7 @@ int esm_sap_send(esm_sap_t* msg) {
       // TODO Assertion bellow is not true now:
       // If only default bearer is supported then release PDN connection as well
       // - Implicit Detach
-      _pdn_connectivity_delete(msg->ctx, pid);
+      pdn_connectivity_delete(msg->ctx, pid);
 
     } break;
 
@@ -280,7 +280,7 @@ int esm_sap_send(esm_sap_t* msg) {
       break;
 
     case ESM_UNITDATA_IND:
-      rc = _esm_sap_recv(
+      rc = esm_sap_recv(
           -1, msg->ue_id, msg->is_standalone, msg->ctx, msg->recv, msg->send,
           &msg->err);
       break;
@@ -292,7 +292,7 @@ int esm_sap_send(esm_sap_t* msg) {
   if (rc != RETURNok) {
     OAILOG_ERROR(
         LOG_NAS_ESM, "ESM-SAP   - Failed to process primitive %s (%d)\n",
-        _esm_sap_primitive_str[primitive - ESM_START - 1], primitive);
+        esm_sap_primitive_str[primitive - ESM_START - 1], primitive);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -332,7 +332,7 @@ int esm_sap_send(esm_sap_t* msg) {
  **      Return:    RETURNok, RETURNerror                      **
  **                                                                        **
  ***************************************************************************/
-static int _esm_sap_recv(
+static int esm_sap_recv(
     int msg_type, unsigned int ue_id, bool is_standalone,
     emm_context_t* emm_context, const_bstring req, bstring rsp,
     esm_sap_error_t* err) {

@@ -52,19 +52,19 @@ extern int check_plmn_restriction(imsi_t imsi);
 /****************************************************************************/
 
 /* String representation of the requested identity type */
-static const char* _emm_identity_type_str[] = {"NOT AVAILABLE", "IMSI", "IMEI",
+static const char* emm_identity_type_str[] = {"NOT AVAILABLE", "IMSI", "IMEI",
                                                "IMEISV", "TMSI"};
 
 // callbacks for identification procedure
-static void _identification_t3470_handler(void* args, imsi64_t* imsi64);
-static int _identification_ll_failure(
+static void identification_t3470_handler(void* args, imsi64_t* imsi64);
+static int identification_ll_failure(
     struct emm_context_s* emm_context, struct nas_emm_proc_s* emm_proc);
-static int _identification_non_delivered_ho(
+static int identification_non_delivered_ho(
     struct emm_context_s* emm_context, struct nas_emm_proc_s* emm_proc);
-static int _identification_abort(
+static int identification_abort(
     struct emm_context_s* emm_context, struct nas_base_proc_s* base_proc);
 
-static int _identification_request(nas_emm_ident_proc_t* const proc);
+static int identification_request(nas_emm_ident_proc_t* const proc);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -120,7 +120,7 @@ int emm_proc_identification(
     OAILOG_INFO(
         LOG_NAS_EMM,
         "EMM-PROC  - Initiate identification type = %s (%d), ctx = %p\n",
-        _emm_identity_type_str[type], type, emm_context);
+        emm_identity_type_str[type], type, emm_context);
 
     nas_emm_ident_proc_t* ident_proc =
         nas_new_identification_procedure(emm_context);
@@ -140,19 +140,19 @@ int emm_proc_identification(
       ident_proc->emm_com_proc.emm_proc.previous_emm_fsm_state =
           emm_fsm_get_state(emm_context);
       ident_proc->emm_com_proc.emm_proc.not_delivered =
-          _identification_ll_failure;
+          identification_ll_failure;
       ident_proc->emm_com_proc.emm_proc.not_delivered_ho =
-          _identification_non_delivered_ho;
+          identification_non_delivered_ho;
       ident_proc->emm_com_proc.emm_proc.base_proc.success_notif = success;
       ident_proc->emm_com_proc.emm_proc.base_proc.failure_notif = failure;
-      ident_proc->emm_com_proc.emm_proc.base_proc.abort = _identification_abort;
+      ident_proc->emm_com_proc.emm_proc.base_proc.abort = identification_abort;
       ident_proc->emm_com_proc.emm_proc.base_proc.fail_in =
           NULL;  // only response
       ident_proc->emm_com_proc.emm_proc.base_proc.time_out =
-          _identification_t3470_handler;
+          identification_t3470_handler;
     }
 
-    rc = _identification_request(ident_proc);
+    rc = identification_request(ident_proc);
 
     if (rc != RETURNerror) {
       /*
@@ -307,7 +307,7 @@ int emm_proc_identification_complete(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _identification_t3470_handler(void* args, imsi64_t* imsi64) {
+static void identification_t3470_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_ctx = (emm_context_t*) (args);
 
@@ -341,7 +341,7 @@ static void _identification_t3470_handler(void* args, imsi64_t* imsi64) {
       /*
        * Send identity request message to the UE
        */
-      _identification_request(ident_proc);
+      identification_request(ident_proc);
     } else {
       /*
        * Abort the identification procedure
@@ -393,7 +393,7 @@ static void _identification_t3470_handler(void* args, imsi64_t* imsi64) {
  *      Return:    None
  *      Others:    T3470
  */
-static int _identification_request(nas_emm_ident_proc_t* const proc) {
+static int identification_request(nas_emm_ident_proc_t* const proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap             = {0};
   int rc                        = RETURNok;
@@ -439,7 +439,7 @@ static int _identification_request(nas_emm_ident_proc_t* const proc) {
 }
 
 //------------------------------------------------------------------------------
-static int _identification_ll_failure(
+static int identification_ll_failure(
     struct emm_context_s* emm_ctx, struct nas_emm_proc_s* emm_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -458,7 +458,7 @@ static int _identification_ll_failure(
 }
 
 //------------------------------------------------------------------------------
-static int _identification_non_delivered_ho(
+static int identification_non_delivered_ho(
     struct emm_context_s* emm_ctx, struct nas_emm_proc_s* emm_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -513,7 +513,7 @@ static int _identification_non_delivered_ho(
  *      Return:    None
  *      Others:    T3470
  */
-static int _identification_abort(
+static int identification_abort(
     struct emm_context_s* emm_context, struct nas_base_proc_s* base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;

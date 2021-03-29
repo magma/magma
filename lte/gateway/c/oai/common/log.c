@@ -162,14 +162,14 @@ typedef struct oai_log_s {
       shared_log_handler; /*!< \brief Logging handler function pointers */
 } oai_log_t;
 
-#define _LOG_START_USE g_oai_log.log_handler.log_start_use
-#define _LOG g_oai_log.log_handler.log
-#define _LOG_GET_ITEM g_oai_log.log_handler.get_log_queue_item
-#define _LOG_FREE_ITEM g_oai_log.log_handler.free_log_queue_item
+#define LOG_START_USE g_oai_log.log_handler.log_start_use
+#define LOG g_oai_log.log_handler.log
+#define LOG_GET_ITEM g_oai_log.log_handler.get_log_queue_item
+#define LOG_FREE_ITEM g_oai_log.log_handler.free_log_queue_item
 
-#define _LOG_ASYNC g_oai_log.shared_log_handler.log
-#define _LOG_GET_ITEM_ASYNC g_oai_log.shared_log_handler.get_log_queue_item
-#define _LOG_FREE_ITEM_ASYNC g_oai_log.shared_log_handler.free_log_queue_item
+#define LOG_ASYNC g_oai_log.shared_log_handler.log
+#define LOG_GET_ITEM_ASYNC g_oai_log.shared_log_handler.get_log_queue_item
+#define LOG_FREE_ITEM_ASYNC g_oai_log.shared_log_handler.free_log_queue_item
 static oai_log_t g_oai_log = {
     0}; /*!< \brief  logging utility internal variables global var definition*/
 
@@ -286,7 +286,7 @@ static void get_thread_context(log_thread_ctxt_t** thread_ctxt) {
         g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) thread_ctxt);
     if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
       // Initialize thread context
-      _LOG_START_USE();
+      LOG_START_USE();
       hash_rc = hashtable_ts_get(
           g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) thread_ctxt);
       AssertFatal(
@@ -338,7 +338,7 @@ static void* log_thread(__attribute__((unused)) void* args_p) {
       &log_task_zmq_ctx, LOG_FLUSH_PERIOD_MSEC, TIMER_REPEAT_ONCE, handle_timer,
       NULL);
 
-  _LOG_START_USE();
+  LOG_START_USE();
 
   zloop_start(log_task_zmq_ctx.event_loop);
   log_exit();
@@ -878,7 +878,7 @@ static void log_stream_hex_async(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
   if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
     // make the thread safe LFDS collections usable by this thread
-    _LOG_START_USE();
+    LOG_START_USE();
   }
   hash_rc = hashtable_ts_get(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
@@ -1030,11 +1030,11 @@ static void log_message_finish_sync(log_queue_item_t* messageP) {
     OAI_FPRINTF_ERR("Error while logging message\n");
     goto error_event;
   }
-  _LOG(messageP);
+  LOG(messageP);
   return;
 
 error_event:
-  _LOG_FREE_ITEM(&messageP);
+  LOG_FREE_ITEM(&messageP);
 }
 //------------------------------------------------------------------------------
 void log_message_finish_async(struct shared_log_queue_item_s* messageP) {
@@ -1115,7 +1115,7 @@ void log_message_start_async(
         g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
     if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
       // make the thread safe LFDS collections usable by this thread
-      _LOG_START_USE();
+      LOG_START_USE();
       hash_rc = hashtable_ts_get(
           g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
       AssertFatal(
@@ -1214,7 +1214,7 @@ void log_func(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
   if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
     // make the thread safe LFDS collections usable by this thread
-    _LOG_START_USE();
+    LOG_START_USE();
   }
   hash_rc = hashtable_ts_get(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
@@ -1251,7 +1251,7 @@ void log_func_return(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
   if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
     // make the thread safe LFDS collections usable by this thread
-    _LOG_START_USE();
+    LOG_START_USE();
   }
   hash_rc = hashtable_ts_get(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
@@ -1286,13 +1286,13 @@ void log_message(
     if (g_oai_log.is_ansi_codes) {
       bformata(new_item_p_async->bstr, "%s", ANSI_COLOR_RESET);
     }
-    _LOG_ASYNC(new_item_p_async);
+    LOG_ASYNC(new_item_p_async);
   } else {
     new_item_p_sync = (log_queue_item_t*) new_item_p;
     if (g_oai_log.is_ansi_codes) {
       bformata(new_item_p_sync->bstr, "%s", ANSI_COLOR_RESET);
     }
-    _LOG(new_item_p_sync);
+    LOG(new_item_p_sync);
   }
 }
 
@@ -1319,13 +1319,13 @@ void log_message_prefix_id(
     if (g_oai_log.is_ansi_codes) {
       bformata(new_item_p_async->bstr, "%s", ANSI_COLOR_RESET);
     }
-    _LOG_ASYNC(new_item_p_async);
+    LOG_ASYNC(new_item_p_async);
   } else {
     new_item_p_sync = (log_queue_item_t*) new_item_p;
     if (g_oai_log.is_ansi_codes) {
       bformata(new_item_p_sync->bstr, "%s", ANSI_COLOR_RESET);
     }
-    _LOG(new_item_p_sync);
+    LOG(new_item_p_sync);
   }
 }
 
@@ -1346,7 +1346,7 @@ void log_message_int(
   get_thread_context(&thread_ctxt);
 
   assert(thread_ctxt != NULL);
-  *contextP = _LOG_GET_ITEM();
+  *contextP = LOG_GET_ITEM();
 #if 0
   struct timeval elapsed_time;
   log_get_elapsed_time_since_start(&elapsed_time);
@@ -1402,9 +1402,9 @@ void log_message_int(
 
 error_event:
   if (!(g_oai_log.is_async)) {
-    _LOG_FREE_ITEM(sync_context_p);
+    LOG_FREE_ITEM(sync_context_p);
   } else {
-    _LOG_FREE_ITEM_ASYNC(*async_context_p);
+    LOG_FREE_ITEM_ASYNC(*async_context_p);
   }
 }
 
@@ -1424,7 +1424,7 @@ void log_message_int_prefix_id(
   get_thread_context(&thread_ctxt);
 
   assert(thread_ctxt != NULL);
-  *contextP = _LOG_GET_ITEM();
+  *contextP = LOG_GET_ITEM();
   time_t cur_time;
 
   // get the short file name to use for printing in log
@@ -1476,9 +1476,9 @@ void log_message_int_prefix_id(
 
 error_event:
   if (!(g_oai_log.is_async)) {
-    _LOG_FREE_ITEM(sync_context_p);
+    LOG_FREE_ITEM(sync_context_p);
   } else {
-    _LOG_FREE_ITEM_ASYNC(*async_context_p);
+    LOG_FREE_ITEM_ASYNC(*async_context_p);
   }
 }
 

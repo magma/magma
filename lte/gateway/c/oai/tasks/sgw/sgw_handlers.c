@@ -70,18 +70,18 @@
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
-static void _handle_failed_create_bearer_response(
+static void handle_failed_create_bearer_response(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
     teid_t teid);
-static void _generate_dl_flow(
+static void generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
     struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow);
 
 static bool does_bearer_context_hold_valid_enb_ip(
     ip_address_t enb_ip_address_S1u);
 
-static void _add_tunnel_helper(
+static void add_tunnel_helper(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64);
 
@@ -578,7 +578,7 @@ static void sgw_add_gtp_tunnel(
            ++itrn) {
         // Prepare DL flow rule
         struct ip_flow_dl dlflow = {0};
-        _generate_dl_flow(
+        generate_dl_flow(
             &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                   .packetfiltercontents),
             ue_ipv4.s_addr, ue_ipv6, &dlflow);
@@ -1630,7 +1630,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
         "Error in retrieving s_plus_p_gw context from sgw_s11_teid " TEID_FMT
         "\n",
         s11_actv_bearer_rsp->sgw_s11_teid);
-    _handle_failed_create_bearer_response(
+    handle_failed_create_bearer_response(
         spgw_context, s11_actv_bearer_rsp->cause.cause_value, imsi64,
         bearer_context.eps_bearer_id, bearer_context.s1u_sgw_fteid.teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
@@ -1652,7 +1652,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
         "so "
         "did not create new EPS bearer entry for EBI %u\n",
         bearer_context.eps_bearer_id);
-    _handle_failed_create_bearer_response(
+    handle_failed_create_bearer_response(
         spgw_context, s11_actv_bearer_rsp->cause.cause_value, imsi64,
         bearer_context.eps_bearer_id, bearer_context.s1u_sgw_fteid.teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
@@ -1664,7 +1664,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
         "Did not create new EPS bearer entry as "
         "UE rejected the request for EBI %u\n",
         bearer_context.eps_bearer_id);
-    _handle_failed_create_bearer_response(
+    handle_failed_create_bearer_response(
         spgw_context, s11_actv_bearer_rsp->cause.cause_value, imsi64,
         bearer_context.eps_bearer_id, bearer_context.s1u_sgw_fteid.teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
@@ -1703,7 +1703,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
           strcpy(policy_rule_name, eps_bearer_ctxt_entry_p->policy_rule_name);
           // setup GTPv1-U tunnel for each packet filter
           // enb, UE and imsi are common across rules
-          _add_tunnel_helper(spgw_context, eps_bearer_ctxt_entry_p, imsi64);
+          add_tunnel_helper(spgw_context, eps_bearer_ctxt_entry_p, imsi64);
         }
       }
       // Remove the temporary spgw entry
@@ -1861,7 +1861,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
               (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
             ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
           }
-          _generate_dl_flow(
+          generate_dl_flow(
               &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                     .packetfiltercontents),
               eps_bearer_ctxt_p->paa.ipv4_address.s_addr, ue_ipv6, &dlflow);
@@ -1993,7 +1993,7 @@ bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p) {
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
-static void _handle_failed_create_bearer_response(
+static void handle_failed_create_bearer_response(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
     teid_t teid) {
@@ -2051,7 +2051,7 @@ static void _handle_failed_create_bearer_response(
 }
 
 // Fills up downlink (DL) flow match rule from packet filters of eps bearer
-static void _generate_dl_flow(
+static void generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
     struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow) {
   // Prepare DL flow rule
@@ -2154,7 +2154,7 @@ static void _generate_dl_flow(
 
 // Helper function to generate dl flows and add tunnel for ipv4/ipv6/ipv4v6
 // bearers
-static void _add_tunnel_helper(
+static void add_tunnel_helper(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64) {
   uint32_t rc        = RETURNerror;
@@ -2175,7 +2175,7 @@ static void _add_tunnel_helper(
       eps_bearer_ctxt_entry_p->tft.numberofpacketfilters);
   for (int i = 0; i < eps_bearer_ctxt_entry_p->tft.numberofpacketfilters; ++i) {
     struct ip_flow_dl dlflow = {0};
-    _generate_dl_flow(
+    generate_dl_flow(
         &(eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
               .packetfiltercontents),
         ue_ipv4.s_addr, ue_ipv6, &dlflow);

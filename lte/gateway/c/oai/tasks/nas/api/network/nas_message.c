@@ -46,26 +46,26 @@
 
 /* Functions used to decode layer 3 NAS messages */
 
-static int _nas_message_plain_decode(
+static int nas_message_plain_decode(
     const unsigned char* buffer, const nas_message_security_header_t* header,
     nas_message_plain_t* msg, size_t length);
 
-static int _nas_message_protected_decode(
+static int nas_message_protected_decode(
     unsigned char* const buffer, nas_message_security_header_t* header,
     nas_message_plain_t* msg, size_t length,
     emm_security_context_t* const emm_security_context,
     nas_message_decode_status_t* status);
 
 /* Functions used to encode layer 3 NAS messages */
-static int _nas_message_header_encode(
+static int nas_message_header_encode(
     unsigned char* buffer, const nas_message_security_header_t* header,
     size_t length);
 
-static int _nas_message_plain_encode(
+static int nas_message_plain_encode(
     unsigned char* buffer, const nas_message_security_header_t* header,
     const nas_message_plain_t* msg, size_t length);
 
-static int _nas_message_protected_encode(
+static int nas_message_protected_encode(
     unsigned char* buffer, const nas_message_security_protected_t* msg,
     size_t length, void* security);
 
@@ -82,7 +82,7 @@ static int nas_message_encrypt_a(
     emm_security_context_t* const emm_security_context);
 
 /* Functions used for integrity protection of layer 3 NAS messages */
-static uint32_t _nas_message_get_mac(
+static uint32_t nas_message_get_mac(
     const unsigned char* const buffer, size_t const length, int const direction,
     emm_security_context_t* const emm_security_context);
 
@@ -121,7 +121,7 @@ int nas_message_encrypt(
   /*
    * Encode the header
    */
-  int size = _nas_message_header_encode(outbuf, header, length);
+  int size = nas_message_header_encode(outbuf, header, length);
 
   if (size < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS, TLV_BUFFER_TOO_SHORT);
@@ -147,7 +147,7 @@ int nas_message_encrypt(
       /*
        * Compute the NAS message authentication code
        */
-      uint32_t mac = _nas_message_get_mac(
+      uint32_t mac = nas_message_get_mac(
           outbuf + offset, bytes + size - offset,
           emm_security_context->direction_encode, emm_security_context);
 
@@ -269,7 +269,7 @@ int nas_message_decrypt(
     /*
      * Compute the NAS message authentication code
      */
-    uint32_t mac = _nas_message_get_mac(
+    uint32_t mac = nas_message_get_mac(
         inbuf + offset, length - offset, SECU_DIRECTION_UPLINK,
         emm_security_context);
 
@@ -421,7 +421,7 @@ int nas_message_decode(
      * Compute the NAS message authentication code, return 0 if no security
      * context
      */
-    mac = _nas_message_get_mac(
+    mac = nas_message_get_mac(
         buffer, SR_MAC_SIZE_BYTES, SECU_DIRECTION_UPLINK, emm_security_context);
 
     /*
@@ -471,7 +471,7 @@ int nas_message_decode(
        * Compute the NAS message authentication code, return 0 if no security
        * context
        */
-      mac = _nas_message_get_mac(
+      mac = nas_message_get_mac(
           buffer + offset, length - offset,
           emm_security_context->direction_decode, emm_security_context);
       /*
@@ -492,7 +492,7 @@ int nas_message_decode(
      * Decode security protected NAS message
      */
     // LG WARNING  msg->plain versus msg->security.plain.
-    bytes = _nas_message_protected_decode(
+    bytes = nas_message_protected_decode(
         (unsigned char* const)(buffer + size), &msg->header, &msg->plain,
         length - size, emm_security_context, status);
   } else {
@@ -500,7 +500,7 @@ int nas_message_decode(
      * Decode plain NAS message
      */
     bytes =
-        _nas_message_plain_decode(buffer, &msg->header, &msg->plain, length);
+        nas_message_plain_decode(buffer, &msg->header, &msg->plain, length);
   }
 
   if (bytes < 0) {
@@ -541,7 +541,7 @@ int nas_message_encode(
   /*
    * Encode the header
    */
-  int size = _nas_message_header_encode(buffer, &msg->header, length);
+  int size = nas_message_header_encode(buffer, &msg->header, length);
 
   if (size < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS, TLV_BUFFER_TOO_SHORT);
@@ -549,7 +549,7 @@ int nas_message_encode(
     /*
      * Encode security protected NAS message
      */
-    bytes = _nas_message_protected_encode(
+    bytes = nas_message_protected_encode(
         buffer + size, &msg->security_protected, length - size,
         emm_security_context);
 
@@ -569,7 +569,7 @@ int nas_message_encode(
           LOG_NAS,
           "offset %d = %d - %lu, hdr encode = %d, length = %lu bytes = %d\n",
           offset, size, sizeof(uint8_t), size, length, bytes);
-      uint32_t mac = _nas_message_get_mac(
+      uint32_t mac = nas_message_get_mac(
           buffer + offset, bytes + size - offset,
           emm_security_context->direction_encode, emm_security_context);
 
@@ -632,7 +632,7 @@ int nas_message_encode(
      * Encode plain NAS message
      */
     bytes =
-        _nas_message_plain_encode(buffer, &msg->header, &msg->plain, length);
+        nas_message_plain_encode(buffer, &msg->header, &msg->plain, length);
   }
 
   if (bytes < 0) {
@@ -760,7 +760,7 @@ int nas_message_header_decode(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _nas_message_plain_decode(
+static int nas_message_plain_decode(
     const unsigned char* buffer, const nas_message_security_header_t* header,
     nas_message_plain_t* msg, size_t length) {
   OAILOG_FUNC_IN(LOG_NAS);
@@ -810,7 +810,7 @@ static int _nas_message_plain_decode(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _nas_message_protected_decode(
+static int nas_message_protected_decode(
     unsigned char* const buffer, nas_message_security_header_t* header,
     nas_message_plain_t* msg, size_t length,
     emm_security_context_t* const emm_security_context,
@@ -830,7 +830,7 @@ static int _nas_message_protected_decode(
     /*
      * Decode the decrypted message as plain NAS message
      */
-    bytes = _nas_message_plain_decode(plain_msg, header, msg, length);
+    bytes = nas_message_plain_decode(plain_msg, header, msg, length);
     free_wrapper((void**) &plain_msg);
   }
 
@@ -862,7 +862,7 @@ static int _nas_message_protected_decode(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _nas_message_header_encode(
+static int nas_message_header_encode(
     unsigned char* buffer, const nas_message_security_header_t* header,
     size_t length) {
   OAILOG_FUNC_IN(LOG_NAS);
@@ -924,7 +924,7 @@ static int _nas_message_header_encode(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _nas_message_plain_encode(
+static int nas_message_plain_encode(
     unsigned char* buffer, const nas_message_security_header_t* header,
     const nas_message_plain_t* msg, size_t length) {
   OAILOG_FUNC_IN(LOG_NAS);
@@ -975,7 +975,7 @@ static int _nas_message_plain_encode(
  ** Others:   None                                                         **
  **                                                                        **
  ***************************************************************************/
-static int _nas_message_protected_encode(
+static int nas_message_protected_encode(
     unsigned char* buffer, const nas_message_security_protected_t* msg,
     size_t length, void* security) {
   OAILOG_FUNC_IN(LOG_NAS);
@@ -989,7 +989,7 @@ static int _nas_message_protected_encode(
      * Encode the security protected NAS message as plain NAS message
      */
     int size =
-        _nas_message_plain_encode(plain_msg, &msg->header, &msg->plain, length);
+        nas_message_plain_encode(plain_msg, &msg->header, &msg->plain, length);
 
     if (size > 0) {
       // static uint8_t seq = 0;
@@ -1393,7 +1393,7 @@ static int nas_message_encrypt_a(
  **    Others:  None                                                   **
  **                                                                        **
  ***************************************************************************/
-static uint32_t _nas_message_get_mac(
+static uint32_t nas_message_get_mac(
     const unsigned char* const buffer, size_t const length, int const direction,
     emm_security_context_t* const emm_security_context) {
   OAILOG_FUNC_IN(LOG_NAS);

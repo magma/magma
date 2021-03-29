@@ -49,30 +49,30 @@
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
 
-static int _mme_app_send_sgsap_ue_unreachable(
+static int mme_app_send_sgsap_ue_unreachable(
     struct ue_mm_context_s* ue_context_p, SgsCause_t sgs_cause);
 
-static int _sgsap_handle_paging_request_without_lai(
+static int sgsap_handle_paging_request_without_lai(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 
-static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt);
+static int sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt);
 
-static int _sgs_handle_paging_request_for_mt_call_in_connected(
+static int sgs_handle_paging_request_for_mt_call_in_connected(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 
-static int _sgs_handle_paging_request_for_mt_call_in_idle(
+static int sgs_handle_paging_request_for_mt_call_in_idle(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 
-static int _sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t* evt);
+static int sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t* evt);
 
-static int _sgs_handle_paging_request_for_mt_sms_in_connected(
+static int sgs_handle_paging_request_for_mt_sms_in_connected(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 
-static int _sgs_handle_paging_request_for_mt_sms_in_idle(
+static int sgs_handle_paging_request_for_mt_sms_in_idle(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 /*****************************************************************************
@@ -104,9 +104,9 @@ int sgs_handle_associated_paging_request(const sgs_fsm_t* evt) {
 
 #define SGSAP_SMS_INDICATOR 0x02
   if (sgsap_paging_req_pP->service_indicator == SGSAP_SMS_INDICATOR) {
-    rc = _sgs_handle_paging_request_for_mt_sms(evt);
+    rc = sgs_handle_paging_request_for_mt_sms(evt);
   } else {
-    rc = _sgs_handle_paging_request_for_mt_call(evt);
+    rc = sgs_handle_paging_request_for_mt_call(evt);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -121,7 +121,7 @@ int sgs_handle_associated_paging_request(const sgs_fsm_t* evt) {
  **          Return:    RETURNok, RETURNerror                               **
  **                                                                         **
  ******************************************************************************/
-static int _sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t* evt) {
+static int sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t* evt) {
   int rc                                           = RETURNerror;
   ue_mm_context_t* ue_context_p                    = NULL;
   sgs_context_t* sgs_context                       = NULL;
@@ -163,15 +163,15 @@ static int _sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t* evt) {
        PAGING_REQUEST_LAI_PARAMETER_PRESENT));
   if (!(sgsap_paging_req_pP->presencemask &
         PAGING_REQUEST_LAI_PARAMETER_PRESENT)) {
-    rc = _sgsap_handle_paging_request_without_lai(
+    rc = sgsap_handle_paging_request_without_lai(
         ue_context_p, sgsap_paging_req_pP);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   if (ue_context_p->ecm_state == ECM_CONNECTED) {
-    rc = _sgs_handle_paging_request_for_mt_sms_in_connected(
+    rc = sgs_handle_paging_request_for_mt_sms_in_connected(
         ue_context_p, sgsap_paging_req_pP);
   } else if (ue_context_p->ecm_state == ECM_IDLE) {
-    rc = _sgs_handle_paging_request_for_mt_sms_in_idle(
+    rc = sgs_handle_paging_request_for_mt_sms_in_idle(
         ue_context_p, sgsap_paging_req_pP);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -187,7 +187,7 @@ static int _sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t* evt) {
  **          Return:    RETURNok, RETURNerror                                **
  **                                                                          **
  *******************************************************************************/
-static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt) {
+static int sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt) {
   int rc                                           = RETURNerror;
   ue_mm_context_t* ue_context_p                    = NULL;
   sgs_context_t* sgs_context                       = NULL;
@@ -231,7 +231,7 @@ static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt) {
   /* Fetch LAI if present */
   if (!(sgsap_paging_req_pP->presencemask &
         PAGING_REQUEST_LAI_PARAMETER_PRESENT)) {
-    rc = _sgsap_handle_paging_request_without_lai(
+    rc = sgsap_handle_paging_request_without_lai(
         ue_context_p, sgsap_paging_req_pP);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
@@ -246,16 +246,16 @@ static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt) {
     /* Handling for paging received without LAI and vlr-reliable flag set to
      * false is same
      */
-    rc = _sgsap_handle_paging_request_without_lai(
+    rc = sgsap_handle_paging_request_without_lai(
         ue_context_p, sgsap_paging_req_pP);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
 
   if (ue_context_p->ecm_state == ECM_CONNECTED) {
-    rc = _sgs_handle_paging_request_for_mt_call_in_connected(
+    rc = sgs_handle_paging_request_for_mt_call_in_connected(
         ue_context_p, sgsap_paging_req_pP);
   } else if (ue_context_p->ecm_state == ECM_IDLE) {
-    rc = _sgs_handle_paging_request_for_mt_call_in_idle(
+    rc = sgs_handle_paging_request_for_mt_call_in_idle(
         ue_context_p, sgsap_paging_req_pP);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -273,7 +273,7 @@ static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt) {
  **                                                                         **
  ******************************************************************************/
 
-static int _sgs_handle_paging_request_for_mt_call_in_connected(
+static int sgs_handle_paging_request_for_mt_call_in_connected(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP) {
   int rc            = RETURNerror;
@@ -340,7 +340,7 @@ static int _sgs_handle_paging_request_for_mt_call_in_connected(
  **          Return:    RETURNok, RETURNerror                               **
  **                                                                         **
  ******************************************************************************/
-static int _sgs_handle_paging_request_for_mt_sms_in_connected(
+static int sgs_handle_paging_request_for_mt_sms_in_connected(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP) {
   int rc = RETURNerror;
@@ -391,7 +391,7 @@ static int _sgs_handle_paging_request_for_mt_sms_in_connected(
  ** **
  ***********************************************************************************/
 
-static int _sgs_handle_paging_request_for_mt_call_in_idle(
+static int sgs_handle_paging_request_for_mt_call_in_idle(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP)
 
@@ -454,7 +454,7 @@ static int _sgs_handle_paging_request_for_mt_call_in_idle(
     }
   } else {
     // Send UE Unreachable to MSC/VLR
-    _mme_app_send_sgsap_ue_unreachable(ue_context_p, SGS_CAUSE_UE_UNREACHABLE);
+    mme_app_send_sgsap_ue_unreachable(ue_context_p, SGS_CAUSE_UE_UNREACHABLE);
     if (rc != RETURNok) {
       OAILOG_ERROR(
           LOG_MME_APP, "Failed to send SGSAP-UE-UNREACHABLE for ue-id :%u \n",
@@ -476,7 +476,7 @@ static int _sgs_handle_paging_request_for_mt_call_in_idle(
  ** **
  ***********************************************************************************/
 
-static int _sgs_handle_paging_request_for_mt_sms_in_idle(
+static int sgs_handle_paging_request_for_mt_sms_in_idle(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP)
 
@@ -539,7 +539,7 @@ static int _sgs_handle_paging_request_for_mt_sms_in_idle(
     }
   } else {
     // Send UE Unreachable to MSC/VLR
-    rc = _mme_app_send_sgsap_ue_unreachable(
+    rc = mme_app_send_sgsap_ue_unreachable(
         ue_context_p, SGS_CAUSE_UE_UNREACHABLE);
     if (rc != RETURNok) {
       OAILOG_ERROR(
@@ -735,7 +735,7 @@ int sgs_handle_null_paging_request(const sgs_fsm_t* evt) {
  **
  ***********************************************************************************/
 
-static int _mme_app_send_sgsap_ue_unreachable(
+static int mme_app_send_sgsap_ue_unreachable(
     struct ue_mm_context_s* ue_context_p, SgsCause_t sgs_cause) {
   int rc                                               = RETURNerror;
   MessageDef* message_p                                = NULL;
@@ -787,7 +787,7 @@ static int _mme_app_send_sgsap_ue_unreachable(
  **          Return:    RETURNok, RETURNerror **
  **
  ***********************************************************************************/
-static int _sgsap_handle_paging_request_without_lai(
+static int sgsap_handle_paging_request_without_lai(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP) {
   int rc                     = RETURNok;
@@ -839,7 +839,7 @@ static int _sgsap_handle_paging_request_without_lai(
       }
     } else {
       // Send UE Unreachable to MSC/VLR
-      rc = _mme_app_send_sgsap_ue_unreachable(
+      rc = mme_app_send_sgsap_ue_unreachable(
           ue_context_p, SGS_CAUSE_UE_UNREACHABLE);
       if (rc != RETURNok) {
         OAILOG_ERROR(

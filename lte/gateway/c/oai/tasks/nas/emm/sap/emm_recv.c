@@ -66,7 +66,7 @@
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
-static int _emm_initiate_default_bearer_re_establishment(
+static int emm_initiate_default_bearer_re_establishment(
     emm_context_t* emm_ctx);
 /*
    --------------------------------------------------------------------------
@@ -753,7 +753,7 @@ int emm_recv_service_request(
    * 2. Move UE ECM state to Connected
    * 3. Stop Mobile reachability time and Implicit Deatch timer (if running)
    */
-  rc = _emm_initiate_default_bearer_re_establishment(emm_ctx);
+  rc = emm_initiate_default_bearer_re_establishment(emm_ctx);
   if (rc == RETURNok) {
     *emm_cause = EMM_CAUSE_SUCCESS;
     increment_counter("service_request", 1, 1, "result", "success");
@@ -1191,7 +1191,7 @@ int emm_recv_detach_accept(mme_ue_s1ap_id_t ue_id, int* emm_cause) {
 }
 
 //-------------------------------------------------------------------------------------
-static int _emm_initiate_default_bearer_re_establishment(
+static int emm_initiate_default_bearer_re_establishment(
     emm_context_t* emm_ctx) {
   /*
    * This function is used to trigger initial context setup request towards eNB
