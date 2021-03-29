@@ -932,7 +932,6 @@ static int send_mbr_failure(
 
 //------------------------------------------------------------------------------
 int sgw_handle_modify_bearer_request(
-    spgw_state_t* state,
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1794,7 +1793,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
               enb, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
-          if (rc < 0) {
+          if (rc != RETURNok) {
             OAILOG_ERROR_UE(
                 LOG_SPGW_APP, imsi64,
                 "ERROR in deleting TUNNEL " TEID_FMT
@@ -1873,7 +1872,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
               enb, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, &dlflow);
-          if (rc < 0) {
+          if (rc != RETURNok) {
             OAILOG_ERROR_UE(
                 LOG_SPGW_APP, imsi64,
                 "ERROR in deleting TUNNEL " TEID_FMT
@@ -1941,11 +1940,30 @@ int sgw_handle_ip_allocation_rsp(
         &bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
         &session_data);
 
-    char ip_str[INET_ADDRSTRLEN];
-    inet_ntop(
-        AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip_str,
-        INET_ADDRSTRLEN);
-    pcef_create_session(imsi, ip_str, NULL, &session_data, session_req);
+    // Create session based IPv4, IPv6 or IPv4v6 PDN type
+    if (ip_allocation_rsp->paa.pdn_type == IPv4) {
+      char ip_str[INET_ADDRSTRLEN];
+      inet_ntop(
+          AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip_str,
+          INET_ADDRSTRLEN);
+      pcef_create_session(imsi, ip_str, NULL, &session_data, session_req);
+    } else if (ip_allocation_rsp->paa.pdn_type == IPv6) {
+      char ip6_str[INET6_ADDRSTRLEN];
+      inet_ntop(
+          AF_INET6, &(ip_allocation_rsp->paa.ipv6_address), ip6_str,
+          INET6_ADDRSTRLEN);
+      pcef_create_session(imsi, NULL, ip6_str, &session_data, session_req);
+    } else if (ip_allocation_rsp->paa.pdn_type == IPv4_AND_v6) {
+      char ip4_str[INET_ADDRSTRLEN];
+      inet_ntop(
+          AF_INET, &(ip_allocation_rsp->paa.ipv4_address.s_addr), ip4_str,
+          INET_ADDRSTRLEN);
+      char ip6_str[INET6_ADDRSTRLEN];
+      inet_ntop(
+          AF_INET6, &(ip_allocation_rsp->paa.ipv6_address), ip6_str,
+          INET6_ADDRSTRLEN);
+      pcef_create_session(imsi, ip4_str, ip6_str, &session_data, session_req);
+    }
   } else {
     if (ip_allocation_rsp->status == SGI_STATUS_ERROR_SYSTEM_FAILURE) {
       /*
@@ -1955,7 +1973,15 @@ int sgw_handle_ip_allocation_rsp(
       // TODO - Release the GTP-tunnel corresponding to this IP address
       char* apn = (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information
                       .pdn_connection.apn_in_use;
-      release_ipv4_address(imsi, apn, &ip_allocation_rsp->paa.ipv4_address);
+      if (ip_allocation_rsp->paa.pdn_type == IPv4) {
+        release_ipv4_address(imsi, apn, &ip_allocation_rsp->paa.ipv4_address);
+      } else if (ip_allocation_rsp->paa.pdn_type == IPv6) {
+        release_ipv6_address(imsi, apn, &ip_allocation_rsp->paa.ipv6_address);
+      } else if (ip_allocation_rsp->paa.pdn_type == IPv4_AND_v6) {
+        release_ipv4v6_address(
+            imsi, apn, &ip_allocation_rsp->paa.ipv4_address,
+            &ip_allocation_rsp->paa.ipv6_address);
+      }
     }
 
     // If we are here then the IP address allocation has failed
@@ -2187,7 +2213,7 @@ static void _add_tunnel_helper(
         eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
             .eval_precedence);
 
-    if (rc < 0) {
+    if (rc != RETURNok) {
       OAILOG_ERROR_UE(
           LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rc);
     } else {
