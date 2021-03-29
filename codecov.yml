@@ -1,0 +1,26 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0%
+      cloud_lint:
+        target: auto
+        threshold: 0%
+        flags:
+          - cloud_lint
+      feg-lint:
+        target: auto
+        threshold: 0%
+        flags:
+          - feg-lint 
+      lte-test:
+        target: auto
+        threshold: 0%
+        flags:
+          - lte-test
+      c_cpp:
+        target: auto
+        threshold: 0%
+        flags:
+          - c_cpp
