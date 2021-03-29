@@ -512,6 +512,7 @@ jobs:
             python3 build.py --coverage
       - codecov/upload:
           file: /home/circleci/project/orc8r/cloud/coverage/all.gocov
+          flags: cloud_lint
       - magma_slack_notify
 
   # Fail if checked-in generated code doesn't match output from
@@ -621,6 +622,7 @@ jobs:
             make -C ${MAGMA_ROOT}/feg/gateway cover
       - codecov/upload:
           file: /home/circleci/project/feg/gateway/coverage/feg.gocov
+          flags: feg-lint
       - magma_slack_notify
 
   feg-precommit:
@@ -797,7 +799,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
             ci_env=`bash <(curl -s https://codecov.io/env)`
-            docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info"
+            docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
       - magma_slack_notify
 
   mme-clang-warnings:
@@ -853,8 +855,10 @@ jobs:
           path: /var/tmp/test_results
       - codecov/upload:
           file: /var/tmp/codecovs/cover_lte.xml
+          flags: lte-test
       - codecov/upload:
           file: /var/tmp/codecovs/cover_orc8r.xml
+          flags: lte-test
       - magma_slack_notify
 
   lte-integ-test:
