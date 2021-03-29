@@ -63,14 +63,6 @@ static int spgw_config_process(spgw_config_t* config_pP) {
     return RETURNerror;
   }
 
-#define SPGW_NOT_SPLITTED 1
-#if SPGW_NOT_SPLITTED
-  // fake split
-  bdestroy_wrapper(&config_pP->pgw_config.ipv4.if_name_S5_S8);
-  config_pP->pgw_config.ipv4.if_name_S5_S8 =
-      bstrcpy(config_pP->sgw_config.ipv4.if_name_S1u_S12_S4_up);
-#endif
-
   if (RETURNok != pgw_config_process(&config_pP->pgw_config)) {
     return RETURNerror;
   }

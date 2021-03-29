@@ -300,9 +300,8 @@ commands:
             cd ${MAGMA_ROOT}/circleci
             echo $MAGMA_NODE_PKEY | base64 -d - > ci_node.pem
             chmod 0400 ci_node.pem
-            echo $MAGMA_API_CERT | base64 -d - > ci_operator.pfx
-            openssl pkcs12 -in ci_operator.pfx -nocerts -out ci_operator.key.pem -nodes -passin pass:
-            openssl pkcs12 -in ci_operator.pfx -nokeys -out ci_operator.pem -passin pass:
+            echo $CI_OPERATOR_KEY | base64 -d - > ci_operator.key.pem
+            echo $CI_OPERATOR | base64 -d - > ci_operator.pem
 
             echo $MAGMA_ROOTCA | base64 -d - > rootCA.pem
             echo $MAGMA_CONTROL_PROXY | base64 -d - > control_proxy.yml
@@ -781,6 +780,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v $MAGMA_ROOT:/magma -i -t magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
+      - magma_slack_notify
 
   c-cpp-codecov:
     machine:
@@ -798,6 +798,7 @@ jobs:
             docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
             ci_env=`bash <(curl -s https://codecov.io/env)`
             docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info"
+      - magma_slack_notify
 
   mme-clang-warnings:
     machine:
@@ -814,6 +815,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
+      - magma_slack_notify
 
   lte-test:
     machine:
@@ -1006,7 +1008,6 @@ jobs:
             ./e2e_test_setup.sh
       - store_artifacts:
           path: /tmp/nms_artifacts
-
       - magma_slack_notify
 
   nms-build:
@@ -1080,6 +1081,7 @@ jobs:
             echo "machine github.com login mamga-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
+      - magma_slack_notify
 
   ### XWF
 
@@ -1116,7 +1118,8 @@ jobs:
             docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py
       - when:
           condition: <<parameters.notify_magma_ci>>
-          steps: magma_slack_notify
+          steps:
+            - magma_slack_notify
       - when:
           condition: <<parameters.notify_xwfm_ci>>
           steps:

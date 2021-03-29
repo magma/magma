@@ -78,24 +78,29 @@ func newS8ProxyImp(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
 func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRequestPgw) (*protos.CreateSessionResponsePgw, error) {
 	err := validateCreateSessionRequest(req)
 	if err != nil {
+		err = fmt.Errorf("Create Session failed for IMSI %s:, couldn't validate request: %s", req.Imsi, err)
+		glog.Error(err)
 		return nil, err
 	}
+
 	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
 	if err != nil {
-		err = fmt.Errorf("Create Session Request failed due to missing server address: %s", err)
+		err = fmt.Errorf("Create Session failed for IMSI %s: %s", req.Imsi, err)
 		glog.Error(err)
 		return nil, err
 	}
 	// build csReq IE message
 	csReqMsg, err := buildCreateSessionRequestMsg(cPgwUDPAddr, req)
 	if err != nil {
+		err = fmt.Errorf("Create Session failed for IMSI %s: %s", req.Imsi, err)
+		glog.Error(err)
 		return nil, err
 	}
 
 	// send, register and receive create session (session is created on the gtp client during this process too)
 	csRes, err := s.sendAndReceiveCreateSession(req, cPgwUDPAddr, csReqMsg)
 	if err != nil {
-		err = fmt.Errorf("Create Session Request failed: %s", err)
+		err = fmt.Errorf("Create Session failed for IMSI %s: %s", req.Imsi, err)
 		glog.Error(err)
 		return nil, err
 	}
@@ -105,14 +110,15 @@ func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
 	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
 	if err != nil {
-		err = fmt.Errorf("Delete Session failed due to missing server address: %s", err)
+		err = fmt.Errorf("Delete Session failed for IMSI %s: %s", req.Imsi, err)
 		glog.Error(err)
 		return nil, err
 	}
 	dsReqMsg := buildDeleteSessionRequestMsg(req)
 	cdRes, err := s.sendAndReceiveDeleteSession(req, cPgwUDPAddr, dsReqMsg)
 	if err != nil {
-		glog.Errorf("Couldnt delete session for IMSI %s:, %s", req.Imsi, err)
+		err = fmt.Errorf("Delete Session failed for IMSI %s:, %s", req.Imsi, err)
+		glog.Error(err)
 		return nil, err
 	}
 	// remove session from the s8_proxy client
@@ -149,8 +155,7 @@ func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.
 }
 
 func validateCreateSessionRequest(csr *protos.CreateSessionRequestPgw) error {
-	if csr.CAgwTeid == 0 || csr.BearerContext == nil ||
-		csr.BearerContext.UserPlaneFteid == nil || csr.BearerContext.Id == 0 {
+	if csr.BearerContext == nil || csr.BearerContext.UserPlaneFteid == nil || csr.BearerContext.Id == 0 {
 		return fmt.Errorf("CreateSessionRequest missing fields %+v", csr)
 	}
 	return nil
