@@ -921,21 +921,6 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       }
     }
 
-<<<<<<< HEAD
-    // BLOCKED IMEI LIST SETTING
-    setting = config_setting_get_member(
-        setting_mme, MME_CONFIG_STRING_BLOCKED_IMEI_LIST);
-    config_pP->blocked_imei.num = 0;
-    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_BLOCKED_IMEI_LIST \n");
-    if (setting != NULL) {
-      num = config_setting_length(setting);
-      OAILOG_INFO(LOG_MME_APP, "Number of blocked IMEIs configured =%d\n", num);
-      AssertFatal(
-          num <= MAX_BLOCKED_IMEI,
-          "Number of blocked IMEIs configured:%d exceeds number of "
-          "blocked IMEIs supported :%d \n",
-          num, MAX_BLOCKED_IMEI);
-=======
     // MODE MAP SETTING
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_FED_MODE_MAP);
@@ -949,37 +934,10 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           "Number of mode maps configured:%d exceeds number of "
           "mode maps supported :%d \n",
           num, MAX_FED_MODE_MAP_CONFIG);
->>>>>>> upstream/master
 
       for (i = 0; i < num; i++) {
         sub2setting = config_setting_get_elem(setting, i);
         if (sub2setting != NULL) {
-<<<<<<< HEAD
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_TAC, &tac_str))) {
-            AssertFatal(
-                strlen(tac_str) == MAX_LEN_TAC,
-                "Bad TAC length (%ld), it must be %u digits\n", strlen(tac_str),
-                MAX_LEN_TAC);
-            memcpy(
-                (char*) &config_pP->blocked_imei.imei_list[i].imei, tac_str,
-                strlen(tac_str));
-          }
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_SNR, &snr_str))) {
-            if (strlen(snr_str)) {
-              AssertFatal(
-                  strlen(snr_str) == MAX_LEN_SNR,
-                  "Bad SNR length (%ld), it must be %u digits\n",
-                  strlen(snr_str), MAX_LEN_SNR);
-              memcpy(
-                  (char*) &config_pP->blocked_imei.imei_list[i]
-                      .imei[strlen(tac_str)],
-                  snr_str, strlen(snr_str));
-            }
-          }
-          config_pP->blocked_imei.num += 1;
-=======
           OAILOG_INFO(LOG_MME_APP, "sub2setting\n");
           // MODE
           if ((config_setting_lookup_string(
@@ -1076,7 +1034,51 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->mode_map_config.mode_map[i].apn = bfromcstr(astring);
           }
           config_pP->mode_map_config.num += 1;
->>>>>>> upstream/master
+        }
+      }
+    }
+
+    // BLOCKED IMEI LIST SETTING
+    setting = config_setting_get_member(
+        setting_mme, MME_CONFIG_STRING_BLOCKED_IMEI_LIST);
+    config_pP->blocked_imei.num = 0;
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_BLOCKED_IMEI_LIST \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(LOG_MME_APP, "Number of blocked IMEIs configured =%d\n", num);
+      AssertFatal(
+          num <= MAX_BLOCKED_IMEI,
+          "Number of blocked IMEIs configured:%d exceeds number of "
+          "blocked IMEIs supported :%d \n",
+          num, MAX_BLOCKED_IMEI);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+        if (sub2setting != NULL) {
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_TAC, &tac_str))) {
+            AssertFatal(
+                strlen(tac_str) == MAX_LEN_TAC,
+                "Bad TAC length (%ld), it must be %u digits\n", strlen(tac_str),
+                MAX_LEN_TAC);
+            memcpy(
+                (char*) &config_pP->blocked_imei.imei_list[i].imei, tac_str,
+                strlen(tac_str));
+          }
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_SNR, &snr_str))) {
+            if (strlen(snr_str)) {
+              AssertFatal(
+                  strlen(snr_str) == MAX_LEN_SNR,
+                  "Bad SNR length (%ld), it must be %u digits\n",
+                  strlen(snr_str), MAX_LEN_SNR);
+              memcpy(
+                  (char*) &config_pP->blocked_imei.imei_list[i]
+                      .imei[strlen(tac_str)],
+                  snr_str, strlen(snr_str));
+            }
+          }
+          config_pP->blocked_imei.num += 1;
         }
       }
     }
@@ -1627,14 +1629,12 @@ void mme_config_display(mme_config_t* config_pP) {
           config_pP->served_tai.tac[j]);
     }
   }
-<<<<<<< HEAD
   for (j = 0; j < config_pP->blocked_imei.num; j++) {
     OAILOG_INFO(
         LOG_CONFIG, "- Blocked IMEI : %s\n",
         config_pP->blocked_imei.imei_list[j].imei);
   }
 
-=======
   for (j = 0; j < config_pP->mode_map_config.num; j++) {
     OAILOG_INFO(LOG_CONFIG, "- MODE MAP : \n");
     OAILOG_INFO(
@@ -1658,7 +1658,6 @@ void mme_config_display(mme_config_t* config_pP) {
         LOG_CONFIG, "  - APN : %s\n",
         bdata(config_pP->mode_map_config.mode_map[j].apn));
   }
->>>>>>> upstream/master
   OAILOG_INFO(LOG_CONFIG, "- NAS:\n");
   OAILOG_INFO(
       LOG_CONFIG,
