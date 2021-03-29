@@ -297,11 +297,11 @@ void LocalEnforcer::execute_actions(
     auto session_id = action_p->get_session_id();
     switch (action_p->get_type()) {
       case ACTIVATE_SERVICE:
-        handle_activate_service_action(session_map, action_p, session_update);
+        handle_activate_service_action(action_p);
         break;
       case REDIRECT:
       case RESTRICT_ACCESS: {
-        install_final_unit_action_flows(session_map, action_p, session_update);
+        install_final_unit_action_flows(action_p);
         break;
       }
       case TERMINATE_SERVICE: {
@@ -321,16 +321,14 @@ void LocalEnforcer::execute_actions(
 
 // TODO look into whether we need to re-install all Gx rules on activation
 void LocalEnforcer::handle_activate_service_action(
-    SessionMap& session_map, const std::unique_ptr<ServiceAction>& action_p,
-    SessionUpdate& session_update) {
+    const std::unique_ptr<ServiceAction>& action_p) {
   const std::string imsi      = action_p->get_imsi(),
                     msisdn    = action_p->get_msisdn(),
                     ip_addr   = action_p->get_ip_addr(),
                     ipv6_addr = action_p->get_ipv6_addr();
   const Teids teids           = action_p->get_teids();
   const auto ambr             = action_p->get_ambr();
-  RulesToProcess to_process;
-  to_process.rules = action_p->get_rule_definitions();
+  RulesToProcess to_process   = action_p->get_gx_rules_to_install();
   pipelined_client_->activate_flows_for_rules(
       imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
       std::bind(
@@ -475,94 +473,22 @@ void LocalEnforcer::handle_subscriber_quota_state_change(
   handle_subscriber_quota_state_change(imsi, session, new_state, unused);
 }
 
-// TODO: make session_manager.proto and policydb.proto to use common field
-static RedirectInformation_AddressType address_type_converter(
-    RedirectServer_RedirectAddressType address_type) {
-  switch (address_type) {
-    case RedirectServer_RedirectAddressType_IPV4:
-      return RedirectInformation_AddressType_IPv4;
-    case RedirectServer_RedirectAddressType_IPV6:
-      return RedirectInformation_AddressType_IPv6;
-    case RedirectServer_RedirectAddressType_URL:
-      return RedirectInformation_AddressType_URL;
-    case RedirectServer_RedirectAddressType_SIP_URI:
-      return RedirectInformation_AddressType_SIP_URI;
-    default:
-      MLOG(MERROR) << "Unknown redirect address type!";
-      return RedirectInformation_AddressType_IPv4;
-  }
-}
-
-PolicyRule LocalEnforcer::create_redirect_rule(
-    const std::unique_ptr<ServiceAction>& action) {
-  PolicyRule redirect_rule;
-  redirect_rule.set_id("redirect");
-  redirect_rule.set_priority(LocalEnforcer::REDIRECT_FLOW_PRIORITY);
-
-  RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
-  redirect_info->set_support(RedirectInformation_Support_ENABLED);
-
-  auto redirect_server = action->get_redirect_server();
-  redirect_info->set_address_type(
-      address_type_converter(redirect_server.redirect_address_type()));
-  redirect_info->set_server_address(redirect_server.redirect_server_address());
-
-  return redirect_rule;
-}
-
 void LocalEnforcer::install_final_unit_action_flows(
-    SessionMap& session_map, const std::unique_ptr<ServiceAction>& action,
-    SessionUpdate& session_update) {
-  const auto &imsi = action->get_imsi(), &session_id = action->get_session_id();
-  // First check if the UE IPv4 field is filled out & ready to use
-  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
-  auto session_it = session_store_.find_session(session_map, criteria);
-  if (!session_it) {
-    MLOG(MERROR) << session_id
-                 << " not found for installing final unit action flows";
-    return;
-  }
-  auto& session_uc           = session_update[imsi][session_id];
-  auto& session              = **session_it;
-  const auto config          = session->get_config().common_context;
-  const std::string &ip_addr = config.ue_ipv4(), &ipv6_addr = config.ue_ipv6(),
-                    &msisdn = config.msisdn();
-  const Teids teids         = config.teids();
-  const auto fua_type       = action->get_type();
-  RuleLifetime lifetime;
+    const std::unique_ptr<ServiceAction>& action_p) {
+  const std::string imsi       = action_p->get_imsi(),
+                    msisdn     = action_p->get_msisdn(),
+                    ip_addr    = action_p->get_ip_addr(),
+                    ipv6_addr  = action_p->get_ipv6_addr(),
+                    session_id = action_p->get_session_id();
+  const Teids teids            = action_p->get_teids();
+  const auto fua_type          = action_p->get_type();
 
   MLOG(MINFO) << "Installing final unit action "
               << service_action_type_to_str(fua_type) << " flows for "
               << session_id;
-
-  switch (fua_type) {
-    case REDIRECT: {
-      // This is GY based REDIRECT, GX redirect will come in as a regular
-      // rule
-      const auto& rule = create_redirect_rule(action);
-      // check if the rule has been installed already.
-      if (!session->is_gy_dynamic_rule_installed(rule.id())) {
-        RulesToProcess to_process;
-        to_process.rules = std::vector<PolicyRule>{rule};
-        pipelined_client_->add_gy_final_action_flow(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, to_process);
-        session->insert_gy_dynamic_rule(rule, lifetime, session_uc);
-      }
-      return;
-    }
-    case RESTRICT_ACCESS: {
-      RulesToProcess to_process;
-      to_process.rules = action->get_restrict_rules();
-      pipelined_client_->add_gy_final_action_flow(
-          imsi, ip_addr, ipv6_addr, teids, msisdn, to_process);
-      return;
-    }
-    default:
-      MLOG(MDEBUG) << "Unexpected final unit action install "
-                   << service_action_type_to_str(fua_type) << " for "
-                   << session_id;
-      return;
-  }
+  RulesToProcess to_process = action_p->get_gy_rules_to_install();
+  pipelined_client_->add_gy_final_action_flow(
+      imsi, ip_addr, ipv6_addr, teids, msisdn, to_process);
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates(
