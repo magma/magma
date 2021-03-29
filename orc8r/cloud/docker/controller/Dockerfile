@@ -85,7 +85,8 @@ RUN apt-get update && apt-get install -y \
   openssl \
   supervisor \
   unzip \
-  wget
+  wget \
+&& rm -rf /var/lib/apt/lists/*
 
 # Swagger UI
 # See: https://github.com/swagger-api/swagger-ui

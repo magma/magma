@@ -63,6 +63,8 @@
 #define MAX_LEN_TAC 8
 #define MAX_LEN_SNR 6
 #define MAX_LEN_IMEI 15
+#define MAX_FED_MODE_MAP_CONFIG 10
+#define MAX_IMSI_LENGTH 15
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
@@ -196,6 +198,13 @@
 #define MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION                    \
   "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
 
+// INBOUND ROAMING
+#define MME_CONFIG_STRING_FED_MODE_MAP "FEDERATED_MODE_MAP"
+#define MME_CONFIG_STRING_MODE "MODE"
+#define MME_CONFIG_STRING_APN "APN"
+#define MME_CONFIG_STRING_IMSI_RANGE "IMSI_RANGE"
+#define MME_CONFIG_STRING_PLMN "PLMN"
+
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
 typedef struct eps_network_feature_config_s {
@@ -317,6 +326,20 @@ typedef struct blocked_imei_config_s {
   imei_list_t imei_list[MAX_BLOCKED_IMEI];
 } blocked_imei_config_t;
 
+typedef struct fed_mode_map_s {
+  uint8_t mode;
+  plmn_t plmn;
+  // IMSI range
+  uint8_t imsi_low[MAX_IMSI_LENGTH + 1];
+  uint8_t imsi_high[MAX_IMSI_LENGTH + 1];
+  bstring apn;
+} fed_mode_map_t;
+
+typedef struct fed_mode_map_config_s {
+  int num;
+  fed_mode_map_t mode_map[MAX_FED_MODE_MAP_CONFIG];
+} fed_mode_map_config_t;
+
 typedef struct mme_config_s {
   /* Reader/writer lock for this configuration */
   pthread_rwlock_t rw_lock;
@@ -365,7 +388,7 @@ typedef struct mme_config_s {
   ip_t ip;
 
   lai_t lai;
-
+  fed_mode_map_config_t mode_map_config;
   bool use_stateless;
   bool use_ha;
   bool enable_gtpu_private_ip_correction;

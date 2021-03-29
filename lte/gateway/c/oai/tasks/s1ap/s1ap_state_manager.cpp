@@ -28,7 +28,7 @@ using magma::lte::oai::UeDescription;
 namespace magma {
 namespace lte {
 
-S1apStateManager::S1apStateManager() : max_enbs_(0), max_ues_(0) {}
+S1apStateManager::S1apStateManager() : max_ues_(0), max_enbs_(0) {}
 
 S1apStateManager::~S1apStateManager() {
   free_state();

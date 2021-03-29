@@ -25,6 +25,8 @@
 #include "ServiceRegistrySingleton.h"
 #include "itti_msg_to_proto_msg.h"
 #include "feg/protos/s6a_proxy.pb.h"
+#include "mme_config.h"
+#include "common_defs.h"
 
 namespace grpc {
 class Status;
@@ -88,17 +90,63 @@ static bool read_mme_cloud_subscriberdb_enabled(void) {
   return mconfig.cloud_subscriberdb_enabled();
 }
 
-S6aClient& S6aClient::get_instance() {
-  static S6aClient client_instance;
-  return client_instance;
+S6aClient& S6aClient::get_s6a_proxy_instance() {
+  static S6aClient s6a_proxy_instance(true);
+  return s6a_proxy_instance;
 }
 
-S6aClient::S6aClient() {
-  // Create channel based on relay_enabled and cloud_subscriberdb_enabled
-  // flags. If relay_enabled is true, then create a channel towards the FeG.
+S6aClient& S6aClient::get_subdb_instance() {
+  static S6aClient subdb_instance(false);
+  return subdb_instance;
+}
+
+// Extract MCC and MNC from the imsi received and match with
+// configuration
+int match_fed_mode_map(const char* imsi) {
+  uint8_t mcc_d1 = imsi[0] - '0';
+  uint8_t mcc_d2 = imsi[1] - '0';
+  uint8_t mcc_d3 = imsi[2] - '0';
+  uint8_t mnc_d1 = imsi[3] - '0';
+  uint8_t mnc_d2 = imsi[4] - '0';
+  uint8_t mnc_d3 = imsi[5] - '0';
+  if ((mcc_d1 < 0 || mcc_d1 > 9) || (mcc_d2 < 0 || mcc_d2 > 9) ||
+      (mcc_d3 < 0 || mcc_d3 > 9) || (mnc_d1 < 0 || mnc_d1 > 9) ||
+      (mnc_d2 < 0 || mnc_d2 > 9) || (mnc_d3 < 0 || mnc_d3 > 9)) {
+    std::cout << "[ERROR] MCC/MNC is not a decimal digit " << std::endl;
+    return -1;
+  }
+  for (uint8_t itr = 0; itr < mme_config.mode_map_config.num; itr++) {
+    if (((mcc_d1 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit1) &&
+         (mcc_d2 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit2) &&
+         (mcc_d3 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit3) &&
+         (mnc_d1 == mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit1) &&
+         (mnc_d2 ==
+          mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit2))) {
+      if (mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit3 != 0xf) {
+        if (mnc_d3 !=
+            mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit3) {
+          continue;
+        }
+      }
+      return mme_config.mode_map_config.mode_map[itr].mode;
+    }
+  }
+  // If the plmn is not found/configured we still create a channel
+  // towards the FeG as the default mode is HSS + spgw_task.
+  std::cout << "[INFO]  PLMN is not found/configured. Selecting default mode"
+            << std::endl;
+  return (magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER);
+}
+
+S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
+  // Create channel based on relay_enabled, enable_s6a_proxy_channel and
+  // cloud_subscriberdb_enabled flags.
+  // If relay_enabled is true and enable_s6a_proxy_channel is true i.e federated
+  // mode is SPGW_SUBSCRIBER or S8_SUBSCRIBER,
+  // then create a channel towards the FeG.
   // Otherwise, create a channel towards either local or cloud-based
   // subscriberdb.
-  if (get_s6a_relay_enabled() == true) {
+  if ((get_s6a_relay_enabled() == true) && (enable_s6a_proxy_channel)) {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         "s6a_proxy", ServiceRegistrySingleton::CLOUD);
     // Create stub for S6aProxy gRPC service
@@ -116,7 +164,19 @@ S6aClient::S6aClient() {
 
 void S6aClient::purge_ue(
     const char* imsi, std::function<void(Status, PurgeUEAnswer)> callbk) {
-  S6aClient& client = get_instance();
+  S6aClient* client_tmp;
+  int fed_mode = match_fed_mode_map(imsi);
+  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
+      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
+    client_tmp = &get_s6a_proxy_instance();
+  } else if (
+      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
+    client_tmp = &get_subdb_instance();
+  } else {
+    return;
+  }
+
+  S6aClient& client = *client_tmp;
 
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
@@ -140,7 +200,19 @@ void S6aClient::purge_ue(
 void S6aClient::authentication_info_req(
     const s6a_auth_info_req_t* const msg,
     std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk) {
-  S6aClient& client = get_instance();
+  S6aClient* client_tmp;
+  int fed_mode = match_fed_mode_map(msg->imsi);
+  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
+      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
+    client_tmp = &get_s6a_proxy_instance();
+  } else if (
+      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
+    client_tmp = &get_subdb_instance();
+  } else {
+    return;
+  }
+
+  S6aClient& client = *client_tmp;
   AuthenticationInformationRequest proto_msg =
       convert_itti_s6a_authentication_info_req_to_proto_msg(msg);
   // Create a raw response pointer that stores a callback to be called when the
@@ -164,7 +236,19 @@ void S6aClient::authentication_info_req(
 void S6aClient::update_location_request(
     const s6a_update_location_req_t* const msg,
     std::function<void(Status, feg::UpdateLocationAnswer)> callbk) {
-  S6aClient& client = get_instance();
+  S6aClient* client_tmp;
+  int fed_mode = match_fed_mode_map(msg->imsi);
+  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
+      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
+    client_tmp = &get_s6a_proxy_instance();
+  } else if (
+      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
+    client_tmp = &get_subdb_instance();
+  } else {
+    return;
+  }
+
+  S6aClient& client = *client_tmp;
   UpdateLocationRequest proto_msg =
       convert_itti_s6a_update_location_request_to_proto_msg(msg);
   // Create a raw response pointer that stores a callback to be called when the

@@ -130,11 +130,8 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         return ula
 
     def PurgeUE(self, request, context):
-        self._print_grpc(request)
-        logging.getLevelName()
         logging.warning("Purge request not implemented: %s %s",
                         request.DESCRIPTOR.full_name, MessageToJson(request))
-
         return s6a_proxy_pb2.PurgeUEAnswer()
 
     @staticmethod

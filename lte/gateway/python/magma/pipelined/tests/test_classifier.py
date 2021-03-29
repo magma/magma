@@ -76,6 +76,8 @@ class ClassifierTest(unittest.TestCase):
                 'mtr_ip': cls.MTR_IP,
                 'ovs_internal_sampling_port_number': 15578,
                 'ovs_internal_sampling_fwd_tbl_number': 201,
+                'ovs_internal_conntrack_port_number': 15579,
+                'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': True,
                 'ovs_multi_tunnel': True,
             },
@@ -99,6 +101,16 @@ class ClassifierTest(unittest.TestCase):
         # install the specific flows test case.
         self.test_detach_default_tunnel_flows()
         self.classifier_controller._install_internal_pkt_fwd_flow()
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+        with snapshot_verifier:
+            pass
+
+    def test_install_internal_conntrack_flow(self):
+        # Need to delete all default flows in table 0 before
+        # install the specific flows test case.
+        self.test_detach_default_tunnel_flows()
+        self.classifier_controller._install_internal_conntrack_flow()
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
         with snapshot_verifier:

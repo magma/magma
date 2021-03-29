@@ -184,6 +184,10 @@ def _get_federated_mode_map(service_mconfig):
         return service_mconfig.federated_mode_map.mapping
     return {}
 
+def _get_restricted_plmns(service_mconfig):
+    if service_mconfig.restricted_plmns:
+        return service_mconfig.restricted_plmns
+    return {}
 
 def _get_context():
     """
@@ -194,6 +198,7 @@ def _get_context():
     context = {
         "mme_s11_ip": _get_iface_ip("mme", "s11_iface_name"),
         "sgw_s11_ip": _get_iface_ip("spgw", "s11_iface_name"),
+        "sgw_s5s8_up_ip": _get_iface_ip("spgw", "sgw_s5s8_up_iface_name"),
         "remote_sgw_ip": get_service_config_value("mme",
                                                   "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
@@ -215,7 +220,8 @@ def _get_context():
                                                   "use_stateless", ""),
         "attached_enodeb_tacs": _get_attached_enodeb_tacs(mme_service_config),
         "enable_nat": _get_enable_nat(mme_service_config),
-        "federated_mode_map" : _get_federated_mode_map(mme_service_config)
+        "federated_mode_map" : _get_federated_mode_map(mme_service_config),
+        "restricted_plmns" : _get_restricted_plmns(mme_service_config)
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or \

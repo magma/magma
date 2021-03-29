@@ -395,6 +395,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 //   no traffic passed
 // Note: things might get weird if there are clock skews
 func TestGxRevalidationTime(t *testing.T) {
+	t.Skip("Skipping due to current test flakiness, investigating...")
 	fmt.Println("\nRunning TestGxRevalidationTime...")
 
 	tr := NewTestRunner(t)
@@ -443,8 +444,9 @@ func TestGxRevalidationTime(t *testing.T) {
 		tr.WaitForEnforcementStatsForRule(imsi, "revalidation-time-static-pass-all"),
 		10*time.Second, 2*time.Second)
 
-	fmt.Printf("Waiting %v for revalidation timer expiration\n", timeUntilRevalidation)
-	time.Sleep(timeUntilRevalidation)
+    waitingTime := timeUntilRevalidation + (5 * time.Second)
+	fmt.Printf("Waiting %v seconds for revalidation timer expiration\n", waitingTime)
+	time.Sleep(waitingTime) // give an extra few seconds for error
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()

@@ -108,7 +108,8 @@
       "howtos/header_enrichment.md"
     ],
     "Debugging Tools": [
-      "debugging_tools/show_tech"
+      "debugging_tools/show_tech",
+      "debugging_tools/dp_probe_cli"
     ],
     "Federation Gateway": [
       {

@@ -16,7 +16,6 @@ import concurrent.futures
 import queue
 from functools import partial
 from concurrent.futures import Future
-from itertools import chain
 from typing import List, Tuple
 from collections import OrderedDict
 
@@ -215,9 +214,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Update version for a given subscriber and rule.
         """
-        for rule_id in request.rule_ids:
-            self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, ipv4, rule_id)
         for rule in request.dynamic_rules:
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, ipv4, rule.id)
@@ -255,7 +251,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv4 = self._install_flows_gx(request, ipv4)
             else:
                 ret_ipv4 = self._install_flows_gy(request, ipv4)
-            ret.static_rule_results.extend(ret_ipv4.static_rule_results)
             ret.dynamic_rule_results.extend(ret_ipv4.dynamic_rule_results)
         if request.ipv6_addr:
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
@@ -264,7 +259,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv6 = self._install_flows_gx(request, ipv6)
             else:
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
-            ret.static_rule_results.extend(ret_ipv6.static_rule_results)
             ret.dynamic_rule_results.extend(ret_ipv6.dynamic_rule_results)
         if request.uplink_tunnel and request.downlink_tunnel:
             self._update_tunnel_map_store(request.uplink_tunnel,
@@ -286,23 +280,20 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr, request.rule_ids,
+            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
             request.dynamic_rules)
 
-        failed_static_rule_results, failed_dynamic_rule_results = \
+        failed_dynamic_rule_results = \
             _retrieve_failed_results(enforcement_stats_res)
         # Do not install any rules that failed to install in enforcement_stats.
-        static_rule_ids = \
-            _filter_failed_static_rule_ids(request, failed_static_rule_results)
         dynamic_rules = \
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
 
         enforcement_res = self._activate_rules_in_enforcement(
-            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr, static_rule_ids,
+            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
             dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
-        enforcement_res.static_rule_results.extend(failed_static_rule_results)
         enforcement_res.dynamic_rule_results.extend(
             failed_dynamic_rule_results)
         return enforcement_res
@@ -322,22 +313,19 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.rule_ids, request.dynamic_rules)
+            request.dynamic_rules)
 
-        failed_static_rule_results, failed_dynamic_rule_results = \
+        failed_dynamic_rule_results = \
             _retrieve_failed_results(enforcement_stats_res)
         # Do not install any rules that failed to install in enforcement_stats.
-        static_rule_ids = \
-            _filter_failed_static_rule_ids(request, failed_static_rule_results)
         dynamic_rules = \
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
 
         gy_res = self._activate_rules_in_gy(request.sid.id, request.msisdn, request.uplink_tunnel,
-                                            ip_address, request.apn_ambr, static_rule_ids,
+                                            ip_address, request.apn_ambr,
                                             dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
-        gy_res.static_rule_results.extend(failed_static_rule_results)
         gy_res.dynamic_rule_results.extend(failed_dynamic_rule_results)
         return gy_res
 
@@ -346,7 +334,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                              uplink_tunnel: int,
                                              ip_addr: IPAddress,
                                              apn_ambr: AggregatedMaximumBitrate,
-                                             static_rule_ids: List[str],
                                              dynamic_rules: List[PolicyRule]
                                              ) -> ActivateFlowsResult:
         if not self._service_manager.is_app_enabled(
@@ -354,7 +341,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, dynamic_rules)
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
 
@@ -362,13 +349,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                        uplink_tunnel: int,
                                        ip_addr: IPAddress,
                                        apn_ambr: AggregatedMaximumBitrate,
-                                       static_rule_ids: List[str],
                                        dynamic_rules: List[PolicyRule]
                                        ) -> ActivateFlowsResult:
         # TODO: this will crash pipelined if called with both static rules
         # and dynamic rules at the same time
         enforcement_res = self._enforcer_app.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, dynamic_rules)
         # TODO ?? Should the enforcement failure be reported per imsi session
         _report_enforcement_failures(enforcement_res, imsi)
         return enforcement_res
@@ -377,12 +363,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                               uplink_tunnel: int,
                               ip_addr: IPAddress,
                               apn_ambr: AggregatedMaximumBitrate,
-                              static_rule_ids: List[str],
                               dynamic_rules: List[PolicyRule]
                               ) -> ActivateFlowsResult:
         gy_res = self._gy_app.activate_rules(imsi, msisdn, uplink_tunnel,
                                              ip_addr, apn_ambr,
-                                             static_rule_ids,
                                              dynamic_rules)
         # TODO: add metrics
         return gy_res
@@ -817,22 +801,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
                                         List[RuleModResult]]:
-    failed_static_rule_results = \
-        [result for result in activate_flow_result.static_rule_results
-         if result.result == RuleModResult.FAILURE]
     failed_dynamic_rule_results = \
         [result for result in
          activate_flow_result.dynamic_rule_results if
          result.result == RuleModResult.FAILURE]
-    return failed_static_rule_results, failed_dynamic_rule_results
-
-
-def _filter_failed_static_rule_ids(request: ActivateFlowsRequest,
-                                   failed_results: List[RuleModResult]
-                                   ) -> List[str]:
-    failed_static_rule_ids = [result.rule_id for result in failed_results]
-    return [rule_id for rule_id in request.rule_ids if
-            rule_id not in failed_static_rule_ids]
+    return failed_dynamic_rule_results
 
 
 def _filter_failed_dynamic_rules(request: ActivateFlowsRequest,
@@ -845,9 +818,7 @@ def _filter_failed_dynamic_rules(request: ActivateFlowsRequest,
 
 def _report_enforcement_failures(activate_flow_result: ActivateFlowsResult,
                                  imsi: str):
-    rule_results = chain(activate_flow_result.static_rule_results,
-                         activate_flow_result.dynamic_rule_results)
-    for result in rule_results:
+    for result in activate_flow_result.dynamic_rule_results:
         if result.result == RuleModResult.SUCCESS:
             continue
         ENFORCEMENT_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
@@ -857,9 +828,7 @@ def _report_enforcement_failures(activate_flow_result: ActivateFlowsResult,
 def _report_enforcement_stats_failures(
         activate_flow_result: ActivateFlowsResult,
         imsi: str):
-    rule_results = chain(activate_flow_result.static_rule_results,
-                         activate_flow_result.dynamic_rule_results)
-    for result in rule_results:
+    for result in activate_flow_result.dynamic_rule_results:
         if result.result == RuleModResult.SUCCESS:
             continue
         ENFORCEMENT_STATS_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
