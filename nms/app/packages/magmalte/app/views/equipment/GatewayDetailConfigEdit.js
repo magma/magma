@@ -368,7 +368,7 @@ export function ConfigEdit(props: Props) {
 
   const [gatewayVersion, setGatewayVersion] = useState<VersionType>(
     props.gateway?.status?.platform_info?.packages?.[0].version ||
-      DEFAULT_GATEWAY_CONFIG.status?.platform_info?.packages[0]?.version,
+      DEFAULT_GATEWAY_CONFIG.status?.platform_info?.packages?.[0]?.version,
   );
 
   const onSave = async () => {

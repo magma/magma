@@ -14,7 +14,12 @@
  * @format
  */
 
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {
+  gateway_he_config,
+  lte_gateway,
+  mutable_cellular_gateway_pool,
+  network_dns_config,
+} from '@fbcnms/magma-api';
 
 export const toString = (input: ?number | ?string): string => {
   return input !== null && input !== undefined ? input + '' : '';
@@ -188,7 +193,7 @@ export const DynamicServices = Object.freeze({
   TD_AGENT_BIT: 'td-agent-bit',
 });
 
-export const DEFAULT_GATEWAY_CONFIG = {
+export const DEFAULT_GATEWAY_CONFIG: lte_gateway = {
   apn_resources: {},
   cellular: {
     epc: {
@@ -234,17 +239,39 @@ export const DEFAULT_GATEWAY_CONFIG = {
   },
   tier: 'default',
 };
-export const DEFAULT_DNS_CONFIG = {
+
+export const DEFAULT_DNS_CONFIG: network_dns_config = {
   dhcp_server_enabled: false,
   enable_caching: false,
   local_ttl: 0,
   records: [],
 };
-export const DEFAULT_HE_CONFIG = {
+
+export const DEFAULT_HE_CONFIG: gateway_he_config = {
   enable_encryption: false,
   encryption_key: '',
   enable_header_enrichment: false,
   he_encoding_type: 'BASE64',
   he_encryption_algorithm: 'RC4',
   he_hash_function: 'MD5',
+};
+
+export const DEFAULT_GW_POOL_CONFIG: mutable_cellular_gateway_pool = {
+  config: {mme_group_id: 1},
+  gateway_pool_id: '',
+  gateway_pool_name: '',
+};
+
+export const DEFAULT_GW_PRIMARY_CONFIG = {
+  gateway_id: '',
+  gateway_pool_id: '',
+  mme_code: 1,
+  mme_relative_capacity: 255,
+};
+
+export const DEFAULT_GW_SECONDARY_CONFIG = {
+  gateway_id: '',
+  gateway_pool_id: '',
+  mme_code: 1,
+  mme_relative_capacity: 1,
 };
