@@ -25,6 +25,13 @@ infra:
       Default: "orc8r"
       ConfigApps:
         -tf
+   cluster_version:
+      Description:  Kubernetes version for the EKS cluster
+      Type:  string
+      Required:  false
+      Default: "1.17"
+      ConfigApps:
+        -tf
    eks_map_roles:
       Description:  EKS IAM role mapping. Note that by default, the creator of the cluster will be in the system:master group.
       Type: list(object({rolearn  = string, username = string, groups   = list(string), }))
@@ -112,12 +119,14 @@ infra:
 
 platform:
    deploy_elasticsearch:
+      Default: true
       Description:  Flag to deploy AWS Elasticsearch service as the datasink for aggregated logs.
       Type:  bool
       Required:  false
       ConfigApps:
         -tf
    deploy_elasticsearch_service_linked_role:
+      Default: true
       Description: ' Flag to deploy AWS Elasticsearch service linked role with cluster. If you''ve already created an ES service linked role for another cluster, you should set this to false. '
       Type:  bool
       Required:  false
@@ -130,6 +139,7 @@ platform:
       ConfigApps:
         -tf
    elasticsearch_az_count:
+      Default: 2
       Description:  AZ count for ES.
       Type:  number
       Required:  false
@@ -154,6 +164,7 @@ platform:
       ConfigApps:
         -tf
    elasticsearch_domain_name:
+      Default: "orc8r-es"
       Description:  Name for the ES domain.
       Type:  string
       Required:  false
@@ -166,6 +177,7 @@ platform:
       ConfigApps:
         -tf
    elasticsearch_ebs_enabled:
+      Default: true
       Description:  Use EBS for ES storage.
       Type:  bool
       Required:  false
@@ -178,30 +190,35 @@ platform:
       ConfigApps:
         -tf
    elasticsearch_ebs_volume_size:
+      Default: 32
       Description:  Size in GB to allocate for ES EBS data volumes.
       Type:  number
       Required:  false
       ConfigApps:
         -tf
    elasticsearch_ebs_volume_type:
+      Default: gp2
       Description:  EBS volume type for ES data volumes.
       Type:  string
       Required:  false
       ConfigApps:
         -tf
    elasticsearch_instance_count:
+      Default: 2
       Description:  Number of instances to allocate for ES domain.
       Type:  number
       Required:  false
       ConfigApps:
         -tf
    elasticsearch_instance_type:
+      Default:  "t2.medium.elasticsearch"
       Description:  AWS instance type for ES domain.
       Type:  string
       Required:  false
       ConfigApps:
         -tf
    elasticsearch_version:
+      Default: "7.7"
       Description:  ES version for ES domain.
       Type:  string
       Required:  false
@@ -256,12 +273,14 @@ platform:
       ConfigApps:
         -tf
    orc8r_db_engine_version:
+      Default: "9.6.15"
       Description:  Postgres engine version for Orchestrator DB.
       Type:  string
       Required:  false
       ConfigApps:
         -tf
    orc8r_db_identifier:
+      Default: "orc8rdb"
       Description:  Identifier for the RDS instance for Orchestrator.
       Type:  string
       Required:  false

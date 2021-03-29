@@ -1,0 +1,13 @@
+- name: Get EKS cluster information
+  ansible.builtin.shell: aws eks describe-cluster --name {{ infra_configs.cluster_name | quote }} || /bin/true
+  register: result
+  tags: upgrade_precheck
+
+- name: Check if deployed EKS cluster version is greater than version specified in values
+  assert:
+    that: "{{ infra_configs.cluster_version is version((result.stdout | from_json).cluster.version, '>=') }}"
+    msg:
+      - "deployed version higher than to be configured version"
+      - "Configure the cluster_version to be >= {{(result.stdout | from_json).cluster.version}}"
+      - "For e.g: orcl configure set -c infra -k cluster_version -v {{(result.stdout | from_json).cluster.version}}"
+  tags: upgrade_precheck

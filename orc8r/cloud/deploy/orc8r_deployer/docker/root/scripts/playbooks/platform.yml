@@ -5,3 +5,5 @@
   roles:
     - platform
     - platform/cloudwatch
+    - platform/rds
+    - platform/elastic

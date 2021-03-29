@@ -125,8 +125,8 @@ def install():
     """
     pass
 
-@install.command()
-def precheck():
+@install.command('precheck')
+def install_precheck():
     run_playbook([
         "ansible-playbook",
         "-v",
@@ -159,6 +159,27 @@ def addcerts(self_signed):
             "--skip-tags",
             "self_signed",
             "%s/main.yml" % constants["playbooks"]])
+
+
+@cli.group()
+def upgrade():
+    """
+    Upgrade command enables user to run subcommands in context of Orc8r upgrade.
+    It provides subcommands like
+    - precheck which runs various checks to ensure successful upgrade
+    """
+    pass
+
+@upgrade.command('precheck')
+def upgrade_precheck():
+    run_playbook([
+        "ansible-playbook",
+        "-v",
+        "-e",
+        "@/root/config.yml",
+        "-t",
+        "upgrade_precheck",
+        "%s/main.yml" % constants["playbooks"]])
 
 def run_playbook(args):
     pb_cli = PlaybookCLI(args)

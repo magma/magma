@@ -78,6 +78,7 @@ class ConfigManager(object):
             return
         cfgs[key] = value
 
+        self.configs[component] = cfgs
         self._configure_aws(component, cfgs)
         self._configure_tf(component, cfgs)
         put_json(self._get_config_fn(component), cfgs)
@@ -110,6 +111,7 @@ class ConfigManager(object):
         self._configure_aws(component, cfgs)
         self._configure_tf(component, cfgs)
         put_json(self._get_config_fn(component), cfgs)
+
 
     def _configure_aws(self, component: str, cfgs: dict):
         ''' configures aws cli with configuration '''
