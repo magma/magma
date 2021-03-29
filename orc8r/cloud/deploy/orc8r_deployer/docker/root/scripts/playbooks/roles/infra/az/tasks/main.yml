@@ -2,4 +2,6 @@
   amazon.aws.aws_az_info:
   register: aws_az_info
   failed_when: aws_az_info.availability_zones | length < 3
-  tags: install_precheck
+  tags:
+    - install_precheck
+    - upgrade_precheck

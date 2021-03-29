@@ -1,0 +1,29 @@
+- name: Deployment Playbook
+  hosts: localhost
+  tasks:
+    - name: Gather terraform state facts
+      ansible.builtin.command: terraform state list
+      register: result
+      args:
+        chdir: "{{project_dir}}"
+      tags: 'upgrade_precheck'
+
+    - name: Check if terraform state command errors out
+      assert:
+        that:
+          - result.rc == 0
+        msg: [
+          "Error attempting to run 'terraform state' command",
+          "Terraform state not found",
+          "Check if the deployment directory {{project_dir}} contains terraform files"
+        ]
+      tags: 'upgrade_precheck'
+
+    - name: Check if any resources are present in terraform state
+      assert:
+        that:
+          - result.stdout|length != 0
+        msg: [
+          "No resources found in terraform state"
+        ]
+      tags: 'upgrade_precheck'

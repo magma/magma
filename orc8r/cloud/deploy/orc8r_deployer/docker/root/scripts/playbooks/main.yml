@@ -14,3 +14,8 @@
   import_playbook: service.yml
   tags:
     - service
+
+- name: Deploy
+  import_playbook: deploy.yml
+  tags:
+    - deploy

@@ -23,6 +23,7 @@ import pathlib
 
 from .configure import configure
 from .install import install
+from .upgrade import upgrade
 
 def init():
     constants = None
@@ -50,3 +51,4 @@ def cli(ctx):
 
 cli.add_command(configure)
 cli.add_command(install)
+cli.add_command(upgrade)

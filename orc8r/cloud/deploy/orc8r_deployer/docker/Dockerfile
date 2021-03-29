@@ -61,6 +61,7 @@ RUN pip3 install .
 # in the deployment directory even when container is removed
 ENV AWS_CONFIG_FILE=/root/project/.aws/config
 ENV AWS_SHARED_CREDENTIALS_FILE=/root/project/.aws/credentials
+ENV AWS_DEFAULT_OUTPUT=json
 
 WORKDIR /root/project
 CMD ["/bin/bash"]
