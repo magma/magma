@@ -18,7 +18,7 @@ locals {
 resource "helm_release" "fluentd" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 
-  name       = var.external_dns_deployment_name
+  name       = var.fluentd_deployment_name
   namespace  = kubernetes_namespace.orc8r.metadata[0].name
   repository = local.stable_helm_repo
   chart      = "fluentd"
