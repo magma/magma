@@ -784,6 +784,39 @@ jobs:
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v $MAGMA_ROOT:/magma -i -t magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
       - magma_slack_notify
 
+  mme-assert-fatal:
+    machine:
+      image: ubuntu-2004:202010-01
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+      BRANCH: << pipeline.git.branch >>
+      REVISION: << pipeline.git.revision >>
+    steps:
+      - checkout
+      - run:
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/
+            grep -r AssertFatal c | tee assert_fatal.txt
+            cut -d ":" -f 1 < assert_fatal.txt | sort | uniq -c
+            curl -L -v -G -Ss \
+              --data-urlencode "entry.1826085444=$BRANCH" \
+              --data-urlencode "entry.1819140537=$REVISION" \
+              --data-urlencode "entry.1703118887=$(grep -c oai/common assert_fatal.txt)" \
+              --data-urlencode "entry.162717448=$(grep -c oai/include assert_fatal.txt)" \
+              --data-urlencode "entry.1162634601=$(grep -c oai/lib assert_fatal.txt)" \
+              --data-urlencode "entry.1321289312=$(grep -c tasks/gtpv1-u assert_fatal.txt)" \
+              --data-urlencode "entry.2063685158=$(grep -c tasks/mme_app assert_fatal.txt)" \
+              --data-urlencode "entry.981612534=$(grep -c tasks/nas assert_fatal.txt)" \
+              --data-urlencode "entry.936957591=$(grep -c tasks/s1ap assert_fatal.txt)" \
+              --data-urlencode "entry.119698093=$(grep -c tasks/s6a assert_fatal.txt)" \
+              --data-urlencode "entry.799027049=$(grep -c tasks/sgs assert_fatal.txt)" \
+              --data-urlencode "entry.76989956=$(grep -c tasks/sgw assert_fatal.txt)" \
+              --data-urlencode "entry.1108683451=$(grep -c tasks/sgw_s8 assert_fatal.txt)" \
+              --data-urlencode "entry.1433917326=$(grep -c tasks/sms_orc8r assert_fatal.txt)" \
+              --data-urlencode "entry.1653423754=$(grep -c tasks/udp assert_fatal.txt)" \
+              --data-urlencode "entry.736437375=$(wc -l < assert_fatal.txt)" \
+              https://docs.google.com/forms/d/e/1FAIpQLScIHOECbedG5Zc_tkwIq6LUHJgLRaDkp_0--Rb-vyWm4suhfA/formResponse?usp=pp_url
+
   c-cpp-codecov:
     machine:
       image: ubuntu-2004:202010-01
@@ -1203,6 +1236,7 @@ workflows:
           requires:
             - lte-integ-test
       - c-cpp-codecov
+      - mme-assert-fatal
 
   feg:
     jobs:
