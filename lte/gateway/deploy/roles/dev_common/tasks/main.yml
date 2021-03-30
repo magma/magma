@@ -183,8 +183,16 @@
       - iperf3
       - libsystemd-dev
       - pkg-config
-      - libtins-dev
-      - libmnl-dev
+  retries: 5
+  when: preburn
+
+- name: Install conntrack libs to avoid rebuilding packer
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+    - libtins-dev
+    - libmnl-dev
   retries: 5
 
 ###############################################
