@@ -218,6 +218,12 @@ def _run_remote_lte_integ_test(repo: str, magma_root: str):
         # Copy to the directory CircleCI expects
         local('sudo mkdir -p /tmp/test-results/')
         local('sudo mv test-results/* /tmp/test-results/')
+        local('if [ "$(ls -A test-results)" ]; then \n'
+              '   echo "test-results directory NOT empty. Moving files..." \n'
+              '   sudo mv test-results/* /tmp/test-results \n'
+              'else \n'
+              '   echo "test-results directory is empty. Nothing to move." \n'
+              'fi')
 
         # On failure, transfer logs from all 3 VMs and copy to the log
         # directory. This will get stored as an artifact in the CircleCI
