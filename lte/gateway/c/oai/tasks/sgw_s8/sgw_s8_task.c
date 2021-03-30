@@ -76,6 +76,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           sgw_state, &received_message_p->ittiMsg.s8_create_session_rsp,
           imsi64);
     } break;
+    case S11_MODIFY_BEARER_REQUEST: {
+      sgw_s8_handle_modify_bearer_request(
+          sgw_state, &received_message_p->ittiMsg.s11_modify_bearer_request,
+          imsi64);
+    } break;
 
     default: {
       OAILOG_DEBUG(

@@ -49,14 +49,16 @@ static void get_fteid_from_proto_msg(
   OAILOG_FUNC_IN(LOG_SGW_S8);
   pgw_fteid->teid = proto_fteid.teid();
   if (proto_fteid.ipv4_address().c_str()) {
-    struct in_addr addr = {0};
-    memcpy(&addr, proto_fteid.ipv4_address().c_str(), sizeof(in_addr));
-    pgw_fteid->ipv4_address = addr;
+    pgw_fteid->ipv4 = true;
+    inet_pton(
+        AF_INET, proto_fteid.ipv4_address().c_str(),
+        &(pgw_fteid->ipv4_address));
   }
   if (proto_fteid.ipv6_address().c_str()) {
-    struct in6_addr ip6_addr;
-    memcpy(&ip6_addr, proto_fteid.ipv6_address().c_str(), sizeof(in6_addr));
-    pgw_fteid->ipv6_address = ip6_addr;
+    pgw_fteid->ipv6 = true;
+    inet_pton(
+        AF_INET6, proto_fteid.ipv6_address().c_str(),
+        &(pgw_fteid->ipv6_address));
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
@@ -69,22 +71,22 @@ static void get_paa_from_proto_msg(
     case magma::feg::PDNType::IPV4: {
       paa->pdn_type = IPv4;
       auto ip       = proto_paa.ipv4_address();
-      memcpy(&paa->ipv4_address, ip.c_str(), sizeof(ip.c_str()));
+      inet_pton(AF_INET, ip.c_str(), &(paa->ipv4_address));
       break;
     }
     case magma::feg::PDNType::IPV6: {
       paa->pdn_type = IPv6;
       auto ip       = proto_paa.ipv6_address();
-      memcpy(&paa->ipv6_address, ip.c_str(), sizeof(ip.c_str()));
+      inet_pton(AF_INET6, ip.c_str(), &(paa->ipv6_address));
       paa->ipv6_prefix_length = IPV6_PREFIX_LEN;
       break;
     }
     case magma::feg::PDNType::IPV4V6: {
       paa->pdn_type = IPv4_AND_v6;
       auto ip       = proto_paa.ipv4_address();
-      memcpy(&paa->ipv4_address, ip.c_str(), sizeof(ip.c_str()));
+      inet_pton(AF_INET, ip.c_str(), &(paa->ipv4_address));
       auto ipv6 = proto_paa.ipv6_address();
-      memcpy(&paa->ipv6_address, ipv6.c_str(), sizeof(ipv6.c_str()));
+      inet_pton(AF_INET6, ipv6.c_str(), &(paa->ipv6_address));
       paa->ipv6_prefix_length = IPV6_PREFIX_LEN;
       break;
     }
@@ -371,6 +373,10 @@ static void convert_proto_msg_to_itti_csr(
   get_qos_from_proto_msg(response.bearer_context().qos(), &s8_bc->qos);
   get_fteid_from_proto_msg(
       response.bearer_context().user_plane_fteid(), &s8_bc->pgw_s8_up);
-  s5_response->cause = response.mutable_gtp_error()->cause();
+  if (response.has_gtp_error()) {
+    s5_response->cause = response.mutable_gtp_error()->cause();
+  } else {
+    s5_response->cause = REQUEST_ACCEPTED;
+  }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
