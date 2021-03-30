@@ -193,6 +193,7 @@
     pkg:
     - libtins-dev
     - libmnl-dev
+    - libpcap-dev
   retries: 5
 
 ###############################################
