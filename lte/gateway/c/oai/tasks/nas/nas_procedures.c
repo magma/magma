@@ -585,8 +585,10 @@ nas_emm_attach_proc_t* nas_new_attach_procedure(
             ->mme_ue_s1ap_id);
     return NULL;
   }
-  emm_context->emm_procedures->emm_specific_proc =
-      calloc(1, sizeof(nas_emm_attach_proc_t)); // NOLINT(clang-analyzer-unix.MallocSizeof)
+  emm_context->emm_procedures->emm_specific_proc = calloc(
+      1,
+      sizeof(
+          nas_emm_attach_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.type =
@@ -621,8 +623,9 @@ nas_emm_tau_proc_t* nas_new_tau_procedure(
             ->mme_ue_s1ap_id);
     return NULL;
   }
-  emm_context->emm_procedures->emm_specific_proc =
-      calloc(1, sizeof(nas_emm_tau_proc_t)); // NOLINT(clang-analyzer-unix.MallocSizeof)
+  emm_context->emm_procedures->emm_specific_proc = calloc(
+      1,
+      sizeof(nas_emm_tau_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.type =
@@ -655,8 +658,8 @@ nas_sr_proc_t* nas_new_service_request_procedure(
             ->mme_ue_s1ap_id);
     return NULL;
   }
-  emm_context->emm_procedures->emm_con_mngt_proc =
-      calloc(1, sizeof(nas_sr_proc_t)); // NOLINT(clang-analyzer-unix.MallocSizeof)
+  emm_context->emm_procedures->emm_con_mngt_proc = calloc(
+      1, sizeof(nas_sr_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
   emm_context->emm_procedures->emm_con_mngt_proc->emm_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   emm_context->emm_procedures->emm_con_mngt_proc->emm_proc.base_proc.type =

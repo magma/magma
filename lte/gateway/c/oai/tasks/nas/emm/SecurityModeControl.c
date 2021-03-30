@@ -281,8 +281,7 @@ int emm_proc_security_mode_control(
     smc_proc->emm_com_proc.emm_proc.base_proc.abort         = security_abort;
     smc_proc->emm_com_proc.emm_proc.base_proc.fail_in  = NULL;  // only response
     smc_proc->emm_com_proc.emm_proc.base_proc.fail_out = NULL;
-    smc_proc->emm_com_proc.emm_proc.base_proc.time_out =
-        security_t3460_handler;
+    smc_proc->emm_com_proc.emm_proc.base_proc.time_out = security_t3460_handler;
 
     /*
      * Set the UE identifier
@@ -584,10 +583,10 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
  */
 
 void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
-  smc_proc->emm_com_proc.emm_proc.not_delivered    = security_ll_failure;
-  smc_proc->emm_com_proc.emm_proc.not_delivered_ho = security_non_delivered_ho;
-  smc_proc->emm_com_proc.emm_proc.base_proc.abort  = security_abort;
-  smc_proc->emm_com_proc.emm_proc.base_proc.fail_in  = NULL;
+  smc_proc->emm_com_proc.emm_proc.not_delivered     = security_ll_failure;
+  smc_proc->emm_com_proc.emm_proc.not_delivered_ho  = security_non_delivered_ho;
+  smc_proc->emm_com_proc.emm_proc.base_proc.abort   = security_abort;
+  smc_proc->emm_com_proc.emm_proc.base_proc.fail_in = NULL;
   smc_proc->emm_com_proc.emm_proc.base_proc.fail_out = NULL;
   smc_proc->emm_com_proc.emm_proc.base_proc.time_out = security_t3460_handler;
 }

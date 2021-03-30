@@ -109,7 +109,7 @@
 
 /* String representation of the EPS attach type */
 static const char* emm_attach_type_str[] = {"EPS", "IMSI", "EMERGENCY",
-                                             "RESERVED"};
+                                            "RESERVED"};
 
 /*
    --------------------------------------------------------------------------

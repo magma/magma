@@ -599,8 +599,7 @@ static int build_csfb_parameters_combined_tau(
      @returns status of operation (RETURNok, RETURNerror)
 */
 //------------------------------------------------------------------------------
-static int emm_tracking_area_update_accept(
-    nas_emm_tau_proc_t* const tau_proc) {
+static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc                         = RETURNerror;
   emm_sap_t emm_sap              = {0};

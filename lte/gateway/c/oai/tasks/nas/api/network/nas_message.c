@@ -499,8 +499,7 @@ int nas_message_decode(
     /*
      * Decode plain NAS message
      */
-    bytes =
-        nas_message_plain_decode(buffer, &msg->header, &msg->plain, length);
+    bytes = nas_message_plain_decode(buffer, &msg->header, &msg->plain, length);
   }
 
   if (bytes < 0) {
@@ -631,8 +630,7 @@ int nas_message_encode(
     /*
      * Encode plain NAS message
      */
-    bytes =
-        nas_message_plain_encode(buffer, &msg->header, &msg->plain, length);
+    bytes = nas_message_plain_encode(buffer, &msg->header, &msg->plain, length);
   }
 
   if (bytes < 0) {

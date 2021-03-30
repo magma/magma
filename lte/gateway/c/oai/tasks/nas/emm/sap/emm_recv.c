@@ -66,8 +66,7 @@
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
-static int emm_initiate_default_bearer_re_establishment(
-    emm_context_t* emm_ctx);
+static int emm_initiate_default_bearer_re_establishment(emm_context_t* emm_ctx);
 /*
    --------------------------------------------------------------------------
    Functions executed by both the UE and the MME upon receiving EMM messages
