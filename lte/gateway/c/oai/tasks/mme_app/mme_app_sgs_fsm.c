@@ -51,7 +51,7 @@
 */
 
 /* String representation of SGS events */
-static const char* _sgs_fsm_event_str[] = {
+static const char* sgs_fsm_event_str[] = {
     "_SGS_LOCATION_UPDATE_ACCEPT", "_SGS_LOCATION_UPDATE_REJECT",
     "_SGS_PAGING_REQUEST",         "_SGS_SERVICE_ABORT_REQUEST",
     "_SGS_EPS_DETACH_IND",         "_SGS_IMSI_DETACH_IND",
@@ -59,7 +59,7 @@ static const char* _sgs_fsm_event_str[] = {
 };
 
 /* String representation of SGS state */
-static const char* _sgs_fsm_state_str[SGS_STATE_MAX] = {
+static const char* sgs_fsm_state_str[SGS_STATE_MAX] = {
     "_SGS_INVALID",
     "_SGS_NULL",
     "_SGS_LA-UPDATE-REQUESTED",
@@ -80,7 +80,7 @@ int sgs_la_update_requested_handler(const sgs_fsm_t*);
 int sgs_associated_handler(const sgs_fsm_t*);
 
 /* SGS state machine handlers */
-static const sgs_fsm_handler_t _sgs_fsm_handlers[SGS_STATE_MAX] = {
+static const sgs_fsm_handler_t sgs_fsm_handlers[SGS_STATE_MAX] = {
     NULL,
     sgs_null_handler,
     sgs_la_update_requested_handler,
@@ -135,17 +135,17 @@ int sgs_fsm_process(const sgs_fsm_t* sgs_evt) {
     state = sgs_fsm_get_status(sgs_evt->ue_id, sgs_ctx);
     OAILOG_INFO(
         LOG_MME_APP, "SGS-FSM   - Received sgs-event %s (%d) in state %s\n",
-        _sgs_fsm_event_str[primitive], primitive, _sgs_fsm_state_str[state]);
+        sgs_fsm_event_str[primitive], primitive, sgs_fsm_state_str[state]);
     /*
      * Execute the SGS state machine
      */
-    rc = (_sgs_fsm_handlers[state])(sgs_evt);
+    rc = (sgs_fsm_handlers[state])(sgs_evt);
   } else {
     OAILOG_WARNING(
         LOG_MME_APP,
         "SGS-FSM   - Received event %s (%d) but no SGS context context found "
         "\n",
-        _sgs_fsm_event_str[primitive], primitive);
+        sgs_fsm_event_str[primitive], primitive);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -183,8 +183,8 @@ int sgs_fsm_set_status(
       OAILOG_INFO(
           LOG_MME_APP,
           "UE " MME_UE_S1AP_ID_FMT " SGS-FSM   - State changed: %s ===> %s\n",
-          ue_id, _sgs_fsm_state_str[sgs_ctx->sgs_state],
-          _sgs_fsm_state_str[state]);
+          ue_id, sgs_fsm_state_str[sgs_ctx->sgs_state],
+          sgs_fsm_state_str[state]);
       sgs_ctx->sgs_state = state;
     }
 

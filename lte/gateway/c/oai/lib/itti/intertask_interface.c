@@ -28,7 +28,7 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#define _GNU_SOURCE
+#define GNU_SOURCE
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>

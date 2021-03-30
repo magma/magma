@@ -165,7 +165,7 @@ int mme_app_send_s6a_update_location_req(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-int _handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
+int handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -225,7 +225,7 @@ int mme_app_handle_s6a_update_location_ans(
           "ULR/ULA procedure returned non success "
           "(ULA.result.choice.base=%d)\n",
           ula_pP->result.choice.base);
-      if (_handle_ula_failure(ue_mm_context) != RETURNok) {
+      if (handle_ula_failure(ue_mm_context) != RETURNok) {
         OAILOG_ERROR(
             LOG_MME_APP,
             "Failed to handle Un-successful ULA message for ue_id (%u)\n",
@@ -244,7 +244,7 @@ int mme_app_handle_s6a_update_location_ans(
         LOG_MME_APP,
         "ULR/ULA procedure returned non success (ULA.result.present=%d)\n",
         ula_pP->result.present);
-    if (_handle_ula_failure(ue_mm_context) == RETURNok) {
+    if (handle_ula_failure(ue_mm_context) == RETURNok) {
       OAILOG_DEBUG(
           LOG_MME_APP, "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
           ue_mm_context->mme_ue_s1ap_id);

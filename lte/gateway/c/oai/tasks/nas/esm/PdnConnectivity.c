@@ -60,14 +60,14 @@
 /*
    PDN connection handlers
 */
-static pdn_cid_t _pdn_connectivity_create(
+static pdn_cid_t pdn_connectivity_create(
     emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier, const_bstring const apn,
     pdn_type_t pdn_type, const_bstring const pdn_addr,
     protocol_configuration_options_t* const pco, const bool is_emergency,
     esm_cause_t* esm_cause);
 
-proc_tid_t _pdn_connectivity_delete(
+proc_tid_t pdn_connectivity_delete(
     emm_context_t* emm_context, pdn_cid_t pdn_cid);
 
 /****************************************************************************/
@@ -161,7 +161,7 @@ int esm_proc_pdn_connectivity_request(
   /*
    * Create new PDN connection
    */
-  rc = _pdn_connectivity_create(
+  rc = pdn_connectivity_create(
       emm_context, pti, pdn_cid, context_identifier, apn, pdn_type, pdn_addr,
       pco, is_emergency, esm_cause);
 
@@ -276,7 +276,7 @@ int esm_proc_pdn_connectivity_failure(
   /*
    * Delete the PDN connection entry
    */
-  pti = _pdn_connectivity_delete(emm_context, pdn_cid);
+  pti = pdn_connectivity_delete(emm_context, pdn_cid);
 
   if (pti != ESM_PT_UNASSIGNED) {
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
@@ -316,7 +316,7 @@ int esm_proc_pdn_connectivity_failure(
  **                  Others:    _esm_data                                  **
  **                                                                        **
  ***************************************************************************/
-static int _pdn_connectivity_create(
+static int pdn_connectivity_create(
     emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier, const_bstring const apn,
     pdn_type_t pdn_type, const_bstring const pdn_addr,
@@ -498,7 +498,7 @@ static int _pdn_connectivity_create(
  **                  Others:    _esm_data                                  **
  **                                                                        **
  ***************************************************************************/
-proc_tid_t _pdn_connectivity_delete(
+proc_tid_t pdn_connectivity_delete(
     emm_context_t* emm_context, pdn_cid_t pdn_cid) {
   proc_tid_t pti = ESM_PT_UNASSIGNED;
 
