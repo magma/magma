@@ -33,7 +33,8 @@ using magma::lte::oai::Ngap_UeDescription;
 
 namespace magma5g {
 
-NgapStateManager::NgapStateManager() : max_gnbs_(0), max_ues_(0) {}
+NgapStateManager::NgapStateManager()
+    : max_gnbs_(0), max_ues_(0), ngap_imsi_map_hash_(0) {}
 
 NgapStateManager::~NgapStateManager() {
   free_state();
@@ -106,7 +107,6 @@ void NgapStateManager::free_state() {
       assoc_id = (sctp_assoc_id_t) keys->keys[i];
       ht_rc    = hashtable_ts_get(
           &state_cache_p->gnbs, (hash_key_t) assoc_id, (void**) &gnb);
-      AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
       AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
@@ -182,7 +182,13 @@ void NgapStateManager::put_ngap_imsi_map() {
   }
   oai::NgapImsiMap imsi_proto = oai::NgapImsiMap();
   NgapStateConverter::ngap_imsi_map_to_proto(ngap_imsi_map_, &imsi_proto);
-  redis_client->write_proto(NGAP_IMSI_MAP_TABLE_NAME, imsi_proto);
+  std::string proto_msg;
+  redis_client->serialize(imsi_proto, proto_msg);
+  std::size_t new_hash = std::hash<std::string>{}(proto_msg);
+  if (new_hash != this->ngap_imsi_map_hash_) {
+    redis_client->write_proto_str(NGAP_IMSI_MAP_TABLE_NAME, proto_msg, 0);
+    this->ngap_imsi_map_hash_ = new_hash;
+  }
 }
 
 }  // namespace magma5g

@@ -84,15 +84,10 @@ std::string RedisClient::read(const std::string& key) {
   return db_read_reply.as_string();
 }
 
-int RedisClient::write_proto(
-    const std::string& key, const Message& proto_msg, uint64_t version) {
-  std::string inner_val;
-  if (serialize(proto_msg, inner_val) != RETURNok) {
-    return RETURNerror;
-  }
-
+int RedisClient::write_proto_str(
+    const std::string& key, const std::string& proto_msg, uint64_t version) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
-  wrapper_proto.set_serialized_msg(inner_val);
+  wrapper_proto.set_serialized_msg(proto_msg);
   wrapper_proto.set_version(version);
 
   std::string str_value;

@@ -104,12 +104,3 @@ def get_json_deserializer() -> Callable[[str], T]:
         return msg
 
     return _deserialize_json
-
-
-def get_proto_version(serialized_rule: str) -> int:
-    """
-    Returns current version on the RedisState proto
-    """
-    proto_wrapper = RedisState()
-    proto_wrapper.ParseFromString(serialized_rule)
-    return proto_wrapper.version
