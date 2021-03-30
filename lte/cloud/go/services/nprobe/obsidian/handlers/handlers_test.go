@@ -41,7 +41,7 @@ func TestCreateNetworkProbeTask(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_tasks"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks"
 	handlers := handlers.GetHandlers()
 	createNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
@@ -84,7 +84,6 @@ func TestCreateNetworkProbeTask(t *testing.T) {
 	assert.Equal(t, expected_task.TargetType, actual_task.TargetType)
 	assert.Equal(t, expected_task.DeliveryType, actual_task.DeliveryType)
 	assert.Equal(t, expected_task.CorrelationID, actual_task.CorrelationID)
-	assert.Equal(t, expected_task.Timestamp.String(), actual_task.Timestamp.String())
 }
 
 func TestListNetworkProbeTasks(t *testing.T) {
@@ -93,7 +92,7 @@ func TestListNetworkProbeTasks(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_tasks"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks"
 	handlers := handlers.GetHandlers()
 	listNetworkProbeTasks := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
@@ -173,7 +172,7 @@ func TestGetNetworkProbeTask(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_tasks/:task_id"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks/:task_id"
 	handlers := handlers.GetHandlers()
 	getNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
@@ -230,7 +229,7 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_tasks/:task_id"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks/:task_id"
 	handlers := handlers.GetHandlers()
 	updateNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
@@ -252,8 +251,8 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 		Payload:        payload,
 		ParamNames:     []string{"network_id", "task_id"},
 		ParamValues:    []string{"n1", "IMSI1234"},
-		ExpectedStatus: 404,
-		ExpectedError:  "Not Found",
+		ExpectedStatus: 500,
+		ExpectedError:  "failed to load entity being updated: expected to load 1 ent for update, got 0",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -304,7 +303,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_tasks/:task_id"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks/:task_id"
 	handlers := handlers.GetHandlers()
 	deleteNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
@@ -346,7 +345,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadAllEntitiesOfType("n1", lte.NetworkProbeTaskEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, _, err := configurator.LoadAllEntitiesOfType("n1", lte.NetworkProbeTaskEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{
@@ -371,7 +370,7 @@ func TestCreateNetworkProbeDestination(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_destinations"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations"
 	handlers := handlers.GetHandlers()
 	createNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
@@ -412,7 +411,7 @@ func TestListNetworkProbeDestinations(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_destinations"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations"
 	handlers := handlers.GetHandlers()
 	listNetworkProbeDestinations := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
@@ -484,7 +483,7 @@ func TestGetNetworkProbeDestination(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_destinations/:destination_id"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations/:destination_id"
 	handlers := handlers.GetHandlers()
 	getNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
@@ -537,7 +536,7 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_destinations/:destination_id"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations/:destination_id"
 	handlers := handlers.GetHandlers()
 	updateNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
@@ -557,8 +556,8 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 		Payload:        payload,
 		ParamNames:     []string{"network_id", "destination_id"},
 		ParamValues:    []string{"n1", "1111-2222-3333"},
-		ExpectedStatus: 404,
-		ExpectedError:  "Not Found",
+		ExpectedStatus: 500,
+		ExpectedError:  "failed to load entity being updated: expected to load 1 ent for update, got 0",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -607,7 +606,7 @@ func TestDeleteNetworkProbeDestination(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/network_probe_destinations/:destination_id"
+	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations/:destination_id"
 	handlers := handlers.GetHandlers()
 	deleteNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
@@ -645,7 +644,7 @@ func TestDeleteNetworkProbeDestination(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadAllEntitiesOfType("n1", lte.NetworkProbeDestinationEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, _, err := configurator.LoadAllEntitiesOfType("n1", lte.NetworkProbeDestinationEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{

@@ -142,8 +142,6 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policydb_models.NetworkSubscriberConfig{}, "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policydb_models.RuleNames), "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policydb_models.BaseNames), "", serdes.Network)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policydb_models.RuleNames), "", serdes.Network)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policydb_models.BaseNames), "", serdes.Network)...)
 
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName), serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription), serdes.Entity)...)
@@ -891,12 +889,4 @@ func makeErr(err error) *echo.HTTPError {
 		return echo.ErrNotFound
 	}
 	return obsidian.HttpError(err, http.StatusInternalServerError)
-}
-
-func getParamValues(c echo.Context, paramNames []string) ([]string, *echo.HTTPError) {
-	vals, err := obsidian.GetParamValues(c, paramNames...)
-	if err != nil {
-		return []string{}, err
-	}
-	return vals, nil
 }

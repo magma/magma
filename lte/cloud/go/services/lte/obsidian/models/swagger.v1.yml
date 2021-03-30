@@ -1539,7 +1539,6 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-
 parameters:
   enodeb_serial:
     in: path
@@ -2532,6 +2531,7 @@ definitions:
         example: 10
         default: 10
 
+
   tac_list:
     type: array
     items:
@@ -2583,89 +2583,3 @@ definitions:
         pattern: '^(\d{6})$'
         example: '176148'
         x-nullable: false
-
-  network_probe_task:
-    description: Network Probe Task
-    type: object
-    required:
-      - task_id
-      - task_details
-    properties:
-      task_id:
-        $ref: "#/definitions/network_probe_task_id"
-      task_details:
-        $ref: '#/definitions/network_probe_task_details'
-
-  network_probe_task_id:
-    type: string
-    x-nullable: false
-    example: 'imsi1023001'
-
-  network_probe_task_details:
-    type: object
-    required:
-      - target_id
-      - target_type
-      - delivery_type
-    properties:
-      target_id:
-        type: string
-        x-nullable: false
-      target_type:
-        type: string
-        x-nullable: false
-        enum:
-          - 'imsi'
-          - 'imei'
-          - 'msisdn'
-        example: 'imsi'
-      delivery_type:
-        type: string
-        x-nullable: false
-        enum:
-          - 'all'
-          - 'events_only'
-        example: 'events_only'
-      correlation_id:
-        type: string
-        x-nullable: false
-        example: '06AAADFD0A40400D'
-      timestamp:
-        type: string
-        format: date-time
-        x-nullable: false
-
-  network_probe_destination:
-    description: Network Probe Destination
-    type: object
-    required:
-      - destination_id
-      - destination_details
-    properties:
-      destination_id:
-        $ref: '#/definitions/network_probe_destination_id'
-      destination_details:
-        $ref: '#/definitions/network_probe_destination_details'
-
-  network_probe_destination_id:
-    type: string
-    x-nullable: false
-    example: 'xxxx-yyyy-zzzz'
-
-  network_probe_destination_details:
-    type: object
-    required:
-      - delivery_type
-      - delivery_address
-    properties:
-      delivery_type:
-        type: string
-        x-nullable: false
-        enum:
-          - 'all'
-          - 'events_only'
-        example: 'events_only'
-      delivery_address:
-        type: string
-        x-nullable: false
-        example: '127.0.0.1:4040'

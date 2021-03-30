@@ -3203,7 +3203,7 @@ paths:
       summary: Update the name of an LTE network
       tags:
       - LTE Networks
-  /lte/{network_id}/network_probe_destinations:
+  /lte/{network_id}/network_probe/destinations:
     get:
       parameters:
       - $ref: '#/parameters/network_id'
@@ -3233,7 +3233,7 @@ paths:
       summary: Add a new NetworkProbeDestination to the network
       tags:
       - Network Probes
-  /lte/{network_id}/network_probe_destinations/{destination_id}:
+  /lte/{network_id}/network_probe/destinations/{destination_id}:
     delete:
       parameters:
       - $ref: '#/parameters/network_id'
@@ -3278,7 +3278,7 @@ paths:
       summary: Update an existing NetworkProbe Destination in the network
       tags:
       - Network Probes
-  /lte/{network_id}/network_probe_tasks:
+  /lte/{network_id}/network_probe/tasks:
     get:
       parameters:
       - $ref: '#/parameters/network_id'
@@ -3308,7 +3308,7 @@ paths:
       summary: Add a new NetworkProbeTask to the network
       tags:
       - Network Probes
-  /lte/{network_id}/network_probe_tasks/{task_id}:
+  /lte/{network_id}/network_probe/tasks/{task_id}:
     delete:
       parameters:
       - $ref: '#/parameters/network_id'

@@ -30,7 +30,7 @@ info:
 basePath: /magma/v1
 
 paths:
-  /lte/{network_id}/network_probe_tasks:
+  /lte/{network_id}/network_probe/tasks:
     get:
       summary: List NetworkProbeTask in the network
       tags:
@@ -61,7 +61,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /lte/{network_id}/network_probe_tasks/{task_id}:
+  /lte/{network_id}/network_probe/tasks/{task_id}:
     get:
       summary: Retrieve the NetworkProbeTask info
       tags:
@@ -107,7 +107,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /lte/{network_id}/network_probe_destinations:
+  /lte/{network_id}/network_probe/destinations:
     get:
       summary: List NetworkProbe Destinations in the network
       tags:
@@ -138,7 +138,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /lte/{network_id}/network_probe_destinations/{destination_id}:
+  /lte/{network_id}/network_probe/destinations/{destination_id}:
     get:
       summary: Retrieve a NetworkProbe Destination
       tags:

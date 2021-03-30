@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package lte provides the LTE service mesh service.
+// Package nprobe provides the network probe service.
 package nprobe
 
 const ServiceName = "nprobe"

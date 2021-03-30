@@ -14,13 +14,30 @@
 package models
 
 import (
+	"magma/lte/cloud/go/lte"
 	"magma/orc8r/cloud/go/services/configurator"
 )
+
+func (m *NetworkProbeTask) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:      lte.NetworkProbeTaskEntityType,
+		Key:       string(m.TaskID),
+		NewConfig: m.TaskDetails,
+	}
+}
 
 func (m *NetworkProbeTask) FromBackendModels(ent configurator.NetworkEntity) *NetworkProbeTask {
 	m.TaskID = NetworkProbeTaskID(ent.Key)
 	m.TaskDetails = ent.Config.(*NetworkProbeTaskDetails)
 	return m
+}
+
+func (m *NetworkProbeDestination) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:      lte.NetworkProbeDestinationEntityType,
+		Key:       string(m.DestinationID),
+		NewConfig: m.DestinationDetails,
+	}
 }
 
 func (m *NetworkProbeDestination) FromBackendModels(ent configurator.NetworkEntity) *NetworkProbeDestination {

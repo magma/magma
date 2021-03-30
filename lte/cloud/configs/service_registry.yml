@@ -95,5 +95,5 @@ services:
       orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
-        /magma/v1/lte/:network_id/network_probe_tasks,
-        /magma/v1/lte/:network_id/network_probe_destinations,
+        /magma/v1/lte/:network_id/network_probe/tasks,
+        /magma/v1/lte/:network_id/network_probe/destinations,
