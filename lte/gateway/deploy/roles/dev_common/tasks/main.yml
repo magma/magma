@@ -186,7 +186,6 @@
       - libtins-dev
       - libmnl-dev
   retries: 5
-  when: preburn
 
 ###############################################
 # Download and build swagger-codegen
