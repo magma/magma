@@ -41,70 +41,79 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
            pdu_session_estab_accept->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(
                    &pdu_session_estab_accept->extended_protocol_discriminator,
-                   0, buffer + encoded, len - encoded)) < 0)
+                   0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
+  }
   if ((encoded_result = pdu_session_estab_accept->pdu_session_identity
                             .EncodePDUSessionIdentityMsg(
                                 &pdu_session_estab_accept->pdu_session_identity,
-                                0, buffer + encoded, len - encoded)) < 0)
+                                0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
+  }
   if ((encoded_result = pdu_session_estab_accept->pti.EncodePTIMsg(
            &pdu_session_estab_accept->pti, 0, buffer + encoded,
-           len - encoded)) < 0)
+           len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
+  }
   if ((encoded_result =
            pdu_session_estab_accept->message_type.EncodeMessageTypeMsg(
                &pdu_session_estab_accept->message_type, 0, buffer + encoded,
-               len - encoded)) < 0)
+               len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
+  }
   if ((encoded_result = pdu_session_estab_accept->ssc_mode.EncodeSSCModeMsg(
            &pdu_session_estab_accept->ssc_mode, 0, buffer + encoded,
-           len - encoded)) < 0)
+           len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
+  }
   if ((encoded_result =
            pdu_session_estab_accept->pdu_session_type.EncodePDUSessionTypeMsg(
                &pdu_session_estab_accept->pdu_session_type, 0, buffer + encoded,
-               len - encoded)) < 0)
+               len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
+  }
   if ((encoded_result = pdu_session_estab_accept->qos_rules.EncodeQOSRulesMsg(
            &pdu_session_estab_accept->qos_rules, 0, buffer + encoded,
-           len - encoded)) < 0)
+           len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
+  }
   if ((encoded_result =
            pdu_session_estab_accept->session_ambr.EncodeSessionAMBRMsg(
                &pdu_session_estab_accept->session_ambr, 0, buffer + encoded,
-               len - encoded)) < 0)
+               len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
+  }
   if ((encoded_result =
            pdu_session_estab_accept->pdu_address.EncodePDUAddressMsg(
                &pdu_session_estab_accept->pdu_address, PDU_ADDRESS,
-               buffer + encoded, len - encoded)) < 0)
+               buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
+  }
   if ((encoded_result = pdu_session_estab_accept->dnn.EncodeDNNMsg(
            &pdu_session_estab_accept->dnn, DNN, buffer + encoded,
-           len - encoded)) < 0)
+           len - encoded)) < 0) {
     return encoded_result;
-  else
+  } else {
     encoded += encoded_result;
-
+  }
   return encoded;
 }
 }  // namespace magma5g
