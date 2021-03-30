@@ -199,8 +199,7 @@ int esm_proc_default_eps_bearer_context_request(
     /* Send ACTIVATE DEFAULT EPS BEARER CONTEXT REQUEST
      * in ERAB SETUP REQ mesage
      */
-    rc =
-        default_eps_bearer_activate_in_bearer_setup_req(emm_context, ebi, msg);
+    rc = default_eps_bearer_activate_in_bearer_setup_req(emm_context, ebi, msg);
   } else {
     OAILOG_INFO(
         LOG_NAS_ESM,

@@ -54,19 +54,19 @@
 
 /* String representation of the detach type */
 static const char* emm_detach_type_str[] = {"EPS",
-                                             "IMSI",
-                                             "EPS/IMSI",
-                                             "RE-ATTACH REQUIRED",
-                                             "RE-ATTACH NOT REQUIRED",
-                                             "RESERVED"};
+                                            "IMSI",
+                                            "EPS/IMSI",
+                                            "RE-ATTACH REQUIRED",
+                                            "RE-ATTACH NOT REQUIRED",
+                                            "RESERVED"};
 
 /* String representation of the sgs detach type */
 static const char* emm_sgs_detach_type_str[] = {"EPS",
-                                                 "UE-INITIATED-EXPLICIT-NONEPS",
-                                                 "COMBINED",
-                                                 "NW-INITIATED-EPS",
-                                                 "NW-INITIATED-IMPLICIT-NONEPS",
-                                                 "RESERVED"};
+                                                "UE-INITIATED-EXPLICIT-NONEPS",
+                                                "COMBINED",
+                                                "NW-INITIATED-EPS",
+                                                "NW-INITIATED-IMPLICIT-NONEPS",
+                                                "RESERVED"};
 /****************************************************************************
  **                                                                        **
  ** Name:    detach_t3422_handler()                                       **

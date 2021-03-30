@@ -115,8 +115,7 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t* const air_p) {
       air_p,
       [imsiStr = std::string(air_p->imsi), imsi_len](
           grpc::Status status, feg::AuthenticationInformationAnswer response) {
-        s6a_handle_authentication_info_ans(
-            imsiStr, imsi_len, status, response);
+        s6a_handle_authentication_info_ans(imsiStr, imsi_len, status, response);
       });
   return true;
 }

@@ -40,9 +40,9 @@
 
 #include <stdint.h>
 
-// Nothing needed in message for now, but an empty struct is a c-c++ compatibility
-// risk (sizeof zero bytes in c, sizeof one byte in c++). Therefore we allocate an
-// unused uint8_t to ensure sizes are always 1 byte.
+// Nothing needed in message for now, but an empty struct is a c-c++
+// compatibility risk (sizeof zero bytes in c, sizeof one byte in c++).
+// Therefore we allocate an unused uint8_t to ensure sizes are always 1 byte.
 typedef struct IttiMsgEmpty_s {
   uint8_t unused;
 } IttiMsgEmpty;

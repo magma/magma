@@ -280,8 +280,7 @@ int emm_proc_authentication(
     auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif = failure;
     auth_proc->emm_com_proc.emm_proc.base_proc.abort   = authentication_abort;
     auth_proc->emm_com_proc.emm_proc.base_proc.fail_in = NULL;  // only response
-    auth_proc->emm_com_proc.emm_proc.base_proc.fail_out =
-        authentication_reject;
+    auth_proc->emm_com_proc.emm_proc.base_proc.fail_out = authentication_reject;
     auth_proc->emm_com_proc.emm_proc.base_proc.time_out = NULL;
 
     bool run_auth_info_proc = false;

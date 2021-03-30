@@ -1482,8 +1482,8 @@ error_event:
   if (!(g_oai_log.is_async)) {
     LOG_FREE_ITEM(sync_context_p);
   } else if (async_context_p == NULL) {
-      return;
-  } else {  
+    return;
+  } else {
     LOG_FREE_ITEM_ASYNC(*async_context_p);
   }
 }

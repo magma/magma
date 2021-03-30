@@ -1124,8 +1124,11 @@ void NasStateConverter::proto_to_emm_specific_proc(
   switch (proto_emm_proc_with_type.MessageTypes_case()) {
     case oai::NasEmmProcWithType::kAttachProc: {
       OAILOG_DEBUG(LOG_MME_APP, "Reading attach proc from proto");
-      state_emm_procedures->emm_specific_proc =
-          (nas_emm_specific_proc_t*) calloc(1, sizeof(nas_emm_attach_proc_t)); // NOLINT(clang-analyzer-unix.MallocSizeof)
+      state_emm_procedures
+          ->emm_specific_proc = (nas_emm_specific_proc_t*) calloc(
+          1,
+          sizeof(
+              nas_emm_attach_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
       nas_emm_attach_proc_t* attach_proc =
           (nas_emm_attach_proc_t*) state_emm_procedures->emm_specific_proc;
 
@@ -1138,8 +1141,11 @@ void NasStateConverter::proto_to_emm_specific_proc(
       break;
     }
     case oai::NasEmmProcWithType::kDetachProc: {
-      state_emm_procedures->emm_specific_proc =
-          (nas_emm_specific_proc_t*) calloc(1, sizeof(nas_emm_detach_proc_t)); // NOLINT(clang-analyzer-unix.MallocSizeof)
+      state_emm_procedures
+          ->emm_specific_proc = (nas_emm_specific_proc_t*) calloc(
+          1,
+          sizeof(
+              nas_emm_detach_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
       nas_emm_detach_proc_t* detach_proc =
           (nas_emm_detach_proc_t*) state_emm_procedures->emm_specific_proc;
       // read the emm proc content

@@ -285,7 +285,7 @@ void snow3g_generate_key_stream(
 
   for (t = 0; t < n; t++) {
     F     = snow3g_clock_fsm(snow_3g_context_pP); /* STEP 1 */
-    ks[t] = F ^ snow_3g_context_pP->LFSR_S0;       /* STEP 2 */
+    ks[t] = F ^ snow_3g_context_pP->LFSR_S0;      /* STEP 2 */
     /*
      * Note that ks[t] corresponds to z_{t+1} in section 4.2
      */

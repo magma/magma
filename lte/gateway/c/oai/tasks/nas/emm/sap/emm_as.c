@@ -1438,8 +1438,8 @@ static int emm_as_data_req(
       /*
        * Encode the NAS information message
        */
-      bytes = emm_as_encode(
-          &as_msg->nas_msg, &nas_msg, size, emm_security_context);
+      bytes =
+          emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
     } else {
       /*
        * Encrypt the NAS information message
@@ -1893,8 +1893,8 @@ static int emm_as_erab_setup_req(
       /*
        * Encode the NAS information message
        */
-      bytes = emm_as_encode(
-          &as_msg->nas_msg, &nas_msg, size, emm_security_context);
+      bytes =
+          emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
     } else {
       /*
        * Encrypt the NAS information message
@@ -1971,8 +1971,8 @@ static int emm_as_erab_rel_cmd(
       /*
        * Encode the NAS information message
        */
-      bytes = emm_as_encode(
-          &as_msg->nas_msg, &nas_msg, size, emm_security_context);
+      bytes =
+          emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
     } else {
       /*
        * Encrypt the NAS information message
