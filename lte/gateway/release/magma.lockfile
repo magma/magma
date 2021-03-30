@@ -1118,7 +1118,7 @@
       "version": "1.0.2"
     },
     "pyroute2": {
-      "version": "0.5.14"
+      "version": "0.5.16"
     },
     "pystemd": {
       "version": "0.8.0"
