@@ -3264,8 +3264,8 @@ void mme_app_handle_handover_required(
   ho_request_p->target_enb_id        = handover_required_p->enb_id;
   ho_request_p->cause                = handover_required_p->cause;
   ho_request_p->handover_type        = handover_required_p->handover_type;
-  ho_request_p->src_tgt_container =
-      bstrcpy(handover_required_p->src_tgt_container); // ownership passed to receiver
+  ho_request_p->src_tgt_container    = bstrcpy(
+      handover_required_p->src_tgt_container);  // ownership passed to receiver
 
   // get the ambr
   ho_request_p->ue_ambr = ue_context_p->subscribed_ue_ambr;
@@ -3327,6 +3327,64 @@ void mme_app_handle_handover_required(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
       "MME_APP send HANDOVER_REQUEST to S1AP for ue_id %d \n",
       ue_context_p->mme_ue_s1ap_id);
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void mme_app_handle_handover_request_ack(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_handover_request_ack_t* const handover_request_ack_p) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+
+  struct ue_mm_context_s* ue_context_p          = NULL;
+  MessageDef* message_p                         = NULL;
+  itti_mme_app_handover_command_t* ho_command_p = NULL;
+
+  OAILOG_INFO(
+      LOG_MME_APP,
+      "Received handover request ack from S1AP for ue-id " MME_UE_S1AP_ID_FMT
+      "\n",
+      handover_request_ack_p->mme_ue_s1ap_id);
+
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+      handover_request_ack_p->mme_ue_s1ap_id);
+
+  if (!ue_context_p) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "UE context doesn't exist for UE " MME_UE_S1AP_ID_FMT ", failing\n",
+        handover_request_ack_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  message_p = itti_alloc_new_message(TASK_MME_APP, MME_APP_HANDOVER_COMMAND);
+
+  if (!message_p) {
+    OAILOG_ERROR(LOG_MME_APP, "Unable to allocate new ITTI message, failing\n");
+
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  ho_command_p = &message_p->ittiMsg.mme_app_handover_command;
+
+  ho_command_p->source_assoc_id    = handover_request_ack_p->source_assoc_id;
+  ho_command_p->mme_ue_s1ap_id     = handover_request_ack_p->mme_ue_s1ap_id;
+  ho_command_p->src_enb_ue_s1ap_id = handover_request_ack_p->src_enb_ue_s1ap_id;
+  ho_command_p->src_enb_ue_s1ap_id = handover_request_ack_p->src_enb_ue_s1ap_id;
+  ho_command_p->handover_type      = handover_request_ack_p->handover_type;
+  ho_command_p->tgt_src_container =
+      bstrcpy(handover_request_ack_p
+                  ->tgt_src_container);  // ownership passed to receiver
+
+  // TODO: set up E-RABs. As is, HO will proceed, but we will drop packets.
+
+  OAILOG_INFO_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64,
+      "MME_APP send HANDOVER_COMMAND to S1AP for ue_id %d \n",
+      ho_command_p->mme_ue_s1ap_id);
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
