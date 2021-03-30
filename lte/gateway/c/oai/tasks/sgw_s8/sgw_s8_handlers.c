@@ -31,6 +31,7 @@ extern struct gtp_tunnel_ops* gtp_tunnel_ops;
 static int sgw_s8_add_gtp_tunnel(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     sgw_eps_bearer_context_information_t* sgw_context_p);
+
 uint32_t sgw_get_new_s1u_teid(sgw_state_t* state) {
   if (state->s1u_teid == 0) {
     state->s1u_teid = INITIAL_SGW_S8_S1U_TEID;
@@ -417,7 +418,7 @@ static int sgw_s8_send_create_session_response(
              .bearer_contexts[0];
     bearer_context->cause.cause_value = session_rsp_p->cause;
     bearer_context->eps_bearer_id     = session_rsp_p->eps_bearer_id;
-    create_session_response_p->trxn  = sgw_context_p->trxn;
+    create_session_response_p->trxn   = sgw_context_p->trxn;
   }
   message_p->ittiMsgHeader.imsi = sgw_context_p->imsi64;
   OAILOG_DEBUG_UE(

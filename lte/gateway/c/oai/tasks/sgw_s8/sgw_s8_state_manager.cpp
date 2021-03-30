@@ -55,7 +55,7 @@ void SgwStateManager::create_state() {
   }
 
   OAILOG_INFO(LOG_SGW_S8, "Creating SGW_S8 state ");
-  bstring b   = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
+  bstring b = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
 
   // sgw_free_s11_bearer_context_information is called when hashtable_ts_free is
   // invoked, so as to remove any contexts allocated within sgw_bearer context

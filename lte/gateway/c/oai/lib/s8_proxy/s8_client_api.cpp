@@ -28,7 +28,7 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 static void convert_proto_msg_to_itti_csr(
     magma::feg::CreateSessionResponsePgw& response,
-    s8_create_session_response_t** s5_response);
+    s8_create_session_response_t* s5_response);
 
 static void get_qos_from_proto_msg(
     const magma::feg::QosInformation& proto_qos, bearer_qos_t* bearer_qos) {
@@ -105,8 +105,8 @@ static void recv_s8_create_session_response(
     imsi64_t imsi64, teid_t context_teid, const grpc::Status& status,
     magma::feg::CreateSessionResponsePgw& response) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  s8_create_session_response_t* s5_response   = NULL;
-  MessageDef* message_p                       = NULL;
+  s8_create_session_response_t* s5_response = NULL;
+  MessageDef* message_p                     = NULL;
   message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, S8_CREATE_SESSION_RSP);
   if (!message_p) {
     OAILOG_ERROR_UE(
@@ -120,7 +120,7 @@ static void recv_s8_create_session_response(
   message_p->ittiMsgHeader.imsi = imsi64;
   s5_response->context_teid     = context_teid;
   if (status.ok()) {
-    convert_proto_msg_to_itti_csr(response, &s5_response);
+    convert_proto_msg_to_itti_csr(response, s5_response);
   } else {
     OAILOG_ERROR(
         LOG_SGW_S8,
@@ -337,8 +337,6 @@ void send_s8_create_session_request(
   OAILOG_FUNC_IN(LOG_SGW_S8);
   magma::feg::CreateSessionRequestPgw csr_req;
 
-  std::cout << "Sending create session request for for IMSI: " << imsi64
-            << "and context_teid: " << sgw_s11_teid << std::endl;
   // teid shall remain same for both sgw's s11 interface and s8 interface as
   // teid is allocated per PDN
   OAILOG_INFO_UE(
@@ -358,20 +356,21 @@ void send_s8_create_session_request(
 
 static void convert_proto_msg_to_itti_csr(
     magma::feg::CreateSessionResponsePgw& response,
-    s8_create_session_response_t** s5_response) {
+    s8_create_session_response_t* s5_response) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  (*s5_response)->apn_restriction_value = response.apn_restriction();
+  s5_response->apn_restriction_value = response.apn_restriction();
   get_fteid_from_proto_msg(
-      response.c_pgw_fteid(), &(*s5_response)->pgw_s8_cp_teid);
+      response.c_pgw_fteid(), &s5_response->pgw_s8_cp_teid);
   get_paa_from_proto_msg(
-      response.pdn_type(), response.paa(), &(*s5_response)->paa);
+      response.pdn_type(), response.paa(), &s5_response->paa);
 
-  s8_bearer_context_t s8_bc = (*s5_response)->bearer_context[0];
-  s8_bc.eps_bearer_id       = response.bearer_context().id();
-  s8_bc.charging_id         = response.bearer_context().charging_id();
-  get_qos_from_proto_msg(response.bearer_context().qos(), &s8_bc.qos);
+  s8_bearer_context_t* s8_bc = &(s5_response->bearer_context[0]);
+  s8_bc->eps_bearer_id       = response.bearer_context().id();
+  s5_response->eps_bearer_id = s8_bc->eps_bearer_id;
+  s8_bc->charging_id         = response.bearer_context().charging_id();
+  get_qos_from_proto_msg(response.bearer_context().qos(), &s8_bc->qos);
   get_fteid_from_proto_msg(
-      response.bearer_context().user_plane_fteid(), &s8_bc.pgw_s8_up);
-  (*s5_response)->cause = response.mutable_gtp_error()->cause();
+      response.bearer_context().user_plane_fteid(), &s8_bc->pgw_s8_up);
+  s5_response->cause = response.mutable_gtp_error()->cause();
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
