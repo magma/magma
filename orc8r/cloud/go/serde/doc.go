@@ -12,6 +12,7 @@
  */
 
 /*
+blahblahblahl
 	Package serde contains the definition of a SERializer-DEserializer concept.
 
 	This package provides the functionality to define per-domain serde
