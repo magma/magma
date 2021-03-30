@@ -61,7 +61,7 @@ endif
 # debian stretch build uses older cc not recognizing options needed on ubuntu focal
 
 OS_VERSION_NAME := $(shell (grep VERSION_CODENAME /etc/os-release || true) | sed 's/.*=//g')
-COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall $(CPPFLAGS)" -DCMAKE_CXX_FLAGS="-Wall $(CPPFLAGS)"
+COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall -gz $(CPPFLAGS)" -DCMAKE_CXX_FLAGS="-Wall -gz $(CPPFLAGS)"
 
 $(info OAI_FLAGS $(OAI_FLAGS))
 

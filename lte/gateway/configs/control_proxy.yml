@@ -42,5 +42,5 @@ allow_http_proxy: False
 
 # Dummy URL to Sentry logging -> Modify to local sentry instance in order
 # to pipe error handling to sentry
-sentry_url: ""
+sentry_url: "https://72082927a747476386c12043d3bd0b4c@o529355.ingest.sentry.io/5663426"
 sentry_sample_rate: 1.0

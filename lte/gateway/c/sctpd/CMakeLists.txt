@@ -44,6 +44,7 @@ add_library(SCTPD_LIB
 )
 
 ## Find + link sentry if it exists
+## TODO we can enable by default after we migrate to ubuntu 20.04
 find_library(SENTRY_LIB NAMES sentry sentry-native)
 if (SENTRY_LIB)
 # Include dir

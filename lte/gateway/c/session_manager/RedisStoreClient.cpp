@@ -40,6 +40,7 @@ bool RedisStoreClient::try_redis_connect() {
     return client_->is_connected();
   } catch (const cpp_redis::redis_error& e) {
     MLOG(MERROR) << "Could not connect to redis: " << e.what();
+    throw RedisReadFailed();
     return false;
   }
 }

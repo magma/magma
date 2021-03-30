@@ -36,6 +36,7 @@ RUN echo "Install general purpouse packages" && \
         gnupg \
         golang \
         libclang-11-dev \
+        libcurl4-openssl-dev \
         libgmp3-dev \
         libpcap-dev \
         libssl-dev \
@@ -267,6 +268,17 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     make install && \
     cd / && \
     rm -rf freediameter
+
+##### Install Sentry
+RUN wget https://github.com/getsentry/sentry-native/releases/download/0.4.8/sentry-native.zip && \
+    unzip sentry-native.zip -d sentry-native && \
+    cd sentry-native && \
+    cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
+    cmake --build build --parallel && \
+    cmake --install build --prefix install --config RelWithDebInfo && \
+    cd build && \
+    make install
+
 
 ##### Clean up MAGMA_ROOT so others don't accidentally use it.
 # E.g. in CI environments access to repo should occur through docker volume from the parent OS.

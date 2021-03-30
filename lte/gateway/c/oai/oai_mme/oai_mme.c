@@ -63,9 +63,40 @@
 #include "shared_ts_log.h"
 #include "grpc_service.h"
 
+#if SENTRY_ENABLED
+#include "sentry.h"
+#endif
+
 static void send_timer_recovery_message(void);
 
 task_zmq_ctx_t main_zmq_ctx;
+
+void initialize_sentry() {
+#if SENTRY_ENABLED
+  auto control_proxy_config =
+      magma::ServiceConfigLoader{}.load_service_config("control_proxy");
+  if (control_proxy_config["sentry_url"].IsDefined()) {
+    const std::string sentry_dns =
+        control_proxy_config["sentry_url"].as<std::string>();
+    sentry_options_t* options = sentry_options_new();
+    sentry_options_set_dsn(options, sentry_dns.c_str());
+    sentry_options_set_debug(options, 1);
+    // sentry_options_set_before_send(options, strip_sensitive_data, NULL);
+
+    sentry_init(options);
+    sentry_capture_event(sentry_value_new_message_event(
+        /*   level */ SENTRY_LEVEL_INFO,
+        /*  logger */ "custom",
+        /* message */ "It works! - MME"));
+  }
+#endif
+}
+
+void shutdown_sentry() {
+#if SENTRY_ENABLED
+  sentry_shutdown();
+#endif
+}
 
 static int main_init(void) {
   // Initialize main thread ZMQ context
@@ -98,6 +129,8 @@ int main(int argc, char* argv[]) {
       TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
       NULL));
   CHECK_INIT_RETURN(main_init());
+
+  initialize_sentry();
 
   /*
    * Parse the command line for options and set the mme_config accordingly.
@@ -177,6 +210,8 @@ int main(int argc, char* argv[]) {
 
   main_exit();
   pid_file_unlock();
+
+  shutdown_sentry();
 
   return 0;
 }

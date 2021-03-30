@@ -21,12 +21,12 @@ def sentry_init():
     """
     Initialize connection and start piping errors to sentry.io
     """
-    sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
-    if sentry_url:
-        sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate', default=1.0)
-        sentry_sdk.init(
-            dsn=sentry_url, 
-            release=os.environ['COMMIT_HASH'],
-            traces_sample_rate=sentry_sample_rate, 
-        )
-        sentry_sdk.set_tag("hwid", snowflake.snowflake())
+    # sentry_url = get_service_config_value('control_proxy', 'sentry_url', default="")
+    # if sentry_url:
+    #     sentry_sample_rate = get_service_config_value('control_proxy', 'sentry_sample_rate', default=1.0)
+    #     sentry_sdk.init(
+    #         dsn=sentry_url, 
+    #         release=os.environ['COMMIT_HASH'],
+    #         traces_sample_rate=sentry_sample_rate, 
+    #     )
+    #     sentry_sdk.set_tag("hwid", snowflake.snowflake())

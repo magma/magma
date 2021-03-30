@@ -12,6 +12,7 @@
  */
 
 #include <iostream>
+#include <cstdlib>
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
 
@@ -30,6 +31,10 @@
 #include "SessionStore.h"
 #include "GrpcMagmaUtils.h"
 
+#if SENTRY_ENABLED
+#include "sentry.h"
+#endif
+
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
 #define POLICYDB_SERVICE "policydb"
@@ -42,6 +47,33 @@
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
 #endif
+
+static void initialize_sentry() {
+#if SENTRY_ENABLED
+  auto control_proxy_config =
+      magma::ServiceConfigLoader{}.load_service_config("control_proxy");
+  if (control_proxy_config["sentry_url"].IsDefined()) {
+    const std::string sentry_dns =
+        control_proxy_config["sentry_url"].as<std::string>();
+    sentry_options_t* options = sentry_options_new();
+    sentry_options_set_dsn(options, sentry_dns.c_str());
+    sentry_options_set_debug(options, 1);
+    // sentry_options_set_before_send(options, strip_sensitive_data, NULL);
+
+    sentry_init(options);
+    sentry_capture_event(sentry_value_new_message_event(
+        /*   level */ SENTRY_LEVEL_INFO,
+        /*  logger */ "custom",
+        /* message */ "It works! - SessionD"));
+  }
+#endif
+}
+
+static void shutdown_sentry() {
+#if SENTRY_ENABLED
+  sentry_shutdown();
+#endif
+}
 
 static magma::mconfig::SessionD get_default_mconfig() {
   magma::mconfig::SessionD mconfig;
@@ -171,7 +203,7 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG
   __gcov_flush();
 #endif
-
+  initialize_sentry();
   magma::init_logging(argv[0]);
 
   auto mconfig = load_mconfig();
@@ -423,5 +455,6 @@ int main(int argc, char* argv[]) {
   }
   delete session_store;
 
+  shutdown_sentry();
   return 0;
 }
