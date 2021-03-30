@@ -2669,8 +2669,8 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
       local_enforcer->collect_updates(session_map, actions, update);
   EXPECT_EQ(actions.size(), 1);
   EXPECT_EQ(actions[0]->get_type(), REDIRECT);
-  EXPECT_EQ(
-      actions[0]->get_redirect_server().redirect_server_address(), "12.7.7.4");
+  PolicyRule redirect_rule = actions[0]->get_gy_rules_to_install().rules[0];
+  EXPECT_EQ(redirect_rule.redirect().server_address(), "12.7.7.4");
 
   EXPECT_CALL(
       *pipelined_client,
@@ -2750,7 +2750,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
       local_enforcer->collect_updates(session_map, actions, update);
   EXPECT_EQ(actions.size(), 1);
   EXPECT_EQ(actions[0]->get_type(), RESTRICT_ACCESS);
-  EXPECT_EQ(actions[0]->get_restrict_rules()[0].id(), "rule1");
+  EXPECT_EQ(actions[0]->get_gy_rules_to_install().rules[0].id(), "rule1");
 
   EXPECT_CALL(
       *pipelined_client, add_gy_final_action_flow(
@@ -2863,7 +2863,8 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   usage_updates = local_enforcer->collect_updates(session_map, actions, update);
   EXPECT_EQ(actions.size(), 1);
   EXPECT_EQ(actions[0]->get_type(), RESTRICT_ACCESS);
-  EXPECT_EQ(actions[0]->get_restrict_rules()[0].id(), "restrict_rule");
+  EXPECT_EQ(
+      actions[0]->get_gy_rules_to_install().rules[0].id(), "restrict_rule");
 
   EXPECT_CALL(
       *pipelined_client,

@@ -46,7 +46,6 @@ using magma::service303::increment_counter;
 using magma::service303::remove_counter;
 
 namespace magma {
-
 std::unique_ptr<SessionState> SessionState::unmarshal(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store) {
   return std::make_unique<SessionState>(marshaled, rule_store);
@@ -1587,87 +1586,52 @@ void SessionState::get_charging_updates(
     auto action      = std::make_unique<ServiceAction>(action_type);
     switch (action_type) {
       case CONTINUE_SERVICE: {
-        CreditUsage::UpdateType update_type;
-
-        if (!grant->get_update_type(&update_type)) {
-          break;  // no update
+        optional<CreditUsageUpdate> op_update =
+            get_update_for_continue_service(key, grant, uc);
+        if (!op_update) {
+          // no update
+          break;
         }
-        if (curr_state_ == SESSION_RELEASED) {
-          MLOG(MDEBUG)
-              << "Session " << session_id_
-              << " is in Released state. Not sending update to the core"
-                 "for rating group "
-              << key;
-          break;  // no update
-        }
-        if (grant->suspended && update_type == CreditUsage::QUOTA_EXHAUSTED) {
-          MLOG(MDEBUG) << "Credit " << key << " for " << session_id_
-                       << " is suspended. Not sending update to the core";
-          break;  // no update
-        }
-
-        // Create Update struct
-        MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
-                     << " updating due to type "
-                     << credit_update_type_to_str(update_type)
-                     << " with request number " << request_number_;
-
-        if (update_type == CreditUsage::REAUTH_REQUIRED) {
-          grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
-        }
-        CreditUsage usage =
-            grant->get_credit_usage(update_type, *credit_uc, false);
-        key.set_credit_usage(&usage);
-        auto credit_req = make_credit_usage_update_req(usage);
-        update_request_out.mutable_updates()->Add()->CopyFrom(credit_req);
-        request_number_++;
-        uc.request_number_increment++;
+        update_request_out.mutable_updates()->Add()->CopyFrom(*op_update);
       } break;
-      case REDIRECT:
+      case REDIRECT: {
         if (grant->service_state == SERVICE_REDIRECTED) {
           MLOG(MDEBUG) << "Redirection already activated for " << session_id_;
           continue;
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
-        action->set_redirect_server(grant->final_action_info.redirect_server);
-        // activate service
-        action->set_ambr(config_.get_apn_ambr());
-        // terminate service
-        fill_service_action(action, action_type, key);
-        actions_out->push_back(std::move(action));
+
+        PolicyRule redirect_rule = make_redirect_rule(grant);
+        if (!is_gy_dynamic_rule_installed(redirect_rule.id())) {
+          RuleLifetime lifetime;
+          insert_gy_dynamic_rule(redirect_rule, lifetime, uc);
+          fill_service_action_with_context(action, action_type, key);
+          fill_service_action_for_redirect(action, key, grant, redirect_rule);
+          actions_out->push_back(std::move(action));
+        }
+
         break;
+      }
       case RESTRICT_ACCESS: {
         if (grant->service_state == SERVICE_RESTRICTED) {
           MLOG(MDEBUG) << "Restriction already activated for " << session_id_;
           continue;
         }
-        std::vector<PolicyRule>* restrict_rules =
-            action->get_mutable_restrict_rules();
         grant->set_service_state(SERVICE_RESTRICTED, *credit_uc);
-        for (auto& rule_id : grant->final_action_info.restrict_rules) {
-          PolicyRule rule;
-          if (static_rules_.get_rule(rule_id, &rule)) {
-            restrict_rules->push_back(rule);
-          } else {
-            MLOG(MWARNING) << "Static rule " << rule_id
-                           << " requested as a restrict rule is not found.";
-          }
-        }
-        // activate service
-        action->set_ambr(config_.get_apn_ambr());
-        // terminate service
-        fill_service_action(action, action_type, key);
+
+        fill_service_action_with_context(action, action_type, key);
+        fill_service_action_for_restrict(action, key, grant);
         actions_out->push_back(std::move(action));
         break;
       }
       case ACTIVATE_SERVICE:
-        action->set_ambr(config_.get_apn_ambr());
-        fill_service_action(action, action_type, key);
+        fill_service_action_with_context(action, action_type, key);
+        fill_service_action_for_activate(action, key);
         actions_out->push_back(std::move(action));
         grant->set_suspended(false, credit_uc);
         break;
       case TERMINATE_SERVICE:
-        fill_service_action(action, action_type, key);
+        fill_service_action_with_context(action, action_type, key);
         actions_out->push_back(std::move(action));
         break;
       default:
@@ -1679,22 +1643,126 @@ void SessionState::get_charging_updates(
   }
 }
 
-void SessionState::fill_service_action(
+optional<CreditUsageUpdate> SessionState::get_update_for_continue_service(
+    const CreditKey& key, std::unique_ptr<ChargingGrant>& grant,
+    SessionStateUpdateCriteria& session_uc) {
+  CreditUsage::UpdateType update_type;
+  if (!grant->get_update_type(&update_type)) {
+    return {};  // no update
+  }
+  if (curr_state_ == SESSION_RELEASED) {
+    MLOG(MDEBUG) << "Session " << session_id_
+                 << " is in Released state. Not sending update to the core"
+                    "for rating group "
+                 << key;
+    return {};  // no update
+  }
+  if (grant->suspended && update_type == CreditUsage::QUOTA_EXHAUSTED) {
+    MLOG(MDEBUG) << "Credit " << key << " for " << session_id_
+                 << " is suspended. Not sending update to the core";
+    return {};  // no update
+  }
+
+  // Create Update struct
+  MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
+               << " updating due to type "
+               << credit_update_type_to_str(update_type)
+               << " with request number " << request_number_;
+
+  auto credit_uc = get_credit_uc(key, session_uc);
+  if (update_type == CreditUsage::REAUTH_REQUIRED) {
+    grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
+  }
+  CreditUsage usage = grant->get_credit_usage(update_type, *credit_uc, false);
+  key.set_credit_usage(&usage);
+
+  auto request = make_credit_usage_update_req(usage);
+  request_number_++;
+  session_uc.request_number_increment++;
+  return request;
+}
+
+void SessionState::fill_service_action_for_activate(
+    std::unique_ptr<ServiceAction>& action_p, const CreditKey& key) {
+  std::vector<PolicyRule> rules;
+  static_rules_.get_rules_by_ids(active_static_rules_, rules);
+  dynamic_rules_.get_rule_definitions_for_charging_key(key, rules);
+
+  RulesToProcess* to_install = action_p->get_mutable_gx_rules_to_install();
+  for (PolicyRule rule : rules) {
+    to_install->rules.push_back(rule);
+  }
+}
+
+void SessionState::fill_service_action_for_restrict(
+    std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
+    std::unique_ptr<ChargingGrant>& grant) {
+  RulesToProcess* gy_to_install = action_p->get_mutable_gy_rules_to_install();
+  for (auto& rule_id : grant->final_action_info.restrict_rules) {
+    PolicyRule rule;
+    if (!static_rules_.get_rule(rule_id, &rule)) {
+      MLOG(MWARNING) << "Static rule " << rule_id
+                     << " requested as a restrict rule is not found.";
+      continue;
+    } else {
+      gy_to_install->rules.push_back(rule);
+    }
+  }
+}
+
+// TODO: make session_manager.proto and policydb.proto to use common field
+static RedirectInformation_AddressType address_type_converter(
+    RedirectServer_RedirectAddressType address_type) {
+  switch (address_type) {
+    case RedirectServer_RedirectAddressType_IPV4:
+      return RedirectInformation_AddressType_IPv4;
+    case RedirectServer_RedirectAddressType_IPV6:
+      return RedirectInformation_AddressType_IPv6;
+    case RedirectServer_RedirectAddressType_URL:
+      return RedirectInformation_AddressType_URL;
+    case RedirectServer_RedirectAddressType_SIP_URI:
+      return RedirectInformation_AddressType_SIP_URI;
+    default:
+      MLOG(MERROR) << "Unknown redirect address type!";
+      return RedirectInformation_AddressType_IPv4;
+  }
+}
+
+PolicyRule SessionState::make_redirect_rule(
+    std::unique_ptr<ChargingGrant>& grant) {
+  PolicyRule redirect_rule;
+  redirect_rule.set_id("redirect");
+  redirect_rule.set_priority(SessionState::REDIRECT_FLOW_PRIORITY);
+  RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
+  redirect_info->set_support(RedirectInformation_Support_ENABLED);
+
+  auto redirect_server = grant->final_action_info.redirect_server;
+  redirect_info->set_address_type(
+      address_type_converter(redirect_server.redirect_address_type()));
+  redirect_info->set_server_address(redirect_server.redirect_server_address());
+  return redirect_rule;
+}
+
+void SessionState::fill_service_action_for_redirect(
+    std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
+    std::unique_ptr<ChargingGrant>& grant, PolicyRule redirect_rule) {
+  RulesToProcess* gy_to_install = action_p->get_mutable_gy_rules_to_install();
+  gy_to_install->rules.push_back(make_redirect_rule(grant));
+}
+
+void SessionState::fill_service_action_with_context(
     std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
     const CreditKey& key) {
   MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                << " action type " << service_action_type_to_str(action_type);
   action->set_credit_key(key);
   action->set_imsi(imsi_);
+  action->set_ambr(config_.get_apn_ambr());
   action->set_ip_addr(config_.common_context.ue_ipv4());
   action->set_ipv6_addr(config_.common_context.ue_ipv6());
   action->set_teids(config_.common_context.teids());
   action->set_msisdn(config_.common_context.msisdn());
   action->set_session_id(session_id_);
-  static_rules_.get_rules_by_ids(
-      active_static_rules_, *action->get_mutable_rule_definitions());
-  dynamic_rules_.get_rule_definitions_for_charging_key(
-      key, *action->get_mutable_rule_definitions());
 }
 
 // Monitors
