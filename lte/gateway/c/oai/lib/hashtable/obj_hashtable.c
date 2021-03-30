@@ -1014,6 +1014,7 @@ hashtable_rc_t obj_hashtable_get_keys(
       }
     }
 
+    free(keysP);
     PRINT_HASHTABLE(hashtblP, "return OK\n");
     return HASH_TABLE_OK;
   }
@@ -1049,6 +1050,7 @@ hashtable_rc_t obj_hashtable_ts_get_keys(
       pthread_mutex_unlock(&hashtblP->lock_nodes[n]);
     }
 
+    free(keysP);
     PRINT_HASHTABLE(hashtblP, "return OK\n");
     return HASH_TABLE_OK;
   }
