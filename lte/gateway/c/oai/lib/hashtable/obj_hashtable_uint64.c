@@ -994,6 +994,7 @@ hashtable_rc_t obj_hashtable_uint64_get_keys(
       }
     }
 
+    free(keysP);
     PRINT_HASHTABLE(hashtblP, "return OK\n");
     return HASH_TABLE_OK;
   }
