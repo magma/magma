@@ -121,8 +121,6 @@ func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRe
 		glog.Error(err)
 		return nil, err
 	}
-	// remove session from the s8_proxy client
-	s.gtpClient.RemoveSessionByIMSI(req.Imsi)
 	return cdRes, nil
 }
 

@@ -231,6 +231,14 @@
       # install openvswitch
       - openvswitch-switch
       - openvswitch-test
+      - libopenvswitch
+      - openvswitch-datapath-dkms
+      - openvswitch-common
+      - libopenvswitch-dev
+      - python3-openvswitch
+      - openvswitch-doc
+      - openvswitch-pki
+      - openvswitch-test
       - magma-libfluid
       # install lxml
       - python3-lxml
@@ -355,6 +363,13 @@
     state: restarted
   when: full_provision
 
+- name: Restart OVS
+  ignore_errors: yes
+  shell: |
+    ifdown gtp_br0
+    /etc/init.d/openvswitch-switch  force-reload-kmod
+  when: ansible_distribution == "Ubuntu"
+ 
 - name: Bring up ovs bridge
   shell: ifup -i /etc/network/interfaces.d/gtp {{ item }}
   with_items:

@@ -644,14 +644,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_TAI_LIST);
     if (setting != NULL) {
       num = config_setting_length(setting);
-      OAILOG_INFO(LOG_MME_APP, "Number of TAIs configured: %d\n", num);
-      AssertFatal(
-          num >= MIN_TAI_SUPPORTED,
-          "Not even one TAI is configured, configure minimum one TAI\n");
-      AssertFatal(
-          num <= MAX_TAI_SUPPORTED,
-          "Too many TAIs configured: %d (Maximum supported: %d)", num,
-          MAX_TAI_SUPPORTED);
+      if (num < MIN_TAI_SUPPORTED) {
+        fprintf(
+            stderr,
+            "ERROR: No TAI is configured.  At least one TAI must be "
+            "configured.\n");
+      }
 
       if (config_pP->served_tai.nb_tai != num) {
         if (config_pP->served_tai.plmn_mcc != NULL)
@@ -704,9 +702,11 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                   sub2setting, MME_CONFIG_STRING_TAC, &tac))) {
             config_pP->served_tai.tac[i] = (uint16_t) atoi(tac);
 
-            AssertFatal(
-                TAC_IS_VALID(config_pP->served_tai.tac[i]),
-                "Invalid TAC value " TAC_FMT, config_pP->served_tai.tac[i]);
+            if (!TAC_IS_VALID(config_pP->served_tai.tac[i])) {
+              fprintf(
+                  stderr, "ERROR: Invalid TAC value " TAC_FMT,
+                  config_pP->served_tai.tac[i]);
+            }
           }
         }
       }

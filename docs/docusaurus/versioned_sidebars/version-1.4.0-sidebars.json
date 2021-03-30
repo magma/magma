@@ -81,6 +81,7 @@
           "version-1.4.0-lte/enodebd",
           "version-1.4.0-lte/config_apn",
           "version-1.4.0-lte/ha_setup",
+          "version-1.4.0-lte/agw_140_upgrade",
           "version-1.4.0-lte/agw_130_upgrade",
           "version-1.4.0-lte/agw_120_upgrade",
           "version-1.4.0-lte/agw_110_upgrade"
