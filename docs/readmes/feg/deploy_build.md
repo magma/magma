@@ -1,10 +1,10 @@
 ---
 id: deploy_build
-title: Building Federation Gateway
+title: Build FeG
 hide_title: true
 ---
 
-# Building Federation Gateway Components
+# Build Federation Gateway Components
 
 If you cloned Magma using git, make sure you are checked out on the release you
 intend to build.

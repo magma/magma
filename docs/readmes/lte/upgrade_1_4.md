@@ -1,9 +1,10 @@
 ---
-id: agw_140_upgrade
-title: Upgrading from 1.3
+id: upgrade_1_4
+title: Upgrade to v1.4
 hide_title: true
 ---
-# Upgrading from 1.3
+
+# Upgrade to v1.4
 
 You can upgrade your access gateways doing SSH directly into them and
 run an `apt-get upgrade`, with some required modification steps.

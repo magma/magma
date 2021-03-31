@@ -61,6 +61,7 @@ The end-goal is uniform, approachable documentation, especially in the Docusauru
     - Magma-adjacent
         - K8s, Kubernetes
         - Helm
+        - gRPC
         - eNodeB
     - Everyday words
         - metadata

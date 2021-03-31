@@ -1,10 +1,10 @@
 ---
-id: federated_FWA_setup_guide
-title: Federated-FWA Setup Guide
+id: deploy_configure
+title: Configure FeG
 hide_title: true
 ---
 
-# Federated-FWA Setup Guide
+# Configure Federation Gateway: Federated-FWA Setup Guide
 
 ## Basic Configuration Steps
 
