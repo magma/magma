@@ -56,7 +56,6 @@ RUN echo "Install general purpouse packages" && \
         wget && \
         gem install fpm && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
-        update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-11/bin/clang-format 10 && \
         update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
         update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10
 
