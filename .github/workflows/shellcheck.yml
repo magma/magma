@@ -1,0 +1,20 @@
+name: Shellcheck by Reviewdog 
+on: [pull_request]
+jobs:
+  shellcheck:
+    name: runner / shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: shellcheck
+        uses: reviewdog/action-shellcheck@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: diff_context # Any changed content.
+          reporter: github-pr-review # Post code review comments.
+          pattern: "*.sh" # Optional.
+          # Other options omitted here but possible.
+          # - fail_on_error
+          # - path
+          # - exclude
+          # - shellcheck_flags
