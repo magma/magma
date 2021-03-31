@@ -31,7 +31,7 @@ ENV C_BUILD=/build/c
 
 # Install a few tools (may not be necessary later on)
 ENV TZ=Europe/Paris
-RUN yum update && \
+RUN yum update -y && \
     yum -y install --enablerepo="ubi-8-codeready-builder" \
       libubsan \
       libasan \
