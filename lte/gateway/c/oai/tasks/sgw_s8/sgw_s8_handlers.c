@@ -267,7 +267,8 @@ void sgw_s8_handle_s11_create_session_request(
   memcpy(
       new_sgw_eps_context->imsi.digit, session_req_pP->imsi.digit,
       IMSI_BCD_DIGITS_MAX);
-  new_sgw_eps_context->imsi64 = imsi64;
+  new_sgw_eps_context->imsi.length = session_req_pP->imsi.length;
+  new_sgw_eps_context->imsi64      = imsi64;
 
   new_sgw_eps_context->imsi_unauthenticated_indicator = 1;
   new_sgw_eps_context->mme_teid_S11 = session_req_pP->sender_fteid_for_cp.teid;
