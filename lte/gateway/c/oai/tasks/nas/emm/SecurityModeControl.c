@@ -394,13 +394,21 @@ int emm_proc_security_mode_control(
  ***************************************************************************/
 int validate_imei(char* imei) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  for (uint8_t itr = 0; itr < mme_config.blocked_imei.num; itr++) {
-    if (!memcmp(
-            imei, mme_config.blocked_imei.imei_list[itr].imei,
-            strlen((char*) mme_config.blocked_imei.imei_list[itr].imei))) {
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_IMEI_NOT_ACCEPTED);
-    }
+  imei64_t imei64 = 0;
+  IMEI_STRING_TO_IMEI64(imei, &imei64);
+  hashtable_rc_t h_rc = hashtable_uint64_ts_is_key_exists(
+      mme_config.blocked_imei.imei_htbl, (const hash_key_t) imei64);
+
+  if (HASH_TABLE_OK == h_rc) {
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_IMEI_NOT_ACCEPTED);
   }
+  /*  for (uint8_t itr = 0; itr < mme_config.blocked_imei.num; itr++) {
+      if (!memcmp(
+              imei, mme_config.blocked_imei.imei_list[itr].imei,
+              strlen((char*) mme_config.blocked_imei.imei_list[itr].imei))) {
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_IMEI_NOT_ACCEPTED);
+      }
+    }*/
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
 }
 
@@ -493,17 +501,14 @@ int emm_proc_security_mode_complete(
       imeisv.u.num.svn2   = imeisvmob->svn2;
       imeisv.u.num.parity = imeisvmob->oddeven;
       // Convert to string
-      char imeisv_str[MAX_IMEISV_SIZE + 1] = {0};
-      char imei_tmp[MAX_IMEI_SIZE]         = {0};
-      IMEISV_TO_STRING(&imeisv, imeisv_str, MAX_IMEISV_SIZE + 1);
-      // Copy only 14 digits for validatation.
-      memcpy(imei_tmp, imeisv_str, (MAX_IMEI_SIZE - 1));
+      char imei_str[MAX_IMEI_SIZE] = {0};
+      IMEISV_TO_STRING(&imeisv, imei_str, MAX_IMEI_SIZE);
       OAILOG_DEBUG(
           LOG_NAS_EMM,
           "EMM-PROC  - String imei "
           "%s\n",
-          imei_tmp);
-      int emm_cause = validate_imei(imei_tmp);
+          imei_str);
+      int emm_cause = validate_imei(imei_str);
       if (emm_cause != EMM_CAUSE_SUCCESS) {
         OAILOG_ERROR(
             LOG_NAS_EMM,

@@ -246,17 +246,14 @@ int emm_proc_identification_complete(
       } else if (imeisv) {
         // Validate IMEISV
         // Convert to string
-        char imeisv_str[MAX_IMEISV_SIZE + 1] = {0};
-        char imei_tmp[MAX_IMEI_SIZE]         = {0};
-        IMEISV_TO_STRING(imeisv, imeisv_str, MAX_IMEISV_SIZE + 1);
-        // Copy only 14 digits for validation
-        memcpy(imei_tmp, imeisv_str, (MAX_IMEI_SIZE - 1));
+        char imei_str[MAX_IMEI_SIZE] = {0};
+        IMEISV_TO_STRING(imeisv, imei_str, MAX_IMEI_SIZE);
         OAILOG_DEBUG(
             LOG_NAS_EMM,
             "EMM-PROC  - String imei "
             "%s\n",
-            imei_tmp);
-        int emm_cause = validate_imei(imeisv_str);
+            imei_str);
+        int emm_cause = validate_imei(imei_str);
         if (emm_cause != EMM_CAUSE_SUCCESS) {
           OAILOG_ERROR(
               LOG_NAS_EMM,

@@ -47,6 +47,7 @@
 #include "3gpp_24.008.h"
 #include "log.h"
 #include "service303.h"
+#include "hashtable.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1
@@ -122,7 +123,7 @@
 
 #define MME_CONFIG_STRING_RESTRICTED_PLMN_LIST "RESTRICTED_PLMN_LIST"
 #define MME_CONFIG_STRING_BLOCKED_IMEI_LIST "BLOCKED_IMEI_LIST"
-#define MME_CONFIG_STRING_TAC "TAC"
+#define MME_CONFIG_STRING_IMEI_TAC "IMEI_TAC"
 #define MME_CONFIG_STRING_SNR "SNR"
 
 #define MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"
@@ -316,14 +317,11 @@ typedef struct restricted_plmn_s {
   plmn_t plmn[MAX_RESTRICTED_PLMN];
 } restricted_plmn_config_t;
 
-typedef struct imei_list_s {
-  uint8_t imei[MAX_LEN_IMEI];
-} imei_list_t;
-
-typedef struct blocked_imei_config_s {
+typedef struct blocked_imei_list_s {
   int num;
-  imei_list_t imei_list[MAX_BLOCKED_IMEI];
-} blocked_imei_config_t;
+  // data is NULL
+  hash_table_uint64_ts_t* imei_htbl;
+} blocked_imei_list_t;
 
 typedef struct fed_mode_map_s {
   uint8_t mode;
@@ -370,7 +368,7 @@ typedef struct mme_config_s {
 
   restricted_plmn_config_t restricted_plmn;
 
-  blocked_imei_config_t blocked_imei;
+  blocked_imei_list_t blocked_imei;
 
   served_tai_t served_tai;
 
