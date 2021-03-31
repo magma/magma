@@ -1,62 +1,10 @@
 ---
-id: developer
-title: Developer
+id: dev_components
+title: Components
 hide_title: true
 ---
-# Spacing Guidelines
-Within the context of the NMS, it's important to have consistency within the design so that all pages feel unified. As such, most spacing throughout the app follows an 8px scaling factor as shown below:
 
-![image](https://user-images.githubusercontent.com/8878152/89579208-5e7c6900-d801-11ea-8456-bef4313cde40.png)
-![image](https://user-images.githubusercontent.com/8878152/89579597-07c35f00-d802-11ea-9396-f056c0e82b4a.png)
-![image](https://user-images.githubusercontent.com/8878152/89579632-1c075c00-d802-11ea-88c4-0dc3179cd2c0.png)
-
-To help facilitate this better, we leverage [Material-UI's](https://material-ui.com/customization/spacing/#spacing) `theme.spacing()` helper which too uses an 8px scaling factor.
-
-```js
-const theme = createMuiTheme();
-
-theme.spacing(0.5) // = 8 * 0.5 (4px)
-theme.spacing(1) // = 8 * 1 (8px)
-theme.spacing(2) // = 8 * 2 (16px)
-theme.spacing(3) // = 8 * 3 (24px)
-theme.spacing(4) // = 8 * 4 (32px)
-theme.spacing(5) // = 8 * 5 (40px)
-```
-
-With this in mind, always try and leverage the scaling system when building out components rather than using static `px` values. Reason being, in the case the scaling factor is ever changed in the future, it will automatically update across all sizing.
-
-# Local Theming
-Within `magmalte/app` is a `theme` directory intended to better unify the front-end design system to that found within the design files.
-
-At the moment the `default.js` file exports 3 core design types, though more will probably follow in the future as they are needed:
-
-#### Colors
-Colors are broken into subgroups (primary, secondary, state, data, and code), and then defined based off of the hex color code. Generally speaking, they should match closely with those found in the design file.
-
-In the case you need to add a color, I used [this site](http://chir.ag/projects/name-that-color/) to generate names based off of the color hex.
-
-#### Typography
-We've adapted the Symphony styles to better reflect the typography found in the design file, with the following possible variants:
-
-* h1
-* h2
-* h3
-* h4
-* h5
-* subtitle1
-* subtitle2
-* body1
-* body2
-* body3
-* code
-* button
-* caption
-* overline
-
-#### Shadows
-We've generated a few different elevations to leverage depending on the context in which you are designing for. In most cases, we tend to keep content within the page flat, reserving shadows for content like dialogs and modals.
-
-# Custom Development Components
+# Custom Components
 
 In order to maintain consistency and streamline the design of the NMS, we've created a few custom components to help aid in the creation of dashboards, details, and config pages. This document will serve as a point of reference for future development and should be referred back to often as the components herein continue to change and evolve over time.
 
@@ -80,8 +28,7 @@ Passes in a filter on the opposite end of the row. This should be used if needin
 ##### Example
 
 ```js
-
- ...
+ // ...
 
   function Filter() {
     return (
@@ -169,9 +116,9 @@ Passes a string that will be shown as a tooltip when hovering over a specific da
 <br />
 <br />
 
-### Examples
+## Examples
 
-#### KPI's with expandable table
+### KPI's with expandable table
 ```js
 const ran: DataRows[] = [
     [
@@ -200,7 +147,7 @@ return <DataGrid data={ran} />;
 ![image](https://user-images.githubusercontent.com/8878152/89434331-6bba2a80-d711-11ea-9dde-6955337e46d2.png)
 
 
-#### KPI's including an obscure data point
+### KPI's including an obscure data point
 ```js
 
   const kpiData: DataRows[] = [
@@ -230,7 +177,7 @@ return <DataGrid data={ran} />;
 ![image](https://user-images.githubusercontent.com/8878152/89434560-ad4ad580-d711-11ea-976e-f93bd740e4f0.png)
 
 
-#### KPI row with parent label and icon
+### KPI row with parent label and icon
 ```js
 const data: DataRows[] = [
     [
@@ -257,7 +204,7 @@ return <DataGrid data={data} />;
 ```
 ![image](https://user-images.githubusercontent.com/8878152/89434865-13cff380-d712-11ea-8618-5e5bbc1db84d.png)
 
-#### KPIs with status indicators
+### KPIs with status indicators
 ```js
 const data: DataRows[] = [
     [

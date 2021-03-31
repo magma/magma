@@ -1,8 +1,9 @@
 ---
-id: show_tech
+id: debug_show_tech
 title: Show Tech
 hide_title: true
 ---
+
 # Show-Tech
 
 ## Overview:
