@@ -17,6 +17,10 @@ aliases:
     paths: "orc8r lte"
   - &c_cpp_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos"
+  - &session_manager_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos"
+  - &mme_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -802,6 +806,63 @@ jobs:
             docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
       - magma_slack_notify
 
+  session_manager_test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *session_manager_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Run common tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - run:
+          name: Run session_manager tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_session_manager;"
+          no_output_timeout: 5m
+      - magma_slack_notify
+
+  mme_test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *mme_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Run common tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - run:
+          name: Run sctpd tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd;"
+      - run:
+          name: Run mme tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai;"
+      - magma_slack_notify
+
   mme-clang-warnings:
     machine:
       image: ubuntu-2004:202010-01
@@ -1192,6 +1253,8 @@ workflows:
   agw:
     jobs:
       - lte-test
+      - session_manager_test
+      - mme_test
       - mme-clang-tidy:
           <<: *only_master
       - mme-clang-warnings:
@@ -1201,6 +1264,8 @@ workflows:
       - lte-agw-deploy:
           <<: *only_master
           requires:
+            - lte-test
+            - mme_test
             - lte-integ-test
       - c-cpp-codecov
 
