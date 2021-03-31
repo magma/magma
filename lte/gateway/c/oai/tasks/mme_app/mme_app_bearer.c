@@ -82,7 +82,7 @@
 #endif
 
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
-extern int _pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
+extern int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
 int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -210,7 +210,7 @@ void print_bearer_ids_helper(const ebi_t* ebi, uint32_t no_of_bearers) {
 }
 
 //------------------------------------------------------------------------------
-int _send_pcrf_bearer_actv_rsp(
+int send_pcrf_bearer_actv_rsp(
     struct ue_mm_context_s* ue_context_p, ebi_t ebi,
     gtpv2c_cause_value_t cause) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -951,7 +951,7 @@ void mme_app_handle_delete_session_rsp(
         // Reset flag
         ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = false;
         // Free the contents of PDN session
-        _pdn_connectivity_delete(&ue_context_p->emm_context, pid);
+        pdn_connectivity_delete(&ue_context_p->emm_context, pid);
         // Free PDN context
         free_wrapper((void**) &ue_context_p->pdn_contexts[pid]);
         // Free bearer context entry
@@ -2210,7 +2210,7 @@ int mme_app_handle_initial_paging_request(
 //------------------------------------------------------------------------------
 /* Send actv_dedicated_bearer_rej to spgw app for the pending dedicated bearers
  * without creating a context as the UE did not respond to paging*/
-void _mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
+void mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
     ue_mm_context_t* ue_context_p,
     emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -2306,7 +2306,7 @@ int mme_app_handle_paging_timer_expiry(
      * to Paging and free the memory*/
     for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
       if (ue_context_p->pending_ded_ber_req[idx]) {
-        _mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
+        mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
             ue_context_p, ue_context_p->pending_ded_ber_req[idx]);
         if (ue_context_p->pending_ded_ber_req[idx]->tft) {
           free_traffic_flow_template(
@@ -2793,7 +2793,7 @@ void mme_app_handle_create_dedicated_bearer_rsp(
       "Sending Activate Dedicated Bearer Response to SPGW for "
       "ue-id: " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
-  _send_pcrf_bearer_actv_rsp(ue_context_p, ebi, REQUEST_ACCEPTED);
+  send_pcrf_bearer_actv_rsp(ue_context_p, ebi, REQUEST_ACCEPTED);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
   // TODO:
@@ -2845,7 +2845,7 @@ void mme_app_handle_create_dedicated_bearer_rej(
       "Sending Activate Dedicated bearer Reject to SPGW: " MME_UE_S1AP_ID_FMT
       "\n",
       ue_context_p->mme_ue_s1ap_id);
-  _send_pcrf_bearer_actv_rsp(ue_context_p, ebi, REQUEST_REJECTED);
+  send_pcrf_bearer_actv_rsp(ue_context_p, ebi, REQUEST_REJECTED);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
 

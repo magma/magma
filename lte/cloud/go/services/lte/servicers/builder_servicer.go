@@ -159,6 +159,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 			Ipv4SgwS1UAddr:           gwEpc.IPV4SgwS1uAddr,
 			RestrictedPlmns:          getRestrictedPlmns(nwEpc.RestrictedPlmns),
+			RestrictedImeis:          getRestrictedImeis(nwEpc.RestrictedImeis),
 			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
 		},
@@ -554,4 +555,12 @@ func getFederatedModeMap(fedNetworkConfigs *feg_models.FederatedNetworkConfigs) 
 		return nil
 	}
 	return feg_models.ToFederatedModesMap(fedNetworkConfigs.FederatedModesMapping)
+}
+
+func getRestrictedImeis(imeis []*lte_models.Imei) []*lte_mconfig.MME_ImeiConfig {
+	ret := make([]*lte_mconfig.MME_ImeiConfig, len(imeis))
+	for idx, imei := range imeis {
+		ret[idx] = &lte_mconfig.MME_ImeiConfig{Tac: imei.Tac, Snr: imei.Snr}
+	}
+	return ret
 }

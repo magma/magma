@@ -59,8 +59,8 @@
 #include "sctp_messages_types.h"
 #include "timer_messages_types.h"
 
-static void _check_mme_healthy_and_notify_service(void);
-static bool _is_mme_app_healthy(void);
+static void check_mme_healthy_and_notify_service(void);
+static bool is_mme_app_healthy(void);
 static void mme_app_exit(void);
 
 bool mme_hss_associated = false;
@@ -292,13 +292,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case ACTIVATE_MESSAGE: {
       mme_hss_associated = true;
-      _check_mme_healthy_and_notify_service();
+      check_mme_healthy_and_notify_service();
     } break;
 
     case SCTP_MME_SERVER_INITIALIZED: {
       mme_sctp_bounded =
           &received_message_p->ittiMsg.sctp_mme_server_initialized.successful;
-      _check_mme_healthy_and_notify_service();
+      check_mme_healthy_and_notify_service();
     } break;
 
     case S6A_PURGE_UE_ANS: {
@@ -498,13 +498,13 @@ int mme_app_init(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
-static void _check_mme_healthy_and_notify_service(void) {
-  if (_is_mme_app_healthy()) {
+static void check_mme_healthy_and_notify_service(void) {
+  if (is_mme_app_healthy()) {
     send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, true);
   }
 }
 
-static bool _is_mme_app_healthy(void) {
+static bool is_mme_app_healthy(void) {
   return mme_hss_associated && mme_sctp_bounded;
 }
 

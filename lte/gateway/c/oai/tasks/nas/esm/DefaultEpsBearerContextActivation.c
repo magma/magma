@@ -60,10 +60,10 @@
    retransmission counter */
 #define DEFAULT_EPS_BEARER_ACTIVATE_COUNTER_MAX 5
 
-static int _default_eps_bearer_activate(
+static int default_eps_bearer_activate(
     emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg);
 
-static int _default_eps_bearer_activate_in_bearer_setup_req(
+static int default_eps_bearer_activate_in_bearer_setup_req(
     emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg);
 
 /****************************************************************************/
@@ -199,8 +199,7 @@ int esm_proc_default_eps_bearer_context_request(
     /* Send ACTIVATE DEFAULT EPS BEARER CONTEXT REQUEST
      * in ERAB SETUP REQ mesage
      */
-    rc =
-        _default_eps_bearer_activate_in_bearer_setup_req(emm_context, ebi, msg);
+    rc = default_eps_bearer_activate_in_bearer_setup_req(emm_context, ebi, msg);
   } else {
     OAILOG_INFO(
         LOG_NAS_ESM,
@@ -499,10 +498,10 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
        * activate default eps bearer req message in ICS req
        */
       if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone) {
-        _default_eps_bearer_activate_in_bearer_setup_req(
+        default_eps_bearer_activate_in_bearer_setup_req(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       } else {
-        _default_eps_bearer_activate(
+        default_eps_bearer_activate(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       }
       bdestroy_wrapper(&b);
@@ -549,7 +548,7 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
  **      Others:    T3485                                      **
  **                                                                        **
  ***************************************************************************/
-static int _default_eps_bearer_activate(
+static int default_eps_bearer_activate(
     emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};
@@ -606,7 +605,7 @@ static int _default_eps_bearer_activate(
  **      Others:    T3485                                                  **
  **                                                                        **
  ***************************************************************************/
-static int _default_eps_bearer_activate_in_bearer_setup_req(
+static int default_eps_bearer_activate_in_bearer_setup_req(
     emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};

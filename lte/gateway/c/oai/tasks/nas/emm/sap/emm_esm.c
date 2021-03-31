@@ -31,7 +31,7 @@
 /*
    String representation of EMMESM-SAP primitives
 */
-static const char* _emm_esm_primitive_str[] = {
+static const char* emm_esm_primitive_str[] = {
     "EMMESM_RELEASE_IND",           "EMMESM_UNITDATA_REQ",
     "EMMESM_ACTIVATE_BEARER_REQ",   "EMMESM_UNITDATA_IND",
     "EMMESM_DEACTIVATE_BEARER_REQ",
@@ -84,7 +84,7 @@ int emm_esm_send(const emm_esm_t* msg) {
 
   OAILOG_INFO(
       LOG_NAS_EMM, "EMMESM-SAP - Received primitive %s (%d)\n",
-      _emm_esm_primitive_str[primitive - _EMMESM_START - 1], primitive);
+      emm_esm_primitive_str[primitive - _EMMESM_START - 1], primitive);
 
   switch (primitive) {
     case _EMMESM_UNITDATA_REQ:
@@ -114,7 +114,7 @@ int emm_esm_send(const emm_esm_t* msg) {
   if (rc != RETURNok) {
     OAILOG_WARNING(
         LOG_NAS_EMM, "EMMESM-SAP - Failed to process primitive %s (%d)\n",
-        _emm_esm_primitive_str[primitive - _EMMESM_START - 1], primitive);
+        emm_esm_primitive_str[primitive - _EMMESM_START - 1], primitive);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

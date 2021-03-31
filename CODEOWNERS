@@ -3,16 +3,16 @@ circleci/ @tmdzk @mattymo @119Vik
 
 ci-scripts/ @rdefosse @tmdzk @mattymo @119Vik
 
-*/cloud/ @mpgermano @hcgatewood @karthiksubraveti @andreilee
-.golangci.yml @mpgermano @hcgatewood
+*/cloud/ @magma/orc8r-approvers 
+.golangci.yml @magma/orc8r-approvers
 
-orc8r/ @mpgermano @hcgatewood @emakeev @karthiksubraveti @andreilee
+orc8r/ @magma/orc8r-approvers 
 orc8r/tools/packer/ @tmdzk @mattymo @119Vik
 orc8r/cloud/deploy/bare-metal/ @tmdzk @mattymo @119Vik
 
 orc8r/gateway/c/ @themarwhal @ardzoht
 
-feg/ @themarwhal @mpgermano @uri200 @emakeev
+feg/ @magma/feg-approvers 
 cwf/ @themarwhal @mpgermano @uri200 @emakeev
 cwf/gateway/Vagrantfile @mattymo @119Vik @tmdzk
 
