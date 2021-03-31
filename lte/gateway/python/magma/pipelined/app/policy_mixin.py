@@ -267,6 +267,9 @@ class PolicyMixin(metaclass=ABCMeta):
                 msg_list.extend(msgs)
 
             for policy in policies:
+                # As the versions are managed by sessiond, save state here
+                self._service_manager.session_rule_version_mapper.save_version(
+                    imsi, ip_addr, policy.rule.id, policy.version)
                 try:
                     if policy.rule.redirect.support == policy.rule.redirect.ENABLED:
                         continue

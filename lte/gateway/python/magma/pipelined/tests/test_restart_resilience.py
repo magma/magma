@@ -217,6 +217,10 @@ class RestartResilienceTest(unittest.TestCase):
             epoch=global_epoch
         )
 
+        # Simulate clearing the dict
+        self.service_manager.session_rule_version_mapper\
+            ._version_by_imsi_and_rule = {}
+
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
