@@ -5,6 +5,9 @@
     "previous": "Previous",
     "tagline": "Bring more people online by enabling operators with open, flexible, and extensible network solutions",
     "docs": {
+      "architecture/agw_overview": {
+        "title": "AGW Overview"
+      },
       "basics/introduction": {
         "title": "Introduction"
       },
@@ -38,6 +41,9 @@
       },
       "cwf/troubleshooting": {
         "title": "cwf/troubleshooting"
+      },
+      "debugging_tools/dp_probe_cli": {
+        "title": "Data Path Probe Cli Command"
       },
       "debugging_tools/show_tech": {
         "title": "Show Tech"
@@ -955,6 +961,7 @@
       "FAQ": "FAQ",
       "Contributing": "Contributing",
       "Proposals": "Proposals",
+      "Architecture": "Architecture",
       "NMS User Guide": "NMS User Guide",
       "Symphony": "Symphony"
     }
