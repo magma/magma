@@ -52,3 +52,4 @@ def cli(ctx):
 cli.add_command(configure)
 cli.add_command(install)
 cli.add_command(upgrade)
+cli.add_command(verify)

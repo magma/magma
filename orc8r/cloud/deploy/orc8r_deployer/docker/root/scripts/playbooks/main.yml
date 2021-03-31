@@ -1,5 +1,10 @@
 # top level playbook
 
+- name: Deploy
+  import_playbook: deploy.yml
+  tags:
+    - deploy
+
 - name: Infra
   import_playbook: infra.yml
   tags:
@@ -14,8 +19,3 @@
   import_playbook: service.yml
   tags:
     - service
-
-- name: Deploy
-  import_playbook: deploy.yml
-  tags:
-    - deploy

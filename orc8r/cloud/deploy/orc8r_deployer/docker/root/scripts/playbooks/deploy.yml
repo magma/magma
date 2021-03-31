@@ -1,29 +1,57 @@
-- name: Deployment Playbook
-  hosts: localhost
-  tasks:
-    - name: Gather terraform state facts
-      ansible.builtin.command: terraform state list
-      register: result
-      args:
-        chdir: "{{project_dir}}"
-      tags: 'upgrade_precheck'
+  - name: Deployment Playbook
+    hosts: localhost
+    vars:
+      orc8r_namespace_query: "values.root_module.child_modules[*].resources[?address=='module.orc8r-app.kubernetes_namespace.orc8r'].values.metadata[*].name"
+      orc8r_secrets_query: "values.root_module.child_modules[*].resources[?address=='module.orc8r-app.kubernetes_secret.orc8r_certs'].values.data"
+      orc8r_api_endpoint_query: "values.root_module.child_modules[*].resources[?address=='module.orc8r-app.data.template_file.orc8r_values'].values.vars.api_hostname"
+    tasks:
+      - name: Gather terraform state facts
+        ansible.builtin.command: terraform show -json
+        register: result
+        args:
+          chdir: "{{project_dir}}"
+        tags:
+          - 'upgrade_precheck'
+          - 'verify_sanity'
 
-    - name: Check if terraform state command errors out
-      assert:
-        that:
-          - result.rc == 0
-        msg: [
-          "Error attempting to run 'terraform state' command",
-          "Terraform state not found",
-          "Check if the deployment directory {{project_dir}} contains terraform files"
-        ]
-      tags: 'upgrade_precheck'
+      - name: Check if terraform state command errors out
+        assert:
+          that:
+            - result.rc == 0
+          msg: [
+            "Error attempting to run 'terraform show' command",
+            "Terraform state not found",
+            "Check if the deployment directory {{project_dir}} contains terraform files"
+          ]
+        tags:
+          - 'upgrade_precheck'
+          - 'verify_sanity'
 
-    - name: Check if any resources are present in terraform state
-      assert:
-        that:
-          - result.stdout|length != 0
-        msg: [
-          "No resources found in terraform state"
-        ]
-      tags: 'upgrade_precheck'
+      - name: Check if any resources are present in terraform state
+        assert:
+          that:
+            - "{{ (result.stdout | from_json) | json_query('values') != None }}"
+          msg: [
+            "No resources found in terraform state"
+          ]
+        tags:
+          - 'upgrade_precheck'
+          - 'verify_sanity'
+
+      - name: set terraform state fact
+        set_fact:
+          terraform_state: "{{result.stdout | from_json}}"
+          orc8r_namespace: "{{lookup('flattened', result.stdout | from_json | json_query(orc8r_namespace_query))}}"
+          orc8r_secrets: "{{lookup('flattened', result.stdout | from_json | json_query(orc8r_secrets_query))}}"
+          orc8r_api_endpoint: "{{lookup('flattened', result.stdout | from_json | json_query(orc8r_api_endpoint_query))}}"
+        tags:
+          - 'upgrade_precheck'
+          - 'verify_sanity'
+
+      - name: Debug terraform facts
+        debug:
+          msg: "{{orc8r_secrets.keys()}}"
+        tags:
+          - 'upgrade_precheck'
+          - 'verify_sanity'
+

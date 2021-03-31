@@ -12,7 +12,8 @@ RUN apt-get update && \
             wget \
             unzip \
             curl \
-            vim && \
+            vim \
+            jq && \
     apt-get clean -y && \
     apt-get autoclean -y && \
     apt-get autoremove -y && \
