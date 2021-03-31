@@ -167,6 +167,13 @@ typedef enum {
   NAM_MAX,
 } network_access_mode_t;
 
+typedef struct supported_features_s {
+#define FEATURE_LIST_ID_2_EXTERNAL_IDENTIFIER
+  unsigned external_identifier : 1;
+#define FEATURE_LIST_ID_2_NR_AS_SECONDARY_RAT (1U)
+  unsigned nr_as_secondary_rat : 1;
+} supported_features_t;
+
 typedef uint64_t bitrate_t;
 
 typedef char* APN_t;

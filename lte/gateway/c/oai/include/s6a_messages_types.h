@@ -66,13 +66,13 @@ typedef struct s6a_update_location_req_s {
   unsigned initial_attach : 1;
 #define DUAL_REGIS_5G_IND (0x1)
   unsigned dual_regis_5g_ind : 1;
-
   char imsi[IMSI_BCD_DIGITS_MAX + 1];  // username
   uint8_t imsi_length;                 // username
 
   plmn_t visited_plmn;  // visited plmn id
   rat_type_t rat_type;  // rat type
-
+  /* Supported features AVP to have NR as RAT feature in AIR and ULR */
+  supported_features_t supportedfeatures;
   // missing                           // origin host
   // missing                           // origin realm
 
@@ -93,10 +93,10 @@ typedef struct s6a_update_location_ans_s {
   // apn_config_profile_t  apn_config_profile;// APN configuration profile
 
   network_access_mode_t access_mode;
+  supported_features_t supported_features;
   rau_tau_timer_t rau_tau_timer;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   uint8_t imsi_length;
-
 } s6a_update_location_ans_t;
 
 typedef struct s6a_auth_info_req_s {
@@ -108,6 +108,8 @@ typedef struct s6a_auth_info_req_s {
 
   /* Bit to indicate that USIM has requested a re-synchronization of SQN */
   unsigned re_synchronization : 1;
+  /* Supported features AVP to have NR as RAT feature in AIR and ULR */
+  supported_features_t supportedfeatures;
   /* AUTS to provide to AUC.
    * Only present and interpreted if re_synchronization == 1.
    */

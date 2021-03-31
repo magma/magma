@@ -29,6 +29,7 @@
 #include "dynamic_memory_check.h"
 #include "log.h"
 #include "mme_config.h"
+#include "mme_app_ue_context.h"
 #include "assertions.h"
 #include "conversions.h"
 #include "common_types.h"
@@ -305,6 +306,7 @@ int s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
   struct msg* msg;
   struct session* sess;
   union avp_value value;
+  ue_mm_context_t* ue_context_p = NULL;
 
   DevAssert(air_p);
   /*
@@ -396,6 +398,19 @@ int s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
         LOG_S6A, "%s visited_plmn: %02X%02X%02X\n", __FUNCTION__,
         value.os.data[0], value.os.data[1], value.os.data[2]);
   }
+
+  /*
+   * Adding Supported-Features
+   */
+  CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_supported_features, 0, &avp));
+  value.u32 = 0;
+
+  if (ue_context_p->emm_context._ms_network_capability.en_dc) {
+    FLAGS_SET(value.u32, FEATURE_LIST_ID_2_NR_AS_SECONDARY_RAT);
+  }
+  CHECK_FCT(fd_msg_avp_setvalue(avp, &value));
+  CHECK_FCT(fd_msg_avp_add(msg, MSG_BRW_LAST_CHILD, avp));
+
   /*
    * Adding the requested E-UTRAN authentication info AVP
    */

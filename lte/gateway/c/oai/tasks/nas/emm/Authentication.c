@@ -48,6 +48,7 @@
 #include "emm_fsm.h"
 #include "emm_regDef.h"
 #include "mme_app_state.h"
+#include "mme_app_ue_context.h"
 #include "nas_procedures.h"
 #include "s6a_messages_types.h"
 #include "nas/securityDef.h"
@@ -1439,7 +1440,7 @@ static int _authentication_abort(
  ** Inputs: ue_idP: UE context Identifier                                  **
  **      imsiP: IMSI of UE                                                 **
  **      is_initial_reqP: Flag to indicate, whether Auth Req is sent       **
- **                      for first time or initited as part of             **
+ **                      for first time or initiated as part of            **
  **                      re-synchronisation                                **
  **      visited_plmnP : Visited PLMN                                      **
  **      num_vectorsP : Number of Auth vectors in case of                  **
@@ -1486,6 +1487,24 @@ static void _nas_itti_auth_info_req(
   }
   auth_info_req->visited_plmn  = *visited_plmnP;
   auth_info_req->nb_of_vectors = num_vectorsP;
+
+  /*
+   * Check if we have UE 5G-NR
+   * connection supported in Attach request message.
+   * This is done by checking either en_dc flag in ms network capability or
+   * by checking  dcnr flag in ue network capability.
+   */
+  ue_mm_context_t* ue_context_p = malloc(sizeof(*ue_context_p));
+  if (ue_context_p->emm_context._ms_network_capability.en_dc) {
+    auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
+  } else {
+    auth_info_req->supportedfeatures.nr_as_secondary_rat = 0;
+    OAILOG_DEBUG(
+        TASK_MME_APP,
+        "UE is connected on LTE, Dual registration with 5G-NR is disabled for "
+        "(ue_id = %u)\n",
+        ue_context_p->mme_ue_s1ap_id);
+  }
 
   if (is_initial_reqP) {
     auth_info_req->re_synchronization = 0;

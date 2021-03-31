@@ -163,6 +163,16 @@ int s6a_ula_cb(
     goto err;
   }
 
+  // Supported-Features AVP addition
+  CHECK_FCT(fd_msg_search_avp(
+      ans_p, s6a_fd_cnf.dataobj_s6a_supported_features, &avp_p));
+
+  if (avp_p) {
+    CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
+  } else {
+    OAILOG_ERROR(LOG_S6A, "Imroper supported feature\n");
+  }
+
   CHECK_FCT(fd_msg_search_avp(
       ans_p, s6a_fd_cnf.dataobj_s6a_subscription_data, &avp_p));
 
@@ -281,6 +291,21 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
   value.u32 = ulr_pP->rat_type;
   CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
   CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
+
+  /*
+   * Adding Supported-Features
+   */
+  CHECK_FCT(
+      fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_supported_features, 0, &avp_p));
+  value.u32 = 0;
+
+  if (ulr_pP->dual_regis_5g_ind) {
+    FLAGS_SET(value.u32, FEATURE_LIST_ID_2_NR_AS_SECONDARY_RAT);
+  }
+  CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
+  CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
+  CHECK_FCT(fd_msg_send(&msg_p, NULL, NULL));
+
   /*
    * Adding ULR-Flags
    */

@@ -197,6 +197,7 @@ int mme_app_handle_s6a_update_location_ans(
   uint64_t imsi64                       = 0;
   struct ue_mm_context_s* ue_mm_context = NULL;
   int rc                                = RETURNok;
+  s6a_update_location_req_t* ulr        = NULL;
 
   if (ula_pP == NULL) {
     OAILOG_ERROR(
@@ -289,6 +290,7 @@ int mme_app_handle_s6a_update_location_ans(
         LOG_MME_APP, "No MSISDN received for %s " IMSI_64_FMT "\n",
         __FUNCTION__, imsi64);
   }
+
   ue_mm_context->rau_tau_timer       = ula_pP->subscription_data.rau_tau_timer;
   ue_mm_context->network_access_mode = ula_pP->subscription_data.access_mode;
   memcpy(
