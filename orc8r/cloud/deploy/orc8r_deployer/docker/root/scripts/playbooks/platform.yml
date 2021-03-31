@@ -3,7 +3,10 @@
 # check RDS instances are cleaned up
 - hosts: localhost
   roles:
-    - platform
-    - platform/cloudwatch
-    - platform/rds
-    - platform/elastic
+    - role: platform
+    - role: platform/cloudwatch
+      tags: cloudwatch
+    - role: platform/rds
+      tags: rds
+    - role: platform/elastic
+      tags: elastic

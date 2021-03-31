@@ -4,5 +4,6 @@
     - services
     - services/docker
     - services/helm
+    - services/orc8r
   vars_files:
     - roles/services/vars/all.yml

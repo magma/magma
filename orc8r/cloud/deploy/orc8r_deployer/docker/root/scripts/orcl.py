@@ -18,6 +18,7 @@ import subprocess
 import pprint
 import yaml
 import click
+import glob
 from ansible.cli.playbook import PlaybookCLI
 from configlib import ConfigManager
 
@@ -160,7 +161,7 @@ def addcerts(self_signed):
             "self_signed",
             "%s/main.yml" % constants["playbooks"]])
 
-
+########################## UPGRADE COMMANDS ###################################
 @cli.group()
 def upgrade():
     """
@@ -181,7 +182,44 @@ def upgrade_precheck():
         "upgrade_precheck",
         "%s/main.yml" % constants["playbooks"]])
 
+########################## VERIFY COMMANDS ###################################
+@cli.group()
+def verify():
+    """
+    Upgrade command enables user to run subcommands in context of Orc8r upgrade.
+    It provides subcommands like
+    - precheck which runs various checks to ensure successful upgrade
+    """
+    pass
+
+@verify.command('sanity')
+def verify_sanity():
+    # check if KUBECONFIG is set else find kubeconfig file and set the
+    # environment variable
+    kubeconfig = os.environ.get('KUBECONFIG')
+    if not kubeconfig:
+        kubeconfigs = glob.glob(constants['project_dir'] + "/kubeconfig_*")
+        if len(kubeconfigs) > 1:
+            click.echo("multiple kubeconfigs found %s, "
+                "unable to determine kubeconfig" % repr(kubeconfigs))
+            return
+
+        kubeconfig = kubeconfigs[0]
+
+    os.environ["KUBECONFIG"] = kubeconfig
+    os.environ["K8S_AUTH_KUBECONFIG"] = kubeconfig
+
+    run_playbook([
+        "ansible-playbook",
+        "-v",
+        "-e",
+        "@/root/config.yml",
+        "-t",
+        "verify_sanity",
+        "%s/main.yml" % constants["playbooks"]])
+
 def run_playbook(args):
+    click.echo(" ".join(args))
     pb_cli = PlaybookCLI(args)
     pb_cli.parse()
     pb_cli.run()

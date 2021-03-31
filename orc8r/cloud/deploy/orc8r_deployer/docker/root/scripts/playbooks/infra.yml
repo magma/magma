@@ -1,8 +1,9 @@
 # check if configuration contains all required variables
 - hosts: localhost
   roles:
-    - infra
-    - infra/az
-    - infra/dns
-    - infra/secrets
-    - infra/k8s
+    - role: infra
+    - role: infra/az
+    - role: infra/dns
+    - role: infra/secrets
+      tags: secrets
+    - role: infra/k8s
