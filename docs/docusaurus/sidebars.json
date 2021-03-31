@@ -83,6 +83,7 @@
           "lte/enodebd",
           "lte/config_apn",
           "lte/ha_setup",
+          "lte/agw_140_upgrade",
           "lte/agw_130_upgrade",
           "lte/agw_120_upgrade",
           "lte/agw_110_upgrade"
@@ -139,7 +140,12 @@
       "proposals/p005_call_tracing",
       "proposals/p007_header_enrichment",
       "proposals/p008_apn_correction",
-      "proposals/p009_nms_mariadb_migration"
-    ]
+      "proposals/p009_nms_mariadb_migration",
+      "proposals/p010_subscriber_scaling",
+      "proposals/p011_victoriametrics"
+    ],
+     "Architecture": [
+       "architecture/agw_overview"
+     ]  
   }
 }

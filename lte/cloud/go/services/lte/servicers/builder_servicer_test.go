@@ -217,6 +217,32 @@ func TestBuilder_Build(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
+	// verify restricted imei
+	setEpcNetworkRestrictedImeis(&nw, []*lte_models.Imei{
+		{
+			Tac: "01300600",
+			Snr: "176148",
+		},
+		{
+			Tac: "01200200",
+			Snr: "176222",
+		},
+	})
+	mmeVals.RestrictedImeis = []*lte_mconfig.MME_ImeiConfig{
+		{
+			Tac: "01300600",
+			Snr: "176148",
+		},
+		{
+			Tac: "01200200",
+			Snr: "176222",
+		},
+	}
+
+	actual, err = build_lte_federated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
 	//verify service area map
 	setEpcNetworkServiceAreaMap(&nw, map[string]lte_models.TacList{
 		"001": []lte_models.Tac{111, 112},
@@ -1292,6 +1318,13 @@ func setEpcNetworkRestrictedPlmns(nw *configurator.Network, restrictedPlmns []*l
 	inwConfig := nw.Configs[lte.CellularNetworkConfigType]
 	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 	cellularNwConfig.Epc.RestrictedPlmns = restrictedPlmns
+	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
+}
+
+func setEpcNetworkRestrictedImeis(nw *configurator.Network, restrictedImeis []*lte_models.Imei) {
+	inwConfig := nw.Configs[lte.CellularNetworkConfigType]
+	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
+	cellularNwConfig.Epc.RestrictedImeis = restrictedImeis
 	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
 }
 

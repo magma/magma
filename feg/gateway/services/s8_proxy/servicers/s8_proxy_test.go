@@ -53,8 +53,8 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
 
 	// force PGW to return specific control plane PGW TEID
-	PgwFTEIDc := uint32(111)
-	mockPgw.CreateSessionOptions.PgwFTEIDc = PgwFTEIDc
+	PgwTEIDc := uint32(111)
+	mockPgw.CreateSessionOptions.PgwTEIDc = PgwTEIDc
 
 	// Send and receive Create Session Request
 	csRes, err := s8p.CreateSession(context.Background(), csReq)
@@ -71,14 +71,9 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	// check Agw control Plane TEID on the response
 	assert.Equal(t, AGWTeidC, csRes.CAgwTeid)
 
-	// check Agw control Plane TEID on the session
-	session, err := s8p.gtpClient.GetSessionByIMSI(IMSI1)
-	assert.NoError(t, err)
-	agwTeidC, err := session.GetTEID(gtp.SGWControlPlaneIfType)
-	assert.Equal(t, AGWTeidC, agwTeidC)
-
 	// check Pgw Control Plane TEID
-	assert.NotEqual(t, PgwFTEIDc, csRes.CPgwFteid)
+	assert.NotEmpty(t, csRes.CPgwFteid)
+	assert.Equal(t, PgwTEIDc, csRes.CPgwFteid.Teid)
 
 	// check PAA and PDN Allocation
 	assert.Equal(t, PDNType, csRes.PdnType)
@@ -106,12 +101,57 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	assert.Error(t, err)
 
 	// disable option
-	mockPgw.CreateSessionOptions.PgwFTEIDc = 0
+	mockPgw.CreateSessionOptions.PgwTEIDc = 0
 
 	// Create again the same session
 	csRes, err = s8p.CreateSession(context.Background(), csReq)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, csRes)
+}
+
+func TestS8proxyRepeatedCreateSession(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+
+	// force PGW to return specific control plane PGW TEID
+	PgwTEIDc := uint32(111)
+	mockPgw.CreateSessionOptions.PgwTEIDc = PgwTEIDc
+
+	// Send and receive Create Session Request
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+	assert.Empty(t, csRes.GtpError)
+
+	// check Agw control Plane TEID on the response
+	assert.Equal(t, AGWTeidC, csRes.CAgwTeid)
+
+	// check Pgw Control Plane TEID
+	assert.Equal(t, PgwTEIDc, csRes.CPgwFteid.Teid)
+
+	// ------------------------
+	// -Create Session (again)-
+	// Create session with different tunnel ids
+	PgwTEIDc += 1
+	mockPgw.CreateSessionOptions.PgwTEIDc = PgwTEIDc
+	csReq.CAgwTeid += 1
+
+	// Send and receive Create Session Request
+	csRes, err = s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+	assert.Empty(t, csRes.GtpError)
+
+	// check Agw control Plane TEID on the response
+	assert.Equal(t, csReq.CAgwTeid, csRes.CAgwTeid)
+
+	// check Pgw Control Plane TEID
+	assert.Equal(t, PgwTEIDc, csRes.CPgwFteid.Teid)
 }
 
 func TestS8ProxyDeleteSessionAfterClientRestars(t *testing.T) {
@@ -262,9 +302,10 @@ func TestS8proxyManyCreateAndDeleteSession(t *testing.T) {
 	for _, err := range errors {
 		assert.NoError(t, err, "Some sessions return error: %s", err)
 	}
+	// Check no gtpClient sessions were left created
 	for _, csReq := range csReqs {
 		_, err := s8p.gtpClient.GetSessionByIMSI(csReq.Imsi)
-		assert.NoError(t, err)
+		assert.Error(t, err)
 	}
 
 	// ---- Delete Sessions ----
@@ -315,7 +356,7 @@ func TestS8proxyCreateSessionWrongSgwTEIDcFromPgw(t *testing.T) {
 	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
 
 	// PGW denies service
-	mockPgw.CreateSessionOptions.SgwTeidc = 99
+	mockPgw.CreateSessionOptions.SgwTEIDc = 99
 	csRes, err := s8p.CreateSession(context.Background(), csReq)
 	assert.Error(t, err)
 	assert.Empty(t, csRes)

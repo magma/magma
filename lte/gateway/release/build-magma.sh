@@ -164,7 +164,7 @@ if [[ "$OS" == "debian" ]]; then
         "libopenvswitch >= 2.8.10"
         "openvswitch-switch >= 2.8.10"
         "openvswitch-common >= 2.8.10"
-        "python3-openvswitch >= 2.8.10"
+        "python-openvswitch >= 2.8.10"
         "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
         )
 else

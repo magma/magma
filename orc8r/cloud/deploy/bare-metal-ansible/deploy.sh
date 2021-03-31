@@ -20,7 +20,8 @@ cd kubespray
 git fetch --all
 git checkout $KUBESPRAY_RELEASE
 # Copy ``inventory/sample`` as ``inventory/$CLUSTER_NAME``
-cp -rnp inventory/sample inventory/$CLUSTER_NAME
+mkdir -p ../inventory/$CLUSTER_NAME
+cp -rnp inventory/sample ../inventory/$CLUSTER_NAME
 cd ..
 
 sudo apt install -y python3-venv || :

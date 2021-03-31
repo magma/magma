@@ -505,6 +505,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     }
 
     if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_ENABLE_CONVERGED_CORE,
+            (const char**) &astring))) {
+      config_pP->enable_converged_core = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_string(
             setting_mme, MME_CONFIG_STRING_USE_HA, (const char**) &astring))) {
       config_pP->use_ha = parse_bool(astring);
     }
@@ -642,14 +648,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_TAI_LIST);
     if (setting != NULL) {
       num = config_setting_length(setting);
-      OAILOG_INFO(LOG_MME_APP, "Number of TAIs configured: %d\n", num);
-      AssertFatal(
-          num >= MIN_TAI_SUPPORTED,
-          "Not even one TAI is configured, configure minimum one TAI\n");
-      AssertFatal(
-          num <= MAX_TAI_SUPPORTED,
-          "Too many TAIs configured: %d (Maximum supported: %d)", num,
-          MAX_TAI_SUPPORTED);
+      if (num < MIN_TAI_SUPPORTED) {
+        fprintf(
+            stderr,
+            "ERROR: No TAI is configured.  At least one TAI must be "
+            "configured.\n");
+      }
 
       if (config_pP->served_tai.nb_tai != num) {
         if (config_pP->served_tai.plmn_mcc != NULL)
@@ -702,9 +706,11 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                   sub2setting, MME_CONFIG_STRING_TAC, &tac))) {
             config_pP->served_tai.tac[i] = (uint16_t) atoi(tac);
 
-            AssertFatal(
-                TAC_IS_VALID(config_pP->served_tai.tac[i]),
-                "Invalid TAC value " TAC_FMT, config_pP->served_tai.tac[i]);
+            if (!TAC_IS_VALID(config_pP->served_tai.tac[i])) {
+              fprintf(
+                  stderr, "ERROR: Invalid TAC value " TAC_FMT,
+                  config_pP->served_tai.tac[i]);
+            }
           }
         }
       }
@@ -952,9 +958,10 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             // Convert to 3gpp PLMN (MCC and MNC) format
             // First 3 chars in astring is MCC next 3 or 2 chars is MNC
             memcpy(fed_mode_mcc, astring, MAX_MCC_LENGTH);
-            memcpy(
-                fed_mode_mnc, &astring[MAX_MCC_LENGTH],
-                (strlen(astring) - MAX_MCC_LENGTH));
+            fed_mode_mcc[MAX_MCC_LENGTH] = '\0'; // null terminated string
+            n = strlen(astring) - MAX_MCC_LENGTH;
+            memcpy(fed_mode_mnc, astring + MAX_MCC_LENGTH, n);
+            fed_mode_mnc[n] = '\0'; // null terminated string
             AssertFatal(
                 strlen(fed_mode_mcc) == MAX_MCC_LENGTH,
                 "Bad MCC length (%ld), it must be %u digit ex: 001\n",
@@ -1485,6 +1492,9 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
       config_pP->use_stateless ? "true" : "false");
+  OAILOG_INFO(
+      LOG_CONFIG, "- enable_converged_core .......: %s\n\n",
+      config_pP->enable_converged_core ? "true" : "false");
   OAILOG_INFO(LOG_CONFIG, "- CSFB:\n");
   OAILOG_INFO(
       LOG_CONFIG,

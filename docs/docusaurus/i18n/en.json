@@ -5,6 +5,9 @@
     "previous": "Previous",
     "tagline": "Bring more people online by enabling operators with open, flexible, and extensible network solutions",
     "docs": {
+      "architecture/agw_overview": {
+        "title": "AGW Overview"
+      },
       "basics/introduction": {
         "title": "Introduction"
       },
@@ -38,6 +41,9 @@
       },
       "cwf/troubleshooting": {
         "title": "cwf/troubleshooting"
+      },
+      "debugging_tools/dp_probe_cli": {
+        "title": "Data Path Probe Cli Command"
       },
       "debugging_tools/show_tech": {
         "title": "Show Tech"
@@ -214,6 +220,12 @@
       "orc8r/deploy_intro": {
         "title": "Introduction"
       },
+      "orc8r/dev_dependencies": {
+        "title": "Module Dependencies"
+      },
+      "orc8r/dev_indexers": {
+        "title": "State Indexers"
+      },
       "orc8r/dev_minikube": {
         "title": "Deploy on Minikube"
       },
@@ -294,6 +306,9 @@
       },
       "proposals/p009_nms_mariadb_migration": {
         "title": "NMS MariaDB Migration"
+      },
+      "proposals/p010_subscriber_scaling": {
+        "title": "Subscriber Scaling"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
@@ -946,6 +961,7 @@
       "FAQ": "FAQ",
       "Contributing": "Contributing",
       "Proposals": "Proposals",
+      "Architecture": "Architecture",
       "NMS User Guide": "NMS User Guide",
       "Symphony": "Symphony"
     }

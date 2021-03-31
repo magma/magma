@@ -35,6 +35,7 @@ RUN echo "Install general purpouse packages" && \
         git \
         gnupg \
         golang \
+        libclang-11-dev \
         libgmp3-dev \
         libpcap-dev \
         libssl-dev \
@@ -55,7 +56,6 @@ RUN echo "Install general purpouse packages" && \
         wget && \
         gem install fpm && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
-        update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-11/bin/clang-format 10 && \
         update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
         update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10
 
@@ -230,6 +230,20 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     make install && \
     cd / && \
     rm -rf libtins
+
+###### Install Include What You Use for c/cpp header include fixup tooling
+# Tag 0.15 tracks Clang 11.0 per https://github.com/include-what-you-use/include-what-you-use/tags
+RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
+    cd include-what-you-use && \
+    git checkout 0.15 && \
+    cd .. && \
+    mkdir build_iwyu && cd build_iwyu && \
+    cmake -G "Unix Makefiles" -DIWHYU_LLVM_ROOT_PATH=/usr/lib/llvm-11 ../include-what-you-use/ && \
+    make && \
+    make install && \
+    cd / && \
+    rm -rf include-what-you-use && \
+    rm -rf build_liwyu
 
 # Add Converged MME sources to the container
 # Must be done prior to FreeDiameter build as we need the patches from Magma repo

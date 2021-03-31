@@ -152,10 +152,10 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 		// create PGW control plane FTeids
 		cIP := strings.Split(c.LocalAddr().String(), ":")[0]
 		var pgwFTEIDc *ie.IE
-		if mPgw.CreateSessionOptions.PgwFTEIDc != 0 {
+		if mPgw.CreateSessionOptions.PgwTEIDc != 0 {
 			// use passed options value
 			pgwFTEIDc = ie.NewFullyQualifiedTEID(
-				gtpv2.IFTypeS5S8PGWGTPC, mPgw.CreateSessionOptions.PgwFTEIDc, cIP, "").WithInstance(1)
+				gtpv2.IFTypeS5S8PGWGTPC, mPgw.CreateSessionOptions.PgwTEIDc, cIP, "").WithInstance(1)
 		} else {
 			pgwFTEIDc = c.NewSenderFTEID(cIP, "").WithInstance(1)
 		}
@@ -163,9 +163,9 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 		// create PGW user plane FTeids
 		uIP := strings.Split(dummyUserPlanePgwIP, ":")[0]
 		var pgwUteid uint32
-		if mPgw.CreateSessionOptions.PgwFTEIDu != 0 {
+		if mPgw.CreateSessionOptions.PgwTEIDu != 0 {
 			// use passed options value
-			pgwUteid = mPgw.CreateSessionOptions.PgwFTEIDu
+			pgwUteid = mPgw.CreateSessionOptions.PgwTEIDu
 		} else {
 			mPgw.randGenMux.Lock()
 			pgwUteid = (rand.Uint32() / 1000) * 1000 // for easy identification, this teid will always end in 000
@@ -175,9 +175,9 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 
 		// get SGW user plane Teid
 		var sgwTEIDc uint32
-		if mPgw.CreateSessionOptions.SgwTeidc != 0 {
+		if mPgw.CreateSessionOptions.SgwTEIDc != 0 {
 			// used passed options value
-			sgwTEIDc = mPgw.CreateSessionOptions.SgwTeidc
+			sgwTEIDc = mPgw.CreateSessionOptions.SgwTEIDc
 		} else {
 			// get the teid received by the request and stored in the seession previously
 			sgwTEIDc, err = session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)

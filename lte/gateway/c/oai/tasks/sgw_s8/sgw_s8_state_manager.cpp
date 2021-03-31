@@ -55,7 +55,10 @@ void SgwStateManager::create_state() {
   }
 
   OAILOG_INFO(LOG_SGW_S8, "Creating SGW_S8 state ");
-  bstring b   = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
+  bstring b = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
+
+  // sgw_free_s11_bearer_context_information is called when hashtable_ts_free is
+  // invoked, so as to remove any contexts allocated within sgw_bearer context
   state_ue_ht = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
       (void (*)(void**)) sgw_free_s11_bearer_context_information, b);
@@ -67,6 +70,8 @@ void SgwStateManager::create_state() {
 
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->ipv4.S1u_S12_S4_up.s_addr;
+
+  state_cache_p->sgw_ip_address_S5S8_up.s_addr = config_->ipv4.S5_S8_up.s_addr;
 
   state_cache_p->imsi_ue_context_htbl = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,

@@ -69,7 +69,7 @@
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
-static int _esm_msg_encode_header(
+static int esm_msg_encode_header(
     const esm_msg_header_t* header, uint8_t* buffer, uint32_t len);
 
 /****************************************************************************/
@@ -269,7 +269,7 @@ int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
   /*
    * First encode the ESM message header
    */
-  header_result = _esm_msg_encode_header(&msg->header, buffer, len);
+  header_result = esm_msg_encode_header(&msg->header, buffer, len);
 
   if (header_result < 0) {
     OAILOG_ERROR(
@@ -496,7 +496,7 @@ int esm_msg_decode_header(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _esm_msg_encode_header(
+static int esm_msg_encode_header(
     const esm_msg_header_t* header, uint8_t* buffer, uint32_t len) {
   int size = 0;
 

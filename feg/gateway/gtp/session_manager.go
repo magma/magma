@@ -36,6 +36,8 @@ func (c *Client) SendMessageAndExtractGrpc(imsi string, srcTEID uint32, peerAddr
 	proto.Message, error) {
 	// Receive Create Session Response
 	session := c.getSessionOrCreateNew(imsi, srcTEID, peerAddr)
+	// session will be removed once we are done. No need to keep it
+	defer c.RemoveSession(session)
 
 	sequence, err := c.SendMessageTo(msg, session.PeerAddr())
 	if err != nil {
@@ -48,7 +50,6 @@ func (c *Client) SendMessageAndExtractGrpc(imsi string, srcTEID uint32, peerAddr
 	}
 	grpcMsg, err := enriched_message.ExtractGrpcMessageFromGtpMessage(incomingMsg)
 	if err != nil {
-		c.RemoveSession(session)
 		return nil, fmt.Errorf("GTP server return an error: %s", err)
 	}
 	return grpcMsg, nil

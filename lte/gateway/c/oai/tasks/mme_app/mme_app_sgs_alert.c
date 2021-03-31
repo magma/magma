@@ -55,11 +55,11 @@
 #include "mme_app_ue_context.h"
 #include "sgs_messages_types.h"
 
-static int _mme_app_send_sgsap_alert_reject(
+static int mme_app_send_sgsap_alert_reject(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, SgsCause_t sgs_cause,
     uint64_t imsi64);
 
-static int _mme_app_send_sgsap_alert_ack(
+static int mme_app_send_sgsap_alert_ack(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, uint64_t imsi64);
 
 /****************************************************************************
@@ -100,7 +100,7 @@ int mme_app_handle_sgsap_alert_request(
         "SGS-ALERT REQUEST: Failed to find UE context for IMSI " IMSI_64_FMT
         "\n",
         imsi64);
-    _mme_app_send_sgsap_alert_reject(
+    mme_app_send_sgsap_alert_reject(
         sgsap_alert_req_pP, SGS_CAUSE_IMSI_UNKNOWN, imsi64);
     increment_counter("sgsap_alert_reject", 1, 1, "cause", "imsi_unknown");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -111,7 +111,7 @@ int mme_app_handle_sgsap_alert_request(
         "SGS-ALERT REQUEST: UE is currently not attached to EPS service and "
         "send Alert Reject to MSC/VLR for UE:" IMSI_64_FMT " \n",
         imsi64);
-    _mme_app_send_sgsap_alert_reject(
+    mme_app_send_sgsap_alert_reject(
         sgsap_alert_req_pP, SGS_CAUSE_IMSI_DETACHED_FOR_EPS_SERVICE, imsi64);
     increment_counter(
         "sgsap_alert_reject", 1, 1, "cause", "ue_is_not_registered_to_eps");
@@ -128,7 +128,7 @@ int mme_app_handle_sgsap_alert_request(
   }
   ue_context_p->sgs_context->neaf = SET_NEAF;
   /* send Alert Ack */
-  _mme_app_send_sgsap_alert_ack(sgsap_alert_req_pP, imsi64);
+  mme_app_send_sgsap_alert_ack(sgsap_alert_req_pP, imsi64);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -144,7 +144,7 @@ int mme_app_handle_sgsap_alert_request(
  **          Return:    RETURNok, RETURNerror **
  **
  ***********************************************************************************/
-static int _mme_app_send_sgsap_alert_reject(
+static int mme_app_send_sgsap_alert_reject(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, SgsCause_t sgs_cause,
     uint64_t imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -189,7 +189,7 @@ static int _mme_app_send_sgsap_alert_reject(
  **          Return:    RETURNok, RETURNerror **
  **
  ***********************************************************************************/
-static int _mme_app_send_sgsap_alert_ack(
+static int mme_app_send_sgsap_alert_ack(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, uint64_t imsi64) {
   int rc                                     = RETURNerror;
   MessageDef* message_p                      = NULL;
