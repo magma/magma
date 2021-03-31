@@ -164,12 +164,16 @@ class HtmlReport():
     self.file.write('</html>\n')
 
   def buildSummaryHeader(self):
-    self.file.write('  <h2>Docker Image Build Summary</h2>\n')
+    self.file.write('  <h2>Docker/Podman Images Build Summary</h2>\n')
     self.file.write('  <table class="table-bordered" width = "100%" align = "center" border = "1">\n')
     self.file.write('     <tr bgcolor="#33CCFF" >\n')
     self.file.write('       <th>Stage Name</th>\n')
     self.file.write('       <th>Image Kind</th>\n')
-    self.file.write('       <th>MAGMA - OAI MME cNF</th>\n')
+    cwd = os.getcwd()
+    if os.path.isfile(cwd + '/archives/build_magma_mme.log'):
+      self.file.write('       <th>MAGMA - OAI MME cNF (Ubuntu-18)</th>\n')
+    if os.path.isfile(cwd + '/archives/build_magma_mme_rhel8.log'):
+      self.file.write('       <th>MAGMA - OAI MME cNF (RHEL-8)</th>\n')
     self.file.write('     </tr>\n')
 
   def buildSummaryFooter(self):
@@ -205,57 +209,58 @@ class HtmlReport():
       self.file.write('      <td>Wrong NF Type for this Report</td>\n')
       return
 
-    logFileName = 'build_magma_mme.log'
     self.file.write('      <td>Builder Image</td>\n')
-
     cwd = os.getcwd()
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      status = False
-      if nfType == 'OAI-COMMON':
-        section_start_pattern = 'ninja -C  /build/c/magma_common'
-        section_end_pattern = 'cmake  /magma/lte/gateway/c/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
-      if nfType == 'OAI-MME':
-        section_start_pattern = 'ninja -C  /build/c/oai'
-        section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common -DCMAKE_BUILD_TYPE=Debug   -GNinja'
-      if nfType == 'SCTPD':
-        section_start_pattern = 'ninja -C  /build/c/sctpd'
-        section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
-      section_status = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-                    result = re.search(section_start_pattern, line)
-                    if result is not None:
-                        section_status = True
-                    result = re.search(section_end_pattern, line)
-                    if result is not None:
-                        section_status = False
-                    if section_status:
-                        if nfType == 'OAI-COMMON':
-                          result = re.search('Linking CXX static library eventd/libEVENTD.a', line)
-                        if nfType == 'OAI-MME':
-                          result = re.search('Linking CXX executable oai_mme/mme', line)
-                        if nfType == 'SCTPD':
-                          result = re.search('Linking CXX executable sctpd', line)
-                        if result is not None:
-                            status = True
-        logfile.close()
-      if status:
-        cell_msg = '      <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-        cell_msg += 'OK:\n'
+
+    logFileNames = ['build_magma_mme.log' , 'build_magma_mme_rhel8.log']
+    for logFileName in logFileNames:
+      if os.path.isfile(cwd + '/archives/' + logFileName):
+        status = False
+        if nfType == 'OAI-COMMON':
+          section_start_pattern = 'ninja -C  /build/c/magma_common'
+          section_end_pattern = 'cmake  /magma/lte/gateway/c/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
+        if nfType == 'OAI-MME':
+          section_start_pattern = 'ninja -C  /build/c/oai'
+          section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common -DCMAKE_BUILD_TYPE=Debug   -GNinja'
+        if nfType == 'SCTPD':
+          section_start_pattern = 'ninja -C  /build/c/sctpd'
+          section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
+        section_status = False
+        with open(cwd + '/archives/' + logFileName, 'r') as logfile:
+          for line in logfile:
+                      result = re.search(section_start_pattern, line)
+                      if result is not None:
+                          section_status = True
+                      result = re.search(section_end_pattern, line)
+                      if result is not None:
+                          section_status = False
+                      if section_status:
+                          if nfType == 'OAI-COMMON':
+                            result = re.search('Linking CXX static library eventd/libEVENTD.a', line)
+                          if nfType == 'OAI-MME':
+                            result = re.search('Linking CXX executable oai_mme/mme', line)
+                          if nfType == 'SCTPD':
+                            result = re.search('Linking CXX executable sctpd', line)
+                          if result is not None:
+                              status = True
+          logfile.close()
+        if status:
+          cell_msg = '      <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+          cell_msg += 'OK:\n'
+        else:
+          cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+          cell_msg += 'KO:\n'
+        if nfType == 'OAI-COMMON':
+          cell_msg += ' -- ninja -C  /build/c/magma_common</b></pre></td>\n'
+        if nfType == 'OAI-MME':
+          cell_msg += ' -- ninja -C  /build/c/oai</b></pre></td>\n'
+        if nfType == 'SCTPD':
+          cell_msg += ' -- ninja -C  /build/c/sctpd</b></pre></td>\n'
       else:
         cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-        cell_msg += 'KO:\n'
-      if nfType == 'OAI-COMMON':
-        cell_msg += ' -- ninja -C  /build/c/magma_common</b></pre></td>\n'
-      if nfType == 'OAI-MME':
-        cell_msg += ' -- ninja -C  /build/c/oai</b></pre></td>\n'
-      if nfType == 'SCTPD':
-        cell_msg += ' -- ninja -C  /build/c/sctpd</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
+        cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
 
-    self.file.write(cell_msg)
+      self.file.write(cell_msg)
 
   def analyze_compile_log(self, nfType):
     if nfType != 'OAI-COMMON' and nfType != 'OAI-MME' and nfType != 'SCTPD':
@@ -263,64 +268,65 @@ class HtmlReport():
       self.file.write('      <td>Wrong NF Type for this Report</td>\n')
       return
 
-    logFileName = 'build_magma_mme.log'
     self.file.write('      <td>Builder Image</td>\n')
-
     cwd = os.getcwd()
-    nb_errors = 0
-    nb_warnings = 0
-    nb_notes = 0
 
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      if nfType == 'OAI-COMMON':
-        section_start_pattern = '/build/c/magma_common'
-        section_end_pattern = 'mkdir -p  /build/c/oai'
-      if nfType == 'OAI-MME':
-        section_start_pattern = '/build/c/oai'
-        section_end_pattern = 'mkdir -p  /build/c/magma_common'
-      if nfType == 'SCTPD':
-        section_start_pattern = '/build/c/sctpd'
-        section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
-      section_status = False
-      section_done = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-          result = re.search(section_start_pattern, line)
-          if (result is not None) and not section_done and (re.search('cmake', line) is not None):
-            section_status = True
-          result = re.search(section_end_pattern, line)
-          if (result is not None) and not section_done and section_status:
-            section_status = False
-            section_done = True
-          if section_status:
-            result = re.search('error:', line)
-            if result is not None:
-              nb_errors += 1
-            result = re.search('warning:', line)
-            if result is not None:
-              nb_warnings += 1
-            result = re.search('note:', line)
-            if result is not None:
-              nb_notes += 1
-        logfile.close()
-      if nb_warnings == 0 and nb_errors == 0:
-        cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-      elif nb_warnings < 20 and nb_errors == 0:
-        cell_msg = '       <td bgcolor="Orange"><pre style="border:none; background-color:Orange"><b>'
+    logFileNames = ['build_magma_mme.log' , 'build_magma_mme_rhel8.log']
+    for logFileName in logFileNames:
+      nb_errors = 0
+      nb_warnings = 0
+      nb_notes = 0
+
+      if os.path.isfile(cwd + '/archives/' + logFileName):
+        if nfType == 'OAI-COMMON':
+          section_start_pattern = '/build/c/magma_common'
+          section_end_pattern = 'mkdir -p  /build/c/oai'
+        if nfType == 'OAI-MME':
+          section_start_pattern = '/build/c/oai'
+          section_end_pattern = 'mkdir -p  /build/c/magma_common'
+        if nfType == 'SCTPD':
+          section_start_pattern = '/build/c/sctpd'
+          section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
+        section_status = False
+        section_done = False
+        with open(cwd + '/archives/' + logFileName, 'r') as logfile:
+          for line in logfile:
+            result = re.search(section_start_pattern, line)
+            if (result is not None) and not section_done and (re.search('cmake', line) is not None):
+              section_status = True
+            result = re.search(section_end_pattern, line)
+            if (result is not None) and not section_done and section_status:
+              section_status = False
+              section_done = True
+            if section_status:
+              result = re.search('error:', line)
+              if result is not None:
+                nb_errors += 1
+              result = re.search('warning:', line)
+              if result is not None:
+                nb_warnings += 1
+              result = re.search('note:', line)
+              if result is not None:
+                nb_notes += 1
+          logfile.close()
+        if nb_warnings == 0 and nb_errors == 0:
+          cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+        elif nb_warnings < 20 and nb_errors == 0:
+          cell_msg = '       <td bgcolor="Orange"><pre style="border:none; background-color:Orange"><b>'
+        else:
+          cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+        if nb_errors > 0:
+          cell_msg += str(nb_errors) + ' errors found in compile log\n'
+        cell_msg += str(nb_warnings) + ' warnings found in compile log\n'
+        if nb_notes > 0:
+          cell_msg += str(nb_notes) + ' notes found in compile log\n'
+
+        cell_msg += '</b></pre></td>\n'
       else:
-        cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      if nb_errors > 0:
-        cell_msg += str(nb_errors) + ' errors found in compile log\n'
-      cell_msg += str(nb_warnings) + ' warnings found in compile log\n'
-      if nb_notes > 0:
-        cell_msg += str(nb_notes) + ' notes found in compile log\n'
+        cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+        cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
 
-      cell_msg += '</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
-
-    self.file.write(cell_msg)
+      self.file.write(cell_msg)
 
   def copyToTargetImage(self):
     self.file.write('    <tr>\n')
@@ -334,37 +340,41 @@ class HtmlReport():
       self.file.write('      <td>Wrong NF Type for this Report</td>\n')
       return
 
-    logFileName = 'build_magma_mme.log'
     self.file.write('      <td>Target Image</td>\n')
-
     cwd = os.getcwd()
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      section_start_pattern = 'FROM ubuntu:bionic as magma-mme$'
-      section_end_pattern = 'WORKDIR /magma-mme/bin$'
-      section_status = False
-      status = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-          result = re.search(section_start_pattern, line)
-          if result is not None:
-            section_status = True
-          result = re.search(section_end_pattern, line)
-          if result is not None:
-            section_status = False
-            status = True
-      logfile.close()
-      if status:
-        cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-        cell_msg += 'OK:\n'
-      else:
-        cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-        cell_msg += 'KO:\n'
-      cell_msg += '</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
 
-    self.file.write(cell_msg)
+    logFileNames = ['build_magma_mme.log' , 'build_magma_mme_rhel8.log']
+    for logFileName in logFileNames:
+      if os.path.isfile(cwd + '/archives/' + logFileName):
+        if logFileName == 'build_magma_mme.log':
+          section_start_pattern = 'FROM ubuntu:bionic as magma-mme$'
+        if logFileName == 'build_magma_mme_rhel8.log':
+          section_start_pattern = 'FROM registry.access.redhat.com/ubi8/ubi:latest AS magma-mme$'
+        section_end_pattern = 'WORKDIR /magma-mme/bin$'
+        section_status = False
+        status = False
+        with open(cwd + '/archives/' + logFileName, 'r') as logfile:
+          for line in logfile:
+            result = re.search(section_start_pattern, line)
+            if result is not None:
+              section_status = True
+            result = re.search(section_end_pattern, line)
+            if (result is not None) and section_status:
+              section_status = False
+              status = True
+        logfile.close()
+        if status:
+          cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+          cell_msg += 'OK:\n'
+        else:
+          cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+          cell_msg += 'KO:\n'
+        cell_msg += '</b></pre></td>\n'
+      else:
+        cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+        cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
+
+      self.file.write(cell_msg)
 
   def copyConfToolsToTargetImage(self):
     self.file.write('    <tr>\n')
@@ -378,37 +388,41 @@ class HtmlReport():
       self.file.write('      <td>Wrong NF Type for this Report</td>\n')
       return
 
-    logFileName = 'build_magma_mme.log'
     self.file.write('      <td>Target Image</td>\n')
-
     cwd = os.getcwd()
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      section_start_pattern = 'WORKDIR /magma-mme/bin$'
-      section_end_pattern = 'Successfully tagged magma-mme:'
-      section_status = False
-      status = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-          result = re.search(section_start_pattern, line)
-          if result is not None:
-            section_status = True
-          result = re.search(section_end_pattern, line)
-          if result is not None:
-            section_status = False
-            status = True
-        logfile.close()
-      if status:
-        cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-        cell_msg += 'OK:\n'
-      else:
-        cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-        cell_msg += 'KO:\n'
-      cell_msg += '</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
 
-    self.file.write(cell_msg)
+    logFileNames = ['build_magma_mme.log' , 'build_magma_mme_rhel8.log']
+    for logFileName in logFileNames:
+      if os.path.isfile(cwd + '/archives/' + logFileName):
+        section_start_pattern = 'WORKDIR /magma-mme/bin$'
+        if logFileName == 'build_magma_mme.log':
+          section_end_pattern = 'Successfully tagged magma-mme:'
+        if logFileName == 'build_magma_mme_rhel8.log':
+          section_end_pattern = 'COMMIT magma-mme:'
+        section_status = False
+        status = False
+        with open(cwd + '/archives/' + logFileName, 'r') as logfile:
+          for line in logfile:
+            result = re.search(section_start_pattern, line)
+            if result is not None:
+              section_status = True
+            result = re.search(section_end_pattern, line)
+            if (result is not None) and section_status:
+              section_status = False
+              status = True
+          logfile.close()
+        if status:
+          cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+          cell_msg += 'OK:\n'
+        else:
+          cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+          cell_msg += 'KO:\n'
+        cell_msg += '</b></pre></td>\n'
+      else:
+        cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+        cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
+
+      self.file.write(cell_msg)
 
   def imageSizeRow(self):
     self.file.write('    <tr>\n')
@@ -422,43 +436,48 @@ class HtmlReport():
       self.file.write('      <td>Wrong NF Type for this Report</td>\n')
       return
 
-    logFileName = 'build_magma_mme.log'
     self.file.write('      <td>Target Image</td>\n')
-
     cwd = os.getcwd()
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      section_start_pattern = 'Successfully tagged magma-mme'
-      section_end_pattern = 'MAGMA-OAI-MME DOCKER IMAGE BUILD'
-      section_status = False
-      status = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-          result = re.search(section_start_pattern, line)
-          if result is not None:
-            section_status = True
-          result = re.search(section_end_pattern, line)
-          if result is not None:
-            section_status = False
-          if section_status:
-            result = re.search('magma-mme *ci-tmp', line)
-            if result is not None:
-              result = re.search('ago *([0-9A-Z]+)', line)
-              if result is not None:
-                size = result.group(1)
-                status = True
-        logfile.close()
-      if status:
-        cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-        cell_msg += 'OK:  ' + size + '\n'
-      else:
-        cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-        cell_msg += 'KO:\n'
-      cell_msg += '</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
 
-    self.file.write(cell_msg)
+    logFileNames = ['build_magma_mme.log' , 'build_magma_mme_rhel8.log']
+    for logFileName in logFileNames:
+      if os.path.isfile(cwd + '/archives/' + logFileName):
+        if logFileName == 'build_magma_mme.log':
+          section_start_pattern = 'Successfully tagged magma-mme'
+          section_end_pattern = 'MAGMA-OAI-MME DOCKER IMAGE BUILD'
+        if logFileName == 'build_magma_mme_rhel8.log':
+          section_start_pattern = 'COMMIT magma-mme:'
+          section_end_pattern = 'MAGMA-OAI-MME RHEL8 PODMAN IMAGE BUILD'
+        section_status = False
+        status = False
+        with open(cwd + '/archives/' + logFileName, 'r') as logfile:
+          for line in logfile:
+            result = re.search(section_start_pattern, line)
+            if result is not None:
+              section_status = True
+            result = re.search(section_end_pattern, line)
+            if (result is not None) and section_status:
+              section_status = False
+            if section_status:
+              result = re.search('magma-mme *ci-tmp', line)
+              if result is not None:
+                result = re.search('ago *([0-9 A-Z]+)', line)
+                if result is not None:
+                  size = result.group(1)
+                  status = True
+          logfile.close()
+        if status:
+          cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+          cell_msg += 'OK:  ' + size + '\n'
+        else:
+          cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+          cell_msg += 'KO:\n'
+        cell_msg += '</b></pre></td>\n'
+      else:
+        cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+        cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
+
+      self.file.write(cell_msg)
 
   def appendBuildSummary(self, mode):
     cwd = os.getcwd()
