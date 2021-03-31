@@ -70,6 +70,7 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GSMCause.cpp        
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GMMCause.cpp        
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GIMEISVRequest.cpp   
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GDNN.cpp   
     )
 
 add_library(LIB_NAS5G

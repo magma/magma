@@ -18,6 +18,7 @@ namespace magma5g {
 // PDUSessionIdentity IE Class
 class PDUSessionIdentityMsg {
  public:
+  uint8_t iei;
   uint8_t pdu_session_id;
 
   PDUSessionIdentityMsg();
