@@ -11,16 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#pragma once
-#include "common_types.h"
-#include "s11_messages_types.h"
-#include "intertask_interface.h"
-#include "spgw_types.h"
-
-void sgw_s8_handle_s11_create_session_request(
-    sgw_state_t* sgw_state, itti_s11_create_session_request_t* session_req_p,
-    imsi64_t imsi64);
-
-void sgw_s8_handle_create_session_response(
-    sgw_state_t* sgw_state, s8_create_session_response_t* session_rsp_p,
-    imsi64_t imsi64);
+// WARNING: Do not include this header directly. Use intertask_interface.h
+// instead.
+MESSAGE_DEF(
+    S8_CREATE_SESSION_RSP, s8_create_session_response_t, s8_create_session_rsp)
