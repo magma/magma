@@ -571,8 +571,8 @@ static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
   rc = esm_send_activate_default_eps_bearer_context_request(
       msg_pP->pti, msg_pP->ebi,
       &esm_msg.activate_default_eps_bearer_context_request,
-      ue_mm_context->pdn_contexts[pdn_cid]->apn_subscribed, &msg_pP->pco,
-      esm_pdn_type, msg_pP->pdn_addr, &qos,
+      ue_mm_context->pdn_contexts[pdn_cid], &msg_pP->pco, esm_pdn_type,
+      msg_pP->pdn_addr, &qos,
       ue_mm_context->pdn_contexts[pdn_cid]->esm_data.esm_cause);
   clear_protocol_configuration_options(&msg_pP->pco);
   if (rc != RETURNerror) {

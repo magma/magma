@@ -190,8 +190,8 @@ int qos_params_to_eps_qos(
         eps_qos->bitRates.maxBitRateForUL = mbr_ul;
       } else if ((mbr_ul > 63) && (mbr_ul <= 568)) {
         eps_qos->bitRates.maxBitRateForUL = ((mbr_ul - 64) / 8) + 64;
-      } else if ((mbr_ul >= 576) && (mbr_ul <= 8640)) {
-        eps_qos->bitRates.maxBitRateForUL = ((mbr_ul - 128) / 64) + 128;
+      } else if ((mbr_ul > 575) && (mbr_ul <= 8640)) {
+        eps_qos->bitRates.maxBitRateForUL = ((mbr_ul - 576) / 64) + 128;
       } else if (mbr_ul > 8640) {
         eps_qos->bitRates.maxBitRateForUL = 0xfe;
         eps_qos->bitRatesExtPresent       = 1;
@@ -210,8 +210,8 @@ int qos_params_to_eps_qos(
         eps_qos->bitRates.maxBitRateForDL = mbr_dl;
       } else if ((mbr_dl > 63) && (mbr_dl <= 568)) {
         eps_qos->bitRates.maxBitRateForDL = ((mbr_dl - 64) / 8) + 64;
-      } else if ((mbr_dl >= 576) && (mbr_dl <= 8640)) {
-        eps_qos->bitRates.maxBitRateForDL = ((mbr_dl - 128) / 64) + 128;
+      } else if ((mbr_dl > 575) && (mbr_dl <= 8640)) {
+        eps_qos->bitRates.maxBitRateForDL = ((mbr_dl - 576) / 64) + 128;
       } else if (mbr_dl > 8640) {
         eps_qos->bitRates.maxBitRateForDL = 0xfe;
         eps_qos->bitRatesExtPresent       = 1;
@@ -230,8 +230,8 @@ int qos_params_to_eps_qos(
         eps_qos->bitRates.guarBitRateForUL = gbr_ul;
       } else if ((gbr_ul > 63) && (gbr_ul <= 568)) {
         eps_qos->bitRates.guarBitRateForUL = ((gbr_ul - 64) / 8) + 64;
-      } else if ((gbr_ul >= 576) && (gbr_ul <= 8640)) {
-        eps_qos->bitRates.guarBitRateForUL = ((gbr_ul - 128) / 64) + 128;
+      } else if ((gbr_ul > 575) && (gbr_ul <= 8640)) {
+        eps_qos->bitRates.guarBitRateForUL = ((gbr_ul - 576) / 64) + 128;
       } else if (gbr_ul > 8640) {
         eps_qos->bitRates.guarBitRateForUL = 0xfe;
         eps_qos->bitRatesExtPresent        = 1;
@@ -251,8 +251,8 @@ int qos_params_to_eps_qos(
         eps_qos->bitRates.guarBitRateForDL = gbr_dl;
       } else if ((gbr_dl > 63) && (gbr_dl <= 568)) {
         eps_qos->bitRates.guarBitRateForDL = ((gbr_dl - 64) / 8) + 64;
-      } else if ((gbr_dl >= 576) && (gbr_dl <= 8640)) {
-        eps_qos->bitRates.guarBitRateForDL = ((gbr_dl - 128) / 64) + 128;
+      } else if ((gbr_dl >= 575) && (gbr_dl <= 8640)) {
+        eps_qos->bitRates.guarBitRateForDL = ((gbr_dl - 576) / 64) + 128;
       } else if (gbr_dl > 8640) {
         eps_qos->bitRates.guarBitRateForDL = 0xfe;
         eps_qos->bitRatesExtPresent        = 1;
