@@ -469,8 +469,26 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
+  backport:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - python/set_version
+      - run:
+          command: |
+            mkdir ~/.magma
+            echo ${GITHUB_ACCESS_TOKEN} > ~/.magma/github_access_token
+      - run:
+          name: Install python prerequisites
+          command: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/circleci/release
+            fab find_release_commits
   ### CLOUD
-
   cloud-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -1349,4 +1367,8 @@ workflows:
   fossa:
     jobs:
       - fossa-analyze:
+          <<: *only_master
+  github:
+    jobs:
+      - backport:
           <<: *only_master
