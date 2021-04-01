@@ -94,6 +94,8 @@ message AuthenticationInformationRequest {
     uint32 num_requested_utran_geran_vectors = 6;
     // UTRAN/GERAN Resync Info (optional)
     bytes utran_geran_resync_info = 7;
+    // NR as secondary RAT bit in ULR message
+    bool supported_features_feature_id_list_2_nr_as_secondary_rat = 8;
 }
 
 // Authentication Information Answer (Section 7.2.6)
@@ -142,6 +144,8 @@ message UpdateLocationRequest {
     bool initial_attach = 4; // bit 5
     // Send Dual Registration 5G Indicator
     bool dual_registration_5g_indicator = 5; // bit 8
+    // NR as secondary RAT bit in ULR message
+    bool supported_features_feature_id_list_2_nr_as_secondary_rat = 6;
 }
 
 // Update Location Answer (Section 7.2.4)
@@ -172,6 +176,9 @@ message UpdateLocationAnswer {
 
     repeated bytes regional_subscription_zone_code = 9;
 
+    // NR as secondary RAT bit in ULA message
+    bool supported_features_feature_id_list_2_nr_as_secondary_rat = 10;
+
     message APNConfiguration {
         // APN identifier
         uint32 context_id = 1;
@@ -193,18 +200,12 @@ message UpdateLocationAnswer {
 
         string charging_characteristics = 6;
 
-        // For details about values see 29.212
+    // For details about values see 29.212
     message QoSProfile {
             int32 class_id = 1;
             uint32 priority_level = 2;
             bool preemption_capability = 3;
             bool preemption_vulnerability = 4;
-        }
-
-        // For Supported Features 29.272
-    message SupportedFeatures {
-        // NR as secondary RAT bit in ULA message
-            bool nr_as_secondary_rat = 1;
         }
 
     }

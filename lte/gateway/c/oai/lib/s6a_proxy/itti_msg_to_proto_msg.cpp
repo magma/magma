@@ -91,10 +91,18 @@ UpdateLocationRequest convert_itti_s6a_update_location_request_to_proto_msg(
   }
 
   /*
-   * Set the dual_registeration_5g_indicator
+   * Set the dual_registeration_5g_indicator flag
    */
   if (msg->dual_regis_5g_ind) {
     ret.set_dual_registration_5g_indicator(DUAL_REGIS_5G_IND);
+  }
+
+  /*
+   * Set the nr as secondary rat feature
+   */
+  if (msg->supportedfeatures.nr_as_secondary_rat) {
+    ret.set_supported_features_feature_id_list_2_nr_as_secondary_rat(
+        FEATURE_LIST_ID_2_NR_AS_SECONDARY_RAT);
   }
 
   /*

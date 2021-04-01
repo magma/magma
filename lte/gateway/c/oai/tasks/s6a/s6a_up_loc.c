@@ -330,7 +330,6 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
   if (ulr_pP->initial_attach) {
     FLAGS_SET(value.u32, ULR_INITIAL_ATTACH_IND);
   }
-
   CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
   CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
   CHECK_FCT(fd_msg_send(&msg_p, NULL, NULL));

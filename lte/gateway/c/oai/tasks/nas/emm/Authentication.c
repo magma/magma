@@ -1494,6 +1494,10 @@ static void _nas_itti_auth_info_req(
    * This is done by checking either en_dc flag in ms network capability or
    * by checking  dcnr flag in ue network capability.
    */
+
+#if EMBEDDED_SGW
+  auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
+#endif
   ue_mm_context_t* ue_context_p = malloc(sizeof(*ue_context_p));
   if (ue_context_p->emm_context._ms_network_capability.en_dc) {
     auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
