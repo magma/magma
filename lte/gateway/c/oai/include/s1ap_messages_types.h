@@ -45,6 +45,9 @@
 #include "TrackingAreaIdentity.h"
 #include "nas/securityDef.h"
 
+#include "S1ap_Source-ToTarget-TransparentContainer.h"
+#include "S1ap_HandoverType.h"
+
 #define S1AP_ENB_DEREGISTERED_IND(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.s1ap_eNB_deregistered_ind
 #define S1AP_ENB_INITIATED_RESET_REQ(mSGpTR)                                   \
@@ -83,6 +86,9 @@
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_failure
 #define S1AP_REMOVE_STALE_UE_CONTEXT(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.s1ap_remove_stale_ue_context
+#define S1AP_HANDOVER_REQUIRED(mSGpTR) (mSGpTR)->ittiMsg.s1ap_handover_required
+#define S1AP_HANDOVER_REQUEST_ACK(mSGpTR)                                      \
+  (mSGpTR)->ittiMsg.s1ap_handover_request_ack
 
 // NOT a ITTI message
 typedef struct s1ap_initial_ue_message_s {
@@ -374,4 +380,23 @@ typedef struct itti_s1ap_e_rab_modification_cnf_s {
   // Optional
   e_rab_list_t e_rab_failed_to_modify_list;
 } itti_s1ap_e_rab_modification_cnf_t;
+
+typedef struct itti_s1ap_handover_required_s {
+  uint32_t sctp_assoc_id;
+  uint32_t enb_id;
+  S1ap_Cause_t cause;
+  S1ap_HandoverType_t handover_type;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  bstring src_tgt_container;
+} itti_s1ap_handover_required_t;
+
+typedef struct itti_s1ap_handover_request_ack_s {
+  uint32_t source_assoc_id;
+  uint32_t target_assoc_id;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t src_enb_ue_s1ap_id;
+  enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id;
+  S1ap_HandoverType_t handover_type;
+  bstring tgt_src_container;
+} itti_s1ap_handover_request_ack_t;
 #endif /* FILE_S1AP_MESSAGES_TYPES_SEEN */

@@ -140,6 +140,20 @@ typedef struct e_rab_to_be_switched_in_downlink_list_s {
   e_rab_switched_in_downlink_item_t item[MAX_NO_OF_E_RABS];
 } e_rab_to_be_switched_in_downlink_list_t;
 
+// 9.1.5.4 HANDOVER REQUEST
+typedef struct e_rab_to_be_setup_item_ho_req_s {
+  e_rab_id_t e_rab_id;
+  bstring transport_layer_address;
+  teid_t gtp_teid;
+  e_rab_level_qos_parameters_t e_rab_level_qos_parameters;
+  // TODO: Include optional data-forwarding-not-possible IE
+} e_rab_to_be_setup_item_ho_req_t;
+
+typedef struct e_rab_to_be_setup_list_ho_req_s {
+  uint16_t no_of_items;
+  e_rab_to_be_setup_item_ho_req_t item[MAX_NO_OF_E_RABS];
+} e_rab_to_be_setup_list_ho_req_t;
+
 // E-RAB TO BE MODIFIED ITEM BEARER MOD IND
 typedef struct e_rab_to_be_modified_bearer_mod_ind_s {
   e_rab_id_t e_rab_id;

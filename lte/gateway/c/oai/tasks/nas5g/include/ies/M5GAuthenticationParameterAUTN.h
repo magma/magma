@@ -19,6 +19,7 @@ namespace magma5g {
 class AuthenticationParameterAUTNMsg {
  public:
 #define AUTN_MIN_LEN 16
+#define AUTN_MAX_LEN 16
   uint8_t iei;
   std::string AUTN;
 
