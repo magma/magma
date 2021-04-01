@@ -1,10 +1,11 @@
 ---
-id: setup_deb
-title: AGW Setup (Bare Metal)
-sidebar_label: Setup (Bare Metal)
+id: deploy_install
+title: Install AGW
 hide_title: true
 ---
-# Access Gateway Setup (On Bare Metal)
+
+# Install Access Gateway (Bare Metal)
+
 ## Prerequisites
 
 To setup a Magma Access Gateway, you will need a machine that
@@ -19,6 +20,7 @@ satisfies the following requirements:
   rename the `enp1s0` interface to `eth0`.
 
 ## Deployment
+
 ### 1. Create boot USB stick and install Debian on your AGW host
 
 - Download .iso image from [Debian mirror](https://cdimage.debian.org/cdimage/archive/9.13.0/amd64/iso-cd/debian-9.13.0-amd64-netinst.iso)

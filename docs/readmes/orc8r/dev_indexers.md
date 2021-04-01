@@ -86,7 +86,7 @@ See the orchestrator service for an example custom indexer.
 
 ### Automatic reindexing support
 
-Automatic reindexing is *only supported with Postgres*. Deployments targeting Maria will need to use the indexer CLI to manually trigger reindex operations. Run `/usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/indexers` from an Orc8r application container to view the help text for this command.
+Automatic reindexing is *only supported with Postgres*. Deployments targeting Maria will need to use the indexer CLI to manually trigger reindex operations. Run `/var/opt/magma/bin/indexers` from an Orc8r application container to view the help text for this command.
 
 ### State can go stale
 
