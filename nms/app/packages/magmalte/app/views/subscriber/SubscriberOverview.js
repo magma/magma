@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+import type {ActionQuery} from '../../components/ActionTable';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {
   mutable_subscriber,
@@ -32,6 +33,7 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkContext from '../../components/context/NetworkContext';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
@@ -44,10 +46,11 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {FEG_LTE} from '@fbcnms/types/network';
-import {
-  REFRESH_INTERVAL,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import {FetchSubscriberState} from '../../state/lte/SubscriberState';
+// import {
+//   REFRESH_INTERVAL,
+//   useRefreshingContext,
+// } from '../../components/context/RefreshContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -159,21 +162,20 @@ function SubscriberInternal(props: WithAlert) {
   const ctx = useContext(SubscriberContext);
   const [refresh, setRefresh] = useState(true);
   const classes = useStyles();
-  const [lastRefreshTime, setLastRefreshTime] = useState(
+  const [_lastRefreshTime, setLastRefreshTime] = useState(
     new Date().toLocaleString(),
   );
-
   // Auto refresh subscribers every 30 seconds
-  const state = useRefreshingContext({
-    context: SubscriberContext,
-    networkId,
-    type: 'subscriber',
-    interval: REFRESH_INTERVAL,
-    enqueueSnackbar,
-    refresh,
-    lastRefreshTime,
-  });
-
+  // const state = useRefreshingContext({
+  //   context: SubscriberContext,
+  //   networkId,
+  //   type: 'subscriber',
+  //   interval: REFRESH_INTERVAL,
+  //   enqueueSnackbar,
+  //   refresh,
+  //   lastRefreshTime,
+  // });
+  const state = ctx;
   const networkCtx = useContext(NetworkContext);
   // $FlowIgnore
   const subscriberMap: {[string]: subscriber} = state.state;
@@ -221,30 +223,68 @@ function SubscriberInternal(props: WithAlert) {
       width: 200,
     },
   ];
+  const [tokenList, setTokenList] = useState([]);
 
-  const subscribersIds = Array.from(
-    new Set([...Object.keys(subscriberMap), ...Object.keys(sessionState)]),
-  );
+  function handleSubscriberQuery(networkId, q) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const page = 100 < q.page * q.pageSize ? 100 / q.pageSize : q.page;
+        const subscriberQuery = await MagmaV1API.getLteByNetworkIdSubscribersV2(
+          {
+            networkId,
+            pageSize: 10,
+            pageToken: page === 0 ? '' : tokenList[page - 1],
+          },
+        );
 
-  const tableData: Array<SubscriberRowType> = subscribersIds.map(
-    (imsi: string) => {
-      const subscriberInfo = subscriberMap[imsi] || {};
-      const metrics = subscriberMetrics?.[`${imsi}`];
-      return {
-        name: subscriberInfo.name ?? imsi,
-        imsi: imsi,
-        service: subscriberInfo.lte?.state || '',
-        currentUsage: metrics?.currentUsage ?? '0',
-        dailyAvg: metrics?.dailyAvg ?? '0',
-        lastReportedTime:
-          subscriberInfo.monitoring?.icmp?.last_reported_time === 0
-            ? new Date(subscriberInfo.monitoring?.icmp?.last_reported_time)
-            : '-',
-      };
-    },
-  );
+        const newTokenList = tokenList;
+        if (!newTokenList.includes(subscriberQuery.next_page_token)) {
+          newTokenList.push(subscriberQuery.next_page_token);
+        }
+        setTokenList([...newTokenList]);
 
+        const sessions = {};
+        Object.keys(subscriberQuery.subscribers).map(async imsi => {
+          const state = await FetchSubscriberState({networkId, id: imsi});
+          sessions[imsi] = state;
+        });
+        // set subscriber state with current subscriber rows
+        ctx.setState?.('', undefined, {
+          state: subscriberQuery.subscribers,
+          sessionState: sessions,
+        });
+        const tableData: Array<SubscriberRowType> = subscriberQuery
+          ? Object.keys(subscriberQuery.subscribers).map((imsi: string) => {
+              const subscriberInfo = subscriberQuery.subscribers[imsi] || {};
+              const metrics = subscriberMetrics?.[`${imsi}`];
+              return {
+                name: subscriberInfo.name ?? imsi,
+                imsi: imsi,
+                service: subscriberInfo.lte?.state || '',
+                currentUsage: metrics?.currentUsage ?? '0',
+                dailyAvg: metrics?.dailyAvg ?? '0',
+                lastReportedTime:
+                  subscriberInfo.monitoring?.icmp?.last_reported_time === 0
+                    ? new Date(
+                        subscriberInfo.monitoring?.icmp?.last_reported_time,
+                      )
+                    : '-',
+              };
+            })
+          : [];
+        resolve({
+          data: tableData,
+          page: page,
+          totalCount: 200,
+        });
+      } catch (e) {
+        reject(e?.message ?? 'error retrieving events');
+      }
+    });
+  }
   const onClose = () => setJsonDialog(false);
+  const tableRef = React.useRef();
+
   return (
     <>
       <TopBar
@@ -282,48 +322,11 @@ function SubscriberInternal(props: WithAlert) {
               imsi={currRow.imsi}
             />
             <ActionTable
-              data={
-                !Object.keys(sessionState).length
-                  ? tableData
-                  : tableData.map(row => {
-                      const subscriber =
-                        sessionState[row.imsi]?.subscriber_state || {};
-                      const ipAddresses = [];
-                      const activeApns = [];
-                      let activeSessions = 0;
-                      Object.keys(subscriber || {}).forEach(apn => {
-                        subscriber[apn].forEach(session => {
-                          if (session.lifecycle_state === 'SESSION_ACTIVE') {
-                            ipAddresses.push(session?.ipv4);
-                            activeSessions++;
-                          }
-                        });
-                        activeApns.push(apn);
-                      });
-                      return {
-                        ...row,
-                        activeApns:
-                          activeApns.length > 0 ? activeApns.join() : '-',
-                        activeSessions: activeSessions,
-                        ipAddress:
-                          ipAddresses.length > 0 ? ipAddresses.join() : '-',
-                      };
-                    })
-              }
-              columns={
-                !Object.keys(sessionState).length
-                  ? tableColumns
-                  : [
-                      ...tableColumns,
-                      {
-                        title: 'Active Sessions',
-                        field: 'activeSessions',
-                        width: 175,
-                      },
-                      {title: 'Active APNs', field: 'activeApns'},
-                      {title: 'Session IP Address', field: 'ipAddress'},
-                    ]
-              }
+              tableRef={tableRef}
+              data={(query: ActionQuery) => {
+                return handleSubscriberQuery(networkId, query);
+              }}
+              columns={tableColumns}
               handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
               menuItems={
                 networkCtx.networkType === FEG_LTE
@@ -370,6 +373,7 @@ function SubscriberInternal(props: WithAlert) {
 
                               try {
                                 await ctx.setState?.(currRow.imsi);
+                                tableRef.current?.onQueryChange();
                                 setLastRefreshTime(new Date().toLocaleString());
                               } catch (e) {
                                 enqueueSnackbar(
@@ -388,6 +392,7 @@ function SubscriberInternal(props: WithAlert) {
                 actionsColumnIndex: -1,
                 pageSize: 10,
                 pageSizeOptions: [10, 20],
+                showFirstLastPageButtons: false,
               }}
               detailPanel={
                 !Object.keys(sessionState).length

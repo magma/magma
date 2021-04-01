@@ -13,9 +13,6 @@
  * @flow strict-local
  * @format
  */
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-
-import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
 import type {Metrics} from '../../components/context/SubscriberContext';
 import type {
   mutable_subscriber,
@@ -23,6 +20,10 @@ import type {
   subscriber,
   subscriber_state,
 } from '@fbcnms/magma-api';
+
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+
+import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
 
 type FetchProps = {
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
@@ -50,18 +51,18 @@ export async function FetchSubscribers(props: FetchProps) {
       enqueueSnackbar?.('failed fetching subscriber information', {
         variant: 'error',
       });
-      return;
     }
   } else {
     try {
-      return await MagmaV1API.getLteByNetworkIdSubscribers({
+      return await MagmaV1API.getLteByNetworkIdSubscribersV2({
         networkId,
+        pageSize: 10,
+        pageToken: '',
       });
     } catch (e) {
       enqueueSnackbar?.('failed fetching subscriber information', {
         variant: 'error',
       });
-      return;
     }
   }
 }
