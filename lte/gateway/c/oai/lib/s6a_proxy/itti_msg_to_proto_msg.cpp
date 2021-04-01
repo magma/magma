@@ -55,6 +55,12 @@ convert_itti_s6a_authentication_info_req_to_proto_msg(
   ret.set_immediate_response_preferred(0);
 
   /*
+   * Adding NR as secodnary RAT feature
+   */
+  ret.set_supported_features_feature_id_list_2_nr_as_secondary_rat(
+      msg->supportedfeatures.nr_as_secondary_rat);
+
+  /*
    * Re-synchronization information containing the AUTS computed at USIM
    */
 
