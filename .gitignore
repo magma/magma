@@ -39,6 +39,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+orc8r/gateway/python/build
+lte/gateway/python/build
 
 # Ignore test certs
 orc8r/cloud/test_certs/*.csr
