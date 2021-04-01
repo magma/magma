@@ -37,7 +37,7 @@ static int sgw_s8_add_gtp_s8_tunnel(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     sgw_eps_bearer_context_information_t* sgw_context_p);
 
-static void sgw_send_modify_bearer_response(
+static void sgw_s8_send_modify_bearer_response(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     const itti_sgi_update_end_point_response_t* const resp_pP, imsi64_t imsi64);
 
@@ -313,7 +313,7 @@ void sgw_s8_handle_s11_create_session_request(
 
   send_s8_create_session_request(
       sgw_s11_tunnel.local_teid, session_req_pP, imsi64);
-  sgw_display_s11_bearer_context_information(LOG_SGW_S8, new_sgw_eps_context);
+  sgw_display_s11_bearer_context_information(new_sgw_eps_context, LOG_SGW_S8);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
@@ -585,7 +585,6 @@ void sgw_s8_handle_modify_bearer_request(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
 
-  uint8_t idx                                                    = 0;
   uint8_t sgi_rsp_idx                                            = 0;
   itti_sgi_update_end_point_response_t sgi_update_end_point_resp = {0};
   struct in_addr enb                  = {.s_addr = 0};
@@ -616,8 +615,9 @@ void sgw_s8_handle_modify_bearer_request(
   sgw_context_p->trxn                    = modify_bearer_pP->trxn;
   sgi_update_end_point_resp.context_teid = modify_bearer_pP->teid;
   // Traversing through the list of bearers to be modified
-  for (; idx <
-         modify_bearer_pP->bearer_contexts_to_be_modified.num_bearer_context;
+  for (uint8_t idx = 0;
+       idx <
+       modify_bearer_pP->bearer_contexts_to_be_modified.num_bearer_context;
        idx++) {
     bearer_context_to_be_modified_t mbr_bearer_ctxt_p =
         modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[idx];
@@ -670,7 +670,7 @@ void sgw_s8_handle_modify_bearer_request(
   }  // for loop
 
   sgi_rsp_idx = 0;
-  for (idx = 0;
+  for (uint8_t idx = 0;
        idx < modify_bearer_pP->bearer_contexts_to_be_removed.num_bearer_context;
        idx++) {
     bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
@@ -683,12 +683,12 @@ void sgw_s8_handle_modify_bearer_request(
       sgi_update_end_point_resp.num_bearers_removed++;
     }
   }
-  sgw_send_modify_bearer_response(
+  sgw_s8_send_modify_bearer_response(
       sgw_context_p, &sgi_update_end_point_resp, imsi64);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-static void sgw_send_modify_bearer_response(
+static void sgw_s8_send_modify_bearer_response(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     const itti_sgi_update_end_point_response_t* const resp_pP,
     imsi64_t imsi64) {

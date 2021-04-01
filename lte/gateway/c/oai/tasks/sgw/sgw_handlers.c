@@ -252,8 +252,8 @@ int sgw_handle_s11_create_session_request(
         session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
             .eps_bearer_id);
     sgw_display_s11_bearer_context_information(
-        LOG_SPGW_APP, &s_plus_p_gw_eps_bearer_ctxt_info_p
-                           ->sgw_eps_bearer_context_information);
+        &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information,
+        LOG_SPGW_APP);
 
     if (eps_bearer_ctxt_p == NULL) {
       OAILOG_ERROR_UE(

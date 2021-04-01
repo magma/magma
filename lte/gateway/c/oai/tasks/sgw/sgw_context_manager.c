@@ -65,8 +65,8 @@ void sgw_display_sgw_eps_bearer_context(
 
 //-----------------------------------------------------------------------------
 void sgw_display_s11_bearer_context_information(
-    log_proto_t module,
-    sgw_eps_bearer_context_information_t* sgw_context_information)
+    sgw_eps_bearer_context_information_t* sgw_context_information,
+    log_proto_t module)
 //-----------------------------------------------------------------------------
 {
   OAILOG_DEBUG(
