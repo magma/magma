@@ -1,0 +1,10 @@
+---
+
+#Parameters for Menlo Park Site AGW
+
+
+idAgw: AgwA
+sshKeyAgw: "{{ awsHostKey }}"
+azHomeAgw: "{{ awsAgwAz }}"
+imageDebianAgw: "{{ awsAgwAmi }}"
+

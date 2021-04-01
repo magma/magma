@@ -14,7 +14,6 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
@@ -1477,6 +1476,13 @@ int emm_send_security_mode_command(
   size += NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH;
   emm_msg->naskeysetidentifier.tsc = NAS_KEY_SET_IDENTIFIER_NATIVE;
   emm_msg->naskeysetidentifier.naskeysetidentifier = msg->ksi;
+  /*
+   * Replayed UE Additional security capabilities
+   */
+  size += UE_ADDITIONAL_SECURITY_CAPABILITY_MAXIMUM_LENGTH;
+  emm_msg->replayedueadditionalsecuritycapabilities._5g_ea = msg->nea;
+  emm_msg->replayedueadditionalsecuritycapabilities._5g_ia = msg->nia;
+  emm_msg->presencemask                                    = 0;
   /*
    * Replayed UE security capabilities
    */

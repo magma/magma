@@ -148,6 +148,7 @@ typedef enum {
   LOG_GTPV2C,
   LOG_SCTP,
   LOG_S1AP,
+  LOG_NGAP,
   LOG_MME_APP,
   LOG_NAS,
   LOG_NAS_EMM,
@@ -167,6 +168,7 @@ typedef enum {
   LOG_ASYNC_SYSTEM,
   LOG_ASSERT,
   LOG_COMMON,
+  LOG_SGW_S8,
   MAX_LOG_PROTOS,
 } log_proto_t;
 
@@ -363,7 +365,7 @@ int append_log_ctx_info_prefix_id(
     size_t filename_length, const log_thread_ctxt_t* thread_ctxt,
     time_t* cur_time, const char* short_source_fileP);
 
-const char* const get_short_file_name(const char* const source_file_nameP);
+const char* get_short_file_name(const char* const source_file_nameP);
 
 // Return the hex representation of a char array
 char* bytes_to_hex(char* byte_array, int length, char* hex_array);

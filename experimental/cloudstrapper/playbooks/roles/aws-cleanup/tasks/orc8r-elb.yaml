@@ -1,0 +1,12 @@
+---
+
+- name: collect all elb info
+  ec2_elb_info:
+  register: valElb
+
+- name: delete all elbs, because this is a clean deployment
+  ec2_elb_lb:
+    state: absent
+    name: "{{ item.name }}"
+  with_items:
+    - "{{ valElb.elbs }}"

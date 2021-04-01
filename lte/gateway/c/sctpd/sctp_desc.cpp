@@ -18,49 +18,41 @@
 namespace magma {
 namespace sctpd {
 
-SctpDesc::SctpDesc(int sd): _sd(sd)
-{
+SctpDesc::SctpDesc(int sd) : _sd(sd) {
   assert(sd >= 0);
 }
 
-void SctpDesc::addAssoc(const SctpAssoc &assoc)
-{
+void SctpDesc::addAssoc(const SctpAssoc& assoc) {
   _assocs[assoc.assoc_id] = assoc;
 }
 
-SctpAssoc &SctpDesc::getAssoc(uint32_t assoc_id)
-{
-  return _assocs.at(assoc_id); // throws std::out_of_range
+SctpAssoc& SctpDesc::getAssoc(uint32_t assoc_id) {
+  return _assocs.at(assoc_id);  // throws std::out_of_range
 }
 
-int SctpDesc::delAssoc(uint32_t assoc_id)
-{
+int SctpDesc::delAssoc(uint32_t assoc_id) {
   auto num_removed = _assocs.erase(assoc_id);
   return num_removed == 1 ? 0 : -1;
 }
 
-AssocMap::const_iterator SctpDesc::begin() const
-{
+AssocMap::const_iterator SctpDesc::begin() const {
   return _assocs.cbegin();
 }
 
-AssocMap::const_iterator SctpDesc::end() const
-{
+AssocMap::const_iterator SctpDesc::end() const {
   return _assocs.cend();
 }
 
-int SctpDesc::sd() const
-{
+int SctpDesc::sd() const {
   return _sd;
 }
 
-void SctpDesc::dump() const
-{
-  for (auto const &kv : _assocs) {
+void SctpDesc::dump() const {
+  for (auto const& kv : _assocs) {
     auto assoc = kv.second;
     assoc.dump();
   }
 }
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

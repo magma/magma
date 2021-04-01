@@ -107,13 +107,9 @@ static int s1ap_send_init_sctp(void) {
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   s1ap_state_t* state;
-
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
-
-  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-  state           = get_s1ap_state(false);
+  MessageDef* received_message_p = receive_msg(reader);
+  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
+  state                          = get_s1ap_state(false);
   AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -184,6 +180,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S1AP_E_RAB_SETUP_REQ: {
       s1ap_generate_s1ap_e_rab_setup_req(
           state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
+    } break;
+
+    case S1AP_E_RAB_MODIFICATION_CNF: {
+      s1ap_mme_generate_erab_modification_confirm(
+          state, &received_message_p->ittiMsg.s1ap_e_rab_modification_cnf);
     } break;
 
     // From MME_APP task
@@ -286,7 +287,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       s1ap_mme_exit();
     } break;
 
@@ -301,7 +302,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   put_s1ap_imsi_map();
   put_s1ap_ue_state(imsi64);
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -354,12 +355,12 @@ int s1ap_mme_init(const mme_config_t* mme_config_p) {
 void s1ap_mme_exit(void) {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
 
-  destroy_task_context(&s1ap_task_zmq_ctx);
-
   put_s1ap_state();
   put_s1ap_imsi_map();
 
   s1ap_state_exit();
+
+  destroy_task_context(&s1ap_task_zmq_ctx);
 
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP: DONE\n");
   OAI_FPRINTF_INFO("TASK_S1AP terminated\n");

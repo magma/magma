@@ -34,6 +34,12 @@ void GRPCReceiver::rpc_response_loop() {
 void GRPCReceiver::stop() {
   running_ = false;
   queue_.Shutdown();
+  // Pop all items in the queue until it is empty
+  // https://github.com/grpc/grpc/issues/8610
+  void* tag;
+  bool ok;
+  while (queue_.Next(&tag, &ok)) {
+  }
 }
 
-}
+}  // namespace magma

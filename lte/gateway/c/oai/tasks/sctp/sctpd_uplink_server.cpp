@@ -133,26 +133,26 @@ using grpc::ServerBuilder;
 
 using magma::mme::SctpdUplinkImpl;
 
-std::shared_ptr<SctpdUplinkImpl> _service = nullptr;
-std::unique_ptr<Server> _server           = nullptr;
+std::shared_ptr<SctpdUplinkImpl> service = nullptr;
+std::unique_ptr<Server> server           = nullptr;
 
 int start_sctpd_uplink_server(void) {
-  _service = std::make_shared<SctpdUplinkImpl>();
+  service = std::make_shared<SctpdUplinkImpl>();
 
   ServerBuilder builder;
   builder.AddListeningPort(UPSTREAM_SOCK, grpc::InsecureServerCredentials());
-  builder.RegisterService(_service.get());
+  builder.RegisterService(service.get());
 
-  _server = builder.BuildAndStart();
+  server = builder.BuildAndStart();
 
   return 0;
 }
 
 void stop_sctpd_uplink_server(void) {
-  if (_server != nullptr) {
-    _server->Shutdown();
-    _server->Wait();
-    _server = nullptr;
+  if (server != nullptr) {
+    server->Shutdown();
+    server->Wait();
+    server = nullptr;
   }
-  _service = nullptr;
+  service = nullptr;
 }

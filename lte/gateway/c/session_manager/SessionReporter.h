@@ -51,6 +51,8 @@ class AsyncEvbResponse : public AsyncGRPCResponse<ResponseType> {
 
 class SessionReporter : public GRPCReceiver {
  public:
+  virtual ~SessionReporter() = default;
+
   /**
    * Either proxy an UpdateSessionRequest gRPC call to the cloud
    * or send the request to the local PCRF/OCS on the gateway

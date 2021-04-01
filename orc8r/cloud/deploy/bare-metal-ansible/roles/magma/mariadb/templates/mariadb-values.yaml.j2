@@ -1,0 +1,8 @@
+global:
+  storageClass: {{ storage_class }}
+image:
+  tag: {{ mariadb_image_tag }}
+primary:
+  extraFlags: --sql-mode=ANSI_QUOTES
+auth:
+  rootPassword: {{ db_root_password }}

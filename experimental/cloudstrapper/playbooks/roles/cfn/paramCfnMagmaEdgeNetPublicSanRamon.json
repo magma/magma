@@ -1,0 +1,42 @@
+[
+  {
+    "ParameterKey": "paramCidr",
+    "ParameterValue": "10.2.0.0/16"
+  },
+  {
+    "ParameterKey": "paramSgiCidr",
+    "ParameterValue": "10.2.4.0/24"
+  },
+  {
+    "ParameterKey": "paramEnbCidr",
+    "ParameterValue": "10.2.2.0/24"
+  },
+  {
+    "ParameterKey": "paramAvlZone",
+    "ParameterValue": "us-east-2c"
+  },
+  {
+    "ParameterKey": "paramSgiSubnetTagName",
+    "ParameterValue": "San Ramon SGi Subnet "
+  },
+  {
+    "ParameterKey": "paramEnodebSubnetTagName",
+    "ParameterValue": "San Ramon eNodeB Subnet "
+  },
+  {
+    "ParameterKey": "paramRouteTableTagName",
+    "ParameterValue": "San Ramon Route Table "
+  },
+  {
+    "ParameterKey": "paramSecGroupName",
+    "ParameterValue": "San Ramon Security Group "
+  },
+  {
+    "ParameterKey": "paramGwTagName",
+    "ParameterValue": "San Ramon Internet Gateway "
+  },
+  {
+    "ParameterKey": "paramVpcTagName",
+    "ParameterValue": "San Ramon VPC"
+  }
+]

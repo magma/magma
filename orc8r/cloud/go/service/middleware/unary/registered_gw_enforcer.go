@@ -44,9 +44,7 @@ func BlockUnregisteredGateways(
 			rpc = "Undefined"
 		}
 		log.Printf("Blocking %s call from unregisterd Gateway %+v", rpc, gw)
-		err = status.Errorf(
-			codes.PermissionDenied, "Unregistered Gateway %s",
-			gw.GetHardwareId())
+		err = status.Errorf(codes.PermissionDenied, "Unregistered Gateway %s", gw.GetHardwareId())
 	}
 	return
 }

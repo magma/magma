@@ -299,10 +299,30 @@ userGrafana:
 
   volumes:
     # Default volume configurations for grafana data.
-    dashboards: {}
-    datasources: {}
-    dashboardproviders: {}
-    grafanaData: {}
+    dashboards:
+      volumeSpec: {}
+      defaultVolumeSpec:
+        hostPath:
+          path: /usergrafana/dashboards
+          type: DirectoryOrCreate
+    datasources:
+      volumeSpec: {}
+      defaultVolumeSpec:
+        hostPath:
+          path: /usergrafana/datasources
+          type: DirectoryOrCreate
+    dashboardproviders:
+      volumeSpec: {}
+      defaultVolumeSpec:
+        hostPath:
+          path: /usergrafana/dashboardproviders
+          type: DirectoryOrCreate
+    grafanaData:
+      volumeSpec: {}
+      defaultVolumeSpec:
+        hostPath:
+          path: /usergrafana/grafanaData
+          type: DirectoryOrCreate
 
   image:
     repository: grafana/grafana

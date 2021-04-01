@@ -67,6 +67,7 @@ typedef struct task_zmq_ctx_s {
   zloop_t* event_loop;
   zsock_t* pull_sock;
   zsock_t* push_socks[TASK_MAX];
+  pthread_mutex_t send_mutex;
 } task_zmq_ctx_t;
 
 typedef struct message_info_s {
@@ -99,6 +100,12 @@ typedef enum timer_repeat_s {
 int send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message);
+
+/** \brief Receive a message from zsock
+ \param reader Pointer to ZMQ socket
+ @returns Pointer to the message read (caller to free)
+ **/
+MessageDef* receive_msg(zsock_t* reader);
 
 /** \brief Start timer on the ZMQ loop
  \param task_zmq_ctx_p Pointer to task ZMQ context

@@ -53,20 +53,20 @@
 /****************************************************************************/
 
 /* String representation of the detach type */
-static const char* _emm_detach_type_str[] = {"EPS",
-                                             "IMSI",
-                                             "EPS/IMSI",
-                                             "RE-ATTACH REQUIRED",
-                                             "RE-ATTACH NOT REQUIRED",
-                                             "RESERVED"};
+static const char* emm_detach_type_str[] = {"EPS",
+                                            "IMSI",
+                                            "EPS/IMSI",
+                                            "RE-ATTACH REQUIRED",
+                                            "RE-ATTACH NOT REQUIRED",
+                                            "RESERVED"};
 
 /* String representation of the sgs detach type */
-static const char* _emm_sgs_detach_type_str[] = {"EPS",
-                                                 "UE-INITIATED-EXPLICIT-NONEPS",
-                                                 "COMBINED",
-                                                 "NW-INITIATED-EPS",
-                                                 "NW-INITIATED-IMPLICIT-NONEPS",
-                                                 "RESERVED"};
+static const char* emm_sgs_detach_type_str[] = {"EPS",
+                                                "UE-INITIATED-EXPLICIT-NONEPS",
+                                                "COMBINED",
+                                                "NW-INITIATED-EPS",
+                                                "NW-INITIATED-IMPLICIT-NONEPS",
+                                                "RESERVED"};
 /****************************************************************************
  **                                                                        **
  ** Name:    detach_t3422_handler()                                       **
@@ -236,7 +236,7 @@ int emm_proc_detach(mme_ue_s1ap_id_t ue_id, emm_proc_detach_type_t type) {
 
   OAILOG_INFO(
       LOG_NAS_EMM, "EMM-PROC  - Initiate detach type = %s (%d)",
-      _emm_detach_type_str[type], type);
+      emm_detach_type_str[type], type);
   /*
    * TODO
    */
@@ -266,7 +266,7 @@ int emm_proc_sgs_detach_request(
       LOG_NAS_EMM,
       "EMM-PROC  - SGS Detach type = %s (%d) requested "
       "(ue_id=" MME_UE_S1AP_ID_FMT ") \n",
-      _emm_sgs_detach_type_str[sgs_detach_type], sgs_detach_type, ue_id);
+      emm_sgs_detach_type_str[sgs_detach_type], sgs_detach_type, ue_id);
   /*
    * Get the UE emm context
    */
@@ -333,7 +333,7 @@ int emm_proc_detach_request(
       LOG_NAS_EMM,
       "EMM-PROC  - Detach type = %s (%d) requested"
       " (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-      _emm_detach_type_str[params->type], params->type, ue_id);
+      emm_detach_type_str[params->type], params->type, ue_id);
   /*
    * Get the UE emm context
    */

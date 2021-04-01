@@ -31,6 +31,15 @@ using namespace orc8r;
 
 class LocalSessionManagerHandler {
  public:
+  enum PipelineDState {
+    // PipelineD restarted and has not been setup
+    NOT_READY = 0,
+    // Currently exchanging Setup requests
+    SETTING_UP = 1,
+    // PipelineD is setup and is ready to accept requests
+    READY = 2,
+  };
+
   virtual ~LocalSessionManagerHandler() {}
 
   /**
@@ -90,7 +99,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  public:
   LocalSessionManagerHandlerImpl(
       std::shared_ptr<LocalEnforcer> monitor, SessionReporter* reporter,
-      std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+      std::shared_ptr<DirectorydClient> directoryd_client,
       std::shared_ptr<EventsReporter> events_reporter,
       SessionStore& session_store);
   ~LocalSessionManagerHandlerImpl() {}
@@ -146,14 +155,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   SessionStore& session_store_;
   std::shared_ptr<LocalEnforcer> enforcer_;
   SessionReporter* reporter_;
-  std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
+  std::shared_ptr<DirectorydClient> directoryd_client_;
   std::shared_ptr<EventsReporter> events_reporter_;
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
   std::chrono::milliseconds retry_timeout_ms_;
-  // True if there is an ongoing attempt to setup PipelineD
-  bool is_setting_up_pipelined_;
+  PipelineDState pipelined_state_;
   static const std::string hex_digit_;
 
  private:

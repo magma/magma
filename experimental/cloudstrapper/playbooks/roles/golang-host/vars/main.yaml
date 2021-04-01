@@ -1,0 +1,8 @@
+---
+
+goVersion: 1.15.6
+goDistro: linux
+goArch: amd64
+
+usrName: ubuntu
+usrProfile: "/home/{{ usrName }}/.profile"

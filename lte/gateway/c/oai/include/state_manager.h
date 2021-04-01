@@ -195,13 +195,13 @@ class StateManager {
 
  protected:
   StateManager()
-      : is_initialized(false),
+      : state_cache_p(nullptr),
+        state_ue_ht(nullptr),
+        redis_client(std::make_unique<RedisClient>()),
+        is_initialized(false),
         state_dirty(false),
         persist_state_enabled(false),
-        state_cache_p(nullptr),
-        state_ue_ht(nullptr),
-        log_task(LOG_UTIL),
-        redis_client(std::make_unique<RedisClient>()) {}
+        log_task(LOG_UTIL) {}
   virtual ~StateManager() = default;
 
   /**

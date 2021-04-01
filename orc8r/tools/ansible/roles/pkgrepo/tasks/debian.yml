@@ -24,7 +24,7 @@
 
 - name: Add JFrog key
   apt_key:
-    data: "{{ lookup('file', 'jfrog.pub') }}"
+    url: https://facebookconnectivity.jfrog.io/artifactory/api/gpg/key/public
     state: present
 
 - name: Add JFrog repo

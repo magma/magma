@@ -1,10 +1,10 @@
 ---
 id: deploy_build
-title: Building Federation Gateway
+title: Build FeG
 hide_title: true
 ---
 
-# Building Federation Gateway Components
+# Build Federation Gateway Components
 
 If you cloned Magma using git, make sure you are checked out on the release you
 intend to build.
@@ -28,6 +28,8 @@ Then go run those commands to build FeG.
 ```bash
 cd magma/feg/gateway/docker
 docker-compose build --parallel
+# if build fails try with sudo and without parallelization
+sudo docker-compose build
 ```
 
 Note that you are building FeG from your local repository. There is no need to

@@ -16,9 +16,11 @@ package storage_test
 import (
 	"context"
 	"database/sql/driver"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -26,10 +28,15 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+)
+
+const (
+	sqlTestMaxLoadSize = 5
 )
 
 var mockResult = sqlmock.NewResult(1, 1)
@@ -539,6 +546,149 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 			EntitiesNotFound: []*storage.EntityID{{Type: "hello", Key: "world"}},
 		},
 	}
+	loadPageBaseQuery := `SELECT ent.network_id, ent.pk, ent."key", ent.type, ent.physical_id, ent.version, ent.graph_id, ent.name, ent.description, ent.config ` +
+		`FROM cfg_entities AS ent `
+	emptyPageTokenWhere := `WHERE (ent.network_id = $1 AND ent.type = $2) `
+	nonEmptyPageTokenWhere := `WHERE (ent.network_id = $1 AND ent.type = $2 AND ent."key" > $3) `
+	orderbyLimit := `ORDER BY ent."key" ASC LIMIT %d`
+	loadPageEmptyToken := loadPageBaseQuery + emptyPageTokenWhere + orderbyLimit
+	loadPageNonEmptyToken := loadPageBaseQuery + nonEmptyPageTokenWhere + orderbyLimit
+
+	nextToken := &storage.EntityPageToken{
+		LastIncludedEntity: "rou",
+	}
+	expectedNextToken := serializeToken(t, nextToken)
+	loadFullPage := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(loadPageEmptyToken, 2))).
+				WithArgs(
+					"network", "foo",
+				).
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config"}).
+						AddRow("network", "abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar")).
+						AddRow("network", "bbb", "rou", "foo", nil, 2, "43", "foobar", "barbar ent", []byte("foobar")),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
+			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadPermissions: false, PageSize: 2, PageToken: ""},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				{
+					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2,
+					Name:        "foobar",
+					Description: "foobar ent",
+					Config:      []byte("foobar"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "rou", GraphID: "43", Version: 2,
+					Name:        "foobar",
+					Description: "barbar ent",
+					Config:      []byte("foobar"),
+				},
+			},
+			NextPageToken:    expectedNextToken,
+			EntitiesNotFound: []*storage.EntityID{},
+		},
+	}
+
+	loadFinalPage := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(loadPageNonEmptyToken, 2))).
+				WithArgs(
+					"network", "foo", "rou",
+				).
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config"}).
+						AddRow("network", "abc", "zed", "foo", nil, 2, "42", "zedbar", "foobar ent", []byte("foobar")),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
+			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadPermissions: false, PageSize: 2, PageToken: expectedNextToken},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				{
+					NetworkID: "network", Type: "foo", Key: "zed", GraphID: "42", Version: 2,
+					Name:        "zedbar",
+					Description: "foobar ent",
+					Config:      []byte("foobar"),
+				},
+			},
+			EntitiesNotFound: []*storage.EntityID{},
+			NextPageToken:    "",
+		},
+	}
+	nextToken = &storage.EntityPageToken{
+		LastIncludedEntity: "eee",
+	}
+	expectedNextToken = serializeToken(t, nextToken)
+	loadPageMaxRegex := regexp.QuoteMeta(fmt.Sprintf(loadPageEmptyToken, sqlTestMaxLoadSize))
+	loadPageSizeGreaterThanMax := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(loadPageMaxRegex).
+				WithArgs(
+					"network", "foo",
+				).
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config"}).
+						AddRow("network", "aaa", "aaa", "foo", nil, 2, "42", "aaafoo", "aaafoo ent", []byte("aaafoo")).
+						AddRow("network", "bbb", "bbb", "foo", nil, 2, "43", "bbbfoo", "bbbfoo ent", []byte("bbbfoo")).
+						AddRow("network", "ccc", "ccc", "foo", nil, 2, "44", "cccfoo", "cccfoo ent", []byte("cccfoo")).
+						AddRow("network", "ddd", "ddd", "foo", nil, 2, "45", "dddfoo", "dddfoo ent", []byte("dddfoo")).
+						AddRow("network", "eee", "eee", "foo", nil, 2, "46", "eeefoo", "eeefoo ent", []byte("eeefoo")),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
+			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadPermissions: false, PageSize: 10, PageToken: ""},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				{
+					NetworkID: "network", Type: "foo", Key: "aaa", GraphID: "42", Version: 2,
+					Name:        "aaafoo",
+					Description: "aaafoo ent",
+					Config:      []byte("aaafoo"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "bbb", GraphID: "43", Version: 2,
+					Name:        "bbbfoo",
+					Description: "bbbfoo ent",
+					Config:      []byte("bbbfoo"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "ccc", GraphID: "44", Version: 2,
+					Name:        "cccfoo",
+					Description: "cccfoo ent",
+					Config:      []byte("cccfoo"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "ddd", GraphID: "45", Version: 2,
+					Name:        "dddfoo",
+					Description: "dddfoo ent",
+					Config:      []byte("dddfoo"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "eee", GraphID: "46", Version: 2,
+					Name:        "eeefoo",
+					Description: "eeefoo ent",
+					Config:      []byte("eeefoo"),
+				},
+			},
+			EntitiesNotFound: []*storage.EntityID{},
+			NextPageToken:    expectedNextToken,
+		},
+	}
 
 	// Load assocs to only
 	assocsTo := &testCase{
@@ -809,6 +959,9 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 
 	runCase(t, basicOnly)
 	runCase(t, loadEverything)
+	runCase(t, loadFullPage)
+	runCase(t, loadFinalPage)
+	runCase(t, loadPageSizeGreaterThanMax)
 	runCase(t, assocsTo)
 	runCase(t, assocsFrom)
 	runCase(t, fullLoadTypeFilter)
@@ -1568,7 +1721,7 @@ func runCase(t *testing.T, test *testCase) {
 	mock.ExpectBegin()
 	test.setup(mock)
 
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder())
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder(), sqlTestMaxLoadSize)
 	store, err := factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 	actual, err := test.run(store)
@@ -1890,4 +2043,10 @@ func bytesVal(val *wrappers.BytesValue) []byte {
 		return nil
 	}
 	return val.Value
+}
+
+func serializeToken(t *testing.T, token *storage.EntityPageToken) string {
+	marshalledToken, err := proto.Marshal(token)
+	assert.NoError(t, err)
+	return base64.StdEncoding.EncodeToString(marshalledToken)
 }

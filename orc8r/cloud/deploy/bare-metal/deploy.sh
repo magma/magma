@@ -17,7 +17,7 @@ pip install -r requirements.txt
 # Prepare KeepaliveD role
 ansible-galaxy install evrardjp.keepalived
 # Prepare HAProxy role
-ansible-galaxy install uoi-io.haproxy
+ansible-galaxy install git+https://github.com/uoi-io/ansible-haproxy,fe397a380ad733be7d17b567b626301e1ee90089
 
 # Copy ``inventory/sample`` as ``inventory/$CLUSTER_NAME``
 cp -rfp inventory/sample inventory/$CLUSTER_NAME

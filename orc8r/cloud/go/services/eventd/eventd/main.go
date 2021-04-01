@@ -14,11 +14,13 @@ limitations under the License.
 package main
 
 import (
-	"magma/gateway/eventd"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/eventd"
+	"magma/orc8r/cloud/go/services/eventd/obsidian/handlers"
 
 	"github.com/golang/glog"
 )
@@ -28,6 +30,8 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating service: %+v", err)
 	}
+
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(eventd.ServiceName))
 

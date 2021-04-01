@@ -6,9 +6,7 @@ hide_title: true
 
 # Deployment FAQs
 
-## Commonly seen issues with Terraform
-
-### Timed out when running “terraform apply”
+## Terraform timed out when running `terraform apply`
 
 https://magmacore.slack.com/archives/C018J8UMGMR/p1599228643121500
 
@@ -17,22 +15,21 @@ Error: rpc error: code = Unknown desc = release orc8r failed: timed out waiting 
  22: resource "helm_release" "orc8r" {
 ```
 
-**Resolution Steps**
+**Resolution steps**
 
-* Check if there is an issue with helm repo url, password or container image tag
-* Ensure container image registry and Terraform values are correct
-
-* Run following kubectl commands to get more details on the error encountered
+- Check if there is an issue with Helm repo URL, password, or container image tag
+- Ensure container image registry and Terraform values are correct
+- Run following kubectl commands to get more details on the error encountered
 
 ```
-kubectl -n orc8r get pods
-kubectl -n orc8r describe pods
+kubectl --namespace orc8r get pods
+kubectl --namespace orc8r describe pods
 # pod status ImagePullBackOff, indicates that Image wasn't found
 # pod can also be crash looping, pod status will provide this information,
 # in this case, looking at the logs of individual container will help debug this further
 ```
 
-* Get the helm’s view of images
+- Get Helm's view of images
 
 ```
 helm version (provides current version of helm)
@@ -40,7 +37,7 @@ helm -n orc8r list (provides the list of releases which are currently deployed u
 helm -n orc8r get values orc8r (gets the values file for the orc8r release)
 ```
 
-## NMS pod wasn’t showing up properly
+## NMS pod wasn't showing up properly
 
 ```
 kubectl exec -it $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- yarn setAdminPassword master xxxx@xxxx.com 1234
@@ -52,9 +49,9 @@ error: error executing jsonpath "{.items[0].metadata.name}": Error executing tem
 error: pod, type/name or --filename must be specified
 ```
 
-**Resolution Steps**
+**Resolution steps**
 
-* The problem was that deploy_nms wasn’t set to true in variables.tf. Set deploy_nms to true and rerun `terraform apply`
+- The problem was that `deploy_nms` wasn't set to true in variables.tf. Set `deploy_nms` to true and rerun `terraform apply`
 
 ## No Resources found in default namespace after terraform apply
 
@@ -62,11 +59,11 @@ error: pod, type/name or --filename must be specified
 No resources found in default namespace after terraform apply
 ```
 
-**Resolution Steps**
+**Resolution steps**
 
-* Terraform seems to reset the kubectl namespace — fix using `kubens` to select the orc8r namespace
+- Terraform seems to reset the kubectl namespace — fix using `kubens` to select the orc8r namespace
 
-## Errors Creating Secrets Manager
+## Errors creating Secrets Manager
 
 ```
 error creating Secrets Manager Secret: InvalidRequestException:
@@ -74,11 +71,11 @@ You can't create this secret because a secret with this name is already
  scheduled for deletion
 ```
 
-**Resolution Steps**
+**Resolution steps**
 
-* Change `secretsmanager_orc8r_secret` variable to new value
-* AWS doesn't fully delete secrets for safety reasons, so deleted secrets need a name change before successful regeneration
-* If you want to fully, “immediately” delete the secret (danger zone!), consider `aws secretsmanager delete-secret --secret-id your_secret_id --force-delete-without-recovery` [(ref)](https://docs.aws.amazon.com/secretsmanager/latest/userguide/manage_delete-restore-secret.html)
+- Change `secretsmanager_orc8r_secret` variable to new value
+- AWS doesn't fully delete secrets for safety reasons, so deleted secrets need a name change before successful regeneration
+- If you want to fully, "immediately" delete the secret (danger zone!), consider `aws secretsmanager delete-secret --secret-id your_secret_id --force-delete-without-recovery` [(ref)](https://docs.aws.amazon.com/secretsmanager/latest/userguide/manage_delete-restore-secret.html)
 
 ## Error: ValidationException: Domain is being deleted for aws_elasticsearch_domain_policy
 
@@ -87,14 +84,14 @@ You can't create this secret because a secret with this name is already
 
 ```
 
-**Resolution Steps**
+**Resolution steps**
 
-* Sometimes ES domains aren’t deleted immediately, Change ES domain to new value and stop tracking old domain
-* Ensure ES domain is actually marked for deletion, e.g. via AWS console
-* Change `elasticsearch_domain_name` variable to new value
-* `terraform state rm module.orc8r.aws_elasticsearch_domain.es[0]` stop tracking old ES domain
+- Sometimes ES domains aren't deleted immediately. Change ES domain to new value and stop tracking old domain
+- Ensure ES domain is actually marked for deletion, e.g. via AWS console
+- Change `elasticsearch_domain_name` variable to new value
+- `terraform state rm module.orc8r.aws_elasticsearch_domain.es[0]` stop tracking old ES domain
 
-## Terraform Apply failed due to some python module error
+## Terraform apply failed due to some Python module error
 
 ```
 Warning: Applied changes may be incompleteThe plan was created with the -target option in effect, so some changes
@@ -112,10 +109,10 @@ when Terraform specifically suggests to use it as part of an error message.Error
 ModuleNotFoundError: No module named 'boto3'
 ```
 
-**Resolution Steps**
+**Resolution steps**
 
-* Identify and install the relevant python module - `pip3 install boto3`
-* Specifically ensure if deployment specific tooling has been installed
+- Identify and install the relevant Python module - `pip3 install boto3`
+- Specifically ensure if deployment specific tooling has been installed
 
 ```
 brew install aws-iam-authenticator kubectl helm terraform

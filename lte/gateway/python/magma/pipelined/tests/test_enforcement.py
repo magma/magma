@@ -73,7 +73,6 @@ class EnforcementTableTest(unittest.TestCase):
         """
         super(EnforcementTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls._static_rule_dict = {}
         cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT], ['proxy'])
         cls._tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
@@ -126,8 +125,6 @@ class EnforcementTableTest(unittest.TestCase):
         cls.enforcement_controller = enforcement_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
-        cls.enforcement_controller._policy_dict = cls._static_rule_dict
-
     @classmethod
     def tearDownClass(cls):
         stop_ryu_app_thread(cls.thread)
@@ -156,12 +153,10 @@ class EnforcementTableTest(unittest.TestCase):
         pkts_matched = 256
         pkts_sent = 4096
 
-        self._static_rule_dict[policies[0].id] = policies[0]
-
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_static_rule(policies[0].id)
+        ).add_dynamic_rule(policies[0])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -214,12 +209,10 @@ class EnforcementTableTest(unittest.TestCase):
             PolicyRule(id='simple_match', priority=2, flow_list=flow_list1)
         ]
 
-        self._static_rule_dict[policies[0].id] = policies[0]
-
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_static_rule(policies[0].id)
+        ).add_dynamic_rule(policies[0])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                 .build_requests(),
@@ -300,15 +293,12 @@ class EnforcementTableTest(unittest.TestCase):
         ]
         pkts_sent = 42
 
-        self._static_rule_dict[policies[0].id] = policies[0]
-        self._static_rule_dict[policies[1].id] = policies[1]
-
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(imsi, sub_ip,
                                                  self.enforcement_controller,
                                                  self._tbl_num) \
-            .add_static_rule(policies[0].id)\
-            .add_static_rule(policies[1].id)
+            .add_dynamic_rule(policies[0])\
+            .add_dynamic_rule(policies[1])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -360,14 +350,13 @@ class EnforcementTableTest(unittest.TestCase):
             action=FlowDescription.DENY)
         ]
 
-        self._static_rule_dict['t'] = PolicyRule(id='t', priority=2,
-                                                 flow_list=ip_match)
+        policy = PolicyRule(id='t', priority=2, flow_list=ip_match)
 
         # =========================== Subscriber 1 ===========================
         sub_context1 = RyuDirectSubscriberContext(
             'IMSI208950001111111', '192.168.128.5',
             self.enforcement_controller, self._tbl_num
-        ).add_static_rule('t')
+        ).add_dynamic_rule(policy)
         isolator1 = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context1.cfg)
                                      .build_requests(),

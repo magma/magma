@@ -18,11 +18,10 @@
 namespace magma {
 namespace sctpd {
 
-SctpdEventHandler::SctpdEventHandler(SctpdUplinkClient &client): _client(client)
-{
-}
+SctpdEventHandler::SctpdEventHandler(SctpdUplinkClient& client)
+    : _client(client) {}
 
-void SctpdEventHandler::HandleNewAssoc(
+int SctpdEventHandler::HandleNewAssoc(
     uint32_t ppid, uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
     std::string& ran_cp_ipaddr) {
   NewAssocReq req;
@@ -34,11 +33,11 @@ void SctpdEventHandler::HandleNewAssoc(
   req.set_outstreams(outstreams);
   req.set_ran_cp_ipaddr(ran_cp_ipaddr);
 
-  _client.newAssoc(req, &res);
+  return _client.newAssoc(req, &res);
 }
 
-void SctpdEventHandler::HandleCloseAssoc(uint32_t ppid, uint32_t assoc_id, bool reset)
-{
+void SctpdEventHandler::HandleCloseAssoc(
+    uint32_t ppid, uint32_t assoc_id, bool reset) {
   CloseAssocReq req;
   CloseAssocRes res;
 
@@ -50,11 +49,8 @@ void SctpdEventHandler::HandleCloseAssoc(uint32_t ppid, uint32_t assoc_id, bool 
 }
 
 void SctpdEventHandler::HandleRecv(
-  uint32_t ppid,
-  uint32_t assoc_id,
-  uint32_t stream,
-  const std::string &payload)
-{
+    uint32_t ppid, uint32_t assoc_id, uint32_t stream,
+    const std::string& payload) {
   SendUlReq req;
   SendUlRes res;
 
@@ -66,5 +62,5 @@ void SctpdEventHandler::HandleRecv(
   _client.sendUl(req, &res);
 }
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

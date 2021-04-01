@@ -68,3 +68,10 @@ const (
 	// In prod, this will be the relevant pod's IP.
 	ServiceHostnameEnvVar = "SERVICE_HOSTNAME"
 )
+
+// Configs
+const (
+	// SharedService is the name of the pseudo-service that stores shared
+	// configs across all Orc8r services.
+	SharedService = "shared"
+)

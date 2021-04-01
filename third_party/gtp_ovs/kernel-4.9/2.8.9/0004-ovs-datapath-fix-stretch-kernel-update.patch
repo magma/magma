@@ -1,7 +1,7 @@
-From 051bffbda914eeae58df6ea825f007370165dc52 Mon Sep 17 00:00:00 2001
+From 3490ec1e597d9a24aa1d61764c9ff1df79b26225 Mon Sep 17 00:00:00 2001
 From: Debian <admin@ip-172-31-7-251.us-west-1.compute.internal>
 Date: Thu, 17 Dec 2020 03:32:01 +0000
-Subject: [PATCH 4/4] ovs: datapath: fix stretch kernel update
+Subject: [PATCH 4/7] ovs: datapath: fix stretch kernel update
 
 ---
  acinclude.m4                                                      | 6 ++++++
@@ -10,7 +10,7 @@ Subject: [PATCH 4/4] ovs: datapath: fix stretch kernel update
  3 files changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index 22cafb6d1..21b390791 100644
+index 20a0eee1c..1c1563f8e 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
 @@ -452,6 +452,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [

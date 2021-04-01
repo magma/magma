@@ -278,6 +278,7 @@ hashtable_rc_t hashtable_uint64_destroy(hash_table_uint64_t* hashtblP) {
 
   free_wrapper((void**) &hashtblP->nodes);
   bdestroy_wrapper(&hashtblP->name);
+  hashtblP->size = 0;
   if (hashtblP->is_allocated_by_malloc) {
     free_wrapper((void**) &hashtblP);
   }
@@ -316,6 +317,7 @@ hashtable_rc_t hashtable_uint64_ts_destroy(hash_table_uint64_ts_t* hashtblP) {
   free_wrapper((void**) &hashtblP->nodes);
   bdestroy_wrapper(&hashtblP->name);
   free_wrapper((void**) &hashtblP->lock_nodes);
+  hashtblP->size = 0;
   if (hashtblP->is_allocated_by_malloc) {
     free_wrapper((void**) &hashtblP);
   }
@@ -431,7 +433,7 @@ hashtable_key_array_t* hashtable_uint64_ts_get_keys(
     return NULL;
   }
   ka       = calloc(1, sizeof(hashtable_key_array_t));
-  ka->keys = calloc(hashtblP->num_elements, sizeof(hash_key_t*));
+  ka->keys = calloc(hashtblP->num_elements, sizeof(hash_key_t));
 
   while ((ka->num_keys < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
@@ -461,7 +463,7 @@ hashtable_uint64_element_array_t* hashtable_uint64_ts_get_elements(
   }
 
   ea           = calloc(1, sizeof(hashtable_uint64_element_array_t));
-  ea->elements = calloc(hashtblP->num_elements, sizeof(uint64_t*));
+  ea->elements = calloc(hashtblP->num_elements, sizeof(uint64_t));
 
   while ((ea->num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);

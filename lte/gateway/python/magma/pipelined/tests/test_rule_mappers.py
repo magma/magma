@@ -12,6 +12,9 @@ limitations under the License.
 """
 
 import unittest
+import fakeredis
+from unittest.mock import MagicMock
+from unittest import mock
 
 from magma.pipelined.rule_mappers import SessionRuleToVersionMapper
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
@@ -19,7 +22,12 @@ from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 
 class RuleMappersTest(unittest.TestCase):
     def setUp(self):
-        self._session_rule_version_mapper = SessionRuleToVersionMapper()
+        # mock the get_default_client function used to return a fakeredis object
+        func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())
+        with mock.patch(
+                'magma.pipelined.rule_mappers.get_default_client',
+                func_mock):
+            self._session_rule_version_mapper = SessionRuleToVersionMapper()
         self._session_rule_version_mapper._version_by_imsi_and_rule = {}
 
     def test_session_rule_version_mapper(self):
