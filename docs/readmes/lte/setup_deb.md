@@ -45,22 +45,31 @@ installation process to get an IP using DHCP.
 
 ### 2. Deploy magma on the  AGW_HOST
 
-*Pre Install Check*
-
-Pre Install Check script provides information on the changes that will be made to the system
-by the AGW installation script.
-
-```bash
-cd ~/magma/lte/gateway/deploy
-./agw_pre_check.sh
-```
-
 *Run AGW installation*
 
 ```bash
-cd ~/magma/lte/gateway/deploy
-./agw_install.sh
+su
+wget https://raw.githubusercontent.com/facebookincubator/magma/v1.3/lte/gateway/deploy/agw_install.sh
+bash agw_install.sh
 ```
+
+The script will run a pre-check script that will prompt you what will change
+on your machine. If you're okay with those changes reply `yes` and magma will
+be installed. If `no` is replied It will stop the installation.
+
+```bash
+  - Check if Debian is installed
+  Debian is installed
+  - Check for correct Linux Headers
+  New Linux Headers will be Installed
+  - Check for magma user
+  magma user is not Installed
+  - Check if both interfaces are named eth0 and eth1
+  Interfaces will be renamed to eth0 and eth1
+  eth0 will be set to dhcp and eth1 10.0.2.1
+  Do you accept those modifications and want to proceed with magma installation?(y/n)
+  Please answer yes or no.
+  ```
 
 The machine will reboot but It's not finished yet, the script is still running in the background.
 You can follow the output there
