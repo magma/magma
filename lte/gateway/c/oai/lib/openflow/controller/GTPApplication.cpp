@@ -374,8 +374,13 @@ void GTPApplication::add_tunnel_flow_action(
   if (gtp_port == 0) {
     gtp_port = GTPApplication::gtp0_port_num_;
   }
-  of13::SetFieldAction set_tunnel_port(new of13::NXMReg8(gtp_port));
-  apply_dl_inst.add_action(set_tunnel_port);
+  of13::SetFieldAction set_in_tunnel_port(
+      new of13::NXMRegX(DOWNLINK_TUNNEL_REG, gtp_port));
+  apply_dl_inst.add_action(set_in_tunnel_port);
+
+  of13::SetFieldAction set_out_tunnel_port(
+      new of13::NXMRegX(UPLINK_TUNNEL_REG, tei));
+  apply_dl_inst.add_action(set_out_tunnel_port);
 
   EthAddress uplink_port(uplink_mac_);
   of13::SetFieldAction set_eth_dst(new of13::EthDst(uplink_port));

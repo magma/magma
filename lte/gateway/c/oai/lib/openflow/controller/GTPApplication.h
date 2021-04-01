@@ -149,8 +149,10 @@ class GTPApplication : public Application {
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
   static const std::string GTP_PORT_MAC;
-  static const uint16_t NEXT_TABLE   = 1;
-  static const uint32_t LOW_PRIORITY = 0;
+  static const uint16_t NEXT_TABLE          = 1;
+  static const uint32_t LOW_PRIORITY        = 0;
+  static const uint32_t DOWNLINK_TUNNEL_REG = 8;
+  static const uint32_t UPLINK_TUNNEL_REG   = 9;
 
   const std::string uplink_mac_;
   const uint32_t gtp0_port_num_;
