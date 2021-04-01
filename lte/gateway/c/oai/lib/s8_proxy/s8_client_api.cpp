@@ -102,10 +102,54 @@ static void get_paa_from_proto_msg(
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
+
 static void recv_s8_delete_session_response(
     imsi64_t imsi64, teid_t context_teid, const grpc::Status& status,
     magma::feg::DeleteSessionResponsePgw& response) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
+
+  s8_delete_session_response_t* s8_delete_session_rsp = NULL;
+  MessageDef* message_p                               = NULL;
+  message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, S8_DELETE_SESSION_RSP);
+  if (!message_p) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Failed to allocate memory for S8_DELETE_SESSION_RSP for "
+        "context_teid" TEID_FMT "\n",
+        context_teid);
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+  s8_delete_session_rsp         = &message_p->ittiMsg.s8_delete_session_rsp;
+  message_p->ittiMsgHeader.imsi = imsi64;
+  s8_delete_session_rsp->context_teid = context_teid;
+
+  if (status.ok()) {
+    if (response.has_gtp_error()) {
+      s8_delete_session_rsp->cause = response.mutable_gtp_error()->cause();
+    } else {
+      s8_delete_session_rsp->cause = REQUEST_ACCEPTED;
+    }
+  } else {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Received gRPC error for delete session response for "
+        "context_teid " TEID_FMT "\n",
+        context_teid);
+    s8_delete_session_rsp->cause = REMOTE_PEER_NOT_RESPONDING;
+  }
+  OAILOG_INFO_UE(
+      LOG_UTIL, imsi64,
+      "Sending delete session response to sgw_s8 task for "
+      "context_teid " TEID_FMT "\n",
+      context_teid);
+  if ((send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SGW_S8, message_p)) !=
+      RETURNok) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Failed to send delete session response to sgw_s8 task for"
+        "context_teid " TEID_FMT "\n",
+        context_teid);
+  }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
@@ -391,8 +435,10 @@ void send_s8_delete_session_request(
     imsi64_t imsi64, Imsi_t imsi, teid_t sgw_s11_teid, teid_t pgw_s5_teid,
     ebi_t bearer_id) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  std::cout << "Sending delete session request for IMSI: " << imsi64
-            << "and context_teid: " << sgw_s11_teid << std::endl;
+  OAILOG_INFO_UE(
+      LOG_SGW_S8, imsi64,
+      "Sending delete session request for context_teid:" TEID_FMT "\n",
+      sgw_s11_teid);
 
   magma::feg::DeleteSessionRequestPgw dsr_req;
 
@@ -400,6 +446,7 @@ void send_s8_delete_session_request(
   dsr_req.set_imsi((char*) imsi.digit, imsi.length);
   dsr_req.set_bearer_id(bearer_id);
   dsr_req.mutable_c_pgw_fteid()->set_teid(pgw_s5_teid);
+  dsr_req.set_c_agw_teid(sgw_s11_teid);
   magma::S8Client::s8_delete_session_request(
       dsr_req,
       [imsi64, sgw_s11_teid](

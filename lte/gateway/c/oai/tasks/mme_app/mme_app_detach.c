@@ -32,6 +32,7 @@
 #include <stdbool.h>
 
 #include "log.h"
+#include "conversions.h"
 #include "intertask_interface.h"
 #include "gcc_diag.h"
 #include "mme_config.h"
@@ -115,10 +116,26 @@ void mme_app_send_delete_session_request(
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
-  OAILOG_INFO(
-      LOG_MME_APP, "Send Delete session Req for teid " TEID_FMT "\n",
-      ue_context_p->mme_teid_s11);
+  Imsi_t imsi = {0};
+  IMSI64_TO_STRING(
+      ue_context_p->emm_context._imsi64, (char*) (&imsi.digit),
+      ue_context_p->emm_context._imsi.length);
+
+  if (mme_app_match_fed_mode_map(
+          imsi.digit, ue_context_p->emm_context._imsi64) == S8_SUBSCRIBER) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Send delete session Req for teid to sgw_s8 task " TEID_FMT "\n",
+        ue_context_p->mme_teid_s11);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Send delete session Req for teid to spgw task " TEID_FMT "\n",
+        ue_context_p->mme_teid_s11);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  }
+
   increment_counter("mme_spgw_delete_session_req", 1, NO_LABELS);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

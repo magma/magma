@@ -29,3 +29,7 @@ void sgw_s8_handle_modify_bearer_request(
     sgw_state_t* state,
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     imsi64_t imsi64);
+
+void sgw_s8_handle_delete_session_response(
+    sgw_state_t* sgw_state, s8_delete_session_response_t* session_rsp_p,
+    imsi64_t imsi64);

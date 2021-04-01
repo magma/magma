@@ -132,4 +132,5 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
 void mme_app_itti_sgsap_ue_activity_ind(
     const char* imsi, const unsigned int imsi_len);
 
+int mme_app_match_fed_mode_map(const uint8_t* imsi, imsi64_t imsi64);
 #endif /* FILE_MME_APP_ITTI_MESSAGING_SEEN */

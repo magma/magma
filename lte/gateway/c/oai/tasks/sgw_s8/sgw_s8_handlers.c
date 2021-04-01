@@ -41,6 +41,12 @@ static void sgw_send_modify_bearer_response(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     const itti_sgi_update_end_point_response_t* const resp_pP, imsi64_t imsi64);
 
+static void sgw_s8_send_failed_delete_session_response(
+    sgw_eps_bearer_context_information_t* sgw_context_p,
+    gtpv2c_cause_value_t cause, sgw_state_t* sgw_state,
+    const itti_s11_delete_session_request_t* const delete_session_req_p,
+    imsi64_t imsi64);
+
 uint32_t sgw_get_new_s1u_teid(sgw_state_t* state) {
   if (state->s1u_teid == 0) {
     state->s1u_teid = INITIAL_SGW_S8_S1U_TEID;
@@ -876,20 +882,24 @@ void sgw_s8_handle_s11_delete_session_request(
         "Failed to fetch sgw_eps_bearer_context_info from "
         "sgw_s11_teid " TEID_FMT " \n",
         delete_session_req_p->teid);
-    /*TODO Rashmi send DSrsp with context not found */
     gtpv2c_cause = CONTEXT_NOT_FOUND;
+    sgw_s8_send_failed_delete_session_response(
+        sgw_context_p, gtpv2c_cause, sgw_state, delete_session_req_p, imsi64);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   if ((delete_session_req_p->sender_fteid_for_cp.ipv4) &&
       (delete_session_req_p->sender_fteid_for_cp.ipv6)) {
     // Sender F-TEID IE present
     if (delete_session_req_p->teid != sgw_context_p->mme_teid_S11) {
-      gtpv2c_cause = INVALID_PEER;
       OAILOG_ERROR_UE(
           LOG_SPGW_APP, imsi64,
           "Mismatch in MME Teid for CP teid recevied in delete session "
           "req: " TEID_FMT " teid present in sgw_context :" TEID_FMT "\n",
           delete_session_req_p->teid, sgw_context_p->mme_teid_S11);
+      gtpv2c_cause = INVALID_PEER;
+      sgw_s8_send_failed_delete_session_response(
+          sgw_context_p, gtpv2c_cause, sgw_state, delete_session_req_p, imsi64);
+      OAILOG_FUNC_OUT(LOG_SGW_S8);
     }
   }
   if (delete_session_req_p->lbi !=
@@ -900,6 +910,9 @@ void sgw_s8_handle_s11_delete_session_request(
         "session req :%d and bearer_id present in sgw_context :%d \n",
         delete_session_req_p->lbi,
         sgw_context_p->pdn_connection.default_bearer);
+    sgw_s8_send_failed_delete_session_response(
+        sgw_context_p, gtpv2c_cause, sgw_state, delete_session_req_p, imsi64);
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
 
   send_s8_delete_session_request(
@@ -907,5 +920,188 @@ void sgw_s8_handle_s11_delete_session_request(
       sgw_context_p->s_gw_teid_S11_S4,
       sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp,
       sgw_context_p->pdn_connection.default_bearer);
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+static void delete_userplane_tunnels(
+    sgw_eps_bearer_context_information_t* sgw_context_p) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  struct in_addr enb                   = {.s_addr = 0};
+  struct in_addr pgw                   = {.s_addr = 0};
+  sgw_eps_bearer_ctxt_t* bearer_ctxt_p = NULL;
+  int rv                               = RETURNerror;
+
+  for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
+    ebi_t ebi = INDEX_TO_EBI(ebix);
+    bearer_ctxt_p =
+        sgw_cm_get_eps_bearer_entry(&sgw_context_p->pdn_connection, ebi);
+
+    if (bearer_ctxt_p) {
+      enb.s_addr =
+          bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+      pgw.s_addr =
+          bearer_ctxt_p->p_gw_address_in_use_up.address.ipv4_address.s_addr;
+      struct in6_addr* ue_ipv6 = NULL;
+      if ((bearer_ctxt_p->paa.pdn_type == IPv6) ||
+          (bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
+        ue_ipv6 = &bearer_ctxt_p->paa.ipv6_address;
+      }
+      // Delete S1-U tunnel
+      rv = openflow_del_s8_tunnel(
+          enb, pgw, bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+          bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, bearer_ctxt_p->enb_teid_S1u,
+          NULL);
+      if (rv < 0) {
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, sgw_context_p->imsi64,
+            "ERROR in deleting S1-U TUNNEL " TEID_FMT
+            " (eNB) <-> (SGW) " TEID_FMT "\n",
+            bearer_ctxt_p->enb_teid_S1u,
+            bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+      }
+      // Delete S8-U tunnel
+      rv = openflow_del_s8_tunnel(
+          enb, pgw, bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+          bearer_ctxt_p->s_gw_teid_S5_S8_up, bearer_ctxt_p->p_gw_teid_S5_S8_up,
+          NULL);
+      if (rv < 0) {
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, sgw_context_p->imsi64,
+            "ERROR in deleting S8-U TUNNEL " TEID_FMT
+            " (PGW) <-> (SGW) " TEID_FMT "\n",
+            bearer_ctxt_p->p_gw_teid_S5_S8_up,
+            bearer_ctxt_p->s_gw_teid_S5_S8_up);
+      }
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+void sgw_s8_handle_delete_session_response(
+    sgw_state_t* sgw_state, s8_delete_session_response_t* session_rsp_p,
+    imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  MessageDef* message_p                                         = NULL;
+  itti_s11_delete_session_response_t* delete_session_response_p = NULL;
+
+  if (!session_rsp_p) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Received null delete session response from s8_proxy\n");
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+  OAILOG_INFO_UE(
+      LOG_SGW_S8, imsi64,
+      " Rx S5S8_DELETE_SESSION_RSP from s8_proxy for context_teid " TEID_FMT
+      "\n",
+      session_rsp_p->context_teid);
+
+  sgw_eps_bearer_context_information_t* sgw_context_p =
+      sgw_get_sgw_eps_bearer_context(session_rsp_p->context_teid);
+  if (!sgw_context_p) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Failed to fetch sgw_eps_bearer_context_info from "
+        "context_teid " TEID_FMT " \n",
+        session_rsp_p->context_teid);
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+  message_p = itti_alloc_new_message(TASK_SGW_S8, S11_DELETE_SESSION_RESPONSE);
+  if (message_p == NULL) {
+    OAILOG_CRITICAL_UE(
+        LOG_SGW_S8, sgw_context_p->imsi64,
+        "Failed to allocate memory for S11_delete_session_response for "
+        "context_teid " TEID_FMT "\n",
+        session_rsp_p->context_teid);
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+
+  delete_session_response_p = &message_p->ittiMsg.s11_delete_session_response;
+  message_p->ittiMsgHeader.imsi = imsi64;
+  if (!delete_session_response_p) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, sgw_context_p->imsi64,
+        "delete_session_response_p is NULL \n");
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+  delete_session_response_p->teid              = sgw_context_p->mme_teid_S11;
+  delete_session_response_p->cause.cause_value = session_rsp_p->cause;
+  delete_session_response_p->trxn              = sgw_context_p->trxn;
+  delete_session_response_p->lbi = sgw_context_p->pdn_connection.default_bearer;
+
+  // Delete ovs rules
+  delete_userplane_tunnels(sgw_context_p);
+  sgw_remove_sgw_bearer_context_information(
+      sgw_state, session_rsp_p->context_teid, imsi64);
+  // send delete session response to mme
+  if (send_msg_to_task(&sgw_s8_task_zmq_ctx, TASK_MME_APP, message_p) !=
+      RETURNok) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Failed to send delete session response to mme for "
+        "sgw_s11_teid " TEID_FMT "\n",
+        session_rsp_p->context_teid);
+  }
+  increment_counter("sgw_delete_session", 1, 1, "result", "success");
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+static void sgw_s8_send_failed_delete_session_response(
+    sgw_eps_bearer_context_information_t* sgw_context_p,
+    gtpv2c_cause_value_t cause, sgw_state_t* sgw_state,
+    const itti_s11_delete_session_request_t* const delete_session_req_p,
+    imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  MessageDef* message_p                                         = NULL;
+  itti_s11_delete_session_response_t* delete_session_response_p = NULL;
+  teid_t teid                                                   = 0;
+
+  message_p = itti_alloc_new_message(TASK_SGW_S8, S11_DELETE_SESSION_RESPONSE);
+  if (message_p == NULL) {
+    OAILOG_CRITICAL_UE(
+        LOG_SGW_S8, sgw_context_p->imsi64,
+        "Failed to allocate memory for S11_delete_session_response \n");
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+
+  delete_session_response_p = &message_p->ittiMsg.s11_delete_session_response;
+  message_p->ittiMsgHeader.imsi = imsi64;
+  if (!delete_session_response_p) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, sgw_context_p->imsi64,
+        "delete_session_response_p is NULL \n");
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+  if (sgw_context_p) {
+    delete_session_response_p->teid              = sgw_context_p->mme_teid_S11;
+    delete_session_response_p->cause.cause_value = cause;
+    delete_session_response_p->trxn              = sgw_context_p->trxn;
+    delete_session_response_p->lbi =
+        sgw_context_p->pdn_connection.default_bearer;
+
+    // Delete ovs rules
+    delete_userplane_tunnels(sgw_context_p);
+    sgw_remove_sgw_bearer_context_information(
+        sgw_state, sgw_context_p->s_gw_teid_S11_S4, imsi64);
+    teid = sgw_context_p->s_gw_teid_S11_S4;
+  } else {
+    if (delete_session_req_p) {
+      delete_session_response_p->teid = delete_session_req_p->local_teid;
+      delete_session_response_p->cause.cause_value = cause;
+      delete_session_response_p->trxn              = delete_session_req_p->trxn;
+      delete_session_response_p->lbi               = delete_session_req_p->lbi;
+      teid                                         = delete_session_req_p->teid;
+    }
+  }
+  increment_counter("sgw_delete_session", 1, 1, "result", "failed");
+  // send delete session response to mme
+  if (send_msg_to_task(&sgw_s8_task_zmq_ctx, TASK_MME_APP, message_p) !=
+      RETURNok) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Failed to send delete session response to mme for "
+        "sgw_s11_teid " TEID_FMT "\n",
+        teid);
+  }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }

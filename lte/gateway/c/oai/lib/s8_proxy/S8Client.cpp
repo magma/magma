@@ -68,7 +68,7 @@ void S8Client::s8_delete_session_request(
   // gRPC call is answered
   auto response = new AsyncLocalResponse<DeleteSessionResponsePgw>(
       std::move(callback), RESPONSE_TIMEOUT);
-  // Create a response reader for the `CreateSession` RPC call. This reader
+  // Create a response reader for the `DeleteSession` RPC call. This reader
   // stores the client context, the request to pass in, and the queue to add
   // the response to when done
   auto response_reader = client.stub_->AsyncDeleteSession(
