@@ -17,6 +17,8 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
+	"time"
 
 	"github.com/wmnsk/go-gtp/gtpv1"
 
@@ -30,12 +32,15 @@ import (
 
 const (
 	dummyUserPlanePgwIP = "10.0.0.1"
+	gtpTimeout          = 5 * time.Second
 )
 
 // MockPgw is just a wrapper around gtp.Client
 type MockPgw struct {
 	*gtp.Client
 	LastValues
+	CreateSessionOptions CreateSessionOptions
+	randGenMux           sync.Mutex
 }
 
 type LastValues struct {
@@ -44,9 +49,16 @@ type LastValues struct {
 	LastQos   *protos.QosInformation
 }
 
-func NewStarted(ctx context.Context, sgwAddrStr, pgwAddrsStr string) (*MockPgw, error) {
+// CreateSessionOptions to control Create Session Response values to produce errors
+type CreateSessionOptions struct {
+	SgwTEIDc uint32
+	PgwTEIDc uint32
+	PgwTEIDu uint32
+}
+
+func NewStarted(ctx context.Context, pgwAddrsStr string) (*MockPgw, error) {
 	mPgw := New()
-	err := mPgw.Start(ctx, sgwAddrStr, pgwAddrsStr)
+	err := mPgw.Start(ctx, pgwAddrsStr)
 	if err != nil {
 		return nil, err
 	}
@@ -54,37 +66,36 @@ func NewStarted(ctx context.Context, sgwAddrStr, pgwAddrsStr string) (*MockPgw, 
 }
 
 func New() *MockPgw {
-	return &MockPgw{}
+	return &MockPgw{CreateSessionOptions: CreateSessionOptions{}}
 }
 
-func (mPgw *MockPgw) Start(ctx context.Context, sgwAddrStr, pgwAddrsStr string) error {
-	pgwAddrs, err := net.ResolveUDPAddr("udp", pgwAddrsStr)
-	if err != nil {
-		return fmt.Errorf("Failed to get mock PGW IP: %s", err)
-	}
-
-	sgwAddrs, err := net.ResolveUDPAddr("udp", sgwAddrStr)
+func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
+	var err error
+	mPgw.Client, err = gtp.NewRunningClient(ctx, pgwAddrsStr, gtpv2.IFTypeS5S8PGWGTPC, gtpTimeout)
 	if err != nil {
 		return fmt.Errorf("Failed to get SGW IP: %s", err)
 	}
-
-	// start listening on the specified IP:Port.
-	mPgw.Client, err = gtp.NewRunningClient(ctx, pgwAddrs, sgwAddrs, gtpv2.IFTypeS5S8PGWGTPC)
-	if err != nil {
-		return fmt.Errorf("Failed to get SGW IP: %s", err)
-	}
-
-	//TODO: remove this once we find a way to safely wait for initialization of the service
-	mPgw.Client.WaitUntilClientIsReady(0)
 
 	// register handlers for ALL the message you expect remote endpoint to send.
 	mPgw.AddHandlers(map[uint8]gtpv2.HandlerFunc{
 		message.MsgTypeCreateSessionRequest:       mPgw.getHandleCreateSessionRequest(),
 		message.MsgTypeModifyAccessBearersRequest: mPgw.getHandleModifyBearerRequest(),
 		message.MsgTypeDeleteSessionRequest:       mPgw.getHandleDeleteSessionRequest(),
-		//message.MsgTypeEchoRequest: mPgw.getHandleEchoRequest(),
+		//message.MsgTypeEchoRequest: mPgw.getHandleEchoRequest(), // ONLY FOR DEBUGGING PURPOSES
 	})
 	return nil
+}
+
+func (mPgw *MockPgw) SetCreateSessionWithErrorCause(errorCause uint8) {
+	mPgw.AddHandler(
+		message.MsgTypeCreateSessionRequest,
+		mPgw.getHandleCreateSessionRequestWithDeniedService(errorCause))
+}
+
+func (mPgw *MockPgw) SetCreateSessionWithMissingIE() {
+	mPgw.AddHandler(
+		message.MsgTypeCreateSessionRequest,
+		mPgw.getHandleCreateSessionRequestWithMissingIE())
 }
 
 // ONLY FOR DEBUGGING PURPOSES

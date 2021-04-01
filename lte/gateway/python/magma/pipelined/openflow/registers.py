@@ -66,7 +66,6 @@ def load_direction(parser, direction: Direction):
         raise Exception("Invalid direction")
     return parser.NXActionRegLoad2(dst=DIRECTION_REG, value=direction.value)
 
-
 def load_imsi(parser, imsi):
     """
     Wrapper for loading the direction register

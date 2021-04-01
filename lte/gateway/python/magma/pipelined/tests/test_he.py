@@ -414,7 +414,6 @@ class EnforcementTableHeTest(unittest.TestCase):
         """
         super(EnforcementTableHeTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls._static_rule_dict = {}
         cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT], ['proxy'])
         cls._tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
@@ -466,8 +465,6 @@ class EnforcementTableHeTest(unittest.TestCase):
         cls.enforcement_controller = enforcement_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
-        cls.enforcement_controller._policy_dict = cls._static_rule_dict
-
     @classmethod
     def tearDownClass(cls):
         stop_ryu_app_thread(cls.thread)
@@ -495,12 +492,10 @@ class EnforcementTableHeTest(unittest.TestCase):
             PolicyRule(id='simple_match', priority=2, flow_list=flow_list1, he=he)
         ]
 
-        self._static_rule_dict[policies[0].id] = policies[0]
-
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_static_rule(policies[0].id)
+        ).add_dynamic_rule(policies[0])
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)

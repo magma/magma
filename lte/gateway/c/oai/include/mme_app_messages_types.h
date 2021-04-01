@@ -45,6 +45,7 @@
 #include "common_types.h"
 #include "nas/securityDef.h"
 #include "nas/as_message.h"
+#include "s1ap_messages_types.h"
 
 #define MME_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                           \
   (mSGpTR)->ittiMsg.mme_app_connection_establishment_cnf
@@ -86,6 +87,10 @@ typedef struct itti_mme_app_connection_establishment_cnf_s {
   // UE Security Capabilities
   uint16_t ue_security_capabilities_encryption_algorithms;
   uint16_t ue_security_capabilities_integrity_algorithms;
+
+  // NR UE Security Capabilities
+  uint16_t nr_ue_security_capabilities_encryption_algorithms;
+  uint16_t nr_ue_security_capabilities_integrity_algorithms;
 
   // Security key
   uint8_t kenb[AUTH_KENB_SIZE];

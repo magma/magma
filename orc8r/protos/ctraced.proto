@@ -13,9 +13,15 @@ limitations under the License.
 
 syntax = "proto3";
 
+import "orc8r/protos/common.proto";
+
 package magma.orc8r;
 
 option go_package = "magma/orc8r/lib/go/protos";
+
+// --------------------------------------------------------------------------
+// CallTraceService definition (runs on gateway)
+// --------------------------------------------------------------------------
 
 service CallTraceService {
   rpc StartCallTrace (StartTraceRequest) returns (StartTraceResponse) {}
@@ -23,31 +29,63 @@ service CallTraceService {
   rpc EndCallTrace (EndTraceRequest) returns (EndTraceResponse) {}
 }
 
+// StartTraceRequest specifies options for a call trace started on a gateway
 message StartTraceRequest {
   enum TraceType {
     ALL = 0;
     SUBSCRIBER = 1;
     PROTOCOL = 2;
     INTERFACE = 3;
+    CUSTOM = 4;
   }
 
   TraceType trace_type = 1;
-  // IMSI specified only if trace_type is SUBSCRIBER
+
+  // SPECIFIED ONLY IF trace_type is SUBSCRIBER
   string imsi = 2; // Include prefix 'IMSI'
 
+  // SPECIFIED ONLY IF trace_type is PROTOCOL
   enum ProtocolName {
     SCTP = 0;
     DIAMETER = 1;
   }
-  // Protocol name specified only if trace_type is PROTOCOL
   ProtocolName protocol = 3;
   enum InterfaceName {
     S1AP = 0;
     GX = 1;
     GT = 2;
   }
-  // Interface name specified only if trace_type is INTERFACE
+
+  // SPECIFIED IF trace_type is INTERFACE
   InterfaceName interface = 4;
+
+  // SPECIFIED FOR ALL
+  // After the timeout runs out, the call trace stops automatically.
+  uint32 timeout = 5; // Specified in seconds
+
+  // SPECIFIED ONLY IF trace_type is CUSTOM
+  // TShark capture filters to be used for call tracing, based on BPF syntax
+  // Custom traces are performed using TShark, and capture filters specified
+  // are equivalent to running tshark with the -f option
+  // Example:
+  //    capture_filters = "tcp and port 80"
+  //    Runs `tshark -f 'tcp and port 80'`
+  string capture_filters = 6;
+
+  // SPECIFIED ONLY IF trace_type is CUSTOM
+  // TShark display filters to be used for call tracing
+  // Custom traces are performed using TShark, and display filters specified
+  // are equivalent to running tshark with the -Y option
+  // Example:
+  //    display_filters = "ip.addr == 10.0.0.1"
+  //    Runs `tshark -Y 'ip.addr == 10.0.0.1'`
+  // NOTE:
+  //    While TShark is used to capture traffic during call tracing with
+  //    capture filters, when TShark is stopped, the resultant capture is
+  //    passed through the display filters and saved again, so the final
+  //    capture received has been processed by both the capture and display
+  //    filters.
+  string display_filters = 7;
 }
 
 message StartTraceResponse {

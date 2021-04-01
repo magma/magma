@@ -478,36 +478,86 @@ void NasStateConverter::ue_network_capability_to_proto(
   ue_network_capability_proto->set_uea(state_ue_network_capability->uea);
   ue_network_capability_proto->set_ucs2(state_ue_network_capability->ucs2);
   ue_network_capability_proto->set_uia(state_ue_network_capability->uia);
-  ue_network_capability_proto->set_spare(state_ue_network_capability->spare);
+  ue_network_capability_proto->set_prosedd(
+      state_ue_network_capability->prosedd);
+  ue_network_capability_proto->set_prose(state_ue_network_capability->prose);
+  ue_network_capability_proto->set_h245ash(
+      state_ue_network_capability->h245ash);
   ue_network_capability_proto->set_csfb(state_ue_network_capability->csfb);
   ue_network_capability_proto->set_lpp(state_ue_network_capability->lpp);
   ue_network_capability_proto->set_lcs(state_ue_network_capability->lcs);
   ue_network_capability_proto->set_srvcc(state_ue_network_capability->srvcc);
   ue_network_capability_proto->set_nf(state_ue_network_capability->nf);
+  ue_network_capability_proto->set_epco(state_ue_network_capability->epco);
+  ue_network_capability_proto->set_hccpciot(
+      state_ue_network_capability->hccpciot);
+  ue_network_capability_proto->set_erwfopdn(
+      state_ue_network_capability->erwfopdn);
+  ue_network_capability_proto->set_s1udata(
+      state_ue_network_capability->s1udata);
+  ue_network_capability_proto->set_upciot(state_ue_network_capability->upciot);
+  ue_network_capability_proto->set_cpciot(state_ue_network_capability->cpciot);
+  ue_network_capability_proto->set_proserelay(
+      state_ue_network_capability->proserelay);
+  ue_network_capability_proto->set_prosedc(
+      state_ue_network_capability->prosedc);
+  ue_network_capability_proto->set_bearer(state_ue_network_capability->bearer);
+  ue_network_capability_proto->set_sgc(state_ue_network_capability->sgc);
+  ue_network_capability_proto->set_n1mod(state_ue_network_capability->n1mod);
+  ue_network_capability_proto->set_dcnr(state_ue_network_capability->dcnr);
+  ue_network_capability_proto->set_cpbackoff(
+      state_ue_network_capability->cpbackoff);
+  ue_network_capability_proto->set_restrictec(
+      state_ue_network_capability->restrictec);
+  ue_network_capability_proto->set_v2xpc5(state_ue_network_capability->v2xpc5);
+  ue_network_capability_proto->set_multipledrb(
+      state_ue_network_capability->multipledrb);
   ue_network_capability_proto->set_umts_present(
       state_ue_network_capability->umts_present);
-  ue_network_capability_proto->set_misc_present(
-      state_ue_network_capability->misc_present);
+  ue_network_capability_proto->set_length(state_ue_network_capability->length);
 }
 
 void NasStateConverter::proto_to_ue_network_capability(
     const oai::UeNetworkCapability& ue_network_capability_proto,
     ue_network_capability_t* state_ue_network_capability) {
-  state_ue_network_capability->eea   = ue_network_capability_proto.eea();
-  state_ue_network_capability->eia   = ue_network_capability_proto.eia();
-  state_ue_network_capability->uea   = ue_network_capability_proto.uea();
-  state_ue_network_capability->ucs2  = ue_network_capability_proto.ucs2();
-  state_ue_network_capability->uia   = ue_network_capability_proto.uia();
-  state_ue_network_capability->spare = ue_network_capability_proto.spare();
-  state_ue_network_capability->csfb  = ue_network_capability_proto.csfb();
-  state_ue_network_capability->lpp   = ue_network_capability_proto.lpp();
-  state_ue_network_capability->lcs   = ue_network_capability_proto.lcs();
-  state_ue_network_capability->srvcc = ue_network_capability_proto.srvcc();
-  state_ue_network_capability->nf    = ue_network_capability_proto.nf();
+  state_ue_network_capability->eea     = ue_network_capability_proto.eea();
+  state_ue_network_capability->eia     = ue_network_capability_proto.eia();
+  state_ue_network_capability->uea     = ue_network_capability_proto.uea();
+  state_ue_network_capability->ucs2    = ue_network_capability_proto.ucs2();
+  state_ue_network_capability->uia     = ue_network_capability_proto.uia();
+  state_ue_network_capability->prosedd = ue_network_capability_proto.prosedd();
+  state_ue_network_capability->prose   = ue_network_capability_proto.prose();
+  state_ue_network_capability->h245ash = ue_network_capability_proto.h245ash();
+  state_ue_network_capability->csfb    = ue_network_capability_proto.csfb();
+  state_ue_network_capability->lpp     = ue_network_capability_proto.lpp();
+  state_ue_network_capability->lcs     = ue_network_capability_proto.lcs();
+  state_ue_network_capability->srvcc   = ue_network_capability_proto.srvcc();
+  state_ue_network_capability->nf      = ue_network_capability_proto.nf();
+  state_ue_network_capability->epco    = ue_network_capability_proto.epco();
+  state_ue_network_capability->hccpciot =
+      ue_network_capability_proto.hccpciot();
+  state_ue_network_capability->erwfopdn =
+      ue_network_capability_proto.erwfopdn();
+  state_ue_network_capability->s1udata = ue_network_capability_proto.s1udata();
+  state_ue_network_capability->upciot  = ue_network_capability_proto.upciot();
+  state_ue_network_capability->cpciot  = ue_network_capability_proto.cpciot();
+  state_ue_network_capability->proserelay =
+      ue_network_capability_proto.proserelay();
+  state_ue_network_capability->prosedc = ue_network_capability_proto.prosedc();
+  state_ue_network_capability->bearer  = ue_network_capability_proto.bearer();
+  state_ue_network_capability->sgc     = ue_network_capability_proto.sgc();
+  state_ue_network_capability->n1mod   = ue_network_capability_proto.n1mod();
+  state_ue_network_capability->dcnr    = ue_network_capability_proto.dcnr();
+  state_ue_network_capability->cpbackoff =
+      ue_network_capability_proto.cpbackoff();
+  state_ue_network_capability->restrictec =
+      ue_network_capability_proto.restrictec();
+  state_ue_network_capability->v2xpc5 = ue_network_capability_proto.v2xpc5();
+  state_ue_network_capability->multipledrb =
+      ue_network_capability_proto.multipledrb();
   state_ue_network_capability->umts_present =
       ue_network_capability_proto.umts_present();
-  state_ue_network_capability->misc_present =
-      ue_network_capability_proto.misc_present();
+  state_ue_network_capability->length = ue_network_capability_proto.length();
 }
 
 void NasStateConverter::classmark2_to_proto(
@@ -1074,8 +1124,11 @@ void NasStateConverter::proto_to_emm_specific_proc(
   switch (proto_emm_proc_with_type.MessageTypes_case()) {
     case oai::NasEmmProcWithType::kAttachProc: {
       OAILOG_DEBUG(LOG_MME_APP, "Reading attach proc from proto");
-      state_emm_procedures->emm_specific_proc =
-          (nas_emm_specific_proc_t*) calloc(1, sizeof(nas_emm_attach_proc_t));
+      state_emm_procedures
+          ->emm_specific_proc = (nas_emm_specific_proc_t*) calloc(
+          1,
+          sizeof(
+              nas_emm_attach_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
       nas_emm_attach_proc_t* attach_proc =
           (nas_emm_attach_proc_t*) state_emm_procedures->emm_specific_proc;
 
@@ -1088,8 +1141,11 @@ void NasStateConverter::proto_to_emm_specific_proc(
       break;
     }
     case oai::NasEmmProcWithType::kDetachProc: {
-      state_emm_procedures->emm_specific_proc =
-          (nas_emm_specific_proc_t*) calloc(1, sizeof(nas_emm_detach_proc_t));
+      state_emm_procedures
+          ->emm_specific_proc = (nas_emm_specific_proc_t*) calloc(
+          1,
+          sizeof(
+              nas_emm_detach_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
       nas_emm_detach_proc_t* detach_proc =
           (nas_emm_detach_proc_t*) state_emm_procedures->emm_specific_proc;
       // read the emm proc content

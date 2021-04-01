@@ -34,7 +34,7 @@ from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
 from magma.pipelined.openflow.registers import load_direction, Direction, \
-    PASSTHROUGH_REG_VAL, TUN_PORT_REG, PROXY_TAG_TO_PROXY
+    PASSTHROUGH_REG_VAL, TUN_PORT_REG, PROXY_TAG_TO_PROXY, REG_ZERO_VAL
 from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
 
 from ryu.lib import hub
@@ -206,7 +206,7 @@ class InOutController(RestartMixin, MagmaController):
         # Allow passthrough pkts(skip enforcement and send to egress table)
         ps_match = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
         msgs.append(flows.get_add_resubmit_next_service_flow_msg(dp,
-            self._midle_tbl_num, ps_match,actions=[], 
+            self._midle_tbl_num, ps_match, actions=[],
             priority=flows.PASSTHROUGH_PRIORITY,
             resubmit_table=self._egress_tbl_num))
 
@@ -363,14 +363,26 @@ class InOutController(RestartMixin, MagmaController):
             )
 
         # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
-        match = MagmaMatch()
+        # Passthrough is zero for packets from eNodeB GTP tunnels
+        ps_match_out = MagmaMatch(passthrough=REG_ZERO_VAL)
         actions = [load_direction(parser, Direction.OUT)]
         msgs.append(
-            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num,match,
+            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_out,
                                                  actions=actions,
                                                  priority=flows.MINIMUM_PRIORITY,
                                                  resubmit_table=next_table)
         )
+        # Passthrough is one for packets from remote PGW GTP tunnels, set direction
+        # flag to IN for such packets.
+        ps_match_in = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
+        actions = [load_direction(parser, Direction.IN)]
+        msgs.append(
+            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_in,
+                                                 actions=actions,
+                                                 priority=flows.MINIMUM_PRIORITY,
+                                                 resubmit_table=next_table)
+        )
+
         return msgs
 
     def _get_gw_mac_address(self, ip: IPAddress, vlan: str = "") -> str:

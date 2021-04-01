@@ -85,7 +85,8 @@ RUN apt-get update && apt-get install -y \
   openssl \
   supervisor \
   unzip \
-  wget
+  wget \
+&& rm -rf /var/lib/apt/lists/*
 
 # Swagger UI
 # See: https://github.com/swagger-api/swagger-ui
@@ -103,11 +104,15 @@ COPY src/magma/orc8r/cloud/docker/wait-for-it.sh /usr/local/bin
 RUN mkdir -p /var/opt/magma/envdir
 
 # Build artifacts
-ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
-COPY --from=builder /${CNTLR_FILES}/apidocs /var/opt/magma/static/apidocs
+ARG SWAGGER_FILES=src/magma/orc8r/cloud/go/obsidian/swagger
+COPY --from=builder /${SWAGGER_FILES}/v1/index.html /var/opt/magma/static/swagger/v1/ui/index.html
+COPY --from=builder /${SWAGGER_FILES}/v1/css/sidebar.css /var/opt/magma/static/swagger/v1/static/sidebar.css
+COPY --from=builder /${SWAGGER_FILES}/v1/swagger.yml /var/opt/magma/static/swagger/v1/spec/swagger.yml
+COPY --from=builder src/magma/orc8r/cloud/swagger /etc/magma/swagger
 COPY --from=builder /build/bin /var/opt/magma/bin
 
 # Supervisor configs
+ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
 COPY ${CNTLR_FILES}/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ${CNTLR_FILES}/supervisor_logger.py /usr/local/lib/python2.7/dist-packages/supervisor_logger.py
 

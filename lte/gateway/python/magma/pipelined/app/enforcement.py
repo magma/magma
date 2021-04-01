@@ -88,7 +88,6 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         """
         self._datapath = datapath
         self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
-        self._qos_mgr.setup()
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -257,6 +256,9 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             num = self._rule_mapper.get_rule_num(rule_id)
         except KeyError:
             self.logger.error('Could not find rule id %s', rule_id)
+            return
+        if num is None:
+            self.logger.error('Rule num is None for rule %s', rule_id)
             return
         cookie, mask = (num, flows.OVS_COOKIE_MATCH_ALL)
 

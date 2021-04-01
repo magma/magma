@@ -45,7 +45,7 @@ class AGWHealthCLI:
         print(str(self._health_checker.get_subscriber_table()))
 
     def core_dumps(self,
-                   directory='/tmp/',
+                   directory='/var/core',
                    start_timestamp=0,
                    end_timestamp=math.inf):
         """

@@ -10,14 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from copy import deepcopy
-import redis
-from redis.lock import Lock
-import redis_lock
-import redis_collections
 from typing import Any, Iterator, List, MutableMapping, Optional, TypeVar
-from magma.common.redis.serializers import RedisSerde
+
+import redis
+import redis_collections
+import redis_lock
+from copy import deepcopy
 from orc8r.protos.redis_pb2 import RedisState
+from redis.lock import Lock
+
+from magma.common.redis.serializers import RedisSerde
 
 # NOTE: these containers replace the serialization methods exposed by
 # the redis-collection objects. Although the methods are hinted to be
@@ -25,6 +27,7 @@ from orc8r.protos.redis_pb2 import RedisState
 # docs: http://redis-collections.readthedocs.io/en/stable/usage-notes.html
 
 T = TypeVar('T')
+
 
 class RedisList(redis_collections.List):
     """
@@ -125,9 +128,8 @@ class RedisHashDict(redis_collections.DefaultDict):
         return serialized.decode('utf-8')  # Redis returns bytes
 
     def __init__(
-        self, client, key, serialize, deserialize,
-        default_factory=None,
-        writeback=False,
+            self, client, key, serialize, deserialize,
+            default_factory=None, writeback=False,
     ):
         """
         Initialize instance.
@@ -139,6 +141,8 @@ class RedisHashDict(redis_collections.DefaultDict):
                 function called to serialize a value
             deserialize (function (bytes) -> any):
                 function called to deserialize a value
+            default_factory: function that provides default value for a
+                non-existent key
             writeback (bool): if writeback is set to true, dict maintains a
                 local cache of values and the `sync` method can be called to
                 store these values. NOTE: only use this option if syncing
@@ -198,39 +202,64 @@ class RedisFlatDict(MutableMapping[str, T]):
     dict stores key directly (i.e. without a hashmap).
     """
 
-    def __init__(self, client: redis.Redis, serde: RedisSerde[T]):
+    def __init__(self, client: redis.Redis, serde: RedisSerde[T],
+                 writethrough: bool = False):
         """
         Args:
             client (redis.Redis): Redis client object
             serde (): RedisSerde for de/serializing the object stored
+            writethrough (bool): if writethrough is set to true,
+            RedisFlatDict maintains a local write-through cache of values.
         """
         super().__init__()
+        self._writethrough = writethrough
         self.redis = client
         self.serde = serde
         self.redis_type = serde.redis_type
+        self.cache = {}
+        if self._writethrough:
+            self._sync_cache()
 
     def __len__(self) -> int:
         """Return the number of items in the dictionary."""
+        if self._writethrough:
+            return len(self.cache)
+
         return len(self.keys())
 
     def __iter__(self) -> Iterator[str]:
         """Return an iterator over the keys of the dictionary."""
-        type_pattern = "*:" + self.redis_type
-        for k in self.redis.keys(pattern=type_pattern):
-            try:
-                deserialized_key = k.decode('utf-8')
-                split_key = deserialized_key.split(":", 1)
-            except AttributeError:
-                split_key = k.split(":", 1)
-            if self.is_garbage(split_key[0]):
-                continue
-            yield split_key[0]
+        type_pattern = self._get_redis_type_pattern()
+
+        if self._writethrough:
+            for k in self.cache:
+                split_key, _ = k.split(":", 1)
+                yield split_key
+        else:
+            for k in self.redis.keys(pattern=type_pattern):
+                try:
+                    deserialized_key = k.decode('utf-8')
+                    split_key = deserialized_key.split(":", 1)
+                except AttributeError:
+                    split_key = k.split(":", 1)
+                # There could be a delete key in between KEYS and GET, so ignore
+                # invalid values for now
+                try:
+                    if self.is_garbage(split_key[0]):
+                        continue
+                except KeyError:
+                    continue
+                yield split_key[0]
 
     def __contains__(self, key: str) -> bool:
         """Return ``True`` if *key* is present and not garbage,
         else ``False``.
         """
         composite_key = self._make_composite_key(key)
+
+        if self._writethrough:
+            return composite_key in self.cache
+
         return bool(self.redis.exists(composite_key)) and \
                not self.is_garbage(key)
 
@@ -242,6 +271,12 @@ class RedisFlatDict(MutableMapping[str, T]):
         if ':' in key:
             raise ValueError("Key %s cannot contain ':' char" % key)
         composite_key = self._make_composite_key(key)
+
+        if self._writethrough:
+            cached_value = self.cache.get(composite_key)
+            if cached_value:
+                return cached_value
+
         serialized_value = self.redis.get(composite_key)
         if serialized_value is None:
             raise KeyError(composite_key)
@@ -260,6 +295,8 @@ class RedisFlatDict(MutableMapping[str, T]):
         version = self.get_version(key)
         serialized_value = self.serde.serialize(value, version + 1)
         composite_key = self._make_composite_key(key)
+        if self._writethrough:
+            self.cache[composite_key] = value
         return self.redis.set(composite_key, serialized_value)
 
     def __delitem__(self, key: str) -> int:
@@ -269,25 +306,29 @@ class RedisFlatDict(MutableMapping[str, T]):
         if ':' in key:
             raise ValueError("Key %s cannot contain ':' char" % key)
         composite_key = self._make_composite_key(key)
+        if self._writethrough:
+            del self.cache[composite_key]
         deleted_count = self.redis.delete(composite_key)
         if not deleted_count:
             raise KeyError(composite_key)
         return deleted_count
 
-    def get(self, key: str) -> Optional[T]:
+    def get(self, key: str, default=None) -> Optional[T]:
         """Get ``d[key:type]`` from dictionary.
         Returns None if *key:type* is not in the map
         """
         try:
             return self.__getitem__(key)
         except (KeyError, ValueError):
-            return None
+            return default
 
     def clear(self) -> None:
         """
         Clear all keys in the dictionary. Objects are immediately deleted
         (i.e. not garbage collected)
         """
+        if self._writethrough:
+            self.cache.clear()
         for key in self.keys():
             composite_key = self._make_composite_key(key)
             self.redis.delete(composite_key)
@@ -309,6 +350,9 @@ class RedisFlatDict(MutableMapping[str, T]):
         """Return a copy of the dictionary's list of keys
         Note: for redis *key:type* key is returned
         """
+        if self._writethrough:
+            return list(self.cache.keys())
+
         return list(self.__iter__())
 
     def mark_as_garbage(self, key: str) -> Any:
@@ -344,14 +388,19 @@ class RedisFlatDict(MutableMapping[str, T]):
         Note: for redis *key:type* key is returned
         """
         garbage_keys = []
-        type_pattern = "*:" + self.redis_type
+        type_pattern = self._get_redis_type_pattern()
         for k in self.redis.keys(pattern=type_pattern):
             try:
                 deserialized_key = k.decode('utf-8')
                 split_key = deserialized_key.split(":", 1)
             except AttributeError:
                 split_key = k.split(":", 1)
-            if not self.is_garbage(split_key[0]):
+            # There could be a delete key in between KEYS and GET, so ignore
+            # invalid values for now
+            try:
+                if not self.is_garbage(split_key[0]):
+                    continue
+            except KeyError:
                 continue
             garbage_keys.append(split_key[0])
         return garbage_keys
@@ -374,6 +423,20 @@ class RedisFlatDict(MutableMapping[str, T]):
             auto_renewal=True,
             strict=False,
         )
+
+    def _sync_cache(self):
+        """
+        Syncs write-through cache with redis data on store.
+        """
+        type_pattern = self._get_redis_type_pattern()
+        for k in self.redis.keys(pattern=type_pattern):
+            composite_key = k.decode('utf-8')
+            serialized_value = self.redis.get(composite_key)
+            value = self.serde.deserialize(serialized_value)
+            self.cache[composite_key] = value
+
+    def _get_redis_type_pattern(self):
+        return "*:" + self.redis_type
 
     def _make_composite_key(self, key):
         return key + ":" + self.redis_type

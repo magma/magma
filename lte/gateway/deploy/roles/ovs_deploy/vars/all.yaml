@@ -13,20 +13,20 @@
 
 ovs_build_config:
   # ovs version on github default v2.8.1
-  ovs_version: "v2.8.9"
+  ovs_version: "v2.8.10"
   # Patches you want to apply
   packages:
-    - "oai-gtp_4.9-5_amd64.deb"
-    - "libopenvswitch_2.8.9-1_amd64.deb"
-    - "openvswitch-datapath-dkms_2.8.9-1_all.deb"
-    - "openvswitch-datapath-source_2.8.9-1_all.deb"
-    - "openvswitch-common_2.8.9-1_amd64.deb"
-    - "openvswitch-switch_2.8.9-1_amd64.deb"
+    - "oai-gtp_4.9-9_amd64.deb"
+    - "libopenvswitch_2.8.10-1_amd64.deb"
+    - "openvswitch-datapath-dkms_2.8.10-1_all.deb"
+    - "openvswitch-datapath-source_2.8.10-1_all.deb"
+    - "openvswitch-common_2.8.10-1_amd64.deb"
+    - "openvswitch-switch_2.8.10-1_amd64.deb"
 
 ovs_pkgrepo_proto: http
 ovs_pkgrepo_host: packages.magma.etagecom.io
 ovs_pkgrepo_path: ""
-ovs_pkgrepo_dist: stretch-stable
+ovs_pkgrepo_dist: stretch-1.4.0
 ovs_pkgrepo_component: main
 ovs_pkgrepo_name: "ovs_package_repo"
 

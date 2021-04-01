@@ -1,3 +1,6 @@
+auto gtp_br0
+auto uplink_br0
+
 # Add L3 OVS switch gtp_br0 with gtp0, veth0_ovs, and int_nat_peer
 allow-ovs gtp_br0
 iface gtp_br0 inet static

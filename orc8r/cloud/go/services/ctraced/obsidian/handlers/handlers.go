@@ -62,7 +62,7 @@ func listCallTraces(c echo.Context) error {
 		return nerr
 	}
 
-	callTraces, err := configurator.LoadAllEntitiesOfType(
+	callTraces, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, orc8r.CallTraceEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -256,7 +256,9 @@ func getNetworkIDAndCallTraceID(c echo.Context) (string, string, *echo.HTTPError
 
 func buildStartTraceRequest(cfg *models.CallTraceConfig) (*protos.StartTraceRequest, error) {
 	req := &protos.StartTraceRequest{
-		TraceType: protos.StartTraceRequest_ALL,
+		TraceType:      protos.StartTraceRequest_ALL,
+		CaptureFilters: cfg.CaptureFilters,
+		DisplayFilters: cfg.DisplayFilters,
 	}
 	return req, nil
 }

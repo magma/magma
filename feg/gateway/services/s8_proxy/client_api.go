@@ -39,17 +39,6 @@ func CreateSession(req *protos.CreateSessionRequestPgw) (*protos.CreateSessionRe
 	return cli.CreateSession(context.Background(), req)
 }
 
-func ModifyBearer(req *protos.ModifyBearerRequestPgw) (*protos.ModifyBearerResponsePgw, error) {
-	if req == nil {
-		return nil, errors.New("Invalid CreateSessionRequestPgw")
-	}
-	cli, err := getS8ProxyClient()
-	if err != nil {
-		return nil, err
-	}
-	return cli.ModifyBearer(context.Background(), req)
-}
-
 func DeleteSession(req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
 	if req == nil {
 		return nil, errors.New("Invalid CreateSessionRequestPgw")

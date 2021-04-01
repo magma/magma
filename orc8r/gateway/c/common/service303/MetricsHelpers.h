@@ -20,6 +20,14 @@ namespace magma {
 namespace service303 {
 
 /**
+ * Remove the counter metric that matches name+labels given
+ * @param name
+ * @param n_labels number of labels
+ * @param ... label args (name, value)
+ */
+void remove_counter(const char* name, size_t n_labels, ...);
+
+/**
  * Increments value for Counter metric
  * @param name
  * @param increment value to increment
@@ -66,5 +74,5 @@ void set_gauge(const char* name, double value, size_t n_labels, ...);
 void observe_histogram(
     const char* name, double observation, size_t n_labels, ...);
 
-} // namespace service303
-} // namespace magma
+}  // namespace service303
+}  // namespace magma

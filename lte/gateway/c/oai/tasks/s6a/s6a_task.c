@@ -56,9 +56,7 @@ struct session_handler* ts_sess_hdl;
 task_zmq_ctx_t s6a_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
   int rc                         = RETURNerror;
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -121,7 +119,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       s6a_exit();
     } break;
     default: {
@@ -132,7 +130,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -169,10 +167,8 @@ int s6a_init(const mme_config_t* mme_config_p) {
 
 //------------------------------------------------------------------------------
 static void s6a_exit(void) {
-  destroy_task_context(&s6a_task_zmq_ctx);
-
   s6a_viface_close();
-
+  destroy_task_context(&s6a_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_S6A terminated\n");
   pthread_exit(NULL);
 }

@@ -562,7 +562,7 @@ void nas_delete_all_emm_procedures(struct emm_context_s* const emm_context) {
 }
 
 //-----------------------------------------------------------------------------
-static emm_procedures_t* _nas_new_emm_procedures(
+static emm_procedures_t* nas_new_emm_procedures(
     struct emm_context_s* const emm_context) {
   emm_procedures_t* emm_procedures =
       calloc(1, sizeof(*emm_context->emm_procedures));
@@ -574,7 +574,7 @@ static emm_procedures_t* _nas_new_emm_procedures(
 nas_emm_attach_proc_t* nas_new_attach_procedure(
     struct emm_context_s* const emm_context) {
   if (!(emm_context->emm_procedures)) {
-    emm_context->emm_procedures = _nas_new_emm_procedures(emm_context);
+    emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   } else if (emm_context->emm_procedures->emm_specific_proc) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
@@ -585,8 +585,10 @@ nas_emm_attach_proc_t* nas_new_attach_procedure(
             ->mme_ue_s1ap_id);
     return NULL;
   }
-  emm_context->emm_procedures->emm_specific_proc =
-      calloc(1, sizeof(nas_emm_attach_proc_t));
+  emm_context->emm_procedures->emm_specific_proc = calloc(
+      1,
+      sizeof(
+          nas_emm_attach_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.type =
@@ -610,7 +612,7 @@ nas_emm_attach_proc_t* nas_new_attach_procedure(
 nas_emm_tau_proc_t* nas_new_tau_procedure(
     struct emm_context_s* const emm_context) {
   if (!(emm_context->emm_procedures)) {
-    emm_context->emm_procedures = _nas_new_emm_procedures(emm_context);
+    emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   } else if (emm_context->emm_procedures->emm_specific_proc) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
@@ -621,8 +623,9 @@ nas_emm_tau_proc_t* nas_new_tau_procedure(
             ->mme_ue_s1ap_id);
     return NULL;
   }
-  emm_context->emm_procedures->emm_specific_proc =
-      calloc(1, sizeof(nas_emm_tau_proc_t));
+  emm_context->emm_procedures->emm_specific_proc = calloc(
+      1,
+      sizeof(nas_emm_tau_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.type =
@@ -644,7 +647,7 @@ nas_emm_tau_proc_t* nas_new_tau_procedure(
 nas_sr_proc_t* nas_new_service_request_procedure(
     struct emm_context_s* const emm_context) {
   if (!(emm_context->emm_procedures)) {
-    emm_context->emm_procedures = _nas_new_emm_procedures(emm_context);
+    emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   } else if (emm_context->emm_procedures->emm_con_mngt_proc) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
@@ -655,8 +658,8 @@ nas_sr_proc_t* nas_new_service_request_procedure(
             ->mme_ue_s1ap_id);
     return NULL;
   }
-  emm_context->emm_procedures->emm_con_mngt_proc =
-      calloc(1, sizeof(nas_sr_proc_t));
+  emm_context->emm_procedures->emm_con_mngt_proc = calloc(
+      1, sizeof(nas_sr_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
   emm_context->emm_procedures->emm_con_mngt_proc->emm_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   emm_context->emm_procedures->emm_con_mngt_proc->emm_proc.base_proc.type =
@@ -676,7 +679,7 @@ nas_sr_proc_t* nas_new_service_request_procedure(
 nas_emm_ident_proc_t* nas_new_identification_procedure(
     struct emm_context_s* const emm_context) {
   if (!(emm_context->emm_procedures)) {
-    emm_context->emm_procedures = _nas_new_emm_procedures(emm_context);
+    emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   }
 
   nas_emm_ident_proc_t* ident_proc = calloc(1, sizeof(nas_emm_ident_proc_t));
@@ -707,7 +710,7 @@ nas_emm_ident_proc_t* nas_new_identification_procedure(
 nas_emm_auth_proc_t* nas_new_authentication_procedure(
     struct emm_context_s* const emm_context) {
   if (!(emm_context->emm_procedures)) {
-    emm_context->emm_procedures = _nas_new_emm_procedures(emm_context);
+    emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   }
 
   nas_emm_auth_proc_t* auth_proc = calloc(1, sizeof(nas_emm_auth_proc_t));
@@ -738,7 +741,7 @@ nas_emm_auth_proc_t* nas_new_authentication_procedure(
 nas_emm_smc_proc_t* nas_new_smc_procedure(
     struct emm_context_s* const emm_context) {
   if (!(emm_context->emm_procedures)) {
-    emm_context->emm_procedures = _nas_new_emm_procedures(emm_context);
+    emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   }
 
   nas_emm_smc_proc_t* smc_proc = calloc(1, sizeof(nas_emm_smc_proc_t));
@@ -769,7 +772,7 @@ nas_emm_smc_proc_t* nas_new_smc_procedure(
 nas_auth_info_proc_t* nas_new_cn_auth_info_procedure(
     struct emm_context_s* const emm_context) {
   if (!(emm_context->emm_procedures)) {
-    emm_context->emm_procedures = _nas_new_emm_procedures(emm_context);
+    emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   }
 
   nas_auth_info_proc_t* auth_info_proc =

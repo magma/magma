@@ -52,9 +52,9 @@
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
-static int _emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause);
+static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause);
 
-static int _check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id);
+static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id);
 /*
    --------------------------------------------------------------------------
     Internal data handled by the service request procedure in the UE
@@ -74,7 +74,7 @@ int emm_proc_service_reject(
     const mme_ue_s1ap_id_t ue_id, const uint8_t emm_cause) {
   int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  rc = _emm_service_reject(ue_id, emm_cause);
+  rc = emm_service_reject(ue_id, emm_cause);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 /****************************************************************************/
@@ -85,7 +85,7 @@ int emm_proc_service_reject(
      @param [in]args UE EMM context data
      @returns status of operation
 */
-static int _emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
+static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
 
 {
   int rc = RETURNerror;
@@ -282,7 +282,7 @@ int emm_recv_initial_ext_service_request(
   /* Check cs paging procedure initiated without LAI
    * If cs paging initiated without LAI, On reception of Extended service
    * request procedure send Detach Request ( IMSI Detach) to UE */
-  if (_check_paging_received_without_lai(ue_id)) {
+  if (check_paging_received_without_lai(ue_id)) {
     emm_sap.primitive = EMMCN_NW_INITIATED_DETACH_UE;
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id = ue_id;
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.detach_type =
@@ -311,7 +311,7 @@ int emm_recv_initial_ext_service_request(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-static int _check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id) {
+static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id) {
   ue_mm_context_t* ue_context = NULL;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);

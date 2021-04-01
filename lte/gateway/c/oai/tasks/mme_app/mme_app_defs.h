@@ -36,6 +36,7 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_sgs_fsm.h"
 #include "emm_proc.h"
+#include <czmq.h>
 
 #define INVALID_BEARER_INDEX -1
 #define IPV6_ADDRESS_SIZE 16
@@ -123,6 +124,13 @@ void mme_app_handle_initial_context_setup_failure(
     const itti_mme_app_initial_context_setup_failure_t* const
         initial_ctxt_setup_failure_pP);
 
+void mme_app_handle_e_rab_modification_ind(
+    const itti_s1ap_e_rab_modification_ind_t* const e_rab_modification_ind);
+
+void mme_app_handle_modify_bearer_rsp_erab_mod_ind(
+    itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
+    ue_mm_context_t* ue_context_p);
+
 bool mme_app_dump_ue_context(
     const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP);
@@ -144,16 +152,17 @@ void mme_ue_context_update_ue_sig_connection_state(
     mme_ue_context_t* const mme_ue_context_p,
     struct ue_mm_context_s* ue_context_p, ecm_state_t new_ecm_state);
 
-void mme_app_handle_mobile_reachability_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_mobile_reachability_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64);
+int mme_app_handle_implicit_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_initial_context_setup_rsp_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_initial_context_setup_rsp_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_ue_context_modification_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_ue_context_modification_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
 void mme_app_handle_enb_reset_req(
     const itti_s1ap_enb_initiated_reset_req_t* const enb_reset_req);
@@ -161,15 +170,17 @@ void mme_app_handle_enb_reset_req(
 int mme_app_handle_initial_paging_request(
     mme_app_desc_t* mme_app_desc_p, const char* imsi);
 
-void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64);
-void mme_app_handle_ulr_timer_expiry(void* args, imsi64_t* imsi64);
+int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64);
-void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args, imsi64_t* imsi64);
-void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
-    void* args, imsi64_t* imsi64);
-void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_sgs_eps_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_sgs_imsi_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
 int mme_app_send_s6a_cancel_location_ans(
     int cla_result, const char* imsi, uint8_t imsi_length, void* msg_cla_p);
@@ -210,7 +221,7 @@ int mme_app_handle_sgsap_location_update_rej(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej);
 
-void mme_app_handle_ts6_1_timer_expiry(void* args, imsi64_t* imsi64);
+int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
 int mme_app_handle_sgsap_reset_indication(
     itti_sgsap_vlr_reset_indication_t* const reset_indication_pP);
