@@ -16,7 +16,6 @@ module orc8r {
 
   region = "us-west-2"
 
-  nms_db_password             = "Faceb00k12345"
   orc8r_db_password           = "Faceb00k12345"
   secretsmanager_orc8r_secret = "magma-orc8r-test"
   deployment_secrets_bucket   = "magma.orc8r.test"
