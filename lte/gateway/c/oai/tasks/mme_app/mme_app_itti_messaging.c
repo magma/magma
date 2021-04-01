@@ -48,6 +48,7 @@
 #include "esm_data.h"
 #include "mme_app_desc.h"
 #include "s11_messages_types.h"
+#include "common_utility_funs.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
@@ -373,10 +374,9 @@ int mme_app_send_s11_create_session_req(
   session_request_p->serving_network.mnc[2] =
       ue_mm_context->e_utran_cgi.plmn.mnc_digit3;
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
-
-  if (mme_app_match_fed_mode_map(
-          session_request_p->imsi.digit, ue_mm_context->emm_context._imsi64) ==
-      S8_SUBSCRIBER) {
+  int mode =
+      match_fed_mode_map((char*) session_request_p->imsi.digit, LOG_MME_APP);
+  if (mode == S8_SUBSCRIBER) {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
         "Sending s11 create session req message to SGW_s8 task for "
@@ -647,42 +647,3 @@ void mme_app_itti_sgsap_ue_activity_ind(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-// Extract MCC and MNC from the imsi received and match with
-// configuration
-int mme_app_match_fed_mode_map(const uint8_t* imsi, imsi64_t imsi64) {
-  uint8_t mcc_d1 = imsi[0] - '0';
-  uint8_t mcc_d2 = imsi[1] - '0';
-  uint8_t mcc_d3 = imsi[2] - '0';
-  uint8_t mnc_d1 = imsi[3] - '0';
-  uint8_t mnc_d2 = imsi[4] - '0';
-  uint8_t mnc_d3 = imsi[5] - '0';
-  if ((mcc_d1 < 0 || mcc_d1 > 9) || (mcc_d2 < 0 || mcc_d2 > 9) ||
-      (mcc_d3 < 0 || mcc_d3 > 9) || (mnc_d1 < 0 || mnc_d1 > 9) ||
-      (mnc_d2 < 0 || mnc_d2 > 9) || (mnc_d3 < 0 || mnc_d3 > 9)) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, imsi64, "[ERROR] MCC/MNC is not a decimal digit \n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
-  for (uint8_t itr = 0; itr < mme_config.mode_map_config.num; itr++) {
-    if (((mcc_d1 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit1) &&
-         (mcc_d2 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit2) &&
-         (mcc_d3 == mme_config.mode_map_config.mode_map[itr].plmn.mcc_digit3) &&
-         (mnc_d1 == mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit1) &&
-         (mnc_d2 ==
-          mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit2))) {
-      if (mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit3 != 0xf) {
-        if (mnc_d3 !=
-            mme_config.mode_map_config.mode_map[itr].plmn.mnc_digit3) {
-          continue;
-        }
-      }
-      OAILOG_FUNC_RETURN(
-          LOG_MME_APP, mme_config.mode_map_config.mode_map[itr].mode);
-    }
-  }
-  // If the plmn is not configured set the default mode as hss + spgw_task.
-  OAILOG_INFO_UE(
-      LOG_MME_APP, imsi64,
-      "PLMN is not configured. Selecting default mode: SPGW_SUBSCRIBER \n");
-  OAILOG_FUNC_RETURN(LOG_MME_APP, SPGW_SUBSCRIBER);
-}
