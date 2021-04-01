@@ -471,6 +471,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         record.rule_id = rule_id
         record.sid = sid
 
+        rule_version = _get_version(flow_stat)
+        if not rule_version:
+            rule_version = 0
+        record.rule_version = rule_version
+
         if ipv4_addr:
             record.ue_ipv4 = ipv4_addr
         elif ipv6_addr:
@@ -551,7 +556,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     ipv4_addr = IPAddress(version=IPAddress.IPV4,
                                           address=ipv4_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
-                if rule_id == "":
+                if rule_id == "" or rule_version == None:
                     continue
 
                 current_ver = \
