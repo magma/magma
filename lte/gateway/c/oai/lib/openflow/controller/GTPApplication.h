@@ -173,7 +173,7 @@ class GTPApplication : public Application {
       of13::FlowMod downlink_fm);
 
   void add_tunnel_flow_action(
-      uint32_t tei, uint32_t uplink_tei, std::string ue_imsi,
+      uint32_t out_tei, uint32_t in_tei, std::string ue_imsi,
       struct in_addr remote_ip, uint32_t egress_gtp_port,
       fluid_base::OFConnection* connection, const OpenflowMessenger& messenger,
       of13::FlowMod downlink_fm, const std::string& flow_type,

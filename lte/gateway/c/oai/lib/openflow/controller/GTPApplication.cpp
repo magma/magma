@@ -170,6 +170,10 @@ void GTPApplication::add_uplink_tunnel_flow(
   of13::SetFieldAction set_eth_dst(new of13::EthDst(uplink_port));
   apply_ul_inst.add_action(set_eth_dst);
 
+  of13::SetFieldAction set_tunnel_id(
+      new of13::NXMRegX(TUNNEL_ID_REG, ev.get_in_tei()));
+  apply_ul_inst.add_action(set_tunnel_id);
+
   int vlan_id = ev.get_ue_info().get_vlan();
   if (vlan_id > 0) {
     of13::PushVLANAction push_vlan(0x8100);
@@ -357,7 +361,7 @@ static void add_ded_brr_dl_match(
  * Helper function to add downlink flow action.
  */
 void GTPApplication::add_tunnel_flow_action(
-    uint32_t tei, uint32_t uplink_tei, std::string ue_imsi,
+    uint32_t out_tei, uint32_t in_tei, std::string ue_imsi,
     struct in_addr remote_ip, uint32_t egress_gtp_port,
     fluid_base::OFConnection* connection, const OpenflowMessenger& messenger,
     of13::FlowMod downlink_fm, const std::string& flow_type, bool passthrough) {
@@ -365,7 +369,7 @@ void GTPApplication::add_tunnel_flow_action(
   auto imsi = IMSIEncoder::compact_imsi(ue_imsi);
 
   // Set outgoing tunnel id and tunnel destination ip
-  of13::SetFieldAction set_out_tunnel(new of13::TUNNELId(tei));
+  of13::SetFieldAction set_out_tunnel(new of13::TUNNELId(out_tei));
   apply_dl_inst.add_action(set_out_tunnel);
   of13::SetFieldAction set_tunnel_dst(
       new of13::TunnelIPv4Dst(remote_ip.s_addr));
@@ -375,13 +379,12 @@ void GTPApplication::add_tunnel_flow_action(
   if (gtp_port == 0) {
     gtp_port = GTPApplication::gtp0_port_num_;
   }
-  of13::SetFieldAction set_in_tunnel_port(
+  of13::SetFieldAction set_tunnel_port(
       new of13::NXMRegX(TUNNEL_PORT_REG, gtp_port));
-  apply_dl_inst.add_action(set_in_tunnel_port);
+  apply_dl_inst.add_action(set_tunnel_port);
 
-  of13::SetFieldAction set_out_tunnel_port(
-      new of13::NXMRegX(TUNNEL_ID_REG, uplink_tei));
-  apply_dl_inst.add_action(set_out_tunnel_port);
+  of13::SetFieldAction set_tunnel_id(new of13::NXMRegX(TUNNEL_ID_REG, in_tei));
+  apply_dl_inst.add_action(set_tunnel_id);
 
   EthAddress uplink_port(uplink_mac_);
   of13::SetFieldAction set_eth_dst(new of13::EthDst(uplink_port));
