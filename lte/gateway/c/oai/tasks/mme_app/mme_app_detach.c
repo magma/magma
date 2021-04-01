@@ -121,8 +121,7 @@ void mme_app_send_delete_session_request(
       ue_context_p->emm_context._imsi64, (char*) (&imsi.digit),
       ue_context_p->emm_context._imsi.length);
 
-  if (mme_app_match_fed_mode_map(
-          imsi.digit, ue_context_p->emm_context._imsi64) == S8_SUBSCRIBER) {
+  if (ue_context_p->pdn_contexts[cid]->route_s11_messages_to_s8_task) {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Send delete session Req for teid to sgw_s8 task " TEID_FMT "\n",

@@ -383,6 +383,7 @@ int mme_app_send_s11_create_session_req(
         "ue_id " MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context->mme_ue_s1ap_id);
     send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+    ue_mm_context->pdn_contexts[pdn_cid]->route_s11_messages_to_s8_task = true;
   } else {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
@@ -685,4 +686,3 @@ int mme_app_match_fed_mode_map(const uint8_t* imsi, imsi64_t imsi64) {
       "PLMN is not configured. Selecting default mode: SPGW_SUBSCRIBER \n");
   OAILOG_FUNC_RETURN(LOG_MME_APP, SPGW_SUBSCRIBER);
 }
-

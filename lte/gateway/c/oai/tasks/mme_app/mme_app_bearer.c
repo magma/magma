@@ -85,7 +85,8 @@ extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 extern int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
 static void send_s11_modify_bearer_request(
-    ue_mm_context_t* ue_context_p, MessageDef* message_p);
+    ue_mm_context_t* ue_context_p, pdn_context_t* pdn_context_p,
+    MessageDef* message_p);
 
 int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -190,7 +191,7 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  send_s11_modify_bearer_request(ue_context_p, message_p);
+  send_s11_modify_bearer_request(ue_context_p, pdn_context_p, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -1527,7 +1528,8 @@ static int mme_app_send_modify_bearer_request_for_active_pdns(
         ue_context_p, initial_ctxt_setup_rsp_p, s11_modify_bearer_request, &pid,
         &bc_to_be_removed_idx);
 
-    send_s11_modify_bearer_request(ue_context_p, message_p);
+    send_s11_modify_bearer_request(
+        ue_context_p, ue_context_p->pdn_contexts[pid], message_p);
   }  // end of for loop
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -3431,7 +3433,9 @@ void mme_app_handle_path_switch_request(
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  send_s11_modify_bearer_request(ue_context_p, message_p);
+  if (pdn_context) {
+    send_s11_modify_bearer_request(ue_context_p, pdn_context, message_p);
+  }
   ue_context_p->path_switch_req = true;
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -3937,8 +3941,9 @@ void mme_app_handle_e_rab_modification_ind(
   s11_modify_bearer_request->trxn = NULL;
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-
-  send_s11_modify_bearer_request(ue_context_p, message_p);
+  if (pdn_context) {
+    send_s11_modify_bearer_request(ue_context_p, pdn_context, message_p);
+  }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
@@ -4080,15 +4085,15 @@ void mme_app_handle_modify_bearer_rsp(
 }
 
 void send_s11_modify_bearer_request(
-    ue_mm_context_t* ue_context_p, MessageDef* message_p) {
+    ue_mm_context_t* ue_context_p, pdn_context_t* pdn_context_p,
+    MessageDef* message_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   Imsi_t imsi = {0};
   IMSI64_TO_STRING(
       ue_context_p->emm_context._imsi64, (char*) (&imsi.digit),
       ue_context_p->emm_context._imsi.length);
 
-  if (mme_app_match_fed_mode_map(
-          imsi.digit, ue_context_p->emm_context._imsi64) == S8_SUBSCRIBER) {
+  if (pdn_context_p->route_s11_messages_to_s8_task) {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Sending S11 modify bearer req message to SGW_s8 task for "
