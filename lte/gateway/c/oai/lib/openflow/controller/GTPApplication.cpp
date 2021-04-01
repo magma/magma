@@ -203,8 +203,9 @@ void GTPApplication::add_uplink_s8_tunnel_flow(
   add_tunnel_match(uplink_fm, ev.get_enb_gtp_portno(), ev.get_in_tei());
 
   add_tunnel_flow_action(
-      ev.get_out_tei(), ev.get_imsi(), ev.get_pgw_ip(), ev.get_pgw_gtp_portno(),
-      ev.get_connection(), messenger, uplink_fm, "S8 Uplink", true);
+      ev.get_out_tei(), ev.get_in_tei(), ev.get_imsi(), ev.get_pgw_ip(),
+      ev.get_pgw_gtp_portno(), ev.get_connection(), messenger, uplink_fm,
+      "S8 Uplink", true);
 }
 
 void GTPApplication::delete_uplink_tunnel_flow(
@@ -356,10 +357,10 @@ static void add_ded_brr_dl_match(
  * Helper function to add downlink flow action.
  */
 void GTPApplication::add_tunnel_flow_action(
-    uint32_t tei, std::string ue_imsi, struct in_addr remote_ip,
-    uint32_t egress_gtp_port, fluid_base::OFConnection* connection,
-    const OpenflowMessenger& messenger, of13::FlowMod downlink_fm,
-    const std::string& flow_type, bool passthrough) {
+    uint32_t tei, uint32_t uplink_tei, std::string ue_imsi,
+    struct in_addr remote_ip, uint32_t egress_gtp_port,
+    fluid_base::OFConnection* connection, const OpenflowMessenger& messenger,
+    of13::FlowMod downlink_fm, const std::string& flow_type, bool passthrough) {
   of13::ApplyActions apply_dl_inst;
   auto imsi = IMSIEncoder::compact_imsi(ue_imsi);
 
@@ -374,8 +375,13 @@ void GTPApplication::add_tunnel_flow_action(
   if (gtp_port == 0) {
     gtp_port = GTPApplication::gtp0_port_num_;
   }
-  of13::SetFieldAction set_tunnel_port(new of13::NXMReg8(gtp_port));
-  apply_dl_inst.add_action(set_tunnel_port);
+  of13::SetFieldAction set_in_tunnel_port(
+      new of13::NXMRegX(TUNNEL_PORT_REG, gtp_port));
+  apply_dl_inst.add_action(set_in_tunnel_port);
+
+  of13::SetFieldAction set_out_tunnel_port(
+      new of13::NXMRegX(TUNNEL_ID_REG, uplink_tei));
+  apply_dl_inst.add_action(set_out_tunnel_port);
 
   EthAddress uplink_port(uplink_mac_);
   of13::SetFieldAction set_eth_dst(new of13::EthDst(uplink_port));
@@ -405,8 +411,9 @@ void GTPApplication::add_downlink_tunnel_flow_action(
     const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
     of13::FlowMod downlink_fm, bool passthrough) {
   add_tunnel_flow_action(
-      ev.get_out_tei(), ev.get_imsi(), ev.get_enb_ip(), ev.get_enb_gtp_portno(),
-      ev.get_connection(), messenger, downlink_fm, "S1 Downlink", passthrough);
+      ev.get_out_tei(), ev.get_in_tei(), ev.get_imsi(), ev.get_enb_ip(),
+      ev.get_enb_gtp_portno(), ev.get_connection(), messenger, downlink_fm,
+      "S1 Downlink", passthrough);
 }
 
 void GTPApplication::add_downlink_tunnel_flow_ipv4(
