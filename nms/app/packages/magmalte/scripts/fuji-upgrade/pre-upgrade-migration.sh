@@ -36,19 +36,19 @@ PRE-REQUISITES
 EOF
 
 # Get the Magma k8s namespace
-read -p "Enter Kubernetes namespace [magma]: " magma_namespace
-magma_namespace=${magma_namespace:-magma}
+read -p "Enter Kubernetes namespace [orc8r]: " magma_namespace
+magma_namespace=${magma_namespace:-orc8r}
 echo ""
 
 # Find NMS pod name
-nms_pod_name=$(kubectl -n magma get pods --no-headers -o custom-columns=":metadata.name" | grep nms-magmalte)
+nms_pod_name=$(kubectl -n $magma_namespace get pods --no-headers -o custom-columns=":metadata.name" | grep nms-magmalte)
 echo "Found Magma NMS pod name: $nms_pod_name"
 read -p "Enter NMS pod name [$nms_pod_name]: " input
 nms_pod_name=${input:-$nms_pod_name}
 echo ""
 
 # Find configurator pod name
-orc8r_pod_name=$(kubectl -n magma get pods --no-headers -o custom-columns=":metadata.name" | grep orc8r-configurator)
+orc8r_pod_name=$(kubectl -n $magma_namespace get pods --no-headers -o custom-columns=":metadata.name" | grep orc8r-configurator)
 echo "Found Magma configurator pod name: $orc8r_pod_name"
 read -p "Enter configurator pod name [$orc8r_pod_name]: " input
 orc8r_pod_name=${input:-$orc8r_pod_name}
