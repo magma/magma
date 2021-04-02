@@ -11,18 +11,16 @@
 
 {{- if .Values.create }}
 apiVersion: cert-manager.io/v1
-kind: Certificate
+kind: Issuer
 metadata:
-  name: {{ .Release.Name }}-fluentd-certificate
+  name: letsencrypt-prod-issuer
 spec:
-  secretName: {{ .Release.Name }}-fluentd-tls
-  commonName: fluentd.{{ required "domainName must be provided" .Values.domainName }}
-  subject:
-    countries:
-      - US
-  duration: {{ .Values.fluentd.duration }}
-  renewBefore: {{ .Values.fluentd.renewBefore }}
-  issuerRef:
-    name: {{ .Release.Name }}-selfsigned-issuer
-  isCA: true
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: {{ .Release.Name }}-letsencrypt-prod-key
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
 {{- end }}

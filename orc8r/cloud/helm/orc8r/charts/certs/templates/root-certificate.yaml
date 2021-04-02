@@ -20,8 +20,8 @@ spec:
   subject:
     countries:
       - US
-  duration: {{ .Values.duration }}
-  renewBefore: {{ .Values.renewBefore }}
+  duration: {{ .Values.root.duration }}
+  renewBefore: {{ .Values.root.renewBefore }}
   issuerRef:
     name: {{ .Release.Name }}-selfsigned-issuer
   isCA: true

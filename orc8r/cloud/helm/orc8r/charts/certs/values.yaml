@@ -14,25 +14,50 @@ create: true
 
 domainName: localhost
 
-# 10 years = 87600h
-duration: 87600h
-renewBefore: 24h
-
 bootstrapper:
   # 1 year = 8760h
   duration: 8760h
   renewBefore: 24h
 
 adminOperator:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
   customIssuer:
   pkcs12:
     password: password
 
+certifier:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
+
 nms:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
+
+  # You can use one of the following Let's Encrypt issuers.
+  # letsencrypt-prod-issuer
+  # letsencrypt-staging-issuer
+  # NOTE: this won't work with wildcard domain.
   customIssuer:
 
 controller:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
   customIssuer:
+
+fluentd:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
+
+root:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
 
 preInstallChecks:
   enabled: true

@@ -20,8 +20,8 @@ spec:
   subject:
     countries:
       - US
-  duration: {{ .Values.duration }}
-  renewBefore: {{ .Values.renewBefore }}
+  duration: {{ .Values.adminOperator.duration }}
+  renewBefore: {{ .Values.adminOperator.renewBefore }}
   issuerRef:
 {{- if .Values.adminOperator.customIssuer }}
     name: {{ .Values.adminOperator.customIssuer }}

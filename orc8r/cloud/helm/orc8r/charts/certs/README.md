@@ -28,14 +28,24 @@ The following table lists the configurable certs parameters.
 
 | Parameter        | Description     | Default   |
 | ---              | ---             | ---       |
-| `create` | Set to ``true`` to create orc8r certs. | `false` |
+| `create` | Set to `true` to create orc8r certs. | `false` |
 | `domainName` | Domain Name | `localhost` |
-| `duration` | Certificate duration | `87600h` |
-| `renewBefore` | Renew Certificate | `24h` |
-| `bootstrapper.duration` | Bootstrapper Certificate duration | `8760h` |
-| `bootstrapper.renewBefore` | Renew Bootstrapper Certificate | `24h` |
+| `bootstrapper.duration` | Certificate duration | `8760h` |
+| `bootstrapper.renewBefore` | Renew Certificate before expiring | `24h` |
+| `certifier.duration` | Certificate Duration | `87600h` |
+| `certifier.renewBefore` | Renew Certificate before expiring | `24h` |
+| `adminOperator.duration` | Certificate Duration | `87600h` |
+| `adminOperator.renewBefore` | Renew Certificate before expiring | `24h` |
 | `adminOperator.customIssuer` | Custom Issuer | `""` |
 | `adminOperator.pkcs12.password` | pkcs12 password | `password` |
+| `nms.duration` | Certificate Duration | `87600h` |
+| `nms.renewBefore` | Renew Certificate before expiring | `24h` |
 | `nms.customIssuer` | Custom Issuer | `""` |
+| `controller.duration` | Certificate Duration | `87600h` |
+| `controller.renewBefore` | Renew Certificate before expiring | `24h` |
 | `controller.customIssuer` | Custom Issuer | `""` |
 | `preInstallChecks.enabled` | Pre Install Checks | `true` |
+| `fluentd.duration` | Certificate Duration | `87600h` |
+| `fluentd.renewBefore` | Renew Certificate before expiring | `24h` |
+| `root.duration` | Certificate Duration | `87600h` |
+| `root.renewBefore` | Renew Certificate before expiring | `24h` |
