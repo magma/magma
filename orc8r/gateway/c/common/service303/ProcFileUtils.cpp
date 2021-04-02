@@ -12,12 +12,9 @@
  * limitations under the License.
  */
 
-#include <string>
-#include <ratio>
-#include <fstream>
-#include <iostream>
-
 #include "ProcFileUtils.h"
+#include <fstream>  // for basic_istream, ifstream
+#include <string>   // for string, operator>>, stod
 
 namespace magma {
 namespace service303 {

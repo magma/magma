@@ -28,6 +28,7 @@
 #include "spgw_types.h"
 #include "intertask_interface.h"
 #include "common_types.h"
+#include "log.h"
 
 #include "MobilityServiceClient.h"
 
