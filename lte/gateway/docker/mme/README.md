@@ -22,15 +22,7 @@ docker build --target magma-mme --tag magma-mme:latest --file lte/gateway/docker
 
 We are using `podman3.0` or later versions.
 
-Again you may have to remove the `.dockerignore` file.
-
-```bash
-# Go to the root of the MAGMA repository in your workspace
-cd $MAGMA 
-mv .dockerignore .mockerignore
-```
-
-Then building a RHEL8 image, using a lot of developers packages, requires to pass the certificates to enable some YUM repositories.
+First building a RHEL8 image, using a lot of developers packages, requires to pass the certificates to enable some YUM repositories.
 
 **This implies that you are running your podman commands on an already certified RHEL system!**
 
@@ -42,8 +34,10 @@ sudo cp /etc/rhsm/ca/redhat-uep.pem tmp/ca
 
 Finally you can build:
 
+`podman3` has a nice feature to change the location of the `.dockerignore` file.
+
 ```bash
 cd $MAGMA
-sudo podman build --target magma-mme --tag magma-mme:latest --file lte/gateway/docker/mme/Dockerfile.rhel8 .
+sudo podman build --target magma-mme --tag magma-mme:latest --ignorefile lte/gateway/docker/mme/.dockerignore --file lte/gateway/docker/mme/Dockerfile.rhel8 .
 ```
 
