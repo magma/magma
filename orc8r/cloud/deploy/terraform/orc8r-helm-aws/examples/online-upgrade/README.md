@@ -48,8 +48,6 @@ https://magma.github.io/magma.
 | helm\_user | Username for your Helm repo | `string` | n/a | yes |
 | metrics\_worker\_subnet\_id | Subnet ID of the metrics worker instance. Find this in the EC2 console (the instance will have the tag orc8r-node-type: orc8r-prometheus-node). | `string` | n/a | yes |
 | new\_deployment\_name | New name for the v1.1.0 Helm deployment. This must be different than your old v1.0 deployment (which was probably 'orc8r') | `string` | n/a | yes |
-| nms\_db\_configuration | Configuration of the NMS MySQL instance. This should match the v1.0 Terraform. | <pre>object({<br>    identifier     = string<br>    storage_gb     = number<br>    engine_version = string<br>    instance_class = string<br>  })</pre> | <pre>{<br>  "engine_version": "5.7",<br>  "identifier": "nmsdb",<br>  "instance_class": "db.m4.large",<br>  "storage_gb": 16<br>}</pre> | no |
-| nms\_db\_password | Password for the NMS MySQL instance. This should match the v1.0 Terraform. | `string` | n/a | yes |
 | orc8r\_chart\_version | Chart version for the Helm deployment | `string` | `"1.4.21"` | no |
 | orc8r\_container\_tag | Container tag to deploy | `string` | n/a | yes |
 | orc8r\_controller\_replicas | How many controller pod replicas to deploy | `number` | `2` | no |
