@@ -41,7 +41,7 @@ add_executable(mme
 target_link_libraries(mme
     -Wl,--start-group
         COMMON
-	LIB_3GPP LIB_S1AP LIB_NGAP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
+        LIB_3GPP LIB_S1AP LIB_NGAP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
         LIB_HASHTABLE LIB_S6A_PROXY
         TASK_S1AP TASK_NGAP TASK_SCTP_SERVER TASK_SGS TASK_SMS_ORC8R
         TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE TASK_NAS TASK_HA
@@ -51,6 +51,18 @@ target_link_libraries(mme
     ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls ${SERVICE303_LIB}
     prometheus-cpp grpc grpc++ yaml-cpp
 )
+
+## Find + link sentry if it exists
+## TODO we can enable by default after we migrate to ubuntu 20.04
+find_library(SENTRY_LIB NAMES sentry sentry-native)
+if (SENTRY_LIB)
+# Include dir
+find_path(SENTRY_INCLUDE_DIR
+    NAMES
+    sentry.h
+)
+target_link_libraries(mme ${SENTRY_LIB})
+endif()
 
 if ( NOT EMBEDDED_SGW )
  target_link_libraries(mme
