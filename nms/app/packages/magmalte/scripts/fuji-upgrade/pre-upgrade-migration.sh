@@ -12,7 +12,7 @@
 # limitations under the License.
 ################################################################################
 
-NMS_SCRIPT_URI="https://gist.githubusercontent.com/andreilee/7aa7d533e2e8f425222b1e6a016a6f5a/raw/5b3c9346dedca6dcfb8d0a13c5f3b4d9100b9279/runs-on-nms.sh"
+NMS_SCRIPT_URI="https://raw.githubusercontent.com/magma/magma/master/nms/app/packages/magmalte/scripts/fuji-upgrade/runs-on-nms.sh"
 
 cat << EOF
 ================================================================================
