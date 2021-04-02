@@ -89,7 +89,7 @@ class S1apStateManager
 
  private:
   S1apStateManager();
-  ~S1apStateManager();
+  ~S1apStateManager() override;
 
   /**
    * Allocates new s1ap_state_t struct and its properties
@@ -102,6 +102,7 @@ class S1apStateManager
   uint32_t max_ues_;
   uint32_t max_enbs_;
   s1ap_imsi_map_t* s1ap_imsi_map_;
+  std::size_t s1ap_imsi_map_hash_;
 };
 }  // namespace lte
 }  // namespace magma
