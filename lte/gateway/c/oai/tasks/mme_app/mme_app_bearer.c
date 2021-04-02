@@ -3373,6 +3373,7 @@ void mme_app_handle_handover_request_ack(
   ho_command_p->source_assoc_id    = handover_request_ack_p->source_assoc_id;
   ho_command_p->mme_ue_s1ap_id     = handover_request_ack_p->mme_ue_s1ap_id;
   ho_command_p->src_enb_ue_s1ap_id = handover_request_ack_p->src_enb_ue_s1ap_id;
+  ho_command_p->tgt_enb_ue_s1ap_id = handover_request_ack_p->tgt_enb_ue_s1ap_id;
   ho_command_p->source_enb_id      = handover_request_ack_p->source_enb_id;
   ho_command_p->target_enb_id      = handover_request_ack_p->target_enb_id;
   ho_command_p->handover_type      = handover_request_ack_p->handover_type;
