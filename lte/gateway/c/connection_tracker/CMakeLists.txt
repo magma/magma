@@ -102,6 +102,20 @@ add_library(CONNECTION_TRACKER
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
+## Find + link sentry if it exists
+## TODO we can enable by default after we migrate to ubuntu 20.04
+find_library(SENTRY_LIB NAMES sentry sentry-native)
+if (SENTRY_LIB)
+# Include dir
+find_path(SENTRY_INCLUDE_DIR
+    NAMES
+    sentry.h
+)
+target_link_libraries(CONNECTION_TRACKER ${SENTRY_LIB})
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSENTRY_ENABLED=1")
+set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_ENABLED=1")
+endif()
+
 target_link_libraries(CONNECTION_TRACKER
   SERVICE303_LIB SERVICE_REGISTRY CONFIG
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis

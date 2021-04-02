@@ -38,6 +38,18 @@ add_executable(mme
     ${PROJECT_SOURCE_DIR}/tasks/grpc_service/grpc_service_task.c
 )
 
+## Find + link sentry if it exists
+## TODO we can enable by default after we migrate to ubuntu 20.04
+find_library(SENTRY_LIB NAMES sentry sentry-native)
+if (SENTRY_LIB)
+# Include dir
+find_path(SENTRY_INCLUDE_DIR
+    NAMES
+    sentry.h
+)
+target_link_libraries(mme ${SENTRY_LIB})
+endif()
+
 target_link_libraries(mme
     -Wl,--start-group
         COMMON

@@ -43,6 +43,19 @@ add_library(SCTPD_LIB
   ${PROTO_HDRS}
 )
 
+## Find + link sentry if it exists
+find_library(SENTRY_LIB NAMES sentry sentry-native)
+if (SENTRY_LIB)
+# Include dir
+find_path(SENTRY_INCLUDE_DIR
+    NAMES
+    sentry.h
+)
+target_link_libraries(SCTPD_LIB ${SENTRY_LIB})
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSENTRY_ENABLED=1")
+set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_ENABLED=1")
+endif()
+
 target_compile_definitions(SCTPD_LIB PUBLIC LOG_WITH_GLOG)
 
 target_link_libraries(SCTPD_LIB
