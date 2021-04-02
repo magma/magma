@@ -27,8 +27,6 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -105,16 +103,20 @@ var (
 )
 
 func init() {
-	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	// _ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
 func TestRun(t *testing.T) {
 	dbName := "state___reindex_test___run"
 
+	// Make nullipotent calls to handle code coverage indeterminacy
+	reindex.TestHookReindexSuccess()
+	reindex.TestHookReindexDone()
+
 	// Writes to channel after completing a job
 	ch := make(chan interface{})
-	reindex.TestHookReindexComplete = func() { ch <- nil }
-	defer func() { reindex.TestHookReindexComplete = func() {} }()
+	reindex.TestHookReindexSuccess = func() { ch <- nil }
+	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
@@ -173,6 +175,63 @@ func TestRun(t *testing.T) {
 	assertErrored(t, q, id1, reindex.ErrPrepare, someErr1)
 	assertErrored(t, q, id2, reindex.ErrReindex, someErr2)
 	assertErrored(t, q, id3, reindex.ErrComplete, someErr3)
+}
+
+func TestRunBrokenIndexer(t *testing.T) {
+	dbName := "state___reindex_test___run_broken_indexer"
+
+	// Writes to channel after completing a job
+	ch := make(chan interface{})
+	reindex.TestHookReindexDone = func() { ch <- nil }
+	defer func() { reindex.TestHookReindexDone = func() {} }()
+
+	clock.SkipSleeps(t)
+	defer clock.ResumeSleeps(t)
+
+	r, q := initReindexTest(t, dbName)
+	ctx, cancel := context.WithCancel(context.Background())
+	go r.Run(ctx)
+	defer cancel()
+
+	// Job exists but indexer's broken
+	// Populate
+	broken := getBasicIndexer(id0, version0)
+	broken.On("GetTypes").Return(allTypes).Once()
+	broken.On("PrepareReindex", zero, version0, true).Return(nil).Once()
+	broken.On("Index", mock.Anything, mock.Anything).Return(nil, someErr).Once()
+	registerAndPopulate(t, q, broken)
+	// Check
+	recvCh(t, ch)
+	recvCh(t, ch) // twice to go through full loop at least once with indexer available
+	broken.AssertExpectations(t)
+	assertErrored(t, q, id0, reindex.ErrReindex, someErr)
+}
+
+func TestRunMissingIndexer(t *testing.T) {
+	dbName := "state___reindex_test___run_missing_indexer"
+
+	// Writes to channel after completing a job
+	ch := make(chan interface{})
+	reindex.TestHookReindexDone = func() { ch <- nil }
+	defer func() { reindex.TestHookReindexDone = func() {} }()
+
+	clock.SkipSleeps(t)
+	defer clock.ResumeSleeps(t)
+
+	// Job exists but indexer doesn't exist
+	r, q := initReindexTest(t, dbName)
+	ctx, cancel := context.WithCancel(context.Background())
+	missing := getIndexer(id0, zero, version0, true)
+	missing.On("GetTypes").Return(allTypes).Once()
+	registerAndPopulate(t, q, missing)
+	indexer.DeregisterAllForTest(t)
+	go r.Run(ctx)
+	defer cancel()
+
+	// Check
+	recvCh(t, ch)
+	recvCh(t, ch) // twice to go through full loop at least once with indexer available
+	assertErrored(t, q, id0, "", errors.New("indexer not found"))
 }
 
 func TestRunUnsafe(t *testing.T) {
@@ -238,7 +297,6 @@ func TestRunUnsafe(t *testing.T) {
 }
 
 func initReindexTest(t *testing.T, dbName string) (reindex.Reindexer, reindex.JobQueue) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 	indexer.DeregisterAllForTest(t)
 
 	configurator_test_init.StartTestService(t)
@@ -377,7 +435,9 @@ func assertErrored(t *testing.T, q reindex.JobQueue, indexerID string, sentinel 
 	assert.NoError(t, err)
 	// Job err contains relevant info
 	assert.Contains(t, e, indexerID)
-	assert.Contains(t, e, sentinel)
+	if sentinel != "" {
+		assert.Contains(t, e, sentinel)
+	}
 	assert.Contains(t, e, rootErr.Error())
 }
 

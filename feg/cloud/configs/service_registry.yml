@@ -19,6 +19,7 @@ services:
     labels:
       orc8r.io/mconfig_builder: "true"
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/feg,
@@ -30,6 +31,8 @@ services:
     proxy_type: "clientcert"
     proxy_aliases:
       s6a_proxy:
+        port: 9103
+      s8_proxy:
         port: 9103
       session_proxy:
         port: 9079

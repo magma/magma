@@ -4,7 +4,7 @@
   become_user: root
   roles:
     - evrardjp.keepalived
-    - uoi-io.haproxy
+    - ansible-haproxy
   vars:
     virtual_ip: "{{ loadbalancer_apiserver.address }}/24"
     keepalived_sync_groups:

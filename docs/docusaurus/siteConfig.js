@@ -11,88 +11,47 @@
  * limitations under the License.
  */
 
-// See https://docusaurus.io/docs/site-config for all the possible
-// site configuration options.
-
-// List of projects/orgs using your project for the users page.
-const users = [
-  {
-    caption: 'User1',
-    // You will need to prepend the image path with your baseUrl
-    // if it is not '/', like: '/test-site/img/docusaurus.svg'.
-    image: '/img/magma-logo.svg',
-    infoLink: 'https://magmacore.org',
-    pinned: true,
-  },
-];
+// Ref: https://v1.docusaurus.io/docs/en/site-config
 
 const url = process.env.DOCUSAURUS_URL || 'https://magmacore.org'
 const baseUrl = process.env.DOCUSAURUS_BASE_URL || '/'
 
 const siteConfig = {
-  title: 'Magma Documentation', // Title for your website.
+  title: 'Magma Documentation',
   disableTitleTagline: true,
   tagline: 'Bring more people online by enabling operators with open, flexible, and extensible network solutions',
 
-  // Used for publishing and more
   projectName: 'magma',
   organizationName: 'magma',
-  url: url, // Your website URL
-  baseUrl: baseUrl, // Base URL for your project */
-  // For github.io type URLs, you would set the url and baseUrl like:
-  //   url: 'https://facebook.github.io',
-  //   baseUrl: '/test-site/',
-  // For top-level user or org sites, the organization is still the same.
-  // e.g., for the https://JoelMarcey.github.io site, it would be set like...
-  //   organizationName: 'Facebook'
+  url: url, // full URL
+  baseUrl: baseUrl, // base URL
 
-  //docsUrl: 'docs',
-
-  // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
-    // {doc: 'basics/introduction', label: 'Docs'},
     {href: 'https://magmacore.org', label: 'Home'},
     {label: ' | '},
-    {href: '/', label: 'Docs'},
+    {href: baseUrl, label: 'Docs'},
     {label: ' | '},
     {href: 'https://github.com/magma', label: 'Code'},
     {label: ' | '},
     {href: 'https://magmacore.org/community', label: 'Community'},
   ],
 
-  // If you have users set above, you add it here:
-  users,
-
-  /* path to images for header/footer */
+  // Path to images for header/footer
   headerIcon: 'img/magma-logo.svg',
   footerIcon: 'img/magma_icon.png',
-  favicon: 'img/favicon.png',
+  favicon: 'img/icon.png',
 
-  /* Colors for website */
+  // Colors for website
   colors: {
     primaryColor: '#5602a4',
     secondaryColor: '#5602a4',
   },
 
-  /* Custom fonts for website */
-  /*
-  fonts: {
-    myFont: [
-      "Times New Roman",
-      "Serif"
-    ],
-    myOtherFont: [
-      "-apple-system",
-      "system-ui"
-    ]
-  },
-  */
-
   // This copyright info is used in /core/Footer.js and blog RSS/Atom feeds.
   copyright: `Copyright \u{00A9} ${new Date().getFullYear()} The Magma Authors`,
 
+  // Highlight.js theme to use for syntax highlighting in code blocks.
   highlight: {
-    // Highlight.js theme to use for syntax highlighting in code blocks.
     theme: 'default',
   },
 
@@ -108,18 +67,14 @@ const siteConfig = {
   ogImage: 'img/docusaurus.png',
   twitterImage: 'img/docusaurus.png',
 
-
+  // Whether sidebar nav is collapsible
   docsSideNavCollapsible: true,
 
-  // Show documentation's last contributor's name.
-  // enableUpdateBy: true,
-
-  // Show documentation's last update time.
-  // enableUpdateTime: true,
-
-  // You may provide arbitrary config keys to be used as needed by your
-  // template. For example, if you need your repo's URL...
-  //   repoUrl: 'https://github.com/facebook/test-site',
+  // Enable Algolia DocSearch Functionality within Docusaurus
+  algolia: {
+    apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+    indexName: 'magma',
+  },
 };
 
 module.exports = siteConfig;

@@ -1,0 +1,56 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  labels:
+    kubevirt.io/os: linux
+  name: magmadev
+  namespace: kubevirt
+spec:
+  running: true
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        kubevirt.io/domain: magma
+    spec:
+      domain:
+        cpu:
+          cores: 2
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: disk0
+          interfaces:
+          - name: default
+            bridge: {}
+          - name: net1
+            bridge: {}
+          - name: net2
+            bridge: {}
+        resources:
+          requests:
+            memory: 4096M
+      networks:
+      - name: default
+        pod: {}
+      - name: net1
+        multus:
+          networkName: macvlan-conf
+      - name: net2
+        multus:
+          networkName: macvlan-conf-1
+      volumes:
+      - name: disk0
+        persistentVolumeClaim:
+          claimName: magma-dev
+      - cloudInitNoCloud:
+          userData: |
+            #cloud-config
+            password: debian
+            chpasswd: { expire: False }
+            ifconfig net1 up
+            ifconfig net2 up
+            dhclient net1
+            dhclient net2
+        name: cloudinitdisk

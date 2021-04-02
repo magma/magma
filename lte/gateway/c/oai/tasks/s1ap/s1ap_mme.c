@@ -107,13 +107,9 @@ static int s1ap_send_init_sctp(void) {
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   s1ap_state_t* state;
-
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
-
-  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-  state           = get_s1ap_state(false);
+  MessageDef* received_message_p = receive_msg(reader);
+  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
+  state                          = get_s1ap_state(false);
   AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -150,7 +146,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case SCTP_DATA_CNF:
       s1ap_mme_itti_nas_downlink_cnf(
-          SCTP_DATA_CNF(received_message_p).mme_ue_s1ap_id,
+          SCTP_DATA_CNF(received_message_p).agw_ue_xap_id,
           SCTP_DATA_CNF(received_message_p).is_success);
       break;
     // SCTP layer notifies S1AP of disconnection of a peer.
@@ -184,6 +180,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S1AP_E_RAB_SETUP_REQ: {
       s1ap_generate_s1ap_e_rab_setup_req(
           state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
+    } break;
+
+    case S1AP_E_RAB_MODIFICATION_CNF: {
+      s1ap_mme_generate_erab_modification_confirm(
+          state, &received_message_p->ittiMsg.s1ap_e_rab_modification_cnf);
     } break;
 
     // From MME_APP task
@@ -286,7 +287,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       s1ap_mme_exit();
     } break;
 
@@ -301,7 +302,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   put_s1ap_imsi_map();
   put_s1ap_ue_state(imsi64);
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -354,12 +355,12 @@ int s1ap_mme_init(const mme_config_t* mme_config_p) {
 void s1ap_mme_exit(void) {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
 
-  destroy_task_context(&s1ap_task_zmq_ctx);
-
   put_s1ap_state();
   put_s1ap_imsi_map();
 
   s1ap_state_exit();
+
+  destroy_task_context(&s1ap_task_zmq_ctx);
 
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP: DONE\n");
   OAI_FPRINTF_INFO("TASK_S1AP terminated\n");
@@ -403,7 +404,7 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref) {
   eNB_LIST_OUT("SCTP assoc id:     %d", enb_ref->sctp_assoc_id);
   eNB_LIST_OUT("SCTP instreams:    %d", enb_ref->instreams);
   eNB_LIST_OUT("SCTP outstreams:   %d", enb_ref->outstreams);
-  eNB_LIST_OUT("UE attache to eNB: %d", enb_ref->nb_ue_associated);
+  eNB_LIST_OUT("UEs attached to eNB: %d", enb_ref->nb_ue_associated);
   indent++;
   sctp_assoc_id_t sctp_assoc_id = enb_ref->sctp_assoc_id;
 
@@ -501,6 +502,9 @@ ue_description_t* s1ap_new_ue(
   }
   // Increment number of UE
   enb_ref->nb_ue_associated++;
+  OAILOG_DEBUG(
+      LOG_S1AP, "Num ue associated: %d on assoc id:%d",
+      enb_ref->nb_ue_associated, sctp_assoc_id);
   return ue_ref;
 }
 
@@ -547,6 +551,9 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       &imsi64);
   delete_s1ap_ue_state(imsi64);
 
+  OAILOG_DEBUG(
+      LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
+      enb_ref->nb_ue_associated, enb_ref->ue_id_coll.num_elements);
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
@@ -557,7 +564,6 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name);
       s1ap_remove_enb(state, enb_ref);
-      update_mme_app_stats_connected_enb_sub();
     }
   }
 }
@@ -571,4 +577,5 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref) {
   hashtable_uint64_ts_destroy(&enb_ref->ue_id_coll);
   hashtable_ts_free(&state->enbs, enb_ref->sctp_assoc_id);
   state->num_enbs--;
+  update_mme_app_stats_connected_enb_sub();
 }

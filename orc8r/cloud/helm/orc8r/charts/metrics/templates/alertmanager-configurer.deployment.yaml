@@ -66,6 +66,7 @@ spec:
             - "-alertmanager-conf={{ .Values.alertmanagerConfigurer.alertmanagerConfPath }}"
             - "-alertmanagerURL={{ .Values.alertmanagerConfigurer.alertmanagerURL  }}"
             - "-multitenant-label=networkID"
+            - "-delete-route-with-receiver=true"
           resources:
 {{ toYaml .Values.alertmanagerConfigurer.resources | indent 12 }}
 {{- end }}

@@ -163,8 +163,8 @@ after the non-reversible schema change you will need to upgrade to v1.2 or fall
 back to a DB checkpoint.
 
 ```bash
-$ export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
-$ kubectl exec -it ${CNTLR_POD} -- bash
+$ export CNTLR_POD=$(kubectl --namespace orc8r get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+$ kubectl --namespace orc8r exec -it ${CNTLR_POD} -- bash
 
 (pod)$ cd /var/opt/magma/bin
 

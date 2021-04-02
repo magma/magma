@@ -41,7 +41,7 @@
 */
 
 /* String representation of EMM events */
-static const char* _emm_fsm_event_str[] = {
+static const char* emm_fsm_event_str[] = {
     "COMMON_PROC_REQ",
     "COMMON_PROC_CNF",
     "COMMON_PROC_REJ",
@@ -66,7 +66,7 @@ static const char* _emm_fsm_event_str[] = {
 };
 
 /* String representation of EMM state */
-static const char* const _emm_fsm_status_str[EMM_STATE_MAX] = {
+static const char* const emm_fsm_status_str[EMM_STATE_MAX] = {
     "INVALID",
     "EMM-DEREGISTERED",
     "EMM-REGISTERED",
@@ -89,7 +89,7 @@ int EmmDeregisteredInitiated(emm_reg_t* const);
 int EmmCommonProcedureInitiated(emm_reg_t* const);
 
 /* EMM state machine handlers */
-static const emm_fsm_handler_t _emm_fsm_handlers[EMM_STATE_MAX] = {
+static const emm_fsm_handler_t emm_fsm_handlers[EMM_STATE_MAX] = {
     NULL,
     EmmDeregistered,
     EmmRegistered,
@@ -152,8 +152,8 @@ int emm_fsm_set_state(
       OAILOG_INFO(
           LOG_NAS_EMM,
           "UE " MME_UE_S1AP_ID_FMT " EMM-FSM   - Status changed: %s ===> %s\n",
-          ue_id, _emm_fsm_status_str[emm_context->_emm_fsm_state],
-          _emm_fsm_status_str[state]);
+          ue_id, emm_fsm_status_str[emm_context->_emm_fsm_state],
+          emm_fsm_status_str[state]);
       emm_context->_emm_fsm_state   = state;
       emm_fsm_state_t new_emm_state = UE_UNREGISTERED;
       if (state == EMM_REGISTERED) {
@@ -205,9 +205,9 @@ const char* emm_fsm_get_state_str(
     const struct emm_context_s* const emm_context) {
   if (emm_context) {
     emm_fsm_state_t state = emm_fsm_get_state(emm_context);
-    return _emm_fsm_status_str[state];
+    return emm_fsm_status_str[state];
   }
-  return _emm_fsm_status_str[EMM_INVALID];
+  return emm_fsm_status_str[EMM_INVALID];
 }
 
 /****************************************************************************
@@ -237,19 +237,19 @@ int emm_fsm_process(struct emm_reg_s* const evt) {
     state = emm_fsm_get_state(emm_ctx);
     OAILOG_INFO(
         LOG_NAS_EMM, "EMM-FSM   - Received event %s (%d) in state %s\n",
-        _emm_fsm_event_str[primitive - _EMMREG_START - 1], primitive,
-        _emm_fsm_status_str[state]);
+        emm_fsm_event_str[primitive - _EMMREG_START - 1], primitive,
+        emm_fsm_status_str[state]);
     /*
      * Execute the EMM state machine
      */
     if (emm_ctx->is_imsi_only_detach == false) {
-      rc = (_emm_fsm_handlers[state])(evt);
+      rc = (emm_fsm_handlers[state])(evt);
     }
   } else {
     OAILOG_WARNING(
         LOG_NAS_EMM,
         "EMM-FSM   - Received event %s (%d) but no EMM data context provided\n",
-        _emm_fsm_event_str[primitive - _EMMREG_START - 1], primitive);
+        emm_fsm_event_str[primitive - _EMMREG_START - 1], primitive);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

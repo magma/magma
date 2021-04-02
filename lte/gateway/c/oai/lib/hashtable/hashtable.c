@@ -457,7 +457,7 @@ hashtable_key_array_t* hashtable_ts_get_keys(hash_table_ts_t* const hashtblP) {
     return NULL;
   }
 
-  ka->keys = calloc(hashtblP->num_elements, sizeof(hash_key_t*));
+  ka->keys = calloc(hashtblP->num_elements, sizeof(hash_key_t));
   if (ka->keys == NULL) {
     free(ka);
     return NULL;
@@ -490,7 +490,7 @@ hashtable_element_array_t* hashtable_ts_get_elements(
     return NULL;
   }
   ea           = calloc(1, sizeof(hashtable_element_array_t));
-  ea->elements = calloc(hashtblP->num_elements, sizeof(hash_key_t*));
+  ea->elements = calloc(hashtblP->num_elements, sizeof(void*));
 
   while ((ea->num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);

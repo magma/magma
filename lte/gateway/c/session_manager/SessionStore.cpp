@@ -19,17 +19,20 @@
 namespace magma {
 namespace lte {
 
-SessionStore::SessionStore(std::shared_ptr<StaticRuleStore> rule_store)
+SessionStore::SessionStore(
+    std::shared_ptr<StaticRuleStore> rule_store,
+    std::shared_ptr<magma::MeteringReporter> metering_reporter)
     : rule_store_(rule_store),
       store_client_(std::make_shared<MemoryStoreClient>(rule_store)),
-      metering_reporter_(std::make_shared<MeteringReporter>()) {}
+      metering_reporter_(metering_reporter) {}
 
 SessionStore::SessionStore(
     std::shared_ptr<StaticRuleStore> rule_store,
+    std::shared_ptr<magma::MeteringReporter> metering_reporter,
     std::shared_ptr<RedisStoreClient> store_client)
     : rule_store_(rule_store),
       store_client_(store_client),
-      metering_reporter_(std::make_shared<MeteringReporter>()) {}
+      metering_reporter_(metering_reporter) {}
 
 bool SessionStore::raw_write_sessions(SessionMap session_map) {
   // return true;
@@ -170,19 +173,44 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
         if (!(*it2)->apply_update_criteria(update)) {
           return false;
         }
-        metering_reporter_->report_usage(imsi, session_id, update);
-
         if (update.is_session_ended) {
           // TODO: Instead of deleting from session_map, mark as ended and
           //       no longer mark on read
           it2 = it.second.erase(it2);
           continue;
+        } else {
+          // Only report_usage if the session is still active, since we want to
+          // remove the counter when the session is terminated. This logic *may*
+          // lead to the metric missing the last few bytes used by the session
+          // before termination. But since the counter has to get deleted, this
+          // is inevitable with our current approach.
+          // TODO pull the metering logic out of SessionStore. SessionStore
+          // should only handle logic relating to storage/search.
+          metering_reporter_->report_usage(imsi, session_id, update);
         }
       }
       ++it2;
     }
   }
   return store_client_->write_sessions(std::move(session_map));
+}
+
+void SessionStore::initialize_metering_counter() {
+  auto session_map = store_client_->read_all_sessions();
+  for (auto& sessions_by_imsi : session_map) {
+    const std::string imsi = sessions_by_imsi.first;
+    for (auto& session : sessions_by_imsi.second) {
+      const std::string session_id = session->get_session_id();
+      auto total_usage             = session->get_total_credit_usage();
+      MLOG(MDEBUG) << "Initializing metering metrics on startup for "
+                   << session_id
+                   << ", monitoring: {tx=" << total_usage.monitoring_tx
+                   << ", rx=" << total_usage.monitoring_rx
+                   << "}, charging: {tx=" << total_usage.charging_tx
+                   << ", rx=" << total_usage.charging_rx << "}";
+      metering_reporter_->initialize_usage(imsi, session_id, total_usage);
+    }
+  }
 }
 
 optional<SessionVector::iterator> SessionStore::find_session(
@@ -229,10 +257,10 @@ optional<SessionVector::iterator> SessionStore::find_session(
         switch (context.rat_type()) {
           case RATType::TGPP_LTE:
             // lte case
-            if ((*it)
-                    ->get_config()
-                    .rat_specific_context.lte_context()
-                    .bearer_id() == criteria.secondary_key_unit32) {
+            if ((*it)->get_config()
+                        .rat_specific_context.lte_context()
+                        .bearer_id() == criteria.secondary_key_unit32 &&
+                (*it)->is_active()) {
               return it;
             }
             break;

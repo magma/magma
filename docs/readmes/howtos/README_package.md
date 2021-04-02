@@ -6,23 +6,29 @@ hide_title: true
 # Packaging
 TL;DR
 -----
-1. Running `fab dev package:git` on the host creates the package inside the
+1. Running `fab test package:git` on the host creates the package inside the
 gateway VM
 2. Commit changes to build-magma.sh and magma.lockfile.
 
-Creating a release package.
+Creating a production release package.
 ---------------------------
-Run `fab dev package:git` under lte/gateway/ on the host to create a Magma
-release. This runs the `build-magma.sh` script with the latest commit id and
-build type as DEBUG. It builds everything, identifies dependencies (assuming
-they're specified in the setup.py properly), and creates a Debian package in the
-magma-packages/ directory on dev VM.
+Run `fab test package:git` under lte/gateway/ on the host to create a Magma
+release. This runs the `build-magma.sh` script with the latest commit id with 
+production compiler flags (`RelWithDebInfo`). 
+It builds everything, identifies dependencies (assuming they're specified in the
+setup.py properly), and creates a Debian package in the magma-packages/ 
+directory on dev VM.
 
-For a production release, you'll want to bump the package version probably --
-this can be done inside build-magma.sh. The version number should be bumped
-when there is a minor or major feature or bug fix release. If you're just
-making a minor tweak (e.g., mistake in building the package), you can also
-increment the iteration number.
+If you want to bump the package version, this can be done inside build-magma.sh.
+The version number should be bumped when there is a minor or major feature or 
+bug fix release. 
+If you're just making a minor tweak (e.g., mistake in building the package), 
+you can also increment the iteration number.
+
+Creating a development package.
+---------------------------
+To create an AGW package with debug compiler flags (`Debug`), 
+run `fab dev package:git`. 
 
 Testing a release package before you push it.
 ---------------------------------------------

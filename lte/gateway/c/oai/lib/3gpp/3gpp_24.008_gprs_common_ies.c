@@ -49,7 +49,7 @@
 // 10.5.7.3 GPRS Timer
 //------------------------------------------------------------------------------
 
-static const long _gprs_timer_unit[] = {2, 60, 360, 60, 60, 60, 60, 0};
+static const long gprs_timer_unit[] = {2, 60, 360, 60, 60, 60, 60, 0};
 
 //------------------------------------------------------------------------------
 int decode_gprs_timer_ie(
@@ -95,5 +95,5 @@ int encode_gprs_timer_ie(
 //------------------------------------------------------------------------------
 
 long gprs_timer_value(gprs_timer_t* gprstimer) {
-  return (gprstimer->timervalue * _gprs_timer_unit[gprstimer->unit]);
+  return (gprstimer->timervalue * gprs_timer_unit[gprstimer->unit]);
 }

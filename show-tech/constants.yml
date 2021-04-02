@@ -35,6 +35,7 @@ paths_to_collect:
   - "/etc/systemd/system/*"
   - "/usr/local/bin/mme"
   - "/var/log/syslog"
+  - "/var/core/*"
   - "/var/log/MME.*"
   - "/var/log/enode.*"
 

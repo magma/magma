@@ -15,8 +15,6 @@
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
 
-using grpc::Status;
-
 namespace magma {
 
 template<typename KeyType, typename hash, typename equal>
@@ -139,6 +137,20 @@ bool PolicyRuleBiMap::get_rule(
   return true;
 }
 
+bool PolicyRuleBiMap::get_rules_by_ids(
+    const std::vector<std::string>& rule_ids,
+    std::vector<PolicyRule>& rules_out) {
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  for (const std::string rule_id : rule_ids) {
+    auto it = rules_by_rule_id_.find(rule_id);
+    if (it == rules_by_rule_id_.end()) {
+      return false;
+    }
+    rules_out.push_back(*it->second);
+  }
+  return true;
+}
+
 bool PolicyRuleBiMap::remove_rule(
     const std::string& rule_id, PolicyRule* rule_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);
@@ -182,14 +194,15 @@ bool PolicyRuleBiMap::get_monitoring_key_for_rule_id(
     const std::string& rule_id, std::string* monitoring_key) {
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
-  if (it == rules_by_rule_id_.end()) {
+  if (it == rules_by_rule_id_.end() ||
+      !should_track_monitoring_key(it->second->tracking_type())) {
     return false;
   }
-  if (should_track_monitoring_key(it->second->tracking_type())) {
+  // nullptr means the caller does not care about retrieving the value
+  if (monitoring_key != nullptr) {
     monitoring_key->assign(it->second->monitoring_key());
-    return true;
   }
-  return false;
+  return true;
 }
 
 bool PolicyRuleBiMap::get_rule_ids_for_charging_key(

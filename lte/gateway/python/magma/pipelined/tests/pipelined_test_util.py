@@ -16,12 +16,15 @@ import os
 import re
 import subprocess
 import netifaces
+import fakeredis
 
 from collections import namedtuple
 from concurrent.futures import Future
 from difflib import unified_diff
 from typing import Dict, List, Optional
+
 from unittest import TestCase
+from unittest import mock
 from unittest.mock import MagicMock
 from ryu.lib import hub
 
@@ -277,6 +280,7 @@ def fake_controller_setup(enf_controller=None,
         SetupFlowsResult.SUCCESS)
     if enf_stats_controller:
         enf_stats_controller.init_finished = False
+        enf_stats_controller.cleanup_state()
         TestCase().assertEqual(setup_controller(
             enf_stats_controller, setup_flows_request),
             SetupFlowsResult.SUCCESS)
@@ -376,7 +380,12 @@ def create_service_manager(services: List[int],
         'static_services': static_services,
         '5G_feature_set': {'enable': False}
     }
-    service_manager = ServiceManager(magma_service)
+    # mock the get_default_client function used to return a fakeredis object
+    func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())
+    with mock.patch(
+            'magma.pipelined.rule_mappers.get_default_client',
+            func_mock):
+        service_manager = ServiceManager(magma_service)
 
     # Workaround as we don't use redis in unit tests
     service_manager.rule_id_mapper._rule_nums_by_rule = {}

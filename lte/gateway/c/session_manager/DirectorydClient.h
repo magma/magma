@@ -26,43 +26,60 @@ namespace magma {
 using namespace orc8r;
 
 /**
- * AsyncDirectorydClient sends asynchronous calls to directoryd to retrieve
+ * DirectorydClient is the base class for managing interactions with DirectoryD.
+ */
+class DirectorydClient {
+ public:
+  virtual ~DirectorydClient() = default;
+  /**
+   * Update the DirectoryD record
+   * @param update_request - request used to update the record
+   */
+  virtual void update_directoryd_record(
+      const UpdateRecordRequest& request,
+      std::function<void(Status status, Void)> callback) = 0;
+  /**
+   * Delete the DirectoryD record for the specified ID
+   * @param delelete_request - request used to delete the record
+   */
+  virtual void delete_directoryd_record(
+      const DeleteRecordRequest& request,
+      std::function<void(Status status, Void)> callback) = 0;
+
+  /**
+   * Get all DirectoryD records
+   */
+  virtual void get_all_directoryd_records(
+      std::function<void(Status status, AllDirectoryRecords)> callback) = 0;
+};
+
+/**
+ * AsyncDirectorydClient sends asynchronous calls to DirectoryD to retrieve
  * UE information.
  */
-class AsyncDirectorydClient : public GRPCReceiver {
+class AsyncDirectorydClient : public GRPCReceiver, public DirectorydClient {
  public:
   AsyncDirectorydClient();
 
   AsyncDirectorydClient(std::shared_ptr<grpc::Channel> directoryd_channel);
 
   /**
-   * Gets the directoryd imsi's 'ip' field
-   * @param imsi - UE to query
-   * @return true if the operation was successful
-   */
-  bool get_directoryd_ip_field(
-      const std::string& imsi,
-      std::function<void(Status status, DirectoryField)> callback);
-  /**
-   * Update the directoryd record
+   * Update the DirectoryD record
    * @param update_request - request used to update the record
-   * @return status of update
    */
   void update_directoryd_record(
       const UpdateRecordRequest& request,
       std::function<void(Status status, Void)> callback);
   /**
-   * Delete the directoryd record for the specified ID
+   * Delete the DirectoryD record for the specified ID
    * @param delelete_request - request used to delete the record
-   * @return status of delete
    */
-  bool delete_directoryd_record(
+  void delete_directoryd_record(
       const DeleteRecordRequest& request,
       std::function<void(Status status, Void)> callback);
 
   /**
-   * Get all directory records
-   * @return true if the operation was successful
+   * Get all DirectoryD records
    */
   void get_all_directoryd_records(
       std::function<void(Status status, AllDirectoryRecords)> callback);
@@ -70,11 +87,6 @@ class AsyncDirectorydClient : public GRPCReceiver {
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
   std::unique_ptr<GatewayDirectoryService::Stub> stub_;
-
- private:
-  void get_directoryd_ip_field_rpc(
-      const GetDirectoryFieldRequest& request,
-      std::function<void(Status, DirectoryField)> callback);
 };
 
 }  // namespace magma

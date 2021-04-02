@@ -1,0 +1,11 @@
+---
+- include: configure-certs.yaml
+  tags: config-certs
+- include: configure-terraform.yaml
+  tags: config-tf
+  ignore_errors: true
+- include: patch-terraform-v1.3.yaml
+  tags:  patch-tf 
+  when: orc8rVersion == "v1.3"
+- include: deploy-orc8r.yaml
+  tags: deploy-orc8r

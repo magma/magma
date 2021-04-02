@@ -137,9 +137,6 @@ void MmeNasStateConverter::guti_table_to_proto(
       OAILOG_ERROR(
           LOG_MME_APP, "Key %s not in guti_ue_context_htbl", guti_str.c_str());
     }
-    OAILOG_DEBUG(
-        LOG_MME_APP, "guti_str:%s mme_ue_id:%lu\n", guti_str.c_str(),
-        mme_ue_id);
   }
   FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
 }
@@ -708,6 +705,9 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   proto_to_mme_app_timer(
       ue_context_proto.ue_context_modification_timer(),
       &state_ue_mm_context->ue_context_modification_timer);
+  proto_to_mme_app_timer(
+      ue_context_proto.ulr_response_timer(),
+      &state_ue_mm_context->ulr_response_timer);
   proto_to_mme_app_timer(
       ue_context_proto.paging_response_timer(),
       &state_ue_mm_context->paging_response_timer);

@@ -2,6 +2,7 @@
 !.cache/test_certs
 !fb/config/
 
+!.devcontainer/
 !third_party/
 
 !cwf/cloud/

@@ -24,7 +24,7 @@ namespace magma {
  * the virtual handle_response callback on them
  */
 class GRPCReceiver {
-public:
+ public:
   /**
    * Begin the receiver loop, blocks
    */
@@ -34,9 +34,11 @@ public:
    * Stop the receiver loop
    */
   void stop();
-protected:
+
+ protected:
   grpc::CompletionQueue queue_;
-private:
+
+ private:
   std::atomic<bool> running_;
 };
 
@@ -45,7 +47,8 @@ private:
  * be cast to.
  */
 class AsyncResponse {
-public:
+ public:
+  virtual ~AsyncResponse() = default;
   /**
    * Override handle_response to be called when a response comes into the queue
    */
@@ -61,15 +64,15 @@ public:
  * This class is implemented here because non-specialized templates
  * must be visible to a translation unit
  */
-template <typename ResponseType>
+template<typename ResponseType>
 class AsyncGRPCResponse : public AsyncResponse {
-public:
+ public:
   AsyncGRPCResponse(
       std::function<void(grpc::Status, ResponseType)> callback,
       uint32_t timeout_sec)
       : callback_(callback) {
     context_.set_deadline(
-      std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec));
+        std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec));
   }
   virtual ~AsyncGRPCResponse() = default;
 
@@ -88,18 +91,16 @@ public:
   /**
    * Helper function to retrieve the client context
    */
-  grpc::ClientContext* get_context() {
-    return &context_;
-  }
+  grpc::ClientContext* get_context() { return &context_; }
 
-protected:
+ protected:
   // callback on completion
   std::function<void(grpc::Status, ResponseType)> callback_;
-  ResponseType response_; // response from the cloud
+  ResponseType response_;  // response from the cloud
   grpc::ClientContext context_;
   grpc::Status status_;
   std::unique_ptr<grpc::ClientAsyncResponseReader<ResponseType>>
-    response_reader_;
+      response_reader_;
 };
 
 /**
@@ -114,13 +115,13 @@ protected:
  *   local_response->get_context(), request_val, &completion_queue);
  * local_response->set_response_reader(std::move(response_reader));
  */
-template <typename ResponseType>
+template<typename ResponseType>
 class AsyncLocalResponse : public AsyncGRPCResponse<ResponseType> {
-public:
+ public:
   AsyncLocalResponse(
-    std::function<void(grpc::Status, ResponseType)> callback,
-    uint32_t timeout_sec)
-  : AsyncGRPCResponse<ResponseType>(callback, timeout_sec) {}
+      std::function<void(grpc::Status, ResponseType)> callback,
+      uint32_t timeout_sec)
+      : AsyncGRPCResponse<ResponseType>(callback, timeout_sec) {}
 
   void handle_response() {
     this->callback_(this->status_, this->response_);
@@ -128,4 +129,4 @@ public:
   }
 };
 
-}
+}  // namespace magma

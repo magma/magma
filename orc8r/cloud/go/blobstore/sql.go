@@ -123,36 +123,6 @@ func (store *sqlBlobStorage) Rollback() error {
 	return err
 }
 
-func (store *sqlBlobStorage) ListKeys(networkID string, typeVal string) ([]string, error) {
-	if err := store.validateTx(); err != nil {
-		return nil, err
-	}
-
-	rows, err := store.builder.Select(keyCol).From(store.tableName).
-		Where(sq.Eq{nidCol: networkID, typeCol: typeVal}).
-		RunWith(store.tx).
-		Query()
-	if err != nil {
-		return nil, err
-	}
-	defer sqorc.CloseRowsLogOnError(rows, "ListKeys")
-
-	var keys []string
-	for rows.Next() {
-		var key string
-		err = rows.Scan(&key)
-		if err != nil {
-			return []string{}, err
-		}
-		keys = append(keys, key)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, errors.Wrap(err, "sql rows err")
-	}
-	return keys, nil
-}
-
 func (store *sqlBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
 	multiRet, err := store.GetMany(networkID, []storage.TypeAndKey{id})
 	if err != nil {

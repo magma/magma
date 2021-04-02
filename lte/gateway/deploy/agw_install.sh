@@ -8,14 +8,33 @@ SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
 KVERS=$(uname -r)
-MAGMA_VERSION="${MAGMA_VERSION:-v1.3}"
+MAGMA_VERSION="${MAGMA_VERSION:-v1.4}"
+CLOUD_INSTALL="cloud"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
+
+
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
   echo "You're executing the script as $WHOAMI instead of root.. exiting"
   exit 1
 fi
+
+wget https://raw.githubusercontent.com/magma/magma/"$MAGMA_VERSION"/lte/gateway/deploy/agw_pre_check.sh
+if [[ -f ./agw_pre_check.sh ]]; then
+  chmod 644 agw_pre_check.sh && bash agw_pre_check.sh
+  while true; do
+      read -p "Do you accept those modifications and want to proceed with magma installation?(y/n)" yn
+      case $yn in
+          [Yy]* ) break;;
+          [Nn]* ) exit;;
+          * ) echo "Please answer yes or no.";;
+      esac
+  done
+else
+  echo "agw_precheck.sh is not available in your version"
+fi
+
 
 echo "Checking if Debian is installed"
 if ! grep -q 'Debian' /etc/issue; then
@@ -26,13 +45,14 @@ fi
 echo "Making sure $MAGMA_USER user is sudoers"
 if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
   apt install -y sudo
+  adduser --disabled-password --gecos "" $MAGMA_USER
   adduser $MAGMA_USER sudo
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 fi
 
 echo "Need to check if both interfaces are named eth0 and eth1"
 INTERFACES=$(ip -br a)
-if [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep -q 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' /etc/default/grub; then
+if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep -q 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' /etc/default/grub); then
   # changing intefaces name
   sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
   # changing interface name
@@ -96,7 +116,7 @@ if [ -n "${REPO_HOST}" ]; then
     fi
 fi
 
-if [ "${REPO_PROTO}" == 'https' ]; then
+if [[ "${REPO_PROTO}" == 'https' ]]; then
     echo "Ensure HTTPS apt transport method is installed"
     apt install -y apt-transport-https
 fi
@@ -163,8 +183,13 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
       ANSIBLE_VARS="${ANSIBLE_VARS} ovs_use_pkgrepo=no"
   fi
   echo "Triggering ovs_deploy playbook"
-  su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml --skip-tags \"skipfirstinstall\""
-
+  if [[ $1 == "$CLOUD_INSTALL" ]]; then
+      su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml --skip-tags \"skipfirstinstall\""
+      su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml"
+      service openvswitch-switch restart
+  else
+      su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml --skip-tags \"skipfirstinstall\""
+  fi
   echo "Deleting boot script if it exists"
   if [ -f "$AGW_INSTALL_CONFIG" ]; then
     rm -rf $AGW_INSTALL_CONFIG

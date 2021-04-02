@@ -26,8 +26,11 @@ class TunnelToTunnelMapper:
     """
 
     def __init__(self):
-        self._tunnel_map = TunnelDict()
+        self._tunnel_map = {}
         self._lock = threading.Lock()  # write lock
+
+    def setup_redis(self):
+        self._tunnel_map = TunnelDict()
 
     def get_tunnel(self, tunnel: int):
         with self._lock:

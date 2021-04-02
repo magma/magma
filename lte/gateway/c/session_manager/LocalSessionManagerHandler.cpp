@@ -26,7 +26,7 @@ namespace magma {
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    std::shared_ptr<DirectorydClient> directoryd_client,
     std::shared_ptr<EventsReporter> events_reporter,
     SessionStore& session_store)
     : session_store_(session_store),
@@ -36,7 +36,8 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
       events_reporter_(events_reporter),
       current_epoch_(0),
       reported_epoch_(0),
-      retry_timeout_(5000) {}
+      retry_timeout_ms_(std::chrono::milliseconds{5000}),
+      pipelined_state_(PipelineDState::NOT_READY) {}
 
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
@@ -46,11 +47,21 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     PrintGrpcMessage(
         static_cast<const google::protobuf::Message&>(request_cpy));
   }
-  MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+    if (!session_store_.is_ready()) {
+      // Since PipelineD reports a delta value for usage, this could lead to
+      // SessionD missing some usage if Redis becomes unavailable. However,
+      // since we usually only see this case on service restarts, we'll let this
+      // slide for now. Once we move to flat-rate reporting from PipelineD this
+      // will no longer be an issue.
+      MLOG(MINFO) << "SessionStore client is not yet ready... Ignoring this "
+                     "RuleRecordTable";
+      return;
+    }
     auto session_map = session_store_.read_all_sessions();
     SessionUpdate update =
         SessionStore::get_default_session_update(session_map);
+    MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
     enforcer_->aggregate_records(session_map, request_cpy, update);
     check_usage_for_reporting(std::move(session_map), update);
   });
@@ -60,7 +71,8 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows,"
                 << " old epoch = " << current_epoch_
                 << ", new epoch = " << reported_epoch_;
-    restart_pipelined(reported_epoch_);
+    enforcer_->get_event_base().runInEventBaseThread(
+        [this, epoch = reported_epoch_]() { call_setup_pipelined(epoch); });
     // Set the current epoch right away to prevent double setup call requests
     current_epoch_ = reported_epoch_;
   }
@@ -138,59 +150,64 @@ bool LocalSessionManagerHandlerImpl::is_pipelined_restarted() {
 
 void LocalSessionManagerHandlerImpl::handle_setup_callback(
     const std::uint64_t& epoch, Status status, SetupFlowsResult resp) {
-  using namespace std::placeholders;
-
-  if (status.ok() && resp.result() == resp.SUCCESS) {
-    MLOG(MDEBUG) << "Successfully setup pipelined with epoch" << epoch;
-    return;
-  }
-
-  if (current_epoch_ != epoch) {
-    MLOG(MDEBUG) << "Received stale Pipelined setup callback for " << epoch
-                 << ", current epoch is " << current_epoch_;
-    return;
-  }
-
-  if (!status.ok()) {
-    MLOG(MERROR) << "Could not setup pipelined, rpc failed with: "
-                 << status.error_message() << ", retrying pipelined setup "
-                 << "for epoch " << epoch;
-
-  } else if (resp.result() == resp.OUTDATED_EPOCH) {
-    MLOG(MWARNING) << "Pipelined setup call has outdated epoch, abandoning.";
-    return;
-  } else if (resp.result() == resp.FAILURE) {
-    MLOG(MWARNING) << "Pipelined setup failed, retrying pipelined setup "
-                      "after delay, for epoch "
-                   << epoch;
-  }
-
+  // Run everything in the event base thread since we asynchronously
+  // read/modify pipelined_state_
   enforcer_->get_event_base().runInEventBaseThread([=] {
-    enforcer_->get_event_base().timer().scheduleTimeoutFn(
-        std::move([=] {
-          auto session_map = session_store_.read_all_sessions();
-          enforcer_->setup(
-              session_map, epoch,
-              std::bind(
-                  &LocalSessionManagerHandlerImpl::handle_setup_callback, this,
-                  epoch, _1, _2));
-        }),
-        retry_timeout_);
+    if (status.ok() && resp.result() == resp.SUCCESS) {
+      MLOG(MDEBUG) << "Successfully setup PipelineD with epoch: " << epoch;
+      pipelined_state_ = PipelineDState::READY;
+      return;
+    }
+    pipelined_state_ = PipelineDState::NOT_READY;
+    if (current_epoch_ != epoch) {
+      // This means that PipelineD has restarted since the initial Setup call
+      // was called
+      MLOG(MDEBUG) << "Received stale PipelineD setup callback for epoch: "
+                   << epoch << ", current epoch: " << current_epoch_;
+      return;
+    }
+    if (status.ok() && resp.result() == resp.OUTDATED_EPOCH) {
+      MLOG(MWARNING) << "PipelineD setup call has outdated epoch, abandoning.";
+      return;
+    }
+
+    // Cases for which we re-try the Setup call
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not setup PipelineD, rpc failed with: "
+                   << status.error_message() << ", retrying PipelineD setup "
+                   << "for epoch: " << epoch;
+    } else if (resp.result() == resp.FAILURE) {
+      MLOG(MWARNING) << "PipelineD setup failed, retrying PipelineD setup "
+                     << "after delay, for epoch: " << epoch;
+    }
+
+    enforcer_->get_event_base().runAfterDelay(
+        [=] { call_setup_pipelined(epoch); }, retry_timeout_ms_.count());
   });
 }
 
-bool LocalSessionManagerHandlerImpl::restart_pipelined(
+void LocalSessionManagerHandlerImpl::call_setup_pipelined(
     const std::uint64_t& epoch) {
   using namespace std::placeholders;
-  enforcer_->get_event_base().runInEventBaseThread([this, epoch]() {
-    auto session_map = session_store_.read_all_sessions();
-    enforcer_->setup(
-        session_map, epoch,
-        std::bind(
-            &LocalSessionManagerHandlerImpl::handle_setup_callback, this, epoch,
-            _1, _2));
-  });
-  return true;
+  if (pipelined_state_ == PipelineDState::SETTING_UP) {
+    // Return if there is already a Setup call in progress
+    return;
+  }
+  if (current_epoch_ != epoch) {
+    // This means that PipelineD has restarted since the this call was
+    // scheduled
+    return;
+  }
+  pipelined_state_ = PipelineDState::SETTING_UP;
+
+  MLOG(MINFO) << "Sending a setup call to PipelineD with epoch: " << epoch;
+  auto session_map = session_store_.read_all_sessions();
+  enforcer_->setup(
+      session_map, epoch,
+      std::bind(
+          &LocalSessionManagerHandlerImpl::handle_setup_callback, this, epoch,
+          _1, _2));
+  return;
 }
 
 static CreateSessionRequest make_create_session_request(
@@ -224,6 +241,24 @@ void LocalSessionManagerHandlerImpl::CreateSession(
         const auto& session_id = id_gen_.gen_session_id(imsi);
         SessionConfig cfg(request_cpy);
         log_create_session(cfg);
+        if (pipelined_state_ != READY) {
+          MLOG(MINFO) << "Rejecting LocalCreateSessionRequest for " << imsi
+                      << " apn=" << cfg.common_context.apn()
+                      << " since PipelineD is still setting up.";
+          send_local_create_session_response(
+              Status(grpc::UNAVAILABLE, "PipelineD is not ready"), session_id,
+              response_callback);
+          return;
+        }
+        if (!session_store_.is_ready()) {
+          MLOG(MINFO) << "Rejecting LocalCreateSessionRequest for " << imsi
+                      << " apn=" << cfg.common_context.apn()
+                      << " since SessionStore (Redis) is unavailable.";
+          send_local_create_session_response(
+              Status(grpc::UNAVAILABLE, "Storage backend is not available"),
+              session_id, response_callback);
+          return;
+        }
 
         auto session_map     = session_store_.read_sessions({imsi});
         const auto& rat_type = cfg.common_context.rat_type();
@@ -571,8 +606,8 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
     bool update_success =
         session_store_.raw_write_sessions(std::move(session_map));
     if (!update_success) {
-      MLOG(MERROR)
-          << "Failed in updating SessionStore after processing UpdateTunnelIds";
+      MLOG(MERROR) << "Failed in updating SessionStore after processing "
+                      "UpdateTunnelIds";
       auto err_status = Status(grpc::ABORTED, "Failed to store tunnels Ids");
       response_callback(err_status, UpdateTunnelIdsResponse());
       return;

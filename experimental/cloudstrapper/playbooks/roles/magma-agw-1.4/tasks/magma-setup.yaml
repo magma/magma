@@ -1,0 +1,25 @@
+---
+- name: download github repo
+  git:
+    repo: "{{ magmaRepo }}"
+    dest: "{{ usrHome }}/magma"
+    version: "{{ magmaVersion }}"
+
+
+- name: copy vars file
+  copy:
+    src: roles/magma-agw-1.4/files/ansible-env.yaml
+    dest: ~/ansible-env.yaml
+    owner: admin
+    group: admin
+    mode: '0644'
+
+- name: copy inventory file
+  copy:
+    src: roles/magma-agw-1.4/files/inventory
+    dest: ~/inventory
+    owner: admin
+    group: admin
+    mode: '0644'
+
+

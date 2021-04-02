@@ -174,13 +174,25 @@ func AttachHandlers(e *echo.Echo, handlers []Handler, m ...echo.MiddlewareFunc) 
 // HttpError wraps the passed error as an HTTP error.
 // Code is optional, defaulting to http.StatusInternalServerError (500).
 func HttpError(err error, code ...int) *echo.HTTPError {
-	var status = http.StatusInternalServerError
-	if len(code) > 0 && code[0] >= http.StatusContinue &&
-		code[0] <= http.StatusNetworkAuthenticationRequired {
+	status := http.StatusInternalServerError
+	if len(code) > 0 && isValidResponseCode(code[0]) {
 		status = code[0]
 	}
-	glog.Infof("REST HTTP Error: %s, Status: %d", err, status)
+	// TODO(hcgatewood): we should be handling REST error logging and metrics via middleware
+	if isServerErrCode(status) {
+		glog.Infof("REST HTTP Error: %s, Status: %d", err, status)
+	} else {
+		glog.V(1).Infof("REST HTTP Error: %s, Status: %d", err, status)
+	}
 	return echo.NewHTTPError(status, grpc.ErrorDesc(err))
+}
+
+func isServerErrCode(code int) bool {
+	return code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired
+}
+
+func isValidResponseCode(code int) bool {
+	return code >= http.StatusContinue && code <= http.StatusNetworkAuthenticationRequired
 }
 
 func CheckWildcardNetworkAccess(c echo.Context) *echo.HTTPError {

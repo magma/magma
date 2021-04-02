@@ -63,7 +63,7 @@ services:
   eventd:
     <<: *pyservice
     container_name: eventd
-    command: python3.5 -m magma.eventd.main
+    command: python3.8 -m magma.eventd.main
 
   aaa_server:
     <<: *goservice
@@ -102,6 +102,11 @@ services:
     container_name: s6a_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=0
 
+  s8_proxy:
+    <<: *goservice
+    container_name: s8_proxy
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s8_proxy -logtostderr=true -v=0
+
   radiusd:
     <<: *goservice
     container_name: radiusd
@@ -132,7 +137,7 @@ services:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-    command: python3.5 -m magma.magmad.main
+    command: python3.8 -m magma.magmad.main
 
   redis:
     <<: *pyservice

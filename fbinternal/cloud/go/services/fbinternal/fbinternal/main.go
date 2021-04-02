@@ -19,19 +19,28 @@ import (
 	"magma/fbinternal/cloud/go/fbinternal"
 	fbinternal_service "magma/fbinternal/cloud/go/services/fbinternal"
 	"magma/fbinternal/cloud/go/services/fbinternal/servicers"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/definitions"
 
 	"github.com/golang/glog"
+	"google.golang.org/grpc"
 )
 
 const (
 	defaultCategoryID = "magma"
+	// Set max msg received to 50MB
+	DefaultMaxGRPCMsgRecvSize = 50 * 1024 * 1024
 )
 
 func main() {
-	srv, err := service.NewOrchestratorService(fbinternal.ModuleName, fbinternal_service.ServiceName)
+	srv, err := service.NewOrchestratorService(
+		fbinternal.ModuleName,
+		fbinternal_service.ServiceName,
+		grpc.MaxRecvMsgSize(DefaultMaxGRPCMsgRecvSize),
+	)
 	if err != nil {
 		glog.Fatalf("Error creating orc8r service for fbinternal: %s", err)
 	}
@@ -46,6 +55,8 @@ func main() {
 		servicers.ODSMetricsExportInterval,
 	)
 	protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
+
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(fbinternal_service.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

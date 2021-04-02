@@ -32,7 +32,7 @@ var (
 	// configDir is where the per-service configuration files are stored
 	configDir         = "/etc/magma/configs"
 	oldConfigDir      = "/etc/magma"
-	configOverrideDir = "/var/opt/magma/configs/"
+	configOverrideDir = "/var/opt/magma/configs"
 	cfgDirMu          sync.RWMutex
 )
 

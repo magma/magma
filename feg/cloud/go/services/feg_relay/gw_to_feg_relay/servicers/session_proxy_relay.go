@@ -49,7 +49,7 @@ func (s *RelayRouter) UpdateSession(
 		if u == nil {
 			continue
 		}
-		plmnid := getPlmnId6(u.GetSid())
+		plmnid := getPlmnId6(u.GetCommonContext().GetSid().GetId())
 		req, ok := reqMap[plmnid]
 		if !ok || req == nil {
 			req = &protos.UpdateSessionRequest{Updates: []*protos.CreditUsageUpdate{u}}
@@ -111,7 +111,7 @@ func (s *RelayRouter) TerminateSession(
 	ctx context.Context, r *protos.SessionTerminateRequest) (*protos.SessionTerminateResponse, error) {
 
 	// TerminateSession's SID is just IMSI with "IMSI" prefix which findServingNHFeg() should remove
-	client, ctx, cancel, err := s.getSessionProxyClient(ctx, r.GetSid())
+	client, ctx, cancel, err := s.getSessionProxyClient(ctx, r.GetCommonContext().GetSid().GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func genUpdateErrorResp(req *protos.UpdateSessionRequest) *protos.UpdateSessionR
 	for _, u := range req.GetUpdates() {
 		resp.Responses = append(resp.Responses, &protos.CreditUpdateResponse{
 			Success:    false,
-			Sid:        u.GetSid(),
+			Sid:        u.GetCommonContext().GetSid().GetId(),
 			SessionId:  u.GetSessionId(),
 			ResultCode: DiamUnableToDeliverErr,
 		})

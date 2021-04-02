@@ -69,7 +69,7 @@ type Version uint32
 // the required integer size.
 func NewIndexerVersion(version int64) (Version, error) {
 	capped := Version(version)
-	if int64(capped) < version {
+	if int64(capped) != version {
 		return 0, fmt.Errorf("indexer version %v too large for %T", version, Version(0))
 	}
 	return capped, nil

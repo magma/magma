@@ -56,6 +56,7 @@ PCEFClient::PCEFClient() {
   // Create stub for LocalSessionManager gRPC service
   stub_ = LocalSessionManager::NewStub(channel);
   std::thread resp_loop_thread([&]() { rpc_response_loop(); });
+  std::cout << "PCEF Client thread id " << resp_loop_thread.native_handle();
   resp_loop_thread.detach();
 }
 

@@ -26,7 +26,7 @@
 #include "sgs_messages.h"
 #include "sgs_messages_types.h"
 
-static void _sgs_send_sgsap_vlr_reset_ack(void);
+static void sgs_send_sgsap_vlr_reset_ack(void);
 
 int handle_sgs_location_update_accept(
     const itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p) {
@@ -304,7 +304,7 @@ int handle_sgs_vlr_reset_indication(
         sgs_vlr_reset_ind_p->vlr_name);
   }
   /* Send SGSAP Reset Ack to VLR */
-  _sgs_send_sgsap_vlr_reset_ack();
+  sgs_send_sgsap_vlr_reset_ack();
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -347,7 +347,7 @@ int handle_sgs_status_message(const itti_sgsap_status_t* sgs_status_pP) {
  * Send VLR Reset Ack In response to Reset Indication from VLR
  */
 
-static void _sgs_send_sgsap_vlr_reset_ack(void) {
+static void sgs_send_sgsap_vlr_reset_ack(void) {
   MessageDef* message_p                          = NULL;
   itti_sgsap_vlr_reset_ack_t* sgsap_reset_ack_pP = NULL;
 

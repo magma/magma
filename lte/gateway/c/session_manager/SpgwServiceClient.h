@@ -30,6 +30,8 @@ using namespace lte;
  */
 class SpgwServiceClient {
  public:
+  virtual ~SpgwServiceClient() = default;
+
   /**
    * Delete a default bearer (all session bearers)
    * @param imsi - msi to identify a UE

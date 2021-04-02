@@ -188,6 +188,7 @@ type SubscriptionData struct {
 	APNConfigurationProfile       APNConfigurationProfile `avp:"APN-Configuration-Profile"`
 	SubscribedPeriodicRauTauTimer uint32                  `avp:"Subscribed-Periodic-RAU-TAU-Timer"`
 	TgppChargingCharacteristics   string                  `avp:"TGPP-Charging-Characteristics"`
+	RegionalSubscriptionZoneCode  []datatype.OctetString  `avp:"Regional-Subscription-Zone-Code"`
 }
 
 type ULA struct {

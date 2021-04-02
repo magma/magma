@@ -10,7 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from magma.common.health.service_state_wrapper import ServiceStateWrapper
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration.service_configs import load_service_config
 
@@ -22,6 +24,9 @@ def main():
     Top-level function for health service
     """
     service = MagmaService('health', None)
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     # Service state wrapper obj
     service_state = ServiceStateWrapper()

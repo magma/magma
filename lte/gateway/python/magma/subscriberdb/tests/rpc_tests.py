@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import tempfile
 import unittest
 from concurrent import futures
 
@@ -30,7 +31,8 @@ class RpcTests(unittest.TestCase):
 
     def setUp(self):
         # Create an in-memory store
-        store = SqliteStore('file::memory:?cache=shared')
+        self._tmpfile = tempfile.TemporaryDirectory()
+        store = SqliteStore(self._tmpfile.name +'/')
 
         # Bind the rpc server to a free port
         self._rpc_server = grpc.server(
@@ -48,6 +50,7 @@ class RpcTests(unittest.TestCase):
         self._stub = SubscriberDBStub(channel)
 
     def tearDown(self):
+        self._tmpfile.cleanup()
         self._rpc_server.stop(0)
 
     def test_get_invalid_subscriber(self):

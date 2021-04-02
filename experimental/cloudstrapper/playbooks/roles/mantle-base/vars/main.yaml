@@ -1,0 +1,7 @@
+---
+
+mantleHomeDir: "{{ dirHome }}/code"
+mantleGitRepo: git@github.com:fbcinternal/mantle.git
+mantleBranchName: main
+gitProject: fbcinternal
+gitRepo: mantle

@@ -60,7 +60,7 @@ services:
     extra_hosts:
       - controller.magma.test:127.0.0.1
       - bootstrapper-controller.magma.test:127.0.0.1
-    command: python3.5 -m magma.magmad.main
+    command: python3.8 -m magma.magmad.main
 
 volumes:
   gwcerts:

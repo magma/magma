@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"net"
@@ -106,6 +107,12 @@ func TestS6aProxyService(t *testing.T) {
 		t.Logf("GRPC ULA: %#+v", *ulResp)
 		if ulResp.ErrorCode != protos.ErrorCode_UNDEFINED {
 			t.Errorf("Unexpected ULA Error Code: %d", ulResp.ErrorCode)
+		}
+		assert.NoError(t, err)
+		if len(ulResp.RegionalSubscriptionZoneCode) != 2 ||
+			!bytes.Equal(ulResp.RegionalSubscriptionZoneCode[0], []byte{155, 36, 12, 2, 227, 43, 246, 254}) ||
+			!bytes.Equal(ulResp.RegionalSubscriptionZoneCode[1], []byte{1, 1, 0, 1}) {
+			t.Errorf("There should be 2 Regional Subscription Zone Codes : %+v", ulResp.RegionalSubscriptionZoneCode)
 		}
 
 		puReq := &protos.PurgeUERequest{

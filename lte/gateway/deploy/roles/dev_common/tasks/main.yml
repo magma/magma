@@ -25,6 +25,20 @@
       - ansible
   retries: 5
 
+- name: Copy ssh keepAlive configs
+  copy: src={{ item.src }} dest={{ item.dest }}
+  become: yes
+  with_items:
+    - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
+  when: preburn
+
+- name: Restart service ssh
+  become: yes
+  service:
+    name: ssh
+    state: restarted
+  when: preburn
+
 - name: Install ansible community collection
   shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
   ignore_errors: yes
@@ -168,6 +182,8 @@
   retries: 5
 
 - name: Install build requirements for Ubuntu systems
+  # python3-aioeventlet manually built with fpm and uploaded to jfrog focal-dev repo
+  # due to upstream versioning bug
   when: preburn and ansible_distribution == "Ubuntu"
   apt:
     state: present
@@ -175,6 +191,7 @@
       - clang
       - cmake
       - make
+      - python3-aioeventlet
   retries: 5
 
 # /etc/environment doesn't expand variables, so if we want to modify the path,
@@ -213,6 +230,7 @@
       - protobuf-compiler
       # install ethtool for disabling TCP checksumming
       - ethtool
+      - ifupdown
       - libffi-dev
       - iperf3
       - libsystemd-dev
@@ -301,7 +319,44 @@
     CODEGEN_ROOT: "{{ codegen_root }}"
   when: preburn
 
+- name: Fix kernel commandline for interface naming.
+  shell: |
+    sed -i 's/enp0s3/eth0/g' /etc/netplan/50-cloud-init.yaml
+    sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+  when: preburn
+
 - name: Create links for clang-format
   become: yes
   command: "update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-7 1000"
   when: preburn
+
+- file:
+    path: /var/tmp/test_results
+    state: directory
+    mode: 0777
+
+- name: Patch multipath conf
+  when: preburn and ansible_distribution == "Ubuntu"
+  patch:
+    src: patches/multipath-conf.patch
+    dest: /etc/multipath.conf
+
+- name: Copy Interface file.
+  copy:
+    src: magma_interfaces
+    dest: /etc/network/interfaces
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Remove netplan and enable networking.
+  shell: |
+    systemctl unmask networking
+    systemctl enable networking
+    apt-get --assume-yes purge nplan netplan.i
+  when: preburn
+
+- name: Copy Resolve file.
+  copy:
+    src: magma_resolv.conf
+    dest: /etc/systemd/resolved.conf
+  when: preburn and ansible_distribution == "Ubuntu"

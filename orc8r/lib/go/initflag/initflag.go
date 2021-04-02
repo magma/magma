@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 func init() {
@@ -60,25 +59,4 @@ func init() {
 	if *stdoutToStderr {
 		stdout, os.Stdout = os.Stdout, os.Stderr
 	}
-}
-
-// shouldParse returns true if initflag should parse flags.
-// This hack works around the fact that initflags breaks test tool outputs.
-func shouldParse() bool {
-	isTest := strings.HasSuffix(os.Args[0], ".test") ||
-		strings.HasSuffix(os.Args[0], "_test.go") ||
-		strings.HasSuffix(os.Args[0], "_test_go") ||
-		isInArgs("-test.v")
-	return !flag.Parsed() && !isTest
-}
-
-// isInArgs returns true if any of the argunents passed to the command maches
-// with the passed match stirng
-func isInArgs(match string) bool {
-	for _, arg := range os.Args {
-		if arg == match {
-			return true
-		}
-	}
-	return false
 }

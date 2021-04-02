@@ -20,6 +20,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"magma/orc8r/cloud/go/swagger"
+
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -42,15 +44,15 @@ type MagmaSwaggerSpec struct {
 	Consumes    []string
 	Produces    []string
 	Schemes     []string
-	Tags        []TagDefinition
+	Tags        []swagger.TagDefinition
 	Paths       map[string]interface{}
 	Responses   map[string]interface{}
 	Parameters  map[string]interface{}
 	Definitions map[string]interface{}
 }
 
-func (m MagmaSwaggerSpec) ToSwaggerSpec() SwaggerSpec {
-	s := SwaggerSpec{
+func (m MagmaSwaggerSpec) ToSwaggerSpec() swagger.Spec {
+	s := swagger.Spec{
 		Swagger:     m.Swagger,
 		Info:        m.Info,
 		BasePath:    m.BasePath,
@@ -64,30 +66,6 @@ func (m MagmaSwaggerSpec) ToSwaggerSpec() SwaggerSpec {
 		Definitions: m.Definitions,
 	}
 	return s
-}
-
-// SwaggerSpec is the Go struct version of a OAI/Swagger 2.0 YAML spec file.
-type SwaggerSpec struct {
-	Swagger string
-	Info    struct {
-		Title       string
-		Description string
-		Version     string
-	}
-	BasePath    string `yaml:"basePath"`
-	Consumes    []string
-	Produces    []string
-	Schemes     []string
-	Tags        []TagDefinition
-	Paths       map[string]interface{}
-	Responses   map[string]interface{}
-	Parameters  map[string]interface{}
-	Definitions map[string]interface{}
-}
-
-type TagDefinition struct {
-	Description string
-	Name        string
 }
 
 type MagmaGenMeta struct {
@@ -276,4 +254,13 @@ func readSwaggerSpec(filepath string) (MagmaSwaggerSpec, error) {
 		return MagmaSwaggerSpec{}, errors.Wrapf(err, "could not parse target file %s as yml", filepath)
 	}
 	return spec, nil
+}
+
+// MarshalToYAML marshals a MagmaSwaggerSpec to a YAML-formatted string.
+func (m *MagmaSwaggerSpec) MarshalToYAML() (string, error) {
+	d, err := yaml.Marshal(&m)
+	if err != nil {
+		return "", err
+	}
+	return string(d), nil
 }

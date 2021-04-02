@@ -46,6 +46,20 @@ analytics:
       labels:
         class: reliability
 
+    process_virtual_memory_bytes:
+      expr: sum(process_virtual_memory_bytes) by (gatewayID, networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    process_resident_memory_bytes:
+      expr: sum(process_resident_memory_bytes) by (gatewayID, networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
     virtual_memory_percent:
       expr: sum(virtual_memory_percent) by (gatewayID, networkID)
       export: true

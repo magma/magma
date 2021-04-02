@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	plugin2 "magma/fbinternal/cloud/go/plugin"
 	"magma/fbinternal/cloud/go/services/testcontroller"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/handlers"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
@@ -26,7 +25,6 @@ import (
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/plugin"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -37,7 +35,6 @@ import (
 )
 
 func Test_ListCINodes(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_list_nodes")
 
 	e := echo.New()
@@ -105,7 +102,6 @@ func Test_ListCINodes(t *testing.T) {
 }
 
 func Test_GetCINode(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_get_nodes")
 
 	e := echo.New()
@@ -147,7 +143,6 @@ func Test_GetCINode(t *testing.T) {
 }
 
 func Test_CreateCINode(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_create_node")
 
 	e := echo.New()
@@ -204,7 +199,6 @@ func Test_CreateCINode(t *testing.T) {
 }
 
 func Test_UpdateCINode(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_update_node")
 
 	e := echo.New()
@@ -265,7 +259,6 @@ func Test_UpdateCINode(t *testing.T) {
 }
 
 func Test_DeleteCINode(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_delete_node")
 
 	e := echo.New()
@@ -295,7 +288,6 @@ func Test_DeleteCINode(t *testing.T) {
 }
 
 func Test_ReserveCINode(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_reserve_node")
 
 	frozenClock := 1000 * time.Hour
@@ -418,7 +410,6 @@ func Test_ReserveCINode(t *testing.T) {
 }
 
 func Test_ReserveSpecificCINode(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_reserve_specific_node")
 
 	frozenClock := 1000 * time.Hour
@@ -490,7 +481,6 @@ func Test_ReserveSpecificCINode(t *testing.T) {
 }
 
 func Test_ReleaseCINode(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
 	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_release_node")
 
 	frozenClock := 1000 * time.Hour

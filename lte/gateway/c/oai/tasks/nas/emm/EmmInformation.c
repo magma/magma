@@ -66,7 +66,7 @@
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
 
-static void _emm_information_pack_gsm_7Bit(bstring str, unsigned char* result);
+static void emm_information_pack_gsm_7Bit(bstring str, unsigned char* result);
 
 int emm_proc_emm_informtion(ue_mm_context_t* ue_emm_ctx) {
   int rc                    = RETURNerror;
@@ -93,13 +93,13 @@ int emm_proc_emm_informtion(ue_mm_context_t* ue_emm_ctx) {
    * The encoding is done referring to 3gpp 24.008
    * (section: 10.5.3.5a)and 23.038
    */
-  _emm_information_pack_gsm_7Bit(_emm_data.conf.full_network_name, result);
+  emm_information_pack_gsm_7Bit(_emm_data.conf.full_network_name, result);
   emm_as->full_network_name = bfromcstr((const char*) result);
   /*
    * Encode short_network_name with gsm 7 bit encoding
    */
   memset(result, 0, sizeof(result));
-  _emm_information_pack_gsm_7Bit(_emm_data.conf.short_network_name, result);
+  emm_information_pack_gsm_7Bit(_emm_data.conf.short_network_name, result);
   emm_as->short_network_name = bfromcstr((const char*) result);
 
   /*
@@ -116,7 +116,7 @@ int emm_proc_emm_informtion(ue_mm_context_t* ue_emm_ctx) {
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-static void _emm_information_pack_gsm_7Bit(bstring str, unsigned char* result) {
+static void emm_information_pack_gsm_7Bit(bstring str, unsigned char* result) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int encIdx = 0;
   int len, i = 0, j = 0;

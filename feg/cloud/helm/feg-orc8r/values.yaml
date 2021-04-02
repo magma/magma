@@ -41,7 +41,7 @@ controller:
       user: postgres
       pass: postgres
     service_registry:
-      mode: "yaml"
+      mode: "k8s"
 
   podAnnotations: {}
 
@@ -81,6 +81,7 @@ feg:
     labels:
       orc8r.io/mconfig_builder: "true"
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/feg,/magma/v1/feg_lte"
 
@@ -126,6 +127,11 @@ session_proxy:
     annotations: {}
 
 swx_proxy:
+  service:
+    labels: {}
+    annotations: {}
+
+s8_proxy:
   service:
     labels: {}
     annotations: {}

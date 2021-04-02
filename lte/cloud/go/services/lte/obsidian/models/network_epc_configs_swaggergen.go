@@ -62,6 +62,15 @@ type NetworkEpcConfigs struct {
 	// Configuration for network services. Services will be instantiated in the listed order.
 	NetworkServices []string `json:"network_services,omitempty"`
 
+	// List of IMEIs restricted in the network
+	RestrictedImeis []*Imei `json:"restricted_imeis,omitempty"`
+
+	// List of PLMN IDs restricted in the network
+	RestrictedPlmns []*PlmnConfig `json:"restricted_plmns,omitempty"`
+
+	// Mapping service areas to tacs in the network
+	ServiceAreaMaps map[string]TacList `json:"service_area_maps,omitempty"`
+
 	// sub profiles
 	SubProfiles map[string]NetworkEpcConfigsSubProfilesAnon `json:"sub_profiles,omitempty"`
 
@@ -105,6 +114,18 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateNetworkServices(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateRestrictedImeis(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateRestrictedPlmns(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateServiceAreaMaps(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -243,6 +264,76 @@ func (m *NetworkEpcConfigs) validateNetworkServices(formats strfmt.Registry) err
 
 		// value enum
 		if err := m.validateNetworkServicesItemsEnum("network_services"+"."+strconv.Itoa(i), "body", m.NetworkServices[i]); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateRestrictedImeis(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.RestrictedImeis) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.RestrictedImeis); i++ {
+		if swag.IsZero(m.RestrictedImeis[i]) { // not required
+			continue
+		}
+
+		if m.RestrictedImeis[i] != nil {
+			if err := m.RestrictedImeis[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("restricted_imeis" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateRestrictedPlmns(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.RestrictedPlmns) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.RestrictedPlmns); i++ {
+		if swag.IsZero(m.RestrictedPlmns[i]) { // not required
+			continue
+		}
+
+		if m.RestrictedPlmns[i] != nil {
+			if err := m.RestrictedPlmns[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("restricted_plmns" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateServiceAreaMaps(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ServiceAreaMaps) { // not required
+		return nil
+	}
+
+	for k := range m.ServiceAreaMaps {
+
+		if err := m.ServiceAreaMaps[k].Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("service_area_maps" + "." + k)
+			}
 			return err
 		}
 

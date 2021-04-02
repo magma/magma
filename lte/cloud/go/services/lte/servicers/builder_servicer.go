@@ -18,6 +18,9 @@ import (
 	"fmt"
 	"sort"
 
+	feg "magma/feg/cloud/go/feg"
+	feg_serdes "magma/feg/cloud/go/serdes"
+	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/serdes"
@@ -55,7 +58,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return nil, err
 	}
 
-	// Only build an mconfig if cellular network and gateway configs exist
+	// Only build mconfig if cellular network and gateway configs exist
 	inwConfig, found := network.Configs[lte.CellularNetworkConfigType]
 	if !found || inwConfig == nil {
 		return ret, nil
@@ -75,6 +78,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	cellularGwConfig := cellGW.Config.(*lte_models.GatewayCellularConfigs)
 
 	if err := validateConfigs(cellularNwConfig, cellularGwConfig); err != nil {
+		return nil, err
+	}
+
+	federatedNetworkConfigs, err := getFederatedNetworkConfigs(network.Type, cellularNwConfig.FegNetworkID, request)
+	if err != nil {
+		glog.Errorf("Failed to retrieve LTE_federated network config while building lte mconfig")
 		return nil, err
 	}
 
@@ -149,6 +158,10 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 			Ipv4SgwS1UAddr:           gwEpc.IPV4SgwS1uAddr,
+			RestrictedPlmns:          getRestrictedPlmns(nwEpc.RestrictedPlmns),
+			RestrictedImeis:          getRestrictedImeis(nwEpc.RestrictedImeis),
+			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
+			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -300,8 +313,8 @@ func getHEConfig(gwConfig *lte_models.GatewayHeConfig) *lte_mconfig.PipelineD_HE
 	}
 
 	return &lte_mconfig.PipelineD_HEConfig{
-		EnableHeaderEnrichment: gwConfig.EnableHeaderEnrichment,
-		EnableEncryption:       gwConfig.EnableEncryption,
+		EnableHeaderEnrichment: swag.BoolValue(gwConfig.EnableHeaderEnrichment),
+		EnableEncryption:       swag.BoolValue(gwConfig.EnableEncryption),
 		EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm(lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm_value[gwConfig.HeEncryptionAlgorithm]),
 		HashFunction:           lte_mconfig.PipelineD_HEConfig_HashFunction(lte_mconfig.PipelineD_HEConfig_HashFunction_value[gwConfig.HeHashFunction]),
 		EncodingType:           lte_mconfig.PipelineD_HEConfig_EncodingType(lte_mconfig.PipelineD_HEConfig_EncodingType_value[gwConfig.HeEncodingType]),
@@ -492,4 +505,62 @@ func shouldEnableDNSCaching(dns *lte_models.GatewayDNSConfigs) bool {
 		return false
 	}
 	return swag.BoolValue(dns.EnableCaching)
+}
+
+func getRestrictedPlmns(plmns []*lte_models.PlmnConfig) []*lte_mconfig.MME_PlmnConfig {
+	ret := make([]*lte_mconfig.MME_PlmnConfig, len(plmns))
+	for idx, plmn := range plmns {
+		ret[idx] = &lte_mconfig.MME_PlmnConfig{Mcc: plmn.Mcc, Mnc: plmn.Mnc}
+	}
+	return ret
+}
+
+func getServiceAreaMaps(serviceAreaMaps map[string]lte_models.TacList) map[string]*lte_mconfig.MME_TacList {
+	ret := make(map[string]*lte_mconfig.MME_TacList)
+	for k, v := range serviceAreaMaps {
+		tacList := &lte_mconfig.MME_TacList{}
+		for _, tac := range v {
+			tacList.Tac = append(tacList.Tac, uint32(tac))
+		}
+		ret[k] = tacList
+	}
+	return ret
+}
+
+// getFederatedNetworkConfigs in case this is a federated LTE networkm this function will try to parse out
+// feg_models.FederatedNetworkConfigs out of it
+func getFederatedNetworkConfigs(networkType string, fegId lte_models.FegNetworkID, request *builder_protos.BuildRequest) (*feg_models.FederatedNetworkConfigs, error) {
+	if networkType != feg.FederatedLteNetworkType {
+		// this is a non federated network, return nothing
+		return nil, nil
+	}
+	if fegId == "" {
+		glog.Warning("federated_id is empty. Ignoring Federated LTE Network config and movign on")
+		return nil, nil
+	}
+	network, err := (configurator.Network{}).FromProto(request.Network, feg_serdes.Network)
+	if err != nil {
+		return nil, err
+	}
+	inwConfig, found := network.Configs[feg.FederatedNetworkType]
+	if !found || inwConfig == nil {
+		return nil, err
+	}
+	return inwConfig.(*feg_models.FederatedNetworkConfigs), nil
+}
+
+// getFederatedModeMap extracts the mapping configuration in case of being a federated network
+func getFederatedModeMap(fedNetworkConfigs *feg_models.FederatedNetworkConfigs) *lte_mconfig.FederatedModeMap {
+	if fedNetworkConfigs == nil {
+		return nil
+	}
+	return feg_models.ToFederatedModesMap(fedNetworkConfigs.FederatedModesMapping)
+}
+
+func getRestrictedImeis(imeis []*lte_models.Imei) []*lte_mconfig.MME_ImeiConfig {
+	ret := make([]*lte_mconfig.MME_ImeiConfig, len(imeis))
+	for idx, imei := range imeis {
+		ret[idx] = &lte_mconfig.MME_ImeiConfig{Tac: imei.Tac, Snr: imei.Snr}
+	}
+	return ret
 }

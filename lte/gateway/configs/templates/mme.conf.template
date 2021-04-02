@@ -36,6 +36,7 @@ MME :
     USE_STATELESS = "{{ use_stateless }}";
     USE_HA = "{{ use_ha }}";
     ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
+    ENABLE_CONVERGED_CORE = "{{ enable_converged_core }}";
 
     INTERTASK_INTERFACE :
     {
@@ -90,6 +91,19 @@ MME :
          {% for enbTac in attached_enodeb_tacs -%}
          { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ enbTac }}"; }{% if not loop.last %},{% endif %}
          {% endfor %}
+    );
+
+    # List of restricted PLMNs
+    # By default this list is empty
+    # Max number of restricted plmn is 10
+    RESTRICTED_PLMN_LIST = (
+        # PlmnConfig values can be found at magma/lte/protos/mconfig/mconfigs.proto
+        {% for plmn_config in restrictedPlmns -%}
+        {
+          MCC        = "{{ plmn_config.mcc }}"
+          MNC        = "{{ plmn_config.mnc }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
     );
 
     CSFB :
@@ -255,8 +269,21 @@ MME :
     };
 
     S-GW :
-   {
-    # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
-       SGW_IPV4_ADDRESS_FOR_S11              = "{{ remote_sgw_ip }}";
-   };
+    {
+        # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
+        SGW_IPV4_ADDRESS_FOR_S11              = "{{ remote_sgw_ip }}";
+    };
+
+
+    FEDERATED_MODE_MAP = (
+        # ModeMapItem values can be found at magma/lte/protos/mconfig/mconfigs.proto
+        {% for fed_map in federated_mode_map -%}
+        {
+          MODE        = "{{ fed_map.mode }}"
+          PLMN        = "{{ fed_map.plmn }}"
+          IMSI_RANGE  = "{{ fed_map.imsi_range }}"
+          APN         = "{{ fed_map.apn }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+   );
 };

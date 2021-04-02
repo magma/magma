@@ -14,15 +14,17 @@
  * @format
  */
 
+import Box from '@material-ui/core/Box';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import Visibility from '@material-ui/icons/Visibility';
@@ -188,5 +190,23 @@ export function PasswordInput(props: PasswordProps) {
         </InputAdornment>
       }
     />
+  );
+}
+
+type ProgressProps = {
+  value: number,
+  text?: string,
+};
+
+export function LinearProgressWithLabel(props: ProgressProps) {
+  return (
+    <Box display="flex" alignItems="center">
+      <Box width="100%" mr={1}>
+        <LinearProgress variant="determinate" value={props.value} />
+      </Box>
+      <Box minWidth={35}>
+        <Text>{props.text ?? `${Math.round(props.value)}%`}</Text>
+      </Box>
+    </Box>
   );
 }

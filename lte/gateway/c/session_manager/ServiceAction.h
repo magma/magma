@@ -18,6 +18,7 @@
 #include <experimental/optional>
 
 #include "CreditKey.h"
+#include "Types.h"
 
 namespace magma {
 using namespace lte;
@@ -72,11 +73,6 @@ class ServiceAction {
     return *this;
   }
 
-  ServiceAction& set_redirect_server(const RedirectServer& redirect_server) {
-    redirect_server_ = std::make_unique<RedirectServer>(redirect_server);
-    return *this;
-  }
-
   ServiceAction& set_ambr(const optional<AggregatedMaximumBitrate> ambr) {
     ambr_ = ambr;
     return *this;
@@ -111,47 +107,16 @@ class ServiceAction {
 
   const CreditKey& get_credit_key() const { return credit_key_; }
 
-  const std::vector<std::string>& get_rule_ids() const { return rule_ids_; }
-
-  const std::vector<PolicyRule>& get_rule_definitions() const {
-    return rule_definitions_;
-  }
-
-  /**
-   * get_restrict_rules returns the associated restrict rules
-   * for the RESTRICT action
-   */
-  const std::vector<std::string>& get_restrict_rules() const {
-    return restrict_rules_;
-  }
-
-  std::vector<std::string>* get_mutable_rule_ids() { return &rule_ids_; }
-
-  std::vector<PolicyRule>* get_mutable_rule_definitions() {
-    return &rule_definitions_;
-  }
-
-  const RedirectServer& get_redirect_server() const {
-    return *redirect_server_;
-  }
-
   const optional<AggregatedMaximumBitrate> get_ambr() const { return ambr_; }
 
   const std::string& get_msisdn() const { return *msisdn_; }
 
-  /**
-   * get_mutable_restrict_rules returns a mutable list of the associated
-   * restrict rules
-   */
-  std::vector<std::string>* get_mutable_restrict_rules() {
-    return &restrict_rules_;
-  }
+  // RulesToProcess
+  RulesToProcess get_gx_rules_to_install() const { return gx_to_install_; }
+  RulesToProcess* get_mutable_gx_rules_to_install() { return &gx_to_install_; }
 
-  /**
-   * is_redirect_server_set returns true if redirect server is set,
-   * false otherwise.
-   */
-  bool is_redirect_server_set() const { return (redirect_server_ != NULL); }
+  RulesToProcess get_gy_rules_to_install() const { return gy_to_install_; }
+  RulesToProcess* get_mutable_gy_rules_to_install() { return &gy_to_install_; }
 
  private:
   ServiceActionType action_type_;
@@ -162,11 +127,9 @@ class ServiceAction {
   std::unique_ptr<Teids> teids_;
   std::unique_ptr<std::string> msisdn_;
   CreditKey credit_key_;
-  std::vector<std::string> rule_ids_;
-  std::vector<PolicyRule> rule_definitions_;
-  std::unique_ptr<RedirectServer> redirect_server_;
   optional<AggregatedMaximumBitrate> ambr_;
-  std::vector<std::string> restrict_rules_;
+  RulesToProcess gx_to_install_;
+  RulesToProcess gy_to_install_;
 };
 
 }  // namespace magma

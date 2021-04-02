@@ -11,8 +11,10 @@ add_subdirectory(mobility_client) # LIB_MOBILITY_CLIENT
 add_subdirectory(s6a_proxy) # LIB_S6A_PROXY
 add_subdirectory(secu) # LIB_SECU
 add_subdirectory(sgs_client) # LIB_SGS_CLIENT
+add_subdirectory(s8_proxy) # LIB_S8_PROXY
 add_subdirectory(sms_orc8r_client) # LIB_SMS_OCR8R_CLIENT
 add_subdirectory(event_client) # LIB_EVENT_CLIENT
+add_subdirectory(n11) #LIB_N11
 
 if (EMBEDDED_SGW)
 if (ENABLE_OPENFLOW)

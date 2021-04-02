@@ -605,7 +605,7 @@ esm_cause_t esm_recv_information_response(
  **                                                                        **
  ***************************************************************************/
 
-static void _erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
+static void erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
 
@@ -642,7 +642,7 @@ static void _erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
         // Restart the timer
         rc = esm_ebr_start_timer(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
-            ERAB_SETUP_RSP_TMR, _erab_setup_rsp_tmr_exp_handler);
+            ERAB_SETUP_RSP_TMR, erab_setup_rsp_tmr_exp_handler);
         if (rc != RETURNerror) {
           OAILOG_INFO(
               LOG_NAS_ESM,
@@ -801,7 +801,7 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
       // Wait for ERAB SETUP RSP.Start a timer for 5 secs
       rc = esm_ebr_start_timer(
           emm_context, ebi, NULL, ERAB_SETUP_RSP_TMR,
-          _erab_setup_rsp_tmr_exp_handler);
+          erab_setup_rsp_tmr_exp_handler);
       if (rc != RETURNerror) {
         OAILOG_DEBUG(
             LOG_NAS_ESM,
@@ -842,7 +842,7 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_reject(
     emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
     const activate_default_eps_bearer_context_reject_msg* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
+  esm_cause_t esm_cause = ESM_CAUSE_REQUEST_REJECTED_UNSPECIFIED;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
@@ -887,16 +887,8 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_reject(
    * Execute the default EPS bearer context activation procedure not accepted
    * * * * by the UE
    */
-  int rc =
-      esm_proc_default_eps_bearer_context_reject(emm_context, ebi, &esm_cause);
+  esm_proc_default_eps_bearer_context_reject(emm_context, ebi, &esm_cause);
 
-  if (rc != RETURNerror) {
-    esm_cause = ESM_CAUSE_SUCCESS;
-  }
-
-  /*
-   * Return the ESM cause value
-   */
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
 }
 

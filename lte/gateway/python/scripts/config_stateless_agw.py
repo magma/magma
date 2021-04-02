@@ -87,12 +87,16 @@ def clear_redis_state():
     redis_client = get_default_client()
     for key_regex in [
         "*_state",
-        "IMSI*",
+        "IMSI*MME",
+        "IMSI*S1AP",
+        "IMSI*SPGW",
+        "IMSI*mobilityd*",
         "mobilityd:assigned_ip_blocks",
         "mobilityd:ip_states:*",
         "NO_VLAN:mobilityd_gw_info",
         "QosManager",
         "s1ap_imsi_map",
+        "sessiond:sessions",
     ]:
         for key in redis_client.scan_iter(key_regex):
             redis_client.delete(key)
@@ -159,13 +163,18 @@ def sctpd_pre_start():
         # switching from stateless to stateful
         print("AGW is stateful, nothing to be done")
     else:
+        # Clean up all mobilityd, MME, pipelined and sessiond Redis keys
         clear_redis_state()
+        # Clean up OVS flows
+        subprocess.call("service openvswitch-switch restart".split())
+
     sys.exit(0)
 
 
 def sctpd_post_start():
     subprocess.Popen("/bin/systemctl start magma@mme".split())
     subprocess.Popen("/bin/systemctl start magma@pipelined".split())
+    subprocess.Popen("/bin/systemctl start magma@envoy_controller".split())
     subprocess.Popen("/bin/systemctl start magma@sessiond".split())
     subprocess.Popen("/bin/systemctl start magma@mobilityd".split())
     sys.exit(0)

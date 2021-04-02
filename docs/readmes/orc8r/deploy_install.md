@@ -13,6 +13,9 @@ If you want to install a specific release version, see the notes in the
 
 ## Prerequisites
 
+We assume `MAGMA_ROOT` is set as described in the
+[deployment intro](./deploy_intro.md).
+
 This walkthrough assumes you already have the following
 
 - a registered domain name
@@ -22,6 +25,9 @@ This walkthrough assumes you already have the following
 If your AWS account is not blank, this can cause errors while Terraforming.
 If you know what you're doing, this is fine - otherwise, consider signing up
 for a new account.
+
+Finally, our install process assumes the chosen region contains at least 3
+availability zones. This should be the case for all major regions.
 
 ## Assemble Certificates
 
@@ -47,10 +53,11 @@ in one file
 3. The root CA certificate which verifies your SSL certificate
 
 If you aren't worried about a browser warning, you can generate self-signed
-versions of these certs
+versions of these certs. Though please note that using trusted certs in
+production deployments is encouraged
 
 ```bash
-MAGMA_ROOT/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
+${MAGMA_ROOT}/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
 ```
 
 Alternatively, if you already have these certs, rename and move them as follows
@@ -64,7 +71,7 @@ Next, with the domain certs placed in the correct directory, generate the
 application certs
 
 ```bash
-MAGMA_ROOT/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
+${MAGMA_ROOT}/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
 ```
 
 NOTE: `yourdomain.com` above should match the relevant Terraform variables in
@@ -130,18 +137,15 @@ override the following parameters
 - `helm_pass`
 - `seed_certs_dir`: local certs directory (e.g. `"~/secrets/certs"`)
 - `orc8r_tag`: tag used when you published your Orchestrator containers
+- `orc8r_deployment_type`: type of orc8r deployment (`fwa`, `federated_fwa`, `all`)
 
 If you don't know what values to put for the `docker_*` and `helm_*` variables,
 go through the [building Orchestrator](./deploy_build.md) section first.
 
 Make sure that the `source` variables for the module definitions point to
-`github.com/magma/magma//orc8r/cloud/deploy/terraform/<module>?ref=v1.3`.
+`github.com/magma/magma//orc8r/cloud/deploy/terraform/<module>?ref=v1.4`.
 Adjust any other parameters as you see fit - check the READMEs for the
 relevant Terraform modules to see additional variables that can be set.
-
-The `?ref=v1.3` argument is *very* important to include in the Terraform
-`source` parameters for your modules - we will be making large sweeping changes
-to these modules on the master branch of Magma in the near future.
 
 Finally, initialize Terraform
 
@@ -235,15 +239,15 @@ Create the Orchestrator admin user with the `admin_operator` certificate
 created earlier
 
 ```bash
-export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
-kubectl exec ${CNTLR_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+export ORC_POD=$(kubectl --namespace orc8r get pod -l app.kubernetes.io/component=orchestrator -o jsonpath='{.items[0].metadata.name}')
+kubectl --namespace orc8r exec ${ORC_POD} -- /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
 
 If you want to verify the admin user was successfully created, inspect the
 output from
 
 ```bash
-$ kubectl exec ${CNTLR_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc list-certs
+$ kubectl --namespace orc8r exec ${ORC_POD} -- /var/opt/magma/bin/accessc list-certs
 
 # NOTE: actual values will differ
 Serial Number: 83550F07322CEDCD; Identity: Id_Operator_admin_operator; Not Before: 2020-06-26 22:39:55 +0000 UTC; Not After: 2030-06-24 22:39:55 +0000 UTC
@@ -260,8 +264,8 @@ also need to add a new admin user with the updated `admin_operator` cert.
 Create an admin user for the `master` organization on the NMS
 
 ```bash
-export NMS_POD=$(kubectl -n orc8r get pod -l  app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+export NMS_POD=$(kubectl --namespace orc8r get pod -l  app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
+kubectl --namespace orc8r exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
 ## DNS Resolution
@@ -322,30 +326,51 @@ will rightfully complain. Either ignore the browser warnings at your own risk
 ](https://stackoverflow.com/questions/7580508/getting-chrome-to-accept-self-signed-localhost-certificate).
 
 For interacting with the Orchestrator REST API, a good starting point is the
-Swagger UI available at `https://api.yoursubdomain.yourdomain.com/apidocs/v1/`.
+Swagger UI available at `https://api.yoursubdomain.yourdomain.com/swagger/v1/ui/`.
 
 If desired, you can also visit the AWS endpoints directly. The relevant
-services are `nginx-proxy` for NMS and `orc8r-proxy` for Orchestrator API.
-Remember to include `https://`, as well as the port number for non-standard
-TLS ports.
+services are `nginx-proxy` for NMS and `orc8r-nginx-proxy` for Orchestrator
+API. Remember to include `https://`, as well as the port number for
+non-standard TLS ports.
 
 ```bash
-$ kubectl get services
+$ kubectl --namespace orc8r get services
 
 # NOTE: values will differ, e.g. the EXTERNAL-IP column
 NAME                            TYPE           CLUSTER-IP       EXTERNAL-IP                       PORT(S)                                                     AGE
-magmalte                        ClusterIP      172.20.180.24    <none>                            8081/TCP                                                    3h13m
-nginx-proxy                     LoadBalancer   172.20.158.22    www.us-west-2.elb.amazonaws.com   443:30086/TCP                                               3h13m
-orc8r-alertmanager              ClusterIP      172.20.65.247    <none>                            9093/TCP                                                    3h13m
-orc8r-alertmanager-configurer   ClusterIP      172.20.56.14     <none>                            9101/TCP                                                    3h13m
-orc8r-bootstrap-nginx           LoadBalancer   172.20.121.250   xxx.us-west-2.elb.amazonaws.com   80:31106/TCP,443:32187/TCP,8444:32707/TCP                   3h13m
-orc8r-clientcert-nginx          LoadBalancer   172.20.126.56    yyy.us-west-2.elb.amazonaws.com   80:32077/TCP,443:30520/TCP,8443:30665/TCP                   3h13m
-orc8r-controller                ClusterIP      172.20.29.196    <none>                            ...                                                         3h13m
-orc8r-nginx-proxy               LoadBalancer   172.20.184.203   zzz.us-west-2.elb.amazonaws.com   80:30619/TCP,8443:32592/TCP,8444:31336/TCP,443:32148/TCP    3h13m
-orc8r-prometheus                ClusterIP      172.20.140.123   <none>                            9090/TCP                                                    3h13m
-orc8r-prometheus-cache          ClusterIP      172.20.136.37    <none>                            9091/TCP                                                    3h13m
-orc8r-prometheus-configurer     ClusterIP      172.20.39.188    <none>                            9100/TCP                                                    3h13m
-orc8r-user-grafana              ClusterIP      172.20.231.56    <none>                            3000/TCP                                                    3h13m
+fluentd                         LoadBalancer   172.20.213.111   aaa.us-west-2.elb.amazonaws.com   24224:31621/TCP                                             3h13m
+magmalte                        ClusterIP      172.20.197.108   <none>                            8081/TCP                                                    3h13m
+nginx-proxy                     LoadBalancer   172.20.1.201     www.us-west-2.elb.amazonaws.com   443:32422/TCP                                               3h13m
+orc8r-accessd                   ClusterIP      172.20.128.137   <none>                            9180/TCP                                                    3h13m
+orc8r-alertmanager              ClusterIP      172.20.165.206   <none>                            9093/TCP                                                    3h13m
+orc8r-alertmanager-configurer   ClusterIP      172.20.92.62     <none>                            9101/TCP                                                    3h13m
+orc8r-analytics                 ClusterIP      172.20.152.243   <none>                            9180/TCP                                                    3h13m
+orc8r-bootstrap-nginx           LoadBalancer   172.20.232.199   xxx.us-west-2.elb.amazonaws.com   80:31116/TCP,443:31302/TCP,8444:31093/TCP                   3h13m
+orc8r-bootstrapper              ClusterIP      172.20.65.124    <none>                            9180/TCP                                                    3h13m
+orc8r-certifier                 ClusterIP      172.20.89.150    <none>                            9180/TCP                                                    3h13m
+orc8r-clientcert-nginx          LoadBalancer   172.20.143.232   yyy.us-west-2.elb.amazonaws.com   80:30546/TCP,443:31400/TCP,8443:30781/TCP                   3h13m
+orc8r-configurator              ClusterIP      172.20.56.203    <none>                            9180/TCP                                                    3h13m
+orc8r-ctraced                   ClusterIP      172.20.134.117   <none>                            9180/TCP                                                    3h13m
+orc8r-device                    ClusterIP      172.20.103.126   <none>                            9180/TCP                                                    3h13m
+orc8r-directoryd                ClusterIP      172.20.4.31      <none>                            9180/TCP                                                    3h13m
+orc8r-dispatcher                ClusterIP      172.20.124.178   <none>                            9180/TCP                                                    3h13m
+orc8r-ha                        ClusterIP      172.20.201.112   <none>                            9180/TCP                                                    3h13m
+orc8r-lte                       ClusterIP      172.20.225.103   <none>                            9180/TCP,8080/TCP                                           3h13m
+orc8r-metricsd                  ClusterIP      172.20.159.39    <none>                            9180/TCP,8080/TCP                                           3h13m
+orc8r-nginx-proxy               LoadBalancer   172.20.52.234    zzz.us-west-2.elb.amazonaws.com   80:30034/TCP,8443:31884/TCP,8444:31829/TCP,443:30124/TCP    3h13m
+orc8r-obsidian                  ClusterIP      172.20.41.215    <none>                            9180/TCP,8080/TCP                                           3h13m
+orc8r-orchestrator              ClusterIP      172.20.172.120   <none>                            9180/TCP,8080/TCP                                           3h13m
+orc8r-policydb                  ClusterIP      172.20.95.10     <none>                            9180/TCP,8080/TCP                                           3h13m
+orc8r-prometheus                ClusterIP      172.20.65.141    <none>                            9090/TCP                                                    3h13m
+orc8r-prometheus-cache          ClusterIP      172.20.111.91    <none>                            9091/TCP,9092/TCP                                           3h13m
+orc8r-prometheus-configurer     ClusterIP      172.20.106.4     <none>                            9100/TCP                                                    3h13m
+orc8r-service-registry          ClusterIP      172.20.146.78    <none>                            9180/TCP                                                    3h13m
+orc8r-smsd                      ClusterIP      172.20.63.198    <none>                            9180/TCP,8080/TCP                                           3h13m
+orc8r-state                     ClusterIP      172.20.185.245   <none>                            9180/TCP                                                    3h13m
+orc8r-streamer                  ClusterIP      172.20.57.35     <none>                            9180/TCP                                                    3h13m
+orc8r-subscriberdb              ClusterIP      172.20.238.111   <none>                            9180/TCP,8080/TCP                                           3h13m
+orc8r-tenants                   ClusterIP      172.20.173.57    <none>                            9180/TCP,8080/TCP                                           3h13m
+orc8r-user-grafana              ClusterIP      172.20.149.141   <none>                            3000/TCP                                                    3h13m
 ```
 
 ## Upgrade the Deployment

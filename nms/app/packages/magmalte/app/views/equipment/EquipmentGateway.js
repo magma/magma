@@ -91,6 +91,8 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const UPGRADE_VIEW = 'UPGRADE';
+
 export default function Gateway() {
   const classes = useStyles();
 
@@ -119,7 +121,7 @@ type EquipmentGatewayRowType = {
   num_enodeb: number,
   num_subscribers: number,
   health: string,
-  checkInTime: Date,
+  checkInTime: Date | string,
 };
 
 type EquipmentGatewayUpgradeType = {
@@ -151,12 +153,14 @@ function GatewayTable() {
         label={`Gateways (${Object.keys(ctx.state).length})`}
         filter={() => (
           <Grid container justify="flex-end" alignItems="center" spacing={1}>
-            <Grid item>
-              <AutorefreshCheckbox
-                autorefreshEnabled={refresh}
-                onToggle={() => setRefresh(current => !current)}
-              />
-            </Grid>
+            {currentView !== UPGRADE_VIEW && (
+              <Grid item>
+                <AutorefreshCheckbox
+                  autorefreshEnabled={refresh}
+                  onToggle={() => setRefresh(current => !current)}
+                />
+              </Grid>
+            )}
             <Grid item>
               <Text variant="body3" className={classes.viewLabelText}>
                 View
@@ -188,44 +192,17 @@ function GatewayTable() {
 function UpgradeTable() {
   const ctx = useContext(GatewayTierContext);
   const gwCtx = useContext(GatewayContext);
-  const subscriberCtx = useContext(SubscriberContext);
-  const gwSubscriberMap = subscriberCtx.gwSubscriberMap;
-
   const lteGateways = gwCtx.state;
   const {history, relativeUrl} = useRouter();
-  const lteGatewayRows: Array<EquipmentGatewayRowType> = [];
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const lteGatewayRowSt: Array<EquipmentGatewayUpgradeType> = [];
+  const lteGatewayRows: Array<EquipmentGatewayUpgradeType> = [];
   Object.keys(lteGateways)
     .map((gwId: string) => lteGateways[gwId])
     .filter((g: lte_gateway) => g.cellular && g.id)
     .map((gateway: lte_gateway) => {
-      let numEnodeBs = 0;
-      if (gateway.connected_enodeb_serials) {
-        numEnodeBs = gateway.connected_enodeb_serials.length;
-      }
-
-      let checkInTime = new Date(0);
-      if (
-        gateway.status &&
-        (gateway.status.checkin_time !== undefined ||
-          gateway.status.checkin_time === null)
-      ) {
-        checkInTime = new Date(gateway.status.checkin_time);
-      }
       const packages = gateway.status?.platform_info?.packages || [];
       lteGatewayRows.push({
-        name: gateway.name,
-        id: gateway.id,
-        num_enodeb: numEnodeBs,
-        num_subscribers:
-          gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
-        health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
-        checkInTime: checkInTime,
-      });
-
-      lteGatewayRowSt.push({
         name: gateway.name,
         id: gateway.id,
         hardwareId: gateway.device.hardware_id,
@@ -235,7 +212,7 @@ function UpgradeTable() {
       });
     });
   const [lteGatewayUpgradeRows, setLteGatewayUpgradeRows] = useState(
-    lteGatewayRowSt,
+    lteGatewayRows,
   );
   return (
     <ActionTable
@@ -309,6 +286,7 @@ function UpgradeTable() {
     />
   );
 }
+
 function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
   const {history, relativeUrl, match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -339,7 +317,6 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
   const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
   const lteGatewayRows: Array<EquipmentGatewayRowType> = [];
 
-  const lteGatewayRowSt: Array<EquipmentGatewayUpgradeType> = [];
   Object.keys(lteGateways)
     .map((gwId: string) => lteGateways[gwId])
     .filter((g: lte_gateway) => g.cellular && g.id)
@@ -349,15 +326,15 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
         numEnodeBs = gateway.connected_enodeb_serials.length;
       }
 
-      let checkInTime = new Date(0);
+      let checkInTime = '-';
       if (
         gateway.status &&
-        (gateway.status.checkin_time !== undefined ||
-          gateway.status.checkin_time === null)
+        gateway.status.checkin_time != null &&
+        gateway.status.checkin_time > 0
       ) {
         checkInTime = new Date(gateway.status.checkin_time);
       }
-      const packages = gateway.status?.platform_info?.packages || [];
+
       lteGatewayRows.push({
         name: gateway.name,
         id: gateway.id,
@@ -366,15 +343,6 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
           gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
         health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
         checkInTime: checkInTime,
-      });
-
-      lteGatewayRowSt.push({
-        name: gateway.name,
-        id: gateway.id,
-        hardwareId: gateway.device.hardware_id,
-        tier: gateway.tier,
-        currentVersion:
-          packages.find(p => p.name === 'magma')?.version || 'Not Reported',
       });
     });
   return (

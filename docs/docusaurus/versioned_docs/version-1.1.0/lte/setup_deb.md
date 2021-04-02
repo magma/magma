@@ -22,7 +22,7 @@ satisfies the following requirements:
 ## Deployment
 ### 1. Create boot USB stick and install Debian on your AGW host
 
-- Download .iso image from [Debian mirror](http://cdimage.debian.org/mirror/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-netinst.iso)
+- Download .iso image from [Debian mirror](https://cdimage.debian.org/cdimage/archive/9.13.0/amd64/iso-cd/debian-9.13.0-amd64-netinst.iso)
 - Create bootable usb using etcher [tutorial here](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
 - Boot your AGW host from USB
   (Press F11 to select boot sequence, :warning: This might be different for
@@ -48,7 +48,7 @@ installation process to get an IP using DHCP.
 
 ```bash
 su
-wget https://raw.githubusercontent.com/facebookincubator/magma/v1.1/lte/gateway/deploy/agw_install.sh
+wget https://raw.githubusercontent.com/magma/magma/v1.1/lte/gateway/deploy/agw_install.sh
 sh agw_install.sh
 ```
 

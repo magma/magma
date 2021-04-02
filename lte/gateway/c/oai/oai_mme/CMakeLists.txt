@@ -41,11 +41,11 @@ add_executable(mme
 target_link_libraries(mme
     -Wl,--start-group
         COMMON
-        LIB_3GPP LIB_S1AP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
+	LIB_3GPP LIB_S1AP LIB_NGAP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
         LIB_HASHTABLE LIB_S6A_PROXY
-        TASK_S1AP TASK_SCTP_SERVER TASK_SGS TASK_SMS_ORC8R
+        TASK_S1AP TASK_NGAP TASK_SCTP_SERVER TASK_SGS TASK_SMS_ORC8R
         TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE TASK_NAS TASK_HA
-        ${ITTI_LIB} ${GCOV_LIB}
+         ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls ${SERVICE303_LIB}
@@ -56,9 +56,25 @@ if ( NOT EMBEDDED_SGW )
  target_link_libraries(mme
   LIB_GTPV2C TASK_UDP)
 else ( EMBEDDED_SGW )
-target_link_libraries(mme TASK_SGW)
+target_link_libraries(mme TASK_SGW TASK_SGW_S8)
 endif ( NOT EMBEDDED_SGW )
 
 if ( NOT S6A_OVER_GRPC )
     target_link_libraries(mme fdproto fdcore)
 endif ( NOT S6A_OVER_GRPC )
+
+if ( NOT EMBEDDED_SGW AND NOT S6A_OVER_GRPC )
+  if (EXISTS "/etc/os-release")
+    set(os_file_path "/etc/os-release")
+    file(STRINGS "${os_file_path}" data_list REGEX "^(ID|VERSION_ID|VERSION_CODENAME)=")
+    foreach(_var ${data_list})
+      if("${_var}" MATCHES "^(ID)=(.*)$")
+        set(os_name "${CMAKE_MATCH_2}")
+      endif()
+    endforeach()
+    if ("${os_name}" STREQUAL "\"rhel\"")
+      target_link_libraries(mme
+        gpr yaml z cares boost_program_options boost_filesystem boost_system boost_regex double-conversion address_sorting gflags unwind iberty dl)
+    endif()
+  endif()
+endif ( NOT EMBEDDED_SGW AND NOT S6A_OVER_GRPC )

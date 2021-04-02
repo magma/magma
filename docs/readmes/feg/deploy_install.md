@@ -1,9 +1,10 @@
 ---
 id: deploy_install
-title: Installing Federation Gateway
+title: Install FeG
 hide_title: true
 ---
-# Installing Federation Gateway
+
+# Install Federation Gateway
 
 ## Prerequisites
 
@@ -17,8 +18,10 @@ that the Federation Gateway will connect to.
 and `control_proxy` services to point toward the appropriate Orchestrator.
 A sample configuration is provided below. The `bootstrap_address`,
 `bootstrap_port`, `controller_address`, and `controller_port` are the
-parameters that will likely need to be modified.
- 
+parameters that will likely need to be modified (check
+  `/magma/feg/gateway/configs/control_proxy.yml` for the most recent
+  format)
+
 ```
 #
 # Copyright 2020 The Magma Authors.
@@ -61,7 +64,8 @@ allow_http_proxy: True
 
 * `.env` - This file provides any deployment specific environment variables used
 in the `docker-compose.yml` of the Federation Gateway. A sample configuration
-is provided below:
+is provided below (please check `magma/feg/gateway/docker/.env` for the most
+  recent format):
 
 ```
 # Copyright 2020 The Magma Authors.
@@ -84,6 +88,8 @@ IMAGE_VERSION=latest
 ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
 CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml
 SNOWFLAKE_PATH=/etc/snowflake
+CONFIGS_DEFAULT_VOLUME=/etc/magma
+CONFIGS_TEMPLATES_PATH=/etc/magma/templates
 
 CERTS_VOLUME=/var/opt/magma/certs
 CONFIGS_VOLUME=/var/opt/magma/configs
@@ -132,14 +138,13 @@ This will output a hardware ID and a challenge key. This information must be
 registered with the Orchestrator. At this time, NMS support for FeG
 registration is still in-progress.
 
-To register the FeG, go to the Orchestrator's APIdocs in your browser. 
-**Note: It is highly encouraged to use V1 of the apidocs**
-(i.e. https://controller.url.sample:9443/apidocs/v1/).
+To register the FeG, go to the Orchestrator's Swagger UI in your browser.
+(i.e. https://controller.url.sample:9443/swagger/v1/ui/).
 
 Now, create a Federation Network. This is found at `/feg` under the
 **Federation Networks** section. Then register the gateway under the
-**Federation Gateway** section at `/feg/{network_id}/gateways` using the 
-network ID of the Federation Network and the hardware ID and challenge key 
+**Federation Gateway** section at `/feg/{network_id}/gateways` using the
+network ID of the Federation Network and the hardware ID and challenge key
 from the previous step.
 
 To verify that the gateway was correctly registered, run:

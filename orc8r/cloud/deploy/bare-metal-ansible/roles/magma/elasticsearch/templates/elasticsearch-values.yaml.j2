@@ -1,0 +1,29 @@
+clusterName: "es-magma"
+replicas: 1
+minimumMasterNodes: 1
+rbac:
+  create: true
+antiAffinity: "soft"
+service:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: elasticsearch.{{ dns_domain }}
+data:
+  storageClass: {{ storage_class }}
+  heapSize: {{ es_data_heap_size }}
+  resources:
+    limits:
+      cpu: "1"
+      memory: {{ es_data_memory_max }}
+    requests:
+      cpu: "25m"
+      memory: "512Mi"
+master:
+  storageClass: {{ storage_class }}
+  heapSize: {{ es_master_heap_size }}
+  resources:
+    limits:
+      cpu: "1"
+      memory: {{ es_master_memory_max }}
+    requests:
+      cpu: "25m"
+      memory: "512Mi"

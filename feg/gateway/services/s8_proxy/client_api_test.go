@@ -2,6 +2,7 @@ package s8_proxy_test
 
 import (
 	"testing"
+	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/s8_proxy"
@@ -11,36 +12,42 @@ import (
 )
 
 const (
-	IMSI1 = "001010000000055"
-)
-
-var (
-	gtpServerAddr = "127.0.0.1:0"
-	gtpClientAddr = "127.0.0.1:0"
+	IMSI1          = "001010000000055"
+	BEARER         = 5
+	PGW_ADDRS      = "127.0.0.1:0"
+	S8_PROXY_ADDRS = ":0"
+	AGWTeidC       = 10
 )
 
 func TestS8ProxyClient(t *testing.T) {
 	// run both s8 and pgw
-	err := test_init.StartS8AndPGWService(t, gtpClientAddr, gtpServerAddr)
+	mockPgw, err := test_init.StartS8AndPGWService(t, S8_PROXY_ADDRS, PGW_ADDRS)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
 
-	// test create session through client
-	// Create Session Request message
+	// in case pgwAddres has a 0 port, mock_pgw will chose the port. With this variable we make
+	// sure we use the right address (this only happens in testing)
+	actualPgwAddress := mockPgw.LocalAddr().String()
+
+	//------------------------
+	//---- Create Session ----
+	_, offset := time.Now().Zone()
 	csReq := &protos.CreateSessionRequestPgw{
-		Imsi:   IMSI1,
-		Msisdn: "00111",
-		Mei:    "111",
+		PgwAddrs: actualPgwAddress,
+		Imsi:     IMSI1,
+		Msisdn:   "00111",
+		Mei:      "111",
+		CAgwTeid: AGWTeidC,
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "222",
 			Mnc: "333",
 		},
-		RatType: 0,
+		RatType: protos.RATType_EUTRAN,
 		BearerContext: &protos.BearerContext{
-			Id: 5,
-			AgwUserPlaneFteid: &protos.Fteid{
+			Id: BEARER,
+			UserPlaneFteid: &protos.Fteid{
 				Ipv4Address: "127.0.0.10",
 				Ipv6Address: "",
 				Teid:        11,
@@ -68,9 +75,8 @@ func TestS8ProxyClient(t *testing.T) {
 			Ipv6Prefix:  0,
 		},
 
-		Apn:            "internet.com",
-		SelectionMode:  "",
-		ApnRestriction: 0,
+		Apn:           "internet.com",
+		SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
 		Ambr: &protos.Ambr{
 			BrUl: 999,
 			BrDl: 888,
@@ -86,6 +92,10 @@ func TestS8ProxyClient(t *testing.T) {
 			EMeNbi: 8,
 		},
 		IndicationFlag: nil,
+		TimeZone: &protos.TimeZone{
+			DeltaSeconds:       int32(offset),
+			DaylightSavingTime: 0,
+		},
 	}
 
 	csRes, err := s8_proxy.CreateSession(csReq)
@@ -94,14 +104,31 @@ func TestS8ProxyClient(t *testing.T) {
 		return
 	}
 
-
 	assert.NoError(t, err)
 	assert.NotEmpty(t, csRes)
 
 	// check fteid was received properly
-	assert.NotEqual(t, 0, csRes.PgwFteidU.Teid)
-	assert.NotEmpty(t, csRes.PgwFteidU.Ipv4Address)
-	assert.Empty(t, csRes.PgwFteidU.Ipv6Address)
-	
+	assert.Equal(t, mockPgw.LastTEIDu, csRes.BearerContext.UserPlaneFteid.Teid)
+	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
+	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
+
 	t.Logf("Create Session: %#+v", *csRes)
+
+	//------------------------
+	//---- Delete session ----
+	dsReq := &protos.DeleteSessionRequestPgw{
+		PgwAddrs:  actualPgwAddress,
+		Imsi:      IMSI1,
+		BearerId:  BEARER,
+		CAgwTeid:  AGWTeidC,
+		CPgwFteid: csRes.CPgwFteid,
+	}
+	_, err = s8_proxy.DeleteSession(dsReq)
+	assert.NoError(t, err)
+
+	//------------------------
+	//---- Echo Request ----
+	eReq := &protos.EchoRequest{PgwAddrs: actualPgwAddress}
+	_, err = s8_proxy.SendEcho(eReq)
+	assert.NoError(t, err)
 }

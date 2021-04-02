@@ -17,8 +17,6 @@ import (
 	"flag"
 	"os"
 
-	"magma/orc8r/cloud/go/plugin"
-
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +30,6 @@ var gatewayId string
 
 func main() {
 	flag.Parse()
-	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 
 	rootCmd.PersistentFlags().StringVar(&networkId, "network", "", "the network id")
 	rootCmd.PersistentFlags().StringVar(&gatewayId, "gateway", "", "the gateway id")

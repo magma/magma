@@ -25,7 +25,6 @@ extern "C" {
 using magma::lte::oai::CreateSessionMessage;
 using magma::lte::oai::GTPV1uData;
 using magma::lte::oai::PacketFilter;
-using magma::lte::oai::PccRule;
 using magma::lte::oai::PgwCbrProcedure;
 using magma::lte::oai::S11BearerContext;
 using magma::lte::oai::SgwBearerQos;
@@ -50,18 +49,6 @@ void SpgwStateConverter::state_to_proto(
 
   proto->set_last_tunnel_id(spgw_state->tunnel_id);
   proto->set_gtpv1u_teid(spgw_state->gtpv1u_teid);
-
-  if (spgw_state->predefined_pcc_rules != nullptr) {
-    pcc_rule_ht_to_proto(
-        spgw_state->predefined_pcc_rules,
-        proto->mutable_predefined_pcc_rules());
-  }
-
-  if (spgw_state->deactivated_predefined_pcc_rules != nullptr) {
-    pcc_rule_ht_to_proto(
-        spgw_state->deactivated_predefined_pcc_rules,
-        proto->mutable_deactivated_predefined_pcc_rules());
-  }
 }
 
 void SpgwStateConverter::proto_to_state(
@@ -69,15 +56,6 @@ void SpgwStateConverter::proto_to_state(
   proto_to_gtpv1u_data(proto.gtpv1u_data(), &spgw_state->gtpv1u_data);
   spgw_state->tunnel_id   = proto.last_tunnel_id();
   spgw_state->gtpv1u_teid = proto.gtpv1u_teid();
-
-  proto_to_hashtable_ts<PccRule, pcc_rule_t>(
-      proto.deactivated_predefined_pcc_rules(),
-      spgw_state->deactivated_predefined_pcc_rules, proto_to_pcc_rule,
-      LOG_SPGW_APP);
-
-  proto_to_hashtable_ts<PccRule, pcc_rule_t>(
-      proto.predefined_pcc_rules(), spgw_state->predefined_pcc_rules,
-      proto_to_pcc_rule, LOG_SPGW_APP);
 }
 
 void SpgwStateConverter::spgw_bearer_context_to_proto(
@@ -818,72 +796,14 @@ void SpgwStateConverter::proto_to_eps_bearer_qos(
 void SpgwStateConverter::gtpv1u_data_to_proto(
     const gtpv1u_data_t* gtp_data, GTPV1uData* gtp_proto) {
   gtp_proto->Clear();
-
-  if (gtp_data->ip_addr != nullptr) {
-    gtp_proto->set_ip_address(gtp_data->ip_addr);
-  }
-
-  gtp_proto->set_seq_num(gtp_data->seq_num);
-  gtp_proto->set_restart_counter(gtp_data->restart_counter);
   gtp_proto->set_fd0(gtp_data->fd0);
   gtp_proto->set_fd1u(gtp_data->fd1u);
 }
 
 void SpgwStateConverter::proto_to_gtpv1u_data(
     const oai::GTPV1uData& gtp_proto, gtpv1u_data_t* gtp_data) {
-  strncpy(
-      gtp_data->ip_addr, gtp_proto.ip_address().c_str(),
-      gtp_proto.ip_address().length());
-  gtp_data->restart_counter = gtp_proto.restart_counter();
-  gtp_data->fd0             = gtp_proto.fd0();
-  gtp_data->fd1u            = gtp_proto.fd1u();
-}
-
-void SpgwStateConverter::pcc_rule_ht_to_proto(
-    hash_table_ts_t* const state_map,
-    google::protobuf::Map<unsigned int, PccRule>* proto_map) {
-  hashtable_ts_to_proto<pcc_rule_t, PccRule>(
-      state_map, proto_map, pcc_rule_to_proto, LOG_SPGW_APP);
-}
-
-void SpgwStateConverter::pcc_rule_to_proto(
-    const pcc_rule_t* pcc_rule_state, PccRule* proto) {
-  proto->Clear();
-
-  BSTRING_TO_STRING(pcc_rule_state->name, proto->mutable_name());
-  proto->set_is_activated(pcc_rule_state->is_activated);
-  proto->set_sdf_id((unsigned int) pcc_rule_state->sdf_id);
-  proto->set_precedence(pcc_rule_state->precedence);
-
-  eps_bearer_qos_to_proto(
-      &pcc_rule_state->bearer_qos, proto->mutable_bearer_qos());
-
-  proto->mutable_sdf_template()->set_number_of_packet_filters(
-      pcc_rule_state->sdf_template.number_of_packet_filters);
-  for (uint32_t i = 0;
-       i < pcc_rule_state->sdf_template.number_of_packet_filters; i++) {
-    packet_filter_to_proto(
-        &pcc_rule_state->sdf_template.sdf_filter[i],
-        proto->mutable_sdf_template()->add_sdf_filter());
-  }
-}
-
-void SpgwStateConverter::proto_to_pcc_rule(
-    const oai::PccRule& proto, pcc_rule_t* pcc_rule_state) {
-  pcc_rule_state->name         = bfromcstr(proto.name().c_str());
-  pcc_rule_state->sdf_id       = (sdf_id_t) proto.sdf_id();
-  pcc_rule_state->is_activated = proto.is_activated();
-  pcc_rule_state->precedence   = proto.precedence();
-
-  proto_to_eps_bearer_qos(proto.bearer_qos(), &pcc_rule_state->bearer_qos);
-
-  pcc_rule_state->sdf_template.number_of_packet_filters =
-      proto.sdf_template().number_of_packet_filters();
-  for (uint32_t i = 0; i < proto.sdf_template().sdf_filter_size(); i++) {
-    proto_to_packet_filter(
-        proto.sdf_template().sdf_filter(i),
-        &pcc_rule_state->sdf_template.sdf_filter[i]);
-  }
+  gtp_data->fd0  = gtp_proto.fd0();
+  gtp_data->fd1u = gtp_proto.fd1u();
 }
 
 void SpgwStateConverter::sgw_pending_procedures_to_proto(
@@ -961,7 +881,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
 void SpgwStateConverter::ue_to_proto(
     const spgw_ue_context_t* ue_state, oai::SpgwUeContext* ue_proto) {
   if (ue_state && (!(LIST_EMPTY(&ue_state->sgw_s11_teid_list)))) {
-    sgw_s11_teid_t* s11_teid_p = NULL;
+    sgw_s11_teid_t* s11_teid_p = nullptr;
     LIST_FOREACH(s11_teid_p, &ue_state->sgw_s11_teid_list, entries) {
       if (s11_teid_p) {
         auto spgw_ctxt = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
@@ -977,8 +897,8 @@ void SpgwStateConverter::ue_to_proto(
 void SpgwStateConverter::proto_to_ue(
     const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  spgw_state_t* spgw_state     = NULL;
-  hash_table_ts_t* state_ue_ht = NULL;
+  spgw_state_t* spgw_state     = nullptr;
+  hash_table_ts_t* state_ue_ht = nullptr;
   if (ue_proto.s11_bearer_context_size()) {
     spgw_state = get_spgw_state(false);
     if (!spgw_state) {
