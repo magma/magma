@@ -44,8 +44,8 @@ The following table lists the configurable certs parameters.
 | `controller.duration` | Certificate Duration | `87600h` |
 | `controller.renewBefore` | Renew Certificate before expiring | `24h` |
 | `controller.customIssuer` | Custom Issuer | `""` |
-| `preInstallChecks.enabled` | Pre Install Checks | `true` |
 | `fluentd.duration` | Certificate Duration | `87600h` |
 | `fluentd.renewBefore` | Renew Certificate before expiring | `24h` |
 | `root.duration` | Certificate Duration | `87600h` |
 | `root.renewBefore` | Renew Certificate before expiring | `24h` |
+| `preInstallChecks.enabled` | Pre Install Checks | `true` |
