@@ -51,6 +51,7 @@ Description Defines functions executed at the ESM Service Access
 #include "3gpp_24.008.h"
 #include "EpsQualityOfService.h"
 #include "bstrlib.h"
+#include "mme_app_ue_context.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -94,8 +95,9 @@ int esm_send_pdn_disconnect_reject(
  */
 int esm_send_activate_default_eps_bearer_context_request(
     pti_t pti, ebi_t ebi, activate_default_eps_bearer_context_request_msg* msg,
-    bstring apn, const protocol_configuration_options_t* pco, int pdn_type,
-    bstring pdn_addr, const EpsQualityOfService* qos, int esm_cause);
+    pdn_context_t* pdn_context_p, const protocol_configuration_options_t* pco,
+    int pdn_type, bstring pdn_addr, const EpsQualityOfService* qos,
+    int esm_cause);
 
 int esm_send_activate_dedicated_eps_bearer_context_request(
     pti_t pti, ebi_t ebi,
