@@ -112,21 +112,6 @@ variable "orc8r_db_user" {
   type        = string
 }
 
-variable "nms_db_name" {
-  description = "DB name for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_host" {
-  description = "DB hostname for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_user" {
-  description = "DB username for NMS database connection."
-  type        = string
-}
-
 ##############################################################################
 # Helm configuration
 ##############################################################################
@@ -269,11 +254,6 @@ variable "secretsmanager_orc8r_name" {
 
 variable "orc8r_db_pass" {
   description = "Orchestrator DB password."
-  type        = string
-}
-
-variable "nms_db_pass" {
-  description = "NMS DB password."
   type        = string
 }
 

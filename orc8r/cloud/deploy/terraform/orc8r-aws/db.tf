@@ -31,24 +31,3 @@ resource "aws_db_instance" "default" {
   # this won't actually create a final snapshot on destroy
   final_snapshot_identifier = "foo"
 }
-
-resource "aws_db_instance" "nms" {
-  identifier        = var.nms_db_identifier
-  allocated_storage = var.nms_db_storage_gb
-  engine            = "mysql"
-  engine_version    = var.nms_db_engine_version
-  instance_class    = var.nms_db_instance_class
-
-  name     = var.nms_db_name
-  username = var.nms_db_username
-  password = var.nms_db_password
-
-  vpc_security_group_ids = [aws_security_group.default.id]
-
-  db_subnet_group_name = module.vpc.database_subnet_group
-
-  skip_final_snapshot = true
-  # we only need this as a placeholder value for `terraform destroy` to work,
-  # this won't actually create a final snapshot on destroy
-  final_snapshot_identifier = "nms-foo"
-}
