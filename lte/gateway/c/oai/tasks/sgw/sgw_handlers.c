@@ -175,7 +175,7 @@ int sgw_handle_s11_create_session_request(
   }
   s_plus_p_gw_eps_bearer_ctxt_info_p =
       sgw_cm_create_bearer_context_information_in_collection(
-          state, new_endpoint_p->local_teid, imsi64);
+          new_endpoint_p->local_teid, imsi64);
   if (s_plus_p_gw_eps_bearer_ctxt_info_p) {
     /*
      * We try to create endpoint for S11 interface. A NULL endpoint means that
@@ -1166,9 +1166,7 @@ int sgw_handle_delete_session_request(
       /*
        * Remove eps bearer context, S11 bearer context and s11 tunnel
        */
-      sgw_cm_remove_eps_bearer_entry(
-          &ctx_p->sgw_eps_bearer_context_information.pdn_connection,
-          delete_session_req_pP->lbi);
+      sgw_cm_remove_eps_bearer_entry(delete_session_req_pP->lbi);
 
       sgw_cm_remove_bearer_context_information(
           spgw_state, delete_session_req_pP->teid, imsi64);
@@ -1495,10 +1493,7 @@ void handle_s5_create_session_response(
       "Deleted default bearer context with SGW C-plane TEID = %u "
       "as create session response failure is received\n",
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_teid_S11);
-  sgw_cm_remove_eps_bearer_entry(
-      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      sgi_create_endpoint_resp.eps_bearer_id);
+  sgw_cm_remove_eps_bearer_entry(sgi_create_endpoint_resp.eps_bearer_id);
   sgw_cm_remove_bearer_context_information(
       state, session_resp.context_teid,
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64);
@@ -1831,8 +1826,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
 
     sgw_handle_sgi_endpoint_deleted(&sgi_delete_end_point_request, imsi64);
 
-    sgw_cm_remove_eps_bearer_entry(
-        &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
+    sgw_cm_remove_eps_bearer_entry(ebi);
 
     sgw_cm_remove_bearer_context_information(
         spgw_state, s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4, imsi64);

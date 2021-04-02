@@ -154,7 +154,7 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(
 //-----------------------------------------------------------------------------
 s_plus_p_gw_eps_bearer_context_information_t*
 sgw_cm_create_bearer_context_information_in_collection(
-    spgw_state_t* spgw_state, teid_t teid, imsi64_t imsi64) {
+    teid_t teid, imsi64_t imsi64) {
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_context_information =
       NULL;
   new_bearer_context_information =
@@ -164,16 +164,16 @@ sgw_cm_create_bearer_context_information_in_collection(
     /*
      * Malloc failed, may be ENOMEM error
      */
-    OAILOG_ERROR(
-        LOG_SPGW_APP,
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
         "Failed to create new bearer context information object for S11 "
         "remote_teid " TEID_FMT "\n",
         teid);
     return NULL;
   }
 
-  OAILOG_DEBUG(
-      LOG_SPGW_APP,
+  OAILOG_DEBUG_UE(
+      LOG_SPGW_APP, imsi64,
       "sgw_cm_create_bearer_context_information_in_collection " TEID_FMT "\n",
       teid);
 
@@ -185,8 +185,8 @@ sgw_cm_create_bearer_context_information_in_collection(
 
   if (new_bearer_context_information->pgw_eps_bearer_context_information.apns ==
       NULL) {
-    OAILOG_ERROR(
-        LOG_SPGW_APP,
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
         "Failed to create APN collection object entry for EPS bearer S11 "
         "teid " TEID_FMT "\n",
         teid);
@@ -202,8 +202,8 @@ sgw_cm_create_bearer_context_information_in_collection(
   hashtable_ts_insert(
       state_imsi_ht, (const hash_key_t) teid, new_bearer_context_information);
 
-  OAILOG_DEBUG(
-      LOG_SPGW_APP,
+  OAILOG_DEBUG_UE(
+      LOG_SPGW_APP, imsi64,
       "Added new s_plus_p_gw_eps_bearer_context_information_t in "
       "s11_bearer_context_information_hashtable key TEID " TEID_FMT "\n",
       teid);
@@ -336,8 +336,7 @@ sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
 }
 
 //-----------------------------------------------------------------------------
-int sgw_cm_remove_eps_bearer_entry(
-    sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi)
+int sgw_cm_remove_eps_bearer_entry(ebi_t ebi)
 //-----------------------------------------------------------------------------
 {
   if ((ebi < EPS_BEARER_IDENTITY_FIRST) || (ebi > EPS_BEARER_IDENTITY_LAST)) {

@@ -47,7 +47,7 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(
     teid_t remote_teid, teid_t local_teid);
 s_plus_p_gw_eps_bearer_context_information_t*
 sgw_cm_create_bearer_context_information_in_collection(
-    spgw_state_t* spgw_state, teid_t teid, imsi64_t imsi64);
+    teid_t teid, imsi64_t imsi64);
 int sgw_cm_remove_bearer_context_information(
     spgw_state_t* state, teid_t teid, imsi64_t imsi64);
 sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
@@ -57,8 +57,7 @@ sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(
     sgw_eps_bearer_ctxt_t* const sgw_eps_bearer_ctxt);
 sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
     sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi);
-int sgw_cm_remove_eps_bearer_entry(
-    sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t eps_bearer_idP);
+int sgw_cm_remove_eps_bearer_entry(ebi_t eps_bearer_idP);
 // Returns SPGW state pointer for given UE indexed by IMSI
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid);
