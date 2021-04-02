@@ -108,6 +108,7 @@ int encode_apn_aggregate_maximum_bit_rate(
   return encoded;
 }
 
+// Use 3GPP TS 24.008 figure 10.5.136A, table 10.5.154A
 void bit_rate_value_to_eps_qos(
     ApnAggregateMaximumBitRate* apn_ambr, uint64_t ambr_dl, uint64_t ambr_ul) {
   uint64_t ambr_dl_kbps = ambr_dl / 1000;  // ambr_dl is expected in bps
@@ -116,10 +117,10 @@ void bit_rate_value_to_eps_qos(
     apn_ambr->apnambrfordownlink = 0xff;
   } else if ((ambr_dl_kbps > 0) && (ambr_dl_kbps <= 63)) {
     apn_ambr->apnambrfordownlink = ambr_dl_kbps;
-  } else if ((ambr_dl_kbps > 63) && (ambr_dl_kbps <= 568)) {
+  } else if ((ambr_dl_kbps > 63) && (ambr_dl_kbps <= 575)) {
     apn_ambr->apnambrfordownlink = ((ambr_dl_kbps - 64) / 8) + 64;
   } else if ((ambr_dl_kbps > 575) && (ambr_dl_kbps <= 8640)) {
-    apn_ambr->apnambrfordownlink = ((ambr_dl_kbps - 576) / 64) + 576;
+    apn_ambr->apnambrfordownlink = ((ambr_dl_kbps - 576) / 64) + 128;
   } else if (ambr_dl_kbps > 8640) {
     apn_ambr->apnambrfordownlink = 0xfe;
     apn_ambr->extensions =
@@ -139,10 +140,10 @@ void bit_rate_value_to_eps_qos(
     apn_ambr->apnambrforuplink = 0xff;
   } else if ((ambr_ul_kbps > 0) && (ambr_ul_kbps <= 63)) {
     apn_ambr->apnambrforuplink = ambr_ul_kbps;
-  } else if ((ambr_ul_kbps > 63) && (ambr_ul_kbps <= 568)) {
+  } else if ((ambr_ul_kbps > 63) && (ambr_ul_kbps <= 575)) {
     apn_ambr->apnambrforuplink = ((ambr_ul_kbps - 64) / 8) + 64;
   } else if ((ambr_ul_kbps > 575) && (ambr_ul_kbps <= 8640)) {
-    apn_ambr->apnambrforuplink = ((ambr_ul_kbps - 576) / 64) + 576;
+    apn_ambr->apnambrforuplink = ((ambr_ul_kbps - 576) / 64) + 128;
   } else if (ambr_ul_kbps > 8640) {
     apn_ambr->apnambrforuplink = 0xfe;
     apn_ambr->extensions =
