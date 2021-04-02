@@ -14,6 +14,9 @@
       "basics/quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "contributing/contribute_codeowners": {
+        "title": "Codeowners Workflow"
+      },
       "contributing/contribute_conventions": {
         "title": "Code Conventions"
       },

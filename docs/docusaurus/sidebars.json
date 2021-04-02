@@ -181,7 +181,8 @@
     "Contributing": [
       "contributing/contribute_onboarding",
       "contributing/contribute_workflow",
-      "contributing/contribute_conventions"
+      "contributing/contribute_conventions",
+      "contributing/contribute_codeowners"
     ],
     "Proposals": [
       "proposals/p001_vpn_config_from_api",

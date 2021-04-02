@@ -9,8 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+cmake_minimum_required(VERSION 3.7.2)
 
-add_compile_options(-std=c++11)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 file(GLOB PROTO_SRCS "orc8r/protos/*.pb.*")
 file(GLOB MCONFIG_SRCS "orc8r/protos/mconfig/*.pb.*")
