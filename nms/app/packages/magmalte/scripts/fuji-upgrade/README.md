@@ -10,4 +10,4 @@ Run on a machine with access to the kubernetes cluster you are using to run Magm
 
 *Paste in shell prompt:*
 
-`wget https://gist.githubusercontent.com/andreilee/7aa7d533e2e8f425222b1e6a016a6f5a/raw/286abea80fbec8d03df9949d74f6f2dd298d8222/pre-upgrade-migration.sh && chmod +x pre-upgrade-migration.sh && ./pre-upgrade-migration.sh`
+`wget https://raw.githubusercontent.com/magma/magma/master/nms/app/packages/magmalte/scripts/fuji-upgrade/pre-upgrade-migration.sh && chmod +x pre-upgrade-migration.sh && ./pre-upgrade-migration.sh`
