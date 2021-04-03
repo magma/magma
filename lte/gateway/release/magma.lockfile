@@ -210,12 +210,6 @@
       "sysdep": "python3-jsonpickle",
       "version": "0.9.3"
     },
-    "jsonpointer": {
-      "root": true,
-      "source": "pypi",
-      "sysdep": "python3-jsonpointer",
-      "version": "2.0"
-    },
     "jsonref": {
       "root": false,
       "source": "pypi",
@@ -299,12 +293,6 @@
       "source": "pypi",
       "sysdep": "python3-priority",
       "version": "1.3.0"
-    },
-    "prometheus-client": {
-      "root": true,
-      "source": "pypi",
-      "sysdep": "python3-prometheus-client",
-      "version": "0.3.1"
     },
     "protobuf": {
       "root": true,
@@ -486,12 +474,6 @@
       "sysdep": "python3-swagger-spec-validator",
       "version": "2.7.3"
     },
-    "systemd-python": {
-      "root": true,
-      "source": "pypi",
-      "sysdep": "python3-systemd-python",
-      "version": "234"
-    },
     "termcolor": {
       "root": false,
       "source": "apt",
@@ -576,7 +558,7 @@
         },
         "aioh2": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-aioh2",
           "version": "0.2.2"
         },
@@ -584,11 +566,11 @@
           "root": true,
           "source": "pypi",
           "sysdep": "python3-aiohttp",
-          "version": "3.7.3"
+          "version": "3.6.2"
         },
         "astroid": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-astroid",
           "version": "2.4.2"
         },
@@ -606,7 +588,7 @@
         },
         "bravado-core": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-bravado-core",
           "version": "5.16.1"
         },
@@ -618,7 +600,7 @@
         },
         "click": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-click",
           "version": "7.1.2"
         },
@@ -628,11 +610,29 @@
           "sysdep": "python3-cryptography",
           "version": "2.8"
         },
+        "cython": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-cython",
+          "version": "0.29.1"
+        },
         "docker": {
           "root": true,
           "source": "apt",
           "sysdep": "python3-docker",
           "version": "4.0.2"
+        },
+        "envoy": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-envoy",
+          "version": "0.0.3"
+        },
+        "eventlet": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-eventlet",
+          "version": "0.26.1"
         },
         "fire": {
           "root": true,
@@ -652,11 +652,29 @@
           "sysdep": "python3-freezegun",
           "version": "0.3.15"
         },
+        "glob2": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-glob2",
+          "version": "0.7"
+        },
+        "greenlet": {
+          "root": false,
+          "source": "apt",
+          "sysdep": "python3-greenlet",
+          "version": "0.4.16"
+        },
         "grpcio": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-grpcio",
           "version": "1.34.0"
+        },
+        "h2": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-h2",
+          "version": "3.2.0"
         },
         "hpack": {
           "root": true,
@@ -684,7 +702,7 @@
         },
         "isort": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-isort",
           "version": "5.7.0"
         },
@@ -702,9 +720,15 @@
         },
         "js-regex": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-js-regex",
           "version": "1.0.1"
+        },
+        "json-pointer": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-json-pointer",
+          "version": "0.1.2"
         },
         "jsonpickle": {
           "root": true,
@@ -712,15 +736,9 @@
           "sysdep": "python3-jsonpickle",
           "version": "1.2"
         },
-        "jsonpointer": {
-          "root": true,
-          "source": "pypi",
-          "sysdep": "python3-jsonpointer",
-          "version": "2.0"
-        },
         "jsonref": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-jsonref",
           "version": "0.2"
         },
@@ -736,23 +754,41 @@
           "sysdep": "python3-lazy-object-proxy",
           "version": "1.4.3"
         },
+        "lxml": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-lxml",
+          "version": "4.6.2"
+        },
         "mccabe": {
           "root": false,
           "source": "apt",
           "sysdep": "python3-mccabe",
           "version": "0.6.1"
         },
+        "msgpack": {
+          "root": false,
+          "source": "apt",
+          "sysdep": "python3-msgpack",
+          "version": "0.6.2"
+        },
         "multidict": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-multidict",
-          "version": "5.1.0"
+          "version": "4.7.6"
         },
         "netifaces": {
           "root": true,
           "source": "pypi",
           "sysdep": "python3-netifaces",
           "version": "0.10.4"
+        },
+        "ovs": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-ovs",
+          "version": "2.13.3"
         },
         "priority": {
           "root": false,
@@ -774,7 +810,7 @@
         },
         "psutil": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-psutil",
           "version": "5.6.6"
         },
@@ -784,11 +820,23 @@
           "sysdep": "python3-pycares",
           "version": "3.1.1"
         },
+        "pycryptodome": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-pycryptodome",
+          "version": "3.9.9"
+        },
         "pylint": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-pylint",
           "version": "2.6.0"
+        },
+        "pymemoize": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-pymemoize",
+          "version": "1.0.2"
         },
         "pyrsistent": {
           "root": false,
@@ -796,9 +844,33 @@
           "sysdep": "python3-pyrsistent",
           "version": "0.15.5"
         },
-        "pytz": {
+        "pystemd": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
+          "sysdep": "python3-pystemd",
+          "version": "0.8.0"
+        },
+        "python-dateutil": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-python-dateutil",
+          "version": "2.8.1"
+        },
+        "python-redis-lock": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-python-redis-lock",
+          "version": "3.7.0"
+        },
+        "python3-systemd": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-systemd",
+          "version": "234"
+        },
+        "pytz": {
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-pytz",
           "version": "2020.1"
         },
@@ -816,13 +888,13 @@
         },
         "redis-collections": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-redis-collections",
           "version": "0.8.1"
         },
         "rfc3987": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-rfc3987",
           "version": "1.3.8"
         },
@@ -832,9 +904,15 @@
           "sysdep": "python3-ryu",
           "version": "4.30"
         },
+        "scapy": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-scapy",
+          "version": "2.4.4"
+        },
         "sentry-sdk": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-sentry-sdk",
           "version": "1.0.0"
         },
@@ -852,37 +930,43 @@
         },
         "snowflake": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-snowflake",
           "version": "0.0.3"
         },
-        "strict-rfc3339": {
+        "sortedcontainers": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-sortedcontainers",
+          "version": "2.3.0"
+        },
+        "spyne": {
           "root": true,
           "source": "pypi",
+          "sysdep": "python3-spyne",
+          "version": "2.13.16"
+        },
+        "strict-rfc3339": {
+          "root": true,
+          "source": "apt",
           "sysdep": "python3-strict-rfc3339",
           "version": "0.7"
         },
         "swagger-spec-validator": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-swagger-spec-validator",
           "version": "2.7.3"
         },
-        "systemd-python": {
-          "root": true,
-          "source": "pypi",
-          "sysdep": "python3-systemd-python",
-          "version": "234"
-        },
         "toml": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-toml",
           "version": "0.10.2"
         },
         "typing-extensions": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-typing-extensions",
           "version": "3.7.4.3"
         },
@@ -891,6 +975,12 @@
           "source": "pypi",
           "sysdep": "python3-webcolors",
           "version": "1.11.1"
+        },
+        "websocket-client": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-websocket-client",
+          "version": "0.56.0"
         },
         "werkzeug": {
           "root": false,
@@ -904,9 +994,15 @@
           "sysdep": "python3-wrapt",
           "version": "1.11.2"
         },
+        "wsgiserver": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-wsgiserver",
+          "version": "1.3"
+        },
         "yarl": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-yarl",
           "version": "1.6.3"
         }
@@ -919,7 +1015,7 @@
           "version": "0.2.2"
         },
         "aiohttp": {
-          "version": "3.7.3"
+          "version": "3.6.2"
         },
         "bravado-core": {
           "version": "5.16.1"
@@ -948,17 +1044,20 @@
         "jinja2": {
           "version": "2.10.1"
         },
+        "json-pointer": {
+          "version": "0.1.2"
+        },
         "jsonpickle": {
           "version": "1.2"
-        },
-        "jsonpointer": {
-          "version": "2.0"
         },
         "jsonschema": {
           "version": "3.1.0"
         },
         "netifaces": {
           "version": "0.10.4"
+        },
+        "ovs": {
+          "version": "2.13.3"
         },
         "prometheus-client": {
           "version": "0.3.1"
@@ -1005,8 +1104,14 @@
         "snowflake": {
           "version": "0.0.3"
         },
+        "spyne": {
+          "version": "2.13.16"
+        },
         "strict-rfc3339": {
           "version": "0.7"
+        },
+        "systemd": {
+          "version": "234"
         },
         "systemd-python": {
           "version": "234"
@@ -1090,9 +1195,6 @@
     "jsonpickle": {
       "version": "0.9.3"
     },
-    "jsonpointer": {
-      "version": "2.0"
-    },
     "jsonschema": {
       "version": "3.1.0"
     },
@@ -1101,9 +1203,6 @@
     },
     "netifaces": {
       "version": "0.10.9"
-    },
-    "prometheus-client": {
-      "version": "0.3.1"
     },
     "protobuf": {
       "version": "3.14.0"
@@ -1176,9 +1275,6 @@
     },
     "strict-rfc3339": {
       "version": "0.7"
-    },
-    "systemd-python": {
-      "version": "234"
     },
     "urllib3": {
       "version": "1.25.3"

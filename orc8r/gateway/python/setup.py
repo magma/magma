@@ -81,7 +81,6 @@ setup(
         'snowflake>=0.0.3',
         'psutil==5.6.6',
         'cryptography>=1.9',
-        'systemd-python>=234',
         'itsdangerous>=0.24',
         'click>=5.1',
         'pycares>=2.3.0',
@@ -93,7 +92,6 @@ setup(
         'jsonschema==3.1.0',
         "strict-rfc3339>=0.7",
         "rfc3987>=1.3.0",
-        "jsonpointer>=1.13",
         "webcolors>=1.11.1",
     ],
     extras_require={

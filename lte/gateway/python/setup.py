@@ -92,7 +92,7 @@ setup(
         # lxml required by spyne.
         'lxml==4.6.2',
         'ryu>=4.30',
-        'spyne>=2.12.16',
+        'spyne>=2.13.16',
         'scapy==2.4.4',
         'flask>=1.0.2',
         'sentry_sdk>=1.0.0',
@@ -115,7 +115,11 @@ setup(
         'hpack>=3.0',
         'freezegun>=0.3.15',
         'pycryptodome>=3.9.9',
-        'pyroute2==0.5.14'
+        'pyroute2==0.5.14',
+        'aiohttp==3.6.2',
+        'json-pointer>=0.1.2',
+        'ovs>=2.13',
+        'prometheus-client==0.3.1'
     ],
     extras_require={
         'dev': [

@@ -59,7 +59,7 @@ from functools import lru_cache
 from typing import List, Union, Tuple, Optional, Dict, Any
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('/tmp/q1.log')
 
 PYPI_API_BASE = "https://pypi.python.org/pypi/%s/json"
 PIP_BLACKLIST = {'pip', 'wheel', 'setuptools', 'virtualenv'}
@@ -73,6 +73,7 @@ PYPI_TO_DEB = {
     'msgpack-python': 'msgpack',
     'scapy-python3': 'scapy',
     'python-apt': 'apt',
+    'python3-systemd-python': 'python3-systemd'
 }
 
 # Some packages exist in the standard Debian repos with an epoch number
@@ -82,6 +83,7 @@ DEB_EPOCH = {
     'python3-oslo.config': 1,
 }
 
+force_pip_install = []
 
 def os_release():
     # copied from third_party/build/build.py
@@ -173,7 +175,7 @@ def gen_sys_package_name(py_pkgname: str, use_py2: bool=False) -> str:
     return sysdep_name.lower()  # deb likes lowercase
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=1280)
 def get_package(pkgname: str,
                 version: Optional[str]=None,
                 use_latest_if_needed: bool=False) -> str:
@@ -358,7 +360,7 @@ def _parse_requires_txt(requires_path: str,
     return dependencies
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=1280)
 def _get_pypi_metadata(pkgname: str) -> Any:
     """
     Get package info from pypi.
@@ -389,7 +391,7 @@ def get_latest_pkg_version(pkgname: str) -> Any:
     return metadata['info']['version']
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=1280)
 def get_latest_apt_pkg_version(pkgname: str, py2: bool=False) -> Optional[str]:
     """
     Check what's available in our apt repo and use that if available.
@@ -677,7 +679,7 @@ def _existing_build(version: Optional[str], candidates: List[str]) -> bool:
     return already_built
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=1280)
 def get_pkg_deps(pkgname: str,
                  version: Optional[str]=None,
                  use_latest_if_needed: bool=False,
@@ -808,7 +810,7 @@ def gen_pip_distributions(
     new_requirements = []  # type: List[pkg_resources.Requirement]
 
     for req in root_requirements:
-        log.info(req)
+        log.info("pbs: check dep: {}".format(req))
         pkg = req.key
         if pkg in selected_versions:
             existing = selected_versions[pkg]
@@ -990,6 +992,7 @@ def main(args):
         return -1
 
     input_root_requirements = expand_deps(args.deps)
+    log.error("pbs: input_root_requirements {}".format(input_root_requirements))
     root_requirements = []
     if args.dump_root_deps:
         print("'" + "' '".join(sorted([str(r) for r in input_root_requirements])) + "'")
@@ -1000,10 +1003,16 @@ def main(args):
     repo_installable = []  # type: List[pkg_resources.Requirement]
     for req in input_root_requirements:
         repo_version = get_latest_apt_pkg_version(req.key, args.use_py2)
+        log.error("pbs: {} repo_version {}".format(req, repo_version))
         if repo_version and repo_version in req:
             repo_installable.append(req)
         else:
             root_requirements.append(req)
+
+    
+    #log.error("pbs:  {}".format())
+    log.error("pbs: repo_installable {}".format(repo_installable))
+    log.error("pbs: root_requirements {}".format(root_requirements))
 
     if args.lockfile:
         try:
@@ -1026,6 +1035,7 @@ def main(args):
     log.debug(deps)
 
     repo_pkgs = [gen_sys_package_name(p.key, args.use_py2) for p in repo_installable]
+    log.error("pbs: repo_pkgs  {}".format(' '.join(repo_pkgs)))
     if args.install_from_repo:
         try:
             subprocess.call(shlex.split('sudo apt install -y '
@@ -1040,7 +1050,8 @@ def main(args):
                                                   pypi_only=args.force_pypi,
                                                   py2=args.use_py2,
                                                   venv=venv)
-
+        log.error("pbs: pip_distributions {}".format(pip_distributions));
+        log.error("pbs: input_root_requirements {}".format(input_root_requirements));
         required_distributions = {}
         to_traverse = [pip_distributions[k] for k in [req.key for req in input_root_requirements]
                        if k not in repo_installable]
@@ -1118,5 +1129,5 @@ if __name__ == "__main__":
             print(gen_fpm_dep_string_from_lockfile(f.read()))
             exit(0)
 
-    log.setLevel(getattr(logging, args.log_level.upper()))
+    log.setLevel(logging.DEBUG)
     sys.exit(main(args))
