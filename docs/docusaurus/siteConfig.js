@@ -39,7 +39,7 @@ const siteConfig = {
   // Path to images for header/footer
   headerIcon: 'img/magma-logo.svg',
   footerIcon: 'img/magma_icon.png',
-  favicon: 'img/icon.png',
+  favicon: 'img/icon.png', // Issue 5808 fixed
 
   // Colors for website
   colors: {
