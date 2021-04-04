@@ -52,6 +52,8 @@ type ServiceRegistry struct {
 	cloudConnections map[string]cloudConnection
 
 	serviceRegistryMode string
+
+	additionalOpts []grpc.DialOption
 }
 
 type cloudConnection struct {
@@ -74,6 +76,12 @@ func New() *ServiceRegistry {
 		cloudConnections:    map[string]cloudConnection{},
 		serviceRegistryMode: registryMode,
 	}
+}
+
+func NewWithDialOpts(opts ...grpc.DialOption) *ServiceRegistry {
+	r := New()
+	r.additionalOpts = opts
+	return r
 }
 
 func NewWithMode(mode string) *ServiceRegistry {
@@ -434,6 +442,7 @@ func (r *ServiceRegistry) getGRPCDialOptions() []grpc.DialOption {
 		timeoutInterceptor = CloudClientTimeoutInterceptor
 	}
 	opts = append(opts, grpc.WithUnaryInterceptor(timeoutInterceptor))
+	opts = append(opts, r.additionalOpts...)
 	return opts
 }
 

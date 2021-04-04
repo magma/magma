@@ -1,10 +1,10 @@
 ---
-id: setup
-title: Setup
+id: deploy_config
+title: Configure NMS
 hide_title: true
 ---
 
-# Setup
+# Configure NMS
 
 The NMS supports multitenancy starting with v1.1.0. Tenants in the NMS are
 called "organizations". Each organization owns a subset of the networks

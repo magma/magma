@@ -235,11 +235,9 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
 				!net_eq(sock_net(sk), dev_net(gtp->dev))))
 		return -1;
 
-	netdev_dbg(gtp->dev, "forwarding packet from GGSN to uplink\n");
-
 	if (tun_dst) {
 		skb_dst_set(skb, (struct dst_entry *)tun_dst);
-		netdev_dbg(gtp->dev, "attaching metadata_dst to skb\n");
+		netdev_dbg(gtp->dev, "rcv: attaching metadata_dst to skb\n");
 	}
 
 	/* Now that the UDP and the GTP header have been removed, set up the
@@ -248,19 +246,19 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
 	 */
 	skb_reset_network_header(skb);
         if (check_header(skb, sizeof(struct iphdr))) {
-                netdev_dbg(gtp->dev, "inner pkt: could not parse");
+                netdev_dbg(gtp->dev, "rcv: inner pkt: could not parse");
                 goto rx_err;
         }
 
         iph = ip_hdr(skb);
         if (iph->version == 4) {
-                netdev_dbg(gtp->dev, "inner pkt: ipv4");
+                netdev_dbg(gtp->dev, "rcv: inner pkt: ipv4, len %d", skb->len);
                 skb->protocol = htons(ETH_P_IP);
         } else if (iph->version == 6) {
-                netdev_dbg(gtp->dev, "inner pkt: ipv6");
+                netdev_dbg(gtp->dev, "rcv: inner pkt: ipv6, len %d", skb->len);
                 skb->protocol = htons(ETH_P_IPV6);
         } else {
-                netdev_dbg(gtp->dev, "inner pkt error: Unknown type");
+                netdev_dbg(gtp->dev, "rcv: inner pkt error: Unknown type");
                 goto rx_err;
         }
 	skb->dev = gtp->dev;
@@ -426,8 +424,6 @@ static int gtp_encap_recv(struct sock *sk, struct sk_buff *skb)
 	gtp = rcu_dereference_sk_user_data(sk);
 	if (!gtp)
 		return 1;
-
-	netdev_dbg(gtp->dev, "encap_recv sk=%p\n", sk);
 
 	switch (udp_sk(sk)->encap_type) {
 	case UDP_ENCAP_GTP0:
@@ -616,8 +612,8 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		if (info->key.tun_flags & TUNNEL_OAM)
 		    set_qfi = 5;
 
-		netdev_dbg(dev, "flow-based GTP1U encap: tunnel id %d\n",
-			   be32_to_cpu(tun_id));
+		netdev_dbg(dev, "xmit: flow-based GTP1U encap: tunnel id %x len %d\n",
+			   be32_to_cpu(tun_id), skb->len);
 	} else {
 	        struct iphdr *iph;
 
@@ -635,7 +631,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 			pctx = ipv4_pdp_find(gtp, iph->daddr);
 
 		if (!pctx) {
-			netdev_dbg(dev, "no PDP ctx found for %pI4, skip\n",
+			netdev_dbg(dev, "xmit: no PDP ctx found for %pI4, skip\n",
 				   &iph->daddr);
 			return -ENOENT;
 		}
@@ -648,19 +644,19 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		sk = pctx->sk;
                 tos = iph->tos;
 	        df = iph->frag_off;
-		netdev_dbg(dev, "gtp -> IP src: %pI4 dst: %pI4\n",
+		netdev_dbg(dev, "xmit: gtp -> IP src: %pI4 dst: %pI4\n",
 			   &iph->saddr, &iph->daddr);
 	}
 
 	rt = ip4_route_output_gtp(&fl4, sk, daddr, saddr);
 	if (IS_ERR(rt)) {
-		netdev_dbg(dev, "no route to SSGN %pI4\n", &daddr);
+		netdev_dbg(dev, "xmit: no route to SSGN %pI4\n", &daddr);
 		dev->stats.tx_carrier_errors++;
 		goto err;
 	}
 
 	if (rt->dst.dev == dev) {
-		netdev_dbg(dev, "circular route to SSGN %pI4\n", &daddr);
+		netdev_dbg(dev, "xmit: circular route to SSGN %pI4\n", &daddr);
 		dev->stats.collisions++;
 		goto err_rt;
 	}
@@ -687,7 +683,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 
 	if (!skb_is_gso(skb) && (df & htons(IP_DF)) &&
 	    mtu < skb->len) {
-		netdev_dbg(dev, "packet too big, fragmentation needed\n");
+		netdev_dbg(dev, "xmit: packet too big, fragmentation needed\n");
 		memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
 		icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED,
 			  htonl(mtu));
@@ -734,6 +730,7 @@ static netdev_tx_t gtp_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 		err = gtp_build_skb_ip4(skb, dev, &pktinfo);
 		break;
 	default:
+		netdev_dbg(dev, "xmit: invalid proto %x", proto);
 		err = -EOPNOTSUPP;
 		break;
 	}
@@ -750,6 +747,7 @@ static netdev_tx_t gtp_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 			    pktinfo.gtph_port, pktinfo.gtph_port,
 			    false, false);
 
+	netdev_dbg(dev, "xmit: sent src: %pI4 dst: %pI4\n", &pktinfo.fl4.saddr, &pktinfo.fl4.daddr);
 	return NETDEV_TX_OK;
 tx_err:
 	dev->stats.tx_errors++;
@@ -1705,7 +1703,7 @@ static int __init gtp_init(void)
 	if (err < 0)
 		goto unreg_genl_family;
 
-	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v8h\n",
+	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v9\n",
 		sizeof(struct pdp_ctx));
 	return 0;
 

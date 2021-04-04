@@ -34,6 +34,10 @@ func Get() *ServiceRegistry {
 	return globalRegistry
 }
 
+func SetDialOpts(opts ...grpc.DialOption) {
+	globalRegistry.additionalOpts = opts
+}
+
 // PopulateServices populates the service registry based on the per-module
 // config files at /etc/magma/configs/MODULE_NAME/service_registry.yml.
 func PopulateServices() error {

@@ -530,6 +530,7 @@ class EnforcementStatsTest(unittest.TestCase):
 
         self.assertEqual(stats[enf_stat_name].sid, imsi)
         self.assertEqual(stats[enf_stat_name].rule_id, "rule1")
+        self.assertEqual(stats[enf_stat_name].rule_version, 1)
         self.assertEqual(stats[enf_stat_name].bytes_rx, 0)
         self.assertEqual(stats[enf_stat_name].bytes_tx,
                          num_pkts_tx_match * len(packet))
@@ -633,6 +634,7 @@ class EnforcementStatsTest(unittest.TestCase):
         """
         self.assertEqual(stats[enf_stat_name].sid, imsi)
         self.assertEqual(stats[enf_stat_name].rule_id, "rule1")
+        self.assertEqual(stats[enf_stat_name].rule_version, 2)
         self.assertEqual(stats[enf_stat_name].bytes_rx, 0)
         # TODO Figure out why this one fails.
         #self.assertEqual(stats[enf_stat_name].bytes_tx,

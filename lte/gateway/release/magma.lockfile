@@ -438,6 +438,12 @@
       "sysdep": "python3-scapy",
       "version": "2.4.4"
     },
+    "sentry-sdk": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-sentry-sdk",
+      "version": "1.0.0"
+    },
     "simplejson": {
       "root": false,
       "source": "apt",
@@ -1152,6 +1158,9 @@
     },
     "scapy": {
       "version": "2.4.4"
+    },
+    "sentry-sdk": {
+      "version": "1.0.0"
     },
     "setuptools": {
       "version": "49.6.0"
