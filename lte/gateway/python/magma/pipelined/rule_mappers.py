@@ -13,7 +13,6 @@ limitations under the License.
 import json
 import threading
 from collections import namedtuple
-from typing import Optional
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.imsi import encode_imsi
@@ -117,7 +116,6 @@ class SessionRuleToVersionMapper:
         rule id is not specified, then all rules for the subscriber will be
         incremented.
         """
-        encoded_imsi = encode_imsi(imsi)
         if ip_addr is None or ip_addr.address is None:
             ip_addr_str = ""
         else:

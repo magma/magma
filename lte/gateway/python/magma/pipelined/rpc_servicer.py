@@ -14,7 +14,6 @@ import os
 import logging
 import concurrent.futures
 import queue
-from functools import partial
 from concurrent.futures import Future
 from typing import List, Tuple
 from collections import OrderedDict
@@ -41,7 +40,6 @@ from lte.protos.pipelined_pb2 import (
     OffendingIE,
     VersionedPolicy,
     CauseIE)
-from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from lte.protos.session_manager_pb2 import RuleRecordTable

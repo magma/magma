@@ -276,7 +276,8 @@ class PolicyMixin(metaclass=ABCMeta):
                     flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version)
                     msg_list.extend(flow_adds)
                 except FlowMatchError:
-                    self.logger.error("Failed to verify rule_id: %s", rule.id)
+                    self.logger.error("Failed to verify rule_id: %s",
+                                      policy.rule.id)
 
         return {self.tbl_num: msg_list}
 
