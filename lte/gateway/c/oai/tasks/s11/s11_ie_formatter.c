@@ -1906,8 +1906,9 @@ nw_rc_t gtpv2c_fqcsid_ie_get(
       if (ieLength != 7) {
         return NW_GTPV2C_IE_INCORRECT;
       }
-      int addr = (ieValue[1] << 24) | (ieValue[2] << 16) | (ieValue[3] << 8) |
-                 (ieValue[4]);
+      int addr = (((uint32_t) ieValue[1]) << 24) |
+                 (((uint32_t) ieValue[2]) << 16) |
+                 (((uint32_t) ieValue[3]) << 8) | ((uint32_t) ieValue[4]);
       fq_csid->node_id.unicast_ipv4.s_addr = addr;
       fq_csid->csid                        = (ieValue[5] << 8) | ieValue[6];
       inet_ntop(

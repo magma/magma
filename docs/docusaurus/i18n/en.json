@@ -14,6 +14,18 @@
       "basics/quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "contributing/contribute_codeowners": {
+        "title": "Codeowners Workflow"
+      },
+      "contributing/contribute_conventions": {
+        "title": "Code Conventions"
+      },
+      "contributing/contribute_onboarding": {
+        "title": "Developer Onboarding"
+      },
+      "contributing/contribute_workflow": {
+        "title": "Development Workflow"
+      },
       "cwf/deploy_build": {
         "title": "Building Carrier Wifi Gateway"
       },
@@ -30,20 +42,20 @@
       "cwf/troubleshooting": {
         "title": "cwf/troubleshooting"
       },
-      "faq/magma_faq": {
+      "faq/faq_magma": {
         "title": "Frequently Asked Questions"
       },
       "feg/deploy_build": {
-        "title": "Building Federation Gateway"
+        "title": "Build FeG"
+      },
+      "feg/deploy_configure": {
+        "title": "Configure FeG"
       },
       "feg/deploy_install": {
-        "title": "Installing Federation Gateway"
+        "title": "Install FeG"
       },
       "feg/deploy_intro": {
         "title": "Introduction"
-      },
-      "feg/federated_FWA_setup_guide": {
-        "title": "Federated-FWA Setup Guide"
       },
       "feg/legacy/docker_setup": {
         "title": "FeG Docker Setup"
@@ -55,8 +67,20 @@
         "title": "Federated Gateway (FeG)",
         "sidebar_label": "Overview"
       },
+      "howtos/call_tracing": {
+        "title": "Call Tracing"
+      },
+      "howtos/events_monitoring": {
+        "title": "Events Monitoring"
+      },
+      "howtos/he_api": {
+        "title": "Header Enrichment"
+      },
       "howtos/readme_package": {
         "title": "Packaging"
+      },
+      "howtos/thanos": {
+        "title": "Thanos"
       },
       "howtos/config_agw_bridged": {
         "title": "AGW Bridged Mode"
@@ -64,24 +88,38 @@
       "howtos/ue_metering": {
         "title": "UE Usage Metering"
       },
-      "lte/config_agw": {
-        "title": "AGW Configuration",
-        "sidebar_label": "AGW Configuration"
-      },
-      "lte/config_apn": {
-        "title": "APN Configuration"
+      "lte/architecture_overview": {
+        "title": "Overview"
       },
       "lte/openvswitch": {
         "title": "Magma Datapath"
       },
-      "lte/dev_notes": {
-        "title": "Developer Notes for Access Gateway"
+      "lte/debug_dp_probe": {
+        "title": "Datapath Probe CLI"
       },
-      "lte/enodebd": {
-        "title": "eNodeB Configuration"
+      "lte/debug_show_tech": {
+        "title": "Show Tech"
+      },
+      "lte/deploy_config_agw": {
+        "title": "Configure AGW"
+      },
+      "lte/deploy_config_apn": {
+        "title": "Configure an APN"
+      },
+      "lte/deploy_config_enodebd": {
+        "title": "Configure eNodeB"
+      },
+      "lte/deploy_install": {
+        "title": "Install AGW"
+      },
+      "lte/dev_notes": {
+        "title": "Developer Notes"
       },
       "lte/eventd": {
-        "title": "Eventd"
+        "title": "Event Reporting"
+      },
+      "lte/deploy_config_agw_ha": {
+        "title": "Configure AGW for HA"
       },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
@@ -109,61 +147,84 @@
         "title": "AGW Setup (Bare Metal)",
         "sidebar_label": "Setup (Bare Metal)"
       },
-      "lte/setup_deb": {
-        "title": "AGW Setup (Bare Metal)",
-        "sidebar_label": "Setup (Bare Metal)"
-      },
       "lte/setup": {
         "title": "AGW Setup (With Vagrant)",
         "sidebar_label": "Setup (With Vagrant)"
       },
       "lte/tr069": {
-        "title": "Adding TR-069 support for an eNodeB"
+        "title": "Add eNB TR-069 Support"
       },
-      "lte/agw_120_upgrade": {
-        "title": "Upgrading from 1.1"
+      "lte/upgrade_1_1": {
+        "title": "Upgrade to v1.1"
       },
-      "lte/agw_130_upgrade": {
-        "title": "Upgrading from 1.2"
+      "lte/upgrade_1_2": {
+        "title": "Upgrade to v1.2"
       },
-      "lte/agw_110_upgrade": {
-        "title": "Upgrading from 1.0"
+      "lte/upgrade_1_3": {
+        "title": "Upgrade to v1.3"
       },
-      "nms/nms_dashboard": {
-        "title": "NMS Dashboard"
+      "lte/upgrade_1_4": {
+        "title": "Upgrade to v1.4"
       },
-      "nms/nms_developer": {
-        "title": "Quick-Start Guide to NMS Development"
+      "nms/alerts": {
+        "title": "Alerts"
       },
-      "nms/nms_equipment": {
-        "title": "NMS Equipment"
+      "nms/dashboard": {
+        "title": "Dashboard"
       },
-      "nms/nms_grafana": {
+      "nms/deploy_config": {
+        "title": "Configure NMS"
+      },
+      "nms/dev_components": {
+        "title": "Components"
+      },
+      "nms/dev_spacing": {
+        "title": "Spacing Guidelines"
+      },
+      "nms/dev_themes": {
+        "title": "Themes"
+      },
+      "nms/equipment": {
+        "title": "Equipment"
+      },
+      "nms/legacy/grafana": {
         "title": "Custom Grafana Dashboards"
       },
-      "nms/json_editing": {
-        "title": "nms/json_editing"
+      "nms/metrics": {
+        "title": "Metrics"
       },
-      "nms/nms_network": {
-        "title": "NMS Network"
+      "nms/network": {
+        "title": "Network"
       },
-      "nms/nms_organizations": {
-        "title": "Multitenancy (Organizations)"
+      "nms/overview": {
+        "title": "Overview"
       },
-      "nms/nms_overview": {
-        "title": "NMS Overview"
+      "nms/subscriber": {
+        "title": "Subscriber"
       },
-      "nms/nms_subscriber": {
-        "title": "NMS Subscriber"
+      "nms/tips_and_tricks": {
+        "title": "Tips and Tricks"
       },
-      "nms/nms_traffic": {
-        "title": "NMS Traffic"
+      "nms/traffic": {
+        "title": "Traffic"
       },
-      "nms/nms_how_to_guide": {
-        "title": "NMS How To Guide"
+      "orc8r/architecture_modularity": {
+        "title": "Modularity"
+      },
+      "orc8r/architecture_overview": {
+        "title": "Overview"
+      },
+      "orc8r/architecture_security": {
+        "title": "Security"
+      },
+      "orc8r/debug_logs": {
+        "title": "View Logs"
       },
       "orc8r/deploy_build": {
         "title": "Build Orchestrator"
+      },
+      "orc8r/deploy_faq": {
+        "title": "FAQs"
       },
       "orc8r/deploy_install": {
         "title": "Install Orchestrator"
@@ -171,8 +232,20 @@
       "orc8r/deploy_intro": {
         "title": "Introduction"
       },
-      "orc8r/development/minikube_deployment": {
+      "orc8r/dev_dependencies": {
+        "title": "Module Dependencies"
+      },
+      "orc8r/dev_indexers": {
+        "title": "State Indexers"
+      },
+      "orc8r/dev_minikube": {
         "title": "Deploy on Minikube"
+      },
+      "orc8r/dev_security": {
+        "title": "Security"
+      },
+      "orc8r/dev_testing": {
+        "title": "Testing Tips"
       },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"
@@ -207,6 +280,12 @@
       "orc8r/upgrade_1_3": {
         "title": "Upgrade to v1.3"
       },
+      "orc8r/upgrade_1_4": {
+        "title": "Upgrade to v1.4"
+      },
+      "orc8r/upgrade_1_5": {
+        "title": "Upgrade to v1.5"
+      },
       "orc8r/upgrade_intro": {
         "title": "Introduction"
       },
@@ -223,10 +302,43 @@
         "title": "Service Restriction Feature"
       },
       "proposals/p005_call_tracing": {
-        "title": "Call Tracing Feature"
+        "title": "Call Tracing for Troubleshooting"
+      },
+      "proposals/p006_subscriber_state_view": {
+        "title": "Displaying Run-time Subscriber State in NMS"
       },
       "proposals/p007_header_enrichment": {
-        "title": "Header Enrichment"
+        "title": "Header enrichment"
+      },
+      "proposals/p008_apn_correction": {
+        "title": "MME APN Correction"
+      },
+      "proposals/p008_inbound_roaming_with_SubscriberDb": {
+        "title": "Header enrichment"
+      },
+      "proposals/p008_mandatory_integration_tests_for_each_PR": {
+        "title": "proposals/p008_mandatory_integration_tests_for_each_PR"
+      },
+      "proposals/p009_nms_mariadb_migration": {
+        "title": "NMS MariaDB Migration"
+      },
+      "proposals/p010_subscriber_scaling": {
+        "title": "Subscriber Scaling"
+      },
+      "proposals/p010_vendor_neutral_dp": {
+        "title": "proposals/p010_vendor_neutral_dp"
+      },
+      "proposals/p011_victoriametrics": {
+        "title": "VictoriaMetrics as Magma's TSDB"
+      },
+      "proposals/qos_enforcement": {
+        "title": "proposals/qos_enforcement"
+      },
+      "proposals/proposal_process": {
+        "title": "Magma Proposals"
+      },
+      "proposals/proposal_template": {
+        "title": "Title of Design Doc"
       },
       "version-1.0.0/basics/version-1.0.0-introduction": {
         "title": "Introduction"
@@ -538,8 +650,8 @@
         "sidebar_label": "Setup (Bare Metal)"
       },
       "version-1.1.0/lte/version-1.1.0-agw_110_upgrade": {
-        "title": "Upgrading from 1.0",
-        "sidebar_label": "Upgrading from 1.0"
+        "title": "Upgrade to  v1.1",
+        "sidebar_label": "Upgrade to v1.1"
       },
       "version-1.1.0/nms/version-1.1.0-nms_grafana": {
         "title": "Custom Grafana Dashboards"
@@ -596,7 +708,7 @@
         "sidebar_label": "Setup (Bare Metal)"
       },
       "version-1.2.0/lte/version-1.2.0-agw_120_upgrade": {
-        "title": "Upgrading from 1.1"
+        "title": "Upgrade to v1.2"
       },
       "version-1.2.0/nms/version-1.2.0-nms_dashboard": {
         "title": "NMS Dashboard"
@@ -666,13 +778,16 @@
         "sidebar_label": "Setup (Bare Metal)"
       },
       "version-1.3.0/lte/version-1.3.0-agw_130_upgrade": {
-        "title": "Upgrading from 1.2"
+        "title": "Upgrade to v1.3"
       },
       "version-1.3.0/orc8r/version-1.3.0-deploy_build": {
         "title": "Build Orchestrator"
       },
       "version-1.3.0/orc8r/version-1.3.0-deploy_install": {
         "title": "Install Orchestrator"
+      },
+      "version-1.3.0/orc8r/version-1.3.0-deploy_intro": {
+        "title": "Introduction"
       },
       "version-1.3.0/orc8r/version-1.3.0-upgrade_1_3": {
         "title": "Upgrade to v1.3"
@@ -682,22 +797,203 @@
       },
       "version-1.3.0/proposals/version-1.3.0-p004_fua_restrict_feature": {
         "title": "Service Restriction Feature"
+      },
+      "version-1.4.0/basics/version-1.4.0-prerequisites": {
+        "title": "Prerequisites"
+      },
+      "version-1.4.0/basics/version-1.4.0-quick_start_guide": {
+        "title": "Quick Start Guide"
+      },
+      "version-1.4.0/debugging_tools/version-1.4.0-show_tech": {
+        "title": "Show Tech"
+      },
+      "version-1.4.0/faq/version-1.4.0-faq_magma": {
+        "title": "Frequently Asked Questions"
+      },
+      "version-1.4.0/feg/version-1.4.0-deploy_build": {
+        "title": "Building Federation Gateway"
+      },
+      "version-1.4.0/feg/version-1.4.0-deploy_install": {
+        "title": "Installing Federation Gateway"
+      },
+      "version-1.4.0/feg/version-1.4.0-federated_FWA_setup_guide": {
+        "title": "Federated-FWA Setup Guide"
+      },
+      "version-1.4.0/howtos/version-1.4.0-call_tracing": {
+        "title": "Call Tracing"
+      },
+      "version-1.4.0/howtos/version-1.4.0-events_monitoring": {
+        "title": "Events Monitoring"
+      },
+      "version-1.4.0/howtos/version-1.4.0-he_api": {
+        "title": "Header Enrichment"
+      },
+      "version-1.4.0/howtos/version-1.4.0-readme_package": {
+        "title": "Packaging"
+      },
+      "version-1.4.0/howtos/version-1.4.0-thanos": {
+        "title": "Thanos"
+      },
+      "version-1.4.0/howtos/version-1.4.0-config_agw_bridged": {
+        "title": "AGW Bridged Mode"
+      },
+      "version-1.4.0/lte/version-1.4.0-config_agw": {
+        "title": "AGW Configuration",
+        "sidebar_label": "AGW Configuration"
+      },
+      "version-1.4.0/lte/version-1.4.0-config_apn": {
+        "title": "APN Configuration"
+      },
+      "version-1.4.0/lte/version-1.4.0-dev_notes": {
+        "title": "Developer Notes for Access Gateway"
+      },
+      "version-1.4.0/lte/version-1.4.0-enodebd": {
+        "title": "eNodeB Configuration"
+      },
+      "version-1.4.0/lte/version-1.4.0-eventd": {
+        "title": "Eventd"
+      },
+      "version-1.4.0/lte/version-1.4.0-ha_setup": {
+        "title": "HA AGW Setup",
+        "sidebar_label": "HA AGW Setup"
+      },
+      "version-1.4.0/lte/version-1.4.0-setup_deb": {
+        "title": "AGW Setup (Bare Metal)",
+        "sidebar_label": "Setup (Bare Metal)"
+      },
+      "version-1.4.0/lte/version-1.4.0-agw_140_upgrade": {
+        "title": "Upgrading from 1.3"
+      },
+      "version-1.4.0/nms/version-1.4.0-alerts": {
+        "title": "Alerts"
+      },
+      "version-1.4.0/nms/version-1.4.0-dashboard": {
+        "title": "Dashboard"
+      },
+      "version-1.4.0/nms/version-1.4.0-developer": {
+        "title": "Developer"
+      },
+      "version-1.4.0/nms/version-1.4.0-equipment": {
+        "title": "Equipment"
+      },
+      "version-1.4.0/nms/legacy/version-1.4.0-grafana": {
+        "title": "Custom Grafana Dashboards"
+      },
+      "version-1.4.0/nms/version-1.4.0-metrics": {
+        "title": "Metrics"
+      },
+      "version-1.4.0/nms/version-1.4.0-network": {
+        "title": "Network"
+      },
+      "version-1.4.0/nms/version-1.4.0-overview": {
+        "title": "Overview"
+      },
+      "version-1.4.0/nms/version-1.4.0-setup": {
+        "title": "Setup"
+      },
+      "version-1.4.0/nms/version-1.4.0-subscriber": {
+        "title": "Subscriber"
+      },
+      "version-1.4.0/nms/version-1.4.0-tips_and_tricks": {
+        "title": "Tips and Tricks"
+      },
+      "version-1.4.0/nms/version-1.4.0-traffic": {
+        "title": "Traffic"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-architecture_modularity": {
+        "title": "Modularity"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-architecture_overview": {
+        "title": "Overview"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-architecture_security": {
+        "title": "Security"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-deploy_build": {
+        "title": "Build Orchestrator"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-deploy_faq": {
+        "title": "FAQs"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-deploy_install": {
+        "title": "Install Orchestrator"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-deploy_intro": {
+        "title": "Introduction"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-dev_minikube_deployment": {
+        "title": "Deploy on Minikube"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-dev_security": {
+        "title": "Security"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-dev_testing_tips": {
+        "title": "Testing Tips"
+      },
+      "version-1.4.0/orc8r/legacy/version-1.4.0-docker_setup": {
+        "title": "Docker Setup"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-upgrade_1_2": {
+        "title": "Upgrade to v1.2"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-upgrade_1_3": {
+        "title": "Upgrade to v1.3"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-upgrade_1_4": {
+        "title": "Upgrade to v1.4"
+      },
+      "version-1.4.0/orc8r/version-1.4.0-upgrade_intro": {
+        "title": "Introduction"
+      },
+      "version-1.4.0/proposals/version-1.4.0-p005_call_tracing": {
+        "title": "Call Tracing for Troubleshooting"
+      },
+      "version-1.4.0/proposals/version-1.4.0-p006_subscriber_state_view": {
+        "title": "Displaying Run-time Subscriber State in NMS"
+      },
+      "version-1.4.0/proposals/version-1.4.0-p007_header_enrichment": {
+        "title": "Header enrichment"
+      },
+      "version-1.4.0/proposals/version-1.4.0-p008_apn_correction": {
+        "title": "MME APN Correction"
+      },
+      "version-1.4.0/proposals/version-1.4.0-p009_nms_mariadb_migration": {
+        "title": "NMS MariaDB Migration"
+      },
+      "version-1.4.0/proposals/version-1.4.0-proposal_process": {
+        "title": "Magma Proposals"
+      },
+      "version-1.4.0/proposals/version-1.4.0-proposal_template": {
+        "title": "Title of Design Doc"
       }
     },
     "links": {
+      "Home": "Home",
+      " | ": " | ",
       "Docs": "Docs",
-      "Help": "Help",
-      "Github": "Github"
+      "Code": "Code",
+      "Community": "Community"
     },
     "categories": {
+      "Getting Started": "Getting Started",
+      "Tutorials": "Tutorials",
+      "Usage": "Usage",
+      "Architecture": "Architecture",
+      "Deploy": "Deploy",
+      "Upgrade": "Upgrade",
+      "Debug": "Debug",
+      "Technical Reference": "Technical Reference",
+      "Contributing": "Contributing",
+      "Proposals": "Proposals",
+      "FAQ": "FAQ",
       "Basics": "Basics",
       "Orchestrator": "Orchestrator",
-      "NMS User Guide": "NMS User Guide",
+      "NMS": "NMS",
       "Access Gateway": "Access Gateway",
       "Feature Guides": "Feature Guides",
+      "Debugging Tools": "Debugging Tools",
       "Federation Gateway": "Federation Gateway",
-      "FAQ": "FAQ",
-      "Proposals": "Proposals",
+      "NMS User Guide": "NMS User Guide",
       "Symphony": "Symphony"
     }
   },

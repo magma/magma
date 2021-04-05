@@ -1,0 +1,18 @@
+[
+  {
+    "ParameterKey": "paramImageId",
+    "ParameterValue": "ami-0a91cd140a1fc148a"
+  },
+  {
+    "ParameterKey": "paramSecGroup",
+    "ParameterValue": "sg-0c290ac2a7d8189b7"
+  },
+  {
+    "ParameterKey": "paramKeyName",
+    "ParameterValue": "keyMagmaBootProto"
+  },
+  {
+    "ParameterKey": "paramTagId",
+    "ParameterValue": "SanRamon"
+  }
+]

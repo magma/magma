@@ -26,6 +26,7 @@
 #include "SessionCredit.h"
 #include "Monitor.h"
 #include "ChargingGrant.h"
+#include "Types.h"
 
 namespace magma {
 using std::experimental::optional;
@@ -38,11 +39,6 @@ typedef std::unordered_map<
     ChargingCreditSummaries;
 typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
-
-struct RulesToProcess {
-  std::vector<std::string> static_rules;
-  std::vector<PolicyRule> dynamic_rules;
-};
 
 // Used to transform the proto message RuleSet into a more useful structure
 struct RuleSetToApply {
@@ -85,6 +81,8 @@ struct BearerUpdate {
  */
 class SessionState {
  public:
+  // SessionInfo is a struct used to bundle necessary information
+  // PipelineDClient needs to make requests
   struct SessionInfo {
     enum upfNodeType {
       IPv4 = 0,
@@ -108,9 +106,8 @@ class SessionState {
 
     uint32_t local_f_teid;
     std::string msisdn;
-    std::vector<std::string> static_rules;
-    std::vector<PolicyRule> dynamic_rules;
-    std::vector<PolicyRule> gy_dynamic_rules;
+    RulesToProcess gx_rules;
+    RulesToProcess gy_dynamic_rules;
     optional<AggregatedMaximumBitrate> ambr;
     // 5G specific extensions
     std::vector<SetGroupPDR> Pdr_rules_;
@@ -128,13 +125,6 @@ class SessionState {
   void sess_infocopy(struct SessionInfo*);
 
   magma::lte::Fsm_state_FsmState get_proto_fsm_state();
-
-  struct TotalCreditUsage {
-    uint64_t monitoring_tx;
-    uint64_t monitoring_rx;
-    uint64_t charging_tx;
-    uint64_t charging_rx;
-  };
 
  public:
   SessionState(
@@ -247,7 +237,7 @@ class SessionState {
       const CreditKey& key, ChargingGrant charging_grant,
       SessionStateUpdateCriteria& uc);
 
-  RulesToProcess get_all_final_unit_rules();
+  std::vector<PolicyRule> get_all_final_unit_rules();
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,
@@ -255,7 +245,7 @@ class SessionState {
    * rules (static and dynamic)
    * Should be called after complete_termination.
    */
-  TotalCreditUsage get_total_credit_usage();
+  SessionCredit::TotalCreditUsage get_total_credit_usage();
 
   ChargingCreditSummaries get_charging_credit_summaries();
 
@@ -438,6 +428,13 @@ class SessionState {
   void get_rules_per_credit_key(
       CreditKey charging_key, RulesToProcess& rulesToProcess);
 
+  /**
+   * Remove all active/scheduled static/dynamic rules and reflect the change in
+   * session_uc
+   * @param session_uc
+   */
+  void remove_all_rules_for_termination(SessionStateUpdateCriteria& session_uc);
+
   void set_teids(uint32_t enb_teid, uint32_t agw_teid);
 
   void set_teids(Teids teids);
@@ -469,10 +466,12 @@ class SessionState {
 
   EventTriggerStatus get_event_triggers() { return pending_event_triggers_; }
 
-  bool is_credit_in_final_unit_state(const CreditKey& charging_key) const;
+  optional<FinalActionInfo> get_final_action_if_final_unit_state(
+      const CreditKey& ckey) const;
 
-  void get_final_action_restrict_rules(
-      const CreditKey& charging_key, std::vector<std::string>& restrict_rules);
+  RulesToProcess remove_all_final_action_rules(
+      const FinalActionInfo& final_action_info,
+      SessionStateUpdateCriteria& session_uc);
 
   // Monitors
   bool receive_monitor(
@@ -516,7 +515,7 @@ class SessionState {
    * @param config
    * @return an optional wrapped PolicyRule if creation is needed, {} otherwise
    */
-  std::experimental::optional<PolicyRule> policy_needs_bearer_creation(
+  optional<PolicyRule> policy_needs_bearer_creation(
       const PolicyType policy_type, const std::string& rule_id,
       const SessionConfig& config);
   /**
@@ -550,6 +549,11 @@ class SessionState {
   bool should_rule_be_active(const std::string& rule_id, std::time_t time);
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
 
+  /**
+   * Clear all per-session metrics
+   */
+  void clear_session_metrics();
+
  private:
   std::string imsi_;
   std::string session_id_;
@@ -571,6 +575,9 @@ class SessionState {
 
   // Used between create session and activate session. Empty afterwards
   CreateSessionResponse create_session_response_;
+
+  // Track version tracking information
+  PolicyStatsMap policy_version_and_stats_;
 
   // All static rules synced from policy DB
   StaticRuleStore& static_rules_;
@@ -608,6 +615,7 @@ class SessionState {
 
   // PolicyID->DedicatedBearerID used for 4G bearer/QoS management
   BearerIDByPolicyID bearer_id_by_policy_;
+  const uint32_t REDIRECT_FLOW_PRIORITY = 2000;
 
  private:
   /**
@@ -622,7 +630,32 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& uc);
 
-  void fill_service_action(
+  /**
+   * @brief Get a CreditUsageUpdate for the case where we want to continue
+   * service
+   *
+   * @param grant
+   * @param session_uc
+   * @return optional<CreditUsageUpdate>
+   */
+  optional<CreditUsageUpdate> get_update_for_continue_service(
+      const CreditKey& key, std::unique_ptr<ChargingGrant>& grant,
+      SessionStateUpdateCriteria& session_uc);
+
+  void fill_service_action_for_activate(
+      std::unique_ptr<ServiceAction>& action, const CreditKey& key);
+
+  void fill_service_action_for_restrict(
+      std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
+      std::unique_ptr<ChargingGrant>& grant);
+
+  PolicyRule make_redirect_rule(std::unique_ptr<ChargingGrant>& grant);
+
+  void fill_service_action_for_redirect(
+      std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
+      std::unique_ptr<ChargingGrant>& grant, PolicyRule redirect_rule);
+
+  void fill_service_action_with_context(
       std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
       const CreditKey& key);
 
@@ -654,11 +687,9 @@ class SessionState {
    * UpdateSessionRequest.
    *
    * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
-   * @param actions_out Modified with additional actions to take on session.
    */
   void get_monitor_updates(
       UpdateSessionRequest& update_request_out,
-      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -699,7 +730,6 @@ class SessionState {
 
   void get_event_trigger_updates(
       UpdateSessionRequest& update_request_out,
-      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
 
   bool is_static_rule_scheduled(const std::string& rule_id);
@@ -757,17 +787,12 @@ class SessionState {
 
   /**
    * Increments data usage values for session
+   * @param usage_label either UE_DROPPED_LABEL / UE_USED_LABEL
    * @param bytes_tx
    * @param bytes_rx
    */
-  void update_used_data_metrics(uint64_t bytes_tx, uint64_t bytes_rx);
-
-  /**
-   * Increments data usage values for session
-   * @param dropped_tx
-   * @param dropped_rx
-   */
-  void update_dropped_data_metrics(uint64_t dropped_tx, uint64_t dropped_rx);
+  void update_data_metrics(
+      const char* counter_name, uint64_t bytes_tx, uint64_t bytes_rx);
 };
 
 }  // namespace magma

@@ -54,12 +54,12 @@ int s1ap_mme_itti_send_sctp_request(
         " SCTP_DATA_REQ \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  SCTP_DATA_REQ(message_p).payload        = *payload;
-  *payload                                = NULL;
-  SCTP_DATA_REQ(message_p).assoc_id       = assoc_id;
-  SCTP_DATA_REQ(message_p).stream         = stream;
-  SCTP_DATA_REQ(message_p).mme_ue_s1ap_id = ue_id;
-
+  SCTP_DATA_REQ(message_p).payload       = *payload;
+  *payload                               = NULL;
+  SCTP_DATA_REQ(message_p).assoc_id      = assoc_id;
+  SCTP_DATA_REQ(message_p).stream        = stream;
+  SCTP_DATA_REQ(message_p).agw_ue_xap_id = ue_id;
+  SCTP_DATA_REQ(message_p).ppid          = S1AP_SCTP_PPID;
   return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 

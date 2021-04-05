@@ -15,6 +15,7 @@ import asyncio
 import logging
 import signal
 import time
+import faulthandler
 from concurrent import futures
 from typing import List, Optional
 import functools
@@ -332,6 +333,12 @@ class MagmaService(Service303Servicer):
             self._loop.add_signal_handler(
                 getattr(signal, signame),
                 functools.partial(self._stop, signame))
+
+        def _signal_handler():
+            logging.info('Handling SIGHUP...')
+            faulthandler.dump_traceback()
+        self._loop.add_signal_handler(
+            signal.SIGHUP, functools.partial(_signal_handler))
 
     def GetServiceInfo(self, request, context):
         """

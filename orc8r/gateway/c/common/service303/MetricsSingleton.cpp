@@ -12,17 +12,16 @@
  */
 #include "MetricsSingleton.h"
 
-using magma::service303::MetricsRegistry;
-using prometheus::Registry;
+using magma::service303::MetricsSingleton;
 using prometheus::BuildCounter;
 using prometheus::BuildGauge;
 using prometheus::BuildHistogram;
-using magma::service303::MetricsSingleton;
+using prometheus::Registry;
 
-MetricsSingleton* MetricsSingleton::instance_ = NULL;
+MetricsSingleton* MetricsSingleton::instance_ = nullptr;
 
 MetricsSingleton& MetricsSingleton::Instance() {
-  if (instance_ == NULL) {
+  if (instance_ == nullptr) {
     instance_ = new MetricsSingleton();
   }
   return *instance_;
@@ -33,60 +32,57 @@ void MetricsSingleton::flush() {
   instance_ = new MetricsSingleton();
 }
 
-MetricsSingleton::MetricsSingleton() :
-  registry_(std::make_shared<Registry>()),
-  counters_(registry_, BuildCounter),
-  gauges_(registry_, BuildGauge),
-  histograms_(registry_, BuildHistogram) {
+MetricsSingleton::MetricsSingleton()
+    : registry_(std::make_shared<Registry>()),
+      counters_(registry_, BuildCounter),
+      gauges_(registry_, BuildGauge),
+      histograms_(registry_, BuildHistogram) {}
 
-}
-
-void MetricsSingleton::args_to_map(std::map<std::string, std::string>& labels, size_t label_count, va_list& args) {
+void MetricsSingleton::args_to_map(
+    std::map<std::string, std::string>& labels, size_t label_count,
+    va_list& args) {
   for (size_t i = 0; i < label_count; i++) {
-    labels.insert({{va_arg(args, const char *), va_arg(args, const char *)}});
+    labels.insert({{va_arg(args, const char*), va_arg(args, const char*)}});
   }
 }
 
-void MetricsSingleton::IncrementCounter(const char* name,
-  double increment,
-  size_t label_count,
-  va_list& args) {
+void MetricsSingleton::RemoveCounter(
+    const char* name, size_t label_count, va_list& args) {
+  std::map<std::string, std::string> labels;
+  args_to_map(labels, label_count, args);
+  counters_.Remove(name, labels);
+}
+
+void MetricsSingleton::IncrementCounter(
+    const char* name, double increment, size_t label_count, va_list& args) {
   std::map<std::string, std::string> labels;
   args_to_map(labels, label_count, args);
   counters_.Get(name, labels).Increment(increment);
 }
 
-void MetricsSingleton::IncrementGauge(const char* name,
-  double increment,
-  size_t label_count,
-  va_list& args) {
+void MetricsSingleton::IncrementGauge(
+    const char* name, double increment, size_t label_count, va_list& args) {
   std::map<std::string, std::string> labels;
   args_to_map(labels, label_count, args);
   gauges_.Get(name, labels).Increment(increment);
 }
 
-void MetricsSingleton::DecrementGauge(const char* name,
-  double decrement,
-  size_t label_count,
-  va_list& args) {
+void MetricsSingleton::DecrementGauge(
+    const char* name, double decrement, size_t label_count, va_list& args) {
   std::map<std::string, std::string> labels;
   args_to_map(labels, label_count, args);
   gauges_.Get(name, labels).Decrement(decrement);
 }
 
-void MetricsSingleton::SetGauge(const char* name,
-  double value,
-  size_t label_count,
-  va_list& args) {
+void MetricsSingleton::SetGauge(
+    const char* name, double value, size_t label_count, va_list& args) {
   std::map<std::string, std::string> labels;
   args_to_map(labels, label_count, args);
   gauges_.Get(name, labels).Set(value);
 }
 
-void MetricsSingleton::ObserveHistogram(const char* name,
-  double observation,
-  size_t label_count,
-  va_list &args) {
+void MetricsSingleton::ObserveHistogram(
+    const char* name, double observation, size_t label_count, va_list& args) {
   std::map<std::string, std::string> labels;
   args_to_map(labels, label_count, args);
 
@@ -95,5 +91,6 @@ void MetricsSingleton::ObserveHistogram(const char* name,
   for (size_t i = 0; i < boundary_count; i++) {
     boundaries.push_back(va_arg(args, double));
   }
-  histograms_.Get(name, labels, Histogram::BucketBoundaries(boundaries)).Observe(observation);
+  histograms_.Get(name, labels, Histogram::BucketBoundaries(boundaries))
+      .Observe(observation);
 }

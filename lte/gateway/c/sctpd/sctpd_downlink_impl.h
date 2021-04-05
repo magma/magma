@@ -23,6 +23,9 @@
 
 #include "sctp_connection.h"
 
+#define S1AP 18
+#define NGAP 60
+
 namespace magma {
 namespace sctpd {
 
@@ -33,25 +36,32 @@ using grpc::Status;
 class SctpdDownlinkImpl final : public SctpdDownlink::Service {
  public:
   // Construct a new SctpdDownlinkImpl service
-  SctpdDownlinkImpl(SctpEventHandler &uplink_handler);
+  SctpdDownlinkImpl(SctpEventHandler& uplink_handler);
 
   // Implementation of SctpdDownlink.Init method (see sctpd.proto for more info)
-  Status Init(ServerContext *context, const InitReq *request, InitRes *response)
-    override;
+  Status Init(ServerContext* context, const InitReq* request, InitRes* response)
+      override;
 
-  // Implementation of SctpdDownlink.SendDl method (see sctpd.proto for more info)
+  // Implementation of SctpdDownlink.SendDl method (see sctpd.proto for more
+  // info)
   Status SendDl(
-    ServerContext *context,
-    const SendDlReq *request,
-    SendDlRes *response) override;
+      ServerContext* context, const SendDlReq* request,
+      SendDlRes* response) override;
+
+  // Implementation of SctpdDownlink.create_sctp_connection method
+  //(creates 4G/5G sctp connection)
+  Status create_sctp_connection(
+      std::unique_ptr<SctpConnection>& sctp_connection, const InitReq* request,
+      InitRes* response);
 
   // Close SCTP connection for this SctpdDownlink.
   void stop();
 
  private:
-  SctpEventHandler &_uplink_handler;
-  std::unique_ptr<SctpConnection> _sctp_connection;
+  SctpEventHandler& _uplink_handler;
+  std::unique_ptr<SctpConnection> _sctp_4G_connection;
+  std::unique_ptr<SctpConnection> _sctp_5G_connection;
 };
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

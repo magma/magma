@@ -41,12 +41,6 @@ schemes:
   - https
   - http
 
-tags:
-  - name: Networks
-    description: Everything about networks
-  - name: Gateways
-    description: Provision and manage gateways
-
 paths:
   /foo:
     get:
@@ -92,6 +86,19 @@ parameters:
     description: Tenant ID
     required : true
     type: integer
+  page_size:
+    in: query
+    name: page_size
+    type: integer
+    format: uint32
+    description: Maximum number of entities to return
+    required: false
+  page_token:
+    in: query
+    name: page_token
+    type: string
+    description: Opaque page token for paginated requests
+    required: false
 
 definitions:
   network_id:

@@ -41,7 +41,7 @@ controller:
       user: postgres
       pass: postgres
     service_registry:
-      mode: "yaml"
+      mode: "k8s"
 
   podAnnotations: {}
 
@@ -128,6 +128,7 @@ subscriberdb:
         /magma/v1/lte/:network_id/msisdns,
         /magma/v1/lte/:network_id/subscriber_state,
         /magma/v1/lte/:network_id/subscribers,
+        /magma/v1/lte/:network_id/subscribers_v2,
 
 smsd:
   service:

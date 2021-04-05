@@ -1,0 +1,7 @@
+---
+
+- name: run ovs build
+  command: "ansible-playbook -e '@{{ usrHome }}/ansible-env.yaml' -i {{ usrHome }}/inventory {{ deployPath }}/ovs_build.yml"
+
+- name: run ovs deploy
+  command: "ansible-playbook -e '@{{ usrHome }}/ansible-env.yaml' -i {{ usrHome }}/inventory {{ deployPath }}/ovs_deploy.yml --skip-tags skipfirstinstall"

@@ -81,9 +81,9 @@ class GTPStatsCollector(Job):
             if GTP_IP_INTERFACE_PREFIX in r.Interface or \
                     r.Interface == GTP_INTERFACE_PREFIX:
                 GTP_PORT_USER_PLANE_DL_BYTES.labels(r.remote_ip).set(
-                    float(r.rx_bytes))
-                GTP_PORT_USER_PLANE_UL_BYTES.labels(r.remote_ip).set(
                     float(r.tx_bytes))
+                GTP_PORT_USER_PLANE_UL_BYTES.labels(r.remote_ip).set(
+                    float(r.rx_bytes))
 
 
 def _get_ovsdb_dump_params(params: OVSDBDumpCommandParams) -> List[str]:

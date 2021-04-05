@@ -13,6 +13,7 @@
 
 s11_iface_name: "lo"  # 'sgw_s11_ip' will be filled automatically
 s1u_iface_name: "eth1"  # 's1_ip' will be filled automatically
+sgw_s5s8_up_iface_name: "eth0"  # 'sgw_s5s8_up_ip' will be filled automatically
 masquerade: "no"
 ipv4_dns: "8.8.8.8" # will be replaced by dnsd if caching is enabled
 ipv4_sec_dns: "8.8.4.4"

@@ -130,15 +130,22 @@ class StateManager {
     if (persist_state_enabled) {
       ProtoType state_proto = ProtoType();
       StateConverter::state_to_proto(state_cache_p, &state_proto);
+      std::string proto_str;
+      redis_client->serialize(state_proto, proto_str);
+      std::size_t new_hash = std::hash<std::string>{}(proto_str);
 
-      if (redis_client->write_proto(table_key, state_proto) != RETURNok) {
-        OAILOG_ERROR(log_task, "Failed to write state to db");
-        return;
+      if (new_hash != this->task_state_hash) {
+        if (redis_client->write_proto_str(
+                table_key, proto_str, this->task_state_version) != RETURNok) {
+          OAILOG_ERROR(log_task, "Failed to write state to db");
+          return;
+        }
+        OAILOG_DEBUG(log_task, "Finished writing state");
+        this->task_state_version++;
+        this->state_dirty     = false;
+        this->task_state_hash = new_hash;
       }
-      OAILOG_DEBUG(log_task, "Finished writing state");
     }
-
-    this->state_dirty = false;
   }
 
   virtual void write_ue_state_to_db(
@@ -147,17 +154,27 @@ class StateManager {
         is_initialized,
         "StateManager init() function should be called to initialize state");
 
+    std::string proto_str;
     ProtoUe ue_proto = ProtoUe();
     StateConverter::ue_to_proto(ue_context, &ue_proto);
-    std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
-    if (redis_client->write_proto(key, ue_proto) != RETURNok) {
-      OAILOG_ERROR(
-          log_task, "Failed to write UE state to db for IMSI %s",
-          imsi_str.c_str());
-      return;
+    redis_client->serialize(ue_proto, proto_str);
+    std::size_t new_hash = std::hash<std::string>{}(proto_str);
+
+    if (new_hash != this->ue_state_hash) {
+      std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+      if (redis_client->write_proto_str(key, proto_str, ue_state_version) !=
+          RETURNok) {
+        OAILOG_ERROR(
+            log_task, "Failed to write UE state to db for IMSI %s",
+            imsi_str.c_str());
+        return;
+      }
+
+      this->ue_state_version++;
+      this->ue_state_hash = new_hash;
+      OAILOG_DEBUG(
+          log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
     }
-    OAILOG_DEBUG(
-        log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
   }
 
   std::string get_imsi_str(imsi64_t imsi64) {
@@ -195,13 +212,17 @@ class StateManager {
 
  protected:
   StateManager()
-      : is_initialized(false),
+      : state_cache_p(nullptr),
+        state_ue_ht(nullptr),
+        redis_client(std::make_unique<RedisClient>()),
+        is_initialized(false),
         state_dirty(false),
         persist_state_enabled(false),
-        state_cache_p(nullptr),
-        state_ue_ht(nullptr),
-        log_task(LOG_UTIL),
-        redis_client(std::make_unique<RedisClient>()) {}
+        task_state_hash(0),
+        ue_state_hash(0),
+        task_state_version(0),
+        ue_state_version(0),
+        log_task(LOG_UTIL) {}
   virtual ~StateManager() = default;
 
   /**
@@ -225,10 +246,15 @@ class StateManager {
   // Flag for check asserting if the state has been initialized.
   bool is_initialized;
   // Flag for check asserting that write should be done after read.
-  // TODO: Convert this to state versioning variable
   bool state_dirty;
   // Flag for enabling writing and reading to db.
   bool persist_state_enabled;
+  // State version counters for task and ue context
+  uint64_t task_state_version;
+  uint64_t ue_state_version;
+  // Last written hash values for task and ue context
+  std::size_t task_state_hash;
+  std::size_t ue_state_hash;
 
  protected:
   std::string table_key;

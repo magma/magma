@@ -27,6 +27,8 @@ from orc8r.protos.sync_rpc_service_pb2_grpc import SyncRPCServiceStub
 from typing import List
 import magma.magmad.events as magmad_events
 
+from google.protobuf.json_format import MessageToJson
+
 
 class SyncRPCClient(threading.Thread):
     """
@@ -36,7 +38,8 @@ class SyncRPCClient(threading.Thread):
 
     RETRY_MAX_DELAY_SECS = 10  # seconds
 
-    def __init__(self, loop, response_timeout: int):
+    def __init__(self, loop, response_timeout: int,
+                 print_grpc_payload: bool = False):
         threading.Thread.__init__(self)
         # a synchronized queue
         self._response_queue = queue.Queue()
@@ -50,6 +53,7 @@ class SyncRPCClient(threading.Thread):
         self._current_delay = 0
         self._last_conn_time = 0
         self._conn_closed_table = {}  # mapping of req id -> conn closed
+        self._print_grpc_payload = print_grpc_payload
 
     def run(self):
         """
@@ -145,6 +149,7 @@ class SyncRPCClient(threading.Thread):
                 raise err
 
     def forward_request(self, request: SyncRPCRequest) -> None:
+        self._print_grpc(request)
         if request.heartBeat:
             logging.info("[SyncRPC] Got heartBeat from cloud")
             return
@@ -191,3 +196,18 @@ class SyncRPCClient(threading.Thread):
         self._proxy_client.close_all_connections()
         self._retry_connect_sleep()
         magmad_events.disconnected_sync_rpc_stream()
+
+    def _print_grpc(self, message):
+        if self._print_grpc_payload:
+            try:
+                log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
+                                     MessageToJson(message))
+                # add indentation
+                padding = 2 * ' '
+                log_msg =''.join( "{}{}".format(padding, line)
+                              for line in log_msg.splitlines(True))
+
+                log_msg = "GRPC message:\n{}".format(log_msg)
+                logging.info(log_msg)
+            except Exception as e:  # pylint: disable=broad-except
+                logging.debug("Exception while trying to log GRPC: %s", e)

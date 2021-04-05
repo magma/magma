@@ -15,6 +15,12 @@ aliases:
           - develop
   - &lte_build_verify
     paths: "orc8r lte"
+  - &c_cpp_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos"
+  - &session_manager_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos"
+  - &mme_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -25,6 +31,8 @@ aliases:
     paths: "orc8r"
   - &cwf_build_verify
     paths: "cwf"
+  - &docs_only
+    paths: "docs"
 
 executors:
   node:
@@ -296,9 +304,8 @@ commands:
             cd ${MAGMA_ROOT}/circleci
             echo $MAGMA_NODE_PKEY | base64 -d - > ci_node.pem
             chmod 0400 ci_node.pem
-            echo $MAGMA_API_CERT | base64 -d - > ci_operator.pfx
-            openssl pkcs12 -in ci_operator.pfx -nocerts -out ci_operator.key.pem -nodes -passin pass:
-            openssl pkcs12 -in ci_operator.pfx -nokeys -out ci_operator.pem -passin pass:
+            echo $CI_OPERATOR_KEY | base64 -d - > ci_operator.key.pem
+            echo $CI_OPERATOR | base64 -d - > ci_operator.pem
 
             echo $MAGMA_ROOTCA | base64 -d - > rootCA.pem
             echo $MAGMA_CONTROL_PROXY | base64 -d - > control_proxy.yml
@@ -337,10 +344,6 @@ commands:
 
   magma_slack_notify:
     description: Notify Slack on magma job failure
-    parameters:
-      channel:
-        type: string
-        default: "#magma_ci"
     steps:
       - run:
           command: |
@@ -364,7 +367,6 @@ commands:
             email=$(git show -s --format='%ae')
             rel_time=$(git show -s --format='%cr')
             abs_time=$(git show -s --format='%cd')
-            slack_channel=<< parameters.channel >>
             gh_text="<https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}|${CIRCLE_SHA1:0:8}> by ${author} <${email}> ${rel_time} (${abs_time})"
 
             pretext="Job \`${CIRCLE_JOB}\` #${CIRCLE_BUILD_NUM} on branch \`${CIRCLE_BRANCH}\` of ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} failed. Check the <${CIRCLE_BUILD_URL}|build logs> for details."
@@ -372,7 +374,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "${slack_channel}",
+              "channel": "${SLACK_CHANNEL_CI}",
               "text": "*CircleCI Job Failure*",
               "attachments": [
                 {
@@ -392,7 +394,7 @@ commands:
             EOF
             )
             echo $slack_data
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
           when: always
 
   persist-githash-version:
@@ -440,7 +442,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
-              "channel": "#ci-publish",
+              "channel": "${SLACK_CHANNEL_ARTIFACTS}",
               "text": "*<< parameters.artifact_name >> Artifact Has Been Published*",
               "attachments": [
                 {
@@ -464,7 +466,7 @@ commands:
             }
             EOF
             )
-            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
   ### CLOUD
@@ -514,6 +516,7 @@ jobs:
             python3 build.py --coverage
       - codecov/upload:
           file: /home/circleci/project/orc8r/cloud/coverage/all.gocov
+          flags: cloud_lint
       - magma_slack_notify
 
   # Fail if checked-in generated code doesn't match output from
@@ -563,6 +566,13 @@ jobs:
           project: orc8r
           images: "nginx|controller"
           tag-latest: true
+      # - tag-push-docker:
+      #     project: orc8r
+      #     images: "nginx|controller"
+      #     tag-latest: true
+      #     registry: $JFROG_DOCKER_ORC8R_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -590,6 +600,33 @@ jobs:
             cd ${MAGMA_ROOT}/orc8r/gateway/go
             go test ./...
             go vet ./...
+      - magma_slack_notify
+
+  feg-lint:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      GO111MODULE: 'on'
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *federated_build_verify
+      - install-go
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: ./circleci/golang_before_install.sh
+      - run-with-retry:
+         command: go mod download
+         workdir: ${MAGMA_ROOT}/cwf/gateway
+      - run:
+          name: Generate test coverage
+          command: |
+            cd ${MAGMA_ROOT}/feg/gateway
+            make -C ${MAGMA_ROOT}/feg/gateway cover
+      - codecov/upload:
+          file: /home/circleci/project/feg/gateway/coverage/feg.gocov
+          flags: feg-lint
       - magma_slack_notify
 
   feg-precommit:
@@ -635,6 +672,12 @@ jobs:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
+      # - tag-push-docker:
+      #     project: feg
+      #     images: "gateway_go|gateway_python"
+      #     registry: $JFROG_DOCKER_FEG_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -711,11 +754,130 @@ jobs:
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
           tag-latest: <<parameters.tag-latest>>
+      # - tag-push-docker:
+      #     project: cwf
+      #     images: <<parameters.images>>
+      #     tag: <<parameters.tag>>
+      #     tag-latest: <<parameters.tag-latest>>
+      #     registry: $JFROG_DOCKER_CWF_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
           artifact_name: CWAG
           version_path: versions/cwag_version
+      - magma_slack_notify
+
+  mme-clang-tidy:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+      BRANCH: << pipeline.git.branch >>
+      REVISION: << pipeline.git.revision >>
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *c_cpp_build_verify
+      - run:
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
+            docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v $MAGMA_ROOT:/magma -i -t magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
+      - magma_slack_notify
+
+  c-cpp-codecov:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *c_cpp_build_verify
+      - run:
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+            ci_env=`bash <(curl -s https://codecov.io/env)`
+            docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
+      - magma_slack_notify
+
+  session_manager_test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *session_manager_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Run common tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - run:
+          name: Run session_manager tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_session_manager;"
+          no_output_timeout: 5m
+      - magma_slack_notify
+
+  mme_test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *mme_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Run common tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - run:
+          name: Run sctpd tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd;"
+      - run:
+          name: Run mme tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai;"
+      - magma_slack_notify
+
+  mme-clang-warnings:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+      BRANCH: << pipeline.git.branch >>
+      REVISION: << pipeline.git.revision >>
+    steps:
+      - checkout
+      - run:
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
+            docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
       - magma_slack_notify
 
   lte-test:
@@ -733,6 +895,8 @@ jobs:
       - checkout
       - build/determinator:
           <<: *lte_build_verify
+      - run: mkdir -p /var/tmp/test_results
+      - run: mkdir -p /var/tmp/codecovs
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
       - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
@@ -748,6 +912,14 @@ jobs:
             mkdir ${CODEGEN_ROOT}
             wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
             make -C $MAGMA_ROOT/lte/gateway/python test_all
+      - store_test_results:
+          path: /var/tmp/test_results
+      - codecov/upload:
+          file: /var/tmp/codecovs/cover_lte.xml
+          flags: lte-test
+      - codecov/upload:
+          file: /var/tmp/codecovs/cover_orc8r.xml
+          flags: lte-test
       - magma_slack_notify
 
   lte-integ-test:
@@ -818,6 +990,12 @@ jobs:
           project: cwf
           images: "operator"
           registry: $DOCKER_MAGMA_REGISTRY
+      # - tag-push-docker:
+      #     project: cwf
+      #     images: "operator"
+      #     registry: $JFROG_DOCKER_CWF_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -895,7 +1073,6 @@ jobs:
             ./e2e_test_setup.sh
       - store_artifacts:
           path: /tmp/nms_artifacts
-
       - magma_slack_notify
 
   nms-build:
@@ -951,6 +1128,8 @@ jobs:
       DOCUSAURUS_BASE_URL: /magma/
     steps:
       - checkout
+      - build/determinator:
+          <<: *docs_only
       - run:
           name: Setup docusaurus expected directory structure
           command: |
@@ -967,6 +1146,7 @@ jobs:
             echo "machine github.com login mamga-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
+      - magma_slack_notify
 
   ### XWF
 
@@ -1003,12 +1183,12 @@ jobs:
             docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py
       - when:
           condition: <<parameters.notify_magma_ci>>
-          steps: magma_slack_notify
+          steps:
+            - magma_slack_notify
       - when:
           condition: <<parameters.notify_xwfm_ci>>
           steps:
-            - magma_slack_notify:
-                channel: "#xwfm_ci"
+            - magma_slack_notify
 
   xwfm-deploy:
     parameters:
@@ -1073,15 +1253,25 @@ workflows:
   agw:
     jobs:
       - lte-test
+      - session_manager_test
+      - mme_test
+      - mme-clang-tidy:
+          <<: *only_master
+      - mme-clang-warnings:
+          <<: *only_master
       - lte-integ-test:
           <<: *master_and_develop
       - lte-agw-deploy:
           <<: *only_master
           requires:
+            - lte-test
+            - mme_test
             - lte-integ-test
+      - c-cpp-codecov
 
   feg:
     jobs:
+      - feg-lint
       - feg-precommit
       - feg-build:
           requires:

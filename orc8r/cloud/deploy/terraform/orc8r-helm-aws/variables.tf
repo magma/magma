@@ -112,21 +112,6 @@ variable "orc8r_db_user" {
   type        = string
 }
 
-variable "nms_db_name" {
-  description = "DB name for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_host" {
-  description = "DB hostname for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_user" {
-  description = "DB username for NMS database connection."
-  type        = string
-}
-
 ##############################################################################
 # Helm configuration
 ##############################################################################
@@ -171,37 +156,37 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.11"
+  default     = "1.5.18"
 }
 
 variable "cwf_orc8r_chart_version" {
   description = "Version of the orchestrator cwf module Helm chart to install."
   type        = string
-  default     = "0.2.0"
+  default     = "0.2.1"
 }
 
 variable "fbinternal_orc8r_chart_version" {
   description = "Version of the orchestrator fbinternal module Helm chart to install."
   type        = string
-  default     = "0.2.0"
+  default     = "0.2.1"
 }
 
 variable "feg_orc8r_chart_version" {
   description = "Version of the orchestrator feg module Helm chart to install."
   type        = string
-  default     = "0.2.1"
+  default     = "0.2.2"
 }
 
 variable "lte_orc8r_chart_version" {
   description = "Version of the orchestrator lte module Helm chart to install."
   type        = string
-  default     = "0.2.1"
+  default     = "0.2.2"
 }
 
 variable "wifi_orc8r_chart_version" {
   description = "Version of the orchestrator wifi module Helm chart to install."
   type        = string
-  default     = "0.2.0"
+  default     = "0.2.1"
 }
 
 variable "orc8r_tag" {
@@ -269,11 +254,6 @@ variable "secretsmanager_orc8r_name" {
 
 variable "orc8r_db_pass" {
   description = "Orchestrator DB password."
-  type        = string
-}
-
-variable "nms_db_pass" {
-  description = "NMS DB password."
   type        = string
 }
 

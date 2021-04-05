@@ -26,12 +26,21 @@ namespace magma {
 
 class MeteringReporterTest : public ::testing::Test {
  protected:
+  virtual void SetUp() {
+    reporter = std::make_shared<MeteringReporter>();
+    magma_service =
+        std::make_shared<service303::MagmaService>("test_service", "1.0");
+  }
   bool is_equal(
       io::prometheus::client::LabelPair label_pair, const char*& name,
       const char*& value) {
     return label_pair.name().compare(name) == 0 &&
            label_pair.value().compare(value) == 0;
   }
+
+ protected:
+  std::shared_ptr<service303::MagmaService> magma_service;
+  std::shared_ptr<MeteringReporter> reporter;
 };
 
 TEST_F(MeteringReporterTest, test_reporting) {
@@ -54,15 +63,12 @@ TEST_F(MeteringReporterTest, test_reporting) {
   credit_uc.bucket_deltas[USED_RX]      = DOWNLOADED_BYTES;
   uc.monitor_credit_map[MONITORING_KEY] = credit_uc;
 
-  auto reporter = new MeteringReporter();
   reporter->report_usage(IMSI, SESSION_ID, uc);
 
   // verify if UE traffic metrics are recorded properly
-  auto resp = new MetricsContainer();
-  auto magma_service =
-      std::make_shared<service303::MagmaService>("test_service", "1.0");
-  magma_service->GetMetrics(nullptr, nullptr, resp);
-  for (auto const& fam : resp->family()) {
+  MetricsContainer resp;
+  magma_service->GetMetrics(nullptr, nullptr, &resp);
+  for (auto const& fam : resp.family()) {
     if (fam.name().compare("ue_traffic") == 0) {
       for (auto const& m : fam.metric()) {
         for (auto const& l : m.label()) {

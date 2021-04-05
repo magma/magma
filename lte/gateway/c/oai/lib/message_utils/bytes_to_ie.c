@@ -28,9 +28,6 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-/*#include "common_ies.h"
-#include "3gpp_24.008.h"
-#include "intertask_interface.h"*/
 #include "bytes_to_ie.h"
 
 void bytes_to_lai(const char* bytes, lai_t* lai) {
@@ -63,7 +60,8 @@ void bytes_to_tmsi(const char* bytes, tmsi_t* tmsi) {
   unsigned char tmsi_3 = bytes[2];
   unsigned char tmsi_4 = bytes[3];
 
-  *tmsi = tmsi_1 << 24 | tmsi_2 << 16 | tmsi_3 << 8 | tmsi_4;
+  *tmsi = (((uint32_t) tmsi_1) << 24) | (((uint32_t) tmsi_2) << 16) |
+          (((uint32_t) tmsi_3) << 8) | ((uint32_t) tmsi_4);
 
   return;
 }

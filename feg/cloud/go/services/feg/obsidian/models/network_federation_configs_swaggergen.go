@@ -55,8 +55,7 @@ type NetworkFederationConfigs struct {
 	S6a *S6a `json:"s6a"`
 
 	// s8
-	// Required: true
-	S8 *S8 `json:"s8"`
+	S8 *S8 `json:"s8,omitempty"`
 
 	// served network ids
 	// Required: true
@@ -316,8 +315,8 @@ func (m *NetworkFederationConfigs) validateS6a(formats strfmt.Registry) error {
 
 func (m *NetworkFederationConfigs) validateS8(formats strfmt.Registry) error {
 
-	if err := validate.Required("s8", "body", m.S8); err != nil {
-		return err
+	if swag.IsZero(m.S8) { // not required
+		return nil
 	}
 
 	if m.S8 != nil {

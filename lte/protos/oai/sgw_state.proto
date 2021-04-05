@@ -1,0 +1,46 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "lte/protos/oai/common_types.proto";
+import "lte/protos/oai/std_3gpp_types.proto";
+import "lte/protos/oai/spgw_state.proto";
+
+package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
+
+// sgw_bearer_context_information
+message SgwS8EpsBearerContextInfo {
+    bytes imsi = 1;
+    uint32 imsi_unauth_indicator = 2;
+    string msisdn = 3;
+    Ecgi last_known_cell_id = 4;
+    bytes trxn = 5;
+    uint64 imsi64 = 6;
+    uint32 mme_teid_s11 = 7;
+    bytes mme_ip_address_s11 = 8;
+    uint32 sgw_teid_s11_s4 = 9;
+    bytes sgw_ip_address_s11_s4 = 10;
+    SgwPdnConnection pdn_connection = 11;
+}
+
+
+message SgwUeContext {
+  repeated SgwS8EpsBearerContextInfo sgw_bearer_context = 1;
+}
+
+message SgwState {
+    uint32 last_tunnel_id = 1;
+    uint32 gtpv1u_teid = 2;
+}

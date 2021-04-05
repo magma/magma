@@ -16,6 +16,14 @@ sed -i "s/.*OVS_CTL_OPTS.*/OVS_CTL_OPTS='--delete-bridges'/" /etc/default/openvs
 # Create /var/core directory
 mkdir -p /var/core
 
+value=`cat /usr/local/share/magma/commit_hash`
+if sudo grep -q "COMMIT_HASH" /etc/environment
+then
+    sudo sed -i -e "s/^COMMIT_HASH.*/$value/" /etc/environment
+else
+    sudo cat "$value" >> /etc/environment
+fi
+
 # Set magmad service to start on boot
 systemctl enable -f magma@magmad.service
 
@@ -35,6 +43,8 @@ systemctl stop lighttpd
 systemctl disable lighttpd
 
 # Restart rsyslog to pick up fluent-bit config, create fluent-bit DB directory
+cp /etc/logrotate.d/rsyslog /etc/logrotate.d/rsyslog.orig
+cp /etc/logrotate.d/rsyslog.magma /etc/logrotate.d/rsyslog
 systemctl restart rsyslog
 mkdir -p /var/opt/magma/fluent-bit
 

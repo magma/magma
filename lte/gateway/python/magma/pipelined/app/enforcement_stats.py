@@ -38,7 +38,6 @@ from magma.pipelined.openflow.messages import MsgChannel, MessageHub
 from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
     IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
-from magma.pipelined.rule_mappers import UsageDeltaDict
 from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 
 
@@ -83,10 +82,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._clean_restart = kwargs['config']['clean_restart']
         self._redis_enabled = kwargs['config'].get('redis_enabled', False)
         # Store last usage excluding deleted flows for calculating deltas
-        if self._redis_enabled:
-            self.last_usage_for_delta = UsageDeltaDict()
-        else:
-            self.last_usage_for_delta = {}
+        self.last_usage_for_delta = defaultdict(RuleRecord)
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
         self._unmatched_bytes = 0  # Store bytes matched by default rule if any
         self._default_drop_flow_name = \
@@ -109,13 +105,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self.total_usage = {}
         self.failed_usage = {}
         self._unmatched_bytes = 0
-
-        if self._redis_enabled:
-            keys = self.last_usage_for_delta.keys()
-            for key in keys:
-                self.last_usage_for_delta[key] = None
-        else:
-            self.last_usage_for_delta = {}
+        self.last_usage_for_delta = defaultdict(RuleRecord)
 
     def initialize_on_connect(self, datapath):
         """
@@ -405,6 +395,10 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             return
 
     def deactivate_default_flow(self, imsi, ip_addr):
+        if self._datapath is None:
+            self.logger.error('Datapath not initialized')
+            return
+
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
         match_out = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.OUT)
 
@@ -477,6 +471,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         record.rule_id = rule_id
         record.sid = sid
 
+        rule_version = _get_version(flow_stat)
+        if not rule_version:
+            rule_version = 0
+        record.rule_version = rule_version
+
         if ipv4_addr:
             record.ue_ipv4 = ipv4_addr
         elif ipv6_addr:
@@ -535,15 +534,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     '(version: %s): %s', stat_rule_id,
                     stat_sid, rule_version, e)
 
-        new_last_usage = self._delta_usage_maps(self.total_usage,
-                                                deleted_flow_usage)
-        # Save new purge old from redis
-        old = self.last_usage_for_delta.keys()
-        new = new_last_usage.keys()
-        for key, value in new_last_usage.items():
-            self.last_usage_for_delta[key] = value
-        for key in [k for k in old if k not in new]:
-            self.last_usage_for_delta[key] = None
+        self.last_usage_for_delta = self._delta_usage_maps(self.total_usage,
+            deleted_flow_usage)
 
     def _old_flow_stats(self, stats_msgs):
         """
@@ -564,7 +556,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     ipv4_addr = IPAddress(version=IPAddress.IPV4,
                                           address=ipv4_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
-                if rule_id == "":
+                if rule_id == "" or rule_version == None:
                     continue
 
                 current_ver = \
@@ -630,6 +622,13 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             else:
                 new_usage[key] = current
         return new_usage
+
+    def recover_state(self, stat_flows):
+        for flow in stat_flows[self.tbl_num]:
+            self.last_usage_for_delta = self._update_usage_from_flow_stat(
+                self.last_usage_for_delta, flow)
+        self.logger.info("Recovered enforcement stats")
+        self.logger.debug(self.last_usage_for_delta)
 
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):

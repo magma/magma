@@ -12,7 +12,7 @@ cwf:
     docker_registry: docker.io/cwf_
     tag: latest
   repo:
-    url: https://github.com/facebookincubator/magma.git
+    url: https://github.com/magma/magma.git
     branch: master
 image:
   repository: virtlet.cloud/cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
@@ -81,7 +81,7 @@ The following table list the configurable parameters of the orchestrator chart a
 | `cwf.proxy.cloud_port` | CWF proxy Cloud port. | `9443` |
 | `cwf.proxy.bootstrap_address` | CWF proxy bootstrap address. | `orc8r-bootstrap` |
 | `cwf.proxy.bootstrap_port` | CWF proxy bootstrap port. | `9444` |
-| `cwf.repo.url` | CWF magma repo url. | `https://github.com/facebookincubator/magma/` |
+| `cwf.repo.url` | CWF magma repo url. | `https://github.com/magma/magma/` |
 | `cwf.repo.branch` | CWF magma repo branch. | `master` |
 | `image.repository` | Virtlet image path | `virtlet.cloud/<image_path>` |
 | `image.pullPolicy` | Virtlet Image pullpolicy | `IfNotPresent` |

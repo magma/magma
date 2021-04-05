@@ -1,0 +1,63 @@
+{
+	"extensions": [
+		"CoenraadS.bracket-pair-colorizer-2",
+		"xaver.clang-format",
+		"notskm.clang-tidy",
+		"ms-vscode.cpptools",
+		"eamodio.gitlens",
+		"yzhang.markdown-all-in-one",
+		"christian-kohler.path-intellisense",
+		"vscodevim.vim",
+		"vscode-icons-team.vscode-icons",
+		"ms-vsliveshare.vsliveshare",
+		"ms-azuretools.vscode-docker"
+	],
+	"dockerFile": "Dockerfile",
+	"context": "..",
+	"settings": {
+		"terminal.integrated.shell.linux": "/bin/bash",
+		"clang-tidy.compilerArgs": [
+			// TODO: see if there is a way to use environment variables for workspace root (I tried)
+			"-I/workspaces/magma/build/c/oai/tasks/s1ap/r15/",  // Requires `make build_oai` to generate
+			"-I/workspaces/magma/lte/gateway/c/oai/common/",
+			"-I//workspaces/magma/lte/gateway/c/oai/include/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/3gpp/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/bstr/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/directoryd/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/event_client/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/gtpv2-c/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/hashtable/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/itti/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/message_utils/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/mobility_client/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/n11/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/openflow/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/pcef/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/s6a_proxy/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/secu/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/sgs_client/",
+			"-I/workspaces/magma/lte/gateway/c/oai/lib/sms_orc8r_client/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/mme_app/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/api/mme/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/api/network/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/emm/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/emm/msg/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/emm/sap/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/esm/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/esm/msg/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/ies/",
+			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/util/"
+		]
+	},
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
+	],
+	"runArgs": [
+		"--init"
+	],
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
+	"remoteUser": "vscode",
+}

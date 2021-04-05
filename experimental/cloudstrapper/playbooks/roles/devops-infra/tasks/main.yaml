@@ -1,0 +1,26 @@
+---
+- name: query all security groups
+  ec2_group_info:
+    filters:
+      group-name: "{{ secgroupDefault }}" 
+  register: reg_secgroup
+
+- name: assign security group id to variable
+  set_fact:
+    factSecgroup: "{{ reg_secgroup.security_groups[0].group_id }}" 
+
+- name: instantiate ec2 instance using cloudformation
+  cloudformation:
+    stack_name: "stackMantleDevOpsCloudstrapper"
+    state: present
+    region: "{{ awsAgwRegion }}"
+    disable_rollback: true
+    template: "roles/cfn/cfnMagmaBootstrap.json"
+    template_parameters:
+      paramKeyName: "{{ keyHost }}"
+      paramSecGroup: "{{ factSecgroup }}"
+      paramTagId: "Mantle"
+      paramTagName: "{{ devOpsCloudstrapper }}"
+      paramImageId: "{{ buildUbuntuAmi }}"
+        
+

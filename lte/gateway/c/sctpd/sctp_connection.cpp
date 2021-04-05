@@ -32,29 +32,26 @@ namespace sctpd {
 
 const int NUM_EPOLL_EVENTS = 10;
 
-SctpConnection::SctpConnection(const InitReq &req, SctpEventHandler &handler):
-  _done(false),
-  _handler(handler),
-  _ppid(req.ppid()),
-  _sctp_desc(0),
-  _thread(nullptr)
-{
+SctpConnection::SctpConnection(const InitReq& req, SctpEventHandler& handler)
+    : _done(false),
+      _handler(handler),
+      _ppid(req.ppid()),
+      _sctp_desc(0),
+      _thread(nullptr) {
   int sock = create_sctp_sock(req);
   if (sock < 0) throw std::exception();
 
   _sctp_desc = SctpDesc(sock);
 }
 
-void SctpConnection::Start()
-{
+void SctpConnection::Start() {
   assert(_done == false);
   assert(_thread == nullptr);
 
   _thread = std::make_unique<std::thread>(&SctpConnection::Listen, this);
 }
 
-void SctpConnection::Close()
-{
+void SctpConnection::Close() {
   assert(_done == false);
   assert(_thread != nullptr);
 
@@ -70,19 +67,16 @@ void SctpConnection::Close()
 }
 
 void SctpConnection::Send(
-  uint32_t assoc_id,
-  uint32_t stream,
-  const std::string &msg)
-{
+    uint32_t assoc_id, uint32_t stream, const std::string& msg) {
   assert(_thread != nullptr);
 
   auto assoc = _sctp_desc.getAssoc(assoc_id);
   assert(assoc.sd >= 0);
 
   auto buf = msg.c_str();
-  auto n = msg.size();
-  auto rc =
-    sctp_sendmsg(assoc.sd, buf, n, NULL, 0, htonl(assoc.ppid), 0, stream, 0, 0);
+  auto n   = msg.size();
+  auto rc  = sctp_sendmsg(
+      assoc.sd, buf, n, NULL, 0, htonl(assoc.ppid), 0, stream, 0, 0);
 
   if (rc < 0) {
     MLOG_perror("sctp_sendmsg");
@@ -90,8 +84,7 @@ void SctpConnection::Send(
   }
 }
 
-void SctpConnection::Listen()
-{
+void SctpConnection::Listen() {
   int server_fd = _sctp_desc.sd();
   MLOG(MINFO) << "starting sctp connection listener sd = "
               << std::to_string(server_fd);
@@ -103,7 +96,7 @@ void SctpConnection::Listen()
   }
 
   struct epoll_event event;
-  event.events = EPOLLIN;
+  event.events  = EPOLLIN;
   event.data.fd = server_fd;
 
   if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd, &event) < 0) {
@@ -114,21 +107,19 @@ void SctpConnection::Listen()
   struct epoll_event events[NUM_EPOLL_EVENTS];
 
   while (!_done) {
-    int timeout = 100; // milliseconds = .1s
+    int timeout    = 100;  // milliseconds = .1s
     int num_events = epoll_wait(epoll_fd, events, NUM_EPOLL_EVENTS, timeout);
 
     switch (num_events) {
-      case -1: { // errored
+      case -1: {  // errored
         if (errno == EINTR) continue;
         MLOG_perror("epoll_wait");
         std::terminate();
       }
-      case 0: { // timed out
+      case 0: {  // timed out
         continue;
       }
-      default: {
-        break;
-      }
+      default: { break; }
     }
 
     for (int i = 0; i < num_events; i++) {
@@ -142,7 +133,7 @@ void SctpConnection::Listen()
         }
 
         struct epoll_event event;
-        event.events = EPOLLIN;
+        event.events  = EPOLLIN;
         event.data.fd = client_sd;
 
         if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_sd, &event) < 0) {
@@ -154,19 +145,23 @@ void SctpConnection::Listen()
 
         auto status = HandleClientSock(client_sd);
 
-        if (status == SctpStatus::DISCONNECT) {
+        if ((status == SctpStatus::DISCONNECT) ||
+            (status == SctpStatus::NEW_ASSOC_NOTIF_FAILED)) {
           if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_sd, nullptr) < 0) {
             MLOG_perror("epoll_ctl");
             std::terminate();
           }
+        }
+
+        if (status == SctpStatus::NEW_ASSOC_NOTIF_FAILED) {
+          shutdown(client_sd, 0);
         }
       }
     }
   }
 }
 
-SctpStatus SctpConnection::HandleClientSock(int sd)
-{
+SctpStatus SctpConnection::HandleClientSock(int sd) {
   assert(sd >= 0);
 
   MLOG(MDEBUG) << "HandleClientSock sd = " << std::to_string(sd);
@@ -183,7 +178,7 @@ SctpStatus SctpConnection::HandleClientSock(int sd)
   }
 
   if (flags & MSG_NOTIFICATION) {
-    auto notif = (union sctp_notification *) msg;
+    auto notif = (union sctp_notification*) msg;
 
     switch (notif->sn_header.sn_type) {
       case SCTP_SHUTDOWN_EVENT: {
@@ -202,7 +197,7 @@ SctpStatus SctpConnection::HandleClientSock(int sd)
     }
   } else {
     // Data payload received
-    SctpAssoc &&assoc = SctpAssoc();
+    SctpAssoc&& assoc = SctpAssoc();
     try {
       assoc = _sctp_desc.getAssoc(sinfo.sinfo_assoc_id);
     } catch (std::out_of_range) {
@@ -228,16 +223,15 @@ SctpStatus SctpConnection::HandleClientSock(int sd)
                  << std::to_string(sinfo.sinfo_stream);
 
     _handler.HandleRecv(
-      sinfo.sinfo_assoc_id, sinfo.sinfo_stream, std::string(msg, n));
+        ntohl(sinfo.sinfo_ppid), sinfo.sinfo_assoc_id, sinfo.sinfo_stream,
+        std::string(msg, n));
 
     return SctpStatus::OK;
   }
 }
 
 SctpStatus SctpConnection::HandleAssocChange(
-  int sd,
-  struct sctp_assoc_change *change)
-{
+    int sd, struct sctp_assoc_change* change) {
   switch (change->sac_state) {
     case SCTP_COMM_UP: {
       return HandleComUp(sd, change);
@@ -257,14 +251,14 @@ SctpStatus SctpConnection::HandleAssocChange(
   }
 }
 
-SctpStatus SctpConnection::HandleComUp(int sd, struct sctp_assoc_change *change)
-{
+SctpStatus SctpConnection::HandleComUp(
+    int sd, struct sctp_assoc_change* change) {
   SctpAssoc assoc;
 
-  assoc.sd = sd;
-  assoc.ppid = _ppid;
-  assoc.assoc_id = change->sac_assoc_id;
-  assoc.instreams = change->sac_inbound_streams;
+  assoc.sd         = sd;
+  assoc.ppid       = _ppid;
+  assoc.assoc_id   = change->sac_assoc_id;
+  assoc.instreams  = change->sac_inbound_streams;
   assoc.outstreams = change->sac_outbound_streams;
 
   _sctp_desc.addAssoc(assoc);
@@ -272,33 +266,34 @@ SctpStatus SctpConnection::HandleComUp(int sd, struct sctp_assoc_change *change)
   std::string ran_cp_ipaddr;
   pull_peer_ipaddr(sd, change->sac_assoc_id, ran_cp_ipaddr);
 
-  _handler.HandleNewAssoc(
-      change->sac_assoc_id, change->sac_inbound_streams,
-      change->sac_outbound_streams, ran_cp_ipaddr);
+  if (_handler.HandleNewAssoc(
+          assoc.ppid, change->sac_assoc_id, change->sac_inbound_streams,
+          change->sac_outbound_streams, ran_cp_ipaddr) < 0) {
+    _sctp_desc.delAssoc(assoc.assoc_id);
+    return SctpStatus::NEW_ASSOC_NOTIF_FAILED;
+  }
 
   return SctpStatus::OK;
 }
 
-SctpStatus SctpConnection::HandleComDown(uint32_t assoc_id)
-{
+SctpStatus SctpConnection::HandleComDown(uint32_t assoc_id) {
   MLOG(MDEBUG) << "Sending close connection for assoc_id "
                << std::to_string(assoc_id);
 
   _sctp_desc.delAssoc(assoc_id);
 
-  _handler.HandleCloseAssoc(assoc_id, false);
+  _handler.HandleCloseAssoc(_ppid, assoc_id, false);
 
   return SctpStatus::DISCONNECT;
 }
 
-SctpStatus SctpConnection::HandleReset(uint32_t assoc_id)
-{
+SctpStatus SctpConnection::HandleReset(uint32_t assoc_id) {
   MLOG(MDEBUG) << "Handling sctp reset";
 
-  _handler.HandleCloseAssoc(assoc_id, true);
+  _handler.HandleCloseAssoc(_ppid, assoc_id, true);
 
   return SctpStatus::OK;
 }
 
-} // namespace sctpd
-} // namespace magma
+}  // namespace sctpd
+}  // namespace magma

@@ -1,0 +1,10 @@
+#Installing Ansible Server
+#Needs to be run as sudo user (instead of becoming sudo user for each play)
+
+
+- name: installing ansible dependent packages
+  apt: 
+    name: "{{ bootPackages }}" 
+    state: present
+    update_cache: yes
+

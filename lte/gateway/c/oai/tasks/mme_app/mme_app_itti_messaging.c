@@ -390,6 +390,52 @@ int mme_app_send_s11_create_session_req(
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
+
+//------------------------------------------------------------------------------
+/**
+ * Send an S1AP E-RAB Modification confirm to the S1AP layer.
+ * More IEs will be added soon.
+ */
+void mme_app_send_s1ap_e_rab_modification_confirm(
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    const enb_ue_s1ap_id_t enb_ue_s1ap_id,
+    const mme_app_s1ap_proc_modify_bearer_ind_t* const proc) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  /** Send a S1AP E-RAB MODIFICATION CONFIRM TO THE ENB. */
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_MODIFICATION_CNF);
+  if (message_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "itti_alloc_new_message Failed\n");
+  }
+
+  itti_s1ap_e_rab_modification_cnf_t* s1ap_e_rab_modification_cnf_p =
+      &message_p->ittiMsg.s1ap_e_rab_modification_cnf;
+
+  /** Set the identifiers. */
+  s1ap_e_rab_modification_cnf_p->mme_ue_s1ap_id = mme_ue_s1ap_id;
+  s1ap_e_rab_modification_cnf_p->enb_ue_s1ap_id = enb_ue_s1ap_id;
+
+  for (int i = 0; i < proc->e_rab_modified_list.no_of_items; ++i) {
+    s1ap_e_rab_modification_cnf_p->e_rab_modify_list.e_rab_id[i] =
+        proc->e_rab_modified_list.e_rab_id[i];
+  }
+  s1ap_e_rab_modification_cnf_p->e_rab_modify_list.no_of_items =
+      proc->e_rab_modified_list.no_of_items;
+
+  for (int i = 0; i < proc->e_rab_failed_to_be_modified_list.no_of_items; ++i) {
+    s1ap_e_rab_modification_cnf_p->e_rab_failed_to_modify_list.item[i]
+        .e_rab_id = proc->e_rab_failed_to_be_modified_list.item[i].e_rab_id;
+    s1ap_e_rab_modification_cnf_p->e_rab_failed_to_modify_list.item[i].cause =
+        proc->e_rab_failed_to_be_modified_list.item[i].cause;
+  }
+  s1ap_e_rab_modification_cnf_p->e_rab_failed_to_modify_list.no_of_items =
+      proc->e_rab_failed_to_be_modified_list.no_of_items;
+
+  /** Sending a message to S1AP. */
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
 /****************************************************************************
  **                                                                        **
  ** name:    nas_itti_sgsap_uplink_unitdata                                **

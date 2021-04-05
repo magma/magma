@@ -43,12 +43,15 @@ gen::
 #
 # For example
 #	- Before: lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml
-#	- After: configs/orc8r/swagger_specs/policydb.swagger.v1.yml
+#	- After: orc8r/cloud/swagger/specs/partial/policydb.swagger.v1.yml
 copy_swagger_files:
-	for f in $$(find . -name swagger.v1.yml) ; do cp $$f $${SWAGGER_V1_SPECS_DIR}/$$(echo $$f | sed -r 's/.*\/services\/([^\/]*)\/obsidian\/models\/(swagger\.v1\.yml)/\1.\2/g') ; done
+	for f in $$(find . -name swagger.v1.yml) ; do cp $$f $${SWAGGER_V1_PARTIAL_SPECS_DIR}/$$(echo $$f | sed -r 's/.*\/services\/([^\/]*)\/obsidian\/models\/(swagger\.v1\.yml)/\1.\2/g') ; done
 
 lint:
 	golangci-lint run
+
+swagger_tools:
+	go install magma/orc8r/cloud/go/tools/combine_swagger
 
 test::
 	go test ./...

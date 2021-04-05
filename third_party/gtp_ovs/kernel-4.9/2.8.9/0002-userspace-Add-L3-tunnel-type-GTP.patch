@@ -1,7 +1,7 @@
-From fe2085621027dc3515fd223c2af069167fbeced2 Mon Sep 17 00:00:00 2001
+From cf5c1e6a34e4458577902a8e5c76d1a229b60e59 Mon Sep 17 00:00:00 2001
 From: Jiannan Ouyang <ouyangj@fb.com>
 Date: Thu, 6 Jul 2017 19:45:05 +0000
-Subject: [PATCH 2/4] userspace: Add L3 tunnel type GTP
+Subject: [PATCH 2/7] userspace: Add L3 tunnel type GTP
 
 Userspace support for L3 vport type OVS_VPORT_TYPE_GTP
 
@@ -15,10 +15,10 @@ Signed-off-by: Jiannan Ouyang <ouyangj@fb.com>
  5 files changed, 44 insertions(+), 3 deletions(-)
 
 diff --git a/lib/dpif-netlink.c b/lib/dpif-netlink.c
-index 29001fbe4..7308a03d6 100644
+index d29dad351..80381d2ee 100644
 --- a/lib/dpif-netlink.c
 +++ b/lib/dpif-netlink.c
-@@ -776,6 +776,9 @@ get_vport_type(const struct dpif_netlink_vport *vport)
+@@ -678,6 +678,9 @@ get_vport_type(const struct dpif_netlink_vport *vport)
      case OVS_VPORT_TYPE_GRE:
          return "gre";
  
@@ -28,7 +28,7 @@ index 29001fbe4..7308a03d6 100644
      case OVS_VPORT_TYPE_VXLAN:
          return "vxlan";
  
-@@ -808,6 +811,8 @@ netdev_to_ovs_vport_type(const char *type)
+@@ -710,6 +713,8 @@ netdev_to_ovs_vport_type(const char *type)
          return OVS_VPORT_TYPE_GENEVE;
      } else if (strstr(type, "gre")) {
          return OVS_VPORT_TYPE_GRE;
@@ -38,7 +38,7 @@ index 29001fbe4..7308a03d6 100644
          return OVS_VPORT_TYPE_VXLAN;
      } else if (!strcmp(type, "lisp")) {
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index d11c5ccdd..8a734b945 100644
+index 89c8bde77..3d3bff83a 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
 @@ -54,6 +54,7 @@ VLOG_DEFINE_THIS_MODULE(netdev_vport);
@@ -143,7 +143,7 @@ index 5549b4951..b93330612 100644
          dip->tunnel_type = DPIF_IPFIX_TUNNEL_GENEVE;
          dip->tunnel_key_length = 3;
 diff --git a/ofproto/ofproto-dpif-sflow.c b/ofproto/ofproto-dpif-sflow.c
-index 65a2003a7..e21f56d2d 100644
+index 621a98732..df62c70e4 100644
 --- a/ofproto/ofproto-dpif-sflow.c
 +++ b/ofproto/ofproto-dpif-sflow.c
 @@ -61,7 +61,8 @@ enum dpif_sflow_tunnel_type {
@@ -174,10 +174,10 @@ index 65a2003a7..e21f56d2d 100644
          ipproto = IPPROTO_UDP;
  
 diff --git a/vswitchd/vswitch.xml b/vswitchd/vswitch.xml
-index 074535b58..5a9cf792a 100644
+index 3b6dddb4d..eb3b59639 100644
 --- a/vswitchd/vswitch.xml
 +++ b/vswitchd/vswitch.xml
-@@ -2204,6 +2204,22 @@
+@@ -2211,6 +2211,22 @@
              </p>
            </dd>
  

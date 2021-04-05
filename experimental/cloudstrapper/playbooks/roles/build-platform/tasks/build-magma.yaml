@@ -1,0 +1,21 @@
+---
+
+- name: install PyYAML via pip3. 
+  command: "{{ dirShim }}/pip3 install PyYAML"
+
+- name: install boto3  pip3.
+  command: "{{ dirShim }}/pip3 install boto3"
+
+- name: preparing build
+  pause:
+    minutes: 5
+  tags: buildPrep
+
+- name: primary build to generate orc8r artifacts
+  command: "chdir={{ magmaBuildDir }} {{ dirShim }}/python3.7 build.py --all"
+
+
+- name: primary build to generate NMS artifacts
+  command: "chdir={{ magmaNmsDir }} docker-compose build magmalte"
+
+
