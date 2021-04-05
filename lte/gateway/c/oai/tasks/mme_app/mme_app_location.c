@@ -256,7 +256,9 @@ int mme_app_handle_s6a_update_location_ans(
     }
   }
 
-  // Stop ULR Response timer if running
+  // Stop ULR Response timer.
+  // If expired its timer id should be MME_APP_TIMER_INACTIVE_ID and
+  // it should be already treated as failure
   if (ue_mm_context->ulr_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
     nas_itti_timer_arg_t* timer_argP = NULL;
     if (timer_remove(
@@ -271,6 +273,13 @@ int mme_app_handle_s6a_update_location_ans(
       free_wrapper((void**) &timer_argP);
     }
     ue_mm_context->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  } else {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "ULR Response Timer has invalid id. This implies that the timer has "
+        "expired and ULR has been handled as failure. \n ",
+        ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   ue_mm_context->subscription_known = SUBSCRIPTION_KNOWN;
