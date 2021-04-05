@@ -48,6 +48,7 @@ const (
 var (
 	cmdRegistry    = new(commands.Map)
 	proxyAddr      string
+	remoteS6a      bool
 	mncLen         int = 3
 	s6aAddr        string
 	network        string = "sctp"
@@ -99,6 +100,7 @@ func init() {
 		f.PrintDefaults()
 	}
 	f.StringVar(&proxyAddr, "proxy", proxyAddr, "s6a proxy address")
+	f.BoolVar(&remoteS6a, "remote_s6a", remoteS6a, "Use orc8r to get to the s6a_proxy (Run it on AGW without proxy flag)")
 	f.StringVar(&s6aAddr, "hss_addr", s6aAddr,
 		"s6a server (HSS) address - overwrites proxy address and starts local s6a proxy")
 	f.StringVar(&network, "network", network, "s6a server (HSS) network: tcp/sctp")
@@ -180,6 +182,7 @@ func air(cmd *commands.Command, args []string) int {
 	var cli s6aCli
 	var peerAddr string
 	if len(s6aAddr) > 0 || useMconfig { // use direct HSS connection if address is provided
+		fmt.Println("Using builtin S6a_proxy")
 		if useMconfig {
 			conf = servicers.GetS6aProxyConfigs()
 		}
@@ -194,6 +197,13 @@ func air(cmd *commands.Command, args []string) int {
 		cli = s6aBuiltIn{impl: localProxy}
 		peerAddr = conf.ServerCfg.Addr
 	} else {
+		if remoteS6a {
+			fmt.Println("Using S6a_proxy through Orc8r")
+			os.Setenv("USE_REMOTE_S6A_PROXY", "true")
+		} else {
+			fmt.Println("Using local S6a_proxy")
+		}
+
 		cli = s6aProxyCli{}
 		currAddr, _ := registry.GetServiceAddress(registry.S6A_PROXY)
 		if currAddr != proxyAddr {
