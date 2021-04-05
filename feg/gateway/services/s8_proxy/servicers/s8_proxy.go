@@ -108,6 +108,12 @@ func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 }
 
 func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
+	err := validateDeleteSessionRequest(req)
+	if err != nil {
+		err = fmt.Errorf("Delete Session failed for IMSI %s:, couldn't validate request: %s", req.Imsi, err)
+		glog.Error(err)
+		return nil, err
+	}
 	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
 	if err != nil {
 		err = fmt.Errorf("Delete Session failed for IMSI %s: %s", req.Imsi, err)
@@ -155,6 +161,13 @@ func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.
 func validateCreateSessionRequest(csr *protos.CreateSessionRequestPgw) error {
 	if csr.BearerContext == nil || csr.BearerContext.UserPlaneFteid == nil || csr.BearerContext.Id == 0 {
 		return fmt.Errorf("CreateSessionRequest missing fields %+v", csr)
+	}
+	return nil
+}
+
+func validateDeleteSessionRequest(dsr *protos.DeleteSessionRequestPgw) error {
+	if dsr.CPgwFteid == nil || dsr.Imsi == "" {
+		return fmt.Errorf("DeleteSessionRequest missing fields %+v", dsr)
 	}
 	return nil
 }
