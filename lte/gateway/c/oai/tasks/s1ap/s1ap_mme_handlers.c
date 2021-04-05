@@ -2023,8 +2023,8 @@ int s1ap_mme_handle_handover_request_ack(
 
   s1ap_mme_itti_s1ap_handover_request_ack(
       mme_ue_s1ap_id, ue_ref_p->enb_ue_s1ap_id, tgt_enb_ue_s1ap_id,
-      handover_type, source_enb->sctp_assoc_id, target_enb->sctp_assoc_id,
-      tgt_src_container, imsi64);
+      handover_type, source_enb->sctp_assoc_id, tgt_src_container,
+      source_enb->enb_id, target_enb->enb_id, imsi64);
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
@@ -2491,6 +2491,14 @@ int s1ap_mme_handle_handover_command(
     stream = ue_ref_p->sctp_stream_send;
   }
 
+  // we're doing handover, update the ue state
+  ue_ref_p->s1_ue_state                        = S1AP_UE_HANDOVER;
+  ue_ref_p->s1ap_handover_state.mme_ue_s1ap_id = ho_command_p->mme_ue_s1ap_id;
+  ue_ref_p->s1ap_handover_state.source_enb_id  = ho_command_p->source_enb_id;
+  ue_ref_p->s1ap_handover_state.target_enb_id  = ho_command_p->target_enb_id;
+  ue_ref_p->s1ap_handover_state.target_enb_ue_s1ap_id =
+      ho_command_p->tgt_enb_ue_s1ap_id;
+
   OAILOG_INFO(LOG_S1AP, "Handover Command received");
   pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
   pdu.choice.successfulOutcome.procedureCode =
@@ -2556,6 +2564,7 @@ int s1ap_mme_handle_handover_command(
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
+
 int s1ap_mme_handle_path_switch_request(
     s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,

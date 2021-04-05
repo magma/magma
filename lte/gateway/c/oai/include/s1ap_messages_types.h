@@ -396,6 +396,8 @@ typedef struct itti_s1ap_handover_request_ack_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   enb_ue_s1ap_id_t src_enb_ue_s1ap_id;
   enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id;
+  uint32_t source_enb_id;
+  uint32_t target_enb_id;
   S1ap_HandoverType_t handover_type;
   bstring tgt_src_container;
 } itti_s1ap_handover_request_ack_t;
