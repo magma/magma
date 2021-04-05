@@ -566,13 +566,13 @@ jobs:
           project: orc8r
           images: "nginx|controller"
           tag-latest: true
-      # - tag-push-docker:
-      #     project: orc8r
-      #     images: "nginx|controller"
-      #     tag-latest: true
-      #     registry: $JFROG_DOCKER_ORC8R_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: orc8r
+          images: "nginx|controller"
+          tag-latest: true
+          registry: $JFROG_DOCKER_ORC8R_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -672,12 +672,12 @@ jobs:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
-      # - tag-push-docker:
-      #     project: feg
-      #     images: "gateway_go|gateway_python"
-      #     registry: $JFROG_DOCKER_FEG_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: feg
+          images: "gateway_go|gateway_python"
+          registry: $JFROG_DOCKER_FEG_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -754,14 +754,14 @@ jobs:
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
           tag-latest: <<parameters.tag-latest>>
-      # - tag-push-docker:
-      #     project: cwf
-      #     images: <<parameters.images>>
-      #     tag: <<parameters.tag>>
-      #     tag-latest: <<parameters.tag-latest>>
-      #     registry: $JFROG_DOCKER_CWF_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: cwf
+          images: <<parameters.images>>
+          tag: <<parameters.tag>>
+          tag-latest: <<parameters.tag-latest>>
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -893,13 +893,15 @@ jobs:
       SWAGGER_CODEGEN_JAR: /home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
+      - python/set_version
       - build/determinator:
           <<: *lte_build_verify
       - run: mkdir -p /var/tmp/test_results
       - run: mkdir -p /var/tmp/codecovs
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
-      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      - run: pip3 install setuptools==49.6.0
       - run:
           command: |
             sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
@@ -990,12 +992,12 @@ jobs:
           project: cwf
           images: "operator"
           registry: $DOCKER_MAGMA_REGISTRY
-      # - tag-push-docker:
-      #     project: cwf
-      #     images: "operator"
-      #     registry: $JFROG_DOCKER_CWF_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: cwf
+          images: "operator"
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
