@@ -235,6 +235,14 @@ optional<SessionVector::iterator> SessionStore::find_session(
         }
         break;
 
+      case IMSI_AND_PDUID:
+        if ((*it)
+                ->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .pdu_session_id() == criteria.secondary_key_unit32) {
+          return it;
+        }
+        break;
       case IMSI_AND_UE_IPV4:
         if (context.ue_ipv4() == criteria.secondary_key) {
           return it;
@@ -287,7 +295,7 @@ optional<SessionVector::iterator> SessionStore::find_session(
             }
             break;
           case RATType::TGPP_NR:
-            if ((*it)->get_local_teid() == criteria.secondary_key_unit32) {
+            if ((*it)->get_upf_local_teid() == criteria.secondary_key_unit32) {
               return it;
             }
             break;

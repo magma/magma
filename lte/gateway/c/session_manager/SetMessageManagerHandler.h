@@ -46,6 +46,10 @@ class SetMessageManager {
    * (SmContextVoid);" as its set-interface API, no need to send response back,
    * response is void and gRPC will take care on acknowledgement
    */
+  virtual void SetSmfNotification(
+      ServerContext* context, const SetSmNotificationContext* notif,
+      std::function<void(Status, SmContextVoid)> response_callback) = 0;
+
   virtual void SetAmfSessionContext(
       ServerContext* context, const SetSMSessionContext* request,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
@@ -58,6 +62,11 @@ class SetMessageManagerHandler : public SetMessageManager {
       SessionStore& session_store);
   ~SetMessageManagerHandler() {}
 
+  /* Paging, idle state change notifcation receiving */
+  virtual void SetSmfNotification(
+      ServerContext* context, const SetSmNotificationContext* notif,
+      std::function<void(Status, SmContextVoid)> response_callback);
+
   virtual void SetAmfSessionContext(
       ServerContext* context, const SetSMSessionContext* request,
       std::function<void(Status, SmContextVoid)> response_callback);
@@ -67,6 +76,24 @@ class SetMessageManagerHandler : public SetMessageManager {
   std::shared_ptr<SessionStateEnforcer> m5g_enforcer_;
   SessionIDGenerator id_gen_;
 
+  /* When any specific IMIS/PDU id session is in-active
+   */
+  void pdu_session_inactive(
+      const SetSmNotificationContext& notif,
+      std::function<void(Status, SmContextVoid)> response_callback);
+
+  /* When any IMSI is moved to inactive state
+   */
+  void idle_mode_change_sessions_handle(
+      const SetSmNotificationContext& notif,
+      std::function<void(Status, SmContextVoid)> response_callback);
+  /* When service request
+   * is received from AMF after paging request sent
+   */
+
+  void service_handle_request_on_paging(
+      const SetSmNotificationContext& notif,
+      std::function<void(Status, SmContextVoid)> response_callback);
   /*
    * Send session creation related request to the CentralSessionController.
    * which is policy/QoS related. On successful, creates and populate,
@@ -74,15 +101,14 @@ class SetMessageManagerHandler : public SetMessageManager {
    * It uses SessionStateEnforcer object to create new session state.
    */
   void send_create_session(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& session_ctx_id, const SessionConfig& cfg,
-      const std::string& dnn);
+      SessionMap& session_map, const std::string& imsi, SessionConfig& cfg,
+      uint32_t& pdu_id);
   /*initialize the session message from proto message*/
   SessionConfig m5g_build_session_config(const SetSMSessionContext& request);
 
   /*Release request message handling*/
   void initiate_release_session(
-      SessionMap& session_map, const std::string& dnn, const std::string& imsi);
+      SessionMap& session_map, const uint32_t& pdu_id, const std::string& imsi);
 };  // end of class SetMessageManagerHandlerImpl
 
 }  // end namespace magma

@@ -76,8 +76,25 @@ AmfPduSessionSmContextAsyncService::AmfPduSessionSmContextAsyncService(
     : AsyncService(std::move(cq)), handler_(std::move(handler)) {}
 
 void AmfPduSessionSmContextAsyncService::init_call_data() {
-  new SetAmfSessionContextCallData(cq_.get(), *this, *handler_);
   MLOG(MINFO) << "Initializing new call data for SetAmfSessionContext";
+  new SetAmfSessionContextCallData(cq_.get(), *this, *handler_);
+  MLOG(MINFO) << "Initializing new call data for SetSmfNotification";
+  new SetSmfNotificationCallData(cq_.get(), *this, *handler_);
+}
+
+/*Landing object invocation object call for 5G*/
+SetInterfaceForUserPlaneAsyncService::SetInterfaceForUserPlaneAsyncService(
+    std::unique_ptr<ServerCompletionQueue> cq,
+    std::unique_ptr<UpfMsgManageHandler> handler)
+    : AsyncService(std::move(cq)), handler_(std::move(handler)) {}
+
+void SetInterfaceForUserPlaneAsyncService::init_call_data() {
+  MLOG(MINFO) << "Initializing new call data for SetUpfNodeStateCallData";
+  new SetUPFNodeStateCallData(cq_.get(), *this, *handler_);
+  MLOG(MINFO) << "Initializing new call data for UpfSessionConfigCallData";
+  new SetUPFSessionsConfigCallData(cq_.get(), *this, *handler_);
+  MLOG(MINFO) << "Initializing new call data for SendPagingRequest";
+  new SendPagingRequestCallData(cq_.get(), *this, *handler_);
 }
 
 SessionProxyResponderAsyncService::SessionProxyResponderAsyncService(

@@ -73,7 +73,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.sm_session_version = req_common.sm_session_version();
 
   // RatSpecificContextAccess
-  memcpy((&itti_msg.pdu_session_id), req_m5g.pdu_session_id().c_str(), 1);
+  itti_msg.pdu_session_id    = req_m5g.pdu_session_id();
   itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
   itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
@@ -91,6 +91,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
   ip_int = ntohl(ip_addr.s_addr);
   INT32_TO_BUFFER(ip_int, itti_msg.pdu_address.redirect_server_address);
   send_n11_create_pdu_session_resp_itti(&itti_msg);
+  OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request \n");
   return Status::OK;
 }
 

@@ -79,10 +79,7 @@ class MockPipelined final : public Pipelined::Service {
 
 class MockPipelinedClient : public PipelinedClient {
  public:
-  MockPipelinedClient() {
-    ON_CALL(*this, get_next_teid()).WillByDefault(Return(0));
-    ON_CALL(*this, get_current_teid()).WillByDefault(Return(0));
-  }
+  MockPipelinedClient() {}
 
   MOCK_METHOD9(
       setup_cwf,
@@ -154,8 +151,6 @@ class MockPipelinedClient : public PipelinedClient {
       void(
           const SessionState::SessionInfo info,
           std::function<void(Status status, UPFSessionContextState)> callback));
-  MOCK_METHOD0(get_next_teid, uint32_t());
-  MOCK_METHOD0(get_current_teid, uint32_t());
 };
 
 class MockDirectorydClient : public DirectorydClient {

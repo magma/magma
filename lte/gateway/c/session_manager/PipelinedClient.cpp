@@ -25,15 +25,13 @@ using std::experimental::optional;
 magma::SessionSet create_session_set_req(
     magma::SessionState::SessionInfo info) {
   magma::SessionSet req;
-  magma::lte::Fsm_state_FsmState state         = info.state;
-  std::string subscriber_id                    = info.subscriber_id;
-  uint32_t sess_ver_no                         = info.ver_no;
-  magma::SessionState::SessionInfo::NodeId tmp = info.nodeId;
-  std::string node_id                          = tmp.node_id;
+  magma::lte::Fsm_state_FsmState state = info.state;
+  std::string subscriber_id            = info.subscriber_id;
+  uint32_t sess_ver_no                 = info.ver_no;
   req.set_subscriber_id(subscriber_id);
   req.set_session_version(sess_ver_no);
   req.set_local_f_teid(info.local_f_teid);
-  req.mutable_node_id()->set_node_id(node_id);
+  req.mutable_node_id()->set_node_id(info.nodeId.node_id);
   req.mutable_node_id()->set_node_id_type(magma::NodeID::IPv4);
   req.mutable_state()->set_state(state);
 
@@ -192,9 +190,7 @@ namespace magma {
 
 AsyncPipelinedClient::AsyncPipelinedClient(
     std::shared_ptr<grpc::Channel> channel)
-    : stub_(Pipelined::NewStub(channel)) {
-  teid = M5G_MIN_TEID;
-}
+    : stub_(Pipelined::NewStub(channel)) {}
 
 AsyncPipelinedClient::AsyncPipelinedClient()
     : AsyncPipelinedClient(ServiceRegistrySingleton::Instance()->GetGrpcChannel(
@@ -459,18 +455,4 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
       std::move(stub_->AsyncUpdateSubscriberQuotaState(
           local_resp->get_context(), request, &queue_)));
 }
-
-uint32_t AsyncPipelinedClient::get_next_teid() {
-  /* For now TEID we use current no, increment for next, later we plan to
-     maintain  release/alloc table for reu sing */
-  uint32_t allocated_teid = teid++;
-  return allocated_teid;
-}
-
-uint32_t AsyncPipelinedClient::get_current_teid() {
-  /* For now TEID we use current no, increment for next, later we plan to
-     maintain  release/alloc table for reu sing */
-  return teid;
-}
-
 }  // namespace magma
