@@ -20,13 +20,35 @@
 #include <vector>                             // for vector
 #include "GRPCReceiver.h"                     // for GRPCReceiver
 #include "lte/protos/subscriberdb.pb.h"       // for lte
-namespace grpc { class Channel; }
-namespace grpc { class Status; }
-namespace grpc { class Status; }
-namespace magma { namespace lte { class CreateBearerRequest; } }
-namespace magma { namespace lte { class CreateBearerResult; } }
-namespace magma { namespace lte { class DeleteBearerRequest; } }
-namespace magma { namespace lte { class DeleteBearerResult; } }
+namespace grpc {
+class Channel;
+}
+namespace grpc {
+class Status;
+}
+namespace grpc {
+class Status;
+}
+namespace magma {
+namespace lte {
+class CreateBearerRequest;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class CreateBearerResult;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class DeleteBearerRequest;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class DeleteBearerResult;
+}
+}  // namespace magma
 
 using grpc::Status;
 

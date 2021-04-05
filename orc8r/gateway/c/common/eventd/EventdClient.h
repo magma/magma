@@ -17,9 +17,19 @@
 #include <functional>                     // for function
 #include <memory>                         // for unique_ptr
 #include "GRPCReceiver.h"                 // for GRPCReceiver
-namespace grpc { class Status; }
-namespace magma { namespace orc8r { class Event; } }
-namespace magma { namespace orc8r { class Void; } }
+namespace grpc {
+class Status;
+}
+namespace magma {
+namespace orc8r {
+class Event;
+}
+}  // namespace magma
+namespace magma {
+namespace orc8r {
+class Void;
+}
+}  // namespace magma
 
 using grpc::Status;
 

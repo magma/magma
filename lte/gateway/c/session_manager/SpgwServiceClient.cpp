@@ -25,7 +25,9 @@
 #include "lte/protos/spgw_service.grpc.pb.h"       // for SpgwService::Stub
 #include "lte/protos/spgw_service.pb.h"            // for DeleteBearerRequest
 #include "magma_logging.h"                         // for MLOG, MERROR, MINFO
-namespace grpc { class Channel; }
+namespace grpc {
+class Channel;
+}
 
 using grpc::Status;
 
