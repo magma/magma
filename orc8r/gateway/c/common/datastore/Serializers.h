@@ -12,8 +12,10 @@
  */
 #pragma once
 
-#include <functional>
-#include <google/protobuf/message.h>
+#include <stdint.h>    // for uint64_t
+#include <functional>  // for function
+#include <string>      // for string
+namespace google { namespace protobuf { class Message; } }
 
 using google::protobuf::Message;
 namespace magma {
