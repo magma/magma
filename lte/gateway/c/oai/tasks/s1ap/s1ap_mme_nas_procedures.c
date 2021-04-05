@@ -471,7 +471,7 @@ int s1ap_mme_handle_nas_non_delivery(
 int s1ap_generate_downlink_nas_transport(
     s1ap_state_t* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload,
-    const imsi64_t imsi64) {
+    const imsi64_t imsi64, bool* is_state_same) {
   ue_description_t* ue_ref = NULL;
   uint8_t* buffer_p        = NULL;
   uint32_t length          = 0;
@@ -480,7 +480,7 @@ int s1ap_generate_downlink_nas_transport(
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  // Try to retrieve SCTP assoication id using mme_ue_s1ap_id
+  // Try to retrieve SCTP association id using mme_ue_s1ap_id
   if (HASH_TABLE_OK ==
       hashtable_ts_get(
           &state->mmeid2associd, (const hash_key_t) ue_id, (void**) &id)) {
@@ -513,12 +513,15 @@ int s1ap_generate_downlink_nas_transport(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
     /*
-     * We have fount the UE in the list.
+     * We have found the UE in the list.
      * * * * Create new IE list message and encode it.
      */
     s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-    hashtable_uint64_ts_insert(
-        imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, imsi64);
+    if (hashtable_uint64_ts_insert(
+            imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, imsi64) ==
+        HASH_TABLE_SAME_KEY_VALUE_EXISTS) {
+      is_state_same = true;
+    }
 
     S1ap_DownlinkNASTransport_IEs_t* ie = NULL;
     S1ap_DownlinkNASTransport_t* out    = NULL;
@@ -536,7 +539,7 @@ int s1ap_generate_downlink_nas_transport(
     if (ue_ref->s1_ue_state == S1AP_UE_WAITING_CRR) {
       OAILOG_ERROR_UE(
           LOG_S1AP, imsi64,
-          "Already triggred UE Context Release Command and UE is"
+          "Already triggered UE Context Release Command and UE is"
           "in S1AP_UE_WAITING_CRR, so dropping the DownlinkNASTransport \n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     } else {
