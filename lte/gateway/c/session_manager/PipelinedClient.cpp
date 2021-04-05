@@ -64,6 +64,12 @@ magma::DeactivateFlowsRequest create_deactivate_req(
   for (const auto& rule : to_process.rules) {
     ids->Add()->assign(rule.id());
   }
+  auto mut_versioned_rules = req.mutable_policies();
+  for (uint index = 0; index < to_process.rules.size(); ++index) {
+    auto versioned_policy = mut_versioned_rules->Add();
+    versioned_policy->set_version(to_process.versions[index]);
+    versioned_policy->set_rule_id(to_process.rules[index].id());
+  }
   return req;
 }
 
@@ -85,9 +91,16 @@ magma::ActivateFlowsRequest create_activate_req(
   if (ambr) {
     req.mutable_apn_ambr()->CopyFrom(*ambr);
   }
+  // TODO depracate dynamic rules fields
   auto mut_dyn_rules = req.mutable_dynamic_rules();
   for (const auto& dyn_rule : to_process.rules) {
     mut_dyn_rules->Add()->CopyFrom(dyn_rule);
+  }
+  auto mut_versioned_rules = req.mutable_policies();
+  for (uint index = 0; index < to_process.rules.size(); ++index) {
+    auto versioned_policy = mut_versioned_rules->Add();
+    versioned_policy->set_version(to_process.versions[index]);
+    versioned_policy->mutable_rule()->CopyFrom(to_process.rules[index]);
   }
   return req;
 }
