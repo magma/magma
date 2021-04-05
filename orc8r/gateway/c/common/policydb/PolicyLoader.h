@@ -15,7 +15,11 @@
 #include <functional>                    // for function
 #include <vector>                        // for vector
 #include "lte/protos/subscriberdb.pb.h"  // for lte
-namespace magma { namespace lte { class PolicyRule; } }
+namespace magma {
+namespace lte {
+class PolicyRule;
+}
+}  // namespace magma
 
 namespace magma {
 using namespace lte;

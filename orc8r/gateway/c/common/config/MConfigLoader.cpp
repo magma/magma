@@ -18,7 +18,11 @@
 #include <fstream>                           // for operator<<, char_traits
 #include <json.hpp>                          // for basic_json<>::iterator
 #include "magma_logging.h"                   // for MLOG
-namespace google { namespace protobuf { class Message; } }
+namespace google {
+namespace protobuf {
+class Message;
+}
+}  // namespace google
 
 using json = nlohmann::json;
 

@@ -18,14 +18,36 @@
 #include <memory>             // for shared_ptr
 #include <string>             // for string
 #include "MetricsRegistry.h"  // for MetricsRegistry, Registry
-namespace grpc { class Server; }
-namespace prometheus { class Counter; }
-namespace prometheus { class Gauge; }
-namespace prometheus { class Histogram; }
-namespace prometheus { class Registry; }
-namespace prometheus { namespace detail { class CounterBuilder; } }
-namespace prometheus { namespace detail { class GaugeBuilder; } }
-namespace prometheus { namespace detail { class HistogramBuilder; } }
+namespace grpc {
+class Server;
+}
+namespace prometheus {
+class Counter;
+}
+namespace prometheus {
+class Gauge;
+}
+namespace prometheus {
+class Histogram;
+}
+namespace prometheus {
+class Registry;
+}
+namespace prometheus {
+namespace detail {
+class CounterBuilder;
+}
+}  // namespace prometheus
+namespace prometheus {
+namespace detail {
+class GaugeBuilder;
+}
+}  // namespace prometheus
+namespace prometheus {
+namespace detail {
+class HistogramBuilder;
+}
+}  // namespace prometheus
 
 using grpc::Server;
 using magma::service303::MetricsRegistry;

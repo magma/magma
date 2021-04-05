@@ -15,7 +15,11 @@
 #include <stdint.h>    // for uint64_t
 #include <functional>  // for function
 #include <string>      // for string
-namespace google { namespace protobuf { class Message; } }
+namespace google {
+namespace protobuf {
+class Message;
+}
+}  // namespace google
 
 using google::protobuf::Message;
 namespace magma {
