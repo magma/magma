@@ -2527,9 +2527,107 @@ int s1ap_mme_handle_error_ind_message(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message) {
   OAILOG_FUNC_IN(LOG_S1AP);
-  OAILOG_WARNING(
-      LOG_S1AP, "ERROR IND RCVD on Stream id %d, ignoring it\n", stream);
+  OAILOG_WARNING(LOG_S1AP, "ERROR IND RCVD on Stream id %d \n", stream);
   increment_counter("s1ap_error_ind_rcvd", 1, NO_LABELS);
+  S1ap_ErrorIndication_t* container = NULL;
+  S1ap_ErrorIndicationIEs_t* ie     = NULL;
+  ue_description_t* ue_ref_p        = NULL;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id   = INVALID_ENB_UE_S1AP_ID;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id   = INVALID_MME_UE_S1AP_ID;
+  S1ap_Cause_PR cause_type;
+  long cause_value;
+
+  container = &message->choice.initiatingMessage.value.choice.ErrorIndication;
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_ErrorIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid((uint32_t) mme_ue_s1ap_id)) == NULL) {
+    OAILOG_INFO(
+        LOG_S1AP,
+        "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_ErrorIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  if (ie) {
+    // eNB UE S1AP ID is limited to 24 bits
+    enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_ErrorIndicationIEs_t, ie, container, S1ap_ProtocolIE_ID_id_Cause,
+      true);
+  if (ie) {
+    cause_type = ie->value.choice.Cause.present;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  switch (cause_type) {
+    case S1ap_Cause_PR_radioNetwork:
+      cause_value = ie->value.choice.Cause.choice.radioNetwork;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = Radio Network "
+          "and Cause_Value = %ld\n",
+          cause_value);
+      break;
+
+    case S1ap_Cause_PR_transport:
+      cause_value = ie->value.choice.Cause.choice.transport;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = Transport and "
+          "Cause_Value = %ld\n",
+          cause_value);
+      break;
+
+    case S1ap_Cause_PR_nas:
+      cause_value = ie->value.choice.Cause.choice.nas;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = NAS and "
+          "Cause_Value = %ld\n",
+          cause_value);
+      break;
+
+    case S1ap_Cause_PR_protocol:
+      cause_value = ie->value.choice.Cause.choice.protocol;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = Protocol and "
+          "Cause_Value = %ld\n",
+          cause_value);
+      break;
+
+    case S1ap_Cause_PR_misc:
+      cause_value = ie->value.choice.Cause.choice.misc;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = MISC and "
+          "Cause_Value = %ld\n",
+          cause_value);
+      break;
+
+    default:
+      OAILOG_ERROR_UE(
+          LOG_S1AP, imsi64, "Error Indication with Invalid Cause_Type = %d\n",
+          cause_type);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
