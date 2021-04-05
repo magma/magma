@@ -16,8 +16,12 @@
 #include <memory>                 // for shared_ptr, unique_ptr
 #include <string>                 // for string
 #include "ServiceConfigLoader.h"  // for ServiceConfigLoader
-namespace grpc { class Channel; }
-namespace grpc { class ChannelCredentials; }
+namespace grpc {
+class Channel;
+}
+namespace grpc {
+class ChannelCredentials;
+}
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

@@ -22,13 +22,33 @@
 #include <memory>                             // for unique_ptr
 #include <string>                             // for string
 #include "orc8r/protos/service303.pb.h"       // for ServiceInfo, ServiceInf...
-namespace grpc { class ServerCompletionQueue; }
-namespace grpc { class ServerContext; }
-namespace grpc { class ServerContext; }
-namespace grpc { class Service; }
-namespace magma { namespace orc8r { class MetricsContainer; } }
-namespace magma { namespace orc8r { class Void; } }
-namespace magma { namespace service303 { class MetricsSingleton; } }
+namespace grpc {
+class ServerCompletionQueue;
+}
+namespace grpc {
+class ServerContext;
+}
+namespace grpc {
+class ServerContext;
+}
+namespace grpc {
+class Service;
+}
+namespace magma {
+namespace orc8r {
+class MetricsContainer;
+}
+}  // namespace magma
+namespace magma {
+namespace orc8r {
+class Void;
+}
+}  // namespace magma
+namespace magma {
+namespace service303 {
+class MetricsSingleton;
+}
+}  // namespace magma
 
 using grpc::Server;
 using grpc::ServerContext;

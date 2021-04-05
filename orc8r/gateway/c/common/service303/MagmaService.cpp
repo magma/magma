@@ -34,8 +34,12 @@
 #include "orc8r/protos/metrics.pb.h"               // for MetricFamily
 #include "orc8r/protos/metricsd.pb.h"              // for MetricsContainer
 #include "registry.h"                              // for Registry
-namespace grpc { class ServerContext; }
-namespace grpc { class Service; }
+namespace grpc {
+class ServerContext;
+}
+namespace grpc {
+class Service;
+}
 
 using grpc::InsecureServerCredentials;
 using grpc::Status;

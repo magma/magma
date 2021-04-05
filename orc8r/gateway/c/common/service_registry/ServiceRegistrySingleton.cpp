@@ -19,7 +19,9 @@
 #include <fstream>                             // for basic_ostream, basic_o...
 #include <stdexcept>                           // for invalid_argument
 #include <string>                              // for string, allocator, ope...
-namespace grpc { class Channel; }
+namespace grpc {
+class Channel;
+}
 
 using grpc::CreateCustomChannel;
 using grpc::InsecureChannelCredentials;

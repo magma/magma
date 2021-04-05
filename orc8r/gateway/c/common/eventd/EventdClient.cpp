@@ -17,9 +17,17 @@
 #include "ServiceRegistrySingleton.h"              // for ServiceRegistrySin...
 #include "orc8r/protos/common.pb.h"                // for Void
 #include "orc8r/protos/eventd.grpc.pb.h"           // for EventService::Stub
-namespace grpc { class ClientContext; }
-namespace grpc { class Status; }
-namespace magma { namespace orc8r { class Event; } }
+namespace grpc {
+class ClientContext;
+}
+namespace grpc {
+class Status;
+}
+namespace magma {
+namespace orc8r {
+class Event;
+}
+}  // namespace magma
 
 namespace magma {
 
