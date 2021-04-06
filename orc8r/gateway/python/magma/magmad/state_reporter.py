@@ -70,6 +70,7 @@ class StateReporterErrorHandler:
         report_to_cloud_error checks if the number of failed reporting exceeds
         the threshold specified in the config. If it does, it will trigger a
         bootstrap if the certificate is invalid.
+        
         """
         logging.error("Checkin Error! Failed to report states. [%s] %s",
                       err.code(), err.details())

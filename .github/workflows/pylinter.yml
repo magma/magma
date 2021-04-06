@@ -1,0 +1,67 @@
+#######
+# This pipeline runs pep8 format analysis on python pull requests.
+#######
+name: "Check Python lint"
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+    paths:
+      - '**.py'
+
+jobs:
+  PythonLint:
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Check Out Repo 
+        uses: actions/checkout@v2
+      # - 
+      #   name: Set up Python
+      #   uses: actions/setup-python@v2
+      #   with:
+      #     python-version: 3.8
+      # - 
+      #   name: Install dependencies
+      #   run: pip install flake8
+      # -
+      #   name: Run diff
+      #   uses: technote-space/get-diff-action@v4
+      #   with:
+      #     PATTERNS: |
+      #       +(orc8r|lte)/**/*.py
+      # - 
+      #   if: env.GIT_DIFF
+      #   name: Lint with flake8
+      #   run: flake8 ${{ env.GIT_DIFF }} 
+      #       # If the above check failed, post a comment on the PR explaining the failure
+      # - 
+      #   name: Post PR comment
+      #   if: failure()
+      #   uses: mshick/add-pr-comment@v1
+      #   with:
+      #     message: |
+      #       ## Python linting (`flake8`) is failing
+      #       To keep the code consistent with lots of contributors, we run automated code consistency checks.
+      #       To fix this CI test, please run:
+      #       * Install [`flake8`](https://flake8.pycqa.org/en/latest/)
+      #       * Fix formatting errors in your pipeline: `flake8 .`
+      #       Once you push these changes the test should pass, and you can hide this comment :+1:
+      #       We highly recommend setting up flake8 in your code editor so that this formatting is done automatically on save. Ask about it on Slack for help!
+      #       Thanks again for your contribution!
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+      #     allow-repeats: false
+
+      - uses: grantmcconnaughey/lintly-flake8-github-action@v1.0
+        with:
+          # The GitHub API token to create reviews with
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Fail if "new" violations detected or "any", default "new"
+          failIf: new
+          # Additional arguments to pass to flake8, default "." (current directory)
+          args: "--ignore=E121,E123 ."
+
+      
