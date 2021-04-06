@@ -54,7 +54,8 @@
           "howtos/troubleshooting/agw_unable_to_checkin",
           "howtos/troubleshooting/user_unable_to_attach",
           "howtos/troubleshooting/update_certificates",
-          "howtos/troubleshooting/generate_admin_operator_certificates"
+          "howtos/troubleshooting/generate_admin_operator_certificates",
+          "howtos/troubleshooting/analyze_service_crashes_in_agw"
         ]
       }
     ],
@@ -85,7 +86,8 @@
           "lte/deploy_config_agw",
           "lte/deploy_config_enodebd",
           "lte/deploy_config_apn",
-          "lte/deploy_config_agw_ha"
+          "lte/deploy_config_agw_ha",
+          "lte/build_install_magma_pkg_in_agw"
         ]
       },
       {
@@ -95,6 +97,8 @@
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
           "orc8r/deploy_install",
+          "orc8r/hold_terraform_state_on_s3",
+          "orc8r/override_values_of_terraform_files",
           "orc8r/deploy_faq"
         ]
       },
