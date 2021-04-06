@@ -13,11 +13,10 @@ limitations under the License.
 
 import unittest
 
+import test_topology_builder
 from nose.plugins.skip import SkipTest
 from scapy.all import IP, UDP, L2Socket  # pylint: disable=no-name-in-module
 from scapy.contrib.gtp import GTPCreatePDPContextRequest, GTPHeader
-
-import test_topology_builder
 
 
 class TestOvsGtp(unittest.TestCase):
