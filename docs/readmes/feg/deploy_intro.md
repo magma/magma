@@ -3,7 +3,8 @@ id: deploy_intro
 title: Introduction
 hide_title: true
 ---
-# Deploying Federation Gateway: Introduction
+
+# Introduction
 
 These pages will walk through the full process of deploying a
 Federation Gateway, from building the various containers that you'll need

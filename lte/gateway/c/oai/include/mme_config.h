@@ -52,13 +52,14 @@
 #define MIN_GUMMEI 1
 #define MAX_GUMMEI 5
 #define MIN_TAI_SUPPORTED 1
-#define MAX_TAI_SUPPORTED 16
 #define MAX_MCC_LENGTH 3
 #define MAX_MNC_LENGTH 3
 #define MIN_MNC_LENGTH 2
 #define CIDR_SPLIT_LIST_COUNT 2
 #define MAX_APN_CORRECTION_MAP_LIST 10
 #define MAX_RESTRICTED_PLMN 10
+#define MAX_FED_MODE_MAP_CONFIG 10
+#define MAX_IMSI_LENGTH 15
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
@@ -71,6 +72,7 @@
 #define MME_CONFIG_STRING_STATISTIC_TIMER "MME_STATISTIC_TIMER"
 
 #define MME_CONFIG_STRING_USE_STATELESS "USE_STATELESS"
+#define MME_CONFIG_STRING_ENABLE_CONVERGED_CORE "ENABLE_CONVERGED_CORE"
 #define MME_CONFIG_STRING_FULL_NETWORK_NAME "FULL_NETWORK_NAME"
 #define MME_CONFIG_STRING_SHORT_NETWORK_NAME "SHORT_NETWORK_NAME"
 #define MME_CONFIG_STRING_DAYLIGHT_SAVING_TIME "DAYLIGHT_SAVING_TIME"
@@ -189,6 +191,13 @@
 #define MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION                    \
   "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
 
+// INBOUND ROAMING
+#define MME_CONFIG_STRING_FED_MODE_MAP "FEDERATED_MODE_MAP"
+#define MME_CONFIG_STRING_MODE "MODE"
+#define MME_CONFIG_STRING_APN "APN"
+#define MME_CONFIG_STRING_IMSI_RANGE "IMSI_RANGE"
+#define MME_CONFIG_STRING_PLMN "PLMN"
+
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
 typedef struct eps_network_feature_config_s {
@@ -301,6 +310,20 @@ typedef struct restricted_plmn_s {
   plmn_t plmn[MAX_RESTRICTED_PLMN];
 } restricted_plmn_config_t;
 
+typedef struct fed_mode_map_s {
+  uint8_t mode;
+  plmn_t plmn;
+  // IMSI range
+  uint8_t imsi_low[MAX_IMSI_LENGTH + 1];
+  uint8_t imsi_high[MAX_IMSI_LENGTH + 1];
+  bstring apn;
+} fed_mode_map_t;
+
+typedef struct fed_mode_map_config_s {
+  int num;
+  fed_mode_map_t mode_map[MAX_FED_MODE_MAP_CONFIG];
+} fed_mode_map_config_t;
+
 typedef struct mme_config_s {
   /* Reader/writer lock for this configuration */
   pthread_rwlock_t rw_lock;
@@ -347,10 +370,11 @@ typedef struct mme_config_s {
   ip_t ip;
 
   lai_t lai;
-
+  fed_mode_map_config_t mode_map_config;
   bool use_stateless;
   bool use_ha;
   bool enable_gtpu_private_ip_correction;
+  bool enable_converged_core;
 } mme_config_t;
 
 extern mme_config_t mme_config;

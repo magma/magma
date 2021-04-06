@@ -1823,10 +1823,12 @@ int s1ap_mme_handle_ue_context_modification_failure(
       S1AP_FIND_PROTOCOLIE_BY_ID(
           S1ap_UEContextModificationFailureIEs_t, ie, container,
           S1ap_ProtocolIE_ID_id_Cause, true);
-      if (!ie) {
+      if (ie) {
+        cause_type = ie->value.choice.Cause.present;
+      } else {
         OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
       }
-      cause_value = ie->value.choice.Cause.choice.radioNetwork;
+
       switch (cause_type) {
         case S1ap_Cause_PR_radioNetwork:
           cause_value = ie->value.choice.Cause.choice.radioNetwork;
@@ -1929,7 +1931,7 @@ int s1ap_mme_handle_path_switch_request(
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   ecgi_t ecgi                     = {.plmn = {0}, .cell_identity = {0}};
   tai_t tai                       = {0};
-  uint16_t encryption_algorithm_capabilitie                            = 0;
+  uint16_t encryption_algorithm_capabilities                           = 0;
   uint16_t integrity_algorithm_capabilities                            = 0;
   e_rab_to_be_switched_in_downlink_list_t e_rab_to_be_switched_dl_list = {0};
   uint32_t num_erab                                                    = 0;
@@ -2138,7 +2140,7 @@ int s1ap_mme_handle_path_switch_request(
         S1ap_ProtocolIE_ID_id_UESecurityCapabilities, true);
     BIT_STRING_TO_INT16(
         &ie->value.choice.UESecurityCapabilities.encryptionAlgorithms,
-        encryption_algorithm_capabilitie);
+        encryption_algorithm_capabilities);
     BIT_STRING_TO_INT16(
         &ie->value.choice.UESecurityCapabilities.integrityProtectionAlgorithms,
         integrity_algorithm_capabilities);
@@ -2147,7 +2149,7 @@ int s1ap_mme_handle_path_switch_request(
   s1ap_mme_itti_s1ap_path_switch_request(
       assoc_id, enb_association->enb_id, new_ue_ref_p->enb_ue_s1ap_id,
       &e_rab_to_be_switched_dl_list, new_ue_ref_p->mme_ue_s1ap_id, &ecgi, &tai,
-      encryption_algorithm_capabilitie, integrity_algorithm_capabilities,
+      encryption_algorithm_capabilities, integrity_algorithm_capabilities,
       imsi64);
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);

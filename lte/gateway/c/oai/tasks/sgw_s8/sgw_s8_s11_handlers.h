@@ -15,7 +15,12 @@ limitations under the License.
 #include "common_types.h"
 #include "s11_messages_types.h"
 #include "intertask_interface.h"
+#include "spgw_types.h"
 
-int sgw_s8_handle_s11_create_session_request(
-    const itti_s11_create_session_request_t* const session_req_p,
+void sgw_s8_handle_s11_create_session_request(
+    sgw_state_t* sgw_state, itti_s11_create_session_request_t* session_req_p,
+    imsi64_t imsi64);
+
+void sgw_s8_handle_create_session_response(
+    sgw_state_t* sgw_state, s8_create_session_response_t* session_rsp_p,
     imsi64_t imsi64);

@@ -4,7 +4,7 @@ title: Module Dependencies
 hide_title: true
 ---
 
-# Module dependencies on generated constructs
+# Module Dependencies
 
 Within Magma, each module (orc8r, lte, cwf, feg, wifi, fbinternal)
 is in charge of generating and defining their own API objects, specifically

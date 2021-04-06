@@ -39,7 +39,7 @@
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
 
-extern int _pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
+extern int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -53,7 +53,7 @@ extern int _pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 /*
    PDN disconnection handlers
 */
-static int _pdn_disconnect_get_pid(emm_context_t* emm_context, proc_tid_t pti);
+static int pdn_disconnect_get_pid(emm_context_t* emm_context, proc_tid_t pti);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -110,7 +110,7 @@ int esm_proc_pdn_disconnect_request(
      * Get the identifier of the PDN connection entry assigned to the
      * * * * procedure transaction identity
      */
-    pid = _pdn_disconnect_get_pid(emm_context, pti);
+    pid = pdn_disconnect_get_pid(emm_context, pti);
 
     if (pid >= MAX_APN_PER_UE) {
       OAILOG_ERROR(
@@ -171,7 +171,7 @@ int esm_proc_pdn_disconnect_accept(
     /*
      * Delete the PDN connection entry
      */
-    proc_tid_t pti = _pdn_connectivity_delete(emm_context, pid);
+    proc_tid_t pti = pdn_connectivity_delete(emm_context, pid);
 
     if (pti != ESM_PT_UNASSIGNED) {
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
@@ -267,7 +267,7 @@ int esm_proc_pdn_disconnect_reject(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static pdn_cid_t _pdn_disconnect_get_pid(
+static pdn_cid_t pdn_disconnect_get_pid(
     emm_context_t* emm_context, proc_tid_t pti) {
   pdn_cid_t i = MAX_APN_PER_UE;
 

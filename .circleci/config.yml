@@ -17,6 +17,10 @@ aliases:
     paths: "orc8r lte"
   - &c_cpp_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos"
+  - &session_manager_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos"
+  - &mme_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -300,9 +304,8 @@ commands:
             cd ${MAGMA_ROOT}/circleci
             echo $MAGMA_NODE_PKEY | base64 -d - > ci_node.pem
             chmod 0400 ci_node.pem
-            echo $MAGMA_API_CERT | base64 -d - > ci_operator.pfx
-            openssl pkcs12 -in ci_operator.pfx -nocerts -out ci_operator.key.pem -nodes -passin pass:
-            openssl pkcs12 -in ci_operator.pfx -nokeys -out ci_operator.pem -passin pass:
+            echo $CI_OPERATOR_KEY | base64 -d - > ci_operator.key.pem
+            echo $CI_OPERATOR | base64 -d - > ci_operator.pem
 
             echo $MAGMA_ROOTCA | base64 -d - > rootCA.pem
             echo $MAGMA_CONTROL_PROXY | base64 -d - > control_proxy.yml
@@ -513,6 +516,7 @@ jobs:
             python3 build.py --coverage
       - codecov/upload:
           file: /home/circleci/project/orc8r/cloud/coverage/all.gocov
+          flags: cloud_lint
       - magma_slack_notify
 
   # Fail if checked-in generated code doesn't match output from
@@ -562,13 +566,13 @@ jobs:
           project: orc8r
           images: "nginx|controller"
           tag-latest: true
-      # - tag-push-docker:
-      #     project: orc8r
-      #     images: "nginx|controller"
-      #     tag-latest: true
-      #     registry: $JFROG_DOCKER_ORC8R_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: orc8r
+          images: "nginx|controller"
+          tag-latest: true
+          registry: $JFROG_DOCKER_ORC8R_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -622,6 +626,7 @@ jobs:
             make -C ${MAGMA_ROOT}/feg/gateway cover
       - codecov/upload:
           file: /home/circleci/project/feg/gateway/coverage/feg.gocov
+          flags: feg-lint
       - magma_slack_notify
 
   feg-precommit:
@@ -667,12 +672,12 @@ jobs:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
-      # - tag-push-docker:
-      #     project: feg
-      #     images: "gateway_go|gateway_python"
-      #     registry: $JFROG_DOCKER_FEG_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: feg
+          images: "gateway_go|gateway_python"
+          registry: $JFROG_DOCKER_FEG_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -749,14 +754,14 @@ jobs:
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
           tag-latest: <<parameters.tag-latest>>
-      # - tag-push-docker:
-      #     project: cwf
-      #     images: <<parameters.images>>
-      #     tag: <<parameters.tag>>
-      #     tag-latest: <<parameters.tag-latest>>
-      #     registry: $JFROG_DOCKER_CWF_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: cwf
+          images: <<parameters.images>>
+          tag: <<parameters.tag>>
+          tag-latest: <<parameters.tag-latest>>
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -798,7 +803,64 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
             ci_env=`bash <(curl -s https://codecov.io/env)`
-            docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info"
+            docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
+      - magma_slack_notify
+
+  session_manager_test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *session_manager_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Run common tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - run:
+          name: Run session_manager tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_session_manager;"
+          no_output_timeout: 5m
+      - magma_slack_notify
+
+  mme_test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *mme_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Run common tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - run:
+          name: Run sctpd tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd;"
+      - run:
+          name: Run mme tests
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai;"
       - magma_slack_notify
 
   mme-clang-warnings:
@@ -831,13 +893,15 @@ jobs:
       SWAGGER_CODEGEN_JAR: /home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
+      - python/set_version
       - build/determinator:
           <<: *lte_build_verify
       - run: mkdir -p /var/tmp/test_results
       - run: mkdir -p /var/tmp/codecovs
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
-      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      - run: pip3 install setuptools==49.6.0
       - run:
           command: |
             sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
@@ -854,8 +918,10 @@ jobs:
           path: /var/tmp/test_results
       - codecov/upload:
           file: /var/tmp/codecovs/cover_lte.xml
+          flags: lte-test
       - codecov/upload:
           file: /var/tmp/codecovs/cover_orc8r.xml
+          flags: lte-test
       - magma_slack_notify
 
   lte-integ-test:
@@ -926,12 +992,12 @@ jobs:
           project: cwf
           images: "operator"
           registry: $DOCKER_MAGMA_REGISTRY
-      # - tag-push-docker:
-      #     project: cwf
-      #     images: "operator"
-      #     registry: $JFROG_DOCKER_CWF_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: cwf
+          images: "operator"
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -1189,6 +1255,8 @@ workflows:
   agw:
     jobs:
       - lte-test
+      - session_manager_test
+      - mme_test
       - mme-clang-tidy:
           <<: *only_master
       - mme-clang-warnings:
@@ -1198,6 +1266,8 @@ workflows:
       - lte-agw-deploy:
           <<: *only_master
           requires:
+            - lte-test
+            - mme_test
             - lte-integ-test
       - c-cpp-codecov
 

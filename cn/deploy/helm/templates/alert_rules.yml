@@ -1,0 +1,137 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  generation: 1
+  annotations:
+    meta.helm.sh/release-name: prometheus
+    meta.helm.sh/release-namespace: kubevirt
+  labels:
+    app: prometheus-operator
+    release: prometheus
+  name: agw.rules
+  namespace: kubevirt
+spec:
+  groups:
+  - name: agw.rules
+    rules:
+    - alert: service_error
+      annotations:
+        message: Service_error reported in agw
+      expr: service_errors > 0
+      for: 1m
+      labels:
+        severity: critical
+    rules:
+    - alert: directorydstate status
+      annotations:
+        message: directorydstate is down
+      expr: directorydstate==0
+      for: 1m
+      labels:
+        severity: critical
+    rules:
+    - alert: controlproxystate status
+      annotations:
+        message: controlproxystate is down
+      expr: controlproxystate==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: enodebdstate status
+      annotations:
+        message: enodebdstate is down
+      expr: enodebdstate==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: heathservicestate status
+      annotations:
+        message: heathservicestate is down
+      expr: heathservicestate==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: mmeservicestate status
+      annotations:
+        message: mmeservicestate is down
+      expr: mmeservicestate==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: pipelinedservicestate status
+      annotations:
+        message: pipelinedservicestate is down
+      expr: pipelinedservicestate==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: redis_state status
+      annotations:
+        message: redis_state is down
+      expr: redis_state==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: smsd_servicestate status
+      annotations:
+        message: smsd_servicestate is down
+      expr: smsd_servicestate==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: subscriberdbservicestate status
+      annotations:
+        message: subscriberdbservicestate is down
+      expr: subscriberdbservicestate==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: ctraced_service_state status
+      annotations:
+        message: ctraced_service_state is down
+      expr: ctraced_service_state==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: dnsd_service_state status
+      annotations:
+        message: dnsd_service_state is down
+      expr: dnsd_service_state==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: magmad_service_state status
+      annotations:
+        message: magmad_service_state is down
+      expr: magmad_service_state==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: mobilityd_service_state status
+      annotations:
+        message: mobilityd_service_state is down
+      expr: mobilityd_service_state==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: policydb_service_state status
+      annotations:
+        message: policydb_service_state is down
+      expr: policydb_service_state==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: sessiond_service_state status
+      annotations:
+        message: sessiond_service_state is down
+      expr: sessiond_service_state==0
+      for: 1m
+      labels:
+        severity: critical
+    - alert: state_service_state status
+      annotations:
+        message: state_service_state is down
+      expr: state_service_state==0
+      for: 1m
+      labels:
+        severity: critical

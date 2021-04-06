@@ -51,9 +51,9 @@ type LastValues struct {
 
 // CreateSessionOptions to control Create Session Response values to produce errors
 type CreateSessionOptions struct {
-	SgwTeidc  uint32
-	PgwFTEIDc uint32
-	PgwFTEIDu uint32
+	SgwTEIDc uint32
+	PgwTEIDc uint32
+	PgwTEIDu uint32
 }
 
 func NewStarted(ctx context.Context, pgwAddrsStr string) (*MockPgw, error) {

@@ -63,7 +63,7 @@
  ** Inputs:              Pointer to UE context                                **
  **                                                                           **
  ********************************************************************************/
-void _mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
+void mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   additional_updt_t additional_update_type =
       (additional_updt_t) ue_context->emm_context.additional_update_type;
@@ -108,7 +108,7 @@ void _mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
  ** Returns:             Mapped EPS attach type                               **
  **                                                                           **
  ********************************************************************************/
-uint8_t _get_eps_attach_type(uint8_t emm_attach_type) {
+uint8_t get_eps_attach_type(uint8_t emm_attach_type) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint8_t eps_attach_type = 0;
 
@@ -183,7 +183,7 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
  ** Inputs:              Mobile Id **
  ** **
  ***********************************************************************************/
-static int _copy_mobile_identity_helper(
+static int copy_mobile_identity_helper(
     MobileIdentity_t* mobileid_dest, MobileIdentity_t* mobileid_src) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -208,7 +208,7 @@ static int _copy_mobile_identity_helper(
  ** **
  ***********************************************************************************/
 
-static int _build_sgs_status(
+static int build_sgs_status(
     char* imsi, uint8_t imsi_length, lai_t laicsfb, MobileIdentity_t* mobileid,
     uint8_t msg_id) {
   int rc = RETURNok;
@@ -255,7 +255,7 @@ static int _build_sgs_status(
 
   // Encode Mobile Identity
   if (mobileid) {
-    _copy_mobile_identity_helper(
+    copy_mobile_identity_helper(
         &sgsap_status->error_msg.u.sgsap_location_update_acc.mobileid,
         mobileid);
     sgsap_status->error_msg.u.sgsap_location_update_acc.presencemask |=
@@ -278,7 +278,7 @@ static int _build_sgs_status(
  ** Outputs:                                                                   *
  **      Return:    RETURNok, RETURNerror                                      *
  *******************************************************************************/
-static int _handle_cs_domain_loc_updt_acc(
+static int handle_cs_domain_loc_updt_acc(
     itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc,
     struct ue_mm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -389,10 +389,10 @@ int mme_app_handle_nas_cs_domain_location_update_req(
   // Store granted service type based on attach type & addition updt type
   if (msg_type == ATTACH_REQUEST) {
     ue_context_p->attach_type =
-        _get_eps_attach_type(ue_context_p->emm_context.attach_type);
+        get_eps_attach_type(ue_context_p->emm_context.attach_type);
     ue_context_p->sgs_context->ongoing_procedure = COMBINED_ATTACH;
     if (ue_context_p->attach_type == EPS_ATTACH_TYPE_COMBINED_EPS_IMSI) {
-      _mme_app_update_granted_service_for_ue(ue_context_p);
+      mme_app_update_granted_service_for_ue(ue_context_p);
     }
   }
   if ((ue_context_p->network_access_mode == NAM_PACKET_AND_CIRCUIT) &&
@@ -400,7 +400,7 @@ int mme_app_handle_nas_cs_domain_location_update_req(
        MME_APP_TIMER_INACTIVE_ID)) {
     if (msg_type == TAU_REQUEST) {
       ue_context_p->sgs_context->ongoing_procedure = COMBINED_TAU;
-      _mme_app_update_granted_service_for_ue(ue_context_p);
+      mme_app_update_granted_service_for_ue(ue_context_p);
     }
     OAILOG_INFO(
         LOG_MME_APP,
@@ -710,7 +710,7 @@ int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
           SGSAP_MOBILE_IDENTITY) {
         mobileid = &itti_sgsap_location_update_acc_p->mobileid;
       }
-      if (_build_sgs_status(
+      if (build_sgs_status(
               itti_sgsap_location_update_acc_p->imsi,
               itti_sgsap_location_update_acc_p->imsi_length,
               itti_sgsap_location_update_acc_p->laicsfb, mobileid,
@@ -798,7 +798,7 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
     mme_app_stop_timer(ue_context_p->sgs_context->ts6_1_timer.id);
 
     sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    if ((_handle_cs_domain_loc_updt_acc(
+    if ((handle_cs_domain_loc_updt_acc(
             itti_sgsap_location_update_acc_p, ue_context_p)) == RETURNerror) {
       OAILOG_DEBUG(
           LOG_MME_APP,
@@ -834,7 +834,7 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
         mobileid = &itti_sgsap_location_update_acc_p->mobileid;
       }
       // Send SGS-STATUS message to SGS task
-      if (_build_sgs_status(
+      if (build_sgs_status(
               itti_sgsap_location_update_acc_p->imsi,
               itti_sgsap_location_update_acc_p->imsi_length,
               itti_sgsap_location_update_acc_p->laicsfb, mobileid,

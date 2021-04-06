@@ -11,16 +11,29 @@
  * limitations under the License.
  */
 #include "EventdClient.h"
-
-#include "ServiceRegistrySingleton.h"
-
-using grpc::ClientContext;
-using grpc::Status;
-using magma::orc8r::Event;
-using magma::orc8r::EventService;
-using magma::orc8r::Void;
+#include <grpcpp/channel.h>                        // for Channel
+#include <grpcpp/impl/codegen/async_unary_call.h>  // for default_delete
+#include <utility>                                 // for move
+#include "ServiceRegistrySingleton.h"              // for ServiceRegistrySin...
+#include "orc8r/protos/common.pb.h"                // for Void
+#include "orc8r/protos/eventd.grpc.pb.h"           // for EventService::Stub
+namespace grpc {
+class ClientContext;
+}
+namespace grpc {
+class Status;
+}
+namespace magma {
+namespace orc8r {
+class Event;
+}
+}  // namespace magma
 
 namespace magma {
+
+using orc8r::Event;
+using orc8r::EventService;
+using orc8r::Void;
 
 AsyncEventdClient& AsyncEventdClient::getInstance() {
   static AsyncEventdClient instance;

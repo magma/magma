@@ -10,8 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "GRPCReceiver.h"
-#include "magma_logging.h"
+#include <ostream>          // for operator<<, char_traits
+#include "magma_logging.h"  // for MLOG
 
 namespace magma {
 

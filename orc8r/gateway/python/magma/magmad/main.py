@@ -116,7 +116,9 @@ def main():
     # Create sync rpc client with a heartbeat of 30 seconds (timeout = 60s)
     sync_rpc_client = None
     if service.config.get('enable_sync_rpc', False):
-        sync_rpc_client = SyncRPCClient(service.loop, 30)
+        sync_rpc_client = SyncRPCClient(
+            service.loop, 30,
+            service.config.get('print_grpc_payload', False))
 
     first_time_bootstrap = True
 

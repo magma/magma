@@ -100,6 +100,16 @@ typedef enum {
   TLV_FATAL_ERROR = TLV_VALUE_DOESNT_MATCH
 
 } error_code_e;
+
+/* This enum should match with the ModeMapItem_FederatedMode enum
+ * defined in mconfigs.proto
+ */
+typedef enum {
+  SPGW_SUBSCRIBER  = 0,  // default mode is HSS + spgw_task
+  LOCAL_SUBSCRIBER = 1,  // will use subscriberDb + spgw_task
+  S8_SUBSCRIBER    = 2,  // will use federated HSS + s8_task
+} mode_map;
+
 //------------------------------------------------------------------------------
 #define DECODE_U8(bUFFER, vALUE, sIZE)                                         \
   vALUE = *(uint8_t*) (bUFFER);                                                \

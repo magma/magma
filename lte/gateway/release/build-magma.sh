@@ -173,7 +173,7 @@ else
         "libopenvswitch >= 2.14"
         "openvswitch-switch >= 2.14"
         "openvswitch-common >= 2.14"
-        "python-openvswitch >= 2.14"
+        "python3-openvswitch >= 2.14"
         "openvswitch-datapath-dkms >= 2.14"
         )
 fi
