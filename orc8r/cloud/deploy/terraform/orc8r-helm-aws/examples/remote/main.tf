@@ -111,10 +111,12 @@ module "orc8r-app" {
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
   seed_certs_dir            = "~/orc8r.test.secrets/certs"
 
-  orc8r_db_host = module.orc8r.orc8r_db_host
-  orc8r_db_name = module.orc8r.orc8r_db_name
-  orc8r_db_user = module.orc8r.orc8r_db_user
-  orc8r_db_pass = module.orc8r.orc8r_db_pass
+  orc8r_db_host    = module.orc8r.orc8r_db_host
+  orc8r_db_port    = module.orc8r.orc8r_db_port
+  orc8r_db_dialect = module.orc8r.orc8r_db_dialect
+  orc8r_db_name    = module.orc8r.orc8r_db_name
+  orc8r_db_user    = module.orc8r.orc8r_db_user
+  orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   docker_registry = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["docker_registry"]
   docker_user     = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["docker_user"]
