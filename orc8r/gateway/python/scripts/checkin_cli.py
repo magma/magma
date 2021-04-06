@@ -14,25 +14,24 @@ limitations under the License.
 
 import asyncio
 import datetime
-import textwrap
-
-import sys
 import json
+import sys
+import textwrap
 
 # NOTE: Uncomment following lines to get verbose logs on GRPC error.
 # import os
 # os.environ['GRPC_TRACE'] = 'all'
 # os.environ['GRPC_VERBOSITY'] = 'DEBUG'
 import snowflake
-from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.cert_utils import load_cert
-from magma.common.cert_validity import create_ssl_connection, \
-    create_tcp_connection
+from magma.common.cert_validity import (create_ssl_connection,
+                                        create_tcp_connection)
+from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import load_service_config
-from orc8r.protos.state_pb2_grpc import StateServiceStub
-from orc8r.protos.state_pb2 import ReportStatesRequest
 from orc8r.protos.service303_pb2 import State
+from orc8r.protos.state_pb2 import ReportStatesRequest
+from orc8r.protos.state_pb2_grpc import StateServiceStub
 
 
 def main():

@@ -17,6 +17,7 @@ import argparse
 
 from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Struct
+
 from magma.common.rpc_utils import grpc_wrapper
 from orc8r.protos import common_pb2, magmad_pb2, magmad_pb2_grpc
 
