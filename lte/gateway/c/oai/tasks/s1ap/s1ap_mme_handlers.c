@@ -2542,21 +2542,21 @@ int s1ap_mme_handle_error_ind_message(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  if ((ue_ref_p = s1ap_state_get_ue_mmeid((uint32_t) mme_ue_s1ap_id)) == NULL) {
-    OAILOG_INFO(
-        LOG_S1AP,
-        "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT
-        " and eNB UE s1ap id: \n" ENB_UE_S1AP_ID_FMT,
-        mme_ue_s1ap_id, enb_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
-
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_ErrorIndicationIEs_t, ie, container, S1ap_ProtocolIE_ID_id_Cause,
       true);
   if (ie) {
     cause_type = ie->value.choice.Cause.present;
   } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid((uint32_t) mme_ue_s1ap_id)) == NULL) {
+    OAILOG_WARNING(
+        LOG_S1AP,
+        "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT
+        " and eNB UE s1ap id: \n" ENB_UE_S1AP_ID_FMT,
+        mme_ue_s1ap_id, enb_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
