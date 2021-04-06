@@ -520,7 +520,7 @@ int s1ap_generate_downlink_nas_transport(
     if (hashtable_uint64_ts_insert(
             imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, imsi64) ==
         HASH_TABLE_SAME_KEY_VALUE_EXISTS) {
-      is_state_same = true;
+      *is_state_same = true;
     }
 
     S1ap_DownlinkNASTransport_IEs_t* ie = NULL;
