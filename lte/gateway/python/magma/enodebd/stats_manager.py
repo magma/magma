@@ -12,15 +12,16 @@ limitations under the License.
 """
 
 import asyncio
-from magma.enodebd.logger import EnodebdLogger as logger
 from xml.etree import ElementTree
+
 from aiohttp import web
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.service_configs import load_service_config
-from magma.enodebd.enodeb_status import get_enb_status, \
-    update_status_metrics
+from magma.enodebd.enodeb_status import get_enb_status, update_status_metrics
+from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
+
 from . import metrics
 
 
