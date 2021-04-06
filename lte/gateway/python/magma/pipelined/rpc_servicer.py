@@ -233,7 +233,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             version = self._service_manager.session_rule_version_mapper \
                 .get_version(request.sid.id, ip_address, policy.rule_id)
 
-            cleanup_dict(request.sid.id, ip_address, rule_id, version)
+            cleanup_dict(request.sid.id, ip_address, policy.rule_id,
+                         policy.version)
 
     def _activate_flows(self, request: ActivateFlowsRequest,
                         fut: 'Future[ActivateFlowsResult]'
