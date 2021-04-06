@@ -116,8 +116,12 @@ int mme_app_send_s6a_update_location_req(
    * by checking  dcnr flag in ue network capability.
    */
 #if EMBEDDED_SGW
-
-  s6a_ulr_p->dual_regis_5g_ind                     = 1;
+  s6a_ulr_p->dual_regis_5g_ind = 1;
+  OAILOG_DEBUG(
+      TASK_MME_APP,
+      "Dual registration 5g indicator flag is set in ULR "
+      "(dual_regis_5g_ind = %u)\n",
+      s6a_ulr_p->dual_regis_5g_ind);
   s6a_ulr_p->supportedfeatures.nr_as_secondary_rat = 1;
 #endif
 

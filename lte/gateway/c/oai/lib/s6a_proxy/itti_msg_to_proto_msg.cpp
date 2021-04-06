@@ -46,7 +46,6 @@ convert_itti_s6a_authentication_info_req_to_proto_msg(
    * Add the number of requested vectors
    */
   ret.set_num_requested_eutran_vectors(msg->nb_of_vectors);
-
   /*
    * We want to use the vectors immediately in HSS so we have to add
    * * * * the Immediate-Response-Preferred AVP.

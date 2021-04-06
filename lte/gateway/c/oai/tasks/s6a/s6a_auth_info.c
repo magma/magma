@@ -306,6 +306,7 @@ int s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
   struct msg* msg;
   struct session* sess;
   union avp_value value;
+  ue_mm_context_t* ue_context_p = NULL;
 
   DevAssert(air_p);
   /*

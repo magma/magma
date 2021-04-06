@@ -1497,6 +1497,17 @@ static void _nas_itti_auth_info_req(
 
 #if EMBEDDED_SGW
   auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
+  OAILOG_DEBUG(
+      TASK_MME_APP,
+      "S6A_OVER_GRPC is working "
+      "(ue_id = %u)\n",
+      auth_info_req->supportedfeatures.nr_as_secondary_rat);
+
+  OAILOG_DEBUG(
+      TASK_MME_APP,
+      "Value of supportedfeaturesnrassecondaryrat "
+      "(auth_info_req->supportedfeatures.nr_as_secondary_rat = %u)\n",
+      auth_info_req->supportedfeatures.nr_as_secondary_rat);
 #endif
   ue_mm_context_t* ue_context_p = malloc(sizeof(*ue_context_p));
   if (ue_context_p->emm_context._ms_network_capability.en_dc) {
