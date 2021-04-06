@@ -12,8 +12,13 @@ limitations under the License.
 """
 
 import unittest
-from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
-    PolicyReAuthAnswer, ReAuthResult, StaticRuleInstall, PolicyReAuthRequest
+
+from lte.protos.session_manager_pb2 import (
+    PolicyReAuthAnswer,
+    PolicyReAuthRequest,
+    ReAuthResult,
+    StaticRuleInstall,
+)
 from magma.policydb.reauth_handler import ReAuthHandler
 
 

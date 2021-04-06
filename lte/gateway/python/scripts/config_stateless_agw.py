@@ -23,9 +23,11 @@ import time
 from enum import Enum
 
 from magma.common.redis.client import get_default_client
-from magma.configuration.service_configs import (load_override_config,
-                                                 load_service_config,
-                                                 save_override_config)
+from magma.configuration.service_configs import (
+    load_override_config,
+    load_service_config,
+    save_override_config,
+)
 
 return_codes = Enum(
     "return_codes", "STATELESS STATEFUL CORRUPT INVALID", start=0

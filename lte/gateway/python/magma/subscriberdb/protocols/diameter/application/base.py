@@ -11,14 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from enum import IntEnum, unique
 import logging
+from enum import IntEnum, unique
+
+from magma.subscriberdb.metrics import (
+    DIAMETER_CEX_TOTAL,
+    DIAMETER_DISCONECT_TOTAL,
+    DIAMETER_WATCHDOG_TOTAL,
+)
+from magma.subscriberdb.protocols.diameter import avp, message
 
 from . import abc
-from magma.subscriberdb.protocols.diameter import avp, message
-from magma.subscriberdb.metrics import (DIAMETER_CEX_TOTAL,
-                                        DIAMETER_WATCHDOG_TOTAL,
-                                        DIAMETER_DISCONECT_TOTAL)
+
 
 @unique
 class BaseApplicationCommands(IntEnum):
