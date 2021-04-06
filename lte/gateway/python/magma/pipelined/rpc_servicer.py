@@ -230,9 +230,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._service_manager.session_rule_version_mapper \
                 .save_version(request.sid.id, ip_address,
                               policy.rule_id, policy.version)
-            version = self._service_manager.session_rule_version_mapper \
-                .get_version(request.sid.id, ip_address, policy.rule_id)
-
             cleanup_dict(request.sid.id, ip_address, policy.rule_id,
                          policy.version)
 
