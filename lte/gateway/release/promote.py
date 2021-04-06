@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import requests
@@ -8,12 +8,12 @@ from requests.auth import HTTPBasicAuth
 # Global variables definitions
 #################################
 
-JFROG_URL = 'http://artifactory.magmacore.org.com:8081/artifactory/api/docker'
-JFROG_KEY = 'AP8nwtQtPAf5M3yXD3dSosJbLjkvFicWMUN2BF'
+JFROG_URL = 'http://artifactory.magmacore.org.com/artifactory/api/docker'
+JFROG_KEY = 'AKCp8ihpQpsanKoMUry4bYkD4jkS2qWNFyTC7QZ6UGTDVqLXGEYSJP797QUAUJeWujrn5FuBf'
 reqHeaders = { "Content-Type": "application/json", "X-JFrog-Art-Api": "AKCp8ihewtkTv45dL9qevJFGQkhPr4xAU5k69VhsfQJvsGBT1X646DWxo8yL3KzmbhudBiCXv" }
 sourceRepo = ""
 targetRepo = ""
-imgName = "gateway_go"
+imgName = "httpd"
 imgVersion = "1.0"
 jsonResponse = ""
 
@@ -27,7 +27,7 @@ def callJFROGAPI(method='GET',
                  reqHeaders={ "Content-Type": "application/json", "X-JFrog-Art-Api": JFROG_KEY },
                  payload=""):
 
-      print(f"callJFROGAPI() invoked with \n method:{method}\n url={url}\n reqHeaders={reqHeaders}\n payload={payload}")
+    print(f"callJFROGAPI() invoked with \n method:{method}\n url={url}\n reqHeaders={reqHeaders}\n payload={payload}")
     if method == 'GET':
         try:
            response = requests.get(url + '/' + sourceRepo + '/v2/' + imgName + '/tags/list', headers=reqHeaders)
@@ -81,11 +81,11 @@ def promote(module):
 
 
 if __name__ == "__main__":
-    modules = [ 'docker', 'all' ]
+    modules = [ 'docker', 'feg', 'cwf', 'orc8r', 'all' ]
     argCount = len(sys.argv)
 
-    if argCount != 3:
-       print(f"Invalid arguments. Usage: {sys.argv[0]} docker|feg|cwf|all version")
+    if argCount != 4:
+       print(f"Invalid arguments. Usage: {sys.argv[0]} docker|feg|cwf|all imageName version. Ex: promote.py feg gateway_go 1a4b2b30")
        quit()
 
     if sys.argv[1] not in modules:
@@ -93,10 +93,10 @@ if __name__ == "__main__":
        quit()
 
     module = sys.argv[1]
-    imgVersion = sys.argv[2]
-    imgName = "gateway_go"
-    sourceRepo = module + "-local"
-    targetRepo = module + "-kubernetesapps"
+    imgName = sys.argv[2]
+    imgVersion = sys.argv[3]
+    sourceRepo = module + "-test"
+    targetRepo = module + "-prod"
 
     status = validate(module)
     if status == 0:
