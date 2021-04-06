@@ -76,6 +76,9 @@
       "howtos/he_api": {
         "title": "Header Enrichment"
       },
+      "howtos/inbound_roaming": {
+        "title": "Inbound Roaming"
+      },
       "howtos/readme_package": {
         "title": "Packaging"
       },
