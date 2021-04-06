@@ -221,12 +221,17 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         def cleanup_dict(imsi, ip_address, rule_id, version):
             self._service_manager.session_rule_version_mapper \
                 .remove(imsi, ip_address, rule_id, version)
-        for rule_id in request.rule_ids:
+        if not request.policies:
+            self._service_manager.session_rule_version_mapper\
+                .update_all_ue_versions(request.sid.id, ip_address)
+            return
+
+        for policy in request.policies:
             self._service_manager.session_rule_version_mapper \
-                .update_version(request.sid.id, ip_address,
-                                rule_id)
+                .save_version(request.sid.id, ip_address,
+                              policy.rule_id, policy.version)
             version = self._service_manager.session_rule_version_mapper \
-                .get_version(request.sid.id, ip_address, rule_id)
+                .get_version(request.sid.id, ip_address, policy.rule_id)
 
             cleanup_dict(request.sid.id, ip_address, rule_id, version)
 
@@ -409,13 +414,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _deactivate_flows_gx(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GX flows for %s', request.sid.id)
 
-        if request.rule_ids:
-            self._remove_version(request, ip_address)
-        else:
-            # TODO cleanup redis?
-            # If no rule ids are given, all flows are deactivated
-            self._service_manager.session_rule_version_mapper\
-                .update_all_ue_versions(request.sid.id, ip_address)
+        self._remove_version(request, ip_address)
         if request.remove_default_drop_flows:
             self._enforcement_stats.deactivate_default_flow(request.sid.id,
                                                             ip_address)
@@ -425,8 +424,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _deactivate_flows_gy(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GY flows for %s', request.sid.id)
         # Only deactivate requested rules here to not affect GX
-        if request.rule_ids:
-            self._remove_version(request, ip_address)
+        self._remove_version(request, ip_address)
         self._gy_app.deactivate_rules(request.sid.id, ip_address,
                                       request.rule_ids)
 
