@@ -21,8 +21,8 @@ import time
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import HaUtil
 
-class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
 
+class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._ha_util = HaUtil()
@@ -34,7 +34,8 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
         """ Basic attach/detach test with a single UE """
         num_ues = 100
         # column is a enb parameter,  row is a number of enbs
-        # column description: 1.Cell Id, 2.Tac, 3.EnbType, 4.PLMN Id 5. PLMN length
+        # column description:
+        #     1.Cell Id, 2.Tac, 3.EnbType, 4.PLMN Id 5. PLMN length
         enb_list = [(1, 1, 1, "00101", 5)]
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
@@ -44,13 +45,18 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
         ue_ids = []
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
-            print("************************* Running End to End attach for ",
-                    "UE id ", req.ue_id)
+            print(
+                "************************* Running End to End attach for ",
+                "UE id ",
+                req.ue_id,
+            )
             # Now actually complete the attach
             self._s1ap_wrapper._s1_util.attach(
-                req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+                req.ue_id,
+                s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t)
+                s1ap_types.ueAttachAccept_t,
+            )
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -58,7 +64,7 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
 
         # Send UE context release request for half of UEs to move them
         # to ECM-IDLE state
-        for i in range(math.floor(num_ues/2)):
+        for i in range(math.floor(num_ues / 2)):
             ue_cntxt_rel_req = s1ap_types.ueCntxtRelReq_t()
             ue_cntxt_rel_req.ue_Id = ue_ids[i]
             ue_cntxt_rel_req.cause.causeVal = (
@@ -74,7 +80,7 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
 
         print("*************************  Send Offload Request to AGW")
         # Send offloading request
-        self._ha_util.offload_agw(None, enb_list[0][0])
+        self.assertTrue(self._ha_util.offload_agw(None, enb_list[0][0]))
 
         # All UEs should eventually receive Context Release Request
         # The first half should get it immediately
@@ -83,13 +89,15 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertIn(
                 response.msg_type,
-                [s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-                 s1ap_types.tfwCmd.UE_PAGING_IND.value],
-                 'Not a paging or ue context release message'
+                [
+                    s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+                    s1ap_types.tfwCmd.UE_PAGING_IND.value,
+                ],
+                "Not a paging or ue context release message",
             )
 
         # Send service request as paging response
-        for i in range(math.floor(num_ues/2)):
+        for i in range(math.floor(num_ues / 2)):
             # Send service request to reconnect UE
             # Auto-release should happen
             ser_req = s1ap_types.ueserviceReq_t()
@@ -127,10 +135,10 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
 
         # Now detach the UEs normally
         for ue in ue_ids:
-            print("************************* Running UE detach for UE id ",
-                    ue)
+            print("************************* Running UE detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True)
+                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+            )
 
 
 if __name__ == "__main__":
