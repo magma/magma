@@ -1,0 +1,2 @@
+ghz_root: /var/tmp/ghz
+go_bin: /usr/local/go/bin
