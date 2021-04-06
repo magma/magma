@@ -278,6 +278,10 @@ void mme_config_exit(void) {
   for (int i = 0; i < mme_config.e_dns_emulation.nb_sgw_entries; i++) {
     bdestroy_wrapper(&mme_config.e_dns_emulation.sgw_id[i]);
   }
+
+  if (mme_config.blocked_imei.imei_htbl) {
+    hashtable_uint64_ts_destroy(mme_config.blocked_imei.imei_htbl);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -505,6 +509,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             setting_mme, MME_CONFIG_STRING_USE_STATELESS,
             (const char**) &astring))) {
       config_pP->use_stateless = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_ENABLE_CONVERGED_CORE,
+            (const char**) &astring))) {
+      config_pP->enable_converged_core = parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(
@@ -955,9 +965,10 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             // Convert to 3gpp PLMN (MCC and MNC) format
             // First 3 chars in astring is MCC next 3 or 2 chars is MNC
             memcpy(fed_mode_mcc, astring, MAX_MCC_LENGTH);
-            memcpy(
-                fed_mode_mnc, &astring[MAX_MCC_LENGTH],
-                (strlen(astring) - MAX_MCC_LENGTH));
+            fed_mode_mcc[MAX_MCC_LENGTH] = '\0';  // null terminated string
+            n                            = strlen(astring) - MAX_MCC_LENGTH;
+            memcpy(fed_mode_mnc, astring + MAX_MCC_LENGTH, n);
+            fed_mode_mnc[n] = '\0';  // null terminated string
             AssertFatal(
                 strlen(fed_mode_mcc) == MAX_MCC_LENGTH,
                 "Bad MCC length (%ld), it must be %u digit ex: 001\n",
@@ -1042,7 +1053,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     // BLOCKED IMEI LIST SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_BLOCKED_IMEI_LIST);
-    char imei_str[MAX_LEN_IMEI + 1] = {};
+    char imei_str[MAX_LEN_IMEI + 1] = {0};
     imei64_t imei64                 = 0;
     config_pP->blocked_imei.num     = 0;
     OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_BLOCKED_IMEI_LIST \n");
@@ -1054,44 +1065,49 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           "Number of blocked IMEIs configured:%d exceeds number of "
           "blocked IMEIs supported :%d \n",
           num, MAX_BLOCKED_IMEI);
-      // Create IMEI hashtable
-      hashtable_rc_t h_rc = HASH_TABLE_OK;
-      bstring b           = bfromcstr("mme_app_config_imei_htbl");
-      config_pP->blocked_imei.imei_htbl =
-          hashtable_uint64_ts_create(32, NULL, b);
-      bdestroy_wrapper(&b);
-      AssertFatal(
-          config_pP->blocked_imei.imei_htbl != NULL,
-          "Error creating IMEI hashtable\n");
+      if (num > 0) {
+        // Create IMEI hashtable
+        hashtable_rc_t h_rc = HASH_TABLE_OK;
+        bstring b           = bfromcstr("mme_app_config_imei_htbl");
+        config_pP->blocked_imei.imei_htbl =
+            hashtable_uint64_ts_create(16, NULL, b);
+        bdestroy_wrapper(&b);
+        AssertFatal(
+            config_pP->blocked_imei.imei_htbl != NULL,
+            "Error creating IMEI hashtable\n");
 
-      for (i = 0; i < num; i++) {
-        sub2setting = config_setting_get_elem(setting, i);
-        if (sub2setting != NULL) {
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_IMEI_TAC, &tac_str))) {
-            AssertFatal(
-                strlen(tac_str) == MAX_LEN_TAC,
-                "Bad TAC length (%ld), it must be %u digits\n", strlen(tac_str),
-                MAX_LEN_TAC);
-            memcpy(imei_str, tac_str, strlen(tac_str));
-          }
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_SNR, &snr_str))) {
-            if (strlen(snr_str)) {
+        for (i = 0; i < num; i++) {
+          memset(imei_str, 0, (MAX_LEN_IMEI + 1));
+          sub2setting = config_setting_get_elem(setting, i);
+          if (sub2setting != NULL) {
+            if ((config_setting_lookup_string(
+                    sub2setting, MME_CONFIG_STRING_IMEI_TAC, &tac_str))) {
               AssertFatal(
-                  strlen(snr_str) == MAX_LEN_SNR,
-                  "Bad SNR length (%ld), it must be %u digits\n",
-                  strlen(snr_str), MAX_LEN_SNR);
-              memcpy(&imei_str[strlen(tac_str)], snr_str, strlen(snr_str));
+                  strlen(tac_str) == MAX_LEN_TAC,
+                  "Bad TAC length (%ld), it must be %u digits\n",
+                  strlen(tac_str), MAX_LEN_TAC);
+              memcpy(imei_str, tac_str, strlen(tac_str));
             }
-          }
-          // Store IMEI into hashlist
-          IMEI_STRING_TO_IMEI64(imei_str, &imei64);
-          h_rc = hashtable_uint64_ts_insert(
-              config_pP->blocked_imei.imei_htbl, (const hash_key_t) imei64, 0);
-          AssertFatal(h_rc == HASH_TABLE_OK, "Hashtable insertion failed\n");
+            if ((config_setting_lookup_string(
+                    sub2setting, MME_CONFIG_STRING_SNR, &snr_str))) {
+              if (strlen(snr_str)) {
+                AssertFatal(
+                    strlen(snr_str) == MAX_LEN_SNR,
+                    "Bad SNR length (%ld), it must be %u digits\n",
+                    strlen(snr_str), MAX_LEN_SNR);
+                memcpy(&imei_str[strlen(tac_str)], snr_str, strlen(snr_str));
+              }
+            }
+            // Store IMEI into hashlist
+            imei64 = 0;
+            IMEI_STRING_TO_IMEI64(imei_str, &imei64);
+            h_rc = hashtable_uint64_ts_insert(
+                config_pP->blocked_imei.imei_htbl, (const hash_key_t) imei64,
+                0);
+            AssertFatal(h_rc == HASH_TABLE_OK, "Hashtable insertion failed\n");
 
-          config_pP->blocked_imei.num += 1;
+            config_pP->blocked_imei.num += 1;
+          }
         }
       }
     }
@@ -1545,6 +1561,9 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
       config_pP->use_stateless ? "true" : "false");
+  OAILOG_INFO(
+      LOG_CONFIG, "- enable_converged_core .......: %s\n\n",
+      config_pP->enable_converged_core ? "true" : "false");
   OAILOG_INFO(LOG_CONFIG, "- CSFB:\n");
   OAILOG_INFO(
       LOG_CONFIG,
@@ -1642,11 +1661,6 @@ void mme_config_display(mme_config_t* config_pP) {
           config_pP->served_tai.tac[j]);
     }
   }
-  /*for (j = 0; j < config_pP->blocked_imei.num; j++) {
-    OAILOG_DEBUG(
-        LOG_CONFIG, "- Blocked IMEI : %s\n",
-        config_pP->blocked_imei.imei_list[j].imei);
-  }*/
 
   for (j = 0; j < config_pP->mode_map_config.num; j++) {
     OAILOG_INFO(LOG_CONFIG, "- MODE MAP : \n");

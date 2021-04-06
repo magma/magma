@@ -38,6 +38,7 @@
 #define FILE_3GPP_24_008_SEEN
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "bstrlib.h"
 
@@ -1102,8 +1103,14 @@ typedef struct packet_filter_contents_s {
  * Packet filter list when the TFP operation is "delete existing TFT"
  * and "no TFT operation" shall be empty.
  * ---------------------------------------------------------------
+ * The empty struct generates -Wextern-c-compat warnings, as the sizeof
+ * an empty struct is zero in c and one byte in c++.
+ * As the struct use of this empty struct is not intended to be byte-
+ * compatible with 3GPP standard, we can add a placeholder uint8_t here
+ * to ensure safe behavior in c/c++ mixed codebase.
  */
 typedef struct {
+  uint8_t unused;
 } no_packet_filter_t;
 
 typedef no_packet_filter_t delete_existing_tft_t;

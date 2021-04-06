@@ -128,10 +128,6 @@ typedef struct mme_api_qos_s {
   int qci;                    /* QoS Class Identifier         */
 } mme_api_qos_t;
 
-/* Traffic Flow Template */
-typedef struct mme_api_tft_s {
-} mme_api_tft_t;
-
 /****************************************************************************/
 /********************  G L O B A L    V A R I A B L E S  ********************/
 /****************************************************************************/

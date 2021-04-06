@@ -67,7 +67,7 @@
 static sigset_t set;
 
 #if LINK_GCOV
-void __gcov_flush(void);
+void gcov_flush(void);
 #endif
 
 // We have had cases where threads have been created before the main thread

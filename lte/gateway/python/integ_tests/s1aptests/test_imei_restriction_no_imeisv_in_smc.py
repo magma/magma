@@ -49,7 +49,6 @@ class TestImeiRestrictionNoImeisvInSmc(unittest.TestCase):
 
         After execution of this TC run test_restore_mme_config_after_sanity.py
         to restore the old mme.conf.template.
-
         """
         num_ues = 2
         ue_ids = []

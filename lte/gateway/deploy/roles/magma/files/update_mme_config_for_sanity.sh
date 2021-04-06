@@ -69,7 +69,7 @@ function reduce_mobile_reachability_timer_value {
 
 function configure_restricted_plmn {
   # Remove default restricted PLMN from MME configuration file
-  sed -i -e '/RESTRICTED_PLMN_LIST/{n;N;N;N;N;N;N;d}' \
+  sed -i -e '/RESTRICTED_PLMN_LIST/{n;N;d}' \
     "$mme_config_file"
 
   # Configure restricted PLMN/s in MME configuration file
@@ -89,12 +89,13 @@ function configure_restricted_plmn {
 
 function configure_blocked_imei {
   # Remove default blocked imei(s) from MME configuration file
-  sed -i -e '/BLOCKED_IMEI_LIST/{n;d}' \
+  sed -i -e '/BLOCKED_IMEI_LIST/{n;N;N;N;N;d}' \
     "$mme_config_file"
 
   # Configure blocked imei(s) in MME configuration file
   blocked_imei_config=(
-    '{ TAC="99000482"; SNR="351037" }'
+    '{ IMEI_TAC="99000482"; SNR="351037" }'
+    '{ IMEI_TAC="99333821"; }'
   )
   blocked_imei_cmd_str=""
   for config in "${blocked_imei_config[@]}"
