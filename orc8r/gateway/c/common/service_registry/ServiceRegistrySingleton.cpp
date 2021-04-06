@@ -10,13 +10,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include "ServiceRegistrySingleton.h"
+#include <assert.h>                            // for assert
+#include <grpcpp/create_channel.h>             // for CreateCustomChannel
+#include <grpcpp/impl/codegen/config.h>        // for string
+#include <grpcpp/security/credentials.h>       // for SslCredentials, SslCre...
+#include <grpcpp/support/channel_arguments.h>  // for ChannelArguments
+#include <fstream>                             // for basic_ostream, basic_o...
+#include <stdexcept>                           // for invalid_argument
+#include <string>                              // for string, allocator, ope...
+namespace grpc {
+class Channel;
+}
 
-using grpc::Channel;
 using grpc::CreateCustomChannel;
 using grpc::InsecureChannelCredentials;
 using grpc::SslCredentials;

@@ -82,8 +82,6 @@
       - pkg-config
       # Packaging dependencies
       - build-essential
-      - python3-setuptools
-      - python-setuptools
       # Building and shipping client release
       - autogen
       - autoconf

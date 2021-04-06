@@ -12,8 +12,7 @@
  */
 #pragma once
 
-#include <string>
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/node/node.h>  // for Node
 
 namespace magma {
 

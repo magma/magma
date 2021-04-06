@@ -13,8 +13,7 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdarg.h>
+#include <stdio.h>  // for size_t
 
 namespace magma {
 namespace service303 {
