@@ -115,7 +115,6 @@ MME :
         #{ TAC="99000482"; SNR="351037"}
         # Sample IMEI without SNR: TAC(8 digits)
         #{ TAC="99000482";}
-        #{ TAC="99000482"; SNR=""}
     );
 
     CSFB :
