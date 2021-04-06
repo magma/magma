@@ -149,8 +149,10 @@ class GTPApplication : public Application {
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
   static const std::string GTP_PORT_MAC;
-  static const uint16_t NEXT_TABLE   = 1;
-  static const uint32_t LOW_PRIORITY = 0;
+  static const uint16_t NEXT_TABLE      = 1;
+  static const uint32_t LOW_PRIORITY    = 0;
+  static const uint32_t TUNNEL_PORT_REG = 8;
+  static const uint32_t TUNNEL_ID_REG   = 9;
 
   const std::string uplink_mac_;
   const uint32_t gtp0_port_num_;
@@ -171,10 +173,11 @@ class GTPApplication : public Application {
       of13::FlowMod downlink_fm);
 
   void add_tunnel_flow_action(
-      uint32_t tei, std::string ue_imsi, struct in_addr remote_ip,
-      uint32_t egress_gtp_port, fluid_base::OFConnection* connection,
-      const OpenflowMessenger& messenger, of13::FlowMod downlink_fm,
-      const std::string& flow_type, bool passthrough);
+      uint32_t out_tei, uint32_t in_tei, std::string ue_imsi,
+      struct in_addr remote_ip, uint32_t egress_gtp_port,
+      fluid_base::OFConnection* connection, const OpenflowMessenger& messenger,
+      of13::FlowMod downlink_fm, const std::string& flow_type,
+      bool passthrough);
 
   void add_downlink_tunnel_flow_action(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,

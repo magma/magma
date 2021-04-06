@@ -46,6 +46,12 @@ using magma::service303::increment_counter;
 using magma::service303::remove_counter;
 
 namespace magma {
+
+template<class T>
+void remove_from_vec_by_value(std::vector<T>& vec, T value) {
+  vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
+}
+
 std::unique_ptr<SessionState> SessionState::unmarshal(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store) {
   return std::make_unique<SessionState>(marshaled, rule_store);
@@ -113,7 +119,7 @@ StoredSessionState SessionState::marshal() {
   for (auto& it : rule_lifetimes_) {
     marshaled.rule_lifetimes[it.first] = it.second;
   }
-
+  marshaled.policy_version_and_stats = policy_version_and_stats_;
   return marshaled;
 }
 
@@ -132,6 +138,7 @@ SessionState::SessionState(
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
       create_session_response_(marshaled.create_session_response),
+      policy_version_and_stats_(marshaled.policy_version_and_stats),
       static_rules_(rule_store),
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
@@ -319,7 +326,6 @@ SessionCreditUpdateCriteria* SessionState::get_credit_uc(
 }
 
 bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
-  SessionStateUpdateCriteria _;
   if (uc.is_fsm_updated) {
     curr_state_ = uc.updated_fsm_state;
   }
@@ -350,114 +356,72 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
     config_ = uc.updated_config;
   }
 
+  // Rule versions
+  if (uc.policy_version_and_stats) {
+    policy_version_and_stats_ = *uc.policy_version_and_stats;
+  }
+
+  // Manually update these policy structures to avoid incrementing version
   // Static rules
   for (const auto& rule_id : uc.static_rules_to_uninstall) {
     if (is_static_rule_installed(rule_id)) {
-      deactivate_static_rule(rule_id, _);
-    } else if (is_static_rule_scheduled(rule_id)) {
-      install_scheduled_static_rule(rule_id, _);
-      deactivate_static_rule(rule_id, _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because static rule already uninstalled: " << rule_id;
-      return false;
+      remove_from_vec_by_value<std::string>(active_static_rules_, rule_id);
     }
+    if (is_static_rule_scheduled(rule_id)) {
+      scheduled_static_rules_.erase(rule_id);
+    }
+    rule_lifetimes_.erase(rule_id);
   }
   for (const auto& rule_id : uc.static_rules_to_install) {
-    if (is_static_rule_installed(rule_id)) {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because static rule already installed: " << rule_id;
-      return false;
+    if (!is_static_rule_installed(rule_id)) {
+      active_static_rules_.push_back(rule_id);
     }
     if (uc.new_rule_lifetimes.find(rule_id) != uc.new_rule_lifetimes.end()) {
-      auto lifetime = uc.new_rule_lifetimes[rule_id];
-      activate_static_rule(rule_id, lifetime, _);
-    } else if (is_static_rule_scheduled(rule_id)) {
-      install_scheduled_static_rule(rule_id, _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because rule lifetime is unspecified: " << rule_id;
-      return false;
+      rule_lifetimes_[rule_id] = uc.new_rule_lifetimes[rule_id];
+    }
+    if (is_static_rule_scheduled(rule_id)) {
+      scheduled_static_rules_.erase(rule_id);
     }
   }
   for (const auto& rule_id : uc.new_scheduled_static_rules) {
     if (is_static_rule_scheduled(rule_id)) {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because static rule already scheduled: " << rule_id;
-      return false;
+      continue;
     }
-    auto lifetime = uc.new_rule_lifetimes[rule_id];
-    schedule_static_rule(rule_id, lifetime, _);
+    if (uc.new_rule_lifetimes.find(rule_id) != uc.new_rule_lifetimes.end()) {
+      rule_lifetimes_[rule_id] = uc.new_rule_lifetimes[rule_id];
+    }
+    scheduled_static_rules_.insert(rule_id);
   }
 
   // Dynamic rules
   for (const auto& rule_id : uc.dynamic_rules_to_uninstall) {
-    if (is_dynamic_rule_installed(rule_id)) {
-      dynamic_rules_.remove_rule(rule_id, NULL);
-    } else if (is_dynamic_rule_scheduled(rule_id)) {
-      install_scheduled_static_rule(rule_id, _);
-      dynamic_rules_.remove_rule(rule_id, NULL);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because dynamic rule already uninstalled: " << rule_id;
-      return false;
-    }
+    scheduled_dynamic_rules_.remove_rule(rule_id, nullptr);
+    dynamic_rules_.remove_rule(rule_id, nullptr);
+    rule_lifetimes_.erase(rule_id);
   }
   for (const auto& rule : uc.dynamic_rules_to_install) {
-    if (is_dynamic_rule_installed(rule.id())) {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because dynamic rule already installed: " << rule.id();
-      return false;
-    }
     if (uc.new_rule_lifetimes.find(rule.id()) != uc.new_rule_lifetimes.end()) {
-      auto lifetime = uc.new_rule_lifetimes[rule.id()];
-      insert_dynamic_rule(rule, lifetime, _);
-    } else if (is_dynamic_rule_scheduled(rule.id())) {
-      install_scheduled_dynamic_rule(rule.id(), _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because rule lifetime is unspecified: " << rule.id();
-      return false;
+      rule_lifetimes_[rule.id()] = uc.new_rule_lifetimes[rule.id()];
     }
+    dynamic_rules_.insert_rule(rule);
+    scheduled_dynamic_rules_.remove_rule(rule.id(), nullptr);
   }
   for (const auto& rule : uc.new_scheduled_dynamic_rules) {
-    if (is_dynamic_rule_scheduled(rule.id())) {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because dynamic rule already scheduled: " << rule.id();
-      return false;
+    if (uc.new_rule_lifetimes.find(rule.id()) != uc.new_rule_lifetimes.end()) {
+      rule_lifetimes_[rule.id()] = uc.new_rule_lifetimes[rule.id()];
     }
-    auto lifetime = uc.new_rule_lifetimes[rule.id()];
-    schedule_dynamic_rule(rule, lifetime, _);
+    scheduled_dynamic_rules_.insert_rule(rule);
   }
 
   // Gy Dynamic rules
   for (const auto& rule : uc.gy_dynamic_rules_to_install) {
-    if (is_gy_dynamic_rule_installed(rule.id())) {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because gy dynamic rule already installed: "
-                   << rule.id();
-      return false;
-    }
     if (uc.new_rule_lifetimes.find(rule.id()) != uc.new_rule_lifetimes.end()) {
-      auto lifetime = uc.new_rule_lifetimes[rule.id()];
-      insert_gy_dynamic_rule(rule, lifetime, _);
-      MLOG(MERROR) << "Merge: " << session_id_ << " gy dynamic rule "
-                   << rule.id();
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because gy dynamic rule lifetime is not found";
-      return false;
+      rule_lifetimes_[rule.id()] = uc.new_rule_lifetimes[rule.id()];
     }
+    gy_dynamic_rules_.insert_rule(rule);
   }
   for (const auto& rule_id : uc.gy_dynamic_rules_to_uninstall) {
-    if (is_gy_dynamic_rule_installed(rule_id)) {
-      gy_dynamic_rules_.remove_rule(rule_id, NULL);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because gy dynamic rule already uninstalled: "
-                   << rule_id;
-      return false;
-    }
+    gy_dynamic_rules_.remove_rule(rule_id, nullptr);
   }
 
   // Charging credit
@@ -484,8 +448,7 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   for (const auto& it : uc.monitor_credit_to_install) {
     auto key            = it.first;
     auto stored_monitor = it.second;
-    set_monitor(key, Monitor(stored_monitor), _);
-    monitor_map_[key] = std::make_unique<Monitor>(stored_monitor);
+    monitor_map_[key]   = std::make_unique<Monitor>(stored_monitor);
   }
 
   if (uc.updated_pdp_end_time > 0) {
@@ -560,11 +523,12 @@ void SessionState::apply_session_static_rule_set(
     if (!is_static_rule_installed(static_rule_id)) {
       MLOG(MINFO) << "Installing static rule " << static_rule_id << " for "
                   << session_id_;
-      activate_static_rule(static_rule_id, lifetime, uc);
-      rules_to_activate.rules.push_back(rule);
+      uint32_t version = activate_static_rule(static_rule_id, lifetime, uc);
+      // Set up rules_to_activate
+      rules_to_activate.append_versioned_policy(rule, version);
     }
   }
-  std::vector<std::string> static_rules_to_deactivate;
+  std::vector<PolicyRule> static_rules_to_deactivate;
 
   // Go through the existing rules and uninstall any rule not in the rule set
   for (const auto static_rule_id : active_static_rules_) {
@@ -575,16 +539,22 @@ void SessionState::apply_session_static_rule_set(
                      << " is not found. Skipping deactivation";
         continue;
       }
-      static_rules_to_deactivate.push_back(static_rule_id);
-      rules_to_deactivate.rules.push_back(rule);
+      static_rules_to_deactivate.push_back(rule);
     }
   }
   // Do the actual removal separately so we're not modifying the vector while
   // looping
-  for (const auto static_rule_id : static_rules_to_deactivate) {
-    MLOG(MINFO) << "Removing static rule " << static_rule_id << " for "
+  for (const PolicyRule static_rule : static_rules_to_deactivate) {
+    MLOG(MINFO) << "Removing static rule " << static_rule.id() << " for "
                 << session_id_;
-    deactivate_static_rule(static_rule_id, uc);
+    optional<uint32_t> op_version =
+        deactivate_static_rule(static_rule.id(), uc);
+    if (!op_version) {
+      MLOG(MWARNING) << "Failed to deactivate static rule " << static_rule.id()
+                     << " for " << session_id_;
+    } else {
+      rules_to_deactivate.append_versioned_policy(static_rule, *op_version);
+    }
   }
 }
 
@@ -598,18 +568,21 @@ void SessionState::apply_session_dynamic_rule_set(
     if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
       MLOG(MINFO) << "Installing dynamic rule " << dynamic_rule_pair.first
                   << " for " << session_id_;
-      insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc);
-      rules_to_activate.rules.push_back(dynamic_rule_pair.second);
+      uint32_t version =
+          insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc);
+      rules_to_activate.append_versioned_policy(
+          dynamic_rule_pair.second, version);
     }
   }
   std::vector<PolicyRule> active_dynamic_rules;
   dynamic_rules_.get_rules(active_dynamic_rules);
   for (const auto& dynamic_rule : active_dynamic_rules) {
     if (dynamic_rules.find(dynamic_rule.id()) == dynamic_rules.end()) {
+      optional<uint32_t> op_version =
+          remove_dynamic_rule(dynamic_rule.id(), nullptr, uc);
       MLOG(MINFO) << "Removing dynamic rule " << dynamic_rule.id() << " for "
                   << session_id_;
-      remove_dynamic_rule(dynamic_rule.id(), nullptr, uc);
-      rules_to_deactivate.rules.push_back(dynamic_rule);
+      rules_to_deactivate.append_versioned_policy(dynamic_rule, *op_version);
     }
   }
 }
@@ -872,10 +845,20 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   dynamic_rules_.get_rules(info.gx_rules.rules);
   gy_dynamic_rules_.get_rules(info.gy_dynamic_rules.rules);
 
+  // Set versions
+  for (const PolicyRule rule : info.gx_rules.rules) {
+    info.gx_rules.versions.push_back(get_current_rule_version(rule.id()));
+  }
+  for (const PolicyRule rule : info.gy_dynamic_rules.rules) {
+    info.gy_dynamic_rules.versions.push_back(
+        get_current_rule_version(rule.id()));
+  }
+
   for (const std::string& rule_id : active_static_rules_) {
     PolicyRule rule;
     if (static_rules_.get_rule(rule_id, &rule)) {
-      info.gx_rules.rules.push_back(rule);
+      info.gx_rules.append_versioned_policy(
+          rule, get_current_rule_version(rule_id));
     }
   }
 }
@@ -903,7 +886,7 @@ void SessionState::remove_all_rules_for_termination(
   }
   gy_dynamic_rules_.get_rules(gy_dynamic_rules);
   for (PolicyRule& policy : gy_dynamic_rules) {
-    remove_gy_dynamic_rule(policy.id(), nullptr, session_uc);
+    remove_gy_rule(policy.id(), nullptr, session_uc);
   }
   for (const std::string& rule_id : active_static_rules_) {
     deactivate_static_rule(rule_id, session_uc);
@@ -911,7 +894,7 @@ void SessionState::remove_all_rules_for_termination(
 
   // remove scheduled rules
   for (const std::string& rule_id : scheduled_static_rules_) {
-    deactivate_scheduled_static_rule(rule_id, session_uc);
+    deactivate_scheduled_static_rule(rule_id);
   }
   scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
   for (PolicyRule& policy : scheduled_dynamic_rules) {
@@ -983,49 +966,53 @@ bool SessionState::is_static_rule_installed(const std::string& rule_id) {
              rule_id) != active_static_rules_.end();
 }
 
-void SessionState::insert_dynamic_rule(
+uint32_t SessionState::insert_dynamic_rule(
     const PolicyRule& rule, RuleLifetime& lifetime,
-    SessionStateUpdateCriteria& update_criteria) {
-  if (is_dynamic_rule_installed(rule.id())) {
-    return;
-  }
+    SessionStateUpdateCriteria& session_uc) {
   rule_lifetimes_[rule.id()] = lifetime;
   dynamic_rules_.insert_rule(rule);
-  update_criteria.dynamic_rules_to_install.push_back(rule);
-  update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
+  session_uc.dynamic_rules_to_install.push_back(rule);
+  session_uc.new_rule_lifetimes[rule.id()] = lifetime;
+
+  increment_rule_stats(rule.id(), session_uc);
+  return get_current_rule_version(rule.id());
 }
 
-void SessionState::insert_gy_dynamic_rule(
+uint32_t SessionState::insert_gy_rule(
     const PolicyRule& rule, RuleLifetime& lifetime,
-    SessionStateUpdateCriteria& update_criteria) {
-  if (is_gy_dynamic_rule_installed(rule.id())) {
-    MLOG(MDEBUG) << "Tried to insert " << rule.id()
-                 << " (gy dynamic rule), but it already existed";
-    return;
-  }
+    SessionStateUpdateCriteria& session_uc) {
   rule_lifetimes_[rule.id()] = lifetime;
   gy_dynamic_rules_.insert_rule(rule);
-  update_criteria.gy_dynamic_rules_to_install.push_back(rule);
-  update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
+  session_uc.gy_dynamic_rules_to_install.push_back(rule);
+  session_uc.new_rule_lifetimes[rule.id()] = lifetime;
+
+  increment_rule_stats(rule.id(), session_uc);
+  return get_current_rule_version(rule.id());
 }
 
-void SessionState::activate_static_rule(
+uint32_t SessionState::activate_static_rule(
     const std::string& rule_id, RuleLifetime& lifetime,
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& session_uc) {
   rule_lifetimes_[rule_id] = lifetime;
   active_static_rules_.push_back(rule_id);
-  update_criteria.static_rules_to_install.insert(rule_id);
-  update_criteria.new_rule_lifetimes[rule_id] = lifetime;
-}
+  session_uc.static_rules_to_install.insert(rule_id);
+  session_uc.new_rule_lifetimes[rule_id] = lifetime;
 
-bool SessionState::remove_dynamic_rule(
+  increment_rule_stats(rule_id, session_uc);
+  return get_current_rule_version(rule_id);
+};
+
+optional<uint32_t> SessionState::remove_dynamic_rule(
     const std::string& rule_id, PolicyRule* rule_out,
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& session_uc) {
   bool removed = dynamic_rules_.remove_rule(rule_id, rule_out);
-  if (removed) {
-    update_criteria.dynamic_rules_to_uninstall.insert(rule_id);
+  if (!removed) {
+    return {};
   }
-  return removed;
+
+  session_uc.dynamic_rules_to_uninstall.insert(rule_id);
+  increment_rule_stats(rule_id, session_uc);
+  return get_current_rule_version(rule_id);
 }
 
 bool SessionState::remove_scheduled_dynamic_rule(
@@ -1038,30 +1025,36 @@ bool SessionState::remove_scheduled_dynamic_rule(
   return removed;
 }
 
-bool SessionState::remove_gy_dynamic_rule(
+optional<uint32_t> SessionState::remove_gy_rule(
     const std::string& rule_id, PolicyRule* rule_out,
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& session_uc) {
   bool removed = gy_dynamic_rules_.remove_rule(rule_id, rule_out);
-  if (removed) {
-    update_criteria.gy_dynamic_rules_to_uninstall.insert(rule_id);
+  if (!removed) {
+    return {};
   }
-  return removed;
+  session_uc.gy_dynamic_rules_to_uninstall.insert(rule_id);
+
+  increment_rule_stats(rule_id, session_uc);
+  return get_current_rule_version(rule_id);
 }
 
-bool SessionState::deactivate_static_rule(
-    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
+optional<uint32_t> SessionState::deactivate_static_rule(
+    const std::string& rule_id, SessionStateUpdateCriteria& session_uc) {
   auto it = std::find(
       active_static_rules_.begin(), active_static_rules_.end(), rule_id);
   if (it == active_static_rules_.end()) {
-    return false;
+    return {};
   }
-  update_criteria.static_rules_to_uninstall.insert(rule_id);
+
+  session_uc.static_rules_to_uninstall.insert(rule_id);
   active_static_rules_.erase(it);
-  return true;
+
+  increment_rule_stats(rule_id, session_uc);
+  return get_current_rule_version(rule_id);
 }
 
 bool SessionState::deactivate_scheduled_static_rule(
-    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
+    const std::string& rule_id) {
   if (scheduled_static_rules_.count(rule_id) == 0) {
     return false;
   }
@@ -1070,21 +1063,22 @@ bool SessionState::deactivate_scheduled_static_rule(
 }
 
 void SessionState::sync_rules_to_time(
-    std::time_t current_time, SessionStateUpdateCriteria& update_criteria) {
+    std::time_t current_time, SessionStateUpdateCriteria& session_uc) {
   // Update active static rules
   for (const std::string& rule_id : active_static_rules_) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
-      deactivate_static_rule(rule_id, update_criteria);
+      deactivate_static_rule(rule_id, session_uc);
     }
   }
   // Update scheduled static rules
   std::set<std::string> scheduled_rule_ids = scheduled_static_rules_;
   for (const std::string& rule_id : scheduled_rule_ids) {
     if (should_rule_be_active(rule_id, current_time)) {
-      install_scheduled_static_rule(rule_id, update_criteria);
+      scheduled_static_rules_.erase(rule_id);
+      activate_static_rule(rule_id, rule_lifetimes_[rule_id], session_uc);
     } else if (should_rule_be_deactivated(rule_id, current_time)) {
       scheduled_static_rules_.erase(rule_id);
-      update_criteria.static_rules_to_uninstall.insert(rule_id);
+      deactivate_static_rule(rule_id, session_uc);
     }
   }
   // Update active dynamic rules
@@ -1092,7 +1086,7 @@ void SessionState::sync_rules_to_time(
   dynamic_rules_.get_rule_ids(dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
-      remove_dynamic_rule(rule_id, NULL, update_criteria);
+      remove_dynamic_rule(rule_id, NULL, session_uc);
     }
   }
   // Update scheduled dynamic rules
@@ -1100,9 +1094,11 @@ void SessionState::sync_rules_to_time(
   scheduled_dynamic_rules_.get_rule_ids(dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_active(rule_id, current_time)) {
-      install_scheduled_dynamic_rule(rule_id, update_criteria);
+      PolicyRule dy_rule;
+      remove_scheduled_dynamic_rule(rule_id, &dy_rule, session_uc);
+      insert_dynamic_rule(dy_rule, rule_lifetimes_[rule_id], session_uc);
     } else if (should_rule_be_deactivated(rule_id, current_time)) {
-      remove_scheduled_dynamic_rule(rule_id, NULL, update_criteria);
+      remove_scheduled_dynamic_rule(rule_id, NULL, session_uc);
     }
   }
 }
@@ -1135,10 +1131,7 @@ uint32_t SessionState::total_monitored_rules_count() {
   uint32_t monitored_dynamic_rules = dynamic_rules_.monitored_rules_count();
   uint32_t monitored_static_rules  = 0;
   for (auto& rule_id : active_static_rules_) {
-    std::string _;
-    auto is_monitored =
-        static_rules_.get_monitoring_key_for_rule_id(rule_id, &_);
-    if (is_monitored) {
+    if (static_rules_.get_monitoring_key_for_rule_id(rule_id, nullptr)) {
       monitored_static_rules++;
     }
   }
@@ -1161,32 +1154,6 @@ void SessionState::schedule_static_rule(
   update_criteria.new_scheduled_static_rules.insert(rule_id);
   rule_lifetimes_[rule_id] = lifetime;
   scheduled_static_rules_.insert(rule_id);
-}
-
-void SessionState::install_scheduled_dynamic_rule(
-    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
-  PolicyRule dynamic_rule;
-  bool removed = scheduled_dynamic_rules_.remove_rule(rule_id, &dynamic_rule);
-  if (!removed) {
-    MLOG(MERROR) << "Failed to mark a scheduled dynamic rule as installed "
-                 << "with rule_id: " << rule_id;
-    return;
-  }
-  update_criteria.dynamic_rules_to_install.push_back(dynamic_rule);
-  dynamic_rules_.insert_rule(dynamic_rule);
-}
-
-void SessionState::install_scheduled_static_rule(
-    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
-  auto it = scheduled_static_rules_.find(rule_id);
-  if (it == scheduled_static_rules_.end()) {
-    MLOG(MERROR) << "Failed to mark a scheduled static rule as installed "
-                    "with rule_id: "
-                 << rule_id;
-  }
-  update_criteria.static_rules_to_install.insert(rule_id);
-  scheduled_static_rules_.erase(rule_id);
-  active_static_rules_.push_back(rule_id);
 }
 
 uint32_t SessionState::get_credit_key_count() {
@@ -1417,30 +1384,29 @@ bool SessionState::is_credit_suspended(const CreditKey& charging_key) {
   return false;
 }
 
-void SessionState::get_unsuspended_rules(RulesToProcess& rulesToProcess) {
-  for (auto const& it : credit_map_) {
-    CreditKey ckey = it.first;
-    if (!it.second->get_suspended()) {
-      get_rules_per_credit_key(ckey, rulesToProcess);
-    }
-  }
-}
-
 void SessionState::get_rules_per_credit_key(
-    CreditKey charging_key, RulesToProcess& rulesToProcess) {
-  std::vector<std::string> static_rules;
-  static_rules_.get_rule_ids_for_charging_key(charging_key, static_rules);
-  for (auto rule_id : static_rules) {
-    PolicyRule rule;
-    if (static_rules_.get_rule(rule_id, &rule)) {
-      rulesToProcess.rules.push_back(rule);
-    } else {
-      MLOG(MWARNING) << "Static rule " << rule_id
-                     << " is not found in the system";
+    CreditKey charging_key, RulesToProcess& to_process,
+    SessionStateUpdateCriteria& session_uc) {
+  std::vector<PolicyRule> static_rules, dynamic_rules;
+  static_rules_.get_rule_definitions_for_charging_key(
+      charging_key, static_rules);
+  for (PolicyRule rule : static_rules) {
+    // Since the static rule store is shared across sessions, we should check
+    // that the rule is activated for the session
+    bool is_installed = is_static_rule_installed(rule.id());
+    if (is_installed) {
+      increment_rule_stats(rule.id(), session_uc);
+      to_process.append_versioned_policy(
+          rule, get_current_rule_version(rule.id()));
     }
   }
   dynamic_rules_.get_rule_definitions_for_charging_key(
-      charging_key, rulesToProcess.rules);
+      charging_key, dynamic_rules);
+  for (PolicyRule rule : dynamic_rules) {
+    increment_rule_stats(rule.id(), session_uc);
+    to_process.append_versioned_policy(
+        rule, get_current_rule_version(rule.id()));
+  }
 }
 
 uint64_t SessionState::get_charging_credit(
@@ -1555,8 +1521,8 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
   req.mutable_common_context()->CopyFrom(config_.common_context);
 
-  // TODO keep RAT specific fields separate for now as we may not always want to
-  // send the entire context
+  // TODO keep RAT specific fields separate for now as we may not always want
+  // to send the entire context
   if (config_.rat_specific_context.has_lte_context()) {
     const auto& lte_context = config_.rat_specific_context.lte_context();
     req.set_spgw_ipv4(lte_context.spgw_ipv4());
@@ -1603,10 +1569,8 @@ void SessionState::get_charging_updates(
 
         PolicyRule redirect_rule = make_redirect_rule(grant);
         if (!is_gy_dynamic_rule_installed(redirect_rule.id())) {
-          RuleLifetime lifetime;
-          insert_gy_dynamic_rule(redirect_rule, lifetime, uc);
-          fill_service_action_with_context(action, action_type, key);
-          fill_service_action_for_redirect(action, key, grant, redirect_rule);
+          fill_service_action_for_redirect(
+              action, key, grant, redirect_rule, uc);
           actions_out->push_back(std::move(action));
         }
 
@@ -1619,14 +1583,12 @@ void SessionState::get_charging_updates(
         }
         grant->set_service_state(SERVICE_RESTRICTED, *credit_uc);
 
-        fill_service_action_with_context(action, action_type, key);
-        fill_service_action_for_restrict(action, key, grant);
+        fill_service_action_for_restrict(action, key, grant, uc);
         actions_out->push_back(std::move(action));
         break;
       }
       case ACTIVATE_SERVICE:
-        fill_service_action_with_context(action, action_type, key);
-        fill_service_action_for_activate(action, key);
+        fill_service_action_for_activate(action, key, uc);
         actions_out->push_back(std::move(action));
         grant->set_suspended(false, credit_uc);
         break;
@@ -1683,20 +1645,32 @@ optional<CreditUsageUpdate> SessionState::get_update_for_continue_service(
 }
 
 void SessionState::fill_service_action_for_activate(
-    std::unique_ptr<ServiceAction>& action_p, const CreditKey& key) {
-  std::vector<PolicyRule> rules;
-  static_rules_.get_rules_by_ids(active_static_rules_, rules);
-  dynamic_rules_.get_rule_definitions_for_charging_key(key, rules);
+    std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
+    SessionStateUpdateCriteria& session_uc) {
+  std::vector<PolicyRule> static_rules, dynamic_rules;
+  fill_service_action_with_context(action_p, ACTIVATE_SERVICE, key);
+  static_rules_.get_rules_by_ids(active_static_rules_, static_rules);
+  dynamic_rules_.get_rule_definitions_for_charging_key(key, dynamic_rules);
 
   RulesToProcess* to_install = action_p->get_mutable_gx_rules_to_install();
-  for (PolicyRule rule : rules) {
-    to_install->rules.push_back(rule);
+  for (PolicyRule rule : static_rules) {
+    RuleLifetime lifetime;
+    uint32_t version = activate_static_rule(rule.id(), lifetime, session_uc);
+    to_install->append_versioned_policy(rule, version);
+  }
+  for (PolicyRule rule : dynamic_rules) {
+    RuleLifetime lifetime;
+    uint32_t version = insert_dynamic_rule(rule, lifetime, session_uc);
+    to_install->append_versioned_policy(rule, version);
   }
 }
 
 void SessionState::fill_service_action_for_restrict(
     std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
-    std::unique_ptr<ChargingGrant>& grant) {
+    std::unique_ptr<ChargingGrant>& grant,
+    SessionStateUpdateCriteria& session_uc) {
+  fill_service_action_with_context(action_p, RESTRICT_ACCESS, key);
+
   RulesToProcess* gy_to_install = action_p->get_mutable_gy_rules_to_install();
   for (auto& rule_id : grant->final_action_info.restrict_rules) {
     PolicyRule rule;
@@ -1704,9 +1678,10 @@ void SessionState::fill_service_action_for_restrict(
       MLOG(MWARNING) << "Static rule " << rule_id
                      << " requested as a restrict rule is not found.";
       continue;
-    } else {
-      gy_to_install->rules.push_back(rule);
     }
+    RuleLifetime lifetime;
+    uint32_t version = insert_gy_rule(rule, lifetime, session_uc);
+    gy_to_install->append_versioned_policy(rule, version);
   }
 }
 
@@ -1745,9 +1720,14 @@ PolicyRule SessionState::make_redirect_rule(
 
 void SessionState::fill_service_action_for_redirect(
     std::unique_ptr<ServiceAction>& action_p, const CreditKey& key,
-    std::unique_ptr<ChargingGrant>& grant, PolicyRule redirect_rule) {
+    std::unique_ptr<ChargingGrant>& grant, PolicyRule redirect_rule,
+    SessionStateUpdateCriteria& session_uc) {
+  fill_service_action_with_context(action_p, REDIRECT, key);
+
   RulesToProcess* gy_to_install = action_p->get_mutable_gy_rules_to_install();
-  gy_to_install->rules.push_back(make_redirect_rule(grant));
+  RuleLifetime lifetime;
+  uint32_t version = insert_gy_rule(redirect_rule, lifetime, session_uc);
+  gy_to_install->append_versioned_policy(redirect_rule, version);
 }
 
 void SessionState::fill_service_action_with_context(
@@ -2044,8 +2024,8 @@ void SessionState::get_event_trigger_updates(
     new_req->set_event_trigger(REVALIDATION_TIMEOUT);
     request_number_++;
     update_criteria.request_number_increment++;
-    // todo we might want to make sure that the update went successfully before
-    // clearing here
+    // todo we might want to make sure that the update went successfully
+    // before clearing here
     remove_event_trigger(REVALIDATION_TIMEOUT, update_criteria);
   }
 }
@@ -2117,16 +2097,19 @@ RulesToProcess SessionState::remove_all_final_action_rules(
   switch (final_action_info.final_action) {
     case ChargingCredit_FinalAction_REDIRECT: {
       PolicyRule rule;
-      if (remove_gy_dynamic_rule("redirect", &rule, session_uc)) {
-        to_process.rules.push_back(rule);
+      optional<uint32_t> op_version =
+          remove_gy_rule("redirect", &rule, session_uc);
+      if (op_version) {
+        to_process.append_versioned_policy(rule, *op_version);
       }
     } break;
     case ChargingCredit_FinalAction_RESTRICT_ACCESS:
       for (std::string rule_id : final_action_info.restrict_rules) {
         PolicyRule rule;
-        if (static_rules_.get_rule(rule_id, &rule)) {
-          to_process.rules.push_back(rule);
-          deactivate_static_rule(rule_id, session_uc);
+        optional<uint32_t> op_version =
+            remove_gy_rule(rule_id, &rule, session_uc);
+        if (op_version) {
+          to_process.append_versioned_policy(rule, *op_version);
         }
       }
       break;
@@ -2151,8 +2134,7 @@ bool SessionState::policy_has_qos(
   return false;
 }
 
-std::experimental::optional<PolicyRule>
-SessionState::policy_needs_bearer_creation(
+optional<PolicyRule> SessionState::policy_needs_bearer_creation(
     const PolicyType policy_type, const std::string& id,
     const SessionConfig& config) {
   if (!config.rat_specific_context.has_lte_context()) {
@@ -2334,6 +2316,38 @@ void SessionState::clear_create_session_response() {
 
 bool RulesToProcess::empty() const {
   return rules.empty();
+}
+
+void RulesToProcess::append_versioned_policy(
+    PolicyRule rule, uint32_t version) {
+  rules.push_back(rule);
+  versions.push_back(version);
+}
+
+uint32_t SessionState::get_current_rule_version(const std::string& rule_id) {
+  if (policy_version_and_stats_.find(rule_id) ==
+      policy_version_and_stats_.end()) {
+    MLOG(MWARNING) << "RuleID " << rule_id
+                   << " doesn't have a version registered for " << session_id_
+                   << ", this is unexpected";
+    return 0;
+  }
+  return policy_version_and_stats_[rule_id].current_version;
+}
+
+void SessionState::increment_rule_stats(
+    const std::string& rule_id, SessionStateUpdateCriteria& session_uc) {
+  if (policy_version_and_stats_.find(rule_id) ==
+      policy_version_and_stats_.end()) {
+    policy_version_and_stats_[rule_id]                       = StatsPerPolicy();
+    policy_version_and_stats_[rule_id].current_version       = 0;
+    policy_version_and_stats_[rule_id].last_reported_version = 0;
+  }
+  policy_version_and_stats_[rule_id].current_version++;
+
+  if (!session_uc.policy_version_and_stats) {
+    session_uc.policy_version_and_stats = policy_version_and_stats_;
+  }
 }
 
 }  // namespace magma

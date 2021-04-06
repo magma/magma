@@ -78,27 +78,6 @@ output "orc8r_db_pass" {
   sensitive   = true
 }
 
-output "nms_db_host" {
-  description = "Hostname of the NMS RDS instance"
-  value       = aws_db_instance.nms.address
-}
-
-output "nms_db_name" {
-  description = "Database name for NMS RDS instance"
-  value       = aws_db_instance.nms.name
-}
-
-output "nms_db_user" {
-  description = "Database username for NMS RDS instance"
-  value       = aws_db_instance.nms.username
-}
-
-output "nms_db_pass" {
-  description = "NMS DB password"
-  value       = aws_db_instance.nms.password
-  sensitive   = true
-}
-
 output "route53_zone_id" {
   description = "Route53 zone ID for Orchestrator domain name"
   value       = aws_route53_zone.orc8r.id

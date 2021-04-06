@@ -94,7 +94,23 @@ namespace magma5g {
 #define PDU_SESSION_MODIFICATION_REJECT 0xCA
 // 5G Session Management IE Types
 #define PDU_SESSION_TYPE 0x09
+#define PDU_SESSION_IDENTITY 0x12
 #define SSC_MODE 0x0A
 #define M5GSM_CAUSE 0x59
 #define PDU_ADDRESS 0x29
+#define DNN 0x25
+// IE field values
+#define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
+#define M5GSMobileIdentityMsg_GUTI 0x02
+#define M3GPP_ACCESS 1
+#define NON_M3GPP_ACCESS 2
+#define M3GPP_ACCESS_AND_NON_3GPP_ACCESS 3
+#define NOT_ALLOWED 0
+#define ALLOWED 1
+#define EVEN_IDENTITY_DIGITS 0
+#define ODD_IDENTITY_DIGITS 1
+#define M5G_IDENTITY_SUCI 1
+#define IMSI_LENGTH 15
+#define NATIVE_SECURITY_CONTEXT 0
+#define MAPPED_SECURITY_CONTEXT 1
 }  // namespace magma5g

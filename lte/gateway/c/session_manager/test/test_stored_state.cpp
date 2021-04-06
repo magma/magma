@@ -349,6 +349,42 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(deserialized.pdp_end_time, 332211);
 }
 
+TEST_F(StoredStateTest, test_policy_stats_map) {
+  PolicyStatsMap original;
+  StatsPerPolicy og_stats1, og_stats2;
+  const std::string rule1 = "rule1";
+  const std::string rule2 = "rule2";
+
+  og_stats1.current_version       = 2;
+  og_stats1.last_reported_version = 1;
+  original[rule1]                 = og_stats1;
+
+  og_stats2.current_version       = 4;
+  og_stats2.last_reported_version = 3;
+  original[rule2]                 = og_stats2;
+
+  std::string serialized      = serialize_policy_stats_map(original);
+  PolicyStatsMap deserialized = deserialize_policy_stats_map(serialized);
+
+  EXPECT_EQ(2, deserialized.size());
+
+  StatsPerPolicy deserialized_stats1 = deserialized[rule1];
+  StatsPerPolicy deserialized_stats2 = deserialized[rule2];
+
+  EXPECT_EQ(og_stats1.current_version, deserialized_stats1.current_version);
+  EXPECT_EQ(
+      og_stats1.last_reported_version,
+      deserialized_stats1.last_reported_version);
+
+  EXPECT_EQ(og_stats2.current_version, deserialized_stats2.current_version);
+  EXPECT_EQ(
+      og_stats2.last_reported_version,
+      deserialized_stats2.last_reported_version);
+
+  // Check that the value is empty by default
+  EXPECT_FALSE(get_default_update_criteria().policy_version_and_stats);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

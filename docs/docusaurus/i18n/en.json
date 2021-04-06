@@ -5,9 +5,6 @@
     "previous": "Previous",
     "tagline": "Bring more people online by enabling operators with open, flexible, and extensible network solutions",
     "docs": {
-      "architecture/agw_overview": {
-        "title": "AGW Overview"
-      },
       "basics/introduction": {
         "title": "Introduction"
       },
@@ -16,6 +13,9 @@
       },
       "basics/quick_start_guide": {
         "title": "Quick Start Guide"
+      },
+      "contributing/contribute_codeowners": {
+        "title": "Codeowners Workflow"
       },
       "contributing/contribute_conventions": {
         "title": "Code Conventions"
@@ -42,26 +42,20 @@
       "cwf/troubleshooting": {
         "title": "cwf/troubleshooting"
       },
-      "debugging_tools/dp_probe_cli": {
-        "title": "Data Path Probe Cli Command"
-      },
-      "debugging_tools/show_tech": {
-        "title": "Show Tech"
-      },
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
       },
       "feg/deploy_build": {
-        "title": "Building Federation Gateway"
+        "title": "Build FeG"
+      },
+      "feg/deploy_configure": {
+        "title": "Configure FeG"
       },
       "feg/deploy_install": {
-        "title": "Installing Federation Gateway"
+        "title": "Install FeG"
       },
       "feg/deploy_intro": {
         "title": "Introduction"
-      },
-      "feg/federated_FWA_setup_guide": {
-        "title": "Federated-FWA Setup Guide"
       },
       "feg/legacy/docker_setup": {
         "title": "FeG Docker Setup"
@@ -88,34 +82,56 @@
       "howtos/thanos": {
         "title": "Thanos"
       },
+      "howtos/troubleshooting/agw_unable_to_checkin": {
+        "title": "Access Gateway Unable to Check-in to Orchestrator"
+      },
+      "howtos/troubleshooting/generate_admin_operator_certificates": {
+        "title": "Generate and update admin_operator certificates"
+      },
+      "howtos/troubleshooting/update_certificates": {
+        "title": "Update rootCA and controller SSL certificates"
+      },
+      "howtos/troubleshooting/user_unable_to_attach": {
+        "title": "User is unable to attach to Magma"
+      },
       "howtos/config_agw_bridged": {
         "title": "AGW Bridged Mode"
       },
       "howtos/ue_metering": {
         "title": "UE Usage Metering"
       },
-      "lte/config_agw": {
-        "title": "AGW Configuration",
-        "sidebar_label": "AGW Configuration"
-      },
-      "lte/config_apn": {
-        "title": "APN Configuration"
+      "lte/architecture_overview": {
+        "title": "Overview"
       },
       "lte/openvswitch": {
         "title": "Magma Datapath"
       },
-      "lte/dev_notes": {
-        "title": "Developer Notes for Access Gateway"
+      "lte/debug_dp_probe": {
+        "title": "Datapath Probe CLI"
       },
-      "lte/enodebd": {
-        "title": "eNodeB Configuration"
+      "lte/debug_show_tech": {
+        "title": "Show Tech"
+      },
+      "lte/deploy_config_agw": {
+        "title": "Configure AGW"
+      },
+      "lte/deploy_config_apn": {
+        "title": "Configure an APN"
+      },
+      "lte/deploy_config_enodebd": {
+        "title": "Configure eNodeB"
+      },
+      "lte/deploy_install": {
+        "title": "Install AGW"
+      },
+      "lte/dev_notes": {
+        "title": "Developer Notes"
       },
       "lte/eventd": {
-        "title": "Eventd"
+        "title": "Event Reporting"
       },
-      "lte/ha_setup": {
-        "title": "HA AGW Setup",
-        "sidebar_label": "HA AGW Setup"
+      "lte/deploy_config_agw_ha": {
+        "title": "Configure AGW for HA"
       },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
@@ -143,25 +159,24 @@
         "title": "AGW Setup (Bare Metal)",
         "sidebar_label": "Setup (Bare Metal)"
       },
-      "lte/setup_deb": {
-        "title": "AGW Setup (Bare Metal)",
-        "sidebar_label": "Setup (Bare Metal)"
-      },
       "lte/setup": {
         "title": "AGW Setup (With Vagrant)",
         "sidebar_label": "Setup (With Vagrant)"
       },
       "lte/tr069": {
-        "title": "Adding TR-069 support for an eNodeB"
+        "title": "Add eNB TR-069 Support"
       },
-      "lte/agw_120_upgrade": {
-        "title": "Upgrading from 1.1"
+      "lte/upgrade_1_1": {
+        "title": "Upgrade to v1.1"
       },
-      "lte/agw_130_upgrade": {
-        "title": "Upgrading from 1.2"
+      "lte/upgrade_1_2": {
+        "title": "Upgrade to v1.2"
       },
-      "lte/agw_110_upgrade": {
-        "title": "Upgrading from 1.0"
+      "lte/upgrade_1_3": {
+        "title": "Upgrade to v1.3"
+      },
+      "lte/upgrade_1_4": {
+        "title": "Upgrade to v1.4"
       },
       "nms/alerts": {
         "title": "Alerts"
@@ -169,8 +184,17 @@
       "nms/dashboard": {
         "title": "Dashboard"
       },
-      "nms/developer": {
-        "title": "Developer"
+      "nms/deploy_config": {
+        "title": "Configure NMS"
+      },
+      "nms/dev_components": {
+        "title": "Components"
+      },
+      "nms/dev_spacing": {
+        "title": "Spacing Guidelines"
+      },
+      "nms/dev_themes": {
+        "title": "Themes"
       },
       "nms/equipment": {
         "title": "Equipment"
@@ -186,9 +210,6 @@
       },
       "nms/overview": {
         "title": "Overview"
-      },
-      "nms/setup": {
-        "title": "Setup"
       },
       "nms/subscriber": {
         "title": "Subscriber"
@@ -207,6 +228,9 @@
       },
       "orc8r/architecture_security": {
         "title": "Security"
+      },
+      "orc8r/debug_logs": {
+        "title": "View Logs"
       },
       "orc8r/deploy_build": {
         "title": "Build Orchestrator"
@@ -271,6 +295,9 @@
       "orc8r/upgrade_1_4": {
         "title": "Upgrade to v1.4"
       },
+      "orc8r/upgrade_1_5": {
+        "title": "Upgrade to v1.5"
+      },
       "orc8r/upgrade_intro": {
         "title": "Introduction"
       },
@@ -309,6 +336,12 @@
       },
       "proposals/p010_subscriber_scaling": {
         "title": "Subscriber Scaling"
+      },
+      "proposals/p010_vendor_neutral_dp": {
+        "title": "proposals/p010_vendor_neutral_dp"
+      },
+      "proposals/p011_victoriametrics": {
+        "title": "VictoriaMetrics as Magma's TSDB"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
@@ -629,8 +662,8 @@
         "sidebar_label": "Setup (Bare Metal)"
       },
       "version-1.1.0/lte/version-1.1.0-agw_110_upgrade": {
-        "title": "Upgrading from 1.0",
-        "sidebar_label": "Upgrading from 1.0"
+        "title": "Upgrade to  v1.1",
+        "sidebar_label": "Upgrade to v1.1"
       },
       "version-1.1.0/nms/version-1.1.0-nms_grafana": {
         "title": "Custom Grafana Dashboards"
@@ -687,7 +720,7 @@
         "sidebar_label": "Setup (Bare Metal)"
       },
       "version-1.2.0/lte/version-1.2.0-agw_120_upgrade": {
-        "title": "Upgrading from 1.1"
+        "title": "Upgrade to v1.2"
       },
       "version-1.2.0/nms/version-1.2.0-nms_dashboard": {
         "title": "NMS Dashboard"
@@ -757,7 +790,7 @@
         "sidebar_label": "Setup (Bare Metal)"
       },
       "version-1.3.0/lte/version-1.3.0-agw_130_upgrade": {
-        "title": "Upgrading from 1.2"
+        "title": "Upgrade to v1.3"
       },
       "version-1.3.0/orc8r/version-1.3.0-deploy_build": {
         "title": "Build Orchestrator"
@@ -839,6 +872,9 @@
       "version-1.4.0/lte/version-1.4.0-setup_deb": {
         "title": "AGW Setup (Bare Metal)",
         "sidebar_label": "Setup (Bare Metal)"
+      },
+      "version-1.4.0/lte/version-1.4.0-agw_140_upgrade": {
+        "title": "Upgrading from 1.3"
       },
       "version-1.4.0/nms/version-1.4.0-alerts": {
         "title": "Alerts"
@@ -939,8 +975,8 @@
       "version-1.4.0/proposals/version-1.4.0-proposal_process": {
         "title": "Magma Proposals"
       },
-      "version-1.4.0/proposals/version-1.4.0-p[###]_[short-description]": {
-        "title": "[Title of Design Doc]"
+      "version-1.4.0/proposals/version-1.4.0-proposal_template": {
+        "title": "Title of Design Doc"
       }
     },
     "links": {
@@ -951,6 +987,17 @@
       "Community": "Community"
     },
     "categories": {
+      "Getting Started": "Getting Started",
+      "Tutorials": "Tutorials",
+      "Usage": "Usage",
+      "Architecture": "Architecture",
+      "Deploy": "Deploy",
+      "Upgrade": "Upgrade",
+      "Debug": "Debug",
+      "Technical Reference": "Technical Reference",
+      "Contributing": "Contributing",
+      "Proposals": "Proposals",
+      "FAQ": "FAQ",
       "Basics": "Basics",
       "Orchestrator": "Orchestrator",
       "NMS": "NMS",
@@ -958,10 +1005,6 @@
       "Feature Guides": "Feature Guides",
       "Debugging Tools": "Debugging Tools",
       "Federation Gateway": "Federation Gateway",
-      "FAQ": "FAQ",
-      "Contributing": "Contributing",
-      "Proposals": "Proposals",
-      "Architecture": "Architecture",
       "NMS User Guide": "NMS User Guide",
       "Symphony": "Symphony"
     }

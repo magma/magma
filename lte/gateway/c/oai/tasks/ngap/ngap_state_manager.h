@@ -110,5 +110,6 @@ class NgapStateManager
   uint32_t max_ues_;
   uint32_t max_gnbs_;
   ngap_imsi_map_t* ngap_imsi_map_;
+  std::size_t ngap_imsi_map_hash_;
 };
 }  // namespace magma5g

@@ -25,6 +25,7 @@
 
 #include "CreditKey.h"
 
+// NOTE:
 // This file is intended for declaring types that are shared across classes.
 // If a type has a clear owner, do NOT put in this file
 
@@ -184,7 +185,17 @@ struct RulesToProcess {
   // If this vector is set, then it has PolicyRule definitions for both static
   // and dynamic rules
   std::vector<PolicyRule> rules;
+  std::vector<uint32_t> versions;
   bool empty() const;
+  void append_versioned_policy(PolicyRule rule, uint32_t version);
 };
+
+struct StatsPerPolicy {
+  // The version maintained by SessionD for this rule
+  uint32_t current_version;
+  // The last reported version from PipelineD
+  uint32_t last_reported_version;
+};
+typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;
 
 }  // namespace magma

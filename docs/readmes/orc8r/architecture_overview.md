@@ -4,7 +4,7 @@ title: Overview
 hide_title: true
 ---
 
-# Overview
+# Architecture Overview
 
 This document serves as an introduction to Orchestrator functionality and
 architecture. Operators may find this useful to better understand their

@@ -8,10 +8,10 @@ hide_title: true
 
 With general patterns for economical set-interfaces.
 
-- *Status: In-Review*
+- *Status: Accepted*
 - *Author: @hcgatewood*
 - *Last Updated: 03/19*
-- *Targeted Release: 1.5*
+- *Targeted Release: 1.5, 1.6*
 
 ## Overview
 

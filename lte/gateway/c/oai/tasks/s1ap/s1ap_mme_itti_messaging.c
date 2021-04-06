@@ -106,11 +106,11 @@ int s1ap_mme_itti_nas_downlink_cnf(
     if (!is_success) {
       OAILOG_ERROR(
           LOG_S1AP,
-          "ERROR: Failed to send connection less S1AP message to eNB. "
+          "ERROR: Failed to send connectionless S1AP message to eNB. "
           "mme_ue_s1ap_id =  %d \n",
           ue_id);
     }
-    // Drop this cnf message here since this is related to connection less S1AP
+    // Drop this cnf message here since this is related to connectionless S1AP
     // message hence no need to send it to NAS module
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }

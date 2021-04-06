@@ -12,7 +12,8 @@
  */
 #pragma once
 
-#include <string>
+#include <iosfwd>  // for ifstream
+#include <string>  // for stringnamespace magma {
 
 namespace magma {
 namespace service303 {

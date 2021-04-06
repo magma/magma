@@ -12,7 +12,7 @@
 
 set -e
 
-# spin for the passed number of seconds, defaulting to 10 seconds.
+# spin until localhost:3000 returns HTTP code 200.
 function spin() {
   nsec=${1-10}
   spin='-\|/'
@@ -38,5 +38,5 @@ echo 'If you want to follow the build logs, run docker-compose logs -f docusauru
 spin
 echo 'Navigate to http://localhost:3000/ to see the docs.'
 
-open 'http://localhost:3000/' || true
+open 'http://localhost:3000/docs/next/basics/introduction.html' || true
 
