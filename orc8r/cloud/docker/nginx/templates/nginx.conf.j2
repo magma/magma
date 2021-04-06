@@ -136,7 +136,7 @@ http {
       if ($srv ~* "(\w+)[_](\w+)") {
         set $srv "$1-$2";
       }
-      grpc_pass grpc://orc8r-$srv.{{ backend }}:9180;
+      grpc_pass grpc://orc8r-bootstrapper.{{ backend }}:9180;
       {%- else %}
       grpc_pass grpc://{{ backend }}:$open_srvport;
       {%- endif %}
