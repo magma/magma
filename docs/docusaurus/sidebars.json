@@ -204,7 +204,8 @@
       "proposals/p008_apn_correction",
       "proposals/p009_nms_mariadb_migration",
       "proposals/p010_subscriber_scaling",
-      "proposals/p011_victoriametrics"
+      "proposals/p011_victoriametrics",
+      "proposals/p013_what_may_change"
     ],
     "FAQ": [
       "faq/faq_magma"
