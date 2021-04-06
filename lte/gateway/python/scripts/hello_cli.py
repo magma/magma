@@ -13,9 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from magma.common.rpc_utils import grpc_wrapper
 from feg.protos.hello_pb2 import HelloRequest
 from feg.protos.hello_pb2_grpc import HelloStub
+from magma.common.rpc_utils import grpc_wrapper
 
 
 @grpc_wrapper

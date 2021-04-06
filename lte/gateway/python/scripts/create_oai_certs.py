@@ -14,11 +14,12 @@ limitations under the License.
 """
 
 import argparse
-import envoy
 import os
 import shutil
 import socket
 import tempfile
+
+import envoy
 
 OPENSSL_BIN = "/usr/bin/openssl"
 

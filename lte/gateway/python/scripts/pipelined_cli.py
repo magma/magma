@@ -15,44 +15,35 @@ limitations under the License.
 
 import argparse
 import errno
-import time
 import random
 import subprocess
-from datetime import datetime
+import time
 from collections import namedtuple
+from datetime import datetime
 from pprint import pprint
 
-from magma.common.rpc_utils import grpc_wrapper, grpc_async_wrapper
-from lte.protos.pipelined_pb2 import (
-    SubscriberQuotaUpdate,
-    UpdateSubscriberQuotaStateRequest,
-)
-from lte.protos.policydb_pb2 import RedirectInformation
+from lte.protos.pipelined_pb2 import (ActivateFlowsRequest,
+                                      DeactivateFlowsRequest,
+                                      DeactivateFlowsResult, RequestOriginType,
+                                      RuleModResult, SubscriberQuotaUpdate,
+                                      UEMacFlowRequest,
+                                      UpdateSubscriberQuotaStateRequest)
+from lte.protos.pipelined_pb2_grpc import PipelinedStub
+from lte.protos.policydb_pb2 import (FlowDescription, FlowMatch, PolicyRule,
+                                     RedirectInformation)
+from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
+from magma.common.rpc_utils import grpc_async_wrapper, grpc_wrapper
+from magma.configuration.service_configs import load_service_config
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
-from magma.subscriberdb.sid import SIDUtils
-from magma.configuration.service_configs import load_service_config
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.service_manager import Tables
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.qos.common import QosManager
+from magma.pipelined.service_manager import Tables
+from magma.pipelined.tests.app.ng_set_session_msg import CreateSessionUtil
+from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
-from lte.protos.pipelined_pb2 import (
-    ActivateFlowsRequest,
-    DeactivateFlowsRequest,
-    RuleModResult,
-    UEMacFlowRequest,
-    RequestOriginType,
-    DeactivateFlowsResult,
-)
-from lte.protos.subscriberdb_pb2 import (
-    AggregatedMaximumBitrate,
-)
-from magma.pipelined.tests.app.ng_set_session_msg import (
-    CreateSessionUtil)
 
-from lte.protos.pipelined_pb2_grpc import PipelinedStub
-from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
 
 @grpc_wrapper
 def set_smf_session(client, args):
