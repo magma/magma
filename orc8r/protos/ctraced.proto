@@ -24,13 +24,20 @@ option go_package = "magma/orc8r/lib/go/protos";
 // --------------------------------------------------------------------------
 
 service CallTraceService {
+  // Start a call trace on the gateway with the specified options.
+  // Only a single call trace can be active on a gateway at a time.
+  //
   rpc StartCallTrace (StartTraceRequest) returns (StartTraceResponse) {}
 
+  // End the call trace that is currently active on the gateway.
+  //
   rpc EndCallTrace (EndTraceRequest) returns (EndTraceResponse) {}
 }
 
 // StartTraceRequest specifies options for a call trace started on a gateway
 message StartTraceRequest {
+  string trace_id = 8;
+
   enum TraceType {
     ALL = 0;
     SUBSCRIBER = 1;
@@ -92,9 +99,30 @@ message StartTraceResponse {
   bool success = 1; // May fail due to an existing tracing session
 }
 
-message EndTraceRequest {}
+message EndTraceRequest {
+  string trace_id = 1;
+}
 
 message EndTraceResponse {
   bool success = 1; // May fail due to no existing tracing session
   bytes trace_content = 2; // Max size of 4MB
+}
+
+// --------------------------------------------------------------------------
+// CallTraceController definition (runs on cloud)
+// --------------------------------------------------------------------------
+
+service CallTraceController {
+    // Report that a call trace has ended
+    //
+    rpc ReportEndedCallTrace(ReportEndedTraceRequest) returns (ReportEndedTraceResponse) {}
+}
+
+message ReportEndedTraceRequest {
+    string trace_id = 1;
+    bool success = 2;
+    bytes trace_content = 3;
+}
+
+message ReportEndedTraceResponse {
 }
