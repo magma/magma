@@ -354,6 +354,13 @@
     CODEGEN_ROOT: "{{ codegen_root }}"
   when: preburn
 
+- name: Download gHZ binary from artifactory
+  get_url:
+    url: https://artifactory.magmacore.org:443/artifactory/blob-prod/ghz
+    dest: /usr/local/bin/ghz
+    mode: 0755
+  when: full_provision
+
 - name: Fix kernel commandline for interface naming.
   shell: |
     sed -i 's/enp0s3/eth0/g' /etc/netplan/50-cloud-init.yaml

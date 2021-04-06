@@ -346,6 +346,9 @@
       "proposals/p012_resource-tagging": {
         "title": "proposals/p012_resource-tagging"
       },
+      "proposals/p013_Ubuntu_upgrade": {
+        "title": "AGW Ubuntu upgrade"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
