@@ -18,8 +18,8 @@ import subprocess
 from enum import Enum
 from typing import List, Tuple
 
-from magma.magmad.service_poller import ServicePoller
 import magma.magmad.events as magmad_events
+from magma.magmad.service_poller import ServicePoller
 
 
 class ServiceState(Enum):

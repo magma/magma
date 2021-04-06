@@ -16,6 +16,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 from google.protobuf.any_pb2 import Any
 from google.protobuf.json_format import MessageToJson
+
 from magma.configuration.mconfig_managers import MconfigManagerImpl
 from magma.magmad.config_manager import CONFIG_STREAM_NAME, ConfigManager
 from orc8r.protos.mconfig.mconfigs_pb2 import MagmaD, MetricsD

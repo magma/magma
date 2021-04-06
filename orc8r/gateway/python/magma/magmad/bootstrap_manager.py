@@ -15,11 +15,8 @@ limitations under the License.
 import datetime
 import enum
 import logging
-
-import grpc
-import magma.common.cert_utils as cert_utils
 import os
-import snowflake
+
 from cryptography.exceptions import InternalError
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
@@ -27,6 +24,10 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import \
     decode_dss_signature
 from google.protobuf.duration_pb2 import Duration
+
+import grpc
+import magma.common.cert_utils as cert_utils
+import snowflake
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.service_registry import ServiceRegistry

@@ -14,11 +14,11 @@ import asyncio
 import logging
 import shlex
 from functools import partial
+from typing import Any, Dict
 
-from typing import Dict, Any
-
-from magma.magmad.generic_command.command_executor import \
-    CommandExecutor, ExecutorFuncT, ParamValueT
+from magma.magmad.generic_command.command_executor import (CommandExecutor,
+                                                           ExecutorFuncT,
+                                                           ParamValueT)
 
 
 class ShellCommandExecutor(CommandExecutor):

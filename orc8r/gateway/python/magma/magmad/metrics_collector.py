@@ -14,22 +14,22 @@ import asyncio
 import calendar
 import logging
 import math
-import prometheus_client
-from prometheus_client.parser import text_string_to_metric_families
-import requests
 import sys
 import time
-from typing import Callable, List, Optional, Dict, NamedTuple
+from typing import Callable, Dict, List, NamedTuple, Optional
 
-import snowflake
+import requests
+
 import metrics_pb2
+import prometheus_client
+import snowflake
+from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import metricsd_pb2
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.metricsd_pb2 import MetricsContainer
 from orc8r.protos.metricsd_pb2_grpc import MetricsControllerStub
 from orc8r.protos.service303_pb2_grpc import Service303Stub
-
-from magma.common.service_registry import ServiceRegistry
+from prometheus_client.parser import text_string_to_metric_families
 
 # ScrapeTarget Holds information required to scrape and process metrics from a
 # prometheus target

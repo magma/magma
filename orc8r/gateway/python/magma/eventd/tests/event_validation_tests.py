@@ -13,9 +13,10 @@ limitations under the License.
 
 import json
 from unittest import TestCase
-from jsonschema import ValidationError
 
+from jsonschema import ValidationError
 from magma.eventd.event_validator import EventValidator
+
 
 class EventValidationTests(TestCase):
 

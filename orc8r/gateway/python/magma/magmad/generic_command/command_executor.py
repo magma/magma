@@ -12,9 +12,8 @@ limitations under the License.
 """
 import asyncio
 import importlib
-from typing import Callable, Dict, Any, Union, List, Awaitable
-
 from abc import ABC, abstractmethod
+from typing import Any, Awaitable, Callable, Dict, List, Union
 
 ParamValueT = Union[str, int, float, bool, List[Union[str, int, float, bool]]]
 ExecutorFuncT = Callable[[Dict[str, ParamValueT]], Awaitable[Dict[str, Any]]]

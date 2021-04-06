@@ -11,28 +11,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
-from unittest import TestCase, mock
-import grpc
 import json
-import jsonpickle
 from concurrent import futures
-import fakeredis
-import orc8r.protos.state_pb2_grpc as state_pb2_grpc
-from orc8r.protos.state_pb2 import ReportStatesResponse, \
-    SyncStatesResponse, IDAndVersion, IDAndError
+from unittest import TestCase, mock
 from unittest.mock import MagicMock
-from orc8r.protos.service303_pb2 import LogVerbosity
-from magma.common.redis.containers import RedisFlatDict
-from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer, get_json_deserializer, get_json_serializer, \
-    RedisSerde
-from magma.common.grpc_client_manager import GRPCClientManager
-from magma.state.keys import make_mem_key
-from magma.state.garbage_collector import GarbageCollector
-from magma.state.state_replicator import StateReplicator
-from orc8r.protos.state_pb2_grpc import StateServiceStub
-from orc8r.protos.common_pb2 import NetworkID, IDList
+
 from google.protobuf.json_format import MessageToDict
+
+import fakeredis
+import grpc
+import jsonpickle
+import orc8r.protos.state_pb2_grpc as state_pb2_grpc
+from magma.common.grpc_client_manager import GRPCClientManager
+from magma.common.redis.containers import RedisFlatDict
+from magma.common.redis.serializers import (RedisSerde, get_json_deserializer,
+                                            get_json_serializer,
+                                            get_proto_deserializer,
+                                            get_proto_serializer)
+from magma.state.garbage_collector import GarbageCollector
+from magma.state.keys import make_mem_key
+from magma.state.state_replicator import StateReplicator
+from orc8r.protos.common_pb2 import IDList, NetworkID
+from orc8r.protos.service303_pb2 import LogVerbosity
+from orc8r.protos.state_pb2 import (IDAndError, IDAndVersion,
+                                    ReportStatesResponse, SyncStatesResponse)
+from orc8r.protos.state_pb2_grpc import StateServiceStub
 
 NID_TYPE = 'network_id'
 IDList_TYPE = 'id_list'

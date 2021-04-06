@@ -12,22 +12,22 @@ limitations under the License.
 """
 
 
-import grpc
 import logging
-from redis.exceptions import RedisError, LockError
 from typing import Dict, List
 
-from orc8r.protos.directoryd_pb2 import DirectoryField, AllDirectoryRecords
-from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceServicer, \
-    add_GatewayDirectoryServiceServicer_to_server
+from google.protobuf.json_format import MessageToJson
+
+import grpc
 from magma.common.misc_utils import get_gateway_hwid
-from magma.common.rpc_utils import return_void
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict
-from magma.common.redis.serializers import RedisSerde, get_json_serializer, \
-    get_json_deserializer
-
-from google.protobuf.json_format import MessageToJson
+from magma.common.redis.serializers import (RedisSerde, get_json_deserializer,
+                                            get_json_serializer)
+from magma.common.rpc_utils import return_void
+from orc8r.protos.directoryd_pb2 import AllDirectoryRecords, DirectoryField
+from orc8r.protos.directoryd_pb2_grpc import (GatewayDirectoryServiceServicer,
+                                              add_GatewayDirectoryServiceServicer_to_server)
+from redis.exceptions import LockError, RedisError
 
 DIRECTORYD_REDIS_TYPE = "directory_record"
 LOCATION_MAX_LEN = 5

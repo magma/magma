@@ -11,9 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from magma.common.service import MagmaService
 from magma.common.sentry import sentry_init
+from magma.common.service import MagmaService
 from orc8r.protos.mconfig.mconfigs_pb2 import CtraceD
+
 from .rpc_servicer import CtraceDRpcServicer
 from .trace_manager import TraceManager
 

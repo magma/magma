@@ -14,26 +14,22 @@ limitations under the License.
 
 import json
 import logging
-import psutil
 import platform
 import time
-import netifaces
-from typing import NamedTuple, List, Any, Dict, Optional, Tuple
 from collections.abc import KeysView
-from magma.common.misc_utils import (
-    get_ip_from_if,
-    is_interface_up,
-    get_all_ips_from_if_cidr,
-    get_if_mac_address,
-    IpPreference,
-)
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+
+import netifaces
+import psutil
+from magma.common.job import Job
+from magma.common.misc_utils import (IpPreference, get_all_ips_from_if_cidr,
+                                     get_if_mac_address, get_ip_from_if,
+                                     is_interface_up)
 from magma.common.service import MagmaService
+from magma.magmad.check.kernel_check.kernel_versions import \
+    get_kernel_versions_async
 from magma.magmad.check.machine_check.cpu_info import get_cpu_info
 from magma.magmad.check.network_check.routing_table import get_routing_table
-from magma.magmad.check.kernel_check.kernel_versions import (
-    get_kernel_versions_async,
-)
-from magma.common.job import Job
 from magma.magmad.service_poller import ServicePoller
 
 GatewayStatus = NamedTuple(

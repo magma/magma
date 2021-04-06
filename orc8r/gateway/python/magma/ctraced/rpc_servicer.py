@@ -11,10 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from orc8r.protos.ctraced_pb2_grpc import CallTraceServiceServicer,\
-    add_CallTraceServiceServicer_to_server
-from orc8r.protos.ctraced_pb2 import StartTraceRequest, StartTraceResponse,\
-    EndTraceRequest, EndTraceResponse
+from orc8r.protos.ctraced_pb2 import (EndTraceRequest, EndTraceResponse,
+                                      StartTraceRequest, StartTraceResponse)
+from orc8r.protos.ctraced_pb2_grpc import (CallTraceServiceServicer,
+                                           add_CallTraceServiceServicer_to_server)
+
 from .trace_manager import TraceManager
 
 

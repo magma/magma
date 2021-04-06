@@ -17,8 +17,6 @@ from concurrent import futures
 from unittest import TestCase
 from unittest.mock import ANY, MagicMock, call, patch
 
-import grpc
-import magma.magmad.bootstrap_manager as bm
 from cryptography import x509
 from cryptography.exceptions import InternalError
 from cryptography.hazmat.backends import default_backend
@@ -27,6 +25,9 @@ from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.hazmat.primitives.asymmetric.utils import \
     encode_dss_signature
 from google.protobuf.timestamp_pb2 import Timestamp
+
+import grpc
+import magma.magmad.bootstrap_manager as bm
 from orc8r.protos import bootstrapper_pb2_grpc
 from orc8r.protos.bootstrapper_pb2 import Challenge, ChallengeKey
 from orc8r.protos.certifier_pb2 import CSR, Certificate

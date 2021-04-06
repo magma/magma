@@ -12,10 +12,9 @@ limitations under the License.
 """
 
 import logging
-
-import grpc
 import os
 
+import grpc
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.service_configs import load_service_config
 

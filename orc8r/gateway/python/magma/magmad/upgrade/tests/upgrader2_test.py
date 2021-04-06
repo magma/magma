@@ -20,7 +20,6 @@ from unittest import mock
 
 from magma.magmad.upgrade import upgrader2
 
-
 async def fake_ensure_downloaded(_config, _name, path, _guage):
     assert isinstance(path, pathlib.Path)
     return None

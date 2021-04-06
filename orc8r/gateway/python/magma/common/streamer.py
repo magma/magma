@@ -11,15 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import abc
 import logging
 import threading
 import time
 from typing import Any, List
 
-import abc
+from google.protobuf import any_pb2
+
 import grpc
 import snowflake
-from google.protobuf import any_pb2
 from magma.common import serialization_utils
 from magma.common.metrics import STREAMER_RESPONSES
 from magma.configuration.service_configs import get_service_config_value

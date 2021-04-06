@@ -10,16 +10,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from copy import deepcopy
 from typing import Any, Iterator, List, MutableMapping, Optional, TypeVar
 
 import redis
 import redis_collections
 import redis_lock
-from copy import deepcopy
+from magma.common.redis.serializers import RedisSerde
 from orc8r.protos.redis_pb2 import RedisState
 from redis.lock import Lock
-
-from magma.common.redis.serializers import RedisSerde
 
 # NOTE: these containers replace the serialization methods exposed by
 # the redis-collection objects. Although the methods are hinted to be

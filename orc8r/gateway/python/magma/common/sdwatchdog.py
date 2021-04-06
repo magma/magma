@@ -15,11 +15,11 @@ limitations under the License.
 import asyncio
 import logging
 import os
-import systemd.daemon
 import time
-
-from magma.common.job import Job
 from typing import List, Optional, Set, cast
+
+import systemd.daemon
+from magma.common.job import Job
 
 
 class SDWatchdogTask(Job):

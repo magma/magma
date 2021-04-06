@@ -11,9 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import json
-import snowflake
 
 from google.protobuf.json_format import MessageToDict
+
+import snowflake
 from magma.eventd.eventd_client import log_event
 from orc8r.protos.eventd_pb2 import Event
 from orc8r.swagger.models.restarted_services import RestartedServices

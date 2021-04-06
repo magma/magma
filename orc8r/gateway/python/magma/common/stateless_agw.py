@@ -14,11 +14,9 @@ limitations under the License.
 import logging
 import subprocess
 
-from magma.configuration.service_configs import (
-    load_override_config,
-    load_service_config,
-    save_override_config,
-)
+from magma.configuration.service_configs import (load_override_config,
+                                                 load_service_config,
+                                                 save_override_config)
 from orc8r.protos import magmad_pb2
 
 STATELESS_SERVICE_CONFIGS = [

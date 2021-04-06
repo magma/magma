@@ -12,24 +12,24 @@ limitations under the License.
 """
 import asyncio
 import calendar
-from random import randrange
 import time
 import unittest
 import unittest.mock
+from random import randrange
 
-import prometheus_client
 import metrics_pb2
+import prometheus_client
 from magma.common.service_registry import ServiceRegistry
-from magma.magmad.metrics_collector import MetricsCollector
+# Allow access to protected variables for unit testing
+# pylint: disable=protected-access
+from magma.magmad.metrics_collector import (MetricsCollector,
+                                            _counter_to_proto, _gauge_to_proto,
+                                            _histogram_to_proto,
+                                            _summary_to_proto,
+                                            _untyped_to_proto)
 from metrics_pb2 import Metric, MetricFamily
 from orc8r.protos import metricsd_pb2
 from orc8r.protos.metricsd_pb2 import MetricsContainer
-
-# Allow access to protected variables for unit testing
-# pylint: disable=protected-access
-from magma.magmad.metrics_collector import \
-    _counter_to_proto, _summary_to_proto, _gauge_to_proto, _untyped_to_proto, \
-    _histogram_to_proto
 
 
 class MockFuture(object):

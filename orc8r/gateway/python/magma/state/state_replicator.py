@@ -12,23 +12,24 @@ limitations under the License.
 """
 # pylint: disable=broad-except
 
-import logging
 import json
-import jsonpickle
-import grpc
+import logging
 
+from google.protobuf.json_format import MessageToDict
+
+import grpc
+import jsonpickle
 from magma.common.grpc_client_manager import GRPCClientManager
-from magma.common.service import MagmaService
+from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
+from magma.common.service import MagmaService
 from magma.state.garbage_collector import GarbageCollector
 from magma.state.keys import make_mem_key, make_scoped_device_id
-from magma.state.redis_dicts import get_json_redis_dicts, \
-    get_proto_redis_dicts, PROTO_FORMAT
-from orc8r.protos.state_pb2 import ReportStatesRequest, SyncStatesRequest, \
-    IDAndVersion, StateID
+from magma.state.redis_dicts import (PROTO_FORMAT, get_json_redis_dicts,
+                                     get_proto_redis_dicts)
 from orc8r.protos.service303_pb2 import State
-from magma.common.rpc_utils import grpc_async_wrapper
-from google.protobuf.json_format import MessageToDict
+from orc8r.protos.state_pb2 import (IDAndVersion, ReportStatesRequest, StateID,
+                                    SyncStatesRequest)
 
 # TODO: Make DEFAULT_SYNC_INTERVAL an mconfig parameter
 DEFAULT_SYNC_INTERVAL = 60
@@ -211,5 +212,3 @@ class StateReplicator(SDWatchdogTask):
         for key in deleted_keys:
             del self._state_versions[key]
         self._state_keys_from_current_iteration = set()
-
-

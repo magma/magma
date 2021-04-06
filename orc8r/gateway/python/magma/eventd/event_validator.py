@@ -15,9 +15,10 @@ import json
 import logging
 from contextlib import closing
 from typing import Any, Dict
-import pkg_resources
-import yaml
 
+import pkg_resources
+
+import yaml
 from bravado_core.spec import Spec
 from bravado_core.validate import validate_object as bravado_validate
 

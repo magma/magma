@@ -12,10 +12,11 @@ limitations under the License.
 """
 
 import os
+
 import sentry_sdk
 import snowflake
-
 from magma.configuration.service_configs import get_service_config_value
+
 
 def sentry_init():
     """

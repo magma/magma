@@ -17,10 +17,11 @@ import os
 import pathlib
 import subprocess
 import time
-from typing import List
-from subprocess import SubprocessError
-from .command_builder import get_trace_builder
 from collections import namedtuple
+from subprocess import SubprocessError
+from typing import List
+
+from .command_builder import get_trace_builder
 
 _TRACE_FILE_NAME = "call_trace"
 _TRACE_FILE_NAME_POSTPROCESSED = "call_trace_postprocessed"

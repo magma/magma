@@ -14,9 +14,9 @@ Util module for executing multiple `ping` commands via subprocess.
 """
 
 import asyncio
+import re
 from collections import namedtuple
 
-import re
 from magma.magmad.check import subprocess_workflow
 
 DEFAULT_NUM_PACKETS = 4

@@ -12,16 +12,16 @@ limitations under the License.
 """
 import importlib
 import logging
-import snowflake
 import typing
 
+import snowflake
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.sdwatchdog import SDWatchdog
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
-from magma.configuration.mconfig_managers import MconfigManagerImpl, \
-    get_mconfig_manager
+from magma.configuration.mconfig_managers import (MconfigManagerImpl,
+                                                  get_mconfig_manager)
 from magma.magmad.generic_command.command_executor import \
     get_command_executor_impl
 from magma.magmad.upgrade.upgrader import UpgraderFactory, start_upgrade_loop
@@ -34,11 +34,11 @@ from .gateway_status import GatewayStatusFactory, KernelVersionsPoller
 from .metrics import metrics_collection_loop, monitor_unattended_upgrade_status
 from .metrics_collector import MetricsCollector, ScrapeTarget
 from .rpc_servicer import MagmadRpcServicer
+from .service_health_watchdog import ServiceHealthWatchdog
 from .service_manager import ServiceManager
 from .service_poller import ServicePoller
 from .state_reporter import StateReporter
 from .sync_rpc_client import SyncRPCClient
-from .service_health_watchdog import ServiceHealthWatchdog
 
 
 def main():

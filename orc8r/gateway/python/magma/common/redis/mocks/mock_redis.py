@@ -12,6 +12,7 @@ limitations under the License.
 """
 from redis.exceptions import RedisError
 
+
 # For non-failure cases, just use the fakeredis module
 
 

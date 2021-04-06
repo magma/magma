@@ -19,7 +19,11 @@ import subprocess
 from datetime import datetime
 
 import apt
+
 from dateutil import tz
+from magma.common.health.entities import (ActiveState, Errors, HealthStatus,
+                                          HealthSummary, RestartFrequency,
+                                          ServiceHealth, Version)
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
@@ -29,11 +33,6 @@ from orc8r.protos import common_pb2, magmad_pb2
 from orc8r.protos.magmad_pb2_grpc import MagmadStub
 from orc8r.protos.mconfig import mconfigs_pb2
 from pystemd.systemd1 import Unit
-
-from magma.common.health.entities import (
-    HealthStatus, ActiveState, Errors, Version,
-    ServiceHealth, RestartFrequency, HealthSummary,
-)
 
 
 class GenericHealthChecker:

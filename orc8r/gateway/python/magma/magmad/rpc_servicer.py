@@ -10,33 +10,30 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import queue
-import signal
-
-import grpc
-
-import os
 import asyncio
 import logging
+import os
+import queue
+import signal
 from typing import List
 
-import snowflake
 from google.protobuf import json_format
+from google.protobuf.json_format import MessageToJson
 from google.protobuf.struct_pb2 import Struct
-from magma.common.service_registry import ServiceRegistry
-from orc8r.protos import magmad_pb2, magmad_pb2_grpc
 
+import grpc
+import snowflake
 from magma.common.rpc_utils import return_void, set_grpc_err
 from magma.common.service import MagmaService
-from magma.common.stateless_agw import check_stateless_agw, \
-enable_stateless_agw, disable_stateless_agw
+from magma.common.service_registry import ServiceRegistry
+from magma.common.stateless_agw import (check_stateless_agw,
+                                        disable_stateless_agw,
+                                        enable_stateless_agw)
 from magma.configuration.mconfig_managers import MconfigManager
-from magma.magmad.generic_command.command_executor import \
-    CommandExecutor
-from magma.magmad.service_manager import ServiceManager
 from magma.magmad.check.network_check import ping, traceroute
-
-from google.protobuf.json_format import MessageToJson
+from magma.magmad.generic_command.command_executor import CommandExecutor
+from magma.magmad.service_manager import ServiceManager
+from orc8r.protos import magmad_pb2, magmad_pb2_grpc
 
 
 class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):

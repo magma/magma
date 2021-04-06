@@ -16,6 +16,7 @@ from unittest import mock
 
 from google.protobuf import any_pb2
 from google.protobuf.json_format import MessageToJson
+
 from magma.configuration import mconfig_managers
 from magma.configuration.exceptions import LoadConfigError
 from orc8r.protos.mconfig import mconfigs_pb2

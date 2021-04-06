@@ -13,21 +13,20 @@ limitations under the License.
 import asyncio
 import logging
 import queue
+import random
 import threading
 import time
-
-import grpc
-import random
-from magma.common.service_registry import ServiceRegistry
-from magma.common.rpc_utils import is_grpc_error_retryable
-from magma.magmad.proxy_client import ControlProxyHttpClient
-from orc8r.protos.sync_rpc_service_pb2 import SyncRPCResponse, SyncRPCRequest
-from orc8r.protos.sync_rpc_service_pb2_grpc import SyncRPCServiceStub
-
 from typing import List
-import magma.magmad.events as magmad_events
 
 from google.protobuf.json_format import MessageToJson
+
+import grpc
+import magma.magmad.events as magmad_events
+from magma.common.rpc_utils import is_grpc_error_retryable
+from magma.common.service_registry import ServiceRegistry
+from magma.magmad.proxy_client import ControlProxyHttpClient
+from orc8r.protos.sync_rpc_service_pb2 import SyncRPCRequest, SyncRPCResponse
+from orc8r.protos.sync_rpc_service_pb2_grpc import SyncRPCServiceStub
 
 
 class SyncRPCClient(threading.Thread):

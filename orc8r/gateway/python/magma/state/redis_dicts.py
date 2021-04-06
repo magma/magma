@@ -11,14 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import importlib
+import logging
 
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict
-from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer, get_json_deserializer, get_json_serializer, \
-    RedisSerde
+from magma.common.redis.serializers import (RedisSerde, get_json_deserializer,
+                                            get_json_serializer,
+                                            get_proto_deserializer,
+                                            get_proto_serializer)
 
 PROTO_FORMAT = 0
 JSON_FORMAT = 1
