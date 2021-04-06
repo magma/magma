@@ -16,13 +16,11 @@ from collections import namedtuple
 from typing import Optional
 
 from lte.protos.mobilityd_pb2 import IPAddress
-from magma.pipelined.imsi import encode_imsi
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict, RedisHashDict
-from magma.common.redis.serializers import get_json_deserializer, \
-    get_json_serializer
-from magma.common.redis.serializers import RedisSerde
-
+from magma.common.redis.serializers import (RedisSerde, get_json_deserializer,
+                                            get_json_serializer)
+from magma.pipelined.imsi import encode_imsi
 
 SubscriberRuleKey = namedtuple('SubscriberRuleKey', 'key_type imsi ip_addr rule_id')
 

@@ -10,11 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import ipaddress
 import logging
 from collections import defaultdict
 from time import time
 from typing import Dict, List, NamedTuple, Optional
-import ipaddress
 
 import grpc
 from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable

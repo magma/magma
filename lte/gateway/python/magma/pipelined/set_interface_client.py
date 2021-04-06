@@ -11,12 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import grpc
 import logging
 
-from lte.protos.session_manager_pb2 import (
-    UPFNodeState,
-    UPFSessionConfigState)
+import grpc
+from lte.protos.session_manager_pb2 import UPFNodeState, UPFSessionConfigState
 from lte.protos.session_manager_pb2_grpc import SetInterfaceForUserPlaneStub
 
 DEFAULT_GRPC_TIMEOUT = 5

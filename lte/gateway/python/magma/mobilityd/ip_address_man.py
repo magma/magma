@@ -40,8 +40,8 @@ during it's life cycle in the IP allocator:
         to age IPs for a certain period of time before freeing.
 """
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import ipaddress
 import logging
@@ -50,12 +50,11 @@ from ipaddress import ip_address, ip_network
 from typing import List, Optional, Tuple
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
-
 from magma.mobilityd.ip_descriptor import IPState
-from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
-from .ip_allocator_base import DuplicateIPAssignmentError, IPAllocator, \
-    IPNotInUseError, \
-    MappingNotFoundError
+from magma.mobilityd.metrics import IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL
+
+from .ip_allocator_base import (DuplicateIPAssignmentError, IPAllocator,
+                                IPNotInUseError, MappingNotFoundError)
 from .mobility_store import MobilityStore
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15

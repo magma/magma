@@ -34,4 +34,3 @@ def serialize_subscriber_states(
         )
         states.append(state)
     return states
-
