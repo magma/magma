@@ -53,6 +53,7 @@
 //------------------------------------------------------------------------------
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
+typedef uint32_t sctp_ppid_t;
 typedef uint64_t enb_s1ap_id_key_t;
 #define MME_APP_ENB_S1AP_ID_KEY(kEy, eNb_Id, eNb_Ue_S1Ap_Id)                   \
   do {                                                                         \
@@ -82,6 +83,28 @@ typedef uint64_t enb_s1ap_id_key_t;
  */
 #define INVALID_MME_UE_S1AP_ID 0x0
 #define INVALID_ENB_UE_S1AP_ID 0x0
+
+// UE NGAP IDs
+#define INVALID_AMF_UE_NGAP_ID 0x0
+
+#define INVALID_GNB_UE_NGAP_ID_KEY 0xFFFFFFFFFFFFFFFF
+#define GNB_UE_NGAP_ID_MASK 0x00FFFFFF
+#define GNB_UE_NGAP_ID_FMT "0x%06" PRIX32
+
+#define AMF_UE_NGAP_ID_FMT "0x%08" PRIX32
+
+/* INVALID_AMF_UE_NGAP_ID
+ * Any value between 0..2^32-1, is allowed/valid as per 3GPP spec 36.413.
+ * Here we are conisdering 0 as invalid. Don't allocate 0 and consider this as
+ * invalid
+ */
+#define INVALID_AMF_UE_NGAP_ID 0x0
+#define INVALID_GNB_UE_NGAP_ID 0x0
+
+#define AMF_APP_GNB_NGAP_ID_KEY(kEy, gNb_Id, gNb_Ue_NgAp_Id)                   \
+  do {                                                                         \
+    kEy = (((gnb_ngap_id_key_t) gNb_Id) << 24) | gNb_Ue_NgAp_Id;               \
+  } while (0);
 
 //------------------------------------------------------------------------------
 // TEIDs
@@ -116,6 +139,12 @@ typedef uint64_t imsi64_t;
 #define GUTI_ARG(GuTi_PtR)                                                     \
   PLMN_ARG(&(GuTi_PtR)->gummei.plmn), (GuTi_PtR)->gummei.mme_gid,              \
       (GuTi_PtR)->gummei.mme_code, (GuTi_PtR)->m_tmsi
+
+#define GUTI_ARG_M5G(GuTi_PtR)                                                 \
+  PLMN_ARG(&(GuTi_PtR)->guamfi.plmn), (GuTi_PtR)->guamfi.amf_gid,              \
+      (GuTi_PtR)->guamfi.amf_code, (GuTi_PtR)->guamfi.amf_Pointer,             \
+      (GuTi_PtR)->m_tmsi
+
 #define MSISDN_LENGTH (15)
 #define IMEI_DIGITS_MAX (15)
 #define IMEISV_DIGITS_MAX (16)

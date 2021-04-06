@@ -157,6 +157,12 @@
     (aSN)->bits_unused = 6;                                                    \
   } while (0)
 
+#define AMF_POINTER_TO_BIT_STRING(x, aSN)                                      \
+  do {                                                                         \
+    INT8_TO_OCTET_STRING(x << 2, aSN);                                         \
+    (aSN)->bits_unused = 2;                                                    \
+  } while (0)
+
 #define INT16_TO_OCTET_STRING(x, aSN)                                          \
   do {                                                                         \
     (aSN)->buf  = calloc(2, sizeof(uint8_t));                                  \
@@ -393,6 +399,9 @@
 #define OCTET_STRING_TO_MME_GID OCTET_STRING_TO_INT16
 #define OCTET_STRING_TO_CSG_ID OCTET_STRING_TO_INT27
 
+#define OCTET_STRING_TO_AMF_CODE OCTET_STRING_TO_INT8
+#define OCTET_STRING_TO_AMF_GID OCTET_STRING_TO_INT16
+
 /* Convert the IMSI contained by a char string NULL terminated to uint64_t */
 #define IMSI_STRING_TO_IMSI64(sTRING, iMSI64_pTr)                              \
   sscanf(sTRING, IMSI_64_FMT, iMSI64_pTr)
@@ -468,6 +477,7 @@
   snprintf(                                                                    \
       sTRING, IMSI_BCD_DIGITS_MAX + 1, IMSI_64_FMT_DYN_LEN, _imsi_len, iMSI64)
 imsi64_t imsi_to_imsi64(const imsi_t* const imsi);
+imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi);
 
 #define IMSI_TO_STRING(iMsI_t_PtR, iMsI_sTr, MaXlEn)                           \
   do {                                                                         \
