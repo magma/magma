@@ -149,7 +149,18 @@ s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
-NON_SANITY_TESTS = s1aptests/test_attach_service_without_mac.py \
+NON_SANITY_TESTS = s1aptests/test_attach_detach_with_ipv6_pcscf_and_dns_addr.py \
+s1aptests/test_ipv4v6_secondary_pdn_rs_retransmit.py \
+s1aptests/test_ipv4v6_secondary_pdn_spgw_initiated_ded_bearer.py \
+s1aptests/test_ipv6_secondary_pdn_rs_retransmit.py \
+s1aptests/test_ipv4v6_secondary_pdn.py \
+s1aptests/test_ipv4v6_secondary_pdn_multi_ue.py \
+s1aptests/test_ipv4v6_secondary_pdn_with_ded_bearer.py \
+s1aptests/test_ipv6_secondary_pdn_with_ded_bearer.py \
+s1aptests/test_ipv4v6_secondary_pdn_with_ded_bearer_multi_ue.py \
+s1aptests/test_outoforder_erab_setup_rsp_dedicated_bearer.py \
+s1aptests/test_secondary_pdn_with_dedicated_bearer_multiple_services_restart.py \
+s1aptests/test_attach_service_without_mac.py \
 s1aptests/test_paging_request.py \
 s1aptests/test_multi_enb_paging_request.py \
 s1aptests/test_enb_partial_reset_with_unknown_ue_s1ap_ids.py \
@@ -174,6 +185,9 @@ s1aptests/test_no_attach_complete_with_mme_restart.py \
 s1aptests/test_attach_ics_failure_with_mme_restart.py
 
 #---------------
+# Non-Sanity: MME crash generating test case
+# s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \
+
 # Non-Sanity: Individually passing tests, failing in set
 # s1aptests/test_paging_with_mme_restart.py \
 # s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py \
@@ -189,21 +203,9 @@ s1aptests/test_attach_ics_failure_with_mme_restart.py
 # s1aptests/test_no_identity_rsp_with_mme_restart.py \
 
 # Non-Sanity: Failing Test Cases
-# s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \
 # s1aptests/test_agw_offload_idle_active_ue.py \
 # s1aptests/test_agw_offload_mixed_idle_active_multiue.py \
-# s1aptests/test_secondary_pdn_with_dedicated_bearer_multiple_services_restart.py \
-# s1aptests/test_outoforder_erab_setup_rsp_dedicated_bearer.py \
-# s1aptests/test_attach_detach_with_ipv6_pcscf_and_dns_addr.py \
-# s1aptests/test_ipv4v6_secondary_pdn_rs_retransmit.py \
-# s1aptests/test_ipv4v6_secondary_pdn_spgw_initiated_ded_bearer.py \
-# s1aptests/test_ipv6_secondary_pdn_rs_retransmit.py \
-# s1aptests/test_ipv4v6_secondary_pdn.py \
-# s1aptests/test_ipv4v6_secondary_pdn_with_ded_bearer.py \
-# s1aptests/test_ipv6_secondary_pdn_with_ded_bearer.py \
-# s1aptests/test_ipv4v6_secondary_pdn_with_ded_bearer_multi_ue.py \
 # s1aptests/test_attach_detach_with_corrupt_stateless_mme.py \
-# s1aptests/test_ipv4v6_secondary_pdn_multi_ue.py \
 # s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \
 # s1aptests/test_attach_with_multiple_mme_restarts.py \
