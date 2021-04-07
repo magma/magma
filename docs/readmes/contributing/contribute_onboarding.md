@@ -6,7 +6,7 @@ hide_title: true
 
 # Developer Onboarding
 
-This document walks a new developer through the process of onboarding to Magma, specifically to the Orc8r subproject within the Magma project.
+This document walks a new developer through the process of onboarding to the Magma project.
 
 ## Project overview
 
@@ -14,17 +14,19 @@ Magma is an open-source software platform that gives network operators an open, 
 
 In more approachable terms, Magma is a collection of software that makes running things like a cellular network affordable and customizable. With Magma's current rate of growth, increasing stability and reliability of the platform are all huge wins.
 
-There are three main components in the Magma software platform: Access Gateway (AGW), Orc8r (Orc8r), and Federation Gateway (FeG). If you want to read more, see the [Magma intro docs](https://magma.github.io/magma/docs/next/basics/introduction.html).
+There are three main components in the Magma software platform: Access Gateway (AGW), Orchestrator (Orc8r), and Federation Gateway (FeG). If you want to read more, see the [Magma intro docs](https://magma.github.io/magma/docs/next/basics/introduction.html).
+
+### Access Gateway
+
+The AGW provides network services and policy enforcement. In an LTE network, the AGW implements an evolved packet core (EPC), and a combination of an AAA and a PGW. It works with existing, unmodified commercial radio hardware.
+
+More generally, the AGW defines datapath rules for connecting subscribers through to the Internet. It pulls configuration from Orc8r, sets datapath rules, manages charging and accounting, reports state and metrics to Orc8r, and more.
 
 ### Orchestrator
 
 The Orc8r is a centralized controller for a set of networks. In [SDN](https://en.wikipedia.org/wiki/Software-defined_networking) terms, Orc8r handles the control plane. This means one Orc8r serves many gateways -- pushing configuration to the gateways and pulling state and metrics from the gateways.
 
 One of the functions of the Orc8r is to expose a management [REST API](https://restfulapi.net/). The REST API is defined as an [OpenAPI](https://swagger.io/solutions/getting-started-with-oas/) [specification](https://swagger.io/specification/) (aka [Swagger](https://swagger.io/blog/api-strategy/difference-between-swagger-and-openapi/) specification), and made available to operators over [mutually-authenticated](https://comodosslstore.com/blog/what-is-ssl-tls-client-authentication-how-does-it-work.html) HTTPS. The Orc8r also exposes a series of [gRPC](https://grpc.io/) services which gateways can call to report state, receive config updates, etc.
-
-### Access Gateway
-
-The AGW defines datapath rules for connecting subscribers through to the Internet. It pulls configuration from Orc8r, sets datapath rules, manages charging and accounting, reports state and metrics to Orc8r, and more.
 
 ### Federation Gateway
 
@@ -96,8 +98,8 @@ Install Magma locally and get everything running.
 
 1. Follow the [prerequisites guide](https://magma.github.io/magma/docs/next/basics/prerequisites) and install all development tools, up to but not including the "Build/Deploy Tooling" section
 2. Run all Orc8r tests
-    1. Via Docker build script: `cd ${MAGMA_ROOT}/Orc8r/cloud/docker && ./build.py -t ; noti`
-    2. [Via IntelliJ](https://magma.github.io/magma/docs/next/Orc8r/development/testing_tips)
+    1. Via Docker build script: `cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py -t ; noti`
+    2. [Via IntelliJ](https://magma.github.io/magma/docs/next/orc8r/development/testing_tips)
 3. Follow the [quick start guide](https://magma.github.io/magma/docs/next/basics/quick_start_guide) to get an AGW and Orc8r instance running on your dev machine
 4. Visit the local [Swagger UI](https://swagger.io/tools/swagger-ui/) view of our REST API (URL is in @hcgatewood's Google Chrome bookmarks) and [list the set of managed networks](https://localhost:9443/apidocs/v1/#/Networks/get_networks) -- there should be one named "test"
     - You will need to toggle a Google Chrome preference to [allow insecure localhost](https://superuser.com/questions/772762/how-can-i-disable-security-checks-for-localhost)
@@ -108,7 +110,7 @@ Note: remember to periodically call `docker system prune` to clear outdated Dock
 
 If you haven't already, join our community Slack channel via the link from the [Community](https://www.magmacore.org/community/) page and say hello in `#general`. We can point you toward a good starter task. You can also use the [`good first issue` tag on our GitHub repo to search for good starter tasks](https://github.com/magma/magma/labels/good%20first%20issue).
 
-As you're working on your starter task, refer to [Development Workflow](./contribute_workflow.md) for guidance on how to author a pull request and [Code Conventions](./contribute_conventions.md) for Magma conventions. Once your pull request is approved and merged, you're now an official contributor to the Magma project!
+As you're working on your starter task, refer to [Development Workflow](./contribute_workflow.md) for guidance on how to author a pull request and [Contributing Conventions](./contribute_conventions.md) for Magma conventions. Once your pull request is approved and merged, you're now an official contributor to the Magma project!
 
 ### Next steps
 

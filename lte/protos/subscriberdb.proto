@@ -208,7 +208,7 @@ message SubscriberUpdate {
 }
 
 // --------------------------------------------------------------------------
-// SubscriberDB service definition.
+// SubscriberDB gateway service definition.
 // --------------------------------------------------------------------------
 service SubscriberDB {
 
@@ -235,4 +235,26 @@ service SubscriberDB {
   // List the subscribers in the store.
   //
   rpc ListSubscribers (magma.orc8r.Void) returns (SubscriberIDSet) {}
+}
+
+// --------------------------------------------------------------------------
+// SubscriberDB cloud service definition.
+// --------------------------------------------------------------------------
+service SubscriberDBCloud {
+  // ListSubscribers lists pages of subscribers stored.
+  rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
+}
+
+message ListSubscribersRequest {
+  // page_size is the maximum number of entities returned per request.
+  uint32 page_size = 1;
+  // page_token is a serialized entity page token for paginated loads.
+  string page_token = 2;
+}
+
+message ListSubscribersResponse {
+  repeated SubscriberData subscribers = 1;
+  // next_page_token is a serialized entity page token for subsequent paginated
+  // loads.
+  string next_page_token = 2;
 }

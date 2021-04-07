@@ -16,6 +16,7 @@ from concurrent.futures import Future
 from unittest.mock import MagicMock
 
 import warnings
+from lte.protos.pipelined_pb2 import VersionedPolicy
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     RedirectInformation
@@ -121,19 +122,22 @@ class RedirectTest(unittest.TestCase):
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
         flow_list = [FlowDescription(match=FlowMatch())]
-        policy = PolicyRule(
-            id='redir_test', priority=3, flow_list=flow_list,
-            redirect=RedirectInformation(
-                support=1,
-                address_type=2,
-                server_address="http://about.sha.ddih.org/"
-            )
+        policy = VersionedPolicy(
+            rule=PolicyRule(
+                id='redir_test', priority=3, flow_list=flow_list,
+                redirect=RedirectInformation(
+                    support=1,
+                    address_type=2,
+                    server_address="http://about.sha.ddih.org/"
+                )
+            ),
+            version=1,
         )
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -205,19 +209,22 @@ class RedirectTest(unittest.TestCase):
         imsi = 'IMSI012000000088888'
         sub_ip = '192.168.128.74'
         flow_list = [FlowDescription(match=FlowMatch())]
-        policy = PolicyRule(
-            id='redir_ip_test', priority=3, flow_list=flow_list,
-            redirect=RedirectInformation(
-                support=1,
-                address_type=0,
-                server_address=redirect_ip
-            )
+        policy = VersionedPolicy(
+            rule=PolicyRule(
+                id='redir_ip_test', priority=3, flow_list=flow_list,
+                redirect=RedirectInformation(
+                    support=1,
+                    address_type=0,
+                    server_address=redirect_ip
+                )
+            ),
+            version=1,
         )
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),

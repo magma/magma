@@ -18,7 +18,7 @@
         "title": "Codeowners Workflow"
       },
       "contributing/contribute_conventions": {
-        "title": "Code Conventions"
+        "title": "Contributing Conventions"
       },
       "contributing/contribute_onboarding": {
         "title": "Developer Onboarding"
@@ -342,6 +342,9 @@
       },
       "proposals/p011_victoriametrics": {
         "title": "VictoriaMetrics as Magma's TSDB"
+      },
+      "proposals/p012_resource-tagging": {
+        "title": "proposals/p012_resource-tagging"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
