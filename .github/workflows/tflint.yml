@@ -1,0 +1,29 @@
+---
+name: reviewdog
+on: [pull_request]  # yamllint disable-line rule:truthy
+jobs:
+  tflint:
+    name: runner / tflint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      # Install latest Terraform manually as
+      #  Docker-based GitHub Actions are
+      #  slow due to lack of caching
+      # Note: Terraform is not needed for tflint
+      - name: Install Terraform
+        run: |
+          brew install terraform
+      # Run init to get module code to be able to use `--module`
+      - name: Terraform init
+        run: |
+          cd orc8r/cloud/deploy/terraform/orc8r-aws
+          terraform init
+      - name: tflint
+        uses: reviewdog/action-tflint@v1.10.0
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: nofilter # Any added or changed content.
+          working_directory: "orc8r/cloud/deploy/terraform/orc8r-aws"
+          flags: "--module "
+          reporter: github-pr-review  # Comments on PR with review comments.
