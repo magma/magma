@@ -25,5 +25,5 @@ jobs:
           github_token: ${{ secrets.github_token }}
           filter_mode: nofilter # Any added or changed content.
           working_directory: "orc8r/cloud/deploy/terraform/orc8r-aws"
-          flags: "--module "
+          flags: "--module --enable-plugin=aws"
           reporter: github-pr-review  # Comments on PR with review comments.
