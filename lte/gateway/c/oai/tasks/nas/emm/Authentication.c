@@ -1533,6 +1533,7 @@ static void nas_itti_auth_info_req(
         auth_info_req->resync_param, auts_pP->data,
         sizeof auth_info_req->resync_param);
   }
+  free_wrapper((void**) &ue_context_p);
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
