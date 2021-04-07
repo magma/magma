@@ -1970,7 +1970,7 @@ void mme_app_handle_initial_context_setup_failure(
      * the UE context.
      */
     ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
-    if (ue_context_p->mm_state == UE_UNREGISTERED) {
+    if (ue_context_p->mm_state != UE_REGISTERED) {
       // Initiate Implicit Detach for the UE
       nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
       increment_counter(
