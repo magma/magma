@@ -173,10 +173,11 @@ data "template_file" "orc8r_values" {
     api_hostname        = format("api.%s", var.orc8r_domain_name)
     nms_hostname        = format("*.nms.%s", var.orc8r_domain_name)
 
-    orc8r_db_name = var.orc8r_db_name
-    orc8r_db_host = var.orc8r_db_host
-    orc8r_db_port = var.orc8r_db_port
-    orc8r_db_user = var.orc8r_db_user
+    orc8r_db_name    = var.orc8r_db_name
+    orc8r_db_host    = var.orc8r_db_host
+    orc8r_db_port    = var.orc8r_db_port
+    orc8r_db_dialect = var.orc8r_db_dialect
+    orc8r_db_user    = var.orc8r_db_user
 
     deploy_nms  = var.deploy_nms
 
