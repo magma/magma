@@ -51,27 +51,6 @@ variable "orc8r_db_password" {
   type        = string
 }
 
-variable "nms_db_configuration" {
-  description = "Configuration of the NMS MySQL instance. This should match the v1.0 Terraform."
-  type = object({
-    identifier     = string
-    storage_gb     = number
-    engine_version = string
-    instance_class = string
-  })
-  default = {
-    identifier     = "nmsdb"
-    storage_gb     = 16
-    engine_version = "5.7"
-    instance_class = "db.m4.large"
-  }
-}
-
-variable "nms_db_password" {
-  description = "Password for the NMS MySQL instance. This should match the v1.0 Terraform."
-  type        = string
-}
-
 variable "secretsmanager_secret_name" {
   description = "Name for the Secretsmanager secret that the orc8r-aws module will create."
   type        = string

@@ -107,3 +107,58 @@ int encode_apn_aggregate_maximum_bit_rate(
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
   return encoded;
 }
+
+// Use 3GPP TS 24.008 figure 10.5.136A, table 10.5.154A
+void bit_rate_value_to_eps_qos(
+    ApnAggregateMaximumBitRate* apn_ambr, uint64_t ambr_dl, uint64_t ambr_ul) {
+  uint64_t ambr_dl_kbps = ambr_dl / 1000;  // ambr_dl is expected in bps
+  uint64_t ambr_ul_kbps = ambr_ul / 1000;  // ambr_ul is expected in bps
+  if (ambr_dl_kbps == 0) {
+    apn_ambr->apnambrfordownlink = 0xff;
+  } else if ((ambr_dl_kbps > 0) && (ambr_dl_kbps <= 63)) {
+    apn_ambr->apnambrfordownlink = ambr_dl_kbps;
+  } else if ((ambr_dl_kbps > 63) && (ambr_dl_kbps <= 575)) {
+    apn_ambr->apnambrfordownlink = ((ambr_dl_kbps - 64) / 8) + 64;
+  } else if ((ambr_dl_kbps > 575) && (ambr_dl_kbps <= 8640)) {
+    apn_ambr->apnambrfordownlink = ((ambr_dl_kbps - 576) / 64) + 128;
+  } else if (ambr_dl_kbps > 8640) {
+    apn_ambr->apnambrfordownlink = 0xfe;
+    apn_ambr->extensions =
+        APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
+    if ((ambr_dl_kbps >= 8600) && (ambr_dl_kbps <= 16000)) {
+      apn_ambr->apnambrfordownlink_extended = (ambr_dl_kbps - 8600) / 100;
+    } else if ((ambr_dl_kbps > 16000) && (ambr_dl_kbps <= 128000)) {
+      apn_ambr->apnambrfordownlink_extended =
+          ((ambr_dl_kbps - 16000) / 1000) + 74;
+    } else if ((ambr_dl_kbps > 128000) && (ambr_dl_kbps <= 256000)) {
+      apn_ambr->apnambrfordownlink_extended =
+          ((ambr_dl_kbps - 128000) / 2000) + 186;
+    }
+  }
+
+  if (ambr_ul_kbps == 0) {
+    apn_ambr->apnambrforuplink = 0xff;
+  } else if ((ambr_ul_kbps > 0) && (ambr_ul_kbps <= 63)) {
+    apn_ambr->apnambrforuplink = ambr_ul_kbps;
+  } else if ((ambr_ul_kbps > 63) && (ambr_ul_kbps <= 575)) {
+    apn_ambr->apnambrforuplink = ((ambr_ul_kbps - 64) / 8) + 64;
+  } else if ((ambr_ul_kbps > 575) && (ambr_ul_kbps <= 8640)) {
+    apn_ambr->apnambrforuplink = ((ambr_ul_kbps - 576) / 64) + 128;
+  } else if (ambr_ul_kbps > 8640) {
+    apn_ambr->apnambrforuplink = 0xfe;
+    apn_ambr->extensions =
+        APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
+    if ((ambr_ul_kbps >= 8600) && (ambr_ul_kbps <= 16000)) {
+      apn_ambr->apnambrforuplink_extended = (ambr_ul_kbps - 8600) / 100;
+    } else if ((ambr_ul_kbps > 16000) && (ambr_ul_kbps <= 128000)) {
+      apn_ambr->apnambrforuplink_extended =
+          ((ambr_ul_kbps - 16000) / 1000) + 74;
+    } else if ((ambr_ul_kbps > 128000) && (ambr_ul_kbps <= 256000)) {
+      apn_ambr->apnambrforuplink_extended =
+          ((ambr_ul_kbps - 128000) / 2000) + 186;
+    }
+  }
+
+  apn_ambr->apnambrfordownlink_extended2 = 0;
+  apn_ambr->apnambrforuplink_extended2   = 0;
+}

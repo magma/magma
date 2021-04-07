@@ -11,11 +11,17 @@
  * limitations under the License.
  */
 #pragma once
-#include <string>
-#include <grpc++/grpc++.h>
-#include "yaml-cpp/yaml.h"
 
-#include "ServiceConfigLoader.h"
+#include <yaml-cpp/yaml.h>        // IWYU pragma: keep
+#include <memory>                 // for shared_ptr, unique_ptr
+#include <string>                 // for string
+#include "ServiceConfigLoader.h"  // for ServiceConfigLoader
+namespace grpc {
+class Channel;
+}
+namespace grpc {
+class ChannelCredentials;
+}
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

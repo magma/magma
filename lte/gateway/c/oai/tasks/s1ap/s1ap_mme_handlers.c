@@ -1823,10 +1823,12 @@ int s1ap_mme_handle_ue_context_modification_failure(
       S1AP_FIND_PROTOCOLIE_BY_ID(
           S1ap_UEContextModificationFailureIEs_t, ie, container,
           S1ap_ProtocolIE_ID_id_Cause, true);
-      if (!ie) {
+      if (ie) {
+        cause_type = ie->value.choice.Cause.present;
+      } else {
         OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
       }
-      cause_value = ie->value.choice.Cause.choice.radioNetwork;
+
       switch (cause_type) {
         case S1ap_Cause_PR_radioNetwork:
           cause_value = ie->value.choice.Cause.choice.radioNetwork;

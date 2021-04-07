@@ -10,8 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "Serializers.h"
-#include <orc8r/protos/redis.pb.h>
+#include <google/protobuf/message.h>  // for Message
+#include <orc8r/protos/redis.pb.h>    // for RedisState
 
 using google::protobuf::Message;
 using magma::orc8r::RedisState;
