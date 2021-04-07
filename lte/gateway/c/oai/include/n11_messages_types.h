@@ -13,10 +13,16 @@
 
 #pragma once
 
+#include "common_types.h"
 //-----------------------------------------------------------------------------
 /** @struct itti_n11_create_pdu_session_response_t
- *  @brief carries the PDU Session Establishment Response from SMF to AMF task
- */
+ *  @brief Create PDU Session Response */
+
+/***********************pdu_res_set_change starts*************************/
+typedef enum {
+  SHALL_NOT_TRIGGER_PRE_EMPTION,
+  MAY_TRIGGER_PRE_EMPTION,
+} pre_emption_capability;
 
 typedef enum {
   SHALL_NOT_TRIGGER_PRE_EMPTION,
@@ -93,6 +99,75 @@ typedef enum sm_session_fsm_state_e {
   RELEASED
 } sm_session_fsm_state_t;
 
+typedef enum {
+  NOT_PREEMPTABLE,
+  PRE_EMPTABLE,
+} pre_emption_vulnerability;
+
+typedef struct m5g_allocation_and_retention_priority_s {
+  int priority_level;
+  pre_emption_capability pre_emption_cap;
+  pre_emption_vulnerability pre_emption_vul;
+} m5g_allocation_and_retention_priority;
+
+typedef struct non_dynamic_5QI_descriptor_s {
+  int fiveQI;
+} non_dynamic_5QI_descriptor;
+
+typedef struct qos_characteristics_s {
+  non_dynamic_5QI_descriptor non_dynamic_5QI_desc;
+} qos_characteristics;
+
+typedef struct qos_flow_level_qos_parameters_s {
+  qos_characteristics qos_characteristic;
+  m5g_allocation_and_retention_priority alloc_reten_priority;
+} qos_flow_level_qos_parameters;
+
+typedef struct qos_flow_setup_request_item_s {
+  uint32_t qos_flow_identifier;
+  qos_flow_level_qos_parameters qos_flow_level_qos_param;
+  // E-RAB ID is optional spec-38413 - 9.3.4.1
+} qos_flow_setup_request_item;
+
+typedef struct qos_flow_request_list_s {
+  qos_flow_setup_request_item qos_flow_req_item;
+} qos_flow_request_list;
+
+typedef struct amf_pdn_type_value_s {
+  pdn_type_value_t pdn_type;
+} amf_pdn_type_value_t;
+
+typedef struct gtp_tunnel_s {
+  bstring endpoint_ip_address;  // Transport_Layer_Information
+  uint8_t gtp_tied[4];
+} gtp_tunnel;
+
+typedef struct up_transport_layer_information_s {
+  gtp_tunnel gtp_tnl;
+} up_transport_layer_information_t;
+
+typedef struct amf_ue_aggregate_maximum_bit_rate_s {
+  uint64_t dl;
+  uint64_t ul;
+} amf_ue_aggregate_maximum_bit_rate_t;
+
+typedef struct pdu_session_resource_setup_request_transfer_s {
+  amf_ue_aggregate_maximum_bit_rate_t pdu_aggregate_max_bit_rate;
+  up_transport_layer_information_t up_transport_layer_info;
+  amf_pdn_type_value_t pdu_ip_type;
+  qos_flow_request_list qos_flow_setup_request_list;
+} pdu_session_resource_setup_request_transfer_t;
+
+/***********************pdu_res_set_change ends*************************/
+
+typedef enum SMSessionFSMState_response_s {
+  CREATING_0,
+  CREATE_1,
+  ACTIVE_2,
+  INACTIVE_3,
+  RELEASED_4
+} SMSessionFSMState_response;
+
 typedef enum pdu_session_type_e {
   IPV4,
   IPV6,
@@ -157,6 +232,40 @@ typedef struct redirect_server_s {
   uint8_t redirect_server_address[16];
 } redirect_server_t;
 
+typedef struct QosRules_response_s {
+  uint32_t qos_rule_identifier;
+  bool dqr;
+  uint32_t number_of_packet_filters;
+  uint32_t packet_filter_identifier[16];
+  uint32_t qos_rule_precedence;
+  bool segregation;
+  uint32_t qos_flow_identifier;
+} QosRules_response;
+
+typedef struct AggregatedMaximumBitrate_respose_t {
+  uint32_t max_bandwidth_ul;
+  uint32_t max_bandwidth_dl;
+} AggregatedMaximumBitrate_response;
+typedef enum AmbrUnit_response_e {
+  Kbps_0  = 0,
+  Kbps_1  = 1,
+  Kbps_4  = 2,
+  Kbps_16 = 3,
+  Kbps_64 = 4
+} AmbrUnit_response;
+
+typedef struct SessionAmbr_reponse_s {
+  AmbrUnit_response downlink_unit_type;
+  uint32_t downlink_units;  // Only to use lower 2 bytes (16 bit values)
+  AmbrUnit_response uplink_unit_type;
+  uint32_t uplink_units;  // Only to use lower 2 bytes (16 bit values)
+} SessionAmbr_response;
+
+typedef struct TeidSet_response_s {
+  uint8_t teid[4];
+  uint8_t end_ipv4_addr[16];
+} TeidSet_response;
+
 typedef struct itti_n11_create_pdu_session_response_s {
   // common context
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
@@ -167,10 +276,17 @@ typedef struct itti_n11_create_pdu_session_response_s {
   pdu_session_type_t pdu_session_type;
   ssc_mode_t selected_ssc_mode;
   m5g_sm_cause_t m5gsm_cause;
+  QosRules_response
+      authorized_qos_rules[4];  // TODO 32 in NAS5g,3 in pcap, revisit later
+  SessionAmbr_response session_ambr;
   bool always_on_pdu_session_indication;
   ssc_mode_t allowed_ssc_mode;
   bool m5gsm_congetion_re_attempt_indicator;
   redirect_server_t pdu_address;
+
+  qos_flow_request_list qos_list;
+  TeidSet_response upf_endpoint;
+  uint8_t procedure_trans_identity[2];
 } itti_n11_create_pdu_session_response_t;
 
 #define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \

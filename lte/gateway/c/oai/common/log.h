@@ -126,6 +126,9 @@ extern int fd_g_debug_lvl;
 #define LOG_CONFIG_STRING_UDP_LOG_LEVEL "UDP_LOG_LEVEL"
 #define LOG_CONFIG_STRING_UTIL_LOG_LEVEL "UTIL_LOG_LEVEL"
 #define LOG_CONFIG_STRING_SGS_LOG_LEVEL "SGS_LOG_LEVEL"
+#define LOG_CONFIG_STRING_NGAP_LOG_LEVEL "NGAP_LOG_LEVEL"
+#define LOG_CONFIG_STRING_AMF_APP_LOG_LEVEL "AMF_APP_LOG_LEVEL"
+#define LOG_CONFIG_STRING_NAS_AMF_LOG_LEVEL "NAS_AMF_LOG_LEVEL"
 
 typedef enum {
   MIN_LOG_LEVEL          = 0,
@@ -151,6 +154,7 @@ typedef enum {
   LOG_NGAP,
   LOG_MME_APP,
   LOG_NAS,
+  LOG_NAS5G,
   LOG_NAS_EMM,
   LOG_NAS_ESM,
   LOG_SPGW_APP,
@@ -169,6 +173,9 @@ typedef enum {
   LOG_ASSERT,
   LOG_COMMON,
   LOG_SGW_S8,
+  LOG_NGAP,
+  LOG_AMF_APP,
+  LOG_NAS_AMF,
   MAX_LOG_PROTOS,
 } log_proto_t;
 
@@ -232,6 +239,15 @@ typedef struct log_config_s {
   log_level_t mme_app_log_level;  /*!< \brief MME-APP ITTI task log level
                                      starting from OAILOG_LEVEL_EMERGENCY up to
                                      MAX_LOG_LEVEL (no log) */
+  log_level_t amf_app_log_level;  /*!< \brief MME-APP ITTI task log level
+                                     starting from OAILOG_LEVEL_EMERGENCY up to
+                                     MAX_LOG_LEVEL (no log) */
+  log_level_t nas_amf_log_level;  /*!< \brief MME-APP ITTI task log level
+                                     starting from OAILOG_LEVEL_EMERGENCY up to
+                                     MAX_LOG_LEVEL (no log) */
+  log_level_t ngap_log_level;     /*!< \brief MME-APP ITTI task log level
+                                        starting from OAILOG_LEVEL_EMERGENCY up to
+                                        MAX_LOG_LEVEL (no log) */
   log_level_t spgw_app_log_level; /*!< \brief SP-GW ITTI task log level starting
                                      from OAILOG_LEVEL_EMERGENCY up to
                                      MAX_LOG_LEVEL (no log) */

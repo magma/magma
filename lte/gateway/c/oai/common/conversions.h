@@ -509,6 +509,7 @@
   snprintf(                                                                    \
       sTRING, IMSI_BCD_DIGITS_MAX + 1, IMSI_64_FMT_DYN_LEN, _imsi_len, iMSI64)
 imsi64_t imsi_to_imsi64(const imsi_t* const imsi);
+imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi);
 
 #define IMSI_TO_STRING(iMsI_t_PtR, iMsI_sTr, MaXlEn)                           \
   do {                                                                         \

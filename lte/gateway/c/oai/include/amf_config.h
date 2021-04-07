@@ -10,13 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*****************************************************************************
-  Source      amf_message.h
-  Date        2020/07/28
-  Author      Ashish Prajapati
-  Subsystem   Access and Mobility Management Function
-  Description Defines Access and Mobility Management Messages
-*****************************************************************************/
+
 #pragma once
 
 #include <pthread.h>
@@ -30,6 +24,83 @@
 #include "log.h"
 #include "service303.h"
 
+#define MIN_GUMMEI 1
+#define MAX_GUMMEI 5
+#define MAX_APN_CORRECTION_MAP_LIST 10
+
+extern char buf_plmn[3];
+
+typedef struct nas5g_config_s {
+  uint8_t prefered_integrity_algorithm[8];
+  uint8_t prefered_ciphering_algorithm[8];
+  uint32_t t3502_min;
+  uint32_t t3512_min;
+  uint32_t t3522_sec;
+  uint32_t t3550_sec;
+  uint32_t t3560_sec;
+  uint32_t t3570_sec;
+  uint32_t t3585_sec;
+  uint32_t t3586_sec;
+  uint32_t t3589_sec;
+  uint32_t t3595_sec;
+  // non standard features
+  bool force_reject_tau;
+  bool force_reject_sr;
+  bool disable_esm_information;
+} nas5g_config_t;
+
+typedef struct m5g_apn_map_s {
+  bstring imsi_prefix;
+  bstring apn_override;
+} m5g_apn_map_t;
+
+typedef struct m5g_apn_map_config_s {
+  int nb;
+  m5g_apn_map_t apn_map[MAX_APN_CORRECTION_MAP_LIST];
+} m5g_apn_map_config_t;
+
+typedef struct m5g_nas_config_s {
+  uint8_t prefered_integrity_algorithm[8];
+  uint8_t prefered_ciphering_algorithm[8];
+  uint32_t t3402_min;
+  uint32_t t3412_min;
+  uint32_t t3422_sec;
+  uint32_t t3450_sec;
+  uint32_t t3460_sec;
+  uint32_t t3470_sec;
+  uint32_t t3485_sec;
+  uint32_t t3486_sec;
+  uint32_t t3489_sec;
+  uint32_t t3495_sec;
+  // non standard features
+  bool force_reject_tau;
+  bool force_reject_sr;
+  bool disable_esm_information;
+  // apn correction
+  bool enable_apn_correction;
+  m5g_apn_map_config_t m5g_apn_map_config;
+} m5g_nas_config_t;
+typedef uint64_t imsi64_t;
+typedef uint32_t amf_ue_ngap_id_t;
+
+typedef struct m5g_served_tai_s {
+  uint8_t list_type;
+  uint8_t nb_tai;
+  uint16_t* plmn_mcc;
+  uint16_t* plmn_mnc;
+  uint16_t* plmn_mnc_len;
+  uint16_t* tac;
+} m5g_served_tai_t;
+
+typedef struct ngap_config_s {
+  uint16_t port_number;
+  uint8_t outcome_drop_timer_sec;
+} ngap_config_t;
+
+typedef struct guamfi_config_s {
+  int nb;
+  guamfi_t guamfi[MAX_GUMMEI];
+=======
 #define MIN_GUAMFI 1 /*minimum 1 Global Unique AMF Identifier is supported*/
 #define MAX_GUAMFI 5 /*max 5 Global Unique AMF Identifiers are supported*/
 
@@ -62,6 +133,7 @@ typedef struct ngap_config_s {
 typedef struct guamfi_config_s {
   int nb;
   guamfi_t guamfi[MAX_GUAMFI];
+>>>>>>> bfa832a0e7eb7910bfc5a1d0c6355d861d1c5af2
 } guamfi_config_t;
 
 typedef struct amf_config_s {
@@ -83,6 +155,16 @@ typedef struct amf_config_s {
   m5g_served_tai_t served_tai;
   service303_data_t service303_config;
   ngap_config_t ngap_config;
+  m5g_nas_config_t m5g_nas_config;
+  log_config_t log_config;
+  uint32_t amf_statistic_timer;
+  nas5g_config_t nas_config;
+  bool use_stateless;
+} amf_config_t;
+
+extern amf_config_t amf_config;
+
+int amf_app_init(amf_config_t*);
   log_config_t log_config;
   bool use_stateless;
 } amf_config_t;

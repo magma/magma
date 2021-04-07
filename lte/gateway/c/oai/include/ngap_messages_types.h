@@ -22,17 +22,31 @@
 #include "Ngap_Cause.h"
 #include "Ngap_PagingDRX.h"
 #include "Ngap_PagingPriority.h"
+#include "common_types.h"
+#include "n11_messages_types.h"  //pdu_res_set_change
 
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
 typedef uint64_t gnb_ngap_id_key_t;
 typedef uint64_t bitrate_t;
 
+typedef char* APN_t;
+typedef uint8_t APNRestriction_t;
 typedef uint8_t DelayValue_t;
 typedef uint8_t priority_level_t;
 #define PRIORITY_LEVEL_FMT "0x%" PRIu8
 #define PRIORITY_LEVEL_SCAN_FMT SCNu8
 typedef uint32_t SequenceNumber_t;
+typedef uint32_t access_restriction_t;
+typedef uint32_t context_identifier_t;
+typedef uint32_t rau_tau_timer_t;
+
+typedef uint32_t ard_t;
+typedef int pdn_cid_t;  // pdn connexion identity, related to esm protocol,
+                        // sometimes type is mixed with int return code!!...
+typedef uint8_t
+    proc_tid_t;  // procedure transaction identity, related to esm protocol
+typedef uint8_t qci_t;
 typedef uint32_t teid_t;
 
 #define NGAP_GNB_DEREGISTERED_IND(mSGpTR)                                      \
@@ -50,9 +64,20 @@ typedef uint32_t teid_t;
 #define NGAP_UE_CONTEXT_MODIFICATION_FAILURE(mSGpTR)                           \
   (mSGpTR)->ittiMsg.ngap_ue_context_mod_failure
 
+#define NGAP_PDUSESSION_RESOURCE_SETUP_REQ(mSGpTR)                             \
+  (mSGpTR)->ittiMsg.ngap_pdusession_resource_setup_req
+#define NGAP_PDUSESSIONRESOURCE_SETUP_RSP(mSGpTR)                              \
+  (mSGpTR)->ittiMsg.ngap_pdusessionresource_setup_rsp
+#define NGAP_PDUSESSIONRESOURCE_REL_RSP(mSGpTR)                                \
+  (mSGpTR)->ittiMsg.ngap_pdusessionresource_rel_rsp
+#define NGAP_PDUSESSIONRESOURCE_REL_REQ(mSGpTR)                                \
+  (mSGpTR)->ittiMsg.ngap_pdusessionresource_rel_req
+
 #define NGAP_INITIAL_UE_MESSAGE(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.ngap_initial_ue_message
 #define NGAP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.ngap_nas_dl_data_req
+#define NGAP_INITIAL_CONTEXT_SETUP_REQ(mSGpTR)                                 \
+  (mSGpTR)->ittiMsg.ngap_initial_context_setup_req
 #define NGAP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.ngap_paging_request
 #define NGAP_PATH_SWITCH_REQUEST(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.ngap_path_switch_request
@@ -76,6 +101,30 @@ typedef struct ngap_initial_ue_message_s {
   ecgi_t e_utran_cgi;
 } ngap_initial_ue_message_t;
 
+typedef struct itti_ngap_ue_context_mod_req_s {
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+/* Use presence mask to identify presence of optional fields */
+#define NGAP_UE_CONTEXT_MOD_LAI_PRESENT (1 << 0)
+#define NGAP_UE_CONTEXT_MOD_CSFB_INDICATOR_PRESENT (1 << 1)
+#define NGAP_UE_CONTEXT_MOD_UE_AMBR_INDICATOR_PRESENT (1 << 2)
+  uint8_t presencemask;
+  lai_t lai;
+  int cs_fallback_indicator;
+  ambr_t ue_ambr;
+} itti_ngap_ue_context_mod_req_t;
+
+typedef struct itti_ngap_ue_context_mod_resp_s {
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+} itti_ngap_ue_context_mod_resp_t;
+
+typedef struct itti_ngap_ue_context_mod_resp_fail_s {
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  int64_t cause;
+} itti_ngap_ue_context_mod_resp_fail_t;
+
 typedef struct itti_ngap_initial_ctxt_setup_req_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
@@ -88,8 +137,52 @@ typedef struct itti_ngap_initial_ctxt_setup_req_s {
   /* QoS */
   qci_t qci;
   priority_level_t prio_level;
+
+  /* S-GW TEID for user-plane */
   teid_t teid;
 } itti_ngap_initial_ctxt_setup_req_t;
+
+typedef struct itti_ngap_ue_cap_ind_s {
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  uint8_t* radio_capabilities;
+  size_t radio_capabilities_length;
+} itti_ngap_ue_cap_ind_t;
+
+#define NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE 128
+typedef struct itti_ngap_eNB_deregistered_ind_s {
+  uint16_t nb_ue_to_deregister;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id[NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE];
+  amf_ue_ngap_id_t amf_ue_ngap_id[NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE];
+  uint32_t gnb_id;
+} itti_ngap_eNB_deregistered_ind_t;
+
+typedef enum ngap_reset_type_e {
+  M5G_RESET_ALL = 0,
+  M5G_RESET_PARTIAL
+} ngap_reset_type_t;
+
+typedef struct ng_sig_conn_id_s {
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+} ng_sig_conn_id_t;
+
+typedef struct itti_ngap_gnb_initiated_reset_req_s {
+  uint32_t sctp_assoc_id;
+  uint16_t sctp_stream_id;
+  uint32_t gnb_id;
+  ngap_reset_type_t ngap_reset_type;
+  uint32_t num_ue;
+  ng_sig_conn_id_t* ue_to_reset_list;
+} itti_ngap_gnb_initiated_reset_req_t;
+
+typedef struct itti_ngap_gnb_initiated_reset_ack_s {
+  uint32_t sctp_assoc_id;
+  uint16_t sctp_stream_id;
+  ngap_reset_type_t ngap_reset_type;
+  uint32_t num_ue;
+  ng_sig_conn_id_t* ue_to_reset_list;
+} itti_ngap_gnb_initiated_reset_ack_t;
 
 // List of possible causes for AMF generated UE context release command towards
 // gNB
@@ -112,9 +205,15 @@ typedef struct itti_ngap_ue_context_release_command_s {
   enum Ngcause cause;
 } itti_ngap_ue_context_release_command_t;
 
+typedef struct ue_context_pduSession_s {
+  uint32_t pduSessionItemCount;
+  uint32_t pduSessionIDs[MAX_NO_OF_PDUSESSIONS];
+} ue_context_pduSession_t;
+
 typedef struct itti_ngap_ue_context_release_req_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  ue_context_pduSession_t pduSession;
   uint32_t gnb_id;
   enum Ngcause relCause;
   Ngap_Cause_t cause;
@@ -130,6 +229,25 @@ typedef struct itti_ngap_ue_context_release_complete_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
 } itti_ngap_ue_context_release_complete_t;
+
+typedef enum ngap_cn_domain_e {
+  M5G_CN_DOMAIN_PS,
+  M5G_CN_DOMAIN_CS
+} ngap_cn_domain_t;
+
+typedef struct itti_ngap_paging_request_s {
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  uint8_t imsi_length;
+  tmsi_t m_tmsi;
+  uint32_t amf_code;
+  uint32_t sctp_assoc_id;
+#define NGAP_PAGING_ID_IMSI 0X0
+#define NGAP_PAGING_ID_STMSI 0X1
+  uint8_t paging_id;
+  ngap_cn_domain_t domain_indicator;
+  uint8_t tai_list_count;
+  paging_tai_list_t paging_tai_list[TRACKING_AREA_IDENTITY_MAX_NUM_OF_TAIS];
+} itti_ngap_paging_request_t;
 
 typedef struct itti_ngap_initial_ue_message_s {
   sctp_assoc_id_t sctp_assoc_id;  // key stored in AMF_APP for AMF_APP forward
@@ -168,29 +286,23 @@ typedef struct itti_ngap_pdusession_resource_setup_req_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
   amf_ue_ngap_id_t amf_ue_ngap_id;
   bstring nas_pdu;  // optional
-
   ngap_ue_aggregate_maximum_bit_rate_t
       ue_aggregate_maximum_bit_rate;  // optional
-
   Ngap_PDUSession_Resource_Setup_Request_List_t pduSessionResource_setup_list;
 } itti_ngap_pdusession_resource_setup_req_t;
 
 typedef struct itti_ngap_pdusessionresource_setup_rsp_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
-
   Ngap_PDUSession_Resource_Setup_Response_List_t pduSessionResource_setup_list;
   Ngap_PDUSession_Resource_Failed_To_Setup_List_t
       pduSessionResourceFailedToSetupList;
-
 } itti_ngap_pdusessionresource_setup_rsp_t;
 
 typedef struct itti_ngap_pdusessionresource_rel_rsp_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
-
   Ngap_PDUSession_Resource_Released_List_t pduSessionResourceReleasedRspList;
-
 } itti_ngap_pdusessionresource_rel_rsp_t;
 
 typedef struct itti_ngap_pdusessionresource_rel_req_s {
@@ -208,3 +320,36 @@ typedef struct itti_ngap_paging_request_s {
   Ngap_TAI_List_For_Paging_t TAIListForPaging;
 
 } itti_ngap_paging_request_t;
+
+#define NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE 128
+typedef struct itti_ngap_gNB_deregistered_ind_s {
+  uint16_t nb_ue_to_deregister;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id[NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE];
+  amf_ue_ngap_id_t amf_ue_ngap_id[NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE];
+  uint32_t gnb_id;
+} itti_ngap_gNB_deregistered_ind_t;
+
+typedef struct itti_ngap_path_switch_request_s {
+  uint32_t sctp_assoc_id;
+  uint32_t gnb_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  tai_t tai;
+  ecgi_t ecgi;
+  uint16_t encryption_algorithm_capabilities;
+  uint16_t integrity_algorithm_capabilities;
+} itti_ngap_path_switch_request_t;
+
+typedef struct itti_ngap_path_switch_request_ack_s {
+  uint32_t sctp_assoc_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  uint8_t ncc; /* next hop chaining count */
+} itti_ngap_path_switch_request_ack_t;
+
+typedef struct itti_ngap_path_switch_request_failure_s {
+  uint32_t sctp_assoc_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+} itti_ngap_path_switch_request_failure_t;
+>>>>>>> AMF-CORE PR's dependent files

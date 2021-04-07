@@ -92,6 +92,8 @@ enum NotifyUeEvents {
    UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY = 3; // AMF  => SMF
    PDU_SESSION_STATE_NOTIFY = 4;  // SMF => AMF
    UE_SERVICE_REQUEST_ON_PAGING = 5; // AMF -> SMF && SMF -> AMF response 
+  bytes teid = 1;
+  string end_ipv4_addr = 2;
 }
 
 message RatSpecificNotification {
@@ -791,28 +793,27 @@ message M5GSMSessionContext {
   RequestType rquest_type = 2;        // Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial requerst, existing pdusession etc...
   RedirectServer pdu_address = 3; // IP address. Imported from session_manager.proto file
   priorityaccess priority_access = 4;
-  string imei = 5; // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
-  string gpsi = 6; // Lenght is 10 bytes + 2 bytes country code generic public subscription id.
-  string user_location_info = 7; // up to 6 byte. TS-23.003 - 28.15.3
-  string pcf_id = 8; // length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
-  // Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
-  repeated LadnServiceArea ladn_service_area = 9; // Length is 10 bytes, like PLMN
-  bool pdu_session_status_notification_sub = 10;   // Subscription For PDU Session Status Notification true or false
-  DnnSelectionMode dnn_selection_mode = 11;       // TS-29-502 - 6.1.6.3.10
-  string trace_requirment = 12;                   // TS-29.571 5.6.
-  bytes integrity_protection_max_data_rate = 13;  // Length is 3 bytes, TS-24.501 9.11.4.7
-  PduSessionType pdu_session_type = 14;
-  SscMode ssc_mode = 15;
-  M5GSMCapability m5g_sm_capability = 16;  // max size go up to 15 bytes. TLV and 9.11.4.1.
-  uint32 max_pkt_filter_supported = 17;    // Maximum no. of supported packet filters
-  bool pdu_session_req_always_on = 18;     // Always-on PDU session requested TS-24.501 9.11.4.4
-  string sm_pdu_dn_req = 19;               // SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
-  M5GSMCause m5gsm_cause = 20;
-  QosRules requested_qos_rules = 21; // TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
-  TeidSet gnode_endpoint = 22;
-  TeidSet upf_endpoint = 23;
-  // Procedure transaction identity 
-  bytes procedure_trans_identity = 24;   // One byte TS-24501 9.6
+  AccessType access_type = 5;     //Define enum TS-29.571 - section 5.4.3
+  string imei = 8; // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
+  string gpsi = 9; //Lenght is 10 bytes + 2 bytes country code generic public subscription id.
+  string user_location_info = 10; //up to 6 byte. TS-23.003 - 28.15.3
+  string pcf_id = 11; //length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
+  //Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
+  repeated LadnServiceArea ladn_service_area = 12; //Length is 10 bytes, like PLMN
+  bool pdu_session_status_notification_sub = 13;   //Subscription For PDU Session Status Notification true or false
+  DnnSelectionMode dnn_selection_mode = 14;       // TS-29-502 - 6.1.6.3.10
+  string trace_requirment = 15;                   // TS-29.571 5.6.
+  bytes integrity_protection_max_data_rate = 16;  //Length is 3 bytes, TS-24.501 9.11.4.7
+  PduSessionType pdu_session_type = 17;
+  SscMode ssc_mode = 18;
+  M5GSMCapability m5g_sm_capability = 19;  // max size go up to 15 bytes. TLV and 9.11.4.1.
+  uint32 max_pkt_filter_supported = 20;    //Maximum no. of supported packet filters
+  bool pdu_session_req_always_on = 21;     //Always-on PDU session requested TS-24.501 9.11.4.4
+  string sm_pdu_dn_req = 22;               //SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
+  M5GSMCause m5gsm_cause = 23;
+  QosRules requested_qos_rules = 24; //TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+  TeidSet gnode_endpoint = 25; 
+  bytes procedure_trans_identity = 26;   //One byte TS-24501 9.6
 }
 
 message SetSMSessionContext {

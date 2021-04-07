@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -26,6 +26,7 @@ typedef enum Type_of_Message_s {
   successful_outcome,
   unsuccessfull_outcome
 } Type_of_Message_t;
+
 // 9.3 Information Element Definitions
 // 9.3.1 Radio Network Layer Related IEs
 // 9.3.1.1 Message Type
@@ -33,6 +34,7 @@ typedef struct Ngap_Message_Type_s {
   uint32_t Procedure_Code;
   Type_of_Message_t Type_of_Message;
 } Ngap_Message_Type_t;
+
 // 9.3.3.15 RAN Paging Priority IE contains the service priority as defined in
 // TS 23.501
 typedef enum Ngap_PagingPriority_s {
@@ -54,7 +56,6 @@ typedef long Ngap_PDUSessionID_t;
 typedef struct Ngap_S_NSSAI_s {
   bstring sST;
   bstring* sD; /* OPTIONAL */
-
 } Ngap_SNSSAI_t;
 
 // 9.3.1.58 UE Aggregate Maximum Bit Rate
@@ -83,6 +84,7 @@ typedef struct pdusession_setup_item_s {
 } pdusession_setup_item_t;
 
 typedef struct Ngap_PDUSession_Resource_Setup_Request_List_s {
+
   uint16_t no_of_items;
   pdusession_setup_item_t item[MAX_NO_OF_PDUSESSIONS];
 
@@ -181,8 +183,6 @@ typedef struct PDU_Session_resource_setup_request_s {
   Ngap_PagingPriority_ty RAN_Paging_Priority; /*optional*/
   bstring nas_pdu;  // 5GC – UE or UE – 5GC message that is transferred without
                     // interpretation in the NG-RAN node  /*optional*/
-  // Ngap_ue_aggregate_maximum_bit_rate_t ue_aggregate_maximum_bit_rate;
-  // /*optional*/
   Ngap_PDUSession_Resource_Setup_Request_List_t pdusesssion_setup_list;
 } PDU_Session_resource_setup_request_t;
 
@@ -201,7 +201,6 @@ typedef struct PDU_Session_resource_setup_response_s {
   Ngap_PDUSessionID_t
       Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
                        // PDU Session ID is specified in TS 23.501 [9].
-  //  PDU_Session_Resource_Setup_Response_Transfer
 } PDU_Session_resource_setup_response_t;
 
 typedef struct ngap_plmn_s {
@@ -262,6 +261,7 @@ typedef struct Ngap_initial_context_setup_request_s {
   unsigned char*
       Security_Key;  // 9.3.1.87 Security Key is used to apply security in the
                      // NG-RAN for different scenarios as defined in TS 33.501
+  bstring nas_pdu;   // optional
 
 } Ngap_initial_context_setup_request_t;
 
