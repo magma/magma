@@ -45,6 +45,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
   }
 }
 
+
 # This secretsmanager secret needs to be manually created and populated in the
 # AWS console. For this example, you would set the following key-value pairs:
 #   orc8r_db_pass

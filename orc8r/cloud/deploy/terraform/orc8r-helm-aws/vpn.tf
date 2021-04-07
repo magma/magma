@@ -12,6 +12,7 @@
 ################################################################################
 
 resource "helm_release" "ovpn" {
+  
   count = var.deploy_openvpn ? 1 : 0
 
   chart      = "openvpn"

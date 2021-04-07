@@ -11,6 +11,7 @@
 # limitations under the License.
 ################################################################################
 
+
 resource "tls_private_key" "eks_workers" {
   count = var.eks_worker_group_key == null ? 1 : 0
 
