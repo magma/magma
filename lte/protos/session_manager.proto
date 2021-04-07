@@ -954,6 +954,7 @@ message UPFSessionConfigState {
      repeated UPFSessionState upf_session_state = 1;
 }
 
+
 message UPFPagingInfo {
   string subscriber_id = 1;
   uint32 local_f_teid = 2;
