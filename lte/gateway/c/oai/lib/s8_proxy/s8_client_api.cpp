@@ -202,8 +202,8 @@ static void convert_uli_to_proto_msg(
   uli->set_sac(msg_uli.s.sai.sac);
   uli->set_rac(msg_uli.s.rai.rac);
   uli->set_tac(msg_uli.s.tai.tac);
-  uli->set_eci(msg_uli.s.ecgi.cell_identity.cell_id);
-  uli->set_menbi(msg_uli.s.ecgi.cell_identity.enb_id);
+  uli->set_eci(msg_uli.s.ecgi.cell_identity.enb_id);
+  uli->set_menbi(0);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
@@ -333,6 +333,17 @@ static void get_msisdn_from_csr_req(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
+static void convert_imeisv_to_string(char* imeisv) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  uint8_t idx = 0;
+  for (; idx < IMEISV_DIGITS_MAX; idx++) {
+    imeisv[idx] = convert_digit_to_char(imeisv[idx]);
+  }
+  imeisv[idx] = '\0';
+
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
 static void fill_s8_create_session_req(
     const itti_s11_create_session_request_t* msg,
     magma::feg::CreateSessionRequestPgw* csr, teid_t sgw_s8_teid) {
@@ -357,7 +368,10 @@ static void fill_s8_create_session_req(
     mnc[2]  = '\0';
     mnc_len = 2;
   }
-
+  char imeisv[IMEISV_DIGITS_MAX + 1];
+  get_imeisv_from_session_req(msg, imeisv);
+  convert_imeisv_to_string(imeisv);
+  csr->set_mei(imeisv, IMEISV_DIGITS_MAX);
   magma::feg::ServingNetwork* serving_network = csr->mutable_serving_network();
   serving_network->set_mcc(mcc, 3);
   serving_network->set_mnc(mnc, mnc_len);
@@ -372,6 +386,9 @@ static void fill_s8_create_session_req(
     magma::feg::BearerContext* bc = csr->mutable_bearer_context();
     convert_bearer_context_to_proto(
         &msg->bearer_contexts_to_be_created.bearer_contexts[0], bc);
+    // set the mbr within bearer qos same as apn-ambr
+    bc->mutable_qos()->mutable_mbr()->set_br_ul(msg->ambr.br_ul);
+    bc->mutable_qos()->mutable_mbr()->set_br_dl(msg->ambr.br_dl);
   }
   csr->set_c_agw_teid(sgw_s8_teid);
   csr->set_charging_characteristics(

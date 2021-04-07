@@ -237,7 +237,8 @@ int mme_app_send_s11_create_session_req(
   } else {
     session_request_p->msisdn.length = 0;
   }
-
+  session_request_p->mei.present       = MEI_IMEISV;
+  session_request_p->mei.choice.imeisv = ue_mm_context->emm_context._imeisv;
   // Fill User Location Information
   session_request_p->uli.present = 0;  // initialize the presencemask
   mme_app_get_user_location_information(&session_request_p->uli, ue_mm_context);
@@ -646,4 +647,3 @@ void mme_app_itti_sgsap_ue_activity_ind(
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
-
