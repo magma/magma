@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 from unittest import mock
+
 from spyne.server.wsgi import WsgiMethodContext
 
 
