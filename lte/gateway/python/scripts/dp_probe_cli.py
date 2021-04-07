@@ -20,6 +20,7 @@ import subprocess
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
 
+
 def create_parser():
     """
     Creates the argparse parser with all the arguments.
@@ -29,11 +30,32 @@ def create_parser():
         "To display the Datapath actions of the supplied IMSI",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("-i", "--imsi", help="IMSI of the subscriber")
-    parser.add_argument("-I", "--ip", help="External IP")
-    parser.add_argument("-P", "--port", help="External Port")
-    parser.add_argument("-UP", "--ue_port", help="UE Port")
-    parser.add_argument("-p", "--protocol", help="Portocol (i.e. tcp, udp, icmp)")
+    parser.add_argument("-i", "--imsi", required=True, help="IMSI of the subscriber")
+    parser.add_argument(
+        "-d",
+        "--direction",
+        required=True,
+        choices=["DL", "UL"],
+        help="Direction - DL/UL",
+    )
+    parser.add_argument(
+        "-I", "--ip", nargs="?", const="8.8.8.8", default="8.8.8.8", help="External IP"
+    )
+    parser.add_argument(
+        "-P", "--port", nargs="?", const="80", default="80", help="External Port"
+    )
+    parser.add_argument(
+        "-UP", "--ue_port", nargs="?", const="3372", default="3372", help="UE Port"
+    )
+    parser.add_argument(
+        "-p",
+        "--protocol",
+        choices=["tcp", "udp", "icmp"],
+        nargs="?",
+        const="tcp",
+        default="tcp",
+        help="Portocol (i.e. tcp, udp, icmp)",
+    )
 
     return parser
 
@@ -49,41 +71,92 @@ def find_ue_ip(imsi: str):
     match = re.search(pattern, output_str)
     if match:
         return match.group(1)
-    else:
-        return "NA"
+    return
 
 
 def output_datapath_actions(
-    ue_ip: str, external_ip: str, external_port: str, ue_port: str, protocol: str
+    imsi: str,
+    direction: str,
+    ue_ip: str,
+    external_ip: str,
+    external_port: str,
+    ue_port: str,
+    protocol: str,
 ):
     """
     Returns the Output of Datapath Actions based as per the supplied UE IP
     """
     service = MagmaService("pipelined", mconfigs_pb2.PipelineD())
+    cmd = ["sudo", "ovs-appctl", "ofproto/trace", "gtp_br0"]
     if service.mconfig.nat_enabled:
         in_port = "local"
     else:
         in_port = "patch-up"
 
-    cmd = ["sudo", "ovs-appctl", "ofproto/trace", "gtp_br0"]
+    if direction == "DL":
 
-    cmd_append = (
-        protocol + ",in_port=" + in_port + ",ip_dst=" + ue_ip + ",ip_src=" + external_ip
-    )
-
-    if protocol != "icmp":
-        cmd_append += (
-            ","
-            + protocol
-            + "_src="
-            + external_port
-            + ","
-            + protocol
-            + "_dst="
-            + ue_port
+        cmd_append = (
+            protocol
+            + ",in_port="
+            + in_port
+            + ",ip_dst="
+            + ue_ip
+            + ",ip_src="
+            + external_ip
         )
 
-    cmd.append(cmd_append)
+        if protocol != "icmp":
+            cmd_append += (
+                ","
+                + protocol
+                + "_src="
+                + external_port
+                + ","
+                + protocol
+                + "_dst="
+                + ue_port
+            )
+
+        cmd.append(cmd_append)
+
+    elif direction == "UL":
+        ingress_tun_id = get_ingress_tunid(ue_ip, in_port)
+        if not ingress_tun_id:
+            print("Ingress Tunnel not Found")
+            exit(1)
+
+        data = get_egress_tunid_and_port(ue_ip, ingress_tun_id)
+        if not data:
+            print("Egress Tunnel not Found")
+            exit(1)
+
+        cmd_append = (
+            protocol
+            + ",in_port="
+            + data["in_port"]
+            + ",tun_id="
+            + data["tun_id"]
+            + ",ip_dst="
+            + external_ip
+            + ",ip_src="
+            + ue_ip
+        )
+
+        if protocol != "icmp":
+            cmd_append += (
+                ","
+                + protocol
+                + "_src="
+                + ue_port
+                + ","
+                + protocol
+                + "_dst="
+                + external_port
+            )
+
+        cmd.append(cmd_append)
+    else:
+        return
 
     print("Running: " + " ".join(cmd))
     output = subprocess.check_output(cmd)
@@ -93,45 +166,60 @@ def output_datapath_actions(
     if match:
         return match.group(1).strip()
     else:
-        return "NA"
+        return
 
+def get_ingress_tunid(ue_ip: str, in_port: str):
+    cmd = ["sudo", "ovs-ofctl", "dump-flows", "gtp_br0", "table=0"]
+    output = subprocess.check_output(cmd)
+    output = str(output, "utf-8").strip()
+    pattern = (
+        ".*?in_port="
+        + in_port
+        + ",nw_dst="
+        + ue_ip
+        + ".*?load:(0x(?:[a-z]|[0-9]){1,})->OXM_OF_METADATA.*?"
+    )
+    match = re.findall(pattern, output, re.IGNORECASE)
+    if match:
+        return match[0]
+    return
 
-def get_options(args):
-    external_ip = args.ip if args.ip else "8.8.8.8"
-    external_port = args.port if args.port else "80"
-    ue_port = args.ue_port if args.ue_port else "3372"
-    protocol = args.protocol if args.protocol else "tcp"
-
-    return {
-        "external_ip": external_ip,
-        "external_port": external_port,
-        "ue_port": ue_port,
-        "protocol": protocol,
-    }
-
+def get_egress_tunid_and_port(ue_ip: str, ingress_tun: str):
+    cmd = ["sudo", "ovs-ofctl", "dump-flows", "gtp_br0", "table=0"]
+    output = subprocess.check_output(cmd)
+    output = str(output, "utf-8").strip()
+    pattern = pattern = (
+        "tun_id=(0x(?:[a-z]|[0-9]){1,}),in_port=([a-z]|[0-9]).*?load:"
+        + ingress_tun
+        + "->OXM_OF_METADATA.*?\n"
+    )
+    match = re.findall(pattern, output)
+    if match:
+        return {"tun_id": match[0][0], "in_port": match[0][1]}
+    return
 
 def main():
     parser = create_parser()
     # Parse the args
     args = parser.parse_args()
-    if not args.imsi:
-        parser.print_usage()
-        exit(1)
     ue_ip = find_ue_ip(args.imsi)
-    if ue_ip == "NA":
+    if not ue_ip:
         print("UE is not connected")
         exit(1)
 
     print("IMSI: " + args.imsi + ", IP: " + ue_ip)
 
-    input_options = get_options(args)
     dp_actions = output_datapath_actions(
+        args.imsi,
+        args.direction,
         ue_ip,
-        input_options["external_ip"],
-        input_options["external_port"],
-        input_options["ue_port"],
-        input_options["protocol"],
+        args.ip,
+        args.port,
+        args.ue_port,
+        args.protocol,
     )
+    if not dp_actions:
+        print("Cannot find Datapath Actions for the UE")
 
     print("Datapath Actions: " + dp_actions)
 
