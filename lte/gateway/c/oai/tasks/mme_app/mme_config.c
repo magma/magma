@@ -1060,17 +1060,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     if (setting != NULL) {
       num = config_setting_length(setting);
       OAILOG_INFO(LOG_MME_APP, "Number of blocked IMEIs configured =%d\n", num);
-      AssertFatal(
-          num <= MAX_BLOCKED_IMEI,
-          "Number of blocked IMEIs configured:%d exceeds number of "
-          "blocked IMEIs supported :%d \n",
-          num, MAX_BLOCKED_IMEI);
       if (num > 0) {
         // Create IMEI hashtable
         hashtable_rc_t h_rc = HASH_TABLE_OK;
         bstring b           = bfromcstr("mme_app_config_imei_htbl");
         config_pP->blocked_imei.imei_htbl =
-            hashtable_uint64_ts_create(16, NULL, b);
+            hashtable_uint64_ts_create(32, NULL, b);
         bdestroy_wrapper(&b);
         AssertFatal(
             config_pP->blocked_imei.imei_htbl != NULL,
@@ -1661,7 +1656,6 @@ void mme_config_display(mme_config_t* config_pP) {
           config_pP->served_tai.tac[j]);
     }
   }
-
   for (j = 0; j < config_pP->mode_map_config.num; j++) {
     OAILOG_INFO(LOG_CONFIG, "- MODE MAP : \n");
     OAILOG_INFO(

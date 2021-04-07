@@ -400,7 +400,7 @@
 #define IMSI_STRING_TO_IMSI64(sTRING, iMSI64_pTr)                              \
   sscanf(sTRING, IMSI_64_FMT, iMSI64_pTr)
 
-/* Convert the IMSI contained by a char string NULL terminated to uint64_t */
+/* Convert the IMEI contained by a char string NULL terminated to uint64_t */
 #define IMEI_STRING_TO_IMEI64(sTRING, iMEI64_pTr)                              \
   sscanf(sTRING, IMEI_64_FMT, iMEI64_pTr)
 
