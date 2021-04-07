@@ -32,6 +32,7 @@ class TraceBuilder:
         self,
         interfaces: List[str],
         max_filesize: int,
+        timeout: int,
         output_filename: str,
         capture_filters: str,
     ) -> List[str]:
@@ -78,6 +79,8 @@ class TraceBuilder:
         # Specify max filesize. tshark will terminate after it is reached.
         if max_filesize != -1:
             command.extend(["-a", "filesize:" + str(max_filesize)])
+
+        command.extend(["-a", "duration:" + str(timeout)])
 
         # Specify output file
         command.extend(["-w", output_filename])

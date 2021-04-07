@@ -23,6 +23,7 @@ from magma.pipelined.app.he import HeaderEnrichmentController
 from magma.pipelined.app.enforcement import EnforcementController
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     HeaderEnrichment
+from lte.protos.pipelined_pb2 import VersionedPolicy
 
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
@@ -489,13 +490,16 @@ class EnforcementTableHeTest(unittest.TestCase):
         ]
         he = HeaderEnrichment(urls=['abc.com'])
         policies = [
-            PolicyRule(id='simple_match', priority=2, flow_list=flow_list1, he=he)
+            VersionedPolicy(
+                rule=PolicyRule(id='simple_match', priority=2, flow_list=flow_list1, he=he),
+                version=1,
+            )
         ]
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_dynamic_rule(policies[0])
+        ).add_policy(policies[0])
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)

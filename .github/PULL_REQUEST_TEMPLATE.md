@@ -23,3 +23,14 @@
     All upgrade instructions for backwards-breaking changes will be aggregated
     in the next release's changelog so this is very important to fill out.
 -->
+
+<!--
+    Final note
+
+    Please take a moment to read through the Magma project's
+    - Contributing conventions: https://docs.magmacore.org/docs/next/contributing/contribute_conventions
+
+    If this is your first time opening a PR, also consider reading
+    - Developer onboarding: https://docs.magmacore.org/docs/next/contributing/contribute_onboarding
+    - Development workflow: https://docs.magmacore.org/docs/next/contributing/contribute_workflow
+-->

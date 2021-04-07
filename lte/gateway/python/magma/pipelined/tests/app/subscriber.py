@@ -55,7 +55,7 @@ class SubscriberContext(abc.ABC):
     """
 
     @abc.abstractmethod
-    def add_dynamic_rule(self, policy_rule):
+    def add_policy(self, policy):
         """
         Adds new dynamic rule to subcriber
         Args:
@@ -104,18 +104,18 @@ class RyuRPCSubscriberContext(SubscriberContext):
 
     def __init__(self, imsi, ip, pipelined_stub, table_id=5):
         self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
-        self._dynamic_rules = []
+        self._policies = []
         self._pipelined_stub = pipelined_stub
 
-    def add_dynamic_rule(self, policy_rule):
-        self._dynamic_rules.append(policy_rule)
+    def add_policy(self, policy):
+        self._policies.append(policy)
         return self
 
     def _activate_subscriber_rules(self):
         try_grpc_call_with_retries(
             lambda: self._pipelined_stub.ActivateFlows(
                 ActivateFlowsRequest(sid=SIDUtils.to_pb(self.cfg.imsi),
-                                     dynamic_rules=self._dynamic_rules))
+                                     policies=self._policies))
         )
 
     def _deactivate_subscriber_rules(self):
@@ -134,13 +134,13 @@ class RyuDirectSubscriberContext(SubscriberContext):
     def __init__(self, imsi, ip, enforcement_controller, table_id=5,
                  enforcement_stats_controller=None, nuke_flows_on_exit=True):
         self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
-        self._dynamic_rules = []
+        self._policies = []
         self._ec = enforcement_controller
         self._esc = enforcement_stats_controller
         self._nuke_flows_on_exit = nuke_flows_on_exit
 
-    def add_dynamic_rule(self, policy_rule):
-        self._dynamic_rules.append(policy_rule)
+    def add_policy(self, policy):
+        self._policies.append(policy)
         return self
 
     def _activate_subscriber_rules(self):
@@ -152,7 +152,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
                 uplink_tunnel=None,
                 ip_addr=ip_addr,
                 apn_ambr=default_ambr_config,
-                dynamic_rules=self._dynamic_rules)
+                policies=self._policies)
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
@@ -160,7 +160,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
                     uplink_tunnel=None,
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
-                    dynamic_rules=self._dynamic_rules)
+                    policies=self._policies)
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):
