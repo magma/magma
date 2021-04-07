@@ -78,6 +78,11 @@ message RatSpecificContext {
   }
 }
 
+message TeidSet {
+  bytes teid = 1;
+  string end_ipv4_addr = 2;
+}
+
 message RatSpecificNotification {
   bytes pdu_session_id = 1;            //One byte
   RequestType request_type = 2;
@@ -764,6 +769,8 @@ message M5GSMSessionContext {
   string sm_pdu_dn_req = 22;               //SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
   M5GSMCause m5gsm_cause = 23;
   QosRules requested_qos_rules = 24; //TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+  TeidSet gnode_endpoint = 25; 
+  bytes procedure_trans_identity = 26;   //One byte TS-24501 9.6
 }
 
 message SetSMSessionContext {

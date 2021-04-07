@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -10,17 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*****************************************************************************
 
-  Source      3gpp_38413.h
-
-  Date        2020/09/07
-
-  Subsystem   NG Application Protocol IEs
-
-  Description Defines NG Application Protocol Messages
-
-*****************************************************************************/
 #pragma once
 
 #include "3gpp_23.003.h"
@@ -33,6 +23,7 @@ typedef enum Type_of_Message_s {
   successful_outcome,
   unsuccessfull_outcome
 } Type_of_Message_t;
+
 // 9.3 Information Element Definitions
 // 9.3.1 Radio Network Layer Related IEs
 // 9.3.1.1 Message Type
@@ -40,6 +31,7 @@ typedef struct Ngap_Message_Type_s {
   uint32_t Procedure_Code;
   Type_of_Message_t Type_of_Message;
 } Ngap_Message_Type_t;
+
 // 9.3.3.15 RAN Paging Priority IE contains the service priority as defined in
 // TS 23.501
 typedef enum Ngap_PagingPriority_s {
@@ -61,7 +53,6 @@ typedef long Ngap_PDUSessionID_t;
 typedef struct Ngap_S_NSSAI_s {
   bstring sST;
   bstring* sD; /* OPTIONAL */
-
 } Ngap_SNSSAI_t;
 
 // 9.3.1.58 UE Aggregate Maximum Bit Rate
@@ -78,20 +69,85 @@ typedef uint32_t ran_ue_ngap_id_t;
 
 typedef struct pdusession_setup_item_s {
   bstring nas_pdu;  // 5GC – UE or UE – 5GC message that is transferred without
-                    // interpretation in the NG-RAN node
+                    // interpretation in the NG-RAN node  /*optional*/
   Ngap_PDUSessionID_t
       Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
                        // PDU Session ID is specified in TS 23.501 [9].
   Ngap_SNSSAI_t Ngap_s_nssai;  // S-NSSAI as defined in TS 23.003 [23].
-  bstring PDU_Session_Resource_Setup_Transfer;  // Containing the PDU Session
-                                                // Resource Setup Request
+  pdu_session_resource_setup_request_transfer_t
+      PDU_Session_Resource_Setup_Request_Transfer;  // Containing the PDU
+                                                    // Session Resource
+                                                    // Setup Request
 } pdusession_setup_item_t;
+
 
 typedef struct Ngap_PDUSession_Resource_Setup_Request_List {
   uint16_t no_of_items;
   pdusession_setup_item_t item[MAX_NO_OF_PDUSESSIONS];
 
 } Ngap_PDUSession_Resource_Setup_Request_List_t;
+
+typedef struct pdusession_setup_response_item_s {
+  Ngap_PDUSessionID_t
+      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
+                       // PDU Session ID is specified in TS 23.501 [9].
+  bstring PDU_Session_Resource_Setup_Response_Transfer;  // Containing the PDU
+                                                         // Session Resource
+                                                         // Setup Request
+} pdusession_setup_response_item_t;
+
+typedef struct Ngap_PDUSession_Resource_Setup_Response_List_s {
+  uint16_t no_of_items;
+  pdusession_setup_response_item_t item[MAX_NO_OF_PDUSESSIONS];
+
+} Ngap_PDUSession_Resource_Setup_Response_List_t;
+
+typedef struct pdusession_resource_failed_To_setup_item_s {
+  Ngap_PDUSessionID_t
+      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
+                       // PDU Session ID is specified in TS 23.501 [9].
+  bstring
+      PDU_Session_Resource_Setup_Unsuccessful_Transfer;  // Containing the PDU
+                                                         // Session Resource
+                                                         // Setup Request
+} pdusession_resource_failed_To_setup_item_t;
+
+typedef struct Ngap_PDUSession_Resource_Failed_To_Setup_List_s {
+  uint16_t no_of_items;
+  pdusession_resource_failed_To_setup_item_t item[MAX_NO_OF_PDUSESSIONS];
+
+} Ngap_PDUSession_Resource_Failed_To_Setup_List_t;
+
+typedef struct pdusession_resource_released_item_t_s {
+  Ngap_PDUSessionID_t
+      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
+                       // PDU Session ID is specified in TS 23.501 [9].
+  bstring PDU_Session_Resource_Release_Response_Transfer;  // Containing the PDU
+                                                           // Session Resource
+                                                           // Setup Request
+} pdusession_resource_released_item_t;
+
+typedef struct Ngap_PDUSession_Resource_Released_List_s {
+  uint16_t no_of_items;
+  pdusession_resource_released_item_t item[MAX_NO_OF_PDUSESSIONS];
+
+} Ngap_PDUSession_Resource_Released_List_t;
+
+typedef struct pdusession_resource_to_released_item_s {
+  Ngap_PDUSessionID_t
+      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
+                       // PDU Session ID is specified in TS 23.501 [9].
+  pdu_session_resource_release_command_transfer
+      PDU_Session_Resource_TO_Release_Command_Transfer;  // Containing the PDU
+                                                         // Session Resource
+                                                         // Setup Request
+} pdusession_resource_to_released_item_t;
+
+typedef struct Ngap_PDUSession_Resource_TO_Release_List_s {
+  uint16_t no_of_items;
+  pdusession_resource_to_released_item_t item[MAX_NO_OF_PDUSESSIONS];
+
+} Ngap_PDUSession_Resource_TO_Release_List_t;
 
 // 9.2 Message Functional Definition and Content
 // 9.2.1 PDU Session Management Messages
@@ -105,10 +161,9 @@ typedef struct PDU_Session_resource_setup_request_s {
   ran_ue_ngap_id_t
       ran_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface within the NG-RAN node
-  Ngap_PagingPriority_ty RAN_Paging_Priority;
+  Ngap_PagingPriority_ty RAN_Paging_Priority; /*optional*/
   bstring nas_pdu;  // 5GC – UE or UE – 5GC message that is transferred without
-                    // interpretation in the NG-RAN node
-  // Ngap_ue_aggregate_maximum_bit_rate_t ue_aggregate_maximum_bit_rate;
+                    // interpretation in the NG-RAN node  /*optional*/
   Ngap_PDUSession_Resource_Setup_Request_List_t pdusesssion_setup_list;
 } PDU_Session_resource_setup_request_t;
 
@@ -129,7 +184,6 @@ typedef struct PDU_Session_resource_setup_response_s {
   Ngap_PDUSessionID_t
       Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
                        // PDU Session ID is specified in TS 23.501 [9].
-  //  PDU_Session_Resource_Setup_Response_Transfer
 } PDU_Session_resource_setup_response_t;
 
 typedef struct ngap_plmn_s {
@@ -190,6 +244,7 @@ typedef struct Ngap_initial_context_setup_request_s {
   unsigned char*
       Security_Key;  // 9.3.1.87 Security Key is used to apply security in the
                      // NG-RAN for different scenarios as defined in TS 33.501
+  bstring nas_pdu;   // optional
 
 } Ngap_initial_context_setup_request_t;
 
@@ -261,3 +316,4 @@ typedef struct Ngap_initial_context_setup_response_s {
       PDU_session_resource_setup_res_trans;
 
 } Ngap_initial_context_setup_response_t;
+
