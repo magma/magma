@@ -672,7 +672,8 @@ void SessionStateEnforcer::prepare_response_to_access(
   char teidar[5];
   memset(teidar, '\0', 5);
   memcpy(&teidar[0], &teid_value, 4);
-  rsp->mutable_upf_endpoint()->set_teid(teidar);
+  rsp->mutable_upf_endpoint()->set_teid(teidar, 4);
+
   rsp->mutable_upf_endpoint()->set_end_ipv4_addr(
       config.rat_specific_context.m5gsm_session_context()
           .upf_endpoint()
