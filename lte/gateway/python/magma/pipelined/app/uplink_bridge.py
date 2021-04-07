@@ -16,8 +16,7 @@ from collections import namedtuple
 
 import netaddr
 import netifaces
-
-from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow import flows
 

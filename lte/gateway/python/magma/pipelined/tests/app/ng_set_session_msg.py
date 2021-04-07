@@ -13,27 +13,27 @@ limitations under the License.
 
 from collections import namedtuple
 
-from magma.subscriberdb.sid import SIDUtils
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
-from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
-from lte.protos.session_manager_pb2 import NodeID
 from lte.protos.pipelined_pb2 import (
-    SessionSet,
-    SetGroupFAR,
-    FwdParam,
-    Action,
-    OuterHeaderCreation,
-    SetGroupPDR,
     PDI,
-    Fsm_state,
-    PdrState,
+    Action,
     ActivateFlowsRequest,
     DeactivateFlowsRequest,
-    RuleModResult,
+    Fsm_state,
+    FwdParam,
+    OuterHeaderCreation,
+    PdrState,
     RequestOriginType,
+    RuleModResult,
+    SessionSet,
+    SetGroupFAR,
+    SetGroupPDR,
 )
-
+from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
+from lte.protos.session_manager_pb2 import NodeID
 from magma.pipelined.ng_manager.session_state_manager_util import FARRuleEntry
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
+from magma.subscriberdb.sid import SIDUtils
+
 QoSEnforceRuleEntry = namedtuple(
                          'QoSEnforceRuleEntry',
                          ['imsi', 'rule_id', 'ipv4_dst', 'allow', 'priority', 'hard_timeout', 'direction'])

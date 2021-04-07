@@ -12,10 +12,12 @@ limitations under the License.
 """
 
 
-from .tc_ops import TcOpsBase
 import logging
-from pyroute2 import IPRoute, NetlinkError
 import pprint
+
+from pyroute2 import IPRoute, NetlinkError
+
+from .tc_ops import TcOpsBase
 
 LOG = logging.getLogger('pipelined.qos.tc_pyroute2')
 

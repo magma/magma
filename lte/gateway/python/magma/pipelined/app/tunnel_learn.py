@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, DIRECTION_REG
+from magma.pipelined.openflow.registers import DIRECTION_REG, Direction
 
 
 class TunnelLearnController(MagmaController):

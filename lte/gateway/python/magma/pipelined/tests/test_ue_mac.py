@@ -16,24 +16,23 @@ import warnings
 from concurrent.futures import Future
 
 from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery
 from magma.pipelined.tests.app.packet_builder import EtherPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
     PipelinedController,
+    TestSetup,
 )
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
-from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.pipelined_test_util import (
+    FlowTest,
+    FlowVerifier,
+    SnapshotVerifier,
+    create_service_manager,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager,
     wait_after_send,
-    FlowVerifier,
-    FlowTest,
-    SnapshotVerifier,
 )
 
 

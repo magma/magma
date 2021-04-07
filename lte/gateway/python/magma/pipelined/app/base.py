@@ -10,24 +10,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from enum import Enum
 import time
-
-from ryu import utils
-from ryu.base import app_manager
-from ryu.controller import dpset
-from ryu.controller import ofp_event
-from ryu.controller.handler import CONFIG_DISPATCHER
-from ryu.controller.handler import MAIN_DISPATCHER
-from ryu.controller.handler import HANDSHAKE_DISPATCHER
-from ryu.controller.handler import set_ev_cls
-from ryu.ofproto import ofproto_v1_4
+from enum import Enum
 
 from lte.protos.pipelined_pb2 import SetupFlowsResult
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.metrics import OPENFLOW_ERROR_MSG
 from magma.pipelined.openflow.exceptions import MagmaOFError
-
+from ryu import utils
+from ryu.base import app_manager
+from ryu.controller import dpset, ofp_event
+from ryu.controller.handler import (
+    CONFIG_DISPATCHER,
+    HANDSHAKE_DISPATCHER,
+    MAIN_DISPATCHER,
+    set_ev_cls,
+)
+from ryu.ofproto import ofproto_v1_4
 
 global_epoch = int(time.time())
 

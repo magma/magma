@@ -10,27 +10,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
 import subprocess
 import unittest
 import warnings
 from concurrent.futures import Future
-import logging
-from ryu.lib import hub
 
-from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
-    PipelinedController,
-)
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
 from magma.pipelined.tests.pipelined_test_util import (
+    assert_bridge_snapshot_match,
+    create_service_manager,
+    get_iface_gw_ipv4,
+    get_iface_ipv4,
+    get_ovsdb_port_tag,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager,
-    assert_bridge_snapshot_match,
-    get_ovsdb_port_tag,
-    get_iface_ipv4,
-    get_iface_gw_ipv4,
 )
+from ryu.lib import hub
 
 
 class UplinkBridgeTest(unittest.TestCase):

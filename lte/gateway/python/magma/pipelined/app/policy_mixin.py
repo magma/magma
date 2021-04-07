@@ -10,24 +10,33 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List
 from abc import ABCMeta, abstractmethod
+from typing import List
 
-from lte.protos.pipelined_pb2 import RuleModResult, ActivateFlowsResult, \
-    ActivateFlowsRequest
-from magma.pipelined.openflow import flows
-from magma.pipelined.openflow.registers import SCRATCH_REGS, RULE_VERSION_REG, \
-    RULE_NUM_REG
-from magma.pipelined.openflow.messages import MsgChannel
-
+from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.pipelined_pb2 import (
+    ActivateFlowsRequest,
+    ActivateFlowsResult,
+    RuleModResult,
+)
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
-from magma.pipelined.policy_converters import get_direction_for_match, \
-    flow_match_to_magma_match, get_flow_ip_dst, ipv4_address_to_str, \
-    FlowMatchError, convert_ipv4_str_to_ip_proto
-from lte.protos.mobilityd_pb2 import IPAddress
-
+from magma.pipelined.openflow import flows
+from magma.pipelined.openflow.messages import MsgChannel
+from magma.pipelined.openflow.registers import (
+    RULE_NUM_REG,
+    RULE_VERSION_REG,
+    SCRATCH_REGS,
+)
+from magma.pipelined.policy_converters import (
+    FlowMatchError,
+    convert_ipv4_str_to_ip_proto,
+    flow_match_to_magma_match,
+    get_direction_for_match,
+    get_flow_ip_dst,
+    ipv4_address_to_str,
+)
 from magma.pipelined.qos.types import QosInfo
 from magma.pipelined.utils import Utils
 

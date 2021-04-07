@@ -15,14 +15,15 @@ from typing import Any, List, Optional
 
 # there's a cyclic dependency in ryu
 import ryu.base.app_manager  # pylint: disable=unused-import
+from magma.pipelined.metrics import DP_SEND_MSG_ERROR
+from magma.pipelined.openflow.exceptions import (
+    MagmaDPDisconnectedError,
+    MagmaOFError,
+)
+from magma.pipelined.policy_converters import MATCH_ATTRIBUTES
 from ryu.controller.controller import Datapath
 from ryu.lib import hub
 from ryu.ofproto.ofproto_parser import MsgBase
-
-from magma.pipelined.openflow.exceptions import MagmaOFError,\
-    MagmaDPDisconnectedError
-from magma.pipelined.metrics import DP_SEND_MSG_ERROR
-from magma.pipelined.policy_converters import MATCH_ATTRIBUTES
 
 logger = logging.getLogger(__name__)
 

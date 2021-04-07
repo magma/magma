@@ -11,13 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .base import MagmaController, ControllerType
-from ryu.ofproto import ether
-from magma.pipelined.openflow import flows
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
-    IMSI_REG, VLAN_TAG_REG
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    IMSI_REG,
+    VLAN_TAG_REG,
+    Direction,
+)
+from ryu.ofproto import ether
 
 
 class VlanLearnController(MagmaController):

@@ -11,9 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+
 from magma.pipelined.openflow import flows
 from ryu import cfg
 from ryu.lib.ovs import bridge
+
 
 class Utils:
     DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
