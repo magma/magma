@@ -160,12 +160,12 @@ s1aptests/test_ipv6_secondary_pdn_with_ded_bearer.py \
 s1aptests/test_ipv4v6_secondary_pdn_with_ded_bearer_multi_ue.py \
 s1aptests/test_outoforder_erab_setup_rsp_dedicated_bearer.py \
 s1aptests/test_secondary_pdn_with_dedicated_bearer_multiple_services_restart.py \
+s1aptests/test_attach_esm_info_timerexpiration_max_retries.py \
 s1aptests/test_attach_service_without_mac.py \
 s1aptests/test_paging_request.py \
 s1aptests/test_multi_enb_paging_request.py \
 s1aptests/test_enb_partial_reset_with_unknown_ue_s1ap_ids.py \
 s1aptests/test_attach_auth_mac_failure.py \
-s1aptests/test_data_flow_after_service_request.py \
 s1aptests/test_attach_esm_information_timerexpiration.py \
 s1aptests/test_attach_inactive_tau_with_combined_tala_update_reattach.py \
 s1aptests/test_attach_active_tau_with_combined_tala_update_reattach.py \
@@ -187,6 +187,8 @@ s1aptests/test_attach_ics_failure_with_mme_restart.py
 #---------------
 # Non-Sanity: MME crash generating test case
 # s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \
+# s1aptests/test_3495_timer_for_default_bearer_with_mme_restart.py \
+# s1aptests/test_3495_timer_for_dedicated_bearer_with_mme_restart.py \
 
 # Non-Sanity: Individually passing tests, failing in set
 # s1aptests/test_paging_with_mme_restart.py \
@@ -201,6 +203,7 @@ s1aptests/test_attach_ics_failure_with_mme_restart.py
 # s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \
 # s1aptests/test_no_auth_response_with_mme_restart_reattach.py \
 # s1aptests/test_no_identity_rsp_with_mme_restart.py \
+# s1aptests/test_data_flow_after_service_request.py \
 
 # Non-Sanity: Failing Test Cases
 # s1aptests/test_agw_offload_idle_active_ue.py \
@@ -209,9 +212,6 @@ s1aptests/test_attach_ics_failure_with_mme_restart.py
 # s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \
 # s1aptests/test_attach_with_multiple_mme_restarts.py \
-
-# Non-Sanity: Stuck test cases
-# s1aptests/test_attach_esm_info_timerexpiration_max_retries.py \
 #---------------
 
 # Enable these tests once the CI job time-out has increased
