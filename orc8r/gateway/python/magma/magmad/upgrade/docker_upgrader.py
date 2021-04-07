@@ -18,8 +18,13 @@ import pathlib
 from magma.common.service import MagmaService
 from magma.configuration.service_configs import load_service_config
 from magma.magmad.upgrade.upgrader import UpgraderFactory
-from magma.magmad.upgrade.upgrader2 import UpgradeIntent, Upgrader2, \
-    VersionInfo, VersionT, run_command
+from magma.magmad.upgrade.upgrader2 import (
+    UpgradeIntent,
+    Upgrader2,
+    VersionInfo,
+    VersionT,
+    run_command,
+)
 
 MAGMA_GITHUB_PATH = "/tmp/magma_upgrade"
 MAGMA_GITHUB_URL = "https://github.com/magma/magma.git"
@@ -173,7 +178,7 @@ async def download_update(
             MAGMA_GITHUB_URL)
     else:
         git_clone_cmd = "git -C {} clone {}".format(MAGMA_GITHUB_PATH,
-            MAGMA_GITHUB_URL)
+                                                    MAGMA_GITHUB_URL)
 
     await run_command(git_clone_cmd, shell=True, check=True)
 
