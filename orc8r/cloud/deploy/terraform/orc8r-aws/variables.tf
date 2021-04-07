@@ -88,7 +88,7 @@ variable "eks_worker_groups" {
   default = [
     {
       name                 = "wg-1"
-      instance_type        = "t3.large"
+      instance_type        = "t3.xxxxlarge"
       asg_desired_capacity = 3
       asg_min_size         = 1
       asg_max_size         = 3
