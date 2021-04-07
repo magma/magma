@@ -32,7 +32,7 @@ from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import (FlowDescription, FlowMatch, PolicyRule,
                                      RedirectInformation)
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
-from magma.common.rpc_utils import grpc_async_wrapper, grpc_wrapper
+from magma.common.rpc_utils import grpc_wrapper
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
