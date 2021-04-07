@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 
 import s1ap_types
-import gpp_types
 import time
 
 from integ_tests.s1aptests import s1ap_wrapper
@@ -31,7 +30,13 @@ class TestEsmInformationMaxRetries(unittest.TestCase):
     def test_esm_information_timerexpiration(self):
         """ Testing of sending Esm Information procedure """
         num_ues = 1
-        num_of_expires = 4
+        # The maximum no. of allowed transmissions of ESM information request
+        # as per 3gpp spec 24.301 is 3. Since MME does not send the PDN
+        # connectivity reject message as of now after maximum number of
+        # T3489 expires, test script does not receive any failure response and
+        # has no provision to handle it as well. Therefore, test case gets
+        # stuck waiting for response, if num_of_expires value is greater than 3
+        num_of_expires = 3
 
         self._s1ap_wrapper.configUEDevice(num_ues)
         print("************************* sending Attach Request for ue-id : 1")
@@ -85,12 +90,16 @@ class TestEsmInformationMaxRetries(unittest.TestCase):
 
         for i in range(num_of_expires):
             # Esm Information Request indication
-            print(
-                "Received Esm Information Request ue-id", sec_mode_complete.ue_Id
-            )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value,
+            )
+            print(
+                "Received Esm Information Request (",
+                i + 1,
+                ") ue-id",
+                sec_mode_complete.ue_Id,
             )
             esm_info_req = response.cast(s1ap_types.ueEsmInformationReq_t)
 
