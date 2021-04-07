@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import time
 import ctypes
+import time
+import unittest
 from builtins import range
 
 import s1ap_types

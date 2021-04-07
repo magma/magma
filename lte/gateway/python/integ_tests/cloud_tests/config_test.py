@@ -14,7 +14,6 @@ import time
 import unittest
 
 import swagger_client
-
 from integ_tests.cloud import cloud_manager, fixtures
 from integ_tests.cloud.cloud_manager import CloudManager
 from integ_tests.gateway import rpc

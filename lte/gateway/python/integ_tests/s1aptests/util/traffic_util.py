@@ -14,21 +14,21 @@ limitations under the License.
 import copy
 import ctypes
 import ipaddress
-import iperf3
 import os
-import pyroute2
-import socket
-import threading
 import shlex
+import socket
 import subprocess
+import threading
 
+import iperf3
+import pyroute2
 import s1ap_types
 from util.traffic_messages import (
-    TrafficTestInstance,
+    TrafficMessage,
     TrafficRequest,
     TrafficRequestType,
     TrafficResponseType,
-    TrafficMessage,
+    TrafficTestInstance,
 )
 
 # Tests shouldn't take longer than a few minutes

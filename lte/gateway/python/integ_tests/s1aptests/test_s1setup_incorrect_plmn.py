@@ -11,8 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import ctypes
+import unittest
+
 import s1ap_types
 from integ_tests.s1aptests.s1ap_utils import S1ApUtil
 

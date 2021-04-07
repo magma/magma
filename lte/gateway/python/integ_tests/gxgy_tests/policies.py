@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
-
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder
 
 MAC_DEST = "5e:cc:cc:b1:49:4b"

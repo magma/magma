@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 
+import ipaddress
+import time
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import time
-import ipaddress
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from lte.protos.policydb_pb2 import FlowMatch
 

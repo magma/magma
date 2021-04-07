@@ -11,18 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import abc
 import ipaddress
 import logging
 import time
 
-import abc
 import grpc
-from orc8r.protos.common_pb2 import Void
-from lte.protos.mobilityd_pb2 import IPAddress, IPBlock, RemoveIPBlockRequest
-from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-
 # from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
 from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
+from lte.protos.mobilityd_pb2 import IPAddress, IPBlock, RemoveIPBlockRequest
+from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
+from orc8r.protos.common_pb2 import Void
 
 
 class MobilityServiceClient(metaclass=abc.ABCMeta):

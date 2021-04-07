@@ -16,9 +16,9 @@ import unittest
 
 import s1ap_types
 import s1ap_wrapper
-from s1ap_utils import GTPBridgeUtils
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 from magma.pipelined.imsi import decode_imsi
+from s1ap_utils import GTPBridgeUtils
 
 
 class TestAttachDetachWithOVS(unittest.TestCase):

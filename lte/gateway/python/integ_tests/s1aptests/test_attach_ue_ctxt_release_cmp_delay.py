@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 
+import time
 import unittest
 
+import gpp_types
 import s1ap_types
 import s1ap_wrapper
-import time
-import gpp_types
 
 
 class TestAttachDelayUeContextRelComplete(unittest.TestCase):

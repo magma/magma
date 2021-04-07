@@ -11,9 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from lte.protos import session_manager_pb2, session_manager_pb2_grpc
-from lte.protos.session_manager_pb2 import ChargingCredit, CreditUnit, \
-    CreditUpdateResponse, GrantedUnits, UsageMonitoringCredit, \
-    UsageMonitoringUpdateResponse
+from lte.protos.session_manager_pb2 import (
+    ChargingCredit,
+    CreditUnit,
+    CreditUpdateResponse,
+    GrantedUnits,
+    UsageMonitoringCredit,
+    UsageMonitoringUpdateResponse,
+)
 from ryu.lib import hub
 
 

@@ -12,13 +12,12 @@ limitations under the License.
 """
 import time
 import unittest
-
 import warnings
-from swagger_client import rest
 
 from integ_tests.cloud.cloud_manager import CloudManager
 from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
 from integ_tests.gateway.rpc import get_gateway_hw_id
+from swagger_client import rest
 
 MAX_GATEWAY_CHECKS = 12
 GATEWAY_POLL_INTERVAL_SEC = 10

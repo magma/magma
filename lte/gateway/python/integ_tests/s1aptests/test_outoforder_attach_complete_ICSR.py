@@ -12,11 +12,11 @@ limitations under the License.
 """
 
 
+import time
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import time
 
 
 class TestOutOfOrderAttachCompleteInitialCtxtSetupRsp(unittest.TestCase):

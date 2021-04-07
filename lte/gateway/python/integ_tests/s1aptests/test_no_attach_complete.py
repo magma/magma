@@ -21,7 +21,6 @@ from python.integ_tests.common.service303_utils import (
     verify_gateway_metrics,
 )
 
-
 # This test case is to test EPC behaviour by not sending "attach complete"
 # in the response to multiple retries of  "attach accept" from EPC.
 # EPC is exepcetd to try sending attach accept 5 times when there is no

@@ -11,13 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import math
+import time
 import unittest
 
 import gpp_types
-import math
 import s1ap_types
-import time
-
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import HaUtil
 

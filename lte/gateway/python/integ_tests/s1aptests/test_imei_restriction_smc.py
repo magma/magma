@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 
+import ctypes
+import time
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import time
-import ctypes
 
 
 class TestImeiRestrictionSmc(unittest.TestCase):

@@ -14,22 +14,27 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import ExitStack
 
 import grpc
+from integ_tests.gxgy_tests.session_manager import MockSessionManager
 from lte.protos import session_manager_pb2_grpc
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
-    stop_ryu_app_thread, wait_after_send
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+)
 from magma.policydb.rule_store import PolicyRuleDict
-
-from .session_manager import MockSessionManager
 
 
 class GxGyTestUtil(object):

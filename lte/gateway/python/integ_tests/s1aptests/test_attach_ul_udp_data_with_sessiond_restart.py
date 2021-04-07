@@ -18,6 +18,7 @@ import s1ap_types
 import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
+
 class TestAttachUlUdpDataWithSessiondRestart(unittest.TestCase):
 
     def setUp(self):

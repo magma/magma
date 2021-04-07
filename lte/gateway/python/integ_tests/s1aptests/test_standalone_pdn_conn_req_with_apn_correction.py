@@ -11,15 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ctypes
 import threading
-import unittest
 import time
+import unittest
 
-from s1ap_utils import MagmadUtil
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-import ctypes
+from s1ap_utils import MagmadUtil
 
 
 class TestStandAlonePdnConnReqWithApnCorrection(unittest.TestCase):

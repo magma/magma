@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import unittest
+
 import s1ap_types
 import s1ap_wrapper
 

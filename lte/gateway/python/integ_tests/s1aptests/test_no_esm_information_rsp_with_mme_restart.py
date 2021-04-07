@@ -11,11 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
 import unittest
 
 import s1ap_types
-import time
-
 from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
@@ -109,7 +108,6 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
                 ue_id,
             )
             # Wait for UE_CTX_REL_IND
-            global response
             response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value

@@ -15,11 +15,13 @@ from typing import Any, Dict, List
 
 import requests
 import swagger_client
+from integ_tests.cloud.fixtures import (
+    DEFAULT_GATEWAY_CELLULAR_CONFIG,
+    DEFAULT_GATEWAY_CONFIG,
+    DEFAULT_NETWORK_CELLULAR_CONFIG,
+    DEFAULT_NETWORK_DNSD_CONFIG,
+)
 from swagger_client.rest import ApiException
-
-from integ_tests.cloud.fixtures import DEFAULT_GATEWAY_CELLULAR_CONFIG, \
-    DEFAULT_GATEWAY_CONFIG, DEFAULT_NETWORK_CELLULAR_CONFIG, \
-    DEFAULT_NETWORK_DNSD_CONFIG
 
 TEST_CLOUD_HOSTNAME = 'controller.magma.test'
 TEST_CLOUD_PORT = '9443'

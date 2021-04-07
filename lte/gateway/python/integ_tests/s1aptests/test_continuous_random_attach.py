@@ -11,13 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import threading
-import random
 import ipaddress
+import random
+import threading
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
+
 
 class TestContinuousRandomAttach(unittest.TestCase):
 

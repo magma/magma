@@ -13,9 +13,11 @@ limitations under the License.
 
 import ctypes
 import ipaddress
+import json
 import logging
 import os
 import shlex
+import subprocess
 import threading
 import time
 from enum import Enum
@@ -23,11 +25,14 @@ from queue import Queue
 from typing import Optional
 
 import grpc
-import subprocess
-import json
-
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
+from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+from lte.protos.abort_session_pb2 import AbortSessionRequest, AbortSessionResult
+from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
+from lte.protos.ha_service_pb2 import EnbOffloadType, StartAgwOffloadRequest
+from lte.protos.ha_service_pb2_grpc import HaServiceStub
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import (
     FlowDescription,
     FlowMatch,
@@ -35,7 +40,6 @@ from lte.protos.policydb_pb2 import (
     PolicyRule,
     QosArp,
 )
-from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.session_manager_pb2 import (
     DynamicRuleInstall,
     PolicyReAuthRequest,
@@ -44,30 +48,16 @@ from lte.protos.session_manager_pb2 import (
     RulesPerSubscriber,
     SessionRules,
 )
-from lte.protos.abort_session_pb2 import (
-    AbortSessionRequest,
-    AbortSessionResult,
-)
-from lte.protos.spgw_service_pb2 import (
-    CreateBearerRequest,
-    DeleteBearerRequest,
-)
-from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
-from magma.subscriberdb.sid import SIDUtils
-from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from lte.protos.session_manager_pb2_grpc import (
     LocalSessionManagerStub,
     SessionProxyResponderStub,
 )
+from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
+from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
+from magma.subscriberdb.sid import SIDUtils
+from orc8r.protos.common_pb2 import Void
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
-from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
-from lte.protos.ha_service_pb2_grpc import HaServiceStub
-from lte.protos.ha_service_pb2 import (
-    StartAgwOffloadRequest,
-    EnbOffloadType,
-)
-from orc8r.protos.common_pb2 import Void
 
 DEFAULT_GRPC_TIMEOUT = 10
 

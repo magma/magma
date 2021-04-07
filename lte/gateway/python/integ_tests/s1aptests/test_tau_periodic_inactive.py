@@ -12,8 +12,8 @@ limitations under the License.
 """
 
 import threading
-import unittest
 import time
+import unittest
 
 import gpp_types
 import s1ap_types

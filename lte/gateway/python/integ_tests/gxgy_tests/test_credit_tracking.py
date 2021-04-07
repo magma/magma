@@ -13,16 +13,21 @@ limitations under the License.
 import unittest
 from unittest.mock import Mock
 
+from integ_tests.gxgy_tests.policies import (
+    create_uplink_rule,
+    get_packets_for_flows,
+)
+from integ_tests.gxgy_tests.session_manager import (
+    create_update_response,
+    get_from_queue,
+    get_standard_update_response,
+)
+from integ_tests.gxgy_tests.utils import GxGyTestUtil as TestUtil
 from lte.protos import session_manager_pb2
 from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.pipelined.tests.app.subscriber import SubContextConfig
 from ryu.lib import hub
-
-from .policies import create_uplink_rule, get_packets_for_flows
-from .session_manager import create_update_response, get_from_queue, \
-    get_standard_update_response
-from .utils import GxGyTestUtil as TestUtil
 
 
 class CreditTrackingTest(unittest.TestCase):

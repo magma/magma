@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
-import ipaddress
 from lte.protos.policydb_pb2 import FlowMatch
 
 

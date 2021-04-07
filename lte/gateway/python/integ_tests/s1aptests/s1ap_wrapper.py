@@ -11,19 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ctypes
 import os
 import time
-import ctypes
 
 import s1ap_types
 from integ_tests.common.magmad_client import MagmadServiceGrpc
-
 # from integ_tests.cloud.cloud_manager import CloudManager
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil
 from integ_tests.common.subscriber_db_client import (
-    SubscriberDbGrpc,
     SubscriberDbCassandra,
+    SubscriberDbGrpc,
 )
 from integ_tests.s1aptests.s1ap_utils import (
     MagmadUtil,

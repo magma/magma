@@ -11,14 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
 import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SpgwUtil, HeaderEnrichmentUtils
-from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil, GTPBridgeUtils
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+from integ_tests.s1aptests.s1ap_utils import (
+    GTPBridgeUtils,
+    HeaderEnrichmentUtils,
+    SessionManagerUtil,
+    SpgwUtil,
+)
 from lte.protos.policydb_pb2 import FlowMatch, HeaderEnrichment
 from ryu.lib.packet.in_proto import IPPROTO_TCP
 

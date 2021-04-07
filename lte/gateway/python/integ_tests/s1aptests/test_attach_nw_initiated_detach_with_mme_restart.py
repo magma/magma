@@ -11,13 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
 import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-from integ_tests.s1aptests.s1ap_utils import MagmadUtil
+from integ_tests.s1aptests.s1ap_utils import MagmadUtil, SpgwUtil
 
 
 class TestAttachNwInitiatedDetachWithMmeRestart(unittest.TestCase):

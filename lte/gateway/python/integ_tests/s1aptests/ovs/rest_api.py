@@ -16,8 +16,7 @@ import logging
 import time
 
 import requests
-
-from integ_tests.s1aptests.ovs import DEV_VM_URL, OF_REST_PORT, MAX_RETRIES
+from integ_tests.s1aptests.ovs import DEV_VM_URL, MAX_RETRIES, OF_REST_PORT
 
 
 def get_flows(datapath, fields, ip=DEV_VM_URL):

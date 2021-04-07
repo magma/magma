@@ -15,13 +15,12 @@ import logging
 import time
 
 import grpc
-import orc8r.protos.metricsd_pb2 as metricsd
 import metrics_pb2 as metrics_proto
+import orc8r.protos.metricsd_pb2 as metricsd
+from integ_tests.gateway.rpc import get_rpc_channel
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2 import ServiceInfo
 from orc8r.protos.service303_pb2_grpc import Service303Stub
-
-from integ_tests.gateway.rpc import get_rpc_channel
 
 
 class MetricNotFoundException(Exception):

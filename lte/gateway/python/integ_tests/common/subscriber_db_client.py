@@ -11,26 +11,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
-import time
-
 import abc
 import base64
-import grpc
+import logging
 import subprocess
+import time
 
-from orc8r.protos.common_pb2 import Void
+import grpc
+from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 from lte.protos.subscriberdb_pb2 import (
     LTESubscription,
     SubscriberData,
-    SubscriberState,
     SubscriberID,
+    SubscriberState,
     SubscriberUpdate,
 )
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
-
-from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 from magma.subscriberdb.sid import SIDUtils
+from orc8r.protos.common_pb2 import Void
 
 KEY = '000102030405060708090A0B0C0D0E0F'
 #OP='11111111111111111111111111111111' -> OPc='24c05f7c2f2b368de10f252f25f6cfc2'

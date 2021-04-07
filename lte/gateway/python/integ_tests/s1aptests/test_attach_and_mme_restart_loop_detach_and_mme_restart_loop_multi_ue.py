@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import random
 import time
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
 from s1ap_utils import MagmadUtil
-import random
 
 
 class TestAttachAndMmeRestartLoopDetachAndMmeRestartLoopMultiUe(unittest.TestCase):

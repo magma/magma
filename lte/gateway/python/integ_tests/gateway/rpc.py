@@ -10,15 +10,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Any, Dict, List
-
 import os
-from orc8r.protos.common_pb2 import Void
-from orc8r.protos.magmad_pb2_grpc import MagmadStub
-from orc8r.protos.mconfig import mconfigs_pb2
+from typing import Any, Dict, List
 
 from magma.common.service_registry import create_grpc_channel
 from magma.configuration.mconfigs import unpack_mconfig_any
+from orc8r.protos.common_pb2 import Void
+from orc8r.protos.magmad_pb2_grpc import MagmadStub
+from orc8r.protos.mconfig import mconfigs_pb2
 
 
 def get_rpc_channel(service):

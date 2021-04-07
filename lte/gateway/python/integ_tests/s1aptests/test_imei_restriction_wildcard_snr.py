@@ -12,11 +12,11 @@ limitations under the License.
 """
 
 
+import ctypes
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ctypes
 
 
 class TestImeiRestrictionWildcardSnr(unittest.TestCase):

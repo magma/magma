@@ -14,18 +14,26 @@ import itertools
 import unittest
 from unittest.mock import Mock
 
-from integ_tests.gxgy_tests.policies import create_uplink_rule, \
-    get_packets_for_flows
+from integ_tests.gxgy_tests.policies import (
+    create_uplink_rule,
+    get_packets_for_flows,
+)
 from integ_tests.gxgy_tests.session_manager import create_update_response
+from integ_tests.gxgy_tests.utils import GxGyTestUtil as TestUtil
 from lte.protos import session_manager_pb2
 from lte.protos.policydb_pb2 import PolicyRule
-from lte.protos.session_manager_pb2 import CreateSessionResponse, \
-    LocalCreateSessionRequest, PolicyReAuthRequest, SessionTerminateResponse
+from lte.protos.session_manager_pb2 import (
+    CreateSessionResponse,
+    LocalCreateSessionRequest,
+    PolicyReAuthRequest,
+    SessionTerminateResponse,
+)
 from lte.protos.subscriberdb_pb2 import SubscriberID
-from magma.pipelined.tests.app.subscriber import SubContextConfig, default_ambr_config
+from magma.pipelined.tests.app.subscriber import (
+    SubContextConfig,
+    default_ambr_config,
+)
 from ryu.lib import hub
-
-from .utils import GxGyTestUtil as TestUtil
 
 
 class GxReauthTest(unittest.TestCase):
