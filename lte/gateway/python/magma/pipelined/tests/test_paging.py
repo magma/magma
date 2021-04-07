@@ -94,6 +94,8 @@ class PagingTest(unittest.TestCase):
                 'ovs_mtr_port_number': 15577,
                 'ovs_internal_sampling_port_number': 15578,
                 'ovs_internal_sampling_fwd_tbl_number': 201,
+                'ovs_internal_conntrack_port_number': 15579,
+                'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': True,
                 'paging_timeout': 30,
             },

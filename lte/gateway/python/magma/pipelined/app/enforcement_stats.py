@@ -718,7 +718,6 @@ def _get_policy_type(match):
     return match[SCRATCH_REGS[1]]
 
 def _get_tunnel_id(flow):
-    if 'tunnel_id' in flow.match:
-        return flow.match['tunnel_id']
-
-    return 0
+    if 'tunnel_id' not in flow.match:
+        return None
+    return flow.match['tunnel_id']

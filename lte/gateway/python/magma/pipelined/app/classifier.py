@@ -61,15 +61,15 @@ class Classifier(MagmaController):
         self.config = self._get_config(kwargs['config'])
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = self._service_manager.get_table_num(INGRESS)
+        self.loop = kwargs['loop']
         self._uplink_port = OFPP_LOCAL
         self._datapath = None
         self._clean_restart = kwargs['config']['clean_restart']
-        if self.config.multi_tunnel_flag:
-            self._ovs_multi_tunnel_init()
         #Get SessionD Channel
         self._sessiond_setinterface = kwargs['rpc_stubs']['sessiond_setinterface']
-        self.loop = kwargs['loop']
-        self.pagingflag = 0
+        if self.config.multi_tunnel_flag:
+            self._ovs_multi_tunnel_init()
+        self.paging_flag = 0
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -198,9 +198,11 @@ class Classifier(MagmaController):
                                              reset_default_register=False,
                                              resubmit_table=self.config.internal_conntrack_fwd_tbl)
 
-    def _send_messsage_interface(self, ue_ip_add:str):
+    def _send_message_interface(self, ue_ip_add:str):
         """
-        Build the message
+        Send the flow statictics request to ryu controller for
+        fetching the flow information from ovs table 14 for
+        corresponding UE address.
         """
         ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_src=ue_ip_add)
@@ -210,16 +212,16 @@ class Classifier(MagmaController):
                 out_port=ofproto.OFPP_ANY,match=ryu_match)
         try:
             messages.send_msg(self._datapath, req)
-            self.pagingflag = 1
+            self.paging_flag = 1
         except MagmaOFError as e:
             self.logger.warning("Couldn't poll datapath stats: %s", e)
-            self.pagingflag = 0
+            self.paging_flag = 0
 
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
     def _flow_info_reply_handler(self, ev):
-        if self.pagingflag:
+        if self.paging_flag:
             flow_info = ev.msg.body
-            self.pagingflag = 0
+            self.paging_flag = 0
             if ev.msg.flags == OFPMPF_REPLY_MORE:
                 # Wait for more multi-part responses thats received for the
                 # single stats request.
@@ -234,7 +236,7 @@ class Classifier(MagmaController):
             ipv4_addr = _get_ipv4(stat)
             tunnel_id = _get_tunnel_id(stat)
 
-        if (sid != None and ipv4_addr !=None and tunnel_id):
+        if (sid is not None and ipv4_addr is not None and tunnel_id is not None):
             paging_message=UPFPagingInfo(subscriber_id = sid, local_f_teid=tunnel_id,
                                          ue_ip_addr=ipv4_addr)
 
@@ -242,9 +244,9 @@ class Classifier(MagmaController):
                             paging_message, self.SESSIOND_RPC_TIMEOUT)
             future.add_done_callback(
                               lambda future: self.loop.call_soon_threadsafe(
-                              self._callback_method, future))
+                              self._paging_msg_sent_callback, future))
 
-    def _callback_method(self, future):
+    def _paging_msg_sent_callback(self, future):
         """
         Callback after sessiond RPC completion
         """
@@ -258,9 +260,6 @@ class Classifier(MagmaController):
 
         parser = self._datapath.ofproto_parser
         priority = Utils.get_of_priority(precedence)
-        # Set minimun priority of GTP flow as 10
-        if priority < flows.DEFAULT_PRIORITY:
-            priority = flows.DEFAULT_PRIORITY
         # Add flow for gtp port
         if enodeb_ip_addr:
             gtp_portno = self._add_gtp_port(enodeb_ip_addr)
@@ -286,7 +285,7 @@ class Classifier(MagmaController):
         actions = []
         if not ue_ip_adr:
             self.logger.error("ue_ip_address is None")
-            return
+            return False
         else:
             # Add flow for LOCAL port
             ip_match_out = get_ue_ip_match_args(ue_ip_adr, Direction.IN)
@@ -394,9 +393,6 @@ class Classifier(MagmaController):
     def _resume_tunnel_flows(self, precedence:int, i_teid:int,
                               ue_ip_adr:IPAddress=None):
         priority = Utils.get_of_priority(precedence)
-        # Set minimun priority of GTP flow as 10
-        if priority < flows.DEFAULT_PRIORITY:
-            priority = flows.DEFAULT_PRIORITY
         # discard uplink Tunnel
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
@@ -408,7 +404,7 @@ class Classifier(MagmaController):
         # discard downlink Tunnel for LOCAL port
         if not ue_ip_adr:
             self.logger.error("ue_ip_address is None")
-            return
+            return False
         else:
             ip_match_out = get_ue_ip_match_args(ue_ip_adr, Direction.IN)
             match = MagmaMatch(eth_type=get_eth_type(ue_ip_adr),
@@ -432,9 +428,6 @@ class Classifier(MagmaController):
                              ue_ip_adr:IPAddress=None):
 
         priority = Utils.get_of_priority(precedence)
-        # Set minimun priority of GTP flow as 10
-        if priority < flows.DEFAULT_PRIORITY:
-            priority = flows.DEFAULT_PRIORITY
         # Forward flow for gtp port
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
@@ -468,7 +461,7 @@ class Classifier(MagmaController):
 
         dst = pkt_ipv4.dst
         # For sending notification to SMF using GRPC
-        self._send_messsage_interface(dst)
+        self._send_message_interface(dst)
         # Add flow for paging with hard time.
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=dst)
 
@@ -480,7 +473,6 @@ class Classifier(MagmaController):
         ofproto = self._datapath.ofproto
         parser = self._datapath.ofproto_parser
         ip_match_out = get_ue_ip_match_args(ue_ip_addr, Direction.IN)
-        # Add flow for paging.
         match = MagmaMatch(eth_type=get_eth_type(ue_ip_addr), **ip_match_out)
 
         # Pass Controller ID value as a ACTION

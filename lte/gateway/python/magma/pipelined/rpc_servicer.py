@@ -794,7 +794,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut.set_result(response)
 
     def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
-        ret = True
 
         ret = self._classifier_app.gtp_handler(pdr_entry.pdr_state,
                                                 pdr_entry.precedence,
