@@ -44,11 +44,11 @@ done
 
 cat << EOF
 --------------------------------------------------------------------------------
-              Upgrading @fbcnms/sequelize-models to ^0.1.4
+              Upgrading @fbcnms/sequelize-models to ^0.1.5
 --------------------------------------------------------------------------------
 EOF
 pushd /usr/src/packages/magmalte
-yarn upgrade @fbcnms/sequelize-models@^0.1.4
+yarn upgrade @fbcnms/sequelize-models@^0.1.5
 yarn
 popd
 cat << EOF

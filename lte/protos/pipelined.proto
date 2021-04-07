@@ -123,11 +123,11 @@ message RuleModResult {
     FAILURE = 2;
   }
   Result result = 2;
+  uint64 version = 3;
 }
 
 message ActivateFlowsResult {
-  repeated RuleModResult dynamic_rule_results = 2;
-
+  repeated RuleModResult policy_results = 2;
   reserved 1;
 }
 

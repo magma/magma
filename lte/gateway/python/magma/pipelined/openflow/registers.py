@@ -23,7 +23,8 @@ TEST_PACKET_REG = 'reg5'
 PASSTHROUGH_REG = 'reg6'
 VLAN_TAG_REG = 'reg7'
 TUN_PORT_REG = 'reg8'
-PROXY_TAG_REG = 'reg9'
+TUN_ID_REG = 'reg9'
+PROXY_TAG_REG = 'reg10'
 
 # Local scratch registers (These registers are reset when submitting to
 # another app):

@@ -1,4 +1,6 @@
-# Magma
+[![Magma](https://raw.githubusercontent.com/magma/magma/master/docs/docusaurus/static/img/magma-logo-purple.svg)](https://www.magmacore.org/)
+
+**Connecting the Next Billion People**
 
 [![magma](https://circleci.com/gh/magma/magma.svg?style=shield)](https://circleci.com/gh/magma/magma)
 
@@ -14,28 +16,39 @@ Magma is an open-source software platform that gives network operators an open, 
 
 The figure below shows the high-level Magma architecture. Magma is 3GPP generation (2G, 3G, 4G or upcoming 5G networks) and access network agnostic (cellular or WiFi). It can flexibly support a radio access network with minimal development and deployment effort.
 
-Magma has three major components:
+Magma has three major components
 
-* **Access Gateway:** The Access Gateway (AGW) provides network services and policy enforcement. In an LTE network, the AGW implements an evolved packet core (EPC), and a combination of an AAA and a PGW. It works with existing, unmodified commercial radio hardware.
+* **Access Gateway.** The Access Gateway (AGW) provides network services and policy enforcement. In an LTE network, the AGW implements an evolved packet core (EPC), and a combination of an AAA and a PGW. It works with existing, unmodified commercial radio hardware.
 
-* **Orchestrator:** Orchestrator is a cloud service that provides a simple and consistent way to configure and monitor the wireless network securely. The Orchestrator can be hosted on a public/private cloud. The metrics acquired through the platform allows you to see the analytics and traffic flows of the wireless users through the Magma web UI.
+* **Orchestrator.** Orchestrator is a cloud service that provides a simple and consistent way to configure and monitor the wireless network securely. The Orchestrator can be hosted on a public/private cloud. The metrics acquired through the platform allows you to see the analytics and traffic flows of the wireless users through the Magma web UI.
 
-* **Federation Gateway:** The Federation Gateway integrates the MNO core network with Magma by using standard 3GPP interfaces to existing MNO components.  It acts as a proxy between the Magma AGW and the operator's network and facilitates core functions, such as authentication, data plans, policy enforcement, and charging to stay uniform between an existing MNO network and the expanded network with Magma.
+* **Federation Gateway.** The Federation Gateway integrates the MNO core network with Magma by using standard 3GPP interfaces to existing MNO components.  It acts as a proxy between the Magma AGW and the operator's network and facilitates core functions, such as authentication, data plans, policy enforcement, and charging to stay uniform between an existing MNO network and the expanded network with Magma.
 
 ![Magma architecture diagram](docs/readmes/assets/magma_overview.png?raw=true "Magma Architecture")
 
-## Usage Docs
-The documentation for developing and using Magma is available at: [https://docs.magmacore.org/docs/basics/introduction.html](https://docs.magmacore.org)
+## Documentation
 
-## Join the Magma Community
+Magma's usage docs, and developer docs, are available at [https://docs.magmacore.org/docs/basics/introduction.html](https://docs.magmacore.org).
 
-- Mailing lists:
-  - Join [magma-dev](https://groups.google.com/forum/#!forum/magma-dev) for technical discussions
-  - Join [magma-announce](https://groups.google.com/forum/#!forum/magma-announce) for announcements
-- Slack:
-  - [magma\_dev](https://join.slack.com/t/magmacore/shared_invite/zt-g76zkofr-g6~jYiS3KRzC9qhAISUC2A) channel
+## Join the Magma community
 
-See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out.
+See the [Community](https://www.magmacore.org/community/) page for entry points.
+
+Start by joining the community on Slack: [magmacore workspace](https://join.slack.com/t/magmacore/shared_invite/zt-g76zkofr-g6~jYiS3KRzC9qhAISUC2A).
+
+## Contributing
+
+Start with the project's contributing conventions
+
+- [Contributing Conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions)
+  for conventions on contributing to the project
+
+If you're new to the project, also consider reading
+
+- [Developer onboarding](https://docs.magmacore.org/docs/next/contributing/contribute_onboarding)
+  for onboarding to the project
+- [Development workflow](https://docs.magmacore.org/docs/next/contributing/contribute_workflow) for how to open a
+  pull request
 
 ## License
 

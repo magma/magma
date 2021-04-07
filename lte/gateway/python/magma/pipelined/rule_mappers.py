@@ -13,7 +13,6 @@ limitations under the License.
 import json
 import threading
 from collections import namedtuple
-from typing import Optional
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.imsi import encode_imsi
@@ -84,25 +83,16 @@ class SessionRuleToVersionMapper:
     multiple threads.
     """
 
-    VERSION_LIMIT = 0xFFFFFFFF  # 32 bit unsigned int limit (inclusive)
-
     def __init__(self):
         self._version_by_imsi_and_rule = {}
         self._lock = threading.Lock()  # write lock
 
-    def setup_redis(self):
-        self._version_by_imsi_and_rule = RuleVersionDict()
-
-    def _update_version_unsafe(self, imsi: str, ip_addr: str, rule_id: str):
+    def _save_version_unsafe(self, imsi: str, ip_addr: str, rule_id: str,
+                             version):
         key = self._get_json_key(encode_imsi(imsi), ip_addr, rule_id)
-        version = self._version_by_imsi_and_rule.get(key)
-        if not version:
-            version = 0
-        self._version_by_imsi_and_rule[key] = \
-            (version % self.VERSION_LIMIT) + 1
+        self._version_by_imsi_and_rule[key] = version
 
-    def update_version(self, imsi: str, ip_addr: IPAddress,
-                       rule_id: Optional[str] = None):
+    def update_all_ue_versions(self, imsi: str, ip_addr: IPAddress):
         """
         Increment the version number for a given subscriber and rule. If the
         rule id is not specified, then all rules for the subscriber will be
@@ -114,13 +104,24 @@ class SessionRuleToVersionMapper:
         else:
             ip_addr_str = ip_addr.address.decode('utf-8').strip()
         with self._lock:
-            if rule_id is None:
-                for k, v in self._version_by_imsi_and_rule.items():
-                    _, imsi, ip_addr_str, _ = SubscriberRuleKey(*json.loads(k))
-                    if imsi == encoded_imsi and ip_addr_str == ip_addr_str:
-                        self._version_by_imsi_and_rule[k] = v + 1
-            else:
-                self._update_version_unsafe(imsi, ip_addr_str, rule_id)
+            for k, v in self._version_by_imsi_and_rule.items():
+                _, imsi, ip_addr_str, _ = SubscriberRuleKey(*json.loads(k))
+                if imsi == encoded_imsi and ip_addr_str == ip_addr_str:
+                    self._version_by_imsi_and_rule[k] = v + 1
+
+    def save_version(self, imsi: str, ip_addr: IPAddress,
+                     rule_id: [str], version: int):
+        """
+        Increment the version number for a given subscriber and rule. If the
+        rule id is not specified, then all rules for the subscriber will be
+        incremented.
+        """
+        if ip_addr is None or ip_addr.address is None:
+            ip_addr_str = ""
+        else:
+            ip_addr_str = ip_addr.address.decode('utf-8').strip()
+        with self._lock:
+            self._save_version_unsafe(imsi, ip_addr_str, rule_id, version)
 
     def get_version(self, imsi: str, ip_addr: IPAddress, rule_id: str) -> int:
         """

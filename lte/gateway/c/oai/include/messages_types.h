@@ -51,5 +51,6 @@
 #include "udp_messages_types.h"
 #include "ha_messages_types.h"
 #include "n11_messages_types.h"
+#include "s8_messages_types.h"
 
 #endif /* FILE_MESSAGES_TYPES_SEEN */

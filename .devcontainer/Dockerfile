@@ -79,7 +79,6 @@ RUN echo "Install general purpose packages" && \
         update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
         update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10 && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
-        update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-11/bin/clang-format 10 && \
         update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
 
 RUN echo "Install 3rd party dependencies" && \

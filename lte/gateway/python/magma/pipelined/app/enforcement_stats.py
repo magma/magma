@@ -143,7 +143,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         if self._clean_restart:
             self.delete_all_flows(datapath)
 
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -161,7 +161,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
 
-        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
 
         try:
             chan = self._msg_hub.send(msgs, self._datapath)
@@ -188,13 +188,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._msg_hub.handle_error(ev)
 
     # pylint: disable=protected-access,unused-argument
-    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule):
+    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule, version):
         """
         Returns flow add messages used for rule matching.
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
-                                                                rule.id)
         self.logger.debug(
             'Installing flow for %s with rule num %s (version %s)', imsi,
             rule_num, version)
@@ -270,7 +268,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
                                         priority=Utils.DROP_PRIORITY)]
 
-    def _install_redirect_flow(self, imsi, ip_addr, rule):
+    def _install_redirect_flow(self, imsi, ip_addr, rule, version):
         pass
 
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
@@ -471,6 +469,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         record.rule_id = rule_id
         record.sid = sid
 
+        rule_version = _get_version(flow_stat)
+        if not rule_version:
+            rule_version = 0
+        record.rule_version = rule_version
+
         if ipv4_addr:
             record.ue_ipv4 = ipv4_addr
         elif ipv6_addr:
@@ -551,7 +554,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     ipv4_addr = IPAddress(version=IPAddress.IPV4,
                                           address=ipv4_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
-                if rule_id == "":
+                if rule_id == "" or rule_version == None:
                     continue
 
                 current_ver = \

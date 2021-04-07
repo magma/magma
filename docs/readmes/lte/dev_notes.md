@@ -1,9 +1,11 @@
 ---
 id: dev_notes
-title: Developer Notes for Access Gateway
+title: Developer Notes
 hide_title: true
 ---
-# Developer Notes for Access Gateway
+
+# Developer Notes
+
 This section provides a guide for anyone testing existing features,
 fixing a bug or adding a new feature to the Access Gateway. All developers are
 highly encouraged to maintain this guide to make sure it is up to date and

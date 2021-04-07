@@ -70,7 +70,9 @@ def main():
 
         if service.config['s6a_over_grpc']:
             logging.info('Running s6a over grpc')
-            s6a_proxy_servicer = S6aProxyRpcServicer(processor)
+            s6a_proxy_servicer = S6aProxyRpcServicer(
+                processor,
+                service.config.get('print_grpc_payload', False))
             s6a_proxy_servicer.add_to_server(service.rpc_server)
         else:
             logging.info('Running s6a over DIAMETER')

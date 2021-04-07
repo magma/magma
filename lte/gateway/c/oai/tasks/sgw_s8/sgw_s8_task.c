@@ -71,6 +71,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           sgw_state, &received_message_p->ittiMsg.s11_create_session_request,
           imsi64);
     } break;
+    case S8_CREATE_SESSION_RSP: {
+      sgw_s8_handle_create_session_response(
+          sgw_state, &received_message_p->ittiMsg.s8_create_session_rsp,
+          imsi64);
+    } break;
 
     default: {
       OAILOG_DEBUG(

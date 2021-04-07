@@ -96,6 +96,11 @@ variable "orc8r_db_name" {
   type        = string
 }
 
+variable "orc8r_db_dialect" {
+  description = "DB dialect for Orchestrator database connection."
+  type        = string
+}
+
 variable "orc8r_db_host" {
   description = "DB hostname for Orchestrator database connection."
   type        = string
@@ -109,21 +114,6 @@ variable "orc8r_db_port" {
 
 variable "orc8r_db_user" {
   description = "DB username for Orchestrator database connection."
-  type        = string
-}
-
-variable "nms_db_name" {
-  description = "DB name for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_host" {
-  description = "DB hostname for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_user" {
-  description = "DB username for NMS database connection."
   type        = string
 }
 
@@ -171,7 +161,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.18"
+  default     = "1.5.19"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -269,11 +259,6 @@ variable "secretsmanager_orc8r_name" {
 
 variable "orc8r_db_pass" {
   description = "Orchestrator DB password."
-  type        = string
-}
-
-variable "nms_db_pass" {
-  description = "NMS DB password."
   type        = string
 }
 

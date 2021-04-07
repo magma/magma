@@ -15,10 +15,13 @@
 
 using namespace std;
 namespace magma5g {
+#define TYPE_VAL_IPV4 1
+#define IPV4_ADDRESS_LENGTH 4
 // PDUAddress IE Class
 class PDUAddressMsg {
  public:
   uint8_t iei;
+  uint8_t length;
   uint8_t type_val : 3;
   uint8_t address_info[12];
 

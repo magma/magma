@@ -239,49 +239,10 @@ variable "orc8r_db_engine_version" {
   default     = "9.6.15"
 }
 
-##############################################################################
-# NMS DB Specs
-##############################################################################
-
-variable "nms_db_identifier" {
-  description = "Identifier for the RDS instance for NMS."
+variable "orc8r_db_dialect" {
+  description = "Database dialect for Orchestrator DB."
   type        = string
-  default     = "nmsdb"
-}
-
-variable "nms_db_storage_gb" {
-  description = "Capacity in GB to allocate for NMS RDS instance."
-  type        = number
-  default     = 16
-}
-
-variable "nms_db_instance_class" {
-  description = "RDS instance type for NMS DB."
-  type        = string
-  default     = "db.m4.large"
-}
-
-variable "nms_db_name" {
-  description = "DB name for NMS RDS instance."
-  type        = string
-  default     = "magma"
-}
-
-variable "nms_db_username" {
-  description = "Username for default DB user for NMS DB."
-  type        = string
-  default     = "magma"
-}
-
-variable "nms_db_password" {
-  description = "Password for the NMS DB. Must be at least 8 characters."
-  type        = string
-}
-
-variable "nms_db_engine_version" {
-  description = "MySQL engine version for NMS DB."
-  type        = string
-  default     = "5.7"
+  default     = "postgres"
 }
 
 ##############################################################################

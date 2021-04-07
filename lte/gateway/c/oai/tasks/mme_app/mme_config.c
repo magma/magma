@@ -958,9 +958,10 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             // Convert to 3gpp PLMN (MCC and MNC) format
             // First 3 chars in astring is MCC next 3 or 2 chars is MNC
             memcpy(fed_mode_mcc, astring, MAX_MCC_LENGTH);
-            memcpy(
-                fed_mode_mnc, &astring[MAX_MCC_LENGTH],
-                (strlen(astring) - MAX_MCC_LENGTH));
+            fed_mode_mcc[MAX_MCC_LENGTH] = '\0';  // null terminated string
+            n                            = strlen(astring) - MAX_MCC_LENGTH;
+            memcpy(fed_mode_mnc, astring + MAX_MCC_LENGTH, n);
+            fed_mode_mnc[n] = '\0';  // null terminated string
             AssertFatal(
                 strlen(fed_mode_mcc) == MAX_MCC_LENGTH,
                 "Bad MCC length (%ld), it must be %u digit ex: 001\n",
