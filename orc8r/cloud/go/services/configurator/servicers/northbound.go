@@ -144,6 +144,20 @@ func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *pr
 	return &loadResult, store.Commit()
 }
 
+func (srv *nbConfiguratorServicer) CountEntities(context context.Context, req *protos.LoadEntitiesRequest) (*storage.EntityCountResult, error) {
+	emptyRes := &storage.EntityCountResult{}
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
+	if err != nil {
+		return emptyRes, nil
+	}
+	countResult, err := store.CountEntities(req.NetworkID, *req.Filter, *req.Criteria)
+	if err != nil {
+		storage.RollbackLogOnError(store)
+		return emptyRes, err
+	}
+	return &countResult, store.Commit()
+}
+
 func (srv *nbConfiguratorServicer) WriteEntities(context context.Context, req *protos.WriteEntitiesRequest) (*protos.WriteEntitiesResponse, error) {
 	emptyRes := &protos.WriteEntitiesResponse{}
 	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})

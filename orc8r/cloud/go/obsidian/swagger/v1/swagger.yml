@@ -10377,9 +10377,16 @@ definitions:
           $ref: '#/definitions/subscriber'
           x-nullable: true
         type: object
+      total_count:
+        description: estimated total number of subscriber entries
+        example: 10
+        format: int64
+        type: integer
+        x-nullable: false
     required:
     - next_page_token
     - subscribers
+    - total_count
     type: object
   ping_request:
     properties:
