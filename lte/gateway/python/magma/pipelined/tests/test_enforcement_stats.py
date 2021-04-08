@@ -106,6 +106,7 @@ class EnforcementStatsTest(unittest.TestCase):
                 'qos': {'enable': False},
                 'clean_restart': True,
                 'redis_enabled': False,
+                'setup_type': 'LTE',
             },
             mconfig=PipelineD(),
             loop=loop_mock,

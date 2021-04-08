@@ -111,6 +111,7 @@ class RestartResilienceTest(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
                 'clean_restart': False,
+                'setup_type': 'LTE',
             },
             mconfig=PipelineD(),
             loop=loop_mock,

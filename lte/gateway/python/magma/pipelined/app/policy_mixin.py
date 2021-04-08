@@ -47,6 +47,7 @@ class PolicyMixin(metaclass=ABCMeta):
         super(PolicyMixin, self).__init__(*args, **kwargs)
         self._datapath = None
         self._rule_mapper = kwargs['rule_id_mapper']
+        self._setup_type = kwargs['config']['setup_type']
         self._session_rule_version_mapper = kwargs[
             'session_rule_version_mapper']
         if 'proxy' in kwargs['app_futures']:
@@ -256,30 +257,45 @@ class PolicyMixin(metaclass=ABCMeta):
         msg_list = []
         for add_flow_req in requests:
             imsi = add_flow_req.sid.id
-            ip_addr = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
             apn_ambr = add_flow_req.apn_ambr
             policies = add_flow_req.policies
             msisdn = add_flow_req.msisdn
             uplink_tunnel = add_flow_req.uplink_tunnel
 
-            msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
-            if msgs:
-                msg_list.extend(msgs)
+            if self._setup_type == 'CWF' or add_flow_req.ip_addr:
+                ipv4 = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
+                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv4)
+                if msgs:
+                    msg_list.extend(msgs)
 
-            for policy in policies:
-                # As the versions are managed by sessiond, save state here
-                self._service_manager.session_rule_version_mapper.save_version(
-                    imsi, ip_addr, policy.rule.id, policy.version)
-                try:
-                    if policy.rule.redirect.support == policy.rule.redirect.ENABLED:
-                        continue
-                    flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version)
-                    msg_list.extend(flow_adds)
-                except FlowMatchError:
-                    self.logger.error("Failed to verify rule_id: %s",
-                                      policy.rule.id)
+                for policy in policies:
+                    msg_list.extend(self._get_policy_flows(imsi, msisdn, uplink_tunnel, ipv4, apn_ambr, policy))
+            if add_flow_req.ipv6_addr:
+                ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
+                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv6)
+                if msgs:
+                    msg_list.extend(msgs)
+
+                for policy in policies:
+                    msg_list.extend(self._get_policy_flows(imsi, msisdn, uplink_tunnel, ipv6, apn_ambr, policy))
+
 
         return {self.tbl_num: msg_list}
+
+    def _get_policy_flows(self, imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr,
+                          policy):
+        msg_list = []
+        # As the versions are managed by sessiond, save state here
+        self._service_manager.session_rule_version_mapper.save_version(
+            imsi, ip_addr, policy.rule.id, policy.version)
+        try:
+            if policy.rule.redirect.support == policy.rule.redirect.ENABLED:
+                return msg_list
+            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version)
+            msg_list.extend(flow_adds)
+        except FlowMatchError:
+            self.logger.error("Failed to verify rule_id: %s", policy.rule.id)
+        return msg_list
 
     def _process_redirection_rules(self, requests):
         for add_flow_req in requests:

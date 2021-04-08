@@ -113,6 +113,7 @@ class EnforcementTableTest(unittest.TestCase):
                 'proxy_port_name': cls.VETH,
                 'enable_nat': True,
                 'ovs_gtp_port_number': 10,
+                'setup_type': 'LTE',
             },
             mconfig=PipelineD(),
             loop=None,
