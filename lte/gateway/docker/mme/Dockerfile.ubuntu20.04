@@ -189,7 +189,6 @@ RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
     make install && \
     ldconfig
 
-
 ## Install Fmt (Folly Dep)
 RUN git clone https://github.com/fmtlib/fmt.git && cd fmt && \
     mkdir _build && cd _build && \
@@ -248,24 +247,20 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
     rm -rf include-what-you-use && \
     rm -rf build_liwyu
 
-# Add Converged MME sources to the container
-# Must be done prior to FreeDiameter build as we need the patches from Magma repo
-COPY ./ $MAGMA_ROOT
-
-##### libfluid is requird to build MME with OVS support
-RUN cd /magma/third_party/build/bin && \
-    ./libfluid_build.sh && \
-    find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
-    rm -rf /tmp/*
+#### libfluid is requird to build MME with OVS support
+COPY third_party /tmp/third_party/
+RUN /tmp/third_party/build/bin/libfluid_build.sh && \
+     find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
+     rm -rf /tmp/*
 
 ##### FreeDiameter
+COPY lte/gateway/c/oai/patches/ /tmp/
 RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
     cd freediameter && \
-    patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch && \
+    patch -p1 < /tmp/0001-opencoord.org.freeDiameter.patch && \
     mkdir build && \
     cd build && \
-    cmake ../ && \
-    awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
+    cmake -DDISABLE_SCTP:BOOL=ON ../ && \
     make -j`nproc` && \
     make install && \
     cd / && \
