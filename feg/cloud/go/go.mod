@@ -12,6 +12,7 @@
 module magma/feg/cloud/go
 
 replace (
+	magma/feg/cloud/go => ../../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
 	magma/gateway => ../../../orc8r/gateway/go
 	magma/lte/cloud/go => ../../../lte/cloud/go
@@ -21,7 +22,6 @@ replace (
 )
 
 require (
-	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.19.5

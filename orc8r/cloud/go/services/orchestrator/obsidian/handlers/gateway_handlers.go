@@ -167,7 +167,6 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to register physical device"), http.StatusInternalServerError)
 		}
-		break
 	case err != nil:
 		return obsidian.HttpError(errors.Wrap(err, "failed to check if physical device is already registered"), http.StatusConflict)
 	default: // err == nil

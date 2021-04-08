@@ -45,7 +45,7 @@ spec:
       bootstrap_address: bootstrapper-orc8r-proxy.magma.svc.cluster.local
       bootstrap_port: 443
     repo:
-      url: https://github.com/facebookincubator/magma.git
+      url: https://github.com/magma/magma.git
       branch: master
     type: cwag
   fullnameOverride: ""

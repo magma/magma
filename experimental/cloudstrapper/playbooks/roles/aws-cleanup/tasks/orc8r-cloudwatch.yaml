@@ -1,0 +1,4 @@
+---
+
+- name: delete orchestrator cloudwatch group
+  command: aws logs delete-log-group --log-group-name "{{ orc8rCloudwatchLog }}"

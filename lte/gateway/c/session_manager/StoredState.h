@@ -24,114 +24,10 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "CreditKey.h"
+#include "Types.h"
 
 namespace magma {
-struct SessionConfig {
-  CommonSessionContext common_context;
-  RatSpecificContext rat_specific_context;
-
-  SessionConfig(){};
-  SessionConfig(const LocalCreateSessionRequest& request);
-  bool operator==(const SessionConfig& config) const;
-  std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
-};
-
-// Session Credit
-struct FinalActionInfo {
-  ChargingCredit_FinalAction final_action;
-  RedirectServer redirect_server;
-  std::vector<std::string> restrict_rules;
-};
-
-enum EventTriggerState {
-  PENDING = 0,  // trigger installed
-  READY   = 1,  // ready to be reported on
-  CLEARED = 2,  // successfully reported
-};
-typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState>
-    EventTriggerStatus;
-
-/**
- * A bucket is a counter used for tracking credit volume across sessiond.
- * These are independently incremented and reset
- * Each value is in terms of a volume unit - either bytes or seconds
- */
-enum Bucket {
-  // USED: the actual used quota by the UE.
-  // USED = REPORTED + REPORTING
-  USED_TX = 0,
-  USED_RX = 1,
-  // ALLOWED: the granted units received
-  ALLOWED_TOTAL = 2,
-  ALLOWED_TX    = 3,
-  ALLOWED_RX    = 4,
-  // REPORTING: quota that is in transit to be acknowledged by OCS/PCRF
-  REPORTING_TX = 5,
-  REPORTING_RX = 6,
-  // REPORTED: quota that has been acknowledged by OCS/PCRF
-  REPORTED_TX = 7,
-  REPORTED_RX = 8,
-  // ALLOWED_FLOOR: saves the previous ALLOWED value after a new grant is
-  // received
-  // last_valid_nonzero_received_grant = ALLOWED - ALLOWED_FLOOR
-  ALLOWED_FLOOR_TOTAL = 9,
-  ALLOWED_FLOOR_TX    = 10,
-  ALLOWED_FLOOR_RX    = 11,
-
-  // delimiter to iterate enum
-  MAX_VALUES = 12,
-};
-
-enum ReAuthState {
-  REAUTH_NOT_NEEDED = 0,
-  REAUTH_REQUIRED   = 1,
-  REAUTH_PROCESSING = 2,
-};
-
-enum ServiceState {
-  SERVICE_ENABLED            = 0,
-  SERVICE_NEEDS_DEACTIVATION = 1,
-  SERVICE_NEEDS_SUSPENSION   = 2,
-  SERVICE_DISABLED           = 3,
-  SERVICE_NEEDS_ACTIVATION   = 4,
-  SERVICE_REDIRECTED         = 5,
-  SERVICE_RESTRICTED         = 6,
-};
-
-enum GrantTrackingType {
-  TRACKING_UNSET  = -1,
-  TOTAL_ONLY      = 0,
-  TX_ONLY         = 1,
-  RX_ONLY         = 2,
-  TX_AND_RX       = 3,
-  ALL_TOTAL_TX_RX = 4,
-};
-
-/**
- * State transitions of a session:
- * SESSION_ACTIVE
- *       |
- *       |
- *       |
- *       V
- * SESSION_RELEASED
- *       |
- *       | (PipelineD enforcement flows get deleted OR forced timeout)
- *       |      -> complete_termination
- *       V
- * SESSION_TERMINATED
- */
-enum SessionFsmState {
-  SESSION_ACTIVE                = 0,
-  SESSION_TERMINATED            = 4,
-  SESSION_TERMINATION_SCHEDULED = 5,
-  SESSION_RELEASED              = 6,
-  CREATING                      = 7,
-  CREATED                       = 8,
-  ACTIVE                        = 9,
-  INACTIVE                      = 10,
-  RELEASE                       = 11,
-};
+using std::experimental::optional;
 
 struct StoredSessionCredit {
   bool reporting;
@@ -159,53 +55,10 @@ struct StoredChargingGrant {
   bool suspended;
 };
 
-struct RuleLifetime {
-  std::time_t activation_time;    // Unix timestamp
-  std::time_t deactivation_time;  // Unix timestamp
-  RuleLifetime() : activation_time(0), deactivation_time(0){};
-  RuleLifetime(const time_t activation, const time_t deactivation)
-      : activation_time(activation), deactivation_time(deactivation){};
-  RuleLifetime(const StaticRuleInstall& rule_install);
-  RuleLifetime(const DynamicRuleInstall& rule_install);
-  bool is_within_lifetime(std::time_t time);
-  bool exceeded_lifetime(std::time_t time);
-  bool before_lifetime(std::time_t time);
-};
-
-// QoS Management
-enum PolicyType {
-  STATIC  = 1,
-  DYNAMIC = 2,
-};
-
-struct PolicyID {
-  PolicyType policy_type;
-  std::string rule_id;
-
-  PolicyID(PolicyType p_type, std::string r_id) {
-    policy_type = p_type;
-    rule_id     = r_id;
-  }
-
-  bool operator==(const PolicyID& id) const {
-    return rule_id == id.rule_id && policy_type == id.policy_type;
-  }
-};
-
-// Custom hash for PolicyID
-struct PolicyIDHash {
-  std::size_t operator()(const PolicyID& id) const {
-    std::size_t h1 = std::hash<std::string>{}(id.rule_id);
-    std::size_t h2 = std::hash<int>{}(int(id.policy_type));
-    return h1 ^ (h2 << 1);
-  }
-};
-
 typedef std::unordered_map<std::string, StoredMonitor> StoredMonitorMap;
 typedef std::unordered_map<
     CreditKey, StoredChargingGrant, decltype(&ccHash), decltype(&ccEqual)>
     StoredChargingCreditMap;
-typedef std::unordered_map<PolicyID, uint32_t, PolicyIDHash> BearerIDByPolicyID;
 
 struct StoredSessionState {
   SessionFsmState fsm_state;
@@ -218,6 +71,8 @@ struct StoredSessionState {
   uint32_t local_teid;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;
+  // will store the response from the core between Create and Activate Session
+  CreateSessionResponse create_session_response;
   // 5G session version handling
   uint32_t current_version;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
@@ -228,11 +83,13 @@ struct StoredSessionState {
   std::set<std::string> scheduled_static_rules;
   std::vector<PolicyRule> scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
+  PolicyStatsMap policy_stats;
   uint32_t request_number;
   EventTriggerStatus pending_event_triggers;
   google::protobuf::Timestamp revalidation_time;
   BearerIDByPolicyID bearer_id_by_policy;
   std::vector<SetGroupPDR> PdrList;
+  PolicyStatsMap policy_version_and_stats;
 };
 
 // Update Criteria
@@ -259,6 +116,9 @@ struct SessionCreditUpdateCriteria {
   uint64_t time_of_last_usage;
 
   bool suspended;
+
+  // Map to maintain per-policy versions. Contains all values, not delta.
+  optional<PolicyStatsMap> policy_version_and_stats;
 };
 
 struct SessionStateUpdateCriteria {
@@ -280,6 +140,9 @@ struct SessionStateUpdateCriteria {
   google::protobuf::Timestamp revalidation_time;
   uint32_t request_number_increment;
   uint64_t updated_pdp_end_time;
+
+  // Map to maintain per-policy versions. Contains all values, not delta.
+  optional<PolicyStatsMap> policy_version_and_stats;
 
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;
@@ -348,4 +211,8 @@ std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map);
 std::string serialize_stored_session(StoredSessionState& stored);
 
 StoredSessionState deserialize_stored_session(std::string& serialized);
+
+std::string serialize_policy_stats_map(PolicyStatsMap stats_map);
+
+PolicyStatsMap deserialize_policy_stats_map(std::string& serialized);
 }  // namespace magma

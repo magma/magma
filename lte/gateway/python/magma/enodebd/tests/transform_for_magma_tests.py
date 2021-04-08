@@ -13,7 +13,8 @@ limitations under the License.
 
 # pylint: disable=protected-access
 from unittest import TestCase
-from magma.enodebd.data_models.transform_for_magma import gps_tr181, bandwidth
+
+from magma.enodebd.data_models.transform_for_magma import bandwidth, gps_tr181
 from magma.enodebd.exceptions import ConfigurationError
 
 

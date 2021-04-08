@@ -13,8 +13,10 @@ limitations under the License.
 import asyncio
 import logging
 
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
+
 from .processor import Processor
 from .protocols.diameter.application import base, s6a
 from .protocols.diameter.server import S6aServer
@@ -30,8 +32,12 @@ def main():
     """ main() for subscriberdb """
     service = MagmaService('subscriberdb', mconfigs_pb2.SubscriberDB())
 
+    # Optionally pipe errors to Sentry
+    sentry_init()
+
     # Initialize a store to keep all subscriber data.
-    store = SqliteStore(service.config['db_path'], loop=service.loop)
+    store = SqliteStore(service.config['db_path'], loop=service.loop,
+                        sid_digits=service.config['sid_last_n'])
 
     # Initialize the processor
     processor = Processor(store,
@@ -41,7 +47,9 @@ def main():
                           service.mconfig.lte_auth_amf)
 
     # Add all servicers to the server
-    subscriberdb_servicer = SubscriberDBRpcServicer(store)
+    subscriberdb_servicer = SubscriberDBRpcServicer(
+        store,
+        service.config.get('print_grpc_payload', False))
     subscriberdb_servicer.add_to_server(service.rpc_server)
 
 
@@ -61,9 +69,13 @@ def main():
             await store.on_ready()
 
         if service.config['s6a_over_grpc']:
-            s6a_proxy_servicer = S6aProxyRpcServicer(processor)
+            logging.info('Running s6a over grpc')
+            s6a_proxy_servicer = S6aProxyRpcServicer(
+                processor,
+                service.config.get('print_grpc_payload', False))
             s6a_proxy_servicer.add_to_server(service.rpc_server)
         else:
+            logging.info('Running s6a over DIAMETER')
             base_manager = base.BaseApplication(
                 service.config['mme_realm'],
                 service.config['mme_host_name'],

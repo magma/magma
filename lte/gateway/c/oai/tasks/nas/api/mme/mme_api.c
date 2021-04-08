@@ -69,7 +69,7 @@
 #define MME_API_BIT_RATE_1024K 0x87
 
 /* Total number of PDN connections (should not exceed MME_API_PDN_MAX) */
-static int _mme_api_pdn_id = 0;
+static int mme_api_pdn_id = 0;
 
 static tmsi_t generate_random_TMSI(void);
 
@@ -267,25 +267,25 @@ int mme_api_get_emm_config(
   }
 
   // hardcoded
-  config->eps_network_feature_support =
+  config->eps_network_feature_support[0] =
       EPS_NETWORK_FEATURE_SUPPORT_CS_LCS_LOCATION_SERVICES_VIA_CS_DOMAIN_NOT_SUPPORTED;
   if (mme_config_p->eps_network_feature_support
           .emergency_bearer_services_in_s1_mode != 0) {
-    config->eps_network_feature_support |=
+    config->eps_network_feature_support[0] |=
         EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE_SUPPORTED;
   }
   if (mme_config_p->eps_network_feature_support
           .ims_voice_over_ps_session_in_s1 != 0) {
-    config->eps_network_feature_support |=
+    config->eps_network_feature_support[0] |=
         EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1_SUPPORTED;
   }
   if (mme_config_p->eps_network_feature_support.location_services_via_epc !=
       0) {
-    config->eps_network_feature_support |=
+    config->eps_network_feature_support[0] |=
         EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC_SUPPORTED;
   }
   if (mme_config_p->eps_network_feature_support.extended_service_request != 0) {
-    config->eps_network_feature_support |=
+    config->eps_network_feature_support[0] |=
         EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST_SUPPORTED;
   }
 
@@ -353,7 +353,7 @@ int mme_api_get_esm_config(mme_api_esm_config_t* config) {
  *  Return:    RETURNok, RETURNerror
  *
  */
-int mme_api_notify_imsi(const mme_ue_s1ap_id_t id, const imsi64_t imsi64) {
+int mme_api_notify_imsi(const mme_ue_s1ap_id_t id, imsi64_t imsi64) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t* ue_mm_context = NULL;
 
@@ -637,7 +637,7 @@ int mme_api_unsubscribe(bstring apn) {
   /*
    * Decrement the total number of PDN connections
    */
-  _mme_api_pdn_id -= 1;
+  mme_api_pdn_id -= 1;
   OAILOG_FUNC_RETURN(LOG_NAS, rc);
 }
 

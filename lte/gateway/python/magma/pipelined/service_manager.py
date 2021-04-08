@@ -227,6 +227,10 @@ class _TableManager:
         return app_name in self._tables_by_app or \
             app_name == InOutController.APP_NAME
 
+    def is_ng_app_enabled(self, app_name: str) -> bool:
+        return app_name in self._tables_by_app or \
+            app_name == NGServiceController.APP_NAME
+
     def allocate_scratch_tables(self, app_name: str, count: int) -> \
             List[int]:
 
@@ -437,6 +441,7 @@ class ServiceManager:
         else:
           ng_flag = magma_service.config.get('5G_feature_set')
           self._5G_flag_enable = ng_flag['enable']
+
         # inout is a mandatory app and it occupies:
         #   table 1(for ingress)
         #   table 10(for middle)
@@ -522,17 +527,14 @@ class ServiceManager:
         """
 
         # Some setups might not use REDIS
-        if (self._magma_service.config['redis_enabled']):
+        if self._magma_service.config['redis_enabled']:
             # Wait for redis as multiple controllers rely on it
             while not redisAvailable(self.rule_id_mapper.redis_cli):
                 logging.warning("Pipelined waiting for redis...")
                 time.sleep(1)
-        else:
-            self.rule_id_mapper._rule_nums_by_rule = {}
-            self.rule_id_mapper._rules_by_rule_num = {}
-            self.session_rule_version_mapper._version_by_imsi_and_rule = {}
-            self.interface_to_prefix_mapper._prefix_by_interface = {}
-            self.tunnel_id_mapper._tunnel_map = {}
+            self.rule_id_mapper.setup_redis()
+            self.interface_to_prefix_mapper.setup_redis()
+            self.tunnel_id_mapper.setup_redis()
 
         manager = AppManager.get_instance()
         manager.load_apps([app.module for app in self._apps])
@@ -608,6 +610,18 @@ class ServiceManager:
             Whether or not the app is enabled
         """
         return self._table_manager.is_app_enabled(app_name)
+
+    def is_ng_app_enabled(self, app_name: str) -> bool:
+        """
+        Args:
+             app_name: Name of the app
+        Returns:
+            Whether or not the app is enabled
+        """
+        if  self._5G_flag_enable == False:
+            return False
+
+        return self._table_manager.is_ng_app_enabled(app_name)
 
     def allocate_scratch_tables(self, app_name: str, count: int) -> List[int]:
         """

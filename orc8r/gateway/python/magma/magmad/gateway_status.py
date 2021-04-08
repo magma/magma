@@ -19,7 +19,7 @@ import platform
 import time
 import netifaces
 from typing import NamedTuple, List, Any, Dict, Optional, Tuple
-from collections import KeysView
+from collections.abc import KeysView
 from magma.common.misc_utils import (
     get_ip_from_if,
     is_interface_up,

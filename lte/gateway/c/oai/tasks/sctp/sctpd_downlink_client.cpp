@@ -107,12 +107,13 @@ using magma::sctpd::SendDlRes;
 // Max sleep backoff delay in microseconds
 constexpr useconds_t max_backoff_usecs = 1000000;  // 1 sec
 
-std::unique_ptr<SctpdDownlinkClient> _client = nullptr;
+std::unique_ptr<SctpdDownlinkClient> client = nullptr;
 
 int init_sctpd_downlink_client(bool force_restart) {
   auto channel =
       grpc::CreateChannel(DOWNSTREAM_SOCK, grpc::InsecureChannelCredentials());
-  _client = std::make_unique<SctpdDownlinkClient>(channel, force_restart);
+  client = std::make_unique<SctpdDownlinkClient>(channel, force_restart);
+  return 0;
 }
 
 // init
@@ -133,7 +134,7 @@ int sctpd_init(sctp_init_t* init) {
 
   for (i = 0; i < init->nb_ipv4_addr; i++) {
     auto ipv4_addr = init->ipv4_address[i];
-    if (inet_ntop(AF_INET, &ipv4_addr, ipv4_str, INET_ADDRSTRLEN) < 0) {
+    if (inet_ntop(AF_INET, &ipv4_addr, ipv4_str, INET_ADDRSTRLEN) == nullptr) {
       Fatal("failed to convert ipv4 addr\n");
       return -1;
     }
@@ -142,17 +143,17 @@ int sctpd_init(sctp_init_t* init) {
 
   for (i = 0; i < init->nb_ipv6_addr; i++) {
     auto ipv6_addr = init->ipv6_address[i];
-    if (inet_ntop(AF_INET6, &ipv6_addr, ipv6_str, INET6_ADDRSTRLEN) < 0) {
+    if (inet_ntop(AF_INET6, &ipv6_addr, ipv6_str, INET6_ADDRSTRLEN) ==
+        nullptr) {
       Fatal("failed to convert ipv6 addr\n");
       return -1;
     }
     req.add_ipv6_addrs(ipv6_str);
   }
-
   req.set_port(init->port);
   req.set_ppid(init->ppid);
 
-  req.set_force_restart(_client->should_force_restart);
+  req.set_force_restart(client->should_force_restart);
 
 #define MAX_SCTPD_INIT_ATTEMPTS 50
   int num_inits      = 0;
@@ -164,7 +165,7 @@ int sctpd_init(sctp_init_t* init) {
     }
     ++num_inits;
     OAILOG_DEBUG(LOG_SCTP, "Sctpd Init attempt %d", num_inits);
-    auto rc      = _client->init(req, &res);
+    auto rc      = client->init(req, &res);
     auto init_ok = res.result() == InitRes::INIT_OK;
     if ((rc == 0) && init_ok) {
       sctpd_init_res = 0;
@@ -181,15 +182,17 @@ int sctpd_init(sctp_init_t* init) {
 }
 
 // sendDl
-int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload) {
+int sctpd_send_dl(
+    uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload) {
   SendDlReq req;
   SendDlRes res;
 
+  req.set_ppid(ppid);
   req.set_assoc_id(assoc_id);
   req.set_stream(stream);
   req.set_payload(bdata(payload), blength(payload));
 
-  auto rc = _client->sendDl(req, &res);
+  auto rc = client->sendDl(req, &res);
 
   if (rc != 0) {
     OAILOG_ERROR(

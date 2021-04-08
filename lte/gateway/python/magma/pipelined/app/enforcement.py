@@ -87,8 +87,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager(datapath, self.loop, self._config)
-        self._qos_mgr.setup()
+        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -152,7 +151,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
 
         return {self.tbl_num: [msg]}
 
-    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -170,8 +169,6 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
-                version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
-                                                                        rule.id)
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
@@ -185,7 +182,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
                 raise err
         return flow_adds
 
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -198,7 +195,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         if rule.redirect.support == rule.redirect.ENABLED:
-            return self._install_redirect_flow(imsi, ip_addr, rule)
+            return self._install_redirect_flow(imsi, ip_addr, rule, version)
 
         if not rule.flow_list:
             self.logger.error('The flow list for imsi %s, rule.id - %s'
@@ -207,7 +204,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
 
         flow_adds = []
         try:
-            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
         except FlowMatchError:
             return RuleModResult.FAILURE
 
@@ -219,18 +216,15 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             return RuleModResult.FAILURE
         return self._wait_for_rule_responses(imsi, ip_addr, rule, chan)
 
-    def _install_redirect_flow(self, imsi, ip_addr, rule):
+    def _install_redirect_flow(self, imsi, ip_addr, rule, version):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        rule_version = self._session_rule_version_mapper.get_version(imsi,
-                                                                     ip_addr,
-                                                                     rule.id)
         priority = Utils.get_of_priority(rule.priority)
         redirect_request = RedirectionManager.RedirectRequest(
             imsi=imsi,
             ip_addr=ip_addr.address.decode('utf-8'),
             rule=rule,
             rule_num=rule_num,
-            rule_version=rule_version,
+            rule_version=version,
             priority=priority)
         try:
             self._redirect_manager.setup_lte_redirect(
@@ -257,6 +251,9 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             num = self._rule_mapper.get_rule_num(rule_id)
         except KeyError:
             self.logger.error('Could not find rule id %s', rule_id)
+            return
+        if num is None:
+            self.logger.error('Rule num is None for rule %s', rule_id)
             return
         cookie, mask = (num, flows.OVS_COOKIE_MATCH_ALL)
 
@@ -321,3 +318,6 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         else:
             for rule_id in rule_ids:
                 self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
+
+    def recover_state(self, _):
+        pass

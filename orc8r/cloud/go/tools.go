@@ -22,6 +22,7 @@ import (
 	_ "github.com/facebookincubator/ent/cmd/entc"
 	_ "github.com/go-swagger/go-swagger/cmd/swagger"
 	_ "github.com/golang/protobuf/protoc-gen-go"
+	_ "github.com/ory/go-acc"
 	_ "github.com/vektra/mockery/cmd/mockery"
-	_ "golang.org/x/lint/golint"
+	_ "github.com/wadey/gocovmerge"
 )

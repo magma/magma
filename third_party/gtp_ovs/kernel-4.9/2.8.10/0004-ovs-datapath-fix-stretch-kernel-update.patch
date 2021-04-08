@@ -1,0 +1,80 @@
+From 3490ec1e597d9a24aa1d61764c9ff1df79b26225 Mon Sep 17 00:00:00 2001
+From: Debian <admin@ip-172-31-7-251.us-west-1.compute.internal>
+Date: Thu, 17 Dec 2020 03:32:01 +0000
+Subject: [PATCH 4/7] ovs: datapath: fix stretch kernel update
+
+---
+ acinclude.m4                                                      | 6 ++++++
+ datapath/linux/compat/include/linux/random.h                      | 3 +++
+ datapath/linux/compat/include/net/netfilter/ipv6/nf_defrag_ipv6.h | 3 ++-
+ 3 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/acinclude.m4 b/acinclude.m4
+index 20a0eee1c..1c1563f8e 100644
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -452,6 +452,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+   OVS_GREP_IFELSE([$KSRC/include/linux/err.h], [PTR_ERR_OR_ZERO])
+ 
+   OVS_GREP_IFELSE([$KSRC/include/linux/etherdevice.h], [eth_hw_addr_random])
++  OVS_GREP_IFELSE([$KSRC/include/linux/prandom.h], [_LINUX_PRANDOM_H])
+   OVS_GREP_IFELSE([$KSRC/include/linux/etherdevice.h], [ether_addr_copy])
+ 
+   OVS_GREP_IFELSE([$KSRC/include/uapi/linux/if_link.h], [IFLA_GENEVE_TOS])
+@@ -606,6 +607,10 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+   OVS_GREP_IFELSE([$KSRC/include/linux/random.h], [prandom_u32])
+   OVS_GREP_IFELSE([$KSRC/include/linux/random.h], [prandom_u32_max])
+ 
++  OVS_GREP_IFELSE([$KSRC/include/linux/prandom.h], [prandom_u32])
++  OVS_GREP_IFELSE([$KSRC/include/linux/prandom.h], [prandom_u32_max])
++
++
+   OVS_GREP_IFELSE([$KSRC/include/net/rtnetlink.h], [get_link_net])
+   OVS_GREP_IFELSE([$KSRC/include/net/rtnetlink.h], [name_assign_type])
+   OVS_GREP_IFELSE([$KSRC/include/net/rtnetlink.h], [rtnl_create_link.*src_net],
+@@ -740,6 +745,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+                   [OVS_GREP_IFELSE([$KSRC/include/net/udp.h], [inet_get_local_port_range(net],
+                                    [OVS_DEFINE([HAVE_UDP_FLOW_SRC_PORT])])])
+   OVS_GREP_IFELSE([$KSRC/include/net/udp.h], [udp_v4_check])
++  OVS_GREP_IFELSE([$KSRC/include/net/ipv6.h], [ip6_frag_init])
+   OVS_GREP_IFELSE([$KSRC/include/net/udp_tunnel.h], [udp_tunnel_gro_complete])
+   OVS_GREP_IFELSE([$KSRC/include/net/udp_tunnel.h], [sk_buff.*udp_tunnel_handle_offloads],
+                   [OVS_DEFINE([HAVE_UDP_TUNNEL_HANDLE_OFFLOAD_RET_SKB])])
+diff --git a/datapath/linux/compat/include/linux/random.h b/datapath/linux/compat/include/linux/random.h
+index 5c088a2d8..2e9288444 100644
+--- a/datapath/linux/compat/include/linux/random.h
++++ b/datapath/linux/compat/include/linux/random.h
+@@ -2,6 +2,9 @@
+ #define __LINUX_RANDOM_WRAPPER_H 1
+ 
+ #include_next <linux/random.h>
++#ifdef HAVE__LINUX_PRANDOM_H
++#include <linux/prandom.h>
++#endif
+ 
+ #ifndef HAVE_PRANDOM_U32
+ #define prandom_u32()		random32()
+diff --git a/datapath/linux/compat/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/datapath/linux/compat/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+index c4c0f79ab..d5ec52a16 100644
+--- a/datapath/linux/compat/include/net/netfilter/ipv6/nf_defrag_ipv6.h
++++ b/datapath/linux/compat/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+@@ -12,7 +12,7 @@
+  * a bug that requires all kernels prior to this fix, i.e. kernel < 4.11.0
+  * to be backported.
+  */
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(4,11,0)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4,11,0) && defined(HAVE_IP6_FRAG_INIT)
+ #define OVS_NF_DEFRAG6_BACKPORT 1
+ int rpl_nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user);
+ #define nf_ct_frag6_gather rpl_nf_ct_frag6_gather
+@@ -31,6 +31,7 @@ void rpl_nf_ct_frag6_cleanup(void);
+ void ovs_netns_frags6_init(struct net *net);
+ void ovs_netns_frags6_exit(struct net *net);
+ #else /* !OVS_NF_DEFRAG6_BACKPORT */
++#include <net/ipv6_frag.h>
+ static inline int __init rpl_nf_ct_frag6_init(void) { return 0; }
+ static inline void rpl_nf_ct_frag6_cleanup(void) { }
+ static inline void ovs_netns_frags6_init(struct net *net) { }
+-- 
+2.11.0
+

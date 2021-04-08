@@ -62,7 +62,7 @@ func listCallTraces(c echo.Context) error {
 		return nerr
 	}
 
-	callTraces, err := configurator.LoadAllEntitiesOfType(
+	callTraces, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, orc8r.CallTraceEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -115,7 +115,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to start call trace"), http.StatusInternalServerError)
 		}
-		if resp.Success == false {
+		if !resp.Success {
 			return obsidian.HttpError(errors.New("failed to start call trace"), http.StatusInternalServerError)
 		}
 
@@ -124,7 +124,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to create call trace"), http.StatusInternalServerError)
 		}
-		return c.JSON(http.StatusCreated, string(cfg.TraceID))
+		return c.JSON(http.StatusCreated, cfg.TraceID)
 	}
 }
 
@@ -158,12 +158,14 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 			return obsidian.HttpError(errors.New("Error: call trace end already triggered earlier"), http.StatusBadRequest)
 		}
 
-		req := &protos.EndTraceRequest{}
+		req := &protos.EndTraceRequest{
+			TraceId: callTraceID,
+		}
 		resp, err := client.EndCallTrace(networkID, callTrace.Config.GatewayID, req)
 		if err != nil {
 			return err
 		}
-		if resp.Success == false {
+		if !resp.Success {
 			return obsidian.HttpError(errors.New("Failed to end call trace"), http.StatusInternalServerError)
 		}
 
@@ -212,7 +214,13 @@ func getDownloadCallTraceHandlerFunc(storage storage.CtracedStorage) echo.Handle
 			return obsidian.HttpError(errors.Wrap(err, "failed to retrieve call trace data"), http.StatusInternalServerError)
 		}
 
-		return c.Blob(http.StatusOK, "application/pcapng", callTrace)
+		res := c.Response()
+		header := res.Header()
+		header.Set(echo.HeaderContentType, "application/pcapng")
+		header.Set(echo.HeaderContentDisposition, "attachment; filename="+fmt.Sprintf("%s.pcapng", callTraceID))
+		res.WriteHeader(http.StatusOK)
+		_, err = res.Write(callTrace)
+		return err
 	}
 }
 
@@ -250,7 +258,11 @@ func getNetworkIDAndCallTraceID(c echo.Context) (string, string, *echo.HTTPError
 
 func buildStartTraceRequest(cfg *models.CallTraceConfig) (*protos.StartTraceRequest, error) {
 	req := &protos.StartTraceRequest{
-		TraceType: protos.StartTraceRequest_ALL,
+		TraceId:        cfg.TraceID,
+		TraceType:      protos.StartTraceRequest_ALL,
+		Timeout:        cfg.Timeout,
+		CaptureFilters: cfg.CaptureFilters,
+		DisplayFilters: cfg.DisplayFilters,
 	}
 	return req, nil
 }

@@ -28,20 +28,16 @@ import (
 	"testing"
 	"time"
 
-	plugin2 "magma/fbinternal/cloud/go/plugin"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/fbinternal/cloud/go/services/testcontroller/statemachines"
 	storage2 "magma/fbinternal/cloud/go/services/testcontroller/storage"
 	tcTestInit "magma/fbinternal/cloud/go/services/testcontroller/test_init"
 	"magma/lte/cloud/go/lte"
-	ltePlugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/serdes"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	cfgTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -795,9 +791,6 @@ func Test_EnodebdE2ETestStateMachine_DynamicStartState(t *testing.T) {
 	mockMagmad.AssertExpectations(t)
 }
 func SetupTests(t *testing.T, dbName string) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	tcTestInit.StartTestServiceWithDB(t, dbName)
 	cfgTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)

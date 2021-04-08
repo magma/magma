@@ -94,6 +94,7 @@ func TestCtracedBlobstoreStorage_GetCallTrace(t *testing.T) {
 	store = cstorage.NewCtracedBlobstore(blobFactMock)
 
 	callTraceRecvd, err := store.GetCallTrace(placeholderNetworkID, ctid)
+	assert.NoError(t, err)
 	assert.Equal(t, ctData, string(callTraceRecvd))
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -144,7 +145,7 @@ func TestCtracedBlobstoreStorage_StoreCallTrace(t *testing.T) {
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("CreateOrUpdate", placeholderNetworkID, []blobstore.Blob{blob}).
+	blobStoreMock.On("CreateOrUpdate", placeholderNetworkID, blobstore.Blobs{blob}).
 		Return(nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = cstorage.NewCtracedBlobstore(blobFactMock)

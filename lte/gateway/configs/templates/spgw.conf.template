@@ -25,8 +25,8 @@ S-GW :
         SGW_IPV4_PORT_FOR_S1U_S12_S4_UP         = 2152;                         # INTEGER, port number, PREFER NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING
 
         # S-GW binded interface for S5 or S8 communication, not implemented, so leave it to none
-        SGW_INTERFACE_NAME_FOR_S5_S8_UP         = "none";                       # STRING, interface name, DO NOT CHANGE (NOT IMPLEMENTED YET)
-        SGW_IPV4_ADDRESS_FOR_S5_S8_UP           = "0.0.0.0/24";                 # STRING, CIDR, DO NOT CHANGE (NOT IMPLEMENTED YET)
+        SGW_INTERFACE_NAME_FOR_S5_S8_UP         = "{{ sgw_s5s8_up_iface_name }}";         # STRING, interface name
+        SGW_IPV4_ADDRESS_FOR_S5_S8_UP           = "{{ sgw_s5s8_up_ip }}";                 # STRING, CIDR
     };
 
     INTERTASK_INTERFACE :

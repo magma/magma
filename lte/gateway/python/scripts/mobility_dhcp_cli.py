@@ -19,12 +19,12 @@ CLI for dhclient
 
 import argparse
 import ipaddress
-from ipaddress import ip_address, ip_network
 import random
 import sys
+from ipaddress import ip_address, ip_network
 
 from magma.mobilityd import mobility_store as store
-from magma.mobilityd.dhcp_desc import DHCPState, DHCPDescriptor
+from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
 from magma.mobilityd.mac import MacAddress
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 

@@ -38,6 +38,7 @@
 #ifndef FILE_COMMON_DEFS_SEEN
 #define FILE_COMMON_DEFS_SEEN
 
+#include <string.h>  // memcpy
 #include <arpa/inet.h>
 //------------------------------------------------------------------------------
 #define STOLEN_REF
@@ -99,21 +100,34 @@ typedef enum {
   TLV_FATAL_ERROR = TLV_VALUE_DOESNT_MATCH
 
 } error_code_e;
+
+/* This enum should match with the ModeMapItem_FederatedMode enum
+ * defined in mconfigs.proto
+ */
+typedef enum {
+  SPGW_SUBSCRIBER  = 0,  // default mode is HSS + spgw_task
+  LOCAL_SUBSCRIBER = 1,  // will use subscriberDb + spgw_task
+  S8_SUBSCRIBER    = 2,  // will use federated HSS + s8_task
+} mode_map;
+
 //------------------------------------------------------------------------------
 #define DECODE_U8(bUFFER, vALUE, sIZE)                                         \
   vALUE = *(uint8_t*) (bUFFER);                                                \
   sIZE += sizeof(uint8_t)
 
 #define DECODE_U16(bUFFER, vALUE, sIZE)                                        \
-  vALUE = ntohs(*(uint16_t*) (bUFFER));                                        \
+  memcpy((unsigned char*) &vALUE, bUFFER, sizeof(uint16_t));                   \
+  vALUE = ntohs(vALUE);                                                        \
   sIZE += sizeof(uint16_t)
 
 #define DECODE_U24(bUFFER, vALUE, sIZE)                                        \
-  vALUE = ntohl(*(uint32_t*) (bUFFER)) >> 8;                                   \
+  memcpy((unsigned char*) &vALUE, bUFFER, sizeof(uint32_t));                   \
+  vALUE = ntohl(vALUE) >> 8;                                                   \
   sIZE += sizeof(uint8_t) + sizeof(uint16_t)
 
 #define DECODE_U32(bUFFER, vALUE, sIZE)                                        \
-  vALUE = ntohl(*(uint32_t*) (bUFFER));                                        \
+  memcpy((unsigned char*) &vALUE, bUFFER, sizeof(uint32_t));                   \
+  vALUE = ntohl(vALUE);                                                        \
   sIZE += sizeof(uint32_t)
 
 #if (BYTE_ORDER == LITTLE_ENDIAN)
@@ -131,16 +145,25 @@ typedef enum {
   size += sizeof(uint8_t)
 
 #define ENCODE_U16(buffer, value, size)                                        \
-  *(uint16_t*) (buffer) = htons(value);                                        \
-  size += sizeof(uint16_t)
+  do {                                                                         \
+    uint16_t n_value = htons(value);                                           \
+    memcpy(buffer, (unsigned char*) &n_value, sizeof(uint16_t));               \
+    size += sizeof(uint16_t);                                                  \
+  } while (0)
 
 #define ENCODE_U24(buffer, value, size)                                        \
-  *(uint32_t*) (buffer) = htonl(value);                                        \
-  size += sizeof(uint8_t) + sizeof(uint16_t)
+  do {                                                                         \
+    uint32_t n_value = htonl(value);                                           \
+    memcpy(buffer, (unsigned char*) &n_value, sizeof(uint32_t));               \
+    size += sizeof(uint8_t) + sizeof(uint16_t);                                \
+  } while (0)
 
 #define ENCODE_U32(buffer, value, size)                                        \
-  *(uint32_t*) (buffer) = htonl(value);                                        \
-  size += sizeof(uint32_t)
+  do {                                                                         \
+    uint32_t n_value = htonl(value);                                           \
+    memcpy(buffer, (unsigned char*) &n_value, sizeof(uint32_t));               \
+    size += sizeof(uint32_t);                                                  \
+  } while (0)
 
 #define IPV4_STR_ADDR_TO_INADDR(AdDr_StR, InAdDr, MeSsAgE)                     \
   do {                                                                         \

@@ -17,14 +17,12 @@ import (
 	"testing"
 
 	"magma/feg/cloud/go/feg"
-	feg_plugin "magma/feg/cloud/go/plugin"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/cloud/go/serdes"
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	feg_test_init "magma/feg/cloud/go/services/feg/test_init"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/storage"
@@ -35,7 +33,6 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &feg_plugin.FegOrchestratorPlugin{}))
 	feg_test_init.StartTestService(t)
 
 	// Empty case: no feg associated to magmad gateway
@@ -83,6 +80,11 @@ func TestBuilder_Build(t *testing.T) {
 			PlmnIds:                 []string{"123456"},
 			RequestFailureThreshold: 0.50,
 			MinimumRequestThreshold: 1,
+		},
+		"s8_proxy": &feg_mconfig.S8Config{
+			LogLevel:     1,
+			LocalAddress: "10.0.0.1",
+			PgwAddress:   "10.0.0.2",
 		},
 		"hss": &feg_mconfig.HSSConfig{
 			Server: &feg_mconfig.DiamServerConfig{
@@ -138,7 +140,7 @@ func TestBuilder_Build(t *testing.T) {
 				},
 				OverwriteApn: "apnGx.magma-fedgw.magma.com",
 				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
-					&feg_mconfig.VirtualApnRule{
+					{
 						ApnFilter:                     ".*",
 						ChargingCharacteristicsFilter: "1*",
 						ApnOverwrite:                  "vApnGx.magma-fedgw.magma.com",
@@ -183,7 +185,7 @@ func TestBuilder_Build(t *testing.T) {
 				InitMethod:   feg_mconfig.GyInitMethod_PER_SESSION,
 				OverwriteApn: "apnGy.magma-fedgw.magma.com",
 				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
-					&feg_mconfig.VirtualApnRule{
+					{
 						ApnFilter:                     ".*",
 						ChargingCharacteristicsFilter: "1*",
 						ApnOverwrite:                  "vApnGy.magma-fedgw.magma.com",
@@ -315,6 +317,10 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		PlmnIds: []string{"123456"},
 	},
+	S8: &models.S8{
+		LocalAddress: "10.0.0.1",
+		PgwAddress:   "10.0.0.2",
+	},
 	Gx: &models.Gx{
 		DisableGx: swag.Bool(true),
 		Server: &models.DiameterClientConfigs{
@@ -339,7 +345,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		OverwriteApn: "apnGx.magma-fedgw.magma.com",
 		VirtualApnRules: []*models.VirtualApnRule{
-			&models.VirtualApnRule{
+			{
 				ApnFilter:                     ".*",
 				ChargingCharacteristicsFilter: "1*",
 				ApnOverwrite:                  "vApnGx.magma-fedgw.magma.com",
@@ -371,7 +377,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		InitMethod:   uint32Ptr(1),
 		OverwriteApn: "apnGy.magma-fedgw.magma.com",
 		VirtualApnRules: []*models.VirtualApnRule{
-			&models.VirtualApnRule{
+			{
 				ApnFilter:                     ".*",
 				ChargingCharacteristicsFilter: "1*",
 				ApnOverwrite:                  "vApnGy.magma-fedgw.magma.com",

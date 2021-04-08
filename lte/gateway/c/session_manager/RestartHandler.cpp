@@ -23,7 +23,7 @@ const uint RestartHandler::max_cleanup_retries_  = 3;
 const uint RestartHandler::rpc_retry_interval_s_ = 5;
 
 RestartHandler::RestartHandler(
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    std::shared_ptr<DirectorydClient> directoryd_client,
     std::shared_ptr<aaa::AsyncAAAClient> aaa_client,
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
     SessionStore& session_store)
@@ -143,7 +143,6 @@ bool RestartHandler::populate_sessions_to_terminate_with_retries() {
 void RestartHandler::terminate_previous_session(
     const std::string& sid, const std::string& session_id) {
   SessionTerminateRequest term_req;
-  term_req.set_sid(sid);  // TODO Deprecate
   term_req.mutable_common_context()->mutable_sid()->set_id(sid);
   term_req.set_session_id(session_id);
   std::promise<bool> termination_res;

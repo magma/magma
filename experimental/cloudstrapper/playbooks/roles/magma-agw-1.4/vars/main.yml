@@ -1,0 +1,27 @@
+---
+magmaVersion: "v1.4"
+magmaRepo: https://github.com/magma/magma.git
+agwUsr: admin
+usrHome: "/home/{{ agwUsr }}"
+magmaHome: "{{ usrHome }}/magma"
+deployPath: "{{ magmaHome }}/lte/gateway/deploy/"
+pkgGateway:
+  - sudo
+  - curl
+  - make
+  - virtualenv
+  - zip
+  - rsync
+  - git
+  - software-properties-common
+  - python3-pip
+  - python-dev
+  - ansible
+  - dnsutils
+REPO_PROTO: http
+REPO_DIST: stretch-stable
+REPO_COMPONENT: main
+PACKAGE_LOCATION: /tmp
+MAGMA_ROOT: "{{ magmaHome }}"
+OUTPUT_DIR: /tmp
+DEPLOY_PATH: "{{ magmaHome }}/lte/gateway/deploy"

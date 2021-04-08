@@ -16,7 +16,6 @@ package test_init
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/device/protos"
@@ -28,7 +27,7 @@ import (
 
 // StartTestService instantiates a service backed by an in-memory storage
 func StartTestService(t *testing.T) {
-	factory := blobstore.NewMemoryBlobStorageFactory()
+	factory := test_utils.NewSQLBlobstore(t, "device_test_service_blobstore")
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, device.ServiceName)
 	server, err := servicers.NewDeviceServicer(factory)
 	assert.NoError(t, err)

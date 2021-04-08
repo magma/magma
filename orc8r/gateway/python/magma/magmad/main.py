@@ -12,11 +12,12 @@ limitations under the License.
 """
 import importlib
 import logging
+import snowflake
 import typing
 
-import snowflake
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.sdwatchdog import SDWatchdog
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
 from magma.configuration.mconfig_managers import MconfigManagerImpl, \
@@ -46,6 +47,9 @@ def main():
     """
     service = MagmaService('magmad', mconfigs_pb2.MagmaD())
 
+    # Optionally pipe errors to Sentry
+    sentry_init()
+
     logging.info('Starting magmad for UUID: %s', snowflake.make_snowflake())
 
     # Create service manager
@@ -73,7 +77,6 @@ def main():
     sync_interval = metrics_config['sync_interval']
     grpc_timeout = metrics_config['grpc_timeout']
     grpc_msg_size = metrics_config.get('max_grpc_msg_size_mb', 4)
-    queue_length = metrics_config['queue_length']
     metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
     metric_scrape_targets = map(lambda x: ScrapeTarget(x['url'], x['name'],
@@ -87,7 +90,6 @@ def main():
         sync_interval=sync_interval,
         grpc_timeout=grpc_timeout,
         grpc_max_msg_size_mb=grpc_msg_size,
-        queue_length=queue_length,
         loop=service.loop,
         post_processing_fn=
         get_metrics_postprocessor_fn(metrics_post_processor_fn),
@@ -114,7 +116,9 @@ def main():
     # Create sync rpc client with a heartbeat of 30 seconds (timeout = 60s)
     sync_rpc_client = None
     if service.config.get('enable_sync_rpc', False):
-        sync_rpc_client = SyncRPCClient(service.loop, 30)
+        sync_rpc_client = SyncRPCClient(
+            service.loop, 30,
+            service.config.get('print_grpc_payload', False))
 
     first_time_bootstrap = True
 
@@ -221,6 +225,7 @@ def main():
         service,
         services, service_manager, get_mconfig_manager(), command_executor,
         service.loop,
+        service.config.get('print_grpc_payload', False)
     )
     magmad_servicer.add_to_server(service.rpc_server)
 

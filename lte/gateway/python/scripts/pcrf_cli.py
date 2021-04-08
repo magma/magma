@@ -14,11 +14,11 @@ limitations under the License.
 """
 
 import argparse
-import grpc
 
+import grpc
+from feg.protos.mock_core_pb2_grpc import MockCoreConfiguratorStub
 from magma.common.rpc_utils import cloud_grpc_wrapper
 from orc8r.protos.common_pb2 import Void
-from feg.protos.mock_core_pb2_grpc import MockCoreConfiguratorStub
 
 
 @cloud_grpc_wrapper

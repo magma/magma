@@ -52,6 +52,7 @@
 #include "sgs_messages_types.h"
 #include "nas_proc.h"
 #include "dynamic_memory_check.h"
+#include "mme_app_timer.h"
 
 /*******************************************************************************
  **                                                                           **
@@ -62,7 +63,7 @@
  ** Inputs:              Pointer to UE context                                **
  **                                                                           **
  ********************************************************************************/
-void _mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
+void mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   additional_updt_t additional_update_type =
       (additional_updt_t) ue_context->emm_context.additional_update_type;
@@ -107,7 +108,7 @@ void _mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
  ** Returns:             Mapped EPS attach type                               **
  **                                                                           **
  ********************************************************************************/
-uint8_t _get_eps_attach_type(uint8_t emm_attach_type) {
+uint8_t get_eps_attach_type(uint8_t emm_attach_type) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint8_t eps_attach_type = 0;
 
@@ -182,7 +183,7 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
  ** Inputs:              Mobile Id **
  ** **
  ***********************************************************************************/
-static int _copy_mobile_identity_helper(
+static int copy_mobile_identity_helper(
     MobileIdentity_t* mobileid_dest, MobileIdentity_t* mobileid_src) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -207,7 +208,7 @@ static int _copy_mobile_identity_helper(
  ** **
  ***********************************************************************************/
 
-static int _build_sgs_status(
+static int build_sgs_status(
     char* imsi, uint8_t imsi_length, lai_t laicsfb, MobileIdentity_t* mobileid,
     uint8_t msg_id) {
   int rc = RETURNok;
@@ -254,7 +255,7 @@ static int _build_sgs_status(
 
   // Encode Mobile Identity
   if (mobileid) {
-    _copy_mobile_identity_helper(
+    copy_mobile_identity_helper(
         &sgsap_status->error_msg.u.sgsap_location_update_acc.mobileid,
         mobileid);
     sgsap_status->error_msg.u.sgsap_location_update_acc.presencemask |=
@@ -277,7 +278,7 @@ static int _build_sgs_status(
  ** Outputs:                                                                   *
  **      Return:    RETURNok, RETURNerror                                      *
  *******************************************************************************/
-static int _handle_cs_domain_loc_updt_acc(
+static int handle_cs_domain_loc_updt_acc(
     itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc,
     struct ue_mm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -388,10 +389,10 @@ int mme_app_handle_nas_cs_domain_location_update_req(
   // Store granted service type based on attach type & addition updt type
   if (msg_type == ATTACH_REQUEST) {
     ue_context_p->attach_type =
-        _get_eps_attach_type(ue_context_p->emm_context.attach_type);
+        get_eps_attach_type(ue_context_p->emm_context.attach_type);
     ue_context_p->sgs_context->ongoing_procedure = COMBINED_ATTACH;
     if (ue_context_p->attach_type == EPS_ATTACH_TYPE_COMBINED_EPS_IMSI) {
-      _mme_app_update_granted_service_for_ue(ue_context_p);
+      mme_app_update_granted_service_for_ue(ue_context_p);
     }
   }
   if ((ue_context_p->network_access_mode == NAM_PACKET_AND_CIRCUIT) &&
@@ -399,7 +400,7 @@ int mme_app_handle_nas_cs_domain_location_update_req(
        MME_APP_TIMER_INACTIVE_ID)) {
     if (msg_type == TAU_REQUEST) {
       ue_context_p->sgs_context->ongoing_procedure = COMBINED_TAU;
-      _mme_app_update_granted_service_for_ue(ue_context_p);
+      mme_app_update_granted_service_for_ue(ue_context_p);
     }
     OAILOG_INFO(
         LOG_MME_APP,
@@ -528,16 +529,13 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   /* Start Ts6-1 timer and change SGS state to LA_UPDATE_REQUESTED */
-  nas_itti_timer_arg_t cb   = {0};
-  cb.nas_timer_callback     = mme_app_handle_ts6_1_timer_expiry;
-  cb.nas_timer_callback_arg = (void*) &(ue_context_p->mme_ue_s1ap_id);
   sgs_fsm_set_status(
       ue_context_p->mme_ue_s1ap_id, ue_context_p->sgs_context,
       SGS_LA_UPDATE_REQUESTED);
-  if (timer_setup(
-          ue_context_p->sgs_context->ts6_1_timer.sec, 0, TASK_MME_APP,
-          INSTANCE_DEFAULT, TIMER_ONE_SHOT, &cb, sizeof(cb),
-          &(ue_context_p->sgs_context->ts6_1_timer.id)) < 0) {
+  if ((ue_context_p->sgs_context->ts6_1_timer.id = mme_app_start_timer(
+           ue_context_p->sgs_context->ts6_1_timer.sec * 1000, TIMER_REPEAT_ONCE,
+           mme_app_handle_ts6_1_timer_expiry, ue_context_p->mme_ue_s1ap_id)) ==
+      -1) {
     OAILOG_ERROR(
         LOG_MME_APP, "Failed to start Ts6-1 timer for UE id  %d \n",
         ue_context_p->mme_ue_s1ap_id);
@@ -712,7 +710,7 @@ int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
           SGSAP_MOBILE_IDENTITY) {
         mobileid = &itti_sgsap_location_update_acc_p->mobileid;
       }
-      if (_build_sgs_status(
+      if (build_sgs_status(
               itti_sgsap_location_update_acc_p->imsi,
               itti_sgsap_location_update_acc_p->imsi_length,
               itti_sgsap_location_update_acc_p->laicsfb, mobileid,
@@ -797,16 +795,10 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
     sgs_context->vlr_reliable = true;
 
     /*Stop Ts6-1 timer*/
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_context_p->sgs_context->ts6_1_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR(LOG_MME_APP, "Failed to stop Ts6_1 timer \n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->sgs_context->ts6_1_timer.id);
+
     sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    if ((_handle_cs_domain_loc_updt_acc(
+    if ((handle_cs_domain_loc_updt_acc(
             itti_sgsap_location_update_acc_p, ue_context_p)) == RETURNerror) {
       OAILOG_DEBUG(
           LOG_MME_APP,
@@ -842,7 +834,7 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
         mobileid = &itti_sgsap_location_update_acc_p->mobileid;
       }
       // Send SGS-STATUS message to SGS task
-      if (_build_sgs_status(
+      if (build_sgs_status(
               itti_sgsap_location_update_acc_p->imsi,
               itti_sgsap_location_update_acc_p->imsi_length,
               itti_sgsap_location_update_acc_p->laicsfb, mobileid,
@@ -912,15 +904,8 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
   // Change SGS state to NULL
   sgs_context->sgs_state = SGS_NULL;
   // Stop Ts6-1 timer
-
   if (sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(sgs_context->ts6_1_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR(LOG_MME_APP, "Failed to stop Ts6_1 timer \n");
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->sgs_context->ts6_1_timer.id);
     sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
@@ -943,9 +928,14 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              ue_mm_context_s **
  ** **
  ***********************************************************************************/
-void mme_app_handle_ts6_1_timer_expiry(void* args, imsi64_t* imsi64) {
+int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
+    OAILOG_WARNING(
+        LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs ts6_1 timer");
   if (ue_context_p == NULL) {
@@ -953,7 +943,7 @@ void mme_app_handle_ts6_1_timer_expiry(void* args, imsi64_t* imsi64) {
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
@@ -961,9 +951,9 @@ void mme_app_handle_ts6_1_timer_expiry(void* args, imsi64_t* imsi64) {
         "Ts6-1  Timer expired, but sgs context is NULL for "
         "ue-id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  *imsi64                                   = ue_context_p->emm_context._imsi64;
+
   ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->sgs_state      = SGS_NULL;
 
@@ -971,7 +961,7 @@ void mme_app_handle_ts6_1_timer_expiry(void* args, imsi64_t* imsi64) {
   nas_proc_cs_domain_location_updt_fail(
       SGS_MSC_NOT_REACHABLE, NULL, mme_ue_s1ap_id);
 
-  OAILOG_FUNC_OUT(LOG_MME_APP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /**********************************************************************************

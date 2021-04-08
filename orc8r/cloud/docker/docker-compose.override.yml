@@ -17,9 +17,10 @@ services:
     build:
       context: /tmp/magma_orc8r_build
       dockerfile: $PWD/controller/Dockerfile
-      target: base
+      target: src
     depends_on:
       - postgres_test
+    working_dir: /src/magma/orc8r/cloud
     entrypoint: /bin/bash -lc
     command: ["echo Hello World!"]
 

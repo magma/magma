@@ -41,13 +41,12 @@ int decode_bstring(
     *bstr = blk2bstr(buffer, pdulen);
     return pdulen;
   } else {
-    *bstr = NULL;
     return TLV_BUFFER_TOO_SHORT;
   }
 }
 
 //------------------------------------------------------------------------------
-bstring dump_bstring_xml(const bstring const bstr) {
+bstring dump_bstring_xml(const bstring bstr) {
   if (bstr) {
     int i;
 

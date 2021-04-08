@@ -14,6 +14,7 @@ limitations under the License.
 # pylint: disable=protected-access
 
 import asyncio
+import tempfile
 import unittest
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
@@ -31,8 +32,12 @@ class OnReadyMixinTests(unittest.TestCase):
     def setUp(self):
         cache_size = 3
         self.loop = asyncio.new_event_loop()
-        sqlite = SqliteStore("file::memory:", loop=self.loop)
+        self._tmpfile = tempfile.TemporaryDirectory()
+        sqlite = SqliteStore(self._tmpfile.name +'/', loop=self.loop)
         self._store = CachedStore(sqlite, cache_size, self.loop)
+
+    def tearDown(self):
+        self._tmpfile.cleanup()
 
     def _add_subscriber(self, sid):
         sub = SubscriberData(sid=SIDUtils.to_pb(sid))

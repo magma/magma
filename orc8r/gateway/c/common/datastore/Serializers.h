@@ -12,8 +12,14 @@
  */
 #pragma once
 
-#include <functional>
-#include <google/protobuf/message.h>
+#include <stdint.h>    // for uint64_t
+#include <functional>  // for function
+#include <string>      // for string
+namespace google {
+namespace protobuf {
+class Message;
+}
+}  // namespace google
 
 using google::protobuf::Message;
 namespace magma {
@@ -28,7 +34,6 @@ get_proto_serializer();
 /**
  * Deserialize a string into a protobuf message
  */
-std::function<bool(const std::string&, Message&)>
-get_proto_deserializer();
+std::function<bool(const std::string&, Message&)> get_proto_deserializer();
 
-}
+}  // namespace magma

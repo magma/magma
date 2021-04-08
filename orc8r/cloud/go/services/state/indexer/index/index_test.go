@@ -18,8 +18,6 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -52,8 +50,6 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 	var (
 		someErr = errors.New("some_error")
 	)
-
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)

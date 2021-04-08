@@ -14,9 +14,11 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
@@ -43,6 +45,8 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -52,12 +56,13 @@ import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {
   GenericCommandControls,
   PingCommandControls,
+  TroubleshootingControl,
 } from '../../components/GatewayCommandFields';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {withStyles} from '@material-ui/core/styles';
@@ -82,6 +87,10 @@ const useStyles = makeStyles(theme => ({
   paper: {
     textAlign: 'center',
     padding: theme.spacing(10),
+  },
+  tabBar: {
+    backgroundColor: colors.primary.brightGray,
+    color: colors.primary.white,
   },
 }));
 
@@ -124,13 +133,44 @@ function GatewayCommandDialog(props: CommandProps) {
   );
 }
 
+const AGGREGATION_TITLE = 'Aggregation';
+
+function TroubleshootingDialog(props: CommandProps) {
+  const [tabPos, setTabPos] = useState(false);
+  const classes = useStyles();
+
+  return (
+    <Dialog
+      fullWidth={true}
+      maxWidth="md"
+      open={props.open}
+      onClose={props.onClose}
+      scroll="body">
+      <DialogTitle onClose={props.onClose} label={'Troubleshoot Gateway'} />
+      <Tabs
+        value={tabPos}
+        onChange={(_, v) => setTabPos(v)}
+        indicatorColor="primary"
+        className={classes.tabBar}>
+        <Tab key={AGGREGATION_TITLE} label={AGGREGATION_TITLE} />
+      </Tabs>
+      <DialogContent>
+        <TroubleshootingControl gatewayID={props.gatewayID} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function GatewayMenuInternal(props: WithAlert) {
   const classes = useStyles();
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [open, setOpen] = React.useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [gatewayCommandOpen, setGatewayCommandOpen] = useState(false);
+  const [troubleshootingDialogOpen, setTroubleshootingDialogOpen] = useState(
+    false,
+  );
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const handleClick = event => {
@@ -170,8 +210,13 @@ function GatewayMenuInternal(props: WithAlert) {
     <div>
       <GatewayCommandDialog
         gatewayID={gatewayId}
-        open={open}
-        onClose={() => setOpen(false)}
+        open={gatewayCommandOpen}
+        onClose={() => setGatewayCommandOpen(false)}
+      />
+      <TroubleshootingDialog
+        gatewayID={gatewayId}
+        open={troubleshootingDialogOpen}
+        onClose={() => setTroubleshootingDialogOpen(false)}
       />
       <Button
         onClick={handleClick}
@@ -204,8 +249,11 @@ function GatewayMenuInternal(props: WithAlert) {
           }>
           <Text variant="subtitle2">Restart Services</Text>
         </MenuItem>
-        <MenuItem onClick={() => setOpen(true)}>
+        <MenuItem onClick={() => setGatewayCommandOpen(true)}>
           <Text variant="subtitle2">Command</Text>
+        </MenuItem>
+        <MenuItem onClick={() => setTroubleshootingDialogOpen(true)}>
+          <Text variant="subtitle2">Troubleshoot</Text>
         </MenuItem>
       </StyledMenu>
     </div>
@@ -213,6 +261,10 @@ function GatewayMenuInternal(props: WithAlert) {
 }
 const GatewayMenu = withAlert(GatewayMenuInternal);
 
+export type GatewayDetailType = {
+  gwInfo: lte_gateway,
+  refresh: boolean,
+};
 export function GatewayDetail() {
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -291,8 +343,20 @@ function GatewayOverview() {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const ctx = useContext(GatewayContext);
-  const gwInfo = ctx.state[gatewayId];
+  const gwCtx = useContext(GatewayContext);
+  const gwInfo = gwCtx.state[gatewayId];
+  const [refresh, setRefresh] = useState(true);
+  const [refreshEnodebs, setRefreshEnodebs] = useState(false);
+  const [refreshSubscribers, setRefreshSubscribers] = useState(false);
+
+  const filter = (refresh: boolean, setRefresh) => {
+    return (
+      <AutorefreshCheckbox
+        autorefreshEnabled={refresh}
+        onToggle={() => setRefresh(current => !current)}
+      />
+    );
+  };
 
   return (
     <div className={classes.dashboardRoot}>
@@ -316,19 +380,31 @@ function GatewayOverview() {
         <Grid item xs={12} md={6}>
           <Grid container spacing={4} direction="column">
             <Grid item>
-              <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <GatewayDetailStatus gwInfo={gwInfo} />
+              <CardTitleRow
+                icon={GraphicEqIcon}
+                label="Status"
+                filter={() => filter(refresh, setRefresh)}
+              />
+              <GatewayDetailStatus refresh={refresh} />
             </Grid>
             <Grid item>
               <CardTitleRow
                 icon={SettingsInputAntennaIcon}
                 label="Connected eNodeBs"
+                filter={() => filter(refreshEnodebs, setRefreshEnodebs)}
               />
-              <GatewayDetailEnodebs gwInfo={gwInfo} />
+              <GatewayDetailEnodebs gwInfo={gwInfo} refresh={refreshEnodebs} />
             </Grid>
             <Grid item>
-              <CardTitleRow icon={PeopleIcon} label="Subscribers" />
-              <GatewayDetailSubscribers gwInfo={gwInfo} />
+              <CardTitleRow
+                icon={PeopleIcon}
+                label="Subscribers"
+                filter={() => filter(refreshSubscribers, setRefreshSubscribers)}
+              />
+              <GatewayDetailSubscribers
+                gwInfo={gwInfo}
+                refresh={refreshSubscribers}
+              />
             </Grid>
           </Grid>
         </Grid>

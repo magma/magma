@@ -9,7 +9,7 @@ import (
 	strfmt "github.com/go-openapi/strfmt"
 )
 
-// FegNetworkID feg network id
+// FegNetworkID Name of the federated network serving this LTE network. Blank for non federated
 // swagger:model feg_network_id
 type FegNetworkID string
 

@@ -54,6 +54,9 @@ type GatewayFederationConfigs struct {
 	// Required: true
 	S6a *S6a `json:"s6a"`
 
+	// s8
+	S8 *S8 `json:"s8,omitempty"`
+
 	// served network ids
 	// Required: true
 	ServedNetworkIds ServedNetworkIds `json:"served_network_ids"`
@@ -107,6 +110,10 @@ func (m *GatewayFederationConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateS6a(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateS8(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -298,6 +305,24 @@ func (m *GatewayFederationConfigs) validateS6a(formats strfmt.Registry) error {
 		if err := m.S6a.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("s6a")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayFederationConfigs) validateS8(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.S8) { // not required
+		return nil
+	}
+
+	if m.S8 != nil {
+		if err := m.S8.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("s8")
 			}
 			return err
 		}

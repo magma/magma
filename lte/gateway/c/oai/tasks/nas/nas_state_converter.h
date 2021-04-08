@@ -370,6 +370,14 @@ class NasStateConverter : StateConverter {
   static void proto_to_nw_detach_data(
       const oai::NwDetachData& detach_timer_arg_proto,
       nw_detach_data_t** detach_timer_arg);
+
+  static void new_attach_info_to_proto(
+      const new_attach_info_t* state_new_attach_info,
+      oai::NewAttachInfo* proto_new_attach_info);
+
+  static void proto_to_new_attach_info(
+      const oai::NewAttachInfo& proto_new_attach_info,
+      new_attach_info_t* state_new_attach_info);
 };
 
 }  // namespace lte

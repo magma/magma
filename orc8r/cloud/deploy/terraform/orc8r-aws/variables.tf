@@ -56,6 +56,12 @@ variable "cluster_name" {
   default     = "orc8r"
 }
 
+variable "cluster_version" {
+  description = "Kubernetes version for the EKS cluster."
+  type        = string
+  default     = "1.17"
+}
+
 variable "eks_worker_group_key" {
   description = "If specified, the worker nodes for EKS will use this EC2 keypair."
   type        = string
@@ -82,7 +88,7 @@ variable "eks_worker_groups" {
   default = [
     {
       name                 = "wg-1"
-      instance_type        = "t3.xlarge"
+      instance_type        = "t3.large"
       asg_desired_capacity = 3
       asg_min_size         = 1
       asg_max_size         = 3
@@ -233,49 +239,10 @@ variable "orc8r_db_engine_version" {
   default     = "9.6.15"
 }
 
-##############################################################################
-# NMS DB Specs
-##############################################################################
-
-variable "nms_db_identifier" {
-  description = "Identifier for the RDS instance for NMS."
+variable "orc8r_db_dialect" {
+  description = "Database dialect for Orchestrator DB."
   type        = string
-  default     = "nmsdb"
-}
-
-variable "nms_db_storage_gb" {
-  description = "Capacity in GB to allocate for NMS RDS instance."
-  type        = number
-  default     = 16
-}
-
-variable "nms_db_instance_class" {
-  description = "RDS instance type for NMS DB."
-  type        = string
-  default     = "db.m4.large"
-}
-
-variable "nms_db_name" {
-  description = "DB name for NMS RDS instance."
-  type        = string
-  default     = "magma"
-}
-
-variable "nms_db_username" {
-  description = "Username for default DB user for NMS DB."
-  type        = string
-  default     = "magma"
-}
-
-variable "nms_db_password" {
-  description = "Password for the NMS DB. Must be at least 8 characters."
-  type        = string
-}
-
-variable "nms_db_engine_version" {
-  description = "MySQL engine version for NMS DB."
-  type        = string
-  default     = "5.7"
+  default     = "postgres"
 }
 
 ##############################################################################

@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -71,6 +72,10 @@ type ConfiguratorStorage interface {
 	// LoadEntities returns a set of entities corresponding to the provided
 	// load criteria. Any entities which aren't found are excluded from the
 	// returned value.
+
+	// Loads can be paginated by specifying a page size and token in the entity
+	// load criteria. To exhaustively read all pages, clients must continue
+	// querying until an empty page token is received in the load result.
 	LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error)
 
 	// CreateEntity creates a new entity. The created entity is returned
@@ -98,7 +103,7 @@ type ConfiguratorStorage interface {
 func RollbackLogOnError(store ConfiguratorStorage) {
 	err := store.Rollback()
 	if err != nil {
-		glog.Errorf("error while rolling back tx: %s", err)
+		glog.Errorf("Error while rolling back tx: %+v", errors.WithStack(err))
 	}
 }
 
@@ -107,7 +112,7 @@ func RollbackLogOnError(store ConfiguratorStorage) {
 func CommitLogOnError(store ConfiguratorStorage) {
 	err := store.Commit()
 	if err != nil {
-		glog.Errorf("error while committing tx: %s", err)
+		glog.Errorf("Error while committing tx: %+v", errors.WithStack(err))
 	}
 }
 

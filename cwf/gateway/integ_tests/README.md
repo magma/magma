@@ -83,7 +83,7 @@ Before committing, please make sure you run the commands below to test and forma
   * If you touch anything in `magma/.../cloud/go`, please run the
   orc8r precommit.
     * `cd magma/orc8r/cloud/go/docker`
-    * `./build.py -m`
+    * `./build.py --mount`
     * `make precommit`
 
 Additionally, if you write any new tests, please summarize what the test does

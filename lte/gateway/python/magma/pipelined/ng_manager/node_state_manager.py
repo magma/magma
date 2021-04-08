@@ -65,17 +65,19 @@ class NodeStateManager:
         return self.TEID_RANGE_INDICATION, self.TEID_RANGE_VALUE
 
     def _get_config(self, config_dict: Dict) -> NamedTuple:
-        def get_enodeb_if_ip(iface):
-            enode_if_ip = netifaces.ifaddresses(iface)
+        def get_enodeb_if_ip(ng_params):
+            if ng_params and ng_params.get('downlink_ip_address', None):
+                return ng_params['downlink_ip_address']
+            enode_if_ip = netifaces.ifaddresses(config_dict['enodeb_iface'])
             return enode_if_ip[netifaces.AF_INET][0]['addr']
 
         def get_node_identifier(ng_params):
-            if ng_params and ng_params['node_identifier']:
+            if ng_params and ng_params.get('node_identifier', None):
                 return ng_params['node_identifier']
-            return get_enodeb_if_ip(config_dict['enodeb_iface'])
+            return get_enodeb_if_ip(ng_params)
 
         return self.LocalNodeConfig(
-            downlink_ip=get_enodeb_if_ip(config_dict['enodeb_iface']),
+            downlink_ip=get_enodeb_if_ip(config_dict['5G_feature_set']),
             node_identifier=get_node_identifier(config_dict['5G_feature_set'])
         )
 

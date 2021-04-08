@@ -86,26 +86,27 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 	alertmanagerURL := configMap.MustGetString(metricsd.AlertmanagerApiURL)
 
 	// V1
+	httpClient := http.DefaultClient
 	ret = append(ret,
-		obsidian.Handler{Path: promH.AlertConfigV1URL, Methods: obsidian.POST, HandlerFunc: promH.GetConfigurePrometheusAlertHandler(prometheusConfigServiceURL)},
-		obsidian.Handler{Path: promH.AlertConfigV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertRuleHandler(prometheusConfigServiceURL)},
-		obsidian.Handler{Path: promH.AlertConfigV1URL, Methods: obsidian.DELETE, HandlerFunc: promH.GetDeleteAlertRuleHandler(prometheusConfigServiceURL)},
-		obsidian.Handler{Path: promH.AlertUpdateV1URL, Methods: obsidian.PUT, HandlerFunc: promH.GetUpdateAlertRuleHandler(prometheusConfigServiceURL)},
-		obsidian.Handler{Path: promH.AlertBulkUpdateV1URL, Methods: obsidian.PUT, HandlerFunc: promH.GetBulkUpdateAlertHandler(prometheusConfigServiceURL)},
+		obsidian.Handler{Path: promH.AlertConfigV1URL, Methods: obsidian.POST, HandlerFunc: promH.GetConfigurePrometheusAlertHandler(prometheusConfigServiceURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertConfigV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertRuleHandler(prometheusConfigServiceURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertConfigV1URL, Methods: obsidian.DELETE, HandlerFunc: promH.GetDeleteAlertRuleHandler(prometheusConfigServiceURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertUpdateV1URL, Methods: obsidian.PUT, HandlerFunc: promH.GetUpdateAlertRuleHandler(prometheusConfigServiceURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertBulkUpdateV1URL, Methods: obsidian.PUT, HandlerFunc: promH.GetBulkUpdateAlertHandler(prometheusConfigServiceURL, httpClient)},
 
-		obsidian.Handler{Path: promH.FiringAlertV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetViewFiringAlertHandler(alertmanagerURL)},
-		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL, Methods: obsidian.POST, HandlerFunc: promH.GetConfigureAlertReceiverHandler(alertmanagerConfigServiceURL)},
-		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertReceiverHandler(alertmanagerConfigServiceURL)},
-		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL, Methods: obsidian.DELETE, HandlerFunc: promH.GetDeleteAlertReceiverHandler(alertmanagerConfigServiceURL)},
-		obsidian.Handler{Path: promH.AlertReceiverUpdateV1URL, Methods: obsidian.PUT, HandlerFunc: promH.GetUpdateAlertReceiverHandler(alertmanagerConfigServiceURL)},
+		obsidian.Handler{Path: promH.FiringAlertV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetViewFiringAlertHandler(alertmanagerURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL, Methods: obsidian.POST, HandlerFunc: promH.GetConfigureAlertReceiverHandler(alertmanagerConfigServiceURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertReceiverHandler(alertmanagerConfigServiceURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL, Methods: obsidian.DELETE, HandlerFunc: promH.GetDeleteAlertReceiverHandler(alertmanagerConfigServiceURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertReceiverUpdateV1URL, Methods: obsidian.PUT, HandlerFunc: promH.GetUpdateAlertReceiverHandler(alertmanagerConfigServiceURL, httpClient)},
 
-		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertRouteHandler(alertmanagerConfigServiceURL)},
-		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.POST, HandlerFunc: promH.GetUpdateAlertRouteHandler(alertmanagerConfigServiceURL)},
+		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertRouteHandler(alertmanagerConfigServiceURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.POST, HandlerFunc: promH.GetUpdateAlertRouteHandler(alertmanagerConfigServiceURL, httpClient)},
 
 		// Alert Silencers
-		obsidian.Handler{Path: promH.AlertSilencerV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetGetSilencersHandler(alertmanagerURL)},
-		obsidian.Handler{Path: promH.AlertSilencerV1URL, Methods: obsidian.POST, HandlerFunc: promH.GetPostSilencerHandler(alertmanagerURL)},
-		obsidian.Handler{Path: promH.AlertSilencerV1URL, Methods: obsidian.DELETE, HandlerFunc: promH.GetDeleteSilencerHandler(alertmanagerURL)},
+		obsidian.Handler{Path: promH.AlertSilencerV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetGetSilencersHandler(alertmanagerURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertSilencerV1URL, Methods: obsidian.POST, HandlerFunc: promH.GetPostSilencerHandler(alertmanagerURL, httpClient)},
+		obsidian.Handler{Path: promH.AlertSilencerV1URL, Methods: obsidian.DELETE, HandlerFunc: promH.GetDeleteSilencerHandler(alertmanagerURL, httpClient)},
 
 		obsidian.Handler{Path: MetricsV1Root + "/push", Methods: obsidian.POST, HandlerFunc: pushHandler},
 	)
@@ -125,7 +126,7 @@ func pushHandler(c echo.Context) error {
 		return nerr
 	}
 
-	pushedMetrics := make([]*protos.PushedMetric, 0, 0)
+	var pushedMetrics []*protos.PushedMetric
 	err := json.NewDecoder(c.Request().Body).Decode(&pushedMetrics)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)

@@ -33,15 +33,15 @@ func TestUserThresholdEnforcement(t *testing.T) {
 	analyticsConfig := calculations.AnalyticsConfig{
 		MinUserThreshold: 100,
 		Metrics: map[string]calculations.MetricConfig{
-			"test_user_network_threshold_metric": calculations.MetricConfig{
+			"test_user_network_threshold_metric": {
 				EnforceMinUserThreshold: true,
 				Export:                  true,
 			},
-			"test_user_gateway_threshold_metric": calculations.MetricConfig{
+			"test_user_gateway_threshold_metric": {
 				EnforceMinUserThreshold: true,
 				Export:                  true,
 			},
-			"test_user_deployment_threshold_metric": calculations.MetricConfig{
+			"test_user_deployment_threshold_metric": {
 				EnforceMinUserThreshold: true,
 				Export:                  true,
 			},
@@ -51,7 +51,7 @@ func TestUserThresholdEnforcement(t *testing.T) {
 	userStateMgr := mockUserStateManager{
 		totalUsers: 100,
 		usersNetworkTable: map[string]*mockNetworkState{
-			"mpk_network": &mockNetworkState{
+			"mpk_network": {
 				usersGatewayTable: map[string]int{
 					"mpk_gateway_1": 10,
 					"mpk_gateway_2": 5,
@@ -110,7 +110,7 @@ func TestExportEnforcement(t *testing.T) {
 	analyticsConfig := calculations.AnalyticsConfig{
 		MinUserThreshold: 100,
 		Metrics: map[string]calculations.MetricConfig{
-			metricName: calculations.MetricConfig{
+			metricName: {
 				Export: false,
 			},
 		},
@@ -140,7 +140,7 @@ func TestRegisterEnforcement(t *testing.T) {
 	analyticsConfig := calculations.AnalyticsConfig{
 		MinUserThreshold: 100,
 		Metrics: map[string]calculations.MetricConfig{
-			metricName: calculations.MetricConfig{
+			metricName: {
 				Register: false,
 				Export:   true,
 			},

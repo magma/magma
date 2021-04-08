@@ -59,6 +59,9 @@ func createCSR(validTime time.Duration, cn string, id *protos.Identity) (*protos
 		},
 	}
 	csrDER, err := x509.CreateCertificateRequest(rand.Reader, &template, priv)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create x509 CSR: %+v", err)
+	}
 	csr := &protos.CSR{
 		Id:        id,
 		ValidTime: ptypes.DurationProto(validTime),
@@ -70,11 +73,17 @@ func createCSR(validTime time.Duration, cn string, id *protos.Identity) (*protos
 
 func CreateSignedCertAndPrivKey(validTime time.Duration) (*x509.Certificate, interface{}, error) {
 	priv, err := key.GenerateKey("", 2048)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to generate key: %+v", err)
+	}
 	notBefore := time.Now().UTC()
 	notAfter := notBefore.Add(validTime)
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to get randint: %+v", err)
+	}
 
 	ski := make([]byte, 32)
 	rand.Read(ski)

@@ -53,7 +53,7 @@ const (
 )
 
 func TestRadius(t *testing.T) {
-	server, _, err := setupTest()
+	server, _, err := setupTest(t)
 	assert.NoError(t, err)
 
 	p, err := radius.Parse([]byte(RadiusAccessChallengeEapAkaIdentityRequestPacket), []byte(Secret))
@@ -73,7 +73,7 @@ func TestRadius(t *testing.T) {
 }
 
 func TestUserNotFound(t *testing.T) {
-	server, _, err := setupTest()
+	server, _, err := setupTest(t)
 	assert.NoError(t, err)
 
 	p, err := radius.Parse([]byte(RadiusAccessChallengeEapAkaIdentityRequestPacket), []byte(Secret))
@@ -84,7 +84,7 @@ func TestUserNotFound(t *testing.T) {
 }
 
 func TestMissingEapPacket(t *testing.T) {
-	server, _, err := setupTest()
+	server, _, err := setupTest(t)
 	assert.NoError(t, err)
 
 	p := radius.New(radius.CodeAccessChallenge, []byte(Secret))
@@ -94,7 +94,7 @@ func TestMissingEapPacket(t *testing.T) {
 }
 
 func TestEapToRadius(t *testing.T) {
-	server, _, err := setupTest()
+	server, _, err := setupTest(t)
 	assert.NoError(t, err)
 	eapMessage := []byte(EapIdentityResponsePacket)
 	expectedIdentifier := uint8(1)

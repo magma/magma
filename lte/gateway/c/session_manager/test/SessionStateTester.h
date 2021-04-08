@@ -35,13 +35,9 @@ class SessionStateTest : public ::testing::Test {
     rule_store    = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
         "imsi", "session", test_sstate_cfg, *rule_store, tgpp_ctx,
-        pdp_start_time);
+        pdp_start_time, CreateSessionResponse{});
     update_criteria = get_default_update_criteria();
   }
-  enum RuleType {
-    STATIC  = 0,
-    DYNAMIC = 1,
-  };
 
   void insert_static_rule_into_store(
       uint32_t rating_group, const std::string& m_key,
@@ -51,9 +47,9 @@ class SessionStateTest : public ::testing::Test {
     rule_store->insert_rule(rule);
   }
 
-  void insert_rule(
+  uint32_t insert_rule(
       uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, RuleType rule_type,
+      const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);
@@ -63,17 +59,19 @@ class SessionStateTest : public ::testing::Test {
         // insert into list of existing rules
         rule_store->insert_rule(rule);
         // mark the rule as active in session
-        session_state->activate_static_rule(rule_id, lifetime, update_criteria);
-        break;
+        return session_state->activate_static_rule(
+            rule_id, lifetime, update_criteria);
       case DYNAMIC:
-        session_state->insert_dynamic_rule(rule, lifetime, update_criteria);
+        return session_state->insert_dynamic_rule(
+            rule, lifetime, update_criteria);
         break;
     }
+    return 0;
   }
 
   void schedule_rule(
       uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, RuleType rule_type,
+      const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);
@@ -108,7 +106,7 @@ class SessionStateTest : public ::testing::Test {
     }
   }
 
-  void insert_gy_redirection_rule(const std::string& rule_id) {
+  uint32_t insert_gy_redirection_rule(const std::string& rule_id) {
     PolicyRule redirect_rule;
     redirect_rule.set_id(rule_id);
     redirect_rule.set_priority(999);
@@ -126,7 +124,7 @@ class SessionStateTest : public ::testing::Test {
         redirect_server.redirect_server_address());
 
     RuleLifetime lifetime{};
-    session_state->insert_gy_dynamic_rule(
+    return session_state->insert_gy_rule(
         redirect_rule, lifetime, update_criteria);
   }
 
@@ -163,9 +161,9 @@ class SessionStateTest : public ::testing::Test {
     session_state->receive_monitor(monitor_resp, update_criteria);
   }
 
-  void activate_rule(
+  uint32_t activate_rule(
       uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, RuleType rule_type,
+      const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);
@@ -173,12 +171,17 @@ class SessionStateTest : public ::testing::Test {
     switch (rule_type) {
       case STATIC:
         rule_store->insert_rule(rule);
-        session_state->activate_static_rule(rule_id, lifetime, update_criteria);
+        return session_state->activate_static_rule(
+            rule_id, lifetime, update_criteria);
         break;
       case DYNAMIC:
-        session_state->insert_dynamic_rule(rule, lifetime, update_criteria);
+        return session_state->insert_dynamic_rule(
+            rule, lifetime, update_criteria);
+        break;
+      default:
         break;
     }
+    return 0;
   }
 
  protected:

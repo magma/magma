@@ -6,7 +6,6 @@ magma-gen-meta:
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
     - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
-    - 'lte/cloud/go/services/lte/obsidian/models/swagger.v1.yml'
     - 'lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml'
     - 'feg/cloud/go/services/feg/obsidian/models/swagger.v1.yml'
   temp-gen-filename: cwf-swagger.yml
@@ -524,7 +523,7 @@ paths:
         - Carrier Wifi Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: '#/parameters/subscriber_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/subscriber_id'
       responses:
         '200':
           description: The directory record of a subscriber
@@ -847,13 +846,6 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
 parameters:
-  subscriber_id:
-    description: Subscriber ID
-    in: path
-    name: subscriber_id
-    required: true
-    type: string
-
   ha_pair_id:
     description: HA Gateway Pair ID
     in: path

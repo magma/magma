@@ -15,6 +15,7 @@ package test_utils
 
 import (
 	"crypto/x509"
+	"sync"
 	"testing"
 	"time"
 
@@ -27,18 +28,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	once sync.Once
+)
+
 // StartMockGwAccessControl starts certifier & adds a Gw Identities for
 // Gateways with hwGwIds.
 // Returns a list of corresponding Certificate Serial Numbers.
 func StartMockGwAccessControl(t *testing.T, hwGwIds []string) []string {
-	// Start services
-	test_init.StartTestService(t)
+	// TODO(hcgatewood): the first-best solution here is having callers start
+	// the certifier test service on their own. But this sync.Once solution is a
+	// serviceable stopgap for now.
+	once.Do(func() { test_init.StartTestService(t) })
 
 	result := make([]string, len(hwGwIds))
 	for idx, hwId := range hwGwIds {
 		// create and sign Gw's csr
 		csrMsg, err := csr.CreateCSRForId(
-			time.Duration(time.Hour*4), identity.NewGateway(hwId, "", ""))
+			time.Hour*4, identity.NewGateway(hwId, "", ""))
 		assert.NoError(t, err)
 
 		certMsg, err := certifier.SignCSR(csrMsg)

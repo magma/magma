@@ -40,11 +40,9 @@ SessionReporter::get_terminate_logging_cb(
   return [request](grpc::Status status, SessionTerminateResponse response) {
     if (!status.ok()) {
       MLOG(MERROR) << "Failed to terminate session in controller for "
-                      "subscriber "
                    << request.session_id() << ": " << status.error_message();
     } else {
       MLOG(MDEBUG) << "Termination successful in controller for "
-                      "subscriber "
                    << request.session_id();
     }
   };

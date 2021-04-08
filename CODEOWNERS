@@ -3,13 +3,17 @@ circleci/ @tmdzk @mattymo @119Vik
 
 ci-scripts/ @rdefosse @tmdzk @mattymo @119Vik
 
-*/cloud/ @mpgermano @hcgatewood
+*/cloud/ @magma/orc8r-approvers
+.golangci.yml @magma/orc8r-approvers
 
-orc8r/ @mpgermano @hcgatewood @emakeev
+orc8r/ @magma/orc8r-approvers
 orc8r/tools/packer/ @tmdzk @mattymo @119Vik
 orc8r/cloud/deploy/bare-metal/ @tmdzk @mattymo @119Vik
+orc8r/cloud/deploy/bare-metal-ansible/ @mattymo @119Vik
 
-feg/ @themarwhal @mpgermano @uri200 @emakeev
+orc8r/gateway/c/ @themarwhal @ardzoht
+
+feg/ @magma/feg-approvers
 cwf/ @themarwhal @mpgermano @uri200 @emakeev
 cwf/gateway/Vagrantfile @mattymo @119Vik @tmdzk
 
@@ -19,11 +23,11 @@ openwrt/ @emakeev @uri200
 # More specific mappings for lte/gateway will override this top-level one
 lte/gateway @ardzoht @pshelar
 lte/gateway/c/session_manager @themarwhal @uri200
-lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo
+lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo @ardzoht
 lte/gateway/c/sctpd @ssanadhya @ulaskozat
 lte/gateway/c/connection_tracker @koolzz
 lte/gateway/docker @rdefosse @tmdzk
-lte/gateway/release @kkahrs
+lte/gateway/release @tmdzk
 lte/gateway/python/magma/pipelined @koolzz @pshelar
 lte/gateway/python/integ_tests @ssanadhya @ulaskozat
 lte/gateway/Vagrantfile @mattymo @119Vik @tmdzk
@@ -35,6 +39,6 @@ lte/gateway/Vagrantfile @mattymo @119Vik @tmdzk
 xwf/ @AyliD @aharonnovo @r-i-g
 feg/radius @AyliD @aharonnovo @r-i-g @themarwhal @mpgermano @uri200 @emakeev
 
-nms/ @karthiksubraveti @andreilee @Scott8440
+nms/ @karthiksubraveti @andreilee @HannaFar
 
-CODEOWNERS @amarpad
+CODEOWNERS @amarpad @electronjoe

@@ -40,8 +40,9 @@ namespace magma {
 class SessionManagerHandlerTest : public ::testing::Test {
  public:
   virtual void SetUp() {
-    rule_store            = std::make_shared<StaticRuleStore>();
-    session_store         = std::make_shared<SessionStore>(rule_store);
+    rule_store    = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(
+        rule_store, std::make_shared<MeteringReporter>());
     auto pipelined_client = std::make_shared<magma::AsyncPipelinedClient>();
     amf_srv_client        = std::make_shared<magma::AsyncAmfServiceClient>();
 
@@ -62,6 +63,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     set_session_manager = std::make_shared<SetMessageManagerHandler>(
         session_enforcer, *session_store);
   }
+  virtual void TearDown() { delete evb; }
 
  public:
   std::shared_ptr<SessionStore> session_store;

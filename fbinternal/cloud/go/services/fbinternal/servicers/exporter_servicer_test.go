@@ -31,8 +31,8 @@ import (
 	"magma/orc8r/lib/go/metrics"
 
 	prometheus_models "github.com/prometheus/client_model/go"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
 )
 
 func TestODSSubmit(t *testing.T) {

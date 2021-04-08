@@ -39,14 +39,12 @@ task_zmq_ctx_t service303_message_task_zmq_ctx;
 
 static int handle_service303_server_message(
     zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE:
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       service303_server_exit();
       break;
     default: {
@@ -57,7 +55,7 @@ static int handle_service303_server_message(
   }
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -77,9 +75,7 @@ static void* service303_server_thread(__attribute__((unused)) void* args) {
 }
 
 static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TIMER_HAS_EXPIRED: {
@@ -105,7 +101,7 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
       service303_set_application_health(APP_UNHEALTHY);
     } break;
     case TERMINATE_MESSAGE:
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       service303_message_exit();
       break;
     default: {
@@ -115,7 +111,7 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -190,8 +186,8 @@ static void service303_server_exit(void) {
 }
 
 static void service303_message_exit(void) {
-  destroy_task_context(&service303_message_task_zmq_ctx);
   timer_remove(service303_epc_stats_timer_id, NULL);
+  destroy_task_context(&service303_message_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_SERVICE303 terminated\n");
   pthread_exit(NULL);
 }

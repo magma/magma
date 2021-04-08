@@ -14,18 +14,21 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {mutable_subscriber} from '@fbcnms/magma-api';
+import type {
+  mutable_subscriber,
+  subscriber,
+  subscriber_state,
+} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import AddSubscriberButton from './SubscriberAddDialog';
-import Button from '@material-ui/core/Button';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
-import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -37,9 +40,14 @@ import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {FEG_LTE} from '@fbcnms/types/network';
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -69,6 +77,14 @@ const useStyles = makeStyles(theme => ({
   appBarBtnSecondary: {
     color: colors.primary.white,
   },
+  cardTitleRow: {
+    marginBottom: theme.spacing(1),
+    minHeight: '36px',
+  },
+  cardTitleIcon: {
+    fill: colors.primary.comet,
+    marginRight: theme.spacing(1),
+  },
 }));
 
 export default function SubscriberDashboard() {
@@ -80,10 +96,7 @@ export default function SubscriberDashboard() {
         component={SubscriberDetail}
       />
 
-      <Route
-        path={relativePath('/overview')}
-        component={SubscriberDashboardInternal}
-      />
+      <Route path={relativePath('/overview')} component={SubscriberOverview} />
       <Redirect to={relativeUrl('/overview')} />
     </Switch>
   );
@@ -92,59 +105,23 @@ export default function SubscriberDashboard() {
 type SubscriberRowType = {
   name: string,
   imsi: string,
-  activeApns?: number,
+  activeApns?: string,
+  ipAddresses?: string,
   activeSessions?: number,
   service: string,
   currentUsage: string,
   dailyAvg: string,
-  lastReportedTime: Date,
+  lastReportedTime: Date | string,
 };
 
 type SubscriberSessionRowType = {
   apnName: string,
   sessionId: string,
+  ipAddr: string,
   state: string,
   activeDuration: string,
   activePolicies: Array<string>,
 };
-
-function SubscriberDashboardInternal() {
-  const classes = useStyles();
-  return (
-    <>
-      <TopBar
-        header={TITLE}
-        tabs={[
-          {
-            label: 'Subscribers',
-            to: '/subscribersv2',
-            icon: PeopleIcon,
-            filters: (
-              <Grid
-                container
-                justify="flex-end"
-                alignItems="center"
-                spacing={2}>
-                <Grid item>
-                  {/* TODO: these button styles need to be localized */}
-                  <Button variant="text" className={classes.appBarBtnSecondary}>
-                    Secondary Action
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button variant="contained" className={classes.appBarBtn}>
-                    Primary Action
-                  </Button>
-                </Grid>
-              </Grid>
-            ),
-          },
-        ]}
-      />
-      <SubscriberTable />
-    </>
-  );
-}
 
 type Props = {
   open: boolean,
@@ -174,16 +151,35 @@ function JsonDialog(props: Props) {
   );
 }
 
-function SubscriberTableRaw(props: WithAlert) {
-  const classes = useStyles();
-  const {history, relativeUrl} = useRouter();
+function SubscriberInternal(props: WithAlert) {
+  const {history, match, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
-  const ctx = useContext(SubscriberContext);
-  const networkCtx = useContext(NetworkContext);
-  const subscriberMap = ctx.state;
-  const sessionState = ctx.sessionState;
-  const subscriberMetrics = ctx.metrics;
+  const networkId: string = nullthrows(match.params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(SubscriberContext);
+  const [refresh, setRefresh] = useState(true);
+  const classes = useStyles();
+  const [lastRefreshTime, setLastRefreshTime] = useState(
+    new Date().toLocaleString(),
+  );
+
+  // Auto refresh subscribers every 30 seconds
+  const state = useRefreshingContext({
+    context: SubscriberContext,
+    networkId,
+    type: 'subscriber',
+    interval: REFRESH_INTERVAL,
+    enqueueSnackbar,
+    refresh,
+    lastRefreshTime,
+  });
+
+  const networkCtx = useContext(NetworkContext);
+  // $FlowIgnore
+  const subscriberMap: {[string]: subscriber} = state.state;
+  // $FlowIgnore
+  const sessionState: {[string]: subscriber_state} = state.sessionState;
+  const subscriberMetrics = ctx.metrics;
   const [jsonDialog, setJsonDialog] = useState(false);
   const tableColumns = [
     {title: 'Name', field: 'name'},
@@ -240,210 +236,241 @@ function SubscriberTableRaw(props: WithAlert) {
         service: subscriberInfo.lte?.state || '',
         currentUsage: metrics?.currentUsage ?? '0',
         dailyAvg: metrics?.dailyAvg ?? '0',
-        lastReportedTime: new Date(
-          subscriberInfo.monitoring?.icmp?.last_reported_time ?? 0,
-        ),
+        lastReportedTime:
+          subscriberInfo.monitoring?.icmp?.last_reported_time === 0
+            ? new Date(subscriberInfo.monitoring?.icmp?.last_reported_time)
+            : '-',
       };
     },
   );
 
   const onClose = () => setJsonDialog(false);
-
   return (
-    <div className={classes.dashboardRoot}>
-      <JsonDialog open={jsonDialog} onClose={onClose} imsi={currRow.imsi} />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <CardTitleRow
-            icon={PeopleIcon}
-            label={TITLE}
-            filter={AddSubscriberButton}
-          />
+    <>
+      <TopBar
+        header={TITLE}
+        tabs={[
+          {
+            label: 'Subscribers',
+            to: '/subscribersv2',
+            icon: PeopleIcon,
+            filters: (
+              <AddSubscriberButton
+                onClose={() => setLastRefreshTime(new Date().toLocaleString())}
+              />
+            ),
+          },
+        ]}
+      />
+      <div className={classes.dashboardRoot}>
+        <CardTitleRow
+          key="title"
+          icon={PeopleIcon}
+          label={TITLE}
+          filter={() => (
+            <AutorefreshCheckbox
+              autorefreshEnabled={refresh}
+              onToggle={() => setRefresh(current => !current)}
+            />
+          )}
+        />
+        {subscriberMap || sessionState ? (
+          <div>
+            <JsonDialog
+              open={jsonDialog}
+              onClose={onClose}
+              imsi={currRow.imsi}
+            />
+            <ActionTable
+              data={
+                !Object.keys(sessionState).length
+                  ? tableData
+                  : tableData.map(row => {
+                      const subscriber =
+                        sessionState[row.imsi]?.subscriber_state || {};
+                      const ipAddresses = [];
+                      const activeApns = [];
+                      let activeSessions = 0;
+                      Object.keys(subscriber || {}).forEach(apn => {
+                        subscriber[apn].forEach(session => {
+                          if (session.lifecycle_state === 'SESSION_ACTIVE') {
+                            ipAddresses.push(session?.ipv4);
+                            activeSessions++;
+                          }
+                        });
+                        activeApns.push(apn);
+                      });
+                      return {
+                        ...row,
+                        activeApns:
+                          activeApns.length > 0 ? activeApns.join() : '-',
+                        activeSessions: activeSessions,
+                        ipAddress:
+                          ipAddresses.length > 0 ? ipAddresses.join() : '-',
+                      };
+                    })
+              }
+              columns={
+                !Object.keys(sessionState).length
+                  ? tableColumns
+                  : [
+                      ...tableColumns,
+                      {
+                        title: 'Active Sessions',
+                        field: 'activeSessions',
+                        width: 175,
+                      },
+                      {title: 'Active APNs', field: 'activeApns'},
+                      {title: 'Session IP Address', field: 'ipAddress'},
+                    ]
+              }
+              handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
+              menuItems={
+                networkCtx.networkType === FEG_LTE
+                  ? [
+                      {
+                        name: 'View JSON',
+                        handleFunc: () => {
+                          setJsonDialog(true);
+                        },
+                      },
+                    ]
+                  : [
+                      {
+                        name: 'View JSON',
+                        handleFunc: () => {
+                          setJsonDialog(true);
+                        },
+                      },
+                      {
+                        name: 'View',
+                        handleFunc: () => {
+                          history.push(relativeUrl('/' + currRow.imsi));
+                        },
+                      },
+                      {
+                        name: 'Edit',
+                        handleFunc: () => {
+                          history.push(
+                            relativeUrl('/' + currRow.imsi + '/config'),
+                          );
+                        },
+                      },
+                      {
+                        name: 'Remove',
+                        handleFunc: () => {
+                          props
+                            .confirm(
+                              `Are you sure you want to delete ${currRow.imsi}?`,
+                            )
+                            .then(async confirmed => {
+                              if (!confirmed) {
+                                return;
+                              }
 
-          {subscriberMap || sessionState ? (
-            <div>
-              <ActionTable
-                data={
-                  !Object.keys(sessionState).length
-                    ? tableData
-                    : tableData.map(row => {
-                        const subscriber =
-                          sessionState[row.imsi]?.subscriber_state || {};
-                        const sessions = Object.keys(subscriber || {}).map(
-                          apn =>
-                            subscriber[apn].filter(
-                              session =>
-                                session.lifecycle_state === 'SESSION_ACTIVE',
-                            ).length,
-                        );
-                        return {
-                          ...row,
-                          activeApns: Object.keys(
-                            sessionState[row.imsi]?.subscriber_state || {},
-                          ).length,
-                          activeSessions: sessions.length
-                            ? sessions.reduce((a, b) => a + b)
-                            : 0,
-                        };
-                      })
-                }
-                columns={
-                  !Object.keys(sessionState).length
-                    ? tableColumns
-                    : [
-                        ...tableColumns,
-                        {title: 'Active APNs', field: 'activeApns'},
-                        {title: 'Active Sessions', field: 'activeSessions'},
-                      ]
-                }
-                handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
-                menuItems={
-                  networkCtx.networkType === FEG_LTE
-                    ? [
-                        {
-                          name: 'View JSON',
-                          handleFunc: () => {
-                            setJsonDialog(true);
-                          },
+                              try {
+                                await ctx.setState?.(currRow.imsi);
+                                setLastRefreshTime(new Date().toLocaleString());
+                              } catch (e) {
+                                enqueueSnackbar(
+                                  'failed deleting subscriber ' + currRow.imsi,
+                                  {
+                                    variant: 'error',
+                                  },
+                                );
+                              }
+                            });
                         },
-                      ]
-                    : [
-                        {
-                          name: 'View JSON',
-                          handleFunc: () => {
-                            setJsonDialog(true);
-                          },
+                      },
+                    ]
+              }
+              options={{
+                actionsColumnIndex: -1,
+                pageSize: 10,
+                pageSizeOptions: [10, 20],
+              }}
+              detailPanel={
+                !Object.keys(sessionState).length
+                  ? []
+                  : [
+                      {
+                        icon: () => {
+                          return <ExpandMore data-testid="details" />;
                         },
-                        {
-                          name: 'View',
-                          handleFunc: () => {
-                            history.push(relativeUrl('/' + currRow.imsi));
-                          },
-                        },
-                        {
-                          name: 'Edit',
-                          handleFunc: () => {
-                            history.push(
-                              relativeUrl('/' + currRow.imsi + '/config'),
-                            );
-                          },
-                        },
-                        {
-                          name: 'Remove',
-                          handleFunc: () => {
-                            props
-                              .confirm(
-                                `Are you sure you want to delete ${currRow.imsi}?`,
-                              )
-                              .then(async confirmed => {
-                                if (!confirmed) {
-                                  return;
-                                }
-
-                                try {
-                                  await ctx.setState?.(currRow.imsi);
-                                } catch (e) {
-                                  enqueueSnackbar(
-                                    'failed deleting subscriber ' +
-                                      currRow.imsi,
-                                    {
-                                      variant: 'error',
-                                    },
-                                  );
-                                }
-                              });
-                          },
-                        },
-                      ]
-                }
-                options={{
-                  actionsColumnIndex: -1,
-                  pageSize: 10,
-                  pageSizeOptions: [10, 20],
-                }}
-                detailPanel={
-                  !Object.keys(sessionState).length
-                    ? []
-                    : [
-                        {
-                          icon: () => {
-                            return <ExpandMore data-testid="details" />;
-                          },
-                          openIcon: ExpandLess,
-                          render: rowData => {
-                            const subscriber =
-                              sessionState[rowData.imsi]?.subscriber_state ||
-                              {};
-                            const subscriberSessionRows: Array<SubscriberSessionRowType> = [];
-                            Object.keys(subscriber).map((apn: string) => {
-                              subscriber[apn].map(infos => {
-                                subscriberSessionRows.push({
-                                  apnName: apn,
-                                  sessionId: infos.session_id,
-                                  state: infos.lifecycle_state,
-                                  activeDuration: `${infos.active_duration_sec} sec`,
-                                  activePolicies: infos.active_policy_rules,
-                                });
+                        openIcon: ExpandLess,
+                        render: rowData => {
+                          const subscriber =
+                            sessionState[rowData.imsi]?.subscriber_state || {};
+                          const subscriberSessionRows: Array<SubscriberSessionRowType> = [];
+                          Object.keys(subscriber).map((apn: string) => {
+                            subscriber[apn].map(infos => {
+                              subscriberSessionRows.push({
+                                apnName: apn,
+                                sessionId: infos.session_id,
+                                ipAddr: infos.ipv4 ?? '-',
+                                state: infos.lifecycle_state,
+                                activeDuration: `${infos.active_duration_sec} sec`,
+                                activePolicies: infos.active_policy_rules,
                               });
                             });
+                          });
 
-                            return (
-                              <ActionTable
-                                data-testid="detailPanel"
-                                title=""
-                                data={subscriberSessionRows}
-                                columns={[
-                                  {title: 'APN Name', field: 'apnName'},
-                                  {title: 'Session ID', field: 'sessionId'},
-                                  {title: 'State', field: 'state'},
-                                  {
-                                    title: 'Active Duration',
-                                    field: 'activeDuration',
-                                  },
-                                  {
-                                    title: 'Active Policy IDs',
-                                    field: 'activePolicies',
-                                    render: currRow =>
-                                      currRow.activePolicies.length ? (
-                                        <List>
-                                          {currRow.activePolicies.map(
-                                            policy => (
-                                              <ListItem key={policy.id}>
-                                                <Link>{policy.id} </Link>
-                                              </ListItem>
-                                            ),
-                                          )}
-                                        </List>
-                                      ) : (
-                                        <Text>{'-'}</Text>
-                                      ),
-                                  },
-                                ]}
-                                options={{
-                                  actionsColumnIndex: -1,
-                                  pageSizeOptions: [5],
-                                  toolbar: false,
-                                  paging: false,
-                                  rowStyle: {background: '#f7f7f7'},
-                                  headerStyle: {
-                                    background: '#f7f7f7',
-                                    color: colors.primary.comet,
-                                  },
-                                }}
-                              />
-                            );
-                          },
+                          return (
+                            <ActionTable
+                              data-testid="detailPanel"
+                              title=""
+                              data={subscriberSessionRows}
+                              columns={[
+                                {title: 'APN Name', field: 'apnName'},
+                                {title: 'Session ID', field: 'sessionId'},
+                                {title: 'State', field: 'state'},
+                                {title: 'IP Address', field: 'ipAddr'},
+                                {
+                                  title: 'Active Duration',
+                                  field: 'activeDuration',
+                                },
+                                {
+                                  title: 'Active Policy IDs',
+                                  field: 'activePolicies',
+                                  render: currRow =>
+                                    currRow.activePolicies.length ? (
+                                      <List>
+                                        {currRow.activePolicies.map(policy => (
+                                          <ListItem key={policy.id}>
+                                            <Link>{policy.id} </Link>
+                                          </ListItem>
+                                        ))}
+                                      </List>
+                                    ) : (
+                                      <Text>{'-'}</Text>
+                                    ),
+                                },
+                              ]}
+                              options={{
+                                actionsColumnIndex: -1,
+                                pageSizeOptions: [5],
+                                toolbar: false,
+                                paging: false,
+                                rowStyle: {background: '#f7f7f7'},
+                                headerStyle: {
+                                  background: '#f7f7f7',
+                                  color: colors.primary.comet,
+                                },
+                              }}
+                            />
+                          );
                         },
-                      ]
-                }
-              />
-            </div>
-          ) : (
-            '<Text>No Subscribers Found</Text>'
-          )}
-        </Grid>
-      </Grid>
-    </div>
+                      },
+                    ]
+              }
+            />
+          </div>
+        ) : (
+          '<Text>No Subscribers Found</Text>'
+        )}
+      </div>
+    </>
   );
 }
-const SubscriberTable = withAlert(SubscriberTableRaw);
+
+const SubscriberOverview = withAlert(SubscriberInternal);

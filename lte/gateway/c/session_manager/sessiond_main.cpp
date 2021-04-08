@@ -43,6 +43,30 @@
 extern "C" void __gcov_flush(void);
 #endif
 
+// TODO remove this flag once we are on Ubuntu 20.04 by default in 1.6
+#if SENTRY_ENABLED
+#include "sentry.h"
+
+void initialize_sentry() {
+  auto control_proxy_config =
+      magma::ServiceConfigLoader{}.load_service_config("control_proxy");
+  if (control_proxy_config["sentry_url"].IsDefined()) {
+    const std::string sentry_dns =
+        control_proxy_config["sentry_url"].as<std::string>();
+    sentry_options_t* options = sentry_options_new();
+    sentry_options_set_dsn(options, sentry_dns.c_str());
+
+    sentry_init(options);
+    sentry_capture_event(sentry_value_new_message_event(
+        SENTRY_LEVEL_INFO, "", "Starting SessionD with Sentry!"));
+  }
+}
+
+void shutdown_sentry() {
+  sentry_shutdown();
+}
+#endif
+
 static magma::mconfig::SessionD get_default_mconfig() {
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
@@ -133,7 +157,8 @@ void set_consts(const YAML::Node& config) {
 
 magma::SessionStore* create_session_store(
     const YAML::Node& config,
-    std::shared_ptr<magma::StaticRuleStore> rule_store) {
+    std::shared_ptr<magma::StaticRuleStore> rule_store,
+    std::shared_ptr<magma::MeteringReporter> metering_reporter) {
   bool is_stateless = config["support_stateless"].IsDefined() &&
                       config["support_stateless"].as<bool>();
   if (is_stateless) {
@@ -147,10 +172,10 @@ magma::SessionStore* create_session_store(
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     } while (!connected);
     MLOG(MINFO) << "Successfully connected to Redis";
-    return new magma::SessionStore(rule_store, store_client);
+    return new magma::SessionStore(rule_store, metering_reporter, store_client);
   } else {
     MLOG(MINFO) << "Session store in memory";
-    return new magma::SessionStore(rule_store);
+    return new magma::SessionStore(rule_store, metering_reporter);
   }
 }
 
@@ -171,6 +196,10 @@ int main(int argc, char* argv[]) {
   __gcov_flush();
 #endif
 
+#ifdef SENTRY_ENABLED
+  initialize_sentry();
+#endif
+
   magma::init_logging(argv[0]);
 
   auto mconfig = load_mconfig();
@@ -178,9 +207,9 @@ int main(int argc, char* argv[]) {
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
   bool converged_access = false;
-  // Check converged sesiond is enebaled or not
-  if ((config["converged_access"].IsDefined()) &&
-      (config["converged_access"].as<bool>())) {
+  // Check converged SessionD is enabled or not
+  if (config["converged_access"].IsDefined() &&
+      config["converged_access"].as<bool>()) {
     converged_access = true;
   }
   MLOG(MINFO) << "Starting Session Manager";
@@ -262,14 +291,19 @@ int main(int argc, char* argv[]) {
   });
 
   // Case on stateless config, setup the appropriate store client
-  magma::SessionStore* session_store = create_session_store(config, rule_store);
+  auto metering_reporter = std::make_shared<magma::MeteringReporter>();
+  magma::SessionStore* session_store =
+      create_session_store(config, rule_store, metering_reporter);
+  // service restart clears the UE metering metrics, so we need to offset
+  // metering_reporter with existing usage
+  session_store->initialize_metering_counter();
 
   // Some setup work for the SessionCredit class
   set_consts(config);
   // Initialize the main logical component of SessionD
   auto local_enforcer = std::make_shared<magma::LocalEnforcer>(
-      reporter, rule_store, *session_store, pipelined_client, directoryd_client,
-      events_reporter, spgw_client, aaa_client,
+      reporter, rule_store, *session_store, pipelined_client, events_reporter,
+      spgw_client, aaa_client,
       config["session_force_termination_timeout_ms"].as<long>(),
       get_quota_exhaust_termination_time(config), mconfig);
 
@@ -415,7 +449,10 @@ int main(int argc, char* argv[]) {
     free(conv_set_message_service);
     access_common_message_thread.join();
   }
-  free(session_store);
+  delete session_store;
 
+#ifdef SENTRY_ENABLED
+  shutdown_sentry();
+#endif
   return 0;
 }

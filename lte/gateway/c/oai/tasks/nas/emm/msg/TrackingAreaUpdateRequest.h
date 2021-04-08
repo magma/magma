@@ -31,6 +31,7 @@
 #include "EpsBearerContextStatus.h"
 #include "AdditionalUpdateType.h"
 #include "GutiType.h"
+#include "UeAdditionalSecurityCapability.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
@@ -57,7 +58,8 @@
    MOBILE_STATION_CLASSMARK_2_MAXIMUM_LENGTH +                                 \
    MOBILE_STATION_CLASSMARK_3_MAXIMUM_LENGTH +                                 \
    SUPPORTED_CODEC_LIST_MAXIMUM_LENGTH +                                       \
-   ADDITIONAL_UPDATE_TYPE_MAXIMUM_LENGTH)
+   ADDITIONAL_UPDATE_TYPE_MAXIMUM_LENGTH +                                     \
+   UE_ADDITIONAL_SECURITY_CAPABILITY_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
  * Bit mask should be set to 1.
@@ -90,6 +92,8 @@
 #define TRACKING_AREA_UPDATE_REQUEST_VOICE_DOMAIN_PREFERENCE_PRESENT (1 << 18)
 #define TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT        \
   (1 << 19)
+#define TRACKING_AREA_UPDATE_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT \
+  (1 << 20)
 
 typedef enum tracking_area_update_request_iei_tag {
   TRACKING_AREA_UPDATE_REQUEST_NONCURRENT_NATIVE_NAS_KEY_SET_IDENTIFIER_IEI =
@@ -125,6 +129,7 @@ typedef enum tracking_area_update_request_iei_tag {
       0x5D, /* 0x5D = 93 */
   TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI =
       C_MS_NETWORK_FEATURE_SUPPORT_IEI,
+  TRACKING_AREA_UPDATE_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI = 0x6F
 } tracking_area_update_request_iei;
 
 /*
@@ -167,6 +172,7 @@ typedef struct tracking_area_update_request_msg_tag {
       voicedomainpreferenceandueusagesetting;
   guti_type_t oldgutitype;
   ms_network_feature_support_t msnetworkfeaturesupport;
+  ue_additional_security_capability_t ueadditionalsecuritycapability;
 } tracking_area_update_request_msg;
 
 int decode_tracking_area_update_request(

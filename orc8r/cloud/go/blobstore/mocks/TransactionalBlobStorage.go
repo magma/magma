@@ -30,11 +30,11 @@ func (_m *TransactionalBlobStorage) Commit() error {
 }
 
 // CreateOrUpdate provides a mock function with given fields: networkID, blobs
-func (_m *TransactionalBlobStorage) CreateOrUpdate(networkID string, blobs []blobstore.Blob) error {
+func (_m *TransactionalBlobStorage) CreateOrUpdate(networkID string, blobs blobstore.Blobs) error {
 	ret := _m.Called(networkID, blobs)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []blobstore.Blob) error); ok {
+	if rf, ok := ret.Get(0).(func(string, blobstore.Blobs) error); ok {
 		r0 = rf(networkID, blobs)
 	} else {
 		r0 = ret.Error(0)
@@ -102,15 +102,15 @@ func (_m *TransactionalBlobStorage) GetExistingKeys(keys []string, filter blobst
 }
 
 // GetMany provides a mock function with given fields: networkID, ids
-func (_m *TransactionalBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]blobstore.Blob, error) {
+func (_m *TransactionalBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) (blobstore.Blobs, error) {
 	ret := _m.Called(networkID, ids)
 
-	var r0 []blobstore.Blob
-	if rf, ok := ret.Get(0).(func(string, []storage.TypeAndKey) []blobstore.Blob); ok {
+	var r0 blobstore.Blobs
+	if rf, ok := ret.Get(0).(func(string, []storage.TypeAndKey) blobstore.Blobs); ok {
 		r0 = rf(networkID, ids)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]blobstore.Blob)
+			r0 = ret.Get(0).(blobstore.Blobs)
 		}
 	}
 
@@ -138,29 +138,6 @@ func (_m *TransactionalBlobStorage) IncrementVersion(networkID string, id storag
 	return r0
 }
 
-// ListKeys provides a mock function with given fields: networkID, typeVal
-func (_m *TransactionalBlobStorage) ListKeys(networkID string, typeVal string) ([]string, error) {
-	ret := _m.Called(networkID, typeVal)
-
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(string, string) []string); ok {
-		r0 = rf(networkID, typeVal)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(networkID, typeVal)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Rollback provides a mock function with given fields:
 func (_m *TransactionalBlobStorage) Rollback() error {
 	ret := _m.Called()
@@ -176,15 +153,15 @@ func (_m *TransactionalBlobStorage) Rollback() error {
 }
 
 // Search provides a mock function with given fields: filter, criteria
-func (_m *TransactionalBlobStorage) Search(filter blobstore.SearchFilter, criteria blobstore.LoadCriteria) (map[string][]blobstore.Blob, error) {
+func (_m *TransactionalBlobStorage) Search(filter blobstore.SearchFilter, criteria blobstore.LoadCriteria) (map[string]blobstore.Blobs, error) {
 	ret := _m.Called(filter, criteria)
 
-	var r0 map[string][]blobstore.Blob
-	if rf, ok := ret.Get(0).(func(blobstore.SearchFilter, blobstore.LoadCriteria) map[string][]blobstore.Blob); ok {
+	var r0 map[string]blobstore.Blobs
+	if rf, ok := ret.Get(0).(func(blobstore.SearchFilter, blobstore.LoadCriteria) map[string]blobstore.Blobs); ok {
 		r0 = rf(filter, criteria)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string][]blobstore.Blob)
+			r0 = ret.Get(0).(map[string]blobstore.Blobs)
 		}
 	}
 

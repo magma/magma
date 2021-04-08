@@ -21,6 +21,7 @@
 #include <lte/protos/subscriberdb.pb.h>
 
 #include "GRPCReceiver.h"
+#include "Types.h"
 #include "SessionState.h"
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
@@ -37,12 +38,13 @@ using std::experimental::optional;
  */
 class PipelinedClient {
  public:
+  virtual ~PipelinedClient() = default;
+
   /**
    * Activates all rules for provided SessionInfos
    * @param infos - list of SessionInfos to setup flows for
-   * @return true if the operation was successful
    */
-  virtual bool setup_cwf(
+  virtual void setup_cwf(
       const std::vector<SessionState::SessionInfo>& infos,
       const std::vector<SubscriberQuotaUpdate>& quota_updates,
       const std::vector<std::string> ue_mac_addrs,
@@ -56,71 +58,49 @@ class PipelinedClient {
   /**
    * Activates all rules for provided SessionInfos
    * @param infos - list of SessionInfos to setup flows for
-   * @return true if the operation was successful
    */
-  virtual bool setup_lte(
+  virtual void setup_lte(
       const std::vector<SessionState::SessionInfo>& infos,
       const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback) = 0;
-
-  /**
-   * Deactivate all flows for a subscriber's session
-   * @param imsi - UE to delete all policy flows for
-   * @return true if the operation was successful
-   */
-  virtual bool deactivate_all_flows(const std::string& imsi) = 0;
 
   /**
    * Deactivate all flows for the specified rules plus any drop default rule
    * added by pipelined
    * @param imsi - UE to delete flows for
    * @param rule_ids - rules to deactivate
-   * @return true if the operation was successful
    */
-  virtual bool deactivate_flows_for_rules_for_termination(
+  virtual void deactivate_flows_for_rules_for_termination(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
-      const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type) = 0;
 
   /**
    * Deactivate all flows for the specified rules
    * @param imsi - UE to delete flows for
    * @param rule_ids - rules to deactivate
-   * @return true if the operation was successful
    */
-  virtual bool deactivate_flows_for_rules(
+  virtual void deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
-      const std::vector<PolicyRule>& dynamic_rules,
+      const RulesToProcess to_process,
       const RequestOriginType_OriginType origin_type) = 0;
 
   /**
    * Activate all rules for the specified rules, using a normal vector
    */
-  virtual bool activate_flows_for_rules(
+  virtual void activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules,
+      const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
-
-  /**
-   * update_tunnel_ids adds eNB tunnel ID and AGW Tunnel ID to an specific flow
-   * specified by its ip_addrs
-   * */
-  virtual bool update_tunnel_ids(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids) = 0;
 
   /**
    * Send the MAC address of UE and the subscriberID
    * for pipelined to add a flow for the subscriber by matching the MAC
    */
-  virtual bool add_ue_mac_flow(
+  virtual void add_ue_mac_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr,
       const std::string& msisdn, const std::string& ap_mac_addr,
       const std::string& ap_name,
@@ -129,7 +109,7 @@ class PipelinedClient {
   /**
    * Update the IPFIX export rule in pipeliend
    */
-  virtual bool update_ipfix_flow(
+  virtual void update_ipfix_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr,
       const std::string& msisdn, const std::string& ap_mac_addr,
       const std::string& ap_name, const uint64_t& pdp_start_time) = 0;
@@ -138,28 +118,27 @@ class PipelinedClient {
    * Send the MAC address of UE and the subscriberID
    * for pipelined to delete a flow for the subscriber by matching the MAC
    */
-  virtual bool delete_ue_mac_flow(
+  virtual void delete_ue_mac_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr) = 0;
 
   /**
    * Propagate whether a subscriber has quota / no quota / or terminated
    */
-  virtual bool update_subscriber_quota_state(
+  virtual void update_subscriber_quota_state(
       const std::vector<SubscriberQuotaUpdate>& updates) = 0;
 
   /**
    * Activate the GY final action policy
    */
-  virtual bool add_gy_final_action_flow(
+  virtual void add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::string& msisdn, const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules) = 0;
+      const std::string& msisdn, const RulesToProcess to_process) = 0;
 
   /**
    * Set up a Session of type SetMessage to be sent to UPF
    */
-  virtual bool set_upf_session(
+  virtual void set_upf_session(
       const SessionState::SessionInfo info,
       std::function<void(Status status, UPFSessionContextState)> callback) = 0;
 
@@ -182,7 +161,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * @param infos - list of SessionInfos to setup flows for
    * @return true if the operation was successful
    */
-  bool setup_cwf(
+  void setup_cwf(
       const std::vector<SessionState::SessionInfo>& infos,
       const std::vector<SubscriberQuotaUpdate>& quota_updates,
       const std::vector<std::string> ue_mac_addrs,
@@ -196,78 +175,55 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   /**
    * Activates all rules for provided SessionInfos
    * @param infos - list of SessionInfos to setup flows for
-   * @return true if the operation was successful
    */
-  bool setup_lte(
+  void setup_lte(
       const std::vector<SessionState::SessionInfo>& infos,
       const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback);
-
-  /**
-   * Deactivate all flows for a subscriber's session
-   * @param imsi - UE to delete all policy flows for
-   * @return true if the operation was successful
-   */
-  bool deactivate_all_flows(const std::string& imsi);
 
   /**
    * Deactivate all flows related to a specific charging key plus any default
    * rule installed by pipelined. Used for session termination.
    * @param imsi - UE to delete flows for
    * @param charging_key - key to deactivate
-   * @return true if the operation was successful
    */
-  bool deactivate_flows_for_rules_for_termination(
+  void deactivate_flows_for_rules_for_termination(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
-      const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type);
 
   /**
    * Deactivate all flows related to a specific charging key
    * @param imsi - UE to delete flows for
    * @param charging_key - key to deactivate
-   * @return true if the operation was successful
    */
-  bool deactivate_flows_for_rules(
+  void deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::vector<std::string>& rule_ids,
-      const std::vector<PolicyRule>& dynamic_rules,
+      const RulesToProcess to_process,
       const RequestOriginType_OriginType origin_type);
 
   /**
    * Deactivate all flows included on the request
    * @param request
-   * @return true if the operation was successful
    */
-  bool deactivate_flows(DeactivateFlowsRequest& request);
+  void deactivate_flows(DeactivateFlowsRequest& request);
 
   /**
    * Activate all rules for the specified rules, using a normal vector
    */
-  bool activate_flows_for_rules(
+  void activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
-      const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules,
+      const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback);
-
-  /**
-   * update_tunnel_ids adds eNB tunnel ID and AGW Tunnel ID to an specific flow
-   * specified by its ip_addrs
-   */
-  bool update_tunnel_ids(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids);
 
   /**
    * Send the MAC address of UE and the subscriberID
    * for pipelined to add a flow for the subscriber by matching the MAC
    */
-  bool add_ue_mac_flow(
+  void add_ue_mac_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr,
       const std::string& msisdn, const std::string& ap_mac_addr,
       const std::string& ap_name,
@@ -276,7 +232,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   /**
    * Update the IPFIX export rule in pipeliend
    */
-  bool update_ipfix_flow(
+  void update_ipfix_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr,
       const std::string& msisdn, const std::string& ap_mac_addr,
       const std::string& ap_name, const uint64_t& pdp_start_time);
@@ -284,19 +240,18 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   /**
    * Propagate whether a subscriber has quota / no quota / or terminated
    */
-  bool update_subscriber_quota_state(
+  void update_subscriber_quota_state(
       const std::vector<SubscriberQuotaUpdate>& updates);
 
-  bool delete_ue_mac_flow(
+  void delete_ue_mac_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr);
 
-  bool add_gy_final_action_flow(
+  void add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
       const std::string& ipv6_addr, const Teids teids,
-      const std::string& msisdn, const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules);
+      const std::string& msisdn, const RulesToProcess to_process);
 
-  bool set_upf_session(
+  void set_upf_session(
       const SessionState::SessionInfo info,
       std::function<void(Status status, UPFSessionContextState)> callback);
 

@@ -17,6 +17,7 @@ from concurrent.futures import Future
 from unittest.mock import MagicMock
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
+from lte.protos.pipelined_pb2 import VersionedPolicy
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     RedirectInformation
 from magma.pipelined.app.gy import GYController
@@ -58,7 +59,6 @@ class GYTableTest(unittest.TestCase):
         """
         super(GYTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls._static_rule_dict = {}
         cls.service_manager = create_service_manager(
             [PipelineD.ENFORCEMENT], ['arpd'])
         cls._tbl_num = cls.service_manager.get_table_num(
@@ -110,7 +110,6 @@ class GYTableTest(unittest.TestCase):
         cls.gy_controller = gy_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
-        cls.gy_controller._policy_dict = cls._static_rule_dict
         cls.gy_controller._redirect_manager._save_redirect_entry = MagicMock()
 
     @classmethod
@@ -134,19 +133,22 @@ class GYTableTest(unittest.TestCase):
             "about.sha.ddih.org", lambda: redirect_ips, max_age=42
         )
         flow_list = [FlowDescription(match=FlowMatch())]
-        policy = PolicyRule(
-            id='redir_test', priority=3, flow_list=flow_list,
-            redirect=RedirectInformation(
-                support=1,
-                address_type=2,
-                server_address="http://about.sha.ddih.org/"
-            )
+        policy = VersionedPolicy(
+            rule= PolicyRule(
+                id='redir_test', priority=3, flow_list=flow_list,
+                redirect=RedirectInformation(
+                    support=1,
+                    address_type=2,
+                    server_address="http://about.sha.ddih.org/"
+                )
+            ),
+            version=1,
         )
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.gy_controller, self._tbl_num
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -185,17 +187,18 @@ class GYTableTest(unittest.TestCase):
             action=FlowDescription.PERMIT)
         ]
         policies = [
-            PolicyRule(id='restrict_match', priority=2, flow_list=flow_list1)
+            VersionedPolicy(
+                rule=PolicyRule(id='restrict_match', priority=2, flow_list=flow_list1),
+                version=1,
+            )
         ]
         pkts_matched = 256
         pkts_sent = 4096
 
-        self._static_rule_dict[policies[0].id] = policies[0]
-
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.gy_controller, self._tbl_num
-        ).add_static_rule(policies[0].id)
+        ).add_policy(policies[0])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),

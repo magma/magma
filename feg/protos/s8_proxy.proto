@@ -13,80 +13,158 @@ limitations under the License.
 
 syntax = "proto3";
 
-import "orc8r/protos/common.proto";
-import "lte/protos/subscriberdb.proto";
-import "lte/protos/oai/mme_nas_state.proto";
-import "lte/protos/oai/std_3gpp_types.proto";
-
-
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
 
-
 service S8Proxy {
-    rpc CreateSession (CreateSessionRequestPgw) returns(CreateSessionResponsePgw){}
-    rpc ModifyBearer (ModifyBearerRequestPgw) returns(ModifyBearerResponsePgw) {}
-    rpc DeleteSession (DeleteSessionRequestPgw) returns(DeleteSessionResponsePgw) {}
-    rpc SendEcho(magma.orc8r.Void) returns(EchoResponse) {}
+    rpc CreateSession(CreateSessionRequestPgw) returns (CreateSessionResponsePgw) {}
+    rpc DeleteSession(DeleteSessionRequestPgw) returns (DeleteSessionResponsePgw) {}
+    rpc SendEcho(EchoRequest) returns (EchoResponse) {}
 }
 
-// from
-// https://sites.google.com/site/amitsciscozone/home/lte-notes/default-bearer-setup
+// 3GPP TS 29.274  (not all 3gpp create session fields are included)
 message CreateSessionRequestPgw {
-  lte.SubscriberID sid = 1;
-  string MSISDN = 2;
-  string MEI = 3;
-  string MCC = 4; //serving network
-  string MNC = 5; //serving_network
-  uint32 rat_type = 6;
-  bytes indication_flag = 7;
-  uint32 bearer_id = 8;
+    string pgwAddrs = 1;        // Ip:port of pgw to send the request. If empty
+                                // s8_proxy will use value in its config
+    string imsi = 2;
+    string msisdn = 3;
+    string mei = 4;
 
-  // user plane data
-  uint32 user_plane_teid = 9;
-  string s5s8ip4_user_pane = 10;
-  string s5s8ip6_user_pane = 11;
+    ServingNetwork serving_network = 5;
+    UserLocationInformation uli = 6;
 
-  string apn = 14;
-  string selection_mode = 16;
-  uint32 pdn_type = 18;
-  string pdn_address_allocation = 20;
-  uint32 apn_restriction = 30;
-  uint32 ambr_up = 35;
-  uint32 ambr_down = 37;
-  string uli = 40;
+    RATType rat_type = 7;
+    PDNType pdn_type = 8;
+    PdnAddressAllocation paa = 9;
+
+    string apn = 10;
+    Ambr ambr = 11;                      //Aggregate Maximum BitRate
+    SelectionModeType selection_mode = 12;
+
+    BearerContext bearer_context = 13;   // Contains AGW user plane FTEID
+    uint32 c_agw_teid = 14;              // AGW control plane TEID
+
+    bytes indication_flag = 15;
+    string charging_characteristics = 16;
+    TimeZone time_zone = 17;
+}
+
+enum PDNType {
+    UNUSED = 0;
+    IPV4 = 1;
+    IPV6 = 2;
+    IPV4V6 = 3;
+    NonIP = 5;
+}
+
+enum RATType {
+    RESERVED = 0;
+    UTRAN = 1;
+    GERAN = 2;
+    WLAN = 3;
+    GAN = 4;
+    HSPA = 5;
+    EUTRAN = 6;
+    VIRTUAL = 7;
+    EUTRAN_NB_IOT = 8;
+    LTE_M = 9;
+    NR = 10;
+}
+
+enum SelectionModeType{
+    APN_provided_subscription_verified = 0;
+    ms_APN_subscription_not_verified = 1;
+    network_APN_subscription_not_verified = 2;
+}
+
+message UserLocationInformation {
+    uint32 lac = 1;
+    uint32 ci = 2;
+    uint32 sac = 3;
+    uint32 rac = 4;
+    uint32 tac = 5;       // used on magma
+    uint32 eci = 6;       // used on magma
+    uint32 MeNbi = 7;     // Macro eNodeB ID field
+    uint32 EMeNbi = 8;    // Extended Macro eNodeB ID field
+}
+
+message ServingNetwork {
+    string mcc = 1;             //TODO: change to bytes
+    string mnc = 2;             //TODO: change to bytes
+}
+
+message BearerContext {
+    uint32 id = 1;
+    Fteid user_plane_fteid = 2;
+    QosInformation qos = 3;
+    uint32 charging_id = 4;
+}
+
+message QosInformation {
+    uint32 pci = 1;
+    uint32 priority_level = 2;
+    uint32 preemption_capability = 3;
+    uint32 preemption_vulnerability = 4;
+    uint32 qci = 5;
+    Ambr gbr = 6;
+    Ambr mbr = 7;
+}
+
+message Ambr {
+    uint64 br_ul = 1;
+    uint64 br_dl = 2;
 }
 
 message PdnAddressAllocation{
-    uint32 pdn_type = 1;
-    string ipv4_address = 2;
-    string ipv6_prefix = 3;
-    string ipv6_address = 4;
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 ipv6_prefix = 3;
+}
+
+message TimeZone {
+    int32 delta_seconds = 1;            // delta in seconds from UTC
+    uint32 daylight_saving_time = 2;    // Set to 0 for non daylight savings
+}
+
+message Fteid {
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 teid = 3;
 }
 
 message CreateSessionResponsePgw {
-    lte.oai.Fteid Fteid = 2;
-    PdnAddressAllocation pdn_address_allocation = 3;
-    uint32 apn_restriction = 4;
-    lte.oai.BearerContext bearer_context = 8;
-}
-
-message ModifyBearerRequestPgw {
-
-}
-
-message ModifyBearerResponsePgw {
+    PDNType pdn_type = 1;
+    PdnAddressAllocation paa = 2;       // subscriber_ip
+    uint32 apn_restriction = 3;
+    uint32 c_agw_teid = 4;
+    Fteid c_pgw_fteid = 5;
+    BearerContext bearer_context = 6;
+    GtpError gtp_error = 7;
 
 }
 
 message DeleteSessionRequestPgw {
-
+    string pgwAddrs = 1;
+    string imsi = 2;
+    uint32 bearer_id = 3;
+    uint32 c_agw_teid = 4;          // AGW control plane TEID
+    Fteid c_pgw_fteid = 5;
 }
 
 message DeleteSessionResponsePgw{
+    GtpError gtp_error = 1;
+}
 
+message EchoRequest{
+    string pgwAddrs = 1;        // Ip:port of pgw to send the request
+    string imsi = 2;            // needed for nh in feg
 }
 
 message EchoResponse{
+}
+
+message GtpError {
+    uint32 cause = 1;
+    string msg= 2;
 
 }

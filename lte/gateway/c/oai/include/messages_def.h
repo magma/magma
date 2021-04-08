@@ -37,6 +37,7 @@
 #include "ip_forward_messages_def.h"
 #include "s11_messages_def.h"
 #include "s1ap_messages_def.h"
+#include "ngap_messages_def.h"
 #include "s6a_messages_def.h"
 #include "sctp_messages_def.h"
 #include "gx_messages_def.h"
@@ -46,3 +47,5 @@
 #include "async_system_messages_def.h"
 #include "udp_messages_def.h"
 #include "ha_messages_def.h"
+#include "n11_messages_def.h"
+#include "s8_messages_def.h"

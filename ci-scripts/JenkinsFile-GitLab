@@ -50,6 +50,11 @@ pipeline {
       steps {
         script {
           cleanWs()
+          sh "docker system prune -f"
+          echo "Purge old vagrant boxes"
+          sh "sudo vagrant box prune --force"
+          sh "sudo chown -R jenkins:libvirt ~jenkins/.vagrant.d"
+
           JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
           JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
 
@@ -152,6 +157,7 @@ pipeline {
                 // Manual removal of build dirs
                 try {
                   sh('cd lte/gateway && vagrant ssh magma -c "sudo rm -Rf build/c build/python"')
+
                 } catch (Exception e) {
                   echo "OK after a git clean..."
                 }
@@ -162,10 +168,11 @@ pipeline {
                 }
                 // Manually creating the c build dir
                 try {
-                  sh ('cd lte/gateway && vagrant ssh magma -c "mkdir -p build/c"' )
+                  sh('cd lte/gateway && vagrant ssh magma -c "sudo mkdir -p build/c;sudo chown -R vagrant build"')
                 } catch (Exception e) {
                   echo "It should not fail here but we still go on"
                 }
+                sh ('sudo chown -R jenkins:libvirt .cache' )
                 timeout (time: 120, unit: 'MINUTES') {
                   // removing the magma/.cache/gateway folder will slow down build from 3 minutes to 27 minutes
                   myShCmdWithLog('''cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make run "''', 'archives/magma_vagrant_make_run.log')
@@ -311,9 +318,18 @@ pipeline {
 
                 echo "Starting the integration Tests - S1AP Tester"
                 // We have removed the traffic testcases from mandatory suite.
-
+                try {
+                  sh "pip -y uninstall -y fabric"
+                } catch (Exception e) {}
+                try {
+                  sh "pip3 -y uninstall -y fabric"
+                } catch (Exception e) {}
+                sh "cd lte/gateway && virtualenv -p python3 .venv"
+                sh '''#!/bin/bash
+                  cd lte/gateway && source .venv/bin/activate && pip install fabric3 jsonpickle requests PyYAML
+                '''
                 timeout (time: 110, unit: 'MINUTES') {
-                  myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test"', 'archives/magma_run_s1ap_tester.log')
+                  myShCmdWithLog('cd lte/gateway && source .venv/bin/activate && fab run_integ_tests', 'archives/magma_run_s1ap_tester_s11.log')
                 }
 
                 timeout (time: 45, unit: 'SECONDS') {
@@ -382,10 +398,14 @@ pipeline {
         }
       }
     }
-stage ("Re-Build MME-S11") {
-  steps {
-    script {
-        // Adapt the interface and the container IP address for S11 --> SPGW-C
+    stage ("Re-Build MME-S11") {
+      steps {
+        script {
+          echo "S11 tests are disabled until March 1"
+        }
+      }
+    }
+/*        // Adapt the interface and the container IP address for S11 --> SPGW-C
         sh('sed -i -f ci-scripts/adapt-mme-yaml.sed lte/gateway/configs/mme.yml')
         sh('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make clean"')
         // Re-building w/ S11 enabled
@@ -402,42 +422,41 @@ stage ("Re-Build MME-S11") {
         } catch (Exception e) {
           echo "Status may return an error"
         }
+      }
     }
-  }
-}
-stage ("Deploy SPGW-CUPS") {
-  steps {
-    script {
-      sh('cd openair-epc-fed && git clean -ff')
-      sh('cd openair-epc-fed && ./scripts/syncComponents.sh --spgwc-branch 2020.w36 --spgwu-tiny-branch 2020.w36')
-      // Build containers if they aren't present
-      sh('cd openair-epc-fed && ls -l component && docker image inspect oai-spgwc:develop > /dev/null || docker build -f component/oai-spgwc/ci-scripts/Dockerfile.ubuntu18.04 -t oai-spgwc:develop ./component/oai-spgwc')
-      sh('cd openair-epc-fed && docker image inspect oai-spgw-tiny:develop > /dev/null || docker build -f component/oai-spgwu-tiny/ci-scripts/Dockerfile.ubuntu18.04 -t oai-spgwu-tiny:develop ./component/oai-spgwu-tiny')
-      sh('docker network create --attachable --subnet 192.168.61.128/26 --ip-range 192.168.61.128/26 magma-oai-public-net')
-      // We are fixing IP addresses to easy scripting
-      sh('docker rm -f magma-oai-spgwc magma-oai-spgwc-tiny || true')
-      sh('docker run --privileged --name magma-oai-spgwc --network magma-oai-public-net --ip 192.168.61.130 -d oai-spgwc:develop /bin/bash -c "sleep infinity"')
-      sh('docker run --privileged --name magma-oai-spgwu-tiny --network magma-oai-public-net --ip 192.168.61.131 -d oai-spgwu-tiny:develop /bin/bash -c "sleep infinity"')
-      // Configure the containers
-      sh('cd openair-epc-fed && python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --from_docker_file --apn=oai.ipv4')
-      sh('cd openair-epc-fed && python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U --sxc_ip_addr=192.168.61.130 --sxu=eth0 --s1u=eth0 --from_docker_file')
-      sh('cd openair-epc-fed && docker cp ./spgwc-cfg.sh magma-oai-spgwc:/openair-spgwc')
-      sh('docker exec -i magma-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"')
-      sh('cd openair-epc-fed && docker cp ./spgwu-cfg.sh magma-oai-spgwu-tiny:/openair-spgwu-tiny')
-      sh('docker exec -i magma-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"')
-      // adapting the UE IP pool to magma test setup
-      sh('docker cp ./ci-scripts/adapt-spgwc-pool-ip.sed magma-oai-spgwc:/openair-spgwc')
-      sh('docker exec -i magma-oai-spgwc /bin/bash -c "sed -i -f adapt-spgwc-pool-ip.sed etc/spgw_c.conf"')
-      sh('docker cp ./ci-scripts/adapt-spgwu-pool-ip.sed magma-oai-spgwu-tiny:/openair-spgwu-tiny')
-      sh('docker exec -i magma-oai-spgwu-tiny /bin/bash -c "sed -i -f adapt-spgwu-pool-ip.sed etc/spgw_u.conf"')
+    stage ("Deploy SPGW-CUPS") {
+      steps {
+        script {
+          sh('cd openair-epc-fed && git clean -ff')
+          sh('cd openair-epc-fed && ./scripts/syncComponents.sh --spgwc-branch 2020.w36 --spgwu-tiny-branch 2020.w36')
+          // Build containers if they aren't present
+          sh('cd openair-epc-fed && ls -l component && docker image inspect oai-spgwc:develop > /dev/null || docker build -f component/oai-spgwc/ci-scripts/Dockerfile.ubuntu18.04 -t oai-spgwc:develop ./component/oai-spgwc')
+          sh('cd openair-epc-fed && docker image inspect oai-spgw-tiny:develop > /dev/null || docker build -f component/oai-spgwu-tiny/ci-scripts/Dockerfile.ubuntu18.04 -t oai-spgwu-tiny:develop ./component/oai-spgwu-tiny')
+          sh('docker network create --attachable --subnet 192.168.61.128/26 --ip-range 192.168.61.128/26 magma-oai-public-net')
+          // We are fixing IP addresses to easy scripting
+          sh('docker rm -f magma-oai-spgwc magma-oai-spgwc-tiny || true')
+          sh('docker run --privileged --name magma-oai-spgwc --network magma-oai-public-net --ip 192.168.61.130 -d oai-spgwc:develop /bin/bash -c "sleep infinity"')
+          sh('docker run --privileged --name magma-oai-spgwu-tiny --network magma-oai-public-net --ip 192.168.61.131 -d oai-spgwu-tiny:develop /bin/bash -c "sleep infinity"')
+          // Configure the containers
+          sh('cd openair-epc-fed && python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --from_docker_file --apn=oai.ipv4')
+          sh('cd openair-epc-fed && python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U --sxc_ip_addr=192.168.61.130 --sxu=eth0 --s1u=eth0 --from_docker_file')
+          sh('cd openair-epc-fed && docker cp ./spgwc-cfg.sh magma-oai-spgwc:/openair-spgwc')
+          sh('docker exec -i magma-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"')
+          sh('cd openair-epc-fed && docker cp ./spgwu-cfg.sh magma-oai-spgwu-tiny:/openair-spgwu-tiny')
+          sh('docker exec -i magma-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"')
+          // adapting the UE IP pool to magma test setup
+          sh('docker cp ./ci-scripts/adapt-spgwc-pool-ip.sed magma-oai-spgwc:/openair-spgwc')
+          sh('docker exec -i magma-oai-spgwc /bin/bash -c "sed -i -f adapt-spgwc-pool-ip.sed etc/spgw_c.conf"')
+          sh('docker cp ./ci-scripts/adapt-spgwu-pool-ip.sed magma-oai-spgwu-tiny:/openair-spgwu-tiny')
+          sh('docker exec -i magma-oai-spgwu-tiny /bin/bash -c "sed -i -f adapt-spgwu-pool-ip.sed etc/spgw_u.conf"')
 
-      // Start cNFs
-      sh('docker exec -d magma-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"')
-      sh('docker exec -d magma-oai-spgwu-tiny /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"')
+          // Start cNFs
+          sh('docker exec -d magma-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"')
+          sh('docker exec -d magma-oai-spgwu-tiny /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"')
+        }
+      }
     }
-  }
-}
-stage ("Test-AGW1-w-S11") {
+    stage ("Test-AGW1-w-S11") {
       steps {
         script {
           // Adding capture on the S1 and S11 interfaces
@@ -449,7 +468,7 @@ stage ("Test-AGW1-w-S11") {
           // making sure the TRF server is up
           sh "sleep 60"
           echo "Starting the integration Tests - S1AP Tester"
-          timeout (time: 20, unit: 'MINUTES') {
+          timeout (time: 110, unit: 'MINUTES') {
             myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach.py" > ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
             myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_multi_ue.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
             myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_looped.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
@@ -518,9 +537,8 @@ stage ("Test-AGW1-w-S11") {
             sh "echo 'AGW-VM-S1AP-TESTS: KO' >> archives/magma_run_s1ap_tester_s11.log"
           }
         }
-
       }
-    }
+    }*/
   }
   post {
     always {

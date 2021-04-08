@@ -38,7 +38,10 @@ func (b *blobstoreStore) CreateTenant(tenantID int64, tenant protos.Tenant) erro
 	defer store.Rollback()
 
 	tenantBlob, err := tenantToBlob(tenantID, tenant)
-	err = store.CreateOrUpdate(networkWildcard, []blobstore.Blob{tenantBlob})
+	if err != nil {
+		return err
+	}
+	err = store.CreateOrUpdate(networkWildcard, blobstore.Blobs{tenantBlob})
 	if err != nil {
 		return err
 	}
@@ -74,7 +77,7 @@ func (b *blobstoreStore) GetAllTenants() (*protos.TenantList, error) {
 	}
 	defer store.Rollback()
 
-	keys, err := store.ListKeys(networkWildcard, tenants.TenantInfoType)
+	keys, err := blobstore.ListKeys(store, networkWildcard, tenants.TenantInfoType)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +122,7 @@ func (b *blobstoreStore) SetTenant(tenantID int64, tenant protos.Tenant) error {
 	if err != nil {
 		return err
 	}
-	err = store.CreateOrUpdate(networkWildcard, []blobstore.Blob{tenantBlob})
+	err = store.CreateOrUpdate(networkWildcard, blobstore.Blobs{tenantBlob})
 	if err != nil {
 		return err
 	}

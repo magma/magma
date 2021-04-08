@@ -19,6 +19,9 @@ pipeline {
           echo "Clean Env"
           cleanWs()
           sh "docker system prune -f"
+          echo "Purge old vagrant boxes"
+          sh "sudo vagrant box prune --force"
+          sh "sudo chown -R jenkins:libvirt ~jenkins/.vagrant.d"
           echo "Clone Sources"
           checkout(
             changelog: false, 
@@ -74,22 +77,19 @@ pipeline {
           dir('cwf/gateway') {
             // sh "sleep 10"
             sh "vagrant global-status"
-            sh "vagrant global-status 2>/dev/null | awk '/virtualbox/{print \$1}' | xargs -I {} vagrant destroy -f {}"
+            sh "vagrant global-status 2>/dev/null | awk '/workspace/{print \$1}' | xargs -I {} vagrant destroy -f {}"
             try {
-                sh "vboxmanage controlvm cwag-dev poweroff"
-                sh "vboxmanage unregistervm cwag-dev --delete"
+                sh "vboxmanage controlvm cwag-dev poweroff || true; vboxmanage unregistervm cwag-dev --delete"
             } catch (Exception e) {
                 echo "cwag-dev didn't exists as expected"
             }
             try {
-                sh "vboxmanage controlvm magma-trfserver poweroff"
-                sh "vboxmanage unregistervm magma-trfserver --delete"
+                sh "vboxmanage controlvm magma-trfserver poweroff || true; vboxmanage unregistervm magma-trfserver --delete"
             } catch (Exception e) {
                 echo "magma-trfserver didn't exists as expected"
             }
             try {
-                sh "vboxmanage controlvm cwag-test poweroff"
-                sh "vboxmanage unregistervm cwag-test --delete"
+                sh "vboxmanage controlvm cwag-test poweroff || true; vboxmanage unregistervm cwag-test --delete"
             } catch (Exception e) {
                 echo "cwag-test didn't exists as expected"
             }
@@ -150,7 +150,9 @@ pipeline {
                 }
               } catch (Exception e) {}
             }
-            archiveArtifacts("$test_folder/*")
+            timeout(time: 10, unit: 'MINUTES') {
+              archiveArtifacts("$test_folder/*")
+            }
           }
         }
       }

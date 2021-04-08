@@ -35,10 +35,15 @@ class CtraceDRpcServicer(CallTraceServiceServicer):
 
     def StartCallTrace(
         self,
-        _request: StartTraceRequest,
+        request: StartTraceRequest,
         _context,
     ) -> StartTraceResponse:
-        success = self._trace_mgr.start_trace()
+        success = self._trace_mgr.start_trace(
+            request.trace_id,
+            request.timeout,
+            request.capture_filters,
+            request.display_filters,
+        )
         response = StartTraceResponse(success=success)
         return response
 
@@ -47,9 +52,9 @@ class CtraceDRpcServicer(CallTraceServiceServicer):
         _request: EndTraceRequest,
         _context,
     ) -> EndTraceResponse:
-        data = self._trace_mgr.end_trace() # type: bytes
+        res = self._trace_mgr.end_trace() # type: EndTraceResult
         response = EndTraceResponse(
             success=True,
-            trace_content=data,
+            trace_content=res.data,
         )
         return response

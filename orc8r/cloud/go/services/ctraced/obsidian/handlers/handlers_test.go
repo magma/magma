@@ -14,16 +14,14 @@
 package handlers_test
 
 import (
-	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/ctraced/obsidian/handlers"
 	traceModels "magma/orc8r/cloud/go/services/ctraced/obsidian/models"
 	"magma/orc8r/cloud/go/services/ctraced/storage"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 	"testing"
 
@@ -52,12 +50,11 @@ func (c MockGWCtracedClient) EndCallTrace(networkId string, gatewayId string, re
 }
 
 func TestCtracedHandlersBasic(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	e := echo.New()
 
 	mockGWClient := MockGWCtracedClient{}
-	fact := blobstore.NewMemoryBlobStorageFactory()
+	fact := test_utils.NewSQLBlobstore(t, "ctraced_handlers_test_blobstore")
 	blobstore := storage.NewCtracedBlobstore(fact)
 	obsidianHandlers := handlers.GetObsidianHandlers(mockGWClient, blobstore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)

@@ -65,7 +65,7 @@ fi
 rm -rf "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 
-MAGMA_GITHUB_URL="https://github.com/facebookincubator/magma.git"
+MAGMA_GITHUB_URL="https://github.com/magma/magma.git"
 git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
 source .env

@@ -17,29 +17,16 @@ import argparse
 
 import grpc
 from feg.protos.mock_core_pb2_grpc import MockOCSStub, MockPCRFStub
-from lte.protos.policydb_pb2 import (
-    FlowDescription,
-    FlowMatch,
-    FlowQos,
-    PolicyRule,
-    QosArp,
-)
-from lte.protos.session_manager_pb2 import (
-    DynamicRuleInstall,
-    LocalCreateSessionRequest,
-    PolicyReAuthRequest,
-    QoSInformation,
-)
-from lte.protos.session_manager_pb2_grpc import (
-    LocalSessionManagerStub,
-    SessionProxyResponderStub,
-)
-from lte.protos.abort_session_pb2 import (
-    AbortSessionRequest,
-)
-from lte.protos.abort_session_pb2_grpc import (
-    AbortSessionResponderStub,
-)
+from lte.protos.abort_session_pb2 import AbortSessionRequest
+from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
+from lte.protos.policydb_pb2 import (FlowDescription, FlowMatch, FlowQos,
+                                     PolicyRule, QosArp)
+from lte.protos.session_manager_pb2 import (DynamicRuleInstall,
+                                            LocalCreateSessionRequest,
+                                            PolicyReAuthRequest,
+                                            QoSInformation)
+from lte.protos.session_manager_pb2_grpc import (LocalSessionManagerStub,
+                                                 SessionProxyResponderStub)
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import grpc_wrapper
 from magma.common.service_registry import ServiceRegistry

@@ -20,13 +20,10 @@ import (
 	"fmt"
 	"testing"
 
-	plugin2 "magma/feg/cloud/go/plugin"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
 	health_test_init "magma/feg/cloud/go/services/health/test_init"
 	"magma/feg/cloud/go/services/health/test_utils"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	orcprotos "magma/orc8r/lib/go/protos"
@@ -39,8 +36,6 @@ import (
 // providing health updates
 func TestHealthAPI_SingleFeg(t *testing.T) {
 	// Initialize test services
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	testServicer, err := health_test_init.StartTestService(t)
@@ -54,8 +49,9 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 		test_utils.TestFegHwId1,
 		test_utils.TestFegLogicalId1,
 	)
-	_, err = health.GetActiveGateway(test_utils.TestFegNetwork)
-	assert.Error(t, err)
+	active, err := health.GetActiveGateway(test_utils.TestFegNetwork)
+	assert.NoError(t, err)
+	assert.Equal(t, test_utils.TestFegNetwork, active)
 
 	// Simulate request coming from feg1
 	testServicer.Feg1 = true
@@ -87,8 +83,6 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 // providing health updates
 func TestHealthAPI_DualFeg(t *testing.T) {
 	// Initialize test services
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	testServicer, err := health_test_init.StartTestService(t)

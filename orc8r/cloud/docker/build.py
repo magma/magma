@@ -29,6 +29,8 @@ HOST_BUILD_CTX = '/tmp/magma_orc8r_build'
 HOST_MAGMA_ROOT = '../../../.'
 IMAGE_MAGMA_ROOT = os.path.join('src', 'magma')
 
+GOLINT_FILE = '.golangci.yml'
+
 MODULES = [
     'orc8r',
     'lte',
@@ -40,16 +42,16 @@ MODULES = [
 
 DEPLOYMENT_TO_MODULES = {
     'all': MODULES,
-    'orc8r': [],
-    'orc8r-f': ['fbinternal'],
-    'fwa': ['lte'],
-    'fwa-f': ['lte', 'fbinternal'],
-    'ffwa': ['lte', 'feg'],
-    'ffwa-f': ['lte', 'feg', 'fbinternal'],
-    'cwf': ['lte', 'feg', 'cwf'],
-    'cwf-f': ['lte', 'feg', 'cwf', 'fbinternal'],
-    'wifi': ['wifi'],
-    'wifi-f': ['wifi', 'fbinternal'],
+    'orc8r': ['orc8r'],
+    'orc8r-f': ['orc8r', 'fbinternal'],
+    'fwa': ['orc8r', 'lte'],
+    'fwa-f': ['orc8r', 'lte', 'fbinternal'],
+    'ffwa': ['orc8r', 'lte', 'feg'],
+    'ffwa-f': ['orc8r', 'lte', 'feg', 'fbinternal'],
+    'cwf': ['orc8r', 'lte', 'feg', 'cwf'],
+    'cwf-f': ['orc8r', 'lte', 'feg', 'cwf', 'fbinternal'],
+    'wifi': ['orc8r', 'wifi'],
+    'wifi-f': ['orc8r', 'wifi', 'fbinternal'],
 }
 
 DEPLOYMENTS = DEPLOYMENT_TO_MODULES.keys()
@@ -74,10 +76,25 @@ def main() -> None:
         _create_build_context(mods)
 
     if args.mount:
+        _run(['build', 'test'])
         _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'bash'])
         _down(args)
     elif args.generate:
+        _run(['build', 'test'])
         _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make fullgen'])
+        _down(args)
+    elif args.lint:
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make lint'])
+        _down(args)
+    elif args.precommit:
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make precommit'])
+        _down(args)
+    elif args.coverage:
+        _run(['up', '-d', 'postgres_test'])
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make cover'])
         _down(args)
     elif args.tests:
         _run(['up', '-d', 'postgres_test'])
@@ -87,6 +104,7 @@ def main() -> None:
     else:
         d_args = _get_default_file_args(args) + _get_default_build_args(args)
         _run(d_args)
+        _down(args)
 
 
 def _get_modules(mods: Iterable[str]) -> Iterable[MagmaModule]:
@@ -112,7 +130,7 @@ def _create_build_context(modules: Iterable[MagmaModule]) -> None:
 
 
 def _down(args: argparse.Namespace) -> None:
-    if not args.leave:
+    if not args.up:
         _run(['down'])
 
 
@@ -128,7 +146,14 @@ def _run(cmd: List[str]) -> None:
 
 def _get_mnt_vols(modules: Iterable[MagmaModule]) -> List[str]:
     """ Return the volumes argument for docker-compose commands """
-    vols = []
+    vols = [
+        # .golangci.yml file
+        '-v', '%s:%s' % (
+            os.path.abspath(os.path.join(HOST_MAGMA_ROOT, GOLINT_FILE)),
+            os.path.join(os.sep, IMAGE_MAGMA_ROOT, GOLINT_FILE)
+        ),
+    ]
+    # Per-module directory mounts
     for m in modules:
         vols.extend(['-v', '%s:%s' % (m.host_path, _get_module_image_dst(m))])
     return vols
@@ -252,6 +277,21 @@ def _parse_args() -> argparse.Namespace:
         action='store_true',
         help='Mount the source code and regenerate generated files',
     )
+    parser.add_argument(
+        '--precommit', '-c',
+        action='store_true',
+        help='Mount the source code and run pre-commit checks',
+    )
+    parser.add_argument(
+        '--lint', '-l',
+        action='store_true',
+        help='Mount the source code and run the linter',
+    )
+    parser.add_argument(
+        '--coverage', '-o',
+        action='store_true',
+        help='Generate test coverage statistics',
+    )
 
     # Build something
     parser.add_argument(
@@ -284,9 +324,9 @@ def _parse_args() -> argparse.Namespace:
         help='Build containers in parallel',
     )
     parser.add_argument(
-        '--leave', '-l',
+        '--up', '-u',
         action='store_true',
-        help='Leave containers running after running tests',
+        help='Leave containers up after running tests',
     )
 
     args = parser.parse_args()

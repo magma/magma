@@ -1,0 +1,7 @@
+---
+
+- include: agw-stacks.yaml
+  tags: agw
+  environment:
+    AWS_REGION: "{{ awsAgwRegion }}"
+

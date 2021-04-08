@@ -14,18 +14,17 @@ limitations under the License.
 """
 import glob
 import ipaddress
-
 import math
 from os import path
 
 from lte.protos.enodebd_pb2_grpc import EnodebdStub
-from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from lte.protos.mobilityd_pb2 import IPAddress
-from orc8r.protos.common_pb2 import Void
+from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
-from magma.health.entities import AGWHealthSummary, RegistrationSuccessRate, \
-    CoreDumps
+from magma.health.entities import (AGWHealthSummary, CoreDumps,
+                                   RegistrationSuccessRate)
+from orc8r.protos.common_pb2 import Void
 
 
 class AGWHealth:
@@ -67,11 +66,11 @@ class AGWHealth:
             attach_accepts=log.count('Attach Accept'))
 
     def get_core_dumps(self,
-                       directory='/tmp/',
+                       directory='/var/core',
                        start_timestamp=0,
                        end_timestamp=math.inf):
         res = []
-        for filename in glob.glob(path.join(directory, 'core-*_bundle')):
+        for filename in glob.glob(path.join(directory, 'core-*')):
             # core-1565125801-python3-8042_bundle
             ts = int(filename.split('-')[1])
             if start_timestamp <= ts <= end_timestamp:
@@ -88,8 +87,8 @@ class AGWHealth:
 
         mme_log_path = '/var/log/mme.log'
         health_summary = AGWHealthSummary(
-            hss_relay_enabled=config['hssRelayEnabled'],
-            nb_enbs_connected=status.meta['n_enodeb_connected'],
+            hss_relay_enabled=config.get('hssRelayEnabled', False),
+            nb_enbs_connected=status.meta.get('n_enodeb_connected', 0),
             allocated_ips=self.get_allocated_ips(),
             subscriber_table=self.get_subscriber_table(),
             core_dumps=self.get_core_dumps(),

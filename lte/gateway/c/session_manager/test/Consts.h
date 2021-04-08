@@ -40,3 +40,6 @@
 #define TEID_3_DL 32
 #define TEID_4_UL 41
 #define TEID_4_DL 42
+#define BEARER_ID_1 0
+#define BEARER_ID_2 2
+#define BEARER_ID_3 3

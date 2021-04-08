@@ -865,6 +865,21 @@ definitions:
         example: false
     x-go-custom-tag: 'magma_alt_name:"HSS"'
 
+  s8:
+    type: object
+    description: s8 configuration
+    properties:
+      local_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+      pgw_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+
   gx:
     type: object
     description: gx configuration
@@ -1162,6 +1177,8 @@ definitions:
     properties:
       s6a:
         $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
       hss:
         $ref: '#/definitions/hss'
       gx:
@@ -1479,6 +1496,8 @@ definitions:
     properties:
       s6a:
         $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
       hss:
         $ref: '#/definitions/hss'
       gx:
@@ -1514,6 +1533,8 @@ definitions:
       feg_network_id:
         type: string
         example: 'example_feg_network'
+      federated_modes_mapping:
+        $ref: '#/definitions/federated_mode_map'
 
   federation_network_cluster_status:
     description: Status of a Federation HA cluster
@@ -1542,3 +1563,45 @@ definitions:
       description:
         type: string
         x-nullable: false
+
+  federated_mode_map:
+    description: Mapping for PLMN, imsi ranges, vs its gateway mode
+    type: object
+    properties:
+      enabled:
+        description: If Enabled is false, mapping will not be applied
+        type: boolean
+        x-nullable: false
+        example: false
+        default: false
+      mapping:
+        type: array
+        items:
+          $ref: '#/definitions/mode_map_item'
+
+  mode_map_item:
+    description: Item containing {mode, [plmnA, plmB], [imsi1, imsi2], [apnY, apnZ]}
+    type: object
+    properties:
+      mode:
+        type: string
+        enum:
+        - local_subscriber
+        - s8_subscriber
+        example: local_subscriber
+        x-nullable: false
+      plmn:
+        type: string
+        x-nullable: false
+        minLength: 5
+        maxLength: 6
+        pattern: '^(\d{5,6})$'
+        example: '123456'
+      imsi_range:
+        type: string
+        x-nullable: false
+        example: '000000000000000:000019999999999'
+      apn:
+        type: string
+        x-nullable: false
+        example: 'internet.com'

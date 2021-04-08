@@ -21,17 +21,27 @@ MAGMA_MODULES := \
 $(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
 endif
 
-SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
+SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/obsidian/swagger
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
-SWAGGER_V1_CONFIG := $(SWAGGER_ROOT)/v1/goswagger-config.yml
-SWAGGER_V1_TMP_GEN := $(SWAGGER_ROOT)/v1/tmp
+SWAGGER_V1_CONFIG := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/goswagger-config.yml
+SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/swagger/specs
+SWAGGER_V1_PARTIAL_SPECS_DIR := $(SWAGGER_V1_SPECS_DIR)/partial
+SWAGGER_V1_COMMON_DIR := $(SWAGGER_V1_SPECS_DIR)/common
+SWAGGER_V1_STANDALONE_DIR := $(SWAGGER_V1_SPECS_DIR)/standalone
+
 export SWAGGER_ROOT
 export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
 export SWAGGER_V1_CONFIG
-export SWAGGER_V1_TMP_GEN
+export SWAGGER_V1_SPECS_DIR
+export SWAGGER_V1_COMMON_DIR
+export SWAGGER_V1_PARTIAL_SPECS_DIR
+export SWAGGER_V1_STANDALONE_DIR
+
+COVER_DIR := $(MAGMA_ROOT)/orc8r/cloud/coverage
+export COVER_DIR
 
 #############
 ## Modules ##
@@ -53,7 +63,6 @@ define add_module
 	TEST_LIST += $(MODULE)_test
 	TIDY_LIST += $(MODULE)_tidy
 	TOOLS_LIST += $(MODULE)_tools
-	VET_LIST += $(MODULE)_vet
 
 	MIGRATION_PLUGIN_LIST += $(MODULE)_migrationplugin
 endef
@@ -63,9 +72,9 @@ _ := $(foreach module, $(MAGMA_MODULES), $(eval $(call add_module,$(module))))
 ## General rules ##
 ###################
 
-precommit: fmt test vet swagger_validate
+precommit: fmt lint test
 
-build: plugin $(BUILD_LIST) migration_plugin swagger
+build: $(BUILD_LIST) migration_plugin swagger
 $(BUILD_LIST): %_build:
 	make -C $*/cloud/go build
 
@@ -77,11 +86,13 @@ clean_gen: $(CLEAN_GEN_LIST)
 $(CLEAN_GEN_LIST): %_cleangen:
 	make -C $*/cloud/go clean_gen
 
-COVER_DIR := /var/tmp
-export COVER_DIR
-cover: $(COVER_LIST)
+cover: cover_pre $(COVER_LIST) cover_post
 $(COVER_LIST): %_cover:
 	make -C $*/cloud/go cover
+cover_pre:
+	mkdir -p $(COVER_DIR)
+cover_post:
+	gocovmerge $(COVER_DIR)/** > $(COVER_DIR)/all.gocov
 
 download: $(DOWNLOAD_LIST)
 $(DOWNLOAD_LIST): %_download:
@@ -90,56 +101,53 @@ $(DOWNLOAD_LIST): %_download:
 fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go fmt ; fi
 
-gen: tools swagger $(GEN_LIST)
+gen: tools $(GEN_LIST)
 $(GEN_LIST): %_gen:
 	make -C $*/cloud/go gen
 
-fullgen: clean_gen gen tidy
+fullgen: clean_gen gen swagger tidy
 
-lint: $(LINT_LIST)
+lint: lint_tools $(LINT_LIST)
 $(LINT_LIST): %_lint:
 	make -C $*/cloud/go lint
-
-plugin: $(PLUGIN_LIST)
-$(PLUGIN_LIST): %_plugin:
-	make -C $*/cloud/go plugin
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go lint ; fi
 
 test: tools $(TEST_LIST)
 $(TEST_LIST): %_test:
 	make -C $*/cloud/go test
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go test ; fi
 
 tidy: $(TIDY_LIST)
 $(TIDY_LIST): %_tidy:
 	make -C $*/cloud/go tidy
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go tidy ; fi
 
 tools: $(TOOLS_LIST)
 $(TOOLS_LIST): %_tools:
 	make -C $*/cloud/go tools
 
-vet: $(VET_LIST)
-$(VET_LIST): %_vet:
-	make -C $*/cloud/go vet
+lint_tools:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+		| sh -s -- -b $$(go env GOPATH)/bin v1.35.2
 
 ######################
 ## Swagger/API docs ##
 ######################
 
-swagger: tools swagger_directories $(SWAGGER_LIST)
-	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
-	combine_swagger --in=$(SWAGGER_V1_TMP_GEN) --common=$(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
-	rm -rf $(SWAGGER_V1_TMP_GEN)
-	rm $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
+swagger: swagger_directories $(SWAGGER_LIST)
+	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON)
+	combine_swagger --in=$(SWAGGER_V1_PARTIAL_SPECS_DIR) --common=$(SWAGGER_V1_COMMON_DIR)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
+	swagger validate $(SWAGGER_V1_YML)
 
 swagger_directories:
-	rm -rf $(SWAGGER_V1_TMP_GEN)
-	mkdir $(SWAGGER_V1_TMP_GEN)
+	rm -rf $(SWAGGER_V1_SPECS_DIR)
+	mkdir -p $(SWAGGER_V1_COMMON_DIR) $(SWAGGER_V1_PARTIAL_SPECS_DIR) $(SWAGGER_V1_STANDALONE_DIR)
+
 
 $(SWAGGER_LIST): %_swagger:
-	make -C $*/cloud/go copy_swagger_files
-
-swagger_validate: swagger
-	swagger validate $(SWAGGER_V1_YML)
+	make -C $*/cloud/go swagger_tools copy_swagger_files
 
 ##########
 ## Misc ##

@@ -11,16 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import ipaddress
+import re
+import subprocess
+from datetime import datetime
 from time import sleep
 
 import fire
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.common_pb2 import Void
-
-import subprocess
-import re
-from datetime import datetime
 
 
 class MonitoringCLI(object):

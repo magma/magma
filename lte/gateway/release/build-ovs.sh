@@ -40,7 +40,7 @@
 
 set -e
 WORK_DIR=/tmp/build-ovs
-OVS_VERSION_SHORT="2.8.9"
+OVS_VERSION_SHORT="2.8.10"
 OVS_VERSION="v${OVS_VERSION_SHORT}"
 MAGMA_ROOT="$(realpath "$(dirname $0)"/../../../)"
 GTP_PATCH_PATH="${MAGMA_ROOT}/third_party/gtp_ovs/kernel-4.9"
@@ -51,7 +51,7 @@ FLOWBASED_PATH=$(readlink -f ${MAGMA_ROOT}/third_party/gtp_ovs/kernel-4.9/gtp-v4
 PATCH_ROOT=$(readlink -f "$GTP_PATCH_PATH/$OVS_VERSION_SHORT/")
 VLAN_FIX="3cf2b424bb"
 # be sure to increment this to enable upgrade from package repo when rebuilding identical upstream versions
-LOCAL_REV=1
+LOCAL_REV=2
 
 # The resulting package is placed in $OUTPUT_DIR
 # or in the cwd.

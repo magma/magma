@@ -17,13 +17,14 @@
 #include "SessionID.h"
 
 SessionIDGenerator::SessionIDGenerator() {
-  // init random seed
-  srand(time(NULL));
+  std::random_device rseed;
+  rgen_  = std::mt19937(rseed());  // mersenne_twister
+  idist_ = std::uniform_int_distribution<int>(0, 999999);
 }
 
 std::string SessionIDGenerator::gen_session_id(const std::string& imsi) {
   // imsi- + random 6 digit number
-  return imsi + "-" + std::to_string(rand() % 1000000);
+  return imsi + "-" + std::to_string(idist_(rgen_));
 }
 
 bool SessionIDGenerator::get_imsi_from_session_id(

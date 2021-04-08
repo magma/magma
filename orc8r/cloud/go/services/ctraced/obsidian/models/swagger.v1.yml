@@ -125,6 +125,9 @@ paths:
           schema:
             type: file
             format: binary
+          headers:
+            Content-Disposition:
+              type: string
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -174,6 +177,9 @@ definitions:
         x-nullable: false
         enum:
           - 'GATEWAY'
+        description: >
+          Trace Type:
+           * GATEWAY - Call trace for a gateway
       gateway_id:
         description: ID of gateway to run call tracing on
         type: string
@@ -182,6 +188,18 @@ definitions:
         description: Timeout of call trace in seconds
         type: integer
         format: uint32
+      capture_filters:
+        description: >
+          Capture filter options for TShark as it would be typed out in shell.
+          Only applies if trace_type is GATEWAY_CUSTOM.
+        type: string
+        example: tcp and port 80
+      display_filters:
+        description: >
+          Display filter options for TShark as it would be typed out in shell.
+          Only applies if trace_type is GATEWAY_CUSTOM.
+        type: string
+        example: ip.addr == 10.0.0.1
 
   call_trace_state:
     type: object

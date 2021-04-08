@@ -90,8 +90,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager(datapath, self.loop, self._config)
-        self._qos_mgr.setup()
+        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
 
     def deactivate_rules(self, imsi, ip_addr, rule_ids):
         """
@@ -161,7 +160,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         self._qos_mgr.remove_subscriber_qos(imsi, num)
         self._remove_he_flows(ip_addr, rule_id)
 
-    def _install_flow_for_rule(self, imsi, msisdn:bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn:bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -173,7 +172,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         if rule.redirect.support == rule.redirect.ENABLED:
-            self._install_redirect_flow(imsi, ip_addr, rule)
+            self._install_redirect_flow(imsi, ip_addr, rule, version)
             return RuleModResult.SUCCESS
 
         if not rule.flow_list:
@@ -183,7 +182,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
 
         flow_adds = []
         try:
-            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
         except FlowMatchError:
             return RuleModResult.FAILURE
 
@@ -216,11 +215,8 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
 
-    def _install_redirect_flow(self, imsi, ip_addr, rule):
+    def _install_redirect_flow(self, imsi, ip_addr, rule, version):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        rule_version = self._session_rule_version_mapper.get_version(imsi,
-                                                                     ip_addr,
-                                                                     rule.id)
         # CWF generates an internal IP for redirection so ip_addr is not needed
         if self._setup_type == 'CWF':
             ip_addr_str = None
@@ -234,7 +230,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             ip_addr=ip_addr_str,
             rule=rule,
             rule_num=rule_num,
-            rule_version=rule_version,
+            rule_version=version,
             priority=priority)
         try:
             if self._setup_type == 'CWF':
@@ -268,7 +264,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
 
         return {self.tbl_num: [msg]}
 
-    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -286,8 +282,6 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
-                version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
-                                                                        rule.id)
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
@@ -326,3 +320,6 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
     @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
+
+    def recover_state(self, _):
+        pass

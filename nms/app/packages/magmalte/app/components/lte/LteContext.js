@@ -13,7 +13,22 @@
  * @flow strict-local
  * @format
  */
+import * as React from 'react';
+import ApnContext from '../context/ApnContext';
+import EnodebContext from '../context/EnodebContext';
+import GatewayContext from '../context/GatewayContext';
+import GatewayPoolsContext from '../context/GatewayPoolsContext';
+import GatewayTierContext from '../context/GatewayTierContext';
+import InitSubscriberState from '../../state/lte/SubscriberState';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LteNetworkContext from '../context/LteNetworkContext';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import NetworkContext from '../../components/context/NetworkContext';
+import PolicyContext from '../context/PolicyContext';
+import SubscriberContext from '../context/SubscriberContext';
+import TraceContext from '../context/TraceContext';
 import type {EnodebInfo} from '../lte/EnodebUtils';
+import type {EnodebState} from '../context/EnodebContext';
 import type {
   apn,
   call_trace,
@@ -33,29 +48,19 @@ import type {
   subscriber_id,
   tier,
 } from '@fbcnms/magma-api';
-
-import * as React from 'react';
-import ApnContext from '../context/ApnContext';
-import EnodebContext from '../context/EnodebContext';
-import GatewayContext from '../context/GatewayContext';
-import GatewayTierContext from '../context/GatewayTierContext';
-import InitSubscriberState from '../../state/lte/SubscriberState';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import LteNetworkContext from '../context/LteNetworkContext';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import NetworkContext from '../../components/context/NetworkContext';
-import PolicyContext from '../context/PolicyContext';
-import SubscriberContext from '../context/SubscriberContext';
-import TraceContext from '../context/TraceContext';
+import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
 import {FEG_LTE, LTE} from '@fbcnms/types/network';
 import {
   InitEnodeState,
+  InitGatewayPoolState,
   InitTierState,
   SetEnodebState,
+  SetGatewayPoolsState,
   SetGatewayState,
   SetTierState,
   UpdateGateway,
+  UpdateGatewayPoolRecords,
 } from '../../state/lte/EquipmentState';
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
@@ -111,13 +116,14 @@ export function GatewayContextProvider(props: Props) {
     <GatewayContext.Provider
       value={{
         state: lteGateways,
-        setState: (key, value?) => {
+        setState: (key, value?, newState?) => {
           return SetGatewayState({
             lteGateways,
             setLteGateways,
             networkId,
             key,
             value,
+            newState,
           });
         },
         updateGateway: props =>
@@ -134,7 +140,6 @@ export function EnodebContextProvider(props: Props) {
   const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
-
   useEffect(() => {
     const fetchState = async () => {
       try {
@@ -166,8 +171,16 @@ export function EnodebContextProvider(props: Props) {
       value={{
         state: {enbInfo},
         lteRanConfigs: lteRanConfigs,
-        setState: (key, value?) =>
-          SetEnodebState({enbInfo, setEnbInfo, networkId, key, value}),
+        setState: (key: string, value?, newState?: EnodebState) => {
+          return SetEnodebState({
+            enbInfo,
+            setEnbInfo,
+            networkId,
+            key,
+            value,
+            newState,
+          });
+        },
         setLteRanConfigs: lteRanConfigs => setLteRanConfigs(lteRanConfigs),
       }}>
       {props.children}
@@ -228,7 +241,6 @@ export function SubscriberContextProvider(props: Props) {
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
-
   useEffect(() => {
     const fetchLteState = async () => {
       if (networkId == null) {
@@ -257,17 +269,79 @@ export function SubscriberContextProvider(props: Props) {
         metrics: subscriberMetrics,
         sessionState: sessionState,
         gwSubscriberMap: getSubscriberGatewayMap(subscriberMap),
-        setState: (key: subscriber_id, value?: mutable_subscriber) =>
+        setState: (key: subscriber_id, value?: mutable_subscriber, newState?) =>
           setSubscriberState({
             networkId,
             subscriberMap,
             setSubscriberMap,
+            setSessionState,
             key,
             value,
+            newState,
           }),
       }}>
       {props.children}
     </SubscriberContext.Provider>
+  );
+}
+
+export function GatewayPoolsContextProvider(props: Props) {
+  const {networkId} = props;
+  const [isLoading, setIsLoading] = useState(true);
+  const [gatewayPools, setGatewayPools] = useState<{
+    [string]: gatewayPoolsStateType,
+  }>({});
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  useEffect(() => {
+    const fetchState = async () => {
+      try {
+        if (networkId == null) {
+          return;
+        }
+        await InitGatewayPoolState({
+          enqueueSnackbar,
+          networkId,
+          setGatewayPools,
+        });
+      } catch (e) {
+        enqueueSnackbar?.('failed fetching gateway pool information', {
+          variant: 'error',
+        });
+      }
+      setIsLoading(false);
+    };
+    fetchState();
+  }, [networkId, enqueueSnackbar]);
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
+  return (
+    <GatewayPoolsContext.Provider
+      value={{
+        state: gatewayPools,
+        setState: (key, value?) =>
+          SetGatewayPoolsState({
+            gatewayPools,
+            setGatewayPools,
+            networkId,
+            key,
+            value,
+          }),
+        updateGatewayPoolRecords: (key, value?, resources?) =>
+          UpdateGatewayPoolRecords({
+            gatewayPools,
+            setGatewayPools,
+            networkId,
+            key,
+            value,
+            resources,
+          }),
+      }}>
+      {props.children}
+    </GatewayPoolsContext.Provider>
   );
 }
 
@@ -335,6 +409,10 @@ export function PolicyProvider(props: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const networkType = networkCtx.networkType;
   const enqueueSnackbar = useEnqueueSnackbar();
+  let fegNetworkId = '';
+  if (networkType === FEG_LTE) {
+    fegNetworkId = lteNetworkCtx.state?.federation.feg_network_id;
+  }
 
   useEffect(() => {
     const fetchState = async () => {
@@ -351,18 +429,15 @@ export function PolicyProvider(props: Props) {
         setQosProfiles(
           await MagmaV1API.getLteByNetworkIdPolicyQosProfiles({networkId}),
         );
-        if (networkType === FEG_LTE) {
-          const fegNetworkId = lteNetworkCtx.state?.federation.feg_network_id;
-          if (fegNetworkId != null && fegNetworkId !== '') {
-            setFegNetwork(
-              await MagmaV1API.getFegByNetworkId({networkId: fegNetworkId}),
-            );
-            setFegPolicies(
-              await MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull({
-                networkId: fegNetworkId,
-              }),
-            );
-          }
+        if (fegNetworkId != null && fegNetworkId !== '') {
+          setFegNetwork(
+            await MagmaV1API.getFegByNetworkId({networkId: fegNetworkId}),
+          );
+          setFegPolicies(
+            await MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull({
+              networkId: fegNetworkId,
+            }),
+          );
         }
       } catch (e) {
         enqueueSnackbar?.('failed fetching policy information', {
@@ -372,7 +447,7 @@ export function PolicyProvider(props: Props) {
       setIsLoading(false);
     };
     fetchState();
-  }, [networkId, networkType, lteNetworkCtx, enqueueSnackbar]);
+  }, [networkId, fegNetworkId, networkType, enqueueSnackbar]);
 
   if (isLoading) {
     return <LoadingFiller />;
@@ -671,9 +746,11 @@ export function LteContextProvider(props: Props) {
             <GatewayTierContextProvider {...{networkId, networkType}}>
               <EnodebContextProvider {...{networkId, networkType}}>
                 <GatewayContextProvider {...{networkId, networkType}}>
-                  <TraceContextProvider {...{networkId, networkType}}>
-                    {props.children}
-                  </TraceContextProvider>
+                  <GatewayPoolsContextProvider {...{networkId, networkType}}>
+                    <TraceContextProvider {...{networkId, networkType}}>
+                      {props.children}
+                    </TraceContextProvider>
+                  </GatewayPoolsContextProvider>
                 </GatewayContextProvider>
               </EnodebContextProvider>
             </GatewayTierContextProvider>

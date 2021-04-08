@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	lte_plugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/serdes"
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -26,7 +25,6 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	subscriber_streamer "magma/lte/cloud/go/services/subscriberdb/streamer"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
@@ -36,7 +34,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 // Ensure provider servicer properly forwards update requests
@@ -48,7 +46,6 @@ func TestLTEStreamProviderServicer_GetUpdates(t *testing.T) {
 		subscriberStreamer = &subscriber_streamer.SubscribersProvider{}
 	)
 
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 	configurator_test_init.StartTestService(t)
 	lte_test_init.StartTestService(t)
 

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from prometheus_client import Gauge, Counter
+from prometheus_client import Counter, Gauge
 
 # Gauges for current eNodeB status
 STAT_ENODEB_CONNECTED = Gauge('enodeb_mgmt_connected',

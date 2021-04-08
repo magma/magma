@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**/**",
+                "${workspaceFolder}/build/c/oai/tasks/s1ap/r15/", // Requires `make build_oai` to generate
+                "${workspaceFolder}/lte/gateway/c/oai/common/*",
+                "${workspaceFolder}/lte/gateway/c/oai/include/*",
+                "${workspaceFolder}/lte/gateway/c/oai/lib/3gpp/*",
+                "${workspaceFolder}/lte/gateway/c/oai/lib/bstr/*",
+                "${workspaceFolder}/lte/gateway/c/oai/lib/hashtable/*",
+                "${workspaceFolder}/lte/gateway/c/oai/lib/itti/*",
+                "${workspaceFolder}/lte/gateway/c/oai/tasks/mme_app/",
+                "${workspaceFolder}/lte/gateway/c/oai/tasks/nas/util/"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

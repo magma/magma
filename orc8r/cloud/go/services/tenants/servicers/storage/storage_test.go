@@ -43,12 +43,12 @@ func setupTestStore() (*mocks.TransactionalBlobStorage, Store) {
 
 func TestBlobstoreStore_CreateTenant(t *testing.T) {
 	txStore, s := setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, []blobstore.Blob{sampleTenant0Blob}).Return(nil)
+	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(nil)
 	err := s.CreateTenant(0, sampleTenant0)
 	assert.NoError(t, err)
 
 	txStore, s = setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, []blobstore.Blob{sampleTenant0Blob}).Return(errors.New("error"))
+	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(errors.New("error"))
 	err = s.CreateTenant(0, sampleTenant0)
 	assert.EqualError(t, err, "error")
 }
@@ -62,14 +62,23 @@ func TestBlobstoreStore_GetTenant(t *testing.T) {
 
 	txStore, s = setupTestStore()
 	txStore.On("Get", networkWildcard, storage.TypeAndKey{Type: tenants.TenantInfoType, Key: "0"}).Return(blobstore.Blob{}, errors.New("error"))
-	tenant, err = s.GetTenant(0)
+	_, err = s.GetTenant(0)
 	assert.EqualError(t, err, "error")
 }
 
 func TestBlobstoreStore_GetAllTenants(t *testing.T) {
+	networkWildCard := "*"
+	completeSearchResult := map[string]blobstore.Blobs{networkWildCard: {sampleTenant0Blob, sampleTenant1Blob}}
+	partialSearchResult := map[string]blobstore.Blobs{networkWildCard: {sampleTenant0Blob}}
+
 	// Successful GetAll
 	txStore, s := setupTestStore()
-	txStore.On("ListKeys", networkWildcard, tenants.TenantInfoType).Return([]string{"0", "1"}, nil)
+
+	txStore.On(
+		"Search",
+		blobstore.CreateSearchFilter(&networkWildCard, []string{tenants.TenantInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(completeSearchResult, nil)
 	txStore.On("GetMany", networkWildcard, []storage.TypeAndKey{
 		{
 			Type: tenants.TenantInfoType,
@@ -78,7 +87,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 			Type: tenants.TenantInfoType,
 			Key:  "1",
 		},
-	}).Return([]blobstore.Blob{sampleTenant0Blob, sampleTenant1Blob}, nil)
+	}).Return(blobstore.Blobs{sampleTenant0Blob, sampleTenant1Blob}, nil)
 
 	retTenants, err := s.GetAllTenants()
 	assert.NoError(t, err)
@@ -89,44 +98,55 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 
 	// Error in ListKeys
 	txStore, s = setupTestStore()
-	txStore.On("ListKeys", networkWildcard, tenants.TenantInfoType).Return(nil, errors.New("error"))
-	retTenants, err = s.GetAllTenants()
+	txStore.On(
+		"Search",
+		blobstore.CreateSearchFilter(&networkWildCard, []string{tenants.TenantInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(map[string]blobstore.Blobs{}, errors.New("error"))
+	_, err = s.GetAllTenants()
 	assert.EqualError(t, err, "error")
 
 	// Error in GetMany
 	txStore, s = setupTestStore()
-	txStore.On("ListKeys", networkWildcard, tenants.TenantInfoType).Return([]string{"0"}, nil)
+	txStore.On(
+		"Search",
+		blobstore.CreateSearchFilter(&networkWildCard, []string{tenants.TenantInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(partialSearchResult, nil)
 	txStore.On("GetMany", networkWildcard, []storage.TypeAndKey{
 		{
 			Type: tenants.TenantInfoType,
 			Key:  "0",
 		},
-	}).Return([]blobstore.Blob{}, errors.New("error"))
-	retTenants, err = s.GetAllTenants()
+	}).Return(blobstore.Blobs{}, errors.New("error"))
+	_, err = s.GetAllTenants()
 	assert.EqualError(t, err, "error")
 
 	// Non-integer key in tenant
 	txStore, s = setupTestStore()
-	txStore.On("ListKeys", networkWildcard, tenants.TenantInfoType).Return([]string{"0"}, nil)
+	txStore.On(
+		"Search",
+		blobstore.CreateSearchFilter(&networkWildCard, []string{tenants.TenantInfoType}, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).Return(partialSearchResult, nil)
 	txStore.On("GetMany", networkWildcard, []storage.TypeAndKey{
 		{
 			Type: tenants.TenantInfoType,
 			Key:  "0",
 		},
-	}).Return([]blobstore.Blob{invalidBlob}, nil)
-	retTenants, err = s.GetAllTenants()
+	}).Return(blobstore.Blobs{invalidBlob}, nil)
+	_, err = s.GetAllTenants()
 	assert.EqualError(t, err, `non-integer key: strconv.ParseInt: parsing "word": invalid syntax`)
-
 }
 
 func TestBlobstoreStore_SetTenant(t *testing.T) {
 	txStore, s := setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, []blobstore.Blob{sampleTenant0Blob}).Return(nil)
+	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(nil)
 	err := s.SetTenant(0, sampleTenant0)
 	assert.NoError(t, err)
 
 	txStore, s = setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, []blobstore.Blob{sampleTenant0Blob}).Return(errors.New("error"))
+	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(errors.New("error"))
 	err = s.SetTenant(0, sampleTenant0)
 	assert.EqualError(t, err, "error")
 }

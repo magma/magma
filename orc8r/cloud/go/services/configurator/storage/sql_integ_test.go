@@ -28,6 +28,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	integTestMaxLoadSize = 5
+)
+
 type mockIDGenerator struct {
 	count int
 }
@@ -39,12 +43,12 @@ func (g *mockIDGenerator) New() string {
 
 func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// sqlite's default behavior is to disable foreign keys (wat): https://www.sqlite.org/draft/pragma.html#pragma_foreign_keys
-	// thankfully the sqlite3 driver supports the apporpriate pragma: https://github.com/mattn/go-sqlite3/issues/255
+	// thankfully the sqlite3 driver supports the appropriate pragma: https://github.com/mattn/go-sqlite3/issues/255
 	db, err := sqorc.Open("sqlite3", ":memory:?_foreign_keys=1")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder())
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder(), integTestMaxLoadSize)
 	err = factory.InitializeServiceStorage()
 	assert.NoError(t, err)
 
@@ -106,6 +110,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// ========================================================================
 
 	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
 	loadedNetworks, err := store.LoadAllNetworks(storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
 	assert.Equal(t, "n1", loadedNetworks[0].ID)
@@ -193,6 +198,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// ========================================================================
 
 	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
 
 	actualEntityLoad, err := store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
@@ -901,4 +907,105 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 		allEnts,
 	)
+	assert.NoError(t, store.Commit())
+
+	// ========================================================================
+	// Paginated load tests
+	// ========================================================================
+
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+
+	// Create two more entities of type foo for paginated load
+	expectedFoozedEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+		Type: "foo",
+		Key:  "zed",
+
+		Name:        "foozed",
+		Description: "foozed ent",
+
+		PhysicalID: "6",
+
+		Config: []byte("foozed"),
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "18", expectedFoozedEnt.GraphID)
+
+	expectedFoohueEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+		Type: "foo",
+		Key:  "hue",
+
+		Name:        "foohue",
+		Description: "foozed ent",
+
+		PhysicalID: "7",
+
+		Config: []byte("foohue"),
+	})
+	assert.NoError(t, err)
+	assert.NoError(t, store.Commit())
+	assert.Equal(t, "20", expectedFoohueEnt.GraphID)
+
+	// Load paginated entities of the same type
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	paginatedLoadCriteria := storage.FullEntityLoadCriteria
+	paginatedLoadCriteria.PageToken = ""
+	paginatedLoadCriteria.PageSize = 2
+	expectedBarbazEnt.Permissions = []*storage.ACL{}
+	actualEntityLoad, err = store.LoadEntities("n1", storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}}, paginatedLoadCriteria)
+	assert.NoError(t, err)
+	nextToken := &storage.EntityPageToken{
+		LastIncludedEntity: "hue",
+	}
+	expectedNextToken := serializeToken(t, nextToken)
+
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				&expectedFoobarEnt, // type: foo, key: bar
+				&expectedFoohueEnt, // type: foo, key: hue
+			},
+			EntitiesNotFound: []*storage.EntityID{},
+			NextPageToken:    expectedNextToken,
+		},
+		actualEntityLoad,
+	)
+	assert.NoError(t, store.Commit())
+
+	// Load paginated entities (page 2)
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	paginatedLoadCriteria.PageToken = expectedNextToken
+	actualEntityLoad, err = store.LoadEntities("n1", storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}}, paginatedLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				&expectedFoozedEnt, // type: foo, key: zed
+			},
+			EntitiesNotFound: []*storage.EntityID{},
+			NextPageToken:    "",
+		},
+		actualEntityLoad,
+	)
+	assert.NoError(t, store.Commit())
+
+	// Ensure multi-type pagination loads fail
+	paginatedLoadCriteria.PageToken = ""
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	_, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, paginatedLoadCriteria)
+	assert.Error(t, err)
+	assert.NoError(t, store.Commit())
+
+	paginatedLoadCriteria.PageToken = "aaa"
+	paginatedLoadCriteria.PageSize = 0
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	_, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, paginatedLoadCriteria)
+	assert.Error(t, err)
+	assert.NoError(t, store.Commit())
 }
