@@ -16,12 +16,11 @@ Script to trigger pre and post start commands for the Sctpd systemd unit
 """
 
 import argparse
+import os
 import subprocess
 import sys
 import time
 from enum import Enum
-
-import os
 
 from magma.common.redis.client import get_default_client
 from magma.configuration.service_configs import (load_override_config,
