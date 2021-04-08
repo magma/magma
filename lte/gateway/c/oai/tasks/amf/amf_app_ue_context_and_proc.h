@@ -755,4 +755,14 @@ void amf_app_handle_cm_idle_on_ue_context_release(
 void ue_context_release_command(
     amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
     Ngcause ng_cause);
+
+// NAS5G encode and decode routines with security header support
+int nas5g_message_decode(
+    const unsigned char* const buffer, amf_nas_message_t* msg, uint32_t length,
+    void* security, amf_nas_message_decode_status_t* status);
+
+int nas5g_message_encode(
+    unsigned char* buffer, const amf_nas_message_t* const msg, uint32_t length,
+    void* security);
+
 }  // namespace magma5g

@@ -46,6 +46,9 @@ typedef uint32_t amf_ue_ngap_id_t;
 namespace magma5g {
 /*forward declaration*/
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
+extern ue_m5gmm_context_s
+    ue_m5gmm_global_context;  // TODO This has been taken care in new PR with
+                              // multi UE feature
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
 static int amf_as_security_req(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg);
@@ -123,6 +126,14 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   }
 
   ue_m5gmm_context->mm_state = UNREGISTERED;
+  amf_context_t* amf_ctx    = NULL;
+  amf_ctx                   = &ue_m5gmm_context->amf_context;
+
+  if (amf_ctx) {
+    if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
+      amf_security_context = &amf_ctx->_security;
+    }
+  }
 
   // Decode initial NAS message
   decoder_rc = nas5g_message_decode(
@@ -306,10 +317,8 @@ static int amf_as_encode(
 
   if (*info) {
     // Encode the NAS message
-    AmfMsg amf_msg;
-    bytes = amf_msg.M5gNasMessageEncodeMsg(
-        (AmfMsg*) &msg->security_protected.plain.amf, (uint8_t*) (*info)->data,
-        (uint32_t) length);
+    bytes =
+        nas5g_message_encode((*info)->data, msg, length, amf_security_context);
 
     if (bytes > 0) {
       (*info)->slen = bytes;
@@ -744,6 +753,30 @@ static int amf_auth_request(
     amf_msg->auth_rand.rand_val.assign(
         (const char*) aia_t.auth_info.eutran_vector[0].rand,
         RAND_LENGTH_OCTETS);
+    memcpy(
+        ue_context->amf_context
+            ._vector
+                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
+            .autn,
+        aia_t.auth_info.eutran_vector[0].autn, AUTN_LENGTH_OCTETS);
+    memcpy(
+        ue_context->amf_context
+            ._vector
+                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
+            .rand,
+        aia_t.auth_info.eutran_vector[0].rand, RAND_LENGTH_OCTETS);
+    memcpy(
+        ue_context->amf_context
+            ._vector
+                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
+            .ck,
+        aia_t.auth_info.eutran_vector[0].ck, CK_LENGTH_OCTETS);
+    memcpy(
+        ue_context->amf_context
+            ._vector
+                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
+            .ik,
+        aia_t.auth_info.eutran_vector[0].ik, IK_LENGTH_OCTETS);
   } else {
     OAILOG_DEBUG(LOG_AMF_APP, "s6a_air request failed\n");
   }

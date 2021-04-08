@@ -87,6 +87,24 @@ void convert_proto_msg_to_itti_s6a_auth_info_ans(
                 << eutran_vector.kasme().length() << std::endl;
       return;
     }
+    if (eutran_vector.ck().length() == CK_LENGTH_OCTETS) {
+      memcpy(
+          itti_eutran_vector->ck, eutran_vector.ck().c_str(),
+          eutran_vector.ck().length());
+    } else {
+      std::cout << "[ERROR] Invalid CK length " << eutran_vector.ck().length()
+                << std::endl;
+      return;
+    }
+    if (eutran_vector.ik().length() == IK_LENGTH_OCTETS) {
+      memcpy(
+          itti_eutran_vector->ik, eutran_vector.ik().c_str(),
+          eutran_vector.ik().length());
+    } else {
+      std::cout << "[ERROR] Invalid IK length " << eutran_vector.ik().length()
+                << std::endl;
+      return;
+    }
     ++idx;
   }
   return;

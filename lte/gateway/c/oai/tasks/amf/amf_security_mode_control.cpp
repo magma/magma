@@ -161,8 +161,13 @@ int amf_proc_security_mode_control(
   int rc                       = RETURNerror;
   bool security_context_is_new = false;
   // TODO: Hardcoded values Will be taken care in upcoming PR
-  int amf_eea = 0;
-  int amf_eia = 0;
+  int amf_eea       = 0;
+  int amf_eia       = 2;  // Integrity Algorithm 2
+  uint8_t snni[32]  = {0};
+  uint8_t kausf[32] = {0};
+  uint8_t kseaf[32] = {0};
+  uint8_t ck_ik[32] = {0};
+  uint8_t ak_sqn[6] = {0};
   /*
    * Get the UE context
    */
@@ -215,11 +220,82 @@ int amf_proc_security_mode_control(
       }
       smc_ctrl.amf_ctx_set_security_type(
           amf_ctx, SECURITY_CTX_TYPE_FULL_NATIVE);
-      derive_key_nas(
-          NAS_INT_ALG, amf_ctx->_security.selected_algorithms.integrity,
-          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
-              .kasme,
-          amf_ctx->_security.knas_int);
+
+      // NAS Integrity key is calculated as specified in TS 33501, Annex A
+      uint8_t imsi[15];
+      imsi[0]  = 0x02;
+      imsi[1]  = 0x00;
+      imsi[2]  = 0x08;
+      imsi[3]  = 0x09;
+      imsi[4]  = 0x05;
+      imsi[5]  = 0x00;
+      imsi[6]  = 0x00;
+      imsi[7]  = 0x00;
+      imsi[8]  = 0x00;
+      imsi[9]  = 0x00;
+      imsi[10] = 0x00;
+      imsi[11] = 0x00;
+      imsi[12] = 0x00;
+      imsi[13] = 0x03;
+      imsi[14] = 0x01;
+
+      /* Building 32 bytes of string with serving network SN
+       * SN value 5G:mnc095.mcc208.3gppnetwork.org
+       * mcc and mnc retrive saved _imsi from amf_context
+       */
+      snni[0]  = 0x35;  // 5
+      snni[1]  = 0x47;  // G
+      snni[2]  = 0x3A;  //:
+      snni[3]  = 0x6D;  // m
+      snni[4]  = 0x6E;  // n
+      snni[5]  = 0x63;  // c
+      snni[6]  = 0x30;
+      snni[7]  = 0x39;
+      snni[8]  = 0x35;
+      snni[9]  = 0x2E;  //.
+      snni[10] = 0x6D;  // m
+      snni[11] = 0x63;  // c
+      snni[12] = 0x63;  // c
+      snni[13] = 0x32;
+      snni[14] = 0x30;
+      snni[15] = 0x38;
+      snni[16] = 0x2E;  //.
+      snni[17] = 0x33;  // 3
+      snni[18] = 0x67;  // g
+      snni[19] = 0x70;  // p
+      snni[20] = 0x70;  // p
+      snni[21] = 0x6E;  // n
+      snni[22] = 0x65;  // e
+      snni[23] = 0x74;  // t
+      snni[24] = 0x77;  // w
+      snni[25] = 0x6F;  // o
+      snni[26] = 0x72;  // r
+      snni[27] = 0x6B;  // k
+      snni[28] = 0x2E;  //.
+      snni[29] = 0x6F;  // o
+      snni[30] = 0x72;  // r
+      snni[31] = 0x67;  // g
+
+      memcpy(
+          ak_sqn,
+          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].autn,
+          6);
+      memcpy(
+          ck_ik,
+          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].ck,
+          16);
+      memcpy(
+          &ck_ik[16],
+          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].ik,
+          16);
+
+      derive_5gkey_ausf(ck_ik, snni, ak_sqn, kausf);
+      derive_5gkey_seaf(kausf, snni, kseaf);
+      derive_5gkey_amf(imsi, 15, kseaf, amf_ctx->_security.kamf);
+
+      derive_5gkey_nas(
+          NAS_INT_ALG, 2, amf_ctx->_security.kamf, amf_ctx->_security.knas_int);
+
       derive_key_nas(
           NAS_ENC_ALG, amf_ctx->_security.selected_algorithms.encryption,
           amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
