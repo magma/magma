@@ -967,11 +967,6 @@ service SetInterfaceForUserPlane {
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
 }
 
-//SET API for 3 procedures request from AMF to SMF
-service AmfPduSessionSmContext {
-  rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
-  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid) {}    //AMF to SMF
-}
 // RPC service and method
 service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    //SMF to AMF
