@@ -20,14 +20,14 @@ from integ_tests.s1aptests import s1ap_wrapper
 import ctypes
 
 
-class TestEsmInformationMaxRetries(unittest.TestCase):
+class TestAttachEsmInfoTimerExpirationMaxRetries(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_esm_information_timerexpiration(self):
+    def test_attach_esm_info_timerexpiration_max_retries(self):
         """ Testing of sending Esm Information procedure """
         num_ues = 1
         # The maximum no. of allowed transmissions of ESM information request
@@ -35,8 +35,8 @@ class TestEsmInformationMaxRetries(unittest.TestCase):
         # connectivity reject message as of now after maximum number of
         # T3489 expires, test script does not receive any failure response and
         # has no provision to handle it as well. Therefore, test case gets
-        # stuck waiting for response, if num_of_expires value is greater than 3
-        num_of_expires = 3
+        # stuck waiting for response, if max_retries value is greater than 3
+        max_retries = 3
 
         self._s1ap_wrapper.configUEDevice(num_ues)
         print("************************* sending Attach Request for ue-id : 1")
@@ -88,7 +88,7 @@ class TestEsmInformationMaxRetries(unittest.TestCase):
             s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
         )
 
-        for i in range(num_of_expires):
+        for i in range(max_retries):
             # Esm Information Request indication
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
