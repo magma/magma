@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+#include <cstdlib>
 #include <iostream>
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
@@ -47,14 +48,22 @@ extern "C" void __gcov_flush(void);
 #if SENTRY_ENABLED
 #include "sentry.h"
 
+#define COMMIT_HASH_ENV "COMMIT_HASH"
+#define CONTROL_PROXY_SERVICE_NAME "control_proxy"
+#define SENTRY_URL "sentry_url"
+
 void initialize_sentry() {
   auto control_proxy_config =
-      magma::ServiceConfigLoader{}.load_service_config("control_proxy");
-  if (control_proxy_config["sentry_url"].IsDefined()) {
+      magma::ServiceConfigLoader{}.load_service_config(CONTROL_PROXY_SERVICE_NAME);
+  if (control_proxy_config[SENTRY_URL].IsDefined()) {
     const std::string sentry_dns =
-        control_proxy_config["sentry_url"].as<std::string>();
+        control_proxy_config[SENTRY_URL].as<std::string>();
     sentry_options_t* options = sentry_options_new();
     sentry_options_set_dsn(options, sentry_dns.c_str());
+
+    if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
+      sentry_options_set_release(options, commit_hash_p);
+    }
 
     sentry_init(options);
     sentry_capture_event(sentry_value_new_message_event(
