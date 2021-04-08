@@ -28,18 +28,21 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_agw_offload_idle_active_ue(self):
-        """ Basic attach/detach test with a single UE """
+        """Test case to offload 1 UE in both active and idle states
+
+        NOTE: Ha service must be enabled for running this test case. The
+        parameter 'use_ha' in configuration file /etc/magma/mme.yml should be
+        set to 'true' to enable Ha service
+        """
+
         # column is a enb parameter,  row is a number of enbs
         # column description:
         #     1.Cell Id, 2.Tac, 3.EnbType, 4.PLMN Id 5. PLMN length
         enb_list = [(1, 1, 1, "00101", 5)]
-
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
-
         time.sleep(2)
 
         num_ues = 1
-
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         req = self._s1ap_wrapper.ue_req
