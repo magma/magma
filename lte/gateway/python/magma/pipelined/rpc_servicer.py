@@ -416,15 +416,17 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if request.remove_default_drop_flows:
             self._enforcement_stats.deactivate_default_flow(request.sid.id,
                                                             ip_address)
+        rule_ids = [policy.rule_id for policy in request.policies]
         self._enforcer_app.deactivate_rules(request.sid.id, ip_address,
-                                            request.rule_ids)
+                                            rule_ids)
 
     def _deactivate_flows_gy(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GY flows for %s', request.sid.id)
         # Only deactivate requested rules here to not affect GX
         self._remove_version(request, ip_address)
+        rule_ids = [policy.rule_id for policy in request.policies]
         self._gy_app.deactivate_rules(request.sid.id, ip_address,
-                                      request.rule_ids)
+                                      rule_ids)
 
     def GetPolicyUsage(self, request, context):
         """
