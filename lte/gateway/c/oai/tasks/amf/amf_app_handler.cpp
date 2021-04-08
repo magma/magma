@@ -776,13 +776,14 @@ void amf_app_handle_cm_idle_on_ue_context_release(
   ue_m5gmm_context_s* ue_context = nullptr;
   smf_context_t* smf_ctx         = nullptr;
   ue_id                          = cm_idle_req.amf_ue_ngap_id;
+  int rc = RETURNerror;
+  notify_ue_event     notify_ue_event_type;
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  // TODO: This has been taken care in new PR
-  // with multi UE feature
-  if (!ue_context) {
-    ue_context = &ue_m5gmm_global_context;
+  if (ue_context == NULL) {
+     OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
   }
+  
   // if UE on REGISTERED_IDLE, so no need to do anyting
   if (ue_context->mm_state == REGISTERED_CONNECTED) {
     // UE in connected state and need to check if cause is proper
@@ -795,9 +796,11 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       smf_ctx                    = &ue_context->amf_context.smf_context;
       smf_ctx->pdu_session_state = INACTIVE;
 
-      // construct the proto structure and send message to SMF
-      amf_smf_notification_send(ue_id, ue_context);
-
+      //construct the proto structure and send message to SMF
+      rc = amf_smf_notification_send (
+               ue_id, ue_context, notify_ue_event_type);
+      ue_context_release_command(ue_id, ue_context->gnb_ue_ngap_id,
+                                  NGAP_NAS_NORMAL_RELEASE);
     } else {
       OAILOG_DEBUG(
           LOG_AMF_APP,
@@ -1003,5 +1006,32 @@ int amf_app_handle_notification_received(
       break;
   }
   return rc;
+}
+
+/* Routine to send ue context release command to NGAP after processing
+ * ue context release request from NGAP. this command will change ue
+ * state to idle.
+ */
+void ue_context_release_command(
+       amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+       Ngcause ng_cause){
+   OAILOG_FUNC_IN(LOG_AMF_APP);
+   itti_ngap_ue_context_release_command_t* ctx_rel_cmd = nullptr;
+   MessageDef* message_p                               = nullptr;
+
+   message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);
+   ctx_rel_cmd =
+      &message_p->ittiMsg.ngap_ue_context_release_command;
+   memset(ctx_rel_cmd, 0,
+      sizeof(itti_ngap_ue_context_release_command_t));
+   //Filling the respective values of NGAP message
+   ctx_rel_cmd->amf_ue_ngap_id = amf_ue_ngap_id;
+   ctx_rel_cmd->gnb_ue_ngap_id = gnb_ue_ngap_id;
+   ctx_rel_cmd->cause = ng_cause;
+   //Send message to NGAP task
+   OAILOG_INFO(LOG_AMF_APP, "sent context release command to NGAP\n");
+   send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 }  // namespace magma5g
