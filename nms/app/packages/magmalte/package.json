@@ -67,7 +67,7 @@
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-flow": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
-    "@testing-library/react": "^10.4.8",
+    "@testing-library/react": "^11.2.6",
     "@testing-library/react-hooks": "^3.4.1",
     "autoprefixer": "^7.1.6",
     "babel-loader": "^8.0.5",
