@@ -40,14 +40,11 @@ namespace magma {
 namespace lte {
 
 InterfaceMonitor::InterfaceMonitor(
-    const std::string& iface_name,
-    std::shared_ptr<PDUGenerator> pkt_gen)
-    : iface_name_(iface_name),
-      pkt_gen_(pkt_gen) {}
+    const std::string& iface_name, std::shared_ptr<PDUGenerator> pkt_gen)
+    : iface_name_(iface_name), pkt_gen_(pkt_gen) {}
 
 static void packet_handler(
     u_char* user, const struct pcap_pkthdr* phdr, const u_char* pdata) {
-
   ((PDUGenerator*) user)->send_packet(phdr, pdata);
 }
 
@@ -59,18 +56,18 @@ int InterfaceMonitor::init_iface_pcap_monitor() {
   // Snoop on mon1
   pcap = pcap_open_live(iface_name_.c_str(), BUFSIZ, 0, 1000, errbuf);
   if (pcap == nullptr) {
-    MLOG(MFATAL) << "Could not capture packets on " << iface_name_ << ", exiting";
+    MLOG(MFATAL) << "Could not capture packets on " << iface_name_
+                 << ", exiting";
     return 1;
   }
   std::cout << "Successfully started live pcap sniffing" << std::endl;
 
-  ret = pcap_loop(
-      pcap, -1, packet_handler, (u_char*) pkt_gen_.get());
+  ret = pcap_loop(pcap, -1, packet_handler, (u_char*) pkt_gen_.get());
 
   if (ret == -1) {
     MLOG(MINFO) << "Could not capture packets";
     if (pcap != nullptr) {
-        pcap_close(pcap);
+      pcap_close(pcap);
     }
     return 1;
   }

@@ -20,17 +20,15 @@ namespace lte {
 class ProxyConnector {
  public:
   ProxyConnector(
-    const std::string& proxy_addr,
-    const int port,
-    const std::string& cert_file,
-    const std::string& key_file);
+      const std::string& proxy_addr, const int port,
+      const std::string& cert_file, const std::string& key_file);
 
-  int SendData(void *data, uint32_t size);
+  int SendData(void* data, uint32_t size);
 
  private:
   SSL* GetSSLSocket();
   int OpenConnection();
-  void LoadCertificates(SSL_CTX* ctx);//, char* CertFile, char* KeyFile);
+  void LoadCertificates(SSL_CTX* ctx);  //, char* CertFile, char* KeyFile);
   SSL_CTX* InitCTX(void);
 
   const std::string& proxy_addr_;

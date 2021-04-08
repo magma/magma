@@ -20,8 +20,7 @@ namespace lte {
 class InterfaceMonitor {
  public:
   InterfaceMonitor(
-    const std::string& iface_name,
-    std::shared_ptr<PDUGenerator> pkt_gen);
+      const std::string& iface_name, std::shared_ptr<PDUGenerator> pkt_gen);
 
   int init_iface_pcap_monitor(void);
 
