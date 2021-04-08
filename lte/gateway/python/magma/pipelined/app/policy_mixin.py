@@ -55,7 +55,7 @@ class PolicyMixin(metaclass=ABCMeta):
             self.proxy_controller_fut = None
         self.proxy_controller = None
 
-    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, dynamic_rules):
+    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, policies):
         """
         Activate the flows for a subscriber based on the rules stored in Redis.
         During activation, a default flow may be installed for the subscriber.
@@ -65,25 +65,26 @@ class PolicyMixin(metaclass=ABCMeta):
             msisdn (bytes): subscriber MSISDN
             uplink_tunnel(int): Tunnel ID of the subscriber session.
             ip_addr (string): subscriber session ipv4 address
-            dynamic_rules (PolicyRule []): list of dynamic rules to activate
+            policies (VersionedPolicies []): list of versioned policies to activate
         """
         if self._datapath is None:
             self.logger.error('Datapath not initialized for adding flows')
             return ActivateFlowsResult(
-                dynamic_rule_results=[RuleModResult(
-                    rule_id=rule.id,
+                policy_results=[RuleModResult(
+                    rule_id=policy.rule.id,
+                    version=policy.version,
                     result=RuleModResult.FAILURE,
-                ) for rule in dynamic_rules],
+                ) for policy in policies],
             )
-        dyn_results = []
-        for rule in dynamic_rules:
-            res = self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
-            dyn_results.append(RuleModResult(rule_id=rule.id, result=res))
+        policy_results = []
+        for policy in policies:
+            res = self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version)
+            policy_results.append(RuleModResult(rule_id=policy.rule.id, version=policy.version, result=res))
 
         # Install a base flow for when no rule is matched.
         self._install_default_flow_for_subscriber(imsi, ip_addr)
         return ActivateFlowsResult(
-            dynamic_rule_results=dyn_results,
+            policy_results=policy_results,
         )
 
     def _remove_he_flows(self, ip_addr: IPAddress, rule_id: str = "",
@@ -257,7 +258,7 @@ class PolicyMixin(metaclass=ABCMeta):
             imsi = add_flow_req.sid.id
             ip_addr = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
             apn_ambr = add_flow_req.apn_ambr
-            dynamic_rules = add_flow_req.dynamic_rules
+            policies = add_flow_req.policies
             msisdn = add_flow_req.msisdn
             uplink_tunnel = add_flow_req.uplink_tunnel
 
@@ -265,14 +266,18 @@ class PolicyMixin(metaclass=ABCMeta):
             if msgs:
                 msg_list.extend(msgs)
 
-            for rule in dynamic_rules:
+            for policy in policies:
+                # As the versions are managed by sessiond, save state here
+                self._service_manager.session_rule_version_mapper.save_version(
+                    imsi, ip_addr, policy.rule.id, policy.version)
                 try:
-                    if rule.redirect.support == rule.redirect.ENABLED:
+                    if policy.rule.redirect.support == policy.rule.redirect.ENABLED:
                         continue
-                    flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+                    flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version)
                     msg_list.extend(flow_adds)
                 except FlowMatchError:
-                    self.logger.error("Failed to verify rule_id: %s", rule.id)
+                    self.logger.error("Failed to verify rule_id: %s",
+                                      policy.rule.id)
 
         return {self.tbl_num: msg_list}
 
@@ -280,11 +285,11 @@ class PolicyMixin(metaclass=ABCMeta):
         for add_flow_req in requests:
             imsi = add_flow_req.sid.id
             ip_addr = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
-            dynamic_rules = add_flow_req.dynamic_rules
+            policies = add_flow_req.policies
 
-            for rule in dynamic_rules:
-                if rule.redirect.support == rule.redirect.ENABLED:
-                    self._install_redirect_flow(imsi, ip_addr, rule)
+            for policy in policies:
+                if policy.rule.redirect.support == policy.rule.redirect.ENABLED:
+                    self._install_redirect_flow(imsi, ip_addr, policy.rule, policy.version)
 
     def finish_init(self, requests):
         # For now just reinsert redirection rules, this is a bit of a hack but
@@ -300,7 +305,7 @@ class PolicyMixin(metaclass=ABCMeta):
 
 
     @abstractmethod
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Install a flow given a rule. Subclass should implement this.
 
@@ -323,7 +328,7 @@ class PolicyMixin(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _install_redirect_flow(self, imsi, ip_addr, rule):
+    def _install_redirect_flow(self, imsi, ip_addr, rule, version):
         """
         Install a redirection flow for the subscriber.
         Subclass should implement this.

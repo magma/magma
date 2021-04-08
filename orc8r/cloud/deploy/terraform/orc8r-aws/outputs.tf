@@ -67,6 +67,11 @@ output "orc8r_db_port" {
   value       = aws_db_instance.default.port
 }
 
+output "orc8r_db_dialect" {
+  description = "Database dialect for Orchestrator RDS instance"
+  value       = var.orc8r_db_dialect
+}
+
 output "orc8r_db_user" {
   description = "Database username for Orchestrator RDS instance"
   value       = aws_db_instance.default.username
