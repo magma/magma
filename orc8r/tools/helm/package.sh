@@ -12,6 +12,7 @@
 # limitations under the License.
 
 # package.sh packages and publishes orc8r helm charts to a private git repo
+# Updated to publish the helm charts to new jfrog artifactory repository as well
 
 set -e -o pipefail
 
@@ -67,6 +68,20 @@ if [[ -z $MAGMA_ROOT ]]; then
   exitmsg "Environment variable MAGMA_ROOT must be set"
 fi
 
+# Changes for the new JFROG HELM Repo
+# Example: https://artifactory.magmacore.org/artifactory/helm-prod
+if [[ -z $JFROG_HELM_REPO ]]; then
+  exitmsg "Environment variable JFROG_HELM_REPO must be set"
+fi
+
+if [[ -z $JFROG_USERNAME ]]; then
+  exitmsg "Environment variable JFROG_USERNAME must be set"
+fi
+
+if [[ -z $JFROG_CIBOT_APIKEYS ]]; then
+  exitmsg "Environment variable JFROG_CIBOT_APIKEYS must be set"
+fi
+
 # Set up repo for charts
 mkdir -p ~/magma-charts && cd ~/magma-charts
 git init
@@ -119,6 +134,27 @@ helm repo update
 # instead
 HELM_SEARCH_RESULTS=$(helm search repo $GITHUB_REPO) # should list the uploaded charts
 if [ "$HELM_SEARCH_RESULTS" == "No results found" ]; then
-  exitmsg "Error! Unable to find uploaded orc8r charts"
+  exitmsg "Error! Unable to find uploaded orc8r charts in $GITHUB_REPO"
 fi
-echo "Uploaded orc8r charts successfully."
+echo "Uploaded orc8r charts successfully to $GITHUB_REPO"
+
+# Push charts to new JFROG HELM repo
+for i in `ls -1 *.gz`
+do
+   curl -u${JFROG_USERNAME}:${JFROG_CIBOT_APIKEYS} -T $1 "${JFROG_HELM_REPO}/$1"
+   sleep 5
+done
+
+# Ensure push was successful to new JFROG helm repo
+helm repo add jfrog-helm-repo ${JFROG_HELM_REPO}
+helm repo update
+
+# The helm command returns 0 even when no results are found. Search for err str
+# instead
+HELM_SEARCH_RESULTS=$(helm search repo jfrog-helm-repo) # should list the uploaded charts
+if [ "$HELM_SEARCH_RESULTS" == "No results found" ]; then
+  exitmsg "Error! Unable to find uploaded orc8r charts in ${JFROG_HELM_REPO}"
+fi
+echo "Uploaded orc8r charts successfully to ${JFROG_HELM_REPO}"
+
+
