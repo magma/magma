@@ -11,17 +11,19 @@
  * limitations under the License.
  */
 
+// WARNING: Do not include this header directly. Use intertask_interface.h
+// instead.
+
 MESSAGE_DEF(
-    NGAP_UE_CONTEXT_RELEASE_REQ, itti_ngap_ue_context_release_req_t,
-    ngap_ue_context_release_req)
+    AMF_APP_INITIAL_CONTEXT_SETUP_RSP, itti_amf_app_initial_context_setup_rsp_t,
+    amf_app_initial_context_setup_rsp)
 MESSAGE_DEF(
-    NGAP_UE_CONTEXT_RELEASE_COMMAND, itti_ngap_ue_context_release_command_t,
-    ngap_ue_context_release_command)
+    AMF_APP_INITIAL_CONTEXT_SETUP_FAILURE,
+    itti_amf_app_initial_context_setup_failure_t,
+    amf_app_initial_context_setup_failure)
 MESSAGE_DEF(
-    NGAP_UE_CONTEXT_RELEASE_COMPLETE, itti_ngap_ue_context_release_complete_t,
-    ngap_ue_context_release_complete)
+    AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
+    itti_amf_app_ngap_amf_ue_id_notification_t,
+    amf_app_ngap_amf_ue_id_notification)
 MESSAGE_DEF(
-    NGAP_NAS_DL_DATA_REQ, itti_ngap_nas_dl_data_req_t, ngap_nas_dl_data_req)
-MESSAGE_DEF(
-    NGAP_INITIAL_UE_MESSAGE, itti_ngap_initial_ue_message_t,
-    ngap_initial_ue_message)
+    AMF_APP_UPLINK_DATA_IND, itti_amf_app_ul_data_ind_t, amf_app_ul_data_ind)

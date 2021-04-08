@@ -42,6 +42,7 @@
 #include "sctp_messages_def.h"
 #include "gx_messages_def.h"
 #include "mme_app_messages_def.h"
+#include "amf_app_messages_def.h"
 #include "service303_messages_def.h"
 #include "sgs_messages_def.h"
 #include "async_system_messages_def.h"
