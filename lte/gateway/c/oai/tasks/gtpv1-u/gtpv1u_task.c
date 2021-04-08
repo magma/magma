@@ -202,13 +202,14 @@ int gtpv1u_add_tunnel(
 
 int gtpv1u_add_s8_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, Imsi_t imsi,
-    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl) {
+    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_i_tei,
+    uint32_t pgw_o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
+    uint32_t flow_precedence_dl) {
   OAILOG_DEBUG(LOG_GTPV1U, "Add S8 tunnel ue %s", inet_ntoa(ue));
   if (gtp_tunnel_ops->add_s8_tunnel) {
     return gtp_tunnel_ops->add_s8_tunnel(
-        ue, ue_ipv6, vlan, enb, pgw, i_tei, o_tei, imsi, flow_dl,
-        flow_precedence_dl);
+        ue, ue_ipv6, vlan, enb, pgw, i_tei, o_tei, pgw_i_tei, pgw_o_tei, imsi,
+        flow_dl, flow_precedence_dl);
   } else {
     return -EINVAL;
   }

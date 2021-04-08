@@ -187,15 +187,17 @@ class AddGTPTunnelEvent : public ExternalEvent {
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
       const struct in_addr enb_ip, const struct in_addr pgw_ip,
-      const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
+      const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
+      const uint32_t pgw_out_tei, const char* imsi,
       const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence,
       uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
 
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
       const struct in_addr enb_ip, const struct in_addr pgw_ip,
-      const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
-      uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
+      const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
+      const uint32_t pgw_out_tei, const char* imsi, uint32_t enb_gtp_port,
+      uint32_t pgw_gtp_port);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
@@ -206,6 +208,9 @@ class AddGTPTunnelEvent : public ExternalEvent {
 
   const uint32_t get_in_tei() const;
   const uint32_t get_out_tei() const;
+  const uint32_t get_pgw_in_tei() const;
+  const uint32_t get_pgw_out_tei() const;
+
   const std::string& get_imsi() const;
   const bool is_dl_flow_valid() const;
   const struct ip_flow_dl& get_dl_flow() const;
@@ -219,6 +224,8 @@ class AddGTPTunnelEvent : public ExternalEvent {
   const struct in_addr pgw_ip_;
   const uint32_t in_tei_;
   const uint32_t out_tei_;
+  const uint32_t pgw_in_tei_;
+  const uint32_t pgw_out_tei_;
   const std::string imsi_;
   const struct ip_flow_dl dl_flow_;
   const bool dl_flow_valid_;
