@@ -21,14 +21,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include <unordered_map>
 #include "common_defs.h"
 #include "dynamic_memory_check.h"
 #include "amf_app_state_manager.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
-ue_m5gmm_context_s ue_m5gmm_global_context;  // TODO : Upcoming PR has MAP
-                                             // implementation, will be removed
+// Creating ue_context_map based on key:ue_id and value:ue_context
+std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
+
 static void amf_directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
@@ -86,10 +88,8 @@ void notify_ngap_new_ue_amf_ngap_id_association(
  **                                                                        **
  ***************************************************************************/
 int amf_insert_ue_context(
-    const amf_ue_context_t* amf_ue_context_p,
-    const ue_m5gmm_context_s* ue_context_p) {
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
-
+    amf_ue_ngap_id_t ue_id, amf_ue_context_t* amf_ue_context_p,
+    ue_m5gmm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_ue_context_p == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
@@ -104,52 +104,28 @@ int amf_insert_ue_context(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
-  // filled GNB UE NGAP ID
-  h_rc = hashtable_uint64_ts_is_key_exists(
-      amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-      (const hash_key_t) ue_context_p->gnb_ngap_id_key);
-
-  h_rc = hashtable_uint64_ts_insert(
-      amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-      (const hash_key_t) ue_context_p->gnb_ngap_id_key,
-      ue_context_p->amf_ue_ngap_id);
-
-  if (INVALID_AMF_UE_NGAP_ID != ue_context_p->amf_ue_ngap_id) {
-    // filled IMSI
-    if (ue_context_p->amf_context.imsi64) {
-      amf_directoryd_report_location(
-          ue_context_p->amf_context.imsi64,
-          ue_context_p->amf_context.imsi.length);
-    }
-
-    // filled guti
-    if ((0 != ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
-        (0 != ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
-        (0 != ue_context_p->amf_context.m5_guti.m_tmsi) ||
-        (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn
-                  .mcc_digit1) ||  // MCC 000 does not exist in ITU table
-        (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
-        (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) {
-      h_rc = obj_hashtable_uint64_ts_insert(
-          amf_ue_context_p->guti_ue_context_htbl,
-          (const void* const) & ue_context_p->amf_context.m5_guti,
-          sizeof(ue_context_p->amf_context.m5_guti),
-          ue_context_p->amf_ue_ngap_id);
-
-      if (HASH_TABLE_OK != h_rc) {
-        OAILOG_WARNING(
-            LOG_AMF_APP,
-            "Error could not register the ue context\n"
-            " gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT
-            " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT,
-            ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
-        OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-      }
+  if (ue_context_map.size() == 0) {
+    // first entry.
+    ue_context_map.insert(
+        std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context_p));
+  } else {
+    /* already elements exist then check if given ue_id already present
+     * if it exists, update/overwrite the element. Otherwise add a new element
+     */
+    std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*>::iterator
+        found_ue_id = ue_context_map.find(ue_id);
+    if (found_ue_id == ue_context_map.end()) {
+      // it is new entry to map
+      ue_context_map.insert(std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(
+          ue_id, ue_context_p));
+    } else {
+      // Overwrite the existing element.
+      found_ue_id->second = ue_context_p;
+      OAILOG_INFO(
+          LOG_AMF_APP, "Overwriting the Existing entry UE_ID=%u\n", ue_id);
     }
   }
-  ue_m5gmm_global_context =
-      *ue_context_p;  // TODO This has been taken care in new PR with support
-                      // for MultiUE feature
+
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
@@ -202,8 +178,8 @@ amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id) {
 
   if (INVALID_AMF_UE_NGAP_ID != ue_id) {
     ue_m5gmm_context_s* ue_mm_context =
-        &ue_m5gmm_global_context;  // TODO upcoming PR has MAP implementation
-                                   // will be removed.
+        amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
     if (ue_mm_context) {
       amf_context_p = &ue_mm_context->amf_context;
     }
@@ -222,27 +198,63 @@ amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id) {
  ***************************************************************************/
 ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
     const amf_ue_ngap_id_t amf_ue_ngap_id) {
-  ue_m5gmm_context_s* ue_context_p = NULL;
-  hash_table_ts_t* state_imsi_ht   = get_amf_ue_state();
-  hashtable_ts_get(
-      state_imsi_ht, (const hash_key_t) amf_ue_ngap_id, (void**) &ue_context_p);
+  std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*>::iterator
+      found_ue_id = ue_context_map.find(amf_ue_ngap_id);
 
-  if (ue_context_p) {
-    OAILOG_TRACE(
-        LOG_AMF_APP,
-        "UE  " AMF_UE_NGAP_ID_FMT " fetched AMF state %s with state %s\n ",
-        amf_ue_ngap_id,
-        (ue_context_p->mm_state == UNREGISTERED) ?
-            "UE_UNREGISTERED" :
-            (ue_context_p->mm_state == REGISTERED_CONNECTED) ? "UE_REGISTERED" :
-                                                               "UNKNOWN",
-        (ue_context_p->mm_state == REGISTERED_IDLE) ?
-            "REGISTERED_IDLE" :
-            (ue_context_p->mm_state == REGISTERED_CONNECTED) ?
-            "REGISTERED_CONNECTED" :
-            "UNKNOWN");
+  if (found_ue_id == ue_context_map.end()) {
+    return NULL;
+  } else {
+    return found_ue_id->second;
   }
-  return ue_context_p;
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_insert_smf_context()                                      **
+ **                                                                        **
+ ** Description: Insert smf context in the vector                          **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+smf_context_t* amf_insert_smf_context(
+    ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id) {
+  smf_context_t smf_context;
+  std::vector<smf_context_t>::iterator i;
+  int j = 0;
+
+  for (i = ue_context->amf_context.smf_ctxt_vector.begin();
+       i != ue_context->amf_context.smf_ctxt_vector.end(); i++, j++) {
+    if (i->smf_proc_data.pdu_session_identity.pdu_session_id ==
+        pdu_session_id) {
+      ue_context->amf_context.smf_ctxt_vector.at(j) = smf_context;
+      return ue_context->amf_context.smf_ctxt_vector.data() + j;
+    }
+  }
+
+  // add new element to the vector
+  ue_context->amf_context.smf_ctxt_vector.push_back(smf_context);
+  return ue_context->amf_context.smf_ctxt_vector.data() + j;
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_smf_context_exists_pdu_session_id()                       **
+ **                                                                        **
+ ** Description: Get the smf context from the vector                       **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+smf_context_t* amf_smf_context_exists_pdu_session_id(
+    ue_m5gmm_context_s* ue_context, uint8_t id) {
+  std::vector<smf_context_t>::iterator i;
+  int j = 0;
+  for (i = ue_context->amf_context.smf_ctxt_vector.begin();
+       i != ue_context->amf_context.smf_ctxt_vector.end(); i++, j++) {
+    if (i->smf_proc_data.pdu_session_identity.pdu_session_id == id) {
+      return ue_context->amf_context.smf_ctxt_vector.data() + j;
+    }
+  }
+  return NULL;
 }
 
 /****************************************************************************

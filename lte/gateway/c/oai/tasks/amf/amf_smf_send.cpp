@@ -30,9 +30,6 @@ extern "C" {
 namespace magma5g {
 #define IMSI_LEN 15
 #define AMF_CAUSE_SUCCESS 1
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO This has been taken care in new PR with
-                              // multi UE feature
 
 /***************************************************************************
 **                                                                        **
@@ -217,13 +214,24 @@ int amf_smf_send(
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context) {
-    smf_ctx = &(ue_context->amf_context.smf_context);
-    IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, IMSI_LEN);
+    IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+    if (msg->payload_container.smf_msg.header.message_type ==
+        PDU_SESSION_ESTABLISHMENT_REQUEST) {
+      smf_ctx = amf_insert_smf_context(
+          ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
+    } else {
+      smf_ctx = amf_smf_context_exists_pdu_session_id(
+          ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
+    }
+    if (smf_ctx == NULL) {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
+          msg->payload_container.smf_msg.header.pdu_session_id);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+    }
   } else {
-    ue_context = &ue_m5gmm_global_context;
-    smf_ctx    = &ue_m5gmm_global_context.amf_context.smf_context;
-    IMSI64_TO_STRING(
-        ue_m5gmm_global_context.amf_context.imsi64, imsi, IMSI_LEN);
+    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
   // Process the decoded NAS message
@@ -263,7 +271,7 @@ int amf_smf_send(
       OAILOG_DEBUG(
           LOG_AMF_APP,
           "sending PDU session resource release request to gNB \n");
-      rc = pdu_session_resource_release_request(ue_context, ue_id);
+      rc = pdu_session_resource_release_request(ue_context, ue_id, smf_ctx);
       if (rc != RETURNok) {
         OAILOG_DEBUG(
             LOG_AMF_APP,

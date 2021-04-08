@@ -27,9 +27,7 @@ extern "C" {
 #include "amf_app_state_manager.h"
 
 namespace magma5g {
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO In upcoming PR the MAP removes
-                              // global variable.
+
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 /* Handles NAS encoded message and sends it to NGAP task */
@@ -53,8 +51,8 @@ int amf_app_handle_nas_dl_req(
   if (ue_context) {
     gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
   } else {
-    ue_context =
-        &ue_m5gmm_global_context;  // TODO Upcoming PR has MAP implementation
+    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
   NGAP_NAS_DL_DATA_REQ(message_p).gnb_ue_ngap_id = gnb_ue_ngap_id;

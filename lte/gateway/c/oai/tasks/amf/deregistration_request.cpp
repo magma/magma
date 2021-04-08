@@ -24,6 +24,7 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
+#include <unordered_map>
 #include "common_defs.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_app_defs.h"
@@ -35,6 +36,7 @@ extern "C" {
 
 namespace magma5g {
 amf_as_data_t amf_data_de_reg_sec;
+extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
 
 /*
  * name : amf_handle_deregistration_ue_origin_req()
@@ -176,6 +178,7 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   int rc                         = RETURNerror;
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
+    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   // TODO: will be taken care later as PDU session related info not stored
@@ -196,7 +199,7 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 
 /***************************************************************************
 **                                                                        **
-** Name:    amf_app_handle_deregistration_req()                           **
+** Name:    amf_remove_ue_context()                                       **
 **                                                                        **
 ** Description: Function to remove UE Context                             **
 **                                                                        **
@@ -204,74 +207,15 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 ***************************************************************************/
 void amf_remove_ue_context(
     amf_ue_context_t* amf_ue_context_p, ue_m5gmm_context_s* ue_context_p) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  hashtable_rc_t hash_rc = HASH_TABLE_OK;
-  if (!amf_ue_context_p) {
-    OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
-    OAILOG_FUNC_OUT(LOG_AMF_APP);
-  }
-  if (!ue_context_p) {
-    OAILOG_ERROR(LOG_AMF_APP, "Invalid UE context received\n");
-    OAILOG_FUNC_OUT(LOG_AMF_APP);
-  }
+  std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*>::iterator
+      found_ue_id = ue_context_map.find(ue_context_p->amf_ue_ngap_id);
 
-  /* UE state had not been maintained & nothing to remove
-   * clear_amf_ctxt() will be implemeted later
-   * Timer had not been implemented, nothing to be removed
-   * 4 hash table elements to be removed.
-   */
-  // TODO These set of hashtables are replaced by MAP in upcoming PR
-  if (ue_context_p->amf_context.imsi64) {
-    hash_rc = hashtable_uint64_ts_remove(
-        amf_ue_context_p->imsi_amf_ue_id_htbl,
-        (const hash_key_t) ue_context_p->amf_context.imsi64);
-    if (HASH_TABLE_OK != hash_rc) {
-      OAILOG_ERROR_UE(
-          LOG_AMF_APP, ue_context_p->amf_context.imsi64,
-          "UE context not found for IMSI\n"
-          " gnb_ue_ngap_id" GNB_UE_NGAP_ID_FMT PRIX32
-          " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32
-          " not in IMSI collection\n",
-          ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
-    }
+  if (found_ue_id != ue_context_map.end()) {
+    OAILOG_DEBUG(
+        LOG_AMF_APP, "Removed ue id = %u entry from the ue context map\n",
+        ue_context_p->amf_ue_ngap_id);
+    ue_context_map.erase(found_ue_id);
   }
-
-  // tun11_ue_context_htbl removal
-  if (ue_context_p->amf_teid_n11) {
-    hash_rc = hashtable_uint64_ts_remove(
-        amf_ue_context_p->tun11_ue_context_htbl,
-        (const hash_key_t) ue_context_p->amf_teid_n11);
-    if (HASH_TABLE_OK != hash_rc)
-      OAILOG_ERROR_UE(
-          LOG_AMF_APP, ue_context_p->amf_context.imsi64,
-          "UE context not found for n11_ue_context\n"
-          " gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT PRIX32
-          " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-          ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
-  }
-
-  // for gnb_ue_ngap_id_ue_context_htbl
-  hash_rc = hashtable_uint64_ts_remove(
-      amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-      (const hash_key_t) ue_context_p->gnb_ngap_id_key);
-  OAILOG_ERROR_UE(
-      LOG_AMF_APP, ue_context_p->amf_context.imsi64,
-      "UE context not found for gnb_ue_ngap_id_ue_context_htbl\n"
-      " gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT PRIX32
-      " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-      ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
-
-  // for guti_ue_context_htbl obj hash table
-  hash_rc = obj_hashtable_uint64_ts_remove(
-      amf_ue_context_p->guti_ue_context_htbl,
-      (const void* const) & ue_context_p->amf_context.m5_guti,
-      sizeof(ue_context_p->amf_context.m5_guti));
-  OAILOG_ERROR_UE(
-      LOG_AMF_APP, ue_context_p->amf_context.imsi64,
-      "UE context not found for guti_ue_context_htbl\n"
-      " gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT PRIX32
-      " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-      ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
 }
 }  // end  namespace magma5g
 #endif

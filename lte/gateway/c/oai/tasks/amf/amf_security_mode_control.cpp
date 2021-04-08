@@ -29,9 +29,6 @@ extern "C" {
 #include "dynamic_memory_check.h"
 
 namespace magma5g {
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO: This has been taken care in
-                              //       upcoming new PR with multi UE feature
 
 nas5g_config_t amf_data;
 nas_amf_smc_proc_t smc_ctrl;
@@ -101,9 +98,7 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
     amf_sap.u.amf_as.u.security.selected_eea   = smc_proc->selected_eea;
     amf_sap.u.amf_as.u.security.selected_eia   = smc_proc->selected_eia;
     amf_sap.u.amf_as.u.security.imeisv_request = smc_proc->imeisv_request;
-    ue_mm_context =
-        &ue_m5gmm_global_context;  // TODO: This has been taken care in new PR
-                                   // with multi UE feature
+    ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(smc_proc->ue_id);
 
     if (ue_mm_context) {
       amf_ctx = &ue_mm_context->amf_context;

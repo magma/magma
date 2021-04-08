@@ -32,6 +32,7 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
+#include <vector>
 #include "amf_fsm.h"
 #include "amf_data.h"
 #include "amf_smfDefs.h"
@@ -301,7 +302,7 @@ typedef struct amf_context_s {
   int amf_cause; /* AMF failure cause code                          */
   amf_fsm_state_t amf_fsm_state;
   void* t3422_arg;
-  smf_context_t smf_context;             // Keeps PDU session related info
+  std::vector<smf_context_t> smf_ctxt_vector;  // smf contents
   drx_parameter_t current_drx_parameter; /* stored TAU Request IE Requirement
                                              AMF24.501R15_5.5.3.2.4_4*/
   std::string smf_msg; /* SMF message contained within the initial request*/
@@ -381,6 +382,11 @@ void amf_remove_ue_context(
     ue_m5gmm_context_s* const ue_context_p);
 
 ue_m5gmm_context_s* amf_create_new_ue_context(void);
+/*Multi PDU Session*/
+smf_context_t* amf_insert_smf_context(
+    ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id);
+smf_context_t* amf_smf_context_exists_pdu_session_id(
+    ue_m5gmm_context_s* ue_context, uint8_t id);
 
 // Retrieve required UE context from the respective hash table
 amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id);
@@ -728,11 +734,13 @@ void amf_remove_ue_context(
 
 // PDU session related communication to gNB
 int pdu_session_resource_setup_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id);
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    smf_context_t*);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
 int pdu_session_resource_release_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id);
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    smf_context_t* smf_ctx);
 void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
 void amf_app_handle_cm_idle_on_ue_context_release(

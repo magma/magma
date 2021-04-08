@@ -111,8 +111,15 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   int rc                = RETURNerror;
   tai_t originating_tai = {0};
   amf_nas_message_t nas_msg;
-  ue_m5gmm_context_s ue_m5gmm_context;
-  ue_m5gmm_context.mm_state = UNREGISTERED;
+  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
+  ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
+  if (ue_m5gmm_context == NULL) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
+
+  ue_m5gmm_context->mm_state = UE_UNREGISTERED;
 
   // Decode initial NAS message
   decoder_rc = nas5g_message_decode(
@@ -498,6 +505,30 @@ uint16_t amf_as_data_req(
     int bytes                                    = 0;
     amf_security_context_t* amf_security_context = NULL;
     OAILOG_DEBUG(LOG_AMF_APP, "start NAS encoding\n");
+    amf_context_t* amf_ctx = NULL;
+    ue_m5gmm_context_s* ue_m5gmm_context =
+        amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
+
+    if (ue_m5gmm_context) {
+      amf_ctx = &ue_m5gmm_context->amf_context;
+#if 1  // TODO-RECHECK for NW initiated derestration and security
+      if (amf_ctx) {
+        // if (amf_msg->nw_deregister_request.nw_deregistertype ==
+        //    NW_DEREGISTER_TYPE_IMSI_DEREGISTER) {
+        //  amf_ctx->is_imsi_only_deregister = true;
+        //}
+        if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
+          amf_security_context = &amf_ctx->_security;
+          // is_encoded           = true;// TODO
+        }
+      }
+#endif
+    } else {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+    }
+
     if (!is_encoded) {
       /*
        * Encode the NAS information message
@@ -665,17 +696,15 @@ static int amf_auth_request(
     const amf_as_security_t* msg, AuthenticationRequestMsg* amf_msg) {
   s6a_auth_info_req_t air_t;
   memset(&air_t, 0, sizeof(s6a_auth_info_req_t));
-  extern ue_m5gmm_context_s
-      ue_m5gmm_global_context;  // TODO This has been taken care in new PR with
-                                // multi UE feature
+
   ue_m5gmm_context_s* ue_context =
       amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
   if (ue_context) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, air_t.imsi, IMSI_LENGTH);
   } else {
-    ue_context = &ue_m5gmm_global_context;  // TODO This has been taken care in
-                                            // new PR with multi UE feature
-    IMSI64_TO_STRING(ue_context->amf_context.imsi64, air_t.imsi, IMSI_LENGTH);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   char temp_imsi[IMSI_BCD_DIGITS_MAX + 1] = "208950000000031";
   strcpy(air_t.imsi, temp_imsi);
@@ -851,6 +880,10 @@ static int amf_as_security_req(
           nas_msg.header.sequence_number = amf_ctx->_security.dl_count.seq_num;
         }
       }
+    } else {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
 
     /*

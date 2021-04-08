@@ -280,8 +280,8 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
       sizeof(*guti_p), &amf_ue_ngap_id64);
 
   if (HASH_TABLE_OK == h_rc) {
-    // TODO: this method is deprecated and will be removed once the AMF's
-    // context is migrated to map in the upcoming multi-UE PR
+    //  return amf_ue_context_exists_amf_ue_ngap_id(  //TODO -  NEED-RECHECK
+    //    (amf_ue_ngap_id_t) amf_ue_ngap_id64);
   } else {
     OAILOG_WARNING(LOG_AMF_APP, " No GUTI hashtable for GUTI ");
   }
@@ -479,18 +479,27 @@ void amf_app_handle_pdu_session_response(
   ue_m5gmm_context_s* ue_context;
   smf_context_t* smf_ctx;
   uint32_t bytes = 0;
-  // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
-  uint32_t ue_id = 1;
+  uint32_t ue_id = 0;
+
+  imsi64_t imsi64;
+  IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
 
   // Handle smf_context
-  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
   if (ue_context) {
-    smf_ctx = &(ue_context->amf_context.smf_context);
+    smf_ctx = amf_smf_context_exists_pdu_session_id(
+        ue_context, pdu_session_resp->pdu_session_id);
+    if (smf_ctx == NULL) {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
+          pdu_session_resp->pdu_session_id);
+      return;
+    }
+    ue_id = ue_context->amf_ue_ngap_id;
   } else {
-    ue_context = &ue_m5gmm_global_context;
-    smf_ctx    = &ue_m5gmm_global_context.amf_context
-                   .smf_context;  // TODO: This has been taken care in new PR
-                                  // with multi UE feature
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the imsi=%lu\n", imsi64);
+    return;
   }
   smf_ctx->dl_session_ambr = pdu_session_resp->session_ambr.downlink_units;
   smf_ctx->dl_ambr_unit    = pdu_session_resp->session_ambr.downlink_unit_type;
@@ -515,7 +524,7 @@ void amf_app_handle_pdu_session_response(
   OAILOG_DEBUG(
       LOG_AMF_APP,
       "Sending message to gNB for PDUSessionResourceSetupRequest\n");
-  amf_rc = pdu_session_resource_setup_request(ue_context, ue_id);
+  amf_rc = pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx);
   if (amf_rc != RETURNok) {
     OAILOG_DEBUG(
         LOG_AMF_APP,
@@ -624,7 +633,12 @@ void amf_app_handle_pdu_session_response(
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
 void amf_app_handle_resource_setup_response(
-    itti_ngap_pdusessionresource_setup_rsp_t session_setup_resp) {
+    itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp) {
+  amf_ue_ngap_id_t ue_id;
+
+  ue_m5gmm_context_s* ue_context = nullptr;
+  smf_context_t* smf_ctx         = nullptr;
+
   /* Check if failure message is not NULL and if NULL,
    * it is successful message from gNB.
    * Nothing to in this case. If failure message comes from gNB
@@ -635,7 +649,26 @@ void amf_app_handle_resource_setup_response(
    */
   OAILOG_DEBUG(
       LOG_AMF_APP, " handling uplink PDU session setup response message\n");
-  if (session_setup_resp.pduSessionResource_setup_list.no_of_items > 0) {
+  if (session_seup_resp.pduSessionResource_setup_list.no_of_items > 0) {
+    ue_id = session_seup_resp.amf_ue_ngap_id;
+
+    ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+    if (ue_context == NULL) {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+      return;
+    }
+    smf_ctx = amf_smf_context_exists_pdu_session_id(
+        ue_context,
+        session_seup_resp.pduSessionResource_setup_list.item[0].Pdu_Session_ID);
+    if (smf_ctx == NULL) {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "pdu session  not found for session_id = %d\n",
+          session_seup_resp.pduSessionResource_setup_list.item[0]
+              .Pdu_Session_ID);
+      return;
+    }
+
     /* This is success case and we need not to send message to SMF
      * and drop the message here
      */
