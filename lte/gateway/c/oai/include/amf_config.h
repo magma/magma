@@ -100,7 +100,6 @@ typedef struct ngap_config_s {
 typedef struct guamfi_config_s {
   int nb;
   guamfi_t guamfi[MAX_GUMMEI];
-=======
 #define MIN_GUAMFI 1 /*minimum 1 Global Unique AMF Identifier is supported*/
 #define MAX_GUAMFI 5 /*max 5 Global Unique AMF Identifiers are supported*/
 
@@ -111,29 +110,9 @@ typedef struct guamfi_config_s {
 #define amf_config_unlock(aMFcONFIG)                                           \
   pthread_rwlock_unlock(&(aMFcONFIG)->rw_lock)
 
-typedef uint64_t imsi64_t;         /*holds the IMSI value*/
-typedef uint32_t amf_ue_ngap_id_t; /*uniquely identifies the UE over the NG
-                                      interface within the AMF*/
-extern char buf_plmn[3];           /*store the parsed plmn buf*/
-/*TAI list*/
-typedef struct m5g_served_tai_s {
-  uint8_t list_type;
-  uint8_t nb_tai;
-  uint16_t* plmn_mcc; /*Mobile Country Code*/
-  uint16_t* plmn_mnc; /*Mobile Network Code*/
-  uint16_t* plmn_mnc_len;
-  uint16_t* tac; /*Tracking Area Code*/
-} m5g_served_tai_t;
-
-typedef struct ngap_config_s {
-  uint16_t port_number; /*port #38412 for NGAP*/
-} ngap_config_t;
-
-/*Global Unique AMF Identifier*/
-typedef struct guamfi_config_s {
-  int nb;
-  guamfi_t guamfi[MAX_GUAMFI];
->>>>>>> bfa832a0e7eb7910bfc5a1d0c6355d861d1c5af2
+  uint64_t imsi64_t;         /*holds the IMSI value*/
+  uint32_t amf_ue_ngap_id_t; /*uniquely identifies the UE over the NG
+                                        interface within the AMF*/
 } guamfi_config_t;
 
 typedef struct amf_config_s {
@@ -162,12 +141,7 @@ typedef struct amf_config_s {
   bool use_stateless;
 } amf_config_t;
 
-extern amf_config_t amf_config;
-
 int amf_app_init(amf_config_t*);
-  log_config_t log_config;
-  bool use_stateless;
-} amf_config_t;
 
 extern amf_config_t amf_config; /*global*/
 

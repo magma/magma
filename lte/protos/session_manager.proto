@@ -95,12 +95,14 @@ enum NotifyUeEvents {
 }
 
 message RatSpecificNotification {
-  bytes pdu_session_id = 1;            //One byte
+  uint32 pdu_session_id = 1;
   RequestType request_type = 2;
   AccessType access_type = 3;
   PduSessionType pdu_session_type = 4;
   M5GSMCapability m5g_sm_capability = 5;
   M5GSMCause m5gsm_cause = 6;
+  //Idle/paging/periodic_reg events and UE state notification
+  NotifyUeEvents notify_ue_event = 7;
 }
 
 message SetSmNotificationContext {
@@ -789,9 +791,9 @@ enum SMSessionFSMState {
 //PDU session Establishment from AMF to SMF
 //SET MESSSAGE
 message M5GSMSessionContext {
-  bytes pdu_session_id = 1;   //One byte
-  RequestType rquest_type = 2;        //Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial requerst, existing pdusession etc...
-  RedirectServer pdu_address = 3; //IP address. Imported from session_manager.proto file
+  uint32 pdu_session_id = 1;
+  RequestType rquest_type = 2;        // Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial requerst, existing pdusession etc...
+  RedirectServer pdu_address = 3; // IP address. Imported from session_manager.proto file
   priorityaccess priority_access = 4;
   string imei = 5; // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
   string gpsi = 6; // Lenght is 10 bytes + 2 bytes country code generic public subscription id.
@@ -860,9 +862,9 @@ message RatSpecificContextAccess {
  }
 
 message M5GSMSessionContextAccess{
-    //One byte, received from UE. For 5G pdu_session_id.
-    bytes pdu_session_id = 1;
-    //selected PDU session TS-24501 - 9.11.4.11
+    // One byte, received from UE. For 5G pdu_session_id. 
+    uint32 pdu_session_id = 1;
+    // selected PDU session TS-24501 - 9.11.4.11
     PduSessionType    pdu_session_type = 2;
     //selected session and service continuty mode TS-24501 - 9.11.4.16
     SscMode selected_ssc_mode = 3;
@@ -1013,21 +1015,27 @@ message UPFSessionState {
   uint32 local_f_teid = 3;        // Local TEID to uniquely identify the session
 }
 
-// Perodic Session snapshot information from UPF to SMF
+// Periodic  Session snapshot information from UPF to SMF
 message UPFSessionConfigState {
      repeated UPFSessionState upf_session_state = 1;
 }
 
-//Set Interface from Pipelined
+message UPFPagingInfo {
+  string subscriber_id = 1;
+  uint32 local_f_teid = 2;
+   string ue_ip_addr = 3;
+}
+// Set Interface from Pipelined
 service SetInterfaceForUserPlane {
-    rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
-    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
+    rpc SetUPFNodeState(UPFNodeState) returns (SmContextVoid) {}
+    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (SmContextVoid) {}
+    rpc SendPagingRequest(UPFPagingInfo) returns (SmContextVoid) {}
 }
 
 // RPC service and method
 service SmfPduSessionSmContext {
- rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    //SMF to AMF
- rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
+ rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    // SMF to AMF
+ rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid) {}
 }
 
 service AmfSmfSmNotification {
