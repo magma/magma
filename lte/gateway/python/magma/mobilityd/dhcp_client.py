@@ -171,6 +171,7 @@ class DHCPClient:
 
         dhcp_desc = self.dhcp_client_state[key]
         self.send_dhcp_packet(mac, dhcp_desc.vlan, DHCPState.RELEASE, dhcp_desc)
+        del self.dhcp_client_state[key]
 
     def _monitor_dhcp_state(self):
         """
