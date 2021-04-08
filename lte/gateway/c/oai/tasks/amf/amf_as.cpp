@@ -484,7 +484,8 @@ uint16_t amf_as_data_req(
   // Setup the AS message
   if (msg->guti) {
     as_msg->s_tmsi.amf_set_id = msg->guti->guamfi.amf_set_id;
-    as_msg->s_tmsi.m_tmsi     = msg->guti->m_tmsi;
+    as_msg->s_tmsi.m_tmsi   = msg->guti->m_tmsi;
+>>>>>>> fixed compilations errors after rebasing #5989
   } else {
     as_msg->ue_id = msg->ue_id;
   }

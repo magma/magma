@@ -338,19 +338,18 @@ imsi64_t amf_app_handle_initial_ue_message(
      * hence not-used functions are take out
      */
     OAILOG_DEBUG(
-        LOG_AMF_APP,
-        "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
-    guti.guamfi.plmn         = {0};
-    guti.guamfi.amf_regionid = 0;
-    guti.guamfi.amf_set_id   = 0;
-    guti.guamfi.amf_pointer  = 0;
-    guti.m_tmsi              = INVALID_M_TMSI;
-    plmn.mcc_digit1          = initial_pP->tai.plmn.mcc_digit1;
-    plmn.mcc_digit2          = initial_pP->tai.plmn.mcc_digit2;
-    plmn.mcc_digit3          = initial_pP->tai.plmn.mcc_digit3;
-    plmn.mnc_digit1          = initial_pP->tai.plmn.mnc_digit1;
-    plmn.mnc_digit2          = initial_pP->tai.plmn.mnc_digit2;
-    plmn.mnc_digit3          = initial_pP->tai.plmn.mnc_digit3;
+        LOG_AMF_APP, "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
+    guti.guamfi.plmn        = {0};
+    guti.guamfi.amf_regionid     = 0;
+    guti.guamfi.amf_set_id    = 0;
+    guti.guamfi.amf_pointer = 0;
+    guti.m_tmsi             = INVALID_M_TMSI;
+    plmn.mcc_digit1         = initial_pP->tai.plmn.mcc_digit1;
+    plmn.mcc_digit2         = initial_pP->tai.plmn.mcc_digit2;
+    plmn.mcc_digit3         = initial_pP->tai.plmn.mcc_digit3;
+    plmn.mnc_digit1         = initial_pP->tai.plmn.mnc_digit1;
+    plmn.mnc_digit2         = initial_pP->tai.plmn.mnc_digit2;
+    plmn.mnc_digit3         = initial_pP->tai.plmn.mnc_digit3;
     is_guti_valid =
         amf_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
     // create a new ue context if nothing is found
