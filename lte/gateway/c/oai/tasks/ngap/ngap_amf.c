@@ -144,6 +144,23 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           state, &AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION(received_message_p));
     } break;
 
+    // From AMF_APP task
+    case NGAP_UE_CONTEXT_RELEASE_COMMAND: {
+      ngap_handle_ue_context_release_command(
+          state, &received_message_p->ittiMsg.ngap_ue_context_release_command,
+          imsi64);
+    } break;
+
+    case NGAP_PDUSESSION_RESOURCE_SETUP_REQ: {
+      ngap_generate_ngap_pdusession_resource_setup_req(
+          state, &NGAP_PDUSESSION_RESOURCE_SETUP_REQ(received_message_p));
+    } break;
+
+    case NGAP_PDUSESSIONRESOURCE_REL_REQ: {
+      ngap_generate_ngap_pdusession_resource_rel_cmd(
+          state, &NGAP_PDUSESSIONRESOURCE_REL_REQ(received_message_p));
+    } break;
+
     default: {
       OAILOG_ERROR(
           LOG_NGAP, "Unknown message ID %d:%s\n",

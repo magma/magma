@@ -10,14 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_amf_handlers.h
-  Date        2020/07/28
-  Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
-  Description Defines NG Application Protocol Messages Handlers
 
-*****************************************************************************/
 #pragma once
 
 #include <stdbool.h>
@@ -108,3 +101,13 @@ int ngap_handle_new_association(
 int ngap_amf_set_cause(
     Ngap_Cause_t* cause_p, const Ngap_Cause_PR cause_type,
     const long cause_value);
+
+int ngap_amf_handle_error_ind_message(
+    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
+
+void amf_app_handle_gnb_deregister_ind(
+    const itti_ngap_gNB_deregistered_ind_t* gNB_deregistered_ind);
+
+void ngap_amf_release_ue_context(
+    ngap_state_t* state, m5g_ue_description_t* ue_ref_p, imsi64_t imsi64);

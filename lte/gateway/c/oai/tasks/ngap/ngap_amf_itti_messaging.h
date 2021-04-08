@@ -10,14 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_amf_itti_messaging.h
-  Date        2020/07/28
-  Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
-  Description Defines NG Application Protocol Messages
 
-*****************************************************************************/
 #pragma once
 
 #include <stdbool.h>
