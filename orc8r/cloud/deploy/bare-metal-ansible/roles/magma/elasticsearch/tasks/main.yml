@@ -1,6 +1,9 @@
 - name: Elasticsearch | Ensure stable helm repo
   command: helm repo add stable https://charts.helm.sh/stable/
 
+- name: Elasticsearch | Ensure elastic helm repo
+  command: helm repo add  elastic https://helm.elastic.co
+
 - name: Elasticsearch | Ensure namespace
   command: kubectl create ns {{ magma_namespace }}
   failed_when: false
@@ -16,14 +19,26 @@
 
 - name: Elasticsearch | Template out helm chart values
   template:
-    src: elasticsearch-values.yaml.j2
+    src: "{{ item }}-values.yaml.j2"
     dest: "{{ charts_dir }}/{{ item }}-values.yaml"
   with_items:
-    - elasticsearch
+    - elasticsearch-master
+    - elasticsearch-data
+    - elasticsearch-data2
     - elasticsearch-curator
 
 - name: Elasticsearch | Install/upgrade helm charts
-  command: helm upgrade --install -n {{ magma_namespace }} {{ item }} stable/{{ item }} -f {{ charts_dir }}/{{ item }}-values.yaml
+  command: helm upgrade --install -n {{ magma_namespace }} {{ item.release }} {{ item.repo }}/{{ item.chart }} -f {{ charts_dir }}/{{ item.release }}-values.yaml
   with_items:
-    - elasticsearch
-    - elasticsearch-curator
+    - chart: elasticsearch
+      release: elasticsearch-master
+      repo: elastic
+    - chart: elasticsearch
+      release: elasticsearch-data
+      repo: elastic
+    - chart: elasticsearch
+      release: elasticsearch-data2
+      repo: elastic
+    - chart: elasticsearch-curator
+      release: elasticsearch-curator
+      repo: stable
