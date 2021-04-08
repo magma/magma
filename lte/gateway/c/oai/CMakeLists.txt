@@ -118,6 +118,7 @@ add_subdirectory(common)
 add_subdirectory(lib)
 add_subdirectory(oai_mme)
 add_subdirectory(tasks)
+add_subdirectory(integ_test)
 
 if (BUILD_TESTS)
   enable_testing()
