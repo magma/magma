@@ -25,7 +25,7 @@ from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.policy_converters import get_direction_for_match, \
     flow_match_to_magma_match, get_flow_ip_dst, ipv4_address_to_str, \
-    FlowMatchError, convert_ipv4_str_to_ip_proto
+    FlowMatchError, convert_ipv4_str_to_ip_proto, convert_ipv6_bytes_to_ip_proto
 from lte.protos.mobilityd_pb2 import IPAddress
 
 from magma.pipelined.qos.types import QosInfo
@@ -271,7 +271,7 @@ class PolicyMixin(metaclass=ABCMeta):
                 for policy in policies:
                     msg_list.extend(self._get_policy_flows(imsi, msisdn, uplink_tunnel, ipv4, apn_ambr, policy))
             if add_flow_req.ipv6_addr:
-                ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
+                ipv6 = convert_ipv6_bytes_to_ip_proto(add_flow_req.ipv6_addr)
                 msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv6)
                 if msgs:
                     msg_list.extend(msgs)
