@@ -11,11 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import binascii
-from collections import defaultdict
-import re
 import logging
+import re
 import subprocess
-from typing import Optional, Dict, List, TYPE_CHECKING
+from collections import defaultdict
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 # Prevent circular import
 if TYPE_CHECKING:

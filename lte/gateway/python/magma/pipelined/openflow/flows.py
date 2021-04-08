@@ -14,7 +14,7 @@ import logging
 
 from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import SCRATCH_REGS, REG_ZERO_VAL
+from magma.pipelined.openflow.registers import REG_ZERO_VAL, SCRATCH_REGS
 from ryu.ofproto.nicira_ext import ofs_nbits
 
 logger = logging.getLogger(__name__)

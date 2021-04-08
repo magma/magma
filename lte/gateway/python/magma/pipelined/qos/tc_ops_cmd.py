@@ -12,12 +12,13 @@ limitations under the License.
 """
 
 
-from .tc_ops import TcOpsBase
+import logging
 import os
 import shlex
 import subprocess
 from typing import List  # noqa
-import logging
+
+from .tc_ops import TcOpsBase
 
 LOG = logging.getLogger('pipelined.qos.tc_cmd')
 

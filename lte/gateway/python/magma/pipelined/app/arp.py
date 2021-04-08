@@ -11,23 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import netifaces
 import ipaddress
-
 from collections import namedtuple
 
+import netifaces
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupUEMacRequest
-
 from magma.common.misc_utils import cidr_to_ip_netmask_tuple
-from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.directoryd_client import get_all_records
+from magma.pipelined.mobilityd_client import mobilityd_list_ip_blocks
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, load_passthrough
-from magma.pipelined.directoryd_client import get_all_records
-from magma.pipelined.mobilityd_client import mobilityd_list_ip_blocks
-
 from ryu.controller import dpset
-from ryu.lib.packet import ether_types, arp
+from ryu.lib.packet import arp, ether_types
 
 # This is used to determine valid ip-blocks.
 MAX_SUBNET_PREFIX_LEN = 31

@@ -16,22 +16,20 @@ import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowMatch
 from lte.protos.pipelined_pb2 import FlowRequest
-
-
-from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
-    PipelinedController,
-)
+from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
 from magma.pipelined.tests.pipelined_test_util import (
+    SnapshotVerifier,
+    create_service_manager,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager,
-    SnapshotVerifier,
 )
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 
 
 class DPITest(unittest.TestCase):

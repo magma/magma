@@ -10,23 +10,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import subprocess
 import ipaddress
 import socket
+import subprocess
 from collections import namedtuple
-from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
-from .base import MagmaController
+from lte.protos.mobilityd_pb2 import IPAddress
+from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.app.inout import INGRESS
-from ryu.lib.packet import ether_types
-from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.openflow.registers import TUN_PORT_REG, Direction
+from magma.pipelined.policy_converters import get_eth_type, get_ue_ip_match_args
 from magma.pipelined.utils import Utils
-from magma.pipelined.openflow.registers import TUN_PORT_REG
-from lte.protos.mobilityd_pb2 import IPAddress
-from magma.pipelined.policy_converters import get_ue_ip_match_args, get_eth_type
-from magma.pipelined.openflow.registers import Direction
+from ryu.lib.packet import ether_types
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
