@@ -43,6 +43,30 @@
 extern "C" void __gcov_flush(void);
 #endif
 
+// TODO remove this flag once we are on Ubuntu 20.04 by default in 1.6
+#if SENTRY_ENABLED
+#include "sentry.h"
+
+void initialize_sentry() {
+  auto control_proxy_config =
+      magma::ServiceConfigLoader{}.load_service_config("control_proxy");
+  if (control_proxy_config["sentry_url"].IsDefined()) {
+    const std::string sentry_dns =
+        control_proxy_config["sentry_url"].as<std::string>();
+    sentry_options_t* options = sentry_options_new();
+    sentry_options_set_dsn(options, sentry_dns.c_str());
+
+    sentry_init(options);
+    sentry_capture_event(sentry_value_new_message_event(
+        SENTRY_LEVEL_INFO, "", "Starting SessionD with Sentry!"));
+  }
+}
+
+void shutdown_sentry() {
+  sentry_shutdown();
+}
+#endif
+
 static magma::mconfig::SessionD get_default_mconfig() {
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
@@ -170,6 +194,10 @@ long get_quota_exhaust_termination_time(const YAML::Node& config) {
 int main(int argc, char* argv[]) {
 #ifdef DEBUG
   __gcov_flush();
+#endif
+
+#ifdef SENTRY_ENABLED
+  initialize_sentry();
 #endif
 
   magma::init_logging(argv[0]);
@@ -423,5 +451,8 @@ int main(int argc, char* argv[]) {
   }
   delete session_store;
 
+#ifdef SENTRY_ENABLED
+  shutdown_sentry();
+#endif
   return 0;
 }
