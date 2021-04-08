@@ -264,8 +264,8 @@ void amf_remove_ue_context(
   // for guti_ue_context_htbl obj hash table
   hash_rc = obj_hashtable_uint64_ts_remove(
       amf_ue_context_p->guti_ue_context_htbl,
-      (const void* const) & ue_context_p->amf_context.m5_guti,
-      sizeof(ue_context_p->amf_context.m5_guti));
+      (const void* const) & ue_context_p->amf_context._m5_guti,
+      sizeof(ue_context_p->amf_context._m5_guti));
   OAILOG_ERROR_UE(
       LOG_AMF_APP, ue_context_p->amf_context.imsi64,
       "UE context not found for guti_ue_context_htbl\n"

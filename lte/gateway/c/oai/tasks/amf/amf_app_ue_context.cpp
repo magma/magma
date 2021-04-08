@@ -128,12 +128,12 @@ int amf_insert_ue_context(
         (0 != ue_context_p->amf_context.m5_guti.m_tmsi) ||
         (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn
                   .mcc_digit1) ||  // MCC 000 does not exist in ITU table
-        (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
-        (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) {
+        (0 != ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit2) ||
+        (0 != ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit3)) {
       h_rc = obj_hashtable_uint64_ts_insert(
           amf_ue_context_p->guti_ue_context_htbl,
-          (const void* const) & ue_context_p->amf_context.m5_guti,
-          sizeof(ue_context_p->amf_context.m5_guti),
+          (const void* const) & ue_context_p->amf_context._m5_guti,
+          sizeof(ue_context_p->amf_context._m5_guti),
           ue_context_p->amf_ue_ngap_id);
 
       if (HASH_TABLE_OK != h_rc) {
@@ -178,8 +178,6 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
   new_p->m5_implicit_detach_timer.id        = AMF_APP_TIMER_INACTIVE_ID;
   new_p->m5_initial_context_setup_rsp_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE};
-  new_p->m5_paging_response_timer = (amf_app_timer_t){
-      AMF_APP_TIMER_INACTIVE_ID, AMF_APP_PAGING_RESPONSE_TIMER_VALUE};
   new_p->m5_ulr_response_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_ULR_RESPONSE_TIMER_VALUE};
   new_p->m5_ue_context_modification_timer = (amf_app_timer_t){
@@ -363,8 +361,8 @@ void amf_remove_ue_context(
            .mcc_digit3)) {  // MCC 000 does not exist in ITU table
     hash_rc = obj_hashtable_uint64_ts_remove(
         amf_ue_context_p->guti_ue_context_htbl,
-        (const void* const) & ue_context_p->amf_context.m5_guti,
-        sizeof(ue_context_p->amf_context.m5_guti));
+        (const void* const) & ue_context_p->amf_context._m5_guti,
+        sizeof(ue_context_p->amf_context._m5_guti));
     if (HASH_TABLE_OK != hash_rc)
       OAILOG_ERROR(
           LOG_AMF_APP,

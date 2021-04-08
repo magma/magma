@@ -16,6 +16,8 @@
 extern "C" {
 #endif
 #include "log.h"
+#include "intertask_interface_types.h"
+#include "intertask_interface.h"
 #include "directoryd.h"
 #include "amf_config.h"
 #ifdef __cplusplus
@@ -30,8 +32,11 @@ extern "C" {
 #include "amf_app_state_manager.h"
 #include "M5gNasMessage.h"
 #include "dynamic_memory_check.h"
+#include "n11_messages_types.h"
 
+static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg);
 namespace magma5g {
+extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 extern ue_m5gmm_context_s
     ue_m5gmm_global_context;  // TODO: This has been taken care in new PR with
                               // multi UE feature
@@ -168,15 +173,15 @@ void amf_ue_context_update_coll_keys(
          ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
         (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
         (guti_p->guamfi.plmn.mcc_digit1 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
+         ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit1) ||
         (guti_p->guamfi.plmn.mcc_digit2 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
+         ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit2) ||
         (guti_p->guamfi.plmn.mcc_digit3 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
+         ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit3) ||
         (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id)) {
       h_rc = obj_hashtable_uint64_ts_remove(
           amf_ue_context_p->guti_ue_context_htbl,
-          &ue_context_p->amf_context.m5_guti, sizeof(*guti_p));
+          &ue_context_p->amf_context._m5_guti, sizeof(*guti_p));
       if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
         h_rc = obj_hashtable_uint64_ts_insert(
             amf_ue_context_p->guti_ue_context_htbl, (const void* const) guti_p,
@@ -193,7 +198,7 @@ void amf_ue_context_update_coll_keys(
             "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
             amf_ue_ngap_id);
       }
-      ue_context_p->amf_context.m5_guti = *guti_p;
+      ue_context_p->amf_context._m5_guti = *guti_p;
     }
   }
   OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -212,15 +217,15 @@ static bool amf_app_construct_guti(
    */
   bool is_guti_valid =
       false;  // Set to true if serving AMF is found and GUTI is constructed
-  uint8_t num_amf           = 0;  // Number of configured AMF in the AMF pool
-  guti_p->m_tmsi            = s_tmsi_p->m_tmsi;
-  guti_p->guamfi.amf_set_id = s_tmsi_p->amf_set_id;
+  uint8_t num_amf         = 0;  // Number of configured AMF in the AMF pool
+  guti_p->m_tmsi          = s_tmsi_p->m_tmsi;
+  guti_p->guamfi.amf_set_id = s_tmsi_p->amf_pointer;
   // Create GUTI by using PLMN Id and AMF-Group Id of serving AMF
   OAILOG_DEBUG(
       LOG_AMF_APP,
       "Construct GUTI using S-TMSI received form UE and AMG Group Id and PLMN "
       "id from AMF Conf: %u, %u \n",
-      s_tmsi_p->m_tmsi, s_tmsi_p->amf_set_id);
+      s_tmsi_p->m_tmsi, s_tmsi_p->amf_pointer);
   amf_config_read_lock(&amf_config_handler);
   /*
    * Check number of MMEs in the pool.
@@ -255,10 +260,9 @@ static bool amf_app_construct_guti(
   if (num_amf >= amf_config_handler.guamfi.nb) {
     OAILOG_DEBUG(LOG_AMF_APP, "No AMF serves this UE");
   } else {
-    guti_p->guamfi.plmn = amf_config_handler.guamfi.guamfi[num_amf].plmn;
-    guti_p->guamfi.amf_regionid =
-        amf_config_handler.guamfi.guamfi[num_amf].amf_regionid;
-    is_guti_valid = true;
+    guti_p->guamfi.plmn    = amf_config_handler.guamfi.guamfi[num_amf].plmn;
+    guti_p->guamfi.amf_set_id = amf_config_handler.guamfi.guamfi[num_amf].amf_set_id;
+    is_guti_valid          = true;
   }
   amf_config_unlock(&amf_config_handler);
   return is_guti_valid;
@@ -406,8 +410,8 @@ imsi64_t amf_app_handle_initial_ue_message(
     if (initial_pP->is_s_tmsi_valid) {
       s_tmsi = initial_pP->opt_s_tmsi;
     } else {
-      s_tmsi.amf_set_id = 0;
-      s_tmsi.m_tmsi     = INVALID_M_TMSI;
+      s_tmsi.amf_pointer = 0;
+      s_tmsi.m_tmsi   = INVALID_M_TMSI;
     }
 
     OAILOG_DEBUG(
@@ -767,10 +771,8 @@ void amf_app_handle_cm_idle_on_ue_context_release(
    * note: check if UE in connected state else already in idle state
    * nothing to do.
    */
-  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id;
   ue_m5gmm_context_s* ue_context = nullptr;
-  amf_context_t* amf_context     = nullptr;
   smf_context_t* smf_ctx         = nullptr;
   ue_id                          = cm_idle_req.amf_ue_ngap_id;
 
@@ -793,7 +795,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       smf_ctx->pdu_session_state = INACTIVE;
 
       // construct the proto structure and send message to SMF
-      rc = amf_smf_notification_send(ue_id, ue_context);
+      amf_smf_notification_send(ue_id, ue_context);
 
     } else {
       OAILOG_DEBUG(
@@ -818,4 +820,174 @@ void amf_app_handle_cm_idle_on_ue_context_release(
   }
 }
 
+static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
+  OAILOG_INFO(LOG_AMF_APP, "Timer: In Paging handler\n");
+  // amf_context_t* amf_ctx = NULL;
+  // paging_context_t* paging_ctx;
+  OAILOG_INFO(LOG_AMF_APP, "Timer: identification T3513 handler \n");
+  int rc = RETURNerror;
+  amf_ue_ngap_id_t ue_id;
+  ue_m5gmm_context_s* ue_context                 = nullptr;
+  amf_context_t* amf_ctx                         = nullptr;
+  paging_context_t* paging_ctx                   = nullptr;
+  MessageDef* message_p                          = nullptr;
+  itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
+
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  // for temorary using global variable to access ue_context
+  if (ue_context == NULL) {
+    return 0;
+        //ue_context = &ue_m5gmm_global_context;
+  }
+  // Get Paging Context
+  amf_ctx    = &ue_context->amf_context;
+  paging_ctx = &ue_context->paging_context;
+
+  paging_ctx->m5_paging_response_timer.id = NAS5G_TIMER_INACTIVE_ID;
+  /*
+   * Increment the retransmission counter
+   */
+  paging_ctx->paging_retx_count += 1;
+  OAILOG_ERROR(
+      LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
+      paging_ctx->paging_retx_count);
+
+  if (paging_ctx->paging_retx_count < MAX_PAGING_RETRY_COUNT) {
+    /*
+     * ReSend Paging request message to the UE
+     */
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: In Handler Starting PAGING Timer\n");
+    paging_ctx->m5_paging_response_timer.id = start_timer(
+        &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
+        paging_t3513_handler, NULL);
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: After Starting PAGING Timer\n");
+    // Fill the itti msg based on context info produced in amf core
+
+    message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
+
+    ngap_paging_notify = &message_p->ittiMsg.ngap_paging_request;
+    memset(ngap_paging_notify, 0, sizeof(itti_ngap_paging_request_t));
+#if 0
+      ngap_paging_notify->UEPagingIdentity.amf_code =
+          amf_context._m5_guti.guamfi.amf_regionid;
+#endif
+    ngap_paging_notify->UEPagingIdentity.amf_set_id =
+        amf_ctx->_m5_guti.guamfi.amf_set_id;
+    ngap_paging_notify->UEPagingIdentity.amf_pointer =
+        amf_ctx->_m5_guti.guamfi.amf_pointer;
+    OAILOG_INFO(LOG_AMF_APP, "hk: AMF_TEST: Filling NGAP structure for Downlink amf_ctx dec m_tmsi=%d", amf_ctx->_m5_guti.m_tmsi);
+    ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->_m5_guti.m_tmsi;
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: Filling NGAP structure for Downlink m_tmsi=%d", ngap_paging_notify->UEPagingIdentity.m_tmsi);
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit1 =
+        amf_ctx->_m5_guti.guamfi.plmn.mcc_digit1;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit2 =
+        amf_ctx->_m5_guti.guamfi.plmn.mcc_digit2;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit3 =
+        amf_ctx->_m5_guti.guamfi.plmn.mcc_digit3;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit1 =
+        amf_ctx->_m5_guti.guamfi.plmn.mnc_digit1;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit2 =
+        amf_ctx->_m5_guti.guamfi.plmn.mnc_digit2;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit3 =
+        amf_ctx->_m5_guti.guamfi.plmn.mnc_digit3;
+    ngap_paging_notify->TAIListForPaging.no_of_items = 1;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
+
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: sending downlink message to NGAP");
+    rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "Timer: timer has expired Sending Paging request again\n");
+    return rc;
+    //    amf_paging_request(paging_ctx);
+  } else {
+    /*
+     * Abort the Paging procedure
+     */
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "Timer: Maximum retires done hence Abort the Paging Request "
+        "procedure\n");
+    return -1;
+  }
+  return 0;
+}
+
+// Doing Paging Request handling received from SMF in AMF CORE
+//int amf_app_defs::amf_app_handle_notification_received(
+int amf_app_handle_notification_received(
+    itti_n11_received_notification_t* notification) {
+  ue_m5gmm_context_s* ue_context                 = nullptr;
+  amf_context_t* amf_ctx                         = nullptr;
+  paging_context_t* paging_ctx                   = nullptr;
+  MessageDef* message_p                          = nullptr;
+  itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
+  int rc = RETURNerror; 
+
+  OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: hk11: PAGING NOTIFICATION received from SMF\n");
+  imsi64_t imsi64;
+  IMSI_STRING_TO_IMSI64(notification->imsi,&imsi64);
+
+  OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: IMSI is %s %lu\n", notification->imsi, imsi64);
+  // Handle smf_context
+  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
+
+  if (ue_context == NULL) {
+     OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+  }
+
+  OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: IMSI is %d\n", notification->notify_ue_evnt);
+  switch (notification->notify_ue_evnt) {
+    case UE_PAGING_NOTIFY:
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: PAGING NOTIFICATION received\n");
+
+      // Get Paging Context
+      amf_ctx    = &ue_context->amf_context;
+      paging_ctx = &ue_context->paging_context;
+
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: Starting PAGING Timer\n");
+      /* Start Paging Timer T3513 */
+      paging_ctx->m5_paging_response_timer.id = start_timer(
+          &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
+          paging_t3513_handler, NULL);
+      // Fill the itti msg based on context info produced in amf core
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: After Starting PAGING Timer\n");
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: Allocating memory ");
+      message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
+
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ngap_paging_notify");
+
+      ngap_paging_notify = &message_p->ittiMsg.ngap_paging_request;
+      memset(ngap_paging_notify, 0, sizeof(itti_ngap_paging_request_t));
+      OAILOG_INFO(LOG_AMF_APP, "hk: AMF_TEST: Filling NGAP structure for Downlink");
+      ngap_paging_notify->UEPagingIdentity.amf_set_id = amf_ctx->_m5_guti.guamfi.amf_set_id;
+      ngap_paging_notify->UEPagingIdentity.amf_pointer = amf_ctx->_m5_guti.guamfi.amf_pointer;
+      ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->_m5_guti.m_tmsi;
+      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit1 =
+          amf_ctx->_m5_guti.guamfi.plmn.mcc_digit1;
+      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit2 =
+          amf_ctx->_m5_guti.guamfi.plmn.mcc_digit2;
+      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit3 =
+          amf_ctx->_m5_guti.guamfi.plmn.mcc_digit3;
+      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit1 =
+          amf_ctx->_m5_guti.guamfi.plmn.mnc_digit1;
+      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit2 =
+          amf_ctx->_m5_guti.guamfi.plmn.mnc_digit2;
+      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit3 =
+          amf_ctx->_m5_guti.guamfi.plmn.mnc_digit3;
+      ngap_paging_notify->TAIListForPaging.no_of_items = 1;
+      ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: sending downlink message to NGAP");
+      rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+      break;
+
+    case UE_SERVICE_REQUEST_ON_PAGING:
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: SERVICE ACCEPT NOTIFICATION received\n");
+      //TODO: Service Accept code to be implemented in upcoming PR
+    default:
+      OAILOG_INFO(LOG_AMF_APP, "AMF_TEST : default case nothing to do\n");
+      break;
+  }
+ return rc;
+}
 }  // namespace magma5g
