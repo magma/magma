@@ -15,9 +15,9 @@ limitations under the License.
 
 import argparse
 
-from magma.common.rpc_utils import cloud_grpc_wrapper
 from feg.protos.hello_pb2 import HelloRequest
 from feg.protos.hello_pb2_grpc import HelloStub
+from magma.common.rpc_utils import cloud_grpc_wrapper
 
 
 @cloud_grpc_wrapper
