@@ -575,7 +575,8 @@ static int sgw_s8_add_gtp_tunnel(
       rv = gtpv1u_add_s8_tunnel(
           ue_ipv4, ue_ipv6, vlan, enb, pgw,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-          eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE);
+          eps_bearer_ctxt_p->enb_teid_S1u, 0, 0, imsi, NULL,
+          DEFAULT_PRECEDENCE);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SGW_S8, sgw_context_p->imsi64,

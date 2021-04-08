@@ -911,17 +911,20 @@ TEST_F(GTPApplicationTest, TestAddTunnelS8) {
   struct in_addr enb_ip;
   enb_ip.s_addr = inet_addr("0.0.0.2");
   struct in_addr pgw_ip;
-  enb_ip.s_addr    = inet_addr("0.0.0.22");
-  uint32_t in_tei  = 1;
-  uint32_t out_tei = 2;
-  char imsi[]      = "001010000000013";
-  int vlan         = 0;
-  int enb_port     = 100;
-  int pgw_port     = 200;
+  enb_ip.s_addr        = inet_addr("0.0.0.22");
+  uint32_t in_tei      = 1;
+  uint32_t out_tei     = 2;
+  uint32_t pgw_in_tei  = 3;
+  uint32_t pgw_out_tei = 4;
+
+  char imsi[]  = "001010000000013";
+  int vlan     = 0;
+  int enb_port = 100;
+  int pgw_port = 200;
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, NULL, vlan, enb_ip, pgw_ip, in_tei, out_tei, imsi, enb_port,
-      pgw_port);
+      ue_ip, NULL, vlan, enb_ip, pgw_ip, in_tei, out_tei, pgw_in_tei,
+      pgw_out_tei, imsi, enb_port, pgw_port);
   // Uplink
   EXPECT_CALL(
       *messenger,
