@@ -33,6 +33,7 @@
 #include "lte/protos/subscriberdb.pb.h"
 #include "ServiceRegistrySingleton.h"
 #include "common_defs.h"
+#include "proto_converters.h"
 
 namespace grpc {
 class Channel;
@@ -62,46 +63,6 @@ PipelinedServiceClient::PipelinedServiceClient() {
   resp_loop_thread.detach();
 }
 
-IPFlowDL PipelinedServiceClient::set_ue_ip_flow_dl(struct ip_flow_dl flow_dl) {
-  IPFlowDL ue_flow_dl = IPFlowDL();
-
-  ue_flow_dl.set_set_params(flow_dl.set_params);
-  ue_flow_dl.set_tcp_dst_port(flow_dl.tcp_dst_port);
-  ue_flow_dl.set_tcp_src_port(flow_dl.tcp_src_port);
-  ue_flow_dl.set_udp_dst_port(flow_dl.udp_dst_port);
-  ue_flow_dl.set_udp_src_port(flow_dl.udp_src_port);
-  ue_flow_dl.set_ip_proto(flow_dl.ip_proto);
-
-  if ((flow_dl.set_params & DST_IPV4) || (flow_dl.set_params & SRC_IPV4)) {
-    if (flow_dl.set_params & DST_IPV4) {
-      IPAddress* dest_ip = ue_flow_dl.mutable_dest_ip();
-      dest_ip->set_version(IPAddress::IPV4);
-      dest_ip->set_address(&flow_dl.dst_ip, sizeof(struct in_addr));
-    }
-
-    if (flow_dl.set_params & SRC_IPV4) {
-      IPAddress* src_ip = ue_flow_dl.mutable_src_ip();
-      src_ip->set_version(IPAddress::IPV4);
-      src_ip->set_address(&flow_dl.src_ip, sizeof(struct in_addr));
-    }
-
-  } else {
-    if (flow_dl.set_params & DST_IPV6) {
-      IPAddress* dest_ip = ue_flow_dl.mutable_dest_ip();
-      dest_ip->set_version(IPAddress::IPV6);
-      dest_ip->set_address(&flow_dl.dst_ip6, sizeof(struct in6_addr));
-    }
-
-    if (flow_dl.set_params & SRC_IPV6) {
-      IPAddress* src_ip = ue_flow_dl.mutable_src_ip();
-      src_ip->set_version(IPAddress::IPV6);
-      src_ip->set_address(&flow_dl.src_ip6, sizeof(struct in6_addr));
-    }
-  }
-
-  return ue_flow_dl;
-}
-
 //------------------- TUNNEL ADD -------------------
 
 //                    ADD : v4
@@ -117,13 +78,13 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the vlan
   request.set_vlan(vlan);
 
   // Set the enb IPv4 address
-  client.gnb_set_ipv4_addr(enb_ipv4_addr, request);
+  set_gnb_ipv4_addr(enb_ipv4_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
@@ -141,7 +102,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
   request.set_apn(apn);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -166,13 +127,13 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the vlan
   request.set_vlan(vlan);
 
   // Set the enb IPv4 address
-  client.gnb_set_ipv4_addr(enb_ipv4_addr, request);
+  set_gnb_ipv4_addr(enb_ipv4_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
@@ -184,7 +145,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
   sid->set_type(SubscriberID::IMSI);
 
   // Flow dl
-  request.mutable_ip_flow_dl()->CopyFrom(client.set_ue_ip_flow_dl(flow_dl));
+  request.mutable_ip_flow_dl()->CopyFrom(to_proto_ip_flow_dl(flow_dl));
 
   // Set the precedence
   request.set_precedence(flow_precedence);
@@ -193,7 +154,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
   request.set_apn(apn);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -218,16 +179,16 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the UE IPv6 address
-  client.ue_set_ipv6_addr(ue_ipv6_addr, request);
+  set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the vlan
   request.set_vlan(vlan);
 
   // Set the enb IPv4 address
-  client.gnb_set_ipv4_addr(enb_ipv4_addr, request);
+  set_gnb_ipv4_addr(enb_ipv4_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
@@ -245,7 +206,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
   request.set_apn(apn);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -270,16 +231,16 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the UE IPv6 address
-  client.ue_set_ipv6_addr(ue_ipv6_addr, request);
+  set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the vlan
   request.set_vlan(vlan);
 
   // Set the enb IPv4 address
-  client.gnb_set_ipv4_addr(enb_ipv4_addr, request);
+  set_gnb_ipv4_addr(enb_ipv4_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
@@ -291,7 +252,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
   sid->set_type(SubscriberID::IMSI);
 
   // Flow dl
-  request.mutable_ip_flow_dl()->CopyFrom(client.set_ue_ip_flow_dl(flow_dl));
+  request.mutable_ip_flow_dl()->CopyFrom(to_proto_ip_flow_dl(flow_dl));
 
   // Set the precedence
   request.set_precedence(flow_precedence);
@@ -300,7 +261,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
   request.set_apn(apn);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -321,23 +282,23 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
     struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
     uint32_t in_teid, uint32_t out_teid, uint32_t ue_state,
     std::function<void(grpc::Status, UESessionContextResponse)> callback) {
-  UESessionSet request = UESessionSet();
+    UESessionSet request = UESessionSet();
   UESessionContextResponse response;
 
   PipelinedServiceClient& client = get_instance();
 
   // Set the enb IPv4 address
-  client.gnb_set_ipv4_addr(enb_ipv4_addr, request);
+  set_gnb_ipv4_addr(enb_ipv4_addr, request);
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
   request.set_out_teid(out_teid);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -357,27 +318,10 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
     uint32_t in_teid, uint32_t out_teid, const struct ip_flow_dl& flow_dl,
     uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
-  UESessionSet request = UESessionSet();
+  UESessionSet request = make_update_request_ipv4(enb_ipv4_addr, ue_ipv4_addr, in_teid, out_teid, flow_dl, ue_state);
   UESessionContextResponse response;
 
   PipelinedServiceClient& client = get_instance();
-
-  // Set the enb IPv4 address
-  client.gnb_set_ipv4_addr(enb_ipv4_addr, request);
-
-  // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
-
-  // Set the incoming and outgoing teid
-  request.set_in_teid(in_teid);
-  request.set_out_teid(out_teid);
-
-  // Flow dl
-  request.mutable_ip_flow_dl()->CopyFrom(client.set_ue_ip_flow_dl(flow_dl));
-
-  // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
-
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
 
@@ -400,20 +344,20 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
   PipelinedServiceClient& client = get_instance();
 
   // Set the enb IPv4 address
-  client.gnb_set_ipv4_addr(enb_ipv4_addr, request);
+  set_gnb_ipv4_addr(enb_ipv4_addr, request);
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the UE IPv6 address
-  client.ue_set_ipv6_addr(ue_ipv6_addr, request);
+  set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
   request.set_out_teid(out_teid);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -437,23 +381,23 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
   PipelinedServiceClient& client = get_instance();
 
   // Set the enb IPv4 address
-  client.gnb_set_ipv4_addr(enb_ipv4_addr, request);
+  set_gnb_ipv4_addr(enb_ipv4_addr, request);
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the UE IPv6 address
-  client.ue_set_ipv6_addr(ue_ipv6_addr, request);
+  set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
   request.set_out_teid(out_teid);
 
   // Flow dl
-  request.mutable_ip_flow_dl()->CopyFrom(client.set_ue_ip_flow_dl(flow_dl));
+  request.mutable_ip_flow_dl()->CopyFrom(to_proto_ip_flow_dl(flow_dl));
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -476,13 +420,13 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -506,16 +450,16 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
 
   // Flow dl
-  request.mutable_ip_flow_dl()->CopyFrom(client.set_ue_ip_flow_dl(flow_dl));
+  request.mutable_ip_flow_dl()->CopyFrom(to_proto_ip_flow_dl(flow_dl));
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -540,16 +484,16 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the UE IPv6 address
-  client.ue_set_ipv6_addr(ue_ipv6_addr, request);
+  set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -572,19 +516,19 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the UE IPv6 address
-  client.ue_set_ipv6_addr(ue_ipv6_addr, request);
+  set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
 
   // Flow dl
-  request.mutable_ip_flow_dl()->CopyFrom(client.set_ue_ip_flow_dl(flow_dl));
+  request.mutable_ip_flow_dl()->CopyFrom(to_proto_ip_flow_dl(flow_dl));
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -610,7 +554,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
@@ -619,7 +563,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
   request.set_precedence(flow_precedence);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -643,19 +587,19 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
 
   // Flow dl
-  request.mutable_ip_flow_dl()->CopyFrom(client.set_ue_ip_flow_dl(flow_dl));
+  request.mutable_ip_flow_dl()->CopyFrom(to_proto_ip_flow_dl(flow_dl));
 
   // Set the precedence
   request.set_precedence(flow_precedence);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -678,10 +622,10 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the UE IPv6 address
-  client.ue_set_ipv6_addr(ue_ipv6_addr, request);
+  set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
@@ -690,7 +634,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
   request.set_precedence(flow_precedence);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -714,10 +658,10 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the UE IPv6 address
-  client.ue_set_ipv6_addr(ue_ipv6_addr, request);
+  set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the incoming and outgoing teid
   request.set_in_teid(in_teid);
@@ -726,10 +670,10 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
   request.set_precedence(flow_precedence);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   // Flow dl
-  request.mutable_ip_flow_dl()->CopyFrom(client.set_ue_ip_flow_dl(flow_dl));
+  request.mutable_ip_flow_dl()->CopyFrom(to_proto_ip_flow_dl(flow_dl));
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -750,10 +694,10 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
   PipelinedServiceClient& client = get_instance();
 
   // Set the UE IPv4 address
-  client.ue_set_ipv4_addr(ue_ipv4_addr, request);
+  set_ue_ipv4_addr(ue_ipv4_addr, request);
 
   // Set the ue_state
-  client.config_ue_session_state(ue_state, request);
+  config_ue_session_state(ue_state, request);
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);

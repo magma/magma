@@ -158,14 +158,6 @@ class PipelinedServiceClient : public GRPCReceiver {
   PipelinedServiceClient(PipelinedServiceClient const&) = delete;
   void operator=(PipelinedServiceClient const&) = delete;
 
-  // Set the UE IPv4 address
-  static void ue_set_ipv4_addr(
-      const struct in_addr& ue_ipv4_addr, UESessionSet& request) {
-    IPAddress* encode_ue_ipv4_addr = request.mutable_ue_ipv4_address();
-    encode_ue_ipv4_addr->set_version(IPAddress::IPV4);
-    encode_ue_ipv4_addr->set_address(&ue_ipv4_addr, sizeof(struct in_addr));
-  }
-
   // Set the UE IPv6 address
   static void ue_set_ipv6_addr(
       const struct in6_addr& ue_ipv6_addr, UESessionSet& request) {

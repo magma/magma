@@ -40,6 +40,7 @@ link_directories(
 add_library(LIB_PIPELINED_CLIENT
     PipelinedServiceClient.cpp
     PipelinedClientAPI.cpp
+    proto_converters.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )
