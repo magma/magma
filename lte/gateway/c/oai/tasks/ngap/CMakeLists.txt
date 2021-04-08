@@ -39,6 +39,7 @@ set(ngap_h ${ngap_h})
 
 add_library(LIB_NGAP
     ${NGAP_source}
+    ngap_common.c
 )
 target_link_libraries(LIB_NGAP
     LIB_BSTR LIB_HASHTABLE
@@ -61,6 +62,13 @@ add_library(TASK_NGAP
     "${PROTO_SRCS}"
     "${PROTO_HDRS}"
     ${NGAP_DIR}/ngap_amf.c
+    ${NGAP_DIR}/ngap_amf_encoder.c
+    ${NGAP_DIR}/ngap_amf_decoder.c
+    ${NGAP_DIR}/ngap_amf_handlers.c
+    ${NGAP_DIR}/ngap_amf_nas_procedures.c
+    ${NGAP_DIR}/ngap_amf.c
+    ${NGAP_DIR}/ngap_amf_itti_messaging.c
+    ${NGAP_DIR}/ngap_amf_ta.c
     ${NGAP_DIR}/ngap_state.cpp
     ${NGAP_DIR}/ngap_state_manager.cpp
     ${NGAP_DIR}/ngap_state_converter.cpp
