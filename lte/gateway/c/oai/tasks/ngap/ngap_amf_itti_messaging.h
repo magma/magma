@@ -39,19 +39,19 @@
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 
-/** \brief pass msg to SCTP for transmit 
+/** \brief pass msg to SCTP for transmit
  * \param payload msg to transmit
  * \param sctp_assoc_id_t SCTP association ID
  * \param stream Stream number
- * \param amf_ue_ngap_id_t amf_ue_ngap_id 
+ * \param amf_ue_ngap_id_t amf_ue_ngap_id
  * @returns int
  **/
 int ngap_amf_itti_send_sctp_request(
     STOLEN_REF bstring* payload, const uint32_t sctp_assoc_id_t,
     const sctp_stream_id_t stream, const amf_ue_ngap_id_t ue_id);
 
-/** \brief pass NAS msg to AMF 
- * \param amf_ue_ngap_id_t amf_ue_ngap_id 
+/** \brief pass NAS msg to AMF
+ * \param amf_ue_ngap_id_t amf_ue_ngap_id
  * \param payload msg to transmit
  * \param tai Tracking Area Identifier
  * \param cgi E-UTRAN Cell Global Identification
@@ -62,20 +62,20 @@ int ngap_amf_itti_nas_uplink_ind(
     const tai_t const* tai, const ecgi_t const* cgi);
 
 /** \brief Handle initial_ue_message
- * \param assoc_id SCTP association ID 
- * \param gnb_id gNB ID  
- * \param gnb_ue_ngap_id gnb_ue_ngap_id 
+ * \param assoc_id SCTP association ID
+ * \param gnb_id gNB ID
+ * \param gnb_ue_ngap_id gnb_ue_ngap_id
  * \param nas_msg NAS Msg
  * \param nas_msg_length NAS Msg Length
  * \param tai Tracking Area Identifier
  * \param cgi E-UTRAN Cell Global Identification
- * \param rrc_cause establishment cause 
- * \param opt_s_tmsi shortened TMSI 
- * \param opt_guamfi GUAMF Id 
+ * \param rrc_cause establishment cause
+ * \param opt_s_tmsi shortened TMSI
+ * \param opt_guamfi GUAMF Id
  * \param opt_cell_access_mode CELL ACCESS MODE
- * \param opt_cell_gw_transport_address GW Transport Layer Address 
+ * \param opt_cell_gw_transport_address GW Transport Layer Address
  * \param opt_relay_node_indicator Relay Node Indicator
- * @returns nothing 
+ * @returns nothing
  **/
 void ngap_amf_itti_ngap_initial_ue_message(
     const sctp_assoc_id_t assoc_id, const uint32_t gnb_id,
@@ -88,4 +88,3 @@ void ngap_amf_itti_ngap_initial_ue_message(
     const void const* opt_cell_gw_transport_address, /* unused*/
     const void const* opt_relay_node_indicator       /* unused*/
 );
-

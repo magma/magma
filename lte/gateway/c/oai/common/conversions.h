@@ -126,7 +126,7 @@
   do {                                                                         \
     x = (int32_t)(                                                             \
         ((uint32_t)((buf)[0]) << 16) | ((uint32_t)((buf)[1]) << 8) |           \
-        ((uint32_t)((buf)[2])));                 			       \
+        ((uint32_t)((buf)[2])));                                               \
   } while (0)
 
 /* Convert an integer on 32 bits to the given bUFFER */
@@ -579,6 +579,25 @@ imsi64_t imsi_to_imsi64(const imsi_t* const imsi);
           (iMeIsV_t_PtR)->u.num.snr5, (iMeIsV_t_PtR)->u.num.snr6,              \
           (iMeIsV_t_PtR)->u.num.svn1, (iMeIsV_t_PtR)->u.num.svn2);             \
     }                                                                          \
+  }
+
+#define IMEISV_MOBID_TO_STRING(iMeIsV_t_PtR, iMeIsV_sTr, MaXlEn)                 \
+  {                                                                              \
+    int l_offset = 0;                                                            \
+    int l_ret    = 0;                                                            \
+    l_ret        = snprintf(                                                     \
+        iMeIsV_sTr + l_offset, MaXlEn - l_offset, "%u%u%u%u%u%u%u%u",     \
+        (iMeIsV_t_PtR)->tac1, (iMeIsV_t_PtR)->tac2, (iMeIsV_t_PtR)->tac3, \
+        (iMeIsV_t_PtR)->tac4, (iMeIsV_t_PtR)->tac5, (iMeIsV_t_PtR)->tac6, \
+        (iMeIsV_t_PtR)->tac7, (iMeIsV_t_PtR)->tac8);                      \
+    if (l_ret > 0) {                                                             \
+      l_offset += l_ret;                                                         \
+      l_ret = snprintf(                                                          \
+          iMeIsV_sTr + l_offset, MaXlEn - l_offset, "%u%u%u%u%u%u%u%u",          \
+          (iMeIsV_t_PtR)->snr1, (iMeIsV_t_PtR)->snr2, (iMeIsV_t_PtR)->snr3,      \
+          (iMeIsV_t_PtR)->snr4, (iMeIsV_t_PtR)->snr5, (iMeIsV_t_PtR)->snr6,      \
+          (iMeIsV_t_PtR)->svn1, (iMeIsV_t_PtR)->svn2);                           \
+    }                                                                            \
   }
 
 /*Used to convert char* IMSI/TMSI Mobile Identity to MobileIdentity(digit)

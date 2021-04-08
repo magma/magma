@@ -10,14 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_common.h
-  Date        2020/07/28
-  Author      Ashish Prajapati
-  Subsystem   Access and Mobility Management Function
-  Description Defines NG Application Protocol Messages
-
-*****************************************************************************/
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -744,9 +736,6 @@ typedef int (*ngap_message_handler_t)(
  \param sptr Dereferenced pointer to the structure to encode
  @returns size in bytes encded on success or 0 on failure
  **/
-//#if 1
-// TODO: commented as now "e_Ngap_ProcedureCode" is not enum
-//  : but #def so directly we can pass number: see Ngap_ProcedureCode.h
 
 ssize_t ngap_generate_successfull_outcome(
     uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
@@ -778,19 +767,6 @@ ssize_t ngap_generate_initiating_message(
 ssize_t ngap_generate_unsuccessfull_outcome(
     uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
     Ngap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
-//#endif
-
-/** \brief Generate a new IE
- \param id Protocol ie id of the IE
- \param criticality Criticality of the IE
- \param type ASN1 type descriptor of the IE value
- \param sptr Structure to be encoded in the value field
- @returns a pointer to the newly created IE structure or NULL in case of failure
- **/
-// commented by chandhu
-// Ngap_IE_t* ngap_new_ie(
-//    Ngap_ProtocolIE_ID_t id, Ngap_Criticality_t criticality,
-//    asn_TYPE_descriptor_t* type, void* sptr);
 
 /** \brief Handle criticality
  \param criticality Criticality of the IE
