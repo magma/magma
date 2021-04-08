@@ -463,7 +463,7 @@ uint16_t amf_as_data_req(
 
   // Setup the AS message
   if (msg->guti) {
-    as_msg->s_tmsi.amf_code = msg->guti->guamfi.amf_code;
+    as_msg->s_tmsi.amf_set_id = msg->guti->guamfi.amf_set_id;
     as_msg->s_tmsi.m_tmsi   = msg->guti->m_tmsi;
   } else {
     as_msg->ue_id = msg->ue_id;
@@ -804,7 +804,7 @@ static int amf_as_security_req(
    * Setup the AS message
    */
   if (msg) {
-    as_msg->s_tmsi.amf_code = msg->guti.guamfi.amf_code;
+    as_msg->s_tmsi.amf_set_id = msg->guti.guamfi.amf_set_id;
     as_msg->s_tmsi.m_tmsi   = msg->guti.m_tmsi;
     as_msg->ue_id           = msg->ue_id;
   } else {
@@ -909,7 +909,7 @@ uint16_t amf_as_establish_cnf(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
   }
 
-  as_msg->s_tmsi.amf_code  = msg->pds_id.guti->guamfi.amf_code;
+  as_msg->s_tmsi.amf_set_id  = msg->pds_id.guti->guamfi.amf_set_id;
   as_msg->s_tmsi.m_tmsi    = msg->pds_id.guti->m_tmsi;
   as_msg->nas_msg          = msg->nas_msg;
   as_msg->presencemask     = msg->presencemask;

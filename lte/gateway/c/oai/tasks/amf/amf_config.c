@@ -64,9 +64,9 @@ void nas5g_config_init(nas5g_config_t* nas_conf) {
 ***************************************************************************/
 void guamfi_config_init(guamfi_config_t* guamfi_conf) {
   guamfi_conf->nb                        = 1;
-  guamfi_conf->guamfi[0].amf_code        = AMFC;
-  guamfi_conf->guamfi[0].amf_gid         = AMFGID;
-  guamfi_conf->guamfi[0].amf_Pointer     = AMFPOINTER;
+  guamfi_conf->guamfi[0].amf_set_id        = AMFC;
+  guamfi_conf->guamfi[0].amf_regionid         = AMFGID;
+  guamfi_conf->guamfi[0].amf_pointer     = AMFPOINTER;
   guamfi_conf->guamfi[0].plmn.mcc_digit1 = 0;
   guamfi_conf->guamfi[0].plmn.mcc_digit2 = 0;
   guamfi_conf->guamfi[0].plmn.mcc_digit3 = 1;

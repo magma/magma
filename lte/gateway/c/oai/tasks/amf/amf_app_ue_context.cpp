@@ -123,8 +123,8 @@ int amf_insert_ue_context(
     }
 
     // filled guti
-    if ((0 != ue_context_p->amf_context.m5_guti.guamfi.amf_code) ||
-        (0 != ue_context_p->amf_context.m5_guti.guamfi.amf_gid) ||
+    if ((0 != ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
+        (0 != ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
         (0 != ue_context_p->amf_context.m5_guti.m_tmsi) ||
         (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn
                   .mcc_digit1) ||  // MCC 000 does not exist in ITU table
@@ -353,8 +353,8 @@ void amf_remove_ue_context(
   }
 
   // filled guti
-  if ((ue_context_p->amf_context.m5_guti.guamfi.amf_code) ||
-      (ue_context_p->amf_context.m5_guti.guamfi.amf_gid) ||
+  if ((ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
       (ue_context_p->amf_context.m5_guti.m_tmsi) ||
       (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
       (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||

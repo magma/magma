@@ -161,10 +161,10 @@ void amf_ue_context_update_coll_keys(
   ue_context_p->amf_teid_n11 = amf_teid_n11;
 
   if (guti_p) {
-    if ((guti_p->guamfi.amf_code !=
-         ue_context_p->amf_context.m5_guti.guamfi.amf_code) ||
-        (guti_p->guamfi.amf_gid !=
-         ue_context_p->amf_context.m5_guti.guamfi.amf_gid) ||
+    if ((guti_p->guamfi.amf_set_id !=
+         ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
+        (guti_p->guamfi.amf_regionid !=
+         ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
         (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
         (guti_p->guamfi.plmn.mcc_digit1 !=
          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
@@ -213,13 +213,13 @@ static bool amf_app_construct_guti(
       false;  // Set to true if serving AMF is found and GUTI is constructed
   uint8_t num_amf         = 0;  // Number of configured AMF in the AMF pool
   guti_p->m_tmsi          = s_tmsi_p->m_tmsi;
-  guti_p->guamfi.amf_code = s_tmsi_p->amf_code;
+  guti_p->guamfi.amf_set_id = s_tmsi_p->amf_set_id;
   // Create GUTI by using PLMN Id and AMF-Group Id of serving AMF
   OAILOG_DEBUG(
       LOG_AMF_APP,
       "Construct GUTI using S-TMSI received form UE and AMG Group Id and PLMN "
       "id from AMF Conf: %u, %u \n",
-      s_tmsi_p->m_tmsi, s_tmsi_p->amf_code);
+      s_tmsi_p->m_tmsi, s_tmsi_p->amf_set_id);
   amf_config_read_lock(&amf_config_handler);
   /*
    * Check number of MMEs in the pool.
@@ -246,8 +246,8 @@ static bool amf_app_construct_guti(
          amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit2) &&
         (plmn_p->mnc_digit1 ==
          amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit1) &&
-        (guti_p->guamfi.amf_code ==
-         amf_config_handler.guamfi.guamfi[num_amf].amf_code)) {
+        (guti_p->guamfi.amf_set_id ==
+         amf_config_handler.guamfi.guamfi[num_amf].amf_set_id)) {
       break;
     }
   }
@@ -255,7 +255,7 @@ static bool amf_app_construct_guti(
     OAILOG_DEBUG(LOG_AMF_APP, "No AMF serves this UE");
   } else {
     guti_p->guamfi.plmn    = amf_config_handler.guamfi.guamfi[num_amf].plmn;
-    guti_p->guamfi.amf_gid = amf_config_handler.guamfi.guamfi[num_amf].amf_gid;
+    guti_p->guamfi.amf_regionid = amf_config_handler.guamfi.guamfi[num_amf].amf_regionid;
     is_guti_valid          = true;
   }
   amf_config_unlock(&amf_config_handler);
@@ -320,11 +320,11 @@ imsi64_t amf_app_handle_initial_ue_message(
      * hence not-used functions are take out
      */
     OAILOG_DEBUG(
-        LOG_AMF_APP, "INITIAL UE Message: Valid amf_code and S-TMSI received ");
+        LOG_AMF_APP, "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
     guti.guamfi.plmn        = {0};
-    guti.guamfi.amf_gid     = 0;
-    guti.guamfi.amf_code    = 0;
-    guti.guamfi.amf_Pointer = 0;
+    guti.guamfi.amf_regionid     = 0;
+    guti.guamfi.amf_set_id    = 0;
+    guti.guamfi.amf_pointer = 0;
     guti.m_tmsi             = INVALID_M_TMSI;
     plmn.mcc_digit1         = initial_pP->tai.plmn.mcc_digit1;
     plmn.mcc_digit2         = initial_pP->tai.plmn.mcc_digit2;
@@ -403,7 +403,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     if (initial_pP->is_s_tmsi_valid) {
       s_tmsi = initial_pP->opt_s_tmsi;
     } else {
-      s_tmsi.amf_code = 0;
+      s_tmsi.amf_set_id = 0;
       s_tmsi.m_tmsi   = INVALID_M_TMSI;
     }
 

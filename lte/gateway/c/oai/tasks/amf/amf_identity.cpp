@@ -181,9 +181,9 @@ void amf_app_generate_guti_on_supi(
 
   // Filling data from amf_config file considering only one gNB
   amf_config_read_lock(&amf_config);
-  amf_guti->guamfi.amf_regionid = amf_config.guamfi.guamfi[0].amf_code;
-  amf_guti->guamfi.amf_set_id   = amf_config.guamfi.guamfi[0].amf_gid;
-  amf_guti->guamfi.amf_pointer  = amf_config.guamfi.guamfi[0].amf_Pointer;
+  amf_guti->guamfi.amf_regionid = amf_config.guamfi.guamfi[0].amf_set_id;
+  amf_guti->guamfi.amf_set_id   = amf_config.guamfi.guamfi[0].amf_regionid;
+  amf_guti->guamfi.amf_pointer  = amf_config.guamfi.guamfi[0].amf_pointer;
   amf_config_unlock(&amf_config);
   return;
 }

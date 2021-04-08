@@ -105,8 +105,7 @@ int create_session_grpc_req(amf_smf_establish_t* message, char* imsi) {
   auto* req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  req_rat_specific->set_pdu_session_id(
-      (const char*) (&(message->pdu_session_id)));
+  req_rat_specific->set_pdu_session_id((message->pdu_session_id));
   req_rat_specific->set_rquest_type(magma::lte::RequestType::INITIAL_REQUEST);
   req_rat_specific->mutable_pdu_address()->set_redirect_address_type(
       magma::lte::RedirectServer::IPV4);
@@ -140,8 +139,7 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   req_common->set_sm_session_state(magma::lte::SMSessionFSMState::RELEASED_4);
   auto* req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  req_rat_specific->set_pdu_session_id(
-      (const char*) (&(message->pdu_session_id)));
+  req_rat_specific->set_pdu_session_id((message->pdu_session_id));
   req_rat_specific->set_procedure_trans_identity(
       (const char*) (&(message->pti)));
   auto smf_srv_client = std::make_shared<magma5g::AsyncSmfServiceClient>();
