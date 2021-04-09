@@ -25,3 +25,21 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     NGAP_INITIAL_UE_MESSAGE, itti_ngap_initial_ue_message_t,
     ngap_initial_ue_message)
+MESSAGE_DEF(
+    NGAP_GNB_DEREGISTERED_IND, itti_ngap_gNB_deregistered_ind_t,
+    ngap_gNB_deregistered_ind)
+MESSAGE_DEF(
+    NGAP_PDUSESSIONRESOURCE_SETUP_RSP, itti_ngap_pdusessionresource_setup_rsp_t,
+    ngap_pdusessionresource_setup_rsp)
+MESSAGE_DEF(
+    NGAP_PDUSESSION_RESOURCE_SETUP_REQ,
+    itti_ngap_pdusession_resource_setup_req_t,
+    ngap_pdusession_resource_setup_req)
+MESSAGE_DEF(
+    NGAP_PDUSESSIONRESOURCE_REL_RSP, itti_ngap_pdusessionresource_rel_rsp_t,
+    ngap_pdusessionresource_rel_rsp)
+MESSAGE_DEF(
+    NGAP_PDUSESSIONRESOURCE_REL_REQ, itti_ngap_pdusessionresource_rel_req_t,
+    ngap_pdusessionresource_rel_req)
+MESSAGE_DEF(
+    NGAP_PAGING_REQUEST, itti_ngap_paging_request_t, ngap_paging_request)
