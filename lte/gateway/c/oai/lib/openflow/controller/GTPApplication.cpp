@@ -421,7 +421,7 @@ void GTPApplication::add_downlink_tunnel_flow_action(
     of13::FlowMod downlink_fm, bool passthrough, bool from_pgw) {
   uint32_t in_teid;
   if (from_pgw) {
-    in_teid = ev.get_in_tei();
+    in_teid = ev.get_pgw_in_tei();
   } else {
     in_teid = ev.get_in_tei();
   }
