@@ -53,7 +53,7 @@ def install(ctx):
                     return
 
                 # set the kubectl after bringing up the infra
-                if tf_cmd == tf_orc8r or tf_orc8r_app:
+                if tf_cmd in (tf_orc8r, tf_orc8r_app):
                     kubeconfigs = glob.glob(constants['project_dir'] + "/kubeconfig_*")
                     if len(kubeconfigs) != 1:
                         if len(kubeconfigs) == 0:

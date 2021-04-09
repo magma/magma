@@ -21,6 +21,7 @@ from .common import (
     run_command,
     run_playbook,
     print_error_msg,
+    print_warning_msg,
     print_success_msg)
 
 def setup_aws_creds():
@@ -68,6 +69,7 @@ def raw(ctx, dryrun, state, values):
     """
     Individually cleans up resources deployed for orc8r
     """
+    click.confirm(click.style('This is irreversable!! Do you want to continue with cleanup?', fg='red'), abort=True)
     if state:
         ctx.obj['cleanup_state'] = state
 
