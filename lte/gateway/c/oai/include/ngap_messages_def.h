@@ -41,3 +41,5 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     NGAP_PDUSESSIONRESOURCE_REL_REQ, itti_ngap_pdusessionresource_rel_req_t,
     ngap_pdusessionresource_rel_req)
+MESSAGE_DEF(
+    NGAP_PAGING_REQUEST, itti_ngap_paging_request_t, ngap_paging_request)
