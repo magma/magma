@@ -111,3 +111,21 @@ void amf_app_handle_gnb_deregister_ind(
 
 void ngap_amf_release_ue_context(
     ngap_state_t* state, m5g_ue_description_t* ue_ref_p, imsi64_t imsi64);
+
+int ngap_handle_paging_request(
+    ngap_state_t* state, const itti_ngap_paging_request_t* paging_request,
+    imsi64_t imsi64);
+
+int ngap_amf_handle_ue_context_release_request(
+    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
+
+int ngap_handle_ue_context_release_command(
+    ngap_state_t* state,
+    const itti_ngap_ue_context_release_command_t* const
+        ue_context_release_command_pP,
+    imsi64_t imsi64);
+
+int ngap_amf_handle_ue_context_release_complete(
+    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);

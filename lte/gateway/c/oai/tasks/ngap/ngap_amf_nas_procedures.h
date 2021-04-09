@@ -83,3 +83,11 @@ void ngap_handle_amf_ue_id_notification(
 int ngap_amf_handle_nas_non_delivery(
     ngap_state_t* state, const sctp_assoc_id_t assocId,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
+
+int ngap_generate_ngap_pdusession_resource_setup_req(
+    ngap_state_t* state, itti_ngap_pdusession_resource_setup_req_t* const
+                             pdusession_resource_setup_req);
+
+int ngap_generate_ngap_pdusession_resource_rel_cmd(
+    ngap_state_t* state,
+    itti_ngap_pdusessionresource_rel_req_t* const pdusessionresource_rel_cmd);

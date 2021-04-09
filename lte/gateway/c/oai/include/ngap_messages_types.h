@@ -70,6 +70,8 @@ typedef uint32_t teid_t;
 #define NGAP_PDUSESSIONRESOURCE_REL_REQ(mSGpTR)                                \
   (mSGpTR)->ittiMsg.ngap_pdusessionresource_rel_req
 
+#define NGAP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.ngap_paging_request
+
 // NOT a ITTI message
 typedef struct ngap_initial_ue_message_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
