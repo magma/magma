@@ -398,6 +398,13 @@ int validate_imei(imeisv_t* imeisv) {
    * the hashlist
    */
   imei64_t tac64 = 0;
+  if (!mme_config.blocked_imei.num) {
+    OAILOG_DEBUG(LOG_NAS_EMM, "No Blocked IMEI exists, returning success!");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
+  } else {
+    OAILOG_DEBUG(
+        LOG_NAS_EMM, "Blocked IMEI exists, proceed with validation...");
+  }
   IMEI_MOBID_TO_IMEI_TAC64(imeisv, &tac64);
   hashtable_rc_t h_rc = hashtable_uint64_ts_is_key_exists(
       mme_config.blocked_imei.imei_htbl, (const hash_key_t) tac64);
@@ -405,7 +412,7 @@ int validate_imei(imeisv_t* imeisv) {
   if (HASH_TABLE_OK == h_rc) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_IMEI_NOT_ACCEPTED);
   } else {
-    // Convert to imei to uint64_t
+    // Convert imei to uint64_t
     imei64_t imei64 = 0;
     IMEI_MOBID_TO_IMEI64(imeisv, &imei64);
     hashtable_rc_t h_rc = hashtable_uint64_ts_is_key_exists(

@@ -1304,7 +1304,7 @@ static int emm_attach_success_security_cb(emm_context_t* emm_context) {
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
   if (!attach_proc) {
-    OAILOG_INFO_UE(
+    OAILOG_ERROR_UE(
         LOG_NAS_EMM, emm_context->_imsi64,
         "EMM-PROC  - attach_proc is NULL \n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
@@ -1312,7 +1312,7 @@ static int emm_attach_success_security_cb(emm_context_t* emm_context) {
 
   if (emm_context->initiate_identity_after_smc) {
     emm_context->initiate_identity_after_smc = false;
-    OAILOG_INFO_UE(
+    OAILOG_DEBUG_UE(
         LOG_NAS_EMM, emm_context->_imsi64, "Trigger identity procedure\n");
     rc = emm_proc_identification(
         emm_context, (nas_emm_proc_t*) attach_proc, IDENTITY_TYPE_2_IMEISV,
