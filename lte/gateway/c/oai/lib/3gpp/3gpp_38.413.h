@@ -191,7 +191,7 @@ typedef struct PDU_Session_resource_setup_request_s {
 // Direction: NG-RAN node → AMF
 typedef struct PDU_Session_resource_setup_response_s {
   Ngap_Message_Type_t Ngap_Message_Type;
-  amf_ue_ngap_id_t
+  amf_ue_ngap_id_ty
       amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t

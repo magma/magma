@@ -109,7 +109,6 @@ int create_session_grpc_req(amf_smf_establish_t* message, char* imsi) {
   req_rat_specific->set_rquest_type(magma::lte::RequestType::INITIAL_REQUEST);
   req_rat_specific->mutable_pdu_address()->set_redirect_address_type(
       magma::lte::RedirectServer::IPV4);
-  req_rat_specific->set_access_type(magma::lte::AccessType::M_3GPP_ACCESS_3GPP);
   req_rat_specific->set_pdu_session_type(magma::lte::PduSessionType::IPV4);
   req_rat_specific->mutable_gnode_endpoint()->mutable_teid()->assign(
       (char*) message->gnb_gtp_teid);

@@ -102,4 +102,3 @@ typedef struct nas5g_timer_s {
   uint32_t sec; /* The timer interval value in seconds  */
 } nas5g_timer_t;
 
-#endif
