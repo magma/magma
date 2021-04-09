@@ -122,7 +122,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  ue_m5gmm_context->mm_state = UNREGISTERED;
+  ue_m5gmm_context->mm_state = DEREGISTERED;
   amf_context_t* amf_ctx     = NULL;
   amf_ctx                    = &ue_m5gmm_context->amf_context;
 
@@ -484,8 +484,7 @@ uint16_t amf_as_data_req(
   // Setup the AS message
   if (msg->guti) {
     as_msg->s_tmsi.amf_set_id = msg->guti->guamfi.amf_set_id;
-    as_msg->s_tmsi.m_tmsi   = msg->guti->m_tmsi;
->>>>>>> fixed compilations errors after rebasing #5989
+    as_msg->s_tmsi.m_tmsi     = msg->guti->m_tmsi;
   } else {
     as_msg->ue_id = msg->ue_id;
   }

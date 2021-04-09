@@ -46,12 +46,9 @@ static int amf_start_registration_proc_security(
 static int amf_registration(amf_context_t* amf_context);
 static int amf_send_registration_accept(amf_context_t* amf_context);
 static int amf_registration_failure_security_cb(amf_context_t* amf_context);
-static int amf_registration_run_procedure(amf_context_t* amf_context);
+
 static int amf_registration_reject(
     amf_context_t* amf_context, nas_amf_registration_proc_t* nas_base_proc);
-static int amf_proc_registration_complete(
-    amf_ue_ngap_id_t ue_id, bstring smf_msg_p, int amf_cause,
-    const amf_nas_message_decode_status_t status);
 
 /***************************************************************************
 **                                                                        **
@@ -206,7 +203,13 @@ int amf_proc_registration_request(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  rc = amf_registration_run_procedure(&ue_m5gmm_context->amf_context);
+  /*
+   * Execute Initial identity Request from AMF to UE
+   */
+  rc = state_handle_message_ue_1(
+      ue_m5gmm_global_context.mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
+      &ue_m5gmm_global_context, &ue_ctx.amf_context);
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -303,7 +306,7 @@ static int amf_registration_reject(
 **                                                                        **
 ***************************************************************************/
 
-static int amf_registration_run_procedure(amf_context_t* amf_context) {
+int amf_registration_run_procedure(amf_context_t* amf_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   nas_amf_registration_proc_t* registration_proc =
@@ -675,7 +678,10 @@ int amf_handle_registration_complete_response(
   /*
    * Execute the registration procedure completion
    */
-  rc = amf_proc_registration_complete(ue_id, msg->smf_pdu, amf_cause, status);
+  rc = state_handle_message_ue_2(
+      ue_m5gmm_global_context.mm_state, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
+      &ue_m5gmm_global_context, ue_id, msg->smf_pdu, amf_cause, status);
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -694,7 +700,7 @@ int amf_handle_registration_complete_response(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-static int amf_proc_registration_complete(
+int amf_proc_registration_complete(
     amf_ue_ngap_id_t ue_id, bstring smf_msg_pP, int amf_cause,
     const amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);

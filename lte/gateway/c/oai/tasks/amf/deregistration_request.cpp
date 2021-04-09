@@ -160,7 +160,9 @@ int amf_proc_deregistration_request(
     rc = amf_sap_send(&amf_sap);
     /* Handle releasing all context related resources
      */
-    rc = amf_app_handle_deregistration_req(ue_id);
+    rc = state_handle_message_ue_3(
+        ue_m5gmm_global_context.mm_state, STATE_EVENT_DEREGISTER, SESSION_NULL,
+        &ue_m5gmm_global_context, ue_id);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }

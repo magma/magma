@@ -263,7 +263,13 @@ int amf_smf_send(
           amf_smf_msg.u.establish.gnb_gtp_teid,
           smf_ctx->gtp_tunnel_id.gnb_gtp_teid, GNB_TEID_LEN);
       // send request to SMF over grpc
-      rc = create_session_grpc_req(&amf_smf_msg.u.establish, imsi);
+      /*
+       * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
+       */
+      rc = state_session_handle_message_1(
+          ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
+          smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+
     } break;
     case PDU_SESSION_RELEASE_REQUEST: {
       amf_cause = amf_smf_handle_pdu_release_request(
@@ -279,7 +285,11 @@ int amf_smf_send(
             "\n");
       }
       OAILOG_DEBUG(LOG_AMF_APP, "notifying SMF about PDU session release\n");
-      rc = release_session_gprc_req(&amf_smf_msg.u.release, imsi);
+      /* Execute PDU Session Release and notify to SMF */
+      rc = state_session_handle_message_1(
+          ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE,
+          smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+
       OAILOG_DEBUG(
           LOG_AMF_APP, "clear saved context associated with the PDU session\n");
       clear_amf_smf_context(smf_ctx);

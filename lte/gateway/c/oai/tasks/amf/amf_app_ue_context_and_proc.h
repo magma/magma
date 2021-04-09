@@ -755,4 +755,23 @@ int nas5g_message_encode(
     unsigned char* buffer, const amf_nas_message_t* const msg, uint32_t length,
     void* security);
 
+int amf_registration_run_procedure(amf_context_t* amf_context);
+int amf_proc_registration_complete(
+    amf_ue_ngap_id_t ue_id, bstring smf_msg_p, int amf_cause,
+    const amf_nas_message_decode_status_t status);
+
+// Finite state machine handlers
+int state_handle_message_ue_1(
+    m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
+    ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context);
+int state_handle_message_ue_2(
+    m5gmm_state_t, int, SMSessionFSMState, ue_m5gmm_context_s*,
+    amf_ue_ngap_id_t, bstring, int, amf_nas_message_decode_status_t);
+int state_handle_message_ue_3(
+    m5gmm_state_t, int event, SMSessionFSMState, ue_m5gmm_context_s*,
+    amf_ue_ngap_id_t);
+int state_session_handle_message_1(
+    m5gmm_state_t, int event, SMSessionFSMState session_state,
+    ue_m5gmm_context_s*, amf_smf_t, char*,
+    itti_n11_create_pdu_session_response_t*, uint32_t);
 }  // namespace magma5g

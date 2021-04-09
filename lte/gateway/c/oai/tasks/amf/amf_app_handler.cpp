@@ -338,18 +338,19 @@ imsi64_t amf_app_handle_initial_ue_message(
      * hence not-used functions are take out
      */
     OAILOG_DEBUG(
-        LOG_AMF_APP, "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
-    guti.guamfi.plmn        = {0};
-    guti.guamfi.amf_regionid     = 0;
-    guti.guamfi.amf_set_id    = 0;
-    guti.guamfi.amf_pointer = 0;
-    guti.m_tmsi             = INVALID_M_TMSI;
-    plmn.mcc_digit1         = initial_pP->tai.plmn.mcc_digit1;
-    plmn.mcc_digit2         = initial_pP->tai.plmn.mcc_digit2;
-    plmn.mcc_digit3         = initial_pP->tai.plmn.mcc_digit3;
-    plmn.mnc_digit1         = initial_pP->tai.plmn.mnc_digit1;
-    plmn.mnc_digit2         = initial_pP->tai.plmn.mnc_digit2;
-    plmn.mnc_digit3         = initial_pP->tai.plmn.mnc_digit3;
+        LOG_AMF_APP,
+        "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
+    guti.guamfi.plmn         = {0};
+    guti.guamfi.amf_regionid = 0;
+    guti.guamfi.amf_set_id   = 0;
+    guti.guamfi.amf_pointer  = 0;
+    guti.m_tmsi              = INVALID_M_TMSI;
+    plmn.mcc_digit1          = initial_pP->tai.plmn.mcc_digit1;
+    plmn.mcc_digit2          = initial_pP->tai.plmn.mcc_digit2;
+    plmn.mcc_digit3          = initial_pP->tai.plmn.mcc_digit3;
+    plmn.mnc_digit1          = initial_pP->tai.plmn.mnc_digit1;
+    plmn.mnc_digit2          = initial_pP->tai.plmn.mnc_digit2;
+    plmn.mnc_digit3          = initial_pP->tai.plmn.mnc_digit3;
     is_guti_valid =
         amf_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
     // create a new ue context if nothing is found
@@ -481,18 +482,12 @@ int amf_app_handle_uplink_nas_message(
 void amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
-  SmfMsg* smf_msg;
-  bstring buffer;
-  uint32_t len;
-  nas5g_error_code_t rc = M5G_AS_SUCCESS;
-  int amf_rc            = RETURNerror;
+  int amf_rc = RETURNerror;
   ue_m5gmm_context_s* ue_context;
   smf_context_t* smf_ctx;
-  uint32_t bytes = 0;
-  uint32_t ue_id = 0;
-
-  imsi64_t imsi64;
-  IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
+  amf_smf_t amf_smf_msg;
+  // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
+  uint32_t ue_id = 1;
 
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
@@ -544,6 +539,53 @@ void amf_app_handle_pdu_session_response(
      * command to UE and release message to SMF
      */
   }
+  /*Execute PDU establishement accept from AMF to gnodeb */
+  state_session_handle_message_1(
+      ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
+      smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
+      pdu_session_resp, ue_id);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_app_handle_pdu_session_accept()                           **
+ **                                                                        **
+ ** Description: Send the PDU establishment accept to gnodeb               **
+ **                                                                        **
+ ** Inputs:  pdu_session_resp:   pdusession response message               **
+ **      ue_id:      ue identity                                           **
+ **                                                                        **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **                                                                        **
+ ***************************************************************************/
+int amf_app_handle_pdu_session_accept(
+    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
+  extern ue_m5gmm_context_s
+      ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
+                                // store
+
+  nas5g_error_code_t rc = M5G_AS_SUCCESS;
+
+  DLNASTransportMsg encode_msg;
+  amf_nas_message_t msg;
+  uint32_t bytes = 0;
+  uint32_t len;
+  SmfMsg* smf_msg;
+  bstring buffer;
+  smf_context_t* smf_ctx;
+  ue_m5gmm_context_s* ue_context;
+
+  // Handle smf_context
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_context) {
+    smf_ctx = &(ue_context->amf_context.smf_context);
+  } else {
+    ue_context = &ue_m5gmm_global_context;
+    smf_ctx    = &ue_m5gmm_global_context.amf_context
+                   .smf_context;  // TODO AMF_TEST global var to temporarily
+                                  // store context inserted to ht
+  }
+
   smf_msg = &encode_msg.payload_container.smf_msg;
 
   // Message construction for PDU Establishment Accept
@@ -640,6 +682,7 @@ void amf_app_handle_pdu_session_response(
   } else {
     bdestroy_wrapper(&buffer);
   }
+  return rc;
 }
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
