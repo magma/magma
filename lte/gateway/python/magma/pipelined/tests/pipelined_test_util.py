@@ -15,30 +15,33 @@ import logging
 import os
 import re
 import subprocess
-import netifaces
-import fakeredis
-
 from collections import namedtuple
 from concurrent.futures import Future
 from difflib import unified_diff
 from typing import Dict, List, Optional
-
-from unittest import TestCase
-from unittest import mock
+from unittest import TestCase, mock
 from unittest.mock import MagicMock
-from ryu.lib import hub
 
+import fakeredis
+import netifaces
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupPolicyRequest, \
-    UpdateSubscriberQuotaStateRequest, SetupUEMacRequest
+from lte.protos.pipelined_pb2 import (
+    SetupFlowsResult,
+    SetupPolicyRequest,
+    SetupUEMacRequest,
+    UpdateSubscriberQuotaStateRequest,
+)
+from magma.pipelined.app.base import global_epoch
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.openflow import flows
 from magma.pipelined.service_manager import ServiceManager
-from magma.pipelined.tests.app.exceptions import BadConfigError, \
-    ServiceRunningError
+from magma.pipelined.tests.app.exceptions import (
+    BadConfigError,
+    ServiceRunningError,
+)
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery
 from magma.pipelined.tests.app.start_pipelined import StartThread
-from magma.pipelined.app.base import global_epoch
-from magma.pipelined.openflow import flows
+from ryu.lib import hub
 
 """
 Pipelined test util functions can be used for testing pipelined, the usage of

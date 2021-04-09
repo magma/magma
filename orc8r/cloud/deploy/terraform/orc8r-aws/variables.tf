@@ -239,6 +239,12 @@ variable "orc8r_db_engine_version" {
   default     = "9.6.15"
 }
 
+variable "orc8r_db_dialect" {
+  description = "Database dialect for Orchestrator DB."
+  type        = string
+  default     = "postgres"
+}
+
 ##############################################################################
 # Secretmanager configuration
 ##############################################################################

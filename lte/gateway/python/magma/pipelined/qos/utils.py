@@ -13,10 +13,13 @@ limitations under the License.
 
 import logging
 from collections import deque
+
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisHashDict
-from magma.common.redis.serializers import get_json_serializer, \
-    get_json_deserializer
+from magma.common.redis.serializers import (
+    get_json_deserializer,
+    get_json_serializer,
+)
 
 LOG = logging.getLogger('pipelined.qos.id_manager')
 

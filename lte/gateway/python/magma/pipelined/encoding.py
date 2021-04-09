@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import codecs
-import hashlib
 import gzip
-from Crypto.Cipher import ARC4
-from Crypto.Cipher import AES
+import hashlib
+import logging
+
+from Crypto.Cipher import AES, ARC4
 from Crypto.Hash import HMAC
 from Crypto.Random import get_random_bytes
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD

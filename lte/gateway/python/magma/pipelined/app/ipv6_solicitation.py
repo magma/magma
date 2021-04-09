@@ -12,18 +12,15 @@ limitations under the License.
 """
 from collections import namedtuple
 
-from ryu.controller import ofp_event
-from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id
-from magma.pipelined.openflow.registers import Direction, DIRECTION_REG
-
-from ryu.controller import dpset
+from magma.pipelined.openflow.registers import DIRECTION_REG, Direction
+from ryu.controller import dpset, ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
+from ryu.lib.packet import ether_types, ethernet, icmpv6, in_proto, ipv6, packet
 from ryu.ofproto.inet import IPPROTO_ICMPV6
-from ryu.lib.packet import packet, ethernet, ether_types, icmpv6, ipv6, \
-    in_proto
 
 
 class IPV6SolicitationController(MagmaController):

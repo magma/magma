@@ -11,28 +11,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import warnings
 import unittest
-from unittest import TestCase
 import unittest.mock
+import warnings
 from collections import OrderedDict
 from concurrent.futures import Future
+from unittest import TestCase
 from unittest.mock import MagicMock
 
+from lte.protos.pipelined_pb2 import CauseIE
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.app.ng_set_session_msg import CreateSessionUtil
 from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
     TestSetup,
-    PipelinedController)
-
+)
 from magma.pipelined.tests.pipelined_test_util import (
+    create_service_manager,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager)
-
-from lte.protos.pipelined_pb2 import CauseIE
-
-from magma.pipelined.tests.app.ng_set_session_msg import (
-    CreateSessionUtil)
+)
 
 FAULTY_PDR_SESSION    = 1
 FAULTY_FAR_SESSION    = 2

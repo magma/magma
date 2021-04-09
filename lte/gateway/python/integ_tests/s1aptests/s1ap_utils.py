@@ -1494,11 +1494,13 @@ class SessionManagerUtil(object):
             )
         )
 
+
 class GTPBridgeUtils:
     def __init__(self):
         self.magma_utils = MagmadUtil(None)
         ret = self.magma_utils.exec_command_output(
-            "sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
+            "sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml"
+        )
         if "false" in ret:
             self.gtp_port_name = "gtp0"
         else:
@@ -1507,42 +1509,48 @@ class GTPBridgeUtils:
 
     def get_gtp_port_no(self) -> Optional[int]:
         output = self.magma_utils.exec_command_output(
-            "sudo ovsdb-client dump Interface name ofport")
-        for line in output.split('\n'):
+            "sudo ovsdb-client dump Interface name ofport"
+        )
+        for line in output.split("\n"):
             if self.gtp_port_name in line:
                 port_info = line.split()
                 return port_info[1]
 
     def get_proxy_port_no(self) -> Optional[int]:
         output = self.magma_utils.exec_command_output(
-            "sudo ovsdb-client dump Interface name ofport")
-        for line in output.split('\n'):
+            "sudo ovsdb-client dump Interface name ofport"
+        )
+        for line in output.split("\n"):
             if self.proxy_port in line:
                 port_info = line.split()
                 return port_info[1]
+
     # RYU rest API is not able dump flows from non zero table.
     # this adds similar API using `ovs-ofctl` cmd
     def get_flows(self, table_id) -> []:
         output = self.magma_utils.exec_command_output(
-            "sudo ovs-ofctl dump-flows gtp_br0 table={}".format(table_id))
-        return output.split('\n')
+            "sudo ovs-ofctl dump-flows gtp_br0 table={}".format(table_id)
+        )
+        return output.split("\n")
+
 
 class HaUtil:
     def __init__(self):
-        self._ha_stub = HaServiceStub(
-            get_rpc_channel("spgw_service")
-        )
+        self._ha_stub = HaServiceStub(get_rpc_channel("spgw_service"))
 
     def offload_agw(self, imsi, enbID, offloadtype=0):
         req = StartAgwOffloadRequest(
-            enb_id = enbID,
-            enb_offload_type = offloadtype,
-            imsi = imsi,
-            )
+            enb_id=enbID,
+            enb_offload_type=offloadtype,
+            imsi=imsi,
+        )
         try:
             self._ha_stub.StartAgwOffload(req)
         except grpc.RpcError as e:
             print("gRPC failed with %s: %s" % (e.code(), e.details()))
+            return False
+
+        return True
 
 
 class HeaderEnrichmentUtils:

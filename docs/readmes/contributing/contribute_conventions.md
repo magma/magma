@@ -1,42 +1,90 @@
 ---
 id: contribute_conventions
-title: Code Conventions
+title: Contributing Conventions
 hide_title: true
 ---
 
-# Code Conventions
+# Contributing Conventions
 
-This document describes code conventions for the Magma project. The goal of this style guide is to
+This document describes contributing conventions for the Magma project. The goal of this style guide is to
 
 - Steer contributors away from experienced landmines
 - Align on coding styles in support of a uniform Magma codebase, with the aim to improve developer productivity and codebase approachability
 
 ## General
 
-Throughout the Magma codebase, the principal convention is the [boy scout rule](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html): leave it better than you found it. Consider the following conventions when adding a PR
+Follow these conventions when making changes to the Magma codebase.
 
-- Add tests for your changes
-    - Tests should cover, at minimum, the mainline of the new feature. For reference, that usually ends up around 50-70% coverage.
-    - Unit tests should default to being placed in the same directory as the files they're testing, except for the following
-        - Python: directly-adjacent `tests` directory
-        - C/C++: directly-adjacent `tests` directory
-    - Integration tests should be placed as close to the code-under-test as possible
-    - If you're not sure how to test a change, reach out on the community Slack workspace for input
-- Cleanup changes should be in separate PRs than functional changes
-    - Exception: if the area of the codebase you're editing needs a cleanup PR, but you don't have bandwidth to add one, default to mimicking the surrounding code
-- Use [Go-style doc comments](https://golang.org/doc/effective_go#commentary), where the doc comment is prefixed by the name of the object being documented
+### Leave it better than you found it
+
+- The project's principal convention is the [boy scout rule](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html): leave it better than you found it
+
+### Add tests for your changes
+
+- Tests should cover, at minimum, the mainline of the new feature. For reference, that usually ends up around 50-70% coverage.
+- Unit tests should default to being placed in the same directory as the files they're testing, except for the following
+    - Python: directly-adjacent `tests` directory
+    - C/C++: directly-adjacent `tests` directory
+- Integration tests should be placed as close to the code-under-test as possible
+- If you're not sure how to test a change, reach out on the community Slack workspace for input
+
+### Separate cleanup PRs from functional changes
+
+- Keeps PRs small and understandable
+- Exception: if the area of the codebase you're editing needs a cleanup PR, but you don't have bandwidth to add one, default to mimicking the surrounding code
+
+### Scope component responsibilities
+
+- Functions, and components in general, should be narrowly scoped to a single, specific role
+- When writing a function over 100 lines long, consider extracting a helper functions out of the intermediate logical steps
+
+### Prefer immutability and idempotency
+
+- Prefer immutable state
+- When mutability is necessary, consider the following
+    - Prefer to set a component's state entirely in its constructor
+    - Mutate a component's state as close to construction-time as possible
+    - Perform mutations as high in the call chain as possible
+- Prefer side-effect-free functions
+    - When side-effects are necessary, move them as high in the call chain as possible
+
+### Prefer composition over inheritance
+
+- Avoid inheritance as a design pattern, in favor of composition and dependency injection
+- If complex logic begins bleeding into test case setup, consider pulling that logic into a dependency interface
+- Build a complex component as a composition of multiple simpler components with clear interfaces
+- Avoid non-trivial static functions: pull interfaces out of the static functions and inject them into depending components
+
+### Use simple constructors
+
+- Split complex logic and side-effect-inducing functionality out of the constructor and into an initialization method
+- If desired, can also use a static factory function to construct the component and call its initialization method
+
+### Comment with why, not what
+
+- Good code is self-documenting
+- Instead of defaulting to inline comments, focus on
+    - Concise and descriptive identifier names
+    - Intelligent types and pervasive typing information
+    - High-quality docstrings on functions, components, and top-level identifiers
 - Avoid "topic sentence" comments
     - E.g. "this block of code does X ... this block of code does Y", when there's no value-add other than summarizing the next few lines
-    - Instead, code paragraphs should be skimmable. Also consider breaking dense code paragraphs out into private functions.
+    - Instead, code paragraphs should be skimmable
+    - Consider breaking dense code paragraphs out into private functions.
+- Save comments for code blocks that require non-obvious context, e.g. answering why an idiosyncratic or non-obvious decision was made
+
+### Style conventions
+
+- Use [Go-style doc comments](https://golang.org/doc/effective_go#commentary), where the doc comment is prefixed by the name of the object being documented
+- Use [Americanized spellings](https://en.wikipedia.org/wiki/Wikipedia:List_of_spelling_variants)
+    - marshaling, marshaled
+    - canceling, canceled, cancellation
 - Prefer underscores over hyphens
     - File, directory names
     - YAML, JSON
     - Exception: in certain parts of K8s, underscores are disallowed. In this case, hyphens are preferred, and translation between hyphens and underscores is acceptable.
 - Omit trailing slash of directory paths, except where semantically meaningful
-- Don't terminate service names with `d`
-- Use [Americanized spellings](https://en.wikipedia.org/wiki/Wikipedia:List_of_spelling_variants)
-    - marshaling, marshaled
-    - canceling, canceled, cancellation
+- Don't terminate new service names with `d`
 
 ## Documentation
 

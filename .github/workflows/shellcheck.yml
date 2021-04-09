@@ -1,4 +1,4 @@
-name: Shellcheck by Reviewdog 
+name: reviewdog
 on: [pull_request]
 jobs:
   shellcheck:
@@ -10,8 +10,8 @@ jobs:
         uses: reviewdog/action-shellcheck@v1
         with:
           github_token: ${{ secrets.github_token }}
-          filter_mode: diff_context # Any changed content.
-          reporter: github-pr-review # Post code review comments.
+          filter_mode: added # Any added or changed content.
+          reporter: github-pr-review # Post code review comments. Falls back to Annotations.
           pattern: "*.sh" # Optional.
           # Other options omitted here but possible.
           # - fail_on_error

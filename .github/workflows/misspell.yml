@@ -1,0 +1,17 @@
+---
+name: reviewdog
+on: [pull_request]  # yamllint disable-line rule:truthy
+jobs:
+  misspell:
+    name: runner / misspell
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code.
+        uses: actions/checkout@v1
+      - name: misspell
+        uses: reviewdog/action-misspell@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added  # Any added or changed content.
+          reporter: github-pr-review  # Post code review comments.
+          locale: "US"

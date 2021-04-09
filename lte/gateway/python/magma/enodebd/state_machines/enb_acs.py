@@ -10,9 +10,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from asyncio import BaseEventLoop
-from typing import Type, Any
 from abc import ABC, abstractmethod
+from asyncio import BaseEventLoop
+from typing import Any, Type
+
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -195,4 +196,3 @@ class EnodebAcsStateMachine(ABC):
     @abstractmethod
     def stop_state_machine(self) -> None:
         pass
-

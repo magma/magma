@@ -113,10 +113,11 @@ module orc8r-app {
   existing_tiller_service_account_name = "tiller"
   helm_deployment_name                 = var.new_deployment_name
 
-  orc8r_db_host = module.orc8r.orc8r_db_host
-  orc8r_db_name = module.orc8r.orc8r_db_name
-  orc8r_db_user = module.orc8r.orc8r_db_user
-  orc8r_db_pass = module.orc8r.orc8r_db_pass
+  orc8r_db_host    = module.orc8r.orc8r_db_host
+  orc8r_db_dialect = module.orc8r.orc8r_db_dialect
+  orc8r_db_name    = module.orc8r.orc8r_db_name
+  orc8r_db_user    = module.orc8r.orc8r_db_user
+  orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   docker_registry = var.docker_registry
   docker_user     = var.docker_user
