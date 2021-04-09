@@ -28,12 +28,7 @@ limitations under the License.
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
-
-static int sgw_s8_add_gtp_tunnel(
-    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
-    sgw_eps_bearer_context_information_t* sgw_context_p);
-
-static int sgw_s8_add_gtp_s8_tunnel(
+static int sgw_s8_add_gtp_up_tunnel(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     sgw_eps_bearer_context_information_t* sgw_context_p);
 
@@ -509,84 +504,6 @@ void sgw_s8_handle_create_session_response(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-// Helper function to add gtp tunnels for default bearers
-static int sgw_s8_add_gtp_tunnel(
-    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
-    sgw_eps_bearer_context_information_t* sgw_context_p) {
-  int rv             = RETURNok;
-  struct in_addr enb = {.s_addr = 0};
-  struct in_addr pgw = {.s_addr = 0};
-  enb.s_addr =
-      eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
-
-  pgw.s_addr =
-      eps_bearer_ctxt_p->p_gw_address_in_use_up.address.ipv4_address.s_addr;
-  struct in_addr ue_ipv4   = {.s_addr = 0};
-  struct in6_addr* ue_ipv6 = NULL;
-  ue_ipv4.s_addr           = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
-  if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
-      (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
-    ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
-  }
-
-  int vlan    = eps_bearer_ctxt_p->paa.vlan;
-  Imsi_t imsi = sgw_context_p->imsi;
-
-  char ip6_str[INET6_ADDRSTRLEN];
-  if (ue_ipv6) {
-    inet_ntop(AF_INET6, ue_ipv6, ip6_str, INET6_ADDRSTRLEN);
-  }
-  /* UE is switching back to EPS services after the CS Fallback
-   * If Modify bearer Request is received in UE suspended mode, Resume PS
-   * data
-   */
-  if (sgw_context_p->pdn_connection.ue_suspended_for_ps_handover) {
-    rv = gtp_tunnel_ops->forward_data_on_tunnel(
-        ue_ipv4, ue_ipv6, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
-        DEFAULT_PRECEDENCE);
-    if (rv < 0) {
-      OAILOG_ERROR_UE(
-          LOG_SGW_S8, sgw_context_p->imsi64,
-          "ERROR in forwarding data on TUNNEL err=%d\n", rv);
-    }
-  } else {
-    OAILOG_DEBUG_UE(
-        LOG_SGW_S8, sgw_context_p->imsi64,
-        "Adding tunnel for bearer %u ue addr %x  enb "
-        "%x,s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x pgw_up_ip %x "
-        "pgw_up_teid %x \n",
-        eps_bearer_ctxt_p->eps_bearer_id, ue_ipv4.s_addr, enb.s_addr,
-        eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-        eps_bearer_ctxt_p->enb_teid_S1u, pgw.s_addr,
-        eps_bearer_ctxt_p->p_gw_teid_S5_S8_up);
-    if (eps_bearer_ctxt_p->eps_bearer_id ==
-        sgw_context_p->pdn_connection.default_bearer) {
-      // Set default precedence and tft for default bearer
-      if (ue_ipv6) {
-        OAILOG_INFO_UE(
-            LOG_SGW_S8, sgw_context_p->imsi64,
-            "Adding tunnel for ipv6 ue addr %s, enb %x, "
-            "s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x pgw_up_ip %x "
-            "pgw_up_teid %x \n",
-            ip6_str, enb.s_addr, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-            eps_bearer_ctxt_p->enb_teid_S1u, pgw.s_addr,
-            eps_bearer_ctxt_p->p_gw_teid_S5_S8_up);
-      }
-      rv = gtpv1u_add_s8_tunnel(
-          ue_ipv4, ue_ipv6, vlan, enb, pgw,
-          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-          eps_bearer_ctxt_p->enb_teid_S1u, 0, 0, imsi, NULL,
-          DEFAULT_PRECEDENCE);
-      if (rv < 0) {
-        OAILOG_ERROR_UE(
-            LOG_SGW_S8, sgw_context_p->imsi64,
-            "ERROR in setting up TUNNEL err=%d\n", rv);
-      }
-    }
-  }
-  OAILOG_FUNC_RETURN(LOG_SGW_S8, rv);
-}
-
 void sgw_s8_handle_modify_bearer_request(
     sgw_state_t* state,
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
@@ -761,9 +678,8 @@ static void sgw_s8_populate_mbr_bearer_contexts_modified(
           .cause.cause_value = REQUEST_ACCEPTED;
       modify_response_p->bearer_contexts_modified.num_bearer_context++;
 
-      // setup GTPv1-U tunnel
-      sgw_s8_add_gtp_tunnel(eps_bearer_ctxt_p, sgw_context_p);
-      sgw_s8_add_gtp_s8_tunnel(eps_bearer_ctxt_p, sgw_context_p);
+      // setup GTPv1-U tunnels, both s1-u and s8-u tunnels
+      sgw_s8_add_gtp_up_tunnel(eps_bearer_ctxt_p, sgw_context_p);
       // may be removed TODO rashmi remove after testing
       if (TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX >
           eps_bearer_ctxt_p->num_sdf) {
@@ -783,7 +699,7 @@ static void sgw_s8_populate_mbr_bearer_contexts_modified(
 }
 
 // Helper function to add gtp tunnels for default bearers
-static int sgw_s8_add_gtp_s8_tunnel(
+static int sgw_s8_add_gtp_up_tunnel(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     sgw_eps_bearer_context_information_t* sgw_context_p) {
   int rv             = RETURNok;
@@ -819,12 +735,16 @@ static int sgw_s8_add_gtp_s8_tunnel(
   }
   OAILOG_DEBUG_UE(
       LOG_SGW_S8, sgw_context_p->imsi64,
-      "Adding tunnel for bearer_id %u ue addr %x enb %x s_gw_teid_S5_S8_up %x, "
-      "s_gw_ip_address_S5_S8_up %x pgw_up_ip %x  pgw_up_teid %x \n",
+      "Adding tunnel for bearer_id %u ue addr %x enb %x "
+      "s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x pgw_up_ip %x pgw_up_teid %x "
+      "s_gw_ip_address_S5_S8_up %x"
+      "s_gw_teid_S5_S8_up %x \n ",
       eps_bearer_ctxt_p->eps_bearer_id, ue_ipv4.s_addr, enb.s_addr,
-      eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
+      eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+      eps_bearer_ctxt_p->enb_teid_S1u, pgw.s_addr,
+      eps_bearer_ctxt_p->p_gw_teid_S5_S8_up,
       eps_bearer_ctxt_p->s_gw_ip_address_S5_S8_up.address.ipv4_address.s_addr,
-      pgw.s_addr, eps_bearer_ctxt_p->p_gw_teid_S5_S8_up);
+      eps_bearer_ctxt_p->s_gw_teid_S5_S8_up);
   if (eps_bearer_ctxt_p->eps_bearer_id ==
       sgw_context_p->pdn_connection.default_bearer) {
     // Set default precedence and tft for default bearer
@@ -840,7 +760,9 @@ static int sgw_s8_add_gtp_s8_tunnel(
           pgw.s_addr, eps_bearer_ctxt_p->p_gw_teid_S5_S8_up);
     }
     rv = gtpv1u_add_s8_tunnel(
-        ue_ipv4, ue_ipv6, vlan, enb, pgw, eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
+        ue_ipv4, ue_ipv6, vlan, enb, pgw,
+        eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+        eps_bearer_ctxt_p->enb_teid_S1u, eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
         eps_bearer_ctxt_p->p_gw_teid_S5_S8_up, imsi, NULL, DEFAULT_PRECEDENCE);
     if (rv < 0) {
       OAILOG_ERROR_UE(
