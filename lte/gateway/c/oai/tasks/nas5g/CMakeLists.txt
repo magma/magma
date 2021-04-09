@@ -71,6 +71,9 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GMMCause.cpp        
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GIMEISVRequest.cpp   
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GDNN.cpp   
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GGprsTimer3.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GNSSAI.cpp   
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GTAIList.cpp 
     )
 
 add_library(LIB_NAS5G
