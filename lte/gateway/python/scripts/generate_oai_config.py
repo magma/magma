@@ -189,6 +189,11 @@ def _get_restricted_plmns(service_mconfig):
         return service_mconfig.restricted_plmns
     return {}
 
+def _get_restricted_imeis(service_mconfig):
+    if service_mconfig.restricted_imeis:
+        return service_mconfig.restricted_imeis
+    return {}
+
 def _get_context():
     """
     Create the context which has the interface IP and the OAI log level to use.
@@ -221,7 +226,8 @@ def _get_context():
         "attached_enodeb_tacs": _get_attached_enodeb_tacs(mme_service_config),
         "enable_nat": _get_enable_nat(mme_service_config),
         "federated_mode_map" : _get_federated_mode_map(mme_service_config),
-        "restricted_plmns" : _get_restricted_plmns(mme_service_config)
+        "restricted_plmns" : _get_restricted_plmns(mme_service_config),
+        "restricted_imeis" : _get_restricted_imeis(mme_service_config)
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or \
