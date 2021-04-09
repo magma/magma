@@ -161,6 +161,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           state, &NGAP_PDUSESSIONRESOURCE_REL_REQ(received_message_p));
     } break;
 
+    case NGAP_PAGING_REQUEST: {
+      if (ngap_handle_paging_request(
+              state, &NGAP_PAGING_REQUEST(received_message_p), imsi64) !=
+          RETURNok) {
+        OAILOG_ERROR(LOG_NGAP, "Failed to send paging message\n");
+      }
+    } break;
+
     default: {
       OAILOG_ERROR(
           LOG_NGAP, "Unknown message ID %d:%s\n",

@@ -1876,3 +1876,145 @@ int ngap_amf_handle_pduSession_setup_response(
   rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }
+
+//-------------------------------------------------------------------------------
+int ngap_handle_paging_request(
+    ngap_state_t* state, const itti_ngap_paging_request_t* paging_request,
+    imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_NGAP);
+  DevAssert(paging_request != NULL);
+  int rc                  = RETURNok;
+  uint16_t tai_list_count = paging_request->TAIListForPaging.no_of_items;
+  uint8_t* buffer_p       = NULL;
+  uint32_t length         = 0;
+  Ngap_NGAP_PDU_t pdu     = {0};
+  Ngap_Paging_t* out      = NULL;
+  Ngap_PagingIEs_t* ie    = NULL;
+
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
+  pdu.choice.initiatingMessage.procedureCode = Ngap_ProcedureCode_id_Paging;
+  pdu.choice.initiatingMessage.criticality   = Ngap_Criticality_ignore;
+  pdu.choice.initiatingMessage.value.present =
+      Ngap_InitiatingMessage__value_PR_Paging;
+  out = &pdu.choice.initiatingMessage.value.choice.Paging;
+
+  // UEPagingIdentity
+  ie                = (Ngap_PagingIEs_t*) calloc(1, sizeof(Ngap_PagingIEs_t));
+  ie->id            = Ngap_ProtocolIE_ID_id_UEPagingIdentity;
+  ie->criticality   = Ngap_Criticality_ignore;
+  ie->value.present = Ngap_PagingIEs__value_PR_UEPagingIdentity;
+  ie->value.choice.UEPagingIdentity.present =
+      Ngap_UEPagingIdentity_PR_fiveG_S_TMSI;
+
+  /*BIT_STRING_t*/
+  UE_ID_INDEX_TO_BIT_STRING(
+      paging_request->UEPagingIdentity.amf_set_id,
+      &ie->value.choice.UEPagingIdentity.choice.fiveG_S_TMSI
+           .aMFSetID);  // 10  bits
+
+  /*BIT_STRING_t*/
+  AMF_POINTER_TO_BIT_STRING(
+      paging_request->UEPagingIdentity.amf_pointer,
+      &ie->value.choice.UEPagingIdentity.choice.fiveG_S_TMSI
+           .aMFPointer);  // 6 bits
+
+  // OCTET_STRING_t
+  INT32_TO_OCTET_STRING(
+      paging_request->UEPagingIdentity.m_tmsi,
+      &ie->value.choice.UEPagingIdentity.choice.fiveG_S_TMSI.fiveG_TMSI);
+
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  // PagingDRX
+  ie                = (Ngap_PagingIEs_t*) calloc(1, sizeof(Ngap_PagingIEs_t));
+  ie->id            = Ngap_ProtocolIE_ID_id_PagingDRX;
+  ie->criticality   = Ngap_Criticality_ignore;
+  ie->value.present = Ngap_PagingIEs__value_PR_PagingDRX;
+  ie->value.choice.PagingDRX = paging_request->default_paging_drx;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  // Set TAI list
+  ie                = (Ngap_PagingIEs_t*) calloc(1, sizeof(Ngap_PagingIEs_t));
+  ie->id            = Ngap_ProtocolIE_ID_id_TAIListForPaging;
+  ie->criticality   = Ngap_Criticality_ignore;
+  ie->value.present = Ngap_PagingIEs__value_PR_TAIListForPaging;
+
+  Ngap_TAIListForPaging_t* tai_list = &ie->value.choice.TAIListForPaging;
+
+  for (int tai_idx = 0; tai_idx < tai_list_count; tai_idx++) {
+    Ngap_TAIListForPagingItem_t* tai_item_ies =
+        calloc(1, sizeof(Ngap_TAIListForPagingItem_t));
+
+    if (tai_item_ies == NULL) {
+      OAILOG_ERROR_UE(LOG_NGAP, imsi64, "Failed to allocate memory\n");
+      OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+    }
+    PLMN_T_TO_PLMNID(
+        paging_request->TAIListForPaging.tai_list[tai_idx].plmn,
+        &tai_item_ies->tAI.pLMNIdentity);
+
+    TAC_TO_ASN1_5G(
+        paging_request->TAIListForPaging.tai_list[tai_idx].tac,
+        &tai_item_ies->tAI.tAC);
+
+    ASN_SEQUENCE_ADD(&tai_list->list, tai_item_ies);
+  }
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  // PagingPriority
+  ie                = (Ngap_PagingIEs_t*) calloc(1, sizeof(Ngap_PagingIEs_t));
+  ie->id            = Ngap_ProtocolIE_ID_id_PagingPriority;
+  ie->criticality   = Ngap_Criticality_ignore;
+  ie->value.present = Ngap_PagingIEs__value_PR_PagingPriority;
+  ie->value.choice.PagingPriority = paging_request->PagingPriority;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  int err = 0;
+  if (ngap_amf_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+    OAILOG_ERROR(LOG_NGAP, "Failed to encode \n");
+    err = 1;
+  }
+
+  if (length <= 0) {
+    err = 1;
+  }
+  if (err) {
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+
+  /*Fetching gNB list to send paging request message*/
+  hashtable_element_array_t* gnb_array = NULL;
+  gnb_description_t* gnb_ref_p         = NULL;
+  if (state == NULL) {
+    OAILOG_ERROR(LOG_NGAP, "gNB Information is NULL!\n");
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+  gnb_array = hashtable_ts_get_elements(&state->gnbs);
+  if (gnb_array == NULL) {
+    OAILOG_ERROR(LOG_NGAP, "Could not find gNB hashlist!\n");
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+
+  for (int idx = 0; idx < gnb_array->num_elements; idx++) {
+    gnb_ref_p = (gnb_description_t*) gnb_array->elements[idx];
+    if (gnb_ref_p) {
+      bstring paging_msg_buffer = blk2bstr(buffer_p, length);
+
+      rc = ngap_amf_itti_send_sctp_request(
+          &paging_msg_buffer, gnb_ref_p->sctp_assoc_id,
+          0,   // Stream id 0 for non UE related
+               // NGAP message
+          0);  // amf_ue_ngap_id 0 because UE in idl
+    }
+  }
+
+  free(buffer_p);
+  if (rc != RETURNok) {
+    OAILOG_ERROR(LOG_NGAP, "Failed to send paging message over sctp \n");
+  } else {
+    OAILOG_INFO(LOG_NGAP, "Sent paging message over sctp  \n");
+  }
+
+  OAILOG_FUNC_RETURN(LOG_NGAP, rc);
+}

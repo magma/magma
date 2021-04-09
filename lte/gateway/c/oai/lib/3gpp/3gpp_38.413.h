@@ -16,6 +16,7 @@
 #include "3gpp_23.003.h"
 #include "bstrlib.h"
 #include "n11_messages_types.h"
+#include "TrackingAreaIdentity.h"
 
 #define MAX_NO_OF_PDUSESSIONS 16
 #define MAX_QosFlow 16
@@ -332,3 +333,14 @@ typedef struct Ngap_initial_context_setup_response_s {
       PDU_session_resource_setup_res_trans;
 
 } Ngap_initial_context_setup_response_t;
+
+// paging
+typedef struct tai_5G_s {
+  plmn_t plmn;
+  uint32_t tac : 24;
+} tai_5G_t;
+
+typedef struct Ngap_TAI_List_For_Paging_s {
+  uint16_t no_of_items;
+  tai_5G_t tai_list[TRACKING_AREA_IDENTITY_MAX_NUM_OF_TAIS];
+} Ngap_TAI_List_For_Paging_t;

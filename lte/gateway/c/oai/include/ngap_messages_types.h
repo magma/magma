@@ -20,6 +20,8 @@
 #include "3gpp_23.003.h"
 #include "TrackingAreaIdentity.h"
 #include "Ngap_Cause.h"
+#include "Ngap_PagingDRX.h"
+#include "Ngap_PagingPriority.h"
 
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
@@ -198,3 +200,11 @@ typedef struct itti_ngap_pdusessionresource_rel_req_s {
   Ngap_PDUSession_Resource_TO_Release_List_t pduSessionResourceToRelReqList;
 
 } itti_ngap_pdusessionresource_rel_req_t;
+
+typedef struct itti_ngap_paging_request_s {
+  s_tmsi_m5_t UEPagingIdentity;
+  e_Ngap_PagingDRX default_paging_drx;  // v32, v64, v128, v256
+  e_Ngap_PagingPriority PagingPriority;
+  Ngap_TAI_List_For_Paging_t TAIListForPaging;
+
+} itti_ngap_paging_request_t;

@@ -116,6 +116,14 @@
     (buf)[1] = (x);                                                            \
   } while (0)
 
+/* Convert an integer on 24 bits to the given bUFFER */
+#define INT24_TO_BUFFER(x, buf)                                                \
+  do {                                                                         \
+    (buf)[0] = (x) >> 16;                                                      \
+    (buf)[1] = (x) >> 8;                                                       \
+    (buf)[2] = (x);                                                            \
+  } while (0)
+
 /* Convert an array of char containing vALUE to x */
 #define BUFFER_TO_INT16(buf, x)                                                \
   do {                                                                         \
@@ -170,6 +178,13 @@
   do {                                                                         \
     INT8_TO_OCTET_STRING(x << 2, aSN);                                         \
     (aSN)->bits_unused = 2;                                                    \
+  } while (0)
+
+#define INT24_TO_OCTET_STRING(x, aSN)                                          \
+  do {                                                                         \
+    (aSN)->buf  = calloc(3, sizeof(uint8_t));                                  \
+    (aSN)->size = 3;                                                           \
+    INT24_TO_BUFFER(x, (aSN)->buf);                                            \
   } while (0)
 
 #define INT16_TO_OCTET_STRING(x, aSN)                                          \
@@ -407,6 +422,7 @@
   (aDDRESS)[0], (aDDRESS)[1], (aDDRESS)[2], (aDDRESS)[3]
 
 #define TAC_TO_ASN1 INT16_TO_OCTET_STRING
+#define TAC_TO_ASN1_5G INT24_TO_OCTET_STRING
 #define GTP_TEID_TO_ASN1 INT32_TO_OCTET_STRING
 #define OCTET_STRING_TO_TAC OCTET_STRING_TO_INT16
 #define OCTET_STRING_TO_TAC_5G OCTET_STRING_TO_INT24
