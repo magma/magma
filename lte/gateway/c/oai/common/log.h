@@ -173,7 +173,6 @@ typedef enum {
   LOG_ASSERT,
   LOG_COMMON,
   LOG_SGW_S8,
-  LOG_NGAP,
   LOG_AMF_APP,
   LOG_NAS_AMF,
   MAX_LOG_PROTOS,
