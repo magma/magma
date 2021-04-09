@@ -58,3 +58,9 @@ typedef struct itti_amf_app_ul_data_ind_s {
   /* Indicating the cell from which the UE has sent the NAS message  */
   ecgi_t cgi;
 } itti_amf_app_ul_data_ind_t;
+
+typedef struct itti_amf_app_dl_data_rej_s {
+  amf_ue_ngap_id_t ue_id; /* UE lower layer identifier   */
+  bstring nas_msg;        /* Uplink NAS message           */
+  int err_code;
+} itti_amf_app_dl_data_rej_t;

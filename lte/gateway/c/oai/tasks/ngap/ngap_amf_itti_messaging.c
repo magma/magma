@@ -10,14 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_amf_itti_messaging.c
-  Date        2020/07/28
-  Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
-  Description Defines NG Application Protocol Messages
-
-*****************************************************************************/
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -151,5 +143,66 @@ void ngap_amf_itti_ngap_initial_ue_message(
 
   send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_INFO(LOG_NGAP, "iniUEmsg sent to TASK_AMF_APP");
+  OAILOG_FUNC_OUT(LOG_NGAP);
+}
+
+//------------------------------------------------------------------------------
+static int ngap_amf_non_delivery_cause_2_nas_data_rej_cause(
+    const Ngap_Cause_t* const cause) {
+  switch (cause->present) {
+    case Ngap_Cause_PR_radioNetwork:
+      switch (cause->choice.radioNetwork) {
+        case Ngap_CauseRadioNetwork_handover_cancelled:
+        case Ngap_CauseRadioNetwork_partial_handover:
+        case Ngap_CauseRadioNetwork_successful_handover:
+        case Ngap_CauseRadioNetwork_ho_failure_in_target_5GC_ngran_node_or_target_system:
+        case Ngap_CauseRadioNetwork_ho_target_not_allowed:
+        case Ngap_CauseRadioNetwork_handover_desirable_for_radio_reason:  /// ?
+        case Ngap_CauseRadioNetwork_time_critical_handover:
+        case Ngap_CauseRadioNetwork_resource_optimisation_handover:
+        case Ngap_CauseRadioNetwork_ng_intra_system_handover_triggered:
+        case Ngap_CauseRadioNetwork_ng_inter_system_handover_triggered:
+        case Ngap_CauseRadioNetwork_xn_handover_triggered:
+          return AS_NON_DELIVERED_DUE_HO;
+          break;
+
+        default:
+          return AS_FAILURE;
+      }
+      break;
+
+    default:
+      return AS_FAILURE;
+  }
+  return AS_FAILURE;
+}
+
+//------------------------------------------------------------------------------
+void ngap_amf_itti_nas_non_delivery_ind(
+    const amf_ue_ngap_id_t ue_id, uint8_t* const nas_msg,
+    const size_t nas_msg_length, const Ngap_Cause_t* const cause,
+    const imsi64_t imsi64) {
+  MessageDef* message_p = NULL;
+  // TODO translate, insert, cause in message
+  OAILOG_FUNC_IN(LOG_NGAP);
+  message_p = itti_alloc_new_message(TASK_NGAP, AMF_APP_DOWNLINK_DATA_REJ);
+  if (message_p == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_NGAP, imsi64,
+        "itti_alloc_new_message Failed for"
+        " AMF_APP_DOWNLINK_DATA_REJ \n");
+    OAILOG_FUNC_OUT(LOG_NGAP);
+  }
+
+  AMF_APP_DL_DATA_REJ(message_p).ue_id = ue_id;
+  /* Mapping between asn1 definition and NAS definition */
+  AMF_APP_DL_DATA_REJ(message_p).err_code =
+      ngap_amf_non_delivery_cause_2_nas_data_rej_cause(cause);
+  AMF_APP_DL_DATA_REJ(message_p).nas_msg = blk2bstr(nas_msg, nas_msg_length);
+  // should be sent to AMF_APP, but this one would forward it to NAS_AMF, so
+  // send it directly to NAS_AMF but let's see
+
+  message_p->ittiMsgHeader.imsi = imsi64;
+  send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
