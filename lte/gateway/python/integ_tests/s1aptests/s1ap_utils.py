@@ -193,7 +193,7 @@ class S1ApUtil(object):
         return self._msg.get(True)
 
     def populate_pco(
-            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
+        self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
     ):
         """
         Populates the PCO values.
@@ -627,6 +627,7 @@ class MagmadUtil(object):
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
     health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
+    enable_disable_options = Enum("enable_disable_options", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -733,14 +734,12 @@ class MagmadUtil(object):
 
     def restart_all_services(self):
         """
-            Restart all magma services on magma_dev VM
-            """
+        Restart all magma services on magma_dev VM
+        """
         self.exec_command(
             "sudo service magma@* stop ; sudo service magma@magmad start"
         )
-        print(
-            "Waiting for all services to restart. Sleeping for 60 seconds.."
-        )
+        print("Waiting for all services to restart. Sleeping for 60 seconds..")
         timeSlept = 0
         while timeSlept < 60:
             time.sleep(5)
@@ -874,6 +873,105 @@ class MagmadUtil(object):
                 self.enable_service("health")
             print("Health service is enabled")
 
+    def config_ipv6_solicitation(self, cmd):
+        """
+        Enable/disable the ipv6_solicitation service in pipelined configuration
+
+        Args:
+          cmd: Specify whether ipv6_solicitation should be enabled or not
+            enable: Enable ipv6_solicitation service, do nothing if already enabled
+            disable: Disable ipv6_solicitation service, do nothing if already disabled
+
+        Args:
+          cmd: Specify how to configure apn correction mode on AGW,
+          should be one of
+            enable: Enable apn correction feature, do nothing if already enabled
+            disable: Disable apn correction feature, do nothing if already disabled
+
+        Returns:
+          -1 : Failed to configure
+          0 : Already configured
+          1 : Configured successfully. Need to restart the service
+        """
+
+        ipv6_config_cmd = ""
+        ipv6_config_status_cmd = (
+            "grep 'ipv6_solicitation' /etc/magma/pipelined.yml | wc -l"
+        )
+        retVal = self.exec_command_output(ipv6_config_status_cmd).rstrip()
+
+        if cmd.name == MagmadUtil.enable_disable_options.ENABLE.name:
+            if retVal != "0":
+                print("IPv6 solicitation service is already enabled")
+                return 0
+            else:
+                ipv6_config_cmd = "sed -i \\\"/startup_flows/a \ \ 'ipv6_solicitation',\\\" /etc/magma/pipelined.yml"
+        else:
+            if retVal == "0":
+                print("IPv6 solicitation service is already disabled")
+                return 0
+            else:
+                ipv6_config_cmd = (
+                    "sed -i '/ipv6_solicitation/d'  /etc/magma/pipelined.yml"
+                )
+
+        ret_code = self.exec_command("sudo " + ipv6_config_cmd)
+
+        if ret_code == 0:
+            print("IPv6 solicitation service configured successfully")
+            return 1
+        else:
+            print("IPv6 solicitation service configuration failed")
+            return -1
+
+    def config_ha_service(self, cmd):
+        """
+        Modify the mme configuration by enabling/disabling use of Ha service
+
+        Args:
+          cmd: Specify whether Ha service is enabled for use or not
+            enable: Enable Ha service, do nothing if already enabled
+            disable: Disable Ha service, do nothing if already disabled
+
+        Returns:
+          -1 : Failed to configure
+          0 : Already configured
+          1 : Configured successfully. Need to restart the service
+        """
+
+        ha_config_cmd = ""
+        if cmd.name == MagmadUtil.enable_disable_options.ENABLE.name:
+            ha_config_status_cmd = (
+                "grep 'use_ha: true' /etc/magma/mme.yml | wc -l"
+            )
+            retVal = self.exec_command_output(ha_config_status_cmd).rstrip()
+
+            if retVal != "0":
+                print("Ha service is already enabled")
+                return 0
+            else:
+                ha_config_cmd = "sed -i 's/use_ha: false/use_ha: true/g' /etc/magma/mme.yml"
+        else:
+            ha_config_status_cmd = (
+                "grep 'use_ha: false' /etc/magma/mme.yml | wc -l"
+            )
+            retVal = self.exec_command_output(ha_config_status_cmd).rstrip()
+
+            if retVal != "0":
+                print("Ha service is already disabled")
+                return 0
+            else:
+                ha_config_cmd = "sed -i 's/use_ha: true/use_ha: false/g' /etc/magma/mme.yml"
+
+        ret_code = self.exec_command("sudo " + ha_config_cmd)
+
+        if ret_code == 0:
+            print("Ha service configured successfully")
+            return 1
+        else:
+            print("Ha service configuration failed")
+            return -1
+
     def restart_mme_and_wait(self):
         print("Restarting mme service on gateway")
         self.restart_services(["mme"])
@@ -885,11 +983,9 @@ class MagmadUtil(object):
         The Sctpd service is not managed by magmad, hence needs to be
         restarted explicitly
         """
-        self.exec_command(
-            "sudo service sctpd restart"
-        )
+        self.exec_command("sudo service sctpd restart")
         for j in range(30):
-            print("Waiting for", 30-j, "seconds for restart to complete")
+            print("Waiting for", 30 - j, "seconds for restart to complete")
             time.sleep(1)
 
     def print_redis_state(self):
@@ -902,7 +998,7 @@ class MagmadUtil(object):
             magtivate_cmd + " && " + imsi_state_cmd
         )
         keys_to_be_cleaned = []
-        for key in redis_imsi_keys.split('\n'):
+        for key in redis_imsi_keys.split("\n"):
             # Ignore directoryd per-IMSI keys in this analysis as they will
             # persist after each test
             if "directory" not in key:
@@ -921,7 +1017,7 @@ class MagmadUtil(object):
         print(
             "Keys left in Redis (list should be empty)[\n",
             "\n".join(keys_to_be_cleaned),
-            "\n]"
+            "\n]",
         )
         print("Entries left in hashtables (should be zero):", num_htbl_entries)
 
