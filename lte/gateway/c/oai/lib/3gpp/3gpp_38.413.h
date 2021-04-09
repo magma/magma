@@ -37,7 +37,7 @@ typedef struct Ngap_Message_Type_s {
 
 // 9.3.3.15 RAN Paging Priority IE contains the service priority as defined in
 // TS 23.501
-typedef enum Ngap_PagingPriority_s {
+typedef enum Ngap_Paging_Priority_s {
   Ngap_PagingPriority_priolevel1_t = 0,
   Ngap_PagingPriority_priolevel2_t = 1,
   Ngap_PagingPriority_priolevel3_t = 2,
@@ -49,7 +49,7 @@ typedef enum Ngap_PagingPriority_s {
   /*
    * Enumeration is extensible
    */
-} Ngap_PagingPriority_t;
+} Ngap_Paging_Priority_t;
 
 typedef long Ngap_PDUSessionID_t;
 /* Ngap_S-NSSAI */
@@ -84,7 +84,6 @@ typedef struct pdusession_setup_item_s {
 } pdusession_setup_item_t;
 
 typedef struct Ngap_PDUSession_Resource_Setup_Request_List_s {
-
   uint16_t no_of_items;
   pdusession_setup_item_t item[MAX_NO_OF_PDUSESSIONS];
 
@@ -180,7 +179,7 @@ typedef struct PDU_Session_resource_setup_request_s {
   ran_ue_ngap_id_t
       ran_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface within the NG-RAN node
-  Ngap_PagingPriority_t RAN_Paging_Priority; /*optional*/
+  Ngap_Paging_Priority_t RAN_Paging_Priority; /*optional*/
   bstring nas_pdu;  // 5GC – UE or UE – 5GC message that is transferred without
                     // interpretation in the NG-RAN node  /*optional*/
   Ngap_PDUSession_Resource_Setup_Request_List_t pdusesssion_setup_list;

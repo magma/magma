@@ -20,10 +20,10 @@
 #include "3gpp_23.003.h"
 #include "TrackingAreaIdentity.h"
 #include "Ngap_Cause.h"
-#include "Ngap_PagingDRX.h"
-#include "Ngap_PagingPriority.h"
 #include "common_types.h"
 #include "n11_messages_types.h"  //pdu_res_set_change
+#include "Ngap_PagingDRX.h"
+#include "Ngap_PagingPriority.h"
 
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
@@ -51,6 +51,10 @@ typedef uint32_t teid_t;
 
 #define NGAP_GNB_DEREGISTERED_IND(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.ngap_gNB_deregistered_ind
+#define NGAP_GNB_INITIATED_RESET_REQ(mSGpTR)                                   \
+  (mSGpTR)->ittiMsg.ngap_gnb_initiated_reset_req
+#define NGAP_GNB_INITIATED_RESET_ACK(mSGpTR)                                   \
+  (mSGpTR)->ittiMsg.ngap_gnb_initiated_reset_ack
 #define NGAP_UE_CONTEXT_RELEASE_REQ(mSGpTR)                                    \
   (mSGpTR)->ittiMsg.ngap_ue_context_release_req
 #define NGAP_UE_CONTEXT_RELEASE_COMMAND(mSGpTR)                                \
@@ -85,15 +89,6 @@ typedef uint32_t teid_t;
   (mSGpTR)->ittiMsg.ngap_path_switch_request_ack
 #define NGAP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                               \
   (mSGpTR)->ittiMsg.ngap_path_switch_request_failure
-
-#define NGAP_PDUSESSION_RESOURCE_SETUP_REQ(mSGpTR)                             \
-  (mSGpTR)->ittiMsg.ngap_pdusession_resource_setup_req
-#define NGAP_PDUSESSIONRESOURCE_SETUP_RSP(mSGpTR)                              \
-  (mSGpTR)->ittiMsg.ngap_pdusessionresource_setup_rsp
-#define NGAP_PDUSESSIONRESOURCE_REL_RSP(mSGpTR)                                \
-  (mSGpTR)->ittiMsg.ngap_pdusessionresource_rel_rsp
-#define NGAP_PDUSESSIONRESOURCE_REL_REQ(mSGpTR)                                \
-  (mSGpTR)->ittiMsg.ngap_pdusessionresource_rel_req
 
 // NOT a ITTI message
 typedef struct ngap_initial_ue_message_s {
@@ -236,17 +231,11 @@ typedef enum ngap_cn_domain_e {
 } ngap_cn_domain_t;
 
 typedef struct itti_ngap_paging_request_s {
-  char imsi[IMSI_BCD_DIGITS_MAX + 1];
-  uint8_t imsi_length;
-  tmsi_t m_tmsi;
-  uint32_t amf_code;
-  uint32_t sctp_assoc_id;
-#define NGAP_PAGING_ID_IMSI 0X0
-#define NGAP_PAGING_ID_STMSI 0X1
-  uint8_t paging_id;
-  ngap_cn_domain_t domain_indicator;
-  uint8_t tai_list_count;
-  paging_tai_list_t paging_tai_list[TRACKING_AREA_IDENTITY_MAX_NUM_OF_TAIS];
+  s_tmsi_m5_t UEPagingIdentity;
+  e_Ngap_PagingDRX default_paging_drx;  // v32, v64, v128, v256
+  e_Ngap_PagingPriority PagingPriority;
+  Ngap_TAI_List_For_Paging_t TAIListForPaging;
+
 } itti_ngap_paging_request_t;
 
 typedef struct itti_ngap_initial_ue_message_s {
@@ -273,14 +262,6 @@ typedef struct itti_ngap_initial_ue_message_s {
    */
   ngap_initial_ue_message_t transparent;
 } itti_ngap_initial_ue_message_t;
-
-#define NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE 128
-typedef struct itti_ngap_gNB_deregistered_ind_s {
-  uint16_t nb_ue_to_deregister;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id[NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE];
-  amf_ue_ngap_id_t amf_ue_ngap_id[NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE];
-  uint32_t gnb_id;
-} itti_ngap_gNB_deregistered_ind_t;
 
 typedef struct itti_ngap_pdusession_resource_setup_req_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
@@ -310,16 +291,7 @@ typedef struct itti_ngap_pdusessionresource_rel_req_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
   bstring nas_msg;
   Ngap_PDUSession_Resource_TO_Release_List_t pduSessionResourceToRelReqList;
-
 } itti_ngap_pdusessionresource_rel_req_t;
-
-typedef struct itti_ngap_paging_request_s {
-  s_tmsi_m5_t UEPagingIdentity;
-  e_Ngap_PagingDRX default_paging_drx;  // v32, v64, v128, v256
-  e_Ngap_PagingPriority PagingPriority;
-  Ngap_TAI_List_For_Paging_t TAIListForPaging;
-
-} itti_ngap_paging_request_t;
 
 #define NGAP_ITTI_UE_PER_DEREGISTER_MESSAGE 128
 typedef struct itti_ngap_gNB_deregistered_ind_s {
@@ -352,4 +324,3 @@ typedef struct itti_ngap_path_switch_request_failure_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
   amf_ue_ngap_id_t amf_ue_ngap_id;
 } itti_ngap_path_switch_request_failure_t;
->>>>>>> AMF-CORE PR's dependent files

@@ -354,4 +354,3 @@ typedef struct amf_as_message_s {
     activate_pdusession_context_req_t activate_pdusession_context_req;
   } __attribute__((__packed__)) msg;
 } amf_as_message_t;
-
