@@ -21,7 +21,6 @@ if (S6A_OVER_GRPC)
   set (S6A_SRC ${S6A_SRC} s6a_grpc_iface.cpp)
   add_library(TASK_S6A ${S6A_SRC})
   target_link_libraries(TASK_S6A
-  TASK_MME_APP
   COMMON
     LIB_BSTR LIB_HASHTABLE LIB_S6A_PROXY
   )
@@ -31,7 +30,6 @@ else (S6A_OVER_GRPC)  # Use freeDiameter
       s6a_fd_iface.cpp)
   add_library(TASK_S6A ${S6A_SRC})
   target_link_libraries(TASK_S6A
-  TASK_MME_APP
   COMMON
     LIB_BSTR LIB_HASHTABLE LIB_S6A_PROXY gnutls fdproto fdcore
   )

@@ -29,7 +29,6 @@
 #include "dynamic_memory_check.h"
 #include "log.h"
 #include "mme_config.h"
-#include "mme_app_ue_context.h"
 #include "assertions.h"
 #include "conversions.h"
 #include "common_types.h"
@@ -306,7 +305,6 @@ int s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
   struct msg* msg;
   struct session* sess;
   union avp_value value;
-  ue_mm_context_t* ue_context_p = NULL;
 
   DevAssert(air_p);
   /*

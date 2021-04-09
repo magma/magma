@@ -102,7 +102,8 @@ static int authentication_reject(
 static void nas_itti_auth_info_req(
     const mme_ue_s1ap_id_t ue_idP, const imsi_t* const imsiP,
     const bool is_initial_reqP, plmn_t* const visited_plmnP,
-    const uint8_t num_vectorsP, const_bstring const auts_pP);
+    const uint8_t num_vectorsP, const_bstring const auts_pP,
+    const uint8_t en_dc);
 
 static void s6a_auth_info_rsp_timer_expiry_handler(
     void* args, imsi64_t* imsi64);
@@ -368,7 +369,7 @@ static int start_authentication_information_procedure(
 
   nas_itti_auth_info_req(
       ue_id, &emm_context->_imsi, is_initial_req, &visited_plmn,
-      MAX_EPS_AUTH_VECTORS, auts);
+      MAX_EPS_AUTH_VECTORS, auts, emm_context->_ms_network_capability.en_dc);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
@@ -1452,7 +1453,8 @@ static int authentication_abort(
 static void nas_itti_auth_info_req(
     const mme_ue_s1ap_id_t ue_id, const imsi_t* const imsiP,
     const bool is_initial_reqP, plmn_t* const visited_plmnP,
-    const uint8_t num_vectorsP, const_bstring const auts_pP) {
+    const uint8_t num_vectorsP, const_bstring const auts_pP,
+    const uint8_t en_dc) {
   OAILOG_FUNC_IN(LOG_NAS);
   MessageDef* message_p              = NULL;
   s6a_auth_info_req_t* auth_info_req = NULL;
@@ -1508,16 +1510,15 @@ static void nas_itti_auth_info_req(
       "(auth_info_req->supportedfeatures.nr_as_secondary_rat = %u)\n",
       auth_info_req->supportedfeatures.nr_as_secondary_rat);
 #endif
-  ue_mm_context_t* ue_context_p = malloc(sizeof(*ue_context_p));
-  if (ue_context_p->emm_context._ms_network_capability.en_dc) {
+
+  if (en_dc) {
     auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
   } else {
     auth_info_req->supportedfeatures.nr_as_secondary_rat = 0;
     OAILOG_DEBUG(
         TASK_MME_APP,
         "UE is connected on LTE, Dual registration with 5G-NR is disabled for "
-        "(ue_id = %u)\n",
-        ue_context_p->mme_ue_s1ap_id);
+        "(ue_id = %u)\n");
   }
 
   if (is_initial_reqP) {
@@ -1533,7 +1534,6 @@ static void nas_itti_auth_info_req(
         auth_info_req->resync_param, auts_pP->data,
         sizeof auth_info_req->resync_param);
   }
-  free_wrapper((void**) &ue_context_p);
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }

@@ -90,7 +90,7 @@ int mme_app_send_s6a_update_location_req(
       s6a_ulr_p->rat_type, ue_context_p->mme_ue_s1ap_id);
   /*
    * Check if we already have UE data
-   * set the skip subscriber data flas as true in case we are sending ULR
+   * set the skip subscriber data flag as true in case we are sending ULR
    * against recieved HSS Reset
    */
   if (ue_context_p->location_info_confirmed_in_hss == true) {
@@ -115,15 +115,6 @@ int mme_app_send_s6a_update_location_req(
    * This is done by checking either en_dc flag in ms network capability or
    * by checking  dcnr flag in ue network capability.
    */
-#if EMBEDDED_SGW
-  s6a_ulr_p->dual_regis_5g_ind = 1;
-  OAILOG_DEBUG(
-      TASK_MME_APP,
-      "Dual registration 5g indicator flag is set in ULR "
-      "(dual_regis_5g_ind = %u)\n",
-      s6a_ulr_p->dual_regis_5g_ind);
-  s6a_ulr_p->supportedfeatures.nr_as_secondary_rat = 1;
-#endif
 
   if (ue_context_p->emm_context._ms_network_capability.en_dc) {
     s6a_ulr_p->dual_regis_5g_ind = 1;
@@ -135,6 +126,16 @@ int mme_app_send_s6a_update_location_req(
         "(ue_id = %u)\n",
         ue_context_p->mme_ue_s1ap_id);
   }
+
+#if EMBEDDED_SGW
+  s6a_ulr_p->dual_regis_5g_ind = 1;
+  OAILOG_DEBUG(
+      TASK_MME_APP,
+      "Dual registration 5g indicator flag is set in ULR "
+      "(dual_regis_5g_ind = %u)\n",
+      s6a_ulr_p->dual_regis_5g_ind);
+  s6a_ulr_p->supportedfeatures.nr_as_secondary_rat = 1;
+#endif
 
   // Check if we have voice domain preference IE and send to S6a task
   if (ue_context_p->emm_context.volte_params.presencemask &
