@@ -186,6 +186,15 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 			}
 		}
 
+		qosPCI := uint8(0)
+		if bearer.QoSProfile.PCI {
+			qosPCI = 1
+		}
+		qosPVI := uint8(0)
+		if bearer.QoSProfile.PVI {
+			qosPVI = 1
+		}
+
 		// send
 		csRspFromPGW := message.NewCreateSessionResponse(
 			sgwTEIDc, msg.Sequence(),
@@ -198,6 +207,9 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 				ie.NewEPSBearerID(bearer.EBI),
 				pgwFTEIDu,
 				ie.NewChargingID(bearer.ChargingID),
+				ie.NewBearerQoS(qosPCI, bearer.QoSProfile.PL, qosPVI,
+					bearer.QoSProfile.QCI, bearer.QoSProfile.MBRUL, bearer.QoSProfile.MBRDL,
+					bearer.QoSProfile.GBRUL, bearer.QoSProfile.GBRDL),
 			))
 
 		session.AddTEID(gtpv2.IFTypeS5S8PGWGTPC, pgwFTEIDc.MustTEID())
@@ -333,7 +345,8 @@ func createQosIE(qp *gtpv2.QoSProfile) *ie.IE {
 
 }
 
-func (mPgw *MockPgw) getHandleCreateSessionRequestWithDeniedService(errorCause uint8) gtpv2.HandlerFunc {
+// getHandleCreateSessionRequestWithErrorCause Responds with an arbitrary error cause
+func (mPgw *MockPgw) getHandleCreateSessionRequestWithErrorCause(errorCause uint8) gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
 		fmt.Println("mock PGW received a CreateSessionRequest, but returning ERROR")
 		csReqFromSGW := msg.(*message.CreateSessionRequest)
@@ -361,7 +374,8 @@ func (mPgw *MockPgw) getHandleCreateSessionRequestWithDeniedService(errorCause u
 	}
 }
 
-func (mPgw *MockPgw) getHandleCreateSessionRequestWithMissingIE() gtpv2.HandlerFunc {
+// getHandleCreateSessionResponseWithMissingIE responds with a CreateSessionResponse that has a missing field
+func (mPgw *MockPgw) getHandleCreateSessionResponseWithMissingIE() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
 		fmt.Println("mock PGW received a CreateSessionRequest, but returning ERROR")
 		csReqFromSGW := msg.(*message.CreateSessionRequest)
@@ -386,6 +400,34 @@ func (mPgw *MockPgw) getHandleCreateSessionRequestWithMissingIE() gtpv2.HandlerF
 				ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
 				ie.NewEPSBearerID(5),
 			))
+
+		if err := c.RespondTo(sgwAddr, csReqFromSGW, csRspFromPGW); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+// getHandleCreateSessionRequestWithMissingIE responds with a CauseMandatoryIEMissing
+func (mPgw *MockPgw) getHandleCreateSessionRequestWithMissingIE(missingIE *ie.IE) gtpv2.HandlerFunc {
+	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
+		fmt.Println("mock PGW received a CreateSessionRequest, but returning ERROR")
+		csReqFromSGW := msg.(*message.CreateSessionRequest)
+		sgwTEID := csReqFromSGW.SenderFTEIDC
+		if sgwTEID != nil {
+			_, err := sgwTEID.TEID()
+			if err != nil {
+				return err
+			}
+		} else {
+			return &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}
+		}
+
+		// Mising pgwFTEID and bearer pgwFTEIDu
+		csRspFromPGW := message.NewCreateSessionResponse(
+			sgwTEID.MustTEID(), msg.Sequence(),
+			ie.NewCause(gtpv2.CauseMandatoryIEMissing, 0, 0, 0, missingIE),
+		)
 
 		if err := c.RespondTo(sgwAddr, csReqFromSGW, csRspFromPGW); err != nil {
 			return err

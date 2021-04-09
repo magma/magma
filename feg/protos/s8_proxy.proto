@@ -96,8 +96,9 @@ message ServingNetwork {
 message BearerContext {
     uint32 id = 1;
     Fteid user_plane_fteid = 2;
-    QosInformation qos = 3;
-    uint32 charging_id = 4;
+    bool valid_qos = 3;
+    QosInformation qos = 4;
+    uint32 charging_id = 5;
 }
 
 message QosInformation {
@@ -166,5 +167,4 @@ message EchoResponse{
 message GtpError {
     uint32 cause = 1;
     string msg= 2;
-
 }
