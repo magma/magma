@@ -27,3 +27,5 @@ MESSAGE_DEF(
     amf_app_ngap_amf_ue_id_notification)
 MESSAGE_DEF(
     AMF_APP_UPLINK_DATA_IND, itti_amf_app_ul_data_ind_t, amf_app_ul_data_ind)
+MESSAGE_DEF(
+    AMF_APP_DOWNLINK_DATA_REJ, itti_amf_app_dl_data_rej_t, amf_app_dl_data_rej)
