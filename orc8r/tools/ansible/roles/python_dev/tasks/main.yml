@@ -94,6 +94,7 @@
       - protobuf-compiler
       - python-protobuf
       - libsystemd-dev
+      - isort=5.8.0
 
 - name: Install python build requirements for Debian systems
   retries: 5

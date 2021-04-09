@@ -115,7 +115,7 @@ setup(
         'hpack>=3.0',
         'freezegun>=0.3.15',
         'pycryptodome>=3.9.9',
-        'pyroute2==0.5.14'
+        'pyroute2==0.5.14',
     ],
     extras_require={
         'dev': [
@@ -125,6 +125,8 @@ setup(
             'grpcio-tools>=1.16.1',
             'nose==1.3.7',
             'iperf3',
-        ]
+            'isort==5.8.0',
+            'wemake-python-styleguide',
+        ],
     },
 )
