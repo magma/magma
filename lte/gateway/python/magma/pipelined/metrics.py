@@ -13,7 +13,6 @@ limitations under the License.
 
 from prometheus_client import Counter, Gauge
 
-
 DP_SEND_MSG_ERROR = Counter('dp_send_msg_error',
                             'Total datapath message send errors', ['cause'])
 ARP_DEFAULT_GW_MAC_ERROR = Counter('arp_default_gw_mac_error',

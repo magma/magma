@@ -13,33 +13,43 @@ limitations under the License.
 import os
 from collections import defaultdict
 
-from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
-from lte.protos.session_manager_pb2 import RuleRecord, \
-    RuleRecordTable
+from lte.protos.session_manager_pb2 import RuleRecord, RuleRecordTable
+from magma.pipelined.app.base import (
+    ControllerType,
+    MagmaController,
+    global_epoch,
+)
+from magma.pipelined.app.policy_mixin import (
+    DROP_FLOW_STATS,
+    IGNORE_STATS,
+    PROCESS_STATS,
+    PolicyMixin,
+)
+from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
+from magma.pipelined.imsi import decode_imsi, encode_imsi
+from magma.pipelined.openflow import flows, messages
+from magma.pipelined.openflow.exceptions import (
+    MagmaDPDisconnectedError,
+    MagmaOFError,
+)
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.openflow.messages import MessageHub, MsgChannel
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    IMSI_REG,
+    RULE_VERSION_REG,
+    SCRATCH_REGS,
+    Direction,
+)
+from magma.pipelined.policy_converters import get_eth_type, get_ue_ip_match_args
+from magma.pipelined.utils import Utils
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
-
-from magma.pipelined.app.base import MagmaController, ControllerType, \
-    global_epoch
-from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
-    PROCESS_STATS, DROP_FLOW_STATS
-from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
-from magma.pipelined.policy_converters import get_ue_ip_match_args, \
-    get_eth_type
-from magma.pipelined.openflow import messages, flows
-from magma.pipelined.openflow.exceptions import MagmaOFError
-from magma.pipelined.imsi import decode_imsi, encode_imsi
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.messages import MsgChannel, MessageHub
-from magma.pipelined.utils import Utils
-from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
-    IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
-from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
-
 
 ETH_FRAME_SIZE_BYTES = 14
 

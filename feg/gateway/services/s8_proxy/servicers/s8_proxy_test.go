@@ -14,7 +14,6 @@ package servicers
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -80,14 +79,26 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	assert.Equal(t, PAA, csRes.Paa.Ipv4Address)
 	assert.Equal(t, "", csRes.Paa.Ipv6Address)
 
-	// check received QOS
+	// check QOS received at PGW
 	sentQos := csReq.BearerContext.Qos
-	receivedQos := mockPgw.LastQos
-	assert.Equal(t, sentQos.Gbr.BrDl, receivedQos.Gbr.BrDl)
-	assert.Equal(t, sentQos.Gbr.BrUl, receivedQos.Gbr.BrUl)
-	assert.Equal(t, sentQos.Mbr.BrDl, receivedQos.Mbr.BrDl)
-	assert.Equal(t, sentQos.Mbr.BrUl, receivedQos.Mbr.BrUl)
-	assert.Equal(t, sentQos.Qci, receivedQos.Qci)
+	receivedAtPGWQos := mockPgw.LastQos
+	assert.Equal(t, sentQos.Gbr.BrDl, receivedAtPGWQos.Gbr.BrDl)
+	assert.Equal(t, sentQos.Gbr.BrUl, receivedAtPGWQos.Gbr.BrUl)
+	assert.Equal(t, sentQos.Mbr.BrDl, receivedAtPGWQos.Mbr.BrDl)
+	assert.Equal(t, sentQos.Mbr.BrUl, receivedAtPGWQos.Mbr.BrUl)
+	assert.Equal(t, sentQos.Qci, receivedAtPGWQos.Qci)
+
+	// check QOS received at Response (should be the same as the sent)
+
+	assert.NotEmpty(t, csRes.BearerContext.Qos)
+	receivedQOS := csRes.BearerContext.Qos
+
+	assert.True(t, csRes.BearerContext.ValidQos)
+	assert.Equal(t, sentQos.Gbr.BrDl, receivedQOS.Gbr.BrDl)
+	assert.Equal(t, sentQos.Gbr.BrUl, receivedQOS.Gbr.BrUl)
+	assert.Equal(t, sentQos.Mbr.BrDl, receivedQOS.Mbr.BrDl)
+	assert.Equal(t, sentQos.Mbr.BrUl, receivedQOS.Mbr.BrUl)
+	assert.Equal(t, sentQos.Qci, receivedQOS.Qci)
 
 	// ------------------------
 	// ---- Delete Session ----
@@ -248,7 +259,7 @@ func TestS8ProxyDeleteWithMissingParamaters(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestS8proxyCreateSessionWithErrors(t *testing.T) {
+func TestS8proxyCreateSessionWithServiceDenial(t *testing.T) {
 	// set up client ans server
 	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
 	defer mockPgw.Close()
@@ -257,10 +268,6 @@ func TestS8proxyCreateSessionWithErrors(t *testing.T) {
 	// ---- Create Session ----
 	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
 
-	// ------------------------
-	// ---- Create Session ----
-	csReq = getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
-
 	// PGW denies service
 	mockPgw.SetCreateSessionWithErrorCause(gtpv2.CauseServiceDenied)
 	csRes, err := s8p.CreateSession(context.Background(), csReq)
@@ -268,18 +275,49 @@ func TestS8proxyCreateSessionWithErrors(t *testing.T) {
 	assert.NotEmpty(t, csRes)
 	assert.NotEmpty(t, csRes.GtpError)
 	assert.Equal(t, gtpv2.CauseServiceDenied, uint8(csRes.GtpError.Cause))
+}
+
+func TestS8proxyCreateSessionWithMissingIEonResponse(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
 
 	// s8_proxy forces a missing IE
-	mockPgw.SetCreateSessionWithMissingIE()
-	csRes, err = s8p.CreateSession(context.Background(), csReq)
+	mockPgw.SetCreateSessionResponseWithMissingIE()
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, csRes)
 	assert.NotEmpty(t, csRes.GtpError)
 	assert.Equal(t, gtpv2.CauseMandatoryIEMissing, uint8(csRes.GtpError.Cause))
 	// check the error code is FullyQualifiedTEID
-	re := regexp.MustCompile("[0-9]+")
-	msg := re.FindString(csRes.GtpError.Msg)
-	assert.Equal(t, strconv.FormatUint(uint64(ie.FullyQualifiedTEID), 10), msg)
+
+	assert.Contains(t, csRes.GtpError.Msg, strconv.FormatUint(uint64(ie.FullyQualifiedTEID), 10))
+}
+
+func TestS8proxyCreateSessionWithMissingIEMessage(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+
+	// s8_proxy forces a missing IE
+	missingIe := ie.New(ie.BearerContext, 0, nil)
+	mockPgw.SetCreateSessionRequestWithMissingIE(missingIe)
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+	assert.NotEmpty(t, csRes.GtpError)
+	assert.Equal(t, gtpv2.CauseMandatoryIEMissing, uint8(csRes.GtpError.Cause))
+
+	// check log meesage contains the name of the missing ie
+	assert.Contains(t, csRes.GtpError.Msg, missingIe.Name())
 }
 
 func TestS8proxyValidateCreateSession(t *testing.T) {

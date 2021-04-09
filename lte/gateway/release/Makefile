@@ -15,4 +15,4 @@ PY_LTE     = $(MAGMA_ROOT)/lte/gateway/python
 PY_ORC8R   = $(MAGMA_ROOT)/orc8r/gateway/python
 
 magma.lockfile: $(PY_LTE)/setup.py $(PY_ORC8R)/setup.py
-	./pydep finddep --install-from-official -l ./magma.lockfile $(PY_ORC8R)/setup.py $(PY_LTE)/setup.py
+	./pydep finddep --install-from-repo -l ./magma.lockfile.$(os_release)  $(PY_ORC8R)/setup.py $(PY_LTE)/setup.py

@@ -12,13 +12,14 @@ limitations under the License.
 """
 import shlex
 import subprocess
-from typing import NamedTuple, Dict
+from typing import Dict, NamedTuple
 
-from magma.pipelined.app.base import MagmaController, ControllerType
-from magma.pipelined.openflow import flows
-from ryu.controller.controller import Datapath
-from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.openflow import flows
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from ryu.controller.controller import Datapath
+
 
 class IPFIXController(MagmaController):
     """

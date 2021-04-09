@@ -12,9 +12,18 @@ limitations under the License.
 """
 from typing import Optional
 
-from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
-    is_valid_direction, Direction, RULE_VERSION_REG, PASSTHROUGH_REG, \
-    VLAN_TAG_REG, DPI_REG, RULE_NUM_REG, PROXY_TAG_REG
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    DPI_REG,
+    IMSI_REG,
+    PASSTHROUGH_REG,
+    PROXY_TAG_REG,
+    RULE_NUM_REG,
+    RULE_VERSION_REG,
+    VLAN_TAG_REG,
+    Direction,
+    is_valid_direction,
+)
 
 
 class MagmaMatch(object):

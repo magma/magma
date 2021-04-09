@@ -12,35 +12,60 @@ limitations under the License.
 """
 
 import unittest
+import warnings
 from concurrent.futures import Future
 from unittest.mock import MagicMock
 
-import warnings
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
-    RedirectInformation
-from lte.protos.pipelined_pb2 import ActivateFlowsRequest, SetupFlowsRequest, \
-    VersionedPolicy
-from magma.subscriberdb.sid import SIDUtils
+from lte.protos.pipelined_pb2 import (
+    ActivateFlowsRequest,
+    SetupFlowsRequest,
+    VersionedPolicy,
+)
+from lte.protos.policydb_pb2 import (
+    FlowDescription,
+    FlowMatch,
+    PolicyRule,
+    RedirectInformation,
+)
+from magma.pipelined.app.base import global_epoch
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.app.base import global_epoch
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    convert_ipv6_bytes_to_ip_proto,
+    flow_match_to_magma_match,
+)
 from magma.pipelined.rule_mappers import RuleIDToNumMapper
-from magma.pipelined.policy_converters import flow_match_to_magma_match, \
-    convert_ipv4_str_to_ip_proto, convert_ipv6_bytes_to_ip_proto
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
-    TCPPacketBuilder
+from magma.pipelined.tests.app.packet_builder import (
+    IPPacketBuilder,
+    TCPPacketBuilder,
+)
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
-from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext, default_ambr_config
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import fake_controller_setup, \
-    create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
-    wait_after_send, SnapshotVerifier, get_enforcement_stats, \
-    wait_for_enforcement_stats
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.subscriber import (
+    RyuDirectSubscriberContext,
+    default_ambr_config,
+)
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    SnapshotVerifier,
+    create_service_manager,
+    fake_controller_setup,
+    get_enforcement_stats,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+    wait_for_enforcement_stats,
+)
+from magma.subscriberdb.sid import SIDUtils
 from scapy.all import IP
 
 

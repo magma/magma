@@ -11,27 +11,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from lte.protos.pipelined_pb2 import RuleModResult
-
-from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.policy_mixin import PolicyMixin
-from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
-
+from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
+from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub
 from magma.pipelined.openflow.registers import Direction
-from magma.pipelined.policy_converters import FlowMatchError, \
-    get_ue_ip_match_args, get_eth_type
-from magma.pipelined.redirect import RedirectionManager, RedirectException
+from magma.pipelined.policy_converters import (
+    FlowMatchError,
+    get_eth_type,
+    get_ue_ip_match_args,
+)
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.qos.qos_meter_impl import MeterManager
-
+from magma.pipelined.redirect import RedirectException, RedirectionManager
+from magma.pipelined.utils import Utils
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from magma.pipelined.utils import Utils
-from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 
 
 class EnforcementController(PolicyMixin, RestartMixin, MagmaController):

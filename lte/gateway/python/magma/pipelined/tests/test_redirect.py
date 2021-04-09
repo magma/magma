@@ -12,30 +12,46 @@ limitations under the License.
 """
 
 import unittest
+import warnings
 from concurrent.futures import Future
 from unittest.mock import MagicMock
 
-import warnings
-from lte.protos.pipelined_pb2 import VersionedPolicy
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
-    RedirectInformation
+from lte.protos.pipelined_pb2 import VersionedPolicy
+from lte.protos.policydb_pb2 import (
+    FlowDescription,
+    FlowMatch,
+    PolicyRule,
+    RedirectInformation,
+)
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.policy_converters import flow_match_to_magma_match, \
-    convert_ipv4_str_to_ip_proto
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    flow_match_to_magma_match,
+)
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery
 from magma.pipelined.tests.app.packet_builder import TCPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
-    create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
-    wait_after_send, assert_bridge_snapshot_match, fake_controller_setup
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    FlowTest,
+    FlowVerifier,
+    assert_bridge_snapshot_match,
+    create_service_manager,
+    fake_controller_setup,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+)
 
 
 class RedirectTest(unittest.TestCase):

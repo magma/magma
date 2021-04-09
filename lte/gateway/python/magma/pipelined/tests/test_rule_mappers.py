@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 import unittest
-import fakeredis
-from unittest.mock import MagicMock
 from unittest import mock
+from unittest.mock import MagicMock
 
-from magma.pipelined.rule_mappers import SessionRuleToVersionMapper
+import fakeredis
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
+from magma.pipelined.rule_mappers import SessionRuleToVersionMapper
 
 
 class RuleMappersTest(unittest.TestCase):

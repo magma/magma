@@ -12,30 +12,49 @@ limitations under the License.
 """
 
 import unittest
+import warnings
 from concurrent.futures import Future
 from unittest.mock import MagicMock
 
-import warnings
-from lte.protos.pipelined_pb2 import VersionedPolicy
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
-    RedirectInformation
+from lte.protos.pipelined_pb2 import VersionedPolicy
+from lte.protos.policydb_pb2 import (
+    FlowDescription,
+    FlowMatch,
+    PolicyRule,
+    RedirectInformation,
+)
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto, \
-    convert_ipv6_bytes_to_ip_proto
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
-    TCPPacketBuilder
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    convert_ipv6_bytes_to_ip_proto,
+)
+from magma.pipelined.tests.app.packet_builder import (
+    IPPacketBuilder,
+    TCPPacketBuilder,
+)
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import create_service_manager, \
-    get_enforcement_stats, start_ryu_app_thread,  stop_ryu_app_thread, \
-    wait_after_send, wait_for_enforcement_stats, FlowTest, SnapshotVerifier, \
-    fake_controller_setup
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    FlowTest,
+    SnapshotVerifier,
+    create_service_manager,
+    fake_controller_setup,
+    get_enforcement_stats,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+    wait_for_enforcement_stats,
+)
 from scapy.all import IP
 
 

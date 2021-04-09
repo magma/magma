@@ -11,29 +11,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
 import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from magma.pipelined.openflow.registers import DIRECTION_REG
-from magma.pipelined.tests.app.flow_query import RyuRestFlowQuery
 from magma.pipelined.app.arp import ArpController
-from magma.pipelined.tests.app.table_isolation import RyuRestTableIsolator,\
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder,\
-    ARPPacketBuilder
-from magma.pipelined.tests.app.start_pipelined import TestSetup, \
-    PipelinedController
 from magma.pipelined.openflow.registers import DIRECTION_REG, Direction
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
-    stop_ryu_app_thread, create_service_manager, wait_after_send, \
-    SnapshotVerifier
+from magma.pipelined.tests.app.flow_query import RyuRestFlowQuery
+from magma.pipelined.tests.app.packet_builder import (
+    ARPPacketBuilder,
+    IPPacketBuilder,
+)
+from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+    RyuRestTableIsolator,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    SnapshotVerifier,
+    create_service_manager,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+)
 
 
 def _pkt_total(stats):

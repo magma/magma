@@ -287,7 +287,7 @@ FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
 # adjust mtime of a setup.py to force update
 # (e.g. `touch ${PY_LTE}/setup.py`)
 pushd "${RELEASE_DIR}" || exit 1
-make -e magma.lockfile
+make os_release=$OS -e magma.lockfile
 popd
 
 cd ${PY_ORC8R}
@@ -295,15 +295,15 @@ make protos
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
 
-ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 cd ${PY_LTE}
 make protos
 make swagger
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
-${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
-LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile.$OS setup.py
+LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 # now the binaries are built, we can package up everything else and build the
 # magma package.
