@@ -1816,7 +1816,6 @@ int ngap_amf_handle_pduSession_setup_response(
       } else {
         OAILOG_ERROR(LOG_NGAP, " Decode Failed ");
       }
-      response_transfer = {0};
 
       memcpy(
           response_transfer.tunnel.gTP_TEID,
