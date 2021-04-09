@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
-import netifaces
 
+import netifaces
 from magma.pipelined.metrics import NETWORK_IFACE_STATUS
 
 POLL_INTERVAL_SECONDS = 3

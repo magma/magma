@@ -66,6 +66,7 @@
 #include "3gpp_36.401.h"
 #include "NasSecurityAlgorithms.h"
 #include "emm_asDef.h"
+#include "emm_cause.h"
 #include "emm_cnDef.h"
 #include "emm_fsm.h"
 #include "emm_regDef.h"
@@ -75,6 +76,7 @@
 #include "nas/securityDef.h"
 #include "security_types.h"
 #include "mme_app_defs.h"
+#include "conversions.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -377,6 +379,46 @@ int emm_proc_security_mode_control(
 
 /****************************************************************************
  **                                                                        **
+ ** Name:    validate_imei()                                               **
+ **                                                                        **
+ ** Description: Check if the received imei matches with the               **
+ **              blocked imei list                                         **
+ **                                                                        **
+ ** Inputs:  imei/imeisv string : imei received in security mode           **
+ **                               complete/attach req                      **
+ ** Outputs:                                                               **
+ **      Return:    EMM cause                                              **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int validate_imei(imeisv_t* imeisv) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  /* First convert only TAC to uint64_t. If TAC is not found in the hashlist,
+   * convert IMEI(TAC + SNR) into uint64_t and check if the key is found
+   * the hashlist
+   */
+  imei64_t tac64 = 0;
+  IMEI_MOBID_TO_IMEI_TAC64(imeisv, &tac64);
+  hashtable_rc_t h_rc = hashtable_uint64_ts_is_key_exists(
+      mme_config.blocked_imei.imei_htbl, (const hash_key_t) tac64);
+
+  if (HASH_TABLE_OK == h_rc) {
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_IMEI_NOT_ACCEPTED);
+  } else {
+    // Convert to imei to uint64_t
+    imei64_t imei64 = 0;
+    IMEI_MOBID_TO_IMEI64(imeisv, &imei64);
+    hashtable_rc_t h_rc = hashtable_uint64_ts_is_key_exists(
+        mme_config.blocked_imei.imei_htbl, (const hash_key_t) imei64);
+    if (HASH_TABLE_OK == h_rc) {
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_IMEI_NOT_ACCEPTED);
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_SUCCESS);
+}
+
+/****************************************************************************
+ **                                                                        **
  ** Name:    emm_proc_security_mode_complete()                         **
  **                                                                        **
  ** Description: Performs the security mode control completion procedure   **
@@ -414,6 +456,14 @@ int emm_proc_security_mode_complete(
   ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
+    if (!emm_ctx) {
+      OAILOG_ERROR(
+          LOG_NAS_EMM,
+          "EMM-PROC  - emm context is NULL for (ue_id=" MME_UE_S1AP_ID_FMT
+          ")\n",
+          ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+    }
   } else {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
@@ -429,7 +479,14 @@ int emm_proc_security_mode_complete(
     void* timer_callback_arg = NULL;
     nas_stop_T3460(ue_id, &smc_proc->T3460, timer_callback_arg);
 
-    if (imeisvmob) {
+    /* If MME requested for imeisv in security mode cmd
+     * and UE did not include the same in security mode complete,
+     * set initiate_identity_after_smc flag to send identity request
+     * with identity type set to imeisv
+     */
+    if (smc_proc->imeisv_request && !imeisvmob) {
+      emm_ctx->initiate_identity_after_smc = true;
+    } else if (smc_proc->imeisv_request && imeisvmob) {
       imeisv_t imeisv     = {0};
       imeisv.u.num.tac1   = imeisvmob->tac1;
       imeisv.u.num.tac2   = imeisvmob->tac2;
@@ -448,6 +505,17 @@ int emm_proc_security_mode_complete(
       imeisv.u.num.svn1   = imeisvmob->svn1;
       imeisv.u.num.svn2   = imeisvmob->svn2;
       imeisv.u.num.parity = imeisvmob->oddeven;
+
+      int emm_cause = validate_imei(&imeisv);
+      if (emm_cause != EMM_CAUSE_SUCCESS) {
+        OAILOG_ERROR(
+            LOG_NAS_EMM,
+            "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
+            " , emm_cause =(%d)\n",
+            ue_id, emm_cause);
+        rc = emm_proc_attach_reject(ue_id, emm_cause);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+      }
       emm_ctx_set_valid_imeisv(emm_ctx, &imeisv);
     }
 

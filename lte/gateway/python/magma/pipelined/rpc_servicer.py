@@ -10,57 +10,63 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import os
-import logging
 import concurrent.futures
+import logging
+import os
 import queue
+from collections import OrderedDict
 from concurrent.futures import Future
 from typing import List, Tuple
-from collections import OrderedDict
 
 import grpc
 from lte.protos import pipelined_pb2_grpc
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import (
-    SetupFlowsResult,
-    RequestOriginType,
+    ActivateFlowsRequest,
     ActivateFlowsResult,
-    DeactivateFlowsResult,
+    AllTableAssignments,
+    CauseIE,
     DeactivateFlowsRequest,
+    DeactivateFlowsResult,
     FlowResponse,
+    OffendingIE,
+    PdrState,
+    RequestOriginType,
     RuleModResult,
-    SetupUEMacRequest,
+    SessionSet,
+    SetupFlowsResult,
     SetupPolicyRequest,
     SetupQuotaRequest,
-    ActivateFlowsRequest,
-    AllTableAssignments,
+    SetupUEMacRequest,
     TableAssignment,
-    SessionSet,
-    PdrState,
     UPFSessionContextState,
-    OffendingIE,
     VersionedPolicy,
-    CauseIE)
-from lte.protos.mobilityd_pb2 import IPAddress
-from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
+)
 from lte.protos.session_manager_pb2 import RuleRecordTable
+from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
+from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
-from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.ipfix import IPFIXController
-from magma.pipelined.app.check_quota import CheckQuotaController
-from magma.pipelined.app.vlan_learn import VlanLearnController
-from magma.pipelined.app.tunnel_learn import TunnelLearnController
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto, \
-    convert_ipv6_bytes_to_ip_proto
-from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id, get_ipv6_prefix
-from magma.pipelined.metrics import (
-    ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
-    ENFORCEMENT_RULE_INSTALL_FAIL,
-)
-from magma.pipelined.imsi import encode_imsi
-from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.app.ng_services import NGServiceController
+from magma.pipelined.app.tunnel_learn import TunnelLearnController
+from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.app.vlan_learn import VlanLearnController
+from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.ipv6_prefix_store import (
+    get_ipv6_interface_id,
+    get_ipv6_prefix,
+)
+from magma.pipelined.metrics import (
+    ENFORCEMENT_RULE_INSTALL_FAIL,
+    ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
+)
+from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    convert_ipv6_bytes_to_ip_proto,
+)
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 15

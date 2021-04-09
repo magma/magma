@@ -10,13 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from ryu.lib.packet import ether_types
-from ryu.ofproto.nicira_ext import ofs_nbits
-
-
-from .base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
+from ryu.lib.packet import ether_types
+from ryu.ofproto.nicira_ext import ofs_nbits
 
 
 class ConntrackController(MagmaController):

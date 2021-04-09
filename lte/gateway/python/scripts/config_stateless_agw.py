@@ -155,6 +155,14 @@ def disable_stateless_agw():
     sys.exit(check_stateless_services().value)
 
 
+def ovs_reset_bridges():
+    subprocess.call("ifdown uplink_br0".split())
+    subprocess.call("ifdown gtp_br0".split())
+    subprocess.call("service openvswitch-switch restart".split())
+    subprocess.call("ifup uplink_br0".split())
+    subprocess.call("ifup gtp_br0".split())
+
+
 def sctpd_pre_start():
     if check_stateless_services() == return_codes.STATEFUL:
         # switching from stateless to stateful
@@ -163,8 +171,7 @@ def sctpd_pre_start():
         # Clean up all mobilityd, MME, pipelined and sessiond Redis keys
         clear_redis_state()
         # Clean up OVS flows
-        subprocess.call("service openvswitch-switch restart".split())
-
+        ovs_reset_bridges()
     sys.exit(0)
 
 

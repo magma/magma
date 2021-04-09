@@ -11,20 +11,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
+import logging
 import subprocess
 import unittest
 from collections import namedtuple
 from unittest.mock import MagicMock, call, patch
-from magma.pipelined.bridge_util import BridgeTools
 
+from lte.protos.policydb_pb2 import FlowMatch
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.qos.common import QosImplType, QosManager, SubscriberState
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.qos.qos_tc_impl import TrafficClass, argSplit, run_cmd
-from magma.pipelined.qos.types import QosInfo, get_key_json, get_key, get_subscriber_key, \
-        get_subscriber_data, get_data, get_data_json
+from magma.pipelined.qos.types import (
+    QosInfo,
+    get_data,
+    get_data_json,
+    get_key,
+    get_key_json,
+    get_subscriber_data,
+    get_subscriber_key,
+)
 from magma.pipelined.qos.utils import IdManager
-from lte.protos.policydb_pb2 import FlowMatch
-import logging
+
 
 class TestQosCommon(unittest.TestCase):
     def testIdManager(self):

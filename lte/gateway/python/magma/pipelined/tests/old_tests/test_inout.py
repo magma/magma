@@ -10,8 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from test_controller import BaseMagmaTest
 import unittest
+
+from test_controller import BaseMagmaTest
 
 
 @unittest.skip("temporarily disabled")
@@ -22,8 +23,8 @@ class InoutTest(BaseMagmaTest.MagmaControllerTest):
 
     def _generate_topology(self):
         # import here, after we've checked the environment
-        from ovstest import util
         from magma.pkt_tester.topology_builder import TopologyBuilder
+        from ovstest import util
 
         self._topo_builder = TopologyBuilder()
 
@@ -40,8 +41,8 @@ class InoutTest(BaseMagmaTest.MagmaControllerTest):
         self.assertFalse(self._topo_builder.invalid_devices())
 
     def test_add_inout_flows(self):
-        from ovstest import util
         from magma.pkt_tester.topology_builder import OvsException
+        from ovstest import util
 
         self._generate_topology()
         self.controller_thread.start()

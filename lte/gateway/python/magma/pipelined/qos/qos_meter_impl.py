@@ -11,10 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
-from magma.pipelined.openflow.meters import MeterClass
-from .utils import IdManager
-from .types import QosInfo
 import subprocess
+
+from magma.pipelined.openflow.meters import MeterClass
+
+from .types import QosInfo
+from .utils import IdManager
 
 LOG = logging.getLogger('pipelined.qos.qos_meter_impl')
 BROKEN_KERN_ERROR_MSG = "kernel module has a broken meter implementation"

@@ -12,35 +12,38 @@ limitations under the License.
 """
 import ipaddress
 import threading
-
 from collections import namedtuple
 
-from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-
-from scapy.arch import get_if_hwaddr, get_if_addr
-from scapy.data import ETHER_BROADCAST, ETH_P_ALL
-from scapy.error import Scapy_Exception
-from scapy.layers.l2 import ARP, Ether, Dot1Q
-from scapy.sendrecv import srp1
-
-from .base import MagmaController
-from magma.pipelined.mobilityd_client import get_mobilityd_gw_info, \
-    set_mobilityd_gw_info
 from lte.protos.mobilityd_pb2 import IPAddress
-
+from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.li_mirror import LIMirrorController
-from magma.pipelined.openflow import flows
+from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
+from magma.pipelined.mobilityd_client import (
+    get_mobilityd_gw_info,
+    set_mobilityd_gw_info,
+)
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
-from magma.pipelined.openflow.registers import load_direction, Direction, \
-    PASSTHROUGH_REG_VAL, TUN_PORT_REG, PROXY_TAG_TO_PROXY, REG_ZERO_VAL
-from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
-
-from ryu.lib import hub
-from ryu.lib.packet import ether_types
+from magma.pipelined.openflow.registers import (
+    PASSTHROUGH_REG_VAL,
+    PROXY_TAG_TO_PROXY,
+    REG_ZERO_VAL,
+    TUN_PORT_REG,
+    Direction,
+    load_direction,
+)
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
+from ryu.lib import hub
+from ryu.lib.packet import ether_types
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
+from scapy.arch import get_if_addr, get_if_hwaddr
+from scapy.data import ETH_P_ALL, ETHER_BROADCAST
+from scapy.error import Scapy_Exception
+from scapy.layers.l2 import ARP, Dot1Q, Ether
+from scapy.sendrecv import srp1
 
 # ingress and egress service names -- used by other controllers
 
