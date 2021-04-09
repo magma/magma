@@ -780,35 +780,38 @@ static int amf_auth_request(
  **                                                                        **
  ***************************************************************************/
 static int amf_security_mode_command(
-    const amf_as_security_t* msg, SecurityModeCommandMsg* amf_msg) {
+    const amf_as_security_t* msg, SecurityModeCommandMsg* amf_msg,
+    amf_ue_ngap_id_t ue_id) {
   int size = SECURITY_MODE_COMMAND_MINIMUM_LENGTH;
   amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   amf_msg->sec_header_type.sec_hdr    = SECURITY_HEADER_TYPE_NOT_PROTECTED;
   amf_msg->message_type.msg_type      = SEC_MODE_COMMAND;
-  amf_msg->nas_sec_algorithms.tca     = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
-  amf_msg->nas_sec_algorithms.tia     = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
   amf_msg->nas_key_set_identifier.tsc = NATIVE_SECURITY_CONTEXT;
   amf_msg->nas_key_set_identifier.nas_key_set_identifier = 1;
   amf_msg->ue_sec_capability.length      = UE_SECURITY_CAPABILITY_MIN_LENGTH;
-  amf_msg->ue_sec_capability.ea0         = 1;
-  amf_msg->ue_sec_capability.ea1         = 0;
-  amf_msg->ue_sec_capability.ea2         = 0;
-  amf_msg->ue_sec_capability.ea3         = 0;
-  amf_msg->ue_sec_capability.ea4         = 0;
-  amf_msg->ue_sec_capability.ea5         = 0;
-  amf_msg->ue_sec_capability.ea6         = 0;
-  amf_msg->ue_sec_capability.ea7         = 0;
-  amf_msg->ue_sec_capability.ia0         = 1;
-  amf_msg->ue_sec_capability.ia1         = 0;
-  amf_msg->ue_sec_capability.ia2         = 0;
-  amf_msg->ue_sec_capability.ia3         = 0;
-  amf_msg->ue_sec_capability.ia4         = 0;
-  amf_msg->ue_sec_capability.ia5         = 0;
-  amf_msg->ue_sec_capability.ia6         = 0;
-  amf_msg->ue_sec_capability.ia7         = 0;
   amf_msg->imeisv_request.imeisv_request = IMEISV_REQUESTED;
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_context) {
+    amf_security_context_t* amf_security_context =
+        &ue_context->amf_context._security;
+    nas_msg.security_protected.plain.amf.securitymodecommandmsg
+        .nas_sec_algorithms.tca =
+        amf_security_context->selected_algorithms.encryption;
+    nas_msg.security_protected.plain.amf.securitymodecommandmsg
+        .nas_sec_algorithms.tia =
+        amf_security_context->selected_algorithms.integrity;
+    // relay UE security capabilities saved to amf_context back to UE
+    memcpy(
+        &(nas_msg.security_protected.plain.amf.securitymodecommandmsg
+              .ue_sec_capability),
+        &(ue_context->amf_context.ue_sec_capability),
+        sizeof(UESecurityCapabilityMsg));
+  } else {
+       OAILOG_INFO(LOG_AMF_APP, "UE Contest not found for UE ID %d", ue_id);
+       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 
 /****************************************************************************
@@ -862,7 +865,7 @@ static int amf_as_security_req(
         break;
       case AMF_AS_MSG_TYPE_SMC:
         size = amf_security_mode_command(
-            msg, &amf_msg->msg.securitymodecommandmsg);
+            msg, &amf_msg->msg.securitymodecommandmsg, msg->ue_id);
         break;
       default:
         OAILOG_WARNING(

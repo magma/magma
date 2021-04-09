@@ -31,6 +31,9 @@ extern "C" {
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
+extern ue_m5gmm_context_s
+    ue_m5gmm_global_context;  // TODO This has been taken care in upcoming
+                              // PR with multi UE feature
 
 int amf_handle_service_request(
     amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
@@ -143,6 +146,17 @@ int amf_handle_registration_request(
   if (ue_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
   }
+  
+  if (ue_context) {
+    memcpy(
+        &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
+        sizeof(UESecurityCapabilityMsg));
+  } else {
+    ue_context = &ue_m5gmm_global_context;
+    memcpy(
+        &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
+        sizeof(UESecurityCapabilityMsg));
+  }
 
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
     OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST processing\n");
@@ -211,6 +225,7 @@ int amf_handle_registration_request(
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
     if ((msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
          M5GSMobileIdentityMsg_GUTI)) {
+
       /* Copying PLMN to local supi which is imsi*/
       supi_imsi.plmn.mcc_digit1 =
           msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit1;
