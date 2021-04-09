@@ -53,7 +53,7 @@ ProxyConnector::ProxyConnector(
 }
 
 void ProxyConnector::LoadCertificates(
-    SSL_CTX* ctx)  //, char* CertFile, char* KeyFile)
+    SSL_CTX* ctx)
 {
   /* set the local certificate from CertFile */
   if (SSL_CTX_use_certificate_file(ctx, cert_file_.c_str(), SSL_FILETYPE_PEM) <=

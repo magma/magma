@@ -61,8 +61,7 @@ PDUGenerator::PDUGenerator(
       pkt_src_mac_(pkt_src_mac),
       proxy_connector_(proxy_connector) {
   MLOG(MINFO) << "Using interface for pkt generation";
-  // iface_ = NetworkInterface("testy1");
-  // Don't know why but changing ethernet-> IP produces an error, resolve
+  // TODO Don't know why but changing ethernet-> IP produces an error, resolve
   Allocators::register_allocator<EthernetII, LIX3PDU>(LI_X3_LINK_TYPE);
   directoryd_client_ = std::make_shared<magma::AsyncDirectorydClient>();
 }

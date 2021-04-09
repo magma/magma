@@ -28,7 +28,7 @@ class ProxyConnector {
  private:
   SSL* GetSSLSocket();
   int OpenConnection();
-  void LoadCertificates(SSL_CTX* ctx);  //, char* CertFile, char* KeyFile);
+  void LoadCertificates(SSL_CTX* ctx);
   SSL_CTX* InitCTX(void);
 
   const std::string& proxy_addr_;

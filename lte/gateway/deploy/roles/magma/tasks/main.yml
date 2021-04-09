@@ -369,7 +369,7 @@
     ifdown gtp_br0
     /etc/init.d/openvswitch-switch  force-reload-kmod
   when: ansible_distribution == "Ubuntu"
- 
+
 - name: Bring up ovs bridge
   shell: ifup -i /etc/network/interfaces.d/gtp {{ item }}
   with_items:
@@ -384,6 +384,7 @@
     - eth0
     - mtr0
     - ipfix0
+    - li_port
   when: full_provision
 
 - name: Copy ryu ipfix patch

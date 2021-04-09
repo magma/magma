@@ -53,7 +53,6 @@ int InterfaceMonitor::init_iface_pcap_monitor() {
   pcap_t* pcap;
   int ret;
 
-  // Snoop on mon1
   pcap = pcap_open_live(iface_name_.c_str(), BUFSIZ, 0, 1000, errbuf);
   if (pcap == nullptr) {
     MLOG(MFATAL) << "Could not capture packets on " << iface_name_
