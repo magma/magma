@@ -624,7 +624,8 @@ typedef struct nas_amf_common_procedure_s {
 // Recheck and change to nas5g, comment
 typedef struct nas_amf_ident_proc_s {
   nas_amf_common_proc_t amf_com_proc;
-  nas5g_timer_t T3570;  // Identification timer
+  nas5g_timer_t T3570; /* Identification timer         */
+#define IDENTIFICATION_COUNTER_MAX 5
   unsigned int retransmission_count;
   amf_ue_ngap_id_t ue_id;
   bool is_cause_is_registered;  //  could also be done by seeking parent
@@ -679,6 +680,8 @@ struct nas_amf_registration_proc_t {
 class nas_amf_smc_proc_t {
  public:
   nas_amf_common_proc_t amf_com_proc;
+  nas5g_timer_t T3560; /* Authentication timer         */
+#define SECURITY_COUNTER_MAX 5
   amf_ue_ngap_id_t ue_id;
   unsigned int retransmission_count;  // Retransmission counter
   int ksi;                            // NAS key set identifier

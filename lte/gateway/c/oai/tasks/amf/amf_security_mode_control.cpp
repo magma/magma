@@ -17,6 +17,8 @@ extern "C" {
 #endif
 #include "log.h"
 #include "secu_defs.h"
+#include "intertask_interface_types.h"
+#include "intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
@@ -66,6 +68,7 @@ extern "C" {
 
 namespace magma5g {
 
+extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 nas5g_config_t amf_data;
 nas_amf_smc_proc_t smc_ctrl;
 amf_as_data_t amf_data_sec_ctrl;
@@ -105,6 +108,8 @@ void format_plmn(amf_plmn_t* plmn) {
   }
 }
 
+static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg);
+
 /****************************************************************************
  **                                                                        **
  ** Name:    nas5g_new_smc_procedure()                                     **
@@ -123,6 +128,11 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
   smc_proc->amf_com_proc.amf_proc.base_proc.type = NAS_PROC_TYPE_AMF;
   smc_proc->amf_com_proc.amf_proc.type           = NAS_AMF_PROC_TYPE_COMMON;
   smc_proc->amf_com_proc.type                    = AMF_COMM_PROC_SMC;
+
+  // smc_proc->T3460.sec = mme_config.nas_config.t3460_sec;
+  // smc_proc->T3460.id  = NAS5G_TIMER_INACTIVE_ID;
+
+  // nas_amf_common_procedure_t* wrapper = calloc(1, sizeof(*wrapper));
   nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t;
   if (wrapper) {
     wrapper->proc = &smc_proc->amf_com_proc;
@@ -191,10 +201,89 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
     amf_data_sec_ctrl.amf_as_set_security_data(
         &amf_sap.u.amf_as.u.security.sctx, &amf_ctx->_security,
         smc_proc->is_new, false);
-    rc = amf_sap_send(&amf_sap);
+    rc = amf_sap_sec.amf_sap_send(&amf_sap);
+    if (rc != RETURNerror) {
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "AMF_TEST: Timer: Security Mode Calling start_timer_T3560 \n");
+      smc_proc->T3560.id = start_timer(
+          &amf_app_task_zmq_ctx, SECURITY_MODE_TIMER_EXPIRY_MSECS,
+          TIMER_REPEAT_ONCE, security_mode_t3560_handler, NULL);
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "AMF_TEST: Timer:  After starting SECURITY_MODE_TIMER timer T3560 "
+          "with id %d\n",
+          smc_proc->T3560.id);
+    }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+#endif
+
+/* Timer Expiry Handler for SECURITY COMMAND MODE Timer 3560 */
+static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
+  OAILOG_INFO(LOG_AMF_APP, "Timer: In security_mode_t3560_handler - T3560\n");
+  amf_context_t* amf_ctx = NULL;
+
+  ue_m5gmm_context_s* ue_mm_context = &ue_m5gmm_global_context;
+
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "Timer: Created ue_mm_context from global context - T3560\n");
+  amf_ctx = &ue_mm_context->amf_context;
+  OAILOG_INFO(LOG_AMF_APP, "Timer: got amf ctx and calling common procedure\n");
+  if (!(amf_ctx)) {
+    OAILOG_ERROR(LOG_AMF_APP, "T3560 timer expired No AMF context\n");
+    return 1;
+    // OAILOG_FUNC_OUT(LOG_AMF_APP);
+  }
+
+  nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
+
+  OAILOG_ERROR(LOG_AMF_APP, "Timer:In Identity Expiration Handler ZMQ TIMER\n");
+
+  if (smc_proc) {
+    OAILOG_WARNING(
+        LOG_AMF_APP, "T3560 timer   timer id %d ue id %d\n", smc_proc->T3560.id,
+        smc_proc->ue_id);
+    smc_proc->T3560.id = -1;
+  }
+
+  /*
+   * Increment the retransmission counter
+   */
+  smc_proc->retransmission_count += 1;
+  OAILOG_ERROR(
+      LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
+      smc_proc->retransmission_count);
+
+  if (smc_proc->retransmission_count < SECURITY_COUNTER_MAX) {
+    /*
+     * Send identity request message to the UE
+     */
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "Timer: timer has expired Sending Security Command Mode request "
+        "again\n");
+    amf_security_request(smc_proc);
+  } else {
+    /*
+     * Abort the smc procedure
+     */
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "Timer: Maximum retires done hence Abort the smc procedure\n");
+    return -1;
+  }
+
+  return 0;
+}
+
+/*
+--------------------------------------------------------------------------
+        Security mode control procedure executed by the AMF
+--------------------------------------------------------------------------
+*/
 
 /****************************************************************************
  **                                                                        **

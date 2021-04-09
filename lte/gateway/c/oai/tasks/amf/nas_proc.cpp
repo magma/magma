@@ -15,6 +15,8 @@
 extern "C" {
 #endif
 #include "log.h"
+#include "intertask_interface_types.h"
+#include "intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
@@ -28,18 +30,11 @@ extern "C" {
 
 extern amf_config_t amf_config;
 namespace magma5g {
+extern task_zmq_ctx_s amf_app_task_zmq_ctx;
+extern ue_m5gmm_context_s ue_m5gmm_global_context;
 AmfMsg amf_msg_obj;
-
-/***************************************************************************
-**                                                                        **
-** Name:    nas_proc_establish_ind()                                      **
-**                                                                        **
-** Description: Notifies the AMF procedure call manager about             **
-**              NAS signalling connection establishment message           **
-**                                                                        **
-**                                                                        **
-***************************************************************************/
-int nas_proc_establish_ind(
+static int identification_t3570_handler(zloop_t* loop, int timer_id, void* arg);
+int nas_proc::nas_proc_establish_ind(
     const amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
     const tai_t originating_tai, const ecgi_t ecgi,
     const m5g_rrc_establishment_cause_t as_cause, const s_tmsi_m5_t s_tmsi,
@@ -194,6 +189,7 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
   ident_proc->amf_com_proc.amf_proc.type = NAS_AMF_PROC_TYPE_COMMON;
   ident_proc->T3570.sec                  = amf_config.nas_config.t3570_sec;
   ident_proc->T3570.id                   = AMF_APP_TIMER_INACTIVE_ID;
+  ident_proc->amf_com_proc.type = AMF_COMM_PROC_IDENT;
   nas_amf_common_procedure_t* wrapper    = new nas_amf_common_procedure_t;
   if (wrapper) {
     wrapper->proc = &ident_proc->amf_com_proc;
@@ -235,18 +231,83 @@ static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
   amf_sap.u.amf_as.u.security.sctx.is_new              = true;
   rc                                                   = amf_sap_send(&amf_sap);
 
+  if (rc != RETURNerror) {
+    /*
+     * Start Identification T3570 timer
+     */
+    // TODO
+    OAILOG_INFO(
+        LOG_AMF_APP, "AMF_TEST: Timer: Starting Identity timer T3570 \n");
+    proc->T3570.id = start_timer(
+        &amf_app_task_zmq_ctx, IDENTITY_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
+        identification_t3570_handler, NULL);
+    OAILOG_INFO(
+        LOG_AMF_APP, "Timer: Started Identity timer T3570 with id %d\n",
+        proc->T3570.id);
+  }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-/***************************************************************************
-**                                                                        **
-** Name:    amf_proc_identification()                                     **
-**                                                                        **
-** Description: Processes Identification Request                          **
-**                                                                        **
-**                                                                        **
-***************************************************************************/
-int amf_proc_identification(
+/* Identification Timer T3570 Expiry Handler */
+static int identification_t3570_handler(
+    zloop_t* loop, int timer_id, void* arg) {
+  //  amf_context_t* amf_ctx = (amf_context_t*) (arg);
+  amf_context_t* amf_ctx = NULL;
+  OAILOG_INFO(LOG_AMF_APP, "Timer: identification T3570 handler \n");
+
+  ue_m5gmm_context_s* ue_mm_context = &ue_m5gmm_global_context;
+
+  amf_ctx = &ue_mm_context->amf_context;
+  if (!(amf_ctx)) {
+    OAILOG_ERROR(LOG_AMF_APP, "Timer: T3570 timer expired No AMF context\n");
+    return 1;
+    // OAILOG_FUNC_OUT(LOG_AMF_APP);
+  }
+
+  nas_amf_ident_proc_t* ident_proc =
+      get_5g_nas_common_procedure_identification(amf_ctx);
+
+  if (ident_proc) {
+    OAILOG_WARNING(
+        LOG_AMF_APP, "T3570 timer   timer id %d ue id %d\n",
+        ident_proc->T3570.id, ident_proc->ue_id);
+    ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
+  }
+  /*
+   * Increment the retransmission counter
+   */
+  ident_proc->retransmission_count += 1;
+  OAILOG_ERROR(
+      LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
+      ident_proc->retransmission_count);
+
+  if (ident_proc->retransmission_count < IDENTIFICATION_COUNTER_MAX) {
+    /*
+     * Send identity request message to the UE
+     */
+    OAILOG_ERROR(
+        LOG_AMF_APP, "Timer: IDENTIFICATION_COUNTER_MAX =  %d\n",
+        IDENTIFICATION_COUNTER_MAX);
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "Timer: timer has expired Sending Identification request again\n");
+    amf_identification_request(ident_proc);
+  } else {
+    /*
+     * Abort the identification procedure
+     */
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "Timer: Maximum retires done hence Abort the identification "
+        "procedure\n");
+    return -1;
+  }
+
+  return 0;
+}
+
+//-------------------------------------------------------------------------------------
+int identification::amf_proc_identification(
     amf_context_t* const amf_context, nas_amf_proc_t* const amf_proc,
     const identity_type2_t type, success_cb_t success, failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
