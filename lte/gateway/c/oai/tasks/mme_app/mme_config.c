@@ -229,6 +229,11 @@ void service303_config_init(service303_data_t* service303_conf) {
   service303_conf->version = bfromcstr(SERVICE303_MME_PACKAGE_VERSION);
 }
 
+void blocked_imei_config_init(blocked_imei_list_t* blocked_imeis) {
+  blocked_imeis->num       = 0;
+  blocked_imeis->imei_htbl = NULL;
+}
+
 //------------------------------------------------------------------------------
 void mme_config_init(mme_config_t* config) {
   memset(config, 0, sizeof(*config));
@@ -253,6 +258,7 @@ void mme_config_init(mme_config_t* config) {
   gummei_config_init(&config->gummei);
   served_tai_config_init(&config->served_tai);
   service303_config_init(&config->service303_config);
+  blocked_imei_config_init(&config->blocked_imei);
 }
 
 //------------------------------------------------------------------------------
