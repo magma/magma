@@ -62,7 +62,7 @@ message CommonSessionContext {
   string apn = 4;
   bytes msisdn = 5;
   RATType rat_type = 6;
-  //PDU session state to mirror with AMF or MME
+  // PDU session state to mirror with AMF or MME
   SMSessionFSMState sm_session_state = 7;
   uint32 sm_session_version = 9;
   string ue_ipv6 = 10;
@@ -97,16 +97,15 @@ enum NotifyUeEvents {
 message RatSpecificNotification {
   uint32 pdu_session_id = 1;
   RequestType request_type = 2;
-  AccessType access_type = 3;
-  PduSessionType pdu_session_type = 4;
-  M5GSMCapability m5g_sm_capability = 5;
-  M5GSMCause m5gsm_cause = 6;
-  //Idle/paging/periodic_reg events and UE state notification
-  NotifyUeEvents notify_ue_event = 7;
+  PduSessionType pdu_session_type = 3;
+  M5GSMCapability m5g_sm_capability = 4;
+  M5GSMCause m5gsm_cause = 5;
+  // Idle/paging/periodic_reg events and UE state notification
+  NotifyUeEvents notify_ue_event = 6;
 }
 
 message SetSmNotificationContext {
-  CommonSessionContext common_context = 1;                             //Common message for 4g, 5g and WiFi.
+  CommonSessionContext common_context = 1;                // Common message for 4g, 5g and WiFi.
   RatSpecificNotification rat_specific_notification = 2;
 }
 
@@ -629,7 +628,7 @@ message NodeID {
   string node_id = 2;
 }
 
-//PduSessionType
+// PduSessionType
 enum PduSessionType {
    IPV4 = 0;
    IPV6 = 1;
@@ -638,60 +637,60 @@ enum PduSessionType {
 }
 
 
-//SscMode
+// SscMode
 enum SscMode {
    SSC_MODE_1 = 0;
    SSC_MODE_2 = 1;
    SSC_MODE_3 = 2;
 }
-//M5GSMCapability
+// M5GSMCapability
 message M5GSMCapability {
    bool reflective_qos = 1;
    bool multi_homed_ipv6_pdu_session = 2;
 }
-//M5GSMCause
+// M5GSMCause
 enum M5GSMCause {
-     OPERATOR_DETERMINED_BARRING = 0;                              //actual value 8
-     INSUFFICIENT_RESOURCES = 1;                                   //actual value 26
-     MISSING_OR_UNKNOWN_DNN = 2;                                   //actual value 27
-     UNKNOWN_PDU_SESSION_TYPE = 3;                                 //actual value 28
-     USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED = 4;              //actual value 29
-     REQUEST_REJECTED_UNSPECIFIED = 5;                             //actual value 31
-     SERVICE_OPTION_NOT_SUPPORTED = 6;                             //actual value 32
-     REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED = 7;                  //actual value 33
-     SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER = 8;                  //actual value 34
-     REGULAR_DEACTIVATION = 10;                                    //actual value 36
-     NETWORK_FAILURE = 11;                                         //actual value 38
-     REACTIVATION_REQUESTED = 12;                                  //actual value 39
-     INVALID_PDU_SESSION_IDENTITY = 13;                            //actual value 43
-     SEMANTIC_ERRORS_IN_PACKET_FILTER = 14;                        //actual value 44
-     SYNTACTICAL_ERROR_IN_PACKET_FILTER = 15;                      //actual value 45
-     OUT_OF_LADN_SERVICE_AREA = 16;                                //actual value 46
-     PTI_MISMATCH = 17;                                            //actual value 47
-     PDU_SESSION_TYPE_IPV4_ONLY_ALLOWED = 18;                      //actual value 5
-     PDU_SESSION_TYPE_IPV6_ONLY_ALLOWED = 19;                      //actual value 51
-     PDU_SESSION_DOES_NOT_EXIST = 20;                              //actual value 54
-     INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE_AND_DNN = 21;       //actual value 67
-     NOT_SUPPORTED_SSC_MODE = 22;                                  //actual value 68
-     INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE = 23;               //actual value 69
-     MISSING_OR_UNKNOWN_DNN_IN_A_SLICE = 24;                       //actual value 70
-     INVALID_PTI_VALUE = 25;                                       //actual value 81
-     MAXIMUM_DATA_RATE_PER_UE_FOR_USER_PLANE_INTEGRITY_PROTECTION_IS_TOO_LOW = 26;//actual value 82
-     SEMANTIC_ERROR_IN_THE_QOS_OPERATION = 27;                     //actual value 83
-     SYNTACTICAL_ERROR_IN_THE_QOS_OPERATION = 28;                  //actual value 84
-     INVALID_MAPPED_EPS_BEARER_IDENTITY = 29;                      //actual value 85
-     SEMANTICALLY_INCORRECT_MESSAGE = 30;                          //actual value 95
-     INVALID_MANDATORY_INFORMATION = 31;                           //actual value 96
-     MESSAGE_TYPE_NON_EXISTENT_OR_NOT_IMPLEMENTED = 32;            //actual value 97
-     MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE = 33;     //actual value 98
-     INFORMATION_ELEMENT_NON_EXISTENT_OR_NOT_IMPLEMENTED = 34;     //actual value 99
-     CONDITIONAL_IE_ERROR = 35;                                    //actual value 100
-     MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE = 36;          //actual value 101
+     OPERATOR_DETERMINED_BARRING = 0;                              // actual value 8
+     INSUFFICIENT_RESOURCES = 1;                                   // actual value 26
+     MISSING_OR_UNKNOWN_DNN = 2;                                   // actual value 27
+     UNKNOWN_PDU_SESSION_TYPE = 3;                                 // actual value 28
+     USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED = 4;              // actual value 29
+     REQUEST_REJECTED_UNSPECIFIED = 5;                             // actual value 31
+     SERVICE_OPTION_NOT_SUPPORTED = 6;                             // actual value 32
+     REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED = 7;                  // actual value 33
+     SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER = 8;                  // actual value 34
+     REGULAR_DEACTIVATION = 10;                                    // actual value 36
+     NETWORK_FAILURE = 11;                                         // actual value 38
+     REACTIVATION_REQUESTED = 12;                                  // actual value 39
+     INVALID_PDU_SESSION_IDENTITY = 13;                            // actual value 43
+     SEMANTIC_ERRORS_IN_PACKET_FILTER = 14;                        // actual value 44
+     SYNTACTICAL_ERROR_IN_PACKET_FILTER = 15;                      // actual value 45
+     OUT_OF_LADN_SERVICE_AREA = 16;                                // actual value 46
+     PTI_MISMATCH = 17;                                            // actual value 47
+     PDU_SESSION_TYPE_IPV4_ONLY_ALLOWED = 18;                      // actual value 5
+     PDU_SESSION_TYPE_IPV6_ONLY_ALLOWED = 19;                      // actual value 51
+     PDU_SESSION_DOES_NOT_EXIST = 20;                              // actual value 54
+     INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE_AND_DNN = 21;       // actual value 67
+     NOT_SUPPORTED_SSC_MODE = 22;                                  // actual value 68
+     INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE = 23;               // actual value 69
+     MISSING_OR_UNKNOWN_DNN_IN_A_SLICE = 24;                       // actual value 70
+     INVALID_PTI_VALUE = 25;                                       // actual value 81
+     MAXIMUM_DATA_RATE_PER_UE_FOR_USER_PLANE_INTEGRITY_PROTECTION_IS_TOO_LOW = 26;// actual value 82
+     SEMANTIC_ERROR_IN_THE_QOS_OPERATION = 27;                     // actual value 83
+     SYNTACTICAL_ERROR_IN_THE_QOS_OPERATION = 28;                  // actual value 84
+     INVALID_MAPPED_EPS_BEARER_IDENTITY = 29;                      // actual value 85
+     SEMANTICALLY_INCORRECT_MESSAGE = 30;                          // actual value 95
+     INVALID_MANDATORY_INFORMATION = 31;                           // actual value 96
+     MESSAGE_TYPE_NON_EXISTENT_OR_NOT_IMPLEMENTED = 32;            // actual value 97
+     MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE = 33;     // actual value 98
+     INFORMATION_ELEMENT_NON_EXISTENT_OR_NOT_IMPLEMENTED = 34;     // actual value 99
+     CONDITIONAL_IE_ERROR = 35;                                    // actual value 100
+     MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE = 36;          // actual value 101
      PROTOCOL_ERROR_UNSPECIFIED = 37;
-     PTI_ALREADY_IN_USE = 38;                                      //actual value 111
-     OPERATION_SUCCESS = 40;//Response other than failure
+     PTI_ALREADY_IN_USE = 38;                                      // actual value 111
+     OPERATION_SUCCESS = 40;// Response other than failure
 }
-//RequestType
+// RequestType
 enum RequestType {
    INITIAL_REQUEST = 0;
    EXISTING_PDU_SESSION = 1;
@@ -699,22 +698,18 @@ enum RequestType {
    EXISTING_EMERGENCY_PDU_SESSION = 3;
    MODIFICATION_REQUEST = 4;
 }
-//AccessType
-enum AccessType {
-  M_3GPP_ACCESS_3GPP = 0;
-  NON_3GPP_ACCESS = 1;
-}
-//DnnSelectionMode
+
+// DnnSelectionMode
 enum DnnSelectionMode {
     VERIFIED = 0;
     UE_DNN_NOT_VERIFIED = 1;
     NW_DNN_NOT_VERIFIED = 2;
 }
 
-//RatType
-//Define enum TS-29.571 - section 5.4.3 structure Imported from session_manager.proto file.
+// RatType
+// Define enum TS-29.571 - section 5.4.3 structure Imported from session_manager.proto file.
 
-//RequestedQosRules and AuthorizedQosRules
+// RequestedQosRules and AuthorizedQosRules
 message QosRules {
    uint32 qos_rule_identifier = 1;
    bool dqr = 2;
@@ -761,6 +756,7 @@ message LadnServiceArea {
    string dnn_value = 1;
    repeated TrackingAreaIdentityList identity_list = 2;
 }
+
 message TrackingAreaIdentityList {
    repeated TypeOfList type_of_list = 1;
    repeated int32 number_of_elements = 2;
@@ -788,8 +784,8 @@ enum SMSessionFSMState {
 }
 
 
-//PDU session Establishment from AMF to SMF
-//SET MESSSAGE
+// PDU session Establishment from AMF to SMF
+// SET MESSSAGE
 message M5GSMSessionContext {
   uint32 pdu_session_id = 1;
   RequestType rquest_type = 2;        // Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial requerst, existing pdusession etc...
@@ -820,26 +816,22 @@ message M5GSMSessionContext {
 }
 
 message SetSMSessionContext {
-  CommonSessionContext common_context = 1;  //Common message for 4g, 5g and WiFi.
+  CommonSessionContext common_context = 1;  // Common message for 4g, 5g and WiFi.
   RatSpecificContext   rat_specific_context = 2;
 }
 
-//TODO This supposed to be empty message and the element will be removed later
+// TODO This supposed to be empty message and the element will be removed later
 message SmContextVoid {
   string output = 1;
 }
 
-//SET API for 3 procedures request from AMF to SMF
-        service AmfPduSessionSmContext {
-                rpc SetAmfSessionContext (SetSMSessionContext) returns (SmContextVoid);
-        }
 
 ////////// SET MESSAGE PROTO DEFINATION OF SMF TO AMF ON RESPONSE /////////////
 
-//4G response message has not been refactored yet. Hence only considering M5G.
+// 4G response message has not been refactored yet. Hence only considering M5G.
 message RatSpecificContextAccess {
-  //oneof context {//TODO need to be implemented after 4G refactored
-    //LTESessionContextAccess lte_context = 1;
+  // oneof context {// TODO need to be implemented after 4G refactored
+    // LTESessionContextAccess lte_context = 1;
     M5GSMSessionContextAccess m5g_session_context_rsp = 2;
   //}
 }
@@ -866,9 +858,9 @@ message M5GSMSessionContextAccess{
     uint32 pdu_session_id = 1;
     // selected PDU session TS-24501 - 9.11.4.11
     PduSessionType    pdu_session_type = 2;
-    //selected session and service continuty mode TS-24501 - 9.11.4.16
+    // selected session and service continuty mode TS-24501 - 9.11.4.16
     SscMode selected_ssc_mode = 3;
-    //TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
+    // TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
     repeated QosRules authorized_qos_rules = 4;
     // TS-24501 - 9.11.4.14 PDU session  Bit Rate imported from subscriberdb.proto
     AmbrUnit downlink_unit_type = 5;
@@ -889,7 +881,7 @@ message M5GSMSessionContextAccess{
 }
 
 message SetSMSessionContextAccess {
-  CommonSessionContext common_context = 1;  //Common message for 4g, 5g and WiFi.
+  CommonSessionContext common_context = 1;  // Common message for 4g, 5g and WiFi.
   RatSpecificContextAccess   rat_specific_context = 2;
 }
 
@@ -909,7 +901,7 @@ message UPFNodeState {
     }
 }
 
-//15.8 (Sec 8.2.82 User Plane IP Resource Information)
+// 15.8 (Sec 8.2.82 User Plane IP Resource Information)
 message UserPlaneIPResourceSchema {
     string ipv4_address = 1;
     string ipv6_address = 2;
@@ -942,7 +934,7 @@ message UPFAssociationState {
      RELEASE=4;
   }
 
-  //Association state of the UPF
+  // Association state of the UPF
   AssociationState assoc_state = 3;
 
   // Time when UPF got started
@@ -981,7 +973,7 @@ message UPFFeatureSet {
 }
 
 
-//15.8 (Sec 7.4.5.1) : PFCP Node Report Request
+// 15.8 (Sec 7.4.5.1) : PFCP Node Report Request
 message UPFNodeReport {
     uint32 state_version = 2;                                        // Version of the report
     LoadControlInformation load_control_info = 3;                    // Load Control Information
@@ -1032,12 +1024,14 @@ service SetInterfaceForUserPlane {
     rpc SendPagingRequest(UPFPagingInfo) returns (SmContextVoid) {}
 }
 
-// RPC service and method
+// SET API for 3 procedures request from AMF to SMF
+service AmfPduSessionSmContext {
+  rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
+  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid) {}    // AMF to SMF
+}
+// SET API RPC service and method request from SMF to AMF
 service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    // SMF to AMF
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid) {}
 }
 
-service AmfSmfSmNotification {
- rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid);    //AMF to SMF
-}
