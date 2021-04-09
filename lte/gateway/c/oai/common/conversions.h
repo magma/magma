@@ -42,6 +42,7 @@
 #include <netinet/in.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 
 #include "common_types.h"
 #include "3gpp_23.003.h"
@@ -399,6 +400,10 @@
 #define IMSI_STRING_TO_IMSI64(sTRING, iMSI64_pTr)                              \
   sscanf(sTRING, IMSI_64_FMT, iMSI64_pTr)
 
+/* Convert the IMEI contained by a char string NULL terminated to uint64_t */
+#define IMEI_STRING_TO_IMEI64(sTRING, iMEI64_pTr)                              \
+  sscanf(sTRING, IMEI_64_FMT, iMEI64_pTr)
+
 #define IMSI64_TO_CSFBIMSI(iMsI64_t, cSfBiMsI_t)                               \
   {                                                                            \
     if ((iMsI64_t / 100000000000000) != 0) {                                   \
@@ -516,6 +521,40 @@ imsi64_t imsi_to_imsi64(const imsi_t* const imsi);
           iMeI_sTr + l_offset, MaXlEn - l_offset, "%u",                        \
           (iMeI_t_PtR)->u.num.cdsd);                                           \
     }                                                                          \
+  }
+
+#define IMEI_MOBID_TO_IMEI64(iMeI_t_PtR, iMEI64)                               \
+  {                                                                            \
+    /*len = TAC((8 digits + SNR (6 digits) - 1)*/                              \
+    int len = 13;                                                              \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.tac1 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.tac2 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.tac3 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.tac4 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.tac5 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.tac6 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.tac7 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.tac8 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.snr1 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.snr2 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.snr3 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.snr4 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.snr5 * (pow(10, (len--))));    \
+    (*iMEI64) += (uint64_t)((iMeI_t_PtR)->u.num.snr6 * (pow(10, (len--))));    \
+  }
+
+#define IMEI_MOBID_TO_IMEI_TAC64(iMeI_t_PtR, tAc_PtR)                          \
+  {                                                                            \
+    /* len = TAC length(8 digits) - 1*/                                        \
+    int len = 7;                                                               \
+    (*tAc_PtR) += (uint64_t)((iMeI_t_PtR)->u.num.tac1 * (pow(10, (len--))));   \
+    (*tAc_PtR) += (uint64_t)((iMeI_t_PtR)->u.num.tac2 * (pow(10, (len--))));   \
+    (*tAc_PtR) += (uint64_t)((iMeI_t_PtR)->u.num.tac3 * (pow(10, (len--))));   \
+    (*tAc_PtR) += (uint64_t)((iMeI_t_PtR)->u.num.tac4 * (pow(10, (len--))));   \
+    (*tAc_PtR) += (uint64_t)((iMeI_t_PtR)->u.num.tac5 * (pow(10, (len--))));   \
+    (*tAc_PtR) += (uint64_t)((iMeI_t_PtR)->u.num.tac6 * (pow(10, (len--))));   \
+    (*tAc_PtR) += (uint64_t)((iMeI_t_PtR)->u.num.tac7 * (pow(10, (len--))));   \
+    (*tAc_PtR) += (uint64_t)((iMeI_t_PtR)->u.num.tac8 * (pow(10, (len))));     \
   }
 
 #define IMSI_TO_OCTET_STRING(iMsI_sTr, iMsI_len, aSN)                          \
