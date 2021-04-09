@@ -211,8 +211,8 @@ static bool amf_app_construct_guti(
    */
   bool is_guti_valid =
       false;  // Set to true if serving AMF is found and GUTI is constructed
-  uint8_t num_amf         = 0;  // Number of configured AMF in the AMF pool
-  guti_p->m_tmsi          = s_tmsi_p->m_tmsi;
+  uint8_t num_amf           = 0;  // Number of configured AMF in the AMF pool
+  guti_p->m_tmsi            = s_tmsi_p->m_tmsi;
   guti_p->guamfi.amf_set_id = s_tmsi_p->amf_set_id;
   // Create GUTI by using PLMN Id and AMF-Group Id of serving AMF
   OAILOG_DEBUG(
@@ -254,9 +254,10 @@ static bool amf_app_construct_guti(
   if (num_amf >= amf_config_handler.guamfi.nb) {
     OAILOG_DEBUG(LOG_AMF_APP, "No AMF serves this UE");
   } else {
-    guti_p->guamfi.plmn    = amf_config_handler.guamfi.guamfi[num_amf].plmn;
-    guti_p->guamfi.amf_regionid = amf_config_handler.guamfi.guamfi[num_amf].amf_regionid;
-    is_guti_valid          = true;
+    guti_p->guamfi.plmn = amf_config_handler.guamfi.guamfi[num_amf].plmn;
+    guti_p->guamfi.amf_regionid =
+        amf_config_handler.guamfi.guamfi[num_amf].amf_regionid;
+    is_guti_valid = true;
   }
   amf_config_unlock(&amf_config_handler);
   return is_guti_valid;
@@ -320,18 +321,19 @@ imsi64_t amf_app_handle_initial_ue_message(
      * hence not-used functions are take out
      */
     OAILOG_DEBUG(
-        LOG_AMF_APP, "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
-    guti.guamfi.plmn        = {0};
-    guti.guamfi.amf_regionid     = 0;
-    guti.guamfi.amf_set_id    = 0;
-    guti.guamfi.amf_pointer = 0;
-    guti.m_tmsi             = INVALID_M_TMSI;
-    plmn.mcc_digit1         = initial_pP->tai.plmn.mcc_digit1;
-    plmn.mcc_digit2         = initial_pP->tai.plmn.mcc_digit2;
-    plmn.mcc_digit3         = initial_pP->tai.plmn.mcc_digit3;
-    plmn.mnc_digit1         = initial_pP->tai.plmn.mnc_digit1;
-    plmn.mnc_digit2         = initial_pP->tai.plmn.mnc_digit2;
-    plmn.mnc_digit3         = initial_pP->tai.plmn.mnc_digit3;
+        LOG_AMF_APP,
+        "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
+    guti.guamfi.plmn         = {0};
+    guti.guamfi.amf_regionid = 0;
+    guti.guamfi.amf_set_id   = 0;
+    guti.guamfi.amf_pointer  = 0;
+    guti.m_tmsi              = INVALID_M_TMSI;
+    plmn.mcc_digit1          = initial_pP->tai.plmn.mcc_digit1;
+    plmn.mcc_digit2          = initial_pP->tai.plmn.mcc_digit2;
+    plmn.mcc_digit3          = initial_pP->tai.plmn.mcc_digit3;
+    plmn.mnc_digit1          = initial_pP->tai.plmn.mnc_digit1;
+    plmn.mnc_digit2          = initial_pP->tai.plmn.mnc_digit2;
+    plmn.mnc_digit3          = initial_pP->tai.plmn.mnc_digit3;
     is_guti_valid =
         amf_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
     // create a new ue context if nothing is found
@@ -404,7 +406,7 @@ imsi64_t amf_app_handle_initial_ue_message(
       s_tmsi = initial_pP->opt_s_tmsi;
     } else {
       s_tmsi.amf_set_id = 0;
-      s_tmsi.m_tmsi   = INVALID_M_TMSI;
+      s_tmsi.m_tmsi     = INVALID_M_TMSI;
     }
 
     OAILOG_DEBUG(
