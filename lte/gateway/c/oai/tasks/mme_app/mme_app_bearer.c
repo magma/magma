@@ -84,6 +84,8 @@
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 extern int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
+static void handle_ics_failure(
+    struct ue_mm_context_s* ue_context_p, char* error_msg);
 int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -1877,7 +1879,7 @@ int mme_app_handle_initial_context_setup_rsp_timer_expiry(
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
-    OAILOG_WARNING(
+    OAILOG_ERROR(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -1890,49 +1892,7 @@ int mme_app_handle_initial_context_setup_rsp_timer_expiry(
         mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  ue_context_p->time_ics_rsp_timer_started         = 0;
-  /* *********Abort the ongoing procedure*********
-   * Check if UE is registered already that implies service request procedure is
-   * active. If so then release the S1AP context and move the UE back to idle
-   * mode. Otherwise if UE is not yet registered that implies attach procedure
-   * is active. If so,then abort the attach procedure and release the UE
-   * context.
-   */
-  ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
-  mme_app_desc_t* mme_app_desc_p     = get_mme_nas_state(false);
-  // Remove enb_s1ap_id_key from the hashtable
-  hashtable_uint64_ts_remove(
-      mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-      (const hash_key_t) ue_context_p->enb_s1ap_id_key);
-
-  if (ue_context_p->mm_state == UE_UNREGISTERED) {
-    nas_emm_attach_proc_t* attach_proc =
-        get_nas_specific_procedure_attach(&ue_context_p->emm_context);
-    // Stop T3450 timer if its still runinng
-    if (attach_proc) {
-      nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450, NULL);
-    }
-    // Initiate Implicit Detach for the UE
-    nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
-    increment_counter(
-        "ue_attach", 1, 2, "result", "failure", "cause",
-        "no_context_setup_rsp_from_enb");
-    increment_counter("ue_attach", 1, 1, "action", "attach_abort");
-  } else {
-    // Release S1-U bearer and move the UE to idle mode
-    for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
-      if (ue_context_p->pdn_contexts[i]) {
-        mme_app_send_s11_release_access_bearers_req(ue_context_p, i);
-      }
-    }
-    /* Handles CSFB failure */
-    if (ue_context_p->sgs_context != NULL) {
-      handle_csfb_s1ap_procedure_failure(
-          ue_context_p, "initial_context_setup_timer_expired",
-          INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
-    }
-  }
+  handle_ics_failure(ue_context_p, "no_context_setup_rsp_from_enb");
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 //------------------------------------------------------------------------------
@@ -1959,40 +1919,8 @@ void mme_app_handle_initial_context_setup_failure(
   if (ue_context_p->initial_context_setup_rsp_timer.id !=
       MME_APP_TIMER_INACTIVE_ID) {
     mme_app_stop_timer(ue_context_p->initial_context_setup_rsp_timer.id);
-    ue_context_p->initial_context_setup_rsp_timer.id =
-        MME_APP_TIMER_INACTIVE_ID;
-    ue_context_p->time_implicit_detach_timer_started = 0;
-    /* *********Abort the ongoing procedure*********
-     * Check if UE is registered already that implies service request procedure
-     * is active. If so then release the S1AP context and move the UE back to
-     * idle mode. Otherwise if UE is not yet registered that implies attach
-     * procedure is active. If so,then abort the attach procedure and release
-     * the UE context.
-     */
-    ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
-    if (ue_context_p->mm_state == UE_UNREGISTERED) {
-      // Initiate Implicit Detach for the UE
-      nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
-      increment_counter(
-          "ue_attach", 1, 2, "result", "failure", "cause",
-          "initial_context_setup_failure_rcvd");
-      increment_counter("ue_attach", 1, 1, "action", "attach_abort");
-    } else {
-      // Release S1-U bearer and move the UE to idle mode
-
-      for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
-        if (ue_context_p->pdn_contexts[i]) {
-          mme_app_send_s11_release_access_bearers_req(ue_context_p, i);
-        }
-      }
-      /* Handles CSFB failure */
-      if (ue_context_p->sgs_context != NULL) {
-        handle_csfb_s1ap_procedure_failure(
-            ue_context_p, "initial_context_setup_failed",
-            INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
-      }
-    }
   }
+  handle_ics_failure(ue_context_p, "initial_context_setup_failure_rcvd");
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
@@ -4082,6 +4010,45 @@ void mme_app_handle_modify_bearer_rsp(
       }
       // Free the saved message
       free_wrapper((void**) &ue_context_p->pending_ded_ber_req[idx]);
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+static void handle_ics_failure(
+    struct ue_mm_context_s* ue_context_p, char* error_msg) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->time_ics_rsp_timer_started         = 0;
+  ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
+  /* *********Abort the ongoing procedure*********
+   * Check if UE is registered already that implies service request procedure is
+   * active. If so then release the S1AP context and move the UE back to idle
+   * mode. Otherwise if UE is not yet registered that implies attach procedure
+   * is active. If so,then abort the attach procedure and release the UE
+   * context.
+   */
+
+  OAILOG_ERROR_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64, "handle ics failure \n");
+  if (ue_context_p->mm_state == UE_UNREGISTERED) {
+    // Initiate Implicit Detach for the UE
+    nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
+    increment_counter(
+        "ue_attach", 1, 2, "result", "failure", "cause", error_msg);
+    increment_counter("ue_attach", 1, 1, "action", "attach_abort");
+  } else {
+    // Release S1-U bearer and move the UE to idle mode
+
+    for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
+      if (ue_context_p->pdn_contexts[i]) {
+        mme_app_send_s11_release_access_bearers_req(ue_context_p, i);
+      }
+    }
+    /* Handles CSFB failure */
+    if (ue_context_p->sgs_context != NULL) {
+      handle_csfb_s1ap_procedure_failure(
+          ue_context_p, error_msg, INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
