@@ -28,7 +28,7 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 static void convert_proto_msg_to_itti_csr(
     magma::feg::CreateSessionResponsePgw& response,
-    s8_create_session_response_t* s5_response);
+    s8_create_session_response_t* s5_response, bearer_qos_t dflt_bearer_qos);
 
 static void get_qos_from_proto_msg(
     const magma::feg::QosInformation& proto_qos, bearer_qos_t* bearer_qos) {
@@ -154,7 +154,8 @@ static void recv_s8_delete_session_response(
 }
 
 static void recv_s8_create_session_response(
-    imsi64_t imsi64, teid_t context_teid, const grpc::Status& status,
+    imsi64_t imsi64, teid_t context_teid, bearer_qos_t dflt_bearer_qos,
+    const grpc::Status& status,
     magma::feg::CreateSessionResponsePgw& response) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   s8_create_session_response_t* s5_response = NULL;
@@ -172,7 +173,7 @@ static void recv_s8_create_session_response(
   message_p->ittiMsgHeader.imsi = imsi64;
   s5_response->context_teid     = context_teid;
   if (status.ok()) {
-    convert_proto_msg_to_itti_csr(response, s5_response);
+    convert_proto_msg_to_itti_csr(response, s5_response, dflt_bearer_qos);
   } else {
     OAILOG_ERROR(
         LOG_SGW_S8,
@@ -405,6 +406,7 @@ void send_s8_create_session_request(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   magma::feg::CreateSessionRequestPgw csr_req;
+  bearer_qos_t dflt_bearer_qos = {0};
 
   // teid shall remain same for both sgw's s11 interface and s8 interface as
   // teid is allocated per PDN
@@ -414,18 +416,21 @@ void send_s8_create_session_request(
       sgw_s11_teid);
 
   fill_s8_create_session_req(msg, &csr_req, sgw_s11_teid);
+  dflt_bearer_qos =
+      msg->bearer_contexts_to_be_created.bearer_contexts[0].bearer_level_qos;
 
   magma::S8Client::s8_create_session_request(
       csr_req,
-      [imsi64, sgw_s11_teid](
+      [imsi64, sgw_s11_teid, dflt_bearer_qos](
           grpc::Status status, magma::feg::CreateSessionResponsePgw response) {
-        recv_s8_create_session_response(imsi64, sgw_s11_teid, status, response);
+        recv_s8_create_session_response(
+            imsi64, sgw_s11_teid, dflt_bearer_qos, status, response);
       });
 }
 
 static void convert_proto_msg_to_itti_csr(
     magma::feg::CreateSessionResponsePgw& response,
-    s8_create_session_response_t* s5_response) {
+    s8_create_session_response_t* s5_response, bearer_qos_t dflt_bearer_qos) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   s5_response->apn_restriction_value = response.apn_restriction();
   get_fteid_from_proto_msg(
@@ -437,7 +442,12 @@ static void convert_proto_msg_to_itti_csr(
   s8_bc->eps_bearer_id       = response.bearer_context().id();
   s5_response->eps_bearer_id = s8_bc->eps_bearer_id;
   s8_bc->charging_id         = response.bearer_context().charging_id();
-  get_qos_from_proto_msg(response.bearer_context().qos(), &s8_bc->qos);
+  if (response.bearer_context().valid_qos()) {
+    get_qos_from_proto_msg(response.bearer_context().qos(), &s8_bc->qos);
+  } else {
+    // If qos is not received from PGW, set the qos that was sent in CS Req
+    s8_bc->qos = dflt_bearer_qos;
+  }
   get_fteid_from_proto_msg(
       response.bearer_context().user_plane_fteid(), &s8_bc->pgw_s8_up);
   if (response.has_gtp_error()) {
