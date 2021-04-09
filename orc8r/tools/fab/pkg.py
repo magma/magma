@@ -120,7 +120,7 @@ def upload_pkgs_to_aws():
     # Upload to AWS
     s3_path = 's3://magma-images/gateway/' + magma_version
     local('aws s3 cp /tmp/packages.txt ' + s3_path + '.deplist')
-    local('aws s3 cp release/magma.lockfile ' + s3_path + '.lockfile')
+    local('aws s3 cp release/magma.lockfile.debian ' + s3_path + '.lockfile.debian')
     local('aws s3 cp /tmp/packages.tar.gz ' + s3_path + '.deps.tar.gz')
 
     # Clean up
