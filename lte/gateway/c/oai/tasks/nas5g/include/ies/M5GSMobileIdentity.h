@@ -30,9 +30,8 @@ class GutiM5GSMobileIdentity {
   uint8_t mnc_digit2 : 4;
   uint8_t mnc_digit1 : 4;
   uint8_t amf_regionid;
-  uint8_t amf_setid;
-  uint8_t amf_setid1;
-  uint8_t amf_pointer : 6;
+  uint16_t amf_setid : 10;
+  uint16_t amf_pointer : 6;
   uint8_t tmsi1;
   uint8_t tmsi2;
   uint8_t tmsi3;
@@ -132,13 +131,9 @@ class TmsiM5GSMobileIdentity {
   uint8_t spare : 4;
   uint8_t odd_even : 1;
   uint8_t type_of_identity : 3;
-  uint8_t amf_setid;
-  uint8_t amf_setid1 : 2;
-  uint8_t amf_pointer : 6;
-  uint8_t m5g_tmsi_1;
-  uint8_t m5g_tmsi_2;
-  uint8_t m5g_tmsi_3;
-  uint8_t m5g_tmsi_4;
+  uint16_t amf_setid : 10;
+  uint16_t amf_pointer : 6;
+  uint8_t m5g_tmsi[4];
 };
 
 // M5GSMobileIdentityIe Type, SPEC : TS-24501, SEC : 9.11.3.4
@@ -159,11 +154,11 @@ class M5GSMobileIdentityMsg {
   uint8_t iei;
   uint16_t len;
   uint8_t toi;
-#define M5GSMobileIdentityMsg_SUCI 0x05
+#define M5GSMobileIdentityMsg_SUCI_IMSI 0x01
 #define M5GSMobileIdentityMsg_GUTI 0x02
 #define M5GSMobileIdentityMsg_IMEI 0x03
 #define M5GSMobileIdentityMsg_TMSI 0x04
-#define M5GSMobileIdentityMsg_IMSI 0x01
+#define M5GSMobileIdentityMsg_IMEISV 0x05
 #define MOBILE_IDENTITY_MIN_LENGTH 3
 #define MOBILE_IDENTITY_MAX_LENGTH 13
   M5GSMobileIdentityIe mobile_identity;

@@ -55,7 +55,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
-  //  amf_app_defs amf_defs;
   switch (ITTI_MSG_ID(received_message_p)) {
     /* Handle Initial UE message from NGAP */
     case NGAP_INITIAL_UE_MESSAGE:
@@ -104,14 +103,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        * or success messages are coming from NGAP
        */
       OAILOG_INFO(
-          LOG_AMF_APP, "AMF_TEST: N11_NOTIFICATION_RECEIVED received\n");
+          LOG_AMF_APP, "N11_NOTIFICATION_RECEIVED received\n");
       imsi64 = itti_get_associated_imsi(received_message_p);
       OAILOG_INFO(
           LOG_AMF_APP,
-          "AMF-TEST : imsi ===============> %lu PAGING NOTIFICATION =======> "
+          "imsi ===============> %lu PAGING NOTIFICATION =======> "
           "message_type = %d \n",
           imsi64, ITTI_MSG_ID(received_message_p));
-      // amf_defs.amf_app_handle_notification_received(
+      //amf_defs.amf_app_handle_notification_received(
       amf_app_handle_notification_received(
           &N11_NOTIFICATION_RECEIVED(received_message_p));
       break;

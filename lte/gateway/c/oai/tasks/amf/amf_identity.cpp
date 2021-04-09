@@ -139,7 +139,7 @@ int amf_proc_identification_complete(
       amf_context_upsert_imsi(amf_ctx);
       amf_ctx->imsi64      = imsi64;
       amf_ctx->imsi.length = 8;
-      amf_ctx->m5_guti     = *amf_ctx_guti;
+      amf_ctx->_m5_guti     = *amf_ctx_guti;
     } else {
       OAILOG_ERROR(
           LOG_AMF_APP,
@@ -180,9 +180,8 @@ void amf_app_generate_guti_on_supi(
   amf_config_read_lock(&amf_config);
   amf_guti->guamfi.amf_regionid = amf_config.guamfi.guamfi[0].amf_regionid;
   // TODO: Temp hardcoded change to remove later
-  amf_guti->guamfi.amf_set_id = 0;
-  // amf_guti->guamfi.amf_set_id   = amf_config.guamfi.guamfi[0].amf_set_id;
-  amf_guti->guamfi.amf_pointer = amf_config.guamfi.guamfi[0].amf_pointer;
+  amf_guti->guamfi.amf_set_id   = 0;
+  amf_guti->guamfi.amf_pointer  = amf_config.guamfi.guamfi[0].amf_pointer;
   amf_config_unlock(&amf_config);
   return;
 }
