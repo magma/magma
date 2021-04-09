@@ -98,6 +98,7 @@ class RedirectTest(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
                 'clean_restart': True,
+                'setup_type': 'LTE',
             },
             mconfig=PipelineD(),
             loop=None,
