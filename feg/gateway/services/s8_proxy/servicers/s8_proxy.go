@@ -159,7 +159,8 @@ func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.
 }
 
 func validateCreateSessionRequest(csr *protos.CreateSessionRequestPgw) error {
-	if csr.BearerContext == nil || csr.BearerContext.UserPlaneFteid == nil || csr.BearerContext.Id == 0 {
+	if csr.BearerContext == nil || csr.BearerContext.UserPlaneFteid == nil || csr.BearerContext.Id == 0 ||
+		csr.BearerContext.Qos == nil {
 		return fmt.Errorf("CreateSessionRequest missing fields %+v", csr)
 	}
 	return nil

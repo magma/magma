@@ -324,15 +324,15 @@ def _deploy_lte_packages(repo: str, magma_root: str):
     get('/tmp/packages.tar.gz', 'packages.tar.gz')
     get('/tmp/packages.txt', 'packages.txt')
     get('/tmp/magma_version', 'magma_version')
-    get(f'{repo_name}/{magma_root}/lte/gateway/release/magma.lockfile',
-        'magma.lockfile')
+    get(f'{repo_name}/{magma_root}/lte/gateway/release/magma.lockfile.debian',
+        'magma.lockfile.debian')
 
     with open('magma_version') as f:
         magma_version = f.readlines()[0].strip()
     s3_path = f's3://magma-images/gateway/{magma_version}'
     local(f'aws s3 cp packages.txt {s3_path}.deplist '
           f'--acl bucket-owner-full-control')
-    local(f'aws s3 cp magma.lockfile {s3_path}.lockfile '
+    local(f'aws s3 cp magma.lockfile.debian {s3_path}.lockfile.debian '
           f'--acl bucket-owner-full-control')
     local(f'aws s3 cp packages.tar.gz {s3_path}.deps.tar.gz '
           f'--acl bucket-owner-full-control')
